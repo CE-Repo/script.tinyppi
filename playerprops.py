@@ -74,6 +74,8 @@ def _normalize_fps(fps_value):
         50.0,
         59.94,
         60.0,
+        100.0,
+        120.0,
     ]
 
     closest = min(standards, key=lambda x: abs(x - fps))
@@ -96,16 +98,25 @@ def get_DisplayModeVar():
     if not val:
         return ""
 
-    val = str(val)
+    val = str(val).strip()
 
-    match = re.search(r"(\d+(?:\.\d+)?)Hz", val)
+    # Amlogic may insert spaces within the Hz value for 3-digit rates
+    # (e.g. "1920x1080p 1 00hz" for 100 Hz, "1920x1080p 1 20hz" for 120 Hz).
+    # Collapse all internal whitespace so the regex always sees a compact string.
+    compact = re.sub(r"\s+", "", val)
+
+    match = re.match(
+        r"(\d+(?:x\d+)?)(p|i)(\d+(?:\.\d+)?)[Hh][Zz]",
+        compact,
+        re.IGNORECASE,
+    )
     if not match:
-        return val
+        return val  # return original (with spacing) if format is unrecognised
 
-    raw_fps = match.group(1)
+    res, scan, raw_fps = match.groups()
     norm_fps = _normalize_fps(raw_fps)
 
-    return val.replace(raw_fps + "Hz", norm_fps + "Hz")
+    return f"{res}{scan} {norm_fps}Hz"
 
     
 def _format_fps(fps_value):
