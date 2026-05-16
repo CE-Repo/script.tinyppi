@@ -192,35 +192,85 @@ def get_HdrTypeVar():
     return val
     
     
+# --- Optional fallback for CoreELEC NO-branch (S905X4/S905X5) + Kodi 22 ---
+# On some hardware/branch combos (notably Ugoos AM9 Pro / S905X5 on Piers nightly
+# with jellyfin-kodi stream-mode playback), Kodi's `VideoPlayer.HdrDetail` infolabel
+# returns an empty string during DV Profile 7 playback even though the kernel-side
+# DV pipeline is fully active (verified via /sys/class/amdolby_vision/* and dmesg).
+# This helper provides a kernel-state fallback that only confirms FEL when the
+# Amlogic kernel actively logs `enable_fel 1` + `enable_mel 1` (which fire together
+# for Profile 7 FEL). It does NOT try to distinguish Profile 7 MEL from Profile 8
+# because both produce the same both-zero pattern on this branch.
+
+_FEL_CACHE = {"ts": 0, "fel": None}
+
+
+def _get_fel_from_dmesg():
+    """Most-recent enable_fel/enable_mel state from kernel ring buffer.
+    Returns True only if both signals are 1 (confirmed Profile 7 FEL).
+    Cached 5 seconds to avoid hammering dmesg during the 1s poll loop."""
+    import subprocess, time
+    now = time.time()
+    if now - _FEL_CACHE["ts"] < 5:
+        return _FEL_CACHE["fel"]
+    try:
+        out = subprocess.run(
+            ["dmesg"], capture_output=True, text=True, timeout=2
+        ).stdout
+        fel = mel = None
+        for line in reversed(out.splitlines()):
+            if "enable_fel " in line and fel is None:
+                fel = line.split("enable_fel ")[-1].split()[0] == "1"
+            if "enable_mel " in line and mel is None:
+                mel = line.split("enable_mel ")[-1].split()[0] == "1"
+            if fel is not None and mel is not None:
+                break
+        confirmed = fel is True and mel is True
+        _FEL_CACHE.update({"ts": now, "fel": confirmed})
+        return confirmed
+    except Exception:
+        return None
+
+
 def get_HdrDetailVar():
     raw = _info("VideoPlayer.HdrDetail")
-    if not raw:
-        return ""
 
-    lines = str(raw).splitlines()
-    out = []
+    # Primary path: Kodi populates HdrDetail (NG-branch / Kodi 21 / direct paths).
+    # Format is typically "7FEL" / "7MEL" — color-code the suffix.
+    if raw:
+        lines = str(raw).splitlines()
+        out = []
 
-    for line in lines:
-        line = line.strip()
+        for line in lines:
+            line = line.strip()
 
-        match = re.match(r"(\d+)(FEL|MEL)", line)
-        if match:
-            num, typ = match.groups()
+            match = re.match(r"(\d+)(FEL|MEL)", line)
+            if match:
+                num, typ = match.groups()
 
-            if typ == "FEL":
-                color = "palegreen"
-            elif typ == "MEL":
-                color = "orange"
+                if typ == "FEL":
+                    color = "palegreen"
+                elif typ == "MEL":
+                    color = "orange"
+                else:
+                    color = "white"
+
+                out.append(f"{num} [COLOR {color}]{typ}[/COLOR]")
             else:
-                color = "white"
+                out.append(line)
 
-            out.append(f"{num} [COLOR {color}]{typ}[/COLOR]")
-        else:
-            out.append(line)
+        return "\n".join(out)
 
-    return "\n".join(out)
-    
-    
+    # Fallback for NO-branch / Kodi 22 / stream-mode playback where Kodi's
+    # HdrDetail label stays empty. Only confirms FEL when kernel signals are
+    # unambiguous; stays silent for MEL/Profile 8 since they cannot be reliably
+    # distinguished from the kernel state on this branch.
+    if "dolby" in str(_info("VideoPlayer.HdrType")).lower():
+        if _get_fel_from_dmesg() is True:
+            return "7 [COLOR palegreen]FEL[/COLOR]"
+
+    return ""
+
 def get_ModeVar():
     val = _info("Player.Process(amlogic.eoft_gamut)")
 
