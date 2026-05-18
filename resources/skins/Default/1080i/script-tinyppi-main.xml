@@ -497,7 +497,7 @@
 						<textcolor>e7ededed</textcolor>
 					</control>
 					
-					<!-- Player cache -->
+					<!-- Placeholder -->
 					<control type="label">
 						<top>155</top>
 						<label>Placeholder:</label>
