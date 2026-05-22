@@ -66,6 +66,7 @@ _AUDIO_CODEC_MAP = {
     "cdda":             "CDDA",
     "dca":              "DTS",
     "dolbydigital":     "Dolby Digital",
+    "dts":              "DTS",
     "dtshd":            "DTS-HD",
     "dtshd_ma":         "DTS-HD MA",
     "dtshd_hra":        "DTS-HD HRA",
