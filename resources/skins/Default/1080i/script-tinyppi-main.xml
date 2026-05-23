@@ -18,6 +18,10 @@
 					<texture colordiffuse="FF000000">gradient.png</texture>
 				</control>
 			</control>
+			
+            <include condition="Skin.HasSetting(ppi.useleftCodecLogos)">CodecLogosLeftOSD</include>
+            <include condition="Skin.HasSetting(ppi.usecenterCodecLogos)">CodecLogosCenterOSD</include>
+            <include condition="Skin.HasSetting(ppi.userightCodecLogos)">CodecLogosRightOSD</include>
 
 			<!-- Group: Bottom screen -->
 			<control type="group">
