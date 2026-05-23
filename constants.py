@@ -39,7 +39,7 @@ _SUBTITLE_CODEC_MAP = {
     "sami": "SAMI",
     "srt": "SubRip",
     "ssa": "SSA",
-    "subrip": "Subrip",
+    "subrip": "SubRip",
     "text": "Text",
     "ttml": "TTML",
     "vplayer": "VPlayer",
