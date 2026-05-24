@@ -500,7 +500,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>155</top>
-						<label>$INFO[Player.Time] $INFO[Player.Duration,/ ,] [COLOR b3ededed]$INFO[Player.Progress, (,%)][/COLOR]</label>
+						<label>$INFO[Player.Time] $INFO[Player.Duration,/ ,] [COLOR b3ededed]$INFO[Player.Progress,(,%)][/COLOR]</label>
 						<font>font10</font>
 						<textcolor>e7ededed</textcolor>
 						<visible>!String.IsEmpty(Player.Duration)</visible>
