@@ -9,19 +9,57 @@
     <animation effect="fade" end="0" start="100" time="150">WindowClose</animation>
     <controls>
         <control type="group">
-			<!-- Modern background -->
+			<!-- Modern -->
 			<control type="group">
 				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),1)</visible>
-				<left>40</left>
-				<top>565</top>
-				<width>1190</width>
-				<height>475</height>
-				<control type="image">
-					<texture border="30" colordiffuse="ffffffff">background.png</texture>
+
+				<!-- Background -->
+				<control type="group">
+					<left>35</left>
+					<top>440</top>
+					<width>1220</width>
+					<height>605</height>
+					<control type="image">
+						<texture colordiffuse="FAFFFFFF">background.png</texture>
+					</control>
+				</control>
+
+				<!-- Label -->
+				<control type="group">
+					<left>70</left>
+					<top>469</top>
+					<control type="label">
+						<label>[CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE]</label>
+						<font>font32</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+				</control>
+
+				<!-- Chart icon -->
+				<control type="group">
+					<left>1174</left>
+					<top>461</top>
+					<control type="image">
+						<width>64</width>
+						<height>64</height>
+						<texture colordiffuse="E7EDEDED">chart.png</texture>
+					</control>
+				</control>
+
+				<!-- Line -->
+				<control type="group">
+					<left>70</left>
+					<top>545</top>
+					<control type="image">
+						<width>1150</width>
+						<height>1</height>
+						<texture colordiffuse="26808080">line.png</texture>
+					</control>
 				</control>
 			</control>
 
-			<!-- Classic background -->
+			<!-- Classic -->
 			<control type="group">
 				<visible>String.IsEqual(Window(10000).Property(TinyPPI.BackgroundToggle),0)</visible>
 				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),0)</visible>
@@ -53,7 +91,7 @@
 						<top>2</top>
 						<label></label>
 						<font>font23_icon</font>
-						<textcolor>ffededed</textcolor>
+						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -63,14 +101,14 @@
 						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32054][/UPPERCASE][/B]</label>
 						<left>37</left>
 						<font>font23_narrow</font>
-						<textcolor>ffededed</textcolor>
+						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
 						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32054][/UPPERCASE][/B]</label>
 						<font>font23_narrow</font>
-						<textcolor>ffededed</textcolor>
+						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -79,7 +117,7 @@
 						<top>30</top>
 						<label>$ADDON[script.tinyppi 32000]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -87,7 +125,7 @@
 						<top>30</top>
 						<label>$INFO[Window().Property(DisplayModeVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -96,7 +134,7 @@
 						<top>60</top>
 						<label>$ADDON[script.tinyppi 32001]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -104,7 +142,7 @@
 						<top>60</top>
 						<label>$INFO[Window().Property(VideoResolutionVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -113,7 +151,7 @@
 						<top>90</top>
 						<label>$ADDON[script.tinyppi 32023]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -121,7 +159,7 @@
 						<top>90</top>
 						<label>$INFO[Window().Property(VideoPixelFormatVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -130,7 +168,7 @@
 						<top>120</top>
 						<label>$ADDON[script.tinyppi 32024]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -138,7 +176,7 @@
 						<top>120</top>
 						<label>$INFO[Player.Process(videodar)]:1</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -147,7 +185,7 @@
 						<top>150</top>
 						<label>$ADDON[script.tinyppi 32005]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -155,7 +193,7 @@
 						<top>150</top>
 						<label>[UPPERCASE]$INFO[Player.Process(videodecoder)][/UPPERCASE] [COLOR b3ededed]$INFO[Window().Property(VideoDecoderVar),(,)][/COLOR]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -164,7 +202,7 @@
 						<top>180</top>
 						<label>$ADDON[script.tinyppi 32046]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -172,7 +210,7 @@
 						<top>180</top>
 						<label>$INFO[Window().Property(VideoCodecVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -181,7 +219,7 @@
 						<top>210</top>
 						<label>$ADDON[script.tinyppi 32031]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -189,7 +227,7 @@
 						<top>210</top>
 						<label>[CAPITALIZE]$INFO[Player.Process(deintmethod)][/CAPITALIZE]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 				</control>
@@ -205,7 +243,7 @@
 						<top>2</top>
 						<label></label>
 						<font>font23_icon</font>
-						<textcolor>ffededed</textcolor>
+						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -215,14 +253,14 @@
 						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32007][/UPPERCASE][/B]</label>
 						<left>35</left>
 						<font>font23_narrow</font>
-						<textcolor>ffededed</textcolor>
+						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
 						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32007][/UPPERCASE][/B]</label>
 						<font>font23_narrow</font>
-						<textcolor>ffededed</textcolor>
+						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -231,7 +269,7 @@
 						<top>30</top>
 						<label>$ADDON[script.tinyppi 32026]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -240,7 +278,7 @@
 						<top>30</top>
 						<label>$INFO[Window().Property(HdrCheckVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -249,7 +287,7 @@
 						<top>34</top>
 						<label>$INFO[Window().Property(HdrCheckVar)]</label>
 						<font>font23_icon</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -258,15 +296,15 @@
 						<top>60</top>
 						<label>$ADDON[script.tinyppi 32027]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
 						<left>210</left>
 						<top>60</top>
-						<label>$INFO[Window().Property(HdrTypeVar)] $INFO[Window().Property(HdrDetailVar)]$INFO[Window().Property(ModeConvertVar)]</label>
+						<label>$INFO[Window().Property(HdrTypeVar)] $INFO[Window().Property(HdrDetailVar)] $INFO[Window().Property(ModeConvertVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -275,7 +313,7 @@
 						<top>90</top>
 						<label>$ADDON[script.tinyppi 32047]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -283,7 +321,7 @@
 						<top>90</top>
 						<label>$INFO[Window().Property(VideoBitrateMBVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<!-- N/A -->
@@ -292,7 +330,7 @@
 						<top>90</top>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<visible>String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 						<aligny>top</aligny>
 					</control>
@@ -302,7 +340,7 @@
 						<top>120</top>
 						<label>$ADDON[script.tinyppi 32070]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -310,7 +348,7 @@
 						<top>120</top>
 						<label>$INFO[Window().Property(ModeVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -319,7 +357,7 @@
 						<top>150</top>
 						<label>$ADDON[script.tinyppi 32015]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -327,7 +365,7 @@
 						<top>150</top>
 						<label>$INFO[Window().Property(GamutVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 				</control>
@@ -342,7 +380,7 @@
 						<top>3</top>
 						<label></label>
 						<font>font23_icon</font>
-						<textcolor>ffededed</textcolor>
+						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -352,14 +390,14 @@
 						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32056][/UPPERCASE][/B]</label>
 						<left>36</left>
 						<font>font23_narrow</font>
-						<textcolor>ffededed</textcolor>
+						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
 						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32056][/UPPERCASE][/B]</label>
 						<font>font23_narrow</font>
-						<textcolor>ffededed</textcolor>
+						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -368,13 +406,13 @@
 						<top>30</top>
 						<label>$ADDON[script.tinyppi 32046]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
 						<left>240</left>
 						<top>30</top>
-						<label>[COLOR e7ededed]$INFO[Window().Property(AudioCodecVar)] $INFO[Window().Property(AudioChannelsVar)][/COLOR] [COLOR b3ededed]$INFO[Window().Property(AudioCodecSpatialVar)][/COLOR]</label>
+						<label>[COLOR E7EDEDED]$INFO[Window().Property(AudioCodecVar)] $INFO[Window().Property(AudioChannelsVar)][/COLOR] [COLOR b3ededed]$INFO[Window().Property(AudioCodecSpatialVar)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<aligny>top</aligny>
 					</control>
@@ -384,7 +422,7 @@
 						<top>60</top>
 						<label>$ADDON[script.tinyppi 32069]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -392,7 +430,7 @@
 						<top>60</top>
 						<label>$INFO[Player.Process(audiobitspersample),,-bit] | $INFO[Window().Property(AudioSampleRateVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -401,7 +439,7 @@
 						<top>90</top>
 						<label>$ADDON[script.tinyppi 32047]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -409,7 +447,7 @@
 						<top>90</top>
 						<label>$INFO[Window().Property(AudioBitrateMBVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<!-- N/A -->
@@ -418,7 +456,7 @@
 						<top>90</top>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<visible>String.IsEmpty(Window().Property(AudioBitrateMBVar))</visible>
 						<aligny>top</aligny>
 					</control>
@@ -428,7 +466,7 @@
 						<top>120</top>
 						<label>$ADDON[script.tinyppi 32051]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -437,7 +475,7 @@
 						<label>$INFO[Window().Property(AudioChannelsInputVar)]</label>
 						<font>font23_narrow</font>
 						<scroll>true</scroll>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -446,7 +484,7 @@
 						<top>150</top>
 						<label>$ADDON[script.tinyppi 32055]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -454,7 +492,7 @@
 						<top>150</top>
 						<label>$ADDON[script.tinyppi 32035]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<visible>Player.Passthrough</visible>
 						<aligny>top</aligny>
 					</control>
@@ -463,7 +501,7 @@
 						<top>150</top>
 						<label>$INFO[Player.Process(audiochannelssink)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<visible>!Player.Passthrough</visible>
 						<aligny>top</aligny>
 					</control>
@@ -472,7 +510,7 @@
 						<top>150</top>
 						<label>$ADDON[script.tinyppi 32087]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<visible>!Player.Passthrough + String.IsEmpty(Player.Process(audiochannelssink))</visible>
 						<aligny>top</aligny>
 					</control>
@@ -482,7 +520,7 @@
 						<top>180</top>
 						<label>$ADDON[script.tinyppi 32052]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -491,7 +529,7 @@
 						<label>[UPPERCASE]$INFO[VideoPlayer.AudioLanguage][/UPPERCASE]$INFO[Window().Property(AudioNameVar), | ]</label>
 						<font>font23_narrow</font>
 						<scroll>true</scroll>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<visible>!String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
 						<aligny>top</aligny>
 					</control>
@@ -501,7 +539,7 @@
 						<top>180</top>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<visible>String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
 						<aligny>top</aligny>
 					</control>
@@ -511,7 +549,7 @@
 						<top>210</top>
 						<label>$ADDON[script.tinyppi 32053]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -520,7 +558,7 @@
 						<label>[UPPERCASE]$INFO[VideoPlayer.SubtitlesLanguage][/UPPERCASE]$INFO[Window().Property(SubtitleNameVar), | ] $INFO[Window().Property(SubtitleCodecVar),(,)]</label>
 						<font>font23_narrow</font>
 						<scroll>true</scroll>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<visible>VideoPlayer.SubtitlesEnabled</visible>
 						<visible>VideoPlayer.HasSubtitles</visible>
 						<aligny>top</aligny>
@@ -531,7 +569,7 @@
 						<top>210</top>
 						<label>$ADDON[script.tinyppi 32091]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<visible>VideoPlayer.HasSubtitles + !VideoPlayer.SubtitlesEnabled</visible>
 						<aligny>top</aligny>
 					</control>
@@ -541,7 +579,7 @@
 						<top>210</top>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<visible>!VideoPlayer.HasSubtitles</visible>
 						<aligny>top</aligny>
 					</control>
@@ -558,7 +596,7 @@
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<label></label>
 						<font>font23_icon</font>
-						<textcolor>ffededed</textcolor>
+						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -568,14 +606,14 @@
 						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32088][/UPPERCASE][/B]</label>
 						<left>38</left>
 						<font>font23_narrow</font>
-						<textcolor>ffededed</textcolor>
+						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
 						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32088][/UPPERCASE][/B]</label>
 						<font>font23_narrow</font>
-						<textcolor>ffededed</textcolor>
+						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -584,7 +622,7 @@
 						<top>30</top>
 						<label>$ADDON[script.tinyppi 32034]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -592,7 +630,7 @@
 						<top>30</top>
 						<label>$INFO[system.memory(used.percent)] - ($INFO[system.memory(used)] | $INFO[system.memory(total)])</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -601,7 +639,7 @@
 						<top>60</top>
 						<label>$ADDON[script.tinyppi 32014]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -610,7 +648,7 @@
 						<left>240</left>
 						<label>$INFO[System.CPUTemperature] | $INFO[Window().Property(CpuUsageVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -620,7 +658,7 @@
 						<width>305</width>
 						<label>$INFO[System.CPUTemperature] | $INFO[Window().Property(CpuUsageVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 
@@ -629,7 +667,7 @@
 						<top>90</top>
 						<label>$ADDON[script.tinyppi 32036]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -637,7 +675,7 @@
 						<top>90</top>
 						<label>$INFO[System.FPS] FPS</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
@@ -646,7 +684,7 @@
 						<top>120</top>
 						<label>$ADDON[script.tinyppi 32013]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -654,7 +692,7 @@
 						<top>120</top>
 						<label>$INFO[Player.Time] $INFO[Player.Duration,/ ,] [COLOR b3ededed]$INFO[Player.Progress,(,%)][/COLOR]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<visible>!String.IsEmpty(Player.Duration)</visible>
 						<visible>!PVR.IsPlayingTV</visible>
 						<aligny>top</aligny>
@@ -665,7 +703,7 @@
 						<top>120</top>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<visible>String.IsEmpty(Player.Duration) | PVR.IsPlayingTV</visible>
 						<aligny>top</aligny>
 					</control>
@@ -675,7 +713,7 @@
 						<top>150</top>
 						<label>$ADDON[script.tinyppi 32032]:</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -683,7 +721,7 @@
 						<top>150</top>
 						<label>$INFO[Player.CacheLevel,,%]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="group">
@@ -700,7 +738,7 @@
 							<info>Player.CacheLevel</info>
 							<texturebg colordiffuse="1fededed" border="6">progress-bg.png</texturebg>
 							<lefttexture colordiffuse="00ffffff">progress-end.png</lefttexture>
-							<midtexture colordiffuse="e7ededed" border="6">progress-bg.png</midtexture>
+							<midtexture colordiffuse="E7EDEDED" border="6">progress-bg.png</midtexture>
 							<righttexture colordiffuse="00ffffff">progress-end.png</righttexture>
 						</control>
 					</control>

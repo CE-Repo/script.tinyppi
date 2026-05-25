@@ -10,6 +10,7 @@ modified = False
 
 REQUIRED_FONTS = [
     {'name': 'font23_narrow', 'filename': 'inter-r.ttf',  'size': '21'},
+    {'name': 'font32', 'filename': 'inter-b.ttf',  'size': '32'},
     {'name': 'font23_icon', 'filename': 'fa-r-unicode.ttf',  'size': '24'},
 ]
 

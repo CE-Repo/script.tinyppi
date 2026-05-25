@@ -445,7 +445,7 @@ def set_ui_position(window):
     ui_style = xbmcgui.Window(10000).getProperty("TinyPPI.UIStyle")
 
     if ui_style == "1":
-        left, top = 30, 585
+        left, top = 40, 575
     else:
         left, top = 0, 615
 
