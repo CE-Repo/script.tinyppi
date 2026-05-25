@@ -17,6 +17,7 @@ SKIN_PROP = "TinyPPI.Active"
 
 DIALOG_LOCK = False
 BACKGROUND_TOGGLE = ADDON.getSetting("background_toggle") == "true"
+ALLOW_NON_COREELEC = False
 
 
 class TinyPPIDialog(xbmcgui.WindowXMLDialog):
@@ -83,6 +84,16 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         xbmcgui.Window(10000).clearProperty(SKIN_PROP)
 
 
+def _is_coreelec() -> bool:
+    if os.path.isdir("/etc/coreelec"):
+        return True
+    try:
+        with open("/etc/os-release") as f:
+            return any("coreelec" in line.lower() for line in f)
+    except OSError:
+        return False
+
+
 def open_tinyppi():
 
     global DIALOG_LOCK
@@ -92,6 +103,45 @@ def open_tinyppi():
 
     skin_path = xbmcvfs.translatePath("special://skin/")
     is_720_skin = os.path.exists(os.path.join(skin_path, "720p"))
+
+    if not ALLOW_NON_COREELEC:
+
+        if not _is_coreelec():
+
+            xbmcgui.Dialog().notification(
+                "TinyPPI",
+                ADDON.getLocalizedString(32016),
+                xbmcgui.NOTIFICATION_ERROR,
+                4000
+            )
+
+            return
+
+        build_version = xbmc.getInfoLabel("System.BuildVersion")
+
+        try:
+            major_version = int(build_version.split(".")[0])
+        except:
+
+            xbmcgui.Dialog().notification(
+                "TinyPPI",
+                ADDON.getLocalizedString(32017),
+                xbmcgui.NOTIFICATION_ERROR,
+                4000
+            )
+
+            return
+
+        if major_version < 22:
+
+            xbmcgui.Dialog().notification(
+                "TinyPPI",
+                ADDON.getLocalizedString(32016),
+                xbmcgui.NOTIFICATION_ERROR,
+                4000
+            )
+
+            return
 
     if is_720_skin:
 

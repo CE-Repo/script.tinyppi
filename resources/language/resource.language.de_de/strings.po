@@ -71,6 +71,14 @@ msgctxt "#32015"
 msgid "Gamut"
 msgstr "Gamut"
 
+msgctxt "#32016"
+msgid "Only CoreELEC 22 or later is supported"
+msgstr "Nur CoreELEC 22 oder höher wird unterstützt"
+
+msgctxt "#32017"
+msgid "The CoreELEC version could not be detected"
+msgstr "Die CoreELEC Version konnte nicht erkannt werden"
+
 msgctxt "#32023"
 msgid "Pixel format"
 msgstr "Pixelformat"
