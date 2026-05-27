@@ -1,3 +1,4 @@
+import subprocess
 import re
 import xbmc
 import xbmcgui
@@ -182,42 +183,6 @@ def get_AudioBitrateMBVar():
     return f"{kbps:,} Kb/s".replace(",", ".")
 
 
-def get_HdrTypeVar():
-    val = _info("VideoPlayer.HdrType")
-
-    if not val:
-        return "SDR"
-
-    val = str(val).lower()
-
-    if "dolbyvision" in val:
-        return "Dolby Vision"
-    if val == "hdr10plus":
-        return "HDR10+"
-    if "hdr10" in val:
-        return "HDR10"
-    if "hlg" in val:
-        return "HLG"
-
-    return val.upper()
-
-
-def get_HdrDetailVar():
-    val = _info("VideoPlayer.HdrDetail")
-
-    if not val:
-        return ""
-
-    val = str(val).strip()
-
-    if val == "7MEL":
-        return "Profile 7 [COLOR orange]MEL[/COLOR]"
-    if val == "7FEL":
-        return "Profile 7 [COLOR lightgreen]FEL[/COLOR]"
-
-    return f"Profile {val}"
-
-
 def get_ModeVar():
     val = _info("Player.Process(amlogic.eoft_gamut)")
 
@@ -227,41 +192,6 @@ def get_ModeVar():
     parts = str(val).split()
 
     return parts[0] if len(parts) > 0 else ""
-
-
-def get_ModeConvertVar():
-    val = _info("Player.Process(amlogic.eoft_gamut)")
-
-    if not val:
-        return ""
-
-    val = str(val).strip().upper()
-
-    if "DV" in val or "dolbyvision" in val:
-        result = "-> Dolby Vision Profile 8.1"
-        base = "Dolby Vision"
-        
-    elif "HDR10+" in val or "hdr10plus" in val:
-        result = ""
-        base = "HDR10+"
-
-    elif "HDR10" in val or "hdr10" in val:
-        result = "-> HDR10"
-        base = "HDR10"
-
-    elif "SDR" in val or "" in val:
-        result = "-> SDR"
-        base = "SDR"
-
-    else:
-        return ""
-
-    hdr = get_HdrTypeVar()
-
-    if hdr.lower() == base.lower():
-        return ""
-
-    return result
 
 
 def get_GamutVar():
@@ -286,42 +216,175 @@ def get_VideoCodecVar():
     return _VIDEO_CODEC_MAP.get(codec, codec.upper())
 
 
-def get_HdrCheckVar():
-    hdr = _info("VideoPlayer.HdrType")
-    gamut = _info("Player.Process(amlogic.eoft_gamut)")
+def get_HdmiHdrStatusVar():
+    path = "/sys/devices/virtual/amhdmitx/amhdmitx0/hdmi_hdr_status"
 
-    hdr_l = (hdr or "").lower()
-    gamut_l = (gamut or "").lower()
+    try:
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            val = f.read().strip()
+    except Exception:
+        return ""
 
-    def is_empty(x):
-        return not x or str(x).strip() == ""
+    if not val:
+        return ""
 
-    def contains(hay, needle):
-        return needle.lower() in hay
+    val = val.lower()
 
-    sdr_ok = (not is_empty(hdr)) and contains(gamut_l, "sdr")
+    if "dolby" in val:
+        return ""
 
-    hdr10_ok = (
-        (is_empty(hdr) or
-         contains(hdr_l, "dolbyvision") or
-         contains(hdr_l, "hlg"))
-        and contains(gamut_l, "hdr10")
+    if "hdr10plus" in val or "hdr10+" in val:
+        return "HDR10+"
+        
+    if "hlg" in val:
+        return "HLG"
+
+    if "hdr10" in val:
+        return "HDR10"
+
+    if "sdr" in val:
+        return "SDR"
+
+    return ""
+
+
+def get_DoviProfileVar():
+    log_path = "/storage/.kodi/temp/kodi.log"
+    hdr_path = "/sys/devices/virtual/amhdmitx/amhdmitx0/hdmi_hdr_status"
+
+    try:
+        with open(hdr_path, "r", encoding="utf-8", errors="ignore") as f:
+            hdr_status = f.read().strip()
+    except Exception:
+        return ""
+
+    if "dolby" not in hdr_status.lower():
+        return ""
+
+    pattern = re.compile(r"profile\s.*")
+
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()[-2000:]
+    except Exception:
+        return ""
+
+    for line in reversed(lines):
+        m = pattern.search(line)
+        if not m:
+            continue
+
+        text = m.group(0)
+
+        prof = re.search(r"profile\s*(\d+)", text)
+        if not prof:
+            return ""
+
+        profile_num = prof.group(1)
+
+        if profile_num in ("0", "8"):
+            profile_num = "8.1"
+
+        if "minimum enhancement layer" in text:
+            return f"Dolby Vision Profile {profile_num} [COLOR orange]MEL[/COLOR]"
+
+        if "full enhancement layer" in text:
+            return f"Dolby Vision Profile {profile_num} [COLOR lightgreen]FEL[/COLOR]"
+
+        return f"Dolby Vision Profile {profile_num}"
+
+    return ""
+
+
+def get_DoviFelVar():
+    log_path = "/storage/.kodi/temp/kodi.log"
+    hdr_path = "/sys/devices/virtual/amhdmitx/amhdmitx0/hdmi_hdr_status"
+
+    try:
+        with open(hdr_path, "r", encoding="utf-8", errors="ignore") as f:
+            hdr_status = f.read().strip()
+    except Exception:
+        return ""
+
+    if "dolby" not in hdr_status.lower():
+        return ""
+
+    pattern = re.compile(r"profile\s.*")
+
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()[-2000:]
+    except Exception:
+        return ""
+
+    for line in reversed(lines):
+        m = pattern.search(line)
+        if not m:
+            continue
+
+        text = m.group(0)
+
+        if "full enhancement layer" in text:
+            return "FEL"
+
+        return ""
+
+    return ""
+
+
+def get_VdecBitrateVar():
+    path = "/sys/class/vdec/vdec_status"
+
+    try:
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            data = f.read()
+    except Exception:
+        return ""
+
+    match = re.search(r"bit rate\s*:\s*(\d+)\s*kbps", data, re.IGNORECASE)
+    if not match:
+        return ""
+
+    kbps = float(match.group(1))
+    mbps = kbps / 1000.0
+
+    value = f"{mbps:.2f}".rstrip("0").rstrip(".")
+    return f"{value} Mb/s"
+
+
+def get_VdecBitrateDiffVar():
+    path = "/sys/class/vdec/vdec_status"
+
+    try:
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            data = f.read()
+    except Exception:
+        return ""
+
+    matches = re.findall(
+        r"vdec channel (\d+) statistics:.*?bit rate\s*:\s*(\d+)\s*kbps",
+        data,
+        re.IGNORECASE | re.DOTALL
     )
 
-    dv_ok = (
-        (is_empty(hdr) or
-         contains(hdr_l, "hdr10") or
-         contains(hdr_l, "hdr10plus") or
-         contains(hdr_l, "hlg"))
-        and contains(gamut_l, "dv")
-    )
+    channels = {}
 
-    result = sdr_ok or hdr10_ok or dv_ok
+    for ch, br in matches:
+        try:
+            channels[int(ch)] = int(br)
+        except ValueError:
+            continue
 
-    if xbmc.getSkinDir() == "skin.estuary":
-        return "[COLOR lightgreen]■͏[/COLOR]" if result else "[COLOR tomato]■͏[/COLOR]"
-    else:
-        return "[COLOR lightgreen][/COLOR]" if result else "[COLOR tomato][/COLOR]"
+    if 0 not in channels or 1 not in channels:
+        return ""
+
+    diff_kbps = channels[1] - channels[0]
+
+    # kein negativer Wert
+    if diff_kbps < 0:
+        diff_kbps = 0
+
+    return f"{diff_kbps} kb/s"
 
 
 # ---------------------------------------------------------------------------
@@ -418,6 +481,7 @@ def get_AudioNameVar():
 # System
 # ---------------------------------------------------------------------------
 
+
 def get_CpuUsageVar():
     raw = _info("System.CpuUsage")
 
@@ -441,6 +505,29 @@ def get_CpuUsageVar():
     return " | ".join(values)
     
     
+def get_CpuTopUsageVar():
+    try:
+        output = subprocess.check_output(
+            ["top", "-b", "-n", "1"],
+            stderr=subprocess.STDOUT,
+            text=True
+        )
+    except Exception:
+        return ""
+
+    match = re.search(r"%Cpu\(s\):.*?([\d.]+)\s*id", output)
+
+    if not match:
+        return ""
+
+    try:
+        idle = float(match.group(1))
+        usage = 100.0 - idle
+        return f"{usage:.0f}%"
+    except ValueError:
+        return ""
+
+
 def set_ui_position(window):
     ui_style = xbmcgui.Window(10000).getProperty("TinyPPI.UIStyle")
 
@@ -465,13 +552,14 @@ def update_properties(window):
     window.setProperty("VideoResolutionVar",    get_VideoResolutionVar())
     window.setProperty("VideoBitrateMBVar",     get_VideoBitrateMBVar())
     window.setProperty("AudioBitrateMBVar",     get_AudioBitrateMBVar())
-    window.setProperty("HdrTypeVar",            get_HdrTypeVar())
-    window.setProperty("HdrDetailVar",          get_HdrDetailVar())
     window.setProperty("ModeVar",               get_ModeVar())
-    window.setProperty("ModeConvertVar",        get_ModeConvertVar())
     window.setProperty("GamutVar",              get_GamutVar())
     window.setProperty("VideoCodecVar",         get_VideoCodecVar())
-    window.setProperty("HdrCheckVar",           get_HdrCheckVar())
+    window.setProperty("HdmiHdrStatusVar",      get_HdmiHdrStatusVar())
+    window.setProperty("DoviProfileVar",        get_DoviProfileVar())
+    window.setProperty("DoviFelVar",            get_DoviFelVar())
+    window.setProperty("VdecBitrateVar",        get_VdecBitrateVar())
+    window.setProperty("VdecBitrateDiffVar",    get_VdecBitrateDiffVar())
     window.setProperty("AudioCodecVar",         get_AudioCodecVar())
     window.setProperty("AudioCodecSpatialVar",  get_AudioCodecSpatialVar())
     window.setProperty("AudioChannelsVar",      get_AudioChannelsVar())
@@ -481,4 +569,5 @@ def update_properties(window):
     window.setProperty("SubtitleCodecVar",      get_SubtitleCodecVar())
     window.setProperty("SubtitleNameVar",       get_SubtitleNameVar())
     window.setProperty("CpuUsageVar",           get_CpuUsageVar())
+    window.setProperty("CpuTopUsageVar",        get_CpuTopUsageVar())
     window.setProperty("CurrentSkin",           xbmc.getSkinDir())

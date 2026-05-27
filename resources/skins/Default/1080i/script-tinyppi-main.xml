@@ -264,36 +264,9 @@
 						<aligny>top</aligny>
 					</control>
 					
-					<!-- VS10 status -->
+					<!-- Output mode -->
 					<control type="label">
 						<top>30</top>
-						<label>$ADDON[script.tinyppi 32026]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>210</left>
-						<top>30</top>
-						<label>$INFO[Window().Property(HdrCheckVar)]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>210</left>
-						<top>34</top>
-						<label>$INFO[Window().Property(HdrCheckVar)]</label>
-						<font>font23_icon</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					
-					<!-- Media source -->
-					<control type="label">
-						<top>60</top>
 						<label>$ADDON[script.tinyppi 32027]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
@@ -301,8 +274,8 @@
 					</control>
 					<control type="label">
 						<left>210</left>
-						<top>60</top>
-						<label>$INFO[Window().Property(HdrTypeVar)] $INFO[Window().Property(HdrDetailVar)]$INFO[Window().Property(ModeConvertVar)]</label>
+						<top>30</top>
+						<label>$INFO[Window().Property(HdmiHdrStatusVar)]$INFO[Window().Property(DoviProfileVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
@@ -310,7 +283,7 @@
 					
 					<!-- Bitrate -->
 					<control type="label">
-						<top>90</top>
+						<top>60</top>
 						<label>$ADDON[script.tinyppi 32047]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
@@ -318,26 +291,16 @@
 					</control>
 					<control type="label">
 						<left>210</left>
-						<top>90</top>
-						<label>$INFO[Window().Property(VideoBitrateMBVar)]</label>
+						<top>60</top>
+						<label>$INFO[Window().Property(VdecBitrateVar)] $INFO[Window().Property(VideoBitrateMBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<!-- N/A -->
-					<control type="label">
-						<left>210</left>
-						<top>90</top>
-						<label>$ADDON[script.tinyppi 32033]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<visible>String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 						<aligny>top</aligny>
 					</control>
 					
 					<!-- Mode -->
 					<control type="label">
-						<top>120</top>
+						<top>90</top>
 						<label>$ADDON[script.tinyppi 32070]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
@@ -345,7 +308,7 @@
 					</control>
 					<control type="label">
 						<left>210</left>
-						<top>120</top>
+						<top>90</top>
 						<label>$INFO[Window().Property(ModeVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
@@ -354,7 +317,7 @@
 					
 					<!-- Gamut -->
 					<control type="label">
-						<top>150</top>
+						<top>120</top>
 						<label>$ADDON[script.tinyppi 32015]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
@@ -362,10 +325,39 @@
 					</control>
 					<control type="label">
 						<left>210</left>
-						<top>150</top>
+						<top>120</top>
 						<label>$INFO[Window().Property(GamutVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					
+					<!-- Playback time -->
+					<control type="label">
+						<top>150</top>
+						<label>$ADDON[script.tinyppi 32013]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>210</left>
+						<top>150</top>
+						<label>$INFO[Player.Time] $INFO[Player.Duration,/ ,] [COLOR b3ededed]$INFO[Player.Progress,(,%)][/COLOR]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<visible>!String.IsEmpty(Player.Duration)</visible>
+						<visible>!PVR.IsPlayingTV</visible>
+						<aligny>top</aligny>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>210</left>
+						<top>150</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<visible>String.IsEmpty(Player.Duration) | PVR.IsPlayingTV</visible>
 						<aligny>top</aligny>
 					</control>
 				</control>
@@ -662,9 +654,45 @@
 						<aligny>top</aligny>
 					</control>
 
-					<!-- System FPS -->
+					<!-- CPU Usage / FEL bitrate -->
 					<control type="label">
 						<top>90</top>
+						<label>$ADDON[script.tinyppi 32018]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+						<visible>!String.IsEqual(Window.Property(DoviFelVar),FEL)</visible>
+					</control>
+					<control type="label">
+						<top>90</top>
+						<label>$ADDON[script.tinyppi 32019]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEqual(Window.Property(DoviFelVar),FEL)</visible>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>90</top>
+						<label>$INFO[Window().Property(CpuTopUsageVar]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<visible>!String.IsEqual(Window.Property(DoviFelVar),FEL)</visible>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>90</top>
+						<label>$INFO[Window().Property(VdecBitrateDiffVar]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<visible>String.IsEqual(Window.Property(DoviFelVar),FEL)</visible>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- System FPS -->
+					<control type="label">
+						<top>120</top>
 						<label>$ADDON[script.tinyppi 32036]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
@@ -672,39 +700,10 @@
 					</control>
 					<control type="label">
 						<left>240</left>
-						<top>90</top>
+						<top>120</top>
 						<label>$INFO[System.FPS] FPS</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					
-					<!-- Playback time -->
-					<control type="label">
-						<top>120</top>
-						<label>$ADDON[script.tinyppi 32013]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>120</top>
-						<label>$INFO[Player.Time] $INFO[Player.Duration,/ ,] [COLOR b3ededed]$INFO[Player.Progress,(,%)][/COLOR]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<visible>!String.IsEmpty(Player.Duration)</visible>
-						<visible>!PVR.IsPlayingTV</visible>
-						<aligny>top</aligny>
-					</control>
-					<!-- N/A -->
-					<control type="label">
-						<left>240</left>
-						<top>120</top>
-						<label>$ADDON[script.tinyppi 32033]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<visible>String.IsEmpty(Player.Duration) | PVR.IsPlayingTV</visible>
 						<aligny>top</aligny>
 					</control>
 					

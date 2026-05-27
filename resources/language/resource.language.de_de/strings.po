@@ -79,6 +79,18 @@ msgctxt "#32017"
 msgid "The CoreELEC version could not be detected"
 msgstr "Die CoreELEC Version konnte nicht erkannt werden"
 
+msgctxt "#32018"
+msgid "CPU usage"
+msgstr "CPU-Auslastung"
+
+msgctxt "#32019"
+msgid "Bitrate (FEL)"
+msgstr "Bitrate (FEL)"
+
+msgctxt "#32020"
+msgid "Style"
+msgstr "Stil"
+
 msgctxt "#32023"
 msgid "Pixel format"
 msgstr "Pixelformat"
@@ -92,8 +104,8 @@ msgid "VS10 engine"
 msgstr "VS10-Engine"
 
 msgctxt "#32027"
-msgid "Media source"
-msgstr "Medienquelle"
+msgid "Output mode"
+msgstr "Ausgabemodus"
 
 msgctxt "#32031"
 msgid "Deinterlacing"
