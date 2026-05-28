@@ -5,6 +5,8 @@ import xbmcgui
 
 from constants import (_VIDEO_CODEC_MAP, _SUBTITLE_CODEC_MAP, _AUDIO_CODEC_MAP, _CHANNELS_MAP, _CHANNELS_INPUT_MAP, _LANGUAGE_MAP)
 
+_cpu_prev = None
+
 def _cond(condition):
     return xbmc.getCondVisibility(condition)
 
@@ -332,34 +334,19 @@ def get_DoviFelVar():
     return ""
 
 
-def get_VdecBitrateVar():
+def get_VdecBitrates():
     path = "/sys/class/vdec/vdec_status"
+
+    result = {
+        "bitrate": "",
+        "diff": ""
+    }
 
     try:
         with open(path, "r", encoding="utf-8", errors="ignore") as f:
             data = f.read()
     except Exception:
-        return ""
-
-    match = re.search(r"bit rate\s*:\s*(\d+)\s*kbps", data, re.IGNORECASE)
-    if not match:
-        return ""
-
-    kbps = float(match.group(1))
-    mbps = kbps / 1000.0
-
-    value = f"{mbps:.2f}".rstrip("0").rstrip(".")
-    return f"{value} Mb/s"
-
-
-def get_VdecBitrateDiffVar():
-    path = "/sys/class/vdec/vdec_status"
-
-    try:
-        with open(path, "r", encoding="utf-8", errors="ignore") as f:
-            data = f.read()
-    except Exception:
-        return ""
+        return result
 
     matches = re.findall(
         r"vdec channel (\d+) statistics:.*?bit rate\s*:\s*(\d+)\s*kbps",
@@ -367,30 +354,45 @@ def get_VdecBitrateDiffVar():
         re.IGNORECASE | re.DOTALL
     )
 
-    channels = {}
+    if not matches:
+        return result
 
-    for ch, br in matches:
+    bitrates = []
+
+    for _, br in matches:
         try:
-            channels[int(ch)] = int(br)
+            bitrates.append(int(br))
         except ValueError:
-            continue
+            pass
 
-    if 0 not in channels or 1 not in channels:
-        return ""
+    if not bitrates:
+        return result
 
-    diff_kbps = channels[1] - channels[0]
+    base = min(bitrates)
+    total = max(bitrates)
 
-    # kein negativer Wert
+    base_mbps = base / 1000.0
+    base_val = f"{base_mbps:.2f}".rstrip("0").rstrip(".")
+    result["bitrate"] = f"{base_val} Mb/s"
+
+    diff_kbps = total - base
+
     if diff_kbps < 0:
         diff_kbps = 0
 
-    return f"{diff_kbps} kb/s"
+    if diff_kbps < 1000:
+        result["diff"] = f"{diff_kbps} kb/s"
+    else:
+        diff_mbps = diff_kbps / 1000.0
+        value = f"{diff_mbps:.2f}".rstrip("0").rstrip(".")
+        result["diff"] = f"{value} Mb/s"
+
+    return result
 
 
 # ---------------------------------------------------------------------------
 # Subtitle
 # ---------------------------------------------------------------------------
-
 
 def get_SubtitleNameVar():
     code = _info("VideoPlayer.SubtitlesLanguage")
@@ -416,7 +418,6 @@ def get_SubtitleCodecVar():
 # ---------------------------------------------------------------------------
 # Audio
 # ---------------------------------------------------------------------------
-
 
 def get_AudioCodecVar():
     codec = _info("VideoPlayer.AudioCodec")
@@ -481,7 +482,6 @@ def get_AudioNameVar():
 # System
 # ---------------------------------------------------------------------------
 
-
 def get_CpuUsageVar():
     raw = _info("System.CpuUsage")
 
@@ -503,29 +503,52 @@ def get_CpuUsageVar():
             continue
 
     return " | ".join(values)
-    
-    
+
+
 def get_CpuTopUsageVar():
+    global _cpu_prev
+
     try:
-        output = subprocess.check_output(
-            ["top", "-b", "-n", "1"],
-            stderr=subprocess.STDOUT,
-            text=True
-        )
+        with open("/proc/stat", "r") as f:
+            line = f.readline()
     except Exception:
         return ""
 
-    match = re.search(r"%Cpu\(s\):.*?([\d.]+)\s*id", output)
-
-    if not match:
+    parts = line.split()
+    if len(parts) < 8:
         return ""
 
     try:
-        idle = float(match.group(1))
-        usage = 100.0 - idle
-        return f"{usage:.0f}%"
+        user = int(parts[1])
+        nice = int(parts[2])
+        system = int(parts[3])
+        idle = int(parts[4])
+        iowait = int(parts[5])
+        irq = int(parts[6])
+        softirq = int(parts[7])
     except ValueError:
         return ""
+
+    idle_all = idle + iowait
+    total = user + nice + system + idle_all + irq + softirq
+    busy = total - idle_all
+
+    if _cpu_prev is None:
+        _cpu_prev = (busy, total)
+        return ""
+
+    prev_busy, prev_total = _cpu_prev
+    _cpu_prev = (busy, total)
+
+    diff_busy = busy - prev_busy
+    diff_total = total - prev_total
+
+    if diff_total <= 0:
+        return ""
+
+    usage = (diff_busy / diff_total) * 100.0
+
+    return f"{usage:.0f}%"
 
 
 def set_ui_position(window):
@@ -545,7 +568,10 @@ def set_ui_position(window):
 
 def update_properties(window):
     set_ui_position(window)
-    
+    vdec = get_VdecBitrates()
+
+    window.setProperty("VdecBitrateVar",       vdec["bitrate"])
+    window.setProperty("VdecBitrateDiffVar",    vdec["diff"])
     window.setProperty("VideoDecoderVar",       get_VideoDecoderVar())
     window.setProperty("VideoPixelFormatVar",   get_VideoPixelFormatVar())
     window.setProperty("DisplayModeVar",        get_DisplayModeVar())
@@ -558,8 +584,6 @@ def update_properties(window):
     window.setProperty("HdmiHdrStatusVar",      get_HdmiHdrStatusVar())
     window.setProperty("DoviProfileVar",        get_DoviProfileVar())
     window.setProperty("DoviFelVar",            get_DoviFelVar())
-    window.setProperty("VdecBitrateVar",        get_VdecBitrateVar())
-    window.setProperty("VdecBitrateDiffVar",    get_VdecBitrateDiffVar())
     window.setProperty("AudioCodecVar",         get_AudioCodecVar())
     window.setProperty("AudioCodecSpatialVar",  get_AudioCodecSpatialVar())
     window.setProperty("AudioChannelsVar",      get_AudioChannelsVar())
