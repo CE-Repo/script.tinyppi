@@ -292,9 +292,19 @@
 					<control type="label">
 						<left>210</left>
 						<top>60</top>
-						<label>$INFO[Window().Property(VdecBitrateVar)] $INFO[Window().Property(VideoBitrateMBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
+						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)] $INFO[Window().Property(VideoBitrateMBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>210</left>
+						<top>60</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 						<aligny>top</aligny>
 					</control>
 					
