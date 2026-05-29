@@ -608,7 +608,7 @@ def set_ui_position(window):
     if ui_style == "1":
         left, top = 40, 575
     else:
-        left, top = 0, 615
+        left, top = 15, 600
 
     window.getControl(9000).setPosition(left, top)
 

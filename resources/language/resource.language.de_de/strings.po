@@ -83,9 +83,17 @@ msgctxt "#32018"
 msgid "Temp / load"
 msgstr "Temperatur / Last"
 
+msgctxt "#32019"
+msgid "Show file name"
+msgstr "Dateiname anzeigen"
+
 msgctxt "#32020"
 msgid "Style"
 msgstr "Stil"
+
+msgctxt "#32021"
+msgid "This option adds the name of the file currently playing to TinyPPI."
+msgstr "Diese Option fügt den Namen der gerade abgespielten Datei in TinyPPI hinzu."
 
 msgctxt "#32023"
 msgid "Pixel format"

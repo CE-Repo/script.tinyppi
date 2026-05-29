@@ -29,6 +29,23 @@
 						<texture colordiffuse="FF000000">background-classic.png</texture>
 					</control>
 				</control>
+
+				<!-- Filename -->
+				<control type="group">
+					<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),true)</visible>
+					<top>1040</top>
+					<control type="label">
+						<left>45</left>
+						<width>1145</width>
+						<label>$INFO[Player.Filename]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<align>center</align>
+						<scroll>true</scroll>
+						<scrollspeed>30</scrollspeed>
+						<aligny>top</aligny>
+					</control>
+				</control>
 			</control>
 
 			<!-- Modern -->
@@ -77,6 +94,23 @@
 						<width>1150</width>
 						<height>1</height>
 						<texture colordiffuse="26808080">line.png</texture>
+					</control>
+				</control>
+
+				<!-- Filename -->
+				<control type="group">
+					<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),true)</visible>
+					<top>1045</top>
+					<control type="label">
+						<left>55</left>
+						<width>1180</width>
+						<label>$INFO[Player.Filename]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<align>center</align>
+						<scroll>true</scroll>
+						<scrollspeed>30</scrollspeed>
+						<aligny>top</aligny>
 					</control>
 				</control>
 			</control>
