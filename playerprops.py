@@ -341,23 +341,22 @@ def get_VdecBitrateVar():
         with open(path, "r", encoding="utf-8", errors="ignore") as f:
             data = f.read()
     except Exception:
-        return ""
+        return "", ""
 
     matches = re.findall(r"bit rate\s*:\s*(\d+)\s*kbps", data, re.IGNORECASE)
     if not matches:
-        return ""
+        return "", ""
 
-    kbps_values = [float(m) for m in matches]
-    kbps = max(kbps_values)
+    kbps = max(float(m) for m in matches)
+
+    if kbps <= 0:
+        return "", ""
 
     if kbps < 1000:
-        value = f"{kbps:.0f}".rstrip("0").rstrip(".")
-        return f"{value} kb/s"
+        return f"{kbps:.0f}", "KB/s"
 
     mbps = kbps / 1000.0
-    value = f"{mbps:.2f}".rstrip("0").rstrip(".")
-    return f"{value} Mb/s"
-
+    return f"{mbps:.2f}".rstrip("0").rstrip("."), "MB/s"
 
 # ---------------------------------------------------------------------------
 # Subtitle
@@ -620,6 +619,7 @@ def set_ui_position(window):
 
 def update_properties(window):
     set_ui_position(window)
+    value, unit = get_VdecBitrateVar()
     get_fpsTextVar, get_fpsDropVar = format_fps()
 
     window.setProperty("VideoDecoderVar",       get_VideoDecoderVar())
@@ -634,7 +634,8 @@ def update_properties(window):
     window.setProperty("HdmiHdrStatusVar",      get_HdmiHdrStatusVar())
     window.setProperty("DoviProfileVar",        get_DoviProfileVar())
     window.setProperty("DoviFelVar",            get_DoviFelVar())
-    window.setProperty("VdecBitrateVar",        get_VdecBitrateVar())
+    window.setProperty("VdecBitrate",           value)
+    window.setProperty("VdecBitrateUnit",       unit)
     window.setProperty("FpsInfoVar",            get_fpsTextVar)
     window.setProperty("FpsDropVar",            get_fpsDropVar)
     window.setProperty("AudioCodecVar",         get_AudioCodecVar())
