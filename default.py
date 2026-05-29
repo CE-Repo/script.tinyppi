@@ -17,7 +17,7 @@ SKIN_PROP = "TinyPPI.Active"
 
 DIALOG_LOCK = False
 BACKGROUND_TOGGLE = ADDON.getSetting("background_toggle") == "true"
-ALLOW_NON_COREELEC = False
+ALLOW_NON_COREELEC = True
 
 
 class TinyPPIDialog(xbmcgui.WindowXMLDialog):

@@ -9,6 +9,28 @@
     <animation effect="fade" end="0" start="100" time="150">WindowClose</animation>
     <controls>
         <control type="group">
+
+			<!-- Codec logos support -->
+            <include condition="Skin.HasSetting(ppi.useleftCodecLogos)">CodecLogosLeftOSD</include>
+            <include condition="Skin.HasSetting(ppi.usecenterCodecLogos)">CodecLogosCenterOSD</include>
+            <include condition="Skin.HasSetting(ppi.userightCodecLogos)">CodecLogosRightOSD</include>
+
+			<!-- Classic -->
+			<control type="group">
+				<visible>String.IsEqual(Window(10000).Property(TinyPPI.BackgroundToggle),0)</visible>
+				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),0)</visible>
+
+				<!-- Background -->
+				<control type="group">
+					<top>-1000</top>
+					<width>2000</width>
+					<height>2080</height>
+					<control type="image">
+						<texture colordiffuse="FF000000">background-classic.png</texture>
+					</control>
+				</control>
+			</control>
+
 			<!-- Modern -->
 			<control type="group">
 				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),1)</visible>
@@ -20,7 +42,7 @@
 					<width>1220</width>
 					<height>605</height>
 					<control type="image">
-						<texture colordiffuse="FAFFFFFF">background.png</texture>
+						<texture colordiffuse="FAFFFFFF">background-modern.png</texture>
 					</control>
 				</control>
 
@@ -59,23 +81,6 @@
 				</control>
 			</control>
 
-			<!-- Classic -->
-			<control type="group">
-				<visible>String.IsEqual(Window(10000).Property(TinyPPI.BackgroundToggle),0)</visible>
-				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),0)</visible>
-				<top>-1000</top>
-				<width>2000</width>
-				<height>2080</height>
-				<control type="image">
-					<texture colordiffuse="FF000000">gradient.png</texture>
-				</control>
-			</control>
-			
-			<!-- Codec logos support -->
-            <include condition="Skin.HasSetting(ppi.useleftCodecLogos)">CodecLogosLeftOSD</include>
-            <include condition="Skin.HasSetting(ppi.usecenterCodecLogos)">CodecLogosCenterOSD</include>
-            <include condition="Skin.HasSetting(ppi.userightCodecLogos)">CodecLogosRightOSD</include>
-
 			<!-- Group: Bottom screen -->
 			<control type="group" id="9000">
 				<width>1920</width>
@@ -84,7 +89,7 @@
 				<!-- Group: Video -->
 				<control type="group">
 					<left>30</left>
-					
+
 					<!-- Video Icon -->
 					<control type="label">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
@@ -94,7 +99,7 @@
 						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Video -->
 					<control type="label">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
@@ -111,7 +116,7 @@
 						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Display mode -->
 					<control type="label">
 						<top>30</top>
@@ -128,7 +133,7 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Video mode -->
 					<control type="label">
 						<top>60</top>
@@ -145,7 +150,7 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Pixel format -->
 					<control type="label">
 						<top>90</top>
@@ -162,7 +167,7 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Aspect ratio -->
 					<control type="label">
 						<top>120</top>
@@ -179,7 +184,7 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Decoder -->
 					<control type="label">
 						<top>150</top>
@@ -196,7 +201,7 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Codec -->
 					<control type="label">
 						<top>180</top>
@@ -213,7 +218,7 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Deinterlacing -->
 					<control type="label">
 						<top>210</top>
@@ -236,7 +241,7 @@
 				<control type="group">
 					<top>260</top>
 					<left>30</left>
-					
+
 					<!-- Processing Icon -->
 					<control type="label">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
@@ -246,7 +251,7 @@
 						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Processing -->
 					<control type="label">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
@@ -263,7 +268,7 @@
 						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Output mode -->
 					<control type="label">
 						<top>30</top>
@@ -280,7 +285,7 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Bitrate -->
 					<control type="label">
 						<top>60</top>
@@ -307,7 +312,7 @@
 						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Mode -->
 					<control type="label">
 						<top>90</top>
@@ -324,7 +329,7 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Gamut -->
 					<control type="label">
 						<top>120</top>
@@ -341,7 +346,7 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Playback time -->
 					<control type="label">
 						<top>150</top>
@@ -371,11 +376,11 @@
 						<aligny>top</aligny>
 					</control>
 				</control>
-				
+
 				<!-- Group: Audio -->
 				<control type="group">
 					<left>640</left>
-					
+
 					<!-- Audio Icon -->
 					<control type="label">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
@@ -385,7 +390,7 @@
 						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Audio -->
 					<control type="label">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
@@ -402,7 +407,7 @@
 						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Codec -->
 					<control type="label">
 						<top>30</top>
@@ -435,7 +440,7 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Bitrate -->
 					<control type="label">
 						<top>90</top>
@@ -462,7 +467,7 @@
 						<visible>String.IsEmpty(Window().Property(AudioBitrateMBVar))</visible>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Input -->
 					<control type="label">
 						<top>120</top>
@@ -480,7 +485,7 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Output -->
 					<control type="label">
 						<top>150</top>
@@ -516,7 +521,7 @@
 						<visible>!Player.Passthrough + String.IsEmpty(Player.Process(audiochannelssink))</visible>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Audio language -->
 					<control type="label">
 						<top>180</top>
@@ -545,7 +550,7 @@
 						<visible>String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Subtitle language -->
 					<control type="label">
 						<top>210</top>
@@ -591,7 +596,7 @@
 				<control type="group">
 					<top>260</top>
 					<left>640</left>
-					
+
 					<!-- System Icon -->
 					<control type="label">
 						<top>2</top>
@@ -601,7 +606,7 @@
 						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- System -->
 					<control type="label">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
@@ -618,7 +623,7 @@
 						<textcolor>FFEDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Memory usage -->
 					<control type="label">
 						<top>30</top>
@@ -635,7 +640,7 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- In / drop / out -->
 					<control type="label">
 						<top>60</top>
@@ -686,7 +691,7 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- Player cache -->
 					<control type="label">
 						<top>150</top>
