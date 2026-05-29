@@ -353,10 +353,10 @@ def get_VdecBitrateVar():
         return "", ""
 
     if kbps < 1000:
-        return f"{kbps:.0f}", "KB/s"
+        return f"{kbps:.0f}", "Kb/s"
 
     mbps = kbps / 1000.0
-    return f"{mbps:.2f}".rstrip("0").rstrip("."), "MB/s"
+    return f"{mbps:.2f}".rstrip("0").rstrip("."), "Mb/s"
 
 # ---------------------------------------------------------------------------
 # Subtitle
