@@ -16,7 +16,7 @@
         <description lang="de">Öffnet ein eigenes Prozessinformationen-Fenster. Dieses enthält Codec-, Video- und Audio-Details zum aktuell abgespielten Medium.</description>
         <description lang="en">Opens a separate process information window. This window displays codec, video, and audio details for the currently playing media.</description>
         <assets>
-            <icon>icon.png</icon>
+            <icon>icon.jpg</icon>
             <fanart>fanart.jpg</fanart>
         </assets>
     </extension>
