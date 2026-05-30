@@ -1,117 +1,157 @@
+"""
+maps.py – Static lookup tables and shared mutable state for TinyPPI.
+
+All maps are keyed on the lowercase codec/language identifier that Kodi
+returns via its InfoLabel API.  Display strings are intentionally kept in
+their canonical mixed-case form so they can be shown to the user as-is.
+"""
+
+# ---------------------------------------------------------------------------
+# AML FPS state  (mutated by playerprops._update_fps)
+# ---------------------------------------------------------------------------
+
 _FPS = {
-    "history": [],
-    "last_sample": 0.0,
-    "cached_in": 0,
-    "cached_out": 0,
-    "valid": False,
-    "spinner": 0,
-    "last_spinner": 0.0,
-    "drop_hold": 0,
+    "history":       [],
+    "last_sample":   0.0,
+    "cached_in":     0,
+    "cached_out":    0,
+    "valid":         False,
+    "spinner":       0,
+    "last_spinner":  0.0,
+    "drop_hold":     0,
     "last_drop_change": 0.0,
 }
 
+# ---------------------------------------------------------------------------
+# Video codec map  (VideoPlayer.VideoCodec → display label)
+# ---------------------------------------------------------------------------
+
 _VIDEO_CODEC_MAP = {
-    "av1": "AV1",
-    "avc1": "AVC1",
-    "div3": "DivX",
-    "divx": "DivX",
-    "dx50": "DivX",
-    "flv": "FLV",
-    "h264": "H.264",
-    "hev1": "H.265",
-    "hevc": "H.265",
-    "hvc1": "H.265",
-    "mpeg1": "MPEG1",
-    "mpeg2": "MPEG2",
+    "av1":        "AV1",
+    "avc1":       "AVC1",
+    "div3":       "DivX",
+    "divx":       "DivX",
+    "dx50":       "DivX",
+    "flv":        "FLV",
+    "h264":       "H.264",
+    "hev1":       "H.265",
+    "hevc":       "H.265",
+    "hvc1":       "H.265",
+    "mpeg1":      "MPEG1",
+    "mpeg2":      "MPEG2",
     "mpeg2video": "MPEG2",
-    "mp4v": "MPEG4",
-    "mpeg4": "MPEG4",
-    "theora": "Theora",
-    "vc1": "VC1",
-    "vc-1": "VC1",
-    "wvc1": "VC1",
-    "vp8": "VP8",
-    "vp9": "VP9",
-    "wmv": "WMV",
-    "wmv3": "WMV",
-    "xvid": "XviD",
+    "mp4v":       "MPEG4",
+    "mpeg4":      "MPEG4",
+    "theora":     "Theora",
+    "vc1":        "VC1",
+    "vc-1":       "VC1",
+    "wvc1":       "VC1",
+    "vp8":        "VP8",
+    "vp9":        "VP9",
+    "wmv":        "WMV",
+    "wmv3":       "WMV",
+    "xvid":       "XviD",
 }
 
+# ---------------------------------------------------------------------------
+# Subtitle codec map  (VideoPlayer.SubtitleCodec → display label)
+# ---------------------------------------------------------------------------
 
 _SUBTITLE_CODEC_MAP = {
-    "ass": "ASS",
-    "dvb_subtitle": "DVB-SUB",
-    "dvb_teletext": "DVB-Text",
-    "dvd_subtitle": "VobSub",
-    "hdmv_pgs_subtitle": "PGS",
-    "microdvd": "MicroDVD",
-    "mov_text": "Timed Text",
-    "mpl2": "MPL2",
-    "realtext": "RealText",
-    "sami": "SAMI",
-    "srt": "SubRip",
-    "ssa": "SSA",
-    "subrip": "SubRip",
-    "text": "Text",
-    "ttml": "TTML",
-    "vplayer": "VPlayer",
-    "webvtt": "WebVTT",
-    "xsub": "XSUB",
+    "ass":              "ASS",
+    "dvb_subtitle":     "DVB-SUB",
+    "dvb_teletext":     "DVB-Text",
+    "dvd_subtitle":     "VobSub",
+    "hdmv_pgs_subtitle":"PGS",
+    "microdvd":         "MicroDVD",
+    "mov_text":         "Timed Text",
+    "mpl2":             "MPL2",
+    "realtext":         "RealText",
+    "sami":             "SAMI",
+    "srt":              "SubRip",
+    "ssa":              "SSA",
+    "subrip":           "SubRip",
+    "text":             "Text",
+    "ttml":             "TTML",
+    "vplayer":          "VPlayer",
+    "webvtt":           "WebVTT",
+    "xsub":             "XSUB",
 }
 
+# ---------------------------------------------------------------------------
+# Audio codec map  (VideoPlayer.AudioCodec → display label)
+# ---------------------------------------------------------------------------
 
 _AUDIO_CODEC_MAP = {
-    "aac":              "AAC",
-    "aac_latm":         "AAC",
-    "aac_lc":           "AAC",
-    "he_aac":           "AAC",
-    "he_aac_v2":        "AAC",
-    "aac_ssr":          "AAC",
-    "aac_ltp":          "AAC",
+    # AAC variants
+    "aac":           "AAC",
+    "aac_latm":      "AAC",
+    "aac_lc":        "AAC",
+    "he_aac":        "AAC",
+    "he_aac_v2":     "AAC",
+    "aac_ssr":       "AAC",
+    "aac_ltp":       "AAC",
+    # Dolby
     "ac3":              "Dolby Digital",
-    "aif":              "AIFF",
-    "aifc":             "AIFF",
-    "aiff":             "AIFF",
-    "alac":             "ALAC",
-    "ape":              "APE",
-    "avc":              "AVC",
-    "cdda":             "CDDA",
-    "dca":              "DTS",
     "dolbydigital":     "Dolby Digital",
-    "dts":              "DTS",
-    "dtshd":            "DTS-HD",
-    "dtshd_ma":         "DTS-HD MA",
-    "dtshd_hra":        "DTS-HD HRA",
-    "dtshd_ma_x":       "DTS:X MA",
-    "dtshd_ma_x_imax":  "DTS:X",
     "eac3":             "Dolby Digital Plus",
     "eac3_ddp_atmos":   "Dolby Digital Plus",
-    "flac":             "FLAC",
-    "mp1":              "MP1",
-    "mp2":              "MP2",
-    "mp3":              "MP3",
-    "mp3float":         "MP3",
-    "ogg":              "OGG",
-    "opus":             "OPUS",
-    "pcm":              "PCM",
-    "pcm_bluray":       "PCM",
-    "pcm_s16le":        "PCM",
-    "pcm_s24le":        "PCM",
     "truehd":           "Dolby TrueHD",
     "truehd_atmos":     "Dolby TrueHD",
-    "vorbis":           "Vorbis",
-    "wav":              "WAV",
-    "wavpack":          "WAVP",
-    "wmapro":           "WMA-PRO",
-    "wmav2":            "WMA",
+    # DTS
+    "dca":           "DTS",
+    "dts":           "DTS",
+    "dtshd":         "DTS-HD",
+    "dtshd_ma":      "DTS-HD MA",
+    "dtshd_hra":     "DTS-HD HRA",
+    "dtshd_ma_x":    "DTS:X MA",
+    "dtshd_ma_x_imax": "DTS:X",
+    # Lossless / PCM
+    "alac":          "ALAC",
+    "flac":          "FLAC",
+    "pcm":           "PCM",
+    "pcm_bluray":    "PCM",
+    "pcm_s16le":     "PCM",
+    "pcm_s24le":     "PCM",
+    "wav":           "WAV",
+    "wavpack":       "WAVP",
+    # Compressed
+    "ape":           "APE",
+    "mp1":           "MP1",
+    "mp2":           "MP2",
+    "mp3":           "MP3",
+    "mp3float":      "MP3",
+    "ogg":           "OGG",
+    "opus":          "OPUS",
+    "vorbis":        "Vorbis",
+    "wmapro":        "WMA-PRO",
+    "wmav2":         "WMA",
+    # Misc
+    "aif":           "AIFF",
+    "aifc":          "AIFF",
+    "aiff":          "AIFF",
+    "avc":           "AVC",
+    "cdda":          "CDDA",
 }
 
+# ---------------------------------------------------------------------------
+# Channel count → surround layout string
+# ---------------------------------------------------------------------------
 
 _CHANNELS_MAP = {
-    1: "1.0", 2: "2.0", 4: "4.0", 5: "5.0",
-    6: "5.1", 7: "6.1", 8: "7.1", 10: "9.1",
+    1:  "1.0",
+    2:  "2.0",
+    4:  "4.0",
+    5:  "5.0",
+    6:  "5.1",
+    7:  "6.1",
+    8:  "7.1",
+    10: "9.1",
 }
 
+# ---------------------------------------------------------------------------
+# Channel count → full speaker-label string
+# ---------------------------------------------------------------------------
 
 _CHANNELS_INPUT_MAP = {
     1:  "Mono",
@@ -126,6 +166,9 @@ _CHANNELS_INPUT_MAP = {
     10: "FL, FR, FC, LFE, BL, BR, SL, SR, FWL, FWR",
 }
 
+# ---------------------------------------------------------------------------
+# ISO 639-2/B language code → native language name
+# ---------------------------------------------------------------------------
 
 _LANGUAGE_MAP = {
     "abk": "Apsua",
@@ -526,7 +569,7 @@ _LANGUAGE_MAP = {
     "som": "Soomaali",
     "son": "Soŋay",
     "snk": "Soninkanxanne",
-    "wen": "Serbšćina",  # Sorbisch
+    "wen": "Serbšćina",
     "sot": "Sesotho",
     "sai": "South American Indian",
     "alt": "Tyva dyl",
