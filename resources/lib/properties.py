@@ -44,6 +44,11 @@ def get_VideoDecoderVar() -> str:
     return "HW" if _cond("Player.Process(videohwdecoder)") else "SW"
 
 
+def get_VideoDecoderExtVar() -> str:
+    """Return 'Hardware' or 'Software' based on the active video decoder type."""
+    return "Hardware" if _cond("Player.Process(videohwdecoder)") else "Software"
+
+
 def get_VideoPixelFormatVar() -> str:
     """
     Parse ``amlogic.pixformat`` and return a human-readable string such as
@@ -415,6 +420,7 @@ def update_properties(window) -> None:
     fps_info_text, fps_out_text = format_fps()
 
     window.setProperty("VideoDecoderVar",       get_VideoDecoderVar())
+    window.setProperty("VideoDecoderExtVar",    get_VideoDecoderExtVar())
     window.setProperty("VideoPixelFormatVar",   get_VideoPixelFormatVar())
     window.setProperty("DisplayModeVar",        get_DisplayModeVar())
     window.setProperty("VideoResolutionVar",    get_VideoResolutionVar())

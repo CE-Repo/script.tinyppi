@@ -112,7 +112,7 @@ msgid "Output mode"
 msgstr ""
 
 msgctxt "#32031"
-msgid "Deinterlacing"
+msgid "Method"
 msgstr ""
 
 msgctxt "#32032"

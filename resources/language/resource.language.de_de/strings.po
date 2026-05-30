@@ -112,12 +112,12 @@ msgid "Output mode"
 msgstr "Ausgabemodus"
 
 msgctxt "#32031"
-msgid "Deinterlacing"
+msgid "Method"
 msgstr "Verfahren"
 
 msgctxt "#32032"
 msgid "Player cache"
-msgstr "Player Cache"
+msgstr "Playercache"
 
 msgctxt "#32033"
 msgid "N/A"

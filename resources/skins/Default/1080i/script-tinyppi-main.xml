@@ -253,7 +253,7 @@
 						<aligny>top</aligny>
 					</control>
 
-					<!-- Deinterlacing -->
+					<!-- Method -->
 					<control type="label">
 						<top>210</top>
 						<label>$ADDON[script.tinyppi 32031]:</label>
@@ -264,7 +264,7 @@
 					<control type="label">
 						<left>210</left>
 						<top>210</top>
-						<label>[CAPITALIZE]$INFO[Player.Process(deintmethod)][/CAPITALIZE]</label>
+						<label>$INFO[Window().Property(VideoDecoderExtVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
@@ -335,6 +335,25 @@
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
+						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+					</control>
+					<control type="label">
+						<left>210</left>
+						<top>60</top>
+						<label>$INFO[Window().Property(VideoBitrateMBVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+					</control>
+					<control type="label">
+						<left>210</left>
+						<top>60</top>
+						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 					</control>
 					<!-- N/A -->
 					<control type="label">
