@@ -14,7 +14,7 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
-import fonts       # runs install_fonts() on import
+import fonts
 import properties
 
 # ---------------------------------------------------------------------------
@@ -229,5 +229,60 @@ def open_tinyppi() -> None:
 
 def open_dialog_mode() -> None:
     """Open the VS10-mode selection dialog."""
-    from mode_select import open_dialog
-    open_dialog()
+    global _dialog_lock
+
+    home   = xbmcgui.Window(10000)
+    player = xbmc.Player()
+
+    if not _ALLOW_NON_COREELEC:
+        if not _is_coreelec():
+            _notify_error(32016)
+            return
+
+        build_version = xbmc.getInfoLabel("System.BuildVersion")
+        try:
+            major_version = int(build_version.split(".")[0])
+        except (ValueError, IndexError):
+            _notify_error(32017)
+            return
+
+        if major_version < 22:
+            _notify_error(32016)
+            return
+
+    skin_path   = xbmcvfs.translatePath("special://skin/")
+    is_720_skin = os.path.exists(os.path.join(skin_path, "720p"))
+
+    if is_720_skin:
+        _notify_error(32012)
+        xbmc.log("TinyPPI: 720p skin detected – unsupported", xbmc.LOGWARNING)
+        return
+
+    if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
+        return
+
+    if not player.isPlaying():
+        return
+
+    if home.getProperty(_PROP_RUNNING) == "true":
+        xbmc.log("TinyPPI: Toggle close (dialog mode)", xbmc.LOGINFO)
+        xbmc.executebuiltin("Action(Back)")
+        return
+
+    if _dialog_lock:
+        return
+
+    home.setProperty(_PROP_RUNNING, "true")
+    home.setProperty(_PROP_ACTIVE,  "true")
+    home.setProperty("TinyPPI.DialogMode", "true")
+
+    try:
+        from mode_select import open_dialog
+        open_dialog()
+    finally:
+        _dialog_lock = True
+        xbmc.Monitor().waitForAbort(0.2)
+        _dialog_lock = False
+
+        home.clearProperty(_PROP_RUNNING)
+        home.clearProperty(_PROP_ACTIVE)
