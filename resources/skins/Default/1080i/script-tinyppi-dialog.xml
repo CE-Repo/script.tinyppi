@@ -5,8 +5,8 @@
     <animation effect="fade" end="0" start="100" time="150">WindowClose</animation>
     <controls>
         <control type="group">
-            <left>710</left>
-            <top>250</top>
+            <left>725</left>
+            <top>267</top>
 
             <!-- Panel -->
             <control type="group">
