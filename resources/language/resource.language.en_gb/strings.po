@@ -186,3 +186,19 @@ msgstr ""
 msgctxt "#32091"
 msgid "Disabled"
 msgstr ""
+
+msgctxt "#32092"
+msgid "Launch mode"
+msgstr ""
+
+msgctxt "#32093"
+msgid "Choose what opens when Add-on is launched."
+msgstr ""
+
+msgctxt "#32094"
+msgid "TinyPPI"
+msgstr ""
+
+msgctxt "#32095"
+msgid "VS10 Dialog"
+msgstr ""

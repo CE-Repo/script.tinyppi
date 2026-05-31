@@ -130,6 +130,9 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
     def onClick(self, control_id: int) -> None:
         if control_id == _BTN_TINYPPI:
             self.close()
+            home = xbmcgui.Window(10000)
+            home.clearProperty("TinyPPI.Running")
+            home.clearProperty("TinyPPI.Active")
             from overlay import open_tinyppi
             open_tinyppi()
             return

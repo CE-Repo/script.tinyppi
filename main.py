@@ -9,7 +9,8 @@ import os
 import sys
 import xbmcaddon
 
-_addon_path = xbmcaddon.Addon().getAddonInfo("path")
+_addon = xbmcaddon.Addon()
+_addon_path = _addon.getAddonInfo("path")
 sys.path.insert(0, os.path.join(_addon_path, "resources", "lib"))
 
 from overlay import open_tinyppi, open_dialog_mode
@@ -22,7 +23,11 @@ for a in raw_args:
     args.extend(a.split(","))
 
 if not args or args[0] == "":
-    open_tinyppi()
+    launch_mode = _addon.getSetting("launch_mode")
+    if launch_mode == "1":
+        open_dialog_mode()
+    else:
+        open_tinyppi()
 
 elif args[0] == "dialog":
     open_dialog_mode()
