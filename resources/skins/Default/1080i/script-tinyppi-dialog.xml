@@ -4,114 +4,239 @@
     <animation effect="fade" start="0" end="100" time="200" tween="cubic" easing="inout">WindowOpen</animation>
     <animation effect="fade" end="0" start="100" time="150">WindowClose</animation>
     <controls>
-
-        <!-- Semi-transparent dark overlay (full screen) -->
-        <control type="image">
-            <left>0</left>
-            <top>0</top>
-            <width>1920</width>
-            <height>1080</height>
-            <texture colordiffuse="CC000000">$SKIN[white.png]</texture>
-        </control>
-
-        <!-- Centered dialog panel -->
         <control type="group">
             <left>710</left>
-            <top>290</top>
-            <width>500</width>
-            <height>500</height>
+            <top>250</top>
 
-            <!-- Panel background -->
-            <control type="image">
+            <!-- Panel -->
+            <control type="group">
                 <left>0</left>
                 <top>0</top>
-                <width>500</width>
-                <height>500</height>
-                <texture colordiffuse="EE1A1A1A">$SKIN[white.png]</texture>
+                <width>23</width>
+                <height>546</height>
+                <control type="image">
+                    <texture colordiffuse="FAFFFFFF">background/modern-start.png</texture>
+                </control>
+            </control>
+            <control type="image">
+                <left>23</left>
+                <top>0</top>
+                <width>425</width>
+                <height>546</height>
+                <texture colordiffuse="FAFFFFFF">background/modern-middle.png</texture>
+            </control>
+            <control type="group">
+                <left>448</left>
+                <top>0</top>
+                <width>23</width>
+                <height>546</height>
+                <control type="image">
+                    <texture colordiffuse="FAFFFFFF">background/modern-end.png</texture>
+                </control>
             </control>
 
-            <!-- Button 1: TinyPPI -->
+            <!-- Label -->
+            <control type="group">
+                <left>35</left>
+                <top>37</top>
+                <control type="label">
+                    <label>VS10</label>
+                    <font>font32</font>
+                    <textcolor>E7EDEDED</textcolor>
+                    <aligny>top</aligny>
+                </control>
+            </control>
+
+            <!-- Chart icon -->
+            <control type="group">
+                <left>400</left>
+                <top>43</top>
+                <control type="image">
+                    <width>36</width>
+                    <height>36</height>
+                    <texture colordiffuse="E7EDEDED">icons/vs10.png</texture>
+                </control>
+            </control>
+
+            <!-- Line -->
+            <control type="group">
+                <left>35</left>
+                <top>120</top>
+                <control type="image">
+                    <width>400</width>
+                    <height>1</height>
+                    <texture colordiffuse="26808080">common/dot-1x1.png</texture>
+                </control>
+            </control>
+            <control type="group">
+                <left>35</left>
+                <top>509</top>
+                <control type="image">
+                    <width>400</width>
+                    <height>1</height>
+                    <texture colordiffuse="26808080">common/dot-1x1.png</texture>
+                </control>
+            </control>
+
+            <!-- Player Process Info -->
             <control type="button" id="1001">
-                <left>30</left>
-                <top>30</top>
-                <width>440</width>
-                <height>70</height>
-                <label>TinyPPI</label>
-                <font>font14</font>
-                <textcolor>FFFFFFFF</textcolor>
+                <left>35</left>
+                <top>155</top>
+                <width>400</width>
+                <height>80</height>
+                <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
+                <align>center</align>
+                <font>font23_narrow</font>
+                <textcolor>b3ededed</textcolor>
+                <selectedcolor>b3ededed</selectedcolor>
                 <focusedcolor>FF000000</focusedcolor>
-                <texturefocus colordiffuse="FFFFFFFF">$SKIN[white.png]</texturefocus>
-                <texturenofocus colordiffuse="33FFFFFF">$SKIN[white.png]</texturenofocus>
-                <onup>1005</onup>
+                <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
+                <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                <onup>1010</onup>
                 <ondown>1002</ondown>
             </control>
 
-            <!-- Button 2: Original -->
-            <control type="button" id="1002">
-                <left>30</left>
-                <top>120</top>
-                <width>440</width>
-                <height>70</height>
-                <label>Original</label>
-                <font>font14</font>
-                <textcolor>FFFFFFFF</textcolor>
-                <focusedcolor>FF000000</focusedcolor>
-                <texturefocus colordiffuse="FFFFFFFF">$SKIN[white.png]</texturefocus>
-                <texturenofocus colordiffuse="33FFFFFF">$SKIN[white.png]</texturenofocus>
-                <onup>1001</onup>
-                <ondown>1003</ondown>
-                <onclick>noop</onclick>
+            <!-- SDR -->
+            <control type="group">
+                <visible>String.IsEmpty(VideoPlayer.HdrType)</visible>
+                <control type="button" id="1002">
+                    <left>35</left>
+                    <top>235</top>
+                    <width>400</width>
+                    <height>80</height>
+                    <label>[B]Original[/B]</label>
+                    <align>center</align>
+                    <font>font23_narrow</font>
+                    <textcolor>b3ededed</textcolor>
+                    <selectedcolor>b3ededed</selectedcolor>
+                    <focusedcolor>FF000000</focusedcolor>
+                    <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
+                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <onup>1001</onup>
+                    <ondown>1003</ondown>
+                </control>
+                <control type="button" id="1003">
+                    <left>35</left>
+                    <top>315</top>
+                    <width>400</width>
+                    <height>80</height>
+                    <label>[B]SDR -> HDR10[/B]</label>
+                    <align>center</align>
+                    <font>font23_narrow</font>
+                    <textcolor>b3ededed</textcolor>
+                    <selectedcolor>b3ededed</selectedcolor>
+                    <focusedcolor>FF000000</focusedcolor>
+                    <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
+                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <onup>1002</onup>
+                    <ondown>1004</ondown>
+                </control>
+                <control type="button" id="1004">
+                    <left>35</left>
+                    <top>395</top>
+                    <width>400</width>
+                    <height>80</height>
+                    <label>[B]SDR -> Dolby Vision[/B]</label>
+                    <align>center</align>
+                    <font>font23_narrow</font>
+                    <textcolor>b3ededed</textcolor>
+                    <selectedcolor>b3ededed</selectedcolor>
+                    <focusedcolor>FF000000</focusedcolor>
+                    <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
+                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <onup>1003</onup>
+                    <ondown>1005</ondown>
+                </control>
             </control>
 
-            <!-- Button 3: VS10 SDR -->
-            <control type="button" id="1003">
-                <left>30</left>
-                <top>210</top>
-                <width>440</width>
-                <height>70</height>
-                <label>VS10 SDR</label>
-                <font>font14</font>
-                <textcolor>FFFFFFFF</textcolor>
-                <focusedcolor>FF000000</focusedcolor>
-                <texturefocus colordiffuse="FFFFFFFF">$SKIN[white.png]</texturefocus>
-                <texturenofocus colordiffuse="33FFFFFF">$SKIN[white.png]</texturenofocus>
-                <onup>1002</onup>
-                <ondown>1004</ondown>
-                <onclick>noop</onclick>
+            <!-- HDR10 -->
+            <control type="group">
+                <visible>String.Contains(VideoPlayer.HdrType,hdr10)</visible>
+                <control type="button" id="1005">
+                    <left>35</left>
+                    <top>235</top>
+                    <width>400</width>
+                    <height>80</height>
+                    <label>[B]HDR10 (Original)[/B]</label>
+                    <align>center</align>
+                    <font>font23_narrow</font>
+                    <textcolor>b3ededed</textcolor>
+                    <selectedcolor>b3ededed</selectedcolor>
+                    <focusedcolor>FF000000</focusedcolor>
+                    <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
+                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <onup>1004</onup>
+                    <ondown>1006</ondown>
+                </control>
+                <control type="button" id="1006">
+                    <left>35</left>
+                    <top>315</top>
+                    <width>400</width>
+                    <height>80</height>
+                    <label>[B]HDR10 -> SDR[/B]</label>
+                    <align>center</align>
+                    <font>font23_narrow</font>
+                    <textcolor>b3ededed</textcolor>
+                    <selectedcolor>b3ededed</selectedcolor>
+                    <focusedcolor>FF000000</focusedcolor>
+                    <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
+                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <onup>1005</onup>
+                    <ondown>1008</ondown>
+                </control>
+                <control type="button" id="1008">
+                    <left>35</left>
+                    <top>395</top>
+                    <width>400</width>
+                    <height>80</height>
+                    <label>[B]HDR10 -> Dolby Vision[/B]</label>
+                    <align>center</align>
+                    <font>font23_narrow</font>
+                    <textcolor>b3ededed</textcolor>
+                    <selectedcolor>b3ededed</selectedcolor>
+                    <focusedcolor>FF000000</focusedcolor>
+                    <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
+                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <onup>1006</onup>
+                    <ondown>1009</ondown>
+                </control>
             </control>
 
-            <!-- Button 4: VS10 HDR10 -->
-            <control type="button" id="1004">
-                <left>30</left>
-                <top>300</top>
-                <width>440</width>
-                <height>70</height>
-                <label>VS10 HDR10</label>
-                <font>font14</font>
-                <textcolor>FFFFFFFF</textcolor>
-                <focusedcolor>FF000000</focusedcolor>
-                <texturefocus colordiffuse="FFFFFFFF">$SKIN[white.png]</texturefocus>
-                <texturenofocus colordiffuse="33FFFFFF">$SKIN[white.png]</texturenofocus>
-                <onup>1003</onup>
-                <ondown>1005</ondown>
-                <onclick>noop</onclick>
-            </control>
-
-            <!-- Button 5: VS10 DV -->
-            <control type="button" id="1005">
-                <left>30</left>
-                <top>390</top>
-                <width>440</width>
-                <height>70</height>
-                <label>VS10 DV</label>
-                <font>font14</font>
-                <textcolor>FFFFFFFF</textcolor>
-                <focusedcolor>FF000000</focusedcolor>
-                <texturefocus colordiffuse="FFFFFFFF">$SKIN[white.png]</texturefocus>
-                <texturenofocus colordiffuse="33FFFFFF">$SKIN[white.png]</texturenofocus>
-                <onup>1004</onup>
-                <ondown>1001</ondown>
-                <onclick>noop</onclick>
+            <!-- Dolby Vision -->
+            <control type="group">
+                <visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
+                <control type="button" id="1009">
+                    <left>35</left>
+                    <top>275</top>
+                    <width>400</width>
+                    <height>80</height>
+                    <label>[B]Dolby Vision (Original)[/B]</label>
+                    <align>center</align>
+                    <font>font23_narrow</font>
+                    <textcolor>b3ededed</textcolor>
+                    <selectedcolor>b3ededed</selectedcolor>
+                    <focusedcolor>FF000000</focusedcolor>
+                    <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
+                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <onup>1008</onup>
+                    <ondown>1010</ondown>
+                </control>
+                <control type="button" id="1010">
+                    <left>35</left>
+                    <top>395</top>
+                    <width>400</width>
+                    <height>80</height>
+                    <label>[B]Dolby Vision -> SDR[/B]</label>
+                    <align>center</align>
+                    <font>font23_narrow</font>
+                    <textcolor>b3ededed</textcolor>
+                    <selectedcolor>b3ededed</selectedcolor>
+                    <focusedcolor>FF000000</focusedcolor>
+                    <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
+                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <onup>1009</onup>
+                    <ondown>1001</ondown>
+                </control>
             </control>
         </control>
     </controls>

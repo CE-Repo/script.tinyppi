@@ -7,6 +7,7 @@ Open via ``RunScript(script.tinyppi,dialog)`` or programmatically:
     open_dialog()
 """
 
+import time
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -18,7 +19,66 @@ import xbmcgui
 _ADDON      = xbmcaddon.Addon()
 _ADDON_PATH = _ADDON.getAddonInfo("path")
 
+_POLICY = "/sys/module/aml_media/parameters/dolby_vision_policy"
+_ENABLE = "/sys/module/aml_media/parameters/dolby_vision_enable"
+_DVMODE = "/sys/class/amdolby_vision/dv_mode"
+
 _BTN_TINYPPI = 1001
+
+# ---------------------------------------------------------------------------
+# Sysfs
+# ---------------------------------------------------------------------------
+
+def _w(path: str, value: str) -> None:
+    try:
+        with open(path, "w") as f:
+            f.write(value)
+        xbmc.log(f"TinyPPI: {path} = {value}", xbmc.LOGINFO)
+    except OSError as e:
+        xbmc.log(f"TinyPPI: FAILED {path}: {e}", xbmc.LOGERROR)
+
+# ---------------------------------------------------------------------------
+# VS10 Mode
+# ---------------------------------------------------------------------------
+
+def original_sdr():
+    _w(_POLICY, "2"); _w(_ENABLE, "Y"); _w(_DVMODE, "0")
+
+def hdr10():
+    _w(_POLICY, "2"); _delay(100); _w(_DVMODE, "0"); _delay(100); _w(_ENABLE, "Y"); _delay(100); _w(_DVMODE, "3")
+
+def dv():
+    _w(_POLICY, "2"); _delay(100); _w(_ENABLE, "Y"); _delay(100); _w(_DVMODE, "2")
+
+def original_hdr():
+    _w(_POLICY, "2"); _delay(100); _w(_ENABLE, "Y"); _delay(100); _w(_DVMODE, "3")
+
+def original_dv():
+    _w(_POLICY, "2"); _delay(100); _w(_ENABLE, "Y"); _delay(100); _w(_DVMODE, "2")
+
+def sdr8():
+    _w(_POLICY, "2"); _delay(100); _w(_DVMODE, "0"); _delay(100); _w(_ENABLE, "Y"); _delay(100); _w(_DVMODE, "5")
+
+def sdr10():
+    _w(_POLICY, "2"); _delay(100); _w(_DVMODE, "0"); _delay(100); _w(_ENABLE, "Y"); _delay(100); _w(_DVMODE, "4")
+
+# ---------------------------------------------------------------------------
+# Button-ID
+# ---------------------------------------------------------------------------
+
+_ACTIONS = {
+    # SDR
+    1002: original_sdr,
+    1003: hdr10,
+    1004: dv,
+    # HDR
+    1005: original_hdr,
+    1006: sdr8,
+    1008: dv,
+    # DV
+    1009: original_dv,
+    1010: sdr8,
+}
 
 # ---------------------------------------------------------------------------
 # Dialog
@@ -35,6 +95,12 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
             self.close()
             from overlay import open_tinyppi
             open_tinyppi()
+            return
+
+        action = _ACTIONS.get(control_id)
+        if action:
+            action()
+            self.close()
 
     def onAction(self, action: xbmcgui.Action) -> None:
         if action.getId() in (
@@ -48,6 +114,13 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
+def _delay(ms: int):
+    try:
+        xbmc.sleep(ms)
+    except Exception:
+        time.sleep(ms / 1000)
+
 
 def open_dialog() -> None:
     """Create and display the settings/mode-selection dialog modally."""
