@@ -37,6 +37,13 @@ def _w(path: str, value: str) -> None:
     except OSError as e:
         xbmc.log(f"TinyPPI: FAILED {path}: {e}", xbmc.LOGERROR)
 
+
+def _delay(ms: int):
+    try:
+        xbmc.sleep(ms)
+    except Exception:
+        time.sleep(ms / 1000)
+
 # ---------------------------------------------------------------------------
 # VS10 Mode
 # ---------------------------------------------------------------------------
@@ -61,6 +68,36 @@ def sdr8():
 
 def sdr10():
     _w(_POLICY, "2"); _delay(100); _w(_DVMODE, "0"); _delay(100); _w(_ENABLE, "Y"); _delay(100); _w(_DVMODE, "4")
+
+
+# ---------------------------------------------------------------------------
+# Mapping
+# ---------------------------------------------------------------------------
+
+_MODES = {
+    "original_sdr": original_sdr,
+    "hdr10": hdr10,
+    "dv": dv,
+    "original_hdr": original_hdr,
+    "original_dv": original_dv,
+    "sdr8": sdr8,
+    "sdr10": sdr10,
+}
+
+def set_mode(name: str):
+    fn = _MODES.get(name)
+    if fn:
+        fn()
+        xbmc.log(f"TinyPPI: mode set -> {name}", xbmc.LOGINFO)
+    else:
+        xbmc.log(f"TinyPPI: Unknown mode '{name}'", xbmc.LOGERROR)
+
+
+def run_mode(mode: str):
+    set_mode(mode)
+
+__all__ = list(_MODES.keys()) + ["open_dialog", "set_mode", "run_mode"]
+
 
 # ---------------------------------------------------------------------------
 # Button-ID
@@ -114,13 +151,6 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
-
-def _delay(ms: int):
-    try:
-        xbmc.sleep(ms)
-    except Exception:
-        time.sleep(ms / 1000)
-
 
 def open_dialog() -> None:
     """Create and display the settings/mode-selection dialog modally."""
