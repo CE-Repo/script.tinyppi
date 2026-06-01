@@ -200,6 +200,25 @@ def get_DoviFelVar() -> str:
     return "FEL" if "full enhancement layer" in text else ""
 
 
+def get_DoviTunnelVar() -> str:
+    """
+    Read Dolby Vision mode from sysfs.
+
+    Returns:
+        "DV Tunnel" if the value is 1.
+        "" otherwise.
+    """
+    path = "/sys/module/aml_media/parameters/dolby_vision_mode"
+
+    try:
+        with open(path, encoding="utf-8", errors="ignore") as f:
+            value = f.read().strip()
+    except OSError:
+        return ""
+
+    return "DV Tunnel" if value == "1" else ""
+
+
 # ---------------------------------------------------------------------------
 # Amlogic EOFT / gamut
 # ---------------------------------------------------------------------------
@@ -429,6 +448,7 @@ def update_properties(window) -> None:
     window.setProperty("HdmiHdrStatusVar",      get_HdmiHdrStatusVar())
     window.setProperty("DoviProfileVar",        get_DoviProfileVar())
     window.setProperty("DoviFelVar",            get_DoviFelVar())
+    window.setProperty("DoviTunnelVar",         get_DoviTunnelVar())
     window.setProperty("ModeVar",               get_ModeVar())
     window.setProperty("GamutVar",              get_GamutVar())
     window.setProperty("VdecBitrate",           bitrate_value)
