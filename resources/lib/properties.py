@@ -175,11 +175,11 @@ def get_DoviProfileVar() -> str:
 
     text = _read_last_dovi_log_line()
     if not text:
-        return ""
+        return "Dolby Vision Profile 8.1"
 
     prof = re.search(r"profile\s*(\d+)", text)
     if not prof:
-        return ""
+        return "Dolby Vision Profile 8.1"
 
     profile_num = prof.group(1)
     if profile_num in ("0", "8"):
