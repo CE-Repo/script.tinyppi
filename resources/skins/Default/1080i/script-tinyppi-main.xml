@@ -3,6 +3,7 @@
     <onload>Dialog.Close(fullscreenvideo,true)</onload>
     <onload>Dialog.Close(videoosd,true)</onload>
     <onload>Dialog.Close(seekbar,true)</onload>
+    <onload>Dialog.Close(1159,true)</onload>
     <animation effect="fade" start="0" end="100" time="350" tween="cubic" easing="inout">Visible</animation>
     <animation effect="fade" start="0" end="100" time="350" tween="cubic" easing="inout">WindowOpen</animation>
     <animation effect="fade" end="0" start="100" time="150">Hidden</animation>

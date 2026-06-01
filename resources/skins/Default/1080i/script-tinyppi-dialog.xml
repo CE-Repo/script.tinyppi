@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <window type="dialog">
     <defaultcontrol always="true">1001</defaultcontrol>
+    <onload>Dialog.Close(fullscreenvideo,true)</onload>
+    <onload>Dialog.Close(videoosd,true)</onload>
+    <onload>Dialog.Close(seekbar,true)</onload>
+    <onload>Dialog.Close(1159,true)</onload>
     <animation effect="fade" start="0" end="100" time="200" tween="cubic" easing="inout">WindowOpen</animation>
     <animation effect="fade" end="0" start="100" time="150">WindowClose</animation>
     <controls>
