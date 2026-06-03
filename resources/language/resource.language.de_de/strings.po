@@ -95,6 +95,10 @@ msgctxt "#32021"
 msgid "This option adds the name of the file currently playing to TinyPPI."
 msgstr "Diese Option fügt den Namen der gerade abgespielten Datei in TinyPPI hinzu."
 
+msgctxt "#32022"
+msgid "Video queue / data"
+msgstr "Video Queue / Daten"
+
 msgctxt "#32023"
 msgid "Pixel format"
 msgstr "Pixelformat"
@@ -102,6 +106,10 @@ msgstr "Pixelformat"
 msgctxt "#32024"
 msgid "Aspect ratio"
 msgstr "Verhältnis"
+
+msgctxt "#32025"
+msgid "Audio queue / data"
+msgstr "Audio Queue / Daten"
 
 msgctxt "#32026"
 msgid "VS10 engine"

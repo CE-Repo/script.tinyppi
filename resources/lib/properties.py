@@ -14,7 +14,6 @@ from maps import (
     _CHANNELS_INPUT_MAP,
     _CHANNELS_MAP,
     _LANGUAGE_MAP,
-    _SUBTITLE_CODEC_MAP,
     _VIDEO_CODEC_MAP,
 )
 from utils import _cond, _info, _clean
@@ -272,7 +271,7 @@ def get_VdecBitrateVar() -> tuple[str, str]:
 # Audio properties
 # ---------------------------------------------------------------------------
 
-def get_AudioBitrateMBVar() -> str:
+def get_AudioBitrateKBVar() -> str:
     """Convert the audio bitrate from kb/s to Kb/s and return a display string."""
     bitrate = _clean(_info("VideoPlayer.AudioBitrate"))
     try:
@@ -339,17 +338,28 @@ def get_AudioNameVar() -> str:
 # Subtitle properties
 # ---------------------------------------------------------------------------
 
-def get_SubtitleNameVar() -> str:
-    """Return the native language name for the active subtitle language code."""
-    code = _info("VideoPlayer.SubtitlesLanguage").lower().strip()
-    return _LANGUAGE_MAP.get(code, "") if code else ""
+def get_SubtitleVar() -> str:
+    """
+    Return the active subtitle language.
+    """
+    lang = _info("VideoPlayer.SubtitlesLanguage").strip()
+
+    if not lang:
+        return _info("VideoPlayer.SubtitlesLangEx")
+
+    return lang.upper()
 
 
-def get_SubtitleCodecVar() -> str:
-    """Return the mapped display name for the current subtitle codec."""
-    codec = _info("VideoPlayer.SubtitleCodec").lower().strip()
-    return _SUBTITLE_CODEC_MAP.get(codec, codec.upper()) if codec else ""
+def get_SubtitleNameInfoVar() -> str:
+    """
+    Return the active subtitle track name formatted for display.
+    """
+    name = _info("VideoPlayer.SubtitlesName").strip()
 
+    if not name:
+        return ""
+
+    return f"| {name}"
 
 # ---------------------------------------------------------------------------
 # System properties
@@ -455,15 +465,15 @@ def update_properties(window) -> None:
     window.setProperty("VdecBitrateUnit",       bitrate_unit)
     window.setProperty("FpsInfoVar",            fps_info_text)
     window.setProperty("FpsDropVar",            fps_out_text)
-    window.setProperty("AudioBitrateMBVar",     get_AudioBitrateMBVar())
+    window.setProperty("AudioBitrateKBVar",     get_AudioBitrateKBVar())
     window.setProperty("AudioCodecVar",         get_AudioCodecVar())
     window.setProperty("AudioCodecSpatialVar",  get_AudioCodecSpatialVar())
     window.setProperty("AudioChannelsVar",      get_AudioChannelsVar())
     window.setProperty("AudioChannelsInputVar", get_AudioChannelsInputVar())
     window.setProperty("AudioSampleRateVar",    get_AudioSampleRateVar())
     window.setProperty("AudioNameVar",          get_AudioNameVar())
-    window.setProperty("SubtitleCodecVar",      get_SubtitleCodecVar())
-    window.setProperty("SubtitleNameVar",       get_SubtitleNameVar())
+    window.setProperty("SubtitleVar",           get_SubtitleVar())
+    window.setProperty("SubtitleNameInfoVar",   get_SubtitleNameInfoVar())
     window.setProperty("CpuUsageVar",           get_CpuUsageVar())
     window.setProperty("CpuTopUsageVar",        get_CpuTopUsageVar())
     window.setProperty("CurrentSkin",           xbmc.getSkinDir())

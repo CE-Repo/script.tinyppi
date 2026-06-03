@@ -19,7 +19,7 @@
                 <width>23</width>
                 <height>546</height>
                 <control type="image">
-                    <texture colordiffuse="FAFFFFFF">background/modern-start.png</texture>
+                    <texture colordiffuse="FA15181A">background/vs-dialog-start.png</texture>
                 </control>
             </control>
             <control type="image">
@@ -27,7 +27,7 @@
                 <top>0</top>
                 <width>425</width>
                 <height>546</height>
-                <texture colordiffuse="FAFFFFFF">background/modern-middle.png</texture>
+                <texture colordiffuse="FA15181A">background/modern-middle.png</texture>
             </control>
             <control type="group">
                 <left>448</left>
@@ -35,7 +35,7 @@
                 <width>23</width>
                 <height>546</height>
                 <control type="image">
-                    <texture colordiffuse="FAFFFFFF">background/modern-end.png</texture>
+                    <texture colordiffuse="FA15181A">background/vs-dialog-end.png</texture>
                 </control>
             </control>
 
