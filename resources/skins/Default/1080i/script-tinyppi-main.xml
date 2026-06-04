@@ -13,11 +13,11 @@
 
 			<!-- Classic -->
 			<control type="group">
-				<visible>String.IsEqual(Window(10000).Property(TinyPPI.BackgroundToggle),0)</visible>
 				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),0)</visible>
 
 				<!-- Background -->
 				<control type="group">
+					<visible>String.IsEqual(Window(10000).Property(TinyPPI.BackgroundToggle),0)</visible>
 					<top>-1000</top>
 					<width>1920</width>
 					<height>2080</height>
