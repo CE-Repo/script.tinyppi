@@ -412,7 +412,7 @@
 					<control type="label">
 						<left>210</left>
 						<top>60</top>
-						<label>$INFO[Player.Process(videolivebitrate),, Mb/s] $INFO[Window().Property(VideoBitrateMBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
+						<label>$INFO[Player.Process(videolivebitrate)] $INFO[Window().Property(VideoBitrateMBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
@@ -430,7 +430,7 @@
 					<control type="label">
 						<left>210</left>
 						<top>60</top>
-						<label>$INFO[Player.Process(videolivebitrate),, Mb/s]</label>
+						<label>$INFO[Player.Process(videolivebitrate)]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
@@ -604,7 +604,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>90</top>
-						<label>$INFO[Player.Process(audiolivebitrate),, Kb/s] $INFO[Window().Property(AudioBitrateKBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
+						<label>$INFO[Player.Process(audiolivebitrate)] $INFO[Window().Property(AudioBitrateKBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
@@ -622,7 +622,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>90</top>
-						<label>$INFO[Player.Process(audiolivebitrate),, Kb/s]</label>
+						<label>$INFO[Player.Process(audiolivebitrate)]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
