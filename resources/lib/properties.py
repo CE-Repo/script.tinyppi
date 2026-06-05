@@ -122,7 +122,7 @@ def get_VideoBitrateMBVar() -> str:
     except (TypeError, ValueError):
         return ""
 
-    value = f"{mbit:.2f}".rstrip("0").rstrip(".")
+    value = f"{mbit:.1f}"
     return f"{value} Mb/s"
 
 
@@ -279,6 +279,15 @@ def get_AudioBitrateKBVar() -> str:
     except (TypeError, ValueError):
         return ""
     return f"{kbps:,} Kb/s".replace(",", ".")
+
+
+def get_AudioLiveBitrateVar() -> str:
+    """Return audio live bitrate with dot instead of comma."""
+    bitrate = _clean(_info("Player.Process(audiolivebitrate)"))
+    if not bitrate:
+        return ""
+
+    return bitrate.replace(",", ".")
 
 
 def get_AudioCodecVar() -> str:
@@ -466,6 +475,7 @@ def update_properties(window) -> None:
     window.setProperty("FpsInfoVar",            fps_info_text)
     window.setProperty("FpsDropVar",            fps_out_text)
     window.setProperty("AudioBitrateKBVar",     get_AudioBitrateKBVar())
+    window.setProperty("AudioLiveBitrateVar",   get_AudioLiveBitrateVar())
     window.setProperty("AudioCodecVar",         get_AudioCodecVar())
     window.setProperty("AudioCodecSpatialVar",  get_AudioCodecSpatialVar())
     window.setProperty("AudioChannelsVar",      get_AudioChannelsVar())
