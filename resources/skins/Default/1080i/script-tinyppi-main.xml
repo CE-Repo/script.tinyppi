@@ -604,11 +604,11 @@
 					<control type="label">
 						<left>240</left>
 						<top>90</top>
-						<label>$INFO[Player.Process(audiolivebitrate)] $INFO[Window().Property(AudioBitrateKBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
+						<label>$INFO[Window().Property(AudioLiveBitrateVar)] $INFO[Window().Property(AudioBitrateKBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
-						<visible>!String.IsEmpty(Player.Process(audiolivebitrate)) + !String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
+						<visible>!String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + !String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
 					</control>
 					<control type="label">
 						<left>240</left>
@@ -617,16 +617,16 @@
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
-						<visible>String.IsEmpty(Player.Process(audiolivebitrate)) + !String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
+						<visible>String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + !String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
 					</control>
 					<control type="label">
 						<left>240</left>
 						<top>90</top>
-						<label>$INFO[Player.Process(audiolivebitrate)]</label>
+						<label>$INFO[Window().Property(AudioLiveBitrateVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
-						<visible>!String.IsEmpty(Player.Process(audiolivebitrate)) + String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
+						<visible>!String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
 					</control>
 					<!-- N/A -->
 					<control type="label">
@@ -635,7 +635,7 @@
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
-						<visible>String.IsEmpty(Player.Process(audiolivebitrate)) + String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
+						<visible>String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
 						<aligny>top</aligny>
 					</control>
 
