@@ -44,9 +44,10 @@
 				</control>
 			</control>
 
-			<!-- Modern -->
+			<!-- Modern - Filename -->
 			<control type="group">
 				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),1)</visible>
+				<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),false)</visible>
 
 				<!-- Background - Start -->
 				<control type="group">
@@ -80,6 +81,66 @@
 						<texture colordiffuse="FA15181A">background/modern-end.png</texture>
 					</control>
 				</control>
+			</control>
+
+			<!-- Modern + Filename -->
+			<control type="group">
+				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),1)</visible>
+				<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),true)</visible>
+
+				<!-- Background - Start -->
+				<control type="group">
+					<left>35</left>
+					<top>410</top>
+					<width>23</width>
+					<height>655</height>
+					<control type="image">
+						<texture colordiffuse="FA15181A">background/modern-start.png</texture>
+					</control>
+				</control>
+
+				<!-- Background - Middle -->
+				<control type="group">
+					<left>58</left>
+					<top>410</top>
+					<width>1182</width>
+					<height>655</height>
+					<control type="image">
+						<texture colordiffuse="FA15181A">background/modern-middle.png</texture>
+					</control>
+				</control>
+
+				<!-- Background - End -->
+				<control type="group">
+					<left>1240</left>
+					<top>410</top>
+					<width>23</width>
+					<height>655</height>
+					<control type="image">
+						<texture colordiffuse="FA15181A">background/modern-end.png</texture>
+					</control>
+				</control>
+
+				<!-- Filename -->
+				<control type="group">
+					<top>1028</top>
+					<control type="label">
+						<left>70</left>
+						<width>1155</width>
+						<label>$INFO[Player.Filename]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<align>center</align>
+						<scroll>true</scroll>
+						<scrollspeed>30</scrollspeed>
+						<aligny>top</aligny>
+					</control>
+				</control>
+			</control>
+
+			<!-- Modern -->
+			<control type="group">
+				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),1)</visible>
 
 				<!-- Label -->
 				<control type="group">
@@ -104,7 +165,7 @@
 					</control>
 				</control>
 
-				<!-- Line -->
+				<!-- Line / Top -->
 				<control type="group">
 					<left>70</left>
 					<top>515</top>
@@ -115,24 +176,19 @@
 					</control>
 				</control>
 
-				<!-- Filename -->
+				<!-- Line / Bottom -->
 				<control type="group">
 					<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),true)</visible>
-					<top>1045</top>
-					<control type="label">
-						<left>55</left>
-						<width>1180</width>
-						<label>$INFO[Player.Filename]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<align>center</align>
-						<scroll>true</scroll>
-						<scrollspeed>30</scrollspeed>
-						<aligny>top</aligny>
+					<left>70</left>
+					<top>1023</top>
+					<control type="image">
+						<width>1157</width>
+						<height>1</height>
+						<texture colordiffuse="26808080">common/dot-1x1.png</texture>
 					</control>
 				</control>
 			</control>
-			
+
 			<!-- Codec logos support -->
             <include condition="Skin.HasSetting(ppi.useleftCodecLogos)">CodecLogosLeftOSD</include>
             <include condition="Skin.HasSetting(ppi.usecenterCodecLogos)">CodecLogosCenterOSD</include>
