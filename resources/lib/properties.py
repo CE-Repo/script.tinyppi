@@ -283,11 +283,11 @@ def get_AudioBitrateKBVar() -> str:
 
 def get_AudioLiveBitrateVar() -> str:
     """Return audio live bitrate with dot instead of comma."""
-    bitrate = _clean(_info("Player.Process(audiolivebitrate)"))
+    bitrate = _info("Player.Process(audiolivebitrate)")
     if not bitrate:
         return ""
 
-    return bitrate.replace(",", ".")
+    return str(bitrate).replace(",", ".")
 
 
 def get_AudioCodecVar() -> str:
