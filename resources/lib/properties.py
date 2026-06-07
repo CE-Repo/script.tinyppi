@@ -354,7 +354,7 @@ def get_SubtitleVar() -> str:
     lang = _info("VideoPlayer.SubtitlesLanguage").strip()
 
     if not lang:
-        return _info("VideoPlayer.SubtitlesLangEx")
+        return _info("VideoPlayer.SubtitlesLanguageEx")
 
     return lang.upper()
 
