@@ -354,7 +354,7 @@ def get_SubtitleVar() -> str:
     lang = _info("VideoPlayer.SubtitlesLanguage").strip()
 
     if not lang:
-        return _info("VideoPlayer.SubtitlesLanguageEx")
+        return _info("VideoPlayer.SubtitleLanguageEx")
 
     return lang.upper()
 
@@ -363,7 +363,7 @@ def get_SubtitleNameInfoVar() -> str:
     """
     Return the active subtitle track name formatted for display.
     """
-    name = _info("VideoPlayer.SubtitlesName").strip()
+    name = _info("VideoPlayer.SubtitleName").strip()
 
     if not name:
         return ""
