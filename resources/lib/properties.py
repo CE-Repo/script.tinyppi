@@ -122,8 +122,27 @@ def get_VideoBitrateMBVar() -> str:
     except (TypeError, ValueError):
         return ""
 
-    value = f"{mbit:.1f}"
+    value = f"{mbit:.2f}".rstrip("0").rstrip(".")
     return f"{value} Mb/s"
+
+
+def get_VideoLiveBitrateVar() -> str:
+    """Format live video bitrate."""
+    bitrate = _info("Player.Process(videolivebitrate)").strip()
+
+    if not bitrate:
+        return ""
+
+    match = re.search(r"([\d.]+)", bitrate)
+    if not match:
+        return bitrate
+
+    value = float(match.group(1))
+
+    if value < 1.0:
+        return f"{int(value * 1000)} Kb/s"
+
+    return f"{value:.2f}".rstrip("0").rstrip(".") + " Mb/s"
 
 
 def get_VideoCodecVar() -> str:
@@ -463,6 +482,7 @@ def update_properties(window) -> None:
     window.setProperty("DisplayModeVar",        get_DisplayModeVar())
     window.setProperty("VideoResolutionVar",    get_VideoResolutionVar())
     window.setProperty("VideoBitrateMBVar",     get_VideoBitrateMBVar())
+    window.setProperty("VideoLiveBitrateVar",   get_VideoLiveBitrateVar())
     window.setProperty("VideoCodecVar",         get_VideoCodecVar())
     window.setProperty("HdmiHdrStatusVar",      get_HdmiHdrStatusVar())
     window.setProperty("DoviProfileVar",        get_DoviProfileVar())

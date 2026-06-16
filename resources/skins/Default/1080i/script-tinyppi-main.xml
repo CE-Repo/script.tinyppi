@@ -412,11 +412,11 @@
 					<control type="label">
 						<left>210</left>
 						<top>60</top>
-						<label>$INFO[Player.Process(videolivebitrate)] $INFO[Window().Property(VideoBitrateMBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
+						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)] $INFO[Window().Property(VideoBitrateMBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
-						<visible>!String.IsEmpty(Player.Process(videolivebitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 					</control>
 					<control type="label">
 						<left>210</left>
@@ -425,16 +425,16 @@
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
-						<visible>String.IsEmpty(Player.Process(videolivebitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 					</control>
 					<control type="label">
 						<left>210</left>
 						<top>60</top>
-						<label>$INFO[Player.Process(videolivebitrate)]</label>
+						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
-						<visible>!String.IsEmpty(Player.Process(videolivebitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 					</control>
 					<!-- N/A -->
 					<control type="label">
@@ -443,7 +443,7 @@
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
-						<visible>String.IsEmpty(Player.Process(videolivebitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 						<aligny>top</aligny>
 					</control>
 
