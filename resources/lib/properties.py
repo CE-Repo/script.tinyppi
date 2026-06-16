@@ -127,22 +127,30 @@ def get_VideoBitrateMBVar() -> str:
 
 
 def get_VideoLiveBitrateVar() -> str:
-    """Format live video bitrate."""
+    """Format live video bitrate without failing on malformed Kodi values."""
     bitrate = _info("Player.Process(videolivebitrate)").strip()
 
     if not bitrate:
         return ""
 
-    match = re.search(r"([\d.]+)", bitrate)
+    # Match a valid decimal number, not arbitrary combinations such as ".".
+    match = re.search(r"\d+(?:[.,]\d+)?|[.,]\d+", bitrate)
     if not match:
-        return bitrate
+        return ""
 
-    value = float(match.group(1))
+    try:
+        value = float(match.group(0).replace(",", "."))
+    except (TypeError, ValueError):
+        return ""
+
+    if value < 0:
+        return ""
 
     if value < 1.0:
-        return f"{int(value * 1000)} Kb/s"
+        return f"{int(round(value * 1000))} Kb/s"
 
-    return f"{value:.2f}".rstrip("0").rstrip(".") + " Mb/s"
+    formatted = f"{value:.2f}".rstrip("0").rstrip(".")
+    return f"{formatted} Mb/s"
 
 
 def get_VideoCodecVar() -> str:
