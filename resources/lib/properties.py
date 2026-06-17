@@ -326,10 +326,10 @@ def get_AudioCodecVar() -> str:
 
 
 def get_AudioCodecSpatialVar() -> str:
-    """Return the spatial-audio suffix: ``'(Atmos)'``, ``'(IMAX)'``, or ``''``."""
+    """Return the spatial-audio suffix: ``'(Atmos)'``, ``'(IMAX Enhanced)'``, or ``''``."""
     codec = _info("VideoPlayer.AudioCodec")
     if codec == "dtshd_ma_x_imax":
-        return "(IMAX)"
+        return "(IMAX Enhanced)"
     if codec in ("eac3_ddp_atmos", "truehd_atmos"):
         return "(Atmos)"
     return ""
