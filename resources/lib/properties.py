@@ -31,6 +31,7 @@ from dvinfo import (
     get_l5_offsets,
     get_l6_rpu_mdl,
     get_l6_rpu_max_cll_fall,
+    is_status_label,
 )
 
 # ---------------------------------------------------------------------------
@@ -254,8 +255,8 @@ def get_DoviTunnelVar() -> str:
 def get_DoviCmVersionVar() -> str:
     """
     Return the source Dolby Vision Content-Mapping version
-    (``'CMv2.9'`` or ``'CMv4.0'``), or ``''`` when not yet determined or
-    when the source is not Dolby Vision.
+    (``'CMv2.9'`` or ``'CMv4.0'``), a localized status while/after detection,
+    or ``''`` when the source is not Dolby Vision.
 
     Detection runs once per file in a background thread (see dvinfo.py), so
     this call never blocks the polling loop.
@@ -265,26 +266,34 @@ def get_DoviCmVersionVar() -> str:
 
 def get_DoviLevel5OffsetsVar() -> str:
     """
-    Return the source Dolby Vision Level 5 active-area offsets, or ``''`` when
-    not yet determined or when the source is not Dolby Vision.
+    Return the source Dolby Vision Level 5 active-area offsets, a localized
+    status while/after detection, or ``''`` when the source is not Dolby Vision.
     """
     return get_l5_offsets()
 
 
 def get_DoviLevel6RpuMdlVar() -> str:
     """
-    Return the source Dolby Vision Level 6 RPU mastering-display luminance, or
-    ``''`` when not yet determined or when the source is not Dolby Vision.
+    Return the source Dolby Vision Level 6 RPU mastering-display luminance, a
+    localized status while/after detection, or ``''`` when the source is not
+    Dolby Vision.
     """
     return get_l6_rpu_mdl()
 
 
 def get_DoviLevel6RpuMaxCllFallVar() -> str:
     """
-    Return the source Dolby Vision Level 6 RPU MaxCLL/MaxFALL, or ``''`` when
-    not yet determined or when the source is not Dolby Vision.
+    Return the source Dolby Vision Level 6 RPU MaxCLL/MaxFALL, a localized
+    status while/after detection, or ``''`` when the source is not Dolby Vision.
     """
     return get_l6_rpu_max_cll_fall()
+
+
+def _with_unit(value: str, unit: str) -> str:
+    """Append a unit only to real metadata values, not status labels."""
+    if not value or is_status_label(value):
+        return value
+    return f"{value} {unit}"
 
 
 # ---------------------------------------------------------------------------
@@ -525,6 +534,8 @@ def update_properties(window) -> None:
 
     bitrate_value, bitrate_unit = get_VdecBitrateVar()
     fps_info_text, fps_out_text = format_fps()
+    l6_rpu_mdl = _with_unit(get_DoviLevel6RpuMdlVar(), "cd/m²")
+    l6_rpu_max_cll_fall = _with_unit(get_DoviLevel6RpuMaxCllFallVar(), "cd/m²")
 
     window.setProperty("VideoDecoderVar",            get_VideoDecoderVar())
     window.setProperty("VideoDecoderExtVar",         get_VideoDecoderExtVar())
@@ -540,8 +551,8 @@ def update_properties(window) -> None:
     window.setProperty("DoviTunnelVar",              get_DoviTunnelVar())
     window.setProperty("DoviCmVersionVar",           get_DoviCmVersionVar())
     window.setProperty("DoviLevel5OffsetsVar",       get_DoviLevel5OffsetsVar())
-    window.setProperty("DoviLevel6RpuMdlVar",        get_DoviLevel6RpuMdlVar())
-    window.setProperty("DoviLevel6RpuMaxCllFallVar", get_DoviLevel6RpuMaxCllFallVar())
+    window.setProperty("DoviLevel6RpuMdlVar",        l6_rpu_mdl)
+    window.setProperty("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall)
     window.setProperty("ModeVar",                    get_ModeVar())
     window.setProperty("GamutVar",                   get_GamutVar())
     window.setProperty("VdecBitrate",                bitrate_value)

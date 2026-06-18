@@ -534,7 +534,7 @@
 						<control type="label">
 							<left>210</left>
 							<top>150</top>
-							<label>$INFO[Window().Property(DoviLevel6RpuMdlVar)] cd/m²</label>
+							<label>$INFO[Window().Property(DoviLevel6RpuMdlVar)]</label>
 							<font>font23_narrow</font>
 							<textcolor>E7EDEDED</textcolor>
 							<aligny>top</aligny>
@@ -554,7 +554,7 @@
 						<control type="label">
 							<left>210</left>
 							<top>180</top>
-							<label>$INFO[Window().Property(DoviLevel6RpuMaxCllFallVar)] cd/m²</label>
+							<label>$INFO[Window().Property(DoviLevel6RpuMaxCllFallVar)]</label>
 							<font>font23_narrow</font>
 							<textcolor>E7EDEDED</textcolor>
 							<aligny>top</aligny>

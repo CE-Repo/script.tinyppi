@@ -51,6 +51,9 @@ _CHUNK_BYTES  = 32 * 1024 * 1024
 _FRAMES       = 24
 _MAX_ATTEMPTS = 3
 
+_LABEL_FETCH = 32096
+_LABEL_NA    = 32033
+
 # ---------------------------------------------------------------------------
 # State
 # ---------------------------------------------------------------------------
@@ -67,6 +70,27 @@ _ffmpeg_cached: str | None = None   # "" once searched and not found
 
 def _log(msg: str, level: int = xbmc.LOGINFO) -> None:
     xbmc.log(f"TinyPPI: {msg}", level)
+
+
+def _localized(label_id: int, fallback: str) -> str:
+    """Return an addon-localized label, falling back when Kodi has no string."""
+    text = _ADDON.getLocalizedString(label_id)
+    return text or fallback
+
+
+def _fetch_label() -> str:
+    """Return the localized label shown while DV metadata is being fetched."""
+    return _localized(_LABEL_FETCH, "Fetch...")
+
+
+def _na_label() -> str:
+    """Return the localized label shown when DV metadata could not be fetched."""
+    return _localized(_LABEL_NA, "N/A")
+
+
+def is_status_label(value: str) -> bool:
+    """Return True when a value is a localized DV metadata status label."""
+    return value in (_fetch_label(), _na_label())
 
 
 def _dovi_tool() -> str:
@@ -305,33 +329,49 @@ def _worker(path: str) -> None:
 # Public API
 # ---------------------------------------------------------------------------
 
-def _get_info_value(key: str) -> str:
+def _get_info_status_value(key: str) -> tuple[str, str]:
     """
     Non-blocking.  Return one cached DV metadata field for the current file,
     kicking off detection in the background on first call.
 
-    Returns ``''`` until the result is ready, when the source is not Dolby
-    Vision, or after _MAX_ATTEMPTS failed attempts for the same file.
+    Returns ``(value, status)`` where status is ``''`` for non-DV/no-file,
+    ``'fetching'`` while detection is running, ``'ready'`` once a field has
+    been found, and ``'failed'`` once the field cannot be determined.
     """
     if "dolby" not in _info("VideoPlayer.HdrType").lower():
-        return ""
+        return "", ""
 
     try:
         path = xbmc.Player().getPlayingFile()
     except RuntimeError:
-        return ""
+        return "", ""
     if not path:
-        return ""
+        return "", ""
 
     with _lock:
         if path in _result:
-            return _result[path].get(key, "")
+            value = _result[path].get(key, "")
+            return value, "ready" if value else "failed"
         if path in _inflight or _attempts.get(path, 0) >= _MAX_ATTEMPTS:
-            return ""
+            if path in _inflight:
+                return "", "fetching"
+            return "", "failed"
         _inflight.add(path)
         _attempts[path] = _attempts.get(path, 0) + 1
 
     threading.Thread(target=_worker, args=(path,), daemon=True).start()
+    return "", "fetching"
+
+
+def _get_info_value(key: str) -> str:
+    """Return a display-ready DV metadata field or localized status label."""
+    value, status = _get_info_status_value(key)
+    if value:
+        return value
+    if status == "fetching":
+        return _fetch_label()
+    if status == "failed":
+        return _na_label()
     return ""
 
 

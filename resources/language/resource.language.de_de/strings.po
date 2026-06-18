@@ -222,3 +222,7 @@ msgstr "TinyPPI"
 msgctxt "#32095"
 msgid "VS10 Dialog"
 msgstr "VS10 Dialog"
+
+msgctxt "#32096"
+msgid "Fetching..."
+msgstr "Abrufen..."

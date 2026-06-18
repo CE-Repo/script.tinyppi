@@ -222,3 +222,7 @@ msgstr ""
 msgctxt "#32095"
 msgid "VS10 Dialog"
 msgstr ""
+
+msgctxt "#32096"
+msgid "Fetching..."
+msgstr ""
