@@ -26,7 +26,12 @@ from helpers import (
     get_fps_data,
     set_ui_position,
 )
-from dvinfo import get_cm_version
+from dvinfo import (
+    get_cm_version,
+    get_l5_offsets,
+    get_l6_rpu_mdl,
+    get_l6_rpu_max_cll_fall,
+)
 
 # ---------------------------------------------------------------------------
 # Module-level state
@@ -256,6 +261,30 @@ def get_DoviCmVersionVar() -> str:
     this call never blocks the polling loop.
     """
     return get_cm_version()
+
+
+def get_DoviLevel5OffsetsVar() -> str:
+    """
+    Return the source Dolby Vision Level 5 active-area offsets, or ``''`` when
+    not yet determined or when the source is not Dolby Vision.
+    """
+    return get_l5_offsets()
+
+
+def get_DoviLevel6RpuMdlVar() -> str:
+    """
+    Return the source Dolby Vision Level 6 RPU mastering-display luminance, or
+    ``''`` when not yet determined or when the source is not Dolby Vision.
+    """
+    return get_l6_rpu_mdl()
+
+
+def get_DoviLevel6RpuMaxCllFallVar() -> str:
+    """
+    Return the source Dolby Vision Level 6 RPU MaxCLL/MaxFALL, or ``''`` when
+    not yet determined or when the source is not Dolby Vision.
+    """
+    return get_l6_rpu_max_cll_fall()
 
 
 # ---------------------------------------------------------------------------
@@ -497,35 +526,38 @@ def update_properties(window) -> None:
     bitrate_value, bitrate_unit = get_VdecBitrateVar()
     fps_info_text, fps_out_text = format_fps()
 
-    window.setProperty("VideoDecoderVar",       get_VideoDecoderVar())
-    window.setProperty("VideoDecoderExtVar",    get_VideoDecoderExtVar())
-    window.setProperty("VideoPixelFormatVar",   get_VideoPixelFormatVar())
-    window.setProperty("DisplayModeVar",        get_DisplayModeVar())
-    window.setProperty("VideoResolutionVar",    get_VideoResolutionVar())
-    window.setProperty("VideoBitrateMBVar",     get_VideoBitrateMBVar())
-    window.setProperty("VideoLiveBitrateVar",   get_VideoLiveBitrateVar())
-    window.setProperty("VideoCodecVar",         get_VideoCodecVar())
-    window.setProperty("HdmiHdrStatusVar",      get_HdmiHdrStatusVar())
-    window.setProperty("DoviProfileVar",        get_DoviProfileVar())
-    window.setProperty("DoviFelVar",            get_DoviFelVar())
-    window.setProperty("DoviTunnelVar",         get_DoviTunnelVar())
-    window.setProperty("DoviCmVersionVar",      get_DoviCmVersionVar())
-    window.setProperty("ModeVar",               get_ModeVar())
-    window.setProperty("GamutVar",              get_GamutVar())
-    window.setProperty("VdecBitrate",           bitrate_value)
-    window.setProperty("VdecBitrateUnit",       bitrate_unit)
-    window.setProperty("FpsInfoVar",            fps_info_text)
-    window.setProperty("FpsDropVar",            fps_out_text)
-    window.setProperty("AudioBitrateKBVar",     get_AudioBitrateKBVar())
-    window.setProperty("AudioLiveBitrateVar",   get_AudioLiveBitrateVar())
-    window.setProperty("AudioCodecVar",         get_AudioCodecVar())
-    window.setProperty("AudioCodecSpatialVar",  get_AudioCodecSpatialVar())
-    window.setProperty("AudioChannelsVar",      get_AudioChannelsVar())
-    window.setProperty("AudioChannelsInputVar", get_AudioChannelsInputVar())
-    window.setProperty("AudioSampleRateVar",    get_AudioSampleRateVar())
-    window.setProperty("AudioNameVar",          get_AudioNameVar())
-    window.setProperty("SubtitleVar",           get_SubtitleVar())
-    window.setProperty("SubtitleNameInfoVar",   get_SubtitleNameInfoVar())
-    window.setProperty("CpuUsageVar",           get_CpuUsageVar())
-    window.setProperty("CpuTopUsageVar",        get_CpuTopUsageVar())
-    window.setProperty("CurrentSkin",           xbmc.getSkinDir())
+    window.setProperty("VideoDecoderVar",            get_VideoDecoderVar())
+    window.setProperty("VideoDecoderExtVar",         get_VideoDecoderExtVar())
+    window.setProperty("VideoPixelFormatVar",        get_VideoPixelFormatVar())
+    window.setProperty("DisplayModeVar",             get_DisplayModeVar())
+    window.setProperty("VideoResolutionVar",         get_VideoResolutionVar())
+    window.setProperty("VideoBitrateMBVar",          get_VideoBitrateMBVar())
+    window.setProperty("VideoLiveBitrateVar",        get_VideoLiveBitrateVar())
+    window.setProperty("VideoCodecVar",              get_VideoCodecVar())
+    window.setProperty("HdmiHdrStatusVar",           get_HdmiHdrStatusVar())
+    window.setProperty("DoviProfileVar",             get_DoviProfileVar())
+    window.setProperty("DoviFelVar",                 get_DoviFelVar())
+    window.setProperty("DoviTunnelVar",              get_DoviTunnelVar())
+    window.setProperty("DoviCmVersionVar",           get_DoviCmVersionVar())
+    window.setProperty("DoviLevel5OffsetsVar",       get_DoviLevel5OffsetsVar())
+    window.setProperty("DoviLevel6RpuMdlVar",        get_DoviLevel6RpuMdlVar())
+    window.setProperty("DoviLevel6RpuMaxCllFallVar", get_DoviLevel6RpuMaxCllFallVar())
+    window.setProperty("ModeVar",                    get_ModeVar())
+    window.setProperty("GamutVar",                   get_GamutVar())
+    window.setProperty("VdecBitrate",                bitrate_value)
+    window.setProperty("VdecBitrateUnit",            bitrate_unit)
+    window.setProperty("FpsInfoVar",                 fps_info_text)
+    window.setProperty("FpsDropVar",                 fps_out_text)
+    window.setProperty("AudioBitrateKBVar",          get_AudioBitrateKBVar())
+    window.setProperty("AudioLiveBitrateVar",        get_AudioLiveBitrateVar())
+    window.setProperty("AudioCodecVar",              get_AudioCodecVar())
+    window.setProperty("AudioCodecSpatialVar",       get_AudioCodecSpatialVar())
+    window.setProperty("AudioChannelsVar",           get_AudioChannelsVar())
+    window.setProperty("AudioChannelsInputVar",      get_AudioChannelsInputVar())
+    window.setProperty("AudioSampleRateVar",         get_AudioSampleRateVar())
+    window.setProperty("AudioNameVar",               get_AudioNameVar())
+    window.setProperty("SubtitleVar",                get_SubtitleVar())
+    window.setProperty("SubtitleNameInfoVar",        get_SubtitleNameInfoVar())
+    window.setProperty("CpuUsageVar",                get_CpuUsageVar())
+    window.setProperty("CpuTopUsageVar",             get_CpuTopUsageVar())
+    window.setProperty("CurrentSkin",                xbmc.getSkinDir())

@@ -119,6 +119,18 @@ msgctxt "#32027"
 msgid "Output mode"
 msgstr ""
 
+msgctxt "#32028"
+msgid "Screen mode"
+msgstr ""
+
+msgctxt "#32029"
+msgid "Framerate"
+msgstr ""
+
+msgctxt "#32030"
+msgid "L5 active offsets"
+msgstr ""
+
 msgctxt "#32031"
 msgid "Method"
 msgstr ""

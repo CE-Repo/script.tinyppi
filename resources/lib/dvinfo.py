@@ -3,7 +3,8 @@ dvinfo.py – Dolby Vision Content-Mapping version detection for TinyPPI.
 
 Determines whether the playing Dolby Vision stream carries CM v2.9 or
 CM v4.0 metadata by extracting the RPU with dovi_tool and reading its
-summary line ("DM version").
+summary line ("DM version"). The same summary is used for separate Level 6
+and Level 5 metadata properties.
 
 Kodi plays from VFS URLs (nfs://, smb://, http:// ...) which standalone
 ffmpeg / dovi_tool cannot open.  We bridge that with xbmcvfs: the first
@@ -12,8 +13,8 @@ the userspace tools run on that local chunk.  No OS-level mount required,
 so it works for every TinyPPI user.
 
 Detection runs once per file in a background thread and is cached, so the
-polling loop in overlay.py never blocks.  The result is published through
-properties.get_DoviCmVersionVar().  CoreELEC only.
+polling loop in overlay.py never blocks.  The results are published through
+the Dolby Vision properties in properties.py.  CoreELEC only.
 
 Bundle the dovi_tool binary at:
     resources/bin/aarch64/dovi_tool
@@ -22,6 +23,7 @@ covers every realistic target.
 """
 
 import os
+import re
 import subprocess
 import threading
 
@@ -53,7 +55,7 @@ _MAX_ATTEMPTS = 3
 # State
 # ---------------------------------------------------------------------------
 
-_result:    dict[str, str] = {}     # path -> "CMv2.9" | "CMv4.0"
+_result:    dict[str, dict[str, str]] = {}  # path -> DV metadata fields
 _attempts:  dict[str, int] = {}     # path -> attempt count
 _inflight:  set[str]       = set()  # paths currently being processed
 _lock                      = threading.Lock()
@@ -131,16 +133,124 @@ def _local_source(path: str) -> tuple[str, bool]:
     return _CHUNK_PATH, True
 
 
-def _detect(path: str) -> str:
-    """Return ``'CMv2.9'``, ``'CMv4.0'`` or ``''`` for the given playing path."""
+def _compact_cm_version(line: str) -> str:
+    """Return a compact CM version label from a dovi_tool DM version line."""
+    lower = line.lower()
+    has_29 = "2.9" in lower
+    has_40 = "4.0" in lower
+
+    if has_29 and has_40:
+        return "CMv2.9/4.0"
+    if has_40 or re.search(r"dm version:\s*2\b", lower):
+        return "CMv4.0"
+    if has_29 or re.search(r"dm version:\s*1\b", lower):
+        return "CMv2.9"
+    return ""
+
+
+def _compact_l6_mdl(entry: str) -> str:
+    """Return concise Level 6 mastering-display luminance."""
+    mdl = re.search(
+        r"Mastering display:\s*([0-9.]+)\s*/\s*([0-9.]+)\s*nits",
+        entry,
+        re.IGNORECASE,
+    )
+
+    if mdl:
+        return f"{mdl.group(1)} l {mdl.group(2)}"
+
+    return ""
+
+
+def _compact_l6_max_cll_fall(entry: str) -> str:
+    """Return concise Level 6 MaxCLL/MaxFALL metadata."""
+    maxcll = re.search(r"MaxCLL:\s*([0-9.]+)\s*nits", entry, re.IGNORECASE)
+    maxfall = re.search(r"MaxFALL:\s*([0-9.]+)\s*nits", entry, re.IGNORECASE)
+
+    if maxcll and maxfall:
+        return f"{maxcll.group(1)} l {maxfall.group(1)}"
+
+    return ""
+
+
+def _compact_l5_offsets(offsets: str) -> str:
+    """Return compact Level 5 active-area offsets in L/R/T/B order."""
+    matches = dict(re.findall(r"\b(top|bottom|left|right)=([^,\s]+)", offsets))
+
+    if matches:
+        top = matches.get("top", "0")
+        bottom = matches.get("bottom", "0")
+        left = matches.get("left", "0")
+        right = matches.get("right", "0")
+
+        values = [
+            "0" if value == "N/A" else value
+            for value in (left, right, top, bottom)
+        ]
+        return " l ".join(values)
+
+    return re.sub(r"\s+", " ", offsets).strip()
+
+
+def _parse_summary(out: str) -> dict[str, str]:
+    """Parse dovi_tool summary output into separate overlay fields."""
+    cm_version = ""
+    l6_entries: list[str] = []
+    l5_offsets = ""
+    lines = out.splitlines()
+
+    idx = 0
+    while idx < len(lines):
+        stripped = lines[idx].strip()
+
+        if stripped.startswith("DM version:"):
+            cm_version = _compact_cm_version(stripped)
+        elif stripped.startswith("L6 metadata"):
+            rest = stripped[len("L6 metadata"):].strip()
+            if rest.startswith(":"):
+                rest = rest[1:].strip()
+            if rest:
+                l6_entries.append(rest)
+            else:
+                idx += 1
+                while idx < len(lines):
+                    continuation = lines[idx].strip()
+                    if not continuation:
+                        break
+                    if re.match(
+                        r"^(L\d+\s|RPU\s|Scene/shot|Profile|Frames|DM version:)",
+                        continuation,
+                    ):
+                        idx -= 1
+                        break
+                    l6_entries.append(continuation)
+                    idx += 1
+        elif stripped.startswith("L5 offsets:"):
+            l5_offsets = stripped.split(":", 1)[1].strip()
+
+        idx += 1
+
+    l6_mdl_values = [_compact_l6_mdl(entry) for entry in l6_entries]
+    l6_max_values = [_compact_l6_max_cll_fall(entry) for entry in l6_entries]
+
+    return {
+        "cm_version": cm_version,
+        "l5_offsets": _compact_l5_offsets(l5_offsets) if l5_offsets else "",
+        "l6_mdl": "; ".join(value for value in l6_mdl_values if value),
+        "l6_max_cll_fall": "; ".join(value for value in l6_max_values if value),
+    }
+
+
+def _detect(path: str) -> dict[str, str]:
+    """Return compact Dolby Vision metadata for the given playing path."""
     dovi   = _dovi_tool()
     ffmpeg = _ffmpeg()
     if not os.path.exists(dovi):
         _log(f"DV: dovi_tool binary missing ({dovi})", xbmc.LOGWARNING)
-        return ""
+        return {}
     if not ffmpeg:
         _log("DV: tools.ffmpeg-tools not available", xbmc.LOGWARNING)
-        return ""
+        return {}
 
     src, is_temp = _local_source(path)
     try:
@@ -161,17 +271,14 @@ def _detect(path: str) -> str:
         ff.wait()
 
         if not os.path.exists(_RPU_PATH) or os.path.getsize(_RPU_PATH) == 0:
-            return ""
+            return {}
 
         out = subprocess.run(
             [dovi, "info", "-i", _RPU_PATH, "-s"],
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
             text=True).stdout
 
-        for line in out.splitlines():
-            if "DM version" in line:           # e.g. "DM version: 2 (CM v4.0)"
-                return "CMv4.0" if "v4.0" in line else "CMv2.9"
-        return ""
+        return _parse_summary(out)
     finally:
         for tmp in (_RPU_PATH, _CHUNK_PATH if is_temp else None):
             if tmp and os.path.exists(tmp):
@@ -184,23 +291,23 @@ def _detect(path: str) -> str:
 def _worker(path: str) -> None:
     """Background detection job; caches only positive results."""
     try:
-        ver = _detect(path)
+        info = _detect(path)
     except Exception as exc:
         _log(f"DV CM detection failed: {exc}", xbmc.LOGWARNING)
-        ver = ""
+        info = {}
     with _lock:
         _inflight.discard(path)
-        if ver:
-            _result[path] = ver
+        if any(info.values()):
+            _result[path] = info
 
 
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
-def get_cm_version() -> str:
+def _get_info_value(key: str) -> str:
     """
-    Non-blocking.  Return the cached CM version for the currently playing file,
+    Non-blocking.  Return one cached DV metadata field for the current file,
     kicking off detection in the background on first call.
 
     Returns ``''`` until the result is ready, when the source is not Dolby
@@ -218,7 +325,7 @@ def get_cm_version() -> str:
 
     with _lock:
         if path in _result:
-            return _result[path]
+            return _result[path].get(key, "")
         if path in _inflight or _attempts.get(path, 0) >= _MAX_ATTEMPTS:
             return ""
         _inflight.add(path)
@@ -226,3 +333,23 @@ def get_cm_version() -> str:
 
     threading.Thread(target=_worker, args=(path,), daemon=True).start()
     return ""
+
+
+def get_cm_version() -> str:
+    """Return the source Dolby Vision Content-Mapping version."""
+    return _get_info_value("cm_version")
+
+
+def get_l5_offsets() -> str:
+    """Return Dolby Vision Level 5 active-area offsets."""
+    return _get_info_value("l5_offsets")
+
+
+def get_l6_rpu_mdl() -> str:
+    """Return Dolby Vision Level 6 RPU mastering-display luminance."""
+    return _get_info_value("l6_mdl")
+
+
+def get_l6_rpu_max_cll_fall() -> str:
+    """Return Dolby Vision Level 6 RPU MaxCLL/MaxFALL."""
+    return _get_info_value("l6_max_cll_fall")

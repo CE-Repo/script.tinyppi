@@ -52,9 +52,9 @@
 				<!-- Background - Start -->
 				<control type="group">
 					<left>35</left>
-					<top>410</top>
+					<top>380</top>
 					<width>23</width>
-					<height>635</height>
+					<height>665</height>
 					<control type="image">
 						<texture colordiffuse="FA15181A">background/modern-start.png</texture>
 					</control>
@@ -63,9 +63,9 @@
 				<!-- Background - Middle -->
 				<control type="group">
 					<left>58</left>
-					<top>410</top>
+					<top>380</top>
 					<width>1182</width>
-					<height>635</height>
+					<height>665</height>
 					<control type="image">
 						<texture colordiffuse="FA15181A">background/modern-middle.png</texture>
 					</control>
@@ -74,9 +74,9 @@
 				<!-- Background - End -->
 				<control type="group">
 					<left>1240</left>
-					<top>410</top>
+					<top>380</top>
 					<width>23</width>
-					<height>635</height>
+					<height>665</height>
 					<control type="image">
 						<texture colordiffuse="FA15181A">background/modern-end.png</texture>
 					</control>
@@ -91,9 +91,9 @@
 				<!-- Background - Start -->
 				<control type="group">
 					<left>35</left>
-					<top>410</top>
+					<top>380</top>
 					<width>23</width>
-					<height>655</height>
+					<height>685</height>
 					<control type="image">
 						<texture colordiffuse="FA15181A">background/modern-start.png</texture>
 					</control>
@@ -102,9 +102,9 @@
 				<!-- Background - Middle -->
 				<control type="group">
 					<left>58</left>
-					<top>410</top>
+					<top>380</top>
 					<width>1182</width>
-					<height>655</height>
+					<height>685</height>
 					<control type="image">
 						<texture colordiffuse="FA15181A">background/modern-middle.png</texture>
 					</control>
@@ -113,9 +113,9 @@
 				<!-- Background - End -->
 				<control type="group">
 					<left>1240</left>
-					<top>410</top>
+					<top>380</top>
 					<width>23</width>
-					<height>655</height>
+					<height>685</height>
 					<control type="image">
 						<texture colordiffuse="FA15181A">background/modern-end.png</texture>
 					</control>
@@ -145,7 +145,7 @@
 				<!-- Label -->
 				<control type="group">
 					<left>70</left>
-					<top>448</top>
+					<top>418</top>
 					<control type="label">
 						<label>[CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE]</label>
 						<font>font32</font>
@@ -157,7 +157,7 @@
 				<!-- Chart icon -->
 				<control type="group">
 					<left>1190</left>
-					<top>445</top>
+					<top>415</top>
 					<control type="image">
 						<width>36</width>
 						<height>36</height>
@@ -168,7 +168,7 @@
 				<!-- Line / Top -->
 				<control type="group">
 					<left>70</left>
-					<top>515</top>
+					<top>485</top>
 					<control type="image">
 						<width>1157</width>
 						<height>1</height>
@@ -480,56 +480,421 @@
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
+
+					<control type="group">
+					<visible>!String.Contains(VideoPlayer.HdrType,dolby)</visible>
+						<!-- Screen mode -->
+						<control type="label">
+							<top>150</top>
+							<label>$ADDON[script.tinyppi 32028]:</label>
+							<font>font23_narrow</font>
+							<textcolor>E7EDEDED</textcolor>
+							<aligny>top</aligny>
+						</control>
+						<control type="label">
+							<left>210</left>
+							<top>150</top>
+							<label>Fullscreen</label>
+							<font>font23_narrow</font>
+							<textcolor>E7EDEDED</textcolor>
+							<aligny>top</aligny>
+						</control>
+					</control>
 					
+					<control type="group">
+					<visible>!String.Contains(VideoPlayer.HdrType,dolby)</visible>
+						<!-- Framerate -->
+						<control type="label">
+							<top>180</top>
+							<label>$ADDON[script.tinyppi 32029]:</label>
+							<font>font23_narrow</font>
+							<textcolor>E7EDEDED</textcolor>
+							<aligny>top</aligny>
+						</control>
+						<control type="label">
+							<left>210</left>
+							<top>180</top>
+							<label>$INFO[System.FPS] FPS</label>
+							<font>font23_narrow</font>
+							<textcolor>E7EDEDED</textcolor>
+							<aligny>top</aligny>
+						</control>
+					</control>
+
+					<control type="group">
+					<visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
+						<!-- RPU MDL -->
+						<control type="label">
+							<top>150</top>
+							<label>RPU MDL:</label>
+							<font>font23_narrow</font>
+							<textcolor>E7EDEDED</textcolor>
+							<aligny>top</aligny>
+						</control>
+						<control type="label">
+							<left>210</left>
+							<top>150</top>
+							<label>$INFO[Window().Property(DoviLevel6RpuMdlVar)] cd/m²</label>
+							<font>font23_narrow</font>
+							<textcolor>E7EDEDED</textcolor>
+							<aligny>top</aligny>
+						</control>
+					</control>
+
+					<control type="group">
+					<visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
+						<!-- MaxCLL/FALL -->
+						<control type="label">
+							<top>180</top>
+							<label>MaxCLL/FALL:</label>
+							<font>font23_narrow</font>
+							<textcolor>E7EDEDED</textcolor>
+							<aligny>top</aligny>
+						</control>
+						<control type="label">
+							<left>210</left>
+							<top>180</top>
+							<label>$INFO[Window().Property(DoviLevel6RpuMaxCllFallVar)] cd/m²</label>
+							<font>font23_narrow</font>
+							<textcolor>E7EDEDED</textcolor>
+							<aligny>top</aligny>
+						</control>
+					</control>
+
+					<control type="group">
+					<visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
+						<!-- L5 active offsets -->
+						<control type="label">
+							<top>210</top>
+							<label>$ADDON[script.tinyppi 32030]:</label>
+							<font>font23_narrow</font>
+							<textcolor>E7EDEDED</textcolor>
+							<aligny>top</aligny>
+						</control>
+						<control type="label">
+							<left>210</left>
+							<top>210</top>
+							<label>$INFO[Window().Property(DoviLevel5OffsetsVar)]</label>
+							<font>font23_narrow</font>
+							<textcolor>E7EDEDED</textcolor>
+							<aligny>top</aligny>
+						</control>
+					</control>
+
+					<control type="group">
+					<visible>!String.Contains(VideoPlayer.HdrType,dolby)</visible>
+						<!-- Playback time -->
+						<control type="label">
+							<top>210</top>
+							<label>$ADDON[script.tinyppi 32013]:</label>
+							<font>font23_narrow</font>
+							<textcolor>E7EDEDED</textcolor>
+							<aligny>top</aligny>
+						</control>
+						<control type="label">
+							<left>210</left>
+							<top>210</top>
+							<label>$INFO[Player.Time] $INFO[Player.Duration,/ ,] [COLOR b3ededed]$INFO[Player.Progress,(,%)][/COLOR]</label>
+							<font>font23_narrow</font>
+							<textcolor>E7EDEDED</textcolor>
+							<visible>!String.IsEmpty(Player.Duration)</visible>
+							<visible>!PVR.IsPlayingTV</visible>
+							<aligny>top</aligny>
+						</control>
+						<!-- N/A -->
+						<control type="label">
+							<left>210</left>
+							<top>210</top>
+							<label>$ADDON[script.tinyppi 32033]</label>
+							<font>font23_narrow</font>
+							<textcolor>E7EDEDED</textcolor>
+							<visible>String.IsEmpty(Player.Duration) | PVR.IsPlayingTV</visible>
+							<aligny>top</aligny>
+						</control>
+					</control>				
+				</control>
+
+				<!-- Group: System -->
+				<control type="group">
+					<left>640</left>
+
+					<!-- System Icon -->
+					<control type="image">
+						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<top>2</top>
+						<width>26</width>
+						<height>26</height>
+						<texture>icons/memory.png</texture>
+						<colordiffuse>E7EDEDED</colordiffuse>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- System -->
+					<control type="label">
+						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32088][/UPPERCASE][/B]</label>
+						<left>36</left>
+						<font>font23_narrow</font>
+						<textcolor>FFEDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32088][/UPPERCASE][/B]</label>
+						<font>font23_narrow</font>
+						<textcolor>FFEDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- Memory usage -->
+					<control type="label">
+						<top>30</top>
+						<label>$ADDON[script.tinyppi 32034]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>30</top>
+						<label>$INFO[system.memory(used.percent)] - ($INFO[system.memory(used)] | $INFO[system.memory(total)])</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+
 					<!-- In / drop / out -->
 					<control type="label">
-						<top>150</top>
+						<top>60</top>
 						<label>$ADDON[script.tinyppi 32036]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>210</left>
-						<top>150</top>
+						<left>240</left>
+						<top>60</top>
 						<label>$INFO[Window().Property(FpsInfoVar)] = $INFO[Window().Property(FpsDropVar)] FPS</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 
-					<!-- Playback time -->
+					<!-- CPU cores -->
 					<control type="label">
-						<top>180</top>
-						<label>$ADDON[script.tinyppi 32013]:</label>
+						<top>90</top>
+						<label>$ADDON[script.tinyppi 32014]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>210</left>
-						<top>180</top>
-						<label>$INFO[Player.Time] $INFO[Player.Duration,/ ,] [COLOR b3ededed]$INFO[Player.Progress,(,%)][/COLOR]</label>
+						<left>240</left>
+						<top>90</top>
+						<label>$INFO[Window().Property(CpuUsageVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
-						<visible>!String.IsEmpty(Player.Duration)</visible>
-						<visible>!PVR.IsPlayingTV</visible>
 						<aligny>top</aligny>
 					</control>
-					<!-- N/A -->
+
+					<!-- Temp / Load -->
 					<control type="label">
-						<left>210</left>
-						<top>180</top>
-						<label>$ADDON[script.tinyppi 32033]</label>
+						<top>120</top>
+						<label>$ADDON[script.tinyppi 32018]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
-						<visible>String.IsEmpty(Player.Duration) | PVR.IsPlayingTV</visible>
 						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<top>120</top>
+						<left>240</left>
+						<label>$INFO[System.CPUTemperature] | $INFO[Window().Property(CpuTopUsageVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- Player cache -->
+					<control type="label">
+						<top>150</top>
+						<label>$ADDON[script.tinyppi 32032]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>150</top>
+						<label>$INFO[Player.CacheLevel,,%]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="group">
+						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<top>160</top>
+						<left>305</left>
+						<control type="progress">
+							<top>0</top>
+							<left>0</left>
+							<width>242</width>
+							<height>8</height>
+							<description>BAR</description>
+							<centertop>50%</centertop>
+							<info>Player.CacheLevel</info>
+							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
+							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
+							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
+							<righttexture colordiffuse="00ffffff">common/dot-1x1.png</righttexture>
+						</control>
+					</control>
+
+					<!-- Video queue / data -->
+					<control type="label">
+						<top>180</top>
+						<label>$ADDON[script.tinyppi 32022]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>180</top>
+						<label>$INFO[Player.Process(videoqueuelevel)]%</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="group">
+						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<top>190</top>
+						<left>305</left>
+						<control type="progress">
+							<top>0</top>
+							<left>0</left>
+							<width>86</width>
+							<height>8</height>
+							<description>BAR</description>
+							<centertop>50%</centertop>
+							<info>Player.Process(videoqueuelevel)</info>
+							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
+							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
+							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
+							<righttexture colordiffuse="00ffffff">common/dot-1x1.png</righttexture>
+						</control>
+					</control>
+					<control type="label">
+						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<left>290</left>
+						<top>180</top>
+						<label>| $INFO[Player.Process(videoqueuedatalevel)]%</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<left>402</left>
+						<top>180</top>
+						<label>$INFO[Player.Process(videoqueuedatalevel)]%</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="group">
+						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<top>190</top>
+						<left>305</left>
+						<control type="progress">
+							<top>0</top>
+							<left>156</left>
+							<width>86</width>
+							<height>8</height>
+							<description>BAR</description>
+							<centertop>50%</centertop>
+							<info>Player.Process(videoqueuedatalevel)</info>
+							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
+							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
+							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
+							<righttexture colordiffuse="00ffffff">common/dot-1x1.png</righttexture>
+						</control>
+					</control>
+
+					<!-- Audio queue / data -->
+					<control type="label">
+						<top>210</top>
+						<label>$ADDON[script.tinyppi 32025]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>210</top>
+						<label>$INFO[Player.Process(audioqueuelevel)]%</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="group">
+						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<top>220</top>
+						<left>305</left>
+						<control type="progress">
+							<top>0</top>
+							<left>0</left>
+							<width>86</width>
+							<height>8</height>
+							<description>BAR</description>
+							<centertop>50%</centertop>
+							<info>Player.Process(audioqueuelevel)</info>
+							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
+							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
+							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
+							<righttexture colordiffuse="00ffffff">common/dot-1x1.png</righttexture>
+						</control>
+					</control>
+					<control type="label">
+						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<left>290</left>
+						<top>210</top>
+						<label>| $INFO[Player.Process(audioqueuedatalevel)]%</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<left>402</left>
+						<top>210</top>
+						<label>$INFO[Player.Process(audioqueuedatalevel)]%</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="group">
+						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<top>220</top>
+						<left>305</left>
+						<control type="progress">
+							<top>0</top>
+							<left>156</left>
+							<width>86</width>
+							<height>8</height>
+							<description>BAR</description>
+							<centertop>50%</centertop>
+							<info>Player.Process(audioqueuedatalevel)</info>
+							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
+							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
+							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
+							<righttexture colordiffuse="00ffffff">common/dot-1x1.png</righttexture>
+						</control>
 					</control>
 				</control>
 
 				<!-- Group: Audio -->
 				<control type="group">
+					<top>260</top>
 					<left>640</left>
 
 					<!-- Audio Icon -->
@@ -775,268 +1140,6 @@
 						<textcolor>E7EDEDED</textcolor>
 						<visible>!VideoPlayer.HasSubtitles</visible>
 						<aligny>top</aligny>
-					</control>
-				</control>
-
-				<!-- Group: System -->
-				<control type="group">
-					<top>260</top>
-					<left>640</left>
-
-					<!-- System Icon -->
-					<control type="image">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<top>2</top>
-						<width>26</width>
-						<height>26</height>
-						<texture>icons/memory.png</texture>
-						<colordiffuse>E7EDEDED</colordiffuse>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- System -->
-					<control type="label">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32088][/UPPERCASE][/B]</label>
-						<left>36</left>
-						<font>font23_narrow</font>
-						<textcolor>FFEDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32088][/UPPERCASE][/B]</label>
-						<font>font23_narrow</font>
-						<textcolor>FFEDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- Memory usage -->
-					<control type="label">
-						<top>30</top>
-						<label>$ADDON[script.tinyppi 32034]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>30</top>
-						<label>$INFO[system.memory(used.percent)] - ($INFO[system.memory(used)] | $INFO[system.memory(total)])</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- CPU cores -->
-					<control type="label">
-						<top>60</top>
-						<label>$ADDON[script.tinyppi 32014]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>60</top>
-						<label>$INFO[Window().Property(CpuUsageVar)]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- Temp / Load -->
-					<control type="label">
-						<top>90</top>
-						<label>$ADDON[script.tinyppi 32018]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<top>90</top>
-						<left>240</left>
-						<label>$INFO[System.CPUTemperature] | $INFO[Window().Property(CpuTopUsageVar)]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- Player cache -->
-					<control type="label">
-						<top>120</top>
-						<label>$ADDON[script.tinyppi 32032]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>120</top>
-						<label>$INFO[Player.CacheLevel,,%]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="group">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<top>130</top>
-						<left>305</left>
-						<control type="progress">
-							<top>0</top>
-							<left>0</left>
-							<width>242</width>
-							<height>8</height>
-							<description>BAR</description>
-							<centertop>50%</centertop>
-							<info>Player.CacheLevel</info>
-							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
-							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
-							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
-							<righttexture colordiffuse="00ffffff">common/dot-1x1.png</righttexture>
-						</control>
-					</control>
-
-					<!-- Video queue / data -->
-					<control type="label">
-						<top>150</top>
-						<label>$ADDON[script.tinyppi 32022]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>150</top>
-						<label>$INFO[Player.Process(videoqueuelevel)]%</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="group">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<top>160</top>
-						<left>305</left>
-						<control type="progress">
-							<top>0</top>
-							<left>0</left>
-							<width>86</width>
-							<height>8</height>
-							<description>BAR</description>
-							<centertop>50%</centertop>
-							<info>Player.Process(videoqueuelevel)</info>
-							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
-							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
-							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
-							<righttexture colordiffuse="00ffffff">common/dot-1x1.png</righttexture>
-						</control>
-					</control>
-					<control type="label">
-						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>290</left>
-						<top>150</top>
-						<label>| $INFO[Player.Process(videoqueuedatalevel)]%</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>402</left>
-						<top>150</top>
-						<label>$INFO[Player.Process(videoqueuedatalevel)]%</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="group">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<top>160</top>
-						<left>305</left>
-						<control type="progress">
-							<top>0</top>
-							<left>156</left>
-							<width>86</width>
-							<height>8</height>
-							<description>BAR</description>
-							<centertop>50%</centertop>
-							<info>Player.Process(videoqueuedatalevel)</info>
-							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
-							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
-							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
-							<righttexture colordiffuse="00ffffff">common/dot-1x1.png</righttexture>
-						</control>
-					</control>
-
-					<!-- Audio queue / data -->
-					<control type="label">
-						<top>180</top>
-						<label>$ADDON[script.tinyppi 32025]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>180</top>
-						<label>$INFO[Player.Process(audioqueuelevel)]%</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="group">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<top>190</top>
-						<left>305</left>
-						<control type="progress">
-							<top>0</top>
-							<left>0</left>
-							<width>86</width>
-							<height>8</height>
-							<description>BAR</description>
-							<centertop>50%</centertop>
-							<info>Player.Process(audioqueuelevel)</info>
-							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
-							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
-							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
-							<righttexture colordiffuse="00ffffff">common/dot-1x1.png</righttexture>
-						</control>
-					</control>
-					<control type="label">
-						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>290</left>
-						<top>180</top>
-						<label>| $INFO[Player.Process(audioqueuedatalevel)]%</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>402</left>
-						<top>180</top>
-						<label>$INFO[Player.Process(audioqueuedatalevel)]%</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="group">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<top>190</top>
-						<left>305</left>
-						<control type="progress">
-							<top>0</top>
-							<left>156</left>
-							<width>86</width>
-							<height>8</height>
-							<description>BAR</description>
-							<centertop>50%</centertop>
-							<info>Player.Process(audioqueuedatalevel)</info>
-							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
-							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
-							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
-							<righttexture colordiffuse="00ffffff">common/dot-1x1.png</righttexture>
-						</control>
 					</control>
 				</control>
 			</control>
