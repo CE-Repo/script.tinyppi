@@ -395,7 +395,7 @@
 					<control type="label">
 						<left>210</left>
 						<top>30</top>
-						<label>$INFO[Window().Property(HdmiHdrStatusVar)]$INFO[Window().Property(DoviProfileVar)][COLOR b3ededed]$INFO[Window().Property(DoviCmVersionVar), - ,][/COLOR]</label>
+						<label>$INFO[Window().Property(HdmiHdrStatusVar)]$INFO[Window().Property(DoviProfileVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
@@ -458,7 +458,7 @@
 					<control type="label">
 						<left>210</left>
 						<top>90</top>
-						<label>$INFO[Window().Property(ModeVar)]</label>
+						<label>$INFO[Window().Property(ModeVar)] $INFO[Window().Property(DoviCmVersionVar),- [COLOR b3ededed](,)[/COLOR]]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
@@ -920,7 +920,7 @@
 						<control type="progress">
 							<top>0</top>
 							<left>0</left>
-							<width>85</width>
+							<width>86</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
@@ -942,7 +942,7 @@
 					</control>
 					<control type="label">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>400</left>
+						<left>402</left>
 						<top>150</top>
 						<label>$INFO[Player.Process(videoqueuedatalevel)]%</label>
 						<font>font23_narrow</font>
@@ -955,8 +955,8 @@
 						<left>305</left>
 						<control type="progress">
 							<top>0</top>
-							<left>155</left>
-							<width>85</width>
+							<left>156</left>
+							<width>86</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
@@ -991,7 +991,7 @@
 						<control type="progress">
 							<top>0</top>
 							<left>0</left>
-							<width>85</width>
+							<width>86</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
@@ -1013,7 +1013,7 @@
 					</control>
 					<control type="label">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>400</left>
+						<left>402</left>
 						<top>180</top>
 						<label>$INFO[Player.Process(audioqueuedatalevel)]%</label>
 						<font>font23_narrow</font>
@@ -1026,8 +1026,8 @@
 						<left>305</left>
 						<control type="progress">
 							<top>0</top>
-							<left>155</left>
-							<width>85</width>
+							<left>156</left>
+							<width>86</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>

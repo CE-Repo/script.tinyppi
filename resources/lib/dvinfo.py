@@ -22,7 +22,6 @@ covers every realistic target.
 """
 
 import os
-import platform
 import subprocess
 import threading
 
@@ -70,7 +69,7 @@ def _log(msg: str, level: int = xbmc.LOGINFO) -> None:
 
 def _dovi_tool() -> str:
     """Return the bundled dovi_tool path, restoring the exec bit if needed."""
-    arch = "aarch64" if platform.machine() in ("aarch64", "arm64") else "arm"
+    arch = "aarch64"
     path = os.path.join(_ADDON_PATH, "resources", "bin", arch, "dovi_tool")
     if os.path.exists(path) and not os.access(path, os.X_OK):
         # The executable bit is frequently lost when an addon is packaged as a
