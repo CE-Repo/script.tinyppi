@@ -26,6 +26,7 @@ from helpers import (
     get_fps_data,
     set_ui_position,
 )
+from dvinfo import get_cm_version
 
 # ---------------------------------------------------------------------------
 # Module-level state
@@ -243,6 +244,18 @@ def get_DoviTunnelVar() -> str:
         return ""
 
     return "DV Tunnel" if value == "1" else ""
+
+
+def get_DoviCmVersionVar() -> str:
+    """
+    Return the source Dolby Vision Content-Mapping version
+    (``'CMv2.9'`` or ``'CMv4.0'``), or ``''`` when not yet determined or
+    when the source is not Dolby Vision.
+
+    Detection runs once per file in a background thread (see dvinfo.py), so
+    this call never blocks the polling loop.
+    """
+    return get_cm_version()
 
 
 # ---------------------------------------------------------------------------
@@ -496,6 +509,7 @@ def update_properties(window) -> None:
     window.setProperty("DoviProfileVar",        get_DoviProfileVar())
     window.setProperty("DoviFelVar",            get_DoviFelVar())
     window.setProperty("DoviTunnelVar",         get_DoviTunnelVar())
+    window.setProperty("DoviCmVersionVar",      get_DoviCmVersionVar())
     window.setProperty("ModeVar",               get_ModeVar())
     window.setProperty("GamutVar",              get_GamutVar())
     window.setProperty("VdecBitrate",           bitrate_value)
