@@ -1,0 +1,228 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: POEditor.com\n"
+"Project-Id-Version: TinyPPI\n"
+"Language: zh_CN\n"
+
+msgctxt "#32000"
+msgid "Display mode"
+msgstr "显示模式"
+
+msgctxt "#32001"
+msgid "Video mode"
+msgstr "视频模式"
+
+msgctxt "#32002"
+msgid "General"
+msgstr "常规"
+
+msgctxt "#32003"
+msgid "General settings"
+msgstr "常规设置"
+
+msgctxt "#32004"
+msgid "TinyPPI style"
+msgstr "TinyPPI 样式"
+
+msgctxt "#32005"
+msgid "Decoder"
+msgstr "解码器"
+
+msgctxt "#32006"
+msgid "Choose between the Modern and Classic TinyPPI style."
+msgstr "在现代和经典 TinyPPI 样式之间选择。"
+
+msgctxt "#32007"
+msgid "Processing"
+msgstr "正在处理"
+
+msgctxt "#32008"
+msgid "Classic"
+msgstr "经典"
+
+msgctxt "#32009"
+msgid "Modern"
+msgstr "现代"
+
+msgctxt "#32010"
+msgid "Remove gradient background"
+msgstr "移除渐变背景"
+
+msgctxt "#32011"
+msgid "This option removes the gradient background in TinyPPI."
+msgstr "此选项移除 TinyPPI 中的渐变背景。"
+
+msgctxt "#32012"
+msgid "720p skins are not supported"
+msgstr "不支持 720p 皮肤"
+
+msgctxt "#32013"
+msgid "Playback time"
+msgstr "播放时间"
+
+msgctxt "#32014"
+msgid "CPU cores"
+msgstr "CPU 核心数"
+
+msgctxt "#32015"
+msgid "Gamut"
+msgstr "色域"
+
+msgctxt "#32016"
+msgid "Only CoreELEC 22 or later is supported"
+msgstr "仅支持 CoreELEC 22 或更高版本"
+
+msgctxt "#32017"
+msgid "The CoreELEC version could not be detected"
+msgstr "无法检测 CoreELEC 版本"
+
+msgctxt "#32018"
+msgid "Temp / load"
+msgstr "温度 / 负载"
+
+msgctxt "#32019"
+msgid "Show file name"
+msgstr "显示文件名"
+
+msgctxt "#32020"
+msgid "Style"
+msgstr "样式"
+
+msgctxt "#32021"
+msgid "This option adds the name of the file currently playing to TinyPPI."
+msgstr "此选项将当前播放文件的名称添加到 TinyPPI。"
+
+msgctxt "#32022"
+msgid "Video queue / data"
+msgstr "视频队列 / 数据"
+
+msgctxt "#32023"
+msgid "Pixel format"
+msgstr "像素格式"
+
+msgctxt "#32024"
+msgid "Aspect ratio"
+msgstr "宽高比"
+
+msgctxt "#32025"
+msgid "Audio queue / data"
+msgstr "音频队列 / 数据"
+
+msgctxt "#32026"
+msgid "VS10 engine"
+msgstr "VS10 引擎"
+
+msgctxt "#32027"
+msgid "Output mode"
+msgstr "输出模式"
+
+msgctxt "#32028"
+msgid "Screen mode"
+msgstr "屏幕模式"
+
+msgctxt "#32029"
+msgid "Framerate"
+msgstr "帧率"
+
+msgctxt "#32030"
+msgid "L5 active offsets"
+msgstr "L5 活动偏移"
+
+msgctxt "#32031"
+msgid "Method"
+msgstr "方法"
+
+msgctxt "#32032"
+msgid "Player cache"
+msgstr "播放器缓存"
+
+msgctxt "#32033"
+msgid "N/A"
+msgstr "不可用"
+
+msgctxt "#32034"
+msgid "Memory usage"
+msgstr "内存使用"
+
+msgctxt "#32035"
+msgid "Passthrough"
+msgstr "直通"
+
+msgctxt "#32036"
+msgid "In / drop / out"
+msgstr "输入 / 丢帧 / 输出"
+
+msgctxt "#32046"
+msgid "Codec"
+msgstr "编解码器"
+
+msgctxt "#32047"
+msgid "Bitrate"
+msgstr "码率"
+
+msgctxt "#32051"
+msgid "Input"
+msgstr "输入"
+
+msgctxt "#32052"
+msgid "Audio language"
+msgstr "音频语言"
+
+msgctxt "#32053"
+msgid "Subtitle language"
+msgstr "字幕语言"
+
+msgctxt "#32054"
+msgid "Video"
+msgstr "视频"
+
+msgctxt "#32055"
+msgid "Output"
+msgstr "输出"
+
+msgctxt "#32056"
+msgid "Audio"
+msgstr "音频"
+
+msgctxt "#32069"
+msgid "Bit depth"
+msgstr "位深度"
+
+msgctxt "#32070"
+msgid "Mode"
+msgstr "模式"
+
+msgctxt "#32087"
+msgid "Decoding"
+msgstr "正在解码"
+
+msgctxt "#32088"
+msgid "System"
+msgstr "系统"
+
+msgctxt "#32091"
+msgid "Disabled"
+msgstr "已禁用"
+
+msgctxt "#32092"
+msgid "Launch mode"
+msgstr "启动模式"
+
+msgctxt "#32093"
+msgid "Choose what opens when Add-on is launched."
+msgstr "选择插件启动时打开的内容。"
+
+msgctxt "#32094"
+msgid "TinyPPI"
+msgstr "TinyPPI"
+
+msgctxt "#32095"
+msgid "VS10 Dialog"
+msgstr "VS10 对话框"
+
+msgctxt "#32096"
+msgid "Fetching..."
+msgstr "正在获取..."
