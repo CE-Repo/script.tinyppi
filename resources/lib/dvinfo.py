@@ -52,7 +52,7 @@ _FRAMES       = 24
 _MAX_ATTEMPTS = 3
 
 _LABEL_FETCH = 32096
-_LABEL_NA    = 10005
+_LABEL_NA    = 32033
 
 # ---------------------------------------------------------------------------
 # State
@@ -80,7 +80,7 @@ def _localized(label_id: int, fallback: str) -> str:
 
 def _fetch_label() -> str:
     """Return the localized label shown while DV metadata is being fetched."""
-    return _localized(_LABEL_FETCH, "Fetch...")
+    return _localized(_LABEL_FETCH, "Fetching...")
 
 
 def _na_label() -> str:

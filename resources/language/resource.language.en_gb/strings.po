@@ -8,11 +8,11 @@ msgstr ""
 "Language: en\n"
 
 msgctxt "#32000"
-msgid "Display mode"
+msgid "Display output"
 msgstr ""
 
 msgctxt "#32001"
-msgid "Video mode"
+msgid "Video stream"
 msgstr ""
 
 msgctxt "#32002"
@@ -20,11 +20,11 @@ msgid "General"
 msgstr ""
 
 msgctxt "#32003"
-msgid "General settings"
+msgid "TinyPPI settings"
 msgstr ""
 
 msgctxt "#32004"
-msgid "TinyPPI style"
+msgid "Overlay style"
 msgstr ""
 
 msgctxt "#32005"
@@ -32,7 +32,7 @@ msgid "Decoder"
 msgstr ""
 
 msgctxt "#32006"
-msgid "Choose between the Modern and Classic TinyPPI style."
+msgid "Choose the classic or modern TinyPPI overlay style."
 msgstr ""
 
 msgctxt "#32007"
@@ -48,11 +48,11 @@ msgid "Modern"
 msgstr ""
 
 msgctxt "#32010"
-msgid "Remove gradient background"
+msgid "Hide gradient background"
 msgstr ""
 
 msgctxt "#32011"
-msgid "This option removes the gradient background in TinyPPI."
+msgid "Hide the gradient background in the classic TinyPPI style."
 msgstr ""
 
 msgctxt "#32012"
@@ -68,7 +68,7 @@ msgid "Processor"
 msgstr ""
 
 msgctxt "#32015"
-msgid "Gamut"
+msgid "Color gamut"
 msgstr ""
 
 msgctxt "#32016"
@@ -92,7 +92,7 @@ msgid "Style"
 msgstr ""
 
 msgctxt "#32021"
-msgid "This option adds the name of the file currently playing to TinyPPI."
+msgid "Show the currently playing file name in TinyPPI."
 msgstr ""
 
 msgctxt "#32022"
@@ -119,24 +119,20 @@ msgctxt "#32027"
 msgid "Output mode"
 msgstr ""
 
-msgctxt "#32028"
-msgid "Screen mode"
-msgstr ""
-
-msgctxt "#32029"
-msgid "Framerate"
-msgstr ""
-
 msgctxt "#32030"
-msgid "L5 active offsets"
+msgid "L5 active area"
 msgstr ""
 
 msgctxt "#32031"
-msgid "Method"
+msgid "Decode method"
 msgstr ""
 
 msgctxt "#32032"
 msgid "Player cache"
+msgstr ""
+
+msgctxt "#32033"
+msgid "N/A"
 msgstr ""
 
 msgctxt "#32034"
@@ -151,8 +147,12 @@ msgctxt "#32036"
 msgid "In / drop / out"
 msgstr ""
 
+msgctxt "#32045"
+msgid "Audio codec"
+msgstr ""
+
 msgctxt "#32046"
-msgid "Codec"
+msgid "Video codec"
 msgstr ""
 
 msgctxt "#32047"
@@ -184,7 +184,7 @@ msgid "Audio"
 msgstr ""
 
 msgctxt "#32069"
-msgid "Bit depth"
+msgid "Audio resolution"
 msgstr ""
 
 msgctxt "#32070"
@@ -208,7 +208,7 @@ msgid "Launch mode"
 msgstr ""
 
 msgctxt "#32093"
-msgid "Choose what opens when Add-on is launched."
+msgid "Choose what opens when the add-on is launched."
 msgstr ""
 
 msgctxt "#32094"
@@ -216,9 +216,17 @@ msgid "TinyPPI"
 msgstr ""
 
 msgctxt "#32095"
-msgid "VS10 Dialog"
+msgid "VS10 dialog"
 msgstr ""
 
 msgctxt "#32096"
 msgid "Fetching..."
+msgstr ""
+
+msgctxt "#32097"
+msgid "L6 RPU MDL"
+msgstr ""
+
+msgctxt "#32098"
+msgid "L6 MaxCLL/FALL"
 msgstr ""
