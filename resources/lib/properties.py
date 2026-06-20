@@ -95,7 +95,7 @@ def get_DisplayModeVar() -> str:
     if not val:
         return ""
 
-    compact = re.sub(r"\s+", "", val)
+    compact = re.sub(r"\s+",  "",  val)
     match = re.match(
         r"(\d+(?:x\d+)?)(p|i)(\d+(?:\.\d+)?)[Hh][Zz]",
         compact,
@@ -141,12 +141,12 @@ def get_VideoLiveBitrateVar() -> str:
         return ""
 
     # Match a valid decimal number, not arbitrary combinations such as ".".
-    match = re.search(r"\d+(?:[.,]\d+)?|[.,]\d+", bitrate)
+    match = re.search(r"\d+(?:[.,]\d+)?|[.,]\d+",  bitrate)
     if not match:
         return ""
 
     try:
-        value = float(match.group(0).replace(",", "."))
+        value = float(match.group(0).replace(",",  "."))
     except (TypeError, ValueError):
         return ""
 
@@ -210,12 +210,12 @@ def get_DoviProfileVar() -> str:
     if not text:
         return "Dolby Vision Profile 8.1"
 
-    prof = re.search(r"profile\s*(\d+)", text)
+    prof = re.search(r"profile\s*(\d+)",  text)
     if not prof:
         return "Dolby Vision Profile 8.1"
 
     profile_num = prof.group(1)
-    if profile_num in ("0", "8"):
+    if profile_num in ("0",  "8"):
         profile_num = "8.1"
 
     if "minimum enhancement layer" in text:
@@ -244,7 +244,7 @@ def get_DoviTunnelVar() -> str:
     path = "/sys/module/aml_media/parameters/dolby_vision_mode"
 
     try:
-        with open(path, encoding="utf-8", errors="ignore") as f:
+        with open(path, encoding="utf-8",  errors="ignore") as f:
             value = f.read().strip()
     except OSError:
         return ""
@@ -325,21 +325,21 @@ def get_VdecBitrateVar() -> tuple[str, str]:
     """
     path = "/sys/class/vdec/vdec_status"
     try:
-        with open(path, encoding="utf-8", errors="ignore") as f:
+        with open(path, encoding="utf-8",  errors="ignore") as f:
             data = f.read()
     except OSError:
-        return "", ""
+        return "",  ""
 
-    matches = re.findall(r"bit rate\s*:\s*(\d+)\s*kbps", data, re.IGNORECASE)
+    matches = re.findall(r"bit rate\s*:\s*(\d+)\s*kbps",  data, re.IGNORECASE)
     if not matches:
-        return "", ""
+        return "",  ""
 
     kbps = max(float(m) for m in matches)
     if kbps <= 0:
-        return "", ""
+        return "",  ""
 
     if kbps < 1000:
-        return f"{kbps:.0f}", "Kb/s"
+        return f"{kbps:.0f}",  "Kb/s"
 
     mbps = kbps / 1000.0
     return f"{mbps:.2f}".rstrip("0").rstrip("."), "Mb/s"
@@ -356,7 +356,7 @@ def get_AudioBitrateKBVar() -> str:
         kbps = int(float(bitrate))
     except (TypeError, ValueError):
         return ""
-    return f"{kbps:,} Kb/s".replace(",", ".")
+    return f"{kbps:,} Kb/s".replace(",",  ".")
 
 
 def get_AudioLiveBitrateVar() -> str:
@@ -365,7 +365,7 @@ def get_AudioLiveBitrateVar() -> str:
     if not bitrate:
         return ""
 
-    return str(bitrate).replace(",", ".")
+    return str(bitrate).replace(",",  ".")
 
 
 def get_AudioCodecVar() -> str:
@@ -381,7 +381,7 @@ def get_AudioCodecSpatialVar() -> str:
     codec = _info("VideoPlayer.AudioCodec")
     if codec == "dtshd_ma_x_imax":
         return "(IMAX Enhanced)"
-    if codec in ("eac3_ddp_atmos", "truehd_atmos"):
+    if codec in ("eac3_ddp_atmos",  "truehd_atmos"):
         return "(Atmos)"
     return ""
 
@@ -461,7 +461,7 @@ def get_CpuUsageVar() -> str:
     if not raw:
         return ""
 
-    matches = re.findall(r"#\d+:\s*([\d.]+)%", raw)
+    matches = re.findall(r"#\d+:\s*([\d.]+)%",  raw)
     if not matches:
         return raw
 
@@ -529,16 +529,16 @@ def get_CpuTemperatureProgressVar() -> str:
     if not raw:
         return 0.0
 
-    match = re.search(r"-?\d+(?:[.,]\d+)?", raw)
+    match = re.search(r"-?\d+(?:[.,]\d+)?",  raw)
     if not match:
         return 0.0
 
     try:
-        temperature = float(match.group(0).replace(",", "."))
+        temperature = float(match.group(0).replace(",",  "."))
     except ValueError:
         return 0.0
 
-    if re.search(r"(?:°\s*)?F\b", raw, re.IGNORECASE):
+    if re.search(r"(?:°\s*)?F\b",  raw, re.IGNORECASE):
         minimum = 32.0
         maximum = 230.0
     else:
@@ -563,12 +563,12 @@ def get_queue_level(info_label: str) -> float:
     """
     raw = _info(info_label).strip()
 
-    match = re.search(r"-?\d+(?:[.,]\d+)?", raw)
+    match = re.search(r"-?\d+(?:[.,]\d+)?",  raw)
     if not match:
         return 0
 
     try:
-        value = float(match.group(0).replace(",", "."))
+        value = float(match.group(0).replace(",",  "."))
     except ValueError:
         return 0
 
@@ -607,50 +607,59 @@ def update_properties(window) -> None:
     audio_queue_data = get_queue_level("Player.Process(audioqueuedatalevel)")
     bitrate_value, bitrate_unit = get_VdecBitrateVar()
     fps_info_text, fps_out_text = format_fps()
+
+    l5_offsets = get_DoviLevel5OffsetsVar()
+    l5_offsets_icon_visible = (
+        "true"
+        if l5_offsets and not is_status_label(l5_offsets)
+        else "false"
+    )
+
     l6_rpu_mdl = _with_unit(get_DoviLevel6RpuMdlVar(), "cd/m²")
     l6_rpu_max_cll_fall = _with_unit(get_DoviLevel6RpuMaxCllFallVar(), "cd/m²")
 
-    window.setProperty("VideoDecoderVar",            get_VideoDecoderVar())
-    window.setProperty("VideoDecoderExtVar",         get_VideoDecoderExtVar())
-    window.setProperty("VideoPixelFormatVar",        get_VideoPixelFormatVar())
-    window.setProperty("DisplayModeVar",             get_DisplayModeVar())
-    window.setProperty("VideoResolutionVar",         get_VideoResolutionVar())
-    window.setProperty("VideoBitrateMBVar",          get_VideoBitrateMBVar())
-    window.setProperty("VideoLiveBitrateVar",        get_VideoLiveBitrateVar())
-    window.setProperty("VideoCodecVar",              get_VideoCodecVar())
-    window.setProperty("HdmiHdrStatusVar",           get_HdmiHdrStatusVar())
-    window.setProperty("DoviProfileVar",             get_DoviProfileVar())
-    window.setProperty("DoviFelVar",                 get_DoviFelVar())
-    window.setProperty("DoviTunnelVar",              get_DoviTunnelVar())
-    window.setProperty("DoviCmVersionVar",           get_DoviCmVersionVar())
-    window.setProperty("DoviLevel5OffsetsVar",       get_DoviLevel5OffsetsVar())
-    window.setProperty("DoviLevel6RpuMdlVar",        l6_rpu_mdl)
-    window.setProperty("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall)
-    window.setProperty("ModeVar",                    get_ModeVar())
-    window.setProperty("GamutVar",                   get_GamutVar())
-    window.setProperty("VdecBitrate",                bitrate_value)
-    window.setProperty("VdecBitrateUnit",            bitrate_unit)
-    window.setProperty("FpsInfoVar",                 fps_info_text)
-    window.setProperty("FpsDropVar",                 fps_out_text)
-    window.setProperty("AudioBitrateKBVar",          get_AudioBitrateKBVar())
-    window.setProperty("AudioLiveBitrateVar",        get_AudioLiveBitrateVar())
-    window.setProperty("AudioCodecVar",              get_AudioCodecVar())
-    window.setProperty("AudioCodecSpatialVar",       get_AudioCodecSpatialVar())
-    window.setProperty("AudioChannelsVar",           get_AudioChannelsVar())
-    window.setProperty("AudioChannelsInputVar",      get_AudioChannelsInputVar())
-    window.setProperty("AudioSampleRateVar",         get_AudioSampleRateVar())
-    window.setProperty("AudioNameVar",               get_AudioNameVar())
-    window.setProperty("SubtitleVar",                get_SubtitleVar())
-    window.setProperty("SubtitleNameInfoVar",        get_SubtitleNameInfoVar())
-    window.setProperty("CpuUsageVar",                get_CpuUsageVar())
-    window.setProperty("CpuTopUsageVar",             get_CpuTopUsageVar())
-    window.setProperty("VideoQueueLevelVar",         format_queue_level(video_queue))
-    window.setProperty("VideoQueueDataLevelVar",     format_queue_level(video_queue_data))
-    window.setProperty("AudioQueueLevelVar",         format_queue_level(audio_queue))
-    window.setProperty("AudioQueueDataLevelVar",     format_queue_level(audio_queue_data))
-    window.getControl(9100).setPercent(              get_CpuTemperatureProgressVar())
-    window.getControl(9101).setPercent(              video_queue)
-    window.getControl(9102).setPercent(              video_queue_data)
-    window.getControl(9103).setPercent(              audio_queue)
-    window.getControl(9104).setPercent(              audio_queue_data)
-    window.setProperty("CurrentSkin",                xbmc.getSkinDir())
+    window.setProperty("VideoDecoderVar",              get_VideoDecoderVar())
+    window.setProperty("VideoDecoderExtVar",           get_VideoDecoderExtVar())
+    window.setProperty("VideoPixelFormatVar",          get_VideoPixelFormatVar())
+    window.setProperty("DisplayModeVar",               get_DisplayModeVar())
+    window.setProperty("VideoResolutionVar",           get_VideoResolutionVar())
+    window.setProperty("VideoBitrateMBVar",            get_VideoBitrateMBVar())
+    window.setProperty("VideoLiveBitrateVar",          get_VideoLiveBitrateVar())
+    window.setProperty("VideoCodecVar",                get_VideoCodecVar())
+    window.setProperty("HdmiHdrStatusVar",             get_HdmiHdrStatusVar())
+    window.setProperty("DoviProfileVar",               get_DoviProfileVar())
+    window.setProperty("DoviFelVar",                   get_DoviFelVar())
+    window.setProperty("DoviTunnelVar",                get_DoviTunnelVar())
+    window.setProperty("DoviCmVersionVar",             get_DoviCmVersionVar())
+    window.setProperty("DoviLevel5OffsetsVar",         l5_offsets)
+    window.setProperty("DoviLevel5OffsetsIconVisible", l5_offsets_icon_visible,)
+    window.setProperty("DoviLevel6RpuMdlVar",          l6_rpu_mdl)
+    window.setProperty("DoviLevel6RpuMaxCllFallVar",   l6_rpu_max_cll_fall)
+    window.setProperty("ModeVar",                      get_ModeVar())
+    window.setProperty("GamutVar",                     get_GamutVar())
+    window.setProperty("VdecBitrate",                  bitrate_value)
+    window.setProperty("VdecBitrateUnit",              bitrate_unit)
+    window.setProperty("FpsInfoVar",                   fps_info_text)
+    window.setProperty("FpsDropVar",                   fps_out_text)
+    window.setProperty("AudioBitrateKBVar",            get_AudioBitrateKBVar())
+    window.setProperty("AudioLiveBitrateVar",          get_AudioLiveBitrateVar())
+    window.setProperty("AudioCodecVar",                get_AudioCodecVar())
+    window.setProperty("AudioCodecSpatialVar",         get_AudioCodecSpatialVar())
+    window.setProperty("AudioChannelsVar",             get_AudioChannelsVar())
+    window.setProperty("AudioChannelsInputVar",        get_AudioChannelsInputVar())
+    window.setProperty("AudioSampleRateVar",           get_AudioSampleRateVar())
+    window.setProperty("AudioNameVar",                 get_AudioNameVar())
+    window.setProperty("SubtitleVar",                  get_SubtitleVar())
+    window.setProperty("SubtitleNameInfoVar",          get_SubtitleNameInfoVar())
+    window.setProperty("CpuUsageVar",                  get_CpuUsageVar())
+    window.setProperty("CpuTopUsageVar",               get_CpuTopUsageVar())
+    window.setProperty("VideoQueueLevelVar",           format_queue_level(video_queue))
+    window.setProperty("VideoQueueDataLevelVar",       format_queue_level(video_queue_data))
+    window.setProperty("AudioQueueLevelVar",           format_queue_level(audio_queue))
+    window.setProperty("AudioQueueDataLevelVar",       format_queue_level(audio_queue_data))
+    window.getControl(9100).setPercent(                get_CpuTemperatureProgressVar())
+    window.getControl(9101).setPercent(                video_queue)
+    window.getControl(9102).setPercent(                video_queue_data)
+    window.getControl(9103).setPercent(                audio_queue)
+    window.getControl(9104).setPercent(                audio_queue_data)
+    window.setProperty("CurrentSkin",                  xbmc.getSkinDir())

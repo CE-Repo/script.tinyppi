@@ -240,7 +240,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>30</top>
 						<label>$INFO[Window().Property(DisplayModeVar)]</label>
 						<font>font23_narrow</font>
@@ -257,7 +257,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>60</top>
 						<label>$INFO[Window().Property(VideoResolutionVar)]</label>
 						<font>font23_narrow</font>
@@ -274,7 +274,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>90</top>
 						<label>$INFO[Window().Property(VideoPixelFormatVar)] [COLOR b3ededed]$INFO[Window().Property(DoviTunnelVar),(,)][/COLOR]</label>
 						<font>font23_narrow</font>
@@ -291,7 +291,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>120</top>
 						<label>$INFO[Player.Process(videodar)]:1</label>
 						<font>font23_narrow</font>
@@ -308,7 +308,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>150</top>
 						<label>[UPPERCASE]$INFO[Player.Process(videodecoder)][/UPPERCASE] [COLOR b3ededed]$INFO[Window().Property(VideoDecoderVar),(,)][/COLOR]</label>
 						<font>font23_narrow</font>
@@ -325,7 +325,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>180</top>
 						<label>$INFO[Window().Property(VideoCodecVar)]</label>
 						<font>font23_narrow</font>
@@ -342,7 +342,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>210</top>
 						<label>$INFO[Window().Property(VideoDecoderExtVar)]</label>
 						<font>font23_narrow</font>
@@ -393,7 +393,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>30</top>
 						<label>$INFO[Window().Property(HdmiHdrStatusVar)]$INFO[Window().Property(DoviProfileVar)]</label>
 						<font>font23_narrow</font>
@@ -410,7 +410,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>60</top>
 						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)] $INFO[Window().Property(VideoBitrateMBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
 						<font>font23_narrow</font>
@@ -419,7 +419,7 @@
 						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 					</control>
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>60</top>
 						<label>$INFO[Window().Property(VideoBitrateMBVar)]</label>
 						<font>font23_narrow</font>
@@ -428,7 +428,7 @@
 						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 					</control>
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>60</top>
 						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)]</label>
 						<font>font23_narrow</font>
@@ -438,7 +438,7 @@
 					</control>
 					<!-- N/A -->
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>60</top>
 						<label>$ADDON[script.tinyppi 10005]</label>
 						<font>font23_narrow</font>
@@ -456,9 +456,9 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>90</top>
-						<label>$INFO[Window().Property(ModeVar)] $INFO[Window().Property(DoviCmVersionVar),- [COLOR b3ededed](,)[/COLOR]]</label>
+						<label>$INFO[Window().Property(ModeVar)] $INFO[Window().Property(DoviCmVersionVar),/ ,]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
@@ -473,7 +473,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>210</left>
+						<left>240</left>
 						<top>120</top>
 						<label>$INFO[Window().Property(GamutVar)]</label>
 						<font>font23_narrow</font>
@@ -481,59 +481,60 @@
 						<aligny>top</aligny>
 					</control>
 
+					<!-- L5 active offsets -->
 					<control type="group">
-					<visible>!String.Contains(VideoPlayer.HdrType,dolby)</visible>
-						<!-- Screen mode -->
+
 						<control type="label">
 							<top>150</top>
-							<label>$ADDON[script.tinyppi 32028]:</label>
+							<label>$ADDON[script.tinyppi 32030]:</label>
 							<font>font23_narrow</font>
 							<textcolor>E7EDEDED</textcolor>
 							<aligny>top</aligny>
 						</control>
-						<control type="label">
-							<left>210</left>
+						<control type="grouplist">
+							<left>240</left>
 							<top>150</top>
-							<label>Fullscreen</label>
-							<font>font23_narrow</font>
-							<textcolor>E7EDEDED</textcolor>
-							<aligny>top</aligny>
-						</control>
-					</control>
-					
-					<control type="group">
-					<visible>!String.Contains(VideoPlayer.HdrType,dolby)</visible>
-						<!-- Framerate -->
-						<control type="label">
-							<top>180</top>
-							<label>$ADDON[script.tinyppi 32029]:</label>
-							<font>font23_narrow</font>
-							<textcolor>E7EDEDED</textcolor>
-							<aligny>top</aligny>
-						</control>
-						<control type="label">
-							<left>210</left>
-							<top>180</top>
-							<label>$INFO[System.FPS] FPS</label>
-							<font>font23_narrow</font>
-							<textcolor>E7EDEDED</textcolor>
-							<aligny>top</aligny>
+							<width>500</width>
+							<height>31</height>
+							<orientation>horizontal</orientation>
+							<itemgap>10</itemgap>
+							<control type="label">
+								<width>auto</width>
+								<height>31</height>
+								<label>$INFO[Window.Property(DoviLevel5OffsetsVar)]</label>
+								<font>font23_narrow</font>
+								<textcolor>E7EDEDED</textcolor>
+								<aligny>top</aligny>
+							</control>
+							<control type="group">
+								<visible>String.IsEqual(Window.Property(DoviLevel5OffsetsIconVisible),true)</visible>
+								<width>48</width>
+								<height>31</height>
+								<control type="image">
+									<top>4</top>
+									<width>48</width>
+									<height>25</height>
+									<texture>icons/lrtb.png</texture>
+									<colordiffuse>E7EDEDED</colordiffuse>
+									<aspectratio>keep</aspectratio>
+								</control>
+							</control>
 						</control>
 					</control>
 
+					<!-- L6 RPU MDL -->
 					<control type="group">
-					<visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
-						<!-- RPU MDL -->
+
 						<control type="label">
-							<top>150</top>
-							<label>RPU MDL:</label>
+							<top>180</top>
+							<label>L6 RPU MDL:</label>
 							<font>font23_narrow</font>
 							<textcolor>E7EDEDED</textcolor>
 							<aligny>top</aligny>
 						</control>
 						<control type="label">
-							<left>210</left>
-							<top>150</top>
+							<left>240</left>
+							<top>180</top>
 							<label>$INFO[Window().Property(DoviLevel6RpuMdlVar)]</label>
 							<font>font23_narrow</font>
 							<textcolor>E7EDEDED</textcolor>
@@ -541,79 +542,27 @@
 						</control>
 					</control>
 
+					<!-- L6 MaxCLL/FALL -->
 					<control type="group">
-					<visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
-						<!-- MaxCLL/FALL -->
+
 						<control type="label">
-							<top>180</top>
-							<label>MaxCLL/FALL:</label>
+							<top>210</top>
+							<label>L6 MaxCLL/FALL:</label>
 							<font>font23_narrow</font>
 							<textcolor>E7EDEDED</textcolor>
 							<aligny>top</aligny>
 						</control>
 						<control type="label">
-							<left>210</left>
-							<top>180</top>
+							<left>240</left>
+							<top>210</top>
 							<label>$INFO[Window().Property(DoviLevel6RpuMaxCllFallVar)]</label>
 							<font>font23_narrow</font>
 							<textcolor>E7EDEDED</textcolor>
 							<aligny>top</aligny>
 						</control>
 					</control>
-
-					<control type="group">
-					<visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
-						<!-- L5 active offsets -->
-						<control type="label">
-							<top>210</top>
-							<label>$ADDON[script.tinyppi 32030]:</label>
-							<font>font23_narrow</font>
-							<textcolor>E7EDEDED</textcolor>
-							<aligny>top</aligny>
-						</control>
-						<control type="label">
-							<left>210</left>
-							<top>210</top>
-							<label>$INFO[Window().Property(DoviLevel5OffsetsVar)]</label>
-							<font>font23_narrow</font>
-							<textcolor>E7EDEDED</textcolor>
-							<aligny>top</aligny>
-						</control>
-					</control>
-
-					<control type="group">
-					<visible>!String.Contains(VideoPlayer.HdrType,dolby)</visible>
-						<!-- Playback time -->
-						<control type="label">
-							<top>210</top>
-							<label>$ADDON[script.tinyppi 32013]:</label>
-							<font>font23_narrow</font>
-							<textcolor>E7EDEDED</textcolor>
-							<aligny>top</aligny>
-						</control>
-						<control type="label">
-							<left>210</left>
-							<top>210</top>
-							<label>$INFO[Player.Time] $INFO[Player.Duration,/ ,] [COLOR b3ededed]$INFO[Player.Progress,(,%)][/COLOR]</label>
-							<font>font23_narrow</font>
-							<textcolor>E7EDEDED</textcolor>
-							<visible>!String.IsEmpty(Player.Duration)</visible>
-							<visible>!PVR.IsPlayingTV</visible>
-							<aligny>top</aligny>
-						</control>
-						<!-- N/A -->
-						<control type="label">
-							<left>210</left>
-							<top>210</top>
-							<label>$ADDON[script.tinyppi 10005]</label>
-							<font>font23_narrow</font>
-							<textcolor>E7EDEDED</textcolor>
-							<visible>String.IsEmpty(Player.Duration) | PVR.IsPlayingTV</visible>
-							<aligny>top</aligny>
-						</control>
-					</control>				
 				</control>
-
+	
 				<!-- Group: Audio -->
 				<control type="group">
 					<left>640</left>
@@ -1070,7 +1019,7 @@
 					</control>
 					<control type="label">
 						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>290</left>
+						<left>307</left>
 						<top>180</top>
 						<label>| $INFO[Window().Property(VideoQueueDataLevelVar)]%</label>
 						<font>font23_narrow</font>
@@ -1141,7 +1090,7 @@
 					</control>
 					<control type="label">
 						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>290</left>
+						<left>307</left>
 						<top>210</top>
 						<label>| $INFO[Window().Property(AudioQueueDataLevelVar)]%</label>
 						<font>font23_narrow</font>
