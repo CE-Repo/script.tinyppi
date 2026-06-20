@@ -614,8 +614,259 @@
 					</control>				
 				</control>
 
+				<!-- Group: Audio -->
+				<control type="group">
+					<left>640</left>
+
+					<!-- Audio Icon -->
+					<control type="image">
+						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<top>2</top>
+						<width>26</width>
+						<height>26</height>
+						<texture>icons/volume.png</texture>
+						<colordiffuse>E7EDEDED</colordiffuse>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- Audio -->
+					<control type="label">
+						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32056][/UPPERCASE][/B]</label>
+						<left>35</left>
+						<font>font23_narrow</font>
+						<textcolor>FFEDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32056][/UPPERCASE][/B]</label>
+						<font>font23_narrow</font>
+						<textcolor>FFEDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- Codec -->
+					<control type="label">
+						<top>30</top>
+						<label>$ADDON[script.tinyppi 32046]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>30</top>
+						<label>[COLOR E7EDEDED]$INFO[Window().Property(AudioCodecVar)] $INFO[Window().Property(AudioChannelsVar)][/COLOR] [COLOR b3ededed]$INFO[Window().Property(AudioCodecSpatialVar)][/COLOR]</label>
+						<font>font23_narrow</font>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- Bit depth -->
+					<control type="label">
+						<top>60</top>
+						<label>$ADDON[script.tinyppi 32069]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>60</top>
+						<label>$INFO[Player.Process(audiobitspersample),,-bit] | $INFO[Window().Property(AudioSampleRateVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- Bitrate -->
+					<control type="label">
+						<top>90</top>
+						<label>$ADDON[script.tinyppi 32047]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>90</top>
+						<label>$INFO[Window().Property(AudioLiveBitrateVar)] $INFO[Window().Property(AudioBitrateKBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+						<visible>!String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + !String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>90</top>
+						<label>$INFO[Window().Property(AudioBitrateKBVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + !String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>90</top>
+						<label>$INFO[Window().Property(AudioLiveBitrateVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+						<visible>!String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>240</left>
+						<top>90</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<visible>String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- Input -->
+					<control type="label">
+						<top>120</top>
+						<label>$ADDON[script.tinyppi 32051]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>120</top>
+						<label>$INFO[Window().Property(AudioChannelsInputVar)]</label>
+						<font>font23_narrow</font>
+						<scroll>true</scroll>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- Output -->
+					<control type="label">
+						<top>150</top>
+						<label>$ADDON[script.tinyppi 32055]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>150</top>
+						<label>$ADDON[script.tinyppi 32035]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<visible>Player.Passthrough</visible>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>150</top>
+						<label>$INFO[Player.Process(audiochannelssink)]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<visible>!Player.Passthrough</visible>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>150</top>
+						<label>$ADDON[script.tinyppi 32087]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<visible>!Player.Passthrough + String.IsEmpty(Player.Process(audiochannelssink))</visible>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- Audio language -->
+					<control type="label">
+						<top>180</top>
+						<label>$ADDON[script.tinyppi 32052]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>180</top>
+						<width>320</width>
+						<label>[UPPERCASE]$INFO[VideoPlayer.AudioLanguage][/UPPERCASE]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<scroll>true</scroll>
+						<visible>!String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
+						<visible>String.IsEmpty(VideoPlayer.AudioLanguageEx)</visible>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>180</top>
+						<width>320</width>
+						<label>[UPPERCASE]$INFO[VideoPlayer.AudioLanguage][/UPPERCASE] | $INFO[VideoPlayer.AudioLanguageEx]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<scroll>true</scroll>
+						<visible>!String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
+						<visible>!String.IsEmpty(VideoPlayer.AudioLanguageEx)</visible>
+						<aligny>top</aligny>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>240</left>
+						<top>180</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<visible>String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- Subtitle language -->
+					<control type="label">
+						<top>210</top>
+						<label>$ADDON[script.tinyppi 32053]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>210</top>
+						<width>305</width>
+						<label>$INFO[Window().Property(SubtitleVar)] $INFO[Window().Property(SubtitleNameInfoVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<scroll>true</scroll>
+						<visible>VideoPlayer.SubtitlesEnabled</visible>
+						<visible>VideoPlayer.HasSubtitles</visible>
+						<aligny>top</aligny>
+					</control>
+					<!-- Disabled -->
+					<control type="label">
+						<left>240</left>
+						<top>210</top>
+						<label>$LOCALIZE[1223]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<visible>VideoPlayer.HasSubtitles + !VideoPlayer.SubtitlesEnabled</visible>
+						<aligny>top</aligny>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>240</left>
+						<top>210</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<visible>!VideoPlayer.HasSubtitles</visible>
+						<aligny>top</aligny>
+					</control>
+				</control>
+
 				<!-- Group: System -->
 				<control type="group">
+					<top>260</top>
 					<left>640</left>
 
 					<!-- System Icon -->
@@ -889,257 +1140,6 @@
 							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
 							<righttexture colordiffuse="00ffffff">common/dot-1x1.png</righttexture>
 						</control>
-					</control>
-				</control>
-
-				<!-- Group: Audio -->
-				<control type="group">
-					<top>260</top>
-					<left>640</left>
-
-					<!-- Audio Icon -->
-					<control type="image">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<top>2</top>
-						<width>26</width>
-						<height>26</height>
-						<texture>icons/volume.png</texture>
-						<colordiffuse>E7EDEDED</colordiffuse>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- Audio -->
-					<control type="label">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32056][/UPPERCASE][/B]</label>
-						<left>35</left>
-						<font>font23_narrow</font>
-						<textcolor>FFEDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32056][/UPPERCASE][/B]</label>
-						<font>font23_narrow</font>
-						<textcolor>FFEDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- Codec -->
-					<control type="label">
-						<top>30</top>
-						<label>$ADDON[script.tinyppi 32046]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>30</top>
-						<label>[COLOR E7EDEDED]$INFO[Window().Property(AudioCodecVar)] $INFO[Window().Property(AudioChannelsVar)][/COLOR] [COLOR b3ededed]$INFO[Window().Property(AudioCodecSpatialVar)][/COLOR]</label>
-						<font>font23_narrow</font>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- Bit depth -->
-					<control type="label">
-						<top>60</top>
-						<label>$ADDON[script.tinyppi 32069]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>60</top>
-						<label>$INFO[Player.Process(audiobitspersample),,-bit] | $INFO[Window().Property(AudioSampleRateVar)]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- Bitrate -->
-					<control type="label">
-						<top>90</top>
-						<label>$ADDON[script.tinyppi 32047]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>90</top>
-						<label>$INFO[Window().Property(AudioLiveBitrateVar)] $INFO[Window().Property(AudioBitrateKBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-						<visible>!String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + !String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>90</top>
-						<label>$INFO[Window().Property(AudioBitrateKBVar)]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-						<visible>String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + !String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>90</top>
-						<label>$INFO[Window().Property(AudioLiveBitrateVar)]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-						<visible>!String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
-					</control>
-					<!-- N/A -->
-					<control type="label">
-						<left>240</left>
-						<top>90</top>
-						<label>$ADDON[script.tinyppi 32033]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<visible>String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- Input -->
-					<control type="label">
-						<top>120</top>
-						<label>$ADDON[script.tinyppi 32051]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>120</top>
-						<label>$INFO[Window().Property(AudioChannelsInputVar)]</label>
-						<font>font23_narrow</font>
-						<scroll>true</scroll>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- Output -->
-					<control type="label">
-						<top>150</top>
-						<label>$ADDON[script.tinyppi 32055]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>150</top>
-						<label>$ADDON[script.tinyppi 32035]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<visible>Player.Passthrough</visible>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>150</top>
-						<label>$INFO[Player.Process(audiochannelssink)]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<visible>!Player.Passthrough</visible>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>150</top>
-						<label>$ADDON[script.tinyppi 32087]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<visible>!Player.Passthrough + String.IsEmpty(Player.Process(audiochannelssink))</visible>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- Audio language -->
-					<control type="label">
-						<top>180</top>
-						<label>$ADDON[script.tinyppi 32052]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>180</top>
-						<width>320</width>
-						<label>[UPPERCASE]$INFO[VideoPlayer.AudioLanguage][/UPPERCASE]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<scroll>true</scroll>
-						<visible>!String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
-						<visible>String.IsEmpty(VideoPlayer.AudioLanguageEx)</visible>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>180</top>
-						<width>320</width>
-						<label>[UPPERCASE]$INFO[VideoPlayer.AudioLanguage][/UPPERCASE] | $INFO[VideoPlayer.AudioLanguageEx]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<scroll>true</scroll>
-						<visible>!String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
-						<visible>!String.IsEmpty(VideoPlayer.AudioLanguageEx)</visible>
-						<aligny>top</aligny>
-					</control>
-					<!-- N/A -->
-					<control type="label">
-						<left>240</left>
-						<top>180</top>
-						<label>$ADDON[script.tinyppi 32033]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<visible>String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- Subtitle language -->
-					<control type="label">
-						<top>210</top>
-						<label>$ADDON[script.tinyppi 32053]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>210</top>
-						<width>305</width>
-						<label>$INFO[Window().Property(SubtitleVar)] $INFO[Window().Property(SubtitleNameInfoVar)]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<scroll>true</scroll>
-						<visible>VideoPlayer.SubtitlesEnabled</visible>
-						<visible>VideoPlayer.HasSubtitles</visible>
-						<aligny>top</aligny>
-					</control>
-					<!-- Disabled -->
-					<control type="label">
-						<left>240</left>
-						<top>210</top>
-						<label>$LOCALIZE[1223]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<visible>VideoPlayer.HasSubtitles + !VideoPlayer.SubtitlesEnabled</visible>
-						<aligny>top</aligny>
-					</control>
-					<!-- N/A -->
-					<control type="label">
-						<left>240</left>
-						<top>210</top>
-						<label>$ADDON[script.tinyppi 32033]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<visible>!VideoPlayer.HasSubtitles</visible>
-						<aligny>top</aligny>
 					</control>
 				</control>
 			</control>
