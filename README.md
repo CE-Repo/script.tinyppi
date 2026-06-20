@@ -6,7 +6,7 @@ A CoreELEC addon that displays detailed playback information in a custom overlay
 
 ## Screenshot
 <p align="center">
-<img width="800" alt="23844" src="https://github.com/user-attachments/assets/22cb5eef-37fa-4559-a1b1-8b9b1dcb9f25" />
+<img width="800" alt="23844" src="https://github.com/user-attachments/assets/d4f53c6b-9541-4e90-b44b-90ac15d19d0f" />
 </p>
 
 ---
