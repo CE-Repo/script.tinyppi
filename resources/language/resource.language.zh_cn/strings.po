@@ -63,10 +63,6 @@ msgctxt "#32013"
 msgid "Playback time"
 msgstr "播放时间"
 
-msgctxt "#32014"
-msgid "CPU cores"
-msgstr "CPU 核心数"
-
 msgctxt "#32015"
 msgid "Gamut"
 msgstr "色域"
@@ -78,10 +74,6 @@ msgstr "仅支持 CoreELEC 22 或更高版本"
 msgctxt "#32017"
 msgid "The CoreELEC version could not be detected"
 msgstr "无法检测 CoreELEC 版本"
-
-msgctxt "#32018"
-msgid "Temp / load"
-msgstr "温度 / 负载"
 
 msgctxt "#32019"
 msgid "Show file name"
@@ -138,10 +130,6 @@ msgstr "方法"
 msgctxt "#32032"
 msgid "Player cache"
 msgstr "播放器缓存"
-
-msgctxt "#32033"
-msgid "N/A"
-msgstr "不可用"
 
 msgctxt "#32034"
 msgid "Memory usage"

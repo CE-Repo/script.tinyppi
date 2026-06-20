@@ -440,7 +440,7 @@
 					<control type="label">
 						<left>210</left>
 						<top>60</top>
-						<label>$ADDON[script.tinyppi 32033]</label>
+						<label>$ADDON[script.tinyppi 10005]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
@@ -605,7 +605,7 @@
 						<control type="label">
 							<left>210</left>
 							<top>210</top>
-							<label>$ADDON[script.tinyppi 32033]</label>
+							<label>$ADDON[script.tinyppi 10005]</label>
 							<font>font23_narrow</font>
 							<textcolor>E7EDEDED</textcolor>
 							<visible>String.IsEmpty(Player.Duration) | PVR.IsPlayingTV</visible>
@@ -673,7 +673,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>60</top>
-						<label>$INFO[Player.Process(audiobitspersample),,-bit] | $INFO[Window().Property(AudioSampleRateVar)]</label>
+						<label>$INFO[Player.Process(audiobitspersample),,-bit] / $INFO[Window().Property(AudioSampleRateVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
@@ -718,7 +718,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>90</top>
-						<label>$ADDON[script.tinyppi 32033]</label>
+						<label>$ADDON[script.tinyppi 10005]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<visible>String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
@@ -815,7 +815,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>180</top>
-						<label>$ADDON[script.tinyppi 32033]</label>
+						<label>$ADDON[script.tinyppi 10005]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<visible>String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
@@ -856,7 +856,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>210</top>
-						<label>$ADDON[script.tinyppi 32033]</label>
+						<label>$ADDON[script.tinyppi 10005]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<visible>!VideoPlayer.HasSubtitles</visible>
@@ -897,26 +897,9 @@
 						<aligny>top</aligny>
 					</control>
 
-					<!-- Memory usage -->
-					<control type="label">
-						<top>30</top>
-						<label>$ADDON[script.tinyppi 32034]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>30</top>
-						<label>$INFO[system.memory(used.percent)] - ($INFO[system.memory(used)] | $INFO[system.memory(total)])</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-
 					<!-- In / drop / out -->
 					<control type="label">
-						<top>60</top>
+						<top>30</top>
 						<label>$ADDON[script.tinyppi 32036]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
@@ -924,16 +907,16 @@
 					</control>
 					<control type="label">
 						<left>240</left>
-						<top>60</top>
+						<top>30</top>
 						<label>$INFO[Window().Property(FpsInfoVar)] = $INFO[Window().Property(FpsDropVar)] FPS</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 
-					<!-- CPU cores -->
+					<!-- Processor -->
 					<control type="label">
-						<top>90</top>
+						<top>60</top>
 						<label>$ADDON[script.tinyppi 32014]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
@@ -941,28 +924,80 @@
 					</control>
 					<control type="label">
 						<left>240</left>
-						<top>90</top>
-						<label>$INFO[Window().Property(CpuUsageVar)]</label>
+						<top>60</top>
+						<label>$INFO[Window().Property(CpuTopUsageVar),, |] $INFO[Window().Property(CpuUsageVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 
-					<!-- Temp / Load -->
+					<!-- Temperature -->
 					<control type="label">
-						<top>120</top>
+						<top>90</top>
 						<label>$ADDON[script.tinyppi 32018]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<top>120</top>
+						<top>90</top>
 						<left>240</left>
-						<label>$INFO[System.CPUTemperature] | $INFO[Window().Property(CpuTopUsageVar)]</label>
+						<label>$INFO[System.CPUTemperature]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
+					</control>
+					<control type="group">
+						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<top>100</top>
+						<left>305</left>
+						<control type="progress" id="9100">
+							<top>0</top>
+							<left>0</left>
+							<width>242</width>
+							<height>8</height>
+							<description>BAR</description>
+							<centertop>50%</centertop>
+							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
+							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
+							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
+							<righttexture colordiffuse="00ffffff">common/dot-1x1.png</righttexture>
+						</control>
+					</control>
+
+					<!-- Memory usage -->
+					<control type="label">
+						<top>120</top>
+						<label>$ADDON[script.tinyppi 32034]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>120</top>
+						<label>$INFO[system.memory(used.percent)]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="group">
+						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
+						<top>130</top>
+						<left>305</left>
+						<control type="progress">
+							<top>0</top>
+							<left>0</left>
+							<width>242</width>
+							<height>8</height>
+							<description>BAR</description>
+							<centertop>50%</centertop>
+							<info>system.memory(used)</info>
+							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
+							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
+							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
+							<righttexture colordiffuse="00ffffff">common/dot-1x1.png</righttexture>
+						</control>
 					</control>
 
 					<!-- Player cache -->

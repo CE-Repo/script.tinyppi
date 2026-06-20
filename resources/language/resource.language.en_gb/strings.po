@@ -64,7 +64,7 @@ msgid "Playback time"
 msgstr ""
 
 msgctxt "#32014"
-msgid "CPU cores"
+msgid "Processor"
 msgstr ""
 
 msgctxt "#32015"
@@ -80,7 +80,7 @@ msgid "The CoreELEC version could not be detected"
 msgstr ""
 
 msgctxt "#32018"
-msgid "Temp / load"
+msgid "Temperature"
 msgstr ""
 
 msgctxt "#32019"
@@ -137,10 +137,6 @@ msgstr ""
 
 msgctxt "#32032"
 msgid "Player cache"
-msgstr ""
-
-msgctxt "#32033"
-msgid "N/A"
 msgstr ""
 
 msgctxt "#32034"

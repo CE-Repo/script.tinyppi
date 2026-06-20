@@ -518,6 +518,41 @@ def get_CpuTopUsageVar() -> str:
     return f"{usage:.0f}%"
 
 
+def get_CpuTemperatureProgressVar() -> str:
+    """
+    Map System.CPUTemperature to a progress value from 0 to 100.
+
+    Celsius:    0–115 °C
+    Fahrenheit: 32–239 °F
+    """
+    raw = _info("System.CPUTemperature").strip()
+    if not raw:
+        return 0.0
+
+    match = re.search(r"-?\d+(?:[.,]\d+)?", raw)
+    if not match:
+        return 0.0
+
+    try:
+        temperature = float(match.group(0).replace(",", "."))
+    except ValueError:
+        return 0.0
+
+    if re.search(r"(?:°\s*)?F\b", raw, re.IGNORECASE):
+        minimum = 32.0
+        maximum = 230.0
+    else:
+        minimum = 0.0
+        maximum = 110.0
+
+    temperature = max(minimum, min(temperature, maximum))
+
+    return (
+        (temperature - minimum)
+        / (maximum - minimum)
+        * 100.0
+    )
+
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
@@ -571,4 +606,5 @@ def update_properties(window) -> None:
     window.setProperty("SubtitleNameInfoVar",        get_SubtitleNameInfoVar())
     window.setProperty("CpuUsageVar",                get_CpuUsageVar())
     window.setProperty("CpuTopUsageVar",             get_CpuTopUsageVar())
+    window.getControl(9100).setPercent(              get_CpuTemperatureProgressVar())
     window.setProperty("CurrentSkin",                xbmc.getSkinDir())
