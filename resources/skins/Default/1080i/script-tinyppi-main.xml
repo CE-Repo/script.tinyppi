@@ -950,11 +950,11 @@
 					<control type="group">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>100</top>
-						<left>305</left>
+						<left>310</left>
 						<control type="progress" id="9100">
 							<top>0</top>
 							<left>0</left>
-							<width>242</width>
+							<width>237</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
@@ -984,11 +984,11 @@
 					<control type="group">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>130</top>
-						<left>305</left>
+						<left>310</left>
 						<control type="progress">
 							<top>0</top>
 							<left>0</left>
-							<width>242</width>
+							<width>237</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
@@ -1019,11 +1019,11 @@
 					<control type="group">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>160</top>
-						<left>305</left>
+						<left>310</left>
 						<control type="progress">
 							<top>0</top>
 							<left>0</left>
-							<width>242</width>
+							<width>237</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
@@ -1046,7 +1046,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>180</top>
-						<label>$INFO[Player.Process(videoqueuelevel)]%</label>
+						<label>$INFO[Window().Property(VideoQueueLevelVar)]%</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
@@ -1054,15 +1054,14 @@
 					<control type="group">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>190</top>
-						<left>305</left>
-						<control type="progress">
+						<left>310</left>
+						<control type="progress" id="9101">
 							<top>0</top>
 							<left>0</left>
-							<width>86</width>
+							<width>81</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
-							<info>Player.Process(videoqueuelevel)</info>
 							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
 							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
 							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
@@ -1073,32 +1072,33 @@
 						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<left>290</left>
 						<top>180</top>
-						<label>| $INFO[Player.Process(videoqueuedatalevel)]%</label>
+						<label>| $INFO[Window().Property(VideoQueueDataLevelVar)]%</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>402</left>
+						<left>398</left>
 						<top>180</top>
-						<label>$INFO[Player.Process(videoqueuedatalevel)]%</label>
+						<width>60</width>
+						<label>$INFO[Window().Property(VideoQueueDataLevelVar)]%</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
+						<align>center</align>
 					</control>
 					<control type="group">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>190</top>
-						<left>305</left>
-						<control type="progress">
+						<left>310</left>
+						<control type="progress" id="9102">
 							<top>0</top>
 							<left>156</left>
-							<width>86</width>
+							<width>81</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
-							<info>Player.Process(videoqueuedatalevel)</info>
 							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
 							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
 							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
@@ -1117,7 +1117,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>210</top>
-						<label>$INFO[Player.Process(audioqueuelevel)]%</label>
+						<label>$INFO[Window().Property(AudioQueueLevelVar)]%</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
@@ -1125,15 +1125,14 @@
 					<control type="group">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>220</top>
-						<left>305</left>
-						<control type="progress">
+						<left>310</left>
+						<control type="progress" id="9103">
 							<top>0</top>
 							<left>0</left>
-							<width>86</width>
+							<width>81</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
-							<info>Player.Process(audioqueuelevel)</info>
 							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
 							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
 							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>
@@ -1144,32 +1143,33 @@
 						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<left>290</left>
 						<top>210</top>
-						<label>| $INFO[Player.Process(audioqueuedatalevel)]%</label>
+						<label>| $INFO[Window().Property(AudioQueueDataLevelVar)]%</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>402</left>
+						<left>398</left>
 						<top>210</top>
-						<label>$INFO[Player.Process(audioqueuedatalevel)]%</label>
+						<width>60</width>
+						<label>$INFO[Window().Property(AudioQueueDataLevelVar)]%</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
+						<align>center</align>
 					</control>
 					<control type="group">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>220</top>
-						<left>305</left>
-						<control type="progress">
+						<left>310</left>
+						<control type="progress" id="9104">
 							<top>0</top>
 							<left>156</left>
-							<width>86</width>
+							<width>81</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
-							<info>Player.Process(audioqueuedatalevel)</info>
 							<texturebg colordiffuse="1fededed" border="6">progress/bar.png</texturebg>
 							<lefttexture colordiffuse="00ffffff">common/dot-1x1.png</lefttexture>
 							<midtexture colordiffuse="E7EDEDED" border="6">progress/bar.png</midtexture>

@@ -552,6 +552,40 @@ def get_CpuTemperatureProgressVar() -> str:
         / (maximum - minimum)
         * 100.0
     )
+    
+
+def get_queue_level(info_label: str) -> float:
+    """
+    Read a queue level from Kodi.
+
+    Kodi may report a completely filled queue as only 99%.
+    Values of 99 or higher are therefore treated as 100%.
+    """
+    raw = _info(info_label).strip()
+
+    match = re.search(r"-?\d+(?:[.,]\d+)?", raw)
+    if not match:
+        return 0
+
+    try:
+        value = float(match.group(0).replace(",", "."))
+    except ValueError:
+        return 0
+
+    value = max(0, min(value, 100))
+
+    if value >= 99:
+        return 100
+
+    return value
+
+
+def format_queue_level(value: float) -> str:
+    """Queue-Level ohne unnötige Nachkommastellen formatieren."""
+    if value.is_integer():
+        return str(int(value))
+
+    return f"{value:.1f}".rstrip("0").rstrip(".")
 
 # ---------------------------------------------------------------------------
 # Main entry point
@@ -567,6 +601,10 @@ def update_properties(window) -> None:
     """
     set_ui_position(window)
 
+    video_queue = get_queue_level("Player.Process(videoqueuelevel)")
+    video_queue_data = get_queue_level("Player.Process(videoqueuedatalevel)")
+    audio_queue = get_queue_level("Player.Process(audioqueuelevel)")
+    audio_queue_data = get_queue_level("Player.Process(audioqueuedatalevel)")
     bitrate_value, bitrate_unit = get_VdecBitrateVar()
     fps_info_text, fps_out_text = format_fps()
     l6_rpu_mdl = _with_unit(get_DoviLevel6RpuMdlVar(), "cd/m²")
@@ -606,5 +644,13 @@ def update_properties(window) -> None:
     window.setProperty("SubtitleNameInfoVar",        get_SubtitleNameInfoVar())
     window.setProperty("CpuUsageVar",                get_CpuUsageVar())
     window.setProperty("CpuTopUsageVar",             get_CpuTopUsageVar())
+    window.setProperty("VideoQueueLevelVar",         format_queue_level(video_queue))
+    window.setProperty("VideoQueueDataLevelVar",     format_queue_level(video_queue_data))
+    window.setProperty("AudioQueueLevelVar",         format_queue_level(audio_queue))
+    window.setProperty("AudioQueueDataLevelVar",     format_queue_level(audio_queue_data))
     window.getControl(9100).setPercent(              get_CpuTemperatureProgressVar())
+    window.getControl(9101).setPercent(              video_queue)
+    window.getControl(9102).setPercent(              video_queue_data)
+    window.getControl(9103).setPercent(              audio_queue)
+    window.getControl(9104).setPercent(              audio_queue_data)
     window.setProperty("CurrentSkin",                xbmc.getSkinDir())
