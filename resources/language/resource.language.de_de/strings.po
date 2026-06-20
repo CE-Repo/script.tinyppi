@@ -189,7 +189,7 @@ msgstr "Bittiefe"
 
 msgctxt "#32070"
 msgid "Mode"
-msgstr "Mode"
+msgstr "Modus"
 
 msgctxt "#32087"
 msgid "Decoding"
