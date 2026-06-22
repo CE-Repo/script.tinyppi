@@ -119,6 +119,10 @@ msgctxt "#32027"
 msgid "Output mode"
 msgstr "输出模式"
 
+msgctxt "#32028"
+msgid "Converting"
+msgstr "正在转换"
+
 msgctxt "#32030"
 msgid "L5 active area"
 msgstr "L5 有效区域"

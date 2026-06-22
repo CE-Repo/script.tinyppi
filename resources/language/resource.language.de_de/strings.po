@@ -119,6 +119,10 @@ msgctxt "#32027"
 msgid "Output mode"
 msgstr "Ausgabemodus"
 
+msgctxt "#32028"
+msgid "Converting"
+msgstr "Umwandlung"
+
 msgctxt "#32030"
 msgid "L5 active area"
 msgstr "L5 aktiver Bereich"
@@ -133,7 +137,7 @@ msgstr "Player-Cache"
 
 msgctxt "#32033"
 msgid "N/A"
-msgstr "n. v."
+msgstr "Nicht verfügbar"
 
 msgctxt "#32034"
 msgid "Memory usage"

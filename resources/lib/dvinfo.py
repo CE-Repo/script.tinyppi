@@ -181,7 +181,7 @@ def _compact_l6_mdl(entry: str) -> str:
     )
 
     if mdl:
-        return f"{mdl.group(1)} / {mdl.group(2)}"
+        return f"{mdl.group(1)} | {mdl.group(2)}"
 
     return ""
 
@@ -192,7 +192,7 @@ def _compact_l6_max_cll_fall(entry: str) -> str:
     maxfall = re.search(r"MaxFALL:\s*([0-9.]+)\s*nits", entry, re.IGNORECASE)
 
     if maxcll and maxfall:
-        return f"{maxcll.group(1)} / {maxfall.group(1)}"
+        return f"{maxcll.group(1)} | {maxfall.group(1)}"
 
     return ""
 
@@ -210,7 +210,7 @@ def _compact_l5_offsets(offsets: str) -> str:
         top = normalize(matches.get("top", "0"))
         bottom = normalize(matches.get("bottom", "0"))
 
-        return f"{left} / {right} / {top} / {bottom}"
+        return f"{left} | {right} | {top} | {bottom}"
 
     return re.sub(r"\s+", " ", offsets).strip()
 

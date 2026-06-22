@@ -119,6 +119,10 @@ msgctxt "#32027"
 msgid "Output mode"
 msgstr ""
 
+msgctxt "#32028"
+msgid "Converting"
+msgstr "Umwandlung"
+
 msgctxt "#32030"
 msgid "L5 active area"
 msgstr ""
