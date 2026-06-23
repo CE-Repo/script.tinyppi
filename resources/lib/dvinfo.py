@@ -381,7 +381,7 @@ def _get_level_info_value(key: str) -> str:
 
 def get_cm_version() -> str:
     """Return the source Dolby Vision Content-Mapping version."""
-    return _get_level_info_value("cm_version")
+    return _get_info_value("cm_version")
 
 
 def get_l5_offsets() -> str:
