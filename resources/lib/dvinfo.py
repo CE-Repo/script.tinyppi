@@ -374,21 +374,26 @@ def _get_info_value(key: str) -> str:
     return ""
 
 
+def _get_level_info_value(key: str) -> str:
+    """Return a Level 5/6 display value, falling back to localized N/A."""
+    return _get_info_value(key) or _na_label()
+
+
 def get_cm_version() -> str:
     """Return the source Dolby Vision Content-Mapping version."""
-    return _get_info_value("cm_version")
+    return _get_level_info_value("cm_version")
 
 
 def get_l5_offsets() -> str:
     """Return Dolby Vision Level 5 active-area offsets."""
-    return _get_info_value("l5_offsets")
+    return _get_level_info_value("l5_offsets")
 
 
 def get_l6_rpu_mdl() -> str:
     """Return Dolby Vision Level 6 RPU mastering-display luminance."""
-    return _get_info_value("l6_mdl")
+    return _get_level_info_value("l6_mdl")
 
 
 def get_l6_rpu_max_cll_fall() -> str:
     """Return Dolby Vision Level 6 RPU MaxCLL/MaxFALL."""
-    return _get_info_value("l6_max_cll_fall")
+    return _get_level_info_value("l6_max_cll_fall")
