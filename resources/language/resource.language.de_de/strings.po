@@ -225,7 +225,7 @@ msgstr "VS10-Dialog"
 
 msgctxt "#32096"
 msgid "Fetching..."
-msgstr "Wird abgerufen..."
+msgstr "Wird ermittelt..."
 
 msgctxt "#32097"
 msgid "L6 RPU MDL"

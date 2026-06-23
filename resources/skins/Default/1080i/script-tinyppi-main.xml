@@ -299,55 +299,9 @@
 						<aligny>top</aligny>
 					</control>
 
-					<!-- Bitrate -->
-					<control type="label">
-						<top>150</top>
-						<label>$ADDON[script.tinyppi 32047]:</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>150</top>
-						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)] $INFO[Window().Property(VideoBitrateMBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>150</top>
-						<label>$INFO[Window().Property(VideoBitrateMBVar)]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>150</top>
-						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<aligny>top</aligny>
-						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
-					</control>
-					<!-- N/A -->
-					<control type="label">
-						<left>240</left>
-						<top>150</top>
-						<label>$ADDON[script.tinyppi 32033]</label>
-						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
-						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
-						<aligny>top</aligny>
-					</control>
-
 					<!-- Decoder -->
 					<control type="label">
-						<top>180</top>
+						<top>150</top>
 						<label>$ADDON[script.tinyppi 32005]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
@@ -355,7 +309,7 @@
 					</control>
 					<control type="label">
 						<left>240</left>
-						<top>180</top>
+						<top>150</top>
 						<label>[UPPERCASE]$INFO[Player.Process(videodecoder)][/UPPERCASE] [COLOR b3ededed]$INFO[Window().Property(VideoDecoderVar),(,)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
@@ -364,7 +318,7 @@
 
 					<!-- Video codec -->
 					<control type="label">
-						<top>210</top>
+						<top>180</top>
 						<label>$ADDON[script.tinyppi 32046]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
@@ -372,8 +326,25 @@
 					</control>
 					<control type="label">
 						<left>240</left>
-						<top>210</top>
+						<top>180</top>
 						<label>$INFO[Window().Property(VideoCodecVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- Decode method -->
+					<control type="label">
+						<top>210</top>
+						<label>$ADDON[script.tinyppi 32031]:</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>210</top>
+						<label>$INFO[Window().Property(VideoDecoderExtVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
@@ -426,103 +397,54 @@
 						<top>30</top>
 						<label>$INFO[Window().Property(HdmiHdrStatusVar)]$INFO[Window().Property(DoviProfileVar)]</label>
 						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
-						<visible>![[String.IsEqual(VideoPlayer.HdrType,hdr10) | String.IsEqual(VideoPlayer.HdrType,hlg) | String.IsEqual(VideoPlayer.HdrType,hdr10plus) | String.IsEmpty(VideoPlayer.HdrType)] + String.Contains(Player.Process(amlogic.eoft_gamut),DV)]</visible>
-						<visible>![[String.IsEmpty(VideoPlayer.HdrType) | String.IsEqual(VideoPlayer.HdrType,dolbyvision)] + String.Contains(Player.Process(amlogic.eoft_gamut),HDR)]</visible>
-						<visible>![[String.IsEqual(VideoPlayer.HdrType,hdr10) | String.IsEqual(VideoPlayer.HdrType,hlg) | String.IsEqual(VideoPlayer.HdrType,hdr10plus) | String.IsEqual(VideoPlayer.HdrType,dolbyvision)] + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)]</visible>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>30</top>
-						<label>SDR -> Dolby Vision Profile 8.1</label>
-						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
-						<aligny>top</aligny>
-						<visible>String.IsEmpty(VideoPlayer.HdrType) + String.Contains(Player.Process(amlogic.eoft_gamut),DV)</visible>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>30</top>
-						<label>SDR -> HDR10</label>
-						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
-						<aligny>top</aligny>
-						<visible>String.IsEmpty(VideoPlayer.HdrType) + String.Contains(Player.Process(amlogic.eoft_gamut),hdr10)</visible>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>30</top>
-						<label>HDR10 -> Dolby Vision Profile 8.1</label>
-						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
-						<aligny>top</aligny>
-						<visible>String.IsEqual(VideoPlayer.HdrType,hdr10) + String.Contains(Player.Process(amlogic.eoft_gamut),DV)</visible>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>30</top>
-						<label>HDR10 -> SDR</label>
-						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
-						<aligny>top</aligny>
-						<visible>String.IsEqual(VideoPlayer.HdrType,hdr10) + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)</visible>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>30</top>
-						<label>HLG -> SDR</label>
-						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
-						<aligny>top</aligny>
-						<visible>String.IsEqual(VideoPlayer.HdrType,hlg) + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)</visible>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>30</top>
-						<label>HLG -> Dolby Vision Profile 8.1</label>
-						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
-						<aligny>top</aligny>
-						<visible>String.IsEqual(VideoPlayer.HdrType,hlg) + String.Contains(Player.Process(amlogic.eoft_gamut),DV)</visible>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>30</top>
-						<label>Dolby Vision -> SDR</label>
-						<font>font23_narrow</font>
-						<textcolor>e7ededed</textcolor>
-						<aligny>top</aligny>
-						<visible>String.IsEqual(VideoPlayer.HdrType,dolbyvision) + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)</visible>
 					</control>
 
-					<!-- Converting -->
+					<!-- Bitrate -->
 					<control type="label">
 						<top>60</top>
-						<label>$ADDON[script.tinyppi 32028]:</label>
+						<label>$ADDON[script.tinyppi 32047]:</label>
 						<font>font23_narrow</font>
 						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					<control type="image">
+					<control type="label">
 						<left>240</left>
-						<top>64</top>
-						<width>24</width>
-						<height>24</height>
-						<texture>icons/check-circle.png</texture>
-						<colordiffuse>palegreen</colordiffuse>
+						<top>60</top>
+						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)] $INFO[Window().Property(VideoBitrateMBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
-						<visible>[[String.IsEqual(VideoPlayer.HdrType,hdr10) | String.IsEqual(VideoPlayer.HdrType,hlg) | String.IsEqual(VideoPlayer.HdrType,hdr10plus) | String.IsEmpty(VideoPlayer.HdrType)] + String.Contains(Player.Process(amlogic.eoft_gamut),DV)] | [[String.IsEqual(VideoPlayer.HdrType,hdr10) | String.IsEqual(VideoPlayer.HdrType,hlg) | String.IsEqual(VideoPlayer.HdrType,hdr10plus) | String.IsEqual(VideoPlayer.HdrType,dolbyvision)] + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)] | [[String.IsEmpty(VideoPlayer.HdrType) | String.IsEqual(VideoPlayer.HdrType,dolbyvision)] + String.Contains(Player.Process(amlogic.eoft_gamut),HDR)]</visible>
+						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 					</control>
-					<control type="image">
+					<control type="label">
 						<left>240</left>
-						<top>64</top>
-						<width>24</width>
-						<height>24</height>
-						<texture>icons/circle-xmark.png</texture>
-						<colordiffuse>tomato</colordiffuse>
+						<top>60</top>
+						<label>$INFO[Window().Property(VideoBitrateMBVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
-						<visible>![[[String.IsEqual(VideoPlayer.HdrType,hdr10) | String.IsEqual(VideoPlayer.HdrType,hlg) | String.IsEqual(VideoPlayer.HdrType,hdr10plus) | String.IsEmpty(VideoPlayer.HdrType)] + String.Contains(Player.Process(amlogic.eoft_gamut),DV)] | [[String.IsEqual(VideoPlayer.HdrType,hdr10) | String.IsEqual(VideoPlayer.HdrType,hlg) | String.IsEqual(VideoPlayer.HdrType,hdr10plus) | String.IsEqual(VideoPlayer.HdrType,dolbyvision)] + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)] | [[String.IsEmpty(VideoPlayer.HdrType) | String.IsEqual(VideoPlayer.HdrType,dolbyvision)] + String.Contains(Player.Process(amlogic.eoft_gamut),HDR)]]</visible>
+						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>60</top>
+						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<aligny>top</aligny>
+						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>240</left>
+						<top>60</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>E7EDEDED</textcolor>
+						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+						<aligny>top</aligny>
 					</control>
 
 					<!-- Mode -->
