@@ -237,10 +237,18 @@ def get_DoviTunnelVar() -> str:
     """
     Read Dolby Vision mode from sysfs.
 
+    Only reported when the active pixel format is 8-bit, i.e.
+    ``Player.Process(amlogic.pixformat)`` starts with ``8-bit``.
+
     Returns:
-        "DV Tunnel" if the value is 1.
+        "DV Tunnel" if the sysfs value is 1 and the output is 8-bit.
         "" otherwise.
     """
+    pixformat = _info("Player.Process(amlogic.pixformat)").strip()
+    bits = re.search(r"(\d+)-bit",  pixformat, re.IGNORECASE)
+    if not bits or bits.group(1) != "8":
+        return ""
+
     path = "/sys/module/aml_media/parameters/dolby_vision_mode"
 
     try:
