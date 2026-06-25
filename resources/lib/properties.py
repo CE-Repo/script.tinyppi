@@ -642,6 +642,8 @@ def update_properties(window) -> None:
     """
     set_ui_position(window)
 
+    desc_color = xbmc.getInfoLabel("Window(10000).Property(TinyPPI.DescriptionColor)")
+    unit = f"[COLOR={desc_color}] cd/m²[/COLOR]" if desc_color else " cd/m²"
     video_queue = get_queue_level("Player.Process(videoqueuelevel)")
     video_queue_data = get_queue_level("Player.Process(videoqueuedatalevel)")
     audio_queue = get_queue_level("Player.Process(audioqueuelevel)")
@@ -656,8 +658,8 @@ def update_properties(window) -> None:
         else "false"
     )
 
-    l6_rpu_mdl = _with_unit(get_DoviLevel6RpuMdlVar(), "cd/m²")
-    l6_rpu_max_cll_fall = _with_unit(get_DoviLevel6RpuMaxCllFallVar(), "cd/m²")
+    l6_rpu_mdl          = _with_unit(get_DoviLevel6RpuMdlVar(), unit)
+    l6_rpu_max_cll_fall = _with_unit(get_DoviLevel6RpuMaxCllFallVar(), unit)
 
     window.setProperty("VideoDecoderVar",              get_VideoDecoderVar())
     window.setProperty("VideoDecoderExtVar",           get_VideoDecoderExtVar())

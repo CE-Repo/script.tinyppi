@@ -552,7 +552,7 @@
 									<width>48</width>
 									<height>25</height>
 									<texture>icons/lrtb.png</texture>
-									<colordiffuse>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</colordiffuse>
+									<colordiffuse>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</colordiffuse>
 									<aspectratio>keep</aspectratio>
 								</control>
 							</control>
@@ -840,7 +840,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>30</top>
-						<label>$INFO[Window().Property(FpsInfoVar)] = $INFO[Window().Property(FpsDropVar)] FPS</label>
+						<label>$INFO[Window().Property(FpsInfoVar)] = [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(FpsDropVar),, FPS][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
