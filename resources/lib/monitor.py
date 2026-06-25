@@ -14,6 +14,12 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
+_LIB_PATH = os.path.dirname(__file__)
+if _LIB_PATH not in sys.path:
+    sys.path.insert(0, _LIB_PATH)
+
+from dvinfo import reset_playback_cache
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -52,6 +58,10 @@ class KodiMonitor(xbmc.Monitor):
         self.addon = addon
 
     def onNotification(self, sender: str, method: str, data: str) -> None:
+        if method == "Player.OnStop":
+            reset_playback_cache()
+            _log("Dolby Vision playback cache cleared")
+
         try:
             payload   = json.loads(data)
             mediatype = ""
@@ -71,13 +81,11 @@ class KodiMonitor(xbmc.Monitor):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    _addon_path = xbmcaddon.Addon().getAddonInfo("path")
-    sys.path.insert(0, os.path.join(_addon_path, "resources", "lib"))
-
     addon   = xbmcaddon.Addon()
     win     = xbmcgui.Window(10000)
     monitor = KodiMonitor(win=win, addon=addon)
 
+    reset_playback_cache()
     xbmc.log("TinyPPI: KodiMonitor started", xbmc.LOGINFO)
 
     while not monitor.abortRequested():

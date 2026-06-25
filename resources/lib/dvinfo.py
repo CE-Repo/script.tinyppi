@@ -26,9 +26,11 @@ import os
 import re
 import subprocess
 import threading
+import uuid
 
 import xbmc
 import xbmcaddon
+import xbmcgui
 import xbmcvfs
 
 from utils import _info
@@ -49,17 +51,28 @@ _RPU_PATH   = os.path.join(_TEMP_DIR, "tinyppi_dv.rpu")
 # chunk.  A single frame would already reveal the CM version.
 _CHUNK_BYTES  = 32 * 1024 * 1024
 _FRAMES       = 24
-_MAX_ATTEMPTS = 3
 
 _LABEL_FETCH = 32096
 _LABEL_NA    = 32033
+
+# Kodi Window properties survive separate addon-script invocations.  Keep the
+# completed result there so reopening TinyPPI during the same playback does not
+# run ffmpeg / dovi_tool again.
+_CACHE_SESSION_PROPERTY = "TinyPPI.DVInfo.Session"
+_CACHE_RESULT_SESSION_PROPERTY = "TinyPPI.DVInfo.ResultSession"
+_CACHE_PATH_PROPERTY = "TinyPPI.DVInfo.Path"
+_CACHE_READY_PROPERTY = "TinyPPI.DVInfo.Ready"
+_CACHE_FIELD_PROPERTIES = {
+    "cm_version": "TinyPPI.DVInfo.CmVersion",
+    "l5_offsets": "TinyPPI.DVInfo.L5Offsets",
+    "l6_mdl": "TinyPPI.DVInfo.L6Mdl",
+    "l6_max_cll_fall": "TinyPPI.DVInfo.L6MaxCllFall",
+}
 
 # ---------------------------------------------------------------------------
 # State
 # ---------------------------------------------------------------------------
 
-_result:    dict[str, dict[str, str]] = {}  # path -> DV metadata fields
-_attempts:  dict[str, int] = {}     # path -> attempt count
 _inflight:  set[str]       = set()  # paths currently being processed
 _lock                      = threading.Lock()
 _ffmpeg_cached: str | None = None   # "" once searched and not found
@@ -91,6 +104,79 @@ def _na_label() -> str:
 def is_status_label(value: str) -> bool:
     """Return True when a value is a localized DV metadata status label."""
     return value in (_fetch_label(), _na_label())
+
+
+def _cache_window() -> xbmcgui.Window:
+    """Return Kodi's global home window used for cross-invocation caching."""
+    return xbmcgui.Window(10000)
+
+
+def _session_token(window: xbmcgui.Window | None = None) -> str:
+    """Return the current playback-session token."""
+    window = window or _cache_window()
+    return window.getProperty(_CACHE_SESSION_PROPERTY) or "0"
+
+
+def _empty_info() -> dict[str, str]:
+    """Return a complete empty DV metadata result."""
+    return {key: "" for key in _CACHE_FIELD_PROPERTIES}
+
+
+def _read_cached_info(path: str, session_token: str) -> dict[str, str] | None:
+    """Return the completed playback cache for ``path``, if available."""
+    window = _cache_window()
+    if window.getProperty(_CACHE_READY_PROPERTY) != "true":
+        return None
+    if window.getProperty(_CACHE_RESULT_SESSION_PROPERTY) != session_token:
+        return None
+    if window.getProperty(_CACHE_PATH_PROPERTY) != path:
+        return None
+
+    return {
+        key: window.getProperty(property_name)
+        for key, property_name in _CACHE_FIELD_PROPERTIES.items()
+    }
+
+
+def _write_cached_info(
+    path: str,
+    info: dict[str, str],
+    session_token: str,
+) -> bool:
+    """Publish a completed result if playback is still in the same session."""
+    window = _cache_window()
+    if _session_token(window) != session_token:
+        return False
+
+    try:
+        if xbmc.Player().getPlayingFile() != path:
+            return False
+    except RuntimeError:
+        return False
+
+    # Ready is written last so readers never observe a partially updated
+    # result.  Empty fields are intentional and cache a completed N/A result.
+    window.clearProperty(_CACHE_READY_PROPERTY)
+    window.setProperty(_CACHE_RESULT_SESSION_PROPERTY, session_token)
+    window.setProperty(_CACHE_PATH_PROPERTY, path)
+    for key, property_name in _CACHE_FIELD_PROPERTIES.items():
+        window.setProperty(property_name, info.get(key, ""))
+    window.setProperty(_CACHE_READY_PROPERTY, "true")
+    return True
+
+
+def reset_playback_cache() -> None:
+    """Clear cached DV metadata and begin a new playback-cache session."""
+    window = _cache_window()
+    window.clearProperty(_CACHE_READY_PROPERTY)
+    window.clearProperty(_CACHE_RESULT_SESSION_PROPERTY)
+    window.clearProperty(_CACHE_PATH_PROPERTY)
+    for property_name in _CACHE_FIELD_PROPERTIES.values():
+        window.clearProperty(property_name)
+    window.setProperty(_CACHE_SESSION_PROPERTY, uuid.uuid4().hex)
+
+    with _lock:
+        _inflight.clear()
 
 
 def _dovi_tool() -> str:
@@ -311,17 +397,19 @@ def _detect(path: str) -> dict[str, str]:
                     pass
 
 
-def _worker(path: str) -> None:
-    """Background detection job; caches only positive results."""
+def _worker(path: str, session_token: str) -> None:
+    """Background detection job; caches one completed result per playback."""
     try:
         info = _detect(path)
     except Exception as exc:
         _log(f"DV CM detection failed: {exc}", xbmc.LOGWARNING)
         info = {}
-    with _lock:
-        _inflight.discard(path)
-        if any(info.values()):
-            _result[path] = info
+
+    try:
+        _write_cached_info(path, info or _empty_info(), session_token)
+    finally:
+        with _lock:
+            _inflight.discard(path)
 
 
 # ---------------------------------------------------------------------------
@@ -335,7 +423,8 @@ def _get_info_status_value(key: str) -> tuple[str, str]:
 
     Returns ``(value, status)`` where status is ``''`` for non-DV/no-file,
     ``'fetching'`` while detection is running, ``'ready'`` once a field has
-    been found, and ``'failed'`` once the field cannot be determined.
+    been found, and ``'failed'`` once the field cannot be determined.  The
+    completed result is shared between addon invocations until playback stops.
     """
     if (key == "cm_version" and "dolby" not in _info("VideoPlayer.HdrType").lower()):
         return "", ""
@@ -347,18 +436,22 @@ def _get_info_status_value(key: str) -> tuple[str, str]:
     if not path:
         return "", ""
 
-    with _lock:
-        if path in _result:
-            value = _result[path].get(key, "")
-            return value, "ready" if value else "failed"
-        if path in _inflight or _attempts.get(path, 0) >= _MAX_ATTEMPTS:
-            if path in _inflight:
-                return "", "fetching"
-            return "", "failed"
-        _inflight.add(path)
-        _attempts[path] = _attempts.get(path, 0) + 1
+    session_token = _session_token()
+    cached_info = _read_cached_info(path, session_token)
+    if cached_info is not None:
+        value = cached_info.get(key, "")
+        return value, "ready" if value else "failed"
 
-    threading.Thread(target=_worker, args=(path,), daemon=True).start()
+    with _lock:
+        if path in _inflight:
+            return "", "fetching"
+        _inflight.add(path)
+
+    threading.Thread(
+        target=_worker,
+        args=(path, session_token),
+        daemon=True,
+    ).start()
     return "", "fetching"
 
 
