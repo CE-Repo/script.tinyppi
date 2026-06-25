@@ -14,6 +14,7 @@ from maps import (
     _CHANNELS_INPUT_MAP,
     _CHANNELS_MAP,
     _LANGUAGE_MAP,
+    _LANGUAGE_MAP_SHORT,
     _VIDEO_CODEC_MAP,
     _SUBTITLE_CODEC_MAP,
 )
@@ -430,6 +431,12 @@ def get_AudioNameVar() -> str:
     return _LANGUAGE_MAP.get(code, "") if code else ""
 
 
+def get_AudioNameShortVar() -> str:
+    """Return the native short language name for the active audio track language code."""
+    code = _info("VideoPlayer.AudioLanguage").lower().strip()
+    return _LANGUAGE_MAP_SHORT.get(code, "") if code else ""
+
+
 # ---------------------------------------------------------------------------
 # Subtitle properties
 # ---------------------------------------------------------------------------
@@ -452,6 +459,14 @@ def get_SubtitleNameVar() -> str:
     """
     code = _info("VideoPlayer.SubtitlesLanguage").lower().strip()
     return _LANGUAGE_MAP.get(code, "") if code else ""
+    
+    
+def get_SubtitleNameShortVar() -> str:
+    """
+    Return the native short language name for the active subtitle language code.
+    """
+    code = _info("VideoPlayer.SubtitlesLanguage").lower().strip()
+    return _LANGUAGE_MAP_SHORT.get(code, "") if code else ""
 
 
 def get_SubtitleNameInfoVar() -> str:
@@ -675,10 +690,12 @@ def update_properties(window) -> None:
     window.setProperty("AudioChannelsInputVar",        get_AudioChannelsInputVar())
     window.setProperty("AudioSampleRateVar",           get_AudioSampleRateVar())
     window.setProperty("AudioNameVar",                 get_AudioNameVar())
+    window.setProperty("AudioNameShortVar",            get_AudioNameShortVar())
     window.setProperty("SubtitleVar",                  get_SubtitleVar())
     window.setProperty("SubtitleCodecVar",             get_SubtitleCodecVar())
     window.setProperty("SubtitleNameInfoVar",          get_SubtitleNameInfoVar())
     window.setProperty("SubtitleNameVar",              get_SubtitleNameVar())
+    window.setProperty("SubtitleNameShortVar",         get_SubtitleNameShortVar())
     window.setProperty("CpuUsageVar",                  get_CpuUsageVar())
     window.setProperty("CpuTopUsageVar",               get_CpuTopUsageVar())
     window.setProperty("VideoQueueLevelVar",           format_queue_level(video_queue))

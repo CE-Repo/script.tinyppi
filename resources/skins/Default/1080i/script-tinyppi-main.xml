@@ -737,7 +737,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>180</top>
-						<label>[UPPERCASE]$INFO[VideoPlayer.AudioLanguage][/UPPERCASE]$INFO[Window().Property(AudioNameVar), | ]</label>
+						<label>$INFO[Window().Property(AudioNameShortVar)] $INFO[Window().Property(AudioNameVar),| ]</label>
 						<font>font23_narrow</font>
 						<scroll>true</scroll>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -766,7 +766,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>210</top>
-						<label>[UPPERCASE]$INFO[VideoPlayer.SubtitlesLanguage][/UPPERCASE]$INFO[Window().Property(SubtitleNameVar), | ] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(SubtitleCodecVar),(,)][/COLOR]</label>
+						<label>$INFO[Window().Property(SubtitleNameShortVar)] $INFO[Window().Property(SubtitleNameVar),| ] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(SubtitleCodecVar),(,)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<scroll>true</scroll>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
