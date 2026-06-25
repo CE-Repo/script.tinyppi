@@ -260,8 +260,8 @@ msgid "Title color"
 msgstr "Titelfarbe"
 
 msgctxt "#32106"
-msgid "Color of the section titles and their icons."
-msgstr "Farbe der Abschnittstitel und ihrer Symbole."
+msgid "Color of the section titles."
+msgstr "Farbe der Abschnittstitel."
 
 msgctxt "#32107"
 msgid "Description color"
@@ -294,6 +294,22 @@ msgstr "Detailfarbe"
 msgctxt "#32114"
 msgid "Color of the dimmed detail values shown in parentheses."
 msgstr "Farbe der gedimmten Detailwerte in Klammern."
+
+msgctxt "#32115"
+msgid "Icon color"
+msgstr "Symbolfarbe"
+
+msgctxt "#32116"
+msgid "Color of the section icons."
+msgstr "Farbe der Abschnittssymbole."
+
+msgctxt "#32117"
+msgid "Unit color (cd/m²)"
+msgstr "Einheitenfarbe (cd/m²)"
+
+msgctxt "#32118"
+msgid "Color of the cd/m² brightness unit."
+msgstr "Farbe der Helligkeitseinheit cd/m²."
 
 msgctxt "#32120"
 msgid "White"
@@ -374,3 +390,27 @@ msgstr "Dunkelviolett"
 msgctxt "#32139"
 msgid "Dark gray"
 msgstr "Dunkelgrau"
+
+msgctxt "#32140"
+msgid "FPS color"
+msgstr "FPS-Farbe"
+
+msgctxt "#32141"
+msgid "Color of the In / drop / out FPS values."
+msgstr "Farbe der FPS-Werte (In / Drop / Out)."
+
+msgctxt "#32142"
+msgid "Header color"
+msgstr "Kopfzeilenfarbe"
+
+msgctxt "#32143"
+msgid "Color of the overlay header label (Modern)."
+msgstr "Farbe der Overlay-Kopfzeile (Modern)."
+
+msgctxt "#32144"
+msgid "Chart icon color"
+msgstr "Diagrammsymbolfarbe"
+
+msgctxt "#32145"
+msgid "Color of the chart icon (Modern)."
+msgstr "Farbe des Diagrammsymbols (Modern)."

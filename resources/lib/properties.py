@@ -642,8 +642,8 @@ def update_properties(window) -> None:
     """
     set_ui_position(window)
 
-    desc_color = xbmc.getInfoLabel("Window(10000).Property(TinyPPI.DescriptionColor)")
-    unit = f"[COLOR={desc_color}] cd/m²[/COLOR]" if desc_color else " cd/m²"
+    unit_color = xbmc.getInfoLabel("Window(10000).Property(TinyPPI.UnitColor)")
+    unit = f"[COLOR={unit_color}] cd/m²[/COLOR]" if unit_color else " cd/m²"
     video_queue = get_queue_level("Player.Process(videoqueuelevel)")
     video_queue_data = get_queue_level("Player.Process(videoqueuedatalevel)")
     audio_queue = get_queue_level("Player.Process(audioqueuelevel)")

@@ -260,7 +260,7 @@ msgid "Title color"
 msgstr ""
 
 msgctxt "#32106"
-msgid "Color of the section titles and their icons."
+msgid "Color of the section titles."
 msgstr ""
 
 msgctxt "#32107"
@@ -293,6 +293,22 @@ msgstr ""
 
 msgctxt "#32114"
 msgid "Color of the dimmed detail values shown in parentheses."
+msgstr ""
+
+msgctxt "#32115"
+msgid "Icon color"
+msgstr ""
+
+msgctxt "#32116"
+msgid "Color of the section icons."
+msgstr ""
+
+msgctxt "#32117"
+msgid "Unit color (cd/m²)"
+msgstr ""
+
+msgctxt "#32118"
+msgid "Color of the cd/m² brightness unit."
 msgstr ""
 
 msgctxt "#32120"
@@ -373,4 +389,28 @@ msgstr ""
 
 msgctxt "#32139"
 msgid "Dark gray"
+msgstr ""
+
+msgctxt "#32140"
+msgid "FPS color"
+msgstr ""
+
+msgctxt "#32141"
+msgid "Color of the In / drop / out FPS values."
+msgstr ""
+
+msgctxt "#32142"
+msgid "Header color"
+msgstr ""
+
+msgctxt "#32143"
+msgid "Color of the overlay header label (Modern)."
+msgstr ""
+
+msgctxt "#32144"
+msgid "Chart icon color"
+msgstr ""
+
+msgctxt "#32145"
+msgid "Color of the chart icon (Modern)."
 msgstr ""

@@ -74,8 +74,13 @@ def apply_theme(home, addon=None) -> None:
     addon = addon or xbmcaddon.Addon()
 
     home.setProperty("TinyPPI.TitleColor",       _pick(_TEXT_COLORS, addon.getSetting("title_color")))
+    home.setProperty("TinyPPI.IconColor",        _pick(_TEXT_COLORS, addon.getSetting("icon_color")))
+    home.setProperty("TinyPPI.HeaderColor",      _pick(_TEXT_COLORS, addon.getSetting("header_color")))
+    home.setProperty("TinyPPI.ChartColor",       _pick(_TEXT_COLORS, addon.getSetting("chart_color")))
     home.setProperty("TinyPPI.DescriptionColor", _pick(_TEXT_COLORS, addon.getSetting("description_color")))
     home.setProperty("TinyPPI.OutputColor",      _pick(_TEXT_COLORS, addon.getSetting("output_color")))
     home.setProperty("TinyPPI.ProgressColor",    _pick(_TEXT_COLORS, addon.getSetting("progress_color")))
+    home.setProperty("TinyPPI.FpsColor",         _pick(_TEXT_COLORS, addon.getSetting("fps_color")))
+    home.setProperty("TinyPPI.UnitColor",        _pick(_TEXT_COLORS, addon.getSetting("unit_color")))
     home.setProperty("TinyPPI.AccentColor",      _pick(_ACCENT_COLORS, addon.getSetting("accent_color")))
     home.setProperty("TinyPPI.BackgroundColor",  _pick(_BACKGROUND_COLORS, addon.getSetting("background_color")))

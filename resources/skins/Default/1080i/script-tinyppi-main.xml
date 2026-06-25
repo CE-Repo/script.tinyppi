@@ -149,7 +149,7 @@
 					<control type="label">
 						<label>[CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE]</label>
 						<font>font32</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.HeaderColor)]</textcolor>
 						<aligny>top</aligny>
 					</control>
 				</control>
@@ -161,7 +161,7 @@
 					<control type="image">
 						<width>36</width>
 						<height>36</height>
-						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.TitleColor)]">icons/chart.png</texture>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.ChartColor)]">icons/chart.png</texture>
 					</control>
 				</control>
 
@@ -210,7 +210,7 @@
 						<width>26</width>
 						<height>26</height>
 						<texture>icons/camcorder.png</texture>
-						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</colordiffuse>
+						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.IconColor)]</colordiffuse>
 						<aligny>top</aligny>
 					</control>
 
@@ -363,7 +363,7 @@
 						<width>26</width>
 						<height>26</height>
 						<texture>icons/arrow-progress.png</texture>
-						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</colordiffuse>
+						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.IconColor)]</colordiffuse>
 						<aligny>top</aligny>
 					</control>
 
@@ -552,7 +552,7 @@
 									<width>48</width>
 									<height>25</height>
 									<texture>icons/lrtb.png</texture>
-									<colordiffuse>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</colordiffuse>
+									<colordiffuse>$INFO[Window(10000).Property(TinyPPI.IconColor)]</colordiffuse>
 									<aspectratio>keep</aspectratio>
 								</control>
 							</control>
@@ -571,7 +571,7 @@
 						<width>26</width>
 						<height>26</height>
 						<texture>icons/volume.png</texture>
-						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</colordiffuse>
+						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.IconColor)]</colordiffuse>
 						<aligny>top</aligny>
 					</control>
 
@@ -808,7 +808,7 @@
 						<width>26</width>
 						<height>26</height>
 						<texture>icons/memory.png</texture>
-						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</colordiffuse>
+						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.IconColor)]</colordiffuse>
 						<aligny>top</aligny>
 					</control>
 
@@ -840,7 +840,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>30</top>
-						<label>$INFO[Window().Property(FpsInfoVar)] = [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(FpsDropVar),, FPS][/COLOR]</label>
+						<label>$INFO[Window().Property(FpsInfoVar)] = [COLOR $INFO[Window(10000).Property(TinyPPI.FpsColor)]]$INFO[Window().Property(FpsDropVar),, FPS][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
