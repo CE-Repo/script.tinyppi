@@ -24,6 +24,22 @@ _TEXT_COLORS = (
     "FFFF80AB",  # 9  Pink
 )
 
+# Palette for inline detail accents (the dimmed values shown in parentheses).
+# Same hues as _TEXT_COLORS but at alpha B3 (~70%) so they stay subtle.
+# The index matches the <option> order in resources/settings.xml.
+_ACCENT_COLORS = (
+    "B3FF80AB",  # 0  White (default)
+    "B3E0E0E0",  # 1  Light gray
+    "B3FF8A80",  # 2  Red
+    "B3FFCC80",  # 3  Orange
+    "B3FFFF8D",  # 4  Yellow
+    "B3B9F6CA",  # 5  Green
+    "B384FFFF",  # 6  Cyan
+    "B382B1FF",  # 7  Blue
+    "B3E1BEE7",  # 8  Purple
+    "B3FF80AB",  # 9  Pink
+)
+
 # Palette for the Modern background (semi-transparent dark shades, alpha FA).
 # The index matches the <option> order in resources/settings.xml.
 _BACKGROUND_COLORS = (
@@ -61,4 +77,5 @@ def apply_theme(home, addon=None) -> None:
     home.setProperty("TinyPPI.DescriptionColor", _pick(_TEXT_COLORS, addon.getSetting("description_color")))
     home.setProperty("TinyPPI.OutputColor",      _pick(_TEXT_COLORS, addon.getSetting("output_color")))
     home.setProperty("TinyPPI.ProgressColor",    _pick(_TEXT_COLORS, addon.getSetting("progress_color")))
+    home.setProperty("TinyPPI.AccentColor",      _pick(_ACCENT_COLORS, addon.getSetting("accent_color")))
     home.setProperty("TinyPPI.BackgroundColor",  _pick(_BACKGROUND_COLORS, addon.getSetting("background_color")))

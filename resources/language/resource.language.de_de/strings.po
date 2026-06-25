@@ -287,6 +287,14 @@ msgctxt "#32112"
 msgid "Color of the progress bars."
 msgstr "Farbe der Fortschrittsbalken."
 
+msgctxt "#32113"
+msgid "Detail color"
+msgstr "Detailfarbe"
+
+msgctxt "#32114"
+msgid "Color of the dimmed detail values shown in parentheses."
+msgstr "Farbe der gedimmten Detailwerte in Klammern."
+
 msgctxt "#32120"
 msgid "White"
 msgstr "Weiß"

@@ -276,7 +276,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>90</top>
-						<label>$INFO[Window().Property(VideoPixelFormatVar)] [COLOR b3ededed]$INFO[Window().Property(DoviTunnelVar),(,)][/COLOR]</label>
+						<label>$INFO[Window().Property(VideoPixelFormatVar)] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(DoviTunnelVar),(,)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
@@ -310,7 +310,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>150</top>
-						<label>[UPPERCASE]$INFO[Player.Process(videodecoder)][/UPPERCASE] [COLOR b3ededed]$INFO[Window().Property(VideoDecoderVar),(,)][/COLOR]</label>
+						<label>[UPPERCASE]$INFO[Player.Process(videodecoder)][/UPPERCASE] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(VideoDecoderVar),(,)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
@@ -412,7 +412,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>60</top>
-						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)] $INFO[Window().Property(VideoBitrateMBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
+						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)] - [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(VideoBitrateMBVar),(Ø ,)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
@@ -603,7 +603,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>30</top>
-						<label>$INFO[Window().Property(AudioCodecVar)] $INFO[Window().Property(AudioChannelsVar)] [COLOR b3ededed]$INFO[Window().Property(AudioCodecSpatialVar)][/COLOR]</label>
+						<label>$INFO[Window().Property(AudioCodecVar)] $INFO[Window().Property(AudioChannelsVar)] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(AudioCodecSpatialVar)][/COLOR]</label>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<font>font23_narrow</font>
 						<aligny>top</aligny>
@@ -691,7 +691,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>150</top>
-						<label>$INFO[Window().Property(AudioLiveBitrateVar)] $INFO[Window().Property(AudioBitrateKBVar),- [COLOR b3ededed](Ø ,)[/COLOR]]</label>
+						<label>$INFO[Window().Property(AudioLiveBitrateVar)] - [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(AudioBitrateKBVar),(Ø ,)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
