@@ -234,3 +234,135 @@ msgstr "L6 母版显示"
 msgctxt "#32098"
 msgid "L6 MaxCLL/FALL"
 msgstr "L6 MaxCLL/FALL"
+
+msgctxt "#32100"
+msgid "Theme"
+msgstr "主题"
+
+msgctxt "#32101"
+msgid "Customise the TinyPPI overlay colors."
+msgstr "自定义 TinyPPI 叠加层的颜色。"
+
+msgctxt "#32102"
+msgid "Colors"
+msgstr "颜色"
+
+msgctxt "#32103"
+msgid "Background color (Modern)"
+msgstr "背景颜色（现代）"
+
+msgctxt "#32104"
+msgid "Background color of the Modern overlay style."
+msgstr "现代叠加层样式的背景颜色。"
+
+msgctxt "#32105"
+msgid "Title color"
+msgstr "标题颜色"
+
+msgctxt "#32106"
+msgid "Color of the section titles and their icons."
+msgstr "分区标题及其图标的颜色。"
+
+msgctxt "#32107"
+msgid "Description color"
+msgstr "说明文字颜色"
+
+msgctxt "#32108"
+msgid "Color of the label descriptions."
+msgstr "标签说明文字的颜色。"
+
+msgctxt "#32109"
+msgid "Output color"
+msgstr "输出值颜色"
+
+msgctxt "#32110"
+msgid "Color of the output values."
+msgstr "输出值的颜色。"
+
+msgctxt "#32111"
+msgid "Progress bar color"
+msgstr "进度条颜色"
+
+msgctxt "#32112"
+msgid "Color of the progress bars."
+msgstr "进度条的颜色。"
+
+msgctxt "#32120"
+msgid "White"
+msgstr "白色"
+
+msgctxt "#32121"
+msgid "Light gray"
+msgstr "浅灰色"
+
+msgctxt "#32122"
+msgid "Red"
+msgstr "红色"
+
+msgctxt "#32123"
+msgid "Orange"
+msgstr "橙色"
+
+msgctxt "#32124"
+msgid "Yellow"
+msgstr "黄色"
+
+msgctxt "#32125"
+msgid "Green"
+msgstr "绿色"
+
+msgctxt "#32126"
+msgid "Cyan"
+msgstr "青色"
+
+msgctxt "#32127"
+msgid "Blue"
+msgstr "蓝色"
+
+msgctxt "#32128"
+msgid "Purple"
+msgstr "紫色"
+
+msgctxt "#32129"
+msgid "Pink"
+msgstr "粉色"
+
+msgctxt "#32130"
+msgid "Charcoal"
+msgstr "炭黑色"
+
+msgctxt "#32131"
+msgid "Black"
+msgstr "黑色"
+
+msgctxt "#32132"
+msgid "Dark red"
+msgstr "深红色"
+
+msgctxt "#32133"
+msgid "Dark orange"
+msgstr "深橙色"
+
+msgctxt "#32134"
+msgid "Dark yellow"
+msgstr "深黄色"
+
+msgctxt "#32135"
+msgid "Dark green"
+msgstr "深绿色"
+
+msgctxt "#32136"
+msgid "Dark cyan"
+msgstr "深青色"
+
+msgctxt "#32137"
+msgid "Dark blue"
+msgstr "深蓝色"
+
+msgctxt "#32138"
+msgid "Dark purple"
+msgstr "深紫色"
+
+msgctxt "#32139"
+msgid "Dark gray"
+msgstr "深灰色"

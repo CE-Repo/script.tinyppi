@@ -234,3 +234,135 @@ msgstr "L6 RPU MDL"
 msgctxt "#32098"
 msgid "L6 MaxCLL/FALL"
 msgstr "L6 MaxCLL/FALL"
+
+msgctxt "#32100"
+msgid "Theme"
+msgstr "Theme"
+
+msgctxt "#32101"
+msgid "Customise the TinyPPI overlay colors."
+msgstr "Passe die Farben des TinyPPI-Overlays an."
+
+msgctxt "#32102"
+msgid "Colors"
+msgstr "Farben"
+
+msgctxt "#32103"
+msgid "Background color (Modern)"
+msgstr "Hintergrundfarbe (Modern)"
+
+msgctxt "#32104"
+msgid "Background color of the Modern overlay style."
+msgstr "Hintergrundfarbe des modernen Overlay-Stils."
+
+msgctxt "#32105"
+msgid "Title color"
+msgstr "Titelfarbe"
+
+msgctxt "#32106"
+msgid "Color of the section titles and their icons."
+msgstr "Farbe der Abschnittstitel und ihrer Symbole."
+
+msgctxt "#32107"
+msgid "Description color"
+msgstr "Beschreibungsfarbe"
+
+msgctxt "#32108"
+msgid "Color of the label descriptions."
+msgstr "Farbe der Beschreibungstexte."
+
+msgctxt "#32109"
+msgid "Output color"
+msgstr "Ausgabefarbe"
+
+msgctxt "#32110"
+msgid "Color of the output values."
+msgstr "Farbe der Ausgabewerte."
+
+msgctxt "#32111"
+msgid "Progress bar color"
+msgstr "Fortschrittsbalkenfarbe"
+
+msgctxt "#32112"
+msgid "Color of the progress bars."
+msgstr "Farbe der Fortschrittsbalken."
+
+msgctxt "#32120"
+msgid "White"
+msgstr "Weiß"
+
+msgctxt "#32121"
+msgid "Light gray"
+msgstr "Hellgrau"
+
+msgctxt "#32122"
+msgid "Red"
+msgstr "Rot"
+
+msgctxt "#32123"
+msgid "Orange"
+msgstr "Orange"
+
+msgctxt "#32124"
+msgid "Yellow"
+msgstr "Gelb"
+
+msgctxt "#32125"
+msgid "Green"
+msgstr "Grün"
+
+msgctxt "#32126"
+msgid "Cyan"
+msgstr "Cyan"
+
+msgctxt "#32127"
+msgid "Blue"
+msgstr "Blau"
+
+msgctxt "#32128"
+msgid "Purple"
+msgstr "Violett"
+
+msgctxt "#32129"
+msgid "Pink"
+msgstr "Pink"
+
+msgctxt "#32130"
+msgid "Charcoal"
+msgstr "Anthrazit"
+
+msgctxt "#32131"
+msgid "Black"
+msgstr "Schwarz"
+
+msgctxt "#32132"
+msgid "Dark red"
+msgstr "Dunkelrot"
+
+msgctxt "#32133"
+msgid "Dark orange"
+msgstr "Dunkelorange"
+
+msgctxt "#32134"
+msgid "Dark yellow"
+msgstr "Dunkelgelb"
+
+msgctxt "#32135"
+msgid "Dark green"
+msgstr "Dunkelgrün"
+
+msgctxt "#32136"
+msgid "Dark cyan"
+msgstr "Dunkelcyan"
+
+msgctxt "#32137"
+msgid "Dark blue"
+msgstr "Dunkelblau"
+
+msgctxt "#32138"
+msgid "Dark purple"
+msgstr "Dunkelviolett"
+
+msgctxt "#32139"
+msgid "Dark gray"
+msgstr "Dunkelgrau"

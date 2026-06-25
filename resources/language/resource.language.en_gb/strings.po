@@ -234,3 +234,135 @@ msgstr ""
 msgctxt "#32098"
 msgid "L6 MaxCLL/FALL"
 msgstr ""
+
+msgctxt "#32100"
+msgid "Theme"
+msgstr ""
+
+msgctxt "#32101"
+msgid "Customise the TinyPPI overlay colors."
+msgstr ""
+
+msgctxt "#32102"
+msgid "Colors"
+msgstr ""
+
+msgctxt "#32103"
+msgid "Background color (Modern)"
+msgstr ""
+
+msgctxt "#32104"
+msgid "Background color of the Modern overlay style."
+msgstr ""
+
+msgctxt "#32105"
+msgid "Title color"
+msgstr ""
+
+msgctxt "#32106"
+msgid "Color of the section titles and their icons."
+msgstr ""
+
+msgctxt "#32107"
+msgid "Description color"
+msgstr ""
+
+msgctxt "#32108"
+msgid "Color of the label descriptions."
+msgstr ""
+
+msgctxt "#32109"
+msgid "Output color"
+msgstr ""
+
+msgctxt "#32110"
+msgid "Color of the output values."
+msgstr ""
+
+msgctxt "#32111"
+msgid "Progress bar color"
+msgstr ""
+
+msgctxt "#32112"
+msgid "Color of the progress bars."
+msgstr ""
+
+msgctxt "#32120"
+msgid "White"
+msgstr ""
+
+msgctxt "#32121"
+msgid "Light gray"
+msgstr ""
+
+msgctxt "#32122"
+msgid "Red"
+msgstr ""
+
+msgctxt "#32123"
+msgid "Orange"
+msgstr ""
+
+msgctxt "#32124"
+msgid "Yellow"
+msgstr ""
+
+msgctxt "#32125"
+msgid "Green"
+msgstr ""
+
+msgctxt "#32126"
+msgid "Cyan"
+msgstr ""
+
+msgctxt "#32127"
+msgid "Blue"
+msgstr ""
+
+msgctxt "#32128"
+msgid "Purple"
+msgstr ""
+
+msgctxt "#32129"
+msgid "Pink"
+msgstr ""
+
+msgctxt "#32130"
+msgid "Charcoal"
+msgstr ""
+
+msgctxt "#32131"
+msgid "Black"
+msgstr ""
+
+msgctxt "#32132"
+msgid "Dark red"
+msgstr ""
+
+msgctxt "#32133"
+msgid "Dark orange"
+msgstr ""
+
+msgctxt "#32134"
+msgid "Dark yellow"
+msgstr ""
+
+msgctxt "#32135"
+msgid "Dark green"
+msgstr ""
+
+msgctxt "#32136"
+msgid "Dark cyan"
+msgstr ""
+
+msgctxt "#32137"
+msgid "Dark blue"
+msgstr ""
+
+msgctxt "#32138"
+msgid "Dark purple"
+msgstr ""
+
+msgctxt "#32139"
+msgid "Dark gray"
+msgstr ""
