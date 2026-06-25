@@ -28,7 +28,7 @@ _TEXT_COLORS = (
 # Same hues as _TEXT_COLORS but at alpha B3 (~70%) so they stay subtle.
 # The index matches the <option> order in resources/settings.xml.
 _ACCENT_COLORS = (
-    "B3FF80AB",  # 0  White (default)
+    "B3EDEDED",  # 0  White (default)
     "B3E0E0E0",  # 1  Light gray
     "B3FF8A80",  # 2  Red
     "B3FFCC80",  # 3  Orange
