@@ -15,6 +15,7 @@ from maps import (
     _CHANNELS_MAP,
     _LANGUAGE_MAP,
     _VIDEO_CODEC_MAP,
+    _SUBTITLE_CODEC_MAP,
 )
 from utils import _cond, _info, _clean
 from helpers import (
@@ -445,6 +446,14 @@ def get_SubtitleVar() -> str:
     return lang.upper()
 
 
+def get_SubtitleNameVar() -> str:
+    """
+    Return the native language name for the active subtitle language code.
+    """
+    code = _info("VideoPlayer.SubtitlesLanguage").lower().strip()
+    return _LANGUAGE_MAP.get(code, "") if code else ""
+
+
 def get_SubtitleNameInfoVar() -> str:
     """
     Return the active subtitle track name formatted for display.
@@ -455,6 +464,15 @@ def get_SubtitleNameInfoVar() -> str:
         return ""
 
     return f"| {name}"
+
+
+def get_SubtitleCodecVar() -> str:
+    """
+    Return the mapped display name for the current subtitle codec.
+    """
+    codec = _info("VideoPlayer.SubtitleCodec").lower().strip()
+    return _SUBTITLE_CODEC_MAP.get(codec, codec.upper()) if codec else ""
+
 
 # ---------------------------------------------------------------------------
 # System properties
@@ -658,7 +676,9 @@ def update_properties(window) -> None:
     window.setProperty("AudioSampleRateVar",           get_AudioSampleRateVar())
     window.setProperty("AudioNameVar",                 get_AudioNameVar())
     window.setProperty("SubtitleVar",                  get_SubtitleVar())
+    window.setProperty("SubtitleCodecVar",             get_SubtitleCodecVar())
     window.setProperty("SubtitleNameInfoVar",          get_SubtitleNameInfoVar())
+    window.setProperty("SubtitleNameVar",              get_SubtitleNameVar())
     window.setProperty("CpuUsageVar",                  get_CpuUsageVar())
     window.setProperty("CpuTopUsageVar",               get_CpuTopUsageVar())
     window.setProperty("VideoQueueLevelVar",           format_queue_level(video_queue))

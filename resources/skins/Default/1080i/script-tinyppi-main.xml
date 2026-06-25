@@ -737,25 +737,11 @@
 					<control type="label">
 						<left>240</left>
 						<top>180</top>
-						<width>320</width>
-						<label>[UPPERCASE]$INFO[VideoPlayer.AudioLanguage][/UPPERCASE]</label>
+						<label>[UPPERCASE]$INFO[VideoPlayer.AudioLanguage][/UPPERCASE]$INFO[Window().Property(AudioNameVar), | ]</label>
 						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<scroll>true</scroll>
-						<visible>!String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
-						<visible>String.IsEmpty(VideoPlayer.AudioLanguageEx)</visible>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>180</top>
-						<width>320</width>
-						<label>[UPPERCASE]$INFO[VideoPlayer.AudioLanguage][/UPPERCASE] | $INFO[VideoPlayer.AudioLanguageEx]</label>
-						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<scroll>true</scroll>
 						<visible>!String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
-						<visible>!String.IsEmpty(VideoPlayer.AudioLanguageEx)</visible>
 						<aligny>top</aligny>
 					</control>
 					<!-- N/A -->
@@ -780,11 +766,10 @@
 					<control type="label">
 						<left>240</left>
 						<top>210</top>
-						<width>340</width>
-						<label>$INFO[Window().Property(SubtitleVar)] $INFO[Window().Property(SubtitleNameInfoVar)]</label>
+						<label>[UPPERCASE]$INFO[VideoPlayer.SubtitlesLanguage][/UPPERCASE]$INFO[Window().Property(SubtitleNameVar), | ] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(SubtitleCodecVar),(,)][/COLOR]</label>
 						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<scroll>true</scroll>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<visible>VideoPlayer.SubtitlesEnabled</visible>
 						<visible>VideoPlayer.HasSubtitles</visible>
 						<aligny>top</aligny>
@@ -793,7 +778,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>210</top>
-						<label>$LOCALIZE[1223]</label>
+						<label>$ADDON[script.tinyppi 32091]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<visible>VideoPlayer.HasSubtitles + !VideoPlayer.SubtitlesEnabled</visible>

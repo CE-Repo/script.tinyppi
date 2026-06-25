@@ -67,6 +67,31 @@ _VIDEO_CODEC_MAP = {
 }
 
 # ---------------------------------------------------------------------------
+# Subtitle codec map  (VideoPlayer.SubtitleCodec → display label)
+# ---------------------------------------------------------------------------
+
+_SUBTITLE_CODEC_MAP = {
+    "ass":               "ASS",
+    "dvb_subtitle":      "DVB-SUB",
+    "dvb_teletext":      "DVB-Text",
+    "dvd_subtitle":      "VobSub",
+    "hdmv_pgs_subtitle": "PGS",
+    "microdvd":          "MicroDVD",
+    "mov_text":          "Timed Text",
+    "mpl2":              "MPL2",
+    "realtext":          "RealText",
+    "sami":              "SAMI",
+    "srt":               "SubRip",
+    "ssa":               "SSA",
+    "subrip":            "SubRip",
+    "text":              "Text",
+    "ttml":              "TTML",
+    "vplayer":           "VPlayer",
+    "webvtt":            "WebVTT",
+    "xsub":              "XSUB",
+}
+
+# ---------------------------------------------------------------------------
 # Audio codec map  (VideoPlayer.AudioCodec → display label)
 # ---------------------------------------------------------------------------
 
