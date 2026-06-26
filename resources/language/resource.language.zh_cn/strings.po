@@ -313,83 +313,83 @@ msgstr "cd/m² 亮度单位的颜色。"
 
 msgctxt "#32120"
 msgid "White"
-msgstr "白色"
+msgstr "[COLOR=FFEDEDED]●[/COLOR] 白色"
 
 msgctxt "#32121"
 msgid "Light gray"
-msgstr "浅灰色"
+msgstr "[COLOR=FFE0E0E0]●[/COLOR] 浅灰色"
 
 msgctxt "#32122"
 msgid "Red"
-msgstr "红色"
+msgstr "[COLOR=FFFF8A80]●[/COLOR] 红色"
 
 msgctxt "#32123"
 msgid "Orange"
-msgstr "橙色"
+msgstr "[COLOR=FFFFCC80]●[/COLOR] 橙色"
 
 msgctxt "#32124"
 msgid "Yellow"
-msgstr "黄色"
+msgstr "[COLOR=FFFFFF8D]●[/COLOR] 黄色"
 
 msgctxt "#32125"
 msgid "Green"
-msgstr "绿色"
+msgstr "[COLOR=FFB9F6CA]●[/COLOR] 绿色"
 
 msgctxt "#32126"
 msgid "Cyan"
-msgstr "青色"
+msgstr "[COLOR=FF84FFFF]●[/COLOR] 青色"
 
 msgctxt "#32127"
 msgid "Blue"
-msgstr "蓝色"
+msgstr "[COLOR=FF82B1FF]●[/COLOR] 蓝色"
 
 msgctxt "#32128"
 msgid "Purple"
-msgstr "紫色"
+msgstr "[COLOR=FFE1BEE7]●[/COLOR] 紫色"
 
 msgctxt "#32129"
 msgid "Pink"
-msgstr "粉色"
+msgstr "[COLOR=FFFF80AB]●[/COLOR] 粉色"
 
 msgctxt "#32130"
 msgid "Charcoal"
-msgstr "炭黑色"
+msgstr "[COLOR=FF2A2E33]●[/COLOR] 炭黑色"
 
 msgctxt "#32131"
 msgid "Black"
-msgstr "黑色"
+msgstr "[COLOR=FF000000]●[/COLOR] 黑色"
 
 msgctxt "#32132"
 msgid "Dark red"
-msgstr "深红色"
+msgstr "[COLOR=FF3A1414]●[/COLOR] 深红色"
 
 msgctxt "#32133"
 msgid "Dark orange"
-msgstr "深橙色"
+msgstr "[COLOR=FF3A2A12]●[/COLOR] 深橙色"
 
 msgctxt "#32134"
 msgid "Dark yellow"
-msgstr "深黄色"
+msgstr "[COLOR=FF3A360F]●[/COLOR] 深黄色"
 
 msgctxt "#32135"
 msgid "Dark green"
-msgstr "深绿色"
+msgstr "[COLOR=FF123A12]●[/COLOR] 深绿色"
 
 msgctxt "#32136"
 msgid "Dark cyan"
-msgstr "深青色"
+msgstr "[COLOR=FF0F3A3A]●[/COLOR] 深青色"
 
 msgctxt "#32137"
 msgid "Dark blue"
-msgstr "深蓝色"
+msgstr "[COLOR=FF12203A]●[/COLOR] 深蓝色"
 
 msgctxt "#32138"
 msgid "Dark purple"
-msgstr "深紫色"
+msgstr "[COLOR=FF26123A]●[/COLOR] 深紫色"
 
 msgctxt "#32139"
 msgid "Dark gray"
-msgstr "深灰色"
+msgstr "[COLOR=FF444444]●[/COLOR] 深灰色"
 
 msgctxt "#32140"
 msgid "FPS color"
@@ -414,3 +414,15 @@ msgstr "图表图标颜色"
 msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
 msgstr "图表图标的颜色 (Modern)。"
+
+msgctxt "#32146"
+msgid "Reset colors to defaults"
+msgstr "将颜色重置为默认值"
+
+msgctxt "#32147"
+msgid "Reset all theme colors to their default values."
+msgstr "将所有主题颜色重置为默认值。"
+
+msgctxt "#32148"
+msgid "Colors reset to defaults"
+msgstr "颜色已重置为默认值"

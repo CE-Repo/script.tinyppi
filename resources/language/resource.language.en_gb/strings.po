@@ -313,83 +313,83 @@ msgstr ""
 
 msgctxt "#32120"
 msgid "White"
-msgstr ""
+msgstr "[COLOR=FFEDEDED]●[/COLOR] White"
 
 msgctxt "#32121"
 msgid "Light gray"
-msgstr ""
+msgstr "[COLOR=FFE0E0E0]●[/COLOR] Light gray"
 
 msgctxt "#32122"
 msgid "Red"
-msgstr ""
+msgstr "[COLOR=FFFF8A80]●[/COLOR] Red"
 
 msgctxt "#32123"
 msgid "Orange"
-msgstr ""
+msgstr "[COLOR=FFFFCC80]●[/COLOR] Orange"
 
 msgctxt "#32124"
 msgid "Yellow"
-msgstr ""
+msgstr "[COLOR=FFFFFF8D]●[/COLOR] Yellow"
 
 msgctxt "#32125"
 msgid "Green"
-msgstr ""
+msgstr "[COLOR=FFB9F6CA]●[/COLOR] Green"
 
 msgctxt "#32126"
 msgid "Cyan"
-msgstr ""
+msgstr "[COLOR=FF84FFFF]●[/COLOR] Cyan"
 
 msgctxt "#32127"
 msgid "Blue"
-msgstr ""
+msgstr "[COLOR=FF82B1FF]●[/COLOR] Blue"
 
 msgctxt "#32128"
 msgid "Purple"
-msgstr ""
+msgstr "[COLOR=FFE1BEE7]●[/COLOR] Purple"
 
 msgctxt "#32129"
 msgid "Pink"
-msgstr ""
+msgstr "[COLOR=FFFF80AB]●[/COLOR] Pink"
 
 msgctxt "#32130"
 msgid "Charcoal"
-msgstr ""
+msgstr "[COLOR=FF2A2E33]●[/COLOR] Charcoal"
 
 msgctxt "#32131"
 msgid "Black"
-msgstr ""
+msgstr "[COLOR=FF000000]●[/COLOR] Black"
 
 msgctxt "#32132"
 msgid "Dark red"
-msgstr ""
+msgstr "[COLOR=FF3A1414]●[/COLOR] Dark red"
 
 msgctxt "#32133"
 msgid "Dark orange"
-msgstr ""
+msgstr "[COLOR=FF3A2A12]●[/COLOR] Dark orange"
 
 msgctxt "#32134"
 msgid "Dark yellow"
-msgstr ""
+msgstr "[COLOR=FF3A360F]●[/COLOR] Dark yellow"
 
 msgctxt "#32135"
 msgid "Dark green"
-msgstr ""
+msgstr "[COLOR=FF123A12]●[/COLOR] Dark green"
 
 msgctxt "#32136"
 msgid "Dark cyan"
-msgstr ""
+msgstr "[COLOR=FF0F3A3A]●[/COLOR] Dark cyan"
 
 msgctxt "#32137"
 msgid "Dark blue"
-msgstr ""
+msgstr "[COLOR=FF12203A]●[/COLOR] Dark blue"
 
 msgctxt "#32138"
 msgid "Dark purple"
-msgstr ""
+msgstr "[COLOR=FF26123A]●[/COLOR] Dark purple"
 
 msgctxt "#32139"
 msgid "Dark gray"
-msgstr ""
+msgstr "[COLOR=FF444444]●[/COLOR] Dark gray"
 
 msgctxt "#32140"
 msgid "FPS color"
@@ -413,4 +413,16 @@ msgstr ""
 
 msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
+msgstr ""
+
+msgctxt "#32146"
+msgid "Reset colors to defaults"
+msgstr ""
+
+msgctxt "#32147"
+msgid "Reset all theme colors to their default values."
+msgstr ""
+
+msgctxt "#32148"
+msgid "Colors reset to defaults"
 msgstr ""

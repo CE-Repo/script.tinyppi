@@ -313,83 +313,83 @@ msgstr "Farbe der Helligkeitseinheit cd/m²."
 
 msgctxt "#32120"
 msgid "White"
-msgstr "Weiß"
+msgstr "[COLOR=FFEDEDED]●[/COLOR] Weiß"
 
 msgctxt "#32121"
 msgid "Light gray"
-msgstr "Hellgrau"
+msgstr "[COLOR=FFE0E0E0]●[/COLOR] Hellgrau"
 
 msgctxt "#32122"
 msgid "Red"
-msgstr "Rot"
+msgstr "[COLOR=FFFF8A80]●[/COLOR] Rot"
 
 msgctxt "#32123"
 msgid "Orange"
-msgstr "Orange"
+msgstr "[COLOR=FFFFCC80]●[/COLOR] Orange"
 
 msgctxt "#32124"
 msgid "Yellow"
-msgstr "Gelb"
+msgstr "[COLOR=FFFFFF8D]●[/COLOR] Gelb"
 
 msgctxt "#32125"
 msgid "Green"
-msgstr "Grün"
+msgstr "[COLOR=FFB9F6CA]●[/COLOR] Grün"
 
 msgctxt "#32126"
 msgid "Cyan"
-msgstr "Cyan"
+msgstr "[COLOR=FF84FFFF]●[/COLOR] Cyan"
 
 msgctxt "#32127"
 msgid "Blue"
-msgstr "Blau"
+msgstr "[COLOR=FF82B1FF]●[/COLOR] Blau"
 
 msgctxt "#32128"
 msgid "Purple"
-msgstr "Violett"
+msgstr "[COLOR=FFE1BEE7]●[/COLOR] Violett"
 
 msgctxt "#32129"
 msgid "Pink"
-msgstr "Pink"
+msgstr "[COLOR=FFFF80AB]●[/COLOR] Pink"
 
 msgctxt "#32130"
 msgid "Charcoal"
-msgstr "Anthrazit"
+msgstr "[COLOR=FF2A2E33]●[/COLOR] Anthrazit"
 
 msgctxt "#32131"
 msgid "Black"
-msgstr "Schwarz"
+msgstr "[COLOR=FF000000]●[/COLOR] Schwarz"
 
 msgctxt "#32132"
 msgid "Dark red"
-msgstr "Dunkelrot"
+msgstr "[COLOR=FF3A1414]●[/COLOR] Dunkelrot"
 
 msgctxt "#32133"
 msgid "Dark orange"
-msgstr "Dunkelorange"
+msgstr "[COLOR=FF3A2A12]●[/COLOR] Dunkelorange"
 
 msgctxt "#32134"
 msgid "Dark yellow"
-msgstr "Dunkelgelb"
+msgstr "[COLOR=FF3A360F]●[/COLOR] Dunkelgelb"
 
 msgctxt "#32135"
 msgid "Dark green"
-msgstr "Dunkelgrün"
+msgstr "[COLOR=FF123A12]●[/COLOR] Dunkelgrün"
 
 msgctxt "#32136"
 msgid "Dark cyan"
-msgstr "Dunkelcyan"
+msgstr "[COLOR=FF0F3A3A]●[/COLOR] Dunkelcyan"
 
 msgctxt "#32137"
 msgid "Dark blue"
-msgstr "Dunkelblau"
+msgstr "[COLOR=FF12203A]●[/COLOR] Dunkelblau"
 
 msgctxt "#32138"
 msgid "Dark purple"
-msgstr "Dunkelviolett"
+msgstr "[COLOR=FF26123A]●[/COLOR] Dunkelviolett"
 
 msgctxt "#32139"
 msgid "Dark gray"
-msgstr "Dunkelgrau"
+msgstr "[COLOR=FF444444]●[/COLOR] Dunkelgrau"
 
 msgctxt "#32140"
 msgid "FPS color"
@@ -414,3 +414,15 @@ msgstr "Diagrammsymbolfarbe"
 msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
 msgstr "Farbe des Diagrammsymbols (Modern)."
+
+msgctxt "#32146"
+msgid "Reset colors to defaults"
+msgstr "Farben auf Standard zurücksetzen"
+
+msgctxt "#32147"
+msgid "Reset all theme colors to their default values."
+msgstr "Setzt alle Theme-Farben auf ihre Standardwerte zurück."
+
+msgctxt "#32148"
+msgid "Colors reset to defaults"
+msgstr "Farben auf Standard zurückgesetzt"

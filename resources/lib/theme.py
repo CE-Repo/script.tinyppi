@@ -8,6 +8,7 @@ changed from the settings without editing any skin XML.
 """
 
 import xbmcaddon
+import xbmcgui
 
 # Palette for text-based elements (title, description, output, progress bar).
 # The index matches the <option> order in resources/settings.xml.
@@ -56,6 +57,23 @@ _BACKGROUND_COLORS = (
 )
 
 
+# All color settings managed on the Theme category, used by reset_colors().
+# Their <default> in resources/settings.xml is 0, so resetting means "0".
+_COLOR_SETTINGS = (
+    "background_color",
+    "title_color",
+    "header_color",
+    "icon_color",
+    "chart_color",
+    "description_color",
+    "output_color",
+    "fps_color",
+    "progress_color",
+    "accent_color",
+    "unit_color",
+)
+
+
 def _pick(palette: tuple, value: str) -> str:
     """Return ``palette[value]``, falling back to index 0 on bad input."""
     try:
@@ -84,3 +102,28 @@ def apply_theme(home, addon=None) -> None:
     home.setProperty("TinyPPI.UnitColor",        _pick(_TEXT_COLORS, addon.getSetting("unit_color")))
     home.setProperty("TinyPPI.AccentColor",      _pick(_ACCENT_COLORS, addon.getSetting("accent_color")))
     home.setProperty("TinyPPI.BackgroundColor",  _pick(_BACKGROUND_COLORS, addon.getSetting("background_color")))
+
+
+def reset_colors(addon=None) -> None:
+    """
+    Reset every Theme color setting back to its default (index 0) and confirm
+    with a notification.  Invoked from the settings dialog via
+    ``RunScript(script.tinyppi,reset_colors)``.
+    """
+    addon = addon or xbmcaddon.Addon()
+
+    for setting_id in _COLOR_SETTINGS:
+        addon.setSetting(setting_id, "0")
+
+    # Re-publish properties so an overlay that is already open updates too.
+    try:
+        apply_theme(xbmcgui.Window(10000), addon)
+    except Exception:  # pragma: no cover - best effort, never block the reset
+        pass
+
+    xbmcgui.Dialog().notification(
+        addon.getAddonInfo("name"),
+        addon.getLocalizedString(32148),
+        xbmcgui.NOTIFICATION_INFO,
+        3000,
+    )
