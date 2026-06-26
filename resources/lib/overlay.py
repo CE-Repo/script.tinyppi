@@ -208,6 +208,8 @@ def open_tinyppi() -> None:
     home.setProperty("TinyPPI.Filename",         _ADDON.getSetting("filename"))
     home.setProperty("TinyPPI.BackgroundToggle",
                      "1" if _ADDON.getSetting("background_toggle") == "true" else "0")
+    home.setProperty("TinyPPI.ShowL5Icon",
+                     "0" if _ADDON.getSetting("show_l5_icon") == "false" else "1")
     apply_theme(home, _ADDON)
 
     try:

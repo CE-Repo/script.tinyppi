@@ -606,3 +606,11 @@ msgstr "nits"
 msgctxt "#32194"
 msgid "Hidden"
 msgstr "Ausgeblendet"
+
+msgctxt "#32195"
+msgid "Show L5 offsets icon"
+msgstr "L5-Offsets-Symbol anzeigen"
+
+msgctxt "#32196"
+msgid "Show the L5 offsets icon (lrtb) next to the L5 values."
+msgstr "Zeigt das L5-Offsets-Symbol (lrtb) neben den L5-Werten an."

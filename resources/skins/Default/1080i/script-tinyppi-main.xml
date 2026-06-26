@@ -544,7 +544,7 @@
 								<aligny>top</aligny>
 							</control>
 							<control type="group">
-								<visible>String.IsEqual(Window.Property(DoviLevel5OffsetsIconVisible),true)</visible>
+								<visible>String.IsEqual(Window.Property(DoviLevel5OffsetsIconVisible),true) + String.IsEqual(Window(10000).Property(TinyPPI.ShowL5Icon),1)</visible>
 								<width>48</width>
 								<height>31</height>
 								<control type="image">
