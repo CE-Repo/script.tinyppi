@@ -23,6 +23,26 @@ _TEXT_COLORS = (
     "FF82B1FF",  # 7  Blue
     "FFE1BEE7",  # 8  Purple
     "FFFF80AB",  # 9  Pink
+    "FFFF8A65",  # 10 Coral
+    "FFFFAB91",  # 11 Salmon
+    "FFFFD54F",  # 12 Amber
+    "FFFFE082",  # 13 Gold
+    "FFCCFF90",  # 14 Lime
+    "FFA7FFEB",  # 15 Mint
+    "FF80CBC4",  # 16 Teal
+    "FF80D8FF",  # 17 Sky blue
+    "FF40C4FF",  # 18 Azure
+    "FF8C9EFF",  # 19 Indigo
+    "FFB388FF",  # 20 Violet
+    "FFD1C4E9",  # 21 Lavender
+    "FFEA80FC",  # 22 Magenta
+    "FFF48FB1",  # 23 Fuchsia
+    "FFF06292",  # 24 Rose
+    "FFFF5252",  # 25 Crimson
+    "FFBCAAA4",  # 26 Brown
+    "FFDCE775",  # 27 Olive
+    "FFB0BEC5",  # 28 Slate
+    "FFCFD8DC",  # 29 Silver
 )
 
 # Palette for inline detail accents (the dimmed values shown in parentheses).
@@ -39,6 +59,26 @@ _ACCENT_COLORS = (
     "B382B1FF",  # 7  Blue
     "B3E1BEE7",  # 8  Purple
     "B3FF80AB",  # 9  Pink
+    "B3FF8A65",  # 10 Coral
+    "B3FFAB91",  # 11 Salmon
+    "B3FFD54F",  # 12 Amber
+    "B3FFE082",  # 13 Gold
+    "B3CCFF90",  # 14 Lime
+    "B3A7FFEB",  # 15 Mint
+    "B380CBC4",  # 16 Teal
+    "B380D8FF",  # 17 Sky blue
+    "B340C4FF",  # 18 Azure
+    "B38C9EFF",  # 19 Indigo
+    "B3B388FF",  # 20 Violet
+    "B3D1C4E9",  # 21 Lavender
+    "B3EA80FC",  # 22 Magenta
+    "B3F48FB1",  # 23 Fuchsia
+    "B3F06292",  # 24 Rose
+    "B3FF5252",  # 25 Crimson
+    "B3BCAAA4",  # 26 Brown
+    "B3DCE775",  # 27 Olive
+    "B3B0BEC5",  # 28 Slate
+    "B3CFD8DC",  # 29 Silver
 )
 
 # Palette for the Modern background (semi-transparent dark shades, alpha FA).
@@ -54,6 +94,26 @@ _BACKGROUND_COLORS = (
     "FA0E121A",  # 7  Dark blue
     "FA140E1A",  # 8  Dark purple
     "FA242424",  # 9  Dark gray
+    "FA0A1A18",  # 10 Dark teal
+    "FA0A151A",  # 11 Dark sky
+    "FA10121F",  # 12 Dark indigo
+    "FA17101F",  # 13 Dark violet
+    "FA1A0E1A",  # 14 Dark magenta
+    "FA1F0E16",  # 15 Dark pink
+    "FA1F0E12",  # 16 Dark rose
+    "FA1A130F",  # 17 Dark brown
+    "FA15170A",  # 18 Dark olive
+    "FA121A0A",  # 19 Dark lime
+    "FA0A1A14",  # 20 Dark mint
+    "FA0A171F",  # 21 Dark azure
+    "FA12171A",  # 22 Dark slate
+    "FA0A0E1A",  # 23 Dark navy
+    "FA1F0A0A",  # 24 Dark maroon
+    "FA0D0D14",  # 25 Midnight
+    "FA1A1410",  # 26 Espresso
+    "FA121212",  # 27 Onyx
+    "FA1C1C1E",  # 28 Graphite
+    "FA1A1D20",  # 29 Steel
 )
 
 

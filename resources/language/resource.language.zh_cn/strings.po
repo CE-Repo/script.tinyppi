@@ -426,3 +426,163 @@ msgstr "将所有主题颜色重置为默认值。"
 msgctxt "#32148"
 msgid "Colors reset to defaults"
 msgstr "颜色已重置为默认值"
+
+msgctxt "#32150"
+msgid "Coral"
+msgstr "[COLOR=FFFF8A65]●[/COLOR] 珊瑚色"
+
+msgctxt "#32151"
+msgid "Salmon"
+msgstr "[COLOR=FFFFAB91]●[/COLOR] 鲑鱼色"
+
+msgctxt "#32152"
+msgid "Amber"
+msgstr "[COLOR=FFFFD54F]●[/COLOR] 琥珀色"
+
+msgctxt "#32153"
+msgid "Gold"
+msgstr "[COLOR=FFFFE082]●[/COLOR] 金色"
+
+msgctxt "#32154"
+msgid "Lime"
+msgstr "[COLOR=FFCCFF90]●[/COLOR] 青柠色"
+
+msgctxt "#32155"
+msgid "Mint"
+msgstr "[COLOR=FFA7FFEB]●[/COLOR] 薄荷色"
+
+msgctxt "#32156"
+msgid "Teal"
+msgstr "[COLOR=FF80CBC4]●[/COLOR] 蓝绿色"
+
+msgctxt "#32157"
+msgid "Sky blue"
+msgstr "[COLOR=FF80D8FF]●[/COLOR] 天蓝色"
+
+msgctxt "#32158"
+msgid "Azure"
+msgstr "[COLOR=FF40C4FF]●[/COLOR] 蔚蓝色"
+
+msgctxt "#32159"
+msgid "Indigo"
+msgstr "[COLOR=FF8C9EFF]●[/COLOR] 靛蓝色"
+
+msgctxt "#32160"
+msgid "Violet"
+msgstr "[COLOR=FFB388FF]●[/COLOR] 紫罗兰色"
+
+msgctxt "#32161"
+msgid "Lavender"
+msgstr "[COLOR=FFD1C4E9]●[/COLOR] 薰衣草色"
+
+msgctxt "#32162"
+msgid "Magenta"
+msgstr "[COLOR=FFEA80FC]●[/COLOR] 品红色"
+
+msgctxt "#32163"
+msgid "Fuchsia"
+msgstr "[COLOR=FFF48FB1]●[/COLOR] 紫红色"
+
+msgctxt "#32164"
+msgid "Rose"
+msgstr "[COLOR=FFF06292]●[/COLOR] 玫瑰色"
+
+msgctxt "#32165"
+msgid "Crimson"
+msgstr "[COLOR=FFFF5252]●[/COLOR] 深红色"
+
+msgctxt "#32166"
+msgid "Brown"
+msgstr "[COLOR=FFBCAAA4]●[/COLOR] 棕色"
+
+msgctxt "#32167"
+msgid "Olive"
+msgstr "[COLOR=FFDCE775]●[/COLOR] 橄榄色"
+
+msgctxt "#32168"
+msgid "Slate"
+msgstr "[COLOR=FFB0BEC5]●[/COLOR] 石板色"
+
+msgctxt "#32169"
+msgid "Silver"
+msgstr "[COLOR=FFCFD8DC]●[/COLOR] 银色"
+
+msgctxt "#32170"
+msgid "Dark teal"
+msgstr "[COLOR=FF0F3A36]●[/COLOR] 暗蓝绿色"
+
+msgctxt "#32171"
+msgid "Dark sky"
+msgstr "[COLOR=FF0F2A3A]●[/COLOR] 暗天蓝色"
+
+msgctxt "#32172"
+msgid "Dark indigo"
+msgstr "[COLOR=FF1E2240]●[/COLOR] 暗靛蓝色"
+
+msgctxt "#32173"
+msgid "Dark violet"
+msgstr "[COLOR=FF2E1E40]●[/COLOR] 暗紫罗兰色"
+
+msgctxt "#32174"
+msgid "Dark magenta"
+msgstr "[COLOR=FF3A1E3A]●[/COLOR] 暗品红色"
+
+msgctxt "#32175"
+msgid "Dark pink"
+msgstr "[COLOR=FF3A1E2C]●[/COLOR] 暗粉色"
+
+msgctxt "#32176"
+msgid "Dark rose"
+msgstr "[COLOR=FF3A1E24]●[/COLOR] 暗玫瑰色"
+
+msgctxt "#32177"
+msgid "Dark brown"
+msgstr "[COLOR=FF3A2A1E]●[/COLOR] 暗棕色"
+
+msgctxt "#32178"
+msgid "Dark olive"
+msgstr "[COLOR=FF2A2E12]●[/COLOR] 暗橄榄色"
+
+msgctxt "#32179"
+msgid "Dark lime"
+msgstr "[COLOR=FF223A12]●[/COLOR] 暗青柠色"
+
+msgctxt "#32180"
+msgid "Dark mint"
+msgstr "[COLOR=FF123A28]●[/COLOR] 暗薄荷色"
+
+msgctxt "#32181"
+msgid "Dark azure"
+msgstr "[COLOR=FF12303A]●[/COLOR] 暗蔚蓝色"
+
+msgctxt "#32182"
+msgid "Dark slate"
+msgstr "[COLOR=FF222E33]●[/COLOR] 暗石板色"
+
+msgctxt "#32183"
+msgid "Dark navy"
+msgstr "[COLOR=FF12182E]●[/COLOR] 暗海军蓝"
+
+msgctxt "#32184"
+msgid "Dark maroon"
+msgstr "[COLOR=FF3A1212]●[/COLOR] 暗栗色"
+
+msgctxt "#32185"
+msgid "Midnight"
+msgstr "[COLOR=FF1A1A2A]●[/COLOR] 午夜色"
+
+msgctxt "#32186"
+msgid "Espresso"
+msgstr "[COLOR=FF2E2418]●[/COLOR] 浓咖啡色"
+
+msgctxt "#32187"
+msgid "Onyx"
+msgstr "[COLOR=FF1E1E1E]●[/COLOR] 缟玛瑙色"
+
+msgctxt "#32188"
+msgid "Graphite"
+msgstr "[COLOR=FF2C2C30]●[/COLOR] 石墨色"
+
+msgctxt "#32189"
+msgid "Steel"
+msgstr "[COLOR=FF2E343A]●[/COLOR] 钢青色"

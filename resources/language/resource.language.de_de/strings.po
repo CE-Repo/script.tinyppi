@@ -426,3 +426,163 @@ msgstr "Setzt alle Theme-Farben auf ihre Standardwerte zurück."
 msgctxt "#32148"
 msgid "Colors reset to defaults"
 msgstr "Farben auf Standard zurückgesetzt"
+
+msgctxt "#32150"
+msgid "Coral"
+msgstr "[COLOR=FFFF8A65]●[/COLOR] Koralle"
+
+msgctxt "#32151"
+msgid "Salmon"
+msgstr "[COLOR=FFFFAB91]●[/COLOR] Lachs"
+
+msgctxt "#32152"
+msgid "Amber"
+msgstr "[COLOR=FFFFD54F]●[/COLOR] Bernstein"
+
+msgctxt "#32153"
+msgid "Gold"
+msgstr "[COLOR=FFFFE082]●[/COLOR] Gold"
+
+msgctxt "#32154"
+msgid "Lime"
+msgstr "[COLOR=FFCCFF90]●[/COLOR] Limette"
+
+msgctxt "#32155"
+msgid "Mint"
+msgstr "[COLOR=FFA7FFEB]●[/COLOR] Minze"
+
+msgctxt "#32156"
+msgid "Teal"
+msgstr "[COLOR=FF80CBC4]●[/COLOR] Petrol"
+
+msgctxt "#32157"
+msgid "Sky blue"
+msgstr "[COLOR=FF80D8FF]●[/COLOR] Himmelblau"
+
+msgctxt "#32158"
+msgid "Azure"
+msgstr "[COLOR=FF40C4FF]●[/COLOR] Azurblau"
+
+msgctxt "#32159"
+msgid "Indigo"
+msgstr "[COLOR=FF8C9EFF]●[/COLOR] Indigo"
+
+msgctxt "#32160"
+msgid "Violet"
+msgstr "[COLOR=FFB388FF]●[/COLOR] Violett"
+
+msgctxt "#32161"
+msgid "Lavender"
+msgstr "[COLOR=FFD1C4E9]●[/COLOR] Lavendel"
+
+msgctxt "#32162"
+msgid "Magenta"
+msgstr "[COLOR=FFEA80FC]●[/COLOR] Magenta"
+
+msgctxt "#32163"
+msgid "Fuchsia"
+msgstr "[COLOR=FFF48FB1]●[/COLOR] Fuchsia"
+
+msgctxt "#32164"
+msgid "Rose"
+msgstr "[COLOR=FFF06292]●[/COLOR] Rosé"
+
+msgctxt "#32165"
+msgid "Crimson"
+msgstr "[COLOR=FFFF5252]●[/COLOR] Karminrot"
+
+msgctxt "#32166"
+msgid "Brown"
+msgstr "[COLOR=FFBCAAA4]●[/COLOR] Braun"
+
+msgctxt "#32167"
+msgid "Olive"
+msgstr "[COLOR=FFDCE775]●[/COLOR] Oliv"
+
+msgctxt "#32168"
+msgid "Slate"
+msgstr "[COLOR=FFB0BEC5]●[/COLOR] Schiefer"
+
+msgctxt "#32169"
+msgid "Silver"
+msgstr "[COLOR=FFCFD8DC]●[/COLOR] Silber"
+
+msgctxt "#32170"
+msgid "Dark teal"
+msgstr "[COLOR=FF0F3A36]●[/COLOR] Dunkles Petrol"
+
+msgctxt "#32171"
+msgid "Dark sky"
+msgstr "[COLOR=FF0F2A3A]●[/COLOR] Dunkles Himmelblau"
+
+msgctxt "#32172"
+msgid "Dark indigo"
+msgstr "[COLOR=FF1E2240]●[/COLOR] Dunkles Indigo"
+
+msgctxt "#32173"
+msgid "Dark violet"
+msgstr "[COLOR=FF2E1E40]●[/COLOR] Dunkles Violett"
+
+msgctxt "#32174"
+msgid "Dark magenta"
+msgstr "[COLOR=FF3A1E3A]●[/COLOR] Dunkles Magenta"
+
+msgctxt "#32175"
+msgid "Dark pink"
+msgstr "[COLOR=FF3A1E2C]●[/COLOR] Dunkles Pink"
+
+msgctxt "#32176"
+msgid "Dark rose"
+msgstr "[COLOR=FF3A1E24]●[/COLOR] Dunkles Rosé"
+
+msgctxt "#32177"
+msgid "Dark brown"
+msgstr "[COLOR=FF3A2A1E]●[/COLOR] Dunkelbraun"
+
+msgctxt "#32178"
+msgid "Dark olive"
+msgstr "[COLOR=FF2A2E12]●[/COLOR] Dunkles Oliv"
+
+msgctxt "#32179"
+msgid "Dark lime"
+msgstr "[COLOR=FF223A12]●[/COLOR] Dunkle Limette"
+
+msgctxt "#32180"
+msgid "Dark mint"
+msgstr "[COLOR=FF123A28]●[/COLOR] Dunkle Minze"
+
+msgctxt "#32181"
+msgid "Dark azure"
+msgstr "[COLOR=FF12303A]●[/COLOR] Dunkles Azurblau"
+
+msgctxt "#32182"
+msgid "Dark slate"
+msgstr "[COLOR=FF222E33]●[/COLOR] Dunkler Schiefer"
+
+msgctxt "#32183"
+msgid "Dark navy"
+msgstr "[COLOR=FF12182E]●[/COLOR] Dunkles Marineblau"
+
+msgctxt "#32184"
+msgid "Dark maroon"
+msgstr "[COLOR=FF3A1212]●[/COLOR] Dunkles Kastanienbraun"
+
+msgctxt "#32185"
+msgid "Midnight"
+msgstr "[COLOR=FF1A1A2A]●[/COLOR] Mitternacht"
+
+msgctxt "#32186"
+msgid "Espresso"
+msgstr "[COLOR=FF2E2418]●[/COLOR] Espresso"
+
+msgctxt "#32187"
+msgid "Onyx"
+msgstr "[COLOR=FF1E1E1E]●[/COLOR] Onyx"
+
+msgctxt "#32188"
+msgid "Graphite"
+msgstr "[COLOR=FF2C2C30]●[/COLOR] Graphit"
+
+msgctxt "#32189"
+msgid "Steel"
+msgstr "[COLOR=FF2E343A]●[/COLOR] Stahl"
