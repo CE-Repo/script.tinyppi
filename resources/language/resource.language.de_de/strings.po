@@ -586,3 +586,23 @@ msgstr "[COLOR=FF2C2C30]●[/COLOR] Graphit"
 msgctxt "#32189"
 msgid "Steel"
 msgstr "[COLOR=FF2E343A]●[/COLOR] Stahl"
+
+msgctxt "#32190"
+msgid "Brightness unit (L6)"
+msgstr "Helligkeitseinheit (L6)"
+
+msgctxt "#32191"
+msgid "Choose the unit shown for the L6 brightness values."
+msgstr "Wählen Sie die Einheit für die L6-Helligkeitswerte."
+
+msgctxt "#32192"
+msgid "cd/m²"
+msgstr "cd/m²"
+
+msgctxt "#32193"
+msgid "nits"
+msgstr "nits"
+
+msgctxt "#32194"
+msgid "Hidden"
+msgstr "Ausgeblendet"

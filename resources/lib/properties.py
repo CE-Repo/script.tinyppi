@@ -303,6 +303,8 @@ def _with_unit(value: str, unit: str) -> str:
     """Append a unit only to real metadata values, not status labels."""
     if not value or is_status_label(value):
         return value
+    if not unit:
+        return value
     return f"{value} {unit}"
 
 
@@ -643,7 +645,13 @@ def update_properties(window) -> None:
     set_ui_position(window)
 
     unit_color = xbmc.getInfoLabel("Window(10000).Property(TinyPPI.UnitColor)")
-    unit = f"[COLOR={unit_color}] cd/m²[/COLOR]" if unit_color else " cd/m²"
+    unit_label = xbmc.getInfoLabel("Window(10000).Property(TinyPPI.UnitLabel)")
+    if not unit_label:
+        unit = ""
+    elif unit_color:
+        unit = f"[COLOR={unit_color}]{unit_label}[/COLOR]"
+    else:
+        unit = f" {unit_label}"
     video_queue = get_queue_level("Player.Process(videoqueuelevel)")
     video_queue_data = get_queue_level("Player.Process(videoqueuedatalevel)")
     audio_queue = get_queue_level("Player.Process(audioqueuelevel)")

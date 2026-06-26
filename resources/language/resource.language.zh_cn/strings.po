@@ -586,3 +586,23 @@ msgstr "[COLOR=FF2C2C30]●[/COLOR] 石墨色"
 msgctxt "#32189"
 msgid "Steel"
 msgstr "[COLOR=FF2E343A]●[/COLOR] 钢青色"
+
+msgctxt "#32190"
+msgid "Brightness unit (L6)"
+msgstr "亮度单位 (L6)"
+
+msgctxt "#32191"
+msgid "Choose the unit shown for the L6 brightness values."
+msgstr "选择 L6 亮度值显示的单位。"
+
+msgctxt "#32192"
+msgid "cd/m²"
+msgstr "cd/m²"
+
+msgctxt "#32193"
+msgid "nits"
+msgstr "nits"
+
+msgctxt "#32194"
+msgid "Hidden"
+msgstr "隐藏"

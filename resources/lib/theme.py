@@ -117,6 +117,16 @@ _BACKGROUND_COLORS = (
 )
 
 
+# Brightness unit labels for the L6 metadata values.
+# The index matches the <option> order of ``unit_type`` in resources/settings.xml.
+# An empty string means the unit is hidden.
+_UNIT_LABELS = (
+    "cd/m²",  # 0  cd/m² (default)
+    "nits",   # 1  nits
+    "",       # 2  Hidden
+)
+
+
 # All color settings managed on the Theme category, used by reset_colors().
 # Their <default> in resources/settings.xml is 0, so resetting means "0".
 _COLOR_SETTINGS = (
@@ -160,6 +170,7 @@ def apply_theme(home, addon=None) -> None:
     home.setProperty("TinyPPI.ProgressColor",    _pick(_TEXT_COLORS, addon.getSetting("progress_color")))
     home.setProperty("TinyPPI.FpsColor",         _pick(_TEXT_COLORS, addon.getSetting("fps_color")))
     home.setProperty("TinyPPI.UnitColor",        _pick(_TEXT_COLORS, addon.getSetting("unit_color")))
+    home.setProperty("TinyPPI.UnitLabel",        _pick(_UNIT_LABELS, addon.getSetting("unit_type")))
     home.setProperty("TinyPPI.AccentColor",      _pick(_ACCENT_COLORS, addon.getSetting("accent_color")))
     home.setProperty("TinyPPI.BackgroundColor",  _pick(_BACKGROUND_COLORS, addon.getSetting("background_color")))
 
