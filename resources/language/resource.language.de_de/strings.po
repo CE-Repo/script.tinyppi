@@ -321,35 +321,35 @@ msgstr "[COLOR=FFE0E0E0]●[/COLOR] Hellgrau"
 
 msgctxt "#32122"
 msgid "Red"
-msgstr "[COLOR=FFFF8A80]●[/COLOR] Rot"
+msgstr "[COLOR=FFFF8A80]●[/COLOR] Hellrot"
 
 msgctxt "#32123"
 msgid "Orange"
-msgstr "[COLOR=FFFFCC80]●[/COLOR] Orange"
+msgstr "[COLOR=FFFFCC80]●[/COLOR] Hellorange"
 
 msgctxt "#32124"
 msgid "Yellow"
-msgstr "[COLOR=FFFFFF8D]●[/COLOR] Gelb"
+msgstr "[COLOR=FFFFFF8D]●[/COLOR] Hellgelb"
 
 msgctxt "#32125"
 msgid "Green"
-msgstr "[COLOR=FFB9F6CA]●[/COLOR] Grün"
+msgstr "[COLOR=FFB9F6CA]●[/COLOR] Hellgrün"
 
 msgctxt "#32126"
 msgid "Cyan"
-msgstr "[COLOR=FF84FFFF]●[/COLOR] Cyan"
+msgstr "[COLOR=FF84FFFF]●[/COLOR] Hellcyan"
 
 msgctxt "#32127"
 msgid "Blue"
-msgstr "[COLOR=FF82B1FF]●[/COLOR] Blau"
+msgstr "[COLOR=FF82B1FF]●[/COLOR] Hellblau"
 
 msgctxt "#32128"
 msgid "Purple"
-msgstr "[COLOR=FFE1BEE7]●[/COLOR] Violett"
+msgstr "[COLOR=FFE1BEE7]●[/COLOR] Helllila"
 
 msgctxt "#32129"
 msgid "Pink"
-msgstr "[COLOR=FFFF80AB]●[/COLOR] Pink"
+msgstr "[COLOR=FFFF80AB]●[/COLOR] Hellrosa"
 
 msgctxt "#32130"
 msgid "Charcoal"
@@ -385,7 +385,7 @@ msgstr "[COLOR=FF12203A]●[/COLOR] Dunkelblau"
 
 msgctxt "#32138"
 msgid "Dark purple"
-msgstr "[COLOR=FF26123A]●[/COLOR] Dunkelviolett"
+msgstr "[COLOR=FF26123A]●[/COLOR] Dunkellila"
 
 msgctxt "#32139"
 msgid "Dark gray"
@@ -521,7 +521,7 @@ msgstr "[COLOR=FF1E2240]●[/COLOR] Dunkles Indigo"
 
 msgctxt "#32173"
 msgid "Dark violet"
-msgstr "[COLOR=FF2E1E40]●[/COLOR] Dunkles Violett"
+msgstr "[COLOR=FF2E1E40]●[/COLOR] Dunkelviolett"
 
 msgctxt "#32174"
 msgid "Dark magenta"
@@ -593,7 +593,7 @@ msgstr "Helligkeitseinheit (L6)"
 
 msgctxt "#32191"
 msgid "Choose the unit shown for the L6 brightness values."
-msgstr "Wählen Sie die Einheit für die L6-Helligkeitswerte."
+msgstr "Wähle die Einheit für die L6-Helligkeitswerte."
 
 msgctxt "#32192"
 msgid "cd/m²"

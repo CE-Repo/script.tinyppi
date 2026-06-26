@@ -121,7 +121,7 @@ msgstr ""
 
 msgctxt "#32028"
 msgid "Converting"
-msgstr "Umwandlung"
+msgstr ""
 
 msgctxt "#32030"
 msgid "L5 active area"
@@ -321,35 +321,35 @@ msgstr "[COLOR=FFE0E0E0]●[/COLOR] Light gray"
 
 msgctxt "#32122"
 msgid "Red"
-msgstr "[COLOR=FFFF8A80]●[/COLOR] Red"
+msgstr "[COLOR=FFFF8A80]●[/COLOR] Light red"
 
 msgctxt "#32123"
 msgid "Orange"
-msgstr "[COLOR=FFFFCC80]●[/COLOR] Orange"
+msgstr "[COLOR=FFFFCC80]●[/COLOR] Light orange"
 
 msgctxt "#32124"
 msgid "Yellow"
-msgstr "[COLOR=FFFFFF8D]●[/COLOR] Yellow"
+msgstr "[COLOR=FFFFFF8D]●[/COLOR] Light yellow"
 
 msgctxt "#32125"
 msgid "Green"
-msgstr "[COLOR=FFB9F6CA]●[/COLOR] Green"
+msgstr "[COLOR=FFB9F6CA]●[/COLOR] Light green"
 
 msgctxt "#32126"
 msgid "Cyan"
-msgstr "[COLOR=FF84FFFF]●[/COLOR] Cyan"
+msgstr "[COLOR=FF84FFFF]●[/COLOR] Light cyan"
 
 msgctxt "#32127"
 msgid "Blue"
-msgstr "[COLOR=FF82B1FF]●[/COLOR] Blue"
+msgstr "[COLOR=FF82B1FF]●[/COLOR] Light blue"
 
 msgctxt "#32128"
 msgid "Purple"
-msgstr "[COLOR=FFE1BEE7]●[/COLOR] Purple"
+msgstr "[COLOR=FFE1BEE7]●[/COLOR] Light purple"
 
 msgctxt "#32129"
 msgid "Pink"
-msgstr "[COLOR=FFFF80AB]●[/COLOR] Pink"
+msgstr "[COLOR=FFFF80AB]●[/COLOR] Light pink"
 
 msgctxt "#32130"
 msgid "Charcoal"

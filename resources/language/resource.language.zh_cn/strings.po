@@ -321,35 +321,35 @@ msgstr "[COLOR=FFE0E0E0]●[/COLOR] 浅灰色"
 
 msgctxt "#32122"
 msgid "Red"
-msgstr "[COLOR=FFFF8A80]●[/COLOR] 红色"
+msgstr "[COLOR=FFFF8A80]●[/COLOR] 浅红色"
 
 msgctxt "#32123"
 msgid "Orange"
-msgstr "[COLOR=FFFFCC80]●[/COLOR] 橙色"
+msgstr "[COLOR=FFFFCC80]●[/COLOR] 浅橙色"
 
 msgctxt "#32124"
 msgid "Yellow"
-msgstr "[COLOR=FFFFFF8D]●[/COLOR] 黄色"
+msgstr "[COLOR=FFFFFF8D]●[/COLOR] 浅黄色"
 
 msgctxt "#32125"
 msgid "Green"
-msgstr "[COLOR=FFB9F6CA]●[/COLOR] 绿色"
+msgstr "[COLOR=FFB9F6CA]●[/COLOR] 浅绿色"
 
 msgctxt "#32126"
 msgid "Cyan"
-msgstr "[COLOR=FF84FFFF]●[/COLOR] 青色"
+msgstr "[COLOR=FF84FFFF]●[/COLOR] 浅青色"
 
 msgctxt "#32127"
 msgid "Blue"
-msgstr "[COLOR=FF82B1FF]●[/COLOR] 蓝色"
+msgstr "[COLOR=FF82B1FF]●[/COLOR] 浅蓝色"
 
 msgctxt "#32128"
 msgid "Purple"
-msgstr "[COLOR=FFE1BEE7]●[/COLOR] 紫色"
+msgstr "[COLOR=FFE1BEE7]●[/COLOR] 浅紫色"
 
 msgctxt "#32129"
 msgid "Pink"
-msgstr "[COLOR=FFFF80AB]●[/COLOR] 粉色"
+msgstr "[COLOR=FFFF80AB]●[/COLOR] 浅粉色"
 
 msgctxt "#32130"
 msgid "Charcoal"
@@ -489,7 +489,7 @@ msgstr "[COLOR=FFF06292]●[/COLOR] 玫瑰色"
 
 msgctxt "#32165"
 msgid "Crimson"
-msgstr "[COLOR=FFFF5252]●[/COLOR] 深红色"
+msgstr "[COLOR=FFFF5252]●[/COLOR] 猩红色"
 
 msgctxt "#32166"
 msgid "Brown"
