@@ -782,3 +782,27 @@ msgstr "[COLOR=FF28341C]●[/COLOR] Dark pistachio"
 msgctxt "#32239"
 msgid "Dark cadet"
 msgstr "[COLOR=FF242E34]●[/COLOR] Dark cadet"
+
+msgctxt "#32240"
+msgid "Custom"
+msgstr "Custom"
+
+msgctxt "#32241"
+msgid "Custom HEX color…"
+msgstr "Custom HEX color…"
+
+msgctxt "#32242"
+msgid "Enter your own 6-digit HEX color using the keyboard."
+msgstr "Enter your own 6-digit HEX color using the keyboard."
+
+msgctxt "#32243"
+msgid "Enter a 6-digit HEX color (e.g. FF5733)"
+msgstr "Enter a 6-digit HEX color (e.g. FF5733)"
+
+msgctxt "#32244"
+msgid "Invalid HEX color – using the default color"
+msgstr "Invalid HEX color – using the default color"
+
+msgctxt "#32245"
+msgid "Custom color applied"
+msgstr "Custom color applied"

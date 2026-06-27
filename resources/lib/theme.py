@@ -7,8 +7,14 @@ via ``$INFO[Window(10000).Property(TinyPPI.<Name>Color)]`` so colors can be
 changed from the settings without editing any skin XML.
 """
 
+import json
+import os
+import re
+
+import xbmc
 import xbmcaddon
 import xbmcgui
+import xbmcvfs
 
 # Palette for text-based elements (title, description, output, progress bar).
 # The index matches the <option> order in resources/settings.xml.
@@ -205,12 +211,77 @@ _COLOR_SETTINGS = (
 )
 
 
+# Setting value (option) that marks a color as a user-defined custom HEX value.
+# The integer color setting is set to this option so the list shows
+# "Benutzerdefiniert"; the actual 8-digit ARGB hex is stored in the JSON file
+# below (Kodi rejects control-less storage settings, so the hex cannot live in
+# settings.xml).
+_CUSTOM_INDEX = "999"
+
+# Custom HEX colors, keyed by setting id (each value an 8-digit ARGB hex string),
+# persisted as a JSON file in the add-on profile directory.
+_CUSTOM_FILE = "special://profile/addon_data/script.tinyppi/custom_colors.json"
+
+# Alpha channel prepended to a 6-digit custom HEX, keyed by setting id.
+# Anything not listed uses full opacity (FF) so the 6-digit input becomes an
+# 8-digit ARGB value internally.
+_CUSTOM_ALPHA = {
+    "background_color": "FA",  # Modern background shades
+    "accent_color":     "B3",  # dimmed detail accents (~70%)
+}
+_DEFAULT_ALPHA = "FF"
+
+_HEX6_RE = re.compile(r"^[0-9A-Fa-f]{6}$")
+_HEX8_RE = re.compile(r"^[0-9A-Fa-f]{8}$")
+
+
+def _load_custom() -> dict:
+    """Return the stored custom colors mapping, or an empty dict."""
+    try:
+        path = xbmcvfs.translatePath(_CUSTOM_FILE)
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as handle:
+                data = json.load(handle)
+            if isinstance(data, dict):
+                return data
+    except Exception:  # pragma: no cover - corrupt/unreadable file → ignore
+        pass
+    return {}
+
+
+def _save_custom(data: dict) -> None:
+    """Persist the custom colors mapping to the profile directory."""
+    path = xbmcvfs.translatePath(_CUSTOM_FILE)
+    directory = os.path.dirname(path)
+    if not os.path.isdir(directory):
+        os.makedirs(directory, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as handle:
+        json.dump(data, handle)
+
+
 def _pick(palette: tuple, value: str) -> str:
     """Return ``palette[value]``, falling back to index 0 on bad input."""
     try:
         return palette[int(value)]
     except (ValueError, TypeError, IndexError):
         return palette[0]
+
+
+def _resolve(palette: tuple, addon, setting_id: str, custom: dict) -> str:
+    """
+    Resolve a color setting to an ARGB hex string.
+
+    When the setting holds the custom marker (option 999), the stored 8-digit
+    ARGB hex from ``custom`` is used.  An invalid or missing custom value falls
+    back to the palette default (index 0).
+    """
+    value = addon.getSetting(setting_id)
+    if value == _CUSTOM_INDEX:
+        stored = str(custom.get(setting_id, "")).strip().upper()
+        if _HEX8_RE.match(stored):
+            return stored
+        return palette[0]
+    return _pick(palette, value)
 
 
 def apply_theme(home, addon=None) -> None:
@@ -221,20 +292,21 @@ def apply_theme(home, addon=None) -> None:
     via ``$INFO[Window(10000).Property(TinyPPI.<Name>Color)]``.
     """
     addon = addon or xbmcaddon.Addon()
+    custom = _load_custom()
 
-    home.setProperty("TinyPPI.TitleColor",       _pick(_TEXT_COLORS, addon.getSetting("title_color")))
-    home.setProperty("TinyPPI.FilenameColor",    _pick(_TEXT_COLORS, addon.getSetting("filename_color")))
-    home.setProperty("TinyPPI.IconColor",        _pick(_TEXT_COLORS, addon.getSetting("icon_color")))
-    home.setProperty("TinyPPI.HeaderColor",      _pick(_TEXT_COLORS, addon.getSetting("header_color")))
-    home.setProperty("TinyPPI.ChartColor",       _pick(_TEXT_COLORS, addon.getSetting("chart_color")))
-    home.setProperty("TinyPPI.DescriptionColor", _pick(_TEXT_COLORS, addon.getSetting("description_color")))
-    home.setProperty("TinyPPI.OutputColor",      _pick(_TEXT_COLORS, addon.getSetting("output_color")))
-    home.setProperty("TinyPPI.ProgressColor",    _pick(_TEXT_COLORS, addon.getSetting("progress_color")))
-    home.setProperty("TinyPPI.FpsColor",         _pick(_TEXT_COLORS, addon.getSetting("fps_color")))
-    home.setProperty("TinyPPI.UnitColor",        _pick(_TEXT_COLORS, addon.getSetting("unit_color")))
+    home.setProperty("TinyPPI.TitleColor",       _resolve(_TEXT_COLORS, addon, "title_color", custom))
+    home.setProperty("TinyPPI.FilenameColor",    _resolve(_TEXT_COLORS, addon, "filename_color", custom))
+    home.setProperty("TinyPPI.IconColor",        _resolve(_TEXT_COLORS, addon, "icon_color", custom))
+    home.setProperty("TinyPPI.HeaderColor",      _resolve(_TEXT_COLORS, addon, "header_color", custom))
+    home.setProperty("TinyPPI.ChartColor",       _resolve(_TEXT_COLORS, addon, "chart_color", custom))
+    home.setProperty("TinyPPI.DescriptionColor", _resolve(_TEXT_COLORS, addon, "description_color", custom))
+    home.setProperty("TinyPPI.OutputColor",      _resolve(_TEXT_COLORS, addon, "output_color", custom))
+    home.setProperty("TinyPPI.ProgressColor",    _resolve(_TEXT_COLORS, addon, "progress_color", custom))
+    home.setProperty("TinyPPI.FpsColor",         _resolve(_TEXT_COLORS, addon, "fps_color", custom))
+    home.setProperty("TinyPPI.UnitColor",        _resolve(_TEXT_COLORS, addon, "unit_color", custom))
     home.setProperty("TinyPPI.UnitLabel",        _pick(_UNIT_LABELS, addon.getSetting("unit_type")))
-    home.setProperty("TinyPPI.AccentColor",      _pick(_ACCENT_COLORS, addon.getSetting("accent_color")))
-    home.setProperty("TinyPPI.BackgroundColor",  _pick(_BACKGROUND_COLORS, addon.getSetting("background_color")))
+    home.setProperty("TinyPPI.AccentColor",      _resolve(_ACCENT_COLORS, addon, "accent_color", custom))
+    home.setProperty("TinyPPI.BackgroundColor",  _resolve(_BACKGROUND_COLORS, addon, "background_color", custom))
 
 
 def reset_colors(addon=None) -> None:
@@ -248,6 +320,8 @@ def reset_colors(addon=None) -> None:
     for setting_id in _COLOR_SETTINGS:
         addon.setSetting(setting_id, "0")
 
+    _save_custom({})  # drop every stored custom HEX value
+
     # Re-publish properties so an overlay that is already open updates too.
     try:
         apply_theme(xbmcgui.Window(10000), addon)
@@ -260,3 +334,65 @@ def reset_colors(addon=None) -> None:
         xbmcgui.NOTIFICATION_INFO,
         3000,
     )
+
+
+def custom_color(setting_id, addon=None) -> None:
+    """
+    Prompt for a custom 6-digit HEX color via the on-screen keyboard and store
+    it for ``setting_id``.
+
+    On confirmation the input is validated:
+
+    - Valid  → the per-setting alpha channel is prepended (yielding an 8-digit
+      ARGB hex), saved to the custom-colors JSON file, and the color setting is
+      switched to the custom marker (option 999) so the list shows
+      "Benutzerdefiniert".
+    - Invalid → an error notification is shown and the color falls back to the
+      default (index 0).
+
+    Cancelling the keyboard leaves the current selection untouched.  Invoked
+    from the settings dialog via ``RunScript(script.tinyppi,custom_color,<id>)``.
+    The triggering button closes the dialog so the marker survives.
+    """
+    addon = addon or xbmcaddon.Addon()
+
+    if not setting_id:
+        return
+
+    keyboard = xbmc.Keyboard("", addon.getLocalizedString(32243))
+    keyboard.doModal()
+    if not keyboard.isConfirmed():
+        return
+
+    raw = keyboard.getText().strip().lstrip("#").upper()
+
+    custom = _load_custom()
+
+    if not _HEX6_RE.match(raw):
+        # Invalid input → notify and fall back to the default color.
+        custom.pop(setting_id, None)
+        _save_custom(custom)
+        addon.setSetting(setting_id, "0")
+        xbmcgui.Dialog().notification(
+            addon.getAddonInfo("name"),
+            addon.getLocalizedString(32244),
+            xbmcgui.NOTIFICATION_ERROR,
+            4000,
+        )
+    else:
+        alpha = _CUSTOM_ALPHA.get(setting_id, _DEFAULT_ALPHA)
+        custom[setting_id] = alpha + raw
+        _save_custom(custom)
+        addon.setSetting(setting_id, _CUSTOM_INDEX)
+        xbmcgui.Dialog().notification(
+            addon.getAddonInfo("name"),
+            addon.getLocalizedString(32245),
+            xbmcgui.NOTIFICATION_INFO,
+            3000,
+        )
+
+    # Re-publish properties so an overlay that is already open updates too.
+    try:
+        apply_theme(xbmcgui.Window(10000), addon)
+    except Exception:  # pragma: no cover - best effort, never block the change
+        pass

@@ -782,3 +782,27 @@ msgstr "[COLOR=FF28341C]●[/COLOR] Dunkelpistazie"
 msgctxt "#32239"
 msgid "Dark cadet"
 msgstr "[COLOR=FF242E34]●[/COLOR] Dunkelkadett"
+
+msgctxt "#32240"
+msgid "Custom"
+msgstr "Benutzerdefiniert"
+
+msgctxt "#32241"
+msgid "Custom HEX color…"
+msgstr "Eigene HEX-Farbe …"
+
+msgctxt "#32242"
+msgid "Enter your own 6-digit HEX color using the keyboard."
+msgstr "Gib über die Tastatur eine eigene 6-stellige HEX-Farbe ein."
+
+msgctxt "#32243"
+msgid "Enter a 6-digit HEX color (e.g. FF5733)"
+msgstr "6-stelligen HEX-Farbwert eingeben (z. B. FF5733)"
+
+msgctxt "#32244"
+msgid "Invalid HEX color – using the default color"
+msgstr "Ungültige HEX-Farbe – Standardfarbe wird verwendet"
+
+msgctxt "#32245"
+msgid "Custom color applied"
+msgstr "Benutzerdefinierte Farbe übernommen"

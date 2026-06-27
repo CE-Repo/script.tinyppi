@@ -782,3 +782,27 @@ msgstr "[COLOR=FF28341C]●[/COLOR] 深开心果绿"
 msgctxt "#32239"
 msgid "Dark cadet"
 msgstr "[COLOR=FF242E34]●[/COLOR] 深军服蓝"
+
+msgctxt "#32240"
+msgid "Custom"
+msgstr "自定义"
+
+msgctxt "#32241"
+msgid "Custom HEX color…"
+msgstr "自定义 HEX 颜色…"
+
+msgctxt "#32242"
+msgid "Enter your own 6-digit HEX color using the keyboard."
+msgstr "使用键盘输入自定义的 6 位 HEX 颜色。"
+
+msgctxt "#32243"
+msgid "Enter a 6-digit HEX color (e.g. FF5733)"
+msgstr "输入 6 位 HEX 颜色（例如 FF5733）"
+
+msgctxt "#32244"
+msgid "Invalid HEX color – using the default color"
+msgstr "无效的 HEX 颜色 – 使用默认颜色"
+
+msgctxt "#32245"
+msgid "Custom color applied"
+msgstr "已应用自定义颜色"
