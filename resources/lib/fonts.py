@@ -29,7 +29,15 @@ _REQUIRED_FONTS = (
     {"name": "font32",        "filename": "Inter-Bold.ttf",    "size": "32"},
 )
 
-_ADDON_FONTS_DIR = os.path.normpath(os.path.join(_ADDON_DIR, "resources", "tools", "fonts"))
+# Fonts ship in the tools.tinyppi addon.  Resolve its path defensively so a
+# missing tools addon never breaks import (install_fonts runs on import).
+try:
+    _TOOLS_DIR = xbmcaddon.Addon("tools.tinyppi").getAddonInfo("path")
+except Exception:
+    _TOOLS_DIR = ""
+
+_ADDON_FONTS_DIR = (os.path.normpath(os.path.join(_TOOLS_DIR, "tools", "fonts"))
+                    if _TOOLS_DIR else "")
 
 # Kodi skin resolution folder names, e.g. "720p", "1080i", "1080p", "480p".
 _RES_FOLDER_RE = re.compile(r"^\d{3,4}[ip]$")

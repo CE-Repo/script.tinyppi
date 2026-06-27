@@ -16,8 +16,9 @@ Detection runs once per file in a background thread and is cached, so the
 polling loop in overlay.py never blocks.  The results are published through
 the Dolby Vision properties in properties.py.  CoreELEC only.
 
-Bundle the dovi_tool binary at:
-    resources/tools/dovi/dovi_tool
+The dovi_tool and ffmpeg binaries are provided by the tools.tinyppi addon at:
+    tools/dovi/dovi_tool
+    tools/ffmpeg/ffmpeg
 The bundled binary is an aarch64 build; DV-capable Amlogic SoCs
 (S905X2/X4/X5, S922X) are all 64-bit, so it covers every realistic target.
 """
@@ -40,7 +41,6 @@ from utils import _info
 # ---------------------------------------------------------------------------
 
 _ADDON      = xbmcaddon.Addon()
-_ADDON_PATH = _ADDON.getAddonInfo("path")
 
 _TEMP_DIR   = xbmcvfs.translatePath("special://temp/")
 _CHUNK_PATH = os.path.join(_TEMP_DIR, "tinyppi_dv.chunk")
@@ -183,8 +183,13 @@ def reset_playback_cache() -> None:
 
 
 def _dovi_tool() -> str:
-    """Return the bundled dovi_tool path, restoring the exec bit if needed."""
-    path = os.path.join(_ADDON_PATH, "resources", "tools", "dovi", "dovi_tool")
+    """Return the dovi_tool path from the tools.tinyppi addon, restoring the
+    exec bit if needed."""
+    try:
+        base = xbmcaddon.Addon("tools.tinyppi").getAddonInfo("path")
+    except Exception:
+        return ""
+    path = os.path.join(base, "tools", "dovi", "dovi_tool")
     if os.path.exists(path) and not os.access(path, os.X_OK):
         # The executable bit is frequently lost when an addon is packaged as a
         # zip and unpacked on install; restore it defensively.
@@ -196,19 +201,19 @@ def _dovi_tool() -> str:
 
 
 def _ffmpeg() -> str | None:
-    """Locate the ffmpeg binary provided by the tools.ffmpeg-tools addon."""
+    """Locate the ffmpeg binary provided by the tools.tinyppi addon."""
     global _ffmpeg_cached
     if _ffmpeg_cached is not None:
         return _ffmpeg_cached or None
 
     try:
-        base = xbmcaddon.Addon("tools.ffmpeg-tools").getAddonInfo("path")
+        base = xbmcaddon.Addon("tools.tinyppi").getAddonInfo("path")
     except Exception:
         _ffmpeg_cached = ""
         return None
 
     candidates = [
-        os.path.join(base, "bin", "ffmpeg"),
+        os.path.join(base, "tools", "ffmpeg", "ffmpeg"),
         os.path.join(base, "ffmpeg"),
     ]
     if not any(os.path.exists(c) for c in candidates):
@@ -359,7 +364,7 @@ def _detect(path: str) -> dict[str, str]:
         _log(f"DV: dovi_tool binary missing ({dovi})", xbmc.LOGWARNING)
         return {}
     if not ffmpeg:
-        _log("DV: tools.ffmpeg-tools not available", xbmc.LOGWARNING)
+        _log("DV: tools.tinyppi not available", xbmc.LOGWARNING)
         return {}
 
     src, is_temp = _local_source(path)
