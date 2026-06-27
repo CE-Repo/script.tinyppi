@@ -313,7 +313,7 @@ msgstr "Farbe der Helligkeitseinheit cd/m²."
 
 msgctxt "#32120"
 msgid "White"
-msgstr "[COLOR=FFEDEDED]●[/COLOR] Weiß"
+msgstr "[COLOR=FFEDEDED]●[/COLOR] Weiß (Standard)"
 
 msgctxt "#32121"
 msgid "Light gray"
@@ -353,7 +353,7 @@ msgstr "[COLOR=FFFF80AB]●[/COLOR] Hellrosa"
 
 msgctxt "#32130"
 msgid "Charcoal"
-msgstr "[COLOR=FF2A2E33]●[/COLOR] Anthrazit"
+msgstr "[COLOR=FF2A2E33]●[/COLOR] Anthrazit (Standard)"
 
 msgctxt "#32131"
 msgid "Black"

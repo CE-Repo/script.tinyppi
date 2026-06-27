@@ -313,7 +313,7 @@ msgstr "cd/m² 亮度单位的颜色。"
 
 msgctxt "#32120"
 msgid "White"
-msgstr "[COLOR=FFEDEDED]●[/COLOR] 白色"
+msgstr "[COLOR=FFEDEDED]●[/COLOR] 白色 (默认)"
 
 msgctxt "#32121"
 msgid "Light gray"
@@ -353,7 +353,7 @@ msgstr "[COLOR=FFFF80AB]●[/COLOR] 浅粉色"
 
 msgctxt "#32130"
 msgid "Charcoal"
-msgstr "[COLOR=FF2A2E33]●[/COLOR] 炭黑色"
+msgstr "[COLOR=FF2A2E33]●[/COLOR] 炭黑色 (默认)"
 
 msgctxt "#32131"
 msgid "Black"

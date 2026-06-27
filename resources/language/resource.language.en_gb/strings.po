@@ -313,7 +313,7 @@ msgstr ""
 
 msgctxt "#32120"
 msgid "White"
-msgstr "[COLOR=FFEDEDED]●[/COLOR] White"
+msgstr "[COLOR=FFEDEDED]●[/COLOR] White (Default)"
 
 msgctxt "#32121"
 msgid "Light gray"
@@ -353,7 +353,7 @@ msgstr "[COLOR=FFFF80AB]●[/COLOR] Light pink"
 
 msgctxt "#32130"
 msgid "Charcoal"
-msgstr "[COLOR=FF2A2E33]●[/COLOR] Charcoal"
+msgstr "[COLOR=FF2A2E33]●[/COLOR] Charcoal (Default)"
 
 msgctxt "#32131"
 msgid "Black"
