@@ -13,7 +13,7 @@ A CoreELEC addon that displays detailed playback information in a custom overlay
 
 ## Installation
 
-### Option 1 — Via Repository (recommended)
+### Via Repository
 
 1. Open **Settings → File Manager → Add Source**.
 2. Enter the repository URL and confirm:
@@ -23,12 +23,6 @@ A CoreELEC addon that displays detailed playback information in a custom overlay
 3. Go to **Add-ons → Install from ZIP file** and select the source you just added.
 4. Install the repository ZIP file.
 5. Go to **Install from repository**, open the repository, select **TinyPPI** and install.
-
-### Option 2 — Manual ZIP install
-
-1. Download the latest `.zip` file.
-2. Copy it to your device storage.
-3. In CoreELEC: **Settings → Add-ons → Install from ZIP file**, then select the file.
 
 ---
 
