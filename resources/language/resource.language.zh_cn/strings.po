@@ -826,3 +826,11 @@ msgstr "设置已重置为默认值"
 msgctxt "#32250"
 msgid "Custom"
 msgstr "自定义"
+
+msgctxt "#32251"
+msgid "Separator line"
+msgstr "分隔线"
+
+msgctxt "#32252"
+msgid "Color of the separator lines."
+msgstr "分隔线的颜色。"

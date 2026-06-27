@@ -826,3 +826,11 @@ msgstr ""
 msgctxt "#32250"
 msgid "Custom"
 msgstr ""
+
+msgctxt "#32251"
+msgid "Separator line"
+msgstr ""
+
+msgctxt "#32252"
+msgid "Color of the separator lines."
+msgstr ""

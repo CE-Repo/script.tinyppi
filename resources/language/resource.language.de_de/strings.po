@@ -826,3 +826,11 @@ msgstr "Einstellungen auf Standard zurückgesetzt"
 msgctxt "#32250"
 msgid "Custom"
 msgstr "Benutzerdefiniert"
+
+msgctxt "#32251"
+msgid "Separator line"
+msgstr "Trennlinie"
+
+msgctxt "#32252"
+msgid "Color of the separator lines."
+msgstr "Farbe der Trennlinien."

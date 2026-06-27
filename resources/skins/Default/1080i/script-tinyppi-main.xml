@@ -172,7 +172,7 @@
 					<control type="image">
 						<width>1157</width>
 						<height>1</height>
-						<texture colordiffuse="26808080">common/dot-1x1.png</texture>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
 					</control>
 				</control>
 
@@ -184,7 +184,7 @@
 					<control type="image">
 						<width>1157</width>
 						<height>1</height>
-						<texture colordiffuse="26808080">common/dot-1x1.png</texture>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
 					</control>
 				</control>
 			</control>

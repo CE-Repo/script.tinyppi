@@ -127,6 +127,62 @@ _ACCENT_COLORS = (
     "B390A4AE",  # 49 Cadet
 )
 
+# Palette for the separator lines (very faint dividers, alpha 26 ~ 15%).
+# Same hues as _TEXT_COLORS but heavily dimmed so the lines stay subtle.
+# The index matches the <option> order in resources/settings.xml.
+_LINE_COLORS = (
+    "26808080",  # 0  White (default)
+    "26E0E0E0",  # 1  Light gray
+    "26FF8A80",  # 2  Red
+    "26FFCC80",  # 3  Orange
+    "26FFFF8D",  # 4  Yellow
+    "26B9F6CA",  # 5  Green
+    "2684FFFF",  # 6  Cyan
+    "2682B1FF",  # 7  Blue
+    "26E1BEE7",  # 8  Purple
+    "26FF80AB",  # 9  Pink
+    "26FF8A65",  # 10 Coral
+    "26FFAB91",  # 11 Salmon
+    "26FFD54F",  # 12 Amber
+    "26FFE082",  # 13 Gold
+    "26CCFF90",  # 14 Lime
+    "26A7FFEB",  # 15 Mint
+    "2680CBC4",  # 16 Teal
+    "2680D8FF",  # 17 Sky blue
+    "2640C4FF",  # 18 Azure
+    "268C9EFF",  # 19 Indigo
+    "26B388FF",  # 20 Violet
+    "26D1C4E9",  # 21 Lavender
+    "26EA80FC",  # 22 Magenta
+    "26F48FB1",  # 23 Fuchsia
+    "26F06292",  # 24 Rose
+    "26FF5252",  # 25 Crimson
+    "26BCAAA4",  # 26 Brown
+    "26DCE775",  # 27 Olive
+    "26B0BEC5",  # 28 Slate
+    "26CFD8DC",  # 29 Silver
+    "26FFCCBC",  # 30 Peach
+    "26FFB74D",  # 31 Tangerine
+    "26E4C441",  # 32 Mustard
+    "26E6EE9C",  # 33 Chartreuse
+    "2681C784",  # 34 Forest
+    "2669F0AE",  # 35 Emerald
+    "26B2FF59",  # 36 Spring
+    "2618FFFF",  # 37 Aqua
+    "2664FFDA",  # 38 Turquoise
+    "264FC3F7",  # 39 Cerulean
+    "26536DFE",  # 40 Cobalt
+    "26B39DDB",  # 41 Periwinkle
+    "26CE93D8",  # 42 Plum
+    "26BA68C8",  # 43 Orchid
+    "26FF4081",  # 44 Raspberry
+    "26FF5C8D",  # 45 Watermelon
+    "26FF6E40",  # 46 Scarlet
+    "26D7CCC8",  # 47 Sand
+    "26C5E1A5",  # 48 Pistachio
+    "2690A4AE",  # 49 Cadet
+)
+
 # Palette for the Modern background (semi-transparent dark shades, alpha FA).
 # The index matches the <option> order in resources/settings.xml.
 _BACKGROUND_COLORS = (
@@ -208,6 +264,7 @@ _COLOR_SETTINGS = (
     "progress_color",
     "accent_color",
     "unit_color",
+    "line_color",
 )
 
 
@@ -228,6 +285,7 @@ _CUSTOM_FILE = "special://profile/addon_data/script.tinyppi/custom_colors.json"
 _CUSTOM_ALPHA = {
     "background_color": "FA",  # Modern background shades
     "accent_color":     "B3",  # dimmed detail accents (~70%)
+    "line_color":       "26",  # faint separator lines (~15%)
 }
 _DEFAULT_ALPHA = "FF"
 
@@ -327,6 +385,7 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
     home.setProperty("TinyPPI.UnitLabel",        _pick(_UNIT_LABELS, _setting_value(addon, "unit_type", overrides)))
     home.setProperty("TinyPPI.AccentColor",      _resolve(_ACCENT_COLORS, addon, "accent_color", custom, overrides))
     home.setProperty("TinyPPI.BackgroundColor",  _resolve(_BACKGROUND_COLORS, addon, "background_color", custom, overrides))
+    home.setProperty("TinyPPI.LineColor",        _resolve(_LINE_COLORS, addon, "line_color", custom, overrides))
 
 
 def reset_colors(addon=None) -> None:
