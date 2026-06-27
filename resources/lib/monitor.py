@@ -19,6 +19,7 @@ if _LIB_PATH not in sys.path:
     sys.path.insert(0, _LIB_PATH)
 
 from dvinfo import reset_playback_cache
+from theme import apply_theme
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -86,6 +87,15 @@ if __name__ == "__main__":
     monitor = KodiMonitor(win=win, addon=addon)
 
     reset_playback_cache()
+
+    # Publish the theme properties (including the per-color "Custom" swatches)
+    # at startup so the settings dialog can preview custom HEX colors even when
+    # the overlay has not been opened yet this session.
+    try:
+        apply_theme(win, addon)
+    except Exception as exc:  # pragma: no cover - never block the service
+        xbmc.log(f"TinyPPI: apply_theme at startup failed: {exc}", xbmc.LOGWARNING)
+
     xbmc.log("TinyPPI: KodiMonitor started", xbmc.LOGINFO)
 
     while not monitor.abortRequested():

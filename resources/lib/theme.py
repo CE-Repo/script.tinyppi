@@ -235,6 +235,27 @@ _HEX6_RE = re.compile(r"^[0-9A-Fa-f]{6}$")
 _HEX8_RE = re.compile(r"^[0-9A-Fa-f]{8}$")
 
 
+# (setting_id, property base name, palette) for every themable color.
+# Used to publish a full-opacity (FF) swatch property per color so the "Custom"
+# option can preview the chosen HEX in the settings list, exactly like the
+# fixed-color options do.  The property base names match those published in
+# apply_theme(); the swatch property simply appends "Swatch".
+_SWATCH_COLORS = (
+    ("background_color",  "TinyPPI.BackgroundColor",  _BACKGROUND_COLORS),
+    ("title_color",       "TinyPPI.TitleColor",       _TEXT_COLORS),
+    ("filename_color",    "TinyPPI.FilenameColor",    _TEXT_COLORS),
+    ("header_color",      "TinyPPI.HeaderColor",      _TEXT_COLORS),
+    ("icon_color",        "TinyPPI.IconColor",        _TEXT_COLORS),
+    ("chart_color",       "TinyPPI.ChartColor",       _TEXT_COLORS),
+    ("description_color", "TinyPPI.DescriptionColor", _TEXT_COLORS),
+    ("output_color",      "TinyPPI.OutputColor",      _TEXT_COLORS),
+    ("fps_color",         "TinyPPI.FpsColor",         _TEXT_COLORS),
+    ("progress_color",    "TinyPPI.ProgressColor",    _TEXT_COLORS),
+    ("accent_color",      "TinyPPI.AccentColor",      _ACCENT_COLORS),
+    ("unit_color",        "TinyPPI.UnitColor",        _TEXT_COLORS),
+)
+
+
 def _load_custom() -> dict:
     """Return the stored custom colors mapping, or an empty dict."""
     try:
@@ -267,7 +288,14 @@ def _pick(palette: tuple, value: str) -> str:
         return palette[0]
 
 
-def _resolve(palette: tuple, addon, setting_id: str, custom: dict) -> str:
+def _setting_value(addon, setting_id: str, overrides) -> str:
+    """Return a setting value, allowing fresh writes to bypass Kodi's cache."""
+    if overrides and setting_id in overrides:
+        return str(overrides[setting_id])
+    return addon.getSetting(setting_id)
+
+
+def _resolve(palette: tuple, addon, setting_id: str, custom: dict, overrides=None) -> str:
     """
     Resolve a color setting to an ARGB hex string.
 
@@ -275,7 +303,7 @@ def _resolve(palette: tuple, addon, setting_id: str, custom: dict) -> str:
     ARGB hex from ``custom`` is used.  An invalid or missing custom value falls
     back to the palette default (index 0).
     """
-    value = addon.getSetting(setting_id)
+    value = _setting_value(addon, setting_id, overrides)
     if value == _CUSTOM_INDEX:
         stored = str(custom.get(setting_id, "")).strip().upper()
         if _HEX8_RE.match(stored):
@@ -284,7 +312,7 @@ def _resolve(palette: tuple, addon, setting_id: str, custom: dict) -> str:
     return _pick(palette, value)
 
 
-def apply_theme(home, addon=None) -> None:
+def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
     """
     Read the color settings and publish them as Home-window properties.
 
@@ -292,21 +320,29 @@ def apply_theme(home, addon=None) -> None:
     via ``$INFO[Window(10000).Property(TinyPPI.<Name>Color)]``.
     """
     addon = addon or xbmcaddon.Addon()
-    custom = _load_custom()
+    custom = _load_custom() if custom is None else custom
 
-    home.setProperty("TinyPPI.TitleColor",       _resolve(_TEXT_COLORS, addon, "title_color", custom))
-    home.setProperty("TinyPPI.FilenameColor",    _resolve(_TEXT_COLORS, addon, "filename_color", custom))
-    home.setProperty("TinyPPI.IconColor",        _resolve(_TEXT_COLORS, addon, "icon_color", custom))
-    home.setProperty("TinyPPI.HeaderColor",      _resolve(_TEXT_COLORS, addon, "header_color", custom))
-    home.setProperty("TinyPPI.ChartColor",       _resolve(_TEXT_COLORS, addon, "chart_color", custom))
-    home.setProperty("TinyPPI.DescriptionColor", _resolve(_TEXT_COLORS, addon, "description_color", custom))
-    home.setProperty("TinyPPI.OutputColor",      _resolve(_TEXT_COLORS, addon, "output_color", custom))
-    home.setProperty("TinyPPI.ProgressColor",    _resolve(_TEXT_COLORS, addon, "progress_color", custom))
-    home.setProperty("TinyPPI.FpsColor",         _resolve(_TEXT_COLORS, addon, "fps_color", custom))
-    home.setProperty("TinyPPI.UnitColor",        _resolve(_TEXT_COLORS, addon, "unit_color", custom))
+    home.setProperty("TinyPPI.TitleColor",       _resolve(_TEXT_COLORS, addon, "title_color", custom, overrides))
+    home.setProperty("TinyPPI.FilenameColor",    _resolve(_TEXT_COLORS, addon, "filename_color", custom, overrides))
+    home.setProperty("TinyPPI.IconColor",        _resolve(_TEXT_COLORS, addon, "icon_color", custom, overrides))
+    home.setProperty("TinyPPI.HeaderColor",      _resolve(_TEXT_COLORS, addon, "header_color", custom, overrides))
+    home.setProperty("TinyPPI.ChartColor",       _resolve(_TEXT_COLORS, addon, "chart_color", custom, overrides))
+    home.setProperty("TinyPPI.DescriptionColor", _resolve(_TEXT_COLORS, addon, "description_color", custom, overrides))
+    home.setProperty("TinyPPI.OutputColor",      _resolve(_TEXT_COLORS, addon, "output_color", custom, overrides))
+    home.setProperty("TinyPPI.ProgressColor",    _resolve(_TEXT_COLORS, addon, "progress_color", custom, overrides))
+    home.setProperty("TinyPPI.FpsColor",         _resolve(_TEXT_COLORS, addon, "fps_color", custom, overrides))
+    home.setProperty("TinyPPI.UnitColor",        _resolve(_TEXT_COLORS, addon, "unit_color", custom, overrides))
     home.setProperty("TinyPPI.UnitLabel",        _pick(_UNIT_LABELS, addon.getSetting("unit_type")))
-    home.setProperty("TinyPPI.AccentColor",      _resolve(_ACCENT_COLORS, addon, "accent_color", custom))
-    home.setProperty("TinyPPI.BackgroundColor",  _resolve(_BACKGROUND_COLORS, addon, "background_color", custom))
+    home.setProperty("TinyPPI.AccentColor",      _resolve(_ACCENT_COLORS, addon, "accent_color", custom, overrides))
+    home.setProperty("TinyPPI.BackgroundColor",  _resolve(_BACKGROUND_COLORS, addon, "background_color", custom, overrides))
+
+    # Publish a full-opacity (FF) swatch per color so the "Custom" list option
+    # can preview the chosen HEX, matching the fixed-color swatches.  The
+    # background and accent colors carry a reduced alpha (FA/B3) that would make
+    # the swatch dot look dim, so the swatch always forces full opacity.
+    for setting_id, prop, palette in _SWATCH_COLORS:
+        resolved = _resolve(palette, addon, setting_id, custom, overrides)
+        home.setProperty(prop + "Swatch", "FF" + resolved[2:])
 
 
 def reset_colors(addon=None) -> None:
@@ -323,8 +359,9 @@ def reset_colors(addon=None) -> None:
     _save_custom({})  # drop every stored custom HEX value
 
     # Re-publish properties so an overlay that is already open updates too.
+    overrides = {setting_id: "0" for setting_id in _COLOR_SETTINGS}
     try:
-        apply_theme(xbmcgui.Window(10000), addon)
+        apply_theme(xbmcgui.Window(10000), addon, overrides=overrides, custom={})
     except Exception:  # pragma: no cover - best effort, never block the reset
         pass
 
@@ -373,6 +410,7 @@ def custom_color(setting_id, addon=None) -> None:
         custom.pop(setting_id, None)
         _save_custom(custom)
         addon.setSetting(setting_id, "0")
+        setting_value = "0"
         xbmcgui.Dialog().notification(
             addon.getAddonInfo("name"),
             addon.getLocalizedString(32244),
@@ -384,6 +422,7 @@ def custom_color(setting_id, addon=None) -> None:
         custom[setting_id] = alpha + raw
         _save_custom(custom)
         addon.setSetting(setting_id, _CUSTOM_INDEX)
+        setting_value = _CUSTOM_INDEX
         xbmcgui.Dialog().notification(
             addon.getAddonInfo("name"),
             addon.getLocalizedString(32245),
@@ -393,6 +432,11 @@ def custom_color(setting_id, addon=None) -> None:
 
     # Re-publish properties so an overlay that is already open updates too.
     try:
-        apply_theme(xbmcgui.Window(10000), addon)
+        apply_theme(
+            xbmcgui.Window(10000),
+            addon,
+            overrides={setting_id: setting_value},
+            custom=custom,
+        )
     except Exception:  # pragma: no cover - best effort, never block the change
         pass

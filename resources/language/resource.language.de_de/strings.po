@@ -806,3 +806,51 @@ msgstr "Ungültige HEX-Farbe – Standardfarbe wird verwendet"
 msgctxt "#32245"
 msgid "Custom color applied"
 msgstr "Benutzerdefinierte Farbe übernommen"
+
+msgctxt "#32250"
+msgid "Custom background color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.BackgroundColorSwatch)]]●[/COLOR] Benutzerdefiniert"
+
+msgctxt "#32251"
+msgid "Custom title color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.TitleColorSwatch)]]●[/COLOR] Benutzerdefiniert"
+
+msgctxt "#32252"
+msgid "Custom file name color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.FilenameColorSwatch)]]●[/COLOR] Benutzerdefiniert"
+
+msgctxt "#32253"
+msgid "Custom header color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.HeaderColorSwatch)]]●[/COLOR] Benutzerdefiniert"
+
+msgctxt "#32254"
+msgid "Custom icon color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.IconColorSwatch)]]●[/COLOR] Benutzerdefiniert"
+
+msgctxt "#32255"
+msgid "Custom chart icon color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.ChartColorSwatch)]]●[/COLOR] Benutzerdefiniert"
+
+msgctxt "#32256"
+msgid "Custom description color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.DescriptionColorSwatch)]]●[/COLOR] Benutzerdefiniert"
+
+msgctxt "#32257"
+msgid "Custom output color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.OutputColorSwatch)]]●[/COLOR] Benutzerdefiniert"
+
+msgctxt "#32258"
+msgid "Custom FPS color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.FpsColorSwatch)]]●[/COLOR] Benutzerdefiniert"
+
+msgctxt "#32259"
+msgid "Custom progress bar color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.ProgressColorSwatch)]]●[/COLOR] Benutzerdefiniert"
+
+msgctxt "#32260"
+msgid "Custom detail color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.AccentColorSwatch)]]●[/COLOR] Benutzerdefiniert"
+
+msgctxt "#32261"
+msgid "Custom unit color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.UnitColorSwatch)]]●[/COLOR] Benutzerdefiniert"

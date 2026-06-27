@@ -806,3 +806,51 @@ msgstr "无效的 HEX 颜色 – 使用默认颜色"
 msgctxt "#32245"
 msgid "Custom color applied"
 msgstr "已应用自定义颜色"
+
+msgctxt "#32250"
+msgid "Custom background color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.BackgroundColorSwatch)]]●[/COLOR] 自定义"
+
+msgctxt "#32251"
+msgid "Custom title color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.TitleColorSwatch)]]●[/COLOR] 自定义"
+
+msgctxt "#32252"
+msgid "Custom file name color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.FilenameColorSwatch)]]●[/COLOR] 自定义"
+
+msgctxt "#32253"
+msgid "Custom header color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.HeaderColorSwatch)]]●[/COLOR] 自定义"
+
+msgctxt "#32254"
+msgid "Custom icon color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.IconColorSwatch)]]●[/COLOR] 自定义"
+
+msgctxt "#32255"
+msgid "Custom chart icon color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.ChartColorSwatch)]]●[/COLOR] 自定义"
+
+msgctxt "#32256"
+msgid "Custom description color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.DescriptionColorSwatch)]]●[/COLOR] 自定义"
+
+msgctxt "#32257"
+msgid "Custom output color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.OutputColorSwatch)]]●[/COLOR] 自定义"
+
+msgctxt "#32258"
+msgid "Custom FPS color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.FpsColorSwatch)]]●[/COLOR] 自定义"
+
+msgctxt "#32259"
+msgid "Custom progress bar color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.ProgressColorSwatch)]]●[/COLOR] 自定义"
+
+msgctxt "#32260"
+msgid "Custom detail color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.AccentColorSwatch)]]●[/COLOR] 自定义"
+
+msgctxt "#32261"
+msgid "Custom unit color"
+msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.UnitColorSwatch)]]●[/COLOR] 自定义"
