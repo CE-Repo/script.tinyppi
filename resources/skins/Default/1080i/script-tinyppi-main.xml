@@ -44,7 +44,7 @@
 				</control>
 			</control>
 
-			<!-- Modern - Filename -->
+			<!-- Modern - No Filename -->
 			<control type="group">
 				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),1)</visible>
 				<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),false)</visible>
@@ -559,7 +559,7 @@
 						</control>
 					</control>
 				</control>
-	
+
 				<!-- Group: Audio -->
 				<control type="group">
 					<left>640</left>

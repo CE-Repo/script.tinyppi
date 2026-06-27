@@ -96,8 +96,12 @@
                 <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                 <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                 <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
-                <onup>1010</onup>
-                <ondown>1002</ondown>
+                <onup condition="String.IsEmpty(VideoPlayer.HdrType)">1004</onup>
+                <onup condition="String.Contains(VideoPlayer.HdrType,hdr10)">1008</onup>
+                <onup condition="String.Contains(VideoPlayer.HdrType,dolby)">1010</onup>
+                <ondown condition="String.IsEmpty(VideoPlayer.HdrType)">1002</ondown>
+                <ondown condition="String.Contains(VideoPlayer.HdrType,hdr10)">1005</ondown>
+                <ondown condition="String.Contains(VideoPlayer.HdrType,dolby)">1009</ondown>
             </control>
 
             <!-- SDR -->
@@ -149,7 +153,7 @@
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                     <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                     <onup>1003</onup>
-                    <ondown>1005</ondown>
+                    <ondown>1001</ondown>
                 </control>
             </control>
 
@@ -169,7 +173,7 @@
                     <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                     <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
-                    <onup>1004</onup>
+                    <onup>1001</onup>
                     <ondown>1006</ondown>
                 </control>
                 <control type="button" id="1006">
@@ -202,7 +206,7 @@
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                     <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                     <onup>1006</onup>
-                    <ondown>1009</ondown>
+                    <ondown>1001</ondown>
                 </control>
             </control>
 
@@ -222,7 +226,7 @@
                     <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                     <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
-                    <onup>1008</onup>
+                    <onup>1001</onup>
                     <ondown>1010</ondown>
                 </control>
                 <control type="button" id="1010">
