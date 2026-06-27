@@ -60,6 +60,13 @@
                     <control type="spinner" format="string" />
                 </setting>
             </group>
+            <group id="3" label="32247">
+                <setting id="reset_settings" type="action" label="32247" help="32248">
+                    <level>0</level>
+                    <data>RunScript(script.tinyppi,reset_settings)</data>
+                    <control type="button" format="action" />
+                </setting>
+            </group>
         </category>
         <category id="Theme" label="32100" help="32101">
             <group id="1" label="32246">

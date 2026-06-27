@@ -811,6 +811,18 @@ msgctxt "#32246"
 msgid "Color selection"
 msgstr "Farbauswahl"
 
+msgctxt "#32247"
+msgid "Reset settings to defaults"
+msgstr "Einstellungen auf Standard zurücksetzen"
+
+msgctxt "#32248"
+msgid "Reset all add-on settings to their default values."
+msgstr "Setzt alle Add-on-Einstellungen auf ihre Standardwerte zurück."
+
+msgctxt "#32249"
+msgid "Settings reset to defaults"
+msgstr "Einstellungen auf Standard zurückgesetzt"
+
 msgctxt "#32250"
 msgid "Custom background color"
 msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.BackgroundColorSwatch)]]●[/COLOR] Benutzerdefiniert"

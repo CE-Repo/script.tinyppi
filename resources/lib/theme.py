@@ -332,7 +332,7 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
     home.setProperty("TinyPPI.ProgressColor",    _resolve(_TEXT_COLORS, addon, "progress_color", custom, overrides))
     home.setProperty("TinyPPI.FpsColor",         _resolve(_TEXT_COLORS, addon, "fps_color", custom, overrides))
     home.setProperty("TinyPPI.UnitColor",        _resolve(_TEXT_COLORS, addon, "unit_color", custom, overrides))
-    home.setProperty("TinyPPI.UnitLabel",        _pick(_UNIT_LABELS, addon.getSetting("unit_type")))
+    home.setProperty("TinyPPI.UnitLabel",        _pick(_UNIT_LABELS, _setting_value(addon, "unit_type", overrides)))
     home.setProperty("TinyPPI.AccentColor",      _resolve(_ACCENT_COLORS, addon, "accent_color", custom, overrides))
     home.setProperty("TinyPPI.BackgroundColor",  _resolve(_BACKGROUND_COLORS, addon, "background_color", custom, overrides))
 
