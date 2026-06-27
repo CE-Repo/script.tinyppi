@@ -236,10 +236,9 @@ _HEX8_RE = re.compile(r"^[0-9A-Fa-f]{8}$")
 
 
 # (setting_id, property base name, palette) for every themable color.
-# Used to publish a full-opacity (FF) swatch property per color so the "Custom"
-# option can preview the chosen HEX in the settings list, exactly like the
-# fixed-color options do.  The property base names match those published in
-# apply_theme(); the swatch property simply appends "Swatch".
+# Used to publish a full-opacity (FF) swatch property per color so the custom
+# HEX action rows can preview the active color.  The property base names match
+# those published in apply_theme(); the swatch property simply appends "Swatch".
 _SWATCH_COLORS = (
     ("background_color",  "TinyPPI.BackgroundColor",  _BACKGROUND_COLORS),
     ("title_color",       "TinyPPI.TitleColor",       _TEXT_COLORS),
