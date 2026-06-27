@@ -93,9 +93,9 @@
                 <font>font23_narrow</font>
                 <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                 <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
-                <focusedcolor>FF000000</focusedcolor>
+                <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                 <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
-                <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                 <onup>1010</onup>
                 <ondown>1002</ondown>
             </control>
@@ -113,9 +113,9 @@
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                     <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
-                    <focusedcolor>FF000000</focusedcolor>
+                    <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
-                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                     <onup>1001</onup>
                     <ondown>1003</ondown>
                 </control>
@@ -129,9 +129,9 @@
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                     <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
-                    <focusedcolor>FF000000</focusedcolor>
+                    <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
-                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                     <onup>1002</onup>
                     <ondown>1004</ondown>
                 </control>
@@ -145,9 +145,9 @@
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                     <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
-                    <focusedcolor>FF000000</focusedcolor>
+                    <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
-                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                     <onup>1003</onup>
                     <ondown>1005</ondown>
                 </control>
@@ -166,9 +166,9 @@
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                     <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
-                    <focusedcolor>FF000000</focusedcolor>
+                    <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
-                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                     <onup>1004</onup>
                     <ondown>1006</ondown>
                 </control>
@@ -182,9 +182,9 @@
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                     <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
-                    <focusedcolor>FF000000</focusedcolor>
+                    <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
-                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                     <onup>1005</onup>
                     <ondown>1008</ondown>
                 </control>
@@ -198,9 +198,9 @@
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                     <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
-                    <focusedcolor>FF000000</focusedcolor>
+                    <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
-                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                     <onup>1006</onup>
                     <ondown>1009</ondown>
                 </control>
@@ -219,9 +219,9 @@
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                     <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
-                    <focusedcolor>FF000000</focusedcolor>
+                    <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
-                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                     <onup>1008</onup>
                     <ondown>1010</ondown>
                 </control>
@@ -235,9 +235,9 @@
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                     <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
-                    <focusedcolor>FF000000</focusedcolor>
+                    <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
-                    <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
+                    <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                     <onup>1009</onup>
                     <ondown>1001</ondown>
                 </control>

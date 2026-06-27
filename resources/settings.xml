@@ -1075,7 +1075,172 @@
                     </control>
                 </setting>
             </group>
-            <group id="14" label="32146">
+            <group id="14" label="32246">
+                <setting id="dialog_focus_color" type="integer" label="32253" help="32254">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32120">0</option>
+                            <option label="32121">1</option>
+                            <option label="32122">2</option>
+                            <option label="32123">3</option>
+                            <option label="32124">4</option>
+                            <option label="32125">5</option>
+                            <option label="32126">6</option>
+                            <option label="32127">7</option>
+                            <option label="32128">8</option>
+                            <option label="32129">9</option>
+                            <option label="32150">10</option>
+                            <option label="32151">11</option>
+                            <option label="32152">12</option>
+                            <option label="32153">13</option>
+                            <option label="32154">14</option>
+                            <option label="32155">15</option>
+                            <option label="32156">16</option>
+                            <option label="32157">17</option>
+                            <option label="32158">18</option>
+                            <option label="32159">19</option>
+                            <option label="32160">20</option>
+                            <option label="32161">21</option>
+                            <option label="32162">22</option>
+                            <option label="32163">23</option>
+                            <option label="32164">24</option>
+                            <option label="32165">25</option>
+                            <option label="32166">26</option>
+                            <option label="32167">27</option>
+                            <option label="32168">28</option>
+                            <option label="32169">29</option>
+                            <option label="32200">30</option>
+                            <option label="32201">31</option>
+                            <option label="32202">32</option>
+                            <option label="32203">33</option>
+                            <option label="32204">34</option>
+                            <option label="32205">35</option>
+                            <option label="32206">36</option>
+                            <option label="32207">37</option>
+                            <option label="32208">38</option>
+                            <option label="32209">39</option>
+                            <option label="32210">40</option>
+                            <option label="32211">41</option>
+                            <option label="32212">42</option>
+                            <option label="32213">43</option>
+                            <option label="32214">44</option>
+                            <option label="32215">45</option>
+                            <option label="32216">46</option>
+                            <option label="32217">47</option>
+                            <option label="32218">48</option>
+                            <option label="32219">49</option>
+                            <option label="32250">999</option>
+                        </options>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="launch_mode">1</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="list" format="string" />
+                </setting>
+                <setting id="dialog_focus_color_custom_btn" type="string" label="32241" help="32242">
+                    <level>0</level>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="launch_mode">1</condition>
+                            <condition operator="is" setting="dialog_focus_color">999</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,dialog_focus_color)</data>
+                    </control>
+                </setting>
+            </group>
+            <group id="15" label="32246">
+                <setting id="dialog_focus_text_color" type="integer" label="32255" help="32256">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32257">0</option>
+                            <option label="32258">1</option>
+                            <option label="32121">2</option>
+                            <option label="32122">3</option>
+                            <option label="32123">4</option>
+                            <option label="32124">5</option>
+                            <option label="32125">6</option>
+                            <option label="32126">7</option>
+                            <option label="32127">8</option>
+                            <option label="32128">9</option>
+                            <option label="32129">10</option>
+                            <option label="32150">11</option>
+                            <option label="32151">12</option>
+                            <option label="32152">13</option>
+                            <option label="32153">14</option>
+                            <option label="32154">15</option>
+                            <option label="32155">16</option>
+                            <option label="32156">17</option>
+                            <option label="32157">18</option>
+                            <option label="32158">19</option>
+                            <option label="32159">20</option>
+                            <option label="32160">21</option>
+                            <option label="32161">22</option>
+                            <option label="32162">23</option>
+                            <option label="32163">24</option>
+                            <option label="32164">25</option>
+                            <option label="32165">26</option>
+                            <option label="32166">27</option>
+                            <option label="32167">28</option>
+                            <option label="32168">29</option>
+                            <option label="32169">30</option>
+                            <option label="32200">31</option>
+                            <option label="32201">32</option>
+                            <option label="32202">33</option>
+                            <option label="32203">34</option>
+                            <option label="32204">35</option>
+                            <option label="32205">36</option>
+                            <option label="32206">37</option>
+                            <option label="32207">38</option>
+                            <option label="32208">39</option>
+                            <option label="32209">40</option>
+                            <option label="32210">41</option>
+                            <option label="32211">42</option>
+                            <option label="32212">43</option>
+                            <option label="32213">44</option>
+                            <option label="32214">45</option>
+                            <option label="32215">46</option>
+                            <option label="32216">47</option>
+                            <option label="32217">48</option>
+                            <option label="32218">49</option>
+                            <option label="32219">50</option>
+                            <option label="32250">999</option>
+                        </options>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="launch_mode">1</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="list" format="string" />
+                </setting>
+                <setting id="dialog_focus_text_color_custom_btn" type="string" label="32241" help="32242">
+                    <level>0</level>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="launch_mode">1</condition>
+                            <condition operator="is" setting="dialog_focus_text_color">999</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,dialog_focus_text_color)</data>
+                    </control>
+                </setting>
+            </group>
+            <group id="16" label="32146">
                 <setting id="reset_colors" type="action" label="32146" help="32147">
                     <level>0</level>
                     <data>RunScript(script.tinyppi,reset_colors)</data>

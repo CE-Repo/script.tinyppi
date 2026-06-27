@@ -834,3 +834,27 @@ msgstr "分隔线"
 msgctxt "#32252"
 msgid "Color of the separator lines."
 msgstr "分隔线的颜色。"
+
+msgctxt "#32253"
+msgid "Dialog selection"
+msgstr "对话框选中"
+
+msgctxt "#32254"
+msgid "Background color of the focused button in the VS10 dialog."
+msgstr "VS10 对话框中聚焦按钮的背景颜色。"
+
+msgctxt "#32255"
+msgid "Dialog selection text"
+msgstr "对话框选中文本"
+
+msgctxt "#32256"
+msgid "Text color of the focused button in the VS10 dialog."
+msgstr "VS10 对话框中聚焦按钮的文本颜色。"
+
+msgctxt "#32257"
+msgid "Black"
+msgstr "[COLOR=FF000000]●[/COLOR] 黑色（默认）"
+
+msgctxt "#32258"
+msgid "White"
+msgstr "[COLOR=FFFFFFFF]●[/COLOR] 白色"

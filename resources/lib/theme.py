@@ -71,6 +71,21 @@ _TEXT_COLORS = (
     "FF90A4AE",  # 49 Cadet
 )
 
+# Palette for the focused button highlight in the VS10 dialog (texturefocus).
+# Same hues as _TEXT_COLORS but index 0 is pure white to match the original
+# default.  The index matches the <option> order in resources/settings.xml.
+_DIALOG_FOCUS_COLORS = ("FFFFFFFF",) + _TEXT_COLORS[1:]
+
+# Palette for the focused button text in the VS10 dialog (focusedcolor).
+# Black (the original default) and pure white lead, followed by the full hue
+# set from _TEXT_COLORS (its near-white index 0 is dropped in favour of the
+# pure white above).  The index matches the <option> order of
+# ``dialog_focus_text_color`` in resources/settings.xml.
+_DIALOG_FOCUS_TEXT_COLORS = (
+    "FF000000",  # 0  Black (default)
+    "FFFFFFFF",  # 1  White
+) + _TEXT_COLORS[1:]
+
 # Palette for inline detail accents (the dimmed values shown in parentheses).
 # Same hues as _TEXT_COLORS but at alpha B3 (~70%) so they stay subtle.
 # The index matches the <option> order in resources/settings.xml.
@@ -265,6 +280,8 @@ _COLOR_SETTINGS = (
     "accent_color",
     "unit_color",
     "line_color",
+    "dialog_focus_color",
+    "dialog_focus_text_color",
 )
 
 
@@ -386,6 +403,8 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
     home.setProperty("TinyPPI.AccentColor",      _resolve(_ACCENT_COLORS, addon, "accent_color", custom, overrides))
     home.setProperty("TinyPPI.BackgroundColor",  _resolve(_BACKGROUND_COLORS, addon, "background_color", custom, overrides))
     home.setProperty("TinyPPI.LineColor",        _resolve(_LINE_COLORS, addon, "line_color", custom, overrides))
+    home.setProperty("TinyPPI.DialogFocusColor",     _resolve(_DIALOG_FOCUS_COLORS, addon, "dialog_focus_color", custom, overrides))
+    home.setProperty("TinyPPI.DialogFocusTextColor", _resolve(_DIALOG_FOCUS_TEXT_COLORS, addon, "dialog_focus_text_color", custom, overrides))
 
 
 def reset_colors(addon=None) -> None:

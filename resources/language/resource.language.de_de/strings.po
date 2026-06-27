@@ -834,3 +834,27 @@ msgstr "Trennlinie"
 msgctxt "#32252"
 msgid "Color of the separator lines."
 msgstr "Farbe der Trennlinien."
+
+msgctxt "#32253"
+msgid "Dialog selection"
+msgstr "Dialog-Auswahl"
+
+msgctxt "#32254"
+msgid "Background color of the focused button in the VS10 dialog."
+msgstr "Hintergrundfarbe der fokussierten Schaltfläche im VS10-Dialog."
+
+msgctxt "#32255"
+msgid "Dialog selection text"
+msgstr "Dialog-Auswahltext"
+
+msgctxt "#32256"
+msgid "Text color of the focused button in the VS10 dialog."
+msgstr "Textfarbe der fokussierten Schaltfläche im VS10-Dialog."
+
+msgctxt "#32257"
+msgid "Black"
+msgstr "[COLOR=FF000000]●[/COLOR] Schwarz (Standard)"
+
+msgctxt "#32258"
+msgid "White"
+msgstr "[COLOR=FFFFFFFF]●[/COLOR] Weiß"

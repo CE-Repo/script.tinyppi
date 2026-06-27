@@ -834,3 +834,27 @@ msgstr ""
 msgctxt "#32252"
 msgid "Color of the separator lines."
 msgstr ""
+
+msgctxt "#32253"
+msgid "Dialog selection"
+msgstr ""
+
+msgctxt "#32254"
+msgid "Background color of the focused button in the VS10 dialog."
+msgstr ""
+
+msgctxt "#32255"
+msgid "Dialog selection text"
+msgstr ""
+
+msgctxt "#32256"
+msgid "Text color of the focused button in the VS10 dialog."
+msgstr ""
+
+msgctxt "#32257"
+msgid "Black"
+msgstr "[COLOR=FF000000]●[/COLOR] Black (Default)"
+
+msgctxt "#32258"
+msgid "White"
+msgstr "[COLOR=FFFFFFFF]●[/COLOR] White"
