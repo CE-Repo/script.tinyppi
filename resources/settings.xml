@@ -123,7 +123,7 @@
                             <condition operator="is" setting="ui_style">1</condition>
                         </dependency>
                     </dependencies>
-                    <control type="spinner" format="string" />
+                    <control type="list" format="string" />
                 </setting>
                 <setting id="title_color" type="integer" label="32105" help="32106">
                     <level>0</level>
@@ -182,7 +182,7 @@
                             <option label="32219">49</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string" />
+                    <control type="list" format="string" />
                 </setting>
                 <setting id="filename_color" type="integer" label="32197" help="32198">
                     <level>0</level>
@@ -246,7 +246,7 @@
                             <condition operator="is" setting="filename">true</condition>
                         </dependency>
                     </dependencies>
-                    <control type="spinner" format="string" />
+                    <control type="list" format="string" />
                 </setting>
                 <setting id="header_color" type="integer" label="32142" help="32143">
                     <level>0</level>
@@ -305,7 +305,7 @@
                             <option label="32219">49</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string" />
+                    <control type="list" format="string" />
                 </setting>
                 <setting id="icon_color" type="integer" label="32115" help="32116">
                     <level>0</level>
@@ -364,7 +364,7 @@
                             <option label="32219">49</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string" />
+                    <control type="list" format="string" />
                 </setting>
                 <setting id="chart_color" type="integer" label="32144" help="32145">
                     <level>0</level>
@@ -423,7 +423,7 @@
                             <option label="32219">49</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string" />
+                    <control type="list" format="string" />
                 </setting>
                 <setting id="description_color" type="integer" label="32107" help="32108">
                     <level>0</level>
@@ -482,7 +482,7 @@
                             <option label="32219">49</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string" />
+                    <control type="list" format="string" />
                 </setting>
                 <setting id="output_color" type="integer" label="32109" help="32110">
                     <level>0</level>
@@ -541,7 +541,7 @@
                             <option label="32219">49</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string" />
+                    <control type="list" format="string" />
                 </setting>
                 <setting id="fps_color" type="integer" label="32140" help="32141">
                     <level>0</level>
@@ -600,7 +600,7 @@
                             <option label="32219">49</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string" />
+                    <control type="list" format="string" />
                 </setting>
                 <setting id="progress_color" type="integer" label="32111" help="32112">
                     <level>0</level>
@@ -659,7 +659,7 @@
                             <option label="32219">49</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string" />
+                    <control type="list" format="string" />
                 </setting>
                 <setting id="accent_color" type="integer" label="32113" help="32114">
                     <level>0</level>
@@ -718,7 +718,7 @@
                             <option label="32219">49</option>
                         </options>
                     </constraints>
-                    <control type="spinner" format="string" />
+                    <control type="list" format="string" />
                 </setting>
                 <setting id="unit_color" type="integer" label="32117" help="32118">
                     <level>0</level>
@@ -782,7 +782,7 @@
                             <condition operator="!is" setting="unit_type">2</condition>
                         </dependency>
                     </dependencies>
-                    <control type="spinner" format="string" />
+                    <control type="list" format="string" />
                 </setting>
             </group>
             <group id="2" label="32146">
