@@ -9,7 +9,6 @@ public addon API.
 import re
 import time
 
-import xbmc
 import xbmcgui
 
 from maps import _FPS
@@ -17,6 +16,20 @@ from maps import _FPS
 # ---------------------------------------------------------------------------
 # FPS helpers
 # ---------------------------------------------------------------------------
+
+_FPS_STANDARDS = (
+    23.976, 24.0, 25.0, 29.97, 30.0, 50.0, 59.94, 60.0, 100.0, 120.0,
+)
+_EXACT_FPS_LABELS = {23.976: "23.976", 29.97: "29.97", 59.94: "59.94"}
+_FORMAT_FPS_TARGETS = (
+    (23.976, 0.02),
+    (29.97, 0.02),
+    (59.94, 0.02),
+    (60.0, 0.01),
+)
+_FPS_SAMPLE_INTERVAL = 0.1
+_FPS_HISTORY_SECONDS = 1.0
+
 
 def _normalize_fps(fps_value) -> str:
     """
@@ -29,15 +42,13 @@ def _normalize_fps(fps_value) -> str:
     except (TypeError, ValueError):
         return str(fps_value)
 
-    standards = [23.976, 24.0, 25.0, 29.97, 30.0, 50.0, 59.94, 60.0, 100.0, 120.0]
-    closest = min(standards, key=lambda x: abs(x - fps))
+    closest = min(_FPS_STANDARDS, key=lambda x: abs(x - fps))
 
     if abs(closest - fps) > 0.5:
         return f"{fps:.3f}".rstrip("0").rstrip(".")
 
-    _exact = {23.976: "23.976", 29.97: "29.97", 59.94: "59.94"}
-    if closest in _exact:
-        return _exact[closest]
+    if closest in _EXACT_FPS_LABELS:
+        return _EXACT_FPS_LABELS[closest]
 
     return str(int(closest)) if closest.is_integer() else str(closest)
 
@@ -53,8 +64,7 @@ def _format_fps(fps_value) -> str:
     except (TypeError, ValueError):
         return ""
 
-    targets = [(23.976, 0.02), (29.97, 0.02), (59.94, 0.02), (60.0, 0.01)]
-    for target, tol in targets:
+    for target, tol in _FORMAT_FPS_TARGETS:
         if abs(fps - target) <= tol:
             fps = target
             break
@@ -75,7 +85,7 @@ def _read_fps_sysfs() -> tuple[int, int] | None:
     except OSError:
         return None
 
-    in_m  = re.search(r"input_fps:0x([0-9a-fA-F]+)",  raw)
+    in_m  = re.search(r"input_fps:0x([0-9a-fA-F]+)", raw)
     out_m = re.search(r"output_fps:0x([0-9a-fA-F]+)", raw)
     if not in_m or not out_m:
         return None
@@ -92,19 +102,19 @@ def _update_fps() -> None:
     now   = time.monotonic()
     state = _FPS
 
-    if now - state["last_sample"] < 0.1:
+    if now - state["last_sample"] < _FPS_SAMPLE_INTERVAL:
         return
     state["last_sample"] = now
 
     result = _read_fps_sysfs()
     if result:
         in_fps, out_fps = result
-        state["cached_in"]  = in_fps
-        state["cached_out"] = out_fps
-        state["valid"]      = True
         state["history"].append((in_fps, out_fps, now))
 
-    state["history"] = [x for x in state["history"] if now - x[2] <= 1.0]
+    state["history"] = [
+        x for x in state["history"]
+        if now - x[2] <= _FPS_HISTORY_SECONDS
+    ]
 
 
 def get_fps_data() -> tuple[int, int, int]:

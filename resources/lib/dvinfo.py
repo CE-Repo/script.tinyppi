@@ -68,6 +68,9 @@ _CACHE_FIELD_PROPERTIES = {
     "l6_mdl": "TinyPPI.DVInfo.L6Mdl",
     "l6_max_cll_fall": "TinyPPI.DVInfo.L6MaxCllFall",
 }
+_SUMMARY_SECTION_RE = re.compile(
+    r"^(L\d+\s|RPU\s|Scene/shot|Profile|Frames|DM version:)",
+)
 
 # ---------------------------------------------------------------------------
 # State
@@ -205,8 +208,10 @@ def _ffmpeg() -> str | None:
         _ffmpeg_cached = ""
         return None
 
-    candidates = [os.path.join(base, "bin", "ffmpeg"),
-                  os.path.join(base, "ffmpeg")]
+    candidates = [
+        os.path.join(base, "bin", "ffmpeg"),
+        os.path.join(base, "ffmpeg"),
+    ]
     if not any(os.path.exists(c) for c in candidates):
         for root, _dirs, files in os.walk(base):
             if "ffmpeg" in files:
@@ -287,10 +292,10 @@ def _compact_l5_offsets(offsets: str) -> str:
     """Return compact Level 5 active-area offsets in L/R/T/B order."""
     matches = dict(re.findall(r"\b(top|bottom|left|right)=([^,\s]+)", offsets))
 
-    if matches:
-        def normalize(value: str) -> str:
-            return "0" if value == "N/A" else value
+    def normalize(value: str) -> str:
+        return "0" if value == "N/A" else value
 
+    if matches:
         left = normalize(matches.get("left", "0"))
         right = normalize(matches.get("right", "0"))
         top = normalize(matches.get("top", "0"))
@@ -326,10 +331,7 @@ def _parse_summary(out: str) -> dict[str, str]:
                     continuation = lines[idx].strip()
                     if not continuation:
                         break
-                    if re.match(
-                        r"^(L\d+\s|RPU\s|Scene/shot|Profile|Frames|DM version:)",
-                        continuation,
-                    ):
+                    if _SUMMARY_SECTION_RE.match(continuation):
                         idx -= 1
                         break
                     l6_entries.append(continuation)
@@ -367,14 +369,30 @@ def _detect(path: str) -> dict[str, str]:
         # pipes them into dovi_tool, which writes the parsed RPU.  A truncated
         # chunk may make dovi_tool log an error on the final frame, so the
         # exit code is ignored and only a non-empty RPU is required.
+        ffmpeg_cmd = [
+            ffmpeg,
+            "-loglevel", "error",
+            "-i", src,
+            "-map", "0:v:0",
+            "-c:v", "copy",
+            "-frames:v", str(_FRAMES),
+            "-bsf:v", "hevc_mp4toannexb",
+            "-f", "hevc",
+            "-",
+        ]
+        dovi_extract_cmd = [dovi, "extract-rpu", "-", "-o", _RPU_PATH]
+
         ff = subprocess.Popen(
-            [ffmpeg, "-loglevel", "error", "-i", src, "-map", "0:v:0",
-             "-c:v", "copy", "-frames:v", str(_FRAMES),
-             "-bsf:v", "hevc_mp4toannexb", "-f", "hevc", "-"],
-            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-        subprocess.run([dovi, "extract-rpu", "-", "-o", _RPU_PATH],
-                       stdin=ff.stdout,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            ffmpeg_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+        subprocess.run(
+            dovi_extract_cmd,
+            stdin=ff.stdout,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
         if ff.stdout:
             ff.stdout.close()
         ff.wait()
@@ -384,8 +402,10 @@ def _detect(path: str) -> dict[str, str]:
 
         out = subprocess.run(
             [dovi, "info", "-i", _RPU_PATH, "-s"],
-            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-            text=True).stdout
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).stdout
 
         return _parse_summary(out)
     finally:
@@ -426,7 +446,7 @@ def _get_info_status_value(key: str) -> tuple[str, str]:
     been found, and ``'failed'`` once the field cannot be determined.  The
     completed result is shared between addon invocations until playback stops.
     """
-    if (key == "cm_version" and "dolby" not in _info("VideoPlayer.HdrType").lower()):
+    if key == "cm_version" and "dolby" not in _info("VideoPlayer.HdrType").lower():
         return "", ""
 
     try:

@@ -27,6 +27,7 @@ _ADDON_PATH = _ADDON.getAddonInfo("path")
 
 _PROP_RUNNING = "TinyPPI.Running"
 _PROP_ACTIVE  = "TinyPPI.Active"
+_PROP_DIALOG_MODE = "TinyPPI.DialogMode"
 
 _dialog_lock = False
 
@@ -56,6 +57,88 @@ def _notify_error(message_id: int) -> None:
         xbmcgui.NOTIFICATION_ERROR,
         4000,
     )
+
+
+def _set_home_properties(home, values: tuple[tuple[str, str], ...]) -> None:
+    """Publish a batch of properties on Kodi's Home window."""
+    for name, value in values:
+        home.setProperty(name, value)
+
+
+def _set_overlay_state(home, dialog_mode: bool = False) -> None:
+    """Publish the Home-window properties that mark TinyPPI as open."""
+    _set_home_properties(
+        home,
+        (
+            (_PROP_RUNNING, "true"),
+            (_PROP_ACTIVE, "true"),
+        ),
+    )
+
+    if dialog_mode:
+        home.setProperty(_PROP_DIALOG_MODE, "true")
+    else:
+        home.clearProperty(_PROP_DIALOG_MODE)
+
+
+def _clear_overlay_state(home) -> None:
+    """Clear the Home-window properties that describe TinyPPI state."""
+    home.clearProperty(_PROP_RUNNING)
+    home.clearProperty(_PROP_ACTIVE)
+    home.clearProperty(_PROP_DIALOG_MODE)
+
+
+def _preflight(home, player, toggle_log: str) -> bool:
+    """
+    Run the environment and playback guards shared by both entry points.
+
+    Returns True when the overlay may open.  Otherwise shows the appropriate
+    error notification (or triggers the toggle-close action) and returns False.
+    """
+    if not _ALLOW_NON_COREELEC:
+        if not _is_coreelec():
+            _notify_error(32016)
+            return False
+
+        build_version = xbmc.getInfoLabel("System.BuildVersion")
+        try:
+            major_version = int(build_version.split(".")[0])
+        except (ValueError, IndexError):
+            _notify_error(32017)
+            return False
+
+        if major_version < 22:
+            _notify_error(32016)
+            return False
+
+    skin_path = xbmcvfs.translatePath("special://skin/")
+    if os.path.exists(os.path.join(skin_path, "720p")):
+        _notify_error(32012)
+        xbmc.log("TinyPPI: 720p skin detected – unsupported", xbmc.LOGWARNING)
+        return False
+
+    if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
+        return False
+
+    if not player.isPlaying():
+        return False
+
+    if home.getProperty(_PROP_RUNNING) == "true":
+        xbmc.log(toggle_log, xbmc.LOGINFO)
+        xbmc.executebuiltin("Action(Back)")
+        return False
+
+    return not _dialog_lock
+
+
+def _release_overlay(home) -> None:
+    """Briefly hold the re-entry lock, then clear the overlay state properties."""
+    global _dialog_lock
+    _dialog_lock = True
+    xbmc.Monitor().waitForAbort(0.2)
+    _dialog_lock = False
+
+    _clear_overlay_state(home)
 
 
 # ---------------------------------------------------------------------------
@@ -98,8 +181,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
     def onClosed(self) -> None:
         home = xbmcgui.Window(10000)
-        home.clearProperty(_PROP_RUNNING)
-        home.clearProperty(_PROP_ACTIVE)
+        _clear_overlay_state(home)
 
     # ------------------------------------------------------------------
     # Update loop
@@ -151,65 +233,28 @@ def open_tinyppi() -> None:
     - No media is playing.
     - The overlay is already open (acts as a toggle-close instead).
     """
-    global _dialog_lock
-
     home   = xbmcgui.Window(10000)
     player = xbmc.Player()
 
-    # ── CoreELEC / version checks ──────────────────────────────────────
-
-    if not _ALLOW_NON_COREELEC:
-        if not _is_coreelec():
-            _notify_error(32016)
-            return
-
-        build_version = xbmc.getInfoLabel("System.BuildVersion")
-        try:
-            major_version = int(build_version.split(".")[0])
-        except (ValueError, IndexError):
-            _notify_error(32017)
-            return
-
-        if major_version < 22:
-            _notify_error(32016)
-            return
-
-    # ── 720p skin guard ────────────────────────────────────────────────
-
-    skin_path   = xbmcvfs.translatePath("special://skin/")
-    is_720_skin = os.path.exists(os.path.join(skin_path, "720p"))
-
-    if is_720_skin:
-        _notify_error(32012)
-        xbmc.log("TinyPPI: 720p skin detected – unsupported", xbmc.LOGWARNING)
+    if not _preflight(home, player, "TinyPPI: Toggle close"):
         return
 
-    # ── State guards ───────────────────────────────────────────────────
-
-    if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
-        return
-
-    if not player.isPlaying():
-        return
-
-    if home.getProperty(_PROP_RUNNING) == "true":
-        xbmc.log("TinyPPI: Toggle close", xbmc.LOGINFO)
-        xbmc.executebuiltin("Action(Back)")
-        return
-
-    if _dialog_lock:
-        return
-
-    # ── Set window properties and open ─────────────────────────────────
-
-    home.setProperty(_PROP_RUNNING, "true")
-    home.setProperty(_PROP_ACTIVE,  "true")
-    home.setProperty("TinyPPI.UIStyle",          _ADDON.getSetting("ui_style"))
-    home.setProperty("TinyPPI.Filename",         _ADDON.getSetting("filename"))
-    home.setProperty("TinyPPI.BackgroundToggle",
-                     "1" if _ADDON.getSetting("background_toggle") == "true" else "0")
-    home.setProperty("TinyPPI.ShowL5Icon",
-                     "0" if _ADDON.getSetting("show_l5_icon") == "false" else "1")
+    _set_overlay_state(home)
+    _set_home_properties(
+        home,
+        (
+            ("TinyPPI.UIStyle", _ADDON.getSetting("ui_style")),
+            ("TinyPPI.Filename", _ADDON.getSetting("filename")),
+            (
+                "TinyPPI.BackgroundToggle",
+                "1" if _ADDON.getSetting("background_toggle") == "true" else "0",
+            ),
+            (
+                "TinyPPI.ShowL5Icon",
+                "0" if _ADDON.getSetting("show_l5_icon") == "false" else "1",
+            ),
+        ),
+    )
     apply_theme(home, _ADDON)
 
     try:
@@ -221,73 +266,23 @@ def open_tinyppi() -> None:
         )
         dialog.doModal()
         del dialog
-
     finally:
-        _dialog_lock = True
-        xbmc.Monitor().waitForAbort(0.2)
-        _dialog_lock = False
-
-        home.clearProperty(_PROP_RUNNING)
-        home.clearProperty(_PROP_ACTIVE)
+        _release_overlay(home)
 
 
 def open_dialog_mode() -> None:
     """Open the VS10-mode selection dialog."""
-    global _dialog_lock
-
     home   = xbmcgui.Window(10000)
     player = xbmc.Player()
 
-    if not _ALLOW_NON_COREELEC:
-        if not _is_coreelec():
-            _notify_error(32016)
-            return
-
-        build_version = xbmc.getInfoLabel("System.BuildVersion")
-        try:
-            major_version = int(build_version.split(".")[0])
-        except (ValueError, IndexError):
-            _notify_error(32017)
-            return
-
-        if major_version < 22:
-            _notify_error(32016)
-            return
-
-    skin_path   = xbmcvfs.translatePath("special://skin/")
-    is_720_skin = os.path.exists(os.path.join(skin_path, "720p"))
-
-    if is_720_skin:
-        _notify_error(32012)
-        xbmc.log("TinyPPI: 720p skin detected – unsupported", xbmc.LOGWARNING)
+    if not _preflight(home, player, "TinyPPI: Toggle close (dialog mode)"):
         return
 
-    if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
-        return
-
-    if not player.isPlaying():
-        return
-
-    if home.getProperty(_PROP_RUNNING) == "true":
-        xbmc.log("TinyPPI: Toggle close (dialog mode)", xbmc.LOGINFO)
-        xbmc.executebuiltin("Action(Back)")
-        return
-
-    if _dialog_lock:
-        return
-
-    home.setProperty(_PROP_RUNNING, "true")
-    home.setProperty(_PROP_ACTIVE,  "true")
-    home.setProperty("TinyPPI.DialogMode", "true")
+    _set_overlay_state(home, dialog_mode=True)
     apply_theme(home, _ADDON)
 
     try:
         from mode_select import open_dialog
         open_dialog()
     finally:
-        _dialog_lock = True
-        xbmc.Monitor().waitForAbort(0.2)
-        _dialog_lock = False
-
-        home.clearProperty(_PROP_RUNNING)
-        home.clearProperty(_PROP_ACTIVE)
+        _release_overlay(home)

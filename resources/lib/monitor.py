@@ -26,6 +26,7 @@ from theme import apply_theme
 # ---------------------------------------------------------------------------
 
 _ADDON_ID = "script.tinyppi"
+_HOME_WINDOW_ID = 10000
 
 # Set to True locally to promote debug messages to INFO level so they appear
 # in a standard (non-debug) Kodi log.
@@ -41,6 +42,18 @@ def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
     xbmc.log(f"{_ADDON_ID} --> {msg}", level=level)
 
 
+def _notification_media_type(data: str) -> str:
+    """Extract the media type field from a Kodi JSON notification payload."""
+    payload = json.loads(data)
+    if not isinstance(payload, dict):
+        return ""
+
+    item = payload.get("item") or {}
+    if isinstance(item, dict):
+        return item.get("type", "") or payload.get("type", "")
+    return payload.get("type", "")
+
+
 # ---------------------------------------------------------------------------
 # Monitor
 # ---------------------------------------------------------------------------
@@ -53,26 +66,14 @@ class KodiMonitor(xbmc.Monitor):
     ``onNotification`` to react to specific player or library events.
     """
 
-    def __init__(self, win: xbmcgui.Window, addon: xbmcaddon.Addon) -> None:
-        super().__init__()
-        self.win   = win
-        self.addon = addon
-
     def onNotification(self, sender: str, method: str, data: str) -> None:
         if method == "Player.OnStop":
             reset_playback_cache()
             _log("Dolby Vision playback cache cleared")
 
         try:
-            payload   = json.loads(data)
-            mediatype = ""
-
-            if isinstance(payload, dict):
-                item = payload.get("item") or {}
-                mediatype = item.get("type", "") or payload.get("type", "")
-
+            mediatype = _notification_media_type(data)
             _log(f"sender={sender}  method={method}  type={mediatype!r}")
-
         except Exception as exc:
             _log(f"Exception in KodiMonitor.onNotification: {exc}", xbmc.LOGERROR)
 
@@ -83,8 +84,8 @@ class KodiMonitor(xbmc.Monitor):
 
 if __name__ == "__main__":
     addon   = xbmcaddon.Addon()
-    win     = xbmcgui.Window(10000)
-    monitor = KodiMonitor(win=win, addon=addon)
+    win     = xbmcgui.Window(_HOME_WINDOW_ID)
+    monitor = KodiMonitor()
 
     reset_playback_cache()
 

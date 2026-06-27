@@ -302,6 +302,16 @@ def _custom_btn_label(raw6: str) -> str:
     return "[COLOR=FF{0}]●[/COLOR] #{0}".format(raw6)
 
 
+def _notify(addon, message_id: int, icon: str, duration: int) -> None:
+    """Show a localized TinyPPI settings notification."""
+    xbmcgui.Dialog().notification(
+        addon.getAddonInfo("name"),
+        addon.getLocalizedString(message_id),
+        icon,
+        duration,
+    )
+
+
 def _load_custom() -> dict:
     """Return the stored custom colors mapping, or an empty dict."""
     try:
@@ -358,6 +368,29 @@ def _resolve(palette: tuple, addon, setting_id: str, custom: dict, overrides=Non
     return _pick(palette, value)
 
 
+_THEME_PROPERTIES = (
+    ("TinyPPI.TitleColor",           _TEXT_COLORS, "title_color"),
+    ("TinyPPI.FilenameColor",        _TEXT_COLORS, "filename_color"),
+    ("TinyPPI.IconColor",            _TEXT_COLORS, "icon_color"),
+    ("TinyPPI.HeaderColor",          _TEXT_COLORS, "header_color"),
+    ("TinyPPI.HeaderIconColor",      _TEXT_COLORS, "header_icon_color"),
+    ("TinyPPI.DescriptionColor",     _TEXT_COLORS, "description_color"),
+    ("TinyPPI.OutputColor",          _TEXT_COLORS, "output_color"),
+    ("TinyPPI.ProgressColor",        _TEXT_COLORS, "progress_color"),
+    ("TinyPPI.FpsColor",             _TEXT_COLORS, "fps_color"),
+    ("TinyPPI.UnitColor",            _TEXT_COLORS, "unit_color"),
+    ("TinyPPI.AccentColor",          _ACCENT_COLORS, "accent_color"),
+    ("TinyPPI.BackgroundColor",      _BACKGROUND_COLORS, "background_color"),
+    ("TinyPPI.LineColor",            _LINE_COLORS, "line_color"),
+    ("TinyPPI.DialogFocusColor",     _DIALOG_FOCUS_COLORS, "dialog_focus_color"),
+    (
+        "TinyPPI.DialogFocusTextColor",
+        _DIALOG_FOCUS_TEXT_COLORS,
+        "dialog_focus_text_color",
+    ),
+)
+
+
 def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
     """
     Read the color settings and publish them as Home-window properties.
@@ -368,22 +401,16 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
     addon = addon or xbmcaddon.Addon()
     custom = _load_custom() if custom is None else custom
 
-    home.setProperty("TinyPPI.TitleColor",       _resolve(_TEXT_COLORS, addon, "title_color", custom, overrides))
-    home.setProperty("TinyPPI.FilenameColor",    _resolve(_TEXT_COLORS, addon, "filename_color", custom, overrides))
-    home.setProperty("TinyPPI.IconColor",        _resolve(_TEXT_COLORS, addon, "icon_color", custom, overrides))
-    home.setProperty("TinyPPI.HeaderColor",      _resolve(_TEXT_COLORS, addon, "header_color", custom, overrides))
-    home.setProperty("TinyPPI.HeaderIconColor",  _resolve(_TEXT_COLORS, addon, "header_icon_color", custom, overrides))
-    home.setProperty("TinyPPI.DescriptionColor", _resolve(_TEXT_COLORS, addon, "description_color", custom, overrides))
-    home.setProperty("TinyPPI.OutputColor",      _resolve(_TEXT_COLORS, addon, "output_color", custom, overrides))
-    home.setProperty("TinyPPI.ProgressColor",    _resolve(_TEXT_COLORS, addon, "progress_color", custom, overrides))
-    home.setProperty("TinyPPI.FpsColor",         _resolve(_TEXT_COLORS, addon, "fps_color", custom, overrides))
-    home.setProperty("TinyPPI.UnitColor",        _resolve(_TEXT_COLORS, addon, "unit_color", custom, overrides))
-    home.setProperty("TinyPPI.UnitLabel",        _pick(_UNIT_LABELS, _setting_value(addon, "unit_type", overrides)))
-    home.setProperty("TinyPPI.AccentColor",      _resolve(_ACCENT_COLORS, addon, "accent_color", custom, overrides))
-    home.setProperty("TinyPPI.BackgroundColor",  _resolve(_BACKGROUND_COLORS, addon, "background_color", custom, overrides))
-    home.setProperty("TinyPPI.LineColor",        _resolve(_LINE_COLORS, addon, "line_color", custom, overrides))
-    home.setProperty("TinyPPI.DialogFocusColor",     _resolve(_DIALOG_FOCUS_COLORS, addon, "dialog_focus_color", custom, overrides))
-    home.setProperty("TinyPPI.DialogFocusTextColor", _resolve(_DIALOG_FOCUS_TEXT_COLORS, addon, "dialog_focus_text_color", custom, overrides))
+    for property_name, palette, setting_id in _THEME_PROPERTIES:
+        home.setProperty(
+            property_name,
+            _resolve(palette, addon, setting_id, custom, overrides),
+        )
+
+    home.setProperty(
+        "TinyPPI.UnitLabel",
+        _pick(_UNIT_LABELS, _setting_value(addon, "unit_type", overrides)),
+    )
 
 
 def custom_color(setting_id, addon=None) -> None:
@@ -425,9 +452,9 @@ def custom_color(setting_id, addon=None) -> None:
         addon.setSetting(setting_id, "0")
         addon.setSetting(setting_id + _CUSTOM_BTN_SUFFIX, "")
         setting_value = "0"
-        xbmcgui.Dialog().notification(
-            addon.getAddonInfo("name"),
-            addon.getLocalizedString(32244),
+        _notify(
+            addon,
+            32244,
             xbmcgui.NOTIFICATION_ERROR,
             4000,
         )
@@ -438,9 +465,9 @@ def custom_color(setting_id, addon=None) -> None:
         addon.setSetting(setting_id, _CUSTOM_INDEX)
         addon.setSetting(setting_id + _CUSTOM_BTN_SUFFIX, _custom_btn_label(raw))
         setting_value = _CUSTOM_INDEX
-        xbmcgui.Dialog().notification(
-            addon.getAddonInfo("name"),
-            addon.getLocalizedString(32245),
+        _notify(
+            addon,
+            32245,
             xbmcgui.NOTIFICATION_INFO,
             3000,
         )

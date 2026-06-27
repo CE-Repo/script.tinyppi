@@ -8,6 +8,7 @@ class re-runs the installation whenever the skin changes or Kodi is updated.
 
 import os
 import shutil
+import traceback
 import xml.etree.ElementTree as ET
 
 import xbmc
@@ -22,10 +23,10 @@ _ADDON_DIR = _ADDON.getAddonInfo("path")
 
 _ADDONS_ROOT = os.path.dirname(os.path.dirname(_ADDON_DIR))
 
-_REQUIRED_FONTS = [
+_REQUIRED_FONTS = (
     {"name": "font23_narrow", "filename": "Inter-Regular.ttf", "size": "21"},
     {"name": "font32",        "filename": "Inter-Bold.ttf",    "size": "32"},
-]
+)
 
 _ADDON_FONTS_DIR = os.path.normpath(os.path.join(_ADDON_DIR, "fonts"))
 
@@ -52,7 +53,7 @@ def _find_font_xml(skin_path: str) -> str | None:
 def _find_ttf_dir(skin_path: str) -> str | None:
     """Return the first directory under *skin_path* that contains a .ttf file."""
     for root, _dirs, files in os.walk(skin_path):
-        if any(f.endswith(".ttf") for f in files):
+        if any(fname.lower().endswith(".ttf") for fname in files):
             return root
     return None
 
@@ -83,8 +84,10 @@ def _registered_fonts(xml_root) -> set[tuple[str, str]]:
     for font in xml_root.findall(".//font"):
         name_el     = font.find("name")
         filename_el = font.find("filename")
-        if name_el is not None and filename_el is not None:
-            registered.add((name_el.text.strip(), filename_el.text.strip()))
+        name = (name_el.text or "").strip() if name_el is not None else ""
+        filename = (filename_el.text or "").strip() if filename_el is not None else ""
+        if name and filename:
+            registered.add((name, filename))
     return registered
 
 
@@ -110,9 +113,9 @@ def fonts_already_installed(skin_path: str) -> bool:
 
     registered = _registered_fonts(xml_root)
 
-    for f in _REQUIRED_FONTS:
-        if (f["name"], f["filename"]) not in registered:
-            _log(f"XML entry missing: {f['name']}")
+    for font_spec in _REQUIRED_FONTS:
+        if (font_spec["name"], font_spec["filename"]) not in registered:
+            _log(f"XML entry missing: {font_spec['name']}")
             return False
 
     ttf_dest_dir = _find_ttf_dir(skin_path)
@@ -156,19 +159,19 @@ def _install_xml(skin_path: str) -> bool:
 
         _log(f'Editing fontset "{fset_id}", insert index: {insert_idx}')
 
-        for f in _REQUIRED_FONTS:
-            key = (f["name"], f["filename"])
+        for font_spec in _REQUIRED_FONTS:
+            key = (font_spec["name"], font_spec["filename"])
             if key in registered:
                 continue
             el = ET.Element("font")
-            ET.SubElement(el, "name").text     = f["name"]
-            ET.SubElement(el, "filename").text = f["filename"]
-            ET.SubElement(el, "size").text     = f["size"]
+            ET.SubElement(el, "name").text     = font_spec["name"]
+            ET.SubElement(el, "filename").text = font_spec["filename"]
+            ET.SubElement(el, "size").text     = font_spec["size"]
             fontset.insert(insert_idx, el)
             insert_idx += 1
             registered.add(key)
             modified = True
-            _log(f'Font inserted: {f["name"]} in fontset "{fset_id}"')
+            _log(f'Font inserted: {font_spec["name"]} in fontset "{fset_id}"')
 
     if modified:
         try:
@@ -233,7 +236,6 @@ def install_fonts() -> None:
         ttf_modified = _install_ttf(skin_path)
     except Exception as exc:
         _log(f"Installation error: {exc}", xbmc.LOGERROR)
-        import traceback
         _log(traceback.format_exc(), xbmc.LOGERROR)
         return
 

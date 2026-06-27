@@ -7,19 +7,12 @@ their canonical mixed-case form so they can be shown to the user as-is.
 """
 
 # ---------------------------------------------------------------------------
-# AML FPS state  (mutated by playerprops._update_fps)
+# AML FPS state  (mutated by helpers._update_fps)
 # ---------------------------------------------------------------------------
 
 _FPS = {
-    "history":          [],
-    "last_sample":      0.0,
-    "cached_in":        0,
-    "cached_out":       0,
-    "valid":            False,
-    "spinner":          0,
-    "last_spinner":     0.0,
-    "drop_hold":        0,
-    "last_drop_change": 0.0,
+    "history":     [],
+    "last_sample": 0.0,
 }
 
 # ---------------------------------------------------------------------------

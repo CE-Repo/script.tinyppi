@@ -24,6 +24,8 @@ _ENABLE = "/sys/module/aml_media/parameters/dolby_vision_enable"
 _DVMODE = "/sys/class/amdolby_vision/dv_mode"
 
 _BTN_TINYPPI = 1001
+_PROP_RUNNING = "TinyPPI.Running"
+_PROP_ACTIVE = "TinyPPI.Active"
 
 # ---------------------------------------------------------------------------
 # Sysfs
@@ -31,43 +33,91 @@ _BTN_TINYPPI = 1001
 
 def _w(path: str, value: str) -> None:
     try:
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(value)
         xbmc.log(f"TinyPPI: {path} = {value}", xbmc.LOGINFO)
     except OSError as e:
         xbmc.log(f"TinyPPI: FAILED {path}: {e}", xbmc.LOGERROR)
 
 
-def _delay(ms: int):
+def _delay(ms: int) -> None:
     try:
         xbmc.sleep(ms)
     except Exception:
         time.sleep(ms / 1000)
 
+
+def _write_sequence(
+    steps: tuple[tuple[str, str], ...],
+    delay_ms: int = 100,
+) -> None:
+    """Write a sysfs sequence, waiting between steps when requested."""
+    for index, (path, value) in enumerate(steps):
+        if index and delay_ms > 0:
+            _delay(delay_ms)
+        _w(path, value)
+
+
+def _set_passthrough_mode(dv_mode: str, delay_ms: int = 100) -> None:
+    """Set the CoreELEC policy and enable Dolby Vision in the requested mode."""
+    _write_sequence(
+        (
+            (_POLICY, "2"),
+            (_ENABLE, "Y"),
+            (_DVMODE, dv_mode),
+        ),
+        delay_ms=delay_ms,
+    )
+
+
+def _set_sdr_conversion_mode(dv_mode: str) -> None:
+    """Reset to SDR first, then enable the requested conversion mode."""
+    _write_sequence(
+        (
+            (_POLICY, "2"),
+            (_DVMODE, "0"),
+            (_ENABLE, "Y"),
+            (_DVMODE, dv_mode),
+        )
+    )
+
+
+def _clear_overlay_state(home) -> None:
+    """Allow the main TinyPPI overlay to open after closing this dialog."""
+    home.clearProperty(_PROP_RUNNING)
+    home.clearProperty(_PROP_ACTIVE)
+
+
 # ---------------------------------------------------------------------------
 # VS10 Mode
 # ---------------------------------------------------------------------------
 
-def original_sdr():
-    _w(_POLICY, "2"); _w(_ENABLE, "Y"); _w(_DVMODE, "0")
+def original_sdr() -> None:
+    _set_passthrough_mode("0", delay_ms=0)
 
-def hdr10():
-    _w(_POLICY, "2"); _delay(100); _w(_DVMODE, "0"); _delay(100); _w(_ENABLE, "Y"); _delay(100); _w(_DVMODE, "3")
 
-def dv():
-    _w(_POLICY, "2"); _delay(100); _w(_ENABLE, "Y"); _delay(100); _w(_DVMODE, "2")
+def hdr10() -> None:
+    _set_sdr_conversion_mode("3")
 
-def original_hdr():
-    _w(_POLICY, "2"); _delay(100); _w(_ENABLE, "Y"); _delay(100); _w(_DVMODE, "3")
 
-def original_dv():
-    _w(_POLICY, "2"); _delay(100); _w(_ENABLE, "Y"); _delay(100); _w(_DVMODE, "2")
+def dv() -> None:
+    _set_passthrough_mode("2")
 
-def sdr8():
-    _w(_POLICY, "2"); _delay(100); _w(_DVMODE, "0"); _delay(100); _w(_ENABLE, "Y"); _delay(100); _w(_DVMODE, "5")
 
-def sdr10():
-    _w(_POLICY, "2"); _delay(100); _w(_DVMODE, "0"); _delay(100); _w(_ENABLE, "Y"); _delay(100); _w(_DVMODE, "4")
+def original_hdr() -> None:
+    _set_passthrough_mode("3")
+
+
+def original_dv() -> None:
+    _set_passthrough_mode("2")
+
+
+def sdr8() -> None:
+    _set_sdr_conversion_mode("5")
+
+
+def sdr10() -> None:
+    _set_sdr_conversion_mode("4")
 
 
 # ---------------------------------------------------------------------------
@@ -84,7 +134,8 @@ _MODES = {
     "sdr10": sdr10,
 }
 
-def set_mode(name: str):
+
+def set_mode(name: str) -> None:
     fn = _MODES.get(name)
     if fn:
         fn()
@@ -93,8 +144,9 @@ def set_mode(name: str):
         xbmc.log(f"TinyPPI: Unknown mode '{name}'", xbmc.LOGERROR)
 
 
-def run_mode(mode: str):
+def run_mode(mode: str) -> None:
     set_mode(mode)
+
 
 __all__ = list(_MODES.keys()) + ["open_dialog", "set_mode", "run_mode"]
 
@@ -130,9 +182,7 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
     def onClick(self, control_id: int) -> None:
         if control_id == _BTN_TINYPPI:
             self.close()
-            home = xbmcgui.Window(10000)
-            home.clearProperty("TinyPPI.Running")
-            home.clearProperty("TinyPPI.Active")
+            _clear_overlay_state(xbmcgui.Window(10000))
             from overlay import open_tinyppi
             open_tinyppi()
             return
