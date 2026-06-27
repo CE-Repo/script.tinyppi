@@ -182,6 +182,19 @@ def reset_playback_cache() -> None:
         _inflight.clear()
 
 
+def _ensure_executable(path: str) -> None:
+    """Restore the exec bit on a bundled binary if it was lost.
+
+    The executable bit is frequently lost when an addon is packaged as a zip
+    and unpacked on install; restore it defensively so the binary can be
+    spawned instead of failing with PermissionError ([Errno 13])."""
+    if os.path.exists(path) and not os.access(path, os.X_OK):
+        try:
+            os.chmod(path, 0o755)
+        except OSError:
+            pass
+
+
 def _dovi_tool() -> str:
     """Return the dovi_tool path from the tools.tinyppi addon, restoring the
     exec bit if needed."""
@@ -190,13 +203,7 @@ def _dovi_tool() -> str:
     except Exception:
         return ""
     path = os.path.join(base, "tools", "dovi", "dovi_tool")
-    if os.path.exists(path) and not os.access(path, os.X_OK):
-        # The executable bit is frequently lost when an addon is packaged as a
-        # zip and unpacked on install; restore it defensively.
-        try:
-            os.chmod(path, 0o755)
-        except OSError:
-            pass
+    _ensure_executable(path)
     return path
 
 
@@ -224,6 +231,7 @@ def _ffmpeg() -> str | None:
 
     for cand in candidates:
         if os.path.exists(cand):
+            _ensure_executable(cand)
             _ffmpeg_cached = cand
             return cand
 
