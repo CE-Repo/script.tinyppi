@@ -248,64 +248,64 @@ msgid "Colors"
 msgstr "颜色"
 
 msgctxt "#32103"
-msgid "Background color (Modern)"
-msgstr "背景颜色（现代）"
+msgid "Background (Modern)"
+msgstr "背景（现代）"
 
 msgctxt "#32104"
 msgid "Background color of the Modern overlay style."
 msgstr "现代叠加层样式的背景颜色。"
 
 msgctxt "#32105"
-msgid "Title color"
-msgstr "标题颜色"
+msgid "Title"
+msgstr "标题"
 
 msgctxt "#32106"
 msgid "Color of the section titles."
 msgstr "分区标题的颜色。"
 
 msgctxt "#32107"
-msgid "Description color"
-msgstr "说明文字颜色"
+msgid "Description"
+msgstr "说明文字"
 
 msgctxt "#32108"
 msgid "Color of the label descriptions."
 msgstr "标签说明文字的颜色。"
 
 msgctxt "#32109"
-msgid "Output color"
-msgstr "输出值颜色"
+msgid "Output"
+msgstr "输出值"
 
 msgctxt "#32110"
 msgid "Color of the output values."
 msgstr "输出值的颜色。"
 
 msgctxt "#32111"
-msgid "Progress bar color"
-msgstr "进度条颜色"
+msgid "Progress bar"
+msgstr "进度条"
 
 msgctxt "#32112"
 msgid "Color of the progress bars."
 msgstr "进度条的颜色。"
 
 msgctxt "#32113"
-msgid "Detail color"
-msgstr "细节颜色"
+msgid "Detail"
+msgstr "细节"
 
 msgctxt "#32114"
 msgid "Color of the dimmed detail values shown in parentheses."
 msgstr "括号中显示的暗淡细节值的颜色。"
 
 msgctxt "#32115"
-msgid "Icon color"
-msgstr "图标颜色"
+msgid "Icon"
+msgstr "图标"
 
 msgctxt "#32116"
 msgid "Color of the section icons."
 msgstr "分区图标的颜色。"
 
 msgctxt "#32117"
-msgid "Unit color (cd/m²)"
-msgstr "单位颜色 (cd/m²)"
+msgid "Unit (cd/m², nits)"
+msgstr "单位 (cd/m², nits)"
 
 msgctxt "#32118"
 msgid "Color of the cd/m² brightness unit."
@@ -392,24 +392,24 @@ msgid "Dark gray"
 msgstr "[COLOR=FF444444]●[/COLOR] 深灰色"
 
 msgctxt "#32140"
-msgid "FPS color"
-msgstr "FPS 颜色"
+msgid "FPS"
+msgstr "FPS"
 
 msgctxt "#32141"
 msgid "Color of the In / drop / out FPS values."
 msgstr "In / drop / out FPS 值的颜色。"
 
 msgctxt "#32142"
-msgid "Header color"
-msgstr "标题栏颜色"
+msgid "Header"
+msgstr "标题栏"
 
 msgctxt "#32143"
 msgid "Color of the overlay header label (Modern)."
 msgstr "叠加层标题栏的颜色 (Modern)。"
 
 msgctxt "#32144"
-msgid "Chart icon color"
-msgstr "图表图标颜色"
+msgid "Chart icon"
+msgstr "图表图标"
 
 msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
@@ -616,8 +616,8 @@ msgid "Show the L5 offsets icon (lrtb) next to the L5 values."
 msgstr "在 L5 数值旁显示 L5 偏移图标 (lrtb)。"
 
 msgctxt "#32197"
-msgid "File name color"
-msgstr "文件名颜色"
+msgid "File name"
+msgstr "文件名"
 
 msgctxt "#32198"
 msgid "Color of the playing file name."
@@ -806,6 +806,10 @@ msgstr "无效的 HEX 颜色 – 使用默认颜色"
 msgctxt "#32245"
 msgid "Custom color applied"
 msgstr "已应用自定义颜色"
+
+msgctxt "#32246"
+msgid "Color selection"
+msgstr "颜色选择"
 
 msgctxt "#32250"
 msgid "Custom background color"

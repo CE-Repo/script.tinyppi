@@ -248,64 +248,64 @@ msgid "Colors"
 msgstr "Farben"
 
 msgctxt "#32103"
-msgid "Background color (Modern)"
-msgstr "Hintergrundfarbe (Modern)"
+msgid "Background (Modern)"
+msgstr "Hintergrund (Modern)"
 
 msgctxt "#32104"
 msgid "Background color of the Modern overlay style."
 msgstr "Hintergrundfarbe des modernen Overlay-Stils."
 
 msgctxt "#32105"
-msgid "Title color"
-msgstr "Titelfarbe"
+msgid "Title"
+msgstr "Titel"
 
 msgctxt "#32106"
 msgid "Color of the section titles."
 msgstr "Farbe der Abschnittstitel."
 
 msgctxt "#32107"
-msgid "Description color"
-msgstr "Beschreibungsfarbe"
+msgid "Description"
+msgstr "Beschreibung"
 
 msgctxt "#32108"
 msgid "Color of the label descriptions."
 msgstr "Farbe der Beschreibungstexte."
 
 msgctxt "#32109"
-msgid "Output color"
-msgstr "Ausgabefarbe"
+msgid "Output"
+msgstr "Ausgabe"
 
 msgctxt "#32110"
 msgid "Color of the output values."
 msgstr "Farbe der Ausgabewerte."
 
 msgctxt "#32111"
-msgid "Progress bar color"
-msgstr "Fortschrittsbalkenfarbe"
+msgid "Progress bar"
+msgstr "Fortschrittsbalken"
 
 msgctxt "#32112"
 msgid "Color of the progress bars."
 msgstr "Farbe der Fortschrittsbalken."
 
 msgctxt "#32113"
-msgid "Detail color"
-msgstr "Detailfarbe"
+msgid "Detail"
+msgstr "Detail"
 
 msgctxt "#32114"
 msgid "Color of the dimmed detail values shown in parentheses."
 msgstr "Farbe der gedimmten Detailwerte in Klammern."
 
 msgctxt "#32115"
-msgid "Icon color"
-msgstr "Symbolfarbe"
+msgid "Icon"
+msgstr "Symbol"
 
 msgctxt "#32116"
 msgid "Color of the section icons."
 msgstr "Farbe der Abschnittssymbole."
 
 msgctxt "#32117"
-msgid "Unit color (cd/m²)"
-msgstr "Einheitenfarbe (cd/m²)"
+msgid "Unit (cd/m², nits)"
+msgstr "Einheit (cd/m², nits)"
 
 msgctxt "#32118"
 msgid "Color of the cd/m² brightness unit."
@@ -392,24 +392,24 @@ msgid "Dark gray"
 msgstr "[COLOR=FF444444]●[/COLOR] Dunkelgrau"
 
 msgctxt "#32140"
-msgid "FPS color"
-msgstr "FPS-Farbe"
+msgid "FPS"
+msgstr "FPS"
 
 msgctxt "#32141"
 msgid "Color of the In / drop / out FPS values."
 msgstr "Farbe der FPS-Werte (In / Drop / Out)."
 
 msgctxt "#32142"
-msgid "Header color"
-msgstr "Kopfzeilenfarbe"
+msgid "Header"
+msgstr "Kopfzeile"
 
 msgctxt "#32143"
 msgid "Color of the overlay header label (Modern)."
 msgstr "Farbe der Overlay-Kopfzeile (Modern)."
 
 msgctxt "#32144"
-msgid "Chart icon color"
-msgstr "Diagrammsymbolfarbe"
+msgid "Chart icon"
+msgstr "Diagrammsymbol"
 
 msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
@@ -616,8 +616,8 @@ msgid "Show the L5 offsets icon (lrtb) next to the L5 values."
 msgstr "Zeigt das L5-Offsets-Symbol (lrtb) neben den L5-Werten an."
 
 msgctxt "#32197"
-msgid "File name color"
-msgstr "Dateinamen-Farbe"
+msgid "File name"
+msgstr "Dateiname"
 
 msgctxt "#32198"
 msgid "Color of the playing file name."
@@ -806,6 +806,10 @@ msgstr "Ungültige HEX-Farbe – Standardfarbe wird verwendet"
 msgctxt "#32245"
 msgid "Custom color applied"
 msgstr "Benutzerdefinierte Farbe übernommen"
+
+msgctxt "#32246"
+msgid "Color selection"
+msgstr "Farbauswahl"
 
 msgctxt "#32250"
 msgid "Custom background color"
