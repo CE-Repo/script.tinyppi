@@ -56,8 +56,8 @@ msgid "Hide the gradient background in the classic TinyPPI style."
 msgstr "Blendet den Verlaufshintergrund im klassischen TinyPPI-Stil aus."
 
 msgctxt "#32012"
-msgid "720p skins are not supported"
-msgstr "720p-Skins werden nicht unterstützt"
+msgid "Only 1080 skins are supported"
+msgstr "Nur 1080-Skins werden unterstützt"
 
 msgctxt "#32013"
 msgid "Playback time"
