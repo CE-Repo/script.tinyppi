@@ -161,7 +161,7 @@
 					<control type="image">
 						<width>36</width>
 						<height>36</height>
-						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.ChartColor)]">icons/chart.png</texture>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.HeaderIconColor)]">icons/chart.png</texture>
 					</control>
 				</control>
 

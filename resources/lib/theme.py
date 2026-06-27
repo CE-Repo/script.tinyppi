@@ -257,7 +257,7 @@ _COLOR_SETTINGS = (
     "filename_color",
     "header_color",
     "icon_color",
-    "chart_color",
+    "header_icon_color",
     "description_color",
     "output_color",
     "fps_color",
@@ -376,7 +376,7 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
     home.setProperty("TinyPPI.FilenameColor",    _resolve(_TEXT_COLORS, addon, "filename_color", custom, overrides))
     home.setProperty("TinyPPI.IconColor",        _resolve(_TEXT_COLORS, addon, "icon_color", custom, overrides))
     home.setProperty("TinyPPI.HeaderColor",      _resolve(_TEXT_COLORS, addon, "header_color", custom, overrides))
-    home.setProperty("TinyPPI.ChartColor",       _resolve(_TEXT_COLORS, addon, "chart_color", custom, overrides))
+    home.setProperty("TinyPPI.HeaderIconColor",  _resolve(_TEXT_COLORS, addon, "header_icon_color", custom, overrides))
     home.setProperty("TinyPPI.DescriptionColor", _resolve(_TEXT_COLORS, addon, "description_color", custom, overrides))
     home.setProperty("TinyPPI.OutputColor",      _resolve(_TEXT_COLORS, addon, "output_color", custom, overrides))
     home.setProperty("TinyPPI.ProgressColor",    _resolve(_TEXT_COLORS, addon, "progress_color", custom, overrides))

@@ -408,8 +408,8 @@ msgid "Color of the overlay header label (Modern)."
 msgstr "Farbe der Overlay-Kopfzeile (Modern)."
 
 msgctxt "#32144"
-msgid "Chart icon"
-msgstr "Diagrammsymbol"
+msgid "Header icon"
+msgstr "Kopfzeilensymbol"
 
 msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."

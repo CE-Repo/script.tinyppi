@@ -408,7 +408,7 @@ msgid "Color of the overlay header label (Modern)."
 msgstr ""
 
 msgctxt "#32144"
-msgid "Chart icon"
+msgid "Header icon"
 msgstr ""
 
 msgctxt "#32145"

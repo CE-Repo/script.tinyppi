@@ -19,7 +19,7 @@
                 <width>23</width>
                 <height>546</height>
                 <control type="image">
-                    <texture colordiffuse="FA15181A">background/vs-dialog-start.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/vs-dialog-start.png</texture>
                 </control>
             </control>
             <control type="image">
@@ -27,7 +27,7 @@
                 <top>0</top>
                 <width>425</width>
                 <height>546</height>
-                <texture colordiffuse="FA15181A">background/modern-middle.png</texture>
+                <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/modern-middle.png</texture>
             </control>
             <control type="group">
                 <left>448</left>
@@ -35,7 +35,7 @@
                 <width>23</width>
                 <height>546</height>
                 <control type="image">
-                    <texture colordiffuse="FA15181A">background/vs-dialog-end.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/vs-dialog-end.png</texture>
                 </control>
             </control>
 
@@ -46,7 +46,7 @@
                 <control type="label">
                     <label>VS10</label>
                     <font>font32</font>
-                    <textcolor>E7EDEDED</textcolor>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.HeaderColor)]</textcolor>
                     <aligny>top</aligny>
                 </control>
             </control>
@@ -58,7 +58,7 @@
                 <control type="image">
                     <width>36</width>
                     <height>36</height>
-                    <texture colordiffuse="E7EDEDED">icons/vs10.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.HeaderIconColor)]">icons/vs10.png</texture>
                 </control>
             </control>
 
@@ -69,7 +69,7 @@
                 <control type="image">
                     <width>400</width>
                     <height>1</height>
-                    <texture colordiffuse="26808080">common/dot-1x1.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
                 </control>
             </control>
             <control type="group">
@@ -78,7 +78,7 @@
                 <control type="image">
                     <width>400</width>
                     <height>1</height>
-                    <texture colordiffuse="26808080">common/dot-1x1.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
                 </control>
             </control>
 
@@ -91,8 +91,8 @@
                 <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
                 <align>center</align>
                 <font>font23_narrow</font>
-                <textcolor>b3ededed</textcolor>
-                <selectedcolor>b3ededed</selectedcolor>
+                <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
                 <focusedcolor>FF000000</focusedcolor>
                 <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                 <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
@@ -111,8 +111,8 @@
                     <label>[B]Original[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
-                    <textcolor>b3ededed</textcolor>
-                    <selectedcolor>b3ededed</selectedcolor>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                    <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
                     <focusedcolor>FF000000</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                     <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
@@ -127,8 +127,8 @@
                     <label>[B]SDR -> HDR10[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
-                    <textcolor>b3ededed</textcolor>
-                    <selectedcolor>b3ededed</selectedcolor>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                    <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
                     <focusedcolor>FF000000</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                     <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
@@ -143,8 +143,8 @@
                     <label>[B]SDR -> Dolby Vision[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
-                    <textcolor>b3ededed</textcolor>
-                    <selectedcolor>b3ededed</selectedcolor>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                    <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
                     <focusedcolor>FF000000</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                     <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
@@ -164,8 +164,8 @@
                     <label>[B]HDR10 (Original)[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
-                    <textcolor>b3ededed</textcolor>
-                    <selectedcolor>b3ededed</selectedcolor>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                    <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
                     <focusedcolor>FF000000</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                     <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
@@ -180,8 +180,8 @@
                     <label>[B]HDR10 -> SDR[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
-                    <textcolor>b3ededed</textcolor>
-                    <selectedcolor>b3ededed</selectedcolor>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                    <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
                     <focusedcolor>FF000000</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                     <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
@@ -196,8 +196,8 @@
                     <label>[B]HDR10 -> Dolby Vision[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
-                    <textcolor>b3ededed</textcolor>
-                    <selectedcolor>b3ededed</selectedcolor>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                    <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
                     <focusedcolor>FF000000</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                     <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
@@ -217,8 +217,8 @@
                     <label>[B]Dolby Vision (Original)[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
-                    <textcolor>b3ededed</textcolor>
-                    <selectedcolor>b3ededed</selectedcolor>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                    <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
                     <focusedcolor>FF000000</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                     <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>
@@ -233,8 +233,8 @@
                     <label>[B]Dolby Vision -> SDR[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
-                    <textcolor>b3ededed</textcolor>
-                    <selectedcolor>b3ededed</selectedcolor>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                    <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
                     <focusedcolor>FF000000</focusedcolor>
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                     <texturefocus colordiffuse="FFFFFFFF" border="40">common/button-white.png</texturefocus>

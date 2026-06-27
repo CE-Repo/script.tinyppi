@@ -462,7 +462,7 @@
                 </setting>
             </group>
             <group id="6" label="32246">
-                <setting id="chart_color" type="integer" label="32144" help="32145">
+                <setting id="header_icon_color" type="integer" label="32144" help="32145">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -522,18 +522,18 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="chart_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="header_icon_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="chart_color">999</condition>
+                            <condition operator="is" setting="header_icon_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,chart_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,header_icon_color)</data>
                     </control>
                 </setting>
             </group>

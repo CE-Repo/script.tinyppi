@@ -408,8 +408,8 @@ msgid "Color of the overlay header label (Modern)."
 msgstr "叠加层标题栏的颜色 (Modern)。"
 
 msgctxt "#32144"
-msgid "Chart icon"
-msgstr "图表图标"
+msgid "Header icon"
+msgstr "标题图标"
 
 msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
