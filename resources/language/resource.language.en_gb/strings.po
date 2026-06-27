@@ -773,7 +773,7 @@ msgstr ""
 
 msgctxt "#32240"
 msgid "Custom"
-msgstr "Custom"
+msgstr ""
 
 msgctxt "#32241"
 msgid "HEX color"
