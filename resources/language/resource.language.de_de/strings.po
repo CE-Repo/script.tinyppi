@@ -415,18 +415,6 @@ msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
 msgstr "Farbe des Diagrammsymbols (Modern)."
 
-msgctxt "#32146"
-msgid "Reset colors to defaults"
-msgstr "Farben auf Standard zurücksetzen"
-
-msgctxt "#32147"
-msgid "Reset all theme colors to their default values."
-msgstr "Setzt alle Design-Farben auf ihre Standardwerte zurück."
-
-msgctxt "#32148"
-msgid "Colors reset to defaults"
-msgstr "Farben auf Standard zurückgesetzt"
-
 msgctxt "#32150"
 msgid "Coral"
 msgstr "[COLOR=FFFF8A65]●[/COLOR] Koralle"
@@ -810,18 +798,6 @@ msgstr "Benutzerdefinierte Farbe übernommen"
 msgctxt "#32246"
 msgid "Color selection"
 msgstr "Farbauswahl"
-
-msgctxt "#32247"
-msgid "Reset settings to defaults"
-msgstr "Einstellungen auf Standard zurücksetzen"
-
-msgctxt "#32248"
-msgid "Reset all add-on settings to their default values."
-msgstr "Setzt alle Add-on-Einstellungen auf ihre Standardwerte zurück."
-
-msgctxt "#32249"
-msgid "Settings reset to defaults"
-msgstr "Einstellungen auf Standard zurückgesetzt"
 
 msgctxt "#32250"
 msgid "Custom"

@@ -415,18 +415,6 @@ msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
 msgstr ""
 
-msgctxt "#32146"
-msgid "Reset colors to defaults"
-msgstr ""
-
-msgctxt "#32147"
-msgid "Reset all theme colors to their default values."
-msgstr ""
-
-msgctxt "#32148"
-msgid "Colors reset to defaults"
-msgstr ""
-
 msgctxt "#32150"
 msgid "Coral"
 msgstr "[COLOR=FFFF8A65]●[/COLOR] Coral"
@@ -809,18 +797,6 @@ msgstr ""
 
 msgctxt "#32246"
 msgid "Color selection"
-msgstr ""
-
-msgctxt "#32247"
-msgid "Reset settings to defaults"
-msgstr ""
-
-msgctxt "#32248"
-msgid "Reset all add-on settings to their default values."
-msgstr ""
-
-msgctxt "#32249"
-msgid "Settings reset to defaults"
 msgstr ""
 
 msgctxt "#32250"

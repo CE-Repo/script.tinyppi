@@ -264,27 +264,6 @@ _UNIT_LABELS = (
 )
 
 
-# All color settings managed on the Theme category, used by reset_colors().
-# Their <default> in resources/settings.xml is 0, so resetting means "0".
-_COLOR_SETTINGS = (
-    "background_color",
-    "title_color",
-    "filename_color",
-    "header_color",
-    "icon_color",
-    "header_icon_color",
-    "description_color",
-    "output_color",
-    "fps_color",
-    "progress_color",
-    "accent_color",
-    "unit_color",
-    "line_color",
-    "dialog_focus_color",
-    "dialog_focus_text_color",
-)
-
-
 # Setting value (option) that marks a color as a user-defined custom HEX value.
 # The integer color setting is set to this option so the list shows
 # "Benutzerdefiniert"; the actual 8-digit ARGB hex is stored in the JSON file
@@ -405,35 +384,6 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
     home.setProperty("TinyPPI.LineColor",        _resolve(_LINE_COLORS, addon, "line_color", custom, overrides))
     home.setProperty("TinyPPI.DialogFocusColor",     _resolve(_DIALOG_FOCUS_COLORS, addon, "dialog_focus_color", custom, overrides))
     home.setProperty("TinyPPI.DialogFocusTextColor", _resolve(_DIALOG_FOCUS_TEXT_COLORS, addon, "dialog_focus_text_color", custom, overrides))
-
-
-def reset_colors(addon=None) -> None:
-    """
-    Reset every Theme color setting back to its default (index 0) and confirm
-    with a notification.  Invoked from the settings dialog via
-    ``RunScript(script.tinyppi,reset_colors)``.
-    """
-    addon = addon or xbmcaddon.Addon()
-
-    for setting_id in _COLOR_SETTINGS:
-        addon.setSetting(setting_id, "0")
-        addon.setSetting(setting_id + _CUSTOM_BTN_SUFFIX, "")  # clear swatch preview
-
-    _save_custom({})  # drop every stored custom HEX value
-
-    # Re-publish properties so an overlay that is already open updates too.
-    overrides = {setting_id: "0" for setting_id in _COLOR_SETTINGS}
-    try:
-        apply_theme(xbmcgui.Window(10000), addon, overrides=overrides, custom={})
-    except Exception:  # pragma: no cover - best effort, never block the reset
-        pass
-
-    xbmcgui.Dialog().notification(
-        addon.getAddonInfo("name"),
-        addon.getLocalizedString(32148),
-        xbmcgui.NOTIFICATION_INFO,
-        3000,
-    )
 
 
 def custom_color(setting_id, addon=None) -> None:

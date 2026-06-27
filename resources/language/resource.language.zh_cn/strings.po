@@ -415,18 +415,6 @@ msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
 msgstr "图表图标的颜色 (Modern)。"
 
-msgctxt "#32146"
-msgid "Reset colors to defaults"
-msgstr "将颜色重置为默认值"
-
-msgctxt "#32147"
-msgid "Reset all theme colors to their default values."
-msgstr "将所有主题颜色重置为默认值。"
-
-msgctxt "#32148"
-msgid "Colors reset to defaults"
-msgstr "颜色已重置为默认值"
-
 msgctxt "#32150"
 msgid "Coral"
 msgstr "[COLOR=FFFF8A65]●[/COLOR] 珊瑚色"
@@ -810,18 +798,6 @@ msgstr "已应用自定义颜色"
 msgctxt "#32246"
 msgid "Color selection"
 msgstr "颜色选择"
-
-msgctxt "#32247"
-msgid "Reset settings to defaults"
-msgstr "将设置重置为默认值"
-
-msgctxt "#32248"
-msgid "Reset all add-on settings to their default values."
-msgstr "将所有插件设置重置为默认值。"
-
-msgctxt "#32249"
-msgid "Settings reset to defaults"
-msgstr "设置已重置为默认值"
 
 msgctxt "#32250"
 msgid "Custom"
