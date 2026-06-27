@@ -17,9 +17,9 @@ polling loop in overlay.py never blocks.  The results are published through
 the Dolby Vision properties in properties.py.  CoreELEC only.
 
 Bundle the dovi_tool binary at:
-    resources/bin/aarch64/dovi_tool
-DV-capable Amlogic SoCs (S905X2/X4/X5, S922X) are all 64-bit, so aarch64
-covers every realistic target.
+    resources/tools/dovi/dovi_tool
+The bundled binary is an aarch64 build; DV-capable Amlogic SoCs
+(S905X2/X4/X5, S922X) are all 64-bit, so it covers every realistic target.
 """
 
 import os
@@ -184,8 +184,7 @@ def reset_playback_cache() -> None:
 
 def _dovi_tool() -> str:
     """Return the bundled dovi_tool path, restoring the exec bit if needed."""
-    arch = "aarch64"
-    path = os.path.join(_ADDON_PATH, "resources", "bin", arch, "dovi_tool")
+    path = os.path.join(_ADDON_PATH, "resources", "tools", "dovi", "dovi_tool")
     if os.path.exists(path) and not os.access(path, os.X_OK):
         # The executable bit is frequently lost when an addon is packaged as a
         # zip and unpacked on install; restore it defensively.

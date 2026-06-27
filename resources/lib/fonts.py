@@ -29,7 +29,7 @@ _REQUIRED_FONTS = (
     {"name": "font32",        "filename": "Inter-Bold.ttf",    "size": "32"},
 )
 
-_ADDON_FONTS_DIR = os.path.normpath(os.path.join(_ADDON_DIR, "fonts"))
+_ADDON_FONTS_DIR = os.path.normpath(os.path.join(_ADDON_DIR, "resources", "tools", "fonts"))
 
 # Kodi skin resolution folder names, e.g. "720p", "1080i", "1080p", "480p".
 _RES_FOLDER_RE = re.compile(r"^\d{3,4}[ip]$")
