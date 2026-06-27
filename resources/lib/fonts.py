@@ -135,12 +135,20 @@ def fonts_already_installed(skin_path: str) -> bool:
         _log(f"XML parse error: {exc}", xbmc.LOGERROR)
         return False
 
-    registered = _registered_fonts(xml_root)
+    # Every fontset must carry all required fonts, not just the first one.
+    fontsets = xml_root.findall("fontset")
+    if not fontsets:
+        return False
 
-    for font_spec in _REQUIRED_FONTS:
-        if (font_spec["name"], font_spec["filename"]) not in registered:
-            _log(f"XML entry missing: {font_spec['name']}")
-            return False
+    for fontset in fontsets:
+        registered = _registered_fonts(fontset)
+        for font_spec in _REQUIRED_FONTS:
+            if (font_spec["name"], font_spec["filename"]) not in registered:
+                _log(
+                    f"XML entry missing: {font_spec['name']} "
+                    f'in fontset "{fontset.get("id", "?")}"'
+                )
+                return False
 
     ttf_dest_dir = _find_ttf_dir(skin_path)
     if not ttf_dest_dir:
@@ -170,7 +178,6 @@ def _install_xml(skin_path: str) -> bool:
 
     tree     = ET.parse(font_xml_path)
     xml_root = tree.getroot()
-    registered = _registered_fonts(xml_root)
     modified = False
 
     for fontset in xml_root.findall("fontset"):
@@ -180,6 +187,10 @@ def _install_xml(skin_path: str) -> bool:
         insert_idx = (list(fontset).index(include_el) + 1
                       if include_el is not None
                       else len(list(fontset)))
+
+        # Check against this fontset's own entries so every fontset is filled,
+        # not just the first one.
+        registered = _registered_fonts(fontset)
 
         _log(f'Editing fontset "{fset_id}", insert index: {insert_idx}')
 
