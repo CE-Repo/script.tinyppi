@@ -35,7 +35,7 @@
 						<width>1145</width>
 						<label>$INFO[Player.Filename]</label>
 						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.FilenameColor)]</textcolor>
 						<align>center</align>
 						<scroll>true</scroll>
 						<scrollspeed>30</scrollspeed>
@@ -129,7 +129,7 @@
 						<width>1155</width>
 						<label>$INFO[Player.Filename]</label>
 						<font>font23_narrow</font>
-						<textcolor>E7EDEDED</textcolor>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.FilenameColor)]</textcolor>
 						<align>center</align>
 						<scroll>true</scroll>
 						<scrollspeed>30</scrollspeed>

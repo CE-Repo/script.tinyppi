@@ -132,6 +132,7 @@ _UNIT_LABELS = (
 _COLOR_SETTINGS = (
     "background_color",
     "title_color",
+    "filename_color",
     "header_color",
     "icon_color",
     "chart_color",
@@ -162,6 +163,7 @@ def apply_theme(home, addon=None) -> None:
     addon = addon or xbmcaddon.Addon()
 
     home.setProperty("TinyPPI.TitleColor",       _pick(_TEXT_COLORS, addon.getSetting("title_color")))
+    home.setProperty("TinyPPI.FilenameColor",    _pick(_TEXT_COLORS, addon.getSetting("filename_color")))
     home.setProperty("TinyPPI.IconColor",        _pick(_TEXT_COLORS, addon.getSetting("icon_color")))
     home.setProperty("TinyPPI.HeaderColor",      _pick(_TEXT_COLORS, addon.getSetting("header_color")))
     home.setProperty("TinyPPI.ChartColor",       _pick(_TEXT_COLORS, addon.getSetting("chart_color")))

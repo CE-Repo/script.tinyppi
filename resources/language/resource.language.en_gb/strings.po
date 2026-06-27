@@ -614,3 +614,11 @@ msgstr ""
 msgctxt "#32196"
 msgid "Show the L5 offsets icon (lrtb) next to the L5 values."
 msgstr ""
+
+msgctxt "#32197"
+msgid "File name color"
+msgstr ""
+
+msgctxt "#32198"
+msgid "Color of the playing file name."
+msgstr ""

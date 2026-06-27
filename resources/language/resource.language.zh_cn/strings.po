@@ -614,3 +614,11 @@ msgstr "显示 L5 偏移图标"
 msgctxt "#32196"
 msgid "Show the L5 offsets icon (lrtb) next to the L5 values."
 msgstr "在 L5 数值旁显示 L5 偏移图标 (lrtb)。"
+
+msgctxt "#32197"
+msgid "File name color"
+msgstr "文件名颜色"
+
+msgctxt "#32198"
+msgid "Color of the playing file name."
+msgstr "正在播放的文件名的颜色。"
