@@ -789,7 +789,7 @@ msgstr "自定义"
 
 msgctxt "#32241"
 msgid "HEX color"
-msgstr "HEX 颜色："
+msgstr "HEX 颜色"
 
 msgctxt "#32242"
 msgid "Enter your own 6-digit HEX color using the keyboard."
