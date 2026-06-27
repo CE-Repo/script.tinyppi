@@ -876,9 +876,7 @@
                 <setting id="reset_colors" type="action" label="32146" help="32147">
                     <level>0</level>
                     <data>RunScript(script.tinyppi,reset_colors)</data>
-                    <control type="button" format="action">
-                        <close>true</close>
-                    </control>
+                    <control type="button" format="action" />
                 </setting>
             </group>
         </category>
