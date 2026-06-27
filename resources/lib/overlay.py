@@ -279,6 +279,7 @@ def open_dialog_mode() -> None:
     home.setProperty(_PROP_RUNNING, "true")
     home.setProperty(_PROP_ACTIVE,  "true")
     home.setProperty("TinyPPI.DialogMode", "true")
+    apply_theme(home, _ADDON)
 
     try:
         from mode_select import open_dialog
