@@ -788,89 +788,41 @@ msgid "Custom"
 msgstr "Custom"
 
 msgctxt "#32241"
-msgid "Custom HEX color…"
-msgstr "Custom HEX color…"
+msgid "HEX color"
+msgstr ""
 
 msgctxt "#32242"
 msgid "Enter your own 6-digit HEX color using the keyboard."
-msgstr "Enter your own 6-digit HEX color using the keyboard."
+msgstr ""
 
 msgctxt "#32243"
 msgid "Enter a 6-digit HEX color (e.g. FF5733)"
-msgstr "Enter a 6-digit HEX color (e.g. FF5733)"
+msgstr ""
 
 msgctxt "#32244"
 msgid "Invalid HEX color – using the default color"
-msgstr "Invalid HEX color – using the default color"
+msgstr ""
 
 msgctxt "#32245"
 msgid "Custom color applied"
-msgstr "Custom color applied"
+msgstr ""
 
 msgctxt "#32246"
 msgid "Color selection"
-msgstr "Color selection"
+msgstr ""
 
 msgctxt "#32247"
 msgid "Reset settings to defaults"
-msgstr "Reset settings to defaults"
+msgstr ""
 
 msgctxt "#32248"
 msgid "Reset all add-on settings to their default values."
-msgstr "Reset all add-on settings to their default values."
+msgstr ""
 
 msgctxt "#32249"
 msgid "Settings reset to defaults"
-msgstr "Settings reset to defaults"
+msgstr ""
 
 msgctxt "#32250"
 msgid "Custom"
-msgstr "Custom"
-
-msgctxt "#32262"
-msgid "Custom HEX background color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.BackgroundColorSwatch)]]●[/COLOR] Custom HEX color…"
-
-msgctxt "#32263"
-msgid "Custom HEX title color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.TitleColorSwatch)]]●[/COLOR] Custom HEX color…"
-
-msgctxt "#32264"
-msgid "Custom HEX file name color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.FilenameColorSwatch)]]●[/COLOR] Custom HEX color…"
-
-msgctxt "#32265"
-msgid "Custom HEX header color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.HeaderColorSwatch)]]●[/COLOR] Custom HEX color…"
-
-msgctxt "#32266"
-msgid "Custom HEX icon color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.IconColorSwatch)]]●[/COLOR] Custom HEX color…"
-
-msgctxt "#32267"
-msgid "Custom HEX chart icon color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.ChartColorSwatch)]]●[/COLOR] Custom HEX color…"
-
-msgctxt "#32268"
-msgid "Custom HEX description color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.DescriptionColorSwatch)]]●[/COLOR] Custom HEX color…"
-
-msgctxt "#32269"
-msgid "Custom HEX output color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.OutputColorSwatch)]]●[/COLOR] Custom HEX color…"
-
-msgctxt "#32270"
-msgid "Custom HEX FPS color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.FpsColorSwatch)]]●[/COLOR] Custom HEX color…"
-
-msgctxt "#32271"
-msgid "Custom HEX progress bar color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.ProgressColorSwatch)]]●[/COLOR] Custom HEX color…"
-
-msgctxt "#32272"
-msgid "Custom HEX detail color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.AccentColorSwatch)]]●[/COLOR] Custom HEX color…"
-
-msgctxt "#32273"
-msgid "Custom HEX unit color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.UnitColorSwatch)]]●[/COLOR] Custom HEX color…"
+msgstr ""

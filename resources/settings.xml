@@ -75,7 +75,6 @@
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32250">999</option>
                             <option label="32130">0</option>
                             <option label="32131">1</option>
                             <option label="32132">2</option>
@@ -126,6 +125,7 @@
                             <option label="32237">47</option>
                             <option label="32238">48</option>
                             <option label="32239">49</option>
+                            <option label="32250">999</option>
                         </options>
                     </constraints>
                     <dependencies>
@@ -135,16 +135,20 @@
                     </dependencies>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="background_color_custom_btn" type="action" label="32262" help="32242">
+                <setting id="background_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
-                    <data>RunScript(script.tinyppi,custom_color,background_color)</data>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="ui_style">1</condition>
                             <condition operator="is" setting="background_color">999</condition>
                         </dependency>
                     </dependencies>
-                    <control type="button" format="action" />
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,background_color)</data>
+                    </control>
                 </setting>
             </group>
             <group id="2" label="32246">
@@ -153,7 +157,6 @@
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32250">999</option>
                             <option label="32120">0</option>
                             <option label="32121">1</option>
                             <option label="32122">2</option>
@@ -204,19 +207,24 @@
                             <option label="32217">47</option>
                             <option label="32218">48</option>
                             <option label="32219">49</option>
+                            <option label="32250">999</option>
                         </options>
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="title_color_custom_btn" type="action" label="32263" help="32242">
+                <setting id="title_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
-                    <data>RunScript(script.tinyppi,custom_color,title_color)</data>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="title_color">999</condition>
                         </dependency>
                     </dependencies>
-                    <control type="button" format="action" />
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,title_color)</data>
+                    </control>
                 </setting>
             </group>
             <group id="3" label="32246">
@@ -225,7 +233,6 @@
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32250">999</option>
                             <option label="32120">0</option>
                             <option label="32121">1</option>
                             <option label="32122">2</option>
@@ -276,6 +283,7 @@
                             <option label="32217">47</option>
                             <option label="32218">48</option>
                             <option label="32219">49</option>
+                            <option label="32250">999</option>
                         </options>
                     </constraints>
                     <dependencies>
@@ -285,16 +293,20 @@
                     </dependencies>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="filename_color_custom_btn" type="action" label="32264" help="32242">
+                <setting id="filename_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
-                    <data>RunScript(script.tinyppi,custom_color,filename_color)</data>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="filename">true</condition>
                             <condition operator="is" setting="filename_color">999</condition>
                         </dependency>
                     </dependencies>
-                    <control type="button" format="action" />
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,filename_color)</data>
+                    </control>
                 </setting>
             </group>
             <group id="4" label="32246">
@@ -303,7 +315,6 @@
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32250">999</option>
                             <option label="32120">0</option>
                             <option label="32121">1</option>
                             <option label="32122">2</option>
@@ -354,19 +365,24 @@
                             <option label="32217">47</option>
                             <option label="32218">48</option>
                             <option label="32219">49</option>
+                            <option label="32250">999</option>
                         </options>
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="header_color_custom_btn" type="action" label="32265" help="32242">
+                <setting id="header_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
-                    <data>RunScript(script.tinyppi,custom_color,header_color)</data>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="header_color">999</condition>
                         </dependency>
                     </dependencies>
-                    <control type="button" format="action" />
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,header_color)</data>
+                    </control>
                 </setting>
             </group>
             <group id="5" label="32246">
@@ -375,7 +391,6 @@
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32250">999</option>
                             <option label="32120">0</option>
                             <option label="32121">1</option>
                             <option label="32122">2</option>
@@ -426,19 +441,24 @@
                             <option label="32217">47</option>
                             <option label="32218">48</option>
                             <option label="32219">49</option>
+                            <option label="32250">999</option>
                         </options>
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="icon_color_custom_btn" type="action" label="32266" help="32242">
+                <setting id="icon_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
-                    <data>RunScript(script.tinyppi,custom_color,icon_color)</data>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="icon_color">999</condition>
                         </dependency>
                     </dependencies>
-                    <control type="button" format="action" />
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,icon_color)</data>
+                    </control>
                 </setting>
             </group>
             <group id="6" label="32246">
@@ -447,7 +467,6 @@
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32250">999</option>
                             <option label="32120">0</option>
                             <option label="32121">1</option>
                             <option label="32122">2</option>
@@ -498,19 +517,24 @@
                             <option label="32217">47</option>
                             <option label="32218">48</option>
                             <option label="32219">49</option>
+                            <option label="32250">999</option>
                         </options>
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="chart_color_custom_btn" type="action" label="32267" help="32242">
+                <setting id="chart_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
-                    <data>RunScript(script.tinyppi,custom_color,chart_color)</data>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="chart_color">999</condition>
                         </dependency>
                     </dependencies>
-                    <control type="button" format="action" />
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,chart_color)</data>
+                    </control>
                 </setting>
             </group>
             <group id="7" label="32246">
@@ -519,7 +543,6 @@
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32250">999</option>
                             <option label="32120">0</option>
                             <option label="32121">1</option>
                             <option label="32122">2</option>
@@ -570,19 +593,24 @@
                             <option label="32217">47</option>
                             <option label="32218">48</option>
                             <option label="32219">49</option>
+                            <option label="32250">999</option>
                         </options>
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="description_color_custom_btn" type="action" label="32268" help="32242">
+                <setting id="description_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
-                    <data>RunScript(script.tinyppi,custom_color,description_color)</data>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="description_color">999</condition>
                         </dependency>
                     </dependencies>
-                    <control type="button" format="action" />
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,description_color)</data>
+                    </control>
                 </setting>
             </group>
             <group id="8" label="32246">
@@ -591,7 +619,6 @@
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32250">999</option>
                             <option label="32120">0</option>
                             <option label="32121">1</option>
                             <option label="32122">2</option>
@@ -642,19 +669,24 @@
                             <option label="32217">47</option>
                             <option label="32218">48</option>
                             <option label="32219">49</option>
+                            <option label="32250">999</option>
                         </options>
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="output_color_custom_btn" type="action" label="32269" help="32242">
+                <setting id="output_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
-                    <data>RunScript(script.tinyppi,custom_color,output_color)</data>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="output_color">999</condition>
                         </dependency>
                     </dependencies>
-                    <control type="button" format="action" />
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,output_color)</data>
+                    </control>
                 </setting>
             </group>
             <group id="9" label="32246">
@@ -663,7 +695,6 @@
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32250">999</option>
                             <option label="32120">0</option>
                             <option label="32121">1</option>
                             <option label="32122">2</option>
@@ -714,19 +745,24 @@
                             <option label="32217">47</option>
                             <option label="32218">48</option>
                             <option label="32219">49</option>
+                            <option label="32250">999</option>
                         </options>
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="fps_color_custom_btn" type="action" label="32270" help="32242">
+                <setting id="fps_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
-                    <data>RunScript(script.tinyppi,custom_color,fps_color)</data>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="fps_color">999</condition>
                         </dependency>
                     </dependencies>
-                    <control type="button" format="action" />
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,fps_color)</data>
+                    </control>
                 </setting>
             </group>
             <group id="10" label="32246">
@@ -735,7 +771,6 @@
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32250">999</option>
                             <option label="32120">0</option>
                             <option label="32121">1</option>
                             <option label="32122">2</option>
@@ -786,19 +821,24 @@
                             <option label="32217">47</option>
                             <option label="32218">48</option>
                             <option label="32219">49</option>
+                            <option label="32250">999</option>
                         </options>
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="progress_color_custom_btn" type="action" label="32271" help="32242">
+                <setting id="progress_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
-                    <data>RunScript(script.tinyppi,custom_color,progress_color)</data>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="progress_color">999</condition>
                         </dependency>
                     </dependencies>
-                    <control type="button" format="action" />
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,progress_color)</data>
+                    </control>
                 </setting>
             </group>
             <group id="11" label="32246">
@@ -807,7 +847,6 @@
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32250">999</option>
                             <option label="32120">0</option>
                             <option label="32121">1</option>
                             <option label="32122">2</option>
@@ -858,19 +897,24 @@
                             <option label="32217">47</option>
                             <option label="32218">48</option>
                             <option label="32219">49</option>
+                            <option label="32250">999</option>
                         </options>
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="accent_color_custom_btn" type="action" label="32272" help="32242">
+                <setting id="accent_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
-                    <data>RunScript(script.tinyppi,custom_color,accent_color)</data>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="accent_color">999</condition>
                         </dependency>
                     </dependencies>
-                    <control type="button" format="action" />
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,accent_color)</data>
+                    </control>
                 </setting>
             </group>
             <group id="12" label="32246">
@@ -879,7 +923,6 @@
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32250">999</option>
                             <option label="32120">0</option>
                             <option label="32121">1</option>
                             <option label="32122">2</option>
@@ -930,6 +973,7 @@
                             <option label="32217">47</option>
                             <option label="32218">48</option>
                             <option label="32219">49</option>
+                            <option label="32250">999</option>
                         </options>
                     </constraints>
                     <dependencies>
@@ -939,16 +983,20 @@
                     </dependencies>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="unit_color_custom_btn" type="action" label="32273" help="32242">
+                <setting id="unit_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
-                    <data>RunScript(script.tinyppi,custom_color,unit_color)</data>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="!is" setting="unit_type">2</condition>
                             <condition operator="is" setting="unit_color">999</condition>
                         </dependency>
                     </dependencies>
-                    <control type="button" format="action" />
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,unit_color)</data>
+                    </control>
                 </setting>
             </group>
             <group id="13" label="32146">

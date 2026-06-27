@@ -788,8 +788,8 @@ msgid "Custom"
 msgstr "自定义"
 
 msgctxt "#32241"
-msgid "Custom HEX color…"
-msgstr "自定义 HEX 颜色…"
+msgid "HEX color"
+msgstr "HEX 颜色："
 
 msgctxt "#32242"
 msgid "Enter your own 6-digit HEX color using the keyboard."
@@ -826,51 +826,3 @@ msgstr "设置已重置为默认值"
 msgctxt "#32250"
 msgid "Custom"
 msgstr "自定义"
-
-msgctxt "#32262"
-msgid "Custom HEX background color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.BackgroundColorSwatch)]]●[/COLOR] 自定义 HEX 颜色…"
-
-msgctxt "#32263"
-msgid "Custom HEX title color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.TitleColorSwatch)]]●[/COLOR] 自定义 HEX 颜色…"
-
-msgctxt "#32264"
-msgid "Custom HEX file name color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.FilenameColorSwatch)]]●[/COLOR] 自定义 HEX 颜色…"
-
-msgctxt "#32265"
-msgid "Custom HEX header color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.HeaderColorSwatch)]]●[/COLOR] 自定义 HEX 颜色…"
-
-msgctxt "#32266"
-msgid "Custom HEX icon color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.IconColorSwatch)]]●[/COLOR] 自定义 HEX 颜色…"
-
-msgctxt "#32267"
-msgid "Custom HEX chart icon color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.ChartColorSwatch)]]●[/COLOR] 自定义 HEX 颜色…"
-
-msgctxt "#32268"
-msgid "Custom HEX description color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.DescriptionColorSwatch)]]●[/COLOR] 自定义 HEX 颜色…"
-
-msgctxt "#32269"
-msgid "Custom HEX output color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.OutputColorSwatch)]]●[/COLOR] 自定义 HEX 颜色…"
-
-msgctxt "#32270"
-msgid "Custom HEX FPS color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.FpsColorSwatch)]]●[/COLOR] 自定义 HEX 颜色…"
-
-msgctxt "#32271"
-msgid "Custom HEX progress bar color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.ProgressColorSwatch)]]●[/COLOR] 自定义 HEX 颜色…"
-
-msgctxt "#32272"
-msgid "Custom HEX detail color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.AccentColorSwatch)]]●[/COLOR] 自定义 HEX 颜色…"
-
-msgctxt "#32273"
-msgid "Custom HEX unit color"
-msgstr "[COLOR=$INFO[Window(10000).Property(TinyPPI.UnitColorSwatch)]]●[/COLOR] 自定义 HEX 颜色…"

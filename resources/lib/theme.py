@@ -234,25 +234,18 @@ _DEFAULT_ALPHA = "FF"
 _HEX6_RE = re.compile(r"^[0-9A-Fa-f]{6}$")
 _HEX8_RE = re.compile(r"^[0-9A-Fa-f]{8}$")
 
+# Suffix of the per-color "HEX color" action button (see resources/settings.xml).
+# The button is a string setting whose value Kodi renders as the row's label2.
+# We store a self-contained swatch + HEX string there so the settings dialog can
+# preview the chosen color (a full-opacity ● dot followed by the 6-digit HEX)
+# without depending on the Home-window properties, which are only live while the
+# overlay is open.
+_CUSTOM_BTN_SUFFIX = "_custom_btn"
 
-# (setting_id, property base name, palette) for every themable color.
-# Used to publish a full-opacity (FF) swatch property per color so the custom
-# HEX action rows can preview the active color.  The property base names match
-# those published in apply_theme(); the swatch property simply appends "Swatch".
-_SWATCH_COLORS = (
-    ("background_color",  "TinyPPI.BackgroundColor",  _BACKGROUND_COLORS),
-    ("title_color",       "TinyPPI.TitleColor",       _TEXT_COLORS),
-    ("filename_color",    "TinyPPI.FilenameColor",    _TEXT_COLORS),
-    ("header_color",      "TinyPPI.HeaderColor",      _TEXT_COLORS),
-    ("icon_color",        "TinyPPI.IconColor",        _TEXT_COLORS),
-    ("chart_color",       "TinyPPI.ChartColor",       _TEXT_COLORS),
-    ("description_color", "TinyPPI.DescriptionColor", _TEXT_COLORS),
-    ("output_color",      "TinyPPI.OutputColor",      _TEXT_COLORS),
-    ("fps_color",         "TinyPPI.FpsColor",         _TEXT_COLORS),
-    ("progress_color",    "TinyPPI.ProgressColor",    _TEXT_COLORS),
-    ("accent_color",      "TinyPPI.AccentColor",      _ACCENT_COLORS),
-    ("unit_color",        "TinyPPI.UnitColor",        _TEXT_COLORS),
-)
+
+def _custom_btn_label(raw6: str) -> str:
+    """Return the ``label2`` markup previewing a 6-digit HEX color."""
+    return "[COLOR=FF{0}]●[/COLOR] #{0}".format(raw6)
 
 
 def _load_custom() -> dict:
@@ -335,14 +328,6 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
     home.setProperty("TinyPPI.AccentColor",      _resolve(_ACCENT_COLORS, addon, "accent_color", custom, overrides))
     home.setProperty("TinyPPI.BackgroundColor",  _resolve(_BACKGROUND_COLORS, addon, "background_color", custom, overrides))
 
-    # Publish a full-opacity (FF) swatch per color so the "Custom" list option
-    # can preview the chosen HEX, matching the fixed-color swatches.  The
-    # background and accent colors carry a reduced alpha (FA/B3) that would make
-    # the swatch dot look dim, so the swatch always forces full opacity.
-    for setting_id, prop, palette in _SWATCH_COLORS:
-        resolved = _resolve(palette, addon, setting_id, custom, overrides)
-        home.setProperty(prop + "Swatch", "FF" + resolved[2:])
-
 
 def reset_colors(addon=None) -> None:
     """
@@ -354,6 +339,7 @@ def reset_colors(addon=None) -> None:
 
     for setting_id in _COLOR_SETTINGS:
         addon.setSetting(setting_id, "0")
+        addon.setSetting(setting_id + _CUSTOM_BTN_SUFFIX, "")  # clear swatch preview
 
     _save_custom({})  # drop every stored custom HEX value
 
@@ -409,6 +395,7 @@ def custom_color(setting_id, addon=None) -> None:
         custom.pop(setting_id, None)
         _save_custom(custom)
         addon.setSetting(setting_id, "0")
+        addon.setSetting(setting_id + _CUSTOM_BTN_SUFFIX, "")
         setting_value = "0"
         xbmcgui.Dialog().notification(
             addon.getAddonInfo("name"),
@@ -421,6 +408,7 @@ def custom_color(setting_id, addon=None) -> None:
         custom[setting_id] = alpha + raw
         _save_custom(custom)
         addon.setSetting(setting_id, _CUSTOM_INDEX)
+        addon.setSetting(setting_id + _CUSTOM_BTN_SUFFIX, _custom_btn_label(raw))
         setting_value = _CUSTOM_INDEX
         xbmcgui.Dialog().notification(
             addon.getAddonInfo("name"),
