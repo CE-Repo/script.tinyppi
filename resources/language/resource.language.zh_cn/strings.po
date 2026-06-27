@@ -622,3 +622,163 @@ msgstr "文件名颜色"
 msgctxt "#32198"
 msgid "Color of the playing file name."
 msgstr "正在播放的文件名的颜色。"
+
+msgctxt "#32200"
+msgid "Peach"
+msgstr "[COLOR=FFFFCCBC]●[/COLOR] 桃色"
+
+msgctxt "#32201"
+msgid "Tangerine"
+msgstr "[COLOR=FFFFB74D]●[/COLOR] 橘色"
+
+msgctxt "#32202"
+msgid "Mustard"
+msgstr "[COLOR=FFE4C441]●[/COLOR] 芥末色"
+
+msgctxt "#32203"
+msgid "Chartreuse"
+msgstr "[COLOR=FFE6EE9C]●[/COLOR] 黄绿色"
+
+msgctxt "#32204"
+msgid "Forest"
+msgstr "[COLOR=FF81C784]●[/COLOR] 森林绿"
+
+msgctxt "#32205"
+msgid "Emerald"
+msgstr "[COLOR=FF69F0AE]●[/COLOR] 翡翠绿"
+
+msgctxt "#32206"
+msgid "Spring"
+msgstr "[COLOR=FFB2FF59]●[/COLOR] 春绿色"
+
+msgctxt "#32207"
+msgid "Aqua"
+msgstr "[COLOR=FF18FFFF]●[/COLOR] 水绿色"
+
+msgctxt "#32208"
+msgid "Turquoise"
+msgstr "[COLOR=FF64FFDA]●[/COLOR] 青绿色"
+
+msgctxt "#32209"
+msgid "Cerulean"
+msgstr "[COLOR=FF4FC3F7]●[/COLOR] 蔚蓝色"
+
+msgctxt "#32210"
+msgid "Cobalt"
+msgstr "[COLOR=FF536DFE]●[/COLOR] 钴蓝色"
+
+msgctxt "#32211"
+msgid "Periwinkle"
+msgstr "[COLOR=FFB39DDB]●[/COLOR] 长春花色"
+
+msgctxt "#32212"
+msgid "Plum"
+msgstr "[COLOR=FFCE93D8]●[/COLOR] 梅紫色"
+
+msgctxt "#32213"
+msgid "Orchid"
+msgstr "[COLOR=FFBA68C8]●[/COLOR] 兰花紫"
+
+msgctxt "#32214"
+msgid "Raspberry"
+msgstr "[COLOR=FFFF4081]●[/COLOR] 树莓红"
+
+msgctxt "#32215"
+msgid "Watermelon"
+msgstr "[COLOR=FFFF5C8D]●[/COLOR] 西瓜红"
+
+msgctxt "#32216"
+msgid "Scarlet"
+msgstr "[COLOR=FFFF6E40]●[/COLOR] 猩红色"
+
+msgctxt "#32217"
+msgid "Sand"
+msgstr "[COLOR=FFD7CCC8]●[/COLOR] 沙色"
+
+msgctxt "#32218"
+msgid "Pistachio"
+msgstr "[COLOR=FFC5E1A5]●[/COLOR] 开心果绿"
+
+msgctxt "#32219"
+msgid "Cadet"
+msgstr "[COLOR=FF90A4AE]●[/COLOR] 军服蓝"
+
+msgctxt "#32220"
+msgid "Dark peach"
+msgstr "[COLOR=FF3E2820]●[/COLOR] 深桃色"
+
+msgctxt "#32221"
+msgid "Dark tangerine"
+msgstr "[COLOR=FF3E2C10]●[/COLOR] 深橘色"
+
+msgctxt "#32222"
+msgid "Dark mustard"
+msgstr "[COLOR=FF383010]●[/COLOR] 深芥末色"
+
+msgctxt "#32223"
+msgid "Dark chartreuse"
+msgstr "[COLOR=FF303814]●[/COLOR] 深黄绿色"
+
+msgctxt "#32224"
+msgid "Dark forest"
+msgstr "[COLOR=FF1C3420]●[/COLOR] 深森林绿"
+
+msgctxt "#32225"
+msgid "Dark emerald"
+msgstr "[COLOR=FF143424]●[/COLOR] 深翡翠绿"
+
+msgctxt "#32226"
+msgid "Dark spring"
+msgstr "[COLOR=FF203814]●[/COLOR] 深春绿色"
+
+msgctxt "#32227"
+msgid "Dark aqua"
+msgstr "[COLOR=FF143838]●[/COLOR] 深水绿色"
+
+msgctxt "#32228"
+msgid "Dark turquoise"
+msgstr "[COLOR=FF143830]●[/COLOR] 深青绿色"
+
+msgctxt "#32229"
+msgid "Dark cerulean"
+msgstr "[COLOR=FF142C3E]●[/COLOR] 深蔚蓝色"
+
+msgctxt "#32230"
+msgid "Dark cobalt"
+msgstr "[COLOR=FF1C2040]●[/COLOR] 深钴蓝色"
+
+msgctxt "#32231"
+msgid "Dark periwinkle"
+msgstr "[COLOR=FF2A2040]●[/COLOR] 深长春花色"
+
+msgctxt "#32232"
+msgid "Dark plum"
+msgstr "[COLOR=FF341E38]●[/COLOR] 深梅紫色"
+
+msgctxt "#32233"
+msgid "Dark orchid"
+msgstr "[COLOR=FF301C34]●[/COLOR] 深兰花紫"
+
+msgctxt "#32234"
+msgid "Dark raspberry"
+msgstr "[COLOR=FF3E1428]●[/COLOR] 深树莓红"
+
+msgctxt "#32235"
+msgid "Dark watermelon"
+msgstr "[COLOR=FF3E1424]●[/COLOR] 深西瓜红"
+
+msgctxt "#32236"
+msgid "Dark scarlet"
+msgstr "[COLOR=FF3E1C14]●[/COLOR] 深猩红色"
+
+msgctxt "#32237"
+msgid "Dark sand"
+msgstr "[COLOR=FF342E28]●[/COLOR] 深沙色"
+
+msgctxt "#32238"
+msgid "Dark pistachio"
+msgstr "[COLOR=FF28341C]●[/COLOR] 深开心果绿"
+
+msgctxt "#32239"
+msgid "Dark cadet"
+msgstr "[COLOR=FF242E34]●[/COLOR] 深军服蓝"

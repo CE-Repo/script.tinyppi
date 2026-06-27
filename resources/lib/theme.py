@@ -43,6 +43,26 @@ _TEXT_COLORS = (
     "FFDCE775",  # 27 Olive
     "FFB0BEC5",  # 28 Slate
     "FFCFD8DC",  # 29 Silver
+    "FFFFCCBC",  # 30 Peach
+    "FFFFB74D",  # 31 Tangerine
+    "FFE4C441",  # 32 Mustard
+    "FFE6EE9C",  # 33 Chartreuse
+    "FF81C784",  # 34 Forest
+    "FF69F0AE",  # 35 Emerald
+    "FFB2FF59",  # 36 Spring
+    "FF18FFFF",  # 37 Aqua
+    "FF64FFDA",  # 38 Turquoise
+    "FF4FC3F7",  # 39 Cerulean
+    "FF536DFE",  # 40 Cobalt
+    "FFB39DDB",  # 41 Periwinkle
+    "FFCE93D8",  # 42 Plum
+    "FFBA68C8",  # 43 Orchid
+    "FFFF4081",  # 44 Raspberry
+    "FFFF5C8D",  # 45 Watermelon
+    "FFFF6E40",  # 46 Scarlet
+    "FFD7CCC8",  # 47 Sand
+    "FFC5E1A5",  # 48 Pistachio
+    "FF90A4AE",  # 49 Cadet
 )
 
 # Palette for inline detail accents (the dimmed values shown in parentheses).
@@ -79,6 +99,26 @@ _ACCENT_COLORS = (
     "B3DCE775",  # 27 Olive
     "B3B0BEC5",  # 28 Slate
     "B3CFD8DC",  # 29 Silver
+    "B3FFCCBC",  # 30 Peach
+    "B3FFB74D",  # 31 Tangerine
+    "B3E4C441",  # 32 Mustard
+    "B3E6EE9C",  # 33 Chartreuse
+    "B381C784",  # 34 Forest
+    "B369F0AE",  # 35 Emerald
+    "B3B2FF59",  # 36 Spring
+    "B318FFFF",  # 37 Aqua
+    "B364FFDA",  # 38 Turquoise
+    "B34FC3F7",  # 39 Cerulean
+    "B3536DFE",  # 40 Cobalt
+    "B3B39DDB",  # 41 Periwinkle
+    "B3CE93D8",  # 42 Plum
+    "B3BA68C8",  # 43 Orchid
+    "B3FF4081",  # 44 Raspberry
+    "B3FF5C8D",  # 45 Watermelon
+    "B3FF6E40",  # 46 Scarlet
+    "B3D7CCC8",  # 47 Sand
+    "B3C5E1A5",  # 48 Pistachio
+    "B390A4AE",  # 49 Cadet
 )
 
 # Palette for the Modern background (semi-transparent dark shades, alpha FA).
@@ -114,6 +154,26 @@ _BACKGROUND_COLORS = (
     "FA121212",  # 27 Onyx
     "FA1C1C1E",  # 28 Graphite
     "FA1A1D20",  # 29 Steel
+    "FA1F1410",  # 30 Dark peach
+    "FA1F1608",  # 31 Dark tangerine
+    "FA1C1808",  # 32 Dark mustard
+    "FA181C0A",  # 33 Dark chartreuse
+    "FA0E1A10",  # 34 Dark forest
+    "FA0A1A12",  # 35 Dark emerald
+    "FA101C0A",  # 36 Dark spring
+    "FA0A1C1C",  # 37 Dark aqua
+    "FA0A1C18",  # 38 Dark turquoise
+    "FA0A161F",  # 39 Dark cerulean
+    "FA0E1020",  # 40 Dark cobalt
+    "FA15101F",  # 41 Dark periwinkle
+    "FA1A0F1C",  # 42 Dark plum
+    "FA180E1A",  # 43 Dark orchid
+    "FA1F0A14",  # 44 Dark raspberry
+    "FA1F0A12",  # 45 Dark watermelon
+    "FA1F0E0A",  # 46 Dark scarlet
+    "FA1A1714",  # 47 Dark sand
+    "FA141A0E",  # 48 Dark pistachio
+    "FA12171A",  # 49 Dark cadet
 )
 
 

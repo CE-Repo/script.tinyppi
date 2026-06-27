@@ -622,3 +622,163 @@ msgstr "Dateinamen-Farbe"
 msgctxt "#32198"
 msgid "Color of the playing file name."
 msgstr "Farbe des abgespielten Dateinamens."
+
+msgctxt "#32200"
+msgid "Peach"
+msgstr "[COLOR=FFFFCCBC]●[/COLOR] Pfirsich"
+
+msgctxt "#32201"
+msgid "Tangerine"
+msgstr "[COLOR=FFFFB74D]●[/COLOR] Mandarine"
+
+msgctxt "#32202"
+msgid "Mustard"
+msgstr "[COLOR=FFE4C441]●[/COLOR] Senf"
+
+msgctxt "#32203"
+msgid "Chartreuse"
+msgstr "[COLOR=FFE6EE9C]●[/COLOR] Chartreuse"
+
+msgctxt "#32204"
+msgid "Forest"
+msgstr "[COLOR=FF81C784]●[/COLOR] Waldgrün"
+
+msgctxt "#32205"
+msgid "Emerald"
+msgstr "[COLOR=FF69F0AE]●[/COLOR] Smaragd"
+
+msgctxt "#32206"
+msgid "Spring"
+msgstr "[COLOR=FFB2FF59]●[/COLOR] Frühlingsgrün"
+
+msgctxt "#32207"
+msgid "Aqua"
+msgstr "[COLOR=FF18FFFF]●[/COLOR] Aqua"
+
+msgctxt "#32208"
+msgid "Turquoise"
+msgstr "[COLOR=FF64FFDA]●[/COLOR] Türkis"
+
+msgctxt "#32209"
+msgid "Cerulean"
+msgstr "[COLOR=FF4FC3F7]●[/COLOR] Cerulean"
+
+msgctxt "#32210"
+msgid "Cobalt"
+msgstr "[COLOR=FF536DFE]●[/COLOR] Kobalt"
+
+msgctxt "#32211"
+msgid "Periwinkle"
+msgstr "[COLOR=FFB39DDB]●[/COLOR] Pervenche"
+
+msgctxt "#32212"
+msgid "Plum"
+msgstr "[COLOR=FFCE93D8]●[/COLOR] Pflaume"
+
+msgctxt "#32213"
+msgid "Orchid"
+msgstr "[COLOR=FFBA68C8]●[/COLOR] Orchidee"
+
+msgctxt "#32214"
+msgid "Raspberry"
+msgstr "[COLOR=FFFF4081]●[/COLOR] Himbeere"
+
+msgctxt "#32215"
+msgid "Watermelon"
+msgstr "[COLOR=FFFF5C8D]●[/COLOR] Wassermelone"
+
+msgctxt "#32216"
+msgid "Scarlet"
+msgstr "[COLOR=FFFF6E40]●[/COLOR] Scharlach"
+
+msgctxt "#32217"
+msgid "Sand"
+msgstr "[COLOR=FFD7CCC8]●[/COLOR] Sand"
+
+msgctxt "#32218"
+msgid "Pistachio"
+msgstr "[COLOR=FFC5E1A5]●[/COLOR] Pistazie"
+
+msgctxt "#32219"
+msgid "Cadet"
+msgstr "[COLOR=FF90A4AE]●[/COLOR] Kadettblau"
+
+msgctxt "#32220"
+msgid "Dark peach"
+msgstr "[COLOR=FF3E2820]●[/COLOR] Dunkelpfirsich"
+
+msgctxt "#32221"
+msgid "Dark tangerine"
+msgstr "[COLOR=FF3E2C10]●[/COLOR] Dunkelmandarine"
+
+msgctxt "#32222"
+msgid "Dark mustard"
+msgstr "[COLOR=FF383010]●[/COLOR] Dunkelsenf"
+
+msgctxt "#32223"
+msgid "Dark chartreuse"
+msgstr "[COLOR=FF303814]●[/COLOR] Dunkelchartreuse"
+
+msgctxt "#32224"
+msgid "Dark forest"
+msgstr "[COLOR=FF1C3420]●[/COLOR] Dunkelwaldgrün"
+
+msgctxt "#32225"
+msgid "Dark emerald"
+msgstr "[COLOR=FF143424]●[/COLOR] Dunkelsmaragd"
+
+msgctxt "#32226"
+msgid "Dark spring"
+msgstr "[COLOR=FF203814]●[/COLOR] Dunkelfrühling"
+
+msgctxt "#32227"
+msgid "Dark aqua"
+msgstr "[COLOR=FF143838]●[/COLOR] Dunkelaqua"
+
+msgctxt "#32228"
+msgid "Dark turquoise"
+msgstr "[COLOR=FF143830]●[/COLOR] Dunkeltürkis"
+
+msgctxt "#32229"
+msgid "Dark cerulean"
+msgstr "[COLOR=FF142C3E]●[/COLOR] Dunkelcerulean"
+
+msgctxt "#32230"
+msgid "Dark cobalt"
+msgstr "[COLOR=FF1C2040]●[/COLOR] Dunkelkobalt"
+
+msgctxt "#32231"
+msgid "Dark periwinkle"
+msgstr "[COLOR=FF2A2040]●[/COLOR] Dunkelpervenche"
+
+msgctxt "#32232"
+msgid "Dark plum"
+msgstr "[COLOR=FF341E38]●[/COLOR] Dunkelpflaume"
+
+msgctxt "#32233"
+msgid "Dark orchid"
+msgstr "[COLOR=FF301C34]●[/COLOR] Dunkelorchidee"
+
+msgctxt "#32234"
+msgid "Dark raspberry"
+msgstr "[COLOR=FF3E1428]●[/COLOR] Dunkelhimbeere"
+
+msgctxt "#32235"
+msgid "Dark watermelon"
+msgstr "[COLOR=FF3E1424]●[/COLOR] Dunkelwassermelone"
+
+msgctxt "#32236"
+msgid "Dark scarlet"
+msgstr "[COLOR=FF3E1C14]●[/COLOR] Dunkelscharlach"
+
+msgctxt "#32237"
+msgid "Dark sand"
+msgstr "[COLOR=FF342E28]●[/COLOR] Dunkelsand"
+
+msgctxt "#32238"
+msgid "Dark pistachio"
+msgstr "[COLOR=FF28341C]●[/COLOR] Dunkelpistazie"
+
+msgctxt "#32239"
+msgid "Dark cadet"
+msgstr "[COLOR=FF242E34]●[/COLOR] Dunkelkadett"
