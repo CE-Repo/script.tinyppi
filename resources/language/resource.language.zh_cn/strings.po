@@ -56,8 +56,8 @@ msgid "Hide the gradient background in the classic TinyPPI style."
 msgstr "隐藏经典 TinyPPI 样式中的渐变背景。"
 
 msgctxt "#32012"
-msgid "Only 1080 skins are supported"
-msgstr "仅支持 1080 皮肤"
+msgid "720p skins are not supported"
+msgstr "不支持 720p 皮肤"
 
 msgctxt "#32013"
 msgid "Playback time"

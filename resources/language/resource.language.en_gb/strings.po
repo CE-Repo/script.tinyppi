@@ -56,7 +56,7 @@ msgid "Hide the gradient background in the classic TinyPPI style."
 msgstr ""
 
 msgctxt "#32012"
-msgid "Only 1080 skins are supported"
+msgid "720p skins are not supported"
 msgstr ""
 
 msgctxt "#32013"

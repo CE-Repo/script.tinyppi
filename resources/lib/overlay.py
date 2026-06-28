@@ -6,7 +6,6 @@ here — that is handled by main.py before this module is imported.
 """
 
 import os
-import re
 import threading
 import time
 
@@ -29,9 +28,6 @@ _ADDON_PATH = _ADDON.getAddonInfo("path")
 _PROP_RUNNING = "TinyPPI.Running"
 _PROP_ACTIVE  = "TinyPPI.Active"
 _PROP_DIALOG_MODE = "TinyPPI.DialogMode"
-
-# Kodi skin resolution folder names, e.g. "720p", "1080i", "1080p", "480p".
-_RES_FOLDER_RE = re.compile(r"^\d{3,4}[ip]$")
 
 _dialog_lock = False
 
@@ -92,26 +88,6 @@ def _clear_overlay_state(home) -> None:
     home.clearProperty(_PROP_DIALOG_MODE)
 
 
-def _skin_supports_1080(skin_path: str) -> bool:
-    """
-    Return True only when the active skin is a pure 1080 skin.
-
-    Collects the skin's resolution folders (e.g. ``720p``, ``1080i``, ``1080p``)
-    and requires that at least one exists and *all* of them are 1080-based.  A
-    multi-resolution skin that also ships a 720p (or other sub-1080) folder is
-    treated as unsupported, since Kodi may render it at the lower resolution.
-    """
-    try:
-        entries = os.listdir(skin_path)
-    except OSError:
-        return False
-    resolutions = [
-        name for name in entries
-        if _RES_FOLDER_RE.match(name) and os.path.isdir(os.path.join(skin_path, name))
-    ]
-    return bool(resolutions) and all(r.startswith("1080") for r in resolutions)
-
-
 def _preflight(home, player, toggle_log: str) -> bool:
     """
     Run the environment and playback guards shared by both entry points.
@@ -136,9 +112,9 @@ def _preflight(home, player, toggle_log: str) -> bool:
             return False
 
     skin_path = xbmcvfs.translatePath("special://skin/")
-    if not _skin_supports_1080(skin_path):
+    if os.path.exists(os.path.join(skin_path, "720p")):
         _notify_error(32012)
-        xbmc.log("TinyPPI: non-1080 skin detected – unsupported", xbmc.LOGWARNING)
+        xbmc.log("TinyPPI: 720p skin detected – unsupported", xbmc.LOGWARNING)
         return False
 
     if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
@@ -252,7 +228,7 @@ def open_tinyppi() -> None:
     Skips silently when:
     - Not running on CoreELEC (unless ``_ALLOW_NON_COREELEC`` is True).
     - Kodi build version is older than 22.
-    - The active skin does not support 1080.
+    - A 720p skin is active.
     - Fullscreen video is not currently active.
     - No media is playing.
     - The overlay is already open (acts as a toggle-close instead).

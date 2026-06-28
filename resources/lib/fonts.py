@@ -7,7 +7,6 @@ class re-runs the installation whenever the skin changes or Kodi is updated.
 """
 
 import os
-import re
 import shutil
 import traceback
 import xml.etree.ElementTree as ET
@@ -39,9 +38,6 @@ except Exception:
 _ADDON_FONTS_DIR = (os.path.normpath(os.path.join(_TOOLS_DIR, "tools", "fonts"))
                     if _TOOLS_DIR else "")
 
-# Kodi skin resolution folder names, e.g. "720p", "1080i", "1080p", "480p".
-_RES_FOLDER_RE = re.compile(r"^\d{3,4}[ip]$")
-
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
@@ -68,26 +64,6 @@ def _find_ttf_dir(skin_path: str) -> str | None:
         if any(fname.lower().endswith(".ttf") for fname in files):
             return root
     return None
-
-
-def _supports_1080(skin_path: str) -> bool:
-    """
-    Return True only when the skin is a pure 1080 skin.
-
-    Collects the skin's resolution folders (e.g. ``720p``, ``1080i``, ``1080p``)
-    and requires that at least one exists and *all* of them are 1080-based.  A
-    multi-resolution skin that also ships a 720p (or other sub-1080) folder is
-    treated as unsupported, since Kodi may render it at the lower resolution.
-    """
-    try:
-        entries = os.listdir(skin_path)
-    except OSError:
-        return False
-    resolutions = [
-        name for name in entries
-        if _RES_FOLDER_RE.match(name) and os.path.isdir(os.path.join(skin_path, name))
-    ]
-    return bool(resolutions) and all(r.startswith("1080") for r in resolutions)
 
 
 def _get_skin_path() -> str | None:
@@ -269,10 +245,6 @@ def install_fonts() -> None:
         return
 
     _log(f"Skin path: {skin_path}")
-
-    if not _supports_1080(skin_path):
-        _log("Non-1080 skin detected – skipping font install", xbmc.LOGWARNING)
-        return
 
     if fonts_already_installed(skin_path):
         _log("All fonts already installed – skipping")
