@@ -42,6 +42,10 @@ _ADDON_FONTS_DIR = (os.path.normpath(os.path.join(_TOOLS_DIR, "tools", "fonts"))
 # Kodi skin resolution folder names, e.g. "720p", "1080i", "1080p", "480p".
 _RES_FOLDER_RE = re.compile(r"^\d{3,4}[ip]$")
 
+# Kodi's bundled default skin.  Its resolution layout cannot be reliably
+# checked, so the 1080 guard is bypassed and it is treated as supported.
+_SYSTEM_SKIN_ID = "skin.estuary"
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
@@ -78,7 +82,13 @@ def _supports_1080(skin_path: str) -> bool:
     and requires that at least one exists and *all* of them are 1080-based.  A
     multi-resolution skin that also ships a 720p (or other sub-1080) folder is
     treated as unsupported, since Kodi may render it at the lower resolution.
+
+    The bundled system skin (``skin.estuary``) is exempt from this check: its
+    resolution layout cannot be reliably inspected, so it is always treated as
+    supported.
     """
+    if xbmc.getSkinDir() == _SYSTEM_SKIN_ID:
+        return True
     try:
         entries = os.listdir(skin_path)
     except OSError:
