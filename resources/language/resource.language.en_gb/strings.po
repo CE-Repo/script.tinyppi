@@ -235,6 +235,10 @@ msgctxt "#32098"
 msgid "L6 MaxCLL/FALL"
 msgstr ""
 
+msgctxt "#32099"
+msgid "Bit depth"
+msgstr ""
+
 msgctxt "#32100"
 msgid "Theme"
 msgstr ""

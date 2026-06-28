@@ -235,6 +235,10 @@ msgctxt "#32098"
 msgid "L6 MaxCLL/FALL"
 msgstr "L6 MaxCLL/FALL"
 
+msgctxt "#32099"
+msgid "Bit depth"
+msgstr "位深度"
+
 msgctxt "#32100"
 msgid "Theme"
 msgstr "主题"

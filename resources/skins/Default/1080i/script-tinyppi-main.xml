@@ -282,10 +282,10 @@
 						<aligny>top</aligny>
 					</control>
 
-					<!-- Aspect ratio -->
+					<!-- Bit depth -->
 					<control type="label">
 						<top>120</top>
-						<label>$ADDON[script.tinyppi 32024]:</label>
+						<label>$ADDON[script.tinyppi 32099]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 						<aligny>top</aligny>
@@ -293,6 +293,23 @@
 					<control type="label">
 						<left>240</left>
 						<top>120</top>
+						<label>$INFO[Window().Property(VideoBitDepthVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- Aspect ratio -->
+					<control type="label">
+						<top>150</top>
+						<label>$ADDON[script.tinyppi 32024]:</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>150</top>
 						<label>$INFO[Player.Process(videodar)]:1</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -301,7 +318,7 @@
 
 					<!-- Decoder -->
 					<control type="label">
-						<top>150</top>
+						<top>180</top>
 						<label>$ADDON[script.tinyppi 32005]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -309,7 +326,7 @@
 					</control>
 					<control type="label">
 						<left>240</left>
-						<top>150</top>
+						<top>180</top>
 						<label>[UPPERCASE]$INFO[Player.Process(videodecoder)][/UPPERCASE] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(VideoDecoderVar),(,)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -318,7 +335,7 @@
 
 					<!-- Video codec -->
 					<control type="label">
-						<top>180</top>
+						<top>210</top>
 						<label>$ADDON[script.tinyppi 32046]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -326,25 +343,8 @@
 					</control>
 					<control type="label">
 						<left>240</left>
-						<top>180</top>
+						<top>210</top>
 						<label>$INFO[Window().Property(VideoCodecVar)]</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<aligny>top</aligny>
-					</control>
-
-					<!-- Decode method -->
-					<control type="label">
-						<top>210</top>
-						<label>$ADDON[script.tinyppi 32031]:</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>210</top>
-						<label>$INFO[Window().Property(VideoDecoderExtVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>

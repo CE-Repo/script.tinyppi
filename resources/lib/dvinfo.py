@@ -6,6 +6,11 @@ CM v4.0 metadata by extracting the RPU with dovi_tool and reading its
 summary line ("DM version"). The same summary is used for separate Level 6
 and Level 5 metadata properties.
 
+The video bit depth is reported too: Dolby Vision streams are measured from
+the RPU (FEL material reconstructs a 12-bit signal from a 10-bit base layer,
+so the enhancement-layer bit depth is used), while every other format is read
+from MediaInfo.
+
 Kodi plays from VFS URLs (nfs://, smb://, http:// ...) which standalone
 ffmpeg / dovi_tool cannot open.  We bridge that with xbmcvfs: the first
 chunk of the stream is pulled through Kodi's VFS into special://temp/ and
@@ -16,13 +21,16 @@ Detection runs once per file in a background thread and is cached, so the
 polling loop in overlay.py never blocks.  The results are published through
 the Dolby Vision properties in properties.py.  CoreELEC only.
 
-The dovi_tool and ffmpeg binaries are provided by the tools.tinyppi addon at:
+The dovi_tool, ffmpeg and mediainfo binaries are provided by the tools.tinyppi
+addon at:
     tools/dovi/dovi_tool
     tools/ffmpeg/ffmpeg
+    tools/mediainfo/mediainfo
 The bundled binary is an aarch64 build; DV-capable Amlogic SoCs
 (S905X2/X4/X5, S922X) are all 64-bit, so it covers every realistic target.
 """
 
+import json
 import os
 import re
 import subprocess
@@ -67,6 +75,7 @@ _CACHE_FIELD_PROPERTIES = {
     "l5_offsets": "TinyPPI.DVInfo.L5Offsets",
     "l6_mdl": "TinyPPI.DVInfo.L6Mdl",
     "l6_max_cll_fall": "TinyPPI.DVInfo.L6MaxCllFall",
+    "bit_depth": "TinyPPI.DVInfo.BitDepth",
 }
 _SUMMARY_SECTION_RE = re.compile(
     r"^(L\d+\s|RPU\s|Scene/shot|Profile|Frames|DM version:)",
@@ -203,6 +212,18 @@ def _dovi_tool() -> str:
     except Exception:
         return ""
     path = os.path.join(base, "tools", "dovi", "dovi_tool")
+    _ensure_executable(path)
+    return path
+
+
+def _mediainfo() -> str:
+    """Return the mediainfo path from the tools.tinyppi addon, restoring the
+    exec bit if needed."""
+    try:
+        base = xbmcaddon.Addon("tools.tinyppi").getAddonInfo("path")
+    except Exception:
+        return ""
+    path = os.path.join(base, "tools", "mediainfo", "mediainfo")
     _ensure_executable(path)
     return path
 
@@ -364,6 +385,86 @@ def _parse_summary(out: str) -> dict[str, str]:
     }
 
 
+def _dovi_bit_depth(dovi: str) -> str:
+    """Return the Dolby Vision bit depth (as a bare number) from the RPU.
+
+    FEL streams reconstruct a 12-bit signal from a 10-bit base layer, so the
+    enhancement-layer (VDR) bit depth is reported for them; MEL and
+    single-layer streams report the base-layer bit depth.  Returns ``''`` when
+    the value cannot be determined.
+    """
+    out = subprocess.run(
+        [dovi, "info", "-i", _RPU_PATH, "-f", "0"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+    ).stdout
+
+    # dovi_tool prints the parsed frame as a JSON object; tolerate any leading
+    # or trailing log text by decoding from the first brace onwards.
+    start = out.find("{")
+    if start == -1:
+        return ""
+    try:
+        frame, _ = json.JSONDecoder().raw_decode(out[start:])
+    except ValueError:
+        return ""
+
+    header = frame.get("header", {})
+    if frame.get("el_type") == "FEL":
+        minus8 = header.get("vdr_bit_depth_minus8")
+    else:
+        minus8 = header.get("bl_bit_depth_minus8")
+
+    return str(minus8 + 8) if isinstance(minus8, int) else ""
+
+
+def _mediainfo_bit_depth(src: str) -> str:
+    """Return the video bit depth (as a bare number) reported by MediaInfo.
+
+    Used for every non-Dolby-Vision format, where the base-layer bit depth is
+    the real one.  Returns ``''`` when MediaInfo is unavailable or reports no
+    value.
+
+    A dynamically linked MediaInfo CLI needs ``libmediainfo.so`` and
+    ``libzen.so``; the directory holding the binary is added to the loader path
+    so those libraries can simply be bundled next to it in tools/mediainfo/.
+    """
+    mediainfo = _mediainfo()
+    if not mediainfo or not os.path.exists(mediainfo):
+        _log(f"bit depth: mediainfo binary missing ({mediainfo})", xbmc.LOGWARNING)
+        return ""
+
+    env = dict(os.environ)
+    lib_dir = os.path.dirname(mediainfo)
+    env["LD_LIBRARY_PATH"] = os.pathsep.join(
+        part for part in (lib_dir, env.get("LD_LIBRARY_PATH", "")) if part
+    )
+
+    try:
+        proc = subprocess.run(
+            [mediainfo, "--Output=Video;%BitDepth%", src],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env=env,
+        )
+    except OSError as exc:
+        _log(f"bit depth: mediainfo failed to start: {exc}", xbmc.LOGWARNING)
+        return ""
+
+    match = re.search(r"\d+", proc.stdout)
+    if not match:
+        _log(
+            f"bit depth: mediainfo returned no value "
+            f"(rc={proc.returncode}, stderr={proc.stderr.strip()!r})",
+            xbmc.LOGWARNING,
+        )
+        return ""
+
+    return match.group(0)
+
+
 def _detect(path: str) -> dict[str, str]:
     """Return compact Dolby Vision metadata for the given playing path."""
     dovi   = _dovi_tool()
@@ -410,7 +511,9 @@ def _detect(path: str) -> dict[str, str]:
         ff.wait()
 
         if not os.path.exists(_RPU_PATH) or os.path.getsize(_RPU_PATH) == 0:
-            return {}
+            # No RPU -> not a Dolby Vision stream.  MediaInfo reports the real
+            # bit depth for every other format.
+            return {"bit_depth": _mediainfo_bit_depth(src)}
 
         out = subprocess.run(
             [dovi, "info", "-i", _RPU_PATH, "-s"],
@@ -419,7 +522,9 @@ def _detect(path: str) -> dict[str, str]:
             text=True,
         ).stdout
 
-        return _parse_summary(out)
+        info = _parse_summary(out)
+        info["bit_depth"] = _dovi_bit_depth(dovi)
+        return info
     finally:
         for tmp in (_RPU_PATH, _CHUNK_PATH if is_temp else None):
             if tmp and os.path.exists(tmp):
@@ -522,3 +627,12 @@ def get_l6_rpu_mdl() -> str:
 def get_l6_rpu_max_cll_fall() -> str:
     """Return Dolby Vision Level 6 RPU MaxCLL/MaxFALL."""
     return _get_level_info_value("l6_max_cll_fall")
+
+
+def get_bit_depth() -> str:
+    """Return the source video bit depth as a bare number string (e.g. ``12``).
+
+    Dolby Vision streams are measured from the RPU with dovi_tool (FEL material
+    reconstructs 12-bit); every other format is read from MediaInfo.
+    """
+    return _get_info_value("bit_depth")
