@@ -483,6 +483,7 @@
 
 					<!-- L6 RPU MDL -->
 					<control type="group">
+					<visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
 						<control type="label">
 							<top>150</top>
 							<label>$ADDON[script.tinyppi 32097]:</label>
@@ -502,6 +503,7 @@
 
 					<!-- L6 MaxCLL/FALL -->
 					<control type="group">
+					<visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
 						<control type="label">
 							<top>180</top>
 							<label>$ADDON[script.tinyppi 32098]:</label>
@@ -521,6 +523,7 @@
 
 					<!-- L5 active offsets -->
 					<control type="group">
+					<visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
 						<control type="label">
 							<top>210</top>
 							<label>$ADDON[script.tinyppi 32030]:</label>
@@ -556,6 +559,38 @@
 									<aspectratio>keep</aspectratio>
 								</control>
 							</control>
+						</control>
+					</control>
+
+					<!-- Playback time -->
+					<control type="group">
+					<visible>!String.Contains(VideoPlayer.HdrType,dolby)</visible>
+						<control type="label">
+							<top>210</top>
+							<label>$ADDON[script.tinyppi 32013]:</label>
+							<font>font23_narrow</font>
+							<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+							<aligny>top</aligny>
+						</control>
+						<control type="label">
+							<left>240</left>
+							<top>210</top>
+							<label>$INFO[Player.Time] $INFO[Player.Duration,/ ,] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Player.Progress,(,%)][/COLOR]</label>
+							<font>font23_narrow</font>
+							<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+							<visible>!String.IsEmpty(Player.Duration)</visible>
+							<visible>!PVR.IsPlayingTV</visible>
+							<aligny>top</aligny>
+						</control>
+						<!-- N/A -->
+						<control type="label">
+							<left>240</left>
+							<top>210</top>
+							<label>$ADDON[script.tinyppi 32033]</label>
+							<font>font23_narrow</font>
+							<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+							<visible>String.IsEmpty(Player.Duration) | PVR.IsPlayingTV</visible>
+							<aligny>top</aligny>
 						</control>
 					</control>
 				</control>
