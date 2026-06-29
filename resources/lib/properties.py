@@ -329,13 +329,15 @@ def get_DoviLevel6RpuMaxCllFallVar() -> str:
 
 def get_DisplayAspectRatioVar() -> str:
     """
-    Return the source display aspect ratio from MediaInfo, or ``''`` when
-    MediaInfo reports no value (no N/A fallback).
+    Return the source display aspect ratio from MediaInfo, restricted to the
+    standard ``16:9`` and ``4:3`` ratios; any other value (or no value at all)
+    yields ``''``.
 
     Shown as a parenthetical next to the live ``videodar`` value, so an empty
     string simply omits the addition.
     """
-    return get_display_aspect_ratio()
+    value = get_display_aspect_ratio()
+    return value if value in ("16:9", "4:3") else ""
 
 
 def _with_unit(value: str, unit: str) -> str:
