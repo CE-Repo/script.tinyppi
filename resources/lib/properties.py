@@ -30,6 +30,7 @@ from helpers import (
 from dvinfo import (
     get_bit_depth,
     get_cm_version,
+    get_display_aspect_ratio,
     get_l5_offsets,
     get_l6_rpu_mdl,
     get_l6_rpu_max_cll_fall,
@@ -324,6 +325,17 @@ def get_DoviLevel6RpuMaxCllFallVar() -> str:
     status while/after detection, or ``''`` when the source is not Dolby Vision.
     """
     return get_l6_rpu_max_cll_fall()
+
+
+def get_DisplayAspectRatioVar() -> str:
+    """
+    Return the source display aspect ratio from MediaInfo, or ``''`` when
+    MediaInfo reports no value (no N/A fallback).
+
+    Shown as a parenthetical next to the live ``videodar`` value, so an empty
+    string simply omits the addition.
+    """
+    return get_display_aspect_ratio()
 
 
 def _with_unit(value: str, unit: str) -> str:
@@ -727,6 +739,7 @@ def update_properties(window) -> None:
             ("DoviLevel5OffsetsIconVisible", l5_offsets_icon_visible),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
+            ("DisplayAspectRatioVar", get_DisplayAspectRatioVar()),
             ("ModeVar", get_ModeVar()),
             ("GamutVar", get_GamutVar()),
             ("VdecBitrate", bitrate_value),
