@@ -838,3 +838,23 @@ msgstr ""
 msgctxt "#32258"
 msgid "[COLOR=FFFFFFFF]●[/COLOR] White"
 msgstr ""
+
+msgctxt "#32260"
+msgid "Overlay position"
+msgstr ""
+
+msgctxt "#32261"
+msgid "Horizontal offset"
+msgstr ""
+
+msgctxt "#32262"
+msgid "Shifts the overlay to the right from its default position. 100% is the maximum shift that keeps the content on screen."
+msgstr ""
+
+msgctxt "#32263"
+msgid "Vertical offset"
+msgstr ""
+
+msgctxt "#32264"
+msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
+msgstr ""

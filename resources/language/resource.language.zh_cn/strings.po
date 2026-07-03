@@ -838,3 +838,23 @@ msgstr "[COLOR=FF000000]●[/COLOR] 黑色（默认）"
 msgctxt "#32258"
 msgid "[COLOR=FFFFFFFF]●[/COLOR] White"
 msgstr "[COLOR=FFFFFFFF]●[/COLOR] 白色"
+
+msgctxt "#32260"
+msgid "Overlay position"
+msgstr "叠加层位置"
+
+msgctxt "#32261"
+msgid "Horizontal offset"
+msgstr "水平偏移"
+
+msgctxt "#32262"
+msgid "Shifts the overlay to the right from its default position. 100% is the maximum shift that keeps the content on screen."
+msgstr "将叠加层从默认位置向右移动。100% 为保持内容完全显示在屏幕内的最大移动量。"
+
+msgctxt "#32263"
+msgid "Vertical offset"
+msgstr "垂直偏移"
+
+msgctxt "#32264"
+msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
+msgstr "将叠加层从默认位置向上移动。100% 为保持内容完全显示在屏幕内的最大移动量。"

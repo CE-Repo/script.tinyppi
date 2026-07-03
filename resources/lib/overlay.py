@@ -167,8 +167,27 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._running   = True
         self._opened_at = time.time()
 
+        self._apply_position_offset()
         properties.update_properties(self)
         self._start_update_loop()
+
+    def _apply_position_offset(self) -> None:
+        """
+        Shift the overlay content by the configured offsets.
+
+        Origin is the default bottom-left layout: the horizontal offset moves
+        the content to the right, the vertical offset moves it up.  Each UI
+        style has its own slider pair, and 100 % maps to the maximum travel
+        that keeps the content on screen: 35 % / 46.4 % of the screen size in
+        classic mode, 32.4 % / 31.8 % in modern mode.
+        """
+        if _ADDON.getSetting("ui_style") == "0":
+            max_x, max_y, suffix = 0.35, 0.464, "classic"
+        else:
+            max_x, max_y, suffix = 0.324, 0.318, "modern"
+        offset_x = round(1920 * max_x * _ADDON.getSettingInt(f"offset_x_{suffix}") / 100)
+        offset_y = -round(1080 * max_y * _ADDON.getSettingInt(f"offset_y_{suffix}") / 100)
+        self.getControl(5000).setPosition(offset_x, offset_y)
 
     def onClick(self, control_id: int) -> None:
         self.close_dialog()

@@ -838,3 +838,23 @@ msgstr "[COLOR=FF000000]●[/COLOR] Schwarz (Standard)"
 msgctxt "#32258"
 msgid "[COLOR=FFFFFFFF]●[/COLOR] White"
 msgstr "[COLOR=FFFFFFFF]●[/COLOR] Weiß"
+
+msgctxt "#32260"
+msgid "Overlay position"
+msgstr "Overlay-Position"
+
+msgctxt "#32261"
+msgid "Horizontal offset"
+msgstr "Horizontaler Versatz"
+
+msgctxt "#32262"
+msgid "Shifts the overlay to the right from its default position. 100% is the maximum shift that keeps the content on screen."
+msgstr "Verschiebt das Overlay von seiner Standardposition aus nach rechts. 100% entsprechen der maximalen Verschiebung, bei der der Inhalt auf dem Bildschirm bleibt."
+
+msgctxt "#32263"
+msgid "Vertical offset"
+msgstr "Vertikaler Versatz"
+
+msgctxt "#32264"
+msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
+msgstr "Verschiebt das Overlay von seiner Standardposition aus nach oben. 100% entsprechen der maximalen Verschiebung, bei der der Inhalt auf dem Bildschirm bleibt."
