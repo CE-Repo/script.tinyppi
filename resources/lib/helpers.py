@@ -181,12 +181,3 @@ def _read_last_dovi_log_line() -> str:
         if m:
             return m.group(0)
     return ""
-
-
-# ---------------------------------------------------------------------------
-# UI helpers
-# ---------------------------------------------------------------------------
-
-def set_ui_position(window) -> None:
-    """Position the overlay's bottom-screen group for the overlay layout."""
-    window.getControl(9000).setPosition(40, 515)

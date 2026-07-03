@@ -24,6 +24,7 @@
         <include condition="Skin.HasSetting(ppi.userightCodecLogos)">CodecLogosRightOSD</include>
 
         <control type="group" id="5000">
+
 			<!-- No Filename -->
 			<control type="group">
 				<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),false)</visible>
@@ -174,6 +175,8 @@
 			<control type="group" id="9000">
 				<width>1920</width>
 				<height>0</height>
+				<left>40</left>
+				<top>515</top>
 
 				<!-- Group: Video -->
 				<control type="group">

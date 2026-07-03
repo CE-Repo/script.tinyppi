@@ -25,7 +25,6 @@ from helpers import (
     _read_hdr_status,
     _read_last_dovi_log_line,
     format_fps,
-    set_ui_position,
 )
 from dvinfo import (
     get_bit_depth,
@@ -700,7 +699,6 @@ def update_properties(window) -> None:
     Call this from ``onInit()`` and from a polling loop in your
     ``WindowXMLDialog`` subclass.
     """
-    set_ui_position(window)
 
     unit = _metadata_unit()
     video_queue = get_queue_level("Player.Process(videoqueuelevel)")
