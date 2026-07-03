@@ -28,7 +28,7 @@
                 <width>23</width>
                 <height>546</height>
                 <control type="image">
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/vs-dialog-start.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/dialog-bg-start.png</texture>
                 </control>
             </control>
             <control type="image">
@@ -36,7 +36,7 @@
                 <top>0</top>
                 <width>425</width>
                 <height>546</height>
-                <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/modern-middle.png</texture>
+                <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">common/dot-1x1.png</texture>
             </control>
             <control type="group">
                 <left>448</left>
@@ -44,7 +44,7 @@
                 <width>23</width>
                 <height>546</height>
                 <control type="image">
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/vs-dialog-end.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/dialog-bg-end.png</texture>
                 </control>
             </control>
 

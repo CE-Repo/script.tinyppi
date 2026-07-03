@@ -199,8 +199,8 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         filename_on = _ADDON.getSettingBool("filename")
         max_x = 0.324
         max_y = 0.30 if filename_on else 0.318
-        offset_x = round(1920 * max_x * _ADDON.getSettingInt("offset_x_modern") / 100)
-        offset_y = -round(1080 * max_y * _ADDON.getSettingInt("offset_y_modern") / 100)
+        offset_x = round(1920 * max_x * _ADDON.getSettingInt("offset_x") / 100)
+        offset_y = -round(1080 * max_y * _ADDON.getSettingInt("offset_y") / 100)
         if filename_on:
             offset_y -= 20
         self.getControl(5000).setPosition(offset_x, offset_y)

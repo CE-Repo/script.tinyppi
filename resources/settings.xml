@@ -40,7 +40,7 @@
                 </setting>
             </group>
             <group id="3" label="32260">
-                <setting id="offset_x_modern" type="integer" label="32261" help="32262">
+                <setting id="offset_x" type="integer" label="32261" help="32262">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -50,7 +50,7 @@
                     </constraints>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="offset_y_modern" type="integer" label="32263" help="32264">
+                <setting id="offset_y" type="integer" label="32263" help="32264">
                     <level>0</level>
                     <default>0</default>
                     <constraints>

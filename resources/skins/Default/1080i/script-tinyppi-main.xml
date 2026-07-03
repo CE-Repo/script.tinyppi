@@ -36,7 +36,7 @@
 					<width>23</width>
 					<height>665</height>
 					<control type="image">
-						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/modern-start.png</texture>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/overlay-bg-start.png</texture>
 					</control>
 				</control>
 
@@ -47,7 +47,7 @@
 					<width>1182</width>
 					<height>665</height>
 					<control type="image">
-						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/modern-middle.png</texture>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">common/dot-1x1.png</texture>
 					</control>
 				</control>
 
@@ -58,7 +58,7 @@
 					<width>23</width>
 					<height>665</height>
 					<control type="image">
-						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/modern-end.png</texture>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/overlay-bg-end.png</texture>
 					</control>
 				</control>
 			</control>
@@ -74,7 +74,7 @@
 					<width>23</width>
 					<height>685</height>
 					<control type="image">
-						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/modern-start.png</texture>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/overlay-bg-start.png</texture>
 					</control>
 				</control>
 
@@ -85,7 +85,7 @@
 					<width>1182</width>
 					<height>685</height>
 					<control type="image">
-						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/modern-middle.png</texture>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">common/dot-1x1.png</texture>
 					</control>
 				</control>
 
@@ -96,7 +96,7 @@
 					<width>23</width>
 					<height>685</height>
 					<control type="image">
-						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/modern-end.png</texture>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/overlay-bg-end.png</texture>
 					</control>
 				</control>
 
