@@ -191,10 +191,18 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         the content to the right, the vertical offset moves it up.  100 % maps
         to the maximum travel that keeps the content on screen: 32.4 % / 31.8 %
         of the screen size.
+
+        When the filename row is shown, the whole overlay is lifted an extra
+        20 px so the added line does not push the content off screen, and the
+        vertical travel is capped at 30 % instead of 31.8 %.
         """
-        max_x, max_y = 0.324, 0.318
+        filename_on = _ADDON.getSettingBool("filename")
+        max_x = 0.324
+        max_y = 0.30 if filename_on else 0.318
         offset_x = round(1920 * max_x * _ADDON.getSettingInt("offset_x_modern") / 100)
         offset_y = -round(1080 * max_y * _ADDON.getSettingInt("offset_y_modern") / 100)
+        if filename_on:
+            offset_y -= 20
         self.getControl(5000).setPosition(offset_x, offset_y)
 
     def onClick(self, control_id: int) -> None:
