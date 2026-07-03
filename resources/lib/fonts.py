@@ -24,8 +24,8 @@ _ADDON_DIR = _ADDON.getAddonInfo("path")
 _ADDONS_ROOT = os.path.dirname(os.path.dirname(_ADDON_DIR))
 
 _REQUIRED_FONTS = (
-    {"name": "font23_narrow", "filename": "Inter-Regular.ttf", "size": "21"},
-    {"name": "font32",        "filename": "Inter-Bold.ttf",    "size": "32"},
+    {"name": "font23_narrow", "filename": "Noto-Regular.ttf", "size": "21"},
+    {"name": "font32",        "filename": "Noto-Bold.ttf",    "size": "32"},
 )
 
 # Fonts ship in the tools.tinyppi addon.  Resolve its path defensively so a

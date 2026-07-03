@@ -189,15 +189,15 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
         Origin is the default bottom-left layout: the horizontal offset moves
         the content to the right, the vertical offset moves it up.  100 % maps
-        to the maximum travel that keeps the content on screen: 32.4 % / 31.8 %
+        to the maximum travel that keeps the content on screen: 31.7 % / 30 %
         of the screen size.
 
         When the filename row is shown, the whole overlay is lifted an extra
         20 px so the added line does not push the content off screen, and the
-        vertical travel is capped at 30 % instead of 31.8 %.
+        vertical travel is capped at 31.8 % instead of 30 %.
         """
         filename_on = _ADDON.getSettingBool("filename")
-        max_x = 0.324
+        max_x = 0.317
         max_y = 0.30 if filename_on else 0.318
         offset_x = round(1920 * max_x * _ADDON.getSettingInt("offset_x") / 100)
         offset_y = -round(1080 * max_y * _ADDON.getSettingInt("offset_y") / 100)

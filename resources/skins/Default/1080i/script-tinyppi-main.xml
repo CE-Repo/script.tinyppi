@@ -44,7 +44,7 @@
 				<control type="group">
 					<left>58</left>
 					<top>380</top>
-					<width>1182</width>
+					<width>1196</width>
 					<height>665</height>
 					<control type="image">
 						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">common/dot-1x1.png</texture>
@@ -53,7 +53,7 @@
 
 				<!-- Background - End -->
 				<control type="group">
-					<left>1240</left>
+					<left>1254</left>
 					<top>380</top>
 					<width>23</width>
 					<height>665</height>
@@ -82,7 +82,7 @@
 				<control type="group">
 					<left>58</left>
 					<top>380</top>
-					<width>1182</width>
+					<width>1196</width>
 					<height>685</height>
 					<control type="image">
 						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">common/dot-1x1.png</texture>
@@ -91,7 +91,7 @@
 
 				<!-- Background - End -->
 				<control type="group">
-					<left>1240</left>
+					<left>1254</left>
 					<top>380</top>
 					<width>23</width>
 					<height>685</height>
@@ -105,7 +105,7 @@
 					<top>1028</top>
 					<control type="label">
 						<left>70</left>
-						<width>1155</width>
+						<width>1169</width>
 						<label>$INFO[Player.Filename]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.FilenameColor)]</textcolor>
@@ -126,7 +126,7 @@
 					<left>70</left>
 					<top>411</top>
 					<control type="label">
-						<label>[CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE]</label>
+						<label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
 						<font>font32</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.HeaderColor)]</textcolor>
 						<aligny>top</aligny>
@@ -136,7 +136,7 @@
 				<!-- Chart icon -->
 				<control type="group">
 					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderIcon),1)</visible>
-					<left>1190</left>
+					<left>1204</left>
 					<top>415</top>
 					<control type="image">
 						<width>36</width>
@@ -151,7 +151,7 @@
 					<left>70</left>
 					<top>485</top>
 					<control type="image">
-						<width>1157</width>
+						<width>1171</width>
 						<height>1</height>
 						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
 					</control>
@@ -164,7 +164,7 @@
 					<left>70</left>
 					<top>1023</top>
 					<control type="image">
-						<width>1157</width>
+						<width>1171</width>
 						<height>1</height>
 						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
 					</control>
@@ -898,7 +898,7 @@
 						<control type="progress" id="9100">
 							<top>0</top>
 							<left>0</left>
-							<width>237</width>
+							<width>250</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
@@ -932,7 +932,7 @@
 						<control type="progress">
 							<top>0</top>
 							<left>0</left>
-							<width>237</width>
+							<width>250</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
@@ -967,7 +967,7 @@
 						<control type="progress">
 							<top>0</top>
 							<left>0</left>
-							<width>237</width>
+							<width>250</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
@@ -1002,7 +1002,7 @@
 						<control type="progress" id="9101">
 							<top>0</top>
 							<left>0</left>
-							<width>81</width>
+							<width>87</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
@@ -1023,9 +1023,9 @@
 					</control>
 					<control type="label">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>398</left>
+						<left>404</left>
 						<top>180</top>
-						<width>60</width>
+						<width>62</width>
 						<label>$INFO[Window().Property(VideoQueueDataLevelVar)]%</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -1035,11 +1035,11 @@
 					<control type="group">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>190</top>
-						<left>310</left>
+						<left>318</left>
 						<control type="progress" id="9102">
 							<top>0</top>
 							<left>156</left>
-							<width>81</width>
+							<width>86</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
@@ -1073,7 +1073,7 @@
 						<control type="progress" id="9103">
 							<top>0</top>
 							<left>0</left>
-							<width>81</width>
+							<width>87</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
@@ -1094,9 +1094,9 @@
 					</control>
 					<control type="label">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>398</left>
+						<left>404</left>
 						<top>210</top>
-						<width>60</width>
+						<width>62</width>
 						<label>$INFO[Window().Property(AudioQueueDataLevelVar)]%</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -1106,11 +1106,11 @@
 					<control type="group">
 						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>220</top>
-						<left>310</left>
+						<left>318</left>
 						<control type="progress" id="9104">
 							<top>0</top>
 							<left>156</left>
-							<width>81</width>
+							<width>86</width>
 							<height>8</height>
 							<description>BAR</description>
 							<centertop>50%</centertop>
