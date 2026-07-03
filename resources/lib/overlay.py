@@ -176,17 +176,13 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         Shift the overlay content by the configured offsets.
 
         Origin is the default bottom-left layout: the horizontal offset moves
-        the content to the right, the vertical offset moves it up.  Each UI
-        style has its own slider pair, and 100 % maps to the maximum travel
-        that keeps the content on screen: 35 % / 46.4 % of the screen size in
-        classic mode, 32.4 % / 31.8 % in modern mode.
+        the content to the right, the vertical offset moves it up.  100 % maps
+        to the maximum travel that keeps the content on screen: 32.4 % / 31.8 %
+        of the screen size.
         """
-        if _ADDON.getSetting("ui_style") == "0":
-            max_x, max_y, suffix = 0.35, 0.464, "classic"
-        else:
-            max_x, max_y, suffix = 0.324, 0.318, "modern"
-        offset_x = round(1920 * max_x * _ADDON.getSettingInt(f"offset_x_{suffix}") / 100)
-        offset_y = -round(1080 * max_y * _ADDON.getSettingInt(f"offset_y_{suffix}") / 100)
+        max_x, max_y = 0.324, 0.318
+        offset_x = round(1920 * max_x * _ADDON.getSettingInt("offset_x_modern") / 100)
+        offset_y = -round(1080 * max_y * _ADDON.getSettingInt("offset_y_modern") / 100)
         self.getControl(5000).setPosition(offset_x, offset_y)
 
     def onClick(self, control_id: int) -> None:
@@ -262,12 +258,7 @@ def open_tinyppi() -> None:
     _set_home_properties(
         home,
         (
-            ("TinyPPI.UIStyle", _ADDON.getSetting("ui_style")),
             ("TinyPPI.Filename", _ADDON.getSetting("filename")),
-            (
-                "TinyPPI.BackgroundToggle",
-                "1" if _ADDON.getSetting("background_toggle") == "true" else "0",
-            ),
             (
                 "TinyPPI.ShowL5Icon",
                 "0" if _ADDON.getSetting("show_l5_icon") == "false" else "1",

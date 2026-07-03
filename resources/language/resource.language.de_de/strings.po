@@ -23,37 +23,13 @@ msgctxt "#32003"
 msgid "TinyPPI settings"
 msgstr "TinyPPI-Einstellungen"
 
-msgctxt "#32004"
-msgid "Overlay style"
-msgstr "Overlay-Stil"
-
 msgctxt "#32005"
 msgid "Decoder"
 msgstr "Dekodierer"
 
-msgctxt "#32006"
-msgid "Choose the classic or modern TinyPPI overlay style."
-msgstr "Wähle den klassischen oder modernen TinyPPI-Overlay-Stil."
-
 msgctxt "#32007"
 msgid "Processing"
 msgstr "Verarbeitung"
-
-msgctxt "#32008"
-msgid "Classic"
-msgstr "Klassisch"
-
-msgctxt "#32009"
-msgid "Modern"
-msgstr "Modern"
-
-msgctxt "#32010"
-msgid "Hide gradient background"
-msgstr "Verlaufshintergrund ausblenden"
-
-msgctxt "#32011"
-msgid "Hide the gradient background in the classic TinyPPI style."
-msgstr "Blendet den Verlaufshintergrund im klassischen TinyPPI-Stil aus."
 
 msgctxt "#32012"
 msgid "720p skins are not supported"
@@ -252,12 +228,12 @@ msgid "Colors"
 msgstr "Farben"
 
 msgctxt "#32103"
-msgid "Background (Modern)"
-msgstr "Hintergrund (Modern)"
+msgid "Background"
+msgstr "Hintergrund"
 
 msgctxt "#32104"
-msgid "Background color of the Modern overlay style."
-msgstr "Hintergrundfarbe des modernen Overlay-Stils."
+msgid "Background color of the overlay style."
+msgstr "Hintergrundfarbe des Overlay-Stils."
 
 msgctxt "#32105"
 msgid "Title"

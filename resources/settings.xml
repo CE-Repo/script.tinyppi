@@ -14,32 +14,11 @@
                     </constraints>
                     <control type="spinner" format="string" />
                 </setting>
-                <setting id="ui_style" type="integer" label="32004" help="32006">
-                    <level>0</level>
-                    <default>1</default>
-                    <constraints>
-                        <options>
-                            <option label="32008">0</option>
-                            <option label="32009">1</option>
-                        </options>
-                    </constraints>
-                    <control type="spinner" format="string" />
-                </setting>
             </group>
             <group id="2" label="10116">
                 <setting id="filename" type="boolean" label="32019" help="32021">
                     <level>0</level>
                     <default>false</default>
-                    <control type="toggle" />
-                </setting>
-                <setting id="background_toggle" type="boolean" label="32010" help="32011">
-                    <level>0</level>
-                    <default>false</default>
-                    <dependencies>
-                        <dependency type="visible">
-                            <condition operator="is" setting="ui_style">0</condition>
-                        </dependency>
-                    </dependencies>
                     <control type="toggle" />
                 </setting>
                 <setting id="show_l5_icon" type="boolean" label="32195" help="32196">
@@ -69,11 +48,6 @@
                         <step>1</step>
                         <maximum>100</maximum>
                     </constraints>
-                    <dependencies>
-                        <dependency type="visible">
-                            <condition operator="is" setting="ui_style">1</condition>
-                        </dependency>
-                    </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
                 <setting id="offset_y_modern" type="integer" label="32263" help="32264">
@@ -84,41 +58,6 @@
                         <step>1</step>
                         <maximum>100</maximum>
                     </constraints>
-                    <dependencies>
-                        <dependency type="visible">
-                            <condition operator="is" setting="ui_style">1</condition>
-                        </dependency>
-                    </dependencies>
-                    <control type="slider" format="percentage" />
-                </setting>
-                <setting id="offset_x_classic" type="integer" label="32261" help="32262">
-                    <level>0</level>
-                    <default>0</default>
-                    <constraints>
-                        <minimum>0</minimum>
-                        <step>1</step>
-                        <maximum>100</maximum>
-                    </constraints>
-                    <dependencies>
-                        <dependency type="visible">
-                            <condition operator="is" setting="ui_style">0</condition>
-                        </dependency>
-                    </dependencies>
-                    <control type="slider" format="percentage" />
-                </setting>
-                <setting id="offset_y_classic" type="integer" label="32263" help="32264">
-                    <level>0</level>
-                    <default>0</default>
-                    <constraints>
-                        <minimum>0</minimum>
-                        <step>1</step>
-                        <maximum>100</maximum>
-                    </constraints>
-                    <dependencies>
-                        <dependency type="visible">
-                            <condition operator="is" setting="ui_style">0</condition>
-                        </dependency>
-                    </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
@@ -183,11 +122,6 @@
                             <option label="32250">999</option>
                         </options>
                     </constraints>
-                    <dependencies>
-                        <dependency type="visible">
-                            <condition operator="is" setting="ui_style">1</condition>
-                        </dependency>
-                    </dependencies>
                     <control type="list" format="string" />
                 </setting>
                 <setting id="background_color_custom_btn" type="string" label="32241" help="32242">
@@ -197,7 +131,6 @@
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="ui_style">1</condition>
                             <condition operator="is" setting="background_color">999</condition>
                         </dependency>
                     </dependencies>

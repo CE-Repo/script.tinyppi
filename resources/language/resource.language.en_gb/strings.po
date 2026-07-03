@@ -23,36 +23,12 @@ msgctxt "#32003"
 msgid "TinyPPI settings"
 msgstr ""
 
-msgctxt "#32004"
-msgid "Overlay style"
-msgstr ""
-
 msgctxt "#32005"
 msgid "Decoder"
 msgstr ""
 
-msgctxt "#32006"
-msgid "Choose the classic or modern TinyPPI overlay style."
-msgstr ""
-
 msgctxt "#32007"
 msgid "Processing"
-msgstr ""
-
-msgctxt "#32008"
-msgid "Classic"
-msgstr ""
-
-msgctxt "#32009"
-msgid "Modern"
-msgstr ""
-
-msgctxt "#32010"
-msgid "Hide gradient background"
-msgstr ""
-
-msgctxt "#32011"
-msgid "Hide the gradient background in the classic TinyPPI style."
 msgstr ""
 
 msgctxt "#32012"
@@ -252,11 +228,11 @@ msgid "Colors"
 msgstr ""
 
 msgctxt "#32103"
-msgid "Background (Modern)"
+msgid "Background"
 msgstr ""
 
 msgctxt "#32104"
-msgid "Background color of the Modern overlay style."
+msgid "Background color of the overlay style."
 msgstr ""
 
 msgctxt "#32105"

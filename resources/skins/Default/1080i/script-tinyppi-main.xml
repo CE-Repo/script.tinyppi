@@ -9,49 +9,14 @@
     <animation effect="fade" end="0" start="100" time="150">Hidden</animation>
     <animation effect="fade" end="0" start="100" time="150">WindowClose</animation>
     <controls>
-        <!-- Classic background -->
-        <control type="group">
-            <visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),0)</visible>
-            <visible>String.IsEqual(Window(10000).Property(TinyPPI.BackgroundToggle),0)</visible>
-            <top>-1000</top>
-            <width>1920</width>
-            <height>2080</height>
-            <control type="image">
-                <texture colordiffuse="FF000000">background/classic.png</texture>
-            </control>
-        </control>
-
         <!-- Codec logos support -->
         <include condition="Skin.HasSetting(ppi.useleftCodecLogos)">CodecLogosLeftOSD</include>
         <include condition="Skin.HasSetting(ppi.usecenterCodecLogos)">CodecLogosCenterOSD</include>
         <include condition="Skin.HasSetting(ppi.userightCodecLogos)">CodecLogosRightOSD</include>
 
-        <!-- Classic -->
         <control type="group" id="5000">
+			<!-- No Filename -->
 			<control type="group">
-				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),0)</visible>
-
-				<!-- Filename -->
-				<control type="group">
-					<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),true)</visible>
-					<top>1040</top>
-					<control type="label">
-						<left>45</left>
-						<width>1145</width>
-						<label>$INFO[Player.Filename]</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.FilenameColor)]</textcolor>
-						<align>center</align>
-						<scroll>true</scroll>
-						<scrollspeed>30</scrollspeed>
-						<aligny>top</aligny>
-					</control>
-				</control>
-			</control>
-
-			<!-- Modern - No Filename -->
-			<control type="group">
-				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),1)</visible>
 				<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),false)</visible>
 
 				<!-- Background - Start -->
@@ -88,9 +53,8 @@
 				</control>
 			</control>
 
-			<!-- Modern + Filename -->
+			<!-- With Filename -->
 			<control type="group">
-				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),1)</visible>
 				<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),true)</visible>
 
 				<!-- Background - Start -->
@@ -143,9 +107,8 @@
 				</control>
 			</control>
 
-			<!-- Modern -->
+			<!-- Overlay -->
 			<control type="group">
-				<visible>String.IsEqual(Window(10000).Property(TinyPPI.UIStyle),1)</visible>
 
 				<!-- Label -->
 				<control type="group">

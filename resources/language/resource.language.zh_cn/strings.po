@@ -23,37 +23,13 @@ msgctxt "#32003"
 msgid "TinyPPI settings"
 msgstr "TinyPPI 设置"
 
-msgctxt "#32004"
-msgid "Overlay style"
-msgstr "叠加层样式"
-
 msgctxt "#32005"
 msgid "Decoder"
 msgstr "解码器"
 
-msgctxt "#32006"
-msgid "Choose the classic or modern TinyPPI overlay style."
-msgstr "选择经典或现代 TinyPPI 叠加层样式。"
-
 msgctxt "#32007"
 msgid "Processing"
 msgstr "正在处理"
-
-msgctxt "#32008"
-msgid "Classic"
-msgstr "经典"
-
-msgctxt "#32009"
-msgid "Modern"
-msgstr "现代"
-
-msgctxt "#32010"
-msgid "Hide gradient background"
-msgstr "隐藏渐变背景"
-
-msgctxt "#32011"
-msgid "Hide the gradient background in the classic TinyPPI style."
-msgstr "隐藏经典 TinyPPI 样式中的渐变背景。"
 
 msgctxt "#32012"
 msgid "720p skins are not supported"
@@ -252,11 +228,11 @@ msgid "Colors"
 msgstr "颜色"
 
 msgctxt "#32103"
-msgid "Background (Modern)"
-msgstr "背景（现代）"
+msgid "Background"
+msgstr "背景"
 
 msgctxt "#32104"
-msgid "Background color of the Modern overlay style."
+msgid "Background color of the overlay style."
 msgstr "现代叠加层样式的背景颜色。"
 
 msgctxt "#32105"
