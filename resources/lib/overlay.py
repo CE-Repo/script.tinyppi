@@ -304,6 +304,14 @@ def open_dialog_mode() -> None:
         return
 
     _set_overlay_state(home, dialog_mode=True)
+    _set_home_properties(
+        home,
+        (
+            ("TinyPPI.ShowLine", _elements_visible()),
+            ("TinyPPI.ShowHeaderTitle", _elements_visible()),
+            ("TinyPPI.ShowHeaderIcon", _elements_visible()),
+        ),
+    )
     apply_theme(home, _ADDON)
 
     try:

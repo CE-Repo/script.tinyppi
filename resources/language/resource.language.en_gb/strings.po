@@ -835,10 +835,22 @@ msgctxt "#32264"
 msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
 msgstr ""
 
-msgctxt "#32265"
-msgid "Background transparency"
-msgstr ""
-
 msgctxt "#32266"
 msgid "Opacity of the overlay background, from 0% (fully transparent) to 100% (fully opaque)."
+msgstr ""
+
+msgctxt "#32267"
+msgid "Transparency"
+msgstr ""
+
+msgctxt "#32268"
+msgid "Opacity of the full-screen background behind the overlay, from 0% (off) to 100% (fully opaque)."
+msgstr ""
+
+msgctxt "#32269"
+msgid "Global background"
+msgstr ""
+
+msgctxt "#32271"
+msgid "Color of the full-screen global background."
 msgstr ""

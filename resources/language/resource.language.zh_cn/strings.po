@@ -835,10 +835,22 @@ msgctxt "#32264"
 msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
 msgstr "将叠加层从默认位置向上移动。100% 为保持内容完全显示在屏幕内的最大移动量。"
 
-msgctxt "#32265"
-msgid "Background transparency"
-msgstr "背景透明度"
-
 msgctxt "#32266"
 msgid "Opacity of the overlay background, from 0% (fully transparent) to 100% (fully opaque)."
 msgstr "叠加层背景的不透明度，从 0%（完全透明）到 100%（完全不透明）。"
+
+msgctxt "#32267"
+msgid "Transparency"
+msgstr "透明度"
+
+msgctxt "#32268"
+msgid "Opacity of the full-screen background behind the overlay, from 0% (off) to 100% (fully opaque)."
+msgstr "叠加层后面全屏背景的不透明度，从 0%（关闭）到 100%（完全不透明）。"
+
+msgctxt "#32269"
+msgid "Global background"
+msgstr "全局背景"
+
+msgctxt "#32271"
+msgid "Color of the full-screen global background."
+msgstr "全屏全局背景的颜色。"

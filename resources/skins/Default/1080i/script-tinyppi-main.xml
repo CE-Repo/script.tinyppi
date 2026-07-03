@@ -9,6 +9,15 @@
     <animation effect="fade" end="0" start="100" time="150">Hidden</animation>
     <animation effect="fade" end="0" start="100" time="150">WindowClose</animation>
     <controls>
+        <!-- Global background -->
+        <control type="image">
+            <left>0</left>
+            <top>0</top>
+            <width>1920</width>
+            <height>1080</height>
+            <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.GlobalBackgroundColor)]">common/dot-1x1.png</texture>
+        </control>
+
         <!-- Codec logos support -->
         <include condition="Skin.HasSetting(ppi.useleftCodecLogos)">CodecLogosLeftOSD</include>
         <include condition="Skin.HasSetting(ppi.usecenterCodecLogos)">CodecLogosCenterOSD</include>
@@ -114,7 +123,7 @@
 				<control type="group">
 					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderTitle),1)</visible>
 					<left>70</left>
-					<top>418</top>
+					<top>411</top>
 					<control type="label">
 						<label>[CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE]</label>
 						<font>font32</font>

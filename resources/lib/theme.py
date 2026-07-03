@@ -279,9 +279,10 @@ _CUSTOM_FILE = "special://profile/addon_data/script.tinyppi/custom_colors.json"
 # Anything not listed uses full opacity (FF) so the 6-digit input becomes an
 # 8-digit ARGB value internally.
 _CUSTOM_ALPHA = {
-    "background_color": "FA",  # Modern background shades
-    "accent_color":     "B3",  # dimmed detail accents (~70%)
-    "line_color":       "26",  # faint separator lines (~15%)
+    "background_color":        "FA",  # Modern background shades
+    "global_background_color": "FA",  # full-screen global background shades
+    "accent_color":            "B3",  # dimmed detail accents (~70%)
+    "line_color":              "26",  # faint separator lines (~15%)
 }
 _DEFAULT_ALPHA = "FF"
 
@@ -348,19 +349,25 @@ def _pick(palette: tuple, value: str) -> str:
 # invalid.  98 % maps to alpha FA, matching the original hard-coded shades.
 _DEFAULT_BG_OPACITY = 98
 
+# Default opacity (percent) for the full-screen global background.  0 % keeps
+# the layer fully transparent (off), so the overlay looks unchanged until the
+# user raises the slider.
+_DEFAULT_GLOBAL_BG_OPACITY = 0
 
-def _opacity_alpha(addon, overrides=None) -> str:
+
+def _opacity_alpha(addon, setting_id="background_opacity",
+                   default=_DEFAULT_BG_OPACITY, overrides=None) -> str:
     """
-    Return the 2-digit hex alpha for the configured background opacity.
+    Return the 2-digit hex alpha for a configured opacity slider.
 
-    The ``background_opacity`` setting is a 0–100 % slider: 100 % is fully
-    opaque (FF) and 0 % is fully transparent (00).  The default of 98 % maps
-    to FA, matching the alpha baked into ``_BACKGROUND_COLORS``.
+    The referenced setting is a 0–100 % slider: 100 % is fully opaque (FF) and
+    0 % is fully transparent (00).  The ``background_opacity`` default of 98 %
+    maps to FA, matching the alpha baked into ``_BACKGROUND_COLORS``.
     """
     try:
-        percent = int(_setting_value(addon, "background_opacity", overrides))
+        percent = int(_setting_value(addon, setting_id, overrides))
     except (ValueError, TypeError):
-        percent = _DEFAULT_BG_OPACITY
+        percent = default
     percent = max(0, min(100, percent))
     return "{:02X}".format(round(percent * 255 / 100))
 
@@ -402,6 +409,7 @@ _THEME_PROPERTIES = (
     ("TinyPPI.UnitColor",            _TEXT_COLORS, "unit_color"),
     ("TinyPPI.AccentColor",          _ACCENT_COLORS, "accent_color"),
     ("TinyPPI.BackgroundColor",      _BACKGROUND_COLORS, "background_color"),
+    ("TinyPPI.GlobalBackgroundColor", _BACKGROUND_COLORS, "global_background_color"),
     ("TinyPPI.LineColor",            _LINE_COLORS, "line_color"),
     ("TinyPPI.DialogFocusColor",     _DIALOG_FOCUS_COLORS, "dialog_focus_color"),
     (
@@ -425,8 +433,17 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
     for property_name, palette, setting_id in _THEME_PROPERTIES:
         value = _resolve(palette, addon, setting_id, custom, overrides)
         if setting_id == "background_color":
-            # Override the palette/custom alpha with the user-set opacity.
-            value = _opacity_alpha(addon, overrides) + value[2:]
+            # Override the palette/custom alpha with the panel opacity.
+            value = _opacity_alpha(addon, overrides=overrides) + value[2:]
+        elif setting_id == "global_background_color":
+            # The full-screen global background has its own color and its own
+            # opacity slider (independent of the panel).
+            value = _opacity_alpha(
+                addon,
+                "global_background_opacity",
+                _DEFAULT_GLOBAL_BG_OPACITY,
+                overrides,
+            ) + value[2:]
         home.setProperty(property_name, value)
 
     home.setProperty(

@@ -8,6 +8,15 @@
     <animation effect="fade" start="0" end="100" time="200" tween="cubic" easing="inout">WindowOpen</animation>
     <animation effect="fade" end="0" start="100" time="150">WindowClose</animation>
     <controls>
+        <!-- Global background -->
+        <control type="image">
+            <left>0</left>
+            <top>0</top>
+            <width>1920</width>
+            <height>1080</height>
+            <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.GlobalBackgroundColor)]">common/dot-1x1.png</texture>
+        </control>
+
         <control type="group">
             <left>725</left>
             <top>267</top>
@@ -41,6 +50,7 @@
 
             <!-- Label -->
             <control type="group">
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderTitle),1)</visible>
                 <left>35</left>
                 <top>37</top>
                 <control type="label">
@@ -53,6 +63,7 @@
 
             <!-- Chart icon -->
             <control type="group">
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderIcon),1)</visible>
                 <left>400</left>
                 <top>43</top>
                 <control type="image">
@@ -64,6 +75,7 @@
 
             <!-- Line -->
             <control type="group">
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
                 <left>35</left>
                 <top>120</top>
                 <control type="image">
@@ -73,6 +85,7 @@
                 </control>
             </control>
             <control type="group">
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
                 <left>35</left>
                 <top>509</top>
                 <control type="image">

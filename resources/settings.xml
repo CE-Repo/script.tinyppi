@@ -64,6 +64,92 @@
         </category>
         <category id="Theme" label="32100" help="32101">
             <group id="1" label="32246">
+                <setting id="global_background_color" type="integer" label="32269" help="32271">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32130">0</option>
+                            <option label="32131">1</option>
+                            <option label="32132">2</option>
+                            <option label="32133">3</option>
+                            <option label="32134">4</option>
+                            <option label="32135">5</option>
+                            <option label="32136">6</option>
+                            <option label="32137">7</option>
+                            <option label="32138">8</option>
+                            <option label="32139">9</option>
+                            <option label="32170">10</option>
+                            <option label="32171">11</option>
+                            <option label="32172">12</option>
+                            <option label="32173">13</option>
+                            <option label="32174">14</option>
+                            <option label="32175">15</option>
+                            <option label="32176">16</option>
+                            <option label="32177">17</option>
+                            <option label="32178">18</option>
+                            <option label="32179">19</option>
+                            <option label="32180">20</option>
+                            <option label="32181">21</option>
+                            <option label="32182">22</option>
+                            <option label="32183">23</option>
+                            <option label="32184">24</option>
+                            <option label="32185">25</option>
+                            <option label="32186">26</option>
+                            <option label="32187">27</option>
+                            <option label="32188">28</option>
+                            <option label="32189">29</option>
+                            <option label="32220">30</option>
+                            <option label="32221">31</option>
+                            <option label="32222">32</option>
+                            <option label="32223">33</option>
+                            <option label="32224">34</option>
+                            <option label="32225">35</option>
+                            <option label="32226">36</option>
+                            <option label="32227">37</option>
+                            <option label="32228">38</option>
+                            <option label="32229">39</option>
+                            <option label="32230">40</option>
+                            <option label="32231">41</option>
+                            <option label="32232">42</option>
+                            <option label="32233">43</option>
+                            <option label="32234">44</option>
+                            <option label="32235">45</option>
+                            <option label="32236">46</option>
+                            <option label="32237">47</option>
+                            <option label="32238">48</option>
+                            <option label="32239">49</option>
+                            <option label="32250">999</option>
+                        </options>
+                    </constraints>
+                    <control type="list" format="string" />
+                </setting>
+                <setting id="global_background_color_custom_btn" type="string" label="32241" help="32242">
+                    <level>0</level>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="global_background_color">999</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,global_background_color)</data>
+                    </control>
+                </setting>
+                <setting id="global_background_opacity" type="integer" label="32267" help="32268">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
+            </group>
+            <group id="2" label="32246">
                 <setting id="background_color" type="integer" label="32103" help="32104">
                     <level>0</level>
                     <default>0</default>
@@ -138,7 +224,7 @@
                         <data>RunScript(script.tinyppi,custom_color,background_color)</data>
                     </control>
                 </setting>
-                <setting id="background_opacity" type="integer" label="32265" help="32266">
+                <setting id="background_opacity" type="integer" label="32267" help="32266">
                     <level>0</level>
                     <default>98</default>
                     <constraints>
@@ -149,7 +235,7 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="2" label="32246">
+            <group id="3" label="32246">
                 <setting id="title_color" type="integer" label="32105" help="32106">
                     <level>0</level>
                     <default>0</default>
@@ -225,7 +311,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="3" label="32246">
+            <group id="4" label="32246">
                 <setting id="filename_color" type="integer" label="32197" help="32198">
                     <level>0</level>
                     <default>0</default>
@@ -307,7 +393,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="4" label="32246">
+            <group id="5" label="32246">
                 <setting id="header_color" type="integer" label="32142" help="32143">
                     <level>0</level>
                     <default>0</default>
@@ -383,7 +469,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="5" label="32246">
+            <group id="6" label="32246">
                 <setting id="icon_color" type="integer" label="32115" help="32116">
                     <level>0</level>
                     <default>0</default>
@@ -459,7 +545,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="6" label="32246">
+            <group id="7" label="32246">
                 <setting id="header_icon_color" type="integer" label="32144" help="32145">
                     <level>0</level>
                     <default>0</default>
@@ -535,7 +621,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="7" label="32246">
+            <group id="8" label="32246">
                 <setting id="description_color" type="integer" label="32107" help="32108">
                     <level>0</level>
                     <default>0</default>
@@ -611,7 +697,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="8" label="32246">
+            <group id="9" label="32246">
                 <setting id="output_color" type="integer" label="32109" help="32110">
                     <level>0</level>
                     <default>0</default>
@@ -687,7 +773,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="9" label="32246">
+            <group id="10" label="32246">
                 <setting id="fps_color" type="integer" label="32140" help="32141">
                     <level>0</level>
                     <default>0</default>
@@ -763,7 +849,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="10" label="32246">
+            <group id="11" label="32246">
                 <setting id="progress_color" type="integer" label="32111" help="32112">
                     <level>0</level>
                     <default>0</default>
@@ -839,7 +925,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="11" label="32246">
+            <group id="12" label="32246">
                 <setting id="accent_color" type="integer" label="32113" help="32114">
                     <level>0</level>
                     <default>0</default>
@@ -915,7 +1001,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="12" label="32246">
+            <group id="13" label="32246">
                 <setting id="unit_color" type="integer" label="32117" help="32118">
                     <level>0</level>
                     <default>0</default>
@@ -997,7 +1083,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="13" label="32246">
+            <group id="14" label="32246">
                 <setting id="line_color" type="integer" label="32251" help="32252">
                     <level>0</level>
                     <default>0</default>
@@ -1073,7 +1159,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="14" label="32246">
+            <group id="15" label="32246">
                 <setting id="dialog_focus_color" type="integer" label="32253" help="32254">
                     <level>0</level>
                     <default>0</default>
@@ -1155,7 +1241,7 @@
                     </control>
                 </setting>
             </group>
-            <group id="15" label="32246">
+            <group id="16" label="32246">
                 <setting id="dialog_focus_text_color" type="integer" label="32255" help="32256">
                     <level>0</level>
                     <default>0</default>
