@@ -112,6 +112,7 @@
 
 				<!-- Label -->
 				<control type="group">
+					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderTitle),1)</visible>
 					<left>70</left>
 					<top>418</top>
 					<control type="label">
@@ -124,6 +125,7 @@
 
 				<!-- Chart icon -->
 				<control type="group">
+					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderIcon),1)</visible>
 					<left>1190</left>
 					<top>415</top>
 					<control type="image">
@@ -135,6 +137,7 @@
 
 				<!-- Line / Top -->
 				<control type="group">
+					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
 					<left>70</left>
 					<top>485</top>
 					<control type="image">
@@ -147,6 +150,7 @@
 				<!-- Line / Bottom -->
 				<control type="group">
 					<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),true)</visible>
+					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
 					<left>70</left>
 					<top>1023</top>
 					<control type="image">

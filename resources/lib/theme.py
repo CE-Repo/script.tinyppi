@@ -344,6 +344,27 @@ def _pick(palette: tuple, value: str) -> str:
         return palette[0]
 
 
+# Default background opacity (percent) used when the setting is missing or
+# invalid.  98 % maps to alpha FA, matching the original hard-coded shades.
+_DEFAULT_BG_OPACITY = 98
+
+
+def _opacity_alpha(addon, overrides=None) -> str:
+    """
+    Return the 2-digit hex alpha for the configured background opacity.
+
+    The ``background_opacity`` setting is a 0–100 % slider: 100 % is fully
+    opaque (FF) and 0 % is fully transparent (00).  The default of 98 % maps
+    to FA, matching the alpha baked into ``_BACKGROUND_COLORS``.
+    """
+    try:
+        percent = int(_setting_value(addon, "background_opacity", overrides))
+    except (ValueError, TypeError):
+        percent = _DEFAULT_BG_OPACITY
+    percent = max(0, min(100, percent))
+    return "{:02X}".format(round(percent * 255 / 100))
+
+
 def _setting_value(addon, setting_id: str, overrides) -> str:
     """Return a setting value, allowing fresh writes to bypass Kodi's cache."""
     if overrides and setting_id in overrides:
@@ -402,10 +423,11 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
     custom = _load_custom() if custom is None else custom
 
     for property_name, palette, setting_id in _THEME_PROPERTIES:
-        home.setProperty(
-            property_name,
-            _resolve(palette, addon, setting_id, custom, overrides),
-        )
+        value = _resolve(palette, addon, setting_id, custom, overrides)
+        if setting_id == "background_color":
+            # Override the palette/custom alpha with the user-set opacity.
+            value = _opacity_alpha(addon, overrides) + value[2:]
+        home.setProperty(property_name, value)
 
     home.setProperty(
         "TinyPPI.UnitLabel",

@@ -834,3 +834,11 @@ msgstr ""
 msgctxt "#32264"
 msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
 msgstr ""
+
+msgctxt "#32265"
+msgid "Background transparency"
+msgstr ""
+
+msgctxt "#32266"
+msgid "Opacity of the overlay background, from 0% (fully transparent) to 100% (fully opaque)."
+msgstr ""

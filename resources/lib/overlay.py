@@ -131,6 +131,18 @@ def _preflight(home, player, toggle_log: str) -> bool:
     return not _dialog_lock
 
 
+def _elements_visible() -> str:
+    """
+    Return the "1"/"0" visibility flag for the header title, header icon and
+    separator lines.
+
+    These elements follow the background: they stay shown with any visible
+    background and are hidden when the background is fully transparent
+    (0 % opacity).
+    """
+    return "0" if _ADDON.getSettingInt("background_opacity") == 0 else "1"
+
+
 def _release_overlay(home) -> None:
     """Briefly hold the re-entry lock, then clear the overlay state properties."""
     global _dialog_lock
@@ -263,6 +275,9 @@ def open_tinyppi() -> None:
                 "TinyPPI.ShowL5Icon",
                 "0" if _ADDON.getSetting("show_l5_icon") == "false" else "1",
             ),
+            ("TinyPPI.ShowLine", _elements_visible()),
+            ("TinyPPI.ShowHeaderTitle", _elements_visible()),
+            ("TinyPPI.ShowHeaderIcon", _elements_visible()),
         ),
     )
     apply_theme(home, _ADDON)

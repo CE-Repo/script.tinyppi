@@ -834,3 +834,11 @@ msgstr "垂直偏移"
 msgctxt "#32264"
 msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
 msgstr "将叠加层从默认位置向上移动。100% 为保持内容完全显示在屏幕内的最大移动量。"
+
+msgctxt "#32265"
+msgid "Background transparency"
+msgstr "背景透明度"
+
+msgctxt "#32266"
+msgid "Opacity of the overlay background, from 0% (fully transparent) to 100% (fully opaque)."
+msgstr "叠加层背景的不透明度，从 0%（完全透明）到 100%（完全不透明）。"

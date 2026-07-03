@@ -834,3 +834,11 @@ msgstr "Vertikaler Versatz"
 msgctxt "#32264"
 msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
 msgstr "Verschiebt das Overlay von seiner Standardposition aus nach oben. 100% entsprechen der maximalen Verschiebung, bei der der Inhalt auf dem Bildschirm bleibt."
+
+msgctxt "#32265"
+msgid "Background transparency"
+msgstr "Hintergrund-Transparenz"
+
+msgctxt "#32266"
+msgid "Opacity of the overlay background, from 0% (fully transparent) to 100% (fully opaque)."
+msgstr "Deckkraft des Overlay-Hintergrunds, von 0% (vollständig transparent) bis 100% (vollständig deckend)."

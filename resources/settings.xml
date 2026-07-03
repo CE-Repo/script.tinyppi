@@ -138,6 +138,16 @@
                         <data>RunScript(script.tinyppi,custom_color,background_color)</data>
                     </control>
                 </setting>
+                <setting id="background_opacity" type="integer" label="32265" help="32266">
+                    <level>0</level>
+                    <default>98</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
             </group>
             <group id="2" label="32246">
                 <setting id="title_color" type="integer" label="32105" help="32106">
