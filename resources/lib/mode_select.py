@@ -109,6 +109,19 @@ def original_hdr() -> None:
     _set_passthrough_mode("3")
 
 
+def original_hlg() -> None:
+    # Native HLG: HLG is not a supported VS10 *input*, so with the core
+    # enabled (even in BYPASS) no output-mode switch happens.  Turn VS10 off
+    # (policy=follow-source, enable=N) so HLG passes through the standard HDR
+    # path untouched.
+    _write_sequence(
+        (
+            (_POLICY, "0"),
+            (_ENABLE, "N"),
+        )
+    )
+
+
 def original_dv() -> None:
     _set_passthrough_mode("2")
 
@@ -130,6 +143,7 @@ _MODES = {
     "hdr10": hdr10,
     "dv": dv,
     "original_hdr": original_hdr,
+    "original_hlg": original_hlg,
     "original_dv": original_dv,
     "sdr8": sdr8,
     "sdr10": sdr10,
@@ -161,13 +175,17 @@ _ACTIONS = {
     1002: original_sdr,
     1003: hdr10,
     1004: dv,
-    # HDR
+    # HDR10
     1005: original_hdr,
     1006: sdr8,
     1008: dv,
-    # DV
-    1009: original_dv,
+    # HLG (Original bypasses VS10 so HLG stays HLG)
+    1009: original_hlg,
     1010: sdr8,
+    1011: dv,
+    # DV
+    1012: original_dv,
+    1013: sdr8,
 }
 
 # ---------------------------------------------------------------------------
