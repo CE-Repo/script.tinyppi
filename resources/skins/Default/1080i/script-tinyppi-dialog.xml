@@ -97,6 +97,7 @@
 
             <!-- Player Process Info -->
             <control type="button" id="1001">
+                <visible>!String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus)</visible>
                 <left>35</left>
                 <top>155</top>
                 <width>400</width>
@@ -110,11 +111,28 @@
                 <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                 <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                 <onup condition="String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))">1004</onup>
-                <onup condition="String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10)">1008</onup>
+                <onup condition="String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10)">1008</onup>
                 <onup condition="String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)">1010</onup>
                 <ondown condition="String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))">1002</ondown>
-                <ondown condition="String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10)">1005</ondown>
+                <ondown condition="String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10)">1005</ondown>
                 <ondown condition="String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)">1009</ondown>
+            </control>
+
+            <!-- Player Process Info (only) -->
+            <control type="button" id="1001">
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus)</visible>
+                <left>35</left>
+                <top>275</top>
+                <width>400</width>
+                <height>80</height>
+                <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
+                <align>center</align>
+                <font>font23_narrow</font>
+                <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
+                <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
+                <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
             </control>
 
             <!-- SDR -->
@@ -172,7 +190,7 @@
 
             <!-- HDR10 -->
             <control type="group">
-                <visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10)</visible>
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10)</visible>
                 <control type="button" id="1005">
                     <left>35</left>
                     <top>235</top>
