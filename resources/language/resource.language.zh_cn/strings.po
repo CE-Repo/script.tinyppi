@@ -203,10 +203,6 @@ msgctxt "#32096"
 msgid "Fetching..."
 msgstr "正在获取..."
 
-msgctxt "#32097"
-msgid "L6 RPU MDL"
-msgstr "L6 母版显示"
-
 msgctxt "#32098"
 msgid "L6 MaxCLL/FALL"
 msgstr "L6 MaxCLL/FALL"
@@ -854,3 +850,11 @@ msgstr "全局背景"
 msgctxt "#32271"
 msgid "Color of the full-screen global background."
 msgstr "全屏全局背景的颜色。"
+
+msgctxt "#32272"
+msgid "Mastering Display"
+msgstr "母版显示"
+
+msgctxt "#32273"
+msgid "MaxCLL/FALL"
+msgstr "MaxCLL/FALL"

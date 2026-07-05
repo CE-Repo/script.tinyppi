@@ -203,10 +203,6 @@ msgctxt "#32096"
 msgid "Fetching..."
 msgstr "Wird ermittelt..."
 
-msgctxt "#32097"
-msgid "L6 RPU MDL"
-msgstr "L6 RPU MDL"
-
 msgctxt "#32098"
 msgid "L6 MaxCLL/FALL"
 msgstr "L6 MaxCLL/FALL"
@@ -854,3 +850,11 @@ msgstr "Globaler Hintergrund"
 msgctxt "#32271"
 msgid "Color of the full-screen global background."
 msgstr "Farbe des bildschirmfüllenden globalen Hintergrunds."
+
+msgctxt "#32272"
+msgid "Mastering Display"
+msgstr "Mastering Display"
+
+msgctxt "#32273"
+msgid "MaxCLL/FALL"
+msgstr "MaxCLL/FALL"

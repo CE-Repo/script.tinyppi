@@ -29,7 +29,6 @@ from helpers import (
 from dvinfo import (
     get_bit_depth,
     get_cm_version,
-    get_display_aspect_ratio,
     get_l5_offsets,
     get_l6_rpu_mdl,
     get_l6_rpu_max_cll_fall,
@@ -184,12 +183,11 @@ def get_VideoBitDepthVar() -> str:
     """
     Return the source video bit depth for display, e.g. ``12-bit``.
 
-    Dolby Vision streams are measured from the RPU with dovi_tool, because FEL
-    material reconstructs a 12-bit signal that MediaInfo would report as the
-    10-bit base layer; every other format is read from MediaInfo.  Detection
-    runs in a background thread (see dvinfo.py), so this call never blocks the
-    polling loop; the localized status label is passed through unchanged while
-    detection is running or after it fails.
+    FEL Dolby Vision streams reconstruct a 12-bit signal from a 10-bit base
+    layer, so 12-bit is reported for them; every other format uses hdrprobe's
+    container bit depth.  Detection runs in a background thread (see dvinfo.py),
+    so this call never blocks the polling loop; the localized status label is
+    passed through unchanged while detection is running or after it fails.
     """
     value = get_bit_depth()
     if not value or is_status_label(value):
@@ -311,32 +309,20 @@ def get_DoviLevel5OffsetsVar() -> str:
 
 def get_DoviLevel6RpuMdlVar() -> str:
     """
-    Return the source Dolby Vision Level 6 RPU mastering-display luminance, a
-    localized status while/after detection, or ``''`` when the source is not
-    Dolby Vision.
+    Return the source mastering-display luminance: the Dolby Vision Level 6 RPU
+    value, or the static HDR10 mastering display when the source is HDR10.
+    Falls back to a localized status while/after detection, and to N/A for SDR.
     """
     return get_l6_rpu_mdl()
 
 
 def get_DoviLevel6RpuMaxCllFallVar() -> str:
     """
-    Return the source Dolby Vision Level 6 RPU MaxCLL/MaxFALL, a localized
-    status while/after detection, or ``''`` when the source is not Dolby Vision.
+    Return the source MaxCLL/MaxFALL content light: the Dolby Vision Level 6 RPU
+    value, or the static HDR10 content light when the source is HDR10.  Falls
+    back to a localized status while/after detection, and to N/A for SDR.
     """
     return get_l6_rpu_max_cll_fall()
-
-
-def get_DisplayAspectRatioVar() -> str:
-    """
-    Return the source display aspect ratio from MediaInfo, restricted to the
-    standard ``16:9`` and ``4:3`` ratios; any other value (or no value at all)
-    yields ``''``.
-
-    Shown as a parenthetical next to the live ``videodar`` value, so an empty
-    string simply omits the addition.
-    """
-    value = get_display_aspect_ratio()
-    return value if value in ("16:9", "4:3") else ""
 
 
 def _with_unit(value: str, unit: str) -> str:
@@ -739,7 +725,6 @@ def update_properties(window) -> None:
             ("DoviLevel5OffsetsIconVisible", l5_offsets_icon_visible),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
-            ("DisplayAspectRatioVar", get_DisplayAspectRatioVar()),
             ("ModeVar", get_ModeVar()),
             ("GamutVar", get_GamutVar()),
             ("VdecBitrate", bitrate_value),

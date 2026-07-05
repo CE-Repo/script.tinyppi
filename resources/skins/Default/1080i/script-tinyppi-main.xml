@@ -289,7 +289,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>150</top>
-						<label>$INFO[Player.Process(videodar)]:1 [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(DisplayAspectRatioVar),(,)][/COLOR]</label>
+						<label>$INFO[Player.Process(videodar)]:1</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
@@ -460,11 +460,11 @@
 						<aligny>top</aligny>
 					</control>
 
-					<!-- L6 RPU MDL -->
+					<!-- Mastering Display -->
 					<control type="group">
 						<control type="label">
 							<top>150</top>
-							<label>$ADDON[script.tinyppi 32097]:</label>
+							<label>$ADDON[script.tinyppi 32272]:</label>
 							<font>font23_narrow</font>
 							<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 							<aligny>top</aligny>
@@ -479,11 +479,20 @@
 						</control>
 					</control>
 
-					<!-- L6 MaxCLL/FALL -->
+					<!-- L6 MaxCLL/FALL (DV) / MaxCLL/FALL (HDR10) -->
 					<control type="group">
 						<control type="label">
+							<visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
 							<top>180</top>
 							<label>$ADDON[script.tinyppi 32098]:</label>
+							<font>font23_narrow</font>
+							<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+							<aligny>top</aligny>
+						</control>
+						<control type="label">
+							<visible>!String.Contains(VideoPlayer.HdrType,dolby)</visible>
+							<top>180</top>
+							<label>$ADDON[script.tinyppi 32273]:</label>
 							<font>font23_narrow</font>
 							<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 							<aligny>top</aligny>
