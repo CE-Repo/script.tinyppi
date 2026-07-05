@@ -32,6 +32,7 @@ from dvinfo import (
     get_cm_version,
     get_hdr_format,
     get_output_mode,
+    get_structure,
     get_l5_offsets,
     get_l6_rpu_mdl,
     get_l6_rpu_max_cll_fall,
@@ -287,6 +288,21 @@ def get_DoviCmVersionVar() -> str:
     this call never blocks the polling loop.
     """
     return get_cm_version()
+
+
+def get_DoviStructureVar() -> str:
+    """
+    Return the source Dolby Vision layer-structure tag
+    (``(ST-DL)`` / ``(DT-DL)`` / ``(ST-SL)``), or ``''`` when it is not (yet)
+    known.
+
+    Like the CM version this never surfaces a "Fetching..." or "N/A" status
+    label: the value is shown only once detected, and stays empty otherwise.
+
+    Detection runs once per file in a background thread (see dvinfo.py), so
+    this call never blocks the polling loop.
+    """
+    return get_structure()
 
 
 def get_DoviLevel5OffsetsVar() -> str:
@@ -724,6 +740,7 @@ def update_properties(window) -> None:
             ("DoviFelVar", get_DoviFelVar()),
             ("DoviTunnelVar", get_DoviTunnelVar()),
             ("DoviCmVersionVar", get_DoviCmVersionVar()),
+            ("DoviStructureVar", get_DoviStructureVar()),
             ("DoviLevel5OffsetsVar", l5_offsets),
             ("DoviLevel5OffsetsIconVisible", l5_offsets_icon_visible),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),

@@ -65,6 +65,7 @@ _CACHE_FIELD_PROPERTIES = {
     "hdr_format": "TinyPPI.DVInfo.HdrFormat",
     "output_mode": "TinyPPI.DVInfo.OutputMode",
     "cm_version": "TinyPPI.DVInfo.CmVersion",
+    "structure": "TinyPPI.DVInfo.Structure",
     "l5_offsets": "TinyPPI.DVInfo.L5Offsets",
     "l6_mdl": "TinyPPI.DVInfo.L6Mdl",
     "l6_max_cll_fall": "TinyPPI.DVInfo.L6MaxCllFall",
@@ -386,6 +387,32 @@ def _colour_el_tag(profile: str, el_type: str) -> str:
     return base_str
 
 
+def _structure_abbr(dovi: dict) -> str:
+    """Return hdrprobe's layer structure as a compact ``(<track>-<layer>)`` tag.
+
+    hdrprobe describes dual-layer streams as ``"Single track, dual layer"`` or
+    ``"Dual track, dual layer"``; single-layer profiles (5 / 8) carry no
+    ``structure`` field at all.  The two axes are abbreviated Single/Dual Track
+    (``ST`` / ``DT``) and Single/Dual Layer (``SL`` / ``DL``) and joined as e.g.
+    ``(ST-DL)``, ``(DT-DL)`` or ``(ST-SL)``.  Returns ``''`` for non-DV streams.
+    """
+    if not dovi:
+        return ""
+
+    structure = dovi.get("structure")
+    if isinstance(structure, str) and structure.strip():
+        low = structure.lower()
+        track = "DT" if "dual track" in low else "ST"
+        layer = "DL" if "dual layer" in low else "SL"
+    else:
+        # Single-layer profiles (5 / 8) report no structure line: they are
+        # always a single track carrying a single layer.
+        track = "ST"
+        layer = "DL" if dovi.get("el_present") else "SL"
+
+    return f"({track}-{layer})"
+
+
 def _build_output_mode(
     dovi: dict, token: str, hdr10plus: dict, raw_format: str
 ) -> str:
@@ -462,6 +489,7 @@ def _parse_probe(data: dict) -> dict[str, str]:
 
     if dovi:
         info["cm_version"] = _compact_cm_version(dovi.get("cm_version") or "")
+        info["structure"] = _structure_abbr(dovi)
 
         areas = dovi.get("l5_active_areas") or []
         if areas:
@@ -656,6 +684,17 @@ def get_cm_version() -> str:
     otherwise.
     """
     value, _status = _get_info_status_value("cm_version")
+    return value
+
+
+def get_structure() -> str:
+    """Return the compact Dolby Vision layer-structure tag, or '' when unknown.
+
+    One of ``(ST-DL)`` / ``(DT-DL)`` / ``(ST-SL)`` (Single/Dual Track,
+    Single/Dual Layer).  Like the CM version this surfaces no "Fetching..." /
+    "N/A" status label: it is shown only once detected and stays empty otherwise.
+    """
+    value, _status = _get_info_status_value("structure")
     return value
 
 

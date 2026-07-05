@@ -437,7 +437,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>90</top>
-						<label>$INFO[Window().Property(ModeVar)] $INFO[Window().Property(DoviCmVersionVar),/ ,]</label>
+						<label>$INFO[Window().Property(ModeVar)] $INFO[Window().Property(DoviCmVersionVar),/ ,] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(DoviStructureVar)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
