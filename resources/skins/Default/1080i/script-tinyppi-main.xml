@@ -278,10 +278,10 @@
 						<aligny>top</aligny>
 					</control>
 
-					<!-- Aspect ratio -->
+					<!-- Bitrate -->
 					<control type="label">
 						<top>150</top>
-						<label>$ADDON[script.tinyppi 32024]:</label>
+						<label>$ADDON[script.tinyppi 32047]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 						<aligny>top</aligny>
@@ -289,9 +289,38 @@
 					<control type="label">
 						<left>240</left>
 						<top>150</top>
-						<label>$INFO[Player.Process(videodar)]:1</label>
+						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)] - [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(VideoBitrateMBVar),(Ø ,)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>150</top>
+						<label>$INFO[Window().Property(VideoBitrateMBVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>150</top>
+						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>240</left>
+						<top>150</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 						<aligny>top</aligny>
 					</control>
 
@@ -306,16 +335,16 @@
 					<control type="label">
 						<left>240</left>
 						<top>180</top>
-						<label>[UPPERCASE]$INFO[Player.Process(videodecoder)][/UPPERCASE] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(VideoDecoderVar),(,)][/COLOR]</label>
+						<label>$INFO[Window().Property(VideoCodecVar)] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]([UPPERCASE]$INFO[Player.Process(videodecoder)][/UPPERCASE] $INFO[Window().Property(VideoDecoderVar),/ ,])[/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
 					</control>
 
-					<!-- Video codec -->
+					<!-- Aspect ratio -->
 					<control type="label">
 						<top>210</top>
-						<label>$ADDON[script.tinyppi 32046]:</label>
+						<label>$ADDON[script.tinyppi 32024]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 						<aligny>top</aligny>
@@ -323,7 +352,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>210</top>
-						<label>$INFO[Window().Property(VideoCodecVar)]</label>
+						<label>$INFO[Player.Process(videodar)]:1</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
@@ -378,52 +407,83 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
+						<visible>![[String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))] + String.Contains(Player.Process(amlogic.eoft_gamut),DV)]</visible>
+						<visible>![[String.IsEmpty(Window(10000).Property(TinyPPI.HdrType)) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.Contains(Player.Process(amlogic.eoft_gamut),HDR)]</visible>
+						<visible>![[String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)]</visible>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>30</top>
+						<label>$INFO[Window().Property(DoviProfileAltVar)] ➞ Dolby Vision Profile 8.1</label>
+						<font>font23_narrow</font>
+						<textcolor>e7ededed</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window(10000).Property(TinyPPI.HdrType) + String.Contains(Player.Process(amlogic.eoft_gamut),DV)</visible>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>30</top>
+						<label>$INFO[Window().Property(DoviProfileAltVar)] ➞ HDR10</label>
+						<font>font23_narrow</font>
+						<textcolor>e7ededed</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window(10000).Property(TinyPPI.HdrType) + String.Contains(Player.Process(amlogic.eoft_gamut),hdr10)</visible>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>30</top>
+						<label>$INFO[Window().Property(DoviProfileAltVar)] ➞ Dolby Vision Profile 8.1</label>
+						<font>font23_narrow</font>
+						<textcolor>e7ededed</textcolor>
+						<aligny>top</aligny>
+						<visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10) + String.Contains(Player.Process(amlogic.eoft_gamut),DV)</visible>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>30</top>
+						<label>$INFO[Window().Property(DoviProfileAltVar)] ➞ SDR</label>
+						<font>font23_narrow</font>
+						<textcolor>e7ededed</textcolor>
+						<aligny>top</aligny>
+						<visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10) + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)</visible>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>30</top>
+						<label>$INFO[Window().Property(DoviProfileAltVar)] ➞ SDR</label>
+						<font>font23_narrow</font>
+						<textcolor>e7ededed</textcolor>
+						<aligny>top</aligny>
+						<visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby) + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)</visible>
 					</control>
 
-					<!-- Bitrate -->
+					<!-- Converting -->
 					<control type="label">
 						<top>60</top>
-						<label>$ADDON[script.tinyppi 32047]:</label>
+						<label>$ADDON[script.tinyppi 32028]:</label>
 						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+						<textcolor>E7EDEDED</textcolor>
 						<aligny>top</aligny>
 					</control>
-					<control type="label">
+					<control type="image">
 						<left>240</left>
-						<top>60</top>
-						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)] - [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(VideoBitrateMBVar),(Ø ,)][/COLOR]</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<top>64</top>
+						<width>24</width>
+						<height>24</height>
+						<texture>icons/check-circle.png</texture>
+						<colordiffuse>palegreen</colordiffuse>
 						<aligny>top</aligny>
-						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+						<visible>[[String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEmpty(Window(10000).Property(TinyPPI.HdrType)] + String.Contains(Player.Process(amlogic.eoft_gamut),DV)] | [[String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)] | [[String.IsEmpty(Window(10000).Property(TinyPPI.HdrType) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby] + String.Contains(Player.Process(amlogic.eoft_gamut),HDR)]</visible>
 					</control>
-					<control type="label">
+					<control type="image">
 						<left>240</left>
-						<top>60</top>
-						<label>$INFO[Window().Property(VideoBitrateMBVar)]</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<top>64</top>
+						<width>24</width>
+						<height>24</height>
+						<texture>icons/circle-xmark.png</texture>
+						<colordiffuse>tomato</colordiffuse>
 						<aligny>top</aligny>
-						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>60</top>
-						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)]</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<aligny>top</aligny>
-						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
-					</control>
-					<!-- N/A -->
-					<control type="label">
-						<left>240</left>
-						<top>60</top>
-						<label>$ADDON[script.tinyppi 32033]</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
-						<aligny>top</aligny>
+						<visible>![[[String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEmpty(Window(10000).Property(TinyPPI.HdrType)] + String.Contains(Player.Process(amlogic.eoft_gamut),DV)] | [[String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)] | [[String.IsEmpty(Window(10000).Property(TinyPPI.HdrType) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.Contains(Player.Process(amlogic.eoft_gamut),HDR)]]</visible>
 					</control>
 
 					<!-- Mode -->

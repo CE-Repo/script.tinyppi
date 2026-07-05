@@ -240,6 +240,16 @@ def get_DoviProfileVar() -> str:
     return get_output_mode()
 
 
+def get_DoviProfileAltVar() -> str:
+    """Like :func:`get_DoviProfileVar`, but with the shorter ``DV Profile``
+    prefix instead of ``Dolby Vision Profile`` for Dolby Vision streams.
+
+    All other formats (``HDR10``, ``HLG``, …) and the ``Fetching...`` / ``N/A``
+    status labels are returned unchanged.
+    """
+    return get_output_mode().replace("Dolby Vision Profile", "DV Profile")
+
+
 def get_DoviFelVar() -> str:
     """Return ``'FEL'`` when a full-enhancement-layer DV stream is active, else ``''``."""
     if "dolby" not in _read_hdr_status():
@@ -737,6 +747,7 @@ def update_properties(window) -> None:
             ("VideoBitDepthVar", get_VideoBitDepthVar()),
             ("HdmiHdrStatusVar", get_HdmiHdrStatusVar()),
             ("DoviProfileVar", get_DoviProfileVar()),
+            ("DoviProfileAltVar", get_DoviProfileAltVar()),
             ("DoviFelVar", get_DoviFelVar()),
             ("DoviTunnelVar", get_DoviTunnelVar()),
             ("DoviCmVersionVar", get_DoviCmVersionVar()),
