@@ -37,8 +37,6 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
-from utils import _info
-
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -48,10 +46,10 @@ _ADDON      = xbmcaddon.Addon()
 _TEMP_DIR   = xbmcvfs.translatePath("special://temp/")
 _CHUNK_PATH = os.path.join(_TEMP_DIR, "tinyppi_dv.chunk")
 
-# 1 MiB comfortably holds the first GOP (keyframe + RPU) even at UHD Blu-ray
+# 32 MiB comfortably holds the first GOP (keyframe + RPU) even at UHD Blu-ray
 # bitrates, so hdrprobe finds Dolby Vision RPUs to sample.  hdrprobe tolerates
 # the truncated chunk, parsing the regions that are present.
-_CHUNK_BYTES  = 1 * 1024 * 1024
+_CHUNK_BYTES  = 32 * 1024 * 1024
 
 _LABEL_FETCH = 32096
 _LABEL_NA    = 32033
@@ -64,6 +62,8 @@ _CACHE_RESULT_SESSION_PROPERTY = "TinyPPI.DVInfo.ResultSession"
 _CACHE_PATH_PROPERTY = "TinyPPI.DVInfo.Path"
 _CACHE_READY_PROPERTY = "TinyPPI.DVInfo.Ready"
 _CACHE_FIELD_PROPERTIES = {
+    "hdr_format": "TinyPPI.DVInfo.HdrFormat",
+    "output_mode": "TinyPPI.DVInfo.OutputMode",
     "cm_version": "TinyPPI.DVInfo.CmVersion",
     "l5_offsets": "TinyPPI.DVInfo.L5Offsets",
     "l6_mdl": "TinyPPI.DVInfo.L6Mdl",
@@ -247,6 +247,170 @@ def _compact_cm_version(value: str) -> str:
     return ""
 
 
+def _report_format(data: dict, general: dict, hdr: dict) -> str:
+    """Return hdrprobe's HDR ``format`` string, wherever the report places it.
+
+    hdrprobe labels the detected format ("Dolby Vision", "HDR10", "HDR10+",
+    "HLG", "SDR", possibly with a " (fallback)" suffix).  The field is looked
+    up across the report root and the ``general``/``hdr`` blocks so a schema
+    tweak in where it lives does not break detection.
+    """
+    for block in (data, general, hdr):
+        fmt = block.get("format")
+        if isinstance(fmt, str) and fmt.strip():
+            return fmt
+    return ""
+
+
+def _hdr_type_token(fmt: str) -> str:
+    """Collapse an hdrprobe ``format`` string to a VideoPlayer.HdrType-style token.
+
+    Mirrors Kodi's VideoPlayer.HdrType semantics the overlay branches on: ``''``
+    for SDR, ``'hdr10'`` / ``'hdr10+'`` for HDR10, ``'hlg'`` for HLG and
+    ``'dolbyvision'`` for Dolby Vision.
+    """
+    low = fmt.lower()
+    if "dolby" in low:
+        return "dolbyvision"
+    if "hdr10+" in low:
+        return "hdr10+"
+    if "hdr10" in low:
+        return "hdr10"
+    if "hlg" in low:
+        return "hlg"
+    if "pq" in low:
+        return "hdr10"
+    return ""
+
+
+def _dv_profile_label(dovi: dict) -> str:
+    """Return the Dolby Vision profile as hdrprobe reports it.
+
+    hdrprobe exposes the full ``<profile>.<compatibility>`` string directly —
+    e.g. ``'4.2'``, ``'5.0'``, ``'7.6'``, ``'8.1'``, ``'8.4'``, ``'9.2'``,
+    ``'10.0'``/``'10.1'``/``'10.4'``, ``'20.0'``/``'20.4'`` — so it is used
+    verbatim.  Should that field be missing, the common cases are derived from
+    the layer structure and the base-layer compatibility id as a fallback.
+    """
+    profile = dovi.get("profile")
+    if profile is None:
+        profile = dovi.get("dv_profile")
+
+    if isinstance(profile, str) and profile.strip():
+        return profile.strip()
+    if isinstance(profile, (int, float)) and not isinstance(profile, bool):
+        return f"{float(profile):.1f}"
+
+    # Fallback: no explicit profile field — derive the common single-/dual-layer
+    # cases with the same dotted notation.
+    structure = dovi.get("structure") or {}
+    if dovi.get("el_type") or dovi.get("el_present") or structure.get("el_present"):
+        return "7.6"
+    compat = dovi.get("bl_compatibility_id")
+    if compat == 0:
+        return "5.0"
+    return {1: "8.1", 2: "8.2", 4: "8.4"}.get(compat, "8.1")
+
+
+def _clean_format_name(raw_format: str) -> str:
+    """Return just the primary format name from an hdrprobe ``format`` string.
+
+    hdrprobe qualifies a format with its fallback base, e.g. ``"HDR10+ / HDR10"``
+    or ``"HDR10 (fallback)"``; only the leading name (``"HDR10+"`` / ``"HDR10"``)
+    is shown.
+    """
+    return raw_format.split("(")[0].split("/")[0].strip()
+
+
+def _hdr10plus_profile_label(hdr10plus: dict) -> str:
+    """Return the HDR10+ profile as shown, e.g. ``'Profile A'`` or ``'Profile B'``.
+
+    Returns ``''`` when hdrprobe reports no HDR10+ profile.
+    """
+    profile = str(hdr10plus.get("profile") or "").strip()
+    if not profile:
+        return ""
+    if profile.lower().startswith("profile"):
+        return profile
+    return f"Profile {profile.upper()}"
+
+
+def _static_hdr_token(
+    general: dict, hdr: dict, hdr10plus: dict, raw_format: str
+) -> str:
+    """Classify a non-Dolby-Vision stream into an HDR token.
+
+    The ``format`` label is unreliable for HDR10: its static metadata rides in a
+    periodic SEI that is not in every sampled chunk, so hdrprobe may fall back to
+    ``PQ`` or even ``SDR``.  The transfer characteristic (PQ / HLG, carried in
+    the always-present VUI) and the mastering-display block are authoritative, so
+    they are checked first; the format label is only a last resort.
+    """
+    if hdr10plus:
+        return "hdr10+"
+
+    transfer = (hdr.get("transfer") or general.get("transfer") or "").lower()
+    if "hlg" in transfer or "b67" in transfer:
+        return "hlg"
+    if "pq" in transfer or "2084" in transfer or hdr.get("mastering"):
+        return "hdr10"
+
+    return _hdr_type_token(raw_format)
+
+
+def _colour_el_tag(profile: str, el_type: str) -> str:
+    """Colour the FEL/MEL enhancement-layer tag — green FEL, orange MEL.
+
+    hdrprobe carries the tag in the profile string, sometimes parenthesised
+    (e.g. ``"7.6 (FEL)"``).  The tag is pulled out (parentheses dropped), shown
+    once in colour and never duplicated; the profile number stays plain.  When
+    the string carries no tag, ``el_type`` supplies it.
+    """
+    _COLOURS = {"FEL": "lightgreen", "MEL": "orange"}
+
+    tag = ""
+    base = []
+    for token in profile.split():
+        stripped = token.strip("()[]").upper()
+        if not tag and stripped in _COLOURS:
+            tag = stripped
+        else:
+            base.append(token)
+
+    if not tag and el_type in _COLOURS:
+        tag = el_type
+
+    base_str = " ".join(base)
+    if tag:
+        return f"{base_str} [COLOR {_COLOURS[tag]}]{tag}[/COLOR]".strip()
+    return base_str
+
+
+def _build_output_mode(
+    dovi: dict, token: str, hdr10plus: dict, raw_format: str
+) -> str:
+    """Build the overlay's output-mode string from hdrprobe's report.
+
+    Dolby Vision streams read as ``Dolby Vision Profile <p>``, with only the
+    FEL/MEL enhancement-layer tag coloured (green / orange).  HDR10+ appends its
+    ``Profile A`` / ``B``.  Every other stream shows the classified format name
+    (``HDR10``, ``HLG``), falling back to hdrprobe's plain label with any
+    fallback qualifier dropped.
+    """
+    if dovi:
+        profile = _dv_profile_label(dovi) or "8.1"
+        el_type = (dovi.get("el_type") or "").upper()
+        return f"Dolby Vision Profile {_colour_el_tag(profile, el_type)}"
+
+    if token == "hdr10+":
+        return f"HDR10+ {_hdr10plus_profile_label(hdr10plus)}".strip()
+    if token == "hdr10":
+        return "HDR10"
+    if token == "hlg":
+        return "HLG"
+    return _clean_format_name(raw_format)
+
+
 def _fmt_num(value) -> str:
     """Format a JSON number for display, dropping a redundant ``.0`` tail.
 
@@ -274,6 +438,19 @@ def _parse_probe(data: dict) -> dict[str, str]:
     general = data.get("general") or {}
     dovi = data.get("dolby_vision") or {}
     hdr = data.get("hdr") or {}
+    hdr10plus = data.get("hdr10plus") or {}
+
+    # HDR type and output-mode line, straight from hdrprobe's own detection.  A
+    # Dolby Vision RPU block is authoritative; otherwise the type is classified
+    # from the transfer characteristic and mastering block (see _static_hdr_token)
+    # rather than the fallback-prone format label.
+    raw_format = _report_format(data, general, hdr)
+    if dovi:
+        hdr_format = "dolbyvision"
+    else:
+        hdr_format = _static_hdr_token(general, hdr, hdr10plus, raw_format)
+    info["hdr_format"] = hdr_format
+    info["output_mode"] = _build_output_mode(dovi, hdr_format, hdr10plus, raw_format)
 
     # Bit depth: FEL reconstructs a 12-bit signal from the 10-bit base layer, so
     # 12-bit is reported for it; otherwise the container bit depth is used, and
@@ -397,9 +574,6 @@ def _get_info_status_value(key: str) -> tuple[str, str]:
     been found, and ``'failed'`` once the field cannot be determined.  The
     completed result is shared between addon invocations until playback stops.
     """
-    if key == "cm_version" and "dolby" not in _info("VideoPlayer.HdrType").lower():
-        return "", ""
-
     try:
         path = xbmc.Player().getPlayingFile()
     except RuntimeError:
@@ -441,6 +615,28 @@ def _get_info_value(key: str) -> str:
 def _get_level_info_value(key: str) -> str:
     """Return a Level 5/6 display value, falling back to localized N/A."""
     return _get_info_value(key) or _na_label()
+
+
+def get_hdr_format() -> str:
+    """Return the hdrprobe-detected HDR type token, or '' when not (yet) known.
+
+    Values mirror Kodi's VideoPlayer.HdrType: ``''`` for SDR, ``'hdr10'`` /
+    ``'hdr10+'``, ``'hlg'`` and ``'dolbyvision'``.  Like the CM version this
+    surfaces no status label; the token is empty until detection completes.
+    """
+    value, _status = _get_info_status_value("hdr_format")
+    return value
+
+
+def get_output_mode() -> str:
+    """Return the hdrprobe output-mode line (format + Dolby Vision profile).
+
+    Shows a localized ``Fetching...`` label while detection runs and ``N/A`` if
+    it cannot be determined, matching the other hdrprobe-backed rows.  The FEL
+    (green) / MEL (orange) enhancement-layer colour markup is embedded in the
+    value for Dolby Vision streams.
+    """
+    return _get_info_value("output_mode")
 
 
 def get_cm_version() -> str:

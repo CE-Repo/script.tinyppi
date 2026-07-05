@@ -109,17 +109,17 @@
                 <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                 <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                 <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
-                <onup condition="String.IsEmpty(VideoPlayer.HdrType)">1004</onup>
-                <onup condition="String.Contains(VideoPlayer.HdrType,hdr10)">1008</onup>
-                <onup condition="String.Contains(VideoPlayer.HdrType,dolby)">1010</onup>
-                <ondown condition="String.IsEmpty(VideoPlayer.HdrType)">1002</ondown>
-                <ondown condition="String.Contains(VideoPlayer.HdrType,hdr10)">1005</ondown>
-                <ondown condition="String.Contains(VideoPlayer.HdrType,dolby)">1009</ondown>
+                <onup condition="String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))">1004</onup>
+                <onup condition="String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10)">1008</onup>
+                <onup condition="String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)">1010</onup>
+                <ondown condition="String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))">1002</ondown>
+                <ondown condition="String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10)">1005</ondown>
+                <ondown condition="String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)">1009</ondown>
             </control>
 
             <!-- SDR -->
             <control type="group">
-                <visible>String.IsEmpty(VideoPlayer.HdrType)</visible>
+                <visible>String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))</visible>
                 <control type="button" id="1002">
                     <left>35</left>
                     <top>235</top>
@@ -172,7 +172,7 @@
 
             <!-- HDR10 -->
             <control type="group">
-                <visible>String.Contains(VideoPlayer.HdrType,hdr10)</visible>
+                <visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr10)</visible>
                 <control type="button" id="1005">
                     <left>35</left>
                     <top>235</top>
@@ -225,7 +225,7 @@
 
             <!-- Dolby Vision -->
             <control type="group">
-                <visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
+                <visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)</visible>
                 <control type="button" id="1009">
                     <left>35</left>
                     <top>275</top>

@@ -374,7 +374,7 @@
 					<control type="label">
 						<left>240</left>
 						<top>30</top>
-						<label>$INFO[Window().Property(HdmiHdrStatusVar)]$INFO[Window().Property(DoviProfileVar)]</label>
+						<label>$INFO[Window().Property(DoviProfileVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
@@ -482,7 +482,7 @@
 					<!-- L6 MaxCLL/FALL (DV) / MaxCLL/FALL (HDR10) -->
 					<control type="group">
 						<control type="label">
-							<visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
+							<visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)</visible>
 							<top>180</top>
 							<label>$ADDON[script.tinyppi 32098]:</label>
 							<font>font23_narrow</font>
@@ -490,7 +490,7 @@
 							<aligny>top</aligny>
 						</control>
 						<control type="label">
-							<visible>!String.Contains(VideoPlayer.HdrType,dolby)</visible>
+							<visible>!String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)</visible>
 							<top>180</top>
 							<label>$ADDON[script.tinyppi 32273]:</label>
 							<font>font23_narrow</font>
@@ -509,7 +509,7 @@
 
 					<!-- L5 active offsets -->
 					<control type="group">
-					<visible>String.Contains(VideoPlayer.HdrType,dolby)</visible>
+					<visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)</visible>
 						<control type="label">
 							<top>210</top>
 							<label>$ADDON[script.tinyppi 32030]:</label>
@@ -550,7 +550,7 @@
 
 					<!-- Playback time -->
 					<control type="group">
-					<visible>!String.Contains(VideoPlayer.HdrType,dolby)</visible>
+					<visible>!String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)</visible>
 						<control type="label">
 							<top>210</top>
 							<label>$ADDON[script.tinyppi 32013]:</label>

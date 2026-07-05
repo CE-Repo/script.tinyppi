@@ -7,6 +7,7 @@ Open via ``RunScript(script.tinyppi,dialog)`` or programmatically:
     open_dialog()
 """
 
+import threading
 import time
 import xbmc
 import xbmcaddon
@@ -178,6 +179,27 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
     Simple menu dialog that lets the user choose a VS10 output mode or
     launch the main TinyPPI overlay.
     """
+
+    def onInit(self) -> None:
+        # The SDR / HDR10 / Dolby Vision groups branch on TinyPPI.HdrType, which
+        # is filled by hdrprobe in the background.  Refresh it while the dialog
+        # is open so the correct group appears as soon as detection completes.
+        self._running = True
+        self._monitor = xbmc.Monitor()
+        threading.Thread(target=self._hdr_type_loop, daemon=True).start()
+
+    def _hdr_type_loop(self) -> None:
+        from properties import publish_hdr_type
+
+        home = xbmcgui.Window(10000)
+        while self._running and not self._monitor.abortRequested():
+            publish_hdr_type(home)
+            if self._monitor.waitForAbort(0.5):
+                break
+
+    def close(self) -> None:
+        self._running = False
+        super().close()
 
     def onClick(self, control_id: int) -> None:
         if control_id == _BTN_TINYPPI:

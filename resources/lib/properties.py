@@ -8,6 +8,7 @@ Call ``update_properties(window)`` once per polling interval from your
 import re
 
 import xbmc
+import xbmcgui
 
 from maps import (
     _AUDIO_CODEC_MAP,
@@ -29,6 +30,8 @@ from helpers import (
 from dvinfo import (
     get_bit_depth,
     get_cm_version,
+    get_hdr_format,
+    get_output_mode,
     get_l5_offsets,
     get_l6_rpu_mdl,
     get_l6_rpu_max_cll_fall,
@@ -224,32 +227,16 @@ def get_HdmiHdrStatusVar() -> str:
 
 def get_DoviProfileVar() -> str:
     """
-    Return a Dolby Vision profile string such as
-    ``Dolby Vision Profile 7 [COLOR lightgreen]FEL[/COLOR]``.
+    Return the overlay's output-mode string from hdrprobe: the source format
+    (``HDR10``, ``HDR10+``, ``HLG``, ``SDR``) or, for Dolby Vision, a string
+    such as ``Dolby Vision Profile 7 [COLOR lightgreen]FEL[/COLOR]`` with the
+    enhancement layer coloured — FEL green, MEL orange.
 
-    Returns an empty string when DV is not active or no matching log line
-    can be found.
+    Detection runs in a background thread (see dvinfo.py), so this never blocks;
+    a localized ``Fetching...`` / ``N/A`` status label is shown while detection
+    is running or after it fails.
     """
-    if "dolby" not in _read_hdr_status():
-        return ""
-
-    text = _read_last_dovi_log_line()
-    if not text:
-        return "Dolby Vision Profile 8.1"
-
-    prof = re.search(r"profile\s*(\d+)", text)
-    if not prof:
-        return "Dolby Vision Profile 8.1"
-
-    profile_num = prof.group(1)
-    if profile_num in ("0", "8"):
-        profile_num = "8.1"
-
-    if "minimum enhancement layer" in text:
-        return f"Dolby Vision Profile {profile_num} [COLOR orange]MEL[/COLOR]"
-    if "full enhancement layer" in text:
-        return f"Dolby Vision Profile {profile_num} [COLOR lightgreen]FEL[/COLOR]"
-    return f"Dolby Vision Profile {profile_num}"
+    return get_output_mode()
 
 
 def get_DoviFelVar() -> str:
@@ -664,6 +651,17 @@ def _metadata_unit() -> str:
     return f" {unit_label}"
 
 
+def publish_hdr_type(home=None) -> None:
+    """Publish the hdrprobe-detected HDR type on Kodi's Home window.
+
+    ``TinyPPI.HdrType`` replaces the ``VideoPlayer.HdrType`` infolabel the skin
+    branches on (SDR / HDR10 / Dolby Vision).  It lives on the global Home
+    window so both the overlay and the mode-select dialog can read it, and is
+    refreshed each polling cycle as background detection completes.
+    """
+    (home or xbmcgui.Window(10000)).setProperty("TinyPPI.HdrType", get_hdr_format())
+
+
 def _set_properties(window, values: tuple[tuple[str, str], ...]) -> None:
     """Publish a batch of Kodi window properties."""
     for name, value in values:
@@ -688,6 +686,8 @@ def update_properties(window) -> None:
     Call this from ``onInit()`` and from a polling loop in your
     ``WindowXMLDialog`` subclass.
     """
+
+    publish_hdr_type()
 
     unit = _metadata_unit()
     video_queue = get_queue_level("Player.Process(videoqueuelevel)")
