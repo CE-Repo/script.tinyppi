@@ -684,8 +684,17 @@ def publish_hdr_type(home=None) -> None:
     branches on (SDR / HDR10 / Dolby Vision).  It lives on the global Home
     window so both the overlay and the mode-select dialog can read it, and is
     refreshed each polling cycle as background detection completes.
+
+    The HDR10+ token is published as ``hdr10plus`` (not ``hdr10+``): Kodi's
+    boolean parser treats ``+`` as the AND operator, so a skin condition like
+    ``String.IsEqual(...,hdr10+)`` would not parse.  ``hdr10plus`` still
+    contains ``hdr10``, so existing ``String.Contains(...,hdr10)`` branches keep
+    matching it.
     """
-    (home or xbmcgui.Window(10000)).setProperty("TinyPPI.HdrType", get_hdr_format())
+    hdr_type = get_hdr_format()
+    if hdr_type == "hdr10+":
+        hdr_type = "hdr10plus"
+    (home or xbmcgui.Window(10000)).setProperty("TinyPPI.HdrType", hdr_type)
 
 
 def _set_properties(window, values: tuple[tuple[str, str], ...]) -> None:
