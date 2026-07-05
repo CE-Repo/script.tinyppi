@@ -290,8 +290,11 @@ def get_DoviTunnelVar() -> str:
 def get_DoviCmVersionVar() -> str:
     """
     Return the source Dolby Vision Content-Mapping version
-    (``'CMv2.9'`` or ``'CMv4.0'``), a localized status while/after detection,
-    or ``''`` when the source is not Dolby Vision.
+    (``'CMv2.9'`` or ``'CMv4.0'``), or ``''`` when it is not (yet) known.
+
+    Unlike the other fields, this never surfaces a "Fetching..." or "N/A"
+    status label: the value is shown only once detected, and stays empty
+    otherwise.
 
     Detection runs once per file in a background thread (see dvinfo.py), so
     this call never blocks the polling loop.

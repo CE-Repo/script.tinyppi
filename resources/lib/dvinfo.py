@@ -444,8 +444,15 @@ def _get_level_info_value(key: str) -> str:
 
 
 def get_cm_version() -> str:
-    """Return the source Dolby Vision Content-Mapping version."""
-    return _get_info_value("cm_version")
+    """Return the source Dolby Vision Content-Mapping version, or '' when it is
+    not (yet) known.
+
+    Unlike the other fields, this never surfaces the "Fetching..." or "N/A"
+    status labels: the value is shown only once detected, and stays empty
+    otherwise.
+    """
+    value, _status = _get_info_status_value("cm_version")
+    return value
 
 
 def get_l5_offsets() -> str:
