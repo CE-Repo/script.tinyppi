@@ -7,8 +7,9 @@ CM v4.0 metadata by inspecting it with hdrprobe and reading the
 separate Level 6 and Level 5 metadata properties.
 
 The video bit depth is reported too: FEL Dolby Vision streams reconstruct a
-12-bit signal from a 10-bit base layer, so 12-bit is reported for them; every
-other format uses hdrprobe's container bit depth.
+higher-bit-depth signal from a 10-bit base layer, so hdrprobe's
+reconstructed_bit_depth is reported for them (falling back to 12-bit when
+absent); every other format uses hdrprobe's container bit depth.
 
 Kodi plays from VFS URLs (nfs://, smb://, http:// ...) which standalone
 hdrprobe cannot open.  We bridge that with xbmcvfs: the first chunk of the
@@ -479,11 +480,13 @@ def _parse_probe(data: dict) -> dict[str, str]:
     info["hdr_format"] = hdr_format
     info["output_mode"] = _build_output_mode(dovi, hdr_format, hdr10plus, raw_format)
 
-    # Bit depth: FEL reconstructs a 12-bit signal from the 10-bit base layer, so
-    # 12-bit is reported for it; otherwise the container bit depth is used, and
+    # Bit depth: FEL reconstructs a higher-bit-depth signal from the 10-bit base
+    # layer, so hdrprobe's reconstructed_bit_depth is reported for it (falling
+    # back to 12-bit when absent); otherwise the container bit depth is used, and
     # stays empty for formats hdrprobe leaves unlabelled (such as SDR).
     if dovi.get("el_type") == "FEL":
-        info["bit_depth"] = "12"
+        reconstructed = dovi.get("reconstructed_bit_depth")
+        info["bit_depth"] = str(reconstructed) if isinstance(reconstructed, int) else "12"
     elif isinstance(general.get("bit_depth"), int):
         info["bit_depth"] = str(general["bit_depth"])
 
@@ -716,7 +719,8 @@ def get_l6_rpu_max_cll_fall() -> str:
 def get_bit_depth() -> str:
     """Return the source video bit depth as a bare number string (e.g. ``12``).
 
-    FEL Dolby Vision streams reconstruct a 12-bit signal, so 12-bit is
-    reported for them; every other format uses hdrprobe's container bit depth.
+    FEL Dolby Vision streams reconstruct a higher-bit-depth signal, so
+    hdrprobe's reconstructed_bit_depth is reported for them (falling back to
+    12-bit when absent); every other format uses hdrprobe's container bit depth.
     """
     return _get_info_value("bit_depth")

@@ -209,8 +209,9 @@ def get_VideoBitDepthVar() -> str:
     """
     Return the source video bit depth for display, e.g. ``12-bit``.
 
-    FEL Dolby Vision streams reconstruct a 12-bit signal from a 10-bit base
-    layer, so 12-bit is reported for them; every other format uses hdrprobe's
+    FEL Dolby Vision streams reconstruct a higher-bit-depth signal from a 10-bit
+    base layer, so hdrprobe's reconstructed_bit_depth is reported for them
+    (falling back to 12-bit when absent); every other format uses hdrprobe's
     container bit depth.  Detection runs in a background thread (see dvinfo.py),
     so this call never blocks the polling loop; the localized status label is
     passed through unchanged while detection is running or after it fails.
