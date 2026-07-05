@@ -183,6 +183,28 @@ def get_VideoCodecVar() -> str:
     return _VIDEO_CODEC_MAP.get(codec, codec.upper())
 
 
+def get_VideoDecoderNameVar() -> str:
+    """
+    Return the active video decoder name with a friendly prefix.
+
+    ``Player.Process(videodecoder)`` reports values such as ``am-h264`` or
+    ``ff-hevc``.  The ``am-`` prefix is rewritten to ``AML`` and the ``ff-``
+    prefix to ``FFmpeg``; the codec remainder is upper-cased.  Any other
+    decoder string is passed through upper-cased, matching the previous
+    ``[UPPERCASE]`` skin styling.
+    """
+    raw = _info("Player.Process(videodecoder)").strip()
+    if not raw:
+        return ""
+
+    low = raw.lower()
+    if low.startswith("am-"):
+        return "AML-"
+    if low.startswith("ff-"):
+        return "FF-"
+    return raw.upper()
+
+
 def get_VideoBitDepthVar() -> str:
     """
     Return the source video bit depth for display, e.g. ``12-bit``.
@@ -753,6 +775,7 @@ def update_properties(window) -> None:
             ("VideoBitrateMBVar", get_VideoBitrateMBVar()),
             ("VideoLiveBitrateVar", get_VideoLiveBitrateVar()),
             ("VideoCodecVar", get_VideoCodecVar()),
+            ("VideoDecoderNameVar", get_VideoDecoderNameVar()),
             ("VideoBitDepthVar", get_VideoBitDepthVar()),
             ("HdmiHdrStatusVar", get_HdmiHdrStatusVar()),
             ("DoviProfileVar", get_DoviProfileVar()),

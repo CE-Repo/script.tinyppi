@@ -324,26 +324,9 @@
 						<aligny>top</aligny>
 					</control>
 
-					<!-- Decoder -->
-					<control type="label">
-						<top>180</top>
-						<label>$ADDON[script.tinyppi 32005]:</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>180</top>
-						<label>$INFO[Window().Property(VideoCodecVar)] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]([UPPERCASE]$INFO[Player.Process(videodecoder)][/UPPERCASE] $INFO[Window().Property(VideoDecoderVar),/ ,])[/COLOR]</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<aligny>top</aligny>
-					</control>
-
 					<!-- Aspect ratio -->
 					<control type="label">
-						<top>210</top>
+						<top>180</top>
 						<label>$ADDON[script.tinyppi 32024]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -351,8 +334,25 @@
 					</control>
 					<control type="label">
 						<left>240</left>
-						<top>210</top>
+						<top>180</top>
 						<label>$INFO[Player.Process(videodar)]:1</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
+
+					<!-- Decoder -->
+					<control type="label">
+						<top>210</top>
+						<label>$ADDON[script.tinyppi 32005]:</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>210</top>
+						<label>$INFO[Window().Property(VideoDecoderNameVar)]$INFO[Window().Property(VideoCodecVar)] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]($INFO[Window().Property(VideoDecoderVar)])[/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
