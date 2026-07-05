@@ -481,15 +481,23 @@ def _parse_probe(data: dict) -> dict[str, str]:
         mdl = hdr.get("mastering") or {}
         content_light = hdr.get("content_light") or {}
 
+    # DV, HDR10+ and HDR10 always carry these fields conceptually, so a missing
+    # value falls back to ``0 | 0`` rather than N/A; HLG and SDR stay empty.
+    hdr_fallback = hdr_format in ("dolbyvision", "hdr10+", "hdr10")
+
     mdl_max = _fmt_num(mdl.get("max_luminance"))
     mdl_min = _fmt_num(mdl.get("min_luminance"))
     if mdl_max and mdl_min:
         info["l6_mdl"] = f"{mdl_max} | {mdl_min}"
+    elif hdr_fallback:
+        info["l6_mdl"] = "0 | 0"
 
     max_cll = _fmt_num(content_light.get("max_cll"))
     max_fall = _fmt_num(content_light.get("max_fall"))
     if max_cll and max_fall:
         info["l6_max_cll_fall"] = f"{max_cll} | {max_fall}"
+    elif hdr_fallback:
+        info["l6_max_cll_fall"] = "0 | 0"
 
     return info
 
