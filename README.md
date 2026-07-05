@@ -121,3 +121,21 @@ RunScript(script.tinyppi,run_mode,original_dv)
 import xbmc
 xbmc.executebuiltin('RunScript(script.tinyppi,run_mode,dv)')
 ```
+
+---
+
+## Credits
+
+TinyPPI builds on the work of the following projects — many thanks to their authors and contributors.
+
+### hdrprobe
+
+[**hdrprobe**](https://github.com/matthane/hdrprobe) by [matthane](https://github.com/matthane)
+
+A tool for probing and analyzing HDR metadata from video streams. TinyPPI draws on hdrprobe's approach to detecting and interpreting HDR formats — including HDR10, HDR10+, HLG and Dolby Vision — to display accurate HDR information in the overlay.
+
+### Google Noto Fonts
+
+[**Google Noto Fonts**](https://github.com/notofonts/notofonts.github.io) by [The Noto Project (Google)](https://fonts.google.com/noto)
+
+Noto ("No Tofu") is Google's font family designed to cover all languages with a harmonious look, eliminating missing-character boxes ("tofu"). TinyPPI uses Noto fonts to render the overlay text clearly and consistently across a wide range of characters. The fonts are licensed under the [SIL Open Font License 1.1](https://openfontlicense.org/).
