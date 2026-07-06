@@ -31,7 +31,7 @@ def main() -> None:
     addon = xbmcaddon.Addon()
     _bootstrap_lib_path(addon)
 
-    from mode_select import run_mode
+    from mode_select import set_mode
     from overlay import open_dialog_mode, open_tinyppi
 
     args = _split_args(sys.argv[1:])
@@ -47,7 +47,7 @@ def main() -> None:
     if command == "dialog":
         open_dialog_mode()
     elif command == "run_mode" and len(args) > 1:
-        run_mode(args[1])
+        set_mode(args[1])
     elif command == "custom_color" and len(args) > 1:
         from theme import custom_color
         custom_color(args[1])

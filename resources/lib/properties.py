@@ -11,21 +11,21 @@ import xbmc
 import xbmcgui
 
 from maps import (
-    _AUDIO_CODEC_MAP,
-    _CHANNELS_INPUT_MAP,
-    _CHANNELS_MAP,
-    _LANGUAGE_MAP,
-    _LANGUAGE_MAP_SHORT,
-    _VIDEO_CODEC_MAP,
-    _SUBTITLE_CODEC_MAP,
+    AUDIO_CODEC_MAP,
+    CHANNELS_INPUT_MAP,
+    CHANNELS_MAP,
+    LANGUAGE_MAP,
+    LANGUAGE_MAP_SHORT,
+    SUBTITLE_CODEC_MAP,
+    VIDEO_CODEC_MAP,
 )
-from utils import _cond, _info, _clean
+from utils import clean, cond, info, set_window_properties
 from helpers import (
-    _normalize_fps,
-    _format_fps,
-    _read_hdr_status,
-    _read_last_dovi_log_line,
     format_fps,
+    fps_display_texts,
+    normalize_fps,
+    read_hdr_status,
+    read_last_dovi_log_line,
 )
 from dvinfo import (
     get_bit_depth,
@@ -68,12 +68,12 @@ def _first_float(raw: str, pattern: re.Pattern = _DECIMAL_RE) -> float | None:
 
 def get_VideoDecoderVar() -> str:
     """Return 'HW' or 'SW' based on the active video decoder type."""
-    return "HW" if _cond("Player.Process(videohwdecoder)") else "SW"
+    return "HW" if cond("Player.Process(videohwdecoder)") else "SW"
 
 
 def get_VideoDecoderExtVar() -> str:
     """Return 'Hardware' or 'Software' based on the active video decoder type."""
-    return "Hardware" if _cond("Player.Process(videohwdecoder)") else "Software"
+    return "Hardware" if cond("Player.Process(videohwdecoder)") else "Software"
 
 
 def get_VideoPixelFormatVar() -> str:
@@ -81,7 +81,7 @@ def get_VideoPixelFormatVar() -> str:
     Parse ``amlogic.pixformat`` and return a human-readable string such as
     ``10-bit (YUV 4:2:0)`` or ``8-bit, RGB``.
     """
-    val = _info("Player.Process(amlogic.pixformat)").strip()
+    val = info("Player.Process(amlogic.pixformat)").strip()
     if not val:
         return ""
 
@@ -112,7 +112,7 @@ def get_DisplayModeVar() -> str:
     Parse ``amlogic.displaymode`` and return a compact string like
     ``1080p 23.976Hz``.
     """
-    val = _info("Player.Process(amlogic.displaymode)").strip()
+    val = info("Player.Process(amlogic.displaymode)").strip()
     if not val:
         return ""
 
@@ -126,25 +126,25 @@ def get_DisplayModeVar() -> str:
         return val
 
     res, scan, raw_fps = match.groups()
-    return f"{res}{scan} {_normalize_fps(raw_fps)}Hz"
+    return f"{res}{scan} {normalize_fps(raw_fps)}Hz"
 
 
 def get_VideoResolutionVar() -> str:
     """Return a string like ``1920x1080p 23.976FPS``."""
-    width  = _clean(_info("Player.Process(videowidth)"))
-    height = _clean(_info("Player.Process(videoheight)"))
-    scan   = _clean(_info("Player.Process(videoscantype)"))
-    fps    = _clean(_info("Player.Process(videofps)"))
+    width  = clean(info("Player.Process(videowidth)"))
+    height = clean(info("Player.Process(videoheight)"))
+    scan   = clean(info("Player.Process(videoscantype)"))
+    fps    = clean(info("Player.Process(videofps)"))
 
     if not width or not height:
         return ""
 
-    return f"{width}x{height}{scan} {_format_fps(fps)}FPS"
+    return f"{width}x{height}{scan} {format_fps(fps)}FPS"
 
 
 def get_VideoBitrateMBVar() -> str:
     """Convert the video bitrate from kb/s to Mb/s and return a display string."""
-    bitrate = _clean(_info("VideoPlayer.VideoBitrate"))
+    bitrate = clean(info("VideoPlayer.VideoBitrate"))
     try:
         mbit = float(bitrate) / 1000.0
     except (TypeError, ValueError):
@@ -156,7 +156,7 @@ def get_VideoBitrateMBVar() -> str:
 
 def get_VideoLiveBitrateVar() -> str:
     """Format live video bitrate without failing on malformed Kodi values."""
-    bitrate = _info("Player.Process(videolivebitrate)").strip()
+    bitrate = info("Player.Process(videolivebitrate)").strip()
 
     if not bitrate:
         return ""
@@ -177,23 +177,23 @@ def get_VideoLiveBitrateVar() -> str:
 
 def get_VideoCodecVar() -> str:
     """Return the mapped display name for the current video codec."""
-    codec = _info("VideoPlayer.VideoCodec").lower().strip()
+    codec = info("VideoPlayer.VideoCodec").lower().strip()
     if not codec:
         return ""
-    return _VIDEO_CODEC_MAP.get(codec, codec.upper())
+    return VIDEO_CODEC_MAP.get(codec, codec.upper())
 
 
 def get_VideoDecoderNameVar() -> str:
     """
-    Return the active video decoder name with a friendly prefix.
+    Return the display prefix for the active video decoder.
 
     ``Player.Process(videodecoder)`` reports values such as ``am-h264`` or
-    ``ff-hevc``.  The ``am-`` prefix is rewritten to ``AML`` and the ``ff-``
-    prefix to ``FFmpeg``; the codec remainder is upper-cased.  Any other
-    decoder string is passed through upper-cased, matching the previous
-    ``[UPPERCASE]`` skin styling.
+    ``ff-hevc``.  Only the vendor prefix is returned (``AML-`` / ``FF-``);
+    the skin concatenates it directly with ``VideoCodecVar`` to form e.g.
+    ``AML-H.265``.  Unknown decoder strings are passed through upper-cased,
+    matching the previous ``[UPPERCASE]`` skin styling.
     """
-    raw = _info("Player.Process(videodecoder)").strip()
+    raw = info("Player.Process(videodecoder)").strip()
     if not raw:
         return ""
 
@@ -234,7 +234,7 @@ def get_HdmiHdrStatusVar() -> str:
     Returns an empty string when Dolby Vision is active or the sysfs node
     is unavailable.
     """
-    status = _read_hdr_status()
+    status = read_hdr_status()
     if not status or "dolby" in status:
         return ""
 
@@ -249,35 +249,11 @@ def get_HdmiHdrStatusVar() -> str:
     return ""
 
 
-def get_DoviProfileVar() -> str:
-    """
-    Return the overlay's output-mode string from hdrprobe: the source format
-    (``HDR10``, ``HDR10+``, ``HLG``, ``SDR``) or, for Dolby Vision, a string
-    such as ``Dolby Vision Profile 7 [COLOR lightgreen]FEL[/COLOR]`` with the
-    enhancement layer coloured — FEL green, MEL orange.
-
-    Detection runs in a background thread (see dvinfo.py), so this never blocks;
-    a localized ``Fetching...`` / ``N/A`` status label is shown while detection
-    is running or after it fails.
-    """
-    return get_output_mode()
-
-
-def get_DoviProfileAltVar() -> str:
-    """Like :func:`get_DoviProfileVar`, but with the shorter ``DV Profile``
-    prefix instead of ``Dolby Vision Profile`` for Dolby Vision streams.
-
-    All other formats (``HDR10``, ``HLG``, …) and the ``Fetching...`` / ``N/A``
-    status labels are returned unchanged.
-    """
-    return get_output_mode().replace("Dolby Vision Profile", "DV Profile")
-
-
 def get_DoviFelVar() -> str:
     """Return ``'FEL'`` when a full-enhancement-layer DV stream is active, else ``''``."""
-    if "dolby" not in _read_hdr_status():
+    if "dolby" not in read_hdr_status():
         return ""
-    text = _read_last_dovi_log_line()
+    text = read_last_dovi_log_line()
     return "FEL" if "full enhancement layer" in text else ""
 
 
@@ -292,7 +268,7 @@ def get_DoviTunnelVar() -> str:
         "DV Tunnel" if the sysfs value is 1 and the output is 8-bit.
         "" otherwise.
     """
-    pixformat = _info("Player.Process(amlogic.pixformat)").strip()
+    pixformat = info("Player.Process(amlogic.pixformat)").strip()
     bits = re.search(r"(\d+)-bit", pixformat, re.IGNORECASE)
     if not bits or bits.group(1) != "8":
         return ""
@@ -306,62 +282,6 @@ def get_DoviTunnelVar() -> str:
         return ""
 
     return "DV Tunnel" if value == "1" else ""
-
-
-def get_DoviCmVersionVar() -> str:
-    """
-    Return the source Dolby Vision Content-Mapping version
-    (``'CMv2.9'`` or ``'CMv4.0'``), or ``''`` when it is not (yet) known.
-
-    Unlike the other fields, this never surfaces a "Fetching..." or "N/A"
-    status label: the value is shown only once detected, and stays empty
-    otherwise.
-
-    Detection runs once per file in a background thread (see dvinfo.py), so
-    this call never blocks the polling loop.
-    """
-    return get_cm_version()
-
-
-def get_DoviStructureVar() -> str:
-    """
-    Return the source Dolby Vision layer-structure tag
-    (``(ST-DL)`` / ``(DT-DL)`` / ``(ST-SL)``), or ``''`` when it is not (yet)
-    known.
-
-    Like the CM version this never surfaces a "Fetching..." or "N/A" status
-    label: the value is shown only once detected, and stays empty otherwise.
-
-    Detection runs once per file in a background thread (see dvinfo.py), so
-    this call never blocks the polling loop.
-    """
-    return get_structure()
-
-
-def get_DoviLevel5OffsetsVar() -> str:
-    """
-    Return the source Dolby Vision Level 5 active-area offsets, a localized
-    status while/after detection, or ``''`` when the source is not Dolby Vision.
-    """
-    return get_l5_offsets()
-
-
-def get_DoviLevel6RpuMdlVar() -> str:
-    """
-    Return the source mastering-display luminance: the Dolby Vision Level 6 RPU
-    value, or the static HDR10 mastering display when the source is HDR10.
-    Falls back to a localized status while/after detection, and to N/A for SDR.
-    """
-    return get_l6_rpu_mdl()
-
-
-def get_DoviLevel6RpuMaxCllFallVar() -> str:
-    """
-    Return the source MaxCLL/MaxFALL content light: the Dolby Vision Level 6 RPU
-    value, or the static HDR10 content light when the source is HDR10.  Falls
-    back to a localized status while/after detection, and to N/A for SDR.
-    """
-    return get_l6_rpu_max_cll_fall()
 
 
 def _with_unit(value: str, unit: str) -> str:
@@ -379,13 +299,13 @@ def _with_unit(value: str, unit: str) -> str:
 
 def get_ModeVar() -> str:
     """Return the first token of ``amlogic.eoft_gamut`` (the mode field)."""
-    parts = _info("Player.Process(amlogic.eoft_gamut)").split()
+    parts = info("Player.Process(amlogic.eoft_gamut)").split()
     return parts[0] if parts else ""
 
 
 def get_GamutVar() -> str:
     """Return the second token of ``amlogic.eoft_gamut`` (the gamut field)."""
-    parts = _info("Player.Process(amlogic.eoft_gamut)").split()
+    parts = info("Player.Process(amlogic.eoft_gamut)").split()
     return parts[1] if len(parts) > 1 else ""
 
 
@@ -428,7 +348,7 @@ def get_VdecBitrateVar() -> tuple[str, str]:
 
 def get_AudioBitrateKBVar() -> str:
     """Convert the audio bitrate from kb/s to Kb/s and return a display string."""
-    bitrate = _clean(_info("VideoPlayer.AudioBitrate"))
+    bitrate = clean(info("VideoPlayer.AudioBitrate"))
     try:
         kbps = int(float(bitrate))
     except (TypeError, ValueError):
@@ -438,7 +358,7 @@ def get_AudioBitrateKBVar() -> str:
 
 def get_AudioLiveBitrateVar() -> str:
     """Return audio live bitrate with dot instead of comma."""
-    bitrate = _info("Player.Process(audiolivebitrate)")
+    bitrate = info("Player.Process(audiolivebitrate)")
     if not bitrate:
         return ""
 
@@ -447,15 +367,15 @@ def get_AudioLiveBitrateVar() -> str:
 
 def get_AudioCodecVar() -> str:
     """Return the mapped display name for the current audio codec."""
-    codec = _info("VideoPlayer.AudioCodec")
+    codec = info("VideoPlayer.AudioCodec")
     if not codec:
         return xbmc.getLocalizedString(13205)
-    return _AUDIO_CODEC_MAP.get(codec, codec)
+    return AUDIO_CODEC_MAP.get(codec, codec)
 
 
 def get_AudioCodecSpatialVar() -> str:
     """Return the spatial-audio suffix: ``'(Atmos)'``, ``'(IMAX Enhanced)'``, or ``''``."""
-    codec = _info("VideoPlayer.AudioCodec")
+    codec = info("VideoPlayer.AudioCodec")
     if codec == "dtshd_ma_x_imax":
         return "(IMAX Enhanced)"
     if codec in ("eac3_ddp_atmos", "truehd_atmos"):
@@ -466,8 +386,8 @@ def get_AudioCodecSpatialVar() -> str:
 def get_AudioChannelsVar() -> str:
     """Return the surround layout string for the current channel count, e.g. ``'7.1'``."""
     try:
-        ch = int(_info("VideoPlayer.AudioChannels"))
-        return _CHANNELS_MAP.get(ch, "")
+        ch = int(info("VideoPlayer.AudioChannels"))
+        return CHANNELS_MAP.get(ch, "")
     except (ValueError, TypeError):
         return ""
 
@@ -475,15 +395,15 @@ def get_AudioChannelsVar() -> str:
 def get_AudioChannelsInputVar() -> str:
     """Return the full speaker-label string for the current channel count."""
     try:
-        ch = int(_info("VideoPlayer.AudioChannels"))
-        return _CHANNELS_INPUT_MAP.get(ch, xbmc.getLocalizedString(13205))
+        ch = int(info("VideoPlayer.AudioChannels"))
+        return CHANNELS_INPUT_MAP.get(ch, xbmc.getLocalizedString(13205))
     except (ValueError, TypeError):
         return xbmc.getLocalizedString(13205)
 
 
 def get_AudioSampleRateVar() -> str:
     """Convert the audio sample rate from Hz to kHz and return a display string."""
-    samplerate = _clean(_info("Player.Process(audiosamplerate)"))
+    samplerate = clean(info("Player.Process(audiosamplerate)"))
     try:
         hz = float(samplerate)
     except (TypeError, ValueError):
@@ -494,14 +414,14 @@ def get_AudioSampleRateVar() -> str:
 
 def get_AudioNameVar() -> str:
     """Return the native language name for the active audio track language code."""
-    code = _info("VideoPlayer.AudioLanguage").lower().strip()
-    return _LANGUAGE_MAP.get(code, "") if code else ""
+    code = info("VideoPlayer.AudioLanguage").lower().strip()
+    return LANGUAGE_MAP.get(code, "") if code else ""
 
 
 def get_AudioNameShortVar() -> str:
     """Return the native short language name for the active audio track language code."""
-    code = _info("VideoPlayer.AudioLanguage").lower().strip()
-    return _LANGUAGE_MAP_SHORT.get(code, "") if code else ""
+    code = info("VideoPlayer.AudioLanguage").lower().strip()
+    return LANGUAGE_MAP_SHORT.get(code, "") if code else ""
 
 
 # ---------------------------------------------------------------------------
@@ -512,10 +432,10 @@ def get_SubtitleVar() -> str:
     """
     Return the active subtitle language.
     """
-    lang = _info("VideoPlayer.SubtitlesLanguage").strip()
+    lang = info("VideoPlayer.SubtitlesLanguage").strip()
 
     if not lang:
-        return _info("VideoPlayer.SubtitleLanguageEx")
+        return info("VideoPlayer.SubtitleLanguageEx")
 
     return lang.upper()
 
@@ -524,23 +444,23 @@ def get_SubtitleNameVar() -> str:
     """
     Return the native language name for the active subtitle language code.
     """
-    code = _info("VideoPlayer.SubtitlesLanguage").lower().strip()
-    return _LANGUAGE_MAP.get(code, "") if code else ""
+    code = info("VideoPlayer.SubtitlesLanguage").lower().strip()
+    return LANGUAGE_MAP.get(code, "") if code else ""
 
 
 def get_SubtitleNameShortVar() -> str:
     """
     Return the native short language name for the active subtitle language code.
     """
-    code = _info("VideoPlayer.SubtitlesLanguage").lower().strip()
-    return _LANGUAGE_MAP_SHORT.get(code, "") if code else ""
+    code = info("VideoPlayer.SubtitlesLanguage").lower().strip()
+    return LANGUAGE_MAP_SHORT.get(code, "") if code else ""
 
 
 def get_SubtitleNameInfoVar() -> str:
     """
     Return the active subtitle track name formatted for display.
     """
-    name = _info("VideoPlayer.SubtitleName").strip()
+    name = info("VideoPlayer.SubtitleName").strip()
 
     if not name:
         return ""
@@ -552,8 +472,8 @@ def get_SubtitleCodecVar() -> str:
     """
     Return the mapped display name for the current subtitle codec.
     """
-    codec = _info("VideoPlayer.SubtitleCodec").lower().strip()
-    return _SUBTITLE_CODEC_MAP.get(codec, codec.upper()) if codec else ""
+    codec = info("VideoPlayer.SubtitleCodec").lower().strip()
+    return SUBTITLE_CODEC_MAP.get(codec, codec.upper()) if codec else ""
 
 
 # ---------------------------------------------------------------------------
@@ -565,7 +485,7 @@ def get_CpuUsageVar() -> str:
     Parse ``System.CpuUsage`` and return a zero-padded, pipe-separated
     per-core usage string, e.g. ``'12 | 08 | 15 | 10'``.
     """
-    raw = _info("System.CpuUsage")
+    raw = info("System.CpuUsage")
     if not raw:
         return ""
 
@@ -635,7 +555,7 @@ def get_CpuTemperatureProgressVar() -> float:
     Celsius:    0-110 C
     Fahrenheit: 32-230 F
     """
-    raw = _info("System.CPUTemperature").strip()
+    raw = info("System.CPUTemperature").strip()
     if not raw:
         return 0.0
 
@@ -666,16 +586,16 @@ def get_queue_level(info_label: str) -> float:
     Kodi may report a completely filled queue as only 99%.
     Values of 99 or higher are therefore treated as 100%.
     """
-    raw = _info(info_label).strip()
+    raw = info(info_label).strip()
 
     value = _first_float(raw)
     if value is None:
         return 0.0
 
-    value = max(0, min(value, 100))
+    value = max(0.0, min(value, 100.0))
 
     if value >= 99:
-        return 100
+        return 100.0
 
     return value
 
@@ -690,14 +610,14 @@ def format_queue_level(value: float) -> str:
 
 def _metadata_unit() -> str:
     """Return the configured L6 metadata unit, including Kodi color markup."""
-    unit_color = xbmc.getInfoLabel("Window(10000).Property(TinyPPI.UnitColor)")
-    unit_label = xbmc.getInfoLabel("Window(10000).Property(TinyPPI.UnitLabel)")
+    unit_color = info("Window(10000).Property(TinyPPI.UnitColor)")
+    unit_label = info("Window(10000).Property(TinyPPI.UnitLabel)")
 
     if not unit_label:
         return ""
     if unit_color:
         return f"[COLOR={unit_color}]{unit_label}[/COLOR]"
-    return f" {unit_label}"
+    return unit_label
 
 
 def publish_hdr_type(home=None) -> None:
@@ -718,12 +638,6 @@ def publish_hdr_type(home=None) -> None:
     if hdr_type == "hdr10+":
         hdr_type = "hdr10plus"
     (home or xbmcgui.Window(10000)).setProperty("TinyPPI.HdrType", hdr_type)
-
-
-def _set_properties(window, values: tuple[tuple[str, str], ...]) -> None:
-    """Publish a batch of Kodi window properties."""
-    for name, value in values:
-        window.setProperty(name, value)
 
 
 def _set_progress(window, values: tuple[tuple[int, float], ...]) -> None:
@@ -753,19 +667,24 @@ def update_properties(window) -> None:
     audio_queue = get_queue_level("Player.Process(audioqueuelevel)")
     audio_queue_data = get_queue_level("Player.Process(audioqueuedatalevel)")
     bitrate_value, bitrate_unit = get_VdecBitrateVar()
-    fps_info_text, fps_out_text = format_fps()
+    fps_info_text, fps_out_text = fps_display_texts()
 
-    l5_offsets = get_DoviLevel5OffsetsVar()
+    # Output-mode line from hdrprobe, e.g. ``HDR10`` or
+    # ``Dolby Vision Profile 7 [COLOR lightgreen]FEL[/COLOR]``; the Alt variant
+    # uses the shorter ``DV Profile`` prefix.
+    output_mode = get_output_mode()
+
+    l5_offsets = get_l5_offsets()
     l5_offsets_icon_visible = (
         "true"
         if l5_offsets and not is_status_label(l5_offsets)
         else "false"
     )
 
-    l6_rpu_mdl          = _with_unit(get_DoviLevel6RpuMdlVar(), unit)
-    l6_rpu_max_cll_fall = _with_unit(get_DoviLevel6RpuMaxCllFallVar(), unit)
+    l6_rpu_mdl          = _with_unit(get_l6_rpu_mdl(), unit)
+    l6_rpu_max_cll_fall = _with_unit(get_l6_rpu_max_cll_fall(), unit)
 
-    _set_properties(
+    set_window_properties(
         window,
         (
             ("VideoDecoderVar", get_VideoDecoderVar()),
@@ -779,12 +698,12 @@ def update_properties(window) -> None:
             ("VideoDecoderNameVar", get_VideoDecoderNameVar()),
             ("VideoBitDepthVar", get_VideoBitDepthVar()),
             ("HdmiHdrStatusVar", get_HdmiHdrStatusVar()),
-            ("DoviProfileVar", get_DoviProfileVar()),
-            ("DoviProfileAltVar", get_DoviProfileAltVar()),
+            ("DoviProfileVar", output_mode),
+            ("DoviProfileAltVar", output_mode.replace("Dolby Vision Profile", "DV Profile")),
             ("DoviFelVar", get_DoviFelVar()),
             ("DoviTunnelVar", get_DoviTunnelVar()),
-            ("DoviCmVersionVar", get_DoviCmVersionVar()),
-            ("DoviStructureVar", get_DoviStructureVar()),
+            ("DoviCmVersionVar", get_cm_version()),
+            ("DoviStructureVar", get_structure()),
             ("DoviLevel5OffsetsVar", l5_offsets),
             ("DoviLevel5OffsetsIconVisible", l5_offsets_icon_visible),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),

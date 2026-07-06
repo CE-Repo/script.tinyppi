@@ -89,113 +89,14 @@ _DIALOG_FOCUS_TEXT_COLORS = (
 # Palette for inline detail accents (the dimmed values shown in parentheses).
 # Same hues as _TEXT_COLORS but at alpha B3 (~70%) so they stay subtle.
 # The index matches the <option> order in resources/settings.xml.
-_ACCENT_COLORS = (
-    "B3EDEDED",  # 0  White (default)
-    "B3E0E0E0",  # 1  Light gray
-    "B3FF8A80",  # 2  Red
-    "B3FFCC80",  # 3  Orange
-    "B3FFFF8D",  # 4  Yellow
-    "B3B9F6CA",  # 5  Green
-    "B384FFFF",  # 6  Cyan
-    "B382B1FF",  # 7  Blue
-    "B3E1BEE7",  # 8  Purple
-    "B3FF80AB",  # 9  Pink
-    "B3FF8A65",  # 10 Coral
-    "B3FFAB91",  # 11 Salmon
-    "B3FFD54F",  # 12 Amber
-    "B3FFE082",  # 13 Gold
-    "B3CCFF90",  # 14 Lime
-    "B3A7FFEB",  # 15 Mint
-    "B380CBC4",  # 16 Teal
-    "B380D8FF",  # 17 Sky blue
-    "B340C4FF",  # 18 Azure
-    "B38C9EFF",  # 19 Indigo
-    "B3B388FF",  # 20 Violet
-    "B3D1C4E9",  # 21 Lavender
-    "B3EA80FC",  # 22 Magenta
-    "B3F48FB1",  # 23 Fuchsia
-    "B3F06292",  # 24 Rose
-    "B3FF5252",  # 25 Crimson
-    "B3BCAAA4",  # 26 Brown
-    "B3DCE775",  # 27 Olive
-    "B3B0BEC5",  # 28 Slate
-    "B3CFD8DC",  # 29 Silver
-    "B3FFCCBC",  # 30 Peach
-    "B3FFB74D",  # 31 Tangerine
-    "B3E4C441",  # 32 Mustard
-    "B3E6EE9C",  # 33 Chartreuse
-    "B381C784",  # 34 Forest
-    "B369F0AE",  # 35 Emerald
-    "B3B2FF59",  # 36 Spring
-    "B318FFFF",  # 37 Aqua
-    "B364FFDA",  # 38 Turquoise
-    "B34FC3F7",  # 39 Cerulean
-    "B3536DFE",  # 40 Cobalt
-    "B3B39DDB",  # 41 Periwinkle
-    "B3CE93D8",  # 42 Plum
-    "B3BA68C8",  # 43 Orchid
-    "B3FF4081",  # 44 Raspberry
-    "B3FF5C8D",  # 45 Watermelon
-    "B3FF6E40",  # 46 Scarlet
-    "B3D7CCC8",  # 47 Sand
-    "B3C5E1A5",  # 48 Pistachio
-    "B390A4AE",  # 49 Cadet
-)
+_ACCENT_COLORS = tuple("B3" + color[2:] for color in _TEXT_COLORS)
 
 # Palette for the separator lines (very faint dividers, alpha 26 ~ 15%).
-# Same hues as _TEXT_COLORS but heavily dimmed so the lines stay subtle.
+# Same hues as _TEXT_COLORS but heavily dimmed so the lines stay subtle,
+# except index 0 which keeps the original neutral gray default.
 # The index matches the <option> order in resources/settings.xml.
-_LINE_COLORS = (
-    "26808080",  # 0  White (default)
-    "26E0E0E0",  # 1  Light gray
-    "26FF8A80",  # 2  Red
-    "26FFCC80",  # 3  Orange
-    "26FFFF8D",  # 4  Yellow
-    "26B9F6CA",  # 5  Green
-    "2684FFFF",  # 6  Cyan
-    "2682B1FF",  # 7  Blue
-    "26E1BEE7",  # 8  Purple
-    "26FF80AB",  # 9  Pink
-    "26FF8A65",  # 10 Coral
-    "26FFAB91",  # 11 Salmon
-    "26FFD54F",  # 12 Amber
-    "26FFE082",  # 13 Gold
-    "26CCFF90",  # 14 Lime
-    "26A7FFEB",  # 15 Mint
-    "2680CBC4",  # 16 Teal
-    "2680D8FF",  # 17 Sky blue
-    "2640C4FF",  # 18 Azure
-    "268C9EFF",  # 19 Indigo
-    "26B388FF",  # 20 Violet
-    "26D1C4E9",  # 21 Lavender
-    "26EA80FC",  # 22 Magenta
-    "26F48FB1",  # 23 Fuchsia
-    "26F06292",  # 24 Rose
-    "26FF5252",  # 25 Crimson
-    "26BCAAA4",  # 26 Brown
-    "26DCE775",  # 27 Olive
-    "26B0BEC5",  # 28 Slate
-    "26CFD8DC",  # 29 Silver
-    "26FFCCBC",  # 30 Peach
-    "26FFB74D",  # 31 Tangerine
-    "26E4C441",  # 32 Mustard
-    "26E6EE9C",  # 33 Chartreuse
-    "2681C784",  # 34 Forest
-    "2669F0AE",  # 35 Emerald
-    "26B2FF59",  # 36 Spring
-    "2618FFFF",  # 37 Aqua
-    "2664FFDA",  # 38 Turquoise
-    "264FC3F7",  # 39 Cerulean
-    "26536DFE",  # 40 Cobalt
-    "26B39DDB",  # 41 Periwinkle
-    "26CE93D8",  # 42 Plum
-    "26BA68C8",  # 43 Orchid
-    "26FF4081",  # 44 Raspberry
-    "26FF5C8D",  # 45 Watermelon
-    "26FF6E40",  # 46 Scarlet
-    "26D7CCC8",  # 47 Sand
-    "26C5E1A5",  # 48 Pistachio
-    "2690A4AE",  # 49 Cadet
+_LINE_COLORS = ("26808080",) + tuple(
+    "26" + color[2:] for color in _TEXT_COLORS[1:]
 )
 
 # Palette for the Modern background (semi-transparent dark shades, alpha FA).

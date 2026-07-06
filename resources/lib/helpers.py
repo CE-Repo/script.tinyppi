@@ -1,15 +1,14 @@
 """
 helpers.py – Domain-specific helper functions for TinyPPI.
 
-Covers FPS sampling, HDR/Dolby Vision log parsing, and UI positioning.
-These are implementation details used by properties.py — not part of the
-public addon API.
+Covers FPS sampling and HDR/Dolby Vision log parsing.  These are
+implementation details used by properties.py — not part of the public
+addon API.
 """
 
+import os
 import re
 import time
-
-from maps import _FPS
 
 # ---------------------------------------------------------------------------
 # FPS helpers
@@ -28,8 +27,14 @@ _FORMAT_FPS_TARGETS = (
 _FPS_SAMPLE_INTERVAL = 0.1
 _FPS_HISTORY_SECONDS = 1.0
 
+# Rolling AML FPS state (mutated by _update_fps).
+_FPS = {
+    "history":     [],
+    "last_sample": 0.0,
+}
 
-def _normalize_fps(fps_value) -> str:
+
+def normalize_fps(fps_value) -> str:
     """
     Snap a raw FPS float to the nearest broadcast standard and return a
     display string.  Values that don't fall within ±0.5 Hz of a standard
@@ -51,7 +56,7 @@ def _normalize_fps(fps_value) -> str:
     return str(int(closest)) if closest.is_integer() else str(closest)
 
 
-def _format_fps(fps_value) -> str:
+def format_fps(fps_value) -> str:
     """
     Format a raw FPS float for the VideoResolution display string.
     Snaps well-known fractional rates (23.976, 29.97, 59.94, 60.0) to their
@@ -121,26 +126,26 @@ def get_fps_data() -> tuple[int, int, int]:
     rolling 1-second history.  All values are integers.
     """
     _update_fps()
-    state = _FPS
+    history = _FPS["history"]
 
-    if not state["history"]:
+    if not history:
         return 0, 0, 0
 
-    count   = len(state["history"])
-    avg_in  = sum(x[0] for x in state["history"]) / count
-    avg_out = sum(x[1] for x in state["history"]) / count
+    count   = len(history)
+    avg_in  = sum(x[0] for x in history) / count
+    avg_out = sum(x[1] for x in history) / count
     drop    = max(0, avg_in - avg_out)
 
     return int(round(avg_in)), int(round(avg_out)), int(round(drop))
 
 
-def format_fps() -> tuple[str, str]:
+def fps_display_texts() -> tuple[str, str]:
     """
     Return ``(info_text, output_fps_text)`` for the FPS display row.
     ``info_text`` is formatted as ``'NNN - DDD'`` (input minus drop).
     """
     in_fps, out_fps, drop = get_fps_data()
-    return f"{in_fps:03d} - {drop:03d}", str(int(out_fps) if out_fps > 0 else 0)
+    return f"{in_fps:03d} - {drop:03d}", str(out_fps if out_fps > 0 else 0)
 
 
 # ---------------------------------------------------------------------------
@@ -151,8 +156,15 @@ _HDR_STATUS_PATH = "/sys/devices/virtual/amhdmitx/amhdmitx0/hdmi_hdr_status"
 _KODI_LOG_PATH   = "/storage/.kodi/temp/kodi.log"
 _DOVI_LOG_LINES  = 2000
 
+# The Kodi log grows unbounded during a session; reading it in full every
+# polling cycle gets progressively slower.  256 KiB comfortably covers the
+# last _DOVI_LOG_LINES lines, so only that tail is read.
+_DOVI_LOG_TAIL_BYTES = 256 * 1024
 
-def _read_hdr_status() -> str:
+_DOVI_PROFILE_RE = re.compile(r"profile\s.*")
+
+
+def read_hdr_status() -> str:
     """Return the raw content of the HDMI HDR status sysfs node (lowercased)."""
     try:
         with open(_HDR_STATUS_PATH, encoding="utf-8", errors="ignore") as f:
@@ -161,7 +173,7 @@ def _read_hdr_status() -> str:
         return ""
 
 
-def _read_last_dovi_log_line() -> str:
+def read_last_dovi_log_line() -> str:
     """
     Scan the last ``_DOVI_LOG_LINES`` lines of the Kodi log and return the
     text of the most recent line that matches ``profile <n> …``.
@@ -169,15 +181,16 @@ def _read_last_dovi_log_line() -> str:
     Returns an empty string when no matching line is found or the log cannot
     be read.
     """
-    pattern = re.compile(r"profile\s.*")
     try:
-        with open(_KODI_LOG_PATH, encoding="utf-8", errors="ignore") as f:
-            lines = f.readlines()[-_DOVI_LOG_LINES:]
+        with open(_KODI_LOG_PATH, "rb") as f:
+            f.seek(0, os.SEEK_END)
+            f.seek(max(0, f.tell() - _DOVI_LOG_TAIL_BYTES))
+            tail = f.read().decode("utf-8", errors="ignore")
     except OSError:
         return ""
 
-    for line in reversed(lines):
-        m = pattern.search(line)
+    for line in reversed(tail.splitlines()[-_DOVI_LOG_LINES:]):
+        m = _DOVI_PROFILE_RE.search(line)
         if m:
             return m.group(0)
     return ""

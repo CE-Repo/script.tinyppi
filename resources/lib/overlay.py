@@ -14,9 +14,16 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
-import fonts
+import fonts  # noqa: F401 – imported for its side effect: installs skin fonts
 import properties
 from theme import apply_theme
+from utils import (
+    PROP_ACTIVE,
+    PROP_DIALOG_MODE,
+    PROP_RUNNING,
+    clear_overlay_state,
+    set_window_properties,
+)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -24,10 +31,6 @@ from theme import apply_theme
 
 _ADDON      = xbmcaddon.Addon()
 _ADDON_PATH = _ADDON.getAddonInfo("path")
-
-_PROP_RUNNING = "TinyPPI.Running"
-_PROP_ACTIVE  = "TinyPPI.Active"
-_PROP_DIALOG_MODE = "TinyPPI.DialogMode"
 
 _dialog_lock = False
 
@@ -59,33 +62,20 @@ def _notify_error(message_id: int) -> None:
     )
 
 
-def _set_home_properties(home, values: tuple[tuple[str, str], ...]) -> None:
-    """Publish a batch of properties on Kodi's Home window."""
-    for name, value in values:
-        home.setProperty(name, value)
-
-
 def _set_overlay_state(home, dialog_mode: bool = False) -> None:
     """Publish the Home-window properties that mark TinyPPI as open."""
-    _set_home_properties(
+    set_window_properties(
         home,
         (
-            (_PROP_RUNNING, "true"),
-            (_PROP_ACTIVE, "true"),
+            (PROP_RUNNING, "true"),
+            (PROP_ACTIVE, "true"),
         ),
     )
 
     if dialog_mode:
-        home.setProperty(_PROP_DIALOG_MODE, "true")
+        home.setProperty(PROP_DIALOG_MODE, "true")
     else:
-        home.clearProperty(_PROP_DIALOG_MODE)
-
-
-def _clear_overlay_state(home) -> None:
-    """Clear the Home-window properties that describe TinyPPI state."""
-    home.clearProperty(_PROP_RUNNING)
-    home.clearProperty(_PROP_ACTIVE)
-    home.clearProperty(_PROP_DIALOG_MODE)
+        home.clearProperty(PROP_DIALOG_MODE)
 
 
 def _preflight(home, player, toggle_log: str) -> bool:
@@ -123,7 +113,7 @@ def _preflight(home, player, toggle_log: str) -> bool:
     if not player.isPlaying():
         return False
 
-    if home.getProperty(_PROP_RUNNING) == "true":
+    if home.getProperty(PROP_RUNNING) == "true":
         xbmc.log(toggle_log, xbmc.LOGINFO)
         xbmc.executebuiltin("Action(Back)")
         return False
@@ -150,7 +140,7 @@ def _release_overlay(home) -> None:
     xbmc.Monitor().waitForAbort(0.2)
     _dialog_lock = False
 
-    _clear_overlay_state(home)
+    clear_overlay_state(home)
 
 
 # ---------------------------------------------------------------------------
@@ -214,10 +204,6 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         if action.getId() in (xbmcgui.ACTION_PREVIOUS_MENU, xbmcgui.ACTION_NAV_BACK):
             self.close_dialog()
 
-    def onClosed(self) -> None:
-        home = xbmcgui.Window(10000)
-        _clear_overlay_state(home)
-
     # ------------------------------------------------------------------
     # Update loop
 
@@ -274,8 +260,9 @@ def open_tinyppi() -> None:
     if not _preflight(home, player, "TinyPPI: Toggle close"):
         return
 
+    elements_visible = _elements_visible()
     _set_overlay_state(home)
-    _set_home_properties(
+    set_window_properties(
         home,
         (
             ("TinyPPI.Filename", _ADDON.getSetting("filename")),
@@ -283,9 +270,9 @@ def open_tinyppi() -> None:
                 "TinyPPI.ShowL5Icon",
                 "0" if _ADDON.getSetting("show_l5_icon") == "false" else "1",
             ),
-            ("TinyPPI.ShowLine", _elements_visible()),
-            ("TinyPPI.ShowHeaderTitle", _elements_visible()),
-            ("TinyPPI.ShowHeaderIcon", _elements_visible()),
+            ("TinyPPI.ShowLine", elements_visible),
+            ("TinyPPI.ShowHeaderTitle", elements_visible),
+            ("TinyPPI.ShowHeaderIcon", elements_visible),
         ),
     )
     apply_theme(home, _ADDON)
@@ -311,13 +298,14 @@ def open_dialog_mode() -> None:
     if not _preflight(home, player, "TinyPPI: Toggle close (dialog mode)"):
         return
 
+    elements_visible = _elements_visible()
     _set_overlay_state(home, dialog_mode=True)
-    _set_home_properties(
+    set_window_properties(
         home,
         (
-            ("TinyPPI.ShowLine", _elements_visible()),
-            ("TinyPPI.ShowHeaderTitle", _elements_visible()),
-            ("TinyPPI.ShowHeaderIcon", _elements_visible()),
+            ("TinyPPI.ShowLine", elements_visible),
+            ("TinyPPI.ShowHeaderTitle", elements_visible),
+            ("TinyPPI.ShowHeaderIcon", elements_visible),
         ),
     )
     apply_theme(home, _ADDON)
