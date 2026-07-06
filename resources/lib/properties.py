@@ -219,9 +219,17 @@ def get_VideoBitDepthVar() -> str:
 # HDR / Dolby Vision properties
 # ---------------------------------------------------------------------------
 
+# Cached (pixformat, result) pair for get_DoviTunnelVar.  The sysfs DV mode
+# only changes on a VS10 mode switch, and any switch also changes the Amlogic
+# pixel format (bit depth / color format), so keying the cache on the raw
+# pixformat string keeps the value fresh without re-reading sysfs every
+# polling cycle.  Cleared automatically per overlay session (module state).
+_dovi_tunnel_cache: tuple[str, str] | None = None
+
+
 def get_DoviTunnelVar() -> str:
     """
-    Read Dolby Vision mode from sysfs.
+    Read Dolby Vision mode from sysfs, cached per Amlogic pixel format.
 
     Only reported when the active pixel format is 8-bit, i.e.
     ``Player.Process(amlogic.pixformat)`` starts with ``8-bit``.
@@ -230,20 +238,29 @@ def get_DoviTunnelVar() -> str:
         "DV Tunnel" if the sysfs value is 1 and the output is 8-bit.
         "" otherwise.
     """
+    global _dovi_tunnel_cache
+
     pixformat = info("Player.Process(amlogic.pixformat)").strip()
+    if _dovi_tunnel_cache is not None and _dovi_tunnel_cache[0] == pixformat:
+        return _dovi_tunnel_cache[1]
+
+    result = ""
     bits = re.search(r"(\d+)-bit", pixformat, re.IGNORECASE)
-    if not bits or bits.group(1) != "8":
-        return ""
+    if bits and bits.group(1) == "8":
+        try:
+            with open(
+                "/sys/module/aml_media/parameters/dolby_vision_mode",
+                encoding="utf-8",
+                errors="ignore",
+            ) as f:
+                if f.read().strip() == "1":
+                    result = "DV Tunnel"
+        except OSError:
+            # Keep the node readable next cycle instead of caching a failure.
+            return ""
 
-    path = "/sys/module/aml_media/parameters/dolby_vision_mode"
-
-    try:
-        with open(path, encoding="utf-8", errors="ignore") as f:
-            value = f.read().strip()
-    except OSError:
-        return ""
-
-    return "DV Tunnel" if value == "1" else ""
+    _dovi_tunnel_cache = (pixformat, result)
+    return result
 
 
 def _with_unit(value: str, unit: str) -> str:
