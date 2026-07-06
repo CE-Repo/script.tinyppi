@@ -20,13 +20,7 @@ from maps import (
     VIDEO_CODEC_MAP,
 )
 from utils import clean, cond, info, set_window_properties
-from helpers import (
-    format_fps,
-    fps_display_texts,
-    normalize_fps,
-    read_hdr_status,
-    read_last_dovi_log_line,
-)
+from helpers import format_fps, fps_display_texts, normalize_fps
 from dvinfo import (
     get_bit_depth,
     get_cm_version,
@@ -47,12 +41,11 @@ from dvinfo import (
 _cpu_prev: tuple[int, int] | None = None
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
-_BITRATE_DECIMAL_RE = re.compile(r"-?(?:\d+(?:[.,]\d+)?|[.,]\d+)")
 
 
-def _first_float(raw: str, pattern: re.Pattern = _DECIMAL_RE) -> float | None:
+def _first_float(raw: str) -> float | None:
     """Return the first decimal number found in *raw*, or None."""
-    match = pattern.search(raw)
+    match = _DECIMAL_RE.search(raw)
     if not match:
         return None
 
@@ -69,11 +62,6 @@ def _first_float(raw: str, pattern: re.Pattern = _DECIMAL_RE) -> float | None:
 def get_VideoDecoderVar() -> str:
     """Return 'HW' or 'SW' based on the active video decoder type."""
     return "HW" if cond("Player.Process(videohwdecoder)") else "SW"
-
-
-def get_VideoDecoderExtVar() -> str:
-    """Return 'Hardware' or 'Software' based on the active video decoder type."""
-    return "Hardware" if cond("Player.Process(videohwdecoder)") else "Software"
 
 
 def get_VideoPixelFormatVar() -> str:
@@ -154,27 +142,6 @@ def get_VideoBitrateMBVar() -> str:
     return f"{value} Mb/s"
 
 
-def get_VideoLiveBitrateVar() -> str:
-    """Format live video bitrate without failing on malformed Kodi values."""
-    bitrate = info("Player.Process(videolivebitrate)").strip()
-
-    if not bitrate:
-        return ""
-
-    value = _first_float(bitrate, _BITRATE_DECIMAL_RE)
-    if value is None:
-        return ""
-
-    if value < 0:
-        return ""
-
-    if value < 1.0:
-        return f"{int(round(value * 1000))} Kb/s"
-
-    formatted = f"{value:.2f}".rstrip("0").rstrip(".")
-    return f"{formatted} Mb/s"
-
-
 def get_VideoCodecVar() -> str:
     """Return the mapped display name for the current video codec."""
     codec = info("VideoPlayer.VideoCodec").lower().strip()
@@ -225,37 +192,6 @@ def get_VideoBitDepthVar() -> str:
 # ---------------------------------------------------------------------------
 # HDR / Dolby Vision properties
 # ---------------------------------------------------------------------------
-
-def get_HdmiHdrStatusVar() -> str:
-    """
-    Return the non-Dolby HDR format currently active on the HDMI output:
-    ``HDR10+``, ``HLG``, ``HDR10``, or ``SDR``.
-
-    Returns an empty string when Dolby Vision is active or the sysfs node
-    is unavailable.
-    """
-    status = read_hdr_status()
-    if not status or "dolby" in status:
-        return ""
-
-    if "hdr10plus" in status or "hdr10+" in status:
-        return "HDR10+"
-    if "hlg" in status:
-        return "HLG"
-    if "hdr10" in status:
-        return "HDR10"
-    if "sdr" in status:
-        return "SDR"
-    return ""
-
-
-def get_DoviFelVar() -> str:
-    """Return ``'FEL'`` when a full-enhancement-layer DV stream is active, else ``''``."""
-    if "dolby" not in read_hdr_status():
-        return ""
-    text = read_last_dovi_log_line()
-    return "FEL" if "full enhancement layer" in text else ""
-
 
 def get_DoviTunnelVar() -> str:
     """
@@ -428,18 +364,6 @@ def get_AudioNameShortVar() -> str:
 # Subtitle properties
 # ---------------------------------------------------------------------------
 
-def get_SubtitleVar() -> str:
-    """
-    Return the active subtitle language.
-    """
-    lang = info("VideoPlayer.SubtitlesLanguage").strip()
-
-    if not lang:
-        return info("VideoPlayer.SubtitleLanguageEx")
-
-    return lang.upper()
-
-
 def get_SubtitleNameVar() -> str:
     """
     Return the native language name for the active subtitle language code.
@@ -454,18 +378,6 @@ def get_SubtitleNameShortVar() -> str:
     """
     code = info("VideoPlayer.SubtitlesLanguage").lower().strip()
     return LANGUAGE_MAP_SHORT.get(code, "") if code else ""
-
-
-def get_SubtitleNameInfoVar() -> str:
-    """
-    Return the active subtitle track name formatted for display.
-    """
-    name = info("VideoPlayer.SubtitleName").strip()
-
-    if not name:
-        return ""
-
-    return f"| {name}"
 
 
 def get_SubtitleCodecVar() -> str:
@@ -688,19 +600,15 @@ def update_properties(window) -> None:
         window,
         (
             ("VideoDecoderVar", get_VideoDecoderVar()),
-            ("VideoDecoderExtVar", get_VideoDecoderExtVar()),
             ("VideoPixelFormatVar", get_VideoPixelFormatVar()),
             ("DisplayModeVar", get_DisplayModeVar()),
             ("VideoResolutionVar", get_VideoResolutionVar()),
             ("VideoBitrateMBVar", get_VideoBitrateMBVar()),
-            ("VideoLiveBitrateVar", get_VideoLiveBitrateVar()),
             ("VideoCodecVar", get_VideoCodecVar()),
             ("VideoDecoderNameVar", get_VideoDecoderNameVar()),
             ("VideoBitDepthVar", get_VideoBitDepthVar()),
-            ("HdmiHdrStatusVar", get_HdmiHdrStatusVar()),
             ("DoviProfileVar", output_mode),
             ("DoviProfileAltVar", output_mode.replace("Dolby Vision Profile", "DV Profile")),
-            ("DoviFelVar", get_DoviFelVar()),
             ("DoviTunnelVar", get_DoviTunnelVar()),
             ("DoviCmVersionVar", get_cm_version()),
             ("DoviStructureVar", get_structure()),
@@ -723,9 +631,7 @@ def update_properties(window) -> None:
             ("AudioSampleRateVar", get_AudioSampleRateVar()),
             ("AudioNameVar", get_AudioNameVar()),
             ("AudioNameShortVar", get_AudioNameShortVar()),
-            ("SubtitleVar", get_SubtitleVar()),
             ("SubtitleCodecVar", get_SubtitleCodecVar()),
-            ("SubtitleNameInfoVar", get_SubtitleNameInfoVar()),
             ("SubtitleNameVar", get_SubtitleNameVar()),
             ("SubtitleNameShortVar", get_SubtitleNameShortVar()),
             ("CpuUsageVar", get_CpuUsageVar()),

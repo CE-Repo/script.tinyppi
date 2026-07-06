@@ -1,12 +1,10 @@
 """
-helpers.py – Domain-specific helper functions for TinyPPI.
+helpers.py – FPS sampling and formatting helpers for TinyPPI.
 
-Covers FPS sampling and HDR/Dolby Vision log parsing.  These are
-implementation details used by properties.py — not part of the public
-addon API.
+These are implementation details used by properties.py — not part of the
+public addon API.
 """
 
-import os
 import re
 import time
 
@@ -146,51 +144,3 @@ def fps_display_texts() -> tuple[str, str]:
     """
     in_fps, out_fps, drop = get_fps_data()
     return f"{in_fps:03d} - {drop:03d}", str(out_fps if out_fps > 0 else 0)
-
-
-# ---------------------------------------------------------------------------
-# HDR / Dolby Vision helpers
-# ---------------------------------------------------------------------------
-
-_HDR_STATUS_PATH = "/sys/devices/virtual/amhdmitx/amhdmitx0/hdmi_hdr_status"
-_KODI_LOG_PATH   = "/storage/.kodi/temp/kodi.log"
-_DOVI_LOG_LINES  = 2000
-
-# The Kodi log grows unbounded during a session; reading it in full every
-# polling cycle gets progressively slower.  256 KiB comfortably covers the
-# last _DOVI_LOG_LINES lines, so only that tail is read.
-_DOVI_LOG_TAIL_BYTES = 256 * 1024
-
-_DOVI_PROFILE_RE = re.compile(r"profile\s.*")
-
-
-def read_hdr_status() -> str:
-    """Return the raw content of the HDMI HDR status sysfs node (lowercased)."""
-    try:
-        with open(_HDR_STATUS_PATH, encoding="utf-8", errors="ignore") as f:
-            return f.read().strip().lower()
-    except OSError:
-        return ""
-
-
-def read_last_dovi_log_line() -> str:
-    """
-    Scan the last ``_DOVI_LOG_LINES`` lines of the Kodi log and return the
-    text of the most recent line that matches ``profile <n> …``.
-
-    Returns an empty string when no matching line is found or the log cannot
-    be read.
-    """
-    try:
-        with open(_KODI_LOG_PATH, "rb") as f:
-            f.seek(0, os.SEEK_END)
-            f.seek(max(0, f.tell() - _DOVI_LOG_TAIL_BYTES))
-            tail = f.read().decode("utf-8", errors="ignore")
-    except OSError:
-        return ""
-
-    for line in reversed(tail.splitlines()[-_DOVI_LOG_LINES:]):
-        m = _DOVI_PROFILE_RE.search(line)
-        if m:
-            return m.group(0)
-    return ""
