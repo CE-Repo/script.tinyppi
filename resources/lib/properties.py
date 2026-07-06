@@ -575,8 +575,8 @@ def update_properties(window) -> None:
     fps_info_text, fps_out_text = fps_display_texts()
 
     # Output-mode line from hdrprobe, e.g. ``HDR10`` or
-    # ``Dolby Vision Profile 7 [COLOR lightgreen]FEL[/COLOR]``; the Alt variant
-    # uses the shorter ``DV Profile`` prefix.
+    # ``Dolby Vision Profile 7 [COLOR FFB9F6CA]FEL[/COLOR]`` (the FEL/MEL colour
+    # is themed); the Alt variant uses the shorter ``DV Profile`` prefix.
     output_mode = get_output_mode()
 
     l5_offsets = get_l5_offsets()

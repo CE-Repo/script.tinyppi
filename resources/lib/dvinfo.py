@@ -360,32 +360,64 @@ def _static_hdr_token(
     return _hdr_type_token(raw_format)
 
 
-def _colour_el_tag(profile: str, el_type: str) -> str:
-    """Colour the FEL/MEL enhancement-layer tag — green FEL, orange MEL.
+# Enhancement-layer tags whose colour is user-themeable (FEL green, MEL orange
+# by default).  The resolved ARGB hex is published by theme.apply_theme as
+# Home-window (10000) properties; the defaults reproduce the palette's Green and
+# Orange so the out-of-the-box look is unchanged until the user picks another
+# colour.  The tag is left uncoloured while the string is built and cached, and
+# coloured only when get_output_mode reads it, so a colour change takes effect
+# live without re-running detection.
+_EL_COLOURS = ("FEL", "MEL")
+_EL_COLOUR_PROPERTIES = {
+    "FEL": "TinyPPI.FelColor",
+    "MEL": "TinyPPI.MelColor",
+}
+_EL_COLOUR_DEFAULTS = {
+    "FEL": "FFB9F6CA",  # palette Green
+    "MEL": "FFFFCC80",  # palette Orange
+}
+
+
+def _format_el_tag(profile: str, el_type: str) -> str:
+    """Return the profile string with its FEL/MEL enhancement-layer tag appended.
 
     hdrprobe carries the tag in the profile string, sometimes parenthesised
     (e.g. ``"7.6 (FEL)"``).  The tag is pulled out (parentheses dropped), shown
-    once in colour and never duplicated; the profile number stays plain.  When
-    the string carries no tag, ``el_type`` supplies it.
+    once and never duplicated; the profile number stays plain.  When the string
+    carries no tag, ``el_type`` supplies it.  The tag is returned uncoloured;
+    ``_colourise_el_tag`` applies the themed colour when the value is read.
     """
-    _COLOURS = {"FEL": "lightgreen", "MEL": "orange"}
-
     tag = ""
     base = []
     for token in profile.split():
         stripped = token.strip("()[]").upper()
-        if not tag and stripped in _COLOURS:
+        if not tag and stripped in _EL_COLOURS:
             tag = stripped
         else:
             base.append(token)
 
-    if not tag and el_type in _COLOURS:
+    if not tag and el_type in _EL_COLOURS:
         tag = el_type
 
     base_str = " ".join(base)
-    if tag:
-        return f"{base_str} [COLOR {_COLOURS[tag]}]{tag}[/COLOR]".strip()
-    return base_str
+    return f"{base_str} {tag}".strip() if tag else base_str
+
+
+def _colourise_el_tag(text: str) -> str:
+    """Wrap a trailing FEL/MEL enhancement-layer tag in its themed colour.
+
+    Reads the ARGB hex published by theme.apply_theme so a colour change applies
+    live; falls back to the palette default when the property is not (yet) set.
+    Any other value (status labels, non-DV formats) is returned unchanged.
+    """
+    for tag in _EL_COLOURS:
+        if text == tag or text.endswith(" " + tag):
+            colour = xbmcgui.Window(10000).getProperty(
+                _EL_COLOUR_PROPERTIES[tag]
+            ).strip() or _EL_COLOUR_DEFAULTS[tag]
+            head = text[: len(text) - len(tag)]
+            return f"{head}[COLOR {colour}]{tag}[/COLOR]"
+    return text
 
 
 def _structure_abbr(dovi: dict) -> str:
@@ -428,7 +460,7 @@ def _build_output_mode(
     if dovi:
         profile = _dv_profile_label(dovi) or "8.1"
         el_type = (dovi.get("el_type") or "").upper()
-        return f"Dolby Vision Profile {_colour_el_tag(profile, el_type)}"
+        return f"Dolby Vision Profile {_format_el_tag(profile, el_type)}"
 
     if token == "hdr10+":
         return f"HDR10+ {_hdr10plus_profile_label(hdr10plus)}".strip()
@@ -671,11 +703,11 @@ def get_output_mode() -> str:
     """Return the hdrprobe output-mode line (format + Dolby Vision profile).
 
     Shows a localized ``Fetching...`` label while detection runs and ``N/A`` if
-    it cannot be determined, matching the other hdrprobe-backed rows.  The FEL
-    (green) / MEL (orange) enhancement-layer colour markup is embedded in the
-    value for Dolby Vision streams.
+    it cannot be determined, matching the other hdrprobe-backed rows.  For Dolby
+    Vision streams the FEL / MEL enhancement-layer tag is wrapped in its themed
+    colour (Green / Orange by default) when the value is read.
     """
-    return _get_info_value("output_mode")
+    return _colourise_el_tag(_get_info_value("output_mode"))
 
 
 def get_cm_version() -> str:

@@ -842,3 +842,51 @@ msgstr ""
 msgctxt "#32274"
 msgid "Opacity of this element, from 0% (fully transparent) to 100% (fully opaque)."
 msgstr ""
+
+msgctxt "#32275"
+msgid "Conversion (yes)"
+msgstr ""
+
+msgctxt "#32276"
+msgid "Color of the check-circle icon shown when conversion is active."
+msgstr ""
+
+msgctxt "#32277"
+msgid "Conversion (no)"
+msgstr ""
+
+msgctxt "#32278"
+msgid "Color of the cross-circle icon shown when conversion is inactive."
+msgstr ""
+
+msgctxt "#32279"
+msgid "FEL tag"
+msgstr ""
+
+msgctxt "#32280"
+msgid "Color of the FEL enhancement-layer tag in the output mode."
+msgstr ""
+
+msgctxt "#32281"
+msgid "MEL tag"
+msgstr ""
+
+msgctxt "#32282"
+msgid "Color of the MEL enhancement-layer tag in the output mode."
+msgstr ""
+
+msgctxt "#32283"
+msgid "[COLOR=FFEDEDED]●[/COLOR] White"
+msgstr ""
+
+msgctxt "#32284"
+msgid "[COLOR=FFB9F6CA]●[/COLOR] Light green (Default)"
+msgstr ""
+
+msgctxt "#32285"
+msgid "[COLOR=FFFF8A80]●[/COLOR] Light red (Default)"
+msgstr ""
+
+msgctxt "#32286"
+msgid "[COLOR=FFFFCC80]●[/COLOR] Light orange (Default)"
+msgstr ""

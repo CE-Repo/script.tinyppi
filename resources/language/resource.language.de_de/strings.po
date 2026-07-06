@@ -842,3 +842,51 @@ msgstr "MaxCLL/FALL"
 msgctxt "#32274"
 msgid "Opacity of this element, from 0% (fully transparent) to 100% (fully opaque)."
 msgstr "Deckkraft dieses Elements, von 0% (vollständig transparent) bis 100% (vollständig deckend)."
+
+msgctxt "#32275"
+msgid "Conversion (yes)"
+msgstr "Umwandlung (Ja)"
+
+msgctxt "#32276"
+msgid "Color of the check-circle icon shown when conversion is active."
+msgstr "Farbe des Häkchen-Symbols bei aktiver Umwandlung."
+
+msgctxt "#32277"
+msgid "Conversion (no)"
+msgstr "Umwandlung (Nein)"
+
+msgctxt "#32278"
+msgid "Color of the cross-circle icon shown when conversion is inactive."
+msgstr "Farbe des Kreuz-Symbols bei inaktiver Umwandlung."
+
+msgctxt "#32279"
+msgid "FEL tag"
+msgstr "FEL-Kennzeichnung"
+
+msgctxt "#32280"
+msgid "Color of the FEL enhancement-layer tag in the output mode."
+msgstr "Farbe der FEL-Enhancement-Layer-Kennzeichnung im Ausgabemodus."
+
+msgctxt "#32281"
+msgid "MEL tag"
+msgstr "MEL-Kennzeichnung"
+
+msgctxt "#32282"
+msgid "Color of the MEL enhancement-layer tag in the output mode."
+msgstr "Farbe der MEL-Enhancement-Layer-Kennzeichnung im Ausgabemodus."
+
+msgctxt "#32283"
+msgid "[COLOR=FFEDEDED]●[/COLOR] White"
+msgstr "[COLOR=FFEDEDED]●[/COLOR] Weiß"
+
+msgctxt "#32284"
+msgid "[COLOR=FFB9F6CA]●[/COLOR] Light green (Default)"
+msgstr "[COLOR=FFB9F6CA]●[/COLOR] Hellgrün (Standard)"
+
+msgctxt "#32285"
+msgid "[COLOR=FFFF8A80]●[/COLOR] Light red (Default)"
+msgstr "[COLOR=FFFF8A80]●[/COLOR] Hellrot (Standard)"
+
+msgctxt "#32286"
+msgid "[COLOR=FFFFCC80]●[/COLOR] Light orange (Default)"
+msgstr "[COLOR=FFFFCC80]●[/COLOR] Hellorange (Standard)"

@@ -172,6 +172,17 @@ _UNIT_LABELS = (
 # settings.xml).
 _CUSTOM_INDEX = "999"
 
+# Palette index each color setting falls back to when a custom HEX is cleared or
+# rejected as invalid.  Must mirror the ``<default>`` option in
+# resources/settings.xml.  Any setting not listed defaults to index 0 (the
+# palette's first color, White), which is the default for every other element.
+_DEFAULT_COLOR_INDEX = {
+    "convert_yes_color": "5",  # Green
+    "convert_no_color":  "2",  # Red
+    "fel_color":         "5",  # Green
+    "mel_color":         "3",  # Orange
+}
+
 # Custom HEX colors, keyed by setting id (each value an 8-digit ARGB hex string),
 # persisted as a JSON file in the add-on profile directory.
 _CUSTOM_FILE = "special://profile/addon_data/script.tinyppi/custom_colors.json"
@@ -305,26 +316,30 @@ def _resolve(palette: tuple, addon, setting_id: str, custom: dict, overrides=Non
         stored = str(custom.get(setting_id, "")).strip().upper()
         if _HEX8_RE.match(stored):
             return stored
-        return palette[0]
+        return _pick(palette, _DEFAULT_COLOR_INDEX.get(setting_id, "0"))
     return _pick(palette, value)
 
 
 _THEME_PROPERTIES = (
-    ("TinyPPI.TitleColor",           _TEXT_COLORS, "title_color"),
-    ("TinyPPI.FilenameColor",        _TEXT_COLORS, "filename_color"),
-    ("TinyPPI.IconColor",            _TEXT_COLORS, "icon_color"),
-    ("TinyPPI.HeaderColor",          _TEXT_COLORS, "header_color"),
-    ("TinyPPI.HeaderIconColor",      _TEXT_COLORS, "header_icon_color"),
-    ("TinyPPI.DescriptionColor",     _TEXT_COLORS, "description_color"),
-    ("TinyPPI.OutputColor",          _TEXT_COLORS, "output_color"),
-    ("TinyPPI.ProgressColor",        _TEXT_COLORS, "progress_color"),
-    ("TinyPPI.FpsColor",             _TEXT_COLORS, "fps_color"),
-    ("TinyPPI.UnitColor",            _TEXT_COLORS, "unit_color"),
-    ("TinyPPI.AccentColor",          _ACCENT_COLORS, "accent_color"),
-    ("TinyPPI.BackgroundColor",      _BACKGROUND_COLORS, "background_color"),
+    ("TinyPPI.TitleColor",            _TEXT_COLORS, "title_color"),
+    ("TinyPPI.FilenameColor",         _TEXT_COLORS, "filename_color"),
+    ("TinyPPI.IconColor",             _TEXT_COLORS, "icon_color"),
+    ("TinyPPI.HeaderColor",           _TEXT_COLORS, "header_color"),
+    ("TinyPPI.HeaderIconColor",       _TEXT_COLORS, "header_icon_color"),
+    ("TinyPPI.DescriptionColor",      _TEXT_COLORS, "description_color"),
+    ("TinyPPI.OutputColor",           _TEXT_COLORS, "output_color"),
+    ("TinyPPI.ProgressColor",         _TEXT_COLORS, "progress_color"),
+    ("TinyPPI.FpsColor",              _TEXT_COLORS, "fps_color"),
+    ("TinyPPI.UnitColor",             _TEXT_COLORS, "unit_color"),
+    ("TinyPPI.AccentColor",           _ACCENT_COLORS, "accent_color"),
+    ("TinyPPI.ConvertYesColor",       _TEXT_COLORS, "convert_yes_color"),
+    ("TinyPPI.ConvertNoColor",        _TEXT_COLORS, "convert_no_color"),
+    ("TinyPPI.FelColor",              _TEXT_COLORS, "fel_color"),
+    ("TinyPPI.MelColor",              _TEXT_COLORS, "mel_color"),
+    ("TinyPPI.BackgroundColor",       _BACKGROUND_COLORS, "background_color"),
     ("TinyPPI.GlobalBackgroundColor", _BACKGROUND_COLORS, "global_background_color"),
-    ("TinyPPI.LineColor",            _LINE_COLORS, "line_color"),
-    ("TinyPPI.DialogFocusColor",     _DIALOG_FOCUS_COLORS, "dialog_focus_color"),
+    ("TinyPPI.LineColor",             _LINE_COLORS, "line_color"),
+    ("TinyPPI.DialogFocusColor",      _DIALOG_FOCUS_COLORS, "dialog_focus_color"),
     (
         "TinyPPI.DialogFocusTextColor",
         _DIALOG_FOCUS_TEXT_COLORS,
@@ -394,12 +409,14 @@ def custom_color(setting_id, addon=None) -> None:
     custom = _load_custom()
 
     if not _HEX6_RE.match(raw):
-        # Invalid input → notify and fall back to the default color.
+        # Invalid input → notify and fall back to this element's default color
+        # (not blindly index 0, which is White only for most elements).
+        fallback = _DEFAULT_COLOR_INDEX.get(setting_id, "0")
         custom.pop(setting_id, None)
         _save_custom(custom)
-        addon.setSetting(setting_id, "0")
+        addon.setSetting(setting_id, fallback)
         addon.setSetting(setting_id + _CUSTOM_BTN_SUFFIX, "")
-        setting_value = "0"
+        setting_value = fallback
         _notify(
             addon,
             32244,

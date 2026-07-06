@@ -517,7 +517,7 @@
 						<width>24</width>
 						<height>24</height>
 						<texture>icons/check-circle.png</texture>
-						<colordiffuse>palegreen</colordiffuse>
+						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.ConvertYesColor)]</colordiffuse>
 						<aligny>top</aligny>
 						<visible>[[String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hlg) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.IsEmpty(Window(10000).Property(TinyPPI.HdrType)] + String.Contains(Player.Process(amlogic.eoft_gamut),DV)] | [[String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hlg) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)] | [[String.IsEmpty(Window(10000).Property(TinyPPI.HdrType) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby] + String.Contains(Player.Process(amlogic.eoft_gamut),HDR)]</visible>
 					</control>
@@ -527,7 +527,7 @@
 						<width>24</width>
 						<height>24</height>
 						<texture>icons/circle-xmark.png</texture>
-						<colordiffuse>tomato</colordiffuse>
+						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.ConvertNoColor)]</colordiffuse>
 						<aligny>top</aligny>
 						<visible>![[[String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hlg) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.IsEmpty(Window(10000).Property(TinyPPI.HdrType)] + String.Contains(Player.Process(amlogic.eoft_gamut),DV)] | [[String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hlg) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)] | [[String.IsEmpty(Window(10000).Property(TinyPPI.HdrType) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.Contains(Player.Process(amlogic.eoft_gamut),HDR)]]</visible>
 					</control>
