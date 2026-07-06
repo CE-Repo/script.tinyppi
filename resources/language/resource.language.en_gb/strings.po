@@ -87,10 +87,6 @@ msgctxt "#32025"
 msgid "Audio queue / data"
 msgstr ""
 
-msgctxt "#32026"
-msgid "VS10 engine"
-msgstr ""
-
 msgctxt "#32027"
 msgid "Output mode"
 msgstr ""
@@ -101,10 +97,6 @@ msgstr ""
 
 msgctxt "#32030"
 msgid "L5 active area"
-msgstr ""
-
-msgctxt "#32031"
-msgid "Decode method"
 msgstr ""
 
 msgctxt "#32032"
@@ -129,10 +121,6 @@ msgstr ""
 
 msgctxt "#32045"
 msgid "Audio codec"
-msgstr ""
-
-msgctxt "#32046"
-msgid "Video codec"
 msgstr ""
 
 msgctxt "#32047"
@@ -217,10 +205,6 @@ msgstr ""
 
 msgctxt "#32101"
 msgid "Customise the TinyPPI overlay colors."
-msgstr ""
-
-msgctxt "#32102"
-msgid "Colors"
 msgstr ""
 
 msgctxt "#32103"
@@ -745,10 +729,6 @@ msgstr ""
 
 msgctxt "#32239"
 msgid "[COLOR=FF242E34]●[/COLOR] Dark cadet"
-msgstr ""
-
-msgctxt "#32240"
-msgid "Custom"
 msgstr ""
 
 msgctxt "#32241"
