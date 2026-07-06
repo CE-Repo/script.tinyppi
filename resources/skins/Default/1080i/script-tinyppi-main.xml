@@ -289,11 +289,11 @@
 					<control type="label">
 						<left>240</left>
 						<top>150</top>
-						<label>$INFO[Window().Property(VideoLiveBitrateVar)] - [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(VideoBitrateMBVar),(Ø ,)][/COLOR]</label>
+						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)] - [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(VideoBitrateMBVar),(Ø ,)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
-						<visible>!String.IsEmpty(Window().Property(VideoLiveBitrateVar)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 					</control>
 					<control type="label">
 						<left>240</left>
@@ -302,16 +302,16 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
-						<visible>String.IsEmpty(Window().Property(VideoLiveBitrateVar)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + !String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 					</control>
 					<control type="label">
 						<left>240</left>
 						<top>150</top>
-						<label>$INFO[Window().Property(VideoLiveBitrateVar)]</label>
+						<label>$INFO[Window().Property(VdecBitrate)] $INFO[Window().Property(VdecBitrateUnit)]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
-						<visible>!String.IsEmpty(Window().Property(VideoLiveBitrateVar)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+						<visible>!String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 					</control>
 					<!-- N/A -->
 					<control type="label">
@@ -320,7 +320,7 @@
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<visible>String.IsEmpty(Window().Property(VideoLiveBitrateVar)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
+						<visible>String.IsEmpty(Window().Property(VdecBitrate)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
 						<aligny>top</aligny>
 					</control>
 

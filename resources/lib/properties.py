@@ -38,12 +38,11 @@ from dvinfo import (
 # ---------------------------------------------------------------------------
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
-_BITRATE_DECIMAL_RE = re.compile(r"-?(?:\d+(?:[.,]\d+)?|[.,]\d+)")
 
 
-def _first_float(raw: str, pattern: re.Pattern = _DECIMAL_RE) -> float | None:
+def _first_float(raw: str) -> float | None:
     """Return the first decimal number found in *raw*, or None."""
-    match = pattern.search(raw)
+    match = _DECIMAL_RE.search(raw)
     if not match:
         return None
 
@@ -138,31 +137,6 @@ def get_VideoBitrateMBVar() -> str:
 
     value = f"{mbit:.2f}".rstrip("0").rstrip(".")
     return f"{value} Mb/s"
-
-
-def get_VideoLiveBitrateVar() -> str:
-    """
-    Format the live video bitrate (``Player.Process(videolivebitrate)``)
-    as e.g. ``23.45 Mb/s`` or ``850 Kb/s``, without failing on malformed
-    Kodi values.  Returns ``''`` when no live bitrate is reported.
-    """
-    bitrate = info("Player.Process(videolivebitrate)").strip()
-
-    if not bitrate:
-        return ""
-
-    value = _first_float(bitrate, _BITRATE_DECIMAL_RE)
-    if value is None:
-        return ""
-
-    if value < 0:
-        return ""
-
-    if value < 1.0:
-        return f"{int(round(value * 1000))} Kb/s"
-
-    formatted = f"{value:.2f}".rstrip("0").rstrip(".")
-    return f"{formatted} Mb/s"
 
 
 def get_VideoCodecVar() -> str:
@@ -283,6 +257,39 @@ def get_GamutVar() -> str:
     """Return the second token of ``amlogic.eoft_gamut`` (the gamut field)."""
     parts = info("Player.Process(amlogic.eoft_gamut)").split()
     return parts[1] if len(parts) > 1 else ""
+
+
+# ---------------------------------------------------------------------------
+# Vdec bitrate  (Amlogic kernel sysfs)
+# ---------------------------------------------------------------------------
+
+def get_VdecBitrateVar() -> tuple[str, str]:
+    """
+    Read the hardware decoder bitrate from sysfs and return a
+    ``(value, unit)`` tuple, e.g. ``('23.45', 'Mb/s')`` or ``('850', 'Kb/s')``.
+
+    Returns ``('', '')`` when the node is unavailable or contains no data.
+    """
+    path = "/sys/class/vdec/vdec_status"
+    try:
+        with open(path, encoding="utf-8", errors="ignore") as f:
+            data = f.read()
+    except OSError:
+        return "", ""
+
+    matches = re.findall(r"bit rate\s*:\s*(\d+)\s*kbps", data, re.IGNORECASE)
+    if not matches:
+        return "", ""
+
+    kbps = max(float(m) for m in matches)
+    if kbps <= 0:
+        return "", ""
+
+    if kbps < 1000:
+        return f"{kbps:.0f}", "Kb/s"
+
+    mbps = kbps / 1000.0
+    return f"{mbps:.2f}".rstrip("0").rstrip("."), "Mb/s"
 
 
 # ---------------------------------------------------------------------------
@@ -564,6 +571,7 @@ def update_properties(window) -> None:
     video_queue_data = get_queue_level("Player.Process(videoqueuedatalevel)")
     audio_queue = get_queue_level("Player.Process(audioqueuelevel)")
     audio_queue_data = get_queue_level("Player.Process(audioqueuedatalevel)")
+    bitrate_value, bitrate_unit = get_VdecBitrateVar()
     fps_info_text, fps_out_text = fps_display_texts()
 
     # Output-mode line from hdrprobe, e.g. ``HDR10`` or
@@ -603,7 +611,8 @@ def update_properties(window) -> None:
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
             ("ModeVar", get_ModeVar()),
             ("GamutVar", get_GamutVar()),
-            ("VideoLiveBitrateVar", get_VideoLiveBitrateVar()),
+            ("VdecBitrate", bitrate_value),
+            ("VdecBitrateUnit", bitrate_unit),
             ("FpsInfoVar", fps_info_text),
             ("FpsDropVar", fps_out_text),
             ("AudioBitrateKBVar", get_AudioBitrateKBVar()),
