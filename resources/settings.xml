@@ -310,6 +310,16 @@
                         <data>RunScript(script.tinyppi,custom_color,title_color)</data>
                     </control>
                 </setting>
+                <setting id="title_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
             </group>
             <group id="4" label="32246">
                 <setting id="filename_color" type="integer" label="32197" help="32198">
@@ -392,6 +402,21 @@
                         <data>RunScript(script.tinyppi,custom_color,filename_color)</data>
                     </control>
                 </setting>
+                <setting id="filename_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="filename">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="percentage" />
+                </setting>
             </group>
             <group id="5" label="32246">
                 <setting id="header_color" type="integer" label="32142" help="32143">
@@ -467,6 +492,16 @@
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,custom_color,header_color)</data>
                     </control>
+                </setting>
+                <setting id="header_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
                 </setting>
             </group>
             <group id="6" label="32246">
@@ -544,6 +579,16 @@
                         <data>RunScript(script.tinyppi,custom_color,icon_color)</data>
                     </control>
                 </setting>
+                <setting id="icon_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
             </group>
             <group id="7" label="32246">
                 <setting id="header_icon_color" type="integer" label="32144" help="32145">
@@ -619,6 +664,16 @@
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,custom_color,header_icon_color)</data>
                     </control>
+                </setting>
+                <setting id="header_icon_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
                 </setting>
             </group>
             <group id="8" label="32246">
@@ -696,6 +751,16 @@
                         <data>RunScript(script.tinyppi,custom_color,description_color)</data>
                     </control>
                 </setting>
+                <setting id="description_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
             </group>
             <group id="9" label="32246">
                 <setting id="output_color" type="integer" label="32109" help="32110">
@@ -771,6 +836,16 @@
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,custom_color,output_color)</data>
                     </control>
+                </setting>
+                <setting id="output_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
                 </setting>
             </group>
             <group id="10" label="32246">
@@ -848,6 +923,16 @@
                         <data>RunScript(script.tinyppi,custom_color,fps_color)</data>
                     </control>
                 </setting>
+                <setting id="fps_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
             </group>
             <group id="11" label="32246">
                 <setting id="progress_color" type="integer" label="32111" help="32112">
@@ -924,6 +1009,16 @@
                         <data>RunScript(script.tinyppi,custom_color,progress_color)</data>
                     </control>
                 </setting>
+                <setting id="progress_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
             </group>
             <group id="12" label="32246">
                 <setting id="accent_color" type="integer" label="32113" help="32114">
@@ -999,6 +1094,16 @@
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,custom_color,accent_color)</data>
                     </control>
+                </setting>
+                <setting id="accent_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>70</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
                 </setting>
             </group>
             <group id="13" label="32246">
@@ -1082,6 +1187,21 @@
                         <data>RunScript(script.tinyppi,custom_color,unit_color)</data>
                     </control>
                 </setting>
+                <setting id="unit_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="!is" setting="unit_type">2</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="percentage" />
+                </setting>
             </group>
             <group id="14" label="32246">
                 <setting id="line_color" type="integer" label="32251" help="32252">
@@ -1157,6 +1277,16 @@
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,custom_color,line_color)</data>
                     </control>
+                </setting>
+                <setting id="line_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>15</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
                 </setting>
             </group>
             <group id="15" label="32246">
@@ -1240,6 +1370,21 @@
                         <data>RunScript(script.tinyppi,custom_color,dialog_focus_color)</data>
                     </control>
                 </setting>
+                <setting id="dialog_focus_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="launch_mode">1</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="percentage" />
+                </setting>
             </group>
             <group id="16" label="32246">
                 <setting id="dialog_focus_text_color" type="integer" label="32255" help="32256">
@@ -1322,6 +1467,21 @@
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,custom_color,dialog_focus_text_color)</data>
                     </control>
+                </setting>
+                <setting id="dialog_focus_text_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="launch_mode">1</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="percentage" />
                 </setting>
             </group>
         </category>

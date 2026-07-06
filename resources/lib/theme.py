@@ -246,31 +246,43 @@ def _pick(palette: tuple, value: str) -> str:
         return palette[0]
 
 
-# Default background opacity (percent) used when the setting is missing or
-# invalid.  98 % maps to alpha FA, matching the original hard-coded shades.
-_DEFAULT_BG_OPACITY = 98
+# Fallback opacity (percent) used when a setting is missing or invalid: full
+# opacity for text-based elements.
+_DEFAULT_OPACITY = 100
 
-# Default opacity (percent) for the full-screen global background.  0 % keeps
-# the layer fully transparent (off), so the overlay looks unchanged until the
-# user raises the slider.
-_DEFAULT_GLOBAL_BG_OPACITY = 0
+# Per-element opacity defaults (percent), keyed by color setting id.  Each value
+# reproduces the alpha baked into that element's palette so the out-of-the-box
+# look is unchanged until the user moves the slider.  Elements not listed use
+# ``_DEFAULT_OPACITY`` (100 %, alpha FF).
+_DEFAULT_OPACITIES = {
+    "background_color":        98,  # FA – Modern panel background
+    "global_background_color":  0,  # off until the user raises the slider
+    "accent_color":            70,  # B3 – dimmed inline detail accents
+    "line_color":              15,  # 26 – faint separator lines
+}
 
 
-def _opacity_alpha(addon, setting_id="background_opacity",
-                   default=_DEFAULT_BG_OPACITY, overrides=None) -> str:
+def _opacity_setting(color_setting_id: str) -> str:
+    """Return the opacity slider id paired with a ``*_color`` setting."""
+    return color_setting_id[: -len("_color")] + "_opacity"
+
+
+def _opacity_alpha(addon, setting_id, default, overrides=None) -> str:
     """
     Return the 2-digit hex alpha for a configured opacity slider.
 
     The referenced setting is a 0–100 % slider: 100 % is fully opaque (FF) and
-    0 % is fully transparent (00).  The ``background_opacity`` default of 98 %
-    maps to FA, matching the alpha baked into ``_BACKGROUND_COLORS``.
+    0 % is fully transparent (00).  ``default`` (percent) is used when the
+    setting is missing or invalid.
     """
     try:
         percent = int(_setting_value(addon, setting_id, overrides))
     except (ValueError, TypeError):
         percent = default
     percent = max(0, min(100, percent))
-    return "{:02X}".format(round(percent * 255 / 100))
+    # Round half up so the per-element defaults reproduce the palette's native
+    # alpha exactly (e.g. 70 % → B3 for the accent, 15 % → 26 for the lines).
+    return "{:02X}".format(int(percent * 255 / 100 + 0.5))
 
 
 def _setting_value(addon, setting_id: str, overrides) -> str:
@@ -333,19 +345,15 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
 
     for property_name, palette, setting_id in _THEME_PROPERTIES:
         value = _resolve(palette, addon, setting_id, custom, overrides)
-        if setting_id == "background_color":
-            # Override the palette/custom alpha with the panel opacity.
-            value = _opacity_alpha(addon, overrides=overrides) + value[2:]
-        elif setting_id == "global_background_color":
-            # The full-screen global background has its own color and its own
-            # opacity slider (independent of the panel).
-            value = _opacity_alpha(
-                addon,
-                "global_background_opacity",
-                _DEFAULT_GLOBAL_BG_OPACITY,
-                overrides,
-            ) + value[2:]
-        home.setProperty(property_name, value)
+        # Every element has its own opacity slider; its alpha overrides the
+        # palette/custom alpha so the chosen HEX only supplies the RGB channels.
+        alpha = _opacity_alpha(
+            addon,
+            _opacity_setting(setting_id),
+            _DEFAULT_OPACITIES.get(setting_id, _DEFAULT_OPACITY),
+            overrides,
+        )
+        home.setProperty(property_name, alpha + value[2:])
 
     home.setProperty(
         "TinyPPI.UnitLabel",

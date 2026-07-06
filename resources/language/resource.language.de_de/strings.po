@@ -838,3 +838,7 @@ msgstr "Mastering Display"
 msgctxt "#32273"
 msgid "MaxCLL/FALL"
 msgstr "MaxCLL/FALL"
+
+msgctxt "#32274"
+msgid "Opacity of this element, from 0% (fully transparent) to 100% (fully opaque)."
+msgstr "Deckkraft dieses Elements, von 0% (vollständig transparent) bis 100% (vollständig deckend)."
