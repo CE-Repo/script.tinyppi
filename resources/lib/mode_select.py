@@ -13,6 +13,8 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
+from utils import clear_overlay_state
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -25,8 +27,6 @@ _ENABLE = "/sys/module/aml_media/parameters/dolby_vision_enable"
 _DVMODE = "/sys/class/amdolby_vision/dv_mode"
 
 _BTN_TINYPPI = 1001
-_PROP_RUNNING = "TinyPPI.Running"
-_PROP_ACTIVE = "TinyPPI.Active"
 
 # ---------------------------------------------------------------------------
 # Sysfs
@@ -83,12 +83,6 @@ def _set_sdr_conversion_mode(dv_mode: str) -> None:
     )
 
 
-def _clear_overlay_state(home) -> None:
-    """Allow the main TinyPPI overlay to open after closing this dialog."""
-    home.clearProperty(_PROP_RUNNING)
-    home.clearProperty(_PROP_ACTIVE)
-
-
 # ---------------------------------------------------------------------------
 # VS10 Mode
 # ---------------------------------------------------------------------------
@@ -122,8 +116,8 @@ def original_hlg() -> None:
     )
 
 
-def original_dv() -> None:
-    _set_passthrough_mode("2")
+# Same sysfs sequence as ``dv``; kept as its own name so keymaps can use both.
+original_dv = dv
 
 
 def sdr8() -> None:
@@ -151,6 +145,7 @@ _MODES = {
 
 
 def set_mode(name: str) -> None:
+    """Run the VS10 mode named ``name`` (see ``_MODES``), logging the result."""
     fn = _MODES.get(name)
     if fn:
         fn()
@@ -159,11 +154,7 @@ def set_mode(name: str) -> None:
         xbmc.log(f"TinyPPI: Unknown mode '{name}'", xbmc.LOGERROR)
 
 
-def run_mode(mode: str) -> None:
-    set_mode(mode)
-
-
-__all__ = list(_MODES.keys()) + ["open_dialog", "set_mode", "run_mode"]
+__all__ = list(_MODES.keys()) + ["open_dialog", "set_mode"]
 
 
 # ---------------------------------------------------------------------------
@@ -222,7 +213,7 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
     def onClick(self, control_id: int) -> None:
         if control_id == _BTN_TINYPPI:
             self.close()
-            _clear_overlay_state(xbmcgui.Window(10000))
+            clear_overlay_state(xbmcgui.Window(10000))
             from overlay import open_tinyppi
             open_tinyppi()
             return

@@ -99,8 +99,7 @@ if __name__ == "__main__":
 
     xbmc.log("TinyPPI: KodiMonitor started", xbmc.LOGINFO)
 
-    while not monitor.abortRequested():
-        if monitor.waitForAbort(1):
-            break
+    # Block until Kodi shuts down; notifications arrive on their own thread.
+    monitor.waitForAbort()
 
     del monitor

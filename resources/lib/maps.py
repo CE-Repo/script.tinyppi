@@ -1,5 +1,5 @@
 """
-maps.py – Static lookup tables and shared mutable state for TinyPPI.
+maps.py – Static lookup tables for TinyPPI.
 
 All maps are keyed on the lowercase codec/language identifier that Kodi
 returns via its InfoLabel API.  Display strings are intentionally kept in
@@ -7,19 +7,10 @@ their canonical mixed-case form so they can be shown to the user as-is.
 """
 
 # ---------------------------------------------------------------------------
-# AML FPS state  (mutated by helpers._update_fps)
-# ---------------------------------------------------------------------------
-
-_FPS = {
-    "history":     [],
-    "last_sample": 0.0,
-}
-
-# ---------------------------------------------------------------------------
 # Video codec map  (VideoPlayer.VideoCodec → display label)
 # ---------------------------------------------------------------------------
 
-_VIDEO_CODEC_MAP = {
+VIDEO_CODEC_MAP = {
     "3iv2":       "3ivx",
     "av1":        "AV1",
     "avc1":       "H.264",
@@ -63,7 +54,7 @@ _VIDEO_CODEC_MAP = {
 # Subtitle codec map  (VideoPlayer.SubtitleCodec → display label)
 # ---------------------------------------------------------------------------
 
-_SUBTITLE_CODEC_MAP = {
+SUBTITLE_CODEC_MAP = {
     "ass":               "ASS",
     "dvb_subtitle":      "DVB-SUB",
     "dvb_teletext":      "DVB-Text",
@@ -88,7 +79,7 @@ _SUBTITLE_CODEC_MAP = {
 # Audio codec map  (VideoPlayer.AudioCodec → display label)
 # ---------------------------------------------------------------------------
 
-_AUDIO_CODEC_MAP = {
+AUDIO_CODEC_MAP = {
     # AAC
     "aac":             "AAC",
     "aac_latm":        "AAC",
@@ -152,7 +143,7 @@ _AUDIO_CODEC_MAP = {
 # Channel count → surround layout string
 # ---------------------------------------------------------------------------
 
-_CHANNELS_MAP = {
+CHANNELS_MAP = {
     1:  "1.0",
     2:  "2.0",
     4:  "4.0",
@@ -167,7 +158,7 @@ _CHANNELS_MAP = {
 # Channel count → full speaker-label string
 # ---------------------------------------------------------------------------
 
-_CHANNELS_INPUT_MAP = {
+CHANNELS_INPUT_MAP = {
     1:  "Mono",
     2:  "FL, FR",
     3:  "FL, FR, LFE",
@@ -184,7 +175,7 @@ _CHANNELS_INPUT_MAP = {
 # ISO 639-2/B language code → native language name
 # ---------------------------------------------------------------------------
 
-_LANGUAGE_MAP = {
+LANGUAGE_MAP = {
     "abk": "Apsua",
     "ace": "Baksa Acèh",
     "ach": "Lwo",
@@ -674,7 +665,7 @@ _LANGUAGE_MAP = {
 # ISO 639-2/B language code -> ISO 639-2/T code (uppercase)
 # ---------------------------------------------------------------------------
 
-_LANGUAGE_MAP_SHORT = {
+LANGUAGE_MAP_SHORT = {
     "abk": "ABK",
     "ace": "ACE",
     "ach": "ACH",
