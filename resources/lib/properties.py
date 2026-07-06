@@ -37,9 +37,6 @@ from dvinfo import (
 # Module-level state
 # ---------------------------------------------------------------------------
 
-# Previous /proc/stat snapshot for delta-based CPU usage calculation.
-_cpu_prev: tuple[int, int] | None = None
-
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
 _BITRATE_DECIMAL_RE = re.compile(r"-?(?:\d+(?:[.,]\d+)?|[.,]\d+)")
 
@@ -402,6 +399,20 @@ def get_SubtitleCodecVar() -> str:
 # System properties
 # ---------------------------------------------------------------------------
 
+_CPU_CORE_RE = re.compile(r"#\d+:\s*([\d.]+)%")
+
+
+def _cpu_core_loads(raw: str) -> list[float]:
+    """Parse ``System.CpuUsage`` into the per-core percentages."""
+    loads = []
+    for val in _CPU_CORE_RE.findall(raw):
+        try:
+            loads.append(float(val))
+        except ValueError:
+            continue
+    return loads
+
+
 def get_CpuUsageVar() -> str:
     """
     Parse ``System.CpuUsage`` and return a zero-padded, pipe-separated
@@ -411,63 +422,28 @@ def get_CpuUsageVar() -> str:
     if not raw:
         return ""
 
-    matches = re.findall(r"#\d+:\s*([\d.]+)%", raw)
-    if not matches:
+    loads = _cpu_core_loads(raw)
+    if not loads:
         return raw
 
-    values = []
-    for val in matches:
-        try:
-            values.append(f"{int(float(val)):02d}")
-        except ValueError:
-            continue
-    return " | ".join(values)
+    return " | ".join(f"{int(v):02d}" for v in loads)
 
 
 def get_CpuTopUsageVar() -> str:
     """
-    Compute total CPU usage from consecutive /proc/stat snapshots and return
-    it as a percentage string, e.g. ``'34%'``.
+    Return the average CPU usage across all cores as a percentage string,
+    e.g. ``'34%'``.
 
-    Returns an empty string on the very first call (no previous sample yet)
-    or when /proc/stat cannot be read.
+    Derived from Kodi's ``System.CpuUsage`` per-core values (the same source
+    as :func:`get_CpuUsageVar`) instead of reading ``/proc/stat``, so no
+    kernel access is needed.  Returns an empty string when Kodi reports no
+    parseable per-core values.
     """
-    global _cpu_prev
-
-    try:
-        with open("/proc/stat") as f:
-            line = f.readline()
-    except OSError:
+    loads = _cpu_core_loads(info("System.CpuUsage"))
+    if not loads:
         return ""
 
-    parts = line.split()
-    if len(parts) < 8:
-        return ""
-
-    try:
-        user, nice, system, idle, iowait, irq, softirq = (
-            int(parts[i]) for i in range(1, 8)
-        )
-    except ValueError:
-        return ""
-
-    idle_all = idle + iowait
-    total    = user + nice + system + idle_all + irq + softirq
-    busy     = total - idle_all
-
-    if _cpu_prev is None:
-        _cpu_prev = (busy, total)
-        return ""
-
-    prev_busy, prev_total = _cpu_prev
-    _cpu_prev = (busy, total)
-
-    diff_total = total - prev_total
-    if diff_total <= 0:
-        return ""
-
-    usage = (busy - prev_busy) / diff_total * 100.0
-    return f"{usage:.0f}%"
+    return f"{sum(loads) / len(loads):.0f}%"
 
 
 def get_CpuTemperatureProgressVar() -> float:
