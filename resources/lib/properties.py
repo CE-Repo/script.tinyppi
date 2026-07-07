@@ -274,6 +274,9 @@ def _output_mode_from_hw() -> str:
     signalling, so it stays available when hdrprobe detection could not run; it
     is used as the output-mode fallback in place of the ``N/A`` status label.
     Returns ``''`` when the mode cannot be classified.
+
+    The Amlogic mode token distinguishes Dolby Vision output as ``DV-Std`` or
+    ``DV-LL``, so any ``DV`` prefix is matched as Dolby Vision.
     """
     mode = get_ModeVar().upper()
     if not mode:
