@@ -30,6 +30,7 @@ from dvinfo import (
     get_l5_offsets,
     get_l6_rpu_mdl,
     get_l6_rpu_max_cll_fall,
+    is_fetch_label,
     is_status_label,
 )
 
@@ -177,12 +178,16 @@ def get_VideoBitDepthVar() -> str:
     base layer, so hdrprobe's reconstructed_bit_depth is reported for them
     (falling back to 12-bit when absent); every other format uses hdrprobe's
     container bit depth.  Detection runs in a background thread (see dvinfo.py),
-    so this call never blocks the polling loop; the localized status label is
-    passed through unchanged while detection is running or after it fails.
+    so this call never blocks the polling loop; the localized ``Fetching...``
+    label is passed through unchanged while detection is running.  When the bit
+    depth cannot be determined (detection failed or reported nothing), ``8-bit``
+    is shown as a fallback instead of the ``N/A`` status label.
     """
     value = get_bit_depth()
-    if not value or is_status_label(value):
+    if is_fetch_label(value):
         return value
+    if not value or is_status_label(value):
+        return "8-bit"
     return f"{value}-bit"
 
 

@@ -109,6 +109,11 @@ def is_status_label(value: str) -> bool:
     return value in (_fetch_label(), _na_label())
 
 
+def is_fetch_label(value: str) -> bool:
+    """Return True when a value is the localized ``Fetching...`` status label."""
+    return value == _fetch_label()
+
+
 def _cache_window() -> xbmcgui.Window:
     """Return Kodi's global home window used for cross-invocation caching."""
     return xbmcgui.Window(10000)
