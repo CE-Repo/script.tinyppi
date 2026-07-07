@@ -423,8 +423,6 @@
 						<visible>![[String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hlg) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)]</visible>
 						<visible>!String.IsEqual(Window().Property(DoviProfilePending),true)</visible>
 					</control>
-					<!-- While detection is still running, show only the placeholder
-					     (e.g. "Fetching...") without any conversion-arrow suffix. -->
 					<control type="label">
 						<left>240</left>
 						<top>30</top>
