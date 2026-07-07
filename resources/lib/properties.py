@@ -616,6 +616,10 @@ def update_properties(window) -> None:
     # label derived from the Amlogic hardware output mode; the ``Fetching...``
     # label is left intact while detection is still running.
     output_mode = get_output_mode()
+    # While detection is still running the profile text is the ``Fetching...``
+    # placeholder; the skin uses this flag to suppress the conversion-arrow
+    # suffix (e.g. ``➞ DV Profile 8.1``) so only the placeholder is shown.
+    output_mode_pending = is_fetch_label(output_mode)
     if is_status_label(output_mode) and not is_fetch_label(output_mode):
         output_mode = _output_mode_from_hw() or output_mode
 
@@ -642,6 +646,7 @@ def update_properties(window) -> None:
             ("VideoBitDepthVar", get_VideoBitDepthVar()),
             ("DoviProfileVar", output_mode),
             ("DoviProfileAltVar", output_mode.replace("Dolby Vision Profile", "DV Profile")),
+            ("DoviProfilePending", "true" if output_mode_pending else "false"),
             ("DoviTunnelVar", get_DoviTunnelVar()),
             ("DoviCmVersionVar", get_cm_version()),
             ("DoviStructureVar", get_structure()),
