@@ -180,14 +180,15 @@ def get_VideoBitDepthVar() -> str:
     container bit depth.  Detection runs in a background thread (see dvinfo.py),
     so this call never blocks the polling loop; the localized ``Fetching...``
     label is passed through unchanged while detection is running.  When the bit
-    depth cannot be determined (detection failed or reported nothing), ``8-bit``
-    is shown as a fallback instead of the ``N/A`` status label.
+    depth cannot be determined (detection failed or reported nothing), a fallback
+    is shown instead of the ``N/A`` status label: ``10-bit`` for HDR streams
+    (HDR10, HDR10+, HLG, Dolby Vision) and ``8-bit`` for SDR.
     """
     value = get_bit_depth()
     if is_fetch_label(value):
         return value
     if not value or is_status_label(value):
-        return "8-bit"
+        return "10-bit" if get_hdr_format() else "8-bit"
     return f"{value}-bit"
 
 
