@@ -30,6 +30,7 @@ from dvinfo import (
     get_l5_offsets,
     get_l6_rpu_mdl,
     get_l6_rpu_max_cll_fall,
+    is_fetch_label,
     is_status_label,
 )
 
@@ -177,12 +178,17 @@ def get_VideoBitDepthVar() -> str:
     base layer, so hdrprobe's reconstructed_bit_depth is reported for them
     (falling back to 12-bit when absent); every other format uses hdrprobe's
     container bit depth.  Detection runs in a background thread (see dvinfo.py),
-    so this call never blocks the polling loop; the localized status label is
-    passed through unchanged while detection is running or after it fails.
+    so this call never blocks the polling loop; the localized ``Fetching...``
+    label is passed through unchanged while detection is running.  When the bit
+    depth cannot be determined (detection failed or reported nothing), a fallback
+    is shown instead of the ``N/A`` status label: ``10-bit`` for HDR streams
+    (HDR10, HDR10+, HLG, Dolby Vision) and ``8-bit`` for SDR.
     """
     value = get_bit_depth()
-    if not value or is_status_label(value):
+    if is_fetch_label(value):
         return value
+    if not value or is_status_label(value):
+        return "10-bit" if get_hdr_format() else "8-bit"
     return f"{value}-bit"
 
 
@@ -257,6 +263,35 @@ def get_GamutVar() -> str:
     """Return the second token of ``amlogic.eoft_gamut`` (the gamut field)."""
     parts = info("Player.Process(amlogic.eoft_gamut)").split()
     return parts[1] if len(parts) > 1 else ""
+
+
+def _output_mode_from_hw() -> str:
+    """Return an output-mode display label from the Amlogic hardware mode.
+
+    Classifies the ``amlogic.eoft_gamut`` mode token (see ``get_ModeVar``) into
+    one of the output-mode row's labels: ``SDR``, ``HDR10``, ``HLG``, ``HDR10+``
+    or ``Dolby Vision``.  Unlike hdrprobe this reads the display's actual output
+    signalling, so it stays available when hdrprobe detection could not run; it
+    is used as the output-mode fallback in place of the ``N/A`` status label.
+    Returns ``''`` when the mode cannot be classified.
+
+    The Amlogic mode token distinguishes Dolby Vision output as ``DV-Std`` or
+    ``DV-LL``, so any ``DV`` prefix is matched as Dolby Vision.
+    """
+    mode = get_ModeVar().upper()
+    if not mode:
+        return ""
+    if "DV" in mode or "DOLBY" in mode:
+        return "Dolby Vision"
+    if "HDR10+" in mode or "HDR10PLUS" in mode or "PLUS" in mode:
+        return "HDR10+"
+    if "HLG" in mode:
+        return "HLG"
+    if "HDR" in mode:
+        return "HDR10"
+    if "SDR" in mode:
+        return "SDR"
+    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -576,8 +611,13 @@ def update_properties(window) -> None:
 
     # Output-mode line from hdrprobe, e.g. ``HDR10`` or
     # ``Dolby Vision Profile 7 [COLOR FFB9F6CA]FEL[/COLOR]`` (the FEL/MEL colour
-    # is themed); the Alt variant uses the shorter ``DV Profile`` prefix.
+    # is themed); the Alt variant uses the shorter ``DV Profile`` prefix.  When
+    # hdrprobe could not determine it (would show N/A), fall back to a plain
+    # label derived from the Amlogic hardware output mode; the ``Fetching...``
+    # label is left intact while detection is still running.
     output_mode = get_output_mode()
+    if is_status_label(output_mode) and not is_fetch_label(output_mode):
+        output_mode = _output_mode_from_hw() or output_mode
 
     l5_offsets = get_l5_offsets()
     l5_offsets_icon_visible = (
