@@ -265,6 +265,32 @@ def get_GamutVar() -> str:
     return parts[1] if len(parts) > 1 else ""
 
 
+def _output_mode_from_hw() -> str:
+    """Return an output-mode display label from the Amlogic hardware mode.
+
+    Classifies the ``amlogic.eoft_gamut`` mode token (see ``get_ModeVar``) into
+    one of the output-mode row's labels: ``SDR``, ``HDR10``, ``HLG``, ``HDR10+``
+    or ``Dolby Vision``.  Unlike hdrprobe this reads the display's actual output
+    signalling, so it stays available when hdrprobe detection could not run; it
+    is used as the output-mode fallback in place of the ``N/A`` status label.
+    Returns ``''`` when the mode cannot be classified.
+    """
+    mode = get_ModeVar().upper()
+    if not mode:
+        return ""
+    if "DV" in mode or "DOLBY" in mode:
+        return "Dolby Vision"
+    if "HDR10+" in mode or "HDR10PLUS" in mode or "PLUS" in mode:
+        return "HDR10+"
+    if "HLG" in mode:
+        return "HLG"
+    if "HDR" in mode:
+        return "HDR10"
+    if "SDR" in mode:
+        return "SDR"
+    return ""
+
+
 # ---------------------------------------------------------------------------
 # Vdec bitrate  (Amlogic kernel sysfs)
 # ---------------------------------------------------------------------------
@@ -582,8 +608,13 @@ def update_properties(window) -> None:
 
     # Output-mode line from hdrprobe, e.g. ``HDR10`` or
     # ``Dolby Vision Profile 7 [COLOR FFB9F6CA]FEL[/COLOR]`` (the FEL/MEL colour
-    # is themed); the Alt variant uses the shorter ``DV Profile`` prefix.
+    # is themed); the Alt variant uses the shorter ``DV Profile`` prefix.  When
+    # hdrprobe could not determine it (would show N/A), fall back to a plain
+    # label derived from the Amlogic hardware output mode; the ``Fetching...``
+    # label is left intact while detection is still running.
     output_mode = get_output_mode()
+    if is_status_label(output_mode) and not is_fetch_label(output_mode):
+        output_mode = _output_mode_from_hw() or output_mode
 
     l5_offsets = get_l5_offsets()
     l5_offsets_icon_visible = (
