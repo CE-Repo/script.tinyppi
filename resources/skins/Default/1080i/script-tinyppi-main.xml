@@ -1388,7 +1388,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>325</left>
+						<left>332</left>
 						<top>30</top>
 						<label>$INFO[Window().Property(DoviCmVersionVar)] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(DoviStructureVar)][/COLOR]</label>
 						<font>font23_narrow</font>
@@ -1405,7 +1405,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>325</left>
+						<left>332</left>
 						<top>60</top>
 						<label>$INFO[Window().Property(DoviProfileNumberVar)]</label>
 						<font>font23_narrow</font>
@@ -1422,7 +1422,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>325</left>
+						<left>332</left>
 						<top>90</top>
 						<label>$INFO[Window().Property(DoviVersionVar)]</label>
 						<font>font23_narrow</font>
@@ -1439,7 +1439,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="image">
-						<left>326</left>
+						<left>333</left>
 						<top>125</top>
 						<width>24</width>
 						<height>24</height>
@@ -1449,7 +1449,7 @@
 						<visible>String.IsEqual(Window.Property(DoviRpuPresentVar),true)</visible>
 					</control>
 					<control type="image">
-						<left>326</left>
+						<left>333</left>
 						<top>125</top>
 						<width>24</width>
 						<height>24</height>
@@ -1468,7 +1468,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="image">
-						<left>326</left>
+						<left>333</left>
 						<top>155</top>
 						<width>24</width>
 						<height>24</height>
@@ -1478,7 +1478,7 @@
 						<visible>String.IsEqual(Window.Property(DoviBlPresentVar),true)</visible>
 					</control>
 					<control type="image">
-						<left>326</left>
+						<left>333</left>
 						<top>155</top>
 						<width>24</width>
 						<height>24</height>
@@ -1497,7 +1497,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="image">
-						<left>326</left>
+						<left>333</left>
 						<top>185</top>
 						<width>24</width>
 						<height>24</height>
@@ -1507,7 +1507,7 @@
 						<visible>String.IsEqual(Window.Property(DoviElPresentVar),true)</visible>
 					</control>
 					<control type="image">
-						<left>326</left>
+						<left>333</left>
 						<top>185</top>
 						<width>24</width>
 						<height>24</height>
@@ -1526,7 +1526,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>326</left>
+						<left>333</left>
 						<top>210</top>
 						<label>$INFO[Window().Property(DoviElTypeVar)]</label>
 						<font>font23_narrow</font>

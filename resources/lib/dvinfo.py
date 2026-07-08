@@ -275,6 +275,18 @@ def _present_flag(value) -> str:
     return "true" if value else "false"
 
 
+def _fmt_pair(source: dict, key_a: str, key_b: str) -> str:
+    """Return ``"<a> | <b>"`` for two numeric fields, or '' if either is missing.
+
+    Used for the luminance rows (mastering-display max/min, MaxCLL/MaxFALL); an
+    empty result leaves the field blank, which the luminance getters render as
+    the ``0 | 0`` placeholder.
+    """
+    a = _fmt_num(source.get(key_a))
+    b = _fmt_num(source.get(key_b))
+    return f"{a} | {b}" if a and b else ""
+
+
 def _report_format(data: dict, general: dict, hdr: dict) -> str:
     """Return hdrprobe's HDR ``format`` string, wherever the report places it.
 
@@ -572,31 +584,23 @@ def _parse_probe(data: dict) -> dict[str, str]:
 
     # A missing value is left blank here; the luminance getters render it as
     # ``0 | 0`` rather than N/A (see _get_luminance_info_value).
-    mdl_max = _fmt_num(mdl.get("max_luminance"))
-    mdl_min = _fmt_num(mdl.get("min_luminance"))
-    if mdl_max and mdl_min:
-        info["l6_mdl"] = f"{mdl_max} | {mdl_min}"
-
-    max_cll = _fmt_num(content_light.get("max_cll"))
-    max_fall = _fmt_num(content_light.get("max_fall"))
-    if max_cll and max_fall:
-        info["l6_max_cll_fall"] = f"{max_cll} | {max_fall}"
-
-    # HDR10 static mastering-display / content-light, always from the static
-    # ``hdr`` block.  A Dolby Vision stream still carries this HDR10 fallback
-    # layer, so these rows stay distinct from the RPU (L6) values above; a stream
-    # without a static block leaves them blank (rendered as ``0 | 0``).
+    #
+    # The ``l6_*`` rows come from the source selected above (DV RPU, or the
+    # static ``hdr`` block for other formats); the ``hdr10_*`` rows always come
+    # from the static ``hdr`` block, so a Dolby Vision stream still shows its
+    # HDR10 fallback layer distinctly from the RPU (L6) values.  Streams without
+    # the respective block leave the field blank.
     static_mdl = hdr.get("mastering") or {}
-    static_max = _fmt_num(static_mdl.get("max_luminance"))
-    static_min = _fmt_num(static_mdl.get("min_luminance"))
-    if static_max and static_min:
-        info["hdr10_mdl"] = f"{static_max} | {static_min}"
-
     static_light = hdr.get("content_light") or {}
-    static_cll = _fmt_num(static_light.get("max_cll"))
-    static_fall = _fmt_num(static_light.get("max_fall"))
-    if static_cll and static_fall:
-        info["hdr10_max_cll_fall"] = f"{static_cll} | {static_fall}"
+    for key, source, key_a, key_b in (
+        ("l6_mdl", mdl, "max_luminance", "min_luminance"),
+        ("l6_max_cll_fall", content_light, "max_cll", "max_fall"),
+        ("hdr10_mdl", static_mdl, "max_luminance", "min_luminance"),
+        ("hdr10_max_cll_fall", static_light, "max_cll", "max_fall"),
+    ):
+        pair = _fmt_pair(source, key_a, key_b)
+        if pair:
+            info[key] = pair
 
     # Dolby Vision layer descriptors, straight from the RPU report.
     if dovi:

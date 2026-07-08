@@ -161,6 +161,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._running   = False
         self._monitor   = xbmc.Monitor()
         self._opened_at = 0.0
+        self._offset    = None
 
     # ------------------------------------------------------------------
     # Kodi callbacks
@@ -188,7 +189,8 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         The horizontal offset only applies to SDR playback; for any HDR type
         (HDR10, HDR10+, HLG, Dolby Vision) the content stays left-aligned.  As
         the HDR type is detected asynchronously, this is re-applied each polling
-        cycle so it settles once detection completes.
+        cycle so it settles once detection completes; the last applied position
+        is cached so the (unchanged) common case skips the setPosition call.
         """
         max_x = 0.309
         max_y = 0.281
@@ -196,6 +198,9 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         offset_y = -round(1080 * max_y * _ADDON.getSettingInt("offset_y") / 100)
         if xbmcgui.Window(10000).getProperty("TinyPPI.HdrType"):
             offset_x = 0
+        if (offset_x, offset_y) == self._offset:
+            return
+        self._offset = (offset_x, offset_y)
         self.getControl(5000).setPosition(offset_x, offset_y)
 
     def onClick(self, control_id: int) -> None:
