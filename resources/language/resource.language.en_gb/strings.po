@@ -536,7 +536,7 @@ msgid "[COLOR=FF2E343A]●[/COLOR] Steel"
 msgstr ""
 
 msgctxt "#32190"
-msgid "Brightness unit (L6)"
+msgid "Brightness unit"
 msgstr ""
 
 msgctxt "#32191"
@@ -889,4 +889,60 @@ msgstr ""
 
 msgctxt "#32286"
 msgid "[COLOR=FFFFCC80]●[/COLOR] Light orange (Default)"
+msgstr ""
+
+msgctxt "#32287"
+msgid "Decode method"
+msgstr ""
+
+msgctxt "#32288"
+msgid "Media source"
+msgstr ""
+
+msgctxt "#32289"
+msgid "Metadata"
+msgstr ""
+
+msgctxt "#32290"
+msgid "Profile"
+msgstr ""
+
+msgctxt "#32291"
+msgid "Level"
+msgstr ""
+
+msgctxt "#32292"
+msgid "RPU"
+msgstr ""
+
+msgctxt "#32293"
+msgid "Base Layer"
+msgstr ""
+
+msgctxt "#32294"
+msgid "Enhancement Layer"
+msgstr ""
+
+msgctxt "#32295"
+msgid "Enhancement Layer Type"
+msgstr ""
+
+msgctxt "#32296"
+msgid "HDR10 MDL"
+msgstr ""
+
+msgctxt "#32297"
+msgid "HDR10 MaxCLL/FALL"
+msgstr ""
+
+msgctxt "#32298"
+msgid "RPU MDL"
+msgstr ""
+
+msgctxt "#32299"
+msgid "RPU MaxCLL/FALL"
+msgstr ""
+
+msgctxt "#32300"
+msgid "HDR Static Metadata"
 msgstr ""

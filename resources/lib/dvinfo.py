@@ -70,6 +70,14 @@ _CACHE_FIELD_PROPERTIES = {
     "l5_offsets": "TinyPPI.DVInfo.L5Offsets",
     "l6_mdl": "TinyPPI.DVInfo.L6Mdl",
     "l6_max_cll_fall": "TinyPPI.DVInfo.L6MaxCllFall",
+    "hdr10_mdl": "TinyPPI.DVInfo.Hdr10Mdl",
+    "hdr10_max_cll_fall": "TinyPPI.DVInfo.Hdr10MaxCllFall",
+    "dv_version": "TinyPPI.DVInfo.DvVersion",
+    "dv_profile": "TinyPPI.DVInfo.DvProfile",
+    "dv_rpu_present": "TinyPPI.DVInfo.DvRpuPresent",
+    "dv_bl_present": "TinyPPI.DVInfo.DvBlPresent",
+    "dv_el_present": "TinyPPI.DVInfo.DvElPresent",
+    "dv_el_type": "TinyPPI.DVInfo.DvElType",
     "bit_depth": "TinyPPI.DVInfo.BitDepth",
 }
 
@@ -252,6 +260,19 @@ def _compact_cm_version(value: str) -> str:
     if has_29:
         return "CMv2.9"
     return ""
+
+
+def _present_flag(value) -> str:
+    """Return a language-independent ``true`` / ``false`` for a presence flag.
+
+    The overlay renders these as a check-circle / xmark-circle icon, so the
+    value is gated by ``String.IsEqual`` in the skin rather than shown as text.
+    A missing flag (``None``) yields ``''`` so neither icon shows (e.g. a non-DV
+    stream or while detection is still running).
+    """
+    if value is None:
+        return ""
+    return "true" if value else "false"
 
 
 def _report_format(data: dict, general: dict, hdr: dict) -> str:
@@ -549,23 +570,46 @@ def _parse_probe(data: dict) -> dict[str, str]:
         mdl = hdr.get("mastering") or {}
         content_light = hdr.get("content_light") or {}
 
-    # DV, HDR10+ and HDR10 always carry these fields conceptually, so a missing
-    # value falls back to ``0 | 0`` rather than N/A; HLG and SDR stay empty.
-    hdr_fallback = hdr_format in ("dolbyvision", "hdr10+", "hdr10")
-
+    # A missing value is left blank here; the luminance getters render it as
+    # ``0 | 0`` rather than N/A (see _get_luminance_info_value).
     mdl_max = _fmt_num(mdl.get("max_luminance"))
     mdl_min = _fmt_num(mdl.get("min_luminance"))
     if mdl_max and mdl_min:
         info["l6_mdl"] = f"{mdl_max} | {mdl_min}"
-    elif hdr_fallback:
-        info["l6_mdl"] = "0 | 0"
 
     max_cll = _fmt_num(content_light.get("max_cll"))
     max_fall = _fmt_num(content_light.get("max_fall"))
     if max_cll and max_fall:
         info["l6_max_cll_fall"] = f"{max_cll} | {max_fall}"
-    elif hdr_fallback:
-        info["l6_max_cll_fall"] = "0 | 0"
+
+    # HDR10 static mastering-display / content-light, always from the static
+    # ``hdr`` block.  A Dolby Vision stream still carries this HDR10 fallback
+    # layer, so these rows stay distinct from the RPU (L6) values above; a stream
+    # without a static block leaves them blank (rendered as ``0 | 0``).
+    static_mdl = hdr.get("mastering") or {}
+    static_max = _fmt_num(static_mdl.get("max_luminance"))
+    static_min = _fmt_num(static_mdl.get("min_luminance"))
+    if static_max and static_min:
+        info["hdr10_mdl"] = f"{static_max} | {static_min}"
+
+    static_light = hdr.get("content_light") or {}
+    static_cll = _fmt_num(static_light.get("max_cll"))
+    static_fall = _fmt_num(static_light.get("max_fall"))
+    if static_cll and static_fall:
+        info["hdr10_max_cll_fall"] = f"{static_cll} | {static_fall}"
+
+    # Dolby Vision layer descriptors, straight from the RPU report.
+    if dovi:
+        info["dv_version"] = _fmt_num(dovi.get("level"))
+        info["dv_profile"] = (_dv_profile_label(dovi).split() or [""])[0]
+        info["dv_rpu_present"] = _present_flag(dovi.get("rpu_present"))
+        info["dv_bl_present"] = _present_flag(dovi.get("bl_present"))
+        info["dv_el_present"] = _present_flag(dovi.get("el_present"))
+        # FEL/MEL enhancement-layer type; profiles without an EL (e.g. 8.1)
+        # carry no type, so the profile number is shown as the fallback.  The
+        # tag is stored uncoloured and themed at read time (see get_dv_el_type).
+        el_type = (dovi.get("el_type") or "").upper()
+        info["dv_el_type"] = el_type or info["dv_profile"]
 
     return info
 
@@ -688,9 +732,19 @@ def _get_info_value(key: str) -> str:
     return ""
 
 
-def _get_level_info_value(key: str) -> str:
-    """Return a Level 5/6 display value, falling back to localized N/A."""
-    return _get_info_value(key) or _na_label()
+def _get_info_value_or(key: str, fallback: str) -> str:
+    """Return a metadata field, falling back to ``fallback`` instead of N/A.
+
+    A stream without the metadata, or a failed probe, shows ``fallback`` (e.g.
+    the ``0 | 0`` zero placeholder) rather than the N/A status label.  The
+    transient ``Fetching...`` label is kept while detection runs.
+    """
+    value, status = _get_info_status_value(key)
+    if value:
+        return value
+    if status == "fetching":
+        return _fetch_label()
+    return fallback
 
 
 def get_hdr_format() -> str:
@@ -739,18 +793,76 @@ def get_structure() -> str:
 
 
 def get_l5_offsets() -> str:
-    """Return Dolby Vision Level 5 active-area offsets."""
-    return _get_level_info_value("l5_offsets")
+    """Return Dolby Vision Level 5 active-area offsets, falling back to
+    ``0 | 0 | 0 | 0`` (left | right | top | bottom) rather than N/A."""
+    return _get_info_value_or("l5_offsets", "0 | 0 | 0 | 0")
 
 
 def get_l6_rpu_mdl() -> str:
     """Return Dolby Vision Level 6 RPU mastering-display luminance."""
-    return _get_level_info_value("l6_mdl")
+    return _get_info_value_or("l6_mdl", "0 | 0")
 
 
 def get_l6_rpu_max_cll_fall() -> str:
     """Return Dolby Vision Level 6 RPU MaxCLL/MaxFALL."""
-    return _get_level_info_value("l6_max_cll_fall")
+    return _get_info_value_or("l6_max_cll_fall", "0 | 0")
+
+
+def get_hdr10_mdl() -> str:
+    """Return the HDR10 static mastering-display luminance (``max | min``)."""
+    return _get_info_value_or("hdr10_mdl", "0 | 0")
+
+
+def get_hdr10_max_cll_fall() -> str:
+    """Return the HDR10 static MaxCLL/MaxFALL (``cll | fall``)."""
+    return _get_info_value_or("hdr10_max_cll_fall", "0 | 0")
+
+
+def get_dv_version() -> str:
+    """Return the Dolby Vision ``level`` (e.g. ``6``), or '' when not (yet) known.
+
+    Surfaces no "Fetching..." / "N/A" status label: it is shown only once
+    detected and stays empty otherwise.
+    """
+    value, _status = _get_info_status_value("dv_version")
+    return value
+
+
+def get_dv_profile() -> str:
+    """Return the bare Dolby Vision profile number (e.g. ``7.6``), or '' when
+    not (yet) known.  Surfaces no status label."""
+    value, _status = _get_info_status_value("dv_profile")
+    return value
+
+
+def get_dv_rpu_present() -> str:
+    """Return ``true`` / ``false`` for RPU presence, or '' when unknown."""
+    value, _status = _get_info_status_value("dv_rpu_present")
+    return value
+
+
+def get_dv_bl_present() -> str:
+    """Return ``true`` / ``false`` for base-layer presence, or '' when unknown."""
+    value, _status = _get_info_status_value("dv_bl_present")
+    return value
+
+
+def get_dv_el_present() -> str:
+    """Return ``true`` / ``false`` for enhancement-layer presence, or '' when
+    unknown."""
+    value, _status = _get_info_status_value("dv_el_present")
+    return value
+
+
+def get_dv_el_type() -> str:
+    """Return the enhancement-layer type (``FEL`` / ``MEL``), themed like the
+    output-mode row (green / orange), or '' when unknown.
+
+    Profiles without an enhancement layer fall back to the plain profile number
+    (e.g. ``8.1``), which is shown uncoloured.
+    """
+    value, _status = _get_info_status_value("dv_el_type")
+    return _colourise_el_tag(value)
 
 
 def get_bit_depth() -> str:

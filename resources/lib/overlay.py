@@ -169,8 +169,11 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._running   = True
         self._opened_at = time.time()
 
-        self._apply_position_offset()
+        # Publish properties first so the HDR type is known before the initial
+        # position is applied (relevant when reopening during the same playback,
+        # where the hdrprobe result is already cached).
         properties.update_properties(self)
+        self._apply_position_offset()
         self._start_update_loop()
 
     def _apply_position_offset(self) -> None:
@@ -179,20 +182,20 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
         Origin is the default bottom-left layout: the horizontal offset moves
         the content to the right, the vertical offset moves it up.  100 % maps
-        to the maximum travel that keeps the content on screen: 31.7 % / 30 %
+        to the maximum travel that keeps the content on screen: 30.9 % / 28.1 %
         of the screen size.
 
-        When the filename row is shown, the whole overlay is lifted an extra
-        20 px so the added line does not push the content off screen, and the
-        vertical travel is capped at 31.8 % instead of 30 %.
+        The horizontal offset only applies to SDR playback; for any HDR type
+        (HDR10, HDR10+, HLG, Dolby Vision) the content stays left-aligned.  As
+        the HDR type is detected asynchronously, this is re-applied each polling
+        cycle so it settles once detection completes.
         """
-        filename_on = _ADDON.getSettingBool("filename")
-        max_x = 0.317
-        max_y = 0.30 if filename_on else 0.318
+        max_x = 0.309
+        max_y = 0.281
         offset_x = round(1920 * max_x * _ADDON.getSettingInt("offset_x") / 100)
         offset_y = -round(1080 * max_y * _ADDON.getSettingInt("offset_y") / 100)
-        if filename_on:
-            offset_y -= 20
+        if xbmcgui.Window(10000).getProperty("TinyPPI.HdrType"):
+            offset_x = 0
         self.getControl(5000).setPosition(offset_x, offset_y)
 
     def onClick(self, control_id: int) -> None:
@@ -221,6 +224,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
                 break
 
             properties.update_properties(self)
+            self._apply_position_offset()
 
             if self._monitor.waitForAbort(1):
                 break

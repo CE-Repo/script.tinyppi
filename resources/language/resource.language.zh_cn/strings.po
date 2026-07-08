@@ -536,8 +536,8 @@ msgid "[COLOR=FF2E343A]●[/COLOR] Steel"
 msgstr "[COLOR=FF2E343A]●[/COLOR] 钢青色"
 
 msgctxt "#32190"
-msgid "Brightness unit (L6)"
-msgstr "亮度单位 (L6)"
+msgid "Brightness unit"
+msgstr "亮度单位"
 
 msgctxt "#32191"
 msgid "Choose the unit shown for the L6 brightness values."
@@ -890,3 +890,59 @@ msgstr "[COLOR=FFFF8A80]●[/COLOR] 浅红色 (默认)"
 msgctxt "#32286"
 msgid "[COLOR=FFFFCC80]●[/COLOR] Light orange (Default)"
 msgstr "[COLOR=FFFFCC80]●[/COLOR] 浅橙色 (默认)"
+
+msgctxt "#32287"
+msgid "Decode method"
+msgstr "解码方式"
+
+msgctxt "#32288"
+msgid "Media source"
+msgstr "媒体源"
+
+msgctxt "#32289"
+msgid "Metadata"
+msgstr "元数据"
+
+msgctxt "#32290"
+msgid "Profile"
+msgstr "配置文件"
+
+msgctxt "#32291"
+msgid "Level"
+msgstr "级别"
+
+msgctxt "#32292"
+msgid "RPU"
+msgstr "RPU"
+
+msgctxt "#32293"
+msgid "Base Layer"
+msgstr "基础层"
+
+msgctxt "#32294"
+msgid "Enhancement Layer"
+msgstr "增强层"
+
+msgctxt "#32295"
+msgid "Enhancement Layer Type"
+msgstr "增强层类型"
+
+msgctxt "#32296"
+msgid "HDR10 MDL"
+msgstr "HDR10 MDL"
+
+msgctxt "#32297"
+msgid "HDR10 MaxCLL/FALL"
+msgstr "HDR10 MaxCLL/FALL"
+
+msgctxt "#32298"
+msgid "RPU MDL"
+msgstr "RPU MDL"
+
+msgctxt "#32299"
+msgid "RPU MaxCLL/FALL"
+msgstr "RPU MaxCLL/FALL"
+
+msgctxt "#32300"
+msgid "HDR Static Metadata"
+msgstr "HDR 静态元数据"

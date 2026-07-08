@@ -30,6 +30,14 @@ from dvinfo import (
     get_l5_offsets,
     get_l6_rpu_mdl,
     get_l6_rpu_max_cll_fall,
+    get_hdr10_mdl,
+    get_hdr10_max_cll_fall,
+    get_dv_version,
+    get_dv_profile,
+    get_dv_rpu_present,
+    get_dv_bl_present,
+    get_dv_el_present,
+    get_dv_el_type,
     is_fetch_label,
     is_status_label,
 )
@@ -60,6 +68,11 @@ def _first_float(raw: str) -> float | None:
 def get_VideoDecoderVar() -> str:
     """Return 'HW' or 'SW' based on the active video decoder type."""
     return "HW" if cond("Player.Process(videohwdecoder)") else "SW"
+
+
+def get_VideoDecoderLongVar() -> str:
+    """Return 'Hardware' or 'Software' for the Decode mode row."""
+    return "Hardware" if cond("Player.Process(videohwdecoder)") else "Software"
 
 
 def get_VideoPixelFormatVar() -> str:
@@ -241,7 +254,12 @@ def get_DoviTunnelVar() -> str:
 
 
 def _with_unit(value: str, unit: str) -> str:
-    """Append a unit only to real metadata values, not status labels."""
+    """Append a unit to metadata values, but not to status labels.
+
+    The ``0 | 0`` no-metadata placeholder still carries the unit, so every
+    luminance row reads uniformly (e.g. ``0 | 0 cd/m²``); the transient
+    ``Fetching...`` label is left unchanged.
+    """
     if not value or is_status_label(value):
         return value
     if not unit:
@@ -292,6 +310,32 @@ def _output_mode_from_hw() -> str:
     if "SDR" in mode:
         return "SDR"
     return ""
+
+
+def _media_source_name(output_mode: str) -> str:
+    """Collapse a resolved output-mode string to the bare source-format name.
+
+    The Media source row shows only the format (``SDR`` / ``HDR10`` / ``HDR10+``
+    / ``HLG`` / ``Dolby Vision``) without the Dolby Vision profile or HDR10+
+    profile suffix that the output-mode line carries.  A status label (e.g.
+    ``Fetching...``) passes through unchanged; anything unrecognised is returned
+    as-is.
+    """
+    if not output_mode or is_status_label(output_mode):
+        return output_mode
+
+    low = output_mode.lower()
+    if "dolby" in low:
+        return "Dolby Vision"
+    if "hdr10+" in low:
+        return "HDR10+"
+    if "hdr10" in low:
+        return "HDR10"
+    if "hlg" in low:
+        return "HLG"
+    if "sdr" in low:
+        return "SDR"
+    return output_mode
 
 
 # ---------------------------------------------------------------------------
@@ -632,11 +676,14 @@ def update_properties(window) -> None:
 
     l6_rpu_mdl          = _with_unit(get_l6_rpu_mdl(), unit)
     l6_rpu_max_cll_fall = _with_unit(get_l6_rpu_max_cll_fall(), unit)
+    hdr10_mdl           = _with_unit(get_hdr10_mdl(), unit)
+    hdr10_max_cll_fall  = _with_unit(get_hdr10_max_cll_fall(), unit)
 
     set_window_properties(
         window,
         (
             ("VideoDecoderVar", get_VideoDecoderVar()),
+            ("VideoDecoderLongVar", get_VideoDecoderLongVar()),
             ("VideoPixelFormatVar", get_VideoPixelFormatVar()),
             ("DisplayModeVar", get_DisplayModeVar()),
             ("VideoResolutionVar", get_VideoResolutionVar()),
@@ -646,6 +693,7 @@ def update_properties(window) -> None:
             ("VideoBitDepthVar", get_VideoBitDepthVar()),
             ("DoviProfileVar", output_mode),
             ("DoviProfileAltVar", output_mode.replace("Dolby Vision Profile", "DV Profile")),
+            ("MediaSourceVar", _media_source_name(output_mode)),
             ("DoviProfilePending", "true" if output_mode_pending else "false"),
             ("DoviTunnelVar", get_DoviTunnelVar()),
             ("DoviCmVersionVar", get_cm_version()),
@@ -654,6 +702,14 @@ def update_properties(window) -> None:
             ("DoviLevel5OffsetsIconVisible", l5_offsets_icon_visible),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
+            ("Hdr10MdlVar", hdr10_mdl),
+            ("Hdr10MaxCllFallVar", hdr10_max_cll_fall),
+            ("DoviVersionVar", get_dv_version()),
+            ("DoviProfileNumberVar", get_dv_profile()),
+            ("DoviRpuPresentVar", get_dv_rpu_present()),
+            ("DoviBlPresentVar", get_dv_bl_present()),
+            ("DoviElPresentVar", get_dv_el_present()),
+            ("DoviElTypeVar", get_dv_el_type()),
             ("ModeVar", get_ModeVar()),
             ("GamutVar", get_GamutVar()),
             ("VdecBitrate", bitrate_value),
