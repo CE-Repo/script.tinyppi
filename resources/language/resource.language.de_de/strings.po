@@ -796,8 +796,8 @@ msgid "Overlay position"
 msgstr "Overlay-Position"
 
 msgctxt "#32261"
-msgid "Horizontal offset"
-msgstr "Horizontaler Versatz"
+msgid "Horizontal offset (SDR only)"
+msgstr "Horizontaler Versatz (nur SDR)"
 
 msgctxt "#32262"
 msgid "Shifts the overlay to the right from its default position. 100% is the maximum shift that keeps the content on screen."

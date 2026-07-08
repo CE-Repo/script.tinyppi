@@ -796,7 +796,7 @@ msgid "Overlay position"
 msgstr ""
 
 msgctxt "#32261"
-msgid "Horizontal offset"
+msgid "Horizontal offset (SDR only)"
 msgstr ""
 
 msgctxt "#32262"
