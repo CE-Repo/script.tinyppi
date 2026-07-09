@@ -629,7 +629,13 @@ def _run_hdrprobe(probe: str, src: str) -> dict | None:
             [probe, "--json", src],
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
-            text=True,
+            # Decode explicitly as UTF-8 rather than the process locale, which is
+            # C/POSIX (ASCII) under Kodi/CoreELEC.  hdrprobe echoes the source
+            # path back in its JSON, so an accented filename (e.g. "Léon") makes a
+            # locale-based decode raise UnicodeDecodeError before parsing begins;
+            # errors="replace" keeps any stray non-UTF-8 byte from aborting too.
+            encoding="utf-8",
+            errors="replace",
         ).stdout
     except OSError as exc:
         _log(f"DV: hdrprobe failed to start: {exc}", xbmc.LOGWARNING)
