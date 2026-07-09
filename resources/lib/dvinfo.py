@@ -398,21 +398,21 @@ def _static_hdr_token(
     return _hdr_type_token(raw_format)
 
 
-# Enhancement-layer tags whose colour is user-themeable (FEL green, MEL orange
-# by default).  The resolved ARGB hex is published by theme.apply_theme as
-# Home-window (10000) properties; the defaults reproduce the palette's Green and
-# Orange so the out-of-the-box look is unchanged until the user picks another
-# colour.  The tag is left uncoloured while the string is built and cached, and
-# coloured only when get_output_mode reads it, so a colour change takes effect
-# live without re-running detection.
+# Enhancement-layer tags whose colour is user-themeable (FEL forest green, MEL
+# tangerine by default).  The resolved ARGB hex is published by theme.apply_theme
+# as Home-window (10000) properties; the defaults reproduce the palette's Forest
+# and Tangerine so the out-of-the-box look matches the settings default until the
+# user picks another colour.  The tag is left uncoloured while the string is
+# built and cached, and coloured only when get_output_mode reads it, so a colour
+# change takes effect live without re-running detection.
 _EL_COLOURS = ("FEL", "MEL")
 _EL_COLOUR_PROPERTIES = {
     "FEL": "TinyPPI.FelColor",
     "MEL": "TinyPPI.MelColor",
 }
 _EL_COLOUR_DEFAULTS = {
-    "FEL": "FFB9F6CA",  # palette Green
-    "MEL": "FFFFCC80",  # palette Orange
+    "FEL": "FF81C784",  # palette Forest
+    "MEL": "FFFFB74D",  # palette Tangerine
 }
 
 
@@ -490,7 +490,7 @@ def _build_output_mode(
     """Build the overlay's output-mode string from hdrprobe's report.
 
     Dolby Vision streams read as ``Dolby Vision Profile <p>``, with only the
-    FEL/MEL enhancement-layer tag coloured (green / orange).  HDR10+ appends its
+    FEL/MEL enhancement-layer tag coloured (forest / tangerine).  HDR10+ appends its
     ``Profile A`` / ``B``.  Every other stream shows the classified format name
     (``HDR10``, ``HLG``), falling back to hdrprobe's plain label with any
     fallback qualifier dropped.
@@ -768,7 +768,7 @@ def get_output_mode() -> str:
     Shows a localized ``Fetching...`` label while detection runs and ``N/A`` if
     it cannot be determined, matching the other hdrprobe-backed rows.  For Dolby
     Vision streams the FEL / MEL enhancement-layer tag is wrapped in its themed
-    colour (Green / Orange by default) when the value is read.
+    colour (Forest / Tangerine by default) when the value is read.
     """
     return _colourise_el_tag(_get_info_value("output_mode"))
 
@@ -860,7 +860,7 @@ def get_dv_el_present() -> str:
 
 def get_dv_el_type() -> str:
     """Return the enhancement-layer type (``FEL`` / ``MEL``), themed like the
-    output-mode row (green / orange), or '' when unknown.
+    output-mode row (forest / tangerine), or '' when unknown.
 
     Profiles without an enhancement layer fall back to the plain profile number
     (e.g. ``8.1``), which is shown uncoloured.

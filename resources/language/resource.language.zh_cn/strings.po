@@ -880,16 +880,16 @@ msgid "[COLOR=FFEDEDED]●[/COLOR] White"
 msgstr "[COLOR=FFEDEDED]●[/COLOR] 白色"
 
 msgctxt "#32284"
-msgid "[COLOR=FFB9F6CA]●[/COLOR] Light green (Default)"
-msgstr "[COLOR=FFB9F6CA]●[/COLOR] 浅绿色 (默认)"
+msgid "[COLOR=FF81C784]●[/COLOR] Forest (Default)"
+msgstr "[COLOR=FF81C784]●[/COLOR] 森林绿 (默认)"
 
 msgctxt "#32285"
-msgid "[COLOR=FFFF8A80]●[/COLOR] Light red (Default)"
-msgstr "[COLOR=FFFF8A80]●[/COLOR] 浅红色 (默认)"
+msgid "[COLOR=FFFF5252]●[/COLOR] Crimson (Default)"
+msgstr "[COLOR=FFFF5252]●[/COLOR] 猩红色 (默认)"
 
 msgctxt "#32286"
-msgid "[COLOR=FFFFCC80]●[/COLOR] Light orange (Default)"
-msgstr "[COLOR=FFFFCC80]●[/COLOR] 浅橙色 (默认)"
+msgid "[COLOR=FFFFB74D]●[/COLOR] Tangerine (Default)"
+msgstr "[COLOR=FFFFB74D]●[/COLOR] 橘色 (默认)"
 
 msgctxt "#32287"
 msgid "Decode method"

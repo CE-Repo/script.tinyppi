@@ -177,10 +177,10 @@ _CUSTOM_INDEX = "999"
 # resources/settings.xml.  Any setting not listed defaults to index 0 (the
 # palette's first color, White), which is the default for every other element.
 _DEFAULT_COLOR_INDEX = {
-    "convert_yes_color": "5",  # Green
-    "convert_no_color":  "2",  # Red
-    "fel_color":         "5",  # Green
-    "mel_color":         "3",  # Orange
+    "convert_yes_color": "34",  # Forest
+    "convert_no_color":  "25",  # Crimson
+    "fel_color":         "34",  # Forest
+    "mel_color":         "31",  # Tangerine
 }
 
 # Custom HEX colors, keyed by setting id (each value an 8-digit ARGB hex string),

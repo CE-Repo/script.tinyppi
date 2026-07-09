@@ -1487,7 +1487,7 @@
             <group id="17" label="32246">
                 <setting id="convert_yes_color" type="integer" label="32275" help="32276">
                     <level>0</level>
-                    <default>5</default>
+                    <default>34</default>
                     <constraints>
                         <options>
                             <option label="32283">0</option>
@@ -1495,7 +1495,7 @@
                             <option label="32122">2</option>
                             <option label="32123">3</option>
                             <option label="32124">4</option>
-                            <option label="32284">5</option>
+                            <option label="32125">5</option>
                             <option label="32126">6</option>
                             <option label="32127">7</option>
                             <option label="32128">8</option>
@@ -1524,7 +1524,7 @@
                             <option label="32201">31</option>
                             <option label="32202">32</option>
                             <option label="32203">33</option>
-                            <option label="32204">34</option>
+                            <option label="32284">34</option>
                             <option label="32205">35</option>
                             <option label="32206">36</option>
                             <option label="32207">37</option>
@@ -1573,12 +1573,12 @@
             <group id="18" label="32246">
                 <setting id="convert_no_color" type="integer" label="32277" help="32278">
                     <level>0</level>
-                    <default>2</default>
+                    <default>25</default>
                     <constraints>
                         <options>
                             <option label="32283">0</option>
                             <option label="32121">1</option>
-                            <option label="32285">2</option>
+                            <option label="32122">2</option>
                             <option label="32123">3</option>
                             <option label="32124">4</option>
                             <option label="32125">5</option>
@@ -1601,7 +1601,7 @@
                             <option label="32162">22</option>
                             <option label="32163">23</option>
                             <option label="32164">24</option>
-                            <option label="32165">25</option>
+                            <option label="32285">25</option>
                             <option label="32166">26</option>
                             <option label="32167">27</option>
                             <option label="32168">28</option>
@@ -1659,7 +1659,7 @@
             <group id="19" label="32246">
                 <setting id="fel_color" type="integer" label="32279" help="32280">
                     <level>0</level>
-                    <default>5</default>
+                    <default>34</default>
                     <constraints>
                         <options>
                             <option label="32283">0</option>
@@ -1667,7 +1667,7 @@
                             <option label="32122">2</option>
                             <option label="32123">3</option>
                             <option label="32124">4</option>
-                            <option label="32284">5</option>
+                            <option label="32125">5</option>
                             <option label="32126">6</option>
                             <option label="32127">7</option>
                             <option label="32128">8</option>
@@ -1696,7 +1696,7 @@
                             <option label="32201">31</option>
                             <option label="32202">32</option>
                             <option label="32203">33</option>
-                            <option label="32204">34</option>
+                            <option label="32284">34</option>
                             <option label="32205">35</option>
                             <option label="32206">36</option>
                             <option label="32207">37</option>
@@ -1745,13 +1745,13 @@
             <group id="20" label="32246">
                 <setting id="mel_color" type="integer" label="32281" help="32282">
                     <level>0</level>
-                    <default>3</default>
+                    <default>31</default>
                     <constraints>
                         <options>
                             <option label="32283">0</option>
                             <option label="32121">1</option>
                             <option label="32122">2</option>
-                            <option label="32286">3</option>
+                            <option label="32123">3</option>
                             <option label="32124">4</option>
                             <option label="32125">5</option>
                             <option label="32126">6</option>
@@ -1779,7 +1779,7 @@
                             <option label="32168">28</option>
                             <option label="32169">29</option>
                             <option label="32200">30</option>
-                            <option label="32201">31</option>
+                            <option label="32286">31</option>
                             <option label="32202">32</option>
                             <option label="32203">33</option>
                             <option label="32204">34</option>
