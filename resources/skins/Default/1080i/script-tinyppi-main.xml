@@ -1425,13 +1425,25 @@
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 						<aligny>top</aligny>
 					</control>
-					<control type="label">
+					<control type="image">
 						<left>333</left>
-						<top>210</top>
-						<label>$INFO[Window().Property(DoviElTypeVar)]</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<aligny>top</aligny>
+						<top>215</top>
+						<width>24</width>
+						<height>24</height>
+						<texture>icons/check-circle.png</texture>
+						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.ConvertYesColor)]</colordiffuse>
+						<aspectratio>keep</aspectratio>
+						<visible>String.Contains(Window.Property(DoviElTypeVar),FEL) | String.Contains(Window.Property(DoviElTypeVar),MEL)</visible>
+					</control>
+					<control type="image">
+						<left>333</left>
+						<top>215</top>
+						<width>24</width>
+						<height>24</height>
+						<texture>icons/circle-xmark.png</texture>
+						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.ConvertNoColor)]</colordiffuse>
+						<aspectratio>keep</aspectratio>
+						<visible>![String.Contains(Window.Property(DoviElTypeVar),FEL) | String.Contains(Window.Property(DoviElTypeVar),MEL) | String.IsEmpty(Window.Property(DoviElTypeVar))]</visible>
 					</control>
 				</control>
 				
