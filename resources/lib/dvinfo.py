@@ -522,6 +522,36 @@ def _fmt_num(value) -> str:
     return str(value)
 
 
+def _select_report_blocks(data: dict) -> tuple[dict, dict, dict, dict]:
+    """Return the ``(general, hdr, dolby_vision, hdr10plus)`` blocks of a report.
+
+    hdrprobe schema 2.0 moved everything describing a video track into a
+    top-level ``video_tracks`` array: the codec/width/height/bit_depth/transfer
+    track fields that used to sit in ``general`` now live directly in
+    ``video_tracks[0]``, and the ``hdr`` / ``dolby_vision`` / ``hdr10plus``
+    blocks are nested under it.  For single-video files ``video_tracks[0]`` is
+    the whole track, so it stands in for the old ``general`` block.  1.x reports
+    keep all four blocks at the root; both layouts are resolved here so the rest
+    of the parser stays schema-agnostic.
+    """
+    tracks = data.get("video_tracks")
+    if isinstance(tracks, list) and tracks and isinstance(tracks[0], dict):
+        track = tracks[0]
+        return (
+            track,
+            track.get("hdr") or {},
+            track.get("dolby_vision") or {},
+            track.get("hdr10plus") or {},
+        )
+
+    return (
+        data.get("general") or {},
+        data.get("hdr") or {},
+        data.get("dolby_vision") or {},
+        data.get("hdr10plus") or {},
+    )
+
+
 def _parse_probe(data: dict) -> dict[str, str]:
     """Turn an hdrprobe JSON report into the separate overlay fields.
 
@@ -533,10 +563,7 @@ def _parse_probe(data: dict) -> dict[str, str]:
     """
     info = _empty_info()
 
-    general = data.get("general") or {}
-    dovi = data.get("dolby_vision") or {}
-    hdr = data.get("hdr") or {}
-    hdr10plus = data.get("hdr10plus") or {}
+    general, hdr, dovi, hdr10plus = _select_report_blocks(data)
 
     # HDR type and output-mode line, straight from hdrprobe's own detection.  A
     # Dolby Vision RPU block is authoritative; otherwise the type is classified
