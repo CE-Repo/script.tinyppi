@@ -46,6 +46,9 @@ def main() -> None:
 
     if command == "dialog":
         open_dialog_mode()
+    elif command == "splash":
+        from splash import open_splash
+        open_splash()
     elif command == "run_mode" and len(args) > 1:
         set_mode(args[1])
     elif command == "custom_color" and len(args) > 1:

@@ -140,6 +140,72 @@ AUDIO_CODEC_MAP = {
 }
 
 # ---------------------------------------------------------------------------
+# Audio codec → start-up splash logo  (VideoPlayer.AudioCodec → codecs/*.png)
+# ---------------------------------------------------------------------------
+#
+# Filenames are relative to the skin media folder (resources/skins/Default/
+# media/).  Codecs without a dedicated logo are left unmapped: the splash then
+# simply omits the audio image.
+
+AUDIO_LOGO_MAP = {
+    # AAC
+    "aac":             "codecs/AAC.png",
+    "aac_latm":        "codecs/AAC.png",
+    "aac_lc":          "codecs/AAC.png",
+    "he_aac":          "codecs/AAC.png",
+    "he_aac_v2":       "codecs/AAC.png",
+    "aac_ssr":         "codecs/AAC.png",
+    "aac_ltp":         "codecs/AAC.png",
+
+    # Dolby
+    "ac3":             "codecs/Dolby_Digital.png",
+    "dolbydigital":    "codecs/Dolby_Digital.png",
+    "eac3":            "codecs/Dolby_Digital_Plus.png",
+    "eac3_ddp_atmos":  "codecs/Dolby_Digital_Plus_Atmos.png",
+    "truehd":          "codecs/Dolby_TrueHD.png",
+    "truehd_atmos":    "codecs/Dolby_TrueHD_Atmos.png",
+
+    # DTS
+    "dca":             "codecs/DTS.png",
+    "dts":             "codecs/DTS.png",
+    "dts_96_24":       "codecs/DTS.png",
+    "dts_es":          "codecs/DTS.png",
+    "dts_express":     "codecs/DTS.png",
+    "dtshd":           "codecs/DTS-HD-MA.png",
+    "dtshd_ma":        "codecs/DTS-HD-MA.png",
+    "dtshd_hra":       "codecs/DTS-HD-HRA.png",
+    "dtshd_ma_x":      "codecs/DTSX.png",
+    "dtshd_ma_x_imax": "codecs/IMAX.png",
+
+    # Lossless / PCM
+    "flac":            "codecs/FLAC.png",
+    "pcm":             "codecs/PCM.png",
+    "pcm_bluray":      "codecs/PCM.png",
+    "pcm_s16le":       "codecs/PCM.png",
+    "pcm_s24le":       "codecs/PCM.png",
+
+    # Compressed
+    "mp3":             "codecs/MP3.png",
+    "mp3float":        "codecs/MP3.png",
+    "opus":            "codecs/OPUS.png",
+}
+
+# ------------------------------------------------------------------------------------
+# HDR type → start-up splash logo  (Player.Process(amlogic.eoft_gamut) → codecs/*.png)
+# ------------------------------------------------------------------------------------
+#
+# Keyed on the same tokens Kodi's ``Player.Process(amlogic.eoft_gamut)`` reports; the empty
+# string maps to the SDR logo so every video resolves to a video image.
+
+HDR_LOGO_MAP = {
+    "":            "codecs/SDR.png",
+    "hdr10":       "codecs/HDR10.png",
+    "hdr10+":      "codecs/HDR10Plus.png",
+    "hlg":         "codecs/HLG.png",
+    "dolbyvision": "codecs/Dolby_Vision.png",
+}
+
+# ---------------------------------------------------------------------------
 # Channel count → surround layout string
 # ---------------------------------------------------------------------------
 

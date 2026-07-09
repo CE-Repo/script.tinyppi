@@ -270,6 +270,8 @@ _DEFAULT_OPACITIES = {
     "global_background_color":  0,  # off until the user raises the slider
     "accent_color":            70,  # B3 – dimmed inline detail accents
     "line_color":              15,  # 26 – faint separator lines
+    "splash_bg_color":         98,  # FA – Charcoal logo panel (matches overlay)
+    "splash_divider_color":    35,  # 59 – faint divider between the two logos
 }
 
 
@@ -338,6 +340,10 @@ _THEME_PROPERTIES = (
     ("TinyPPI.MelColor",              _TEXT_COLORS, "mel_color"),
     ("TinyPPI.BackgroundColor",       _BACKGROUND_COLORS, "background_color"),
     ("TinyPPI.GlobalBackgroundColor", _BACKGROUND_COLORS, "global_background_color"),
+    ("TinyPPI.SplashBackgroundColor", _BACKGROUND_COLORS, "splash_bg_color"),
+    ("TinyPPI.SplashVideoColor",      _TEXT_COLORS,       "splash_video_color"),
+    ("TinyPPI.SplashAudioColor",      _TEXT_COLORS,       "splash_audio_color"),
+    ("TinyPPI.SplashDividerColor",    _TEXT_COLORS,       "splash_divider_color"),
     ("TinyPPI.LineColor",             _LINE_COLORS, "line_color"),
     ("TinyPPI.DialogFocusColor",      _DIALOG_FOCUS_COLORS, "dialog_focus_color"),
     (

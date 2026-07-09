@@ -946,3 +946,111 @@ msgstr ""
 msgctxt "#32300"
 msgid "HDR Static Metadata"
 msgstr ""
+
+msgctxt "#32301"
+msgid "Codec logos"
+msgstr ""
+
+msgctxt "#32302"
+msgid "Show codec logos on playback start"
+msgstr ""
+
+msgctxt "#32303"
+msgid "When a video starts, briefly shows the audio format and HDR/video format logos in the top-right corner."
+msgstr ""
+
+msgctxt "#32304"
+msgid "Display duration (seconds)"
+msgstr ""
+
+msgctxt "#32305"
+msgid "How long the format logos stay on screen before they disappear."
+msgstr ""
+
+msgctxt "#32306"
+msgid "Show codec logos in the video OSD"
+msgstr ""
+
+msgctxt "#32307"
+msgid "Also shows the format logos whenever the on-screen playback controls (video OSD) are visible."
+msgstr ""
+
+msgctxt "#32308"
+msgid "Horizontal offset"
+msgstr ""
+
+msgctxt "#32309"
+msgid "Moves the logos from the left edge (0%) to the right edge (100%) of the screen."
+msgstr ""
+
+msgctxt "#32310"
+msgid "Codec logos shown on the picture when playback starts or the OSD is open."
+msgstr ""
+
+msgctxt "#32311"
+msgid "Background behind the logos"
+msgstr ""
+
+msgctxt "#32312"
+msgid "Draws a translucent panel behind the logos so they stay readable on bright scenes."
+msgstr ""
+
+msgctxt "#32313"
+msgid "Background color"
+msgstr ""
+
+msgctxt "#32314"
+msgid "Color and transparency of the panel behind the logos."
+msgstr ""
+
+msgctxt "#32315"
+msgid "Video logo"
+msgstr ""
+
+msgctxt "#32316"
+msgid "Color and transparency of the HDR/video format logo."
+msgstr ""
+
+msgctxt "#32317"
+msgid "Audio logo"
+msgstr ""
+
+msgctxt "#32318"
+msgid "Color and transparency of the audio format logo."
+msgstr ""
+
+msgctxt "#32319"
+msgid "Show codec logos in the TinyPPI overlay"
+msgstr ""
+
+msgctxt "#32320"
+msgid "Also shows the format logos while the TinyPPI info overlay is open."
+msgstr ""
+
+msgctxt "#32321"
+msgid "Divider"
+msgstr ""
+
+msgctxt "#32322"
+msgid "Color and transparency of the divider line between the two logos."
+msgstr ""
+
+msgctxt "#32323"
+msgid "Vertical offset"
+msgstr ""
+
+msgctxt "#32324"
+msgid "Moves the logos from the top edge (0%) to the bottom edge (100%) of the screen."
+msgstr ""
+
+msgctxt "#32325"
+msgid "On playback start"
+msgstr ""
+
+msgctxt "#32326"
+msgid "Video OSD"
+msgstr ""
+
+msgctxt "#32327"
+msgid "TinyPPI overlay"
+msgstr ""

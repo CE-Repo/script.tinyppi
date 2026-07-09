@@ -62,6 +62,478 @@
                 </setting>
             </group>
         </category>
+        <category id="Splash" label="32301" help="32310">
+            <group id="1" label="32325">
+                <setting id="splash_enabled" type="boolean" label="32302" help="32303">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="splash_duration" type="integer" label="32304" help="32305">
+                    <level>0</level>
+                    <default>8</default>
+                    <constraints>
+                        <minimum>1</minimum>
+                        <step>1</step>
+                        <maximum>30</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_enabled">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="integer" />
+                </setting>
+                <setting id="splash_start_offset_x" type="integer" label="32308" help="32309">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_enabled">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="percentage" />
+                </setting>
+                <setting id="splash_start_offset_y" type="integer" label="32323" help="32324">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_enabled">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="percentage" />
+                </setting>
+            </group>
+            <group id="2" label="32326">
+                <setting id="splash_show_on_osd" type="boolean" label="32306" help="32307">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="splash_osd_offset_x" type="integer" label="32308" help="32309">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_osd">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="percentage" />
+                </setting>
+                <setting id="splash_osd_offset_y" type="integer" label="32323" help="32324">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_osd">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="percentage" />
+                </setting>
+            </group>
+            <group id="3" label="32327">
+                <setting id="splash_show_on_tinyppi" type="boolean" label="32319" help="32320">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="splash_tinyppi_offset_x" type="integer" label="32308" help="32309">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="percentage" />
+                </setting>
+                <setting id="splash_tinyppi_offset_y" type="integer" label="32323" help="32324">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="percentage" />
+                </setting>
+            </group>
+            <group id="4" label="32246">
+                <setting id="splash_bg_color" type="integer" label="32313" help="32314">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32130">0</option>
+                            <option label="32131">1</option>
+                            <option label="32132">2</option>
+                            <option label="32133">3</option>
+                            <option label="32134">4</option>
+                            <option label="32135">5</option>
+                            <option label="32136">6</option>
+                            <option label="32137">7</option>
+                            <option label="32138">8</option>
+                            <option label="32139">9</option>
+                            <option label="32170">10</option>
+                            <option label="32171">11</option>
+                            <option label="32172">12</option>
+                            <option label="32173">13</option>
+                            <option label="32174">14</option>
+                            <option label="32175">15</option>
+                            <option label="32176">16</option>
+                            <option label="32177">17</option>
+                            <option label="32178">18</option>
+                            <option label="32179">19</option>
+                            <option label="32180">20</option>
+                            <option label="32181">21</option>
+                            <option label="32182">22</option>
+                            <option label="32183">23</option>
+                            <option label="32184">24</option>
+                            <option label="32185">25</option>
+                            <option label="32186">26</option>
+                            <option label="32187">27</option>
+                            <option label="32188">28</option>
+                            <option label="32189">29</option>
+                            <option label="32220">30</option>
+                            <option label="32221">31</option>
+                            <option label="32222">32</option>
+                            <option label="32223">33</option>
+                            <option label="32224">34</option>
+                            <option label="32225">35</option>
+                            <option label="32226">36</option>
+                            <option label="32227">37</option>
+                            <option label="32228">38</option>
+                            <option label="32229">39</option>
+                            <option label="32230">40</option>
+                            <option label="32231">41</option>
+                            <option label="32232">42</option>
+                            <option label="32233">43</option>
+                            <option label="32234">44</option>
+                            <option label="32235">45</option>
+                            <option label="32236">46</option>
+                            <option label="32237">47</option>
+                            <option label="32238">48</option>
+                            <option label="32239">49</option>
+                            <option label="32250">999</option>
+                        </options>
+                    </constraints>
+                    <control type="list" format="string" />
+                </setting>
+                <setting id="splash_bg_color_custom_btn" type="string" label="32241" help="32242">
+                    <level>0</level>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_bg_color">999</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,splash_bg_color)</data>
+                    </control>
+                </setting>
+                <setting id="splash_bg_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>98</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
+            </group>
+            <group id="5" label="32246">
+                <setting id="splash_video_color" type="integer" label="32315" help="32316">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32120">0</option>
+                            <option label="32121">1</option>
+                            <option label="32122">2</option>
+                            <option label="32123">3</option>
+                            <option label="32124">4</option>
+                            <option label="32125">5</option>
+                            <option label="32126">6</option>
+                            <option label="32127">7</option>
+                            <option label="32128">8</option>
+                            <option label="32129">9</option>
+                            <option label="32150">10</option>
+                            <option label="32151">11</option>
+                            <option label="32152">12</option>
+                            <option label="32153">13</option>
+                            <option label="32154">14</option>
+                            <option label="32155">15</option>
+                            <option label="32156">16</option>
+                            <option label="32157">17</option>
+                            <option label="32158">18</option>
+                            <option label="32159">19</option>
+                            <option label="32160">20</option>
+                            <option label="32161">21</option>
+                            <option label="32162">22</option>
+                            <option label="32163">23</option>
+                            <option label="32164">24</option>
+                            <option label="32165">25</option>
+                            <option label="32166">26</option>
+                            <option label="32167">27</option>
+                            <option label="32168">28</option>
+                            <option label="32169">29</option>
+                            <option label="32200">30</option>
+                            <option label="32201">31</option>
+                            <option label="32202">32</option>
+                            <option label="32203">33</option>
+                            <option label="32204">34</option>
+                            <option label="32205">35</option>
+                            <option label="32206">36</option>
+                            <option label="32207">37</option>
+                            <option label="32208">38</option>
+                            <option label="32209">39</option>
+                            <option label="32210">40</option>
+                            <option label="32211">41</option>
+                            <option label="32212">42</option>
+                            <option label="32213">43</option>
+                            <option label="32214">44</option>
+                            <option label="32215">45</option>
+                            <option label="32216">46</option>
+                            <option label="32217">47</option>
+                            <option label="32218">48</option>
+                            <option label="32219">49</option>
+                            <option label="32250">999</option>
+                        </options>
+                    </constraints>
+                    <control type="list" format="string" />
+                </setting>
+                <setting id="splash_video_color_custom_btn" type="string" label="32241" help="32242">
+                    <level>0</level>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_video_color">999</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,splash_video_color)</data>
+                    </control>
+                </setting>
+                <setting id="splash_video_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
+            </group>
+            <group id="6" label="32246">
+                <setting id="splash_audio_color" type="integer" label="32317" help="32318">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32120">0</option>
+                            <option label="32121">1</option>
+                            <option label="32122">2</option>
+                            <option label="32123">3</option>
+                            <option label="32124">4</option>
+                            <option label="32125">5</option>
+                            <option label="32126">6</option>
+                            <option label="32127">7</option>
+                            <option label="32128">8</option>
+                            <option label="32129">9</option>
+                            <option label="32150">10</option>
+                            <option label="32151">11</option>
+                            <option label="32152">12</option>
+                            <option label="32153">13</option>
+                            <option label="32154">14</option>
+                            <option label="32155">15</option>
+                            <option label="32156">16</option>
+                            <option label="32157">17</option>
+                            <option label="32158">18</option>
+                            <option label="32159">19</option>
+                            <option label="32160">20</option>
+                            <option label="32161">21</option>
+                            <option label="32162">22</option>
+                            <option label="32163">23</option>
+                            <option label="32164">24</option>
+                            <option label="32165">25</option>
+                            <option label="32166">26</option>
+                            <option label="32167">27</option>
+                            <option label="32168">28</option>
+                            <option label="32169">29</option>
+                            <option label="32200">30</option>
+                            <option label="32201">31</option>
+                            <option label="32202">32</option>
+                            <option label="32203">33</option>
+                            <option label="32204">34</option>
+                            <option label="32205">35</option>
+                            <option label="32206">36</option>
+                            <option label="32207">37</option>
+                            <option label="32208">38</option>
+                            <option label="32209">39</option>
+                            <option label="32210">40</option>
+                            <option label="32211">41</option>
+                            <option label="32212">42</option>
+                            <option label="32213">43</option>
+                            <option label="32214">44</option>
+                            <option label="32215">45</option>
+                            <option label="32216">46</option>
+                            <option label="32217">47</option>
+                            <option label="32218">48</option>
+                            <option label="32219">49</option>
+                            <option label="32250">999</option>
+                        </options>
+                    </constraints>
+                    <control type="list" format="string" />
+                </setting>
+                <setting id="splash_audio_color_custom_btn" type="string" label="32241" help="32242">
+                    <level>0</level>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_audio_color">999</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,splash_audio_color)</data>
+                    </control>
+                </setting>
+                <setting id="splash_audio_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
+            </group>
+            <group id="7" label="32246">
+                <setting id="splash_divider_color" type="integer" label="32321" help="32322">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32120">0</option>
+                            <option label="32121">1</option>
+                            <option label="32122">2</option>
+                            <option label="32123">3</option>
+                            <option label="32124">4</option>
+                            <option label="32125">5</option>
+                            <option label="32126">6</option>
+                            <option label="32127">7</option>
+                            <option label="32128">8</option>
+                            <option label="32129">9</option>
+                            <option label="32150">10</option>
+                            <option label="32151">11</option>
+                            <option label="32152">12</option>
+                            <option label="32153">13</option>
+                            <option label="32154">14</option>
+                            <option label="32155">15</option>
+                            <option label="32156">16</option>
+                            <option label="32157">17</option>
+                            <option label="32158">18</option>
+                            <option label="32159">19</option>
+                            <option label="32160">20</option>
+                            <option label="32161">21</option>
+                            <option label="32162">22</option>
+                            <option label="32163">23</option>
+                            <option label="32164">24</option>
+                            <option label="32165">25</option>
+                            <option label="32166">26</option>
+                            <option label="32167">27</option>
+                            <option label="32168">28</option>
+                            <option label="32169">29</option>
+                            <option label="32200">30</option>
+                            <option label="32201">31</option>
+                            <option label="32202">32</option>
+                            <option label="32203">33</option>
+                            <option label="32204">34</option>
+                            <option label="32205">35</option>
+                            <option label="32206">36</option>
+                            <option label="32207">37</option>
+                            <option label="32208">38</option>
+                            <option label="32209">39</option>
+                            <option label="32210">40</option>
+                            <option label="32211">41</option>
+                            <option label="32212">42</option>
+                            <option label="32213">43</option>
+                            <option label="32214">44</option>
+                            <option label="32215">45</option>
+                            <option label="32216">46</option>
+                            <option label="32217">47</option>
+                            <option label="32218">48</option>
+                            <option label="32219">49</option>
+                            <option label="32250">999</option>
+                        </options>
+                    </constraints>
+                    <control type="list" format="string" />
+                </setting>
+                <setting id="splash_divider_color_custom_btn" type="string" label="32241" help="32242">
+                    <level>0</level>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_divider_color">999</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,splash_divider_color)</data>
+                    </control>
+                </setting>
+                <setting id="splash_divider_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>35</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
+            </group>
+        </category>
         <category id="Theme" label="32100" help="32101">
             <group id="1" label="32246">
                 <setting id="global_background_color" type="integer" label="32269" help="32271">

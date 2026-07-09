@@ -946,3 +946,111 @@ msgstr "RPU MaxCLL/FALL"
 msgctxt "#32300"
 msgid "HDR Static Metadata"
 msgstr "HDR 静态元数据"
+
+msgctxt "#32301"
+msgid "Codec logos"
+msgstr "编解码器徽标"
+
+msgctxt "#32302"
+msgid "Show codec logos on playback start"
+msgstr "播放开始时显示编解码器徽标"
+
+msgctxt "#32303"
+msgid "When a video starts, briefly shows the audio format and HDR/video format logos in the top-right corner."
+msgstr "视频开始播放时，在右上角短暂显示音频格式和 HDR/视频格式徽标。"
+
+msgctxt "#32304"
+msgid "Display duration (seconds)"
+msgstr "显示时长（秒）"
+
+msgctxt "#32305"
+msgid "How long the format logos stay on screen before they disappear."
+msgstr "格式徽标在消失前停留在屏幕上的时长。"
+
+msgctxt "#32306"
+msgid "Show codec logos in the video OSD"
+msgstr "在视频 OSD 中显示编解码器徽标"
+
+msgctxt "#32307"
+msgid "Also shows the format logos whenever the on-screen playback controls (video OSD) are visible."
+msgstr "只要屏幕播放控制（视频 OSD）可见，就同时显示格式徽标。"
+
+msgctxt "#32308"
+msgid "Horizontal offset"
+msgstr "水平偏移"
+
+msgctxt "#32309"
+msgid "Moves the logos from the left edge (0%) to the right edge (100%) of the screen."
+msgstr "将徽标从屏幕左边缘（0%）移动到右边缘（100%）。"
+
+msgctxt "#32310"
+msgid "Codec logos shown on the picture when playback starts or the OSD is open."
+msgstr "在播放开始或 OSD 打开时显示在画面上的编解码器徽标。"
+
+msgctxt "#32311"
+msgid "Background behind the logos"
+msgstr "徽标后的背景"
+
+msgctxt "#32312"
+msgid "Draws a translucent panel behind the logos so they stay readable on bright scenes."
+msgstr "在徽标后方绘制一块半透明面板，使其在明亮场景中仍清晰可见。"
+
+msgctxt "#32313"
+msgid "Background color"
+msgstr "背景颜色"
+
+msgctxt "#32314"
+msgid "Color and transparency of the panel behind the logos."
+msgstr "徽标后面板的颜色和透明度。"
+
+msgctxt "#32315"
+msgid "Video logo"
+msgstr "视频徽标"
+
+msgctxt "#32316"
+msgid "Color and transparency of the HDR/video format logo."
+msgstr "HDR/视频格式徽标的颜色和透明度。"
+
+msgctxt "#32317"
+msgid "Audio logo"
+msgstr "音频徽标"
+
+msgctxt "#32318"
+msgid "Color and transparency of the audio format logo."
+msgstr "音频格式徽标的颜色和透明度。"
+
+msgctxt "#32319"
+msgid "Show codec logos in the TinyPPI overlay"
+msgstr "在 TinyPPI 叠加层中显示编解码器徽标"
+
+msgctxt "#32320"
+msgid "Also shows the format logos while the TinyPPI info overlay is open."
+msgstr "在 TinyPPI 信息叠加层打开时也显示格式徽标。"
+
+msgctxt "#32321"
+msgid "Divider"
+msgstr "分隔线"
+
+msgctxt "#32322"
+msgid "Color and transparency of the divider line between the two logos."
+msgstr "两个徽标之间分隔线的颜色和透明度。"
+
+msgctxt "#32323"
+msgid "Vertical offset"
+msgstr "垂直偏移"
+
+msgctxt "#32324"
+msgid "Moves the logos from the top edge (0%) to the bottom edge (100%) of the screen."
+msgstr "将徽标从屏幕顶部（0%）移动到底部（100%）。"
+
+msgctxt "#32325"
+msgid "On playback start"
+msgstr "播放开始时"
+
+msgctxt "#32326"
+msgid "Video OSD"
+msgstr "视频 OSD"
+
+msgctxt "#32327"
+msgid "TinyPPI overlay"
+msgstr "TinyPPI 叠加层"

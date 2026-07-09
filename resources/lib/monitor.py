@@ -71,11 +71,33 @@ class KodiMonitor(xbmc.Monitor):
             reset_playback_cache()
             _log("Dolby Vision playback cache cleared")
 
+        if method == "Player.OnAVStart":
+            self._maybe_show_splash()
+
         try:
             mediatype = _notification_media_type(data)
             _log(f"sender={sender}  method={method}  type={mediatype!r}")
         except Exception as exc:
             _log(f"Exception in KodiMonitor.onNotification: {exc}", xbmc.LOGERROR)
+
+    def _maybe_show_splash(self) -> None:
+        """Fire the start-up format-logo splash when enabled for this video.
+
+        Runs the splash in its own script interpreter so the modal-free window
+        and its close timer live outside the notification thread.  Cheap guards
+        run here first; the splash script re-checks everything before showing.
+        """
+        try:
+            addon = xbmcaddon.Addon()
+            if not (addon.getSettingBool("splash_enabled")
+                    or addon.getSettingBool("splash_show_on_osd")
+                    or addon.getSettingBool("splash_show_on_tinyppi")):
+                return
+            if not xbmc.getCondVisibility("Player.HasVideo"):
+                return
+            xbmc.executebuiltin(f"RunScript({_ADDON_ID},splash)")
+        except Exception as exc:
+            _log(f"Exception starting splash: {exc}", xbmc.LOGERROR)
 
 
 # ---------------------------------------------------------------------------
