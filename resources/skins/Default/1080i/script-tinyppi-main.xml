@@ -25,166 +25,214 @@
 
         <control type="group" id="5000">
 
-			<!-- Backdrop start and header label are identical for SDR and HDR, so they
-			     are drawn once here.  Only the width-dependent controls (middle/end
-			     background, separator lines, chart icon and filename) branch below. -->
-
-			<!-- Background - Start -->
-			<control type="image">
-				<left>35</left>
-				<top>340</top>
-				<width>23</width>
-				<height>705</height>
-				<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/overlay-bg-start.png</texture>
-			</control>
-
-			<!-- Label -->
-			<control type="label">
-				<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderTitle),1)</visible>
-				<left>70</left>
-				<top>371</top>
-				<label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
-				<font>font32</font>
-				<textcolor>$INFO[Window(10000).Property(TinyPPI.HeaderColor)]</textcolor>
-				<aligny>top</aligny>
-			</control>
-
 			<!-- Overlay - SDR -->
 			<control type="group">
 			<visible>String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))</visible>
 
+				<!-- Background - Start -->
+				<control type="group">
+					<left>35</left>
+					<top>340</top>
+					<width>23</width>
+					<height>705</height>
+					<control type="image">
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/overlay-bg-start.png</texture>
+					</control>
+				</control>
+
 				<!-- Background - Middle -->
-				<control type="image">
+				<control type="group">
 					<left>58</left>
 					<top>340</top>
 					<width>1211</width>
 					<height>705</height>
-					<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">common/dot-1x1.png</texture>
+					<control type="image">
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">common/dot-1x1.png</texture>
+					</control>
 				</control>
 
 				<!-- Background - End -->
-				<control type="image">
+				<control type="group">
 					<left>1269</left>
 					<top>340</top>
 					<width>23</width>
 					<height>705</height>
-					<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/overlay-bg-end.png</texture>
+					<control type="image">
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/overlay-bg-end.png</texture>
+					</control>
+				</control>
+
+				<!-- Label -->
+				<control type="group">
+					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderTitle),1)</visible>
+					<left>70</left>
+					<top>371</top>
+					<control type="label">
+						<label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
+						<font>font32</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.HeaderColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
 				</control>
 
 				<!-- Chart icon -->
-				<control type="image">
+				<control type="group">
 					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderIcon),1)</visible>
 					<left>1219</left>
 					<top>375</top>
-					<width>36</width>
-					<height>36</height>
-					<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.HeaderIconColor)]">icons/chart.png</texture>
+					<control type="image">
+						<width>36</width>
+						<height>36</height>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.HeaderIconColor)]">icons/chart.png</texture>
+					</control>
 				</control>
 
 				<!-- Line / Top -->
-				<control type="image">
+				<control type="group">
 					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
 					<left>70</left>
 					<top>445</top>
-					<width>1186</width>
-					<height>1</height>
-					<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+					<control type="image">
+						<width>1186</width>
+						<height>1</height>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+					</control>
 				</control>
 
 				<!-- Line / Bottom -->
-				<control type="image">
+				<control type="group">
 					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
 					<left>70</left>
 					<top>1008</top>
-					<width>1186</width>
-					<height>1</height>
-					<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+					<control type="image">
+						<width>1186</width>
+						<height>1</height>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+					</control>
 				</control>
-
+				
 				<!-- Filename -->
-				<control type="label">
+				<control type="group">
 					<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),true)</visible>
-					<left>70</left>
 					<top>1008</top>
-					<width>1184</width>
-					<label>$INFO[Player.Filename]</label>
-					<font>font23_narrow</font>
-					<textcolor>$INFO[Window(10000).Property(TinyPPI.FilenameColor)]</textcolor>
-					<align>center</align>
-					<scroll>true</scroll>
-					<scrollspeed>30</scrollspeed>
-					<aligny>top</aligny>
+					<control type="label">
+						<left>70</left>
+						<width>1184</width>
+						<label>$INFO[Player.Filename]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.FilenameColor)]</textcolor>
+						<align>center</align>
+						<scroll>true</scroll>
+						<scrollspeed>30</scrollspeed>
+						<aligny>top</aligny>
+					</control>
 				</control>
 			</control>
-
+			
 			<!-- Overlay - HDR / HLG / DV -->
 			<control type="group">
 			<visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr) | String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)</visible>
 
+				<!-- Background - Start -->
+				<control type="group">
+					<left>35</left>
+					<top>340</top>
+					<width>23</width>
+					<height>705</height>
+					<control type="image">
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/overlay-bg-start.png</texture>
+					</control>
+				</control>
+
 				<!-- Background - Middle -->
-				<control type="image">
+				<control type="group">
 					<left>58</left>
 					<top>340</top>
 					<width>1804</width>
 					<height>705</height>
-					<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">common/dot-1x1.png</texture>
+					<control type="image">
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">common/dot-1x1.png</texture>
+					</control>
 				</control>
 
 				<!-- Background - End -->
-				<control type="image">
+				<control type="group">
 					<left>1862</left>
 					<top>340</top>
 					<width>23</width>
 					<height>705</height>
-					<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/overlay-bg-end.png</texture>
+					<control type="image">
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/overlay-bg-end.png</texture>
+					</control>
+				</control>
+
+				<!-- Label -->
+				<control type="group">
+					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderTitle),1)</visible>
+					<left>70</left>
+					<top>371</top>
+					<control type="label">
+						<label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
+						<font>font32</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.HeaderColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
 				</control>
 
 				<!-- Chart icon -->
-				<control type="image">
+				<control type="group">
 					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderIcon),1)</visible>
 					<left>1812</left>
 					<top>375</top>
-					<width>36</width>
-					<height>36</height>
-					<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.HeaderIconColor)]">icons/chart.png</texture>
+					<control type="image">
+						<width>36</width>
+						<height>36</height>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.HeaderIconColor)]">icons/chart.png</texture>
+					</control>
 				</control>
 
 				<!-- Line / Top -->
-				<control type="image">
+				<control type="group">
 					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
 					<left>70</left>
 					<top>445</top>
-					<width>1779</width>
-					<height>1</height>
-					<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+					<control type="image">
+						<width>1779</width>
+						<height>1</height>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+					</control>
 				</control>
 
 				<!-- Line / Bottom -->
-				<control type="image">
+				<control type="group">
 					<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
 					<left>70</left>
 					<top>1008</top>
-					<width>1779</width>
-					<height>1</height>
-					<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+					<control type="image">
+						<width>1779</width>
+						<height>1</height>
+						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+					</control>
 				</control>
-
+				
 				<!-- Filename -->
-				<control type="label">
+				<control type="group">
 					<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),true)</visible>
-					<left>70</left>
 					<top>1008</top>
-					<width>1778</width>
-					<label>$INFO[Player.Filename]</label>
-					<font>font23_narrow</font>
-					<textcolor>$INFO[Window(10000).Property(TinyPPI.FilenameColor)]</textcolor>
-					<align>center</align>
-					<scroll>true</scroll>
-					<scrollspeed>30</scrollspeed>
-					<aligny>top</aligny>
+					<control type="label">
+						<left>70</left>
+						<width>1778</width>
+						<label>$INFO[Player.Filename]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.FilenameColor)]</textcolor>
+						<align>center</align>
+						<scroll>true</scroll>
+						<scrollspeed>30</scrollspeed>
+						<aligny>top</aligny>
+					</control>
 				</control>
 			</control>
-
+		
 			<!-- Group: Bottom screen -->
 			<control type="group" id="9000">
 				<width>1920</width>
