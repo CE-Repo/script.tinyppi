@@ -880,15 +880,15 @@ msgid "[COLOR=FFEDEDED]●[/COLOR] White"
 msgstr ""
 
 msgctxt "#32284"
-msgid "[COLOR=FFB9F6CA]●[/COLOR] Light green (Default)"
+msgid "[COLOR=FF81C784]●[/COLOR] Forest (Default)"
 msgstr ""
 
 msgctxt "#32285"
-msgid "[COLOR=FFFF8A80]●[/COLOR] Light red (Default)"
+msgid "[COLOR=FFFF5252]●[/COLOR] Crimson (Default)"
 msgstr ""
 
 msgctxt "#32286"
-msgid "[COLOR=FFFFCC80]●[/COLOR] Light orange (Default)"
+msgid "[COLOR=FFFFB74D]●[/COLOR] Tangerine (Default)"
 msgstr ""
 
 msgctxt "#32287"

@@ -654,7 +654,7 @@ def update_properties(window) -> None:
     fps_info_text, fps_out_text = fps_display_texts()
 
     # Output-mode line from hdrprobe, e.g. ``HDR10`` or
-    # ``Dolby Vision Profile 7 [COLOR FFB9F6CA]FEL[/COLOR]`` (the FEL/MEL colour
+    # ``Dolby Vision Profile 7 [COLOR FF81C784]FEL[/COLOR]`` (the FEL/MEL colour
     # is themed); the Alt variant uses the shorter ``DV Profile`` prefix.  When
     # hdrprobe could not determine it (would show N/A), fall back to a plain
     # label derived from the Amlogic hardware output mode; the ``Fetching...``
