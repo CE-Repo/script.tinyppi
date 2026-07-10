@@ -19,7 +19,6 @@
         </control>
 
         <control type="group" id="5000">
-
 			<!-- Overlay - SDR -->
 			<control type="group">
 			<visible>String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))</visible>
@@ -105,7 +104,7 @@
 						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
 					</control>
 				</control>
-				
+
 				<!-- Filename -->
 				<control type="group">
 					<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),true)</visible>
@@ -123,7 +122,7 @@
 					</control>
 				</control>
 			</control>
-			
+
 			<!-- Overlay - HDR / HLG / DV -->
 			<control type="group">
 			<visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr) | String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)</visible>
@@ -209,7 +208,7 @@
 						<texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
 					</control>
 				</control>
-				
+
 				<!-- Filename -->
 				<control type="group">
 					<visible>String.IsEqual(Window(Home).Property(TinyPPI.Filename),true)</visible>
@@ -227,7 +226,7 @@
 					</control>
 				</control>
 			</control>
-		
+
 			<!-- Group: Bottom screen -->
 			<control type="group" id="9000">
 				<width>1920</width>
