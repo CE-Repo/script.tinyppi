@@ -245,7 +245,7 @@ def _build_controls(
     # (bottom / right) end so it never sits perfectly flush.  Both anchors carry
     # an extra 5 px so neither extreme sits too close to the edge.
     inset = int(screen_h * 0.0325)
-    edge  = 40
+    edge  = 35
     offset_x = min(100, max(0, offset_x))
     offset_y = min(100, max(0, offset_y))
     panel_x = inset + max(0, screen_w - panel_w - inset - edge) * offset_x // 100
