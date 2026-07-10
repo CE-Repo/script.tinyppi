@@ -23,7 +23,7 @@ import xbmcgui
 
 from maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP
 from theme import apply_theme
-from utils import PROP_DIALOG_MODE, PROP_RUNNING, info
+from utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
 
 _ADDON      = xbmcaddon.Addon()
 _MEDIA_PATH = os.path.join(
@@ -69,12 +69,18 @@ _POLL_INTERVAL = 0.25
 
 # Fade in/out.  Kodi only plays "Visible"/"Hidden" animations on runtime-added
 # controls when a *visibility condition* changes value (setVisible() alone does
-# not), so the controls watch this Home-window property and _fade_in / _fade_out
-# toggle it.
+# not), so the controls watch a global guard plus a per-mode Home-window
+# property.  External conditions (VideoOSD / TinyPPI state) can then start the
+# fades immediately once the controls have been preloaded.
 PROP_SPLASH_VISIBLE = "TinyPPI.SplashVisible"
 _VISIBLE_CONDITION  = (
     f"String.IsEqual(Window({_HOME_WINDOW_ID}).Property({PROP_SPLASH_VISIBLE}),true)"
 )
+_MODE_VISIBLE_PROPS = {
+    "start":   "TinyPPI.SplashStartVisible",
+    "osd":     "TinyPPI.SplashOsdVisible",
+    "tinyppi": "TinyPPI.SplashTinyPPIVisible",
+}
 _FADE_IN_MS       = 350
 _FADE_OUT_MS      = 150
 _FADE_OUT_SECONDS = (_FADE_OUT_MS + 60) / 1000.0  # wait a touch past the fade
@@ -284,7 +290,47 @@ def _mode_scale(addon, mode: str) -> float:
     return min(1.3, max(0.8, percent / 100.0))
 
 
-def _fade_in(video_window, home, monitor, controls) -> None:
+def _home_prop_condition(prop: str, expected: bool = True) -> str:
+    """Return a Kodi visibility fragment for a true/false Home property."""
+    condition = f"String.IsEqual(Window({_HOME_WINDOW_ID}).Property({prop}),true)"
+    return condition if expected else f"!{condition}"
+
+
+def _visible_condition(mode: str, suppress_start_for_osd: bool = False) -> str:
+    """Return the Kodi visibility condition used by controls for *mode*."""
+    parts = [
+        _VISIBLE_CONDITION,
+        _home_prop_condition(_MODE_VISIBLE_PROPS[mode]),
+    ]
+    if mode == "start":
+        parts.extend((
+            _home_prop_condition(PROP_RUNNING, False),
+            _home_prop_condition(PROP_DIALOG_MODE, False),
+        ))
+        if suppress_start_for_osd:
+            parts.append("!Window.IsVisible(videoosd)")
+    elif mode == "osd":
+        parts.extend((
+            "Window.IsVisible(videoosd)",
+            _home_prop_condition(PROP_RUNNING, False),
+            _home_prop_condition(PROP_DIALOG_MODE, False),
+        ))
+    elif mode == "tinyppi":
+        parts.extend((
+            _home_prop_condition(PROP_ACTIVE),
+            _home_prop_condition(PROP_DIALOG_MODE, False),
+        ))
+    return " + ".join(parts)
+
+
+def _clear_mode_visibility(home, mode: str | None = None) -> None:
+    """Clear one mode visibility property, or all mode properties."""
+    props = (_MODE_VISIBLE_PROPS[mode],) if mode else _MODE_VISIBLE_PROPS.values()
+    for prop in props:
+        home.clearProperty(prop)
+
+
+def _fade_in(video_window, home, monitor, mode: str, controls, condition: str) -> None:
     """Add *controls* to the video window and fade them in.
 
     The ordering is load-bearing (deviating makes the logos pop or flash):
@@ -298,12 +344,12 @@ def _fade_in(video_window, home, monitor, controls) -> None:
        then lift the force-hide — the condition is still false.
     5. Wait a tick, then flip the property false→true to play the "Visible" fade.
     """
-    home.clearProperty(PROP_SPLASH_VISIBLE)
+    home.clearProperty(_MODE_VISIBLE_PROPS[mode])
     for control in controls:
         control.setVisible(False)
     video_window.addControls(controls)
     for control in controls:
-        control.setVisibleCondition(_VISIBLE_CONDITION, False)
+        control.setVisibleCondition(condition, False)
     monitor.waitForAbort(_RENDER_TICK)
     for control in controls:
         control.setAnimations([_ANIM_IN, _ANIM_OUT])
@@ -311,11 +357,21 @@ def _fade_in(video_window, home, monitor, controls) -> None:
         control.setVisible(True)
     monitor.waitForAbort(_RENDER_TICK)
     home.setProperty(PROP_SPLASH_VISIBLE, "true")
+    home.setProperty(_MODE_VISIBLE_PROPS[mode], "true")
 
 
-def _fade_out(video_window, home, monitor, controls) -> None:
+def _remove_controls(video_window, controls) -> None:
+    """Remove controls from the video window, ignoring already-closed windows."""
+    try:
+        video_window.removeControls(controls)
+    except Exception:
+        # The video window may already be gone; a failed removal is harmless.
+        pass
+
+
+def _fade_out(video_window, home, monitor, mode: str, controls) -> None:
     """Fade *controls* out (condition true→false), await it, remove them."""
-    home.clearProperty(PROP_SPLASH_VISIBLE)
+    home.clearProperty(_MODE_VISIBLE_PROPS[mode])
     monitor.waitForAbort(_FADE_OUT_SECONDS)
     try:
         video_window.removeControls(controls)
@@ -327,10 +383,11 @@ def _fade_out(video_window, home, monitor, controls) -> None:
 def open_splash() -> None:
     """Run the logo overlay controller for the current video's lifetime.
 
-    Each poll picks the active mode (TinyPPI overlay > OSD > start-up), draws the
-    logos at that mode's offset, and rebuilds on mode / offset / format changes.
-    Skips silently when all triggers are off, no video plays, or another
-    controller is running.
+    Each poll prepares the enabled modes (start-up, VideoOSD, TinyPPI overlay)
+    and lets Kodi's visibility conditions start the actual fades immediately.
+    Rebuilds still happen on offset / scale / colour / format changes.  Skips
+    silently when all triggers are off, no video plays, or another controller is
+    running.
     """
     show_on_start, show_on_osd, show_on_tinyppi = _read_triggers(xbmcaddon.Addon())
     if not show_on_start and not show_on_osd and not show_on_tinyppi:
@@ -352,8 +409,10 @@ def open_splash() -> None:
     monitor = xbmc.Monitor()
 
     home.setProperty(PROP_SPLASH_ACTIVE, "true")
-    controls: list[xbmcgui.ControlImage] = []
-    state: tuple | None = None  # (logos, offset_x, offset_y, scale, colours) shown
+    home.clearProperty(PROP_SPLASH_VISIBLE)
+    _clear_mode_visibility(home)
+    controls_by_mode: dict[str, list[xbmcgui.ControlImage]] = {}
+    states: dict[str, tuple] = {}
     try:
         started = time.monotonic()
         while not monitor.abortRequested():
@@ -367,69 +426,77 @@ def open_splash() -> None:
             show_on_start, show_on_osd, show_on_tinyppi = _read_triggers(addon)
             duration = addon.getSettingInt("splash_duration")
 
+            now = time.monotonic()
             in_fullscreen = xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)")
-            in_start_window = show_on_start and (time.monotonic() - started < duration)
+            in_start_window = show_on_start and (now - started < duration)
 
-            # End a start-only splash once its window has passed; OSD / TinyPPI
-            # triggers keep the controller alive for the whole film.
-            if not show_on_osd and not show_on_tinyppi and not in_start_window:
-                break
-
-            # The VS10 dialog also sets TinyPPI.Running, but logos must never
-            # appear over it, so DialogMode suppresses them.
-            dialog_open  = home.getProperty(PROP_DIALOG_MODE) == "true"
-            overlay_open = home.getProperty(PROP_RUNNING) == "true"
-
-            # Pick the active display mode (priority: TinyPPI > OSD > start).
-            if dialog_open:
-                mode = None
-            elif overlay_open:
-                mode = "tinyppi" if show_on_tinyppi else None
-            elif show_on_osd and xbmc.getCondVisibility("Window.IsVisible(videoosd)"):
-                mode = "osd"
-            elif in_start_window:
-                mode = "start"
-            else:
-                mode = None
-
-            # The logos live on the fullscreen video window and are rebuilt on
-            # any offset / scale / colour / mode / audio-track change.
-            desired = None
+            desired_states: dict[str, tuple] = {}
             colors = None
-            if mode and in_fullscreen:
+            if in_fullscreen:
                 logos = _current_logos()
                 if logos:
-                    colors = _read_colors(home, addon)
-                    setting_x, setting_y = _OFFSET_SETTINGS[mode]
-                    desired = (
-                        tuple(logos),
-                        addon.getSettingInt(setting_x),
-                        addon.getSettingInt(setting_y),
-                        _mode_scale(addon, mode),
-                        tuple(sorted(colors.items())),
-                    )
+                    modes = []
+                    if show_on_start and in_start_window:
+                        modes.append("start")
+                    if show_on_osd:
+                        modes.append("osd")
+                    if show_on_tinyppi:
+                        modes.append("tinyppi")
 
-            if desired != state:
-                if controls:
-                    _fade_out(video_window, home, monitor, controls)
-                    controls = []
-                state = desired
-                if desired:
-                    controls = _build_controls(
-                        list(desired[0]), colors, desired[1], desired[2],
-                        screen_w, screen_h, desired[3],
-                    )
-                    _fade_in(video_window, home, monitor, controls)
+                    if modes:
+                        colors = _read_colors(home, addon)
+                        color_state = tuple(sorted(colors.items()))
+                        for mode in modes:
+                            setting_x, setting_y = _OFFSET_SETTINGS[mode]
+                            desired_states[mode] = (
+                                tuple(logos),
+                                addon.getSettingInt(setting_x),
+                                addon.getSettingInt(setting_y),
+                                _mode_scale(addon, mode),
+                                color_state,
+                                _visible_condition(mode, show_on_osd),
+                            )
 
-            if monitor.waitForAbort(_POLL_INTERVAL):
+            remove_modes = [
+                mode for mode in tuple(controls_by_mode)
+                if mode not in desired_states
+            ]
+            if remove_modes:
+                for mode in remove_modes:
+                    home.clearProperty(_MODE_VISIBLE_PROPS[mode])
+                monitor.waitForAbort(_FADE_OUT_SECONDS)
+                for mode in remove_modes:
+                    _remove_controls(video_window, controls_by_mode[mode])
+                    controls_by_mode.pop(mode, None)
+                    states.pop(mode, None)
+
+            for mode, desired in desired_states.items():
+                if states.get(mode) == desired:
+                    continue
+                if mode in controls_by_mode:
+                    _fade_out(video_window, home, monitor, mode, controls_by_mode[mode])
+                controls = _build_controls(
+                    list(desired[0]), colors, desired[1], desired[2],
+                    screen_w, screen_h, desired[3],
+                )
+                controls_by_mode[mode] = controls
+                states[mode] = desired
+                _fade_in(video_window, home, monitor, mode, controls, desired[5])
+
+            if not show_on_osd and not show_on_tinyppi and not in_start_window and not states:
+                break
+
+            wait_time = _POLL_INTERVAL
+            if show_on_start and in_start_window:
+                remaining = duration - (time.monotonic() - started)
+                if remaining > 0:
+                    wait_time = min(wait_time, remaining)
+
+            if monitor.waitForAbort(wait_time):
                 break
     finally:
-        if controls:
-            try:
-                video_window.removeControls(controls)
-            except Exception:
-                # The video window may already be gone (playback stopped); the
-                # controls are torn down with it, so a failed removal is harmless.
-                pass
+        for controls in controls_by_mode.values():
+            _remove_controls(video_window, controls)
         home.clearProperty(PROP_SPLASH_VISIBLE)
+        _clear_mode_visibility(home)
         home.clearProperty(PROP_SPLASH_ACTIVE)

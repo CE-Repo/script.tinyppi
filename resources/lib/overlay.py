@@ -122,13 +122,14 @@ def _elements_visible() -> str:
 
 
 def _release_overlay(home) -> None:
-    """Briefly hold the re-entry lock, then clear the overlay state properties."""
+    """Clear overlay state immediately, then briefly hold the re-entry lock."""
     global _dialog_lock
     _dialog_lock = True
-    xbmc.Monitor().waitForAbort(0.2)
-    _dialog_lock = False
-
     clear_overlay_state(home)
+    try:
+        xbmc.Monitor().waitForAbort(0.2)
+    finally:
+        _dialog_lock = False
 
 
 # ---------------------------------------------------------------------------
@@ -208,6 +209,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
     def close_dialog(self) -> None:
         self._running = False
+        xbmcgui.Window(10000).clearProperty(PROP_ACTIVE)
         try:
             self.close()
         except Exception:
