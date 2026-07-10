@@ -1,8 +1,6 @@
-"""
-overlay.py – Core logic for the TinyPPI overlay dialog and its entry points.
+"""Core logic for the TinyPPI overlay dialog and its entry points.
 
-Imported by the root launcher (main.py).  Do not add sys.path manipulation
-here — that is handled by main.py before this module is imported.
+Imported by main.py, which sets up sys.path first.
 """
 
 import os
@@ -37,9 +35,6 @@ _dialog_lock = False
 # Raise to True to allow launching on non-CoreELEC platforms (e.g. for testing).
 _ALLOW_NON_COREELEC = False
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 def _is_coreelec() -> bool:
     """Return True when running on a CoreELEC installation."""
@@ -79,11 +74,10 @@ def _set_overlay_state(home, dialog_mode: bool = False) -> None:
 
 
 def _preflight(home, player, toggle_log: str) -> bool:
-    """
-    Run the environment and playback guards shared by both entry points.
+    """Run the environment and playback guards shared by both entry points.
 
-    Returns True when the overlay may open.  Otherwise shows the appropriate
-    error notification (or triggers the toggle-close action) and returns False.
+    Returns True when the overlay may open, else shows an error notification
+    (or triggers the toggle-close) and returns False.
     """
     if not _ALLOW_NON_COREELEC:
         if not _is_coreelec():
@@ -122,14 +116,8 @@ def _preflight(home, player, toggle_log: str) -> bool:
 
 
 def _elements_visible() -> str:
-    """
-    Return the "1"/"0" visibility flag for the header title, header icon and
-    separator lines.
-
-    These elements follow the background: they stay shown with any visible
-    background and are hidden when the background is fully transparent
-    (0 % opacity).
-    """
+    """Return the "1"/"0" flag for the header title, header icon and separator
+    lines: they follow the background and hide only when it is fully transparent."""
     return "0" if _ADDON.getSettingInt("background_opacity") == 0 else "1"
 
 
@@ -148,13 +136,8 @@ def _release_overlay(home) -> None:
 # ---------------------------------------------------------------------------
 
 class TinyPPIDialog(xbmcgui.WindowXMLDialog):
-    """
-    Overlay window that displays live player information while a video is
-    playing in fullscreen.
-
-    The dialog auto-closes when playback stops or the user navigates away
-    from the fullscreen video window.
-    """
+    """Overlay showing live player info during fullscreen playback; auto-closes
+    when playback stops or the user leaves the fullscreen video window."""
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -163,34 +146,24 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._opened_at = 0.0
         self._offset    = None
 
-    # ------------------------------------------------------------------
-    # Kodi callbacks
-
     def onInit(self) -> None:
         self._running   = True
         self._opened_at = time.time()
 
         # Publish properties first so the HDR type is known before the initial
-        # position is applied (relevant when reopening during the same playback,
-        # where the hdrprobe result is already cached).
+        # position is applied (matters when reopening with a cached result).
         properties.update_properties(self)
         self._apply_position_offset()
         self._start_update_loop()
 
     def _apply_position_offset(self) -> None:
-        """
-        Shift the overlay content by the configured offsets.
+        """Shift the overlay content by the configured offsets.
 
-        Origin is the default bottom-left layout: the horizontal offset moves
-        the content to the right, the vertical offset moves it up.  100 % maps
-        to the maximum travel that keeps the content on screen: 30.9 % / 28.1 %
-        of the screen size.
-
-        The horizontal offset only applies to SDR playback; for any HDR type
-        (HDR10, HDR10+, HLG, Dolby Vision) the content stays left-aligned.  As
-        the HDR type is detected asynchronously, this is re-applied each polling
-        cycle so it settles once detection completes; the last applied position
-        is cached so the (unchanged) common case skips the setPosition call.
+        From the bottom-left origin, the horizontal offset moves content right,
+        the vertical offset moves it up; 100 % is the max on-screen travel
+        (30.9 % / 28.1 % of the screen).  The horizontal offset applies to SDR
+        only (HDR stays left-aligned); re-applied each cycle since the HDR type
+        is detected asynchronously, and cached so the unchanged case is skipped.
         """
         max_x = 0.309
         max_y = 0.281
@@ -211,9 +184,6 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
             return
         if action.getId() in (xbmcgui.ACTION_PREVIOUS_MENU, xbmcgui.ACTION_NAV_BACK):
             self.close_dialog()
-
-    # ------------------------------------------------------------------
-    # Update loop
 
     def _start_update_loop(self) -> None:
         t = threading.Thread(target=self._update_loop, daemon=True)
@@ -236,9 +206,6 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
         self.close_dialog()
 
-    # ------------------------------------------------------------------
-    # Close
-
     def close_dialog(self) -> None:
         self._running = False
         try:
@@ -252,16 +219,11 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 # ---------------------------------------------------------------------------
 
 def open_tinyppi() -> None:
-    """
-    Validate the environment and open the TinyPPI overlay window.
+    """Validate the environment and open the overlay window.
 
-    Skips silently when:
-    - Not running on CoreELEC (unless ``_ALLOW_NON_COREELEC`` is True).
-    - Kodi build version is older than 22.
-    - A 720p skin is active.
-    - Fullscreen video is not currently active.
-    - No media is playing.
-    - The overlay is already open (acts as a toggle-close instead).
+    Skips silently on non-CoreELEC (unless ``_ALLOW_NON_COREELEC``), Kodi < 22,
+    a 720p skin, no fullscreen video, or nothing playing; toggle-closes when the
+    overlay is already open.
     """
     home   = xbmcgui.Window(10000)
     player = xbmc.Player()

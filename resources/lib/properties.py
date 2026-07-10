@@ -1,8 +1,6 @@
-"""
-properties.py – Compute and publish Window properties for TinyPPI.
+"""Compute and publish Window properties for TinyPPI.
 
-Call ``update_properties(window)`` once per polling interval from your
-``WindowXMLDialog`` subclass.
+Call ``update_properties(window)`` once per polling interval.
 """
 
 import re
@@ -42,10 +40,6 @@ from dvinfo import (
     is_status_label,
 )
 
-# ---------------------------------------------------------------------------
-# Module-level state
-# ---------------------------------------------------------------------------
-
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
 
 
@@ -61,9 +55,7 @@ def _first_float(raw: str) -> float | None:
         return None
 
 
-# ---------------------------------------------------------------------------
-# Video properties
-# ---------------------------------------------------------------------------
+# --- Video properties ------------------------------------------------------
 
 def get_VideoDecoderVar() -> str:
     """Return 'HW' or 'SW' based on the active video decoder type."""
@@ -76,10 +68,7 @@ def get_VideoDecoderLongVar() -> str:
 
 
 def get_VideoPixelFormatVar() -> str:
-    """
-    Parse ``amlogic.pixformat`` and return a human-readable string such as
-    ``10-bit (YUV 4:2:0)`` or ``8-bit, RGB``.
-    """
+    """Parse ``amlogic.pixformat`` into e.g. ``10-bit (YUV 4:2:0)`` / ``8-bit, RGB``."""
     val = info("Player.Process(amlogic.pixformat)").strip()
     if not val:
         return ""
@@ -107,10 +96,7 @@ def get_VideoPixelFormatVar() -> str:
 
 
 def get_DisplayModeVar() -> str:
-    """
-    Parse ``amlogic.displaymode`` and return a compact string like
-    ``1080p 23.976Hz``.
-    """
+    """Parse ``amlogic.displaymode`` into a compact string like ``1080p 23.976Hz``."""
     val = info("Player.Process(amlogic.displaymode)").strip()
     if not val:
         return ""
@@ -162,14 +148,11 @@ def get_VideoCodecVar() -> str:
 
 
 def get_VideoDecoderNameVar() -> str:
-    """
-    Return the display prefix for the active video decoder.
+    """Return the vendor prefix for the active decoder (``AML-`` / ``FF-``).
 
-    ``Player.Process(videodecoder)`` reports values such as ``am-h264`` or
-    ``ff-hevc``.  Only the vendor prefix is returned (``AML-`` / ``FF-``);
-    the skin concatenates it directly with ``VideoCodecVar`` to form e.g.
-    ``AML-H.265``.  Unknown decoder strings are passed through upper-cased,
-    matching the previous ``[UPPERCASE]`` skin styling.
+    ``Player.Process(videodecoder)`` reports e.g. ``am-h264`` / ``ff-hevc``; the
+    skin concatenates this prefix with ``VideoCodecVar`` (``AML-H.265``).
+    Unknown values are passed through upper-cased.
     """
     raw = info("Player.Process(videodecoder)").strip()
     if not raw:
@@ -184,18 +167,11 @@ def get_VideoDecoderNameVar() -> str:
 
 
 def get_VideoBitDepthVar() -> str:
-    """
-    Return the source video bit depth for display, e.g. ``12-bit``.
+    """Return the source bit depth for display, e.g. ``12-bit``.
 
-    FEL Dolby Vision streams reconstruct a higher-bit-depth signal from a 10-bit
-    base layer, so hdrprobe's reconstructed_bit_depth is reported for them
-    (falling back to 12-bit when absent); every other format uses hdrprobe's
-    container bit depth.  Detection runs in a background thread (see dvinfo.py),
-    so this call never blocks the polling loop; the localized ``Fetching...``
-    label is passed through unchanged while detection is running.  When the bit
-    depth cannot be determined (detection failed or reported nothing), a fallback
-    is shown instead of the ``N/A`` status label: ``10-bit`` for HDR streams
-    (HDR10, HDR10+, HLG, Dolby Vision) and ``8-bit`` for SDR.
+    Uses hdrprobe's detected depth (see dvinfo.py).  The ``Fetching...`` label
+    passes through while detection runs; when the depth is unknown, falls back
+    to ``10-bit`` for HDR and ``8-bit`` for SDR instead of the ``N/A`` label.
     """
     value = get_bit_depth()
     if is_fetch_label(value):
@@ -205,29 +181,17 @@ def get_VideoBitDepthVar() -> str:
     return f"{value}-bit"
 
 
-# ---------------------------------------------------------------------------
-# HDR / Dolby Vision properties
-# ---------------------------------------------------------------------------
+# --- HDR / Dolby Vision properties -----------------------------------------
 
-# Cached (pixformat, result) pair for get_DoviTunnelVar.  The sysfs DV mode
-# only changes on a VS10 mode switch, and any switch also changes the Amlogic
-# pixel format (bit depth / color format), so keying the cache on the raw
-# pixformat string keeps the value fresh without re-reading sysfs every
-# polling cycle.  Cleared automatically per overlay session (module state).
+# Cached (pixformat, result) for get_DoviTunnelVar: the sysfs DV mode only
+# changes on a VS10 switch, which also changes the pixel format, so keying on
+# pixformat avoids re-reading sysfs every cycle.
 _dovi_tunnel_cache: tuple[str, str] | None = None
 
 
 def get_DoviTunnelVar() -> str:
-    """
-    Read Dolby Vision mode from sysfs, cached per Amlogic pixel format.
-
-    Only reported when the active pixel format is 8-bit, i.e.
-    ``Player.Process(amlogic.pixformat)`` starts with ``8-bit``.
-
-    Returns:
-        "DV Tunnel" if the sysfs value is 1 and the output is 8-bit.
-        "" otherwise.
-    """
+    """Return ``"DV Tunnel"`` when sysfs DV mode is 1 and the output is 8-bit,
+    else ``""``.  Cached per Amlogic pixel format."""
     global _dovi_tunnel_cache
 
     pixformat = info("Player.Process(amlogic.pixformat)").strip()
@@ -246,7 +210,7 @@ def get_DoviTunnelVar() -> str:
                 if f.read().strip() == "1":
                     result = "DV Tunnel"
         except OSError:
-            # Keep the node readable next cycle instead of caching a failure.
+            # Don't cache a failure; retry next cycle.
             return ""
 
     _dovi_tunnel_cache = (pixformat, result)
@@ -254,10 +218,9 @@ def get_DoviTunnelVar() -> str:
 
 
 def _with_unit(value: str, unit: str) -> str:
-    """Append a unit to metadata values, but not to status labels.
+    """Append ``unit`` to a metadata value, but not to status labels.
 
-    The ``0 | 0`` no-metadata placeholder still carries the unit, so every
-    luminance row reads uniformly (e.g. ``0 | 0 cd/m²``); the transient
+    The ``0 | 0`` placeholder still gets the unit (``0 | 0 cd/m²``); the
     ``Fetching...`` label is left unchanged.
     """
     if not value or is_status_label(value):
@@ -267,9 +230,7 @@ def _with_unit(value: str, unit: str) -> str:
     return f"{value} {unit}"
 
 
-# ---------------------------------------------------------------------------
-# Amlogic EOFT / gamut
-# ---------------------------------------------------------------------------
+# --- Amlogic EOFT / gamut --------------------------------------------------
 
 def get_ModeVar() -> str:
     """Return the first token of ``amlogic.eoft_gamut`` (the mode field)."""
@@ -284,17 +245,11 @@ def get_GamutVar() -> str:
 
 
 def _output_mode_from_hw() -> str:
-    """Return an output-mode display label from the Amlogic hardware mode.
+    """Classify the ``amlogic.eoft_gamut`` mode token into an output-mode label
+    (``SDR`` / ``HDR10`` / ``HLG`` / ``HDR10+`` / ``Dolby Vision``), or ``''``.
 
-    Classifies the ``amlogic.eoft_gamut`` mode token (see ``get_ModeVar``) into
-    one of the output-mode row's labels: ``SDR``, ``HDR10``, ``HLG``, ``HDR10+``
-    or ``Dolby Vision``.  Unlike hdrprobe this reads the display's actual output
-    signalling, so it stays available when hdrprobe detection could not run; it
-    is used as the output-mode fallback in place of the ``N/A`` status label.
-    Returns ``''`` when the mode cannot be classified.
-
-    The Amlogic mode token distinguishes Dolby Vision output as ``DV-Std`` or
-    ``DV-LL``, so any ``DV`` prefix is matched as Dolby Vision.
+    Reads the display's actual output signalling, so it works as the fallback
+    when hdrprobe detection could not run.
     """
     mode = get_ModeVar().upper()
     if not mode:
@@ -313,13 +268,10 @@ def _output_mode_from_hw() -> str:
 
 
 def _media_source_name(output_mode: str) -> str:
-    """Collapse a resolved output-mode string to the bare source-format name.
+    """Collapse an output-mode string to the bare format name for the Media
+    source row (dropping the DV / HDR10+ profile suffix).
 
-    The Media source row shows only the format (``SDR`` / ``HDR10`` / ``HDR10+``
-    / ``HLG`` / ``Dolby Vision``) without the Dolby Vision profile or HDR10+
-    profile suffix that the output-mode line carries.  A status label (e.g.
-    ``Fetching...``) passes through unchanged; anything unrecognised is returned
-    as-is.
+    Status labels and unrecognised values pass through unchanged.
     """
     if not output_mode or is_status_label(output_mode):
         return output_mode
@@ -338,17 +290,11 @@ def _media_source_name(output_mode: str) -> str:
     return output_mode
 
 
-# ---------------------------------------------------------------------------
-# Vdec bitrate  (Amlogic kernel sysfs)
-# ---------------------------------------------------------------------------
+# --- Vdec bitrate (Amlogic kernel sysfs) -----------------------------------
 
 def get_VdecBitrateVar() -> tuple[str, str]:
-    """
-    Read the hardware decoder bitrate from sysfs and return a
-    ``(value, unit)`` tuple, e.g. ``('23.45', 'Mb/s')`` or ``('850', 'Kb/s')``.
-
-    Returns ``('', '')`` when the node is unavailable or contains no data.
-    """
+    """Read the hardware decoder bitrate from sysfs as a ``(value, unit)`` tuple,
+    e.g. ``('23.45', 'Mb/s')``.  Returns ``('', '')`` when unavailable."""
     path = "/sys/class/vdec/vdec_status"
     try:
         with open(path, encoding="utf-8", errors="ignore") as f:
@@ -371,9 +317,7 @@ def get_VdecBitrateVar() -> tuple[str, str]:
     return f"{mbps:.2f}".rstrip("0").rstrip("."), "Mb/s"
 
 
-# ---------------------------------------------------------------------------
-# Audio properties
-# ---------------------------------------------------------------------------
+# --- Audio properties ------------------------------------------------------
 
 def get_AudioBitrateKBVar() -> str:
     """Convert the audio bitrate from kb/s to Kb/s and return a display string."""
@@ -453,37 +397,27 @@ def get_AudioNameShortVar() -> str:
     return LANGUAGE_MAP_SHORT.get(code, "") if code else ""
 
 
-# ---------------------------------------------------------------------------
-# Subtitle properties
-# ---------------------------------------------------------------------------
+# --- Subtitle properties ---------------------------------------------------
 
 def get_SubtitleNameVar() -> str:
-    """
-    Return the native language name for the active subtitle language code.
-    """
+    """Return the native language name for the active subtitle language code."""
     code = info("VideoPlayer.SubtitlesLanguage").lower().strip()
     return LANGUAGE_MAP.get(code, "") if code else ""
 
 
 def get_SubtitleNameShortVar() -> str:
-    """
-    Return the native short language name for the active subtitle language code.
-    """
+    """Return the native short language name for the active subtitle language code."""
     code = info("VideoPlayer.SubtitlesLanguage").lower().strip()
     return LANGUAGE_MAP_SHORT.get(code, "") if code else ""
 
 
 def get_SubtitleCodecVar() -> str:
-    """
-    Return the mapped display name for the current subtitle codec.
-    """
+    """Return the mapped display name for the current subtitle codec."""
     codec = info("VideoPlayer.SubtitleCodec").lower().strip()
     return SUBTITLE_CODEC_MAP.get(codec, codec.upper()) if codec else ""
 
 
-# ---------------------------------------------------------------------------
-# System properties
-# ---------------------------------------------------------------------------
+# --- System properties -----------------------------------------------------
 
 _CPU_CORE_RE = re.compile(r"#\d+:\s*([\d.]+)%")
 
@@ -500,10 +434,8 @@ def _cpu_core_loads(raw: str) -> list[float]:
 
 
 def get_CpuUsageVar() -> str:
-    """
-    Parse ``System.CpuUsage`` and return a zero-padded, pipe-separated
-    per-core usage string, e.g. ``'12 | 08 | 15 | 10'``.
-    """
+    """Parse ``System.CpuUsage`` into a pipe-separated per-core string,
+    e.g. ``'12 | 08 | 15 | 10'``."""
     raw = info("System.CpuUsage")
     if not raw:
         return ""
@@ -516,15 +448,8 @@ def get_CpuUsageVar() -> str:
 
 
 def get_CpuTopUsageVar() -> str:
-    """
-    Return the average CPU usage across all cores as a percentage string,
-    e.g. ``'34%'``.
-
-    Derived from Kodi's ``System.CpuUsage`` per-core values (the same source
-    as :func:`get_CpuUsageVar`) instead of reading ``/proc/stat``, so no
-    kernel access is needed.  Returns an empty string when Kodi reports no
-    parseable per-core values.
-    """
+    """Return the average CPU usage across all cores, e.g. ``'34%'``, derived
+    from ``System.CpuUsage``.  Empty when no per-core values are parseable."""
     loads = _cpu_core_loads(info("System.CpuUsage"))
     if not loads:
         return ""
@@ -533,12 +458,8 @@ def get_CpuTopUsageVar() -> str:
 
 
 def get_CpuTemperatureProgressVar() -> float:
-    """
-    Map System.CPUTemperature to a progress value from 0 to 100.
-
-    Celsius:    0-110 C
-    Fahrenheit: 32-230 F
-    """
+    """Map System.CPUTemperature to a 0-100 progress value
+    (Celsius 0-110 C, Fahrenheit 32-230 F)."""
     raw = info("System.CPUTemperature").strip()
     if not raw:
         return 0.0
@@ -564,12 +485,8 @@ def get_CpuTemperatureProgressVar() -> float:
 
 
 def get_queue_level(info_label: str) -> float:
-    """
-    Read a queue level from Kodi.
-
-    Kodi may report a completely filled queue as only 99%.
-    Values of 99 or higher are therefore treated as 100%.
-    """
+    """Read a queue level from Kodi.  A full queue may read as 99%, so 99 or
+    higher is treated as 100%."""
     raw = info(info_label).strip()
 
     value = _first_float(raw)
@@ -605,18 +522,11 @@ def _metadata_unit() -> str:
 
 
 def publish_hdr_type(home=None) -> None:
-    """Publish the hdrprobe-detected HDR type on Kodi's Home window.
+    """Publish the hdrprobe-detected HDR type as ``TinyPPI.HdrType`` on the Home
+    window, for the overlay and mode-select dialog to branch on.
 
-    ``TinyPPI.HdrType`` replaces the ``VideoPlayer.HdrType`` infolabel the skin
-    branches on (SDR / HDR10 / Dolby Vision).  It lives on the global Home
-    window so both the overlay and the mode-select dialog can read it, and is
-    refreshed each polling cycle as background detection completes.
-
-    The HDR10+ token is published as ``hdr10plus`` (not ``hdr10+``): Kodi's
-    boolean parser treats ``+`` as the AND operator, so a skin condition like
-    ``String.IsEqual(...,hdr10+)`` would not parse.  ``hdr10plus`` still
-    contains ``hdr10``, so existing ``String.Contains(...,hdr10)`` branches keep
-    matching it.
+    HDR10+ is published as ``hdr10plus`` because Kodi's boolean parser treats
+    ``+`` as AND; it still contains ``hdr10`` so ``String.Contains`` branches match.
     """
     hdr_type = get_hdr_format()
     if hdr_type == "hdr10+":
@@ -630,17 +540,10 @@ def _set_progress(window, values: tuple[tuple[int, float], ...]) -> None:
         window.getControl(control_id).setPercent(value)
 
 
-# ---------------------------------------------------------------------------
-# Main entry point
-# ---------------------------------------------------------------------------
-
 def update_properties(window) -> None:
-    """
-    Compute all player properties and publish them to the given window object
-    via ``setProperty``.
+    """Compute all player properties and publish them to ``window``.
 
-    Call this from ``onInit()`` and from a polling loop in your
-    ``WindowXMLDialog`` subclass.
+    Call from ``onInit()`` and from the polling loop.
     """
 
     publish_hdr_type()
@@ -653,16 +556,11 @@ def update_properties(window) -> None:
     bitrate_value, bitrate_unit = get_VdecBitrateVar()
     fps_info_text, fps_out_text = fps_display_texts()
 
-    # Output-mode line from hdrprobe, e.g. ``HDR10`` or
-    # ``Dolby Vision Profile 7 [COLOR FF81C784]FEL[/COLOR]`` (the FEL/MEL colour
-    # is themed); the Alt variant uses the shorter ``DV Profile`` prefix.  When
-    # hdrprobe could not determine it (would show N/A), fall back to a plain
-    # label derived from the Amlogic hardware output mode; the ``Fetching...``
-    # label is left intact while detection is still running.
+    # Output-mode line from hdrprobe; fall back to a plain label from the
+    # Amlogic hardware mode when it would show N/A (``Fetching...`` is kept).
     output_mode = get_output_mode()
-    # While detection is still running the profile text is the ``Fetching...``
-    # placeholder; the skin uses this flag to suppress the conversion-arrow
-    # suffix (e.g. ``➞ DV Profile 8.1``) so only the placeholder is shown.
+    # Pending flag: the skin uses it to suppress the conversion-arrow suffix
+    # while only the ``Fetching...`` placeholder should show.
     output_mode_pending = is_fetch_label(output_mode)
     if is_status_label(output_mode) and not is_fetch_label(output_mode):
         output_mode = _output_mode_from_hw() or output_mode

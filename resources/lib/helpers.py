@@ -1,16 +1,7 @@
-"""
-helpers.py – FPS sampling and formatting helpers for TinyPPI.
-
-These are implementation details used by properties.py — not part of the
-public addon API.
-"""
+"""FPS sampling and formatting helpers, used by properties.py."""
 
 import re
 import time
-
-# ---------------------------------------------------------------------------
-# FPS helpers
-# ---------------------------------------------------------------------------
 
 _FPS_STANDARDS = (
     23.976, 24.0, 25.0, 29.97, 30.0, 50.0, 59.94, 60.0, 100.0, 120.0,
@@ -33,11 +24,8 @@ _FPS = {
 
 
 def normalize_fps(fps_value) -> str:
-    """
-    Snap a raw FPS float to the nearest broadcast standard and return a
-    display string.  Values that don't fall within ±0.5 Hz of a standard
-    are returned as trimmed decimals.
-    """
+    """Snap a raw FPS to the nearest broadcast standard (within ±0.5 Hz),
+    else return it as a trimmed decimal."""
     try:
         fps = float(fps_value)
     except (TypeError, ValueError):
@@ -55,11 +43,8 @@ def normalize_fps(fps_value) -> str:
 
 
 def format_fps(fps_value) -> str:
-    """
-    Format a raw FPS float for the VideoResolution display string.
-    Snaps well-known fractional rates (23.976, 29.97, 59.94, 60.0) to their
-    canonical representations; others are trimmed to 3 decimal places.
-    """
+    """Format a raw FPS for the VideoResolution string: snap known fractional
+    rates (23.976, 29.97, 59.94, 60.0) to canonical form, else trim to 3 dp."""
     try:
         fps = float(fps_value)
     except (TypeError, ValueError):
@@ -76,10 +61,7 @@ def format_fps(fps_value) -> str:
 
 
 def _read_fps_sysfs() -> tuple[int, int] | None:
-    """
-    Read ``/sys/class/video/fps_info`` and return ``(input_fps, output_fps)``
-    as integer fixed-point values, or ``None`` on failure.
-    """
+    """Read /sys/class/video/fps_info as (input_fps, output_fps), or None."""
     try:
         with open("/sys/class/video/fps_info", encoding="utf-8", errors="ignore") as f:
             raw = f.read().strip()
@@ -95,11 +77,8 @@ def _read_fps_sysfs() -> tuple[int, int] | None:
 
 
 def _update_fps() -> None:
-    """
-    Sample the sysfs FPS node (rate-limited to once per 100 ms) and append
-    to the rolling history in ``_FPS``.  Entries older than 1 second are
-    pruned automatically.
-    """
+    """Sample the sysfs FPS node (max once per 100 ms), append to the rolling
+    history and prune entries older than 1 second."""
     now   = time.monotonic()
     state = _FPS
 
@@ -119,10 +98,8 @@ def _update_fps() -> None:
 
 
 def get_fps_data() -> tuple[int, int, int]:
-    """
-    Return ``(avg_input_fps, avg_output_fps, avg_drop)`` averaged over the
-    rolling 1-second history.  All values are integers.
-    """
+    """Return integer (avg_input_fps, avg_output_fps, avg_drop) over the
+    rolling 1-second history."""
     _update_fps()
     history = _FPS["history"]
 
@@ -138,9 +115,7 @@ def get_fps_data() -> tuple[int, int, int]:
 
 
 def fps_display_texts() -> tuple[str, str]:
-    """
-    Return ``(info_text, output_fps_text)`` for the FPS display row.
-    ``info_text`` is formatted as ``'NNN - DDD'`` (input minus drop).
-    """
+    """Return (info_text, output_fps_text) for the FPS row; info_text is
+    'NNN - DDD' (input - drop)."""
     in_fps, out_fps, drop = get_fps_data()
     return f"{in_fps:03d} - {drop:03d}", str(out_fps if out_fps > 0 else 0)

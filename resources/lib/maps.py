@@ -1,15 +1,6 @@
-"""
-maps.py – Static lookup tables for TinyPPI.
+"""Static lookup tables, keyed on the lowercase codec/language id Kodi returns."""
 
-All maps are keyed on the lowercase codec/language identifier that Kodi
-returns via its InfoLabel API.  Display strings are intentionally kept in
-their canonical mixed-case form so they can be shown to the user as-is.
-"""
-
-# ---------------------------------------------------------------------------
-# Video codec map  (VideoPlayer.VideoCodec → display label)
-# ---------------------------------------------------------------------------
-
+# Video codec map (VideoPlayer.VideoCodec -> display label)
 VIDEO_CODEC_MAP = {
     "3iv2":       "3ivx",
     "av1":        "AV1",
@@ -50,10 +41,7 @@ VIDEO_CODEC_MAP = {
     "xvid":       "XviD",
 }
 
-# ---------------------------------------------------------------------------
-# Subtitle codec map  (VideoPlayer.SubtitleCodec → display label)
-# ---------------------------------------------------------------------------
-
+# Subtitle codec map (VideoPlayer.SubtitleCodec -> display label)
 SUBTITLE_CODEC_MAP = {
     "ass":               "ASS",
     "dvb_subtitle":      "DVB-SUB",
@@ -75,10 +63,7 @@ SUBTITLE_CODEC_MAP = {
     "xsub":              "XSUB",
 }
 
-# ---------------------------------------------------------------------------
-# Audio codec map  (VideoPlayer.AudioCodec → display label)
-# ---------------------------------------------------------------------------
-
+# Audio codec map (VideoPlayer.AudioCodec -> display label)
 AUDIO_CODEC_MAP = {
     # AAC
     "aac":             "AAC",
@@ -139,14 +124,8 @@ AUDIO_CODEC_MAP = {
     "cdda":            "CD Audio",
 }
 
-# ---------------------------------------------------------------------------
-# Audio codec → start-up splash logo  (VideoPlayer.AudioCodec → codecs/*.png)
-# ---------------------------------------------------------------------------
-#
-# Filenames are relative to the skin media folder (resources/skins/Default/
-# media/).  Codecs without a dedicated logo are left unmapped: the splash then
-# simply omits the audio image.
-
+# Audio codec -> splash logo (VideoPlayer.AudioCodec -> codecs/*.png, relative to
+# the skin media folder).  Unmapped codecs omit the audio image.
 AUDIO_LOGO_MAP = {
     # AAC
     "aac":             "codecs/AAC.png",
@@ -190,13 +169,8 @@ AUDIO_LOGO_MAP = {
     "opus":            "codecs/OPUS.png",
 }
 
-# ------------------------------------------------------------------------------------
-# HDR type → start-up splash logo  (Player.Process(amlogic.eoft_gamut) → codecs/*.png)
-# ------------------------------------------------------------------------------------
-#
-# Keyed on the same tokens Kodi's ``Player.Process(amlogic.eoft_gamut)`` reports; the empty
-# string maps to the SDR logo so every video resolves to a video image.
-
+# HDR type -> splash logo (codecs/*.png).  The empty string maps to the SDR
+# logo so every video resolves to a video image.
 HDR_LOGO_MAP = {
     "":            "codecs/SDR.png",
     "hdr10":       "codecs/HDR10.png",
@@ -205,10 +179,7 @@ HDR_LOGO_MAP = {
     "dolbyvision": "codecs/Dolby_Vision.png",
 }
 
-# ---------------------------------------------------------------------------
-# Channel count → surround layout string
-# ---------------------------------------------------------------------------
-
+# Channel count -> surround layout string
 CHANNELS_MAP = {
     1:  "1.0",
     2:  "2.0",
@@ -220,10 +191,7 @@ CHANNELS_MAP = {
     10: "9.1",
 }
 
-# ---------------------------------------------------------------------------
-# Channel count → full speaker-label string
-# ---------------------------------------------------------------------------
-
+# Channel count -> full speaker-label string
 CHANNELS_INPUT_MAP = {
     1:  "Mono",
     2:  "FL, FR",
@@ -237,10 +205,7 @@ CHANNELS_INPUT_MAP = {
     10: "FL, FR, FC, LFE, BL, BR, SL, SR, FWL, FWR",
 }
 
-# ---------------------------------------------------------------------------
-# ISO 639-2/B language code → native language name
-# ---------------------------------------------------------------------------
-
+# ISO 639-2/B language code -> native language name
 LANGUAGE_MAP = {
     "abk": "Apsua",
     "ace": "Baksa Acèh",
@@ -727,10 +692,7 @@ LANGUAGE_MAP = {
     "zun": "Shiwi'ma",
 }
 
-# ---------------------------------------------------------------------------
 # ISO 639-2/B language code -> ISO 639-2/T code (uppercase)
-# ---------------------------------------------------------------------------
-
 LANGUAGE_MAP_SHORT = {
     "abk": "ABK",
     "ace": "ACE",

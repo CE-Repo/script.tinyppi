@@ -1,9 +1,7 @@
-"""
-fonts.py – Install required fonts into the active Kodi skin.
+"""Install the required fonts into the active Kodi skin.
 
-On import the module immediately calls ``install_fonts()`` so that fonts are
-available before TinyPPI opens its overlay window.  The ``FontInstallMonitor``
-class re-runs the installation whenever the skin changes or Kodi is updated.
+Runs install_fonts() on import so fonts are ready before the overlay opens;
+FontInstallMonitor re-runs it on skin change or Kodi update.
 """
 
 import os
@@ -13,10 +11,6 @@ import xml.etree.ElementTree as ET
 
 import xbmc
 import xbmcaddon
-
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
 
 _ADDON     = xbmcaddon.Addon()
 _ADDON_DIR = _ADDON.getAddonInfo("path")
@@ -28,8 +22,8 @@ _REQUIRED_FONTS = (
     {"name": "font32",        "filename": "Noto-Bold.ttf",    "size": "32"},
 )
 
-# Fonts ship in the tools.tinyppi addon.  Resolve its path defensively so a
-# missing tools addon never breaks import (install_fonts runs on import).
+# Fonts ship in the tools.tinyppi addon; resolve defensively so a missing
+# tools addon never breaks import.
 try:
     _TOOLS_DIR = xbmcaddon.Addon("tools.tinyppi").getAddonInfo("path")
 except Exception:
@@ -38,9 +32,6 @@ except Exception:
 _ADDON_FONTS_DIR = (os.path.normpath(os.path.join(_TOOLS_DIR, "tools", "fonts"))
                     if _TOOLS_DIR else "")
 
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
 
 def _log(msg: str, level: int = xbmc.LOGINFO) -> None:
     xbmc.log(f"TinyPPI: {msg}", level)
@@ -67,11 +58,7 @@ def _find_ttf_dir(skin_path: str) -> str | None:
 
 
 def _get_skin_path() -> str | None:
-    """
-    Return the filesystem path of the currently active Kodi skin.
-
-    Checks the user addons directory first, then the system addons directory.
-    """
+    """Return the active Kodi skin path (user addons dir first, then system)."""
     skin_dir   = xbmc.getSkinDir()
     local_path = os.path.normpath(os.path.join(_ADDONS_ROOT, skin_dir))
     sys_path   = os.path.normpath(os.path.join(os.getcwd(), "addons", skin_dir))
@@ -99,15 +86,8 @@ def _registered_fonts(xml_root) -> set[tuple[str, str]]:
     return registered
 
 
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
-
 def fonts_already_installed(skin_path: str) -> bool:
-    """
-    Return True only when ALL required fonts are present both in Font.xml
-    and as .ttf files on disk.
-    """
+    """Return True only when every required font is in Font.xml and on disk."""
     font_xml_path = _find_font_xml(skin_path)
     if not font_xml_path:
         return False
@@ -119,7 +99,7 @@ def fonts_already_installed(skin_path: str) -> bool:
         _log(f"XML parse error: {exc}", xbmc.LOGERROR)
         return False
 
-    # Every fontset must carry all required fonts, not just the first one.
+    # Every fontset must carry all required fonts, not just the first.
     fontsets = xml_root.findall("fontset")
     if not fontsets:
         return False
@@ -150,11 +130,7 @@ def fonts_already_installed(skin_path: str) -> bool:
 
 
 def _install_xml(skin_path: str) -> bool:
-    """
-    Insert missing font entries into every ``<fontset>`` block in Font.xml.
-
-    Returns True when at least one entry was written.
-    """
+    """Insert missing font entries into every <fontset>; True if any written."""
     font_xml_path = _find_font_xml(skin_path)
     if not font_xml_path:
         _log("installxml: Font.xml not found", xbmc.LOGERROR)
@@ -172,8 +148,7 @@ def _install_xml(skin_path: str) -> bool:
                       if include_el is not None
                       else len(list(fontset)))
 
-        # Check against this fontset's own entries so every fontset is filled,
-        # not just the first one.
+        # Check this fontset's own entries so every fontset gets filled.
         registered = _registered_fonts(fontset)
 
         _log(f'Editing fontset "{fset_id}", insert index: {insert_idx}')
@@ -204,11 +179,7 @@ def _install_xml(skin_path: str) -> bool:
 
 
 def _install_ttf(skin_path: str) -> bool:
-    """
-    Copy missing .ttf files from the addon fonts directory into the skin.
-
-    Returns True when at least one file was copied.
-    """
+    """Copy missing .ttf files into the skin; True if any file was copied."""
     ttf_dest_dir = _find_ttf_dir(skin_path)
     if not ttf_dest_dir:
         _log("installttf: no TTF destination directory", xbmc.LOGWARNING)
@@ -233,12 +204,8 @@ def _install_ttf(skin_path: str) -> bool:
 
 
 def install_fonts() -> None:
-    """
-    Install all required fonts into the active Kodi skin.
-
-    A ``ReloadSkin`` is triggered automatically when any file was changed.
-    Does nothing when fonts are already fully installed.
-    """
+    """Install missing fonts into the active skin, reloading it if anything
+    changed.  No-op when the fonts are already installed."""
     skin_path = _get_skin_path()
     if not skin_path:
         _log("Skin path not found", xbmc.LOGWARNING)
@@ -265,12 +232,8 @@ def install_fonts() -> None:
             pass
 
 
-# ---------------------------------------------------------------------------
-# Monitor  (re-installs on skin change or system update)
-# ---------------------------------------------------------------------------
-
 class FontInstallMonitor(xbmc.Monitor):
-    """Re-run font installation whenever the active skin or Kodi itself changes."""
+    """Re-run font installation when the active skin or Kodi changes."""
 
     def onSkinChanged(self) -> None:
         _log("Skin changed – checking fonts")
@@ -282,10 +245,6 @@ class FontInstallMonitor(xbmc.Monitor):
             _log("System.OnUpdated – checking fonts")
             install_fonts()
 
-
-# ---------------------------------------------------------------------------
-# Run on import
-# ---------------------------------------------------------------------------
 
 _monitor = FontInstallMonitor()
 install_fonts()

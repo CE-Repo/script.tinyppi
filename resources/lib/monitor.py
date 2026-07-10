@@ -1,10 +1,5 @@
-"""
-monitor.py – Lightweight background service for TinyPPI.
-
-Runs as an ``xbmc.service`` (see addon.xml) and keeps a Kodi monitor alive
-for the lifetime of the session so that other parts of the addon can react
-to system-level notifications.
-"""
+"""Background service (xbmc.service): keeps a Kodi monitor alive for the session
+so the addon can react to system notifications."""
 
 import json
 import os
@@ -21,20 +16,12 @@ if _LIB_PATH not in sys.path:
 from dvinfo import reset_playback_cache
 from theme import apply_theme
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
 _ADDON_ID = "script.tinyppi"
 _HOME_WINDOW_ID = 10000
 
-# Set to True locally to promote debug messages to INFO level so they appear
-# in a standard (non-debug) Kodi log.
+# Set True locally to promote debug messages to INFO in a non-debug Kodi log.
 _FORCE_DEBUG_LOG = False
 
-# ---------------------------------------------------------------------------
-# Logging helper
-# ---------------------------------------------------------------------------
 
 def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
     if level == xbmc.LOGDEBUG and _FORCE_DEBUG_LOG:
@@ -54,17 +41,9 @@ def _notification_media_type(data: str) -> str:
     return payload.get("type", "")
 
 
-# ---------------------------------------------------------------------------
-# Monitor
-# ---------------------------------------------------------------------------
-
 class KodiMonitor(xbmc.Monitor):
-    """
-    Listens for Kodi notifications.
-
-    Currently logs all received notifications at DEBUG level.  Extend
-    ``onNotification`` to react to specific player or library events.
-    """
+    """Listens for Kodi notifications; resets the DV cache on stop and fires the
+    splash on playback start."""
 
     def onNotification(self, sender: str, method: str, data: str) -> None:
         if method == "Player.OnStop":
@@ -81,22 +60,19 @@ class KodiMonitor(xbmc.Monitor):
             _log(f"Exception in KodiMonitor.onNotification: {exc}", xbmc.LOGERROR)
 
     def onSettingsChanged(self) -> None:
-        """(Re)launch the splash when the add-on settings change.
+        """(Re)launch the splash when settings change.
 
-        A splash controller that is already running re-reads every setting from a
-        fresh ``Addon()`` each poll, so it picks up edits live on its own (its
-        re-entry guard makes this call a no-op then).  This launch covers the
-        other case: when all triggers were off at playback start no controller
-        exists, so enabling one here starts it without restarting playback.
+        A running controller picks up edits on its own (its guard makes this a
+        no-op); this covers the case where all triggers were off at playback
+        start, so enabling one here starts it without restarting playback.
         """
         self._maybe_show_splash()
 
     def _maybe_show_splash(self) -> None:
-        """Fire the start-up format-logo splash when enabled for this video.
+        """Fire the format-logo splash when enabled for this video.
 
-        Runs the splash in its own script interpreter so the modal-free window
-        and its close timer live outside the notification thread.  Cheap guards
-        run here first; the splash script re-checks everything before showing.
+        Runs in its own script interpreter; cheap guards run here first, the
+        splash script re-checks everything before showing.
         """
         try:
             addon = xbmcaddon.Addon()
@@ -111,10 +87,6 @@ class KodiMonitor(xbmc.Monitor):
             _log(f"Exception starting splash: {exc}", xbmc.LOGERROR)
 
 
-# ---------------------------------------------------------------------------
-# Entry point  (called by Kodi via the xbmc.service extension point)
-# ---------------------------------------------------------------------------
-
 if __name__ == "__main__":
     addon   = xbmcaddon.Addon()
     win     = xbmcgui.Window(_HOME_WINDOW_ID)
@@ -122,9 +94,8 @@ if __name__ == "__main__":
 
     reset_playback_cache()
 
-    # Publish the theme properties (including the per-color "Custom" swatches)
-    # at startup so the settings dialog can preview custom HEX colors even when
-    # the overlay has not been opened yet this session.
+    # Publish the theme properties at startup so the settings dialog can preview
+    # custom HEX colors before the overlay has been opened this session.
     try:
         apply_theme(win, addon)
     except Exception as exc:  # pragma: no cover - never block the service

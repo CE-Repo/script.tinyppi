@@ -1,9 +1,4 @@
-"""
-main.py – Addon entry point for script.tinyppi.
-
-This file exists solely to bootstrap the Python path and hand off execution
-to resources/lib/overlay.py.  Keep it minimal — all real logic lives in lib.
-"""
+"""Addon entry point: bootstrap the lib path and dispatch the command."""
 
 import os
 import sys
@@ -19,7 +14,7 @@ def _bootstrap_lib_path(addon: xbmcaddon.Addon) -> None:
 
 
 def _split_args(raw_args: list[str]) -> list[str]:
-    """Kodi may pass comma-separated script arguments; flatten them."""
+    """Flatten Kodi's comma-separated script arguments."""
     args: list[str] = []
     for raw in raw_args:
         args.extend(raw.split(","))

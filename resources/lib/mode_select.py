@@ -1,10 +1,6 @@
-"""
-mode_select.py – VS10-mode selection dialog for TinyPPI.
+"""VS10-mode selection dialog.
 
-Open via ``RunScript(script.tinyppi,dialog)`` or programmatically:
-
-    from mode_select import open_dialog
-    open_dialog()
+Open via ``RunScript(script.tinyppi,dialog)`` or ``open_dialog()``.
 """
 
 import threading
@@ -15,10 +11,6 @@ import xbmcgui
 
 from utils import clear_overlay_state
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
 _ADDON      = xbmcaddon.Addon()
 _ADDON_PATH = _ADDON.getAddonInfo("path")
 
@@ -28,9 +20,6 @@ _DVMODE = "/sys/class/amdolby_vision/dv_mode"
 
 _BTN_TINYPPI = 1001
 
-# ---------------------------------------------------------------------------
-# Sysfs
-# ---------------------------------------------------------------------------
 
 def _w(path: str, value: str) -> None:
     try:
@@ -83,10 +72,6 @@ def _set_sdr_conversion_mode(dv_mode: str) -> None:
     )
 
 
-# ---------------------------------------------------------------------------
-# VS10 Mode
-# ---------------------------------------------------------------------------
-
 def original_sdr() -> None:
     _set_passthrough_mode("0", delay_ms=0)
 
@@ -104,10 +89,8 @@ def original_hdr() -> None:
 
 
 def original_hlg() -> None:
-    # Native HLG: HLG is not a supported VS10 *input*, so with the core
-    # enabled (even in BYPASS) no output-mode switch happens.  Turn VS10 off
-    # (policy=follow-source, enable=N) so HLG passes through the standard HDR
-    # path untouched.
+    # HLG is not a valid VS10 input, so turn VS10 off (policy=follow-source,
+    # enable=N) to let HLG pass through the standard HDR path untouched.
     _write_sequence(
         (
             (_POLICY, "0"),
@@ -116,7 +99,7 @@ def original_hlg() -> None:
     )
 
 
-# Same sysfs sequence as ``dv``; kept as its own name so keymaps can use both.
+# Alias of dv; kept as its own name so keymaps can use both.
 original_dv = dv
 
 
@@ -127,10 +110,6 @@ def sdr8() -> None:
 def sdr10() -> None:
     _set_sdr_conversion_mode("4")
 
-
-# ---------------------------------------------------------------------------
-# Mapping
-# ---------------------------------------------------------------------------
 
 _MODES = {
     "original_sdr": original_sdr,
@@ -157,10 +136,7 @@ def set_mode(name: str) -> None:
 __all__ = list(_MODES.keys()) + ["open_dialog", "set_mode"]
 
 
-# ---------------------------------------------------------------------------
-# Button-ID
-# ---------------------------------------------------------------------------
-
+# Dialog button id -> action.
 _ACTIONS = {
     # SDR
     1002: original_sdr,
@@ -179,20 +155,14 @@ _ACTIONS = {
     1013: sdr8,
 }
 
-# ---------------------------------------------------------------------------
-# Dialog
-# ---------------------------------------------------------------------------
 
 class SettingsDialog(xbmcgui.WindowXMLDialog):
-    """
-    Simple menu dialog that lets the user choose a VS10 output mode or
-    launch the main TinyPPI overlay.
-    """
+    """Menu dialog to pick a VS10 output mode or launch the TinyPPI overlay."""
 
     def onInit(self) -> None:
-        # The SDR / HDR10 / Dolby Vision groups branch on TinyPPI.HdrType, which
-        # is filled by hdrprobe in the background.  Refresh it while the dialog
-        # is open so the correct group appears as soon as detection completes.
+        # The SDR / HDR10 / DV groups branch on TinyPPI.HdrType, filled by
+        # hdrprobe in the background; refresh it so the right group appears
+        # once detection completes.
         self._running = True
         self._monitor = xbmc.Monitor()
         threading.Thread(target=self._hdr_type_loop, daemon=True).start()
@@ -232,12 +202,8 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
             self.close()
 
 
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
-
 def open_dialog() -> None:
-    """Create and display the settings/mode-selection dialog modally."""
+    """Create and display the mode-selection dialog modally."""
     win = SettingsDialog(
         "script-tinyppi-dialog.xml",
         _ADDON_PATH,

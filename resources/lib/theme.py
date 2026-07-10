@@ -1,10 +1,8 @@
-"""
-theme.py – Color theme engine for the TinyPPI overlay.
+"""Color theme engine.
 
-Maps the user's color choices from the add-on settings onto ARGB hex strings
-and publishes them as Home-window (10000) properties.  The skin consumes them
-via ``$INFO[Window(10000).Property(TinyPPI.<Name>Color)]`` so colors can be
-changed from the settings without editing any skin XML.
+Maps the user's color settings onto ARGB hex strings and publishes them as
+Home-window (10000) properties, consumed by the skin via
+``$INFO[Window(10000).Property(TinyPPI.<Name>Color)]``.
 """
 
 import json
@@ -16,8 +14,7 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
-# Palette for text-based elements (title, description, output, progress bar).
-# The index matches the <option> order in resources/settings.xml.
+# Palette for text-based elements; index matches the settings.xml <option> order.
 _TEXT_COLORS = (
     "FFEDEDED",  # 0  White
     "FFE0E0E0",  # 1  Light gray
@@ -71,36 +68,25 @@ _TEXT_COLORS = (
     "FF90A4AE",  # 49 Cadet
 )
 
-# Palette for the focused button highlight in the VS10 dialog (texturefocus).
-# Same hues as _TEXT_COLORS but index 0 is pure white to match the original
-# default.  The index matches the <option> order in resources/settings.xml.
+# VS10 dialog focused-button highlight (texturefocus); index 0 is pure white.
 _DIALOG_FOCUS_COLORS = ("FFFFFFFF",) + _TEXT_COLORS[1:]
 
-# Palette for the focused button text in the VS10 dialog (focusedcolor).
-# Black (the original default) and pure white lead, followed by the full hue
-# set from _TEXT_COLORS (its near-white index 0 is dropped in favour of the
-# pure white above).  The index matches the <option> order of
-# ``dialog_focus_text_color`` in resources/settings.xml.
+# VS10 dialog focused-button text (focusedcolor); black default and white lead.
 _DIALOG_FOCUS_TEXT_COLORS = (
     "FF000000",  # 0  Black (default)
     "FFFFFFFF",  # 1  White
 ) + _TEXT_COLORS[1:]
 
-# Palette for inline detail accents (the dimmed values shown in parentheses).
-# Same hues as _TEXT_COLORS but at alpha B3 (~70%) so they stay subtle.
-# The index matches the <option> order in resources/settings.xml.
+# Inline detail accents: _TEXT_COLORS hues at alpha B3 (~70%).
 _ACCENT_COLORS = tuple("B3" + color[2:] for color in _TEXT_COLORS)
 
-# Palette for the separator lines (very faint dividers, alpha 26 ~ 15%).
-# Same hues as _TEXT_COLORS but heavily dimmed so the lines stay subtle,
-# except index 0 which keeps the original neutral gray default.
-# The index matches the <option> order in resources/settings.xml.
+# Separator lines: _TEXT_COLORS hues at alpha 26 (~15%); index 0 keeps the
+# neutral gray default.
 _LINE_COLORS = ("26808080",) + tuple(
     "26" + color[2:] for color in _TEXT_COLORS[1:]
 )
 
-# Palette for the Modern background (semi-transparent dark shades, alpha FA).
-# The index matches the <option> order in resources/settings.xml.
+# Modern background: semi-transparent dark shades (alpha FA).
 _BACKGROUND_COLORS = (
     "FA15181A",  # 0  Charcoal (default)
     "E6000000",  # 1  Black
@@ -155,9 +141,7 @@ _BACKGROUND_COLORS = (
 )
 
 
-# Brightness unit labels for the L6 metadata values.
-# The index matches the <option> order of ``unit_type`` in resources/settings.xml.
-# An empty string means the unit is hidden.
+# Brightness unit labels for the L6 metadata values ("" = hidden).
 _UNIT_LABELS = (
     "cd/m²",  # 0  cd/m² (default)
     "nits",   # 1  nits
@@ -165,17 +149,12 @@ _UNIT_LABELS = (
 )
 
 
-# Setting value (option) that marks a color as a user-defined custom HEX value.
-# The integer color setting is set to this option so the list shows
-# "Benutzerdefiniert"; the actual 8-digit ARGB hex is stored in the JSON file
-# below (Kodi rejects control-less storage settings, so the hex cannot live in
-# settings.xml).
+# Setting option marking a color as a custom HEX value; the actual 8-digit ARGB
+# hex is stored in the JSON file below (Kodi rejects control-less storage settings).
 _CUSTOM_INDEX = "999"
 
-# Palette index each color setting falls back to when a custom HEX is cleared or
-# rejected as invalid.  Must mirror the ``<default>`` option in
-# resources/settings.xml.  Any setting not listed defaults to index 0 (the
-# palette's first color, White), which is the default for every other element.
+# Palette index each color setting falls back to when its custom HEX is cleared
+# or invalid.  Mirrors <default> in settings.xml; unlisted settings default to 0.
 _DEFAULT_COLOR_INDEX = {
     "convert_yes_color": "34",  # Forest
     "convert_no_color":  "25",  # Crimson
@@ -183,13 +162,11 @@ _DEFAULT_COLOR_INDEX = {
     "mel_color":         "31",  # Tangerine
 }
 
-# Custom HEX colors, keyed by setting id (each value an 8-digit ARGB hex string),
-# persisted as a JSON file in the add-on profile directory.
+# Custom HEX colors (8-digit ARGB), keyed by setting id, persisted as JSON in
+# the add-on profile directory.
 _CUSTOM_FILE = "special://profile/addon_data/script.tinyppi/custom_colors.json"
 
-# Alpha channel prepended to a 6-digit custom HEX, keyed by setting id.
-# Anything not listed uses full opacity (FF) so the 6-digit input becomes an
-# 8-digit ARGB value internally.
+# Alpha prepended to a 6-digit custom HEX, keyed by setting id (default FF).
 _CUSTOM_ALPHA = {
     "background_color":        "FA",  # Modern background shades
     "global_background_color": "FA",  # full-screen global background shades
@@ -201,12 +178,10 @@ _DEFAULT_ALPHA = "FF"
 _HEX6_RE = re.compile(r"^[0-9A-Fa-f]{6}$")
 _HEX8_RE = re.compile(r"^[0-9A-Fa-f]{8}$")
 
-# Suffix of the per-color "HEX color" action button (see resources/settings.xml).
-# The button is a string setting whose value Kodi renders as the row's label2.
-# We store a self-contained swatch + HEX string there so the settings dialog can
-# preview the chosen color (a full-opacity ● dot followed by the 6-digit HEX)
-# without depending on the Home-window properties, which are only live while the
-# overlay is open.
+# Suffix of the per-color "HEX color" action button.  Its value (a ● swatch +
+# HEX) is rendered as the row's label2 so the settings dialog can preview the
+# chosen color without the Home-window properties (live only while the overlay
+# is open).
 _CUSTOM_BTN_SUFFIX = "_custom_btn"
 
 
@@ -234,7 +209,7 @@ def _load_custom() -> dict:
                 data = json.load(handle)
             if isinstance(data, dict):
                 return data
-    except Exception:  # pragma: no cover - corrupt/unreadable file → ignore
+    except Exception:  # corrupt/unreadable file -> ignore
         pass
     return {}
 
@@ -257,14 +232,11 @@ def _pick(palette: tuple, value: str) -> str:
         return palette[0]
 
 
-# Fallback opacity (percent) used when a setting is missing or invalid: full
-# opacity for text-based elements.
+# Fallback opacity (percent) when a setting is missing or invalid.
 _DEFAULT_OPACITY = 100
 
-# Per-element opacity defaults (percent), keyed by color setting id.  Each value
-# reproduces the alpha baked into that element's palette so the out-of-the-box
-# look is unchanged until the user moves the slider.  Elements not listed use
-# ``_DEFAULT_OPACITY`` (100 %, alpha FF).
+# Per-element opacity defaults (percent), keyed by color setting id, reproducing
+# each element's palette alpha.  Unlisted elements use _DEFAULT_OPACITY (100 %).
 _DEFAULT_OPACITIES = {
     "background_color":        98,  # FA – Modern panel background
     "global_background_color":  0,  # off until the user raises the slider
@@ -281,20 +253,14 @@ def _opacity_setting(color_setting_id: str) -> str:
 
 
 def _opacity_alpha(addon, setting_id, default, overrides=None) -> str:
-    """
-    Return the 2-digit hex alpha for a configured opacity slider.
-
-    The referenced setting is a 0–100 % slider: 100 % is fully opaque (FF) and
-    0 % is fully transparent (00).  ``default`` (percent) is used when the
-    setting is missing or invalid.
-    """
+    """Return the 2-digit hex alpha for a 0–100 % opacity slider (``default``
+    percent when missing/invalid)."""
     try:
         percent = int(_setting_value(addon, setting_id, overrides))
     except (ValueError, TypeError):
         percent = default
     percent = max(0, min(100, percent))
-    # Round half up so the per-element defaults reproduce the palette's native
-    # alpha exactly (e.g. 70 % → B3 for the accent, 15 % → 26 for the lines).
+    # Round half up so defaults reproduce the palette alpha exactly (70 % -> B3).
     return "{:02X}".format(int(percent * 255 / 100 + 0.5))
 
 
@@ -306,12 +272,10 @@ def _setting_value(addon, setting_id: str, overrides) -> str:
 
 
 def _resolve(palette: tuple, addon, setting_id: str, custom: dict, overrides=None) -> str:
-    """
-    Resolve a color setting to an ARGB hex string.
+    """Resolve a color setting to an ARGB hex string.
 
-    When the setting holds the custom marker (option 999), the stored 8-digit
-    ARGB hex from ``custom`` is used.  An invalid or missing custom value falls
-    back to the palette default (index 0).
+    The custom marker (999) uses the stored 8-digit hex from ``custom``, falling
+    back to the palette default when it is invalid or missing.
     """
     value = _setting_value(addon, setting_id, overrides)
     if value == _CUSTOM_INDEX:
@@ -355,19 +319,17 @@ _THEME_PROPERTIES = (
 
 
 def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
-    """
-    Read the color settings and publish them as Home-window properties.
+    """Read the color settings and publish them as Home-window properties.
 
-    Call this before opening the overlay so the skin can resolve every color
-    via ``$INFO[Window(10000).Property(TinyPPI.<Name>Color)]``.
+    Call before opening the overlay so the skin can resolve every color.
     """
     addon = addon or xbmcaddon.Addon()
     custom = _load_custom() if custom is None else custom
 
     for property_name, palette, setting_id in _THEME_PROPERTIES:
         value = _resolve(palette, addon, setting_id, custom, overrides)
-        # Every element has its own opacity slider; its alpha overrides the
-        # palette/custom alpha so the chosen HEX only supplies the RGB channels.
+        # The per-element opacity slider overrides the palette/custom alpha, so
+        # the chosen HEX only supplies the RGB channels.
         alpha = _opacity_alpha(
             addon,
             _opacity_setting(setting_id),
@@ -383,22 +345,12 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
 
 
 def custom_color(setting_id, addon=None) -> None:
-    """
-    Prompt for a custom 6-digit HEX color via the on-screen keyboard and store
-    it for ``setting_id``.
+    """Prompt for a custom 6-digit HEX color and store it for ``setting_id``.
 
-    On confirmation the input is validated:
-
-    - Valid  → the per-setting alpha channel is prepended (yielding an 8-digit
-      ARGB hex), saved to the custom-colors JSON file, and the color setting is
-      switched to the custom marker (option 999) so the list shows
-      "Benutzerdefiniert".
-    - Invalid → an error notification is shown and the color falls back to the
-      default (index 0).
-
-    Cancelling the keyboard leaves the current selection untouched.  Invoked
-    from the settings dialog via ``RunScript(script.tinyppi,custom_color,<id>)``.
-    The triggering button closes the dialog so the marker survives.
+    Valid input gets the per-setting alpha prepended, is saved to the JSON file,
+    and switches the setting to the custom marker (999).  Invalid input notifies
+    and falls back to the default.  Cancelling leaves the selection untouched.
+    Invoked via ``RunScript(script.tinyppi,custom_color,<id>)``.
     """
     addon = addon or xbmcaddon.Addon()
 
@@ -415,8 +367,7 @@ def custom_color(setting_id, addon=None) -> None:
     custom = _load_custom()
 
     if not _HEX6_RE.match(raw):
-        # Invalid input → notify and fall back to this element's default color
-        # (not blindly index 0, which is White only for most elements).
+        # Invalid -> notify and fall back to this element's default color.
         fallback = _DEFAULT_COLOR_INDEX.get(setting_id, "0")
         custom.pop(setting_id, None)
         _save_custom(custom)
@@ -443,7 +394,7 @@ def custom_color(setting_id, addon=None) -> None:
             3000,
         )
 
-    # Re-publish properties so an overlay that is already open updates too.
+    # Re-publish properties so an already-open overlay updates too.
     try:
         apply_theme(
             xbmcgui.Window(10000),
@@ -451,5 +402,5 @@ def custom_color(setting_id, addon=None) -> None:
             overrides={setting_id: setting_value},
             custom=custom,
         )
-    except Exception:  # pragma: no cover - best effort, never block the change
+    except Exception:  # best effort, never block the change
         pass

@@ -1,26 +1,17 @@
-"""
-splash.py – Start-up / OSD format-logo overlay for TinyPPI.
+"""Start-up / OSD format-logo overlay.
 
-When playback of a video begins (``Player.OnAVStart``), the background service
-(monitor.py) launches this module through ``RunScript(script.tinyppi,splash)``.
-It shows two logos stacked in a corner of the picture – the HDR/video format on
-top and the audio format below it – for the current stream.  Two independent
-triggers, each toggled from the add-on settings, decide when they are visible:
+On ``Player.OnAVStart`` the service (monitor.py) launches this via
+``RunScript(script.tinyppi,splash)``.  It stacks two logos in a corner – the
+HDR/video format on top, the audio format below.  Three settings triggers decide
+when they show: ``splash_enabled`` (first ``splash_duration`` seconds),
+``splash_show_on_osd`` (while the video OSD is open) and ``splash_show_on_tinyppi``
+(while the TinyPPI overlay is open).
 
-* ``splash_enabled``         – show them for the first ``splash_duration``
-                               seconds after playback starts.
-* ``splash_show_on_osd``     – show them whenever the video OSD is open.
-* ``splash_show_on_tinyppi`` – show them while the TinyPPI info overlay is open.
-
-The logos are added as ``ControlImage`` controls directly to Kodi's fullscreen
-video window (id 12005) and toggled through a visibility condition bound to a
-Home-window property (see ``_fade_in`` / ``_fade_out``).  A modeless dialog
-would sit on top of the dialog stack and swallow remote input, which prevents
-the video OSD from opening; drawing straight onto the video window leaves all
-playback controls fully usable while the logos are visible.
-
-The controller re-resolves the logos every poll, so switching the audio track
-mid-playback rebuilds the images and the audio logo follows the change.
+Logos are added as ``ControlImage`` controls directly onto the fullscreen video
+window (12005) and toggled via a visibility condition (see ``_fade_in`` /
+``_fade_out``); drawing straight onto the video window keeps playback controls
+usable, unlike a modeless dialog.  Logos are re-resolved every poll, so an
+audio-track change follows live.
 """
 
 import os
@@ -43,19 +34,16 @@ _MEDIA_PATH = os.path.join(
 WINDOW_FULLSCREEN_VIDEO = 12005
 _HOME_WINDOW_ID         = 10000
 
-# Re-entry guard so overlapping playback starts cannot stack two controllers; it
-# lives on the Home window because each RunScript call is a separate process.
+# Re-entry guard so overlapping playback starts cannot stack two controllers;
+# on the Home window because each RunScript call is a separate process.
 PROP_SPLASH_ACTIVE = "TinyPPI.SplashActive"
 
-# ControlImage aspect-ratio modes: keep (letterboxed / centred within the box)
-# for the logos, stretch (fill the box) for the background panel pieces.
+# ControlImage aspect-ratio modes: keep for the logos, stretch for the panel.
 _ASPECT_KEEP    = 2
 _ASPECT_STRETCH = 0
 
-# Background panel: a rounded rectangle assembled as a 9-slice from a solid
-# 1x1 fill and four pre-rendered rounded-corner masks, all tinted to the same
-# ARGB colour so the corners stay crisp at any size.  A faint divider separates
-# the two stacked logos, mirroring the reference look.
+# Background panel: a rounded rectangle assembled 9-slice from a 1x1 fill and
+# four rounded-corner masks, all tinted the same ARGB colour.
 _BG_TEXTURE     = os.path.join("common", "dot-1x1.png")
 _DIVIDER_COLOR  = "59FFFFFF"
 _CORNER_TEXTURES = {
@@ -65,8 +53,8 @@ _CORNER_TEXTURES = {
     "br": os.path.join("splash", "corner-br.png"),
 }
 
-# Fallback ARGB colours used only when the themed Home-window properties have
-# not been published yet (they normally come from apply_theme / the settings).
+# Fallback ARGB colours used only before theme.apply_theme has published the
+# themed Home-window properties.
 _BG_COLOR   = "FA15181A"  # Charcoal panel (matches the overlay background)
 _LOGO_COLOR = "FFEDEDED"  # near-white (leaves white logos unchanged)
 
@@ -76,16 +64,13 @@ _PROP_VIDEO_COLOR   = "TinyPPI.SplashVideoColor"
 _PROP_AUDIO_COLOR   = "TinyPPI.SplashAudioColor"
 _PROP_DIVIDER_COLOR = "TinyPPI.SplashDividerColor"
 
-# Controller poll interval (seconds); fast enough to track OSD open/close and
-# audio-track changes.
+# Controller poll interval (seconds).
 _POLL_INTERVAL = 0.25
 
-# Fade in/out so the logos appear and disappear softly instead of popping.
-# Kodi only plays "Visible" / "Hidden" animations on runtime-added controls
-# when a *visibility condition* changes its value — imperative setVisible()
-# flips the state without a condition change and the animations never run.
-# The controls therefore watch a Home-window property through
-# setVisibleCondition(); _fade_in / _fade_out drive the fades by toggling it.
+# Fade in/out.  Kodi only plays "Visible"/"Hidden" animations on runtime-added
+# controls when a *visibility condition* changes value (setVisible() alone does
+# not), so the controls watch this Home-window property and _fade_in / _fade_out
+# toggle it.
 PROP_SPLASH_VISIBLE = "TinyPPI.SplashVisible"
 _VISIBLE_CONDITION  = (
     f"String.IsEqual(Window({_HOME_WINDOW_ID}).Property({PROP_SPLASH_VISIBLE}),true)"
@@ -99,39 +84,29 @@ _ANIM_IN  = ("Visible",
 _ANIM_OUT = ("Hidden",
              f"effect=fade start=100 end=0 time={_FADE_OUT_MS}")
 
-# Each display mode has its own horizontal / vertical offset settings so the
-# logos can sit in a different spot for each trigger.  When several modes are
-# active at once the priority is TinyPPI overlay > OSD > start-up window.
+# Per-mode horizontal / vertical offset settings (priority when several are
+# active: TinyPPI overlay > OSD > start-up window).
 _OFFSET_SETTINGS = {
     "start":   ("splash_start_offset_x",   "splash_start_offset_y"),
     "osd":     ("splash_osd_offset_x",     "splash_osd_offset_y"),
     "tinyppi": ("splash_tinyppi_offset_x", "splash_tinyppi_offset_y"),
 }
 
-# Each display mode also has its own size multiplier (stored as 80–130 %, default
-# 100 %) so the logo block can be scaled independently per trigger.  The value
-# multiplies the base layout scale below; the offsets are computed from the
-# resulting panel size, so scaling and positioning stay independent.
+# Per-mode size multiplier (stored 80–130 %, default 100 %); multiplies the base
+# layout scale below.
 _SCALE_SETTINGS = {
     "start":   "splash_start_scale",
     "osd":     "splash_osd_scale",
     "tinyppi": "splash_tinyppi_scale",
 }
 
-# Base layout scale for the logo block; the per-mode user scale multiplies it, so
-# a user value of 1.0 reproduces the original out-of-the-box size.
+# Base layout scale for the logo block; a user scale of 1.0 keeps the original size.
 _BASE_SCALE = 0.95
 
 
 def _amlogic_hdr_token() -> str:
-    """Classify the Amlogic hardware output mode into an ``HDR_LOGO_MAP`` key.
-
-    ``Player.Process(amlogic.eoft_gamut)`` reports the display's actual output
-    signalling; its first token is the mode, e.g. ``SDR``, ``HDR10``, ``HDR10+``,
-    ``HLG`` or ``DV-Std`` / ``DV-LL`` for Dolby Vision.  Returns the matching map
-    key (``''`` for SDR / unknown, so it falls back to the SDR logo).  ``HDR10+``
-    is checked before ``HDR10`` because it also contains ``HDR10``.
-    """
+    """Classify the Amlogic output mode (``amlogic.eoft_gamut``) into an
+    ``HDR_LOGO_MAP`` key (``''`` for SDR / unknown)."""
     parts = info("Player.Process(amlogic.eoft_gamut)").split()
     mode = parts[0].upper() if parts else ""
     if "DV" in mode or "DOLBY" in mode:
@@ -146,13 +121,8 @@ def _amlogic_hdr_token() -> str:
 
 
 def _current_logos() -> list[str]:
-    """Return the logos to stack, top to bottom: HDR/video first, audio below.
-
-    Both logos must be available, otherwise nothing is shown: an empty list is
-    returned unless the current stream resolves to a video *and* an audio logo.
-    The video (HDR) logo falls back to the SDR logo for an unknown Amlogic output
-    mode, so in practice this gates on the audio codec having a logo.
-    """
+    """Return [video, audio] logos to stack, or [] unless both are available.
+    The video logo falls back to SDR, so this effectively gates on the audio codec."""
     codec = info("VideoPlayer.AudioCodec").lower().strip()
     audio_logo = AUDIO_LOGO_MAP.get(codec, "")
 
@@ -209,23 +179,18 @@ def _build_controls(
 ) -> list[xbmcgui.ControlImage]:
     """Lay out the logos as a vertical stack, sized to the skin.
 
-    Sizes are fractions of the window's coordinate space (``screen_w`` /
-    ``screen_h``) so the placement holds up across skins designed at 720p or
-    1080p.  ``offset_x`` / ``offset_y`` (0–100 %) slide the whole block along the
-    free horizontal / vertical travel: 0 % keeps a corner inset at the top-left,
-    100 % moves it flush into the bottom-right corner.  ``user_scale`` (0.1–1.2)
-    resizes the whole block; because the offsets are derived from the resulting
-    panel size, scaling and positioning stay independent.  A rounded panel is
-    drawn behind the stack (first in the list, so it renders underneath the
-    logos); its and the divider's visibility are controlled purely by their
-    themed opacity.  ``colors`` supplies the themed ARGB tints keyed by ``bg`` /
-    ``video`` / ``audio`` / ``divider``.
+    Sizes are fractions of the window's coordinate space so placement holds up
+    across 720p / 1080p skins.  ``offset_x`` / ``offset_y`` (0–100 %) slide the
+    block from a top-left inset (0 %) to the bottom-right corner (100 %);
+    ``user_scale`` resizes it.  A rounded panel is drawn first (behind the
+    logos); it and the divider are shown/hidden purely by their themed opacity.
+    ``colors`` supplies the ARGB tints keyed by ``bg`` / ``video`` / ``audio`` /
+    ``divider``.
     """
     if not logos:
         return []
 
-    # Overall size multiplier for the logo block (panel, logos, gaps, radius):
-    # the base layout scale times the user-configured per-mode multiplier.
+    # Overall size multiplier: base layout scale times the per-mode user scale.
     scale = _BASE_SCALE * user_scale
 
     box_w    = int(screen_w * 0.09 * scale)
@@ -240,10 +205,8 @@ def _build_controls(
     panel_w = box_w + 2 * pad_x
     panel_h = stack_h + 2 * pad_y
 
-    # Slide the whole panel across the screen.  A corner inset is kept at the
-    # 0 % (top / left) end, and a smaller gap is kept from the edge at the 100 %
-    # (bottom / right) end so it never sits perfectly flush.  Both anchors carry
-    # an extra 5 px so neither extreme sits too close to the edge.
+    # Slide the panel across the screen, keeping a corner inset at 0 % and a
+    # smaller gap at 100 % so it never sits perfectly flush.
     inset = int(screen_h * 0.0325)
     edge  = 35
     offset_x = min(100, max(0, offset_x))
@@ -255,9 +218,8 @@ def _build_controls(
 
     controls: list[xbmcgui.ControlImage] = []
 
-    # Rounded background panel (drawn first, so it sits behind the logos) plus a
-    # divider between the two stacked logos.  Both are always present; hide them
-    # by setting their themed opacity to 0.
+    # Rounded background panel (behind the logos) plus a divider between them;
+    # both are always present and hidden via their themed opacity.
     controls.extend(_panel_controls(
         block_x - pad_x, top - pad_y,
         box_w + 2 * pad_x, panel_h,
@@ -277,13 +239,11 @@ def _build_controls(
 
 
 def _window_dims(window) -> tuple[int, int]:
-    """Return the coordinate-space size that ``addControl`` uses on *window*.
+    """Return the coordinate-space size ``addControl`` uses on *window*.
 
-    ``Window.getWidth()`` / ``getHeight()`` report the window's own coordinate
-    system, which is what added controls are positioned in — unlike the global
-    ``getScreenWidth`` / ``getScreenHeight`` that can differ from it on some
-    skins / render resolutions and would then misplace the 100 % (edge) anchor.
-    Falls back to the screen size if the window does not report usable values.
+    Uses ``Window.getWidth()`` / ``getHeight()`` (the system added controls are
+    positioned in), which can differ from the global screen size; falls back to
+    the screen size when the window reports no usable values.
     """
     try:
         width, height = window.getWidth(), window.getHeight()
@@ -315,11 +275,8 @@ def _read_colors(home, addon) -> dict[str, str]:
 
 
 def _mode_scale(addon, mode: str) -> float:
-    """Return the configured size multiplier for *mode*, clamped to 0.8–1.3.
-
-    The setting is stored as a whole percentage (80–130, i.e. 80 %–130 %); it is
-    divided by 100 to yield the layout multiplier (a 1 % step = 0.01).
-    """
+    """Return the size multiplier for *mode* (setting stored as 80–130 %),
+    clamped to 0.8–1.3."""
     try:
         percent = addon.getSettingInt(_SCALE_SETTINGS[mode])
     except Exception:
@@ -330,23 +287,16 @@ def _mode_scale(addon, mode: str) -> float:
 def _fade_in(video_window, home, monitor, controls) -> None:
     """Add *controls* to the video window and fade them in.
 
-    The ordering is load-bearing; deviating makes the logos pop or flash:
+    The ordering is load-bearing (deviating makes the logos pop or flash):
 
-    1. Force-hide every control *before* adding it (since Kodi 19 the state is
-       stored and applied when the control is created).  Freshly added controls
-       are otherwise visible until their condition is first evaluated, which
-       renders them at full opacity for a few frames — and because the ~11
-       panel pieces get their conditions bound one by one, they also wink out
-       staggered.  Pre-hiding keeps everything unrendered until the final flip.
-    2. Bind the visibility condition with the property cleared and *before*
-       arming any animation, so the initial visible→hidden condition edge
-       cannot play a "Hidden" fade.
-    3. Wait one render tick so Kodi settles the hidden state.
-    4. Arm the animations (only possible once the controls belong to a window;
-       arming beforehand is silently dropped), then lift the force-hide — the
-       condition is still false, so the controls stay invisible.
-    5. Wait another tick, then flip the property false→true — the condition
-       change plays the "Visible" fade from fully transparent.
+    1. Force-hide every control *before* adding it, so freshly added controls
+       don't flash at full opacity before their condition is first evaluated.
+    2. Bind the visibility condition with the property cleared and before arming
+       any animation, so the initial edge cannot play a "Hidden" fade.
+    3. Wait one render tick to settle the hidden state.
+    4. Arm the animations (only works once the controls belong to a window),
+       then lift the force-hide — the condition is still false.
+    5. Wait a tick, then flip the property false→true to play the "Visible" fade.
     """
     home.clearProperty(PROP_SPLASH_VISIBLE)
     for control in controls:
@@ -370,19 +320,17 @@ def _fade_out(video_window, home, monitor, controls) -> None:
     try:
         video_window.removeControls(controls)
     except Exception:
-        # The video window may already be gone (playback stopped); the
-        # controls are torn down with it, so a failed removal is harmless.
+        # The video window may already be gone; a failed removal is harmless.
         pass
 
 
 def open_splash() -> None:
-    """Run the logo overlay controller for the lifetime of the current video.
+    """Run the logo overlay controller for the current video's lifetime.
 
-    Each poll picks the active display mode (TinyPPI overlay > OSD > start-up
-    window), draws the logos at that mode's own offset, and tears them down when
-    no mode is active — rebuilding on mode / offset / format changes until
-    playback ends.  Skips silently when all triggers are disabled, when no video
-    is playing, or when another controller is running.
+    Each poll picks the active mode (TinyPPI overlay > OSD > start-up), draws the
+    logos at that mode's offset, and rebuilds on mode / offset / format changes.
+    Skips silently when all triggers are off, no video plays, or another
+    controller is running.
     """
     show_on_start, show_on_osd, show_on_tinyppi = _read_triggers(xbmcaddon.Addon())
     if not show_on_start and not show_on_osd and not show_on_tinyppi:
@@ -412,12 +360,9 @@ def open_splash() -> None:
             if not player.isPlayingVideo():
                 break
 
-            # Read every setting from a *fresh* Addon() each poll.  An Addon
-            # instance caches its settings at construction, so the long-lived
-            # module-level _ADDON keeps returning the values from when the splash
-            # process started (i.e. from playback start).  A new instance reloads
-            # the current values, so edits made in the settings apply live without
-            # restarting playback.
+            # Read settings from a fresh Addon() each poll: an Addon caches its
+            # settings at construction, so a new instance is needed to pick up
+            # live edits without restarting playback.
             addon = xbmcaddon.Addon()
             show_on_start, show_on_osd, show_on_tinyppi = _read_triggers(addon)
             duration = addon.getSettingInt("splash_duration")
@@ -425,19 +370,17 @@ def open_splash() -> None:
             in_fullscreen = xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)")
             in_start_window = show_on_start and (time.monotonic() - started < duration)
 
-            # End a start-only splash once its window has passed; the OSD and
-            # TinyPPI triggers keep the controller alive for the whole film.
+            # End a start-only splash once its window has passed; OSD / TinyPPI
+            # triggers keep the controller alive for the whole film.
             if not show_on_osd and not show_on_tinyppi and not in_start_window:
                 break
 
-            # The VS10 mode-select dialog also sets TinyPPI.Running, but codec
-            # logos must never appear over it, so DialogMode suppresses them.
+            # The VS10 dialog also sets TinyPPI.Running, but logos must never
+            # appear over it, so DialogMode suppresses them.
             dialog_open  = home.getProperty(PROP_DIALOG_MODE) == "true"
             overlay_open = home.getProperty(PROP_RUNNING) == "true"
 
             # Pick the active display mode (priority: TinyPPI > OSD > start).
-            # Inside the TinyPPI overlay the logos are suppressed unless enabled
-            # for it, matching the previous behaviour.
             if dialog_open:
                 mode = None
             elif overlay_open:
@@ -449,11 +392,8 @@ def open_splash() -> None:
             else:
                 mode = None
 
-            # The logos live on the fullscreen video window; while the user is in
-            # a menu they are torn down and rebuilt again on return.  The build
-            # carries the active mode's own offset, scale and colours, so any of
-            # those changing (or a mode / audio-track change) simply rebuilds at
-            # the new position / size / tint.
+            # The logos live on the fullscreen video window and are rebuilt on
+            # any offset / scale / colour / mode / audio-track change.
             desired = None
             colors = None
             if mode and in_fullscreen:
