@@ -1054,3 +1054,11 @@ msgstr ""
 msgctxt "#32327"
 msgid "TinyPPI overlay"
 msgstr ""
+
+msgctxt "#32328"
+msgid "Size (%)"
+msgstr ""
+
+msgctxt "#32329"
+msgid "Scales the format logos. 100% is the default size; lower values shrink them, higher values enlarge them. The horizontal and vertical offset are kept."
+msgstr ""

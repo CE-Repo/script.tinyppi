@@ -1054,3 +1054,11 @@ msgstr "Video-OSD"
 msgctxt "#32327"
 msgid "TinyPPI overlay"
 msgstr "TinyPPI-Overlay"
+
+msgctxt "#32328"
+msgid "Size (%)"
+msgstr "Größe (%)"
+
+msgctxt "#32329"
+msgid "Scales the format logos. 100% is the default size; lower values shrink them, higher values enlarge them. The horizontal and vertical offset are kept."
+msgstr "Skaliert die Format-Logos. 100% ist die Standardgröße; kleinere Werte verkleinern sie, größere vergrößern sie. Der horizontale und vertikale Versatz bleiben erhalten."

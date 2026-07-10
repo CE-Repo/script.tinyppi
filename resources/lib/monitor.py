@@ -80,6 +80,17 @@ class KodiMonitor(xbmc.Monitor):
         except Exception as exc:
             _log(f"Exception in KodiMonitor.onNotification: {exc}", xbmc.LOGERROR)
 
+    def onSettingsChanged(self) -> None:
+        """(Re)launch the splash when the add-on settings change.
+
+        A splash controller that is already running re-reads every setting from a
+        fresh ``Addon()`` each poll, so it picks up edits live on its own (its
+        re-entry guard makes this call a no-op then).  This launch covers the
+        other case: when all triggers were off at playback start no controller
+        exists, so enabling one here starts it without restarting playback.
+        """
+        self._maybe_show_splash()
+
     def _maybe_show_splash(self) -> None:
         """Fire the start-up format-logo splash when enabled for this video.
 

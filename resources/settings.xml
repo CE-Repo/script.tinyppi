@@ -114,6 +114,21 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
+                <setting id="splash_start_scale" type="integer" label="32328" help="32329">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>80</minimum>
+                        <step>1</step>
+                        <maximum>130</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_enabled">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="integer" />
+                </setting>
             </group>
             <group id="2" label="32326">
                 <setting id="splash_show_on_osd" type="boolean" label="32306" help="32307">
@@ -151,6 +166,21 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
+                <setting id="splash_osd_scale" type="integer" label="32328" help="32329">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>80</minimum>
+                        <step>1</step>
+                        <maximum>130</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_osd">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="integer" />
+                </setting>
             </group>
             <group id="3" label="32327">
                 <setting id="splash_show_on_tinyppi" type="boolean" label="32319" help="32320">
@@ -187,6 +217,21 @@
                         </dependency>
                     </dependencies>
                     <control type="slider" format="percentage" />
+                </setting>
+                <setting id="splash_tinyppi_scale" type="integer" label="32328" help="32329">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>80</minimum>
+                        <step>1</step>
+                        <maximum>130</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="integer" />
                 </setting>
             </group>
             <group id="4" label="32246">

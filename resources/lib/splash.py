@@ -31,7 +31,7 @@ import xbmcgui
 
 from maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP
 from theme import apply_theme
-from utils import PROP_RUNNING, info
+from utils import PROP_DIALOG_MODE, PROP_RUNNING, info
 
 _ADDON      = xbmcaddon.Addon()
 _MEDIA_PATH = os.path.join(
@@ -99,6 +99,20 @@ _OFFSET_SETTINGS = {
     "osd":     ("splash_osd_offset_x",     "splash_osd_offset_y"),
     "tinyppi": ("splash_tinyppi_offset_x", "splash_tinyppi_offset_y"),
 }
+
+# Each display mode also has its own size multiplier (stored as 80–130 %, default
+# 100 %) so the logo block can be scaled independently per trigger.  The value
+# multiplies the base layout scale below; the offsets are computed from the
+# resulting panel size, so scaling and positioning stay independent.
+_SCALE_SETTINGS = {
+    "start":   "splash_start_scale",
+    "osd":     "splash_osd_scale",
+    "tinyppi": "splash_tinyppi_scale",
+}
+
+# Base layout scale for the logo block; the per-mode user scale multiplies it, so
+# a user value of 1.0 reproduces the original out-of-the-box size.
+_BASE_SCALE = 0.95
 
 
 def _amlogic_hdr_token() -> str:
@@ -183,6 +197,7 @@ def _panel_controls(
 def _build_controls(
     logos: list[str], colors: dict[str, str],
     offset_x: int, offset_y: int, screen_w: int, screen_h: int,
+    user_scale: float = 1.0,
 ) -> list[xbmcgui.ControlImage]:
     """Lay out the logos as a vertical stack, sized to the skin.
 
@@ -190,17 +205,20 @@ def _build_controls(
     ``screen_h``) so the placement holds up across skins designed at 720p or
     1080p.  ``offset_x`` / ``offset_y`` (0–100 %) slide the whole block along the
     free horizontal / vertical travel: 0 % keeps a corner inset at the top-left,
-    100 % moves it flush into the bottom-right corner.  A rounded panel is drawn
-    behind the stack (first in the list, so it renders underneath the logos);
-    its and the divider's visibility are controlled purely by their themed
-    opacity.  ``colors`` supplies the themed ARGB tints keyed by ``bg`` /
+    100 % moves it flush into the bottom-right corner.  ``user_scale`` (0.1–1.2)
+    resizes the whole block; because the offsets are derived from the resulting
+    panel size, scaling and positioning stay independent.  A rounded panel is
+    drawn behind the stack (first in the list, so it renders underneath the
+    logos); its and the divider's visibility are controlled purely by their
+    themed opacity.  ``colors`` supplies the themed ARGB tints keyed by ``bg`` /
     ``video`` / ``audio`` / ``divider``.
     """
     if not logos:
         return []
 
-    # Overall size multiplier for the logo block (panel, logos, gaps, radius).
-    scale = 0.95
+    # Overall size multiplier for the logo block (panel, logos, gaps, radius):
+    # the base layout scale times the user-configured per-mode multiplier.
+    scale = _BASE_SCALE * user_scale
 
     box_w    = int(screen_w * 0.09 * scale)
     box_h    = int(screen_h * 0.055 * scale)
@@ -267,6 +285,39 @@ def _window_dims(window) -> tuple[int, int]:
     return xbmcgui.getScreenWidth(), xbmcgui.getScreenHeight()
 
 
+def _read_triggers(addon) -> tuple[bool, bool, bool]:
+    """Return the ``(start, osd, tinyppi)`` trigger toggles from the settings."""
+    return (
+        addon.getSettingBool("splash_enabled"),
+        addon.getSettingBool("splash_show_on_osd"),
+        addon.getSettingBool("splash_show_on_tinyppi"),
+    )
+
+
+def _read_colors(home, addon) -> dict[str, str]:
+    """Publish the themed colours and read the splash tints back off *home*."""
+    apply_theme(home, addon)
+    return {
+        "bg":      home.getProperty(_PROP_BG_COLOR) or _BG_COLOR,
+        "video":   home.getProperty(_PROP_VIDEO_COLOR) or _LOGO_COLOR,
+        "audio":   home.getProperty(_PROP_AUDIO_COLOR) or _LOGO_COLOR,
+        "divider": home.getProperty(_PROP_DIVIDER_COLOR) or _DIVIDER_COLOR,
+    }
+
+
+def _mode_scale(addon, mode: str) -> float:
+    """Return the configured size multiplier for *mode*, clamped to 0.8–1.3.
+
+    The setting is stored as a whole percentage (80–130, i.e. 80 %–130 %); it is
+    divided by 100 to yield the layout multiplier (a 1 % step = 0.01).
+    """
+    try:
+        percent = addon.getSettingInt(_SCALE_SETTINGS[mode])
+    except Exception:
+        return 1.0
+    return min(1.3, max(0.8, percent / 100.0))
+
+
 def open_splash() -> None:
     """Run the logo overlay controller for the lifetime of the current video.
 
@@ -276,13 +327,9 @@ def open_splash() -> None:
     playback ends.  Skips silently when all triggers are disabled, when no video
     is playing, or when another controller is running.
     """
-    show_on_start   = _ADDON.getSettingBool("splash_enabled")
-    show_on_osd     = _ADDON.getSettingBool("splash_show_on_osd")
-    show_on_tinyppi = _ADDON.getSettingBool("splash_show_on_tinyppi")
+    show_on_start, show_on_osd, show_on_tinyppi = _read_triggers(xbmcaddon.Addon())
     if not show_on_start and not show_on_osd and not show_on_tinyppi:
         return
-
-    duration = _ADDON.getSettingInt("splash_duration")
 
     player = xbmc.Player()
     if not player.isPlayingVideo():
@@ -292,19 +339,8 @@ def open_splash() -> None:
     if home.getProperty(PROP_SPLASH_ACTIVE) == "true":
         return
 
-    logos = _current_logos()
-    if not logos:
+    if not _current_logos():
         return
-
-    # Publish the themed colours, then read the splash tints back off the Home
-    # window (falling back to the built-in defaults if unavailable).
-    apply_theme(home, _ADDON)
-    colors = {
-        "bg":      home.getProperty(_PROP_BG_COLOR) or _BG_COLOR,
-        "video":   home.getProperty(_PROP_VIDEO_COLOR) or _LOGO_COLOR,
-        "audio":   home.getProperty(_PROP_AUDIO_COLOR) or _LOGO_COLOR,
-        "divider": home.getProperty(_PROP_DIVIDER_COLOR) or _DIVIDER_COLOR,
-    }
 
     video_window = xbmcgui.Window(WINDOW_FULLSCREEN_VIDEO)
     screen_w, screen_h = _window_dims(video_window)
@@ -312,12 +348,22 @@ def open_splash() -> None:
 
     home.setProperty(PROP_SPLASH_ACTIVE, "true")
     controls: list[xbmcgui.ControlImage] = []
-    state: tuple | None = None  # (logos, offset_x, offset_y) currently on screen
+    state: tuple | None = None  # (logos, offset_x, offset_y, scale, colours) shown
     try:
         started = time.monotonic()
         while not monitor.abortRequested():
             if not player.isPlayingVideo():
                 break
+
+            # Read every setting from a *fresh* Addon() each poll.  An Addon
+            # instance caches its settings at construction, so the long-lived
+            # module-level _ADDON keeps returning the values from when the splash
+            # process started (i.e. from playback start).  A new instance reloads
+            # the current values, so edits made in the settings apply live without
+            # restarting playback.
+            addon = xbmcaddon.Addon()
+            show_on_start, show_on_osd, show_on_tinyppi = _read_triggers(addon)
+            duration = addon.getSettingInt("splash_duration")
 
             in_fullscreen = xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)")
             in_start_window = show_on_start and (time.monotonic() - started < duration)
@@ -327,11 +373,17 @@ def open_splash() -> None:
             if not show_on_osd and not show_on_tinyppi and not in_start_window:
                 break
 
+            # The VS10 mode-select dialog also sets TinyPPI.Running, but codec
+            # logos must never appear over it, so DialogMode suppresses them.
+            dialog_open  = home.getProperty(PROP_DIALOG_MODE) == "true"
+            overlay_open = home.getProperty(PROP_RUNNING) == "true"
+
             # Pick the active display mode (priority: TinyPPI > OSD > start).
             # Inside the TinyPPI overlay the logos are suppressed unless enabled
             # for it, matching the previous behaviour.
-            overlay_open = home.getProperty(PROP_RUNNING) == "true"
-            if overlay_open:
+            if dialog_open:
+                mode = None
+            elif overlay_open:
                 mode = "tinyppi" if show_on_tinyppi else None
             elif show_on_osd and xbmc.getCondVisibility("Window.IsVisible(videoosd)"):
                 mode = "osd"
@@ -342,17 +394,22 @@ def open_splash() -> None:
 
             # The logos live on the fullscreen video window; while the user is in
             # a menu they are torn down and rebuilt again on return.  The build
-            # carries the active mode's own offset, so switching mode (or an
-            # audio-track change) simply rebuilds at the new position.
+            # carries the active mode's own offset, scale and colours, so any of
+            # those changing (or a mode / audio-track change) simply rebuilds at
+            # the new position / size / tint.
             desired = None
+            colors = None
             if mode and in_fullscreen:
                 logos = _current_logos()
                 if logos:
+                    colors = _read_colors(home, addon)
                     setting_x, setting_y = _OFFSET_SETTINGS[mode]
                     desired = (
                         tuple(logos),
-                        _ADDON.getSettingInt(setting_x),
-                        _ADDON.getSettingInt(setting_y),
+                        addon.getSettingInt(setting_x),
+                        addon.getSettingInt(setting_y),
+                        _mode_scale(addon, mode),
+                        tuple(sorted(colors.items())),
                     )
 
             if desired != state:
@@ -370,7 +427,7 @@ def open_splash() -> None:
                 if desired:
                     controls = _build_controls(
                         list(desired[0]), colors, desired[1], desired[2],
-                        screen_w, screen_h,
+                        screen_w, screen_h, desired[3],
                     )
                     video_window.addControls(controls)
                     # Animations must be attached after the controls belong to a

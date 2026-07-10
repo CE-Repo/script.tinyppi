@@ -1054,3 +1054,11 @@ msgstr "视频 OSD"
 msgctxt "#32327"
 msgid "TinyPPI overlay"
 msgstr "TinyPPI 叠加层"
+
+msgctxt "#32328"
+msgid "Size (%)"
+msgstr "大小 (%)"
+
+msgctxt "#32329"
+msgid "Scales the format logos. 100% is the default size; lower values shrink them, higher values enlarge them. The horizontal and vertical offset are kept."
+msgstr "缩放格式徽标。100% 为默认大小；较小的值会缩小徽标，较大的值会放大徽标。水平和垂直偏移保持不变。"
