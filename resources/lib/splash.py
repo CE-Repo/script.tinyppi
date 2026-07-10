@@ -225,7 +225,7 @@ def _build_controls(
     v_gap    = int(screen_h * 0.02 * scale)
     pad_x    = int(screen_w * 0.012 * scale)
     pad_y    = int(screen_h * 0.02 * scale)
-    radius   = int(screen_h * 0.025 * scale)
+    radius   = int(screen_h * 0.02 * scale)
 
     count   = len(logos)
     stack_h = count * box_h + (count - 1) * v_gap
@@ -234,9 +234,10 @@ def _build_controls(
 
     # Slide the whole panel across the screen.  A corner inset is kept at the
     # 0 % (top / left) end, and a smaller gap is kept from the edge at the 100 %
-    # (bottom / right) end so it never sits perfectly flush.
-    inset = int(screen_h * 0.03)
-    edge  = 35
+    # (bottom / right) end so it never sits perfectly flush.  Both anchors carry
+    # an extra 5 px so neither extreme sits too close to the edge.
+    inset = int(screen_h * 0.0325)
+    edge  = 40
     offset_x = min(100, max(0, offset_x))
     offset_y = min(100, max(0, offset_y))
     panel_x = inset + max(0, screen_w - panel_w - inset - edge) * offset_x // 100
