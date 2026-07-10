@@ -13,7 +13,8 @@ triggers, each toggled from the add-on settings, decide when they are visible:
 * ``splash_show_on_tinyppi`` – show them while the TinyPPI info overlay is open.
 
 The logos are added as ``ControlImage`` controls directly to Kodi's fullscreen
-video window (id 12005) and only toggled with ``setVisible``.  A modeless dialog
+video window (id 12005) and toggled through a visibility condition bound to a
+Home-window property (see ``_fade_in`` / ``_fade_out``).  A modeless dialog
 would sit on top of the dialog stack and swallow remote input, which prevents
 the video OSD from opening; drawing straight onto the video window leaves all
 playback controls fully usable while the logos are visible.
@@ -79,17 +80,24 @@ _PROP_DIVIDER_COLOR = "TinyPPI.SplashDividerColor"
 # audio-track changes.
 _POLL_INTERVAL = 0.25
 
-# Fade in/out so the logos appear and disappear softly instead of popping.  The
-# animations are attached *after* the controls are added to the window (setting
-# them beforehand is silently dropped); the "Visible" animation then plays on
-# setVisible(True) and the "Hidden" one on setVisible(False), which is awaited
-# before the controls are removed.
-_FADE_MS      = 250
-_FADE_SECONDS = (_FADE_MS + 60) / 1000.0  # wait a touch longer than the fade
+# Fade in/out so the logos appear and disappear softly instead of popping.
+# Kodi only plays "Visible" / "Hidden" animations on runtime-added controls
+# when a *visibility condition* changes its value — imperative setVisible()
+# flips the state without a condition change and the animations never run.
+# The controls therefore watch a Home-window property through
+# setVisibleCondition(); _fade_in / _fade_out drive the fades by toggling it.
+PROP_SPLASH_VISIBLE = "TinyPPI.SplashVisible"
+_VISIBLE_CONDITION  = (
+    f"String.IsEqual(Window({_HOME_WINDOW_ID}).Property({PROP_SPLASH_VISIBLE}),true)"
+)
+_FADE_IN_MS       = 350
+_FADE_OUT_MS      = 150
+_FADE_OUT_SECONDS = (_FADE_OUT_MS + 60) / 1000.0  # wait a touch past the fade
+_RENDER_TICK      = 0.05  # one render frame, so Kodi settles a state change
 _ANIM_IN  = ("Visible",
-             f"effect=fade start=0 end=100 time={_FADE_MS} tween=sine easing=out")
+             f"effect=fade start=0 end=100 time={_FADE_IN_MS} tween=cubic easing=inout")
 _ANIM_OUT = ("Hidden",
-             f"effect=fade start=100 end=0 time={_FADE_MS} tween=sine easing=in")
+             f"effect=fade start=100 end=0 time={_FADE_OUT_MS}")
 
 # Each display mode has its own horizontal / vertical offset settings so the
 # logos can sit in a different spot for each trigger.  When several modes are
@@ -319,6 +327,54 @@ def _mode_scale(addon, mode: str) -> float:
     return min(1.3, max(0.8, percent / 100.0))
 
 
+def _fade_in(video_window, home, monitor, controls) -> None:
+    """Add *controls* to the video window and fade them in.
+
+    The ordering is load-bearing; deviating makes the logos pop or flash:
+
+    1. Force-hide every control *before* adding it (since Kodi 19 the state is
+       stored and applied when the control is created).  Freshly added controls
+       are otherwise visible until their condition is first evaluated, which
+       renders them at full opacity for a few frames — and because the ~11
+       panel pieces get their conditions bound one by one, they also wink out
+       staggered.  Pre-hiding keeps everything unrendered until the final flip.
+    2. Bind the visibility condition with the property cleared and *before*
+       arming any animation, so the initial visible→hidden condition edge
+       cannot play a "Hidden" fade.
+    3. Wait one render tick so Kodi settles the hidden state.
+    4. Arm the animations (only possible once the controls belong to a window;
+       arming beforehand is silently dropped), then lift the force-hide — the
+       condition is still false, so the controls stay invisible.
+    5. Wait another tick, then flip the property false→true — the condition
+       change plays the "Visible" fade from fully transparent.
+    """
+    home.clearProperty(PROP_SPLASH_VISIBLE)
+    for control in controls:
+        control.setVisible(False)
+    video_window.addControls(controls)
+    for control in controls:
+        control.setVisibleCondition(_VISIBLE_CONDITION, False)
+    monitor.waitForAbort(_RENDER_TICK)
+    for control in controls:
+        control.setAnimations([_ANIM_IN, _ANIM_OUT])
+    for control in controls:
+        control.setVisible(True)
+    monitor.waitForAbort(_RENDER_TICK)
+    home.setProperty(PROP_SPLASH_VISIBLE, "true")
+
+
+def _fade_out(video_window, home, monitor, controls) -> None:
+    """Fade *controls* out (condition true→false), await it, remove them."""
+    home.clearProperty(PROP_SPLASH_VISIBLE)
+    monitor.waitForAbort(_FADE_OUT_SECONDS)
+    try:
+        video_window.removeControls(controls)
+    except Exception:
+        # The video window may already be gone (playback stopped); the
+        # controls are torn down with it, so a failed removal is harmless.
+        pass
+
+
 def open_splash() -> None:
     """Run the logo overlay controller for the lifetime of the current video.
 
@@ -415,14 +471,7 @@ def open_splash() -> None:
 
             if desired != state:
                 if controls:
-                    # Fade the current logos out (Hidden animation), then remove.
-                    for control in controls:
-                        control.setVisible(False)
-                    monitor.waitForAbort(_FADE_SECONDS)
-                    try:
-                        video_window.removeControls(controls)
-                    except Exception:
-                        pass
+                    _fade_out(video_window, home, monitor, controls)
                     controls = []
                 state = desired
                 if desired:
@@ -430,16 +479,7 @@ def open_splash() -> None:
                         list(desired[0]), colors, desired[1], desired[2],
                         screen_w, screen_h, desired[3],
                     )
-                    video_window.addControls(controls)
-                    # Animations must be attached after the controls belong to a
-                    # window.  Hide them first (no animation yet), then arm the
-                    # fade and show them so the "Visible" animation plays in.
-                    for control in controls:
-                        control.setVisible(False)
-                    for control in controls:
-                        control.setAnimations([_ANIM_IN, _ANIM_OUT])
-                    for control in controls:
-                        control.setVisible(True)
+                    _fade_in(video_window, home, monitor, controls)
 
             if monitor.waitForAbort(_POLL_INTERVAL):
                 break
@@ -451,4 +491,5 @@ def open_splash() -> None:
                 # The video window may already be gone (playback stopped); the
                 # controls are torn down with it, so a failed removal is harmless.
                 pass
+        home.clearProperty(PROP_SPLASH_VISIBLE)
         home.clearProperty(PROP_SPLASH_ACTIVE)
