@@ -67,6 +67,62 @@ plugin://script.tinyppi/
 
 ---
 
+## Codec Logos
+
+TinyPPI can display the current **video (HDR) and audio format** as stacked logos
+directly on the video window during playback. The video/HDR logo sits on top, the
+audio logo below it, on a rounded panel whose colors and opacity are fully themeable
+in the add-on settings. The logos are re-resolved live, so switching the audio track
+updates the audio logo on the fly.
+
+You can enable the logos in three independent situations (**Settings → Codec Logos**):
+
+- **On playback start** — shown for the first few seconds after a video starts
+  (duration configurable).
+- **While the Video OSD is open** — shown whenever the player OSD is visible.
+- **While the TinyPPI overlay is open** — shown alongside the info overlay.
+
+For each situation the horizontal/vertical position and the size can be adjusted
+separately.
+
+### Supported formats
+
+**Video / HDR**
+
+| Logo | Format |
+|------|--------|
+| SDR | Standard Dynamic Range |
+| HDR10 | HDR10 |
+| HDR10+ | HDR10+ |
+| HLG | Hybrid Log-Gamma |
+| Dolby Vision | Dolby Vision |
+
+**Audio**
+
+| Logo | Format |
+|------|--------|
+| AAC | AAC (incl. HE-AAC) |
+| Dolby Digital | Dolby Digital (AC-3) |
+| Dolby Digital Plus | Dolby Digital Plus (E-AC-3) |
+| Dolby Digital Plus Atmos | Dolby Digital Plus with Dolby Atmos |
+| Dolby TrueHD | Dolby TrueHD |
+| Dolby TrueHD Atmos | Dolby TrueHD with Dolby Atmos |
+| DTS | DTS (incl. DTS Express) |
+| DTS 96/24 | DTS 96/24 |
+| DTS-ES | DTS-ES |
+| DTS-HD HRA | DTS-HD High Resolution Audio |
+| DTS-HD MA | DTS-HD Master Audio |
+| DTS:X | DTS:X |
+| IMAX | DTS:X IMAX Enhanced |
+| FLAC | FLAC |
+| PCM | PCM / LPCM |
+| MP3 | MP3 |
+| OPUS | Opus |
+
+Formats without a matching logo simply omit the audio image.
+
+---
+
 ## Advanced Launch Arguments
 
 TinyPPI supports additional arguments to open specific modes or apply VS10 output modes directly — without opening the overlay or the dialog first.
