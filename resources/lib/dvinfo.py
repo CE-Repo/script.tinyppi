@@ -635,6 +635,45 @@ def _worker(path: str, session_token: str) -> None:
             _inflight.discard(path)
 
 
+def _start_worker(path: str, session_token: str) -> bool:
+    """Spawn the background detection worker for ``path`` unless one is already
+    in flight for it.  Returns True when a new worker was started."""
+    with _lock:
+        if path in _inflight:
+            return False
+        _inflight.add(path)
+
+    threading.Thread(
+        target=_worker,
+        args=(path, session_token),
+        daemon=True,
+    ).start()
+    return True
+
+
+def prime_playback_detection() -> bool:
+    """Kick off DV / audio detection for the currently playing file ahead of time.
+
+    Called from the background service at playback start so the hdrprobe and
+    audio-bitstream scan finish while the video plays, leaving the result cached
+    before the overlay is ever opened.  Non-blocking; a no-op when nothing is
+    playing or a result is already cached / in flight.  Returns True when a new
+    detection worker was started.
+    """
+    try:
+        path = xbmc.Player().getPlayingFile()
+    except RuntimeError:
+        return False
+    if not path:
+        return False
+
+    session_token = _session_token()
+    if _read_cached_info(path, session_token) is not None:
+        return False
+
+    return _start_worker(path, session_token)
+
+
 def _get_info_status_value(key: str) -> tuple[str, str]:
     """Non-blocking.  Return one cached DV metadata field for the current file,
     starting background detection on first call.
@@ -655,16 +694,7 @@ def _get_info_status_value(key: str) -> tuple[str, str]:
         value = cached_info.get(key, "")
         return value, "ready" if value else "failed"
 
-    with _lock:
-        if path in _inflight:
-            return "", "fetching"
-        _inflight.add(path)
-
-    threading.Thread(
-        target=_worker,
-        args=(path, session_token),
-        daemon=True,
-    ).start()
+    _start_worker(path, session_token)
     return "", "fetching"
 
 
