@@ -722,11 +722,7 @@ def _fade_out(video_window, home, monitor, mode: str, controls) -> None:
     """Fade *controls* out (condition true→false), await it, remove them."""
     home.clearProperty(_MODE_VISIBLE_PROPS[mode])
     monitor.waitForAbort(_FADE_OUT_SECONDS)
-    try:
-        video_window.removeControls(controls)
-    except Exception:
-        # The video window may already be gone; a failed removal is harmless.
-        pass
+    _remove_controls(video_window, controls)
 
 
 def open_splash() -> None:
