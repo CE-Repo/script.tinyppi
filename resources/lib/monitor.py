@@ -13,7 +13,7 @@ _LIB_PATH = os.path.dirname(__file__)
 if _LIB_PATH not in sys.path:
     sys.path.insert(0, _LIB_PATH)
 
-from dvinfo import reset_playback_cache
+from dvinfo import prime_playback_detection, reset_playback_cache
 from theme import apply_theme
 
 _ADDON_ID = "script.tinyppi"
@@ -42,8 +42,8 @@ def _notification_media_type(data: str) -> str:
 
 
 class KodiMonitor(xbmc.Monitor):
-    """Listens for Kodi notifications; resets the DV cache on stop and fires the
-    splash on playback start."""
+    """Listens for Kodi notifications; resets the DV cache on stop and, on
+    playback start, preloads the metadata detection and fires the splash."""
 
     def onNotification(self, sender: str, method: str, data: str) -> None:
         if method == "Player.OnStop":
@@ -51,6 +51,7 @@ class KodiMonitor(xbmc.Monitor):
             _log("Dolby Vision playback cache cleared")
 
         if method == "Player.OnAVStart":
+            self._prime_detection()
             self._maybe_show_splash()
 
         try:
@@ -67,6 +68,21 @@ class KodiMonitor(xbmc.Monitor):
         start, so enabling one here starts it without restarting playback.
         """
         self._maybe_show_splash()
+
+    def _prime_detection(self) -> None:
+        """Start hdrprobe / audio detection as soon as a video begins playing.
+
+        Runs the same background scan the overlay would trigger lazily, so the
+        Dolby Vision, HDR and audio metadata are already cached and shown
+        instantly when the overlay (or dialog mode) is opened — no ``Fetching...``.
+        """
+        try:
+            if not xbmc.getCondVisibility("Player.HasVideo"):
+                return
+            if prime_playback_detection():
+                _log("Preloading playback metadata in background")
+        except Exception as exc:
+            _log(f"Exception priming detection: {exc}", xbmc.LOGERROR)
 
     def _maybe_show_splash(self) -> None:
         """Fire the format-logo splash when enabled for this video.
