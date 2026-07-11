@@ -124,6 +124,56 @@ AUDIO_CODEC_MAP = {
     "cdda":            "CD Audio",
 }
 
+# Audio codec -> source PCM bit depth fallback.  The real depth is parsed from
+# the source bitstream by audioprobe.py; this map covers the moment while that
+# detection still runs and streams the scanner could not see.  During
+# passthrough Kodi itself reports the packed IEC 61937 byte stream (always
+# ``8``) instead of the source resolution, so falling back to Kodi is not an
+# option there.  The lossless HD formats and DTS 96/24 carry 24-bit PCM on
+# disc releases; PCM variants encode the depth in the codec name.  Lossy
+# bitstreams (AC3 / E-AC3 / DTS core / AAC) have no defined PCM bit depth and
+# are intentionally unmapped.
+AUDIO_BIT_DEPTH_MAP = {
+    # Dolby lossless
+    "truehd":          24,
+    "truehd_atmos":    24,
+
+    # DTS lossless / high resolution
+    "dtshd":           24,
+    "dtshd_ma":        24,
+    "dtshd_hra":       24,
+    "dtshd_ma_x":      24,
+    "dtshd_ma_x_imax": 24,
+    "dts_96_24":       24,
+
+    # PCM with the depth in the codec name
+    "pcm_s16le":       16,
+    "pcm_s24le":       24,
+}
+
+# Codecs whose decoded stream has a defined PCM bit depth, so Kodi's reported
+# depth is meaningful when Kodi decodes itself (lossless / uncompressed
+# formats; the DTS / TrueHD / MLP / FLAC families are covered by audioprobe
+# and AUDIO_BIT_DEPTH_MAP before this set is consulted).  Lossy codecs (AC3 /
+# E-AC3 / AAC / MP3 / Vorbis / Opus / WMA / ...) are intentionally absent —
+# they store frequency coefficients, not PCM samples, so no bit depth exists
+# and none is displayed.
+AUDIO_PCM_DEPTH_CODECS = {
+    "alac",
+    "ape",
+    "flac",
+    "wav",
+    "wavpack",
+    "pcm",
+    "pcm_bluray",
+    "pcm_s16le",
+    "pcm_s24le",
+    "aif",
+    "aifc",
+    "aiff",
+    "cdda",
+}
+
 # Audio codec -> splash logo (VideoPlayer.AudioCodec -> codecs/*.png, relative to
 # the skin media folder).  Unmapped codecs omit the audio image.
 AUDIO_LOGO_MAP = {
@@ -147,8 +197,8 @@ AUDIO_LOGO_MAP = {
     # DTS
     "dca":             "codecs/DTS.png",
     "dts":             "codecs/DTS.png",
-    "dts_96_24":       "codecs/DTS.png",
-    "dts_es":          "codecs/DTS.png",
+    "dts_96_24":       "codecs/DTS-96-24.png",
+    "dts_es":          "codecs/DTS-ES.png",
     "dts_express":     "codecs/DTS.png",
     "dtshd":           "codecs/DTS-HD-MA.png",
     "dtshd_ma":        "codecs/DTS-HD-MA.png",

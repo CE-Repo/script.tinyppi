@@ -21,6 +21,8 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
+from audioprobe import scan_audio_streams
+
 _ADDON      = xbmcaddon.Addon()
 
 _TEMP_DIR   = xbmcvfs.translatePath("special://temp/")
@@ -56,6 +58,8 @@ _CACHE_FIELD_PROPERTIES = {
     "dv_el_present": "TinyPPI.DVInfo.DvElPresent",
     "dv_el_type": "TinyPPI.DVInfo.DvElType",
     "bit_depth": "TinyPPI.DVInfo.BitDepth",
+    "audio_depths": "TinyPPI.DVInfo.AudioDepths",
+    "audio_rates": "TinyPPI.DVInfo.AudioRates",
 }
 
 _inflight:  set[str]       = set()  # paths currently being processed
@@ -561,20 +565,53 @@ def _run_hdrprobe(probe: str, src: str) -> dict | None:
     return data if isinstance(data, dict) else None
 
 
-def _detect(path: str) -> dict[str, str]:
-    """Return compact Dolby Vision metadata for the given playing path."""
-    probe = _hdrprobe()
-    if not probe or not os.path.exists(probe):
-        _log(f"DV: hdrprobe binary missing ({probe})", xbmc.LOGWARNING)
-        return {}
+def _scan_audio_streams(src: str) -> tuple[str, str]:
+    """Scan the first chunk of ``src`` for audio bitstreams and serialize the
+    detected source metrics as a ``(depths, rates)`` pair of per-family
+    strings, e.g. ``("dts=24;truehd=24", "dts=96000")`` ('' when none)."""
+    try:
+        with open(src, "rb") as f:
+            head = f.read(_CHUNK_BYTES)
+    except OSError as exc:
+        _log(f"Audio: chunk read failed: {exc}", xbmc.LOGWARNING)
+        return "", ""
 
+    streams = scan_audio_streams(head)
+    depths = ";".join(
+        f"{family}={fields['depth']}"
+        for family, fields in sorted(streams.items())
+        if "depth" in fields
+    )
+    rates = ";".join(
+        f"{family}={fields['rate']}"
+        for family, fields in sorted(streams.items())
+        if "rate" in fields
+    )
+    return depths, rates
+
+
+def _detect(path: str) -> dict[str, str]:
+    """Return compact Dolby Vision + audio metadata for the given playing path."""
     src, is_temp = _local_source(path)
     try:
-        data = _run_hdrprobe(probe, src)
-        if data is None:
-            return {}
+        info = {}
+        probe = _hdrprobe()
+        if not probe or not os.path.exists(probe):
+            _log(f"DV: hdrprobe binary missing ({probe})", xbmc.LOGWARNING)
+        else:
+            data = _run_hdrprobe(probe, src)
+            if data is not None:
+                info = _parse_probe(data)
 
-        return _parse_probe(data)
+        # The audio bitstream scan reads the same local chunk, so it runs
+        # even when hdrprobe itself is unavailable or failed.
+        audio_depths, audio_rates = _scan_audio_streams(src)
+        if audio_depths or audio_rates:
+            if not info:
+                info = _empty_info()
+            info["audio_depths"] = audio_depths
+            info["audio_rates"] = audio_rates
+        return info
     finally:
         if is_temp and os.path.exists(_CHUNK_PATH):
             try:
@@ -749,3 +786,34 @@ def get_bit_depth() -> str:
     """Return the source bit depth as a bare number string (e.g. ``12``);
     FEL uses the reconstructed depth, others the container depth."""
     return _get_info_value("bit_depth")
+
+
+def _lookup_audio_field(cache_key: str, family: str) -> str:
+    """Return one per-family value from a serialized audio-scan cache field
+    (``"dts=24;truehd=24"``), or '' while detection runs / nothing found."""
+    if not family:
+        return ""
+    value, _status = _get_info_status_value(cache_key)
+    if not value:
+        return ""
+    for part in value.split(";"):
+        key, _, field = part.partition("=")
+        if key == family:
+            return field
+    return ""
+
+
+def get_audio_bit_depth(family: str) -> str:
+    """Return the bit depth parsed from the source audio bitstream (e.g.
+    ``"24"``) for a codec family (``dts`` / ``truehd`` / ``mlp`` / ``flac``),
+    or '' while detection runs or when no such stream was found.  No status
+    label; see audioprobe.py for what is actually read per format."""
+    return _lookup_audio_field("audio_depths", family)
+
+
+def get_audio_sample_rate(family: str) -> str:
+    """Return the sample rate in Hz parsed from the source audio bitstream
+    (e.g. ``"96000"``), or '' while detection runs or when the scanner emits
+    no rate for the family (currently only the DTS family needs one; see
+    audioprobe.py).  No status label."""
+    return _lookup_audio_field("audio_rates", family)

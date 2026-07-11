@@ -680,7 +680,7 @@
 						<left>240</left>
 						<top>60</top>
 						<width>400</width>
-						<label>$INFO[Player.Process(audiobitspersample),,-bit] / $INFO[Window().Property(AudioSampleRateVar)]</label>
+						<label>$INFO[Window().Property(AudioBitDepthVar),, / ]$INFO[Window().Property(AudioSampleRateVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>

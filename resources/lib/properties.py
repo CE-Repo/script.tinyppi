@@ -9,7 +9,9 @@ import xbmc
 import xbmcgui
 
 from maps import (
+    AUDIO_BIT_DEPTH_MAP,
     AUDIO_CODEC_MAP,
+    AUDIO_PCM_DEPTH_CODECS,
     CHANNELS_INPUT_MAP,
     CHANNELS_MAP,
     LANGUAGE_MAP,
@@ -20,6 +22,8 @@ from maps import (
 from utils import clean, cond, info, set_window_properties
 from helpers import format_fps, fps_display_texts, normalize_fps
 from dvinfo import (
+    get_audio_bit_depth,
+    get_audio_sample_rate,
     get_bit_depth,
     get_cm_version,
     get_hdr_format,
@@ -374,9 +378,73 @@ def get_AudioChannelsInputVar() -> str:
         return xbmc.getLocalizedString(13205)
 
 
+# Kodi audio codec name prefix -> audioprobe codec family (see audioprobe.py).
+# ``dts`` covers dts / dtshd_ma / dtshd_ma_x / dts_96_24 / ...; ``dca`` is
+# Kodi's alternate name for DTS core.
+_AUDIO_PROBE_FAMILY_PREFIXES = (
+    ("truehd", "truehd"),
+    ("dts", "dts"),
+    ("dca", "dts"),
+    ("mlp", "mlp"),
+    ("flac", "flac"),
+)
+
+
+def _audio_probe_family(codec: str) -> str:
+    """Map a Kodi audio codec name to its audioprobe codec family, or ''."""
+    for prefix, family in _AUDIO_PROBE_FAMILY_PREFIXES:
+        if codec.startswith(prefix):
+            return family
+    return ""
+
+
+def get_AudioBitDepthVar() -> str:
+    """Return the source audio bit depth for display, e.g. ``24-bit``.
+
+    The depth is read from the source bitstream itself (audioprobe.py): DTS
+    carries it in the core header, MLP in the major sync, FLAC in STREAMINFO;
+    TrueHD encodes none, so a detected stream reports the universal 24.
+
+    While detection still runs (or found nothing), known bitstream codecs
+    fall back to AUDIO_BIT_DEPTH_MAP, because Kodi's own
+    ``Player.Process(audiobitspersample)`` reports the sink format — during
+    passthrough the packed IEC 61937 byte stream, always ``8``.  Kodi's value
+    is only used for lossless/uncompressed codecs Kodi decodes itself
+    (AUDIO_PCM_DEPTH_CODECS).  Every other codec — the lossy formats — has no
+    PCM bit depth at all and returns ``''``, so the skin shows only the
+    sample rate.
+    """
+    codec = info("VideoPlayer.AudioCodec").lower().strip()
+
+    probed = get_audio_bit_depth(_audio_probe_family(codec))
+    if probed:
+        return f"{probed}-bit"
+
+    depth = AUDIO_BIT_DEPTH_MAP.get(codec)
+    if depth:
+        return f"{depth}-bit"
+
+    if codec in AUDIO_PCM_DEPTH_CODECS and not cond("Player.Passthrough"):
+        bits = clean(info("Player.Process(audiobitspersample)"))
+        if bits:
+            return f"{bits}-bit"
+
+    return ""
+
+
 def get_AudioSampleRateVar() -> str:
-    """Convert the audio sample rate from Hz to kHz and return a display string."""
-    samplerate = clean(info("Player.Process(audiosamplerate)"))
+    """Return the source audio sample rate for display, e.g. ``96 kHz``.
+
+    A rate probed from the source bitstream takes precedence; the scanner
+    only emits one for the DTS family, where Kodi reports the compatibility
+    core's rate (48 kHz) even when the extension carries 96/192 kHz (DTS
+    96/24, high-rate DTS-HD).  Everywhere else Kodi's own value already is
+    the source rate.
+    """
+    codec = info("VideoPlayer.AudioCodec").lower().strip()
+    samplerate = get_audio_sample_rate(_audio_probe_family(codec))
+    if not samplerate:
+        samplerate = clean(info("Player.Process(audiosamplerate)"))
     try:
         hz = float(samplerate)
     except (TypeError, ValueError):
@@ -620,6 +688,7 @@ def update_properties(window) -> None:
             ("AudioCodecSpatialVar", get_AudioCodecSpatialVar()),
             ("AudioChannelsVar", get_AudioChannelsVar()),
             ("AudioChannelsInputVar", get_AudioChannelsInputVar()),
+            ("AudioBitDepthVar", get_AudioBitDepthVar()),
             ("AudioSampleRateVar", get_AudioSampleRateVar()),
             ("AudioNameVar", get_AudioNameVar()),
             ("AudioNameShortVar", get_AudioNameShortVar()),
