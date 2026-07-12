@@ -725,6 +725,20 @@ def _fade_out(video_window, home, monitor, mode: str, controls) -> None:
     _remove_controls(video_window, controls)
 
 
+def _safe_addon():
+    """Return a fresh Addon, or None while Kodi has our id unregistered.
+
+    Updating the addon during playback briefly deletes and re-registers
+    ``script.tinyppi``; an ``Addon()`` built in that window raises
+    ``RuntimeError: Unknown addon id``.  The long-lived splash loop must tolerate
+    that and exit quietly instead of crashing (which also leaks Kodi classes).
+    """
+    try:
+        return xbmcaddon.Addon()
+    except RuntimeError:
+        return None
+
+
 def open_splash() -> None:
     """Run the logo overlay controller for the current video's lifetime.
 
@@ -734,7 +748,10 @@ def open_splash() -> None:
     silently when all triggers are off, no video plays, or another controller is
     running.
     """
-    show_on_start, show_on_osd, show_on_tinyppi = _read_triggers(xbmcaddon.Addon())
+    addon = _safe_addon()
+    if addon is None:
+        return
+    show_on_start, show_on_osd, show_on_tinyppi = _read_triggers(addon)
     if not show_on_start and not show_on_osd and not show_on_tinyppi:
         return
 
@@ -766,8 +783,11 @@ def open_splash() -> None:
 
             # Read settings from a fresh Addon() each poll: an Addon caches its
             # settings at construction, so a new instance is needed to pick up
-            # live edits without restarting playback.
-            addon = xbmcaddon.Addon()
+            # live edits without restarting playback.  While the addon is being
+            # updated Kodi unregisters our id, so bail out cleanly if it's gone.
+            addon = _safe_addon()
+            if addon is None:
+                break
             show_on_start, show_on_osd, show_on_tinyppi = _read_triggers(addon)
             duration = addon.getSettingInt("splash_duration")
 
