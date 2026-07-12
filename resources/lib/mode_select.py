@@ -3,6 +3,7 @@
 Open via ``RunScript(script.tinyppi,dialog)`` or ``open_dialog()``.
 """
 
+import json
 import threading
 import time
 import xbmc
@@ -17,6 +18,15 @@ _ADDON_PATH = _ADDON.getAddonInfo("path")
 _POLICY = "/sys/module/aml_media/parameters/dolby_vision_policy"
 _ENABLE = "/sys/module/aml_media/parameters/dolby_vision_enable"
 _DVMODE = "/sys/class/amdolby_vision/dv_mode"
+
+# One of the settings introduced alongside the native VS10 keymap actions in
+# SamuriHL/coreelec-xbmc commit 7df0943. Both were added in the same change, so
+# its presence over JSON-RPC tells us the running Kodi build ships the VS10
+# output engine (and therefore the vs10.* actions).
+_VS10_PROBE_SETTING = "coreelec.amlogic.dolbyvision.vs10.dv"
+
+# Cached result of the one-time capability probe (None = not yet probed).
+_vs10_actions = None
 
 _BTN_TINYPPI = 1001
 
@@ -35,6 +45,39 @@ def _delay(ms: int) -> None:
         xbmc.sleep(ms)
     except Exception:
         time.sleep(ms / 1000)
+
+
+def _read(path: str):
+    """Read a sysfs node, returning its stripped contents or None on failure."""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    except OSError:
+        return None
+
+
+def _dv_state():
+    """Snapshot the DV driver nodes, used to tell whether a native action took."""
+    return (_read(_POLICY), _read(_ENABLE), _read(_DVMODE))
+
+
+def _wait_for_dv_change(before, timeout_ms: int = 500, step_ms: int = 50) -> bool:
+    """Poll the DV driver state, returning True once it differs from ``before``."""
+    waited = 0
+    while waited < timeout_ms:
+        _delay(step_ms)
+        waited += step_ms
+        if _dv_state() != before:
+            return True
+    return False
+
+
+def _is_playing_video() -> bool:
+    """True when a video is playing, i.e. when native VS10 actions can apply."""
+    try:
+        return xbmc.Player().isPlayingVideo()
+    except Exception:
+        return False
 
 
 def _write_sequence(
@@ -123,36 +166,147 @@ _MODES = {
 }
 
 
+# Native VS10 keymap action (SamuriHL/coreelec-xbmc commit 7df0943) that each
+# TinyPPI mode maps to. When these actions are available they are fired instead
+# of the sysfs sequences above, which are then skipped entirely.
+#
+# Only four actions exist, and vs10.sdr is hard-wired to SDR10 output
+# (DOLBY_VISION_OUTPUT_MODE_SDR10, dv_mode 4). There is NO action for SDR8
+# output (DOLBY_VISION_OUTPUT_MODE_SDR8, dv_mode 5), so 'sdr8' has no native
+# entry here on purpose: it always takes the sysfs path, which writes dv_mode 5
+# -- the exact same state the native engine uses for SDR8. That keeps a real
+# distinction between 8-bit and 10-bit SDR output.
+_VS10_ACTION = {
+    "original_sdr": "vs10.original",
+    "original_hdr": "vs10.original",
+    "original_hlg": "vs10.original",
+    "original_dv":  "vs10.dv",
+    "dv":           "vs10.dv",
+    "hdr10":        "vs10.hdr10",
+    "sdr10":        "vs10.sdr",
+}
+
+
+def _probe_vs10_actions() -> bool:
+    """Return True if this Kodi build ships the native VS10 output engine.
+
+    The engine's settings and its ``vs10.*`` keymap actions were added in the
+    same commit, so we probe for one of the settings over JSON-RPC: a ``result``
+    means the actions exist too; an ``error`` (or any failure) means we must
+    drive sysfs ourselves.
+    """
+    request = json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "Settings.GetSettingValue",
+            "params": {"setting": _VS10_PROBE_SETTING},
+        }
+    )
+    try:
+        response = json.loads(xbmc.executeJSONRPC(request))
+    except Exception as e:
+        xbmc.log(f"TinyPPI: VS10 Actions probe failed: {e}", xbmc.LOGWARNING)
+        return False
+    return isinstance(response, dict) and "result" in response
+
+
+def _vs10_actions_available() -> bool:
+    """Cached capability check, logging the chosen path once per session."""
+    global _vs10_actions
+    if _vs10_actions is None:
+        _vs10_actions = _probe_vs10_actions()
+        if _vs10_actions:
+            xbmc.log(
+                "TinyPPI: native VS10 Actions available -> preferred during "
+                "playback, with sysfs fallback if they don't take effect",
+                xbmc.LOGINFO,
+            )
+        else:
+            xbmc.log(
+                "TinyPPI: native VS10 Actions not available -> using the "
+                "built-in TinyPPI VS10 (sysfs) path",
+                xbmc.LOGINFO,
+            )
+    return _vs10_actions
+
+
 def set_mode(name: str) -> None:
-    """Run the VS10 mode named ``name`` (see ``_MODES``), logging the result."""
-    fn = _MODES.get(name)
-    if fn:
-        fn()
-        xbmc.log(f"TinyPPI: mode set -> {name}", xbmc.LOGINFO)
-    else:
+    """Apply the VS10 mode ``name`` (see ``_MODES``), preferring native actions.
+
+    The native ``vs10.*`` actions are player actions, so they only do anything
+    while a video is playing. We therefore only try them during playback and,
+    because they can still silently no-op, verify that the DV driver state
+    actually moved afterwards. When either condition fails we fall back to
+    TinyPPI's built-in sysfs sequence, which works regardless of state. Every
+    branch logs which path ran so it is visible what happened.
+    """
+    sysfs = _MODES.get(name)
+    if sysfs is None:
         xbmc.log(f"TinyPPI: Unknown mode '{name}'", xbmc.LOGERROR)
+        return
+
+    action = _VS10_ACTION.get(name)
+    if action and _vs10_actions_available():
+        if _is_playing_video():
+            before = _dv_state()
+            xbmc.executebuiltin(f"Action({action})")
+            if _wait_for_dv_change(before):
+                xbmc.log(
+                    f"TinyPPI: mode '{name}' set via VS10 Actions -> "
+                    f"Action({action})",
+                    xbmc.LOGINFO,
+                )
+                return
+            xbmc.log(
+                f"TinyPPI: VS10 Action({action}) had no effect on the DV "
+                "driver -> falling back to built-in TinyPPI VS10 (sysfs)",
+                xbmc.LOGWARNING,
+            )
+        else:
+            xbmc.log(
+                f"TinyPPI: no video playing -> VS10 Action({action}) cannot "
+                f"apply; using built-in TinyPPI VS10 (sysfs) for '{name}'",
+                xbmc.LOGINFO,
+            )
+    elif _vs10_actions_available():
+        # Native engine is present but this mode has no native action (e.g.
+        # 'sdr8' -- the actions only expose SDR10, not SDR8). Use sysfs so the
+        # real 8-bit vs 10-bit SDR distinction is preserved.
+        xbmc.log(
+            f"TinyPPI: '{name}' has no native VS10 action -> using built-in "
+            "TinyPPI VS10 (sysfs) to keep the exact output",
+            xbmc.LOGINFO,
+        )
+
+    sysfs()
+    xbmc.log(
+        f"TinyPPI: mode '{name}' set via built-in TinyPPI VS10 (sysfs)",
+        xbmc.LOGINFO,
+    )
 
 
 __all__ = list(_MODES.keys()) + ["open_dialog", "set_mode"]
 
 
-# Dialog button id -> action.
+# Dialog button id -> mode name (routed through ``set_mode`` so the dialog also
+# prefers the native VS10 Actions when they are available).
 _ACTIONS = {
     # SDR
-    1002: original_sdr,
-    1003: hdr10,
-    1004: dv,
+    1002: "original_sdr",
+    1003: "hdr10",
+    1004: "dv",
     # HDR10
-    1005: original_hdr,
-    1006: sdr8,
-    1008: dv,
+    1005: "original_hdr",
+    1006: "sdr8",
+    1008: "dv",
     # HLG (Original bypasses VS10 so HLG stays HLG)
-    1009: original_hlg,
-    1010: sdr8,
-    1011: dv,
+    1009: "original_hlg",
+    1010: "sdr8",
+    1011: "dv",
     # DV
-    1012: original_dv,
-    1013: sdr8,
+    1012: "original_dv",
+    1013: "sdr8",
 }
 
 
@@ -164,6 +318,7 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         # hdrprobe in the background; refresh it so the right group appears
         # once detection completes.
         self._running = True
+        self._pending_mode = None
         self._monitor = xbmc.Monitor()
         threading.Thread(target=self._hdr_type_loop, daemon=True).start()
 
@@ -188,9 +343,14 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
             open_tinyppi()
             return
 
-        action = _ACTIONS.get(control_id)
-        if action:
-            action()
+        mode = _ACTIONS.get(control_id)
+        if mode:
+            # Defer applying: a native VS10 action fired now would be dropped by
+            # the window manager while this modal dialog's closing animation is
+            # still running ("ignoring action ..., because topmost modal dialog
+            # closing animation is running"). open_dialog() applies it once
+            # doModal() has returned, i.e. after the dialog is fully gone.
+            self._pending_mode = mode
             self.close()
 
     def onAction(self, action: xbmcgui.Action) -> None:
@@ -211,4 +371,11 @@ def open_dialog() -> None:
         "1080i",
     )
     win.doModal()
+    mode = getattr(win, "_pending_mode", None)
     del win
+    if mode:
+        # The dialog and its closing animation are fully gone now, so a native
+        # VS10 action will reach the fullscreen video player instead of being
+        # ignored. Let the underlying window settle first, then apply.
+        _delay(250)
+        set_mode(mode)
