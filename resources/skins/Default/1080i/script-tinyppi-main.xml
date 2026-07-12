@@ -240,7 +240,6 @@
 
 					<!-- Video Icon -->
 					<control type="image">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>4</top>
 						<width>26</width>
 						<height>26</height>
@@ -256,7 +255,6 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
 						<aligny>top</aligny>
-						<animation effect="slide" end="-35,0" time="0" condition="String.IsEqual(Window.Property(CurrentSkin),skin.estuary)">Conditional</animation>
 					</control>
 
 					<!-- Display output -->
@@ -392,7 +390,6 @@
 
 					<!-- Processing Icon -->
 					<control type="image">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>4</top>
 						<width>26</width>
 						<height>26</height>
@@ -408,7 +405,6 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
 						<aligny>top</aligny>
-						<animation effect="slide" end="-35,0" time="0" condition="String.IsEqual(Window.Property(CurrentSkin),skin.estuary)">Conditional</animation>
 					</control>
 
 					<!-- Converting -->
@@ -631,7 +627,6 @@
 
 					<!-- Audio Icon -->
 					<control type="image">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>4</top>
 						<width>26</width>
 						<height>26</height>
@@ -647,7 +642,6 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
 						<aligny>top</aligny>
-						<animation effect="slide" end="-35,0" time="0" condition="String.IsEqual(Window.Property(CurrentSkin),skin.estuary)">Conditional</animation>
 					</control>
 
 					<!-- Audio codec -->
@@ -876,7 +870,6 @@
 
 					<!-- System Icon -->
 					<control type="image">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>4</top>
 						<width>26</width>
 						<height>26</height>
@@ -892,7 +885,6 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
 						<aligny>top</aligny>
-						<animation effect="slide" end="-35,0" time="0" condition="String.IsEqual(Window.Property(CurrentSkin),skin.estuary)">Conditional</animation>
 					</control>
 
 					<!-- In / drop / out -->
@@ -949,7 +941,6 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="group">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>100</top>
 						<left>310</left>
 						<control type="progress" id="9100">
@@ -984,7 +975,6 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="group">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>130</top>
 						<left>310</left>
 						<control type="progress">
@@ -1020,7 +1010,6 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="group">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>160</top>
 						<left>310</left>
 						<control type="progress">
@@ -1056,7 +1045,6 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="group">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>190</top>
 						<left>310</left>
 						<control type="progress" id="9101">
@@ -1073,16 +1061,6 @@
 						</control>
 					</control>
 					<control type="label">
-						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>307</left>
-						<top>180</top>
-						<label>| $INFO[Window().Property(VideoQueueDataLevelVar)]%</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<left>404</left>
 						<top>180</top>
 						<width>62</width>
@@ -1093,7 +1071,6 @@
 						<align>center</align>
 					</control>
 					<control type="group">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>190</top>
 						<left>318</left>
 						<control type="progress" id="9102">
@@ -1128,7 +1105,6 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="group">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>220</top>
 						<left>310</left>
 						<control type="progress" id="9103">
@@ -1145,16 +1121,6 @@
 						</control>
 					</control>
 					<control type="label">
-						<visible>String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
-						<left>307</left>
-						<top>210</top>
-						<label>| $INFO[Window().Property(AudioQueueDataLevelVar)]%</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<left>404</left>
 						<top>210</top>
 						<width>62</width>
@@ -1165,7 +1131,6 @@
 						<align>center</align>
 					</control>
 					<control type="group">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>220</top>
 						<left>318</left>
 						<control type="progress" id="9104">
@@ -1191,7 +1156,6 @@
 					
 					<!-- HDR Static Metadata Icon -->
 					<control type="image">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>4</top>
 						<width>26</width>
 						<height>26</height>
@@ -1207,7 +1171,6 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
 						<aligny>top</aligny>
-						<animation effect="slide" end="-35,0" time="0" condition="String.IsEqual(Window.Property(CurrentSkin),skin.estuary)">Conditional</animation>
 					</control>
 					
 					<!-- HDR10 MDL -->
@@ -1449,7 +1412,6 @@
 					
 					<!-- Metadata Icon -->
 					<control type="image">
-						<visible>!String.IsEqual(Window.Property(CurrentSkin),skin.estuary)</visible>
 						<top>4</top>
 						<width>26</width>
 						<height>26</height>
@@ -1465,7 +1427,6 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
 						<aligny>top</aligny>
-						<animation effect="slide" end="-35,0" time="0" condition="String.IsEqual(Window.Property(CurrentSkin),skin.estuary)">Conditional</animation>
 					</control>
 					
 					<!-- HDR10 MDL -->

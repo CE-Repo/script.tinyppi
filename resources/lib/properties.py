@@ -701,7 +701,6 @@ def update_properties(window) -> None:
             ("VideoQueueDataLevelVar", format_queue_level(video_queue_data)),
             ("AudioQueueLevelVar", format_queue_level(audio_queue)),
             ("AudioQueueDataLevelVar", format_queue_level(audio_queue_data)),
-            ("CurrentSkin", xbmc.getSkinDir()),
         ),
     )
 
