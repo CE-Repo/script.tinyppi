@@ -8,12 +8,19 @@ cannot open, so the first chunk is copied through xbmcvfs into special://temp/
 and hdrprobe runs on that.  Detection runs once per file in a cached background
 thread so the polling loop never blocks.  CoreELEC only; the hdrprobe binary is
 the aarch64 build in tools.tinyppi (tools/hdrprobe/hdrprobe).
+
+Blu-ray disc images are a special case: Kodi hands us the raw ``*.iso`` (or a
+``bluray://`` URL wrapping it), whose first bytes are the UDF filesystem header
+rather than the video stream.  Probing those bytes reports the wrong output
+mode, so ``_resolve_disc_stream`` first descends into the disc's
+``BDMV/STREAM/`` and picks the main-feature ``.m2ts`` to probe instead.
 """
 
 import json
 import os
 import subprocess
 import threading
+import urllib.parse
 import uuid
 
 import xbmc
@@ -189,13 +196,95 @@ def _hdrprobe() -> str:
     return path
 
 
+def _vfs_join(base: str, tail: str) -> str:
+    """Join a VFS base directory and a relative tail with a single separator."""
+    return f"{base.rstrip('/')}/{tail}"
+
+
+def _disc_stream_dir(path: str) -> str:
+    """Return the ``BDMV/STREAM/`` VFS directory URL for a Blu-ray image or disc
+    structure referenced by ``path``, or ``''`` for an ordinary media file.
+
+    Kodi hands us either the raw ``*.iso`` image, a ``bluray://`` URL wrapping
+    one, or an already-extracted Blu-ray folder.  Only the STREAM directory is
+    resolved here; ``_largest_stream_file`` picks the main feature out of it.
+    """
+    low = path.lower()
+
+    # A bluray:// URL embeds the real disc root before its /BDMV/ segment.
+    if low.startswith("bluray://"):
+        idx = low.find("/bdmv/")
+        if idx == -1:
+            return ""
+        root = urllib.parse.unquote(path[len("bluray://"):idx])
+        return _vfs_join(root, "BDMV/STREAM/")
+
+    # A raw disc image: wrap it in Kodi's UDF VFS so its files can be listed.
+    if low.endswith(".iso"):
+        return f"udf://{urllib.parse.quote(path, safe='')}/BDMV/STREAM/"
+
+    # An already-extracted Blu-ray folder (the …/BDMV directory itself).
+    trimmed = path.rstrip("/")
+    if trimmed.lower().endswith("/bdmv"):
+        return _vfs_join(trimmed, "STREAM/")
+
+    return ""
+
+
+def _largest_stream_file(stream_dir: str) -> str:
+    """Return the VFS path of the largest ``.m2ts`` in a ``BDMV/STREAM``
+    directory, or ``''`` when it can't be listed or holds no stream files.
+
+    The largest stream file is the main feature on virtually every Blu-ray, so
+    probing it yields the disc's real video/HDR characteristics rather than the
+    disc-image filesystem header."""
+    try:
+        _dirs, files = xbmcvfs.listdir(stream_dir)
+    except Exception as exc:
+        _log(f"DV: cannot list {stream_dir}: {exc}", xbmc.LOGWARNING)
+        return ""
+
+    best_path, best_size = "", -1
+    for name in files:
+        if not name.lower().endswith(".m2ts"):
+            continue
+        candidate = stream_dir + name
+        try:
+            size = xbmcvfs.Stat(candidate).st_size()
+        except Exception:
+            continue
+        if size > best_size:
+            best_path, best_size = candidate, size
+    return best_path
+
+
+def _resolve_disc_stream(path: str) -> str:
+    """Map a Blu-ray disc image / structure to its main-feature ``.m2ts`` so the
+    probe reads real video instead of the filesystem header.  Ordinary files and
+    discs whose STREAM folder can't be resolved are returned unchanged."""
+    stream_dir = _disc_stream_dir(path)
+    if not stream_dir:
+        return path
+
+    main = _largest_stream_file(stream_dir)
+    if main:
+        _log(f"DV: probing disc main stream {main}")
+        return main
+
+    _log(f"DV: no .m2ts under {stream_dir}; probing {path} directly",
+         xbmc.LOGWARNING)
+    return path
+
+
 def _local_source(path: str) -> tuple[str, bool]:
     """Return ``(local_path, is_temp)``: VFS URLs are partially copied into
-    special://temp/, real filesystem paths are used directly."""
-    if path.startswith("/"):
-        return path, False
+    special://temp/, real filesystem paths are used directly.  Blu-ray images
+    are first resolved to their main-feature ``.m2ts`` inside the disc."""
+    source = _resolve_disc_stream(path)
+    if source.startswith("/"):
+        return source, False
 
-    f = xbmcvfs.File(path)
+    f = xbmcvfs.File(source)
     try:
         data = f.readBytes(_CHUNK_BYTES)
     finally:
