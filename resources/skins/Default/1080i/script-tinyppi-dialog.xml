@@ -28,7 +28,7 @@
                 <width>23</width>
                 <height>546</height>
                 <control type="image">
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/dialog-bg-start.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogBackgroundColor)]">background/dialog-bg-start.png</texture>
                 </control>
             </control>
             <control type="image">
@@ -36,7 +36,7 @@
                 <top>0</top>
                 <width>425</width>
                 <height>546</height>
-                <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">common/dot-1x1.png</texture>
+                <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogBackgroundColor)]">common/dot-1x1.png</texture>
             </control>
             <control type="group">
                 <left>448</left>
@@ -44,7 +44,7 @@
                 <width>23</width>
                 <height>546</height>
                 <control type="image">
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/dialog-bg-end.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogBackgroundColor)]">background/dialog-bg-end.png</texture>
                 </control>
             </control>
 
@@ -56,7 +56,7 @@
                 <control type="label">
                     <label>[B]VS10[/B]</label>
                     <font>font32</font>
-                    <textcolor>$INFO[Window(10000).Property(TinyPPI.HeaderColor)]</textcolor>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogHeaderColor)]</textcolor>
                     <aligny>top</aligny>
                 </control>
             </control>
@@ -69,7 +69,7 @@
                 <control type="image">
                     <width>36</width>
                     <height>36</height>
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.HeaderIconColor)]">icons/vs10.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogHeaderIconColor)]">icons/vs10.png</texture>
                 </control>
             </control>
 
@@ -81,7 +81,7 @@
                 <control type="image">
                     <width>400</width>
                     <height>1</height>
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogLineColor)]">common/dot-1x1.png</texture>
                 </control>
             </control>
             <control type="group">
@@ -91,7 +91,7 @@
                 <control type="image">
                     <width>400</width>
                     <height>1</height>
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogLineColor)]">common/dot-1x1.png</texture>
                 </control>
             </control>
 

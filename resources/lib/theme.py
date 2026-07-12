@@ -169,9 +169,11 @@ _CUSTOM_FILE = "special://profile/addon_data/script.tinyppi/custom_colors.json"
 # Alpha prepended to a 6-digit custom HEX, keyed by setting id (default FF).
 _CUSTOM_ALPHA = {
     "background_color":        "FA",  # Modern background shades
+    "dialog_background_color": "FA",  # VS10 dialog panel background shades
     "global_background_color": "FA",  # full-screen global background shades
     "accent_color":            "B3",  # dimmed detail accents (~70%)
     "line_color":              "26",  # faint separator lines (~15%)
+    "dialog_line_color":       "26",  # faint VS10 dialog separator lines (~15%)
 }
 _DEFAULT_ALPHA = "FF"
 
@@ -239,11 +241,18 @@ _DEFAULT_OPACITY = 100
 # each element's palette alpha.  Unlisted elements use _DEFAULT_OPACITY (100 %).
 _DEFAULT_OPACITIES = {
     "background_color":        98,  # FA – Modern panel background
+    "dialog_background_color": 98,  # FA – VS10 dialog panel background
     "global_background_color":  0,  # off until the user raises the slider
     "accent_color":            70,  # B3 – dimmed inline detail accents
     "line_color":              15,  # 26 – faint separator lines
-    "splash_bg_color":         98,  # FA – Charcoal logo panel (matches overlay)
-    "splash_divider_color":    35,  # 59 – faint divider between the two logos
+    "dialog_line_color":       15,  # 26 – faint VS10 dialog separator lines
+    # Per-context codec-logo panel (FA – Charcoal) and divider (59 – faint).
+    "splash_start_bg_color":        98,
+    "splash_start_divider_color":   35,
+    "splash_osd_bg_color":          98,
+    "splash_osd_divider_color":     35,
+    "splash_tinyppi_bg_color":      98,
+    "splash_tinyppi_divider_color": 35,
 }
 
 
@@ -303,12 +312,26 @@ _THEME_PROPERTIES = (
     ("TinyPPI.FelColor",              _TEXT_COLORS, "fel_color"),
     ("TinyPPI.MelColor",              _TEXT_COLORS, "mel_color"),
     ("TinyPPI.BackgroundColor",       _BACKGROUND_COLORS, "background_color"),
+    ("TinyPPI.DialogBackgroundColor", _BACKGROUND_COLORS, "dialog_background_color"),
     ("TinyPPI.GlobalBackgroundColor", _BACKGROUND_COLORS, "global_background_color"),
-    ("TinyPPI.SplashBackgroundColor", _BACKGROUND_COLORS, "splash_bg_color"),
-    ("TinyPPI.SplashVideoColor",      _TEXT_COLORS,       "splash_video_color"),
-    ("TinyPPI.SplashAudioColor",      _TEXT_COLORS,       "splash_audio_color"),
-    ("TinyPPI.SplashDividerColor",    _TEXT_COLORS,       "splash_divider_color"),
+    # Codec logos: an independent bg / video / audio / divider colour per context
+    # (playback start, video OSD, TinyPPI overlay).
+    ("TinyPPI.SplashStartBgColor",        _BACKGROUND_COLORS, "splash_start_bg_color"),
+    ("TinyPPI.SplashStartVideoColor",     _TEXT_COLORS,       "splash_start_video_color"),
+    ("TinyPPI.SplashStartAudioColor",     _TEXT_COLORS,       "splash_start_audio_color"),
+    ("TinyPPI.SplashStartDividerColor",   _TEXT_COLORS,       "splash_start_divider_color"),
+    ("TinyPPI.SplashOsdBgColor",          _BACKGROUND_COLORS, "splash_osd_bg_color"),
+    ("TinyPPI.SplashOsdVideoColor",       _TEXT_COLORS,       "splash_osd_video_color"),
+    ("TinyPPI.SplashOsdAudioColor",       _TEXT_COLORS,       "splash_osd_audio_color"),
+    ("TinyPPI.SplashOsdDividerColor",     _TEXT_COLORS,       "splash_osd_divider_color"),
+    ("TinyPPI.SplashTinyppiBgColor",      _BACKGROUND_COLORS, "splash_tinyppi_bg_color"),
+    ("TinyPPI.SplashTinyppiVideoColor",   _TEXT_COLORS,       "splash_tinyppi_video_color"),
+    ("TinyPPI.SplashTinyppiAudioColor",   _TEXT_COLORS,       "splash_tinyppi_audio_color"),
+    ("TinyPPI.SplashTinyppiDividerColor", _TEXT_COLORS,       "splash_tinyppi_divider_color"),
     ("TinyPPI.LineColor",             _LINE_COLORS, "line_color"),
+    ("TinyPPI.DialogHeaderColor",     _TEXT_COLORS, "dialog_header_color"),
+    ("TinyPPI.DialogHeaderIconColor", _TEXT_COLORS, "dialog_header_icon_color"),
+    ("TinyPPI.DialogLineColor",       _LINE_COLORS, "dialog_line_color"),
     ("TinyPPI.DialogFocusColor",      _DIALOG_FOCUS_COLORS, "dialog_focus_color"),
     (
         "TinyPPI.DialogFocusTextColor",

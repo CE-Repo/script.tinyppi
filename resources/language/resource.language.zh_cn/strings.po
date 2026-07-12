@@ -359,10 +359,6 @@ msgctxt "#32141"
 msgid "Color of the In / drop / out FPS values."
 msgstr "In / drop / out FPS 值的颜色。"
 
-msgctxt "#32142"
-msgid "Header"
-msgstr "标题栏"
-
 msgctxt "#32143"
 msgid "Color of the overlay header label (Modern)."
 msgstr "叠加层标题栏的颜色 (Modern)。"
@@ -768,16 +764,16 @@ msgid "Color of the separator lines."
 msgstr "分隔线的颜色。"
 
 msgctxt "#32253"
-msgid "Dialog selection"
-msgstr "对话框选中"
+msgid "Selection"
+msgstr "选中"
 
 msgctxt "#32254"
 msgid "Background color of the focused button in the VS10 dialog."
 msgstr "VS10 对话框中聚焦按钮的背景颜色。"
 
 msgctxt "#32255"
-msgid "Dialog selection text"
-msgstr "对话框选中文本"
+msgid "Selection text"
+msgstr "选中文本"
 
 msgctxt "#32256"
 msgid "Text color of the focused button in the VS10 dialog."
@@ -1062,3 +1058,31 @@ msgstr "大小 (%)"
 msgctxt "#32329"
 msgid "Scales the format logos. 100% is the default size; lower values shrink them, higher values enlarge them. The horizontal and vertical offset are kept."
 msgstr "缩放格式徽标。100% 为默认大小；较小的值会缩小徽标，较大的值会放大徽标。水平和垂直偏移保持不变。"
+
+msgctxt "#32334"
+msgid "Launch"
+msgstr "启动"
+
+msgctxt "#32335"
+msgid "Overlay content"
+msgstr "叠加层内容"
+
+msgctxt "#32337"
+msgid "Background color of the VS10 selection dialog panel."
+msgstr "VS10 选择对话框面板的背景颜色。"
+
+msgctxt "#32339"
+msgid "Color of the separator lines in the VS10 selection dialog."
+msgstr "VS10 选择对话框中分隔线的颜色。"
+
+msgctxt "#32341"
+msgid "Color of the chart icon in the VS10 selection dialog."
+msgstr "VS10 选择对话框中图表图标的颜色。"
+
+msgctxt "#32342"
+msgid "Header title"
+msgstr "标题"
+
+msgctxt "#32343"
+msgid "Color of the VS10 header label in the selection dialog."
+msgstr "选择对话框中 VS10 标题标签的颜色。"

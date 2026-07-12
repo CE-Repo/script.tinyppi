@@ -359,10 +359,6 @@ msgctxt "#32141"
 msgid "Color of the In / drop / out FPS values."
 msgstr ""
 
-msgctxt "#32142"
-msgid "Header"
-msgstr ""
-
 msgctxt "#32143"
 msgid "Color of the overlay header label (Modern)."
 msgstr ""
@@ -768,7 +764,7 @@ msgid "Color of the separator lines."
 msgstr ""
 
 msgctxt "#32253"
-msgid "Dialog selection"
+msgid "Selection"
 msgstr ""
 
 msgctxt "#32254"
@@ -776,7 +772,7 @@ msgid "Background color of the focused button in the VS10 dialog."
 msgstr ""
 
 msgctxt "#32255"
-msgid "Dialog selection text"
+msgid "Selection text"
 msgstr ""
 
 msgctxt "#32256"
@@ -1061,4 +1057,32 @@ msgstr ""
 
 msgctxt "#32329"
 msgid "Scales the format logos. 100% is the default size; lower values shrink them, higher values enlarge them. The horizontal and vertical offset are kept."
+msgstr ""
+
+msgctxt "#32334"
+msgid "Launch"
+msgstr ""
+
+msgctxt "#32335"
+msgid "Overlay content"
+msgstr ""
+
+msgctxt "#32337"
+msgid "Background color of the VS10 selection dialog panel."
+msgstr ""
+
+msgctxt "#32339"
+msgid "Color of the separator lines in the VS10 selection dialog."
+msgstr ""
+
+msgctxt "#32341"
+msgid "Color of the chart icon in the VS10 selection dialog."
+msgstr ""
+
+msgctxt "#32342"
+msgid "Header title"
+msgstr ""
+
+msgctxt "#32343"
+msgid "Color of the VS10 header label in the selection dialog."
 msgstr ""
