@@ -7,7 +7,29 @@ import re
 
 import xbmc
 import xbmcgui
-
+from dvinfo import (
+    get_audio_bit_depth,
+    get_audio_sample_rate,
+    get_bit_depth,
+    get_cm_version,
+    get_dv_bl_present,
+    get_dv_el_present,
+    get_dv_el_type,
+    get_dv_profile,
+    get_dv_rpu_present,
+    get_dv_version,
+    get_hdr10_max_cll_fall,
+    get_hdr10_mdl,
+    get_hdr_format,
+    get_l5_offsets,
+    get_l6_rpu_max_cll_fall,
+    get_l6_rpu_mdl,
+    get_output_mode,
+    get_structure,
+    is_fetch_label,
+    is_status_label,
+)
+from helpers import format_fps, fps_display_texts, normalize_fps
 from maps import (
     AUDIO_BIT_DEPTH_MAP,
     AUDIO_CODEC_MAP,
@@ -20,29 +42,6 @@ from maps import (
     VIDEO_CODEC_MAP,
 )
 from utils import clean, cond, info, set_window_properties
-from helpers import format_fps, fps_display_texts, normalize_fps
-from dvinfo import (
-    get_audio_bit_depth,
-    get_audio_sample_rate,
-    get_bit_depth,
-    get_cm_version,
-    get_hdr_format,
-    get_output_mode,
-    get_structure,
-    get_l5_offsets,
-    get_l6_rpu_mdl,
-    get_l6_rpu_max_cll_fall,
-    get_hdr10_mdl,
-    get_hdr10_max_cll_fall,
-    get_dv_version,
-    get_dv_profile,
-    get_dv_rpu_present,
-    get_dv_bl_present,
-    get_dv_el_present,
-    get_dv_el_type,
-    is_fetch_label,
-    is_status_label,
-)
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
 

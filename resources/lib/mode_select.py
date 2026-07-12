@@ -6,10 +6,10 @@ Open via ``RunScript(script.tinyppi,dialog)`` or ``open_dialog()``.
 import json
 import threading
 import time
+
 import xbmc
 import xbmcaddon
 import xbmcgui
-
 from utils import clear_overlay_state
 
 _ADDON      = xbmcaddon.Addon()
@@ -50,7 +50,7 @@ def _delay(ms: int) -> None:
 def _read(path: str):
     """Read a sysfs node, returning its stripped contents or None on failure."""
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return f.read().strip()
     except OSError:
         return None

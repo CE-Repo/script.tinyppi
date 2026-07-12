@@ -189,7 +189,7 @@ _CUSTOM_BTN_SUFFIX = "_custom_btn"
 
 def _custom_btn_label(raw6: str) -> str:
     """Return the ``label2`` markup previewing a 6-digit HEX color."""
-    return "[COLOR=FF{0}]●[/COLOR] #{0}".format(raw6)
+    return f"[COLOR=FF{raw6}]●[/COLOR] #{raw6}"
 
 
 def _notify(addon, message_id: int, icon: str, duration: int) -> None:
@@ -207,7 +207,7 @@ def _load_custom() -> dict:
     try:
         path = xbmcvfs.translatePath(_CUSTOM_FILE)
         if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as handle:
+            with open(path, encoding="utf-8") as handle:
                 data = json.load(handle)
             if isinstance(data, dict):
                 return data
@@ -270,7 +270,7 @@ def _opacity_alpha(addon, setting_id, default, overrides=None) -> str:
         percent = default
     percent = max(0, min(100, percent))
     # Round half up so defaults reproduce the palette alpha exactly (70 % -> B3).
-    return "{:02X}".format(int(percent * 255 / 100 + 0.5))
+    return f"{int(percent * 255 / 100 + 0.5):02X}"
 
 
 def _setting_value(addon, setting_id: str, overrides) -> str:

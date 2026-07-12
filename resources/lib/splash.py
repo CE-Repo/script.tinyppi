@@ -25,7 +25,6 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcvfs
-
 from maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP
 from theme import apply_theme
 from utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info

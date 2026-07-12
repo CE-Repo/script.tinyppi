@@ -20,7 +20,6 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcvfs
-
 from audioprobe import scan_audio_streams
 
 _ADDON      = xbmcaddon.Addon()
@@ -109,7 +108,7 @@ def _session_token(window: xbmcgui.Window | None = None) -> str:
 
 def _empty_info() -> dict[str, str]:
     """Return a complete empty DV metadata result."""
-    return {key: "" for key in _CACHE_FIELD_PROPERTIES}
+    return dict.fromkeys(_CACHE_FIELD_PROPERTIES, "")
 
 
 def _read_cached_info(path: str, session_token: str) -> dict[str, str] | None:

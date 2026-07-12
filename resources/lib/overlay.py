@@ -7,13 +7,12 @@ import os
 import threading
 import time
 
+import fonts
+import properties
 import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcvfs
-
-import fonts  # noqa: F401 – imported for its side effect: installs skin fonts
-import properties
 from theme import apply_theme
 from utils import (
     PROP_ACTIVE,
