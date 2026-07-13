@@ -2958,6 +2958,92 @@
             </group>
         </category>
         <category id="Dialog" label="32095" help="32101">
+            <group id="7" label="32269">
+                <setting id="dialog_global_background_color" type="integer" label="32269" help="32271">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32130">0</option>
+                            <option label="32131">1</option>
+                            <option label="32132">2</option>
+                            <option label="32133">3</option>
+                            <option label="32134">4</option>
+                            <option label="32135">5</option>
+                            <option label="32136">6</option>
+                            <option label="32137">7</option>
+                            <option label="32138">8</option>
+                            <option label="32139">9</option>
+                            <option label="32170">10</option>
+                            <option label="32171">11</option>
+                            <option label="32172">12</option>
+                            <option label="32173">13</option>
+                            <option label="32174">14</option>
+                            <option label="32175">15</option>
+                            <option label="32176">16</option>
+                            <option label="32177">17</option>
+                            <option label="32178">18</option>
+                            <option label="32179">19</option>
+                            <option label="32180">20</option>
+                            <option label="32181">21</option>
+                            <option label="32182">22</option>
+                            <option label="32183">23</option>
+                            <option label="32184">24</option>
+                            <option label="32185">25</option>
+                            <option label="32186">26</option>
+                            <option label="32187">27</option>
+                            <option label="32188">28</option>
+                            <option label="32189">29</option>
+                            <option label="32220">30</option>
+                            <option label="32221">31</option>
+                            <option label="32222">32</option>
+                            <option label="32223">33</option>
+                            <option label="32224">34</option>
+                            <option label="32225">35</option>
+                            <option label="32226">36</option>
+                            <option label="32227">37</option>
+                            <option label="32228">38</option>
+                            <option label="32229">39</option>
+                            <option label="32230">40</option>
+                            <option label="32231">41</option>
+                            <option label="32232">42</option>
+                            <option label="32233">43</option>
+                            <option label="32234">44</option>
+                            <option label="32235">45</option>
+                            <option label="32236">46</option>
+                            <option label="32237">47</option>
+                            <option label="32238">48</option>
+                            <option label="32239">49</option>
+                            <option label="32250">999</option>
+                        </options>
+                    </constraints>
+                    <control type="list" format="string" />
+                </setting>
+                <setting id="dialog_global_background_color_custom_btn" type="string" label="32241" help="32242">
+                    <level>0</level>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="dialog_global_background_color">999</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,dialog_global_background_color)</data>
+                    </control>
+                </setting>
+                <setting id="dialog_global_background_opacity" type="integer" label="32267" help="32268">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
+            </group>
             <group id="1" label="32103">
                 <setting id="dialog_background_color" type="integer" label="32103" help="32337">
                     <level>0</level>
