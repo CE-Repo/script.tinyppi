@@ -450,23 +450,34 @@ def _dv_profile_label(dovi: dict) -> str:
     return {1: "8.1", 2: "8.2", 4: "8.4"}.get(compat, "8.1")
 
 
-def _dv_level_label(dovi: dict) -> str:
-    """Return the Dolby Vision ``level`` as a display string, flagging a derived
-    value with a leading ``~``.
+# hdrprobe's container label for a 192-byte-packet transport stream: a Blu-ray
+# ``.m2ts`` / BDAV clip, whether played standalone or resolved by TinyPPI out of
+# a disc image (the ISO is mapped to its clip before probing, so hdrprobe reads
+# M2TS bytes either way).  The derived-DV-level flag is honoured only for this
+# container; see ``_dv_level_label``.
+_M2TS_CONTAINER = "MPEG-2 TS (M2TS/BDAV)"
 
-    Most containers declare the DV level outright (MP4 ``dvcC``/``dvvC``, a TS
-    descriptor), but an authentic disc ``.m2ts`` carries none — UHD-BD signals
-    Dolby Vision through the playlist, not the PMT — as do raw elementary
-    streams.  For those, hdrprobe 0.6.0 derives the level from the coded
+
+def _dv_level_label(dovi: dict, container: str) -> str:
+    """Return the Dolby Vision ``level`` as a display string, flagging a level
+    hdrprobe derived for a ``.m2ts`` clip with a leading ``~``.
+
+    A ``.m2ts`` signals Dolby Vision through the playlist, not the PMT, so it
+    carries no container DV level; hdrprobe 0.6.0 derives one from the coded
     resolution and frame rate against the Dolby level table and marks it with
-    ``level_derived`` (schema 2.2).  A derivation is a pixel-rate floor rather
+    ``level_derived`` (schema 2.2).  That derivation is a pixel-rate floor rather
     than a read value, so it is prefixed with ``~`` to set it apart from a level
-    read straight from the container; a declared level prints bare.
+    read straight from the container.
+
+    The flag is applied to ``.m2ts`` only.  hdrprobe also derives levels for raw
+    elementary streams, and MKV / MP4 and every other container declare their
+    own level; all of those print the value bare and are left untouched.
     """
     level = _fmt_num(dovi.get("level"))
     if not level:
         return ""
-    return f"~{level}" if dovi.get("level_derived") else level
+    derived = bool(dovi.get("level_derived")) and container == _M2TS_CONTAINER
+    return f"~{level}" if derived else level
 
 
 def _clean_format_name(raw_format: str) -> str:
@@ -702,7 +713,8 @@ def _parse_probe(data: dict) -> dict[str, str]:
 
     # Dolby Vision layer descriptors, straight from the RPU report.
     if dovi:
-        info["dv_version"] = _dv_level_label(dovi)
+        container = data.get("container") or general.get("container") or ""
+        info["dv_version"] = _dv_level_label(dovi, container)
         info["dv_profile"] = (_dv_profile_label(dovi).split() or [""])[0]
         info["dv_rpu_present"] = _present_flag(dovi.get("rpu_present"))
         info["dv_bl_present"] = _present_flag(dovi.get("bl_present"))
