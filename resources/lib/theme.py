@@ -170,6 +170,7 @@ _CUSTOM_FILE = "special://profile/addon_data/script.tinyppi/custom_colors.json"
 _CUSTOM_ALPHA = {
     "background_color":        "FA",  # Modern background shades
     "dialog_background_color": "FA",  # VS10 dialog panel background shades
+    "dialog_global_background_color": "FA",  # VS10 dialog full-screen background shades
     "global_background_color": "FA",  # full-screen global background shades
     "accent_color":            "B3",  # dimmed detail accents (~70%)
     "line_color":              "26",  # faint separator lines (~15%)
@@ -242,6 +243,7 @@ _DEFAULT_OPACITY = 100
 _DEFAULT_OPACITIES = {
     "background_color":        98,  # FA – Modern panel background
     "dialog_background_color": 98,  # FA – VS10 dialog panel background
+    "dialog_global_background_color": 0,  # off until the user raises the slider
     "global_background_color":  0,  # off until the user raises the slider
     "accent_color":            70,  # B3 – dimmed inline detail accents
     "line_color":              15,  # 26 – faint separator lines
@@ -313,6 +315,7 @@ _THEME_PROPERTIES = (
     ("TinyPPI.MelColor",              _TEXT_COLORS, "mel_color"),
     ("TinyPPI.BackgroundColor",       _BACKGROUND_COLORS, "background_color"),
     ("TinyPPI.DialogBackgroundColor", _BACKGROUND_COLORS, "dialog_background_color"),
+    ("TinyPPI.DialogGlobalBackgroundColor", _BACKGROUND_COLORS, "dialog_global_background_color"),
     ("TinyPPI.GlobalBackgroundColor", _BACKGROUND_COLORS, "global_background_color"),
     # Codec logos: an independent bg / video / audio / divider colour per context
     # (playback start, video OSD, TinyPPI overlay).

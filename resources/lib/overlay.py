@@ -145,10 +145,14 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._monitor   = xbmc.Monitor()
         self._opened_at = 0.0
         self._offset    = None
+        self._auto_hide = 0
 
     def onInit(self) -> None:
         self._running   = True
         self._opened_at = time.time()
+        # Auto-hide timeout in seconds (0 = off). Applies to the TinyPPI
+        # overlay only, not the VS10 selection dialog.
+        self._auto_hide = _ADDON.getSettingInt("auto_hide")
 
         # Publish properties first so the HDR type is known before the initial
         # position is applied (matters when reopening with a cached result).
@@ -196,6 +200,8 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
             if not player.isPlaying():
                 break
             if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
+                break
+            if self._auto_hide and time.time() - self._opened_at >= self._auto_hide:
                 break
 
             properties.update_properties(self)

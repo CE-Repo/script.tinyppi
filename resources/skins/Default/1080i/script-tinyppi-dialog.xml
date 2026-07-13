@@ -14,7 +14,7 @@
             <top>0</top>
             <width>1920</width>
             <height>1080</height>
-            <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.GlobalBackgroundColor)]">common/dot-1x1.png</texture>
+            <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogGlobalBackgroundColor)]">common/dot-1x1.png</texture>
         </control>
 
         <control type="group">
