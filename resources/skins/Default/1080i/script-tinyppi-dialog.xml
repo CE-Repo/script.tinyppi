@@ -161,7 +161,7 @@
                     <top>315</top>
                     <width>400</width>
                     <height>80</height>
-                    <label>[B]SDR ➞ HDR10[/B]</label>
+                    <label>[B]SDR → HDR10[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -177,7 +177,7 @@
                     <top>395</top>
                     <width>400</width>
                     <height>80</height>
-                    <label>[B]SDR ➞ Dolby Vision[/B]</label>
+                    <label>[B]SDR → Dolby Vision[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -214,7 +214,7 @@
                     <top>315</top>
                     <width>400</width>
                     <height>80</height>
-                    <label>[B]HDR10 ➞ SDR[/B]</label>
+                    <label>[B]HDR10 → SDR[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -230,7 +230,7 @@
                     <top>395</top>
                     <width>400</width>
                     <height>80</height>
-                    <label>[B]HDR10 ➞ Dolby Vision[/B]</label>
+                    <label>[B]HDR10 → Dolby Vision[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -267,7 +267,7 @@
                     <top>315</top>
                     <width>400</width>
                     <height>80</height>
-                    <label>[B]HLG ➞ SDR[/B]</label>
+                    <label>[B]HLG → SDR[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -283,7 +283,7 @@
                     <top>395</top>
                     <width>400</width>
                     <height>80</height>
-                    <label>[B]HLG ➞ Dolby Vision[/B]</label>
+                    <label>[B]HLG → Dolby Vision[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -320,7 +320,7 @@
                     <top>395</top>
                     <width>400</width>
                     <height>80</height>
-                    <label>[B]Dolby Vision ➞ SDR[/B]</label>
+                    <label>[B]Dolby Vision → SDR[/B]</label>
                     <align>center</align>
                     <font>font23_narrow</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
