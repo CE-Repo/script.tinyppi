@@ -450,6 +450,25 @@ def _dv_profile_label(dovi: dict) -> str:
     return {1: "8.1", 2: "8.2", 4: "8.4"}.get(compat, "8.1")
 
 
+def _dv_level_label(dovi: dict) -> str:
+    """Return the Dolby Vision ``level`` as a display string, flagging a derived
+    value with a leading ``~``.
+
+    Most containers declare the DV level outright (MP4 ``dvcC``/``dvvC``, a TS
+    descriptor), but an authentic disc ``.m2ts`` carries none — UHD-BD signals
+    Dolby Vision through the playlist, not the PMT — as do raw elementary
+    streams.  For those, hdrprobe 0.6.0 derives the level from the coded
+    resolution and frame rate against the Dolby level table and marks it with
+    ``level_derived`` (schema 2.2).  A derivation is a pixel-rate floor rather
+    than a read value, so it is prefixed with ``~`` to set it apart from a level
+    read straight from the container; a declared level prints bare.
+    """
+    level = _fmt_num(dovi.get("level"))
+    if not level:
+        return ""
+    return f"~{level}" if dovi.get("level_derived") else level
+
+
 def _clean_format_name(raw_format: str) -> str:
     """Return just the primary format name from a ``format`` string, dropping a
     fallback qualifier (``"HDR10+ / HDR10"`` / ``"HDR10 (fallback)"`` -> leading name)."""
@@ -683,7 +702,7 @@ def _parse_probe(data: dict) -> dict[str, str]:
 
     # Dolby Vision layer descriptors, straight from the RPU report.
     if dovi:
-        info["dv_version"] = _fmt_num(dovi.get("level"))
+        info["dv_version"] = _dv_level_label(dovi)
         info["dv_profile"] = (_dv_profile_label(dovi).split() or [""])[0]
         info["dv_rpu_present"] = _present_flag(dovi.get("rpu_present"))
         info["dv_bl_present"] = _present_flag(dovi.get("bl_present"))
@@ -935,7 +954,9 @@ def get_hdr10_max_cll_fall() -> str:
 
 
 def get_dv_version() -> str:
-    """Return the Dolby Vision ``level`` (e.g. ``6``), or '' when unknown.  No status label."""
+    """Return the Dolby Vision ``level`` (e.g. ``6``, or ``~4`` when hdrprobe
+    derived it from the stream for a disc ``.m2ts``), or '' when unknown.  No
+    status label."""
     value, _status = _get_info_status_value("dv_version")
     return value
 
