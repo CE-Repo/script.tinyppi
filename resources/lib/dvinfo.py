@@ -8,12 +8,21 @@ cannot open, so the first chunk is copied through xbmcvfs into special://temp/
 and hdrprobe runs on that.  Detection runs once per file in a cached background
 thread so the polling loop never blocks.  CoreELEC only; the hdrprobe binary is
 the aarch64 build in tools.tinyppi (tools/hdrprobe/hdrprobe).
+
+Blu-ray discs are a special case: Kodi hands us the raw ``*.iso`` (whose first
+bytes are the UDF filesystem header, not video), a ``bluray://`` title stream,
+or a ``.mpls`` playlist for the selected title.  Probing the ISO header reports
+the wrong output mode, so ``_resolve_disc_stream`` maps the reference to the
+``.m2ts`` clip that is actually playing: a playlist is parsed to its clip, a
+bare image falls back to the main feature, and an already-resolved title stream
+is read as-is.
 """
 
 import json
 import os
 import subprocess
 import threading
+import urllib.parse
 import uuid
 
 import xbmc
@@ -189,13 +198,166 @@ def _hdrprobe() -> str:
     return path
 
 
+def _vfs_join(base: str, tail: str) -> str:
+    """Join a VFS base directory and a relative tail with a single separator."""
+    return f"{base.rstrip('/')}/{tail}"
+
+
+def _mpls_clip_names(data: bytes) -> list[str]:
+    """Return the ordered clip stems (e.g. ``['00801']``) a Blu-ray ``.mpls``
+    playlist plays, or ``[]`` when the bytes are not a parseable playlist.
+
+    Only the PlayList section is walked: each PlayItem begins with a 2-byte
+    length, then the 5-char ``clip_information_file_name`` and the 4-char
+    ``clip_codec_identifier`` (``M2TS``).  That is all that is needed to map a
+    title back to its stream file(s)."""
+    if len(data) < 12 or data[:4] != b"MPLS":
+        return []
+
+    playlist_start = int.from_bytes(data[8:12], "big")
+    # PlayList section: length(4) reserved(2) number_of_PlayItems(2) …
+    if playlist_start + 8 > len(data):
+        return []
+    count = int.from_bytes(data[playlist_start + 6:playlist_start + 8], "big")
+
+    names: list[str] = []
+    pos = playlist_start + 10  # skip length(4) reserved(2) n_items(2) n_subpaths(2)
+    for _ in range(count):
+        if pos + 2 > len(data):
+            break
+        length = int.from_bytes(data[pos:pos + 2], "big")
+        item = data[pos + 2:pos + 2 + length]
+        if len(item) >= 9 and item[5:9] == b"M2TS":
+            name = item[:5].decode("ascii", "ignore")
+            if name.isdigit():
+                names.append(name)
+        pos += 2 + length
+    return names
+
+
+def _clip_from_playlist(mpls_path: str) -> str:
+    """Return the VFS path of the first ``.m2ts`` clip the given ``.mpls``
+    playlist plays, so the title the viewer actually selected is probed.
+
+    Returns ``''`` when the playlist can't be read/parsed (e.g. the VFS handed
+    back the already-assembled title stream instead of the raw playlist), so the
+    caller can fall back to reading the playing URL directly."""
+    idx = mpls_path.lower().rfind("/playlist/")
+    if idx == -1:
+        return ""
+
+    try:
+        f = xbmcvfs.File(mpls_path)
+        try:
+            # The header plus every PlayItem sits well within the first chunk.
+            data = f.readBytes(256 * 1024)
+        finally:
+            f.close()
+    except Exception as exc:
+        _log(f"DV: cannot read playlist {mpls_path}: {exc}", xbmc.LOGWARNING)
+        return ""
+
+    clips = _mpls_clip_names(data)
+    if not clips:
+        return ""
+
+    # …/PLAYLIST/<n>.mpls -> …/STREAM/<clip>.m2ts, in the same VFS namespace so
+    # bluray:// / udf:// / plain paths all resolve without re-encoding.
+    stream_dir = mpls_path[:idx] + "/STREAM/"
+    return f"{stream_dir}{clips[0]}.m2ts"
+
+
+def _disc_image_stream_dir(path: str) -> str:
+    """Return the ``BDMV/STREAM/`` VFS directory URL for a raw Blu-ray image or
+    extracted disc folder, or ``''`` otherwise.
+
+    Only used when Kodi hands us a bare image with no title information — a
+    ``bluray://`` / ``.mpls`` / ``.m2ts`` path already identifies the playing
+    stream and is not routed here."""
+    low = path.lower()
+
+    # A raw disc image: wrap it in Kodi's UDF VFS so its files can be listed.
+    if low.endswith(".iso"):
+        return f"udf://{urllib.parse.quote(path, safe='')}/BDMV/STREAM/"
+
+    # An already-extracted Blu-ray folder (the …/BDMV directory itself).
+    trimmed = path.rstrip("/")
+    if trimmed.lower().endswith("/bdmv"):
+        return _vfs_join(trimmed, "STREAM/")
+
+    return ""
+
+
+def _largest_stream_file(stream_dir: str) -> str:
+    """Return the VFS path of the largest ``.m2ts`` in a ``BDMV/STREAM``
+    directory, or ``''`` when it can't be listed or holds no stream files.
+
+    Used only as the last-resort fallback for a bare disc image (Kodi's
+    "play main movie" mode), where the largest clip is the main feature."""
+    try:
+        _dirs, files = xbmcvfs.listdir(stream_dir)
+    except Exception as exc:
+        _log(f"DV: cannot list {stream_dir}: {exc}", xbmc.LOGWARNING)
+        return ""
+
+    best_path, best_size = "", -1
+    for name in files:
+        if not name.lower().endswith(".m2ts"):
+            continue
+        candidate = stream_dir + name
+        try:
+            size = xbmcvfs.Stat(candidate).st_size()
+        except Exception:
+            continue
+        if size > best_size:
+            best_path, best_size = candidate, size
+    return best_path
+
+
+def _resolve_disc_stream(path: str) -> str:
+    """Resolve a Blu-ray reference to the ``.m2ts`` clip that is actually
+    playing, so the probe reads the selected title rather than a heuristic guess
+    or the disc-image filesystem header.
+
+    - A ``.mpls`` playlist (menu / title selection) is parsed to its first clip.
+    - A bare ``.iso`` / extracted ``BDMV`` folder (main-movie mode) carries no
+      title info in the path, so the main feature (largest clip) is used.
+    - Everything else — a ``bluray://`` title stream, a direct ``.m2ts``, or an
+      ordinary media file — already refers to the playing stream and is returned
+      unchanged for the existing VFS read to handle.
+    """
+    low = path.lower()
+
+    if low.endswith(".mpls"):
+        clip = _clip_from_playlist(path)
+        if clip:
+            _log(f"DV: probing playlist clip {clip}")
+            return clip
+        _log(f"DV: playlist {path} unresolved; probing it directly",
+             xbmc.LOGWARNING)
+        return path
+
+    if low.endswith(".iso") or low.rstrip("/").endswith("/bdmv"):
+        stream_dir = _disc_image_stream_dir(path)
+        main = _largest_stream_file(stream_dir) if stream_dir else ""
+        if main:
+            _log(f"DV: probing disc main feature {main}")
+            return main
+        _log(f"DV: no clip resolved for {path}; probing it directly",
+             xbmc.LOGWARNING)
+
+    return path
+
+
 def _local_source(path: str) -> tuple[str, bool]:
     """Return ``(local_path, is_temp)``: VFS URLs are partially copied into
-    special://temp/, real filesystem paths are used directly."""
-    if path.startswith("/"):
-        return path, False
+    special://temp/, real filesystem paths are used directly.  Blu-ray images
+    are first resolved to their main-feature ``.m2ts`` inside the disc."""
+    source = _resolve_disc_stream(path)
+    if source.startswith("/"):
+        return source, False
 
-    f = xbmcvfs.File(path)
+    f = xbmcvfs.File(source)
     try:
         data = f.readBytes(_CHUNK_BYTES)
     finally:
