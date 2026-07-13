@@ -36,9 +36,9 @@ _ADDON      = xbmcaddon.Addon()
 _TEMP_DIR   = xbmcvfs.translatePath("special://temp/")
 _CHUNK_PATH = os.path.join(_TEMP_DIR, "tinyppi_dv.chunk")
 
-# 8 MiB holds the first GOP (keyframe + RPU) even at UHD Blu-ray bitrates, so
+# 16 MiB holds the first GOP (keyframe + RPU) even at UHD Blu-ray bitrates, so
 # hdrprobe finds RPUs to sample; it tolerates the truncated chunk.
-_CHUNK_BYTES  = 8 * 1024 * 1024
+_CHUNK_BYTES  = 16 * 1024 * 1024
 
 _LABEL_FETCH = 32096
 _LABEL_NA    = 32033
