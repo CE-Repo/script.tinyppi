@@ -450,6 +450,36 @@ def _dv_profile_label(dovi: dict) -> str:
     return {1: "8.1", 2: "8.2", 4: "8.4"}.get(compat, "8.1")
 
 
+# hdrprobe's container label for a 192-byte-packet transport stream: a Blu-ray
+# ``.m2ts`` / BDAV clip, whether played standalone or resolved by TinyPPI out of
+# a disc image (the ISO is mapped to its clip before probing, so hdrprobe reads
+# M2TS bytes either way).  The derived-DV-level flag is honoured only for this
+# container; see ``_dv_level_label``.
+_M2TS_CONTAINER = "MPEG-2 TS (M2TS/BDAV)"
+
+
+def _dv_level_label(dovi: dict, container: str) -> str:
+    """Return the Dolby Vision ``level`` as a display string, flagging a level
+    hdrprobe derived for a ``.m2ts`` clip with a leading ``~``.
+
+    A ``.m2ts`` signals Dolby Vision through the playlist, not the PMT, so it
+    carries no container DV level; hdrprobe 0.6.0 derives one from the coded
+    resolution and frame rate against the Dolby level table and marks it with
+    ``level_derived`` (schema 2.2).  That derivation is a pixel-rate floor rather
+    than a read value, so it is prefixed with ``~`` to set it apart from a level
+    read straight from the container.
+
+    The flag is applied to ``.m2ts`` only.  hdrprobe also derives levels for raw
+    elementary streams, and MKV / MP4 and every other container declare their
+    own level; all of those print the value bare and are left untouched.
+    """
+    level = _fmt_num(dovi.get("level"))
+    if not level:
+        return ""
+    derived = bool(dovi.get("level_derived")) and container == _M2TS_CONTAINER
+    return f"~{level}" if derived else level
+
+
 def _clean_format_name(raw_format: str) -> str:
     """Return just the primary format name from a ``format`` string, dropping a
     fallback qualifier (``"HDR10+ / HDR10"`` / ``"HDR10 (fallback)"`` -> leading name)."""
@@ -683,7 +713,8 @@ def _parse_probe(data: dict) -> dict[str, str]:
 
     # Dolby Vision layer descriptors, straight from the RPU report.
     if dovi:
-        info["dv_version"] = _fmt_num(dovi.get("level"))
+        container = data.get("container") or general.get("container") or ""
+        info["dv_version"] = _dv_level_label(dovi, container)
         info["dv_profile"] = (_dv_profile_label(dovi).split() or [""])[0]
         info["dv_rpu_present"] = _present_flag(dovi.get("rpu_present"))
         info["dv_bl_present"] = _present_flag(dovi.get("bl_present"))
@@ -935,7 +966,9 @@ def get_hdr10_max_cll_fall() -> str:
 
 
 def get_dv_version() -> str:
-    """Return the Dolby Vision ``level`` (e.g. ``6``), or '' when unknown.  No status label."""
+    """Return the Dolby Vision ``level`` (e.g. ``6``, or ``~4`` when hdrprobe
+    derived it from the stream for a disc ``.m2ts``), or '' when unknown.  No
+    status label."""
     value, _status = _get_info_status_value("dv_version")
     return value
 
