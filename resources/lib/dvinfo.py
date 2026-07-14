@@ -57,6 +57,14 @@ _BLOCK_BYTES = 1024 * 1024
 # This caps the read distance only — peak memory stays at one block.
 _AUDIO_SCAN_LIMIT = 4 * 1024 * 1024
 
+# Upper bound on how long to wait for hdrprobe to finish.  Detection runs in a
+# daemon background thread, so a probe that never exits (a broken build, a stuck
+# signal) would otherwise hang that thread forever and leave the overlay on
+# "Fetching...".  hdrprobe 0.6.0 keeps a sub-2s guarantee without --full, so
+# this only ever trips on a genuine hang; on timeout the probe is killed and the
+# result falls back to N/A, exactly like any other failed detection.
+_PROBE_TIMEOUT = 30
+
 _LABEL_FETCH = 32096
 _LABEL_NA    = 32033
 
@@ -526,11 +534,21 @@ def _static_hdr_token(
     The ``format`` label is unreliable for HDR10 (its SEI is not in every
     chunk), so the transfer characteristic and mastering-display block are
     checked first; the format label is only a last resort.
+
+    hdrprobe's schema 2.x nests the transfer characteristic in a ``color``
+    block (``color.transfer``); 1.x kept it on the track/``hdr`` block.  All
+    three spots are consulted so the read location does not matter.
     """
     if hdr10plus:
         return "hdr10+"
 
-    transfer = (hdr.get("transfer") or general.get("transfer") or "").lower()
+    color = general.get("color") or {}
+    transfer = (
+        hdr.get("transfer")
+        or color.get("transfer")
+        or general.get("transfer")
+        or ""
+    ).lower()
     if "hlg" in transfer or "b67" in transfer:
         return "hlg"
     if "pq" in transfer or "2084" in transfer or hdr.get("mastering"):
@@ -777,9 +795,12 @@ def _run_hdrprobe(probe: str, src: str) -> dict | None:
             # UnicodeDecodeError.  errors="replace" tolerates stray bytes too.
             encoding="utf-8",
             errors="replace",
+            # Guard the background thread against a probe that never exits;
+            # subprocess.run kills it on timeout (raises TimeoutExpired).
+            timeout=_PROBE_TIMEOUT,
         ).stdout
-    except OSError as exc:
-        _log(f"DV: hdrprobe failed to start: {exc}", xbmc.LOGWARNING)
+    except (OSError, subprocess.SubprocessError) as exc:
+        _log(f"DV: hdrprobe did not complete: {exc}", xbmc.LOGWARNING)
         return None
 
     return _decode_report(out)
@@ -834,9 +855,10 @@ def _probe_stream_stdin(
 
     # communicate() closes stdin (signalling EOF for short streams) and drains
     # the small JSON report; hdrprobe writes it only after it stops reading, so
-    # there is no deadlock.
+    # there is no deadlock.  The timeout guards the background thread against a
+    # probe that never exits (TimeoutExpired is caught below, killed and reaped).
     try:
-        out, _ = proc.communicate()
+        out, _ = proc.communicate(timeout=_PROBE_TIMEOUT)
     except Exception as exc:
         _log(f"DV: hdrprobe did not complete: {exc}", xbmc.LOGWARNING)
         proc.kill()
