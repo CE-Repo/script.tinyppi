@@ -111,9 +111,10 @@ separately.
 | Dolby Digital Plus Atmos | Dolby Digital Plus with Dolby Atmos |
 | Dolby TrueHD | Dolby TrueHD |
 | Dolby TrueHD Atmos | Dolby TrueHD with Dolby Atmos |
-| DTS | DTS (incl. DTS Express) |
+| DTS | DTS |
 | DTS 96/24 | DTS 96/24 |
 | DTS-ES | DTS-ES |
+| DTS-Express | DTS Express |
 | DTS-HD HRA | DTS-HD High Resolution Audio |
 | DTS-HD MA | DTS-HD Master Audio |
 | DTS:X | DTS:X |
