@@ -47,10 +47,15 @@ _BLOCK_BYTES = 1024 * 1024
 # How far the audio scan reads when hdrprobe is *not* bounding the read — i.e.
 # for real local files (hdrprobe reads those to EOF on its own) and the rare
 # fallback where hdrprobe is unavailable.  On the stdin path there is no such
-# limit: the scan is bounded by hdrprobe's own budget.  It caps the read
-# distance only; memory stays at one block regardless of this value.  Audio
-# frames are interleaved near the start, well within this window.
-_AUDIO_SCAN_LIMIT = 16 * 1024 * 1024
+# limit: the scan is bounded by hdrprobe's own budget.
+#
+# A container interleaves audio from the very start, so the first audio frames
+# sit within the opening fraction of a second — a few hundred KiB even at UHD
+# Blu-ray bitrates.  A stream's depth / sample rate is constant across all its
+# frames, so a handful of validated frames already settle the majority vote;
+# 4 MiB reaches the first frames and collects many, with generous headroom.
+# This caps the read distance only — peak memory stays at one block.
+_AUDIO_SCAN_LIMIT = 4 * 1024 * 1024
 
 _LABEL_FETCH = 32096
 _LABEL_NA    = 32033
