@@ -270,10 +270,15 @@ class AudioStreamScanner:
     (and its full header) is always parsed exactly once: earlier bytes are never
     re-scanned, so nothing is double-counted.  ``finish`` flushes the final tail,
     where the parsers tolerate a truncated last frame.
+
+    The carry buffer is a reused ``bytearray``: each block is appended in place
+    and the scanned prefix is dropped with ``del buf[:limit]``, so a feed copies
+    the block once (into spare capacity, no per-block reallocation) instead of
+    the two copies a ``tail + bytes(block)`` concatenation would make.
     """
 
     def __init__(self):
-        self._tail = b""
+        self._buf = bytearray()
         self._votes: dict[str, dict[str, dict[int, int]]] = {
             family: {} for family, _s, _p in _FAMILIES
         }
@@ -283,23 +288,23 @@ class AudioStreamScanner:
         """Scan the next block of stream bytes."""
         if not block:
             return
-        buf = self._tail + bytes(block)
-        limit = len(buf) - _MAX_LOOKAHEAD
+        self._buf.extend(block)
+        limit = len(self._buf) - _MAX_LOOKAHEAD
         if limit <= 0:
             # Too little to parse anything safely yet; keep accumulating.  Blocks
-            # are far larger than the overlap, so the tail never grows unbounded.
-            self._tail = buf
+            # are far larger than the overlap, so the buffer never grows unbounded
+            # (the scanned prefix is dropped below on every real feed).
             return
-        self._scan(buf, limit)
-        self._tail = buf[limit:]
+        self._scan(self._buf, limit)
+        del self._buf[:limit]
 
     def finish(self) -> None:
         """Scan whatever remains once the stream ends."""
-        if self._tail:
-            self._scan(self._tail, len(self._tail))
-            self._tail = b""
+        if self._buf:
+            self._scan(self._buf, len(self._buf))
+            self._buf = bytearray()
 
-    def _scan(self, buf: bytes, limit: int) -> None:
+    def _scan(self, buf, limit: int) -> None:
         """Count validated syncs starting at ``pos < limit`` in ``buf``."""
         for family, sync, parser in _FAMILIES:
             if self._hits[family] >= _MAX_HITS:
