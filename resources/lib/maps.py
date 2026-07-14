@@ -124,9 +124,9 @@ AUDIO_CODEC_MAP = {
     "cdda":            "CD Audio",
 }
 
-# Audio codec -> source PCM bit depth fallback.  The real depth is parsed from
-# the source bitstream by audioprobe.py; this map covers the moment while that
-# detection still runs and streams the scanner could not see.  During
+# Audio codec -> source PCM bit depth fallback.  The real depth is read from
+# the source bitstream by the audioprobe binary; this map covers the moment
+# while that detection still runs and tracks it could not read.  During
 # passthrough Kodi itself reports the packed IEC 61937 byte stream (always
 # ``8``) instead of the source resolution, so falling back to Kodi is not an
 # option there.  The lossless HD formats and DTS 96/24 carry 24-bit PCM on
@@ -153,8 +153,8 @@ AUDIO_BIT_DEPTH_MAP = {
 
 # Codecs whose decoded stream has a defined PCM bit depth, so Kodi's reported
 # depth is meaningful when Kodi decodes itself (lossless / uncompressed
-# formats; the DTS / TrueHD / MLP / FLAC families are covered by audioprobe
-# and AUDIO_BIT_DEPTH_MAP before this set is consulted).  Lossy codecs (AC3 /
+# formats; the DTS / TrueHD / MLP / FLAC families are covered by the audioprobe
+# binary and AUDIO_BIT_DEPTH_MAP before this set is consulted).  Lossy codecs (AC3 /
 # E-AC3 / AAC / MP3 / Vorbis / Opus / WMA / ...) are intentionally absent —
 # they store frequency coefficients, not PCM samples, so no bit depth exists
 # and none is displayed.

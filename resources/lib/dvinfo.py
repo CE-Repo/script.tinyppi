@@ -34,28 +34,18 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcvfs
-from audioprobe import AudioStreamScanner
 
 _ADDON      = xbmcaddon.Addon()
 
-# Read granularity for the VFS/file stream.  hdrprobe decides how much to read
-# itself (a format-specific head budget), so on the stdin path this is only the
-# block size; the audio scanner consumes the same blocks incrementally, holding
-# just one block at a time rather than a fixed head buffer.
+# Read granularity for the VFS stream on the stdin path.  Both hdrprobe and
+# audioprobe read a bounded head of their stdin and close it (a broken pipe)
+# once they have what they need — audioprobe verified to take ~16 MiB of a UHD
+# stream and mark the rest ``input_truncated`` — so the read is bounded by the
+# probes' own head budgets, exactly like hdrprobe alone.  No fixed byte cap is
+# imposed here (that would truncate whichever probe needs the most), and nothing
+# larger than one block is ever held in memory.  Local files are read by each
+# probe itself and never come through here.
 _BLOCK_BYTES = 1024 * 1024
-
-# How far the audio scan reads when hdrprobe is *not* bounding the read — i.e.
-# for real local files (hdrprobe reads those to EOF on its own) and the rare
-# fallback where hdrprobe is unavailable.  On the stdin path there is no such
-# limit: the scan is bounded by hdrprobe's own budget.
-#
-# A container interleaves audio from the very start, so the first audio frames
-# sit within the opening fraction of a second — a few hundred KiB even at UHD
-# Blu-ray bitrates.  A stream's depth / sample rate is constant across all its
-# frames, so a handful of validated frames already settle the majority vote;
-# 4 MiB reaches the first frames and collects many, with generous headroom.
-# This caps the read distance only — peak memory stays at one block.
-_AUDIO_SCAN_LIMIT = 4 * 1024 * 1024
 
 # Upper bound on how long to wait for hdrprobe to finish.  Detection runs in a
 # daemon background thread, so a probe that never exits (a broken build, a stuck
@@ -91,8 +81,7 @@ _CACHE_FIELD_PROPERTIES = {
     "dv_el_present": "TinyPPI.DVInfo.DvElPresent",
     "dv_el_type": "TinyPPI.DVInfo.DvElType",
     "bit_depth": "TinyPPI.DVInfo.BitDepth",
-    "audio_depths": "TinyPPI.DVInfo.AudioDepths",
-    "audio_rates": "TinyPPI.DVInfo.AudioRates",
+    "audio_tracks": "TinyPPI.DVInfo.AudioTracks",
 }
 
 _inflight:  set[str]       = set()  # paths currently being processed
@@ -219,6 +208,17 @@ def _hdrprobe() -> str:
     except Exception:
         return ""
     path = os.path.join(base, "tools", "hdrprobe", "hdrprobe")
+    _ensure_executable(path)
+    return path
+
+
+def _audioprobe() -> str:
+    """Return the audioprobe path from tools.tinyppi, restoring the exec bit."""
+    try:
+        base = xbmcaddon.Addon("tools.tinyppi").getAddonInfo("path")
+    except Exception:
+        return ""
+    path = os.path.join(base, "tools", "audioprobe", "audioprobe")
     _ensure_executable(path)
     return path
 
@@ -374,47 +374,69 @@ def _resolve_disc_stream(path: str) -> str:
     return path
 
 
-def _scan_audio_vfs(vfs_url: str) -> dict[str, dict[str, int]]:
-    """Scan a Kodi VFS stream for audio bitstreams, reading it in blocks up to
-    ``_AUDIO_SCAN_LIMIT`` and feeding them straight into the incremental scanner
-    (no head buffer).  Only used when hdrprobe is unavailable; otherwise the same
-    blocks are scanned for free while streaming into the probe."""
-    scanner = AudioStreamScanner()
+def _decode_audio_tracks(out: str) -> list[dict]:
+    """Parse audioprobe's JSON report from ``out`` and return the audio-track
+    list of the first (only) file, trimmed to the fields the overlay needs.
+
+    Decoding starts at the first brace so stray leading log text is tolerated,
+    mirroring ``_decode_report``.  Returns ``[]`` when the output holds no
+    decodable report, the file could not be read, or it carries no audio track.
+    """
+    start = out.find("{")
+    if start == -1:
+        return []
     try:
-        f = xbmcvfs.File(vfs_url)
-        try:
-            read = 0
-            while read < _AUDIO_SCAN_LIMIT:
-                block = f.readBytes(_BLOCK_BYTES)
-                if not block:
-                    break
-                read += len(block)
-                scanner.feed(block)
-        finally:
-            f.close()
-    except Exception as exc:
-        _log(f"Audio: VFS scan failed for {vfs_url}: {exc}", xbmc.LOGWARNING)
-    scanner.finish()
-    return scanner.result()
+        data, _ = json.JSONDecoder().raw_decode(out[start:])
+    except ValueError:
+        return []
+    if not isinstance(data, dict):
+        return []
+
+    files = data.get("files")
+    if not isinstance(files, list) or not files or not isinstance(files[0], dict):
+        return []
+
+    raw_tracks = files[0].get("audio_tracks")
+    if not isinstance(raw_tracks, list):
+        return []
+
+    # Keep only what track selection and the depth / rate getters read; codec,
+    # channels and language are retained to match the track against Kodi's
+    # active audio stream (see ``_active_audio_track``).
+    tracks: list[dict] = []
+    for track in raw_tracks:
+        if isinstance(track, dict):
+            tracks.append({
+                "codec": track.get("codec"),
+                "sample_rate": track.get("sample_rate"),
+                "bit_depth": track.get("bit_depth"),
+                "channels": track.get("channels"),
+                "language": track.get("language"),
+            })
+    return tracks
 
 
-def _scan_audio_local(path: str) -> dict[str, dict[str, int]]:
-    """Scan a real filesystem ``path`` for audio bitstreams, reading it in blocks
-    up to ``_AUDIO_SCAN_LIMIT`` and feeding the incremental scanner."""
-    scanner = AudioStreamScanner()
+def _run_audioprobe(probe: str, src: str) -> list[dict]:
+    """Run audioprobe on a real filesystem ``src`` and return its audio-track
+    list, or ``[]``.  Used only for genuine local paths, where audioprobe opens
+    the file itself; Kodi VFS URLs are streamed in over stdin instead (see
+    ``_probe_stream_stdin``)."""
     try:
-        with open(path, "rb") as f:
-            read = 0
-            while read < _AUDIO_SCAN_LIMIT:
-                block = f.read(_BLOCK_BYTES)
-                if not block:
-                    break
-                read += len(block)
-                scanner.feed(block)
-    except OSError as exc:
-        _log(f"Audio: scan failed: {exc}", xbmc.LOGWARNING)
-    scanner.finish()
-    return scanner.result()
+        out = subprocess.run(
+            [probe, "--json", src],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            # Decode as UTF-8 (not the C/POSIX process locale): audioprobe echoes
+            # the source path back, so an accented filename would otherwise raise
+            # UnicodeDecodeError; errors="replace" tolerates stray bytes too.
+            encoding="utf-8",
+            errors="replace",
+            timeout=_PROBE_TIMEOUT,
+        ).stdout
+    except (OSError, subprocess.SubprocessError) as exc:
+        _log(f"Audio: audioprobe did not complete: {exc}", xbmc.LOGWARNING)
+        return []
+    return _decode_audio_tracks(out)
 
 
 def _compact_cm_version(value: str) -> str:
@@ -806,93 +828,101 @@ def _run_hdrprobe(probe: str, src: str) -> dict | None:
     return _decode_report(out)
 
 
-def _probe_stream_stdin(
-    probe: str, vfs_url: str
-) -> tuple[dict | None, dict[str, dict[str, int]]]:
-    """Probe a Kodi VFS stream without copying it to disk.
-
-    hdrprobe cannot open nfs:// / smb:// / bluray:// / udf:// / https:// URLs
-    itself, so the stream is piped into ``hdrprobe --json -``: blocks are read
-    through xbmcvfs and written to its stdin until hdrprobe has taken its head
-    budget (the write then fails with a broken pipe — the documented success
-    signal) or the stream ends within budget.  Each block is also fed to the
-    incremental audio scanner as it goes by, so the stream is read only once and
-    nothing larger than a single block is ever held in memory.
-
-    Returns ``(report, audio_streams)``; ``report`` is ``None`` when hdrprobe
-    emitted no decodable JSON, ``audio_streams`` is the scanner's per-family
-    result (see ``AudioStreamScanner.result``).
-    """
+def _spawn_stdin_probe(probe: str) -> "subprocess.Popen | None":
+    """Spawn ``<probe> --json -`` with a stdin pipe, or ``None`` when it cannot
+    start."""
     try:
-        proc = subprocess.Popen(
+        return subprocess.Popen(
             [probe, "--json", "-"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
         )
     except OSError as exc:
-        _log(f"DV: hdrprobe failed to start: {exc}", xbmc.LOGWARNING)
-        return None, _scan_audio_vfs(vfs_url)
+        _log(f"DV: probe failed to start ({probe}): {exc}", xbmc.LOGWARNING)
+        return None
 
-    scanner = AudioStreamScanner()
+
+def _collect_probe_output(proc: "subprocess.Popen") -> str:
+    """Close ``proc``'s stdin, drain its stdout and return it as text.
+
+    ``communicate()`` closes stdin (signalling EOF for short streams) and reads
+    the small JSON report the probe writes only after it stops reading, so there
+    is no deadlock; the timeout guards the background thread against a probe that
+    never exits (it is then killed and reaped)."""
+    try:
+        out, _ = proc.communicate(timeout=_PROBE_TIMEOUT)
+    except Exception as exc:
+        _log(f"DV: probe did not complete: {exc}", xbmc.LOGWARNING)
+        proc.kill()
+        proc.communicate()
+        return ""
+    return out.decode("utf-8", "replace") if out else ""
+
+
+def _probe_stream_stdin(
+    hdr_probe: str, audio_probe: str, vfs_url: str
+) -> tuple[dict | None, list[dict]]:
+    """Probe a Kodi VFS stream without copying it to disk.
+
+    Neither hdrprobe nor audioprobe can open nfs:// / smb:// / bluray:// /
+    udf:// / https:// URLs itself, so the stream is read once through xbmcvfs and
+    each block is written to whichever probes are available over their
+    ``--json -`` stdin.  Feeding a probe stops once its stdin write fails with a
+    broken pipe (it has taken its head budget — the documented success signal);
+    the read as a whole stops once every probe has done so or the stream ends.
+    Each probe self-bounds its stdin head, so no fixed byte cap is needed (and
+    none is imposed — it would truncate whichever probe needs the most data);
+    nothing larger than a single block is ever held in memory.
+
+    ``hdr_probe`` / ``audio_probe`` may be ``''`` when that binary is missing.
+    Returns ``(report, audio_tracks)``; ``report`` is ``None`` when hdrprobe is
+    absent or emitted no decodable JSON, ``audio_tracks`` is ``[]`` likewise.
+    """
+    hdr = _spawn_stdin_probe(hdr_probe) if hdr_probe else None
+    audio = _spawn_stdin_probe(audio_probe) if audio_probe else None
+
+    open_pipes = {
+        name: proc
+        for name, proc in (("hdr", hdr), ("audio", audio))
+        if proc is not None
+    }
+    if not open_pipes:
+        return None, []
+
     try:
         f = xbmcvfs.File(vfs_url)
         try:
-            while True:
+            while open_pipes:
                 block = f.readBytes(_BLOCK_BYTES)
                 if not block:
-                    break  # end of stream within hdrprobe's budget
-                scanner.feed(block)
-                try:
-                    proc.stdin.write(block)
-                except (BrokenPipeError, OSError):
-                    break  # hdrprobe took what it needs
+                    break  # stream ended within the probes' budgets
+                for name, proc in list(open_pipes.items()):
+                    try:
+                        proc.stdin.write(block)
+                    except (BrokenPipeError, OSError):
+                        del open_pipes[name]  # this probe took what it needs
         finally:
             f.close()
     except Exception as exc:
         _log(f"DV: VFS read failed for {vfs_url}: {exc}", xbmc.LOGWARNING)
-    scanner.finish()
 
-    # communicate() closes stdin (signalling EOF for short streams) and drains
-    # the small JSON report; hdrprobe writes it only after it stops reading, so
-    # there is no deadlock.  The timeout guards the background thread against a
-    # probe that never exits (TimeoutExpired is caught below, killed and reaped).
-    try:
-        out, _ = proc.communicate(timeout=_PROBE_TIMEOUT)
-    except Exception as exc:
-        _log(f"DV: hdrprobe did not complete: {exc}", xbmc.LOGWARNING)
-        proc.kill()
-        proc.communicate()
-        return None, scanner.result()
-
-    report = _decode_report(out.decode("utf-8", "replace")) if out else None
-    return report, scanner.result()
-
-
-def _audio_fields(streams: dict[str, dict[str, int]]) -> tuple[str, str]:
-    """Serialize the scanner's per-family metrics as a ``(depths, rates)`` pair
-    of strings, e.g. ``("dts=24;truehd=24", "dts=96000")`` ('' when none)."""
-    depths = ";".join(
-        f"{family}={fields['depth']}"
-        for family, fields in sorted(streams.items())
-        if "depth" in fields
+    report = _decode_report(_collect_probe_output(hdr)) if hdr is not None else None
+    tracks = (
+        _decode_audio_tracks(_collect_probe_output(audio))
+        if audio is not None else []
     )
-    rates = ";".join(
-        f"{family}={fields['rate']}"
-        for family, fields in sorted(streams.items())
-        if "rate" in fields
-    )
-    return depths, rates
+    return report, tracks
 
 
 def _detect(path: str) -> dict[str, str]:
     """Return compact Dolby Vision + audio metadata for the given playing path.
 
-    Real filesystem paths are probed by hdrprobe directly (fullest analysis);
-    Kodi VFS URLs — which hdrprobe cannot open — are streamed into it over
-    stdin, so nothing is copied to a temporary chunk file.  The audio bitstream
-    scan consumes the same blocks incrementally and runs even when hdrprobe is
-    unavailable.
+    Real filesystem paths are probed by hdrprobe and audioprobe directly
+    (fullest analysis); Kodi VFS URLs — which neither binary can open — are
+    streamed into both over stdin in a single read, so nothing is copied to a
+    temporary chunk file.  The full audio-track list is cached so the active
+    track can be selected — and re-selected on a track change — at read time.
     """
     source = _resolve_disc_stream(path)
     is_local = source.startswith("/")
@@ -902,22 +932,27 @@ def _detect(path: str) -> dict[str, str]:
     if not have_probe:
         _log(f"DV: hdrprobe binary missing ({probe})", xbmc.LOGWARNING)
 
+    audio_probe = _audioprobe()
+    have_audio = bool(audio_probe) and os.path.exists(audio_probe)
+    if not have_audio:
+        _log(f"Audio: audioprobe binary missing ({audio_probe})", xbmc.LOGWARNING)
+
     if is_local:
         data = _run_hdrprobe(probe, source) if have_probe else None
-        streams = _scan_audio_local(source)
-    elif have_probe:
-        data, streams = _probe_stream_stdin(probe, source)
+        tracks = _run_audioprobe(audio_probe, source) if have_audio else []
     else:
-        data, streams = None, _scan_audio_vfs(source)
+        data, tracks = _probe_stream_stdin(
+            probe if have_probe else "",
+            audio_probe if have_audio else "",
+            source,
+        )
 
     info = _parse_probe(data) if data is not None else {}
 
-    audio_depths, audio_rates = _audio_fields(streams)
-    if audio_depths or audio_rates:
+    if tracks:
         if not info:
             info = _empty_info()
-        info["audio_depths"] = audio_depths
-        info["audio_rates"] = audio_rates
+        info["audio_tracks"] = json.dumps(tracks, separators=(",", ":"))
     return info
 
 
@@ -1120,32 +1155,127 @@ def get_bit_depth() -> str:
     return _get_info_value("bit_depth")
 
 
-def _lookup_audio_field(cache_key: str, family: str) -> str:
-    """Return one per-family value from a serialized audio-scan cache field
-    (``"dts=24;truehd=24"``), or '' while detection runs / nothing found."""
-    if not family:
-        return ""
-    value, _status = _get_info_status_value(cache_key)
+def _cached_audio_tracks() -> list[dict]:
+    """Return the cached audio-track list for the current file (starting
+    background detection on first access), or ``[]`` while it runs / when none
+    were found."""
+    value, _status = _get_info_status_value("audio_tracks")
     if not value:
+        return []
+    try:
+        tracks = json.loads(value)
+    except ValueError:
+        return []
+    return tracks if isinstance(tracks, list) else []
+
+
+def _norm_audio_family(name) -> str:
+    """Collapse a codec name — audioprobe's (``"DTS-HD MA"``) or Kodi's
+    (``"dtshd_ma"`` / ``"dca"``) — to a comparable family token, so the active
+    Kodi stream can be matched against a probed track regardless of naming."""
+    token = "".join(ch for ch in str(name or "").lower() if ch.isalnum())
+    if not token:
         return ""
-    for part in value.split(";"):
-        key, _, field = part.partition("=")
-        if key == family:
-            return field
-    return ""
+    if "truehd" in token:
+        return "truehd"
+    if "mlp" in token:
+        return "mlp"
+    if "dts" in token or token.startswith("dca"):
+        return "dts"
+    if "eac3" in token or "ddp" in token:
+        return "eac3"
+    if "ac3" in token:
+        return "ac3"
+    if "flac" in token:
+        return "flac"
+    return token
 
 
-def get_audio_bit_depth(family: str) -> str:
-    """Return the bit depth parsed from the source audio bitstream (e.g.
-    ``"24"``) for a codec family (``dts`` / ``truehd`` / ``mlp`` / ``flac``),
-    or '' while detection runs or when no such stream was found.  No status
-    label; see audioprobe.py for what is actually read per format."""
-    return _lookup_audio_field("audio_depths", family)
+def _current_audio_stream() -> dict:
+    """Return Kodi's currently active audio stream (``index`` / ``codec`` / …)
+    via JSON-RPC, or ``{}`` when nothing is playing or the query fails.  Read
+    live so a track change is reflected without re-probing the file."""
+    try:
+        active = json.loads(xbmc.executeJSONRPC(json.dumps({
+            "jsonrpc": "2.0", "id": 1, "method": "Player.GetActivePlayers",
+        })))
+        players = active.get("result") or []
+        playerid = next(
+            (p.get("playerid") for p in players if p.get("type") == "video"),
+            None,
+        )
+        if playerid is None:
+            return {}
+        props = json.loads(xbmc.executeJSONRPC(json.dumps({
+            "jsonrpc": "2.0", "id": 1, "method": "Player.GetProperties",
+            "params": {
+                "playerid": playerid,
+                "properties": ["currentaudiostream"],
+            },
+        })))
+        stream = (props.get("result") or {}).get("currentaudiostream") or {}
+        return stream if isinstance(stream, dict) else {}
+    except (ValueError, KeyError, TypeError):
+        return {}
 
 
-def get_audio_sample_rate(family: str) -> str:
-    """Return the sample rate in Hz parsed from the source audio bitstream
-    (e.g. ``"96000"``), or '' while detection runs or when the scanner emits
-    no rate for the family (currently only the DTS family needs one; see
-    audioprobe.py).  No status label."""
-    return _lookup_audio_field("audio_rates", family)
+def _active_audio_track() -> dict | None:
+    """Select the probed track for the audio stream Kodi is currently playing.
+
+    Both Kodi and audioprobe enumerate the container's audio tracks in order, so
+    the active stream ``index`` maps straight into the probed list; the codec
+    family is cross-checked to guard against the two orderings diverging, and a
+    unique family match is used as a fallback when they do.  A single-track file
+    needs no selection at all.  Re-evaluated on every read, so switching audio
+    track updates the values without re-probing the file.
+    """
+    tracks = _cached_audio_tracks()
+    if not tracks:
+        return None
+    if len(tracks) == 1:
+        return tracks[0]
+
+    stream = _current_audio_stream()
+    idx = stream.get("index")
+    family = _norm_audio_family(stream.get("codec"))
+
+    candidate = None
+    if isinstance(idx, int) and 0 <= idx < len(tracks):
+        candidate = tracks[idx]
+        if not family or _norm_audio_family(candidate.get("codec")) == family:
+            return candidate
+
+    if family:
+        matches = [
+            track for track in tracks
+            if _norm_audio_family(track.get("codec")) == family
+        ]
+        if len(matches) == 1:
+            return matches[0]
+
+    return candidate
+
+
+def get_active_audio_bit_depth() -> str:
+    """Return the bit depth of the active audio track as read from the source
+    bitstream by audioprobe (e.g. ``"24"``), or '' while detection runs, when no
+    depth is coded (lossy codecs report none) or when no track could be
+    selected.  No status label."""
+    track = _active_audio_track()
+    if not track:
+        return ""
+    depth = track.get("bit_depth")
+    return str(depth) if isinstance(depth, int) and not isinstance(depth, bool) else ""
+
+
+def get_active_audio_sample_rate() -> str:
+    """Return the sample rate in Hz of the active audio track as read from the
+    source bitstream by audioprobe (e.g. ``"96000"``), or '' while detection
+    runs or when no track could be selected.  Unlike Kodi's own value this is
+    the true source rate, so DTS 96/24 and high-rate DTS-HD read correctly
+    rather than as their 48 kHz compatibility core.  No status label."""
+    track = _active_audio_track()
+    if not track:
+        return ""
+    rate = track.get("sample_rate")
+    return str(rate) if isinstance(rate, int) and not isinstance(rate, bool) else ""
