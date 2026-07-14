@@ -1,7 +1,11 @@
 """Source audio bit-depth / sample-rate detection.
 
-Scans the first chunk of the playing file for audio bitstream sync patterns
-and reads the coded source resolution straight from the stream headers:
+Scans the head of the playing stream for audio bitstream sync patterns and
+reads the coded source resolution straight from the stream headers.  The scan
+is incremental (``AudioStreamScanner``): the stream is fed in blocks — the same
+blocks piped into hdrprobe — and never more than one block plus a small overlap
+is held in memory, so no fixed head buffer is needed.  ``scan_audio_streams``
+wraps it for one-shot callers.  The headers read are:
 
 * DTS / DTS-HD:  ``PCMR`` (source PCM resolution) and ``SFREQ`` fields of the
                  core frame header -> depth 16 / 20 / 24 and the sample rate.
@@ -65,6 +69,13 @@ _MLP_QUANTS = {0: 16, 1: 20, 2: 24}
 
 # Enough validated frame headers for an unambiguous majority vote.
 _MAX_HITS = 64
+
+# Longest lookahead any parser needs past a sync position.  The DTS extension
+# substream descriptor is the deepest — its reach is bounded by the substream
+# header size, at most 4 KiB (ETSI TS 102 114); every other parser needs ≤ 42
+# bytes.  8 KiB is a safe overlap so a sync and its whole header always fit
+# inside one scan window, even when the sync straddles a block boundary.
+_MAX_LOOKAHEAD = 8 * 1024
 
 
 class _BitReader:
@@ -236,47 +247,109 @@ def _parse_flac(data: bytes, pos: int) -> dict[str, int] | None:
     return {"depth": bps}
 
 
-def _scan(data: bytes, sync: bytes, parser) -> dict[str, int]:
-    """Return the majority value per metric across all validated ``sync`` hits."""
-    votes: dict[str, dict[int, int]] = {}
-    hits = 0
-    pos = data.find(sync)
-    while pos != -1 and hits < _MAX_HITS:
-        fields = parser(data, pos)
-        if fields:
-            hits += 1
-            for metric, value in fields.items():
-                metric_votes = votes.setdefault(metric, {})
-                metric_votes[value] = metric_votes.get(value, 0) + 1
-        pos = data.find(sync, pos + 1)
+_FAMILIES = (
+    ("dts", _DTS_CORE_SYNC, _parse_dts_core),
+    ("dts_exss", _DTS_EXSS_SYNC, _parse_dts_exss),
+    ("truehd", _TRUEHD_SYNC, _parse_truehd),
+    ("mlp", _MLP_SYNC, _parse_mlp),
+    ("flac", _FLAC_MARKER, _parse_flac),
+)
 
-    return {
-        metric: max(metric_votes, key=metric_votes.get)
-        for metric, metric_votes in votes.items()
-    }
+
+class AudioStreamScanner:
+    """Incremental audio bitstream scanner.
+
+    Fed the stream in arbitrary-sized blocks (typically the same blocks piped
+    into hdrprobe), it searches each for the sync patterns and decides each
+    metric by majority vote — identical to a one-shot scan of the concatenated
+    input — but never holds more than one block plus ``_MAX_LOOKAHEAD`` in
+    memory, so there is no fixed head buffer.
+
+    Each ``feed`` scans the new bytes only up to ``len - _MAX_LOOKAHEAD`` and
+    carries the tail over to the next call, so a sync straddling a block seam
+    (and its full header) is always parsed exactly once: earlier bytes are never
+    re-scanned, so nothing is double-counted.  ``finish`` flushes the final tail,
+    where the parsers tolerate a truncated last frame.
+
+    The carry buffer is a reused ``bytearray``: each block is appended in place
+    and the scanned prefix is dropped with ``del buf[:limit]``, so a feed copies
+    the block once (into spare capacity, no per-block reallocation) instead of
+    the two copies a ``tail + bytes(block)`` concatenation would make.
+    """
+
+    def __init__(self):
+        self._buf = bytearray()
+        self._votes: dict[str, dict[str, dict[int, int]]] = {
+            family: {} for family, _s, _p in _FAMILIES
+        }
+        self._hits: dict[str, int] = {family: 0 for family, _s, _p in _FAMILIES}
+
+    def feed(self, block) -> None:
+        """Scan the next block of stream bytes."""
+        if not block:
+            return
+        self._buf.extend(block)
+        limit = len(self._buf) - _MAX_LOOKAHEAD
+        if limit <= 0:
+            # Too little to parse anything safely yet; keep accumulating.  Blocks
+            # are far larger than the overlap, so the buffer never grows unbounded
+            # (the scanned prefix is dropped below on every real feed).
+            return
+        self._scan(self._buf, limit)
+        del self._buf[:limit]
+
+    def finish(self) -> None:
+        """Scan whatever remains once the stream ends."""
+        if self._buf:
+            self._scan(self._buf, len(self._buf))
+            self._buf = bytearray()
+
+    def _scan(self, buf, limit: int) -> None:
+        """Count validated syncs starting at ``pos < limit`` in ``buf``."""
+        for family, sync, parser in _FAMILIES:
+            if self._hits[family] >= _MAX_HITS:
+                continue
+            votes = self._votes[family]
+            pos = buf.find(sync)
+            while pos != -1 and pos < limit and self._hits[family] < _MAX_HITS:
+                fields = parser(buf, pos)
+                if fields:
+                    self._hits[family] += 1
+                    for metric, value in fields.items():
+                        metric_votes = votes.setdefault(metric, {})
+                        metric_votes[value] = metric_votes.get(value, 0) + 1
+                pos = buf.find(sync, pos + 1)
+
+    def result(self) -> dict[str, dict[str, int]]:
+        """Return the detected source metrics per codec family, e.g.
+        ``{"dts": {"depth": 24, "rate": 96000}, "flac": {"depth": 16}}``."""
+        streams: dict[str, dict[str, int]] = {}
+        for family, _s, _p in _FAMILIES:
+            votes = self._votes[family]
+            if votes:
+                streams[family] = {
+                    metric: max(metric_votes, key=metric_votes.get)
+                    for metric, metric_votes in votes.items()
+                }
+
+        # The extension substream's asset descriptor is authoritative for the
+        # DTS family: it describes the full extension (e.g. 96/192 kHz XLL),
+        # which the compatibility core header cannot express.
+        exss = streams.pop("dts_exss", None)
+        if exss:
+            merged = streams.get("dts", {})
+            merged.update(exss)
+            streams["dts"] = merged
+        return streams
 
 
 def scan_audio_streams(data: bytes) -> dict[str, dict[str, int]]:
-    """Return the detected source metrics per codec family, e.g.
-    ``{"dts": {"depth": 24, "rate": 96000}, "flac": {"depth": 16}}``."""
-    streams: dict[str, dict[str, int]] = {}
-    for family, sync, parser in (
-        ("dts", _DTS_CORE_SYNC, _parse_dts_core),
-        ("dts_exss", _DTS_EXSS_SYNC, _parse_dts_exss),
-        ("truehd", _TRUEHD_SYNC, _parse_truehd),
-        ("mlp", _MLP_SYNC, _parse_mlp),
-        ("flac", _FLAC_MARKER, _parse_flac),
-    ):
-        result = _scan(data, sync, parser)
-        if result:
-            streams[family] = result
+    """Return the detected source metrics per codec family for one buffer, e.g.
+    ``{"dts": {"depth": 24, "rate": 96000}, "flac": {"depth": 16}}``.
 
-    # The extension substream's asset descriptor is authoritative for the
-    # DTS family: it describes the full extension (e.g. 96/192 kHz XLL),
-    # which the compatibility core header cannot express.
-    exss = streams.pop("dts_exss", None)
-    if exss:
-        merged = streams.get("dts", {})
-        merged.update(exss)
-        streams["dts"] = merged
-    return streams
+    Thin one-shot wrapper over ``AudioStreamScanner`` for callers that already
+    hold the whole head in memory."""
+    scanner = AudioStreamScanner()
+    scanner.feed(data)
+    scanner.finish()
+    return scanner.result()
