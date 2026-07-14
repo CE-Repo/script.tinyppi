@@ -34,18 +34,23 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcvfs
-from audioprobe import scan_audio_streams
+from audioprobe import AudioStreamScanner
 
 _ADDON      = xbmcaddon.Addon()
 
-# Blocks piped into hdrprobe's stdin.  hdrprobe decides how much to read (a
-# format-specific head budget), so this is only the VFS read granularity.
+# Read granularity for the VFS/file stream.  hdrprobe decides how much to read
+# itself (a format-specific head budget), so on the stdin path this is only the
+# block size; the audio scanner consumes the same blocks incrementally, holding
+# just one block at a time rather than a fixed head buffer.
 _BLOCK_BYTES = 1024 * 1024
 
-# Head window captured for the audio bitstream scan.  16 MiB holds the first
-# GOP (keyframe + RPU) even at UHD Blu-ray bitrates and sits within hdrprobe's
-# own head budget, so the VFS stream is still read only once.
-_HEAD_BYTES   = 16 * 1024 * 1024
+# How far the audio scan reads when hdrprobe is *not* bounding the read — i.e.
+# for real local files (hdrprobe reads those to EOF on its own) and the rare
+# fallback where hdrprobe is unavailable.  On the stdin path there is no such
+# limit: the scan is bounded by hdrprobe's own budget.  It caps the read
+# distance only; memory stays at one block regardless of this value.  Audio
+# frames are interleaved near the start, well within this window.
+_AUDIO_SCAN_LIMIT = 16 * 1024 * 1024
 
 _LABEL_FETCH = 32096
 _LABEL_NA    = 32033
@@ -356,32 +361,47 @@ def _resolve_disc_stream(path: str) -> str:
     return path
 
 
-def _read_vfs_head(vfs_url: str) -> bytes:
-    """Return the first ``_HEAD_BYTES`` of a Kodi VFS stream for the audio scan.
-
-    Only used when hdrprobe itself is unavailable; otherwise the head window is
-    captured for free while the stream is piped into the probe (see
-    ``_probe_stream_stdin``), so the stream is never read twice."""
+def _scan_audio_vfs(vfs_url: str) -> dict[str, dict[str, int]]:
+    """Scan a Kodi VFS stream for audio bitstreams, reading it in blocks up to
+    ``_AUDIO_SCAN_LIMIT`` and feeding them straight into the incremental scanner
+    (no head buffer).  Only used when hdrprobe is unavailable; otherwise the same
+    blocks are scanned for free while streaming into the probe."""
+    scanner = AudioStreamScanner()
     try:
         f = xbmcvfs.File(vfs_url)
         try:
-            return bytes(f.readBytes(_HEAD_BYTES))
+            read = 0
+            while read < _AUDIO_SCAN_LIMIT:
+                block = f.readBytes(_BLOCK_BYTES)
+                if not block:
+                    break
+                read += len(block)
+                scanner.feed(block)
         finally:
             f.close()
     except Exception as exc:
-        _log(f"Audio: VFS head read failed for {vfs_url}: {exc}", xbmc.LOGWARNING)
-        return b""
+        _log(f"Audio: VFS scan failed for {vfs_url}: {exc}", xbmc.LOGWARNING)
+    scanner.finish()
+    return scanner.result()
 
 
-def _read_local_head(path: str) -> bytes:
-    """Return the first ``_HEAD_BYTES`` of a real filesystem ``path`` for the
-    audio scan, or ``b""`` when it can't be read."""
+def _scan_audio_local(path: str) -> dict[str, dict[str, int]]:
+    """Scan a real filesystem ``path`` for audio bitstreams, reading it in blocks
+    up to ``_AUDIO_SCAN_LIMIT`` and feeding the incremental scanner."""
+    scanner = AudioStreamScanner()
     try:
         with open(path, "rb") as f:
-            return f.read(_HEAD_BYTES)
+            read = 0
+            while read < _AUDIO_SCAN_LIMIT:
+                block = f.read(_BLOCK_BYTES)
+                if not block:
+                    break
+                read += len(block)
+                scanner.feed(block)
     except OSError as exc:
-        _log(f"Audio: head read failed: {exc}", xbmc.LOGWARNING)
-        return b""
+        _log(f"Audio: scan failed: {exc}", xbmc.LOGWARNING)
+    scanner.finish()
+    return scanner.result()
 
 
 def _compact_cm_version(value: str) -> str:
@@ -760,18 +780,22 @@ def _run_hdrprobe(probe: str, src: str) -> dict | None:
     return _decode_report(out)
 
 
-def _probe_stream_stdin(probe: str, vfs_url: str) -> tuple[dict | None, bytes]:
+def _probe_stream_stdin(
+    probe: str, vfs_url: str
+) -> tuple[dict | None, dict[str, dict[str, int]]]:
     """Probe a Kodi VFS stream without copying it to disk.
 
     hdrprobe cannot open nfs:// / smb:// / bluray:// / udf:// / https:// URLs
     itself, so the stream is piped into ``hdrprobe --json -``: blocks are read
     through xbmcvfs and written to its stdin until hdrprobe has taken its head
     budget (the write then fails with a broken pipe — the documented success
-    signal) or the stream ends within budget.  The first ``_HEAD_BYTES`` are
-    captured along the way for the audio scan, so the stream is read only once.
+    signal) or the stream ends within budget.  Each block is also fed to the
+    incremental audio scanner as it goes by, so the stream is read only once and
+    nothing larger than a single block is ever held in memory.
 
-    Returns ``(report, head_bytes)``; ``report`` is ``None`` when hdrprobe
-    emitted no decodable JSON.
+    Returns ``(report, audio_streams)``; ``report`` is ``None`` when hdrprobe
+    emitted no decodable JSON, ``audio_streams`` is the scanner's per-family
+    result (see ``AudioStreamScanner.result``).
     """
     try:
         proc = subprocess.Popen(
@@ -782,9 +806,9 @@ def _probe_stream_stdin(probe: str, vfs_url: str) -> tuple[dict | None, bytes]:
         )
     except OSError as exc:
         _log(f"DV: hdrprobe failed to start: {exc}", xbmc.LOGWARNING)
-        return None, _read_vfs_head(vfs_url)
+        return None, _scan_audio_vfs(vfs_url)
 
-    head = bytearray()
+    scanner = AudioStreamScanner()
     try:
         f = xbmcvfs.File(vfs_url)
         try:
@@ -792,8 +816,7 @@ def _probe_stream_stdin(probe: str, vfs_url: str) -> tuple[dict | None, bytes]:
                 block = f.readBytes(_BLOCK_BYTES)
                 if not block:
                     break  # end of stream within hdrprobe's budget
-                if len(head) < _HEAD_BYTES:
-                    head.extend(block[: _HEAD_BYTES - len(head)])
+                scanner.feed(block)
                 try:
                     proc.stdin.write(block)
                 except (BrokenPipeError, OSError):
@@ -802,6 +825,7 @@ def _probe_stream_stdin(probe: str, vfs_url: str) -> tuple[dict | None, bytes]:
             f.close()
     except Exception as exc:
         _log(f"DV: VFS read failed for {vfs_url}: {exc}", xbmc.LOGWARNING)
+    scanner.finish()
 
     # communicate() closes stdin (signalling EOF for short streams) and drains
     # the small JSON report; hdrprobe writes it only after it stops reading, so
@@ -812,20 +836,15 @@ def _probe_stream_stdin(probe: str, vfs_url: str) -> tuple[dict | None, bytes]:
         _log(f"DV: hdrprobe did not complete: {exc}", xbmc.LOGWARNING)
         proc.kill()
         proc.communicate()
-        return None, bytes(head)
+        return None, scanner.result()
 
     report = _decode_report(out.decode("utf-8", "replace")) if out else None
-    return report, bytes(head)
+    return report, scanner.result()
 
 
-def _audio_fields(head: bytes) -> tuple[str, str]:
-    """Scan the stream ``head`` for audio bitstreams and serialize the detected
-    source metrics as a ``(depths, rates)`` pair of per-family strings, e.g.
-    ``("dts=24;truehd=24", "dts=96000")`` ('' when none)."""
-    if not head:
-        return "", ""
-
-    streams = scan_audio_streams(head)
+def _audio_fields(streams: dict[str, dict[str, int]]) -> tuple[str, str]:
+    """Serialize the scanner's per-family metrics as a ``(depths, rates)`` pair
+    of strings, e.g. ``("dts=24;truehd=24", "dts=96000")`` ('' when none)."""
     depths = ";".join(
         f"{family}={fields['depth']}"
         for family, fields in sorted(streams.items())
@@ -845,7 +864,8 @@ def _detect(path: str) -> dict[str, str]:
     Real filesystem paths are probed by hdrprobe directly (fullest analysis);
     Kodi VFS URLs — which hdrprobe cannot open — are streamed into it over
     stdin, so nothing is copied to a temporary chunk file.  The audio bitstream
-    scan reuses the same head bytes and runs even when hdrprobe is unavailable.
+    scan consumes the same blocks incrementally and runs even when hdrprobe is
+    unavailable.
     """
     source = _resolve_disc_stream(path)
     is_local = source.startswith("/")
@@ -857,15 +877,15 @@ def _detect(path: str) -> dict[str, str]:
 
     if is_local:
         data = _run_hdrprobe(probe, source) if have_probe else None
-        head = _read_local_head(source)
+        streams = _scan_audio_local(source)
     elif have_probe:
-        data, head = _probe_stream_stdin(probe, source)
+        data, streams = _probe_stream_stdin(probe, source)
     else:
-        data, head = None, _read_vfs_head(source)
+        data, streams = None, _scan_audio_vfs(source)
 
     info = _parse_probe(data) if data is not None else {}
 
-    audio_depths, audio_rates = _audio_fields(head)
+    audio_depths, audio_rates = _audio_fields(streams)
     if audio_depths or audio_rates:
         if not info:
             info = _empty_info()
