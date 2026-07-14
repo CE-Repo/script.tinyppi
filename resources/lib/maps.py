@@ -199,7 +199,7 @@ AUDIO_LOGO_MAP = {
     "dts":             "codecs/DTS.png",
     "dts_96_24":       "codecs/DTS-96-24.png",
     "dts_es":          "codecs/DTS-ES.png",
-    "dts_express":     "codecs/DTS.png",
+    "dts_express":     "codecs/DTS-Express.png",
     "dtshd":           "codecs/DTS-HD-MA.png",
     "dtshd_ma":        "codecs/DTS-HD-MA.png",
     "dtshd_hra":       "codecs/DTS-HD-HRA.png",
