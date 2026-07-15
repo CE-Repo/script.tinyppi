@@ -270,6 +270,27 @@ def _output_mode_from_hw() -> str:
     return ""
 
 
+def _output_mode_from_videoplayer() -> str:
+    """Classify Kodi's ``VideoPlayer.HDRType`` InfoLabel into an output-mode
+    label (``SDR`` / ``HDR10`` / ``HLG`` / ``HDR10+`` / ``Dolby Vision``), or ``''``.
+
+    Reads Kodi's own source-side HDR detection, so it works as the fallback when
+    neither hdrprobe nor the Amlogic hardware mode yielded an output mode.
+    """
+    hdr = info("VideoPlayer.HDRType").lower()
+    if not hdr:
+        return ""
+    if "dolby" in hdr or "dovi" in hdr:
+        return "Dolby Vision"
+    if "hdr10+" in hdr or "hdr10plus" in hdr:
+        return "HDR10+"
+    if "hlg" in hdr:
+        return "HLG"
+    if "hdr10" in hdr or "hdr" in hdr or "pq" in hdr:
+        return "HDR10"
+    return ""
+
+
 def _media_source_name(output_mode: str) -> str:
     """Collapse an output-mode string to the bare format name for the Media
     source row (dropping the DV / HDR10+ profile suffix).
@@ -603,13 +624,18 @@ def update_properties(window) -> None:
     fps_info_text, fps_out_text = fps_display_texts()
 
     # Output-mode line from hdrprobe; fall back to a plain label from the
-    # Amlogic hardware mode when it would show N/A (``Fetching...`` is kept).
+    # Amlogic hardware mode, then Kodi's ``VideoPlayer.HDRType``, when it would
+    # show N/A (``Fetching...`` is kept).
     output_mode = get_output_mode()
     # Pending flag: the skin uses it to suppress the conversion-arrow suffix
     # while only the ``Fetching...`` placeholder should show.
     output_mode_pending = is_fetch_label(output_mode)
     if is_status_label(output_mode) and not is_fetch_label(output_mode):
-        output_mode = _output_mode_from_hw() or output_mode
+        output_mode = (
+            _output_mode_from_hw()
+            or _output_mode_from_videoplayer()
+            or output_mode
+        )
 
     l5_offsets = get_l5_offsets()
     l5_offsets_icon_visible = (
