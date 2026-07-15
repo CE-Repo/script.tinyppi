@@ -247,39 +247,17 @@ def get_GamutVar() -> str:
     return parts[1] if len(parts) > 1 else ""
 
 
-def _output_mode_from_hw() -> str:
-    """Classify the ``amlogic.eoft_gamut`` mode token into an output-mode label
-    (``SDR`` / ``HDR10`` / ``HLG`` / ``HDR10+`` / ``Dolby Vision``), or ``''``.
-
-    Reads the display's actual output signalling, so it works as the fallback
-    when hdrprobe detection could not run.
-    """
-    mode = get_ModeVar().upper()
-    if not mode:
-        return ""
-    if "DV" in mode or "DOLBY" in mode:
-        return "Dolby Vision"
-    if "HDR10+" in mode or "HDR10PLUS" in mode or "PLUS" in mode:
-        return "HDR10+"
-    if "HLG" in mode:
-        return "HLG"
-    if "HDR" in mode:
-        return "HDR10"
-    if "SDR" in mode:
-        return "SDR"
-    return ""
-
-
 def _output_mode_from_videoplayer() -> str:
     """Classify Kodi's ``VideoPlayer.HDRType`` InfoLabel into an output-mode
-    label (``SDR`` / ``HDR10`` / ``HLG`` / ``HDR10+`` / ``Dolby Vision``), or ``''``.
+    label (``SDR`` / ``HDR10`` / ``HLG`` / ``HDR10+`` / ``Dolby Vision``).
 
     Reads Kodi's own source-side HDR detection, so it works as the fallback when
-    neither hdrprobe nor the Amlogic hardware mode yielded an output mode.
+    hdrprobe detection could not run.  An empty ``VideoPlayer.HDRType`` means no
+    HDR signalling, i.e. ``SDR``.
     """
     hdr = info("VideoPlayer.HDRType").lower()
     if not hdr:
-        return ""
+        return "SDR"
     if "dolby" in hdr or "dovi" in hdr:
         return "Dolby Vision"
     if "hdr10+" in hdr or "hdr10plus" in hdr:
@@ -288,7 +266,7 @@ def _output_mode_from_videoplayer() -> str:
         return "HLG"
     if "hdr10" in hdr or "hdr" in hdr or "pq" in hdr:
         return "HDR10"
-    return ""
+    return "SDR"
 
 
 def _media_source_name(output_mode: str) -> str:
@@ -623,19 +601,14 @@ def update_properties(window) -> None:
     bitrate_value, bitrate_unit = get_VdecBitrateVar()
     fps_info_text, fps_out_text = fps_display_texts()
 
-    # Output-mode line from hdrprobe; fall back to a plain label from the
-    # Amlogic hardware mode, then Kodi's ``VideoPlayer.HDRType``, when it would
-    # show N/A (``Fetching...`` is kept).
+    # Output-mode line from hdrprobe; fall back to a plain label from Kodi's
+    # ``VideoPlayer.HDRType`` when it would show N/A (``Fetching...`` is kept).
     output_mode = get_output_mode()
     # Pending flag: the skin uses it to suppress the conversion-arrow suffix
     # while only the ``Fetching...`` placeholder should show.
     output_mode_pending = is_fetch_label(output_mode)
     if is_status_label(output_mode) and not is_fetch_label(output_mode):
-        output_mode = (
-            _output_mode_from_hw()
-            or _output_mode_from_videoplayer()
-            or output_mode
-        )
+        output_mode = _output_mode_from_videoplayer() or output_mode
 
     l5_offsets = get_l5_offsets()
     l5_offsets_icon_visible = (
