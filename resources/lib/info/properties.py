@@ -7,7 +7,20 @@ import re
 
 import xbmc
 import xbmcgui
-from dvinfo import (
+from core.helpers import format_fps, fps_display_texts, normalize_fps
+from core.maps import (
+    AUDIO_BIT_DEPTH_MAP,
+    AUDIO_CODEC_MAP,
+    AUDIO_PCM_DEPTH_CODECS,
+    CHANNELS_INPUT_MAP,
+    CHANNELS_MAP,
+    LANGUAGE_MAP,
+    LANGUAGE_MAP_SHORT,
+    SUBTITLE_CODEC_MAP,
+    VIDEO_CODEC_MAP,
+)
+from core.utils import clean, cond, info, set_window_properties
+from info.dvinfo import (
     get_active_audio_bit_depth,
     get_active_audio_sample_rate,
     get_bit_depth,
@@ -29,19 +42,6 @@ from dvinfo import (
     is_fetch_label,
     is_status_label,
 )
-from helpers import format_fps, fps_display_texts, normalize_fps
-from maps import (
-    AUDIO_BIT_DEPTH_MAP,
-    AUDIO_CODEC_MAP,
-    AUDIO_PCM_DEPTH_CODECS,
-    CHANNELS_INPUT_MAP,
-    CHANNELS_MAP,
-    LANGUAGE_MAP,
-    LANGUAGE_MAP_SHORT,
-    SUBTITLE_CODEC_MAP,
-    VIDEO_CODEC_MAP,
-)
-from utils import clean, cond, info, set_window_properties
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
 

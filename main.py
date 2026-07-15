@@ -26,8 +26,8 @@ def main() -> None:
     addon = xbmcaddon.Addon()
     _bootstrap_lib_path(addon)
 
-    from mode_select import set_mode
-    from overlay import open_dialog_mode, open_tinyppi
+    from ui.mode_select import set_mode
+    from ui.overlay import open_dialog_mode, open_tinyppi
 
     args = _split_args(sys.argv[1:])
     command = args[0] if args else ""
@@ -42,12 +42,12 @@ def main() -> None:
     if command == "dialog":
         open_dialog_mode()
     elif command == "splash":
-        from splash import open_splash
+        from ui.splash import open_splash
         open_splash()
     elif command == "run_mode" and len(args) > 1:
         set_mode(args[1])
     elif command == "custom_color" and len(args) > 1:
-        from theme import custom_color
+        from ui.theme import custom_color
         custom_color(args[1])
     else:
         open_tinyppi()

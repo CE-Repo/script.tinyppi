@@ -10,7 +10,7 @@ import time
 import xbmc
 import xbmcaddon
 import xbmcgui
-from utils import clear_overlay_state
+from core.utils import clear_overlay_state
 
 _ADDON      = xbmcaddon.Addon()
 _ADDON_PATH = _ADDON.getAddonInfo("path")
@@ -323,7 +323,7 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         threading.Thread(target=self._hdr_type_loop, daemon=True).start()
 
     def _hdr_type_loop(self) -> None:
-        from properties import publish_hdr_type
+        from info.properties import publish_hdr_type
 
         home = xbmcgui.Window(10000)
         while self._running and not self._monitor.abortRequested():
@@ -339,7 +339,7 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         if control_id == _BTN_TINYPPI:
             self.close()
             clear_overlay_state(xbmcgui.Window(10000))
-            from overlay import open_tinyppi
+            from ui.overlay import open_tinyppi
             open_tinyppi()
             return
 

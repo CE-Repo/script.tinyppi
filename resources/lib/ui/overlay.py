@@ -7,20 +7,20 @@ import os
 import threading
 import time
 
-import fonts
-import properties
 import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcvfs
-from theme import apply_theme
-from utils import (
+from core.utils import (
     PROP_ACTIVE,
     PROP_DIALOG_MODE,
     PROP_RUNNING,
     clear_overlay_state,
     set_window_properties,
 )
+from info import properties
+from ui import fonts
+from ui.theme import apply_theme
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -344,7 +344,7 @@ def open_dialog_mode() -> None:
     apply_theme(home, _ADDON)
 
     try:
-        from mode_select import open_dialog
+        from ui.mode_select import open_dialog
         open_dialog()
     finally:
         _release_overlay(home)
