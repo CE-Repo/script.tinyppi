@@ -32,7 +32,7 @@ _ADDON_PATH = _ADDON.getAddonInfo("path")
 _dialog_lock = False
 
 # Raise to True to allow launching on non-CoreELEC platforms (e.g. for testing).
-_ALLOW_NON_COREELEC = True
+_ALLOW_NON_COREELEC = False
 
 # Runtime nudge: pixels moved per arrow-key press, and the direction each key
 # shifts the overlay by.  Deliberately not persisted – the nudge lives on the
