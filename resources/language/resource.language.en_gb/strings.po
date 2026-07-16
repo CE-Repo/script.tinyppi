@@ -1094,3 +1094,67 @@ msgstr ""
 msgctxt "#32345"
 msgid "Automatically hides the TinyPPI overlay after the selected time (in seconds). 0 = off. Does not apply to the VS10 dialog."
 msgstr ""
+
+msgctxt "#32346"
+msgid "Show channel layout graphic"
+msgstr ""
+
+msgctxt "#32347"
+msgid "Show a speaker layout graphic for the active audio track above the chart icon."
+msgstr ""
+
+msgctxt "#32348"
+msgid "Horizontal offset of the channel box"
+msgstr ""
+
+msgctxt "#32349"
+msgid "Moves the channel box in Dolby Vision to the right. 0% places it at the left edge, 100% keeps it in its default position on the right."
+msgstr ""
+
+msgctxt "#32350"
+msgid "Channels"
+msgstr ""
+
+msgctxt "#32351"
+msgid "Customise the colors of the channel layout graphic."
+msgstr ""
+
+msgctxt "#32352"
+msgid "Layout"
+msgstr ""
+
+msgctxt "#32353"
+msgid "Background color of the channel box shown in Dolby Vision."
+msgstr ""
+
+msgctxt "#32354"
+msgid "Color of the speaker layout graphic behind the active channels."
+msgstr ""
+
+msgctxt "#32355"
+msgid "Color of the active channels in the layout graphic."
+msgstr ""
+
+msgctxt "#32356"
+msgid "Channels in SDR"
+msgstr ""
+
+msgctxt "#32357"
+msgid "Show the channel layout graphic while playing SDR content."
+msgstr ""
+
+msgctxt "#32358"
+msgid "Channels in HDR10 / HLG / HDR10+"
+msgstr ""
+
+msgctxt "#32359"
+msgid "Show the channel layout graphic while playing HDR10, HLG or HDR10+ content."
+msgstr ""
+
+msgctxt "#32360"
+msgid "Channels in Dolby Vision"
+msgstr ""
+
+msgctxt "#32361"
+msgid "Show the channel layout graphic while playing Dolby Vision content."
+msgstr ""

@@ -4,6 +4,7 @@ so the addon can react to system notifications."""
 import json
 import os
 import sys
+import threading
 
 import xbmc
 import xbmcaddon
@@ -14,6 +15,7 @@ if _LIB_PATH not in sys.path:
     sys.path.insert(0, _LIB_PATH)
 
 from info.dvinfo import prime_playback_detection, reset_playback_cache
+from info.properties import prewarm_channel_textures
 from ui.theme import apply_theme
 
 _ADDON_ID = "script.tinyppi"
@@ -52,6 +54,7 @@ class KodiMonitor(xbmc.Monitor):
 
         if method == "Player.OnAVStart":
             self._prime_detection()
+            self._prewarm_channel_textures()
             self._maybe_show_splash()
 
         try:
@@ -83,6 +86,31 @@ class KodiMonitor(xbmc.Monitor):
                 _log("Preloading playback metadata in background")
         except Exception as exc:
             _log(f"Exception priming detection: {exc}", xbmc.LOGERROR)
+
+    def _prewarm_channel_textures(self) -> None:
+        """Scale the channel graphics for this track in the background.
+
+        Scaling is pure Python and takes a moment per graphic, so it runs on its
+        own thread: the notification handler returns at once and the work is
+        done long before the user can open the overlay.  Cached results make
+        every later playback a no-op.
+        """
+        try:
+            if not xbmc.getCondVisibility("Player.HasVideo"):
+                return
+            threading.Thread(
+                target=self._prewarm_worker, name="TinyPPI-prewarm", daemon=True
+            ).start()
+        except Exception as exc:
+            _log(f"Exception starting channel prewarm: {exc}", xbmc.LOGERROR)
+
+    @staticmethod
+    def _prewarm_worker() -> None:
+        try:
+            prewarm_channel_textures()
+            _log("Channel textures ready")
+        except Exception as exc:
+            _log(f"Exception prewarming channel textures: {exc}", xbmc.LOGERROR)
 
     def _maybe_show_splash(self) -> None:
         """Fire the format-logo splash when enabled for this video.

@@ -1094,3 +1094,67 @@ msgstr "自动隐藏"
 msgctxt "#32345"
 msgid "Automatically hides the TinyPPI overlay after the selected time (in seconds). 0 = off. Does not apply to the VS10 dialog."
 msgstr "在设定的时间（秒）后自动隐藏 TinyPPI 叠加层。0 = 关闭。不适用于 VS10 对话框。"
+
+msgctxt "#32346"
+msgid "Show channel layout graphic"
+msgstr "显示声道布局图"
+
+msgctxt "#32347"
+msgid "Show a speaker layout graphic for the active audio track above the chart icon."
+msgstr "在图表图标上方显示当前音轨的扬声器布局图。"
+
+msgctxt "#32348"
+msgid "Horizontal offset of the channel box"
+msgstr "声道框水平偏移"
+
+msgctxt "#32349"
+msgid "Moves the channel box in Dolby Vision to the right. 0% places it at the left edge, 100% keeps it in its default position on the right."
+msgstr "在杜比视界下将声道框向右移动。0% 将其置于左边缘，100% 保持其右侧的默认位置。"
+
+msgctxt "#32350"
+msgid "Channels"
+msgstr "声道"
+
+msgctxt "#32351"
+msgid "Customise the colors of the channel layout graphic."
+msgstr "自定义声道布局图形的颜色。"
+
+msgctxt "#32352"
+msgid "Layout"
+msgstr "布局"
+
+msgctxt "#32353"
+msgid "Background color of the channel box shown in Dolby Vision."
+msgstr "杜比视界下声道框的背景颜色。"
+
+msgctxt "#32354"
+msgid "Color of the speaker layout graphic behind the active channels."
+msgstr "活动声道后方扬声器布局图形的颜色。"
+
+msgctxt "#32355"
+msgid "Color of the active channels in the layout graphic."
+msgstr "布局图形中活动声道的颜色。"
+
+msgctxt "#32356"
+msgid "Channels in SDR"
+msgstr "SDR 下的声道"
+
+msgctxt "#32357"
+msgid "Show the channel layout graphic while playing SDR content."
+msgstr "播放 SDR 内容时显示声道布局图形。"
+
+msgctxt "#32358"
+msgid "Channels in HDR10 / HLG / HDR10+"
+msgstr "HDR10 / HLG / HDR10+ 下的声道"
+
+msgctxt "#32359"
+msgid "Show the channel layout graphic while playing HDR10, HLG or HDR10+ content."
+msgstr "播放 HDR10、HLG 或 HDR10+ 内容时显示声道布局图形。"
+
+msgctxt "#32360"
+msgid "Channels in Dolby Vision"
+msgstr "杜比视界下的声道"
+
+msgctxt "#32361"
+msgid "Show the channel layout graphic while playing Dolby Vision content."
+msgstr "播放杜比视界内容时显示声道布局图形。"

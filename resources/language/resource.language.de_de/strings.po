@@ -1094,3 +1094,67 @@ msgstr "Automatisch ausblenden"
 msgctxt "#32345"
 msgid "Automatically hides the TinyPPI overlay after the selected time (in seconds). 0 = off. Does not apply to the VS10 dialog."
 msgstr "Blendet das TinyPPI-Overlay nach der eingestellten Zeit (in Sekunden) automatisch aus. 0 = Aus. Gilt nicht für den VS10-Dialog."
+
+msgctxt "#32346"
+msgid "Show channel layout graphic"
+msgstr "Kanal-Layout-Grafik anzeigen"
+
+msgctxt "#32347"
+msgid "Show a speaker layout graphic for the active audio track above the chart icon."
+msgstr "Zeigt über dem Chart-Symbol eine Lautsprecher-Layout-Grafik für die aktive Tonspur an."
+
+msgctxt "#32348"
+msgid "Horizontal offset of the channel box"
+msgstr "Horizontaler Versatz der Kanal-Box"
+
+msgctxt "#32349"
+msgid "Moves the channel box in Dolby Vision to the right. 0% places it at the left edge, 100% keeps it in its default position on the right."
+msgstr "Verschiebt die Kanal-Box bei Dolby Vision nach rechts. 0% setzt sie an den linken Rand, 100% belässt sie an ihrer Standardposition rechts."
+
+msgctxt "#32350"
+msgid "Channels"
+msgstr "Kanäle"
+
+msgctxt "#32351"
+msgid "Customise the colors of the channel layout graphic."
+msgstr "Passe die Farben der Kanal-Layout-Grafik an."
+
+msgctxt "#32352"
+msgid "Layout"
+msgstr "Layout"
+
+msgctxt "#32353"
+msgid "Background color of the channel box shown in Dolby Vision."
+msgstr "Hintergrundfarbe der Kanal-Box bei Dolby Vision."
+
+msgctxt "#32354"
+msgid "Color of the speaker layout graphic behind the active channels."
+msgstr "Farbe der Lautsprecher-Layout-Grafik hinter den aktiven Kanälen."
+
+msgctxt "#32355"
+msgid "Color of the active channels in the layout graphic."
+msgstr "Farbe der aktiven Kanäle in der Layout-Grafik."
+
+msgctxt "#32356"
+msgid "Channels in SDR"
+msgstr "Kanäle bei SDR"
+
+msgctxt "#32357"
+msgid "Show the channel layout graphic while playing SDR content."
+msgstr "Zeigt die Kanal-Layout-Grafik bei der Wiedergabe von SDR-Inhalten an."
+
+msgctxt "#32358"
+msgid "Channels in HDR10 / HLG / HDR10+"
+msgstr "Kanäle bei HDR10 / HLG / HDR10+"
+
+msgctxt "#32359"
+msgid "Show the channel layout graphic while playing HDR10, HLG or HDR10+ content."
+msgstr "Zeigt die Kanal-Layout-Grafik bei der Wiedergabe von HDR10-, HLG- oder HDR10+-Inhalten an."
+
+msgctxt "#32360"
+msgid "Channels in Dolby Vision"
+msgstr "Kanäle bei Dolby Vision"
+
+msgctxt "#32361"
+msgid "Show the channel layout graphic while playing Dolby Vision content."
+msgstr "Zeigt die Kanal-Layout-Grafik bei der Wiedergabe von Dolby-Vision-Inhalten an."

@@ -32,7 +32,7 @@ _ADDON_PATH = _ADDON.getAddonInfo("path")
 _dialog_lock = False
 
 # Raise to True to allow launching on non-CoreELEC platforms (e.g. for testing).
-_ALLOW_NON_COREELEC = False
+_ALLOW_NON_COREELEC = True
 
 # Runtime nudge: pixels moved per arrow-key press, and the direction each key
 # shifts the overlay by.  Deliberately not persisted – the nudge lives on the
@@ -40,12 +40,21 @@ _ALLOW_NON_COREELEC = False
 _NUDGE_STEP = 10
 
 # Outermost edges of the overlay content inside group 5000 (see the skin XML);
-# the nudge is clamped so these stay on screen.
-_CONTENT_LEFT      = 35
-_CONTENT_TOP       = 340
-_CONTENT_BOTTOM    = 1045
-_CONTENT_RIGHT_SDR = 1292
-_CONTENT_RIGHT_HDR = 1885
+# the nudge and the configured offsets are clamped so these stay on screen.
+_CONTENT_LEFT         = 35
+_CONTENT_BOTTOM       = 1045
+_CONTENT_TOP          = 340
+_CONTENT_TOP_DV       = 37    # DV with channels: separate panel above the main box
+_CONTENT_RIGHT_NARROW = 1292  # SDR without channels
+_CONTENT_RIGHT_WIDE   = 1885  # HDR, and SDR with channels
+
+# Skin position of the DV channel panel (control 5100), which offset_x_dv slides
+# left from: at 0 % its left edge lands on _CONTENT_LEFT.
+_CHANNEL_PANEL_DV_LEFT = 1485
+
+# Gap the configured vertical offset leaves above the DV channel panel, matching
+# the left inset.  The arrow-key nudge ignores it and goes to the edge.
+_MARGIN_TOP_DV = 37
 
 _NUDGE_ACTIONS = {
     xbmcgui.ACTION_MOVE_LEFT:  (-_NUDGE_STEP, 0),
@@ -167,6 +176,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._offset    = None
         self._auto_hide = 0
         self._nudge     = (0, 0)
+        self._dv_channel_offset = None
 
     def onInit(self) -> None:
         self._running   = True
@@ -187,42 +197,90 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         From the bottom-left origin, the horizontal offset moves content right,
         the vertical offset moves it up; 100 % is the max on-screen travel
         (30.9 % / 28.1 % of the screen).  The horizontal offset applies to SDR
-        only (HDR stays left-aligned).
+        without channels only (HDR and SDR with channels stay left-aligned); the
+        vertical one stops 35 px short of the top edge in DV with channels,
+        which leaves it 2 px there.
         """
         max_x = 0.309
         max_y = 0.281
         offset_x = round(1920 * max_x * _ADDON.getSettingInt("offset_x") / 100)
         offset_y = -round(1080 * max_y * _ADDON.getSettingInt("offset_y") / 100)
-        if self._is_hdr():
+        if self._is_hdr() or self._has_channels():
             offset_x = 0
+        offset_y = max(offset_y, -self._offset_up_limit())
         return offset_x, offset_y
 
     def _is_hdr(self) -> bool:
         return bool(xbmcgui.Window(10000).getProperty("TinyPPI.HdrType"))
 
+    def _is_dv(self) -> bool:
+        return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.HdrType").lower()
+
+    def _has_channels(self) -> bool:
+        """Mirror the skin's visibility condition for the channel variant."""
+        return (
+            xbmcgui.Window(10000).getProperty("TinyPPI.ShowChannelIcon") == "1"
+            and bool(self.getProperty("ChannelIconVar"))
+        )
+
+    def _content_top(self) -> int:
+        """Top edge of the content: DV puts the channel panel above the main box."""
+        return _CONTENT_TOP_DV if self._is_dv() and self._has_channels() else _CONTENT_TOP
+
+    def _offset_up_limit(self) -> int:
+        """Pixels the configured offset may move the content up.
+
+        The nudge is free to go all the way to the screen edge; the offset keeps
+        the DV channel panel 35 px clear of it, which leaves it 2 px there.
+        """
+        top = self._content_top()
+        if self._is_dv() and self._has_channels():
+            return top - _MARGIN_TOP_DV
+        return top
+
     def _apply_position_offset(self) -> None:
         """Move group 5000 to the configured offset plus the current nudge.
 
         The nudge is clamped here rather than where it is applied, so that a
-        later HDR switch (which widens the content) pulls an already nudged
-        overlay back on screen.  Clamping the nudge instead of the resulting
-        position keeps the first press in the opposite direction effective.
+        later HDR switch or channel icon appearing (both grow the content)
+        pulls an already nudged overlay back on screen.  Clamping the nudge
+        instead of the resulting position keeps the first press in the opposite
+        direction effective.
         Re-applied each cycle since the HDR type is detected asynchronously, and
         cached so the unchanged case is skipped.
         """
         base_x, base_y = self._base_offset()
         nudge_x, nudge_y = self._nudge
-        right = _CONTENT_RIGHT_HDR if self._is_hdr() else _CONTENT_RIGHT_SDR
+        wide = self._is_hdr() or self._has_channels()
+        right = _CONTENT_RIGHT_WIDE if wide else _CONTENT_RIGHT_NARROW
+
+        top = self._content_top()
 
         nudge_x = min(max(nudge_x, -_CONTENT_LEFT - base_x), 1920 - right - base_x)
-        nudge_y = min(max(nudge_y, -_CONTENT_TOP - base_y), 1080 - _CONTENT_BOTTOM - base_y)
+        nudge_y = min(max(nudge_y, -top - base_y), 1080 - _CONTENT_BOTTOM - base_y)
         self._nudge = (nudge_x, nudge_y)
 
         offset = (base_x + nudge_x, base_y + nudge_y)
-        if offset == self._offset:
+        if offset != self._offset:
+            self._offset = offset
+            self.getControl(5000).setPosition(*offset)
+
+        self._apply_dv_channel_offset()
+
+    def _apply_dv_channel_offset(self) -> None:
+        """Slide the DV channel panel (5100) along its own row.
+
+        The panel sits above the main box, so it can move horizontally on its
+        own: 100 % leaves it skin-aligned on the right, 0 % puts it at the left
+        inset.  Only the panel moves; the main box below it stays put.
+        """
+        travel = _CHANNEL_PANEL_DV_LEFT - _CONTENT_LEFT
+        pct    = min(max(_ADDON.getSettingInt("offset_x_dv"), 0), 100)
+        offset = (-round(travel * (100 - pct) / 100), 0)
+        if offset == self._dv_channel_offset:
             return
-        self._offset = offset
-        self.getControl(5000).setPosition(*offset)
+        self._dv_channel_offset = offset
+        self.getControl(5100).setPosition(*offset)
 
     def _move(self, dx: int, dy: int) -> None:
         """Shift the overlay by one step; reverts on the next launch."""
@@ -308,6 +366,9 @@ def open_tinyppi() -> None:
             ("TinyPPI.ShowHeaderIcon", elements_visible),
         ),
     )
+    # From the HDR type known so far, so the right variant is up before the first
+    # frame; the update loop re-publishes it once detection finishes.
+    properties.publish_channel_visibility(home)
     apply_theme(home, _ADDON)
 
     try:

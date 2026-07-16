@@ -106,8 +106,8 @@ AUDIO_CODEC_MAP = {
 
     # Compressed
     "ape":             "Monkey's Audio (APE)",
-    "mp1":             "MPEG Audio Layer I",
-    "mp2":             "MPEG Audio Layer II",
+    "mp1":             "MP1",
+    "mp2":             "MP2",
     "mp3":             "MP3",
     "mp3float":        "MP3",
     "ogg":             "Ogg Vorbis",
@@ -214,6 +214,8 @@ AUDIO_LOGO_MAP = {
     "pcm_s24le":       "codecs/PCM.png",
 
     # Compressed
+    "mp1":             "codecs/MP1.png",
+    "mp2":             "codecs/MP2.png",
     "mp3":             "codecs/MP3.png",
     "mp3float":        "codecs/MP3.png",
     "opus":            "codecs/OPUS.png",
@@ -253,6 +255,35 @@ CHANNELS_INPUT_MAP = {
     8:  "FL, FR, FC, LFE, BL, BR, SL, SR",
     9:  "FL, FR, FC, LFE, BL, BR, SL, SR, FWL",
     10: "FL, FR, FC, LFE, BL, BR, SL, SR, FWL, FWR",
+}
+
+# Channel count -> speaker-layout graphic (channels/*.png, relative to the skin
+# media folder).  Unmapped counts omit the graphic.
+CHANNELS_ICON_MAP = {
+    1: "1.0",
+    2: "2.0",
+    3: "2.1",
+    4: "3.1",
+    5: "4.1",
+    6: "5.1",
+    7: "6.1",
+    8: "7.1",
+}
+
+# Codecs that carry height channels: the Atmos and DTS:X families (IMAX
+# Enhanced is DTS:X based).  Kodi reports only a channel count, never the
+# height-channel count, so the height speakers are inferred from the codec.
+HEIGHT_CHANNEL_CODECS = frozenset({
+    "eac3_ddp_atmos",
+    "truehd_atmos",
+    "dtshd_ma_x",
+    "dtshd_ma_x_imax",
+})
+
+# Channel count -> speaker-layout graphic for the codecs above.
+CHANNELS_ICON_HEIGHT_MAP = {
+    6: "5.1.2",
+    8: "7.1.2",
 }
 
 # ISO 639-2/B language code -> native language name

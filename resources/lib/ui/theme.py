@@ -77,6 +77,10 @@ _DIALOG_FOCUS_TEXT_COLORS = (
     "FFFFFFFF",  # 1  White
 ) + _TEXT_COLORS[1:]
 
+# Channel layout graphic and its active channels; index 0 is pure white, so the
+# defaults reproduce the skin's untinted look.
+_CHANNEL_COLORS = ("FFFFFFFF",) + _TEXT_COLORS[1:]
+
 # Inline detail accents: _TEXT_COLORS hues at alpha B3 (~70%).
 _ACCENT_COLORS = tuple("B3" + color[2:] for color in _TEXT_COLORS)
 
@@ -172,6 +176,8 @@ _CUSTOM_ALPHA = {
     "dialog_background_color": "FA",  # VS10 dialog panel background shades
     "dialog_global_background_color": "FA",  # VS10 dialog full-screen background shades
     "global_background_color": "FA",  # full-screen global background shades
+    "channel_background_color": "FA",  # DV channel panel background shades
+    "channel_layout_color":     "54",  # speaker layout graphic (~33%)
     "accent_color":            "B3",  # dimmed detail accents (~70%)
     "line_color":              "26",  # faint separator lines (~15%)
     "dialog_line_color":       "26",  # faint VS10 dialog separator lines (~15%)
@@ -245,6 +251,8 @@ _DEFAULT_OPACITIES = {
     "dialog_background_color": 98,  # FA – VS10 dialog panel background
     "dialog_global_background_color": 0,  # off until the user raises the slider
     "global_background_color":  0,  # off until the user raises the slider
+    "channel_background_color": 98,  # FA – DV channel panel background
+    "channel_layout_color":     33,  # 54 – speaker layout graphic
     "accent_color":            70,  # B3 – dimmed inline detail accents
     "line_color":              15,  # 26 – faint separator lines
     "dialog_line_color":       15,  # 26 – faint VS10 dialog separator lines
@@ -331,6 +339,11 @@ _THEME_PROPERTIES = (
     ("TinyPPI.SplashTinyppiVideoColor",   _TEXT_COLORS,       "splash_tinyppi_video_color"),
     ("TinyPPI.SplashTinyppiAudioColor",   _TEXT_COLORS,       "splash_tinyppi_audio_color"),
     ("TinyPPI.SplashTinyppiDividerColor", _TEXT_COLORS,       "splash_tinyppi_divider_color"),
+    # Channel layout: the DV panel background, the speaker layout graphic behind
+    # the channels, and the active channels themselves.
+    ("TinyPPI.ChannelBackgroundColor", _BACKGROUND_COLORS, "channel_background_color"),
+    ("TinyPPI.ChannelLayoutColor",     _CHANNEL_COLORS,    "channel_layout_color"),
+    ("TinyPPI.ChannelIconColor",       _CHANNEL_COLORS,    "channel_icon_color"),
     ("TinyPPI.LineColor",             _LINE_COLORS, "line_color"),
     ("TinyPPI.DialogHeaderColor",     _TEXT_COLORS, "dialog_header_color"),
     ("TinyPPI.DialogHeaderIconColor", _TEXT_COLORS, "dialog_header_icon_color"),
