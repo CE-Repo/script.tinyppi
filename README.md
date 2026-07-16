@@ -6,7 +6,11 @@ A CoreELEC addon that displays detailed playback information in a custom overlay
 
 ## Screenshots
 <p align="center">
-<img width="1200" alt="TinyPPI-Overlay" src="https://github.com/user-attachments/assets/79a1e3e1-fa03-4534-b8ca-0a39256f4af2" />
+<img width="1200" alt="VS10-Dialog" src="https://github.com/user-attachments/assets/6e3d9687-f6b6-4724-a346-e5ffb9a4c3dc" />
+</p>
+
+<p align="center">
+<img width="1200" alt="VS10-Dialog" src="https://github.com/user-attachments/assets/de617104-cf29-4ead-9c8a-a0fb75ce5b94" />
 </p>
 
 <p align="center">
