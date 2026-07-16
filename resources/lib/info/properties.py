@@ -5,13 +5,11 @@ Call ``update_properties(window)`` once per polling interval.
 
 import os
 import re
-import time
 
 import xbmc
 import xbmcaddon
 import xbmcgui
 from core.helpers import format_fps, fps_display_texts, normalize_fps
-from core.images import display_texture, ensure_texture, ready_texture
 from core.maps import (
     AUDIO_BIT_DEPTH_MAP,
     AUDIO_CODEC_MAP,
@@ -56,20 +54,6 @@ _MEDIA_PATH = os.path.join(
     xbmcaddon.Addon().getAddonInfo("path"),
     "resources", "skins", "Default", "media",
 )
-
-# On-screen size of the channel graphics (see the skin XML).  The DV panel above
-# the main box is smaller than the box the SDR and HDR10 / HLG branches draw in.
-_CHANNEL_BOX_DEFAULT = (495, 298)
-_CHANNEL_BOX_DV      = (400, 241)
-
-# How long the prewarm waits for Kodi to publish the audio InfoLabels.
-_AUDIO_INFO_TIMEOUT = 10.0
-_AUDIO_INFO_POLL    = 0.25
-
-
-def _is_dv() -> bool:
-    """Mirror the skin's DV branch, which selects the smaller channel panel."""
-    return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.HdrType").lower()
 
 
 def _channels_shown() -> bool:
@@ -409,25 +393,14 @@ def get_AudioChannelsInputVar() -> str:
 
 
 def _channel_texture(rel_path: str) -> str:
-    """Return the channel graphic ``rel_path`` for the panel the skin draws.
+    """Return the channel graphic ``rel_path`` for the skin to draw directly.
 
-    The sources are far larger than the box they appear in, so a display-sized
-    copy is cached once instead of Kodi resampling them on every frame.  Scaling
-    is slow, so this never waits for it: until the cache entry exists the
-    unscaled original is shown and the build runs in the background.  That keeps
-    the overlay usable from the first frame — it just looks as it did before the
-    cache existed.
+    The graphics ship at their on-screen size, so they are handed to the skin
+    as-is with no scaling on the device — this used to rescale the far larger
+    sources in pure Python, which is CPU-bound and, on the single interpreter
+    lock Kodi shares across add-ons, made the overlay slow to open.  Kodi draws
+    the slightly smaller DV panel with a cheap GPU downscale.
     """
-    source = os.path.join(_MEDIA_PATH, rel_path.replace("/", os.sep))
-    if not os.path.exists(source):
-        return rel_path
-
-    box = _CHANNEL_BOX_DV if _is_dv() else _CHANNEL_BOX_DEFAULT
-    ready = ready_texture(source, *box)
-    if ready:
-        return ready
-
-    ensure_texture(source, *box)
     return rel_path
 
 
@@ -449,61 +422,14 @@ def _channel_layout() -> str:
     return layout or CHANNELS_ICON_MAP.get(ch, "")
 
 
-def _wait_for_audio_channels(timeout: float = _AUDIO_INFO_TIMEOUT) -> None:
-    """Block until Kodi reports the track's channel count, or ``timeout`` passes.
-
-    ``Player.OnAVStart`` can arrive before the audio InfoLabels are filled in, so
-    reading the layout right away may find nothing and skip the graphic.  Only
-    ever called from the prewarm thread.
-    """
-    monitor = xbmc.Monitor()
-    deadline = time.time() + timeout
-    while not info("VideoPlayer.AudioChannels"):
-        if time.time() >= deadline or monitor.waitForAbort(_AUDIO_INFO_POLL):
-            return
-
-
-def prewarm_channel_textures() -> None:
-    """Build the scaled channel graphics for the current track up front.
-
-    Scaling one graphic takes a noticeable moment, so the service calls this at
-    playback start (off the UI thread) instead of leaving the cost to the first
-    overlay that needs it.  Both panel sizes are built because the HDR type is
-    still being detected at this point, and the cache is permanent, so this is a
-    one-off per graphic and size.  Reads the settings directly: the Home-window
-    flag the skin uses only exists once the overlay has opened.
-
-    Builds for any output type that has channels switched on, since which one
-    this stream is has not been detected yet.
-    """
-    addon = xbmcaddon.Addon()
-    if not any(addon.getSetting(setting) == "true" for setting
-               in ("channels_sdr", "channels_hdr", "channels_dv")):
-        return
-
-    rel_paths = ["channels/layer.png"]
-    _wait_for_audio_channels()
-    layout = _channel_layout()
-    if layout:
-        rel_paths.append(f"channels/{layout}.png")
-
-    for rel_path in rel_paths:
-        source = os.path.join(_MEDIA_PATH, rel_path.replace("/", os.sep))
-        if not os.path.exists(source):
-            continue
-        for box in (_CHANNEL_BOX_DEFAULT, _CHANNEL_BOX_DV):
-            display_texture(source, *box)
-
-
 def get_ChannelLayerVar() -> str:
     """Return the speaker-layout backdrop drawn behind the active channels."""
     return _channel_texture("channels/layer.png") if _channels_shown() else ""
 
 
 def get_ChannelIconVar() -> str:
-    """Return the speaker-layout graphic for the current channel count, sized
-    for the box it is drawn in.  Empty when the count has no graphic, which also
-    hides the control in the skin.
+    """Return the speaker-layout graphic for the current channel count.  Empty
+    when the count has no graphic, which also hides the control in the skin.
     """
     if not _channels_shown():
         return ""
