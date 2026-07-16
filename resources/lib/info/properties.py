@@ -3,7 +3,6 @@
 Call ``update_properties(window)`` once per polling interval.
 """
 
-import os
 import re
 
 import xbmc
@@ -50,15 +49,26 @@ from info.dvinfo import (
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
 
-_MEDIA_PATH = os.path.join(
-    xbmcaddon.Addon().getAddonInfo("path"),
-    "resources", "skins", "Default", "media",
-)
+# Channel graphics ship pre-scaled to the exact box the skin draws them in
+# (see script-tinyppi-main.xml), so Kodi never resamples them: SDR and
+# HDR10 / HDR10+ / HLG share the 495x298 box, DV uses the smaller 400x241 panel.
+_CHANNEL_DIR_DEFAULT = "channels/495x298"
+_CHANNEL_DIR_DV      = "channels/400x241"
+
+
+def _is_dv() -> bool:
+    """Mirror the skin's DV branch, which draws the smaller channel panel."""
+    return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.HdrType").lower()
+
+
+def _channel_dir() -> str:
+    """Return the folder holding the display-sized graphics for the current
+    output type: the DV panel is smaller than the SDR / HDR box."""
+    return _CHANNEL_DIR_DV if _is_dv() else _CHANNEL_DIR_DEFAULT
 
 
 def _channels_shown() -> bool:
-    """Return whether the channel graphics are switched on, so that scaling them
-    is only paid for when they are actually drawn."""
+    """Return whether the channel graphics are switched on."""
     return xbmcgui.Window(10000).getProperty("TinyPPI.ShowChannelIcon") == "1"
 
 
@@ -392,18 +402,6 @@ def get_AudioChannelsInputVar() -> str:
         return xbmc.getLocalizedString(13205)
 
 
-def _channel_texture(rel_path: str) -> str:
-    """Return the channel graphic ``rel_path`` for the skin to draw directly.
-
-    The graphics ship at their on-screen size, so they are handed to the skin
-    as-is with no scaling on the device — this used to rescale the far larger
-    sources in pure Python, which is CPU-bound and, on the single interpreter
-    lock Kodi shares across add-ons, made the overlay slow to open.  Kodi draws
-    the slightly smaller DV panel with a cheap GPU downscale.
-    """
-    return rel_path
-
-
 def _channel_layout() -> str:
     """Return the speaker layout for the current track, e.g. ``5.1.2``.
 
@@ -423,19 +421,21 @@ def _channel_layout() -> str:
 
 
 def get_ChannelLayerVar() -> str:
-    """Return the speaker-layout backdrop drawn behind the active channels."""
-    return _channel_texture("channels/layer.png") if _channels_shown() else ""
+    """Return the speaker-layout backdrop drawn behind the active channels,
+    sized for the current output type's panel."""
+    return f"{_channel_dir()}/layer.png" if _channels_shown() else ""
 
 
 def get_ChannelIconVar() -> str:
-    """Return the speaker-layout graphic for the current channel count.  Empty
-    when the count has no graphic, which also hides the control in the skin.
+    """Return the speaker-layout graphic for the current channel count, sized
+    for the current output type's panel.  Empty when the count has no graphic,
+    which also hides the control in the skin.
     """
     if not _channels_shown():
         return ""
 
     layout = _channel_layout()
-    return _channel_texture(f"channels/{layout}.png") if layout else ""
+    return f"{_channel_dir()}/{layout}.png" if layout else ""
 
 
 def get_AudioBitDepthVar() -> str:

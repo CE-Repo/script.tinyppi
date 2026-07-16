@@ -257,8 +257,8 @@ CHANNELS_INPUT_MAP = {
     10: "FL, FR, FC, LFE, BL, BR, SL, SR, FWL, FWR",
 }
 
-# Channel count -> speaker-layout graphic (channels/*.png, relative to the skin
-# media folder).  Unmapped counts omit the graphic.
+# Channel count -> speaker-layout graphic name (drawn from the per-size
+# channels/<box>/ folder chosen in properties.py).  Unmapped counts omit it.
 CHANNELS_ICON_MAP = {
     1: "1.0",
     2: "2.0",
