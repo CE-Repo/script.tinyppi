@@ -63,10 +63,6 @@ msgctxt "#32019"
 msgid "Show file name"
 msgstr "显示文件名"
 
-msgctxt "#32020"
-msgid "Style"
-msgstr "样式"
-
 msgctxt "#32021"
 msgid "Show the currently playing file name in TinyPPI."
 msgstr "在 TinyPPI 中显示当前播放文件的名称。"
@@ -191,17 +187,9 @@ msgctxt "#32096"
 msgid "Fetching..."
 msgstr "正在获取..."
 
-msgctxt "#32098"
-msgid "L6 MaxCLL/FALL"
-msgstr "L6 MaxCLL/FALL"
-
 msgctxt "#32099"
 msgid "Bit depth"
 msgstr "位深度"
-
-msgctxt "#32100"
-msgid "Theme"
-msgstr "主题"
 
 msgctxt "#32101"
 msgid "Customise the TinyPPI overlay colors."
@@ -747,10 +735,6 @@ msgctxt "#32245"
 msgid "Custom color applied"
 msgstr "已应用自定义颜色"
 
-msgctxt "#32246"
-msgid "Color selection"
-msgstr "颜色选择"
-
 msgctxt "#32250"
 msgid "Custom"
 msgstr "自定义"
@@ -826,14 +810,6 @@ msgstr "全局背景"
 msgctxt "#32271"
 msgid "Color of the full-screen global background."
 msgstr "全屏全局背景的颜色。"
-
-msgctxt "#32272"
-msgid "Mastering Display"
-msgstr "母版显示"
-
-msgctxt "#32273"
-msgid "MaxCLL/FALL"
-msgstr "MaxCLL/FALL"
 
 msgctxt "#32274"
 msgid "Opacity of this element, from 0% (fully transparent) to 100% (fully opaque)."
@@ -983,14 +959,6 @@ msgctxt "#32310"
 msgid "Codec logos shown on the picture when playback starts or the OSD is open."
 msgstr "在播放开始或 OSD 打开时显示在画面上的编解码器徽标。"
 
-msgctxt "#32311"
-msgid "Background behind the logos"
-msgstr "徽标后的背景"
-
-msgctxt "#32312"
-msgid "Draws a translucent panel behind the logos so they stay readable on bright scenes."
-msgstr "在徽标后方绘制一块半透明面板，使其在明亮场景中仍清晰可见。"
-
 msgctxt "#32313"
 msgid "Background color"
 msgstr "背景颜色"
@@ -1094,14 +1062,6 @@ msgstr "自动隐藏"
 msgctxt "#32345"
 msgid "Automatically hides the TinyPPI overlay after the selected time (in seconds). 0 = off. Does not apply to the VS10 dialog."
 msgstr "在设定的时间（秒）后自动隐藏 TinyPPI 叠加层。0 = 关闭。不适用于 VS10 对话框。"
-
-msgctxt "#32346"
-msgid "Show channel layout graphic"
-msgstr "显示声道布局图"
-
-msgctxt "#32347"
-msgid "Show a speaker layout graphic for the active audio track above the chart icon."
-msgstr "在图表图标上方显示当前音轨的扬声器布局图。"
 
 msgctxt "#32348"
 msgid "Horizontal offset of the channel box"

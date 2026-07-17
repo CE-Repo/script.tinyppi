@@ -19,7 +19,7 @@ from core.utils import (
     set_window_properties,
 )
 from info import properties
-from ui import fonts
+from ui import fonts  # noqa: F401  imported for its install-fonts-on-import side effect
 from ui.theme import apply_theme
 
 # ---------------------------------------------------------------------------
