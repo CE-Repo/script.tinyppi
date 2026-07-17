@@ -132,6 +132,46 @@ Formats without a matching logo simply omit the audio image.
 
 ---
 
+## Channel Layout Graphic
+
+TinyPPI can display a **speaker layout graphic** for the current audio track,
+visualising how many channels the stream carries and where the active speakers
+sit. The active speakers are highlighted against the full layout, so a 5.1 track
+lights up its six positions while the remaining speaker slots stay dimmed.
+
+The graphic can be enabled independently per output type
+(**Settings → Channels**):
+
+- **Channels in SDR** — show the layout while playing SDR content.
+- **Channels in HDR10 / HLG / HDR10+** — show the layout while playing HDR content.
+- **Channels in Dolby Vision** — show the layout while playing Dolby Vision content
+  (drawn in its own panel above the main info box).
+
+The colors of the background box, the speaker layout behind the active channels,
+and the active channels themselves are all fully themeable in the add-on settings.
+
+### Supported layouts
+
+| Graphic | Layout |
+|---------|--------|
+| 1.0 | Mono |
+| 2.0 | Stereo |
+| 2.1 | Stereo + LFE |
+| 3.1 | 3.1 surround |
+| 4.1 | 4.1 surround |
+| 5.1 | 5.1 surround |
+| 5.1.2 | 5.1.2 with height channels (Atmos / DTS:X) |
+| 6.1 | 6.1 surround |
+| 7.1 | 7.1 surround |
+| 7.1.2 | 7.1.2 with height channels (Atmos / DTS:X) |
+
+The height variants (5.1.2 / 7.1.2) are selected automatically for Dolby Atmos
+and DTS:X streams — Kodi reports only a channel count, so the extra height
+channels are inferred from the codec. Channel counts without a matching graphic
+simply omit the image.
+
+---
+
 ## Advanced Launch Arguments
 
 TinyPPI supports additional arguments to open specific modes or apply VS10 output modes directly — without opening the overlay or the dialog first.
