@@ -15,7 +15,6 @@ audio-track change follows live.
 """
 
 import os
-import struct
 import time
 
 import xbmc

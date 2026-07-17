@@ -63,10 +63,6 @@ msgctxt "#32019"
 msgid "Show file name"
 msgstr "Dateiname anzeigen"
 
-msgctxt "#32020"
-msgid "Style"
-msgstr "Stil"
-
 msgctxt "#32021"
 msgid "Show the currently playing file name in TinyPPI."
 msgstr "Zeigt den Dateinamen der aktuellen Wiedergabe in TinyPPI an."
@@ -191,17 +187,9 @@ msgctxt "#32096"
 msgid "Fetching..."
 msgstr "Wird ermittelt..."
 
-msgctxt "#32098"
-msgid "L6 MaxCLL/FALL"
-msgstr "L6 MaxCLL/FALL"
-
 msgctxt "#32099"
 msgid "Bit depth"
 msgstr "Bittiefe"
-
-msgctxt "#32100"
-msgid "Theme"
-msgstr "Design"
 
 msgctxt "#32101"
 msgid "Customise the TinyPPI overlay colors."
@@ -747,10 +735,6 @@ msgctxt "#32245"
 msgid "Custom color applied"
 msgstr "Benutzerdefinierte Farbe übernommen"
 
-msgctxt "#32246"
-msgid "Color selection"
-msgstr "Farbauswahl"
-
 msgctxt "#32250"
 msgid "Custom"
 msgstr "Benutzerdefiniert"
@@ -826,14 +810,6 @@ msgstr "Globaler Hintergrund"
 msgctxt "#32271"
 msgid "Color of the full-screen global background."
 msgstr "Farbe des bildschirmfüllenden globalen Hintergrunds."
-
-msgctxt "#32272"
-msgid "Mastering Display"
-msgstr "Mastering Display"
-
-msgctxt "#32273"
-msgid "MaxCLL/FALL"
-msgstr "MaxCLL/FALL"
 
 msgctxt "#32274"
 msgid "Opacity of this element, from 0% (fully transparent) to 100% (fully opaque)."
@@ -983,14 +959,6 @@ msgctxt "#32310"
 msgid "Codec logos shown on the picture when playback starts or the OSD is open."
 msgstr "Codec-Logos, die beim Wiedergabestart oder bei geöffneter OSD im Bild angezeigt werden."
 
-msgctxt "#32311"
-msgid "Background behind the logos"
-msgstr "Hintergrund hinter den Logos"
-
-msgctxt "#32312"
-msgid "Draws a translucent panel behind the logos so they stay readable on bright scenes."
-msgstr "Zeichnet eine transparente Fläche hinter den Logos, damit sie auch bei hellen Szenen gut erkennbar bleiben."
-
 msgctxt "#32313"
 msgid "Background color"
 msgstr "Hintergrundfarbe"
@@ -1094,14 +1062,6 @@ msgstr "Automatisch ausblenden"
 msgctxt "#32345"
 msgid "Automatically hides the TinyPPI overlay after the selected time (in seconds). 0 = off. Does not apply to the VS10 dialog."
 msgstr "Blendet das TinyPPI-Overlay nach der eingestellten Zeit (in Sekunden) automatisch aus. 0 = Aus. Gilt nicht für den VS10-Dialog."
-
-msgctxt "#32346"
-msgid "Show channel layout graphic"
-msgstr "Kanal-Layout-Grafik anzeigen"
-
-msgctxt "#32347"
-msgid "Show a speaker layout graphic for the active audio track above the chart icon."
-msgstr "Zeigt über dem Chart-Symbol eine Lautsprecher-Layout-Grafik für die aktive Tonspur an."
 
 msgctxt "#32348"
 msgid "Horizontal offset of the channel box"

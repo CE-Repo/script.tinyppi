@@ -63,10 +63,6 @@ msgctxt "#32019"
 msgid "Show file name"
 msgstr ""
 
-msgctxt "#32020"
-msgid "Style"
-msgstr ""
-
 msgctxt "#32021"
 msgid "Show the currently playing file name in TinyPPI."
 msgstr ""
@@ -191,16 +187,8 @@ msgctxt "#32096"
 msgid "Fetching..."
 msgstr ""
 
-msgctxt "#32098"
-msgid "L6 MaxCLL/FALL"
-msgstr ""
-
 msgctxt "#32099"
 msgid "Bit depth"
-msgstr ""
-
-msgctxt "#32100"
-msgid "Theme"
 msgstr ""
 
 msgctxt "#32101"
@@ -747,10 +735,6 @@ msgctxt "#32245"
 msgid "Custom color applied"
 msgstr ""
 
-msgctxt "#32246"
-msgid "Color selection"
-msgstr ""
-
 msgctxt "#32250"
 msgid "Custom"
 msgstr ""
@@ -825,14 +809,6 @@ msgstr ""
 
 msgctxt "#32271"
 msgid "Color of the full-screen global background."
-msgstr ""
-
-msgctxt "#32272"
-msgid "Mastering Display"
-msgstr ""
-
-msgctxt "#32273"
-msgid "MaxCLL/FALL"
 msgstr ""
 
 msgctxt "#32274"
@@ -983,14 +959,6 @@ msgctxt "#32310"
 msgid "Codec logos shown on the picture when playback starts or the OSD is open."
 msgstr ""
 
-msgctxt "#32311"
-msgid "Background behind the logos"
-msgstr ""
-
-msgctxt "#32312"
-msgid "Draws a translucent panel behind the logos so they stay readable on bright scenes."
-msgstr ""
-
 msgctxt "#32313"
 msgid "Background color"
 msgstr ""
@@ -1093,14 +1061,6 @@ msgstr ""
 
 msgctxt "#32345"
 msgid "Automatically hides the TinyPPI overlay after the selected time (in seconds). 0 = off. Does not apply to the VS10 dialog."
-msgstr ""
-
-msgctxt "#32346"
-msgid "Show channel layout graphic"
-msgstr ""
-
-msgctxt "#32347"
-msgid "Show a speaker layout graphic for the active audio track above the chart icon."
 msgstr ""
 
 msgctxt "#32348"
