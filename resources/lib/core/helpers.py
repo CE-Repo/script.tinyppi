@@ -67,19 +67,27 @@ def _read_fps_sysfs() -> tuple[int, int] | None:
     return int(in_m.group(1), 16), int(out_m.group(1), 16)
 
 
-def get_fps_data() -> tuple[int, int, int]:
-    """Return the current (input_fps, output_fps, drop) from the sysfs node,
-    or zeroes when it can't be read."""
+def get_fps_drop() -> int:
+    """Return the dropped frames per second from the sysfs node (the gap
+    between its input and output rate), or 0 when it can't be read."""
     result = _read_fps_sysfs()
     if not result:
-        return 0, 0, 0
+        return 0
 
     in_fps, out_fps = result
-    return in_fps, out_fps, max(0, in_fps - out_fps)
+    return max(0, in_fps - out_fps)
 
 
-def fps_display_texts() -> tuple[str, str]:
+def fps_display_texts(video_fps) -> tuple[str, str]:
     """Return (info_text, output_fps_text) for the FPS row; info_text is
-    'NNN - DDD' (input - drop)."""
-    in_fps, out_fps, drop = get_fps_data()
-    return f"{in_fps:03d} - {drop:03d}", str(out_fps if out_fps > 0 else 0)
+    'NNN - DDD' (input - drop).
+
+    The input rate is the played video's FPS rounded to a whole frame, only
+    the drop comes from sysfs, and the output rate is what remains."""
+    try:
+        in_fps = round(float(video_fps))
+    except (TypeError, ValueError):
+        in_fps = 0
+
+    drop = get_fps_drop() if in_fps else 0
+    return f"{in_fps:03d} - {drop:03d}", str(max(0, in_fps - drop))

@@ -643,7 +643,9 @@ def update_properties(window) -> None:
     publish_channel_visibility()
 
     unit = _metadata_unit()
-    fps_info_text, fps_out_text = fps_display_texts()
+    fps_info_text, fps_out_text = fps_display_texts(
+        clean(info("Player.Process(videofps)"))
+    )
 
     # Output-mode line from hdrprobe; fall back to a plain label from Kodi's
     # ``VideoPlayer.HDRType`` when it would show N/A (``Fetching...`` is kept).
