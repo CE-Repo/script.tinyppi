@@ -1,7 +1,6 @@
 """FPS sampling and formatting helpers, used by properties.py."""
 
 import re
-import time
 
 _FPS_STANDARDS = (
     23.976, 24.0, 25.0, 29.97, 30.0, 50.0, 59.94, 60.0, 100.0, 120.0,
@@ -13,14 +12,6 @@ _FORMAT_FPS_TARGETS = (
     (59.94, 0.02),
     (60.0, 0.01),
 )
-_FPS_SAMPLE_INTERVAL = 0.1
-_FPS_HISTORY_SECONDS = 1.0
-
-# Rolling AML FPS state (mutated by _update_fps).
-_FPS = {
-    "history":     [],
-    "last_sample": 0.0,
-}
 
 
 def normalize_fps(fps_value) -> str:
@@ -76,42 +67,15 @@ def _read_fps_sysfs() -> tuple[int, int] | None:
     return int(in_m.group(1), 16), int(out_m.group(1), 16)
 
 
-def _update_fps() -> None:
-    """Sample the sysfs FPS node (max once per 100 ms), append to the rolling
-    history and prune entries older than 1 second."""
-    now   = time.monotonic()
-    state = _FPS
-
-    if now - state["last_sample"] < _FPS_SAMPLE_INTERVAL:
-        return
-    state["last_sample"] = now
-
-    result = _read_fps_sysfs()
-    if result:
-        in_fps, out_fps = result
-        state["history"].append((in_fps, out_fps, now))
-
-    state["history"] = [
-        x for x in state["history"]
-        if now - x[2] <= _FPS_HISTORY_SECONDS
-    ]
-
-
 def get_fps_data() -> tuple[int, int, int]:
-    """Return integer (avg_input_fps, avg_output_fps, avg_drop) over the
-    rolling 1-second history."""
-    _update_fps()
-    history = _FPS["history"]
-
-    if not history:
+    """Return the current (input_fps, output_fps, drop) from the sysfs node,
+    or zeroes when it can't be read."""
+    result = _read_fps_sysfs()
+    if not result:
         return 0, 0, 0
 
-    count   = len(history)
-    avg_in  = sum(x[0] for x in history) / count
-    avg_out = sum(x[1] for x in history) / count
-    drop    = max(0, avg_in - avg_out)
-
-    return int(round(avg_in)), int(round(avg_out)), int(round(drop))
+    in_fps, out_fps = result
+    return in_fps, out_fps, max(0, in_fps - out_fps)
 
 
 def fps_display_texts() -> tuple[str, str]:

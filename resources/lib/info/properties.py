@@ -164,8 +164,17 @@ def get_VideoBitrateMBVar() -> str:
     except (TypeError, ValueError):
         return ""
 
-    value = f"{mbit:.2f}".rstrip("0").rstrip(".")
+    value = f"{mbit:.1f}".rstrip("0").rstrip(".")
     return f"{value} Mb/s"
+
+
+def get_VideoLiveBitrateVar() -> str:
+    """Return video live bitrate with dot instead of comma."""
+    bitrate = info("Player.Process(videolivebitrate)")
+    if not bitrate:
+        return ""
+
+    return str(bitrate).replace(",", ".")
 
 
 def get_VideoCodecVar() -> str:
@@ -316,33 +325,6 @@ def _media_source_name(output_mode: str) -> str:
     if "sdr" in low:
         return "SDR"
     return output_mode
-
-
-# --- Vdec bitrate (Amlogic kernel sysfs) -----------------------------------
-
-def get_VdecBitrateVar() -> tuple[str, str]:
-    """Read the hardware decoder bitrate from sysfs as a ``(value, unit)`` tuple,
-    e.g. ``('23.45', 'Mb/s')``.  Returns ``('', '')`` when unavailable."""
-    path = "/sys/class/vdec/vdec_status"
-    try:
-        with open(path, encoding="utf-8", errors="ignore") as f:
-            data = f.read()
-    except OSError:
-        return "", ""
-
-    matches = re.findall(r"bit rate\s*:\s*(\d+)\s*kbps", data, re.IGNORECASE)
-    if not matches:
-        return "", ""
-
-    kbps = max(float(m) for m in matches)
-    if kbps <= 0:
-        return "", ""
-
-    if kbps < 1000:
-        return f"{kbps:.0f}", "Kb/s"
-
-    mbps = kbps / 1000.0
-    return f"{mbps:.2f}".rstrip("0").rstrip("."), "Mb/s"
 
 
 # --- Audio properties ------------------------------------------------------
@@ -661,7 +643,6 @@ def update_properties(window) -> None:
     publish_channel_visibility()
 
     unit = _metadata_unit()
-    bitrate_value, bitrate_unit = get_VdecBitrateVar()
     fps_info_text, fps_out_text = fps_display_texts()
 
     # Output-mode line from hdrprobe; fall back to a plain label from Kodi's
@@ -694,6 +675,7 @@ def update_properties(window) -> None:
             ("DisplayModeVar", get_DisplayModeVar()),
             ("VideoResolutionVar", get_VideoResolutionVar()),
             ("VideoBitrateMBVar", get_VideoBitrateMBVar()),
+            ("VideoLiveBitrateVar", get_VideoLiveBitrateVar()),
             ("VideoCodecVar", get_VideoCodecVar()),
             ("VideoDecoderNameVar", get_VideoDecoderNameVar()),
             ("VideoBitDepthVar", get_VideoBitDepthVar()),
@@ -718,8 +700,6 @@ def update_properties(window) -> None:
             ("DoviElTypeVar", get_dv_el_type()),
             ("ModeVar", get_ModeVar()),
             ("GamutVar", get_GamutVar()),
-            ("VdecBitrate", bitrate_value),
-            ("VdecBitrateUnit", bitrate_unit),
             ("FpsInfoVar", fps_info_text),
             ("FpsDropVar", fps_out_text),
             ("AudioBitrateKBVar", get_AudioBitrateKBVar()),
