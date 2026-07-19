@@ -1118,3 +1118,11 @@ msgstr "杜比视界下的声道"
 msgctxt "#32361"
 msgid "Show the channel layout graphic while playing Dolby Vision content."
 msgstr "播放杜比视界内容时显示声道布局图形。"
+
+msgctxt "#32362"
+msgid "Live TV"
+msgstr "直播电视"
+
+msgctxt "#32363"
+msgid "Livestream"
+msgstr "网络直播"

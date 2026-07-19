@@ -1118,3 +1118,11 @@ msgstr ""
 msgctxt "#32361"
 msgid "Show the channel layout graphic while playing Dolby Vision content."
 msgstr ""
+
+msgctxt "#32362"
+msgid "Live TV"
+msgstr ""
+
+msgctxt "#32363"
+msgid "Livestream"
+msgstr ""

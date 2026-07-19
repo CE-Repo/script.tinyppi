@@ -1118,3 +1118,11 @@ msgstr "Kanäle bei Dolby Vision"
 msgctxt "#32361"
 msgid "Show the channel layout graphic while playing Dolby Vision content."
 msgstr "Zeigt die Kanal-Layout-Grafik bei der Wiedergabe von Dolby-Vision-Inhalten an."
+
+msgctxt "#32362"
+msgid "Live TV"
+msgstr "Live TV"
+
+msgctxt "#32363"
+msgid "Livestream"
+msgstr "Livestream"
