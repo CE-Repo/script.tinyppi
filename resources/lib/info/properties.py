@@ -591,31 +591,6 @@ def get_CpuTemperatureProgressVar() -> float:
     )
 
 
-def get_queue_level(info_label: str) -> float:
-    """Read a queue level from Kodi.  A full queue may read as 99%, so 99 or
-    higher is treated as 100%."""
-    raw = info(info_label).strip()
-
-    value = _first_float(raw)
-    if value is None:
-        return 0.0
-
-    value = max(0.0, min(value, 100.0))
-
-    if value >= 99:
-        return 100.0
-
-    return value
-
-
-def format_queue_level(value: float) -> str:
-    """Format a queue level without unnecessary decimal places."""
-    if value.is_integer():
-        return str(int(value))
-
-    return f"{value:.1f}".rstrip("0").rstrip(".")
-
-
 def _metadata_unit() -> str:
     """Return the configured L6 metadata unit, including Kodi color markup."""
     unit_color = info("Window(10000).Property(TinyPPI.UnitColor)")
@@ -686,10 +661,6 @@ def update_properties(window) -> None:
     publish_channel_visibility()
 
     unit = _metadata_unit()
-    video_queue = get_queue_level("Player.Process(videoqueuelevel)")
-    video_queue_data = get_queue_level("Player.Process(videoqueuedatalevel)")
-    audio_queue = get_queue_level("Player.Process(audioqueuelevel)")
-    audio_queue_data = get_queue_level("Player.Process(audioqueuedatalevel)")
     bitrate_value, bitrate_unit = get_VdecBitrateVar()
     fps_info_text, fps_out_text = fps_display_texts()
 
@@ -768,10 +739,6 @@ def update_properties(window) -> None:
             ("SubtitleNameShortVar", get_SubtitleNameShortVar()),
             ("CpuUsageVar", get_CpuUsageVar()),
             ("CpuTopUsageVar", get_CpuTopUsageVar()),
-            ("VideoQueueLevelVar", format_queue_level(video_queue)),
-            ("VideoQueueDataLevelVar", format_queue_level(video_queue_data)),
-            ("AudioQueueLevelVar", format_queue_level(audio_queue)),
-            ("AudioQueueDataLevelVar", format_queue_level(audio_queue_data)),
         ),
     )
 
@@ -779,9 +746,5 @@ def update_properties(window) -> None:
         window,
         (
             (9100, get_CpuTemperatureProgressVar()),
-            (9101, video_queue),
-            (9102, video_queue_data),
-            (9103, audio_queue),
-            (9104, audio_queue_data),
         ),
     )
