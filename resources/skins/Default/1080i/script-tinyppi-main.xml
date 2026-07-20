@@ -21,7 +21,7 @@
         <control type="group" id="5000">
 			<!-- Overlay - SDR - w/o Channels -->
 			<control type="group">
-			<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowChannelIcon),0)</visible>
+			<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowChannelIcon),0) | String.IsEmpty(Window().Property(ChannelIconVar))</visible>
 			<visible>String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))</visible>
 
 				<!-- Background - Start -->
@@ -1399,9 +1399,9 @@
 					</control>
 					
 					<control type="group">
-						<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowChannelIcon),0)</visible>
+						<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowChannelIcon),0) | String.IsEmpty(Window().Property(ChannelIconVar))</visible>
 						<top>207</top>
-						
+
 						<!-- HDR Static Metadata Icon -->
 						<control type="image">
 							<top>4</top>
