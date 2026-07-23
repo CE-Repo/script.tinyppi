@@ -548,6 +548,20 @@ def _hdr10plus_profile_label(hdr10plus: dict) -> str:
     return f"Profile {profile.upper()}"
 
 
+def _sl_hdr_label(sl_hdr: dict) -> str:
+    """Return the SL-HDR variant name (``SL-HDR1`` / ``SL-HDR2`` / ``SL-HDR3``),
+    from the block's ``mode`` (1 = SDR-, 2 = PQ-, 3 = HLG-graded base spec), or
+    ``''`` when the block carries no valid mode.
+
+    SL-HDR (ETSI TS 103 433) is dynamic reconstruction metadata riding on an
+    HDR10 / HLG base; the digit matches the reported ``mode`` (hdrprobe's
+    ``format`` label uses the same, e.g. ``"SL-HDR2 / HDR10"``)."""
+    mode = sl_hdr.get("mode")
+    if isinstance(mode, int) and not isinstance(mode, bool) and 1 <= mode <= 3:
+        return f"SL-HDR{mode}"
+    return ""
+
+
 def _static_hdr_token(
     general: dict, hdr: dict, hdr10plus: dict, raw_format: str
 ) -> str:
@@ -650,18 +664,33 @@ def _structure_abbr(dovi: dict) -> str:
 
 
 def _build_output_mode(
-    dovi: dict, token: str, hdr10plus: dict, raw_format: str
+    dovi: dict,
+    token: str,
+    hdr10plus: dict,
+    raw_format: str,
+    sl_hdr: dict | None = None,
+    hdr_vivid: dict | None = None,
 ) -> str:
     """Build the overlay's output-mode string from hdrprobe's report.
 
-    Dolby Vision reads as ``Dolby Vision Profile <p>``; HDR10+ appends its
-    ``Profile A`` / ``B``; other streams show the classified format name,
-    falling back to hdrprobe's plain label.
+    Dolby Vision reads as ``Dolby Vision Profile <p>``; HDR Vivid (CUVA) and
+    SL-HDR — dynamic-metadata formats riding on an HDR10 / HLG base — read as
+    their own name; HDR10+ appends its ``Profile A`` / ``B``; other streams show
+    the classified format name, falling back to hdrprobe's plain label.  A stream
+    that signals Dolby Vision alongside an SL-HDR fallback still reads as DV,
+    which is authoritative.
     """
     if dovi:
         profile = _dv_profile_label(dovi) or "8.1"
         el_type = (dovi.get("el_type") or "").upper()
         return f"Dolby Vision Profile {_format_el_tag(profile, el_type)}"
+
+    if hdr_vivid:
+        return "HDR Vivid"
+
+    sl_label = _sl_hdr_label(sl_hdr or {})
+    if sl_label:
+        return sl_label
 
     if token == "hdr10+":
         return f"HDR10+ {_hdr10plus_profile_label(hdr10plus)}".strip()
@@ -682,11 +711,15 @@ def _fmt_num(value) -> str:
     return str(value)
 
 
-def _select_report_blocks(data: dict) -> tuple[dict, dict, dict, dict]:
-    """Return the ``(general, hdr, dolby_vision, hdr10plus)`` blocks of a report.
+def _select_report_blocks(
+    data: dict,
+) -> tuple[dict, dict, dict, dict, dict, dict]:
+    """Return the ``(general, hdr, dolby_vision, hdr10plus, sl_hdr, hdr_vivid)``
+    blocks of a report.
 
     Schema 2.0 nests everything under ``video_tracks[0]`` (which stands in for
-    ``general``); 1.x keeps all four blocks at the root.  Both layouts are
+    ``general``); 1.x keeps all blocks at the root.  The ``sl_hdr`` / ``hdr_vivid``
+    blocks (schema 2.4+, hdrprobe 0.8.0) follow the same layout.  Both are
     resolved here so the rest of the parser stays schema-agnostic.
     """
     tracks = data.get("video_tracks")
@@ -697,6 +730,8 @@ def _select_report_blocks(data: dict) -> tuple[dict, dict, dict, dict]:
             track.get("hdr") or {},
             track.get("dolby_vision") or {},
             track.get("hdr10plus") or {},
+            track.get("sl_hdr") or {},
+            track.get("hdr_vivid") or {},
         )
 
     return (
@@ -704,6 +739,8 @@ def _select_report_blocks(data: dict) -> tuple[dict, dict, dict, dict]:
         data.get("hdr") or {},
         data.get("dolby_vision") or {},
         data.get("hdr10plus") or {},
+        data.get("sl_hdr") or {},
+        data.get("hdr_vivid") or {},
     )
 
 
@@ -716,7 +753,7 @@ def _parse_probe(data: dict) -> dict[str, str]:
     """
     info = _empty_info()
 
-    general, hdr, dovi, hdr10plus = _select_report_blocks(data)
+    general, hdr, dovi, hdr10plus, sl_hdr, hdr_vivid = _select_report_blocks(data)
 
     # HDR type / output-mode line.  A DV RPU block is authoritative; otherwise
     # the type is classified from the transfer characteristic and mastering
@@ -726,8 +763,17 @@ def _parse_probe(data: dict) -> dict[str, str]:
         hdr_format = "dolbyvision"
     else:
         hdr_format = _static_hdr_token(general, hdr, hdr10plus, raw_format)
+        # SL-HDR / HDR Vivid ride on an HDR10 / HLG base (SL-HDR1 is graded from
+        # SDR); when the base classified as SDR yet dynamic-HDR metadata is
+        # present, treat the stream as HDR10 so the overlay draws an HDR panel
+        # rather than the SDR one.  The base token drives the skin's HdrType
+        # branch; the format name itself is set on output_mode below.
+        if not hdr_format and (sl_hdr or hdr_vivid):
+            hdr_format = "hdr10"
     info["hdr_format"] = hdr_format
-    info["output_mode"] = _build_output_mode(dovi, hdr_format, hdr10plus, raw_format)
+    info["output_mode"] = _build_output_mode(
+        dovi, hdr_format, hdr10plus, raw_format, sl_hdr, hdr_vivid
+    )
 
     # Bit depth: FEL uses hdrprobe's reconstructed_bit_depth (12-bit fallback);
     # otherwise the container bit depth, left empty for unlabelled formats (SDR).
