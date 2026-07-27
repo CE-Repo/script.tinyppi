@@ -213,7 +213,7 @@ msgstr "لون عناوين الأقسام."
 
 msgctxt "#32107"
 msgid "Description"
-msgstr ""
+msgstr "الوصف
 
 msgctxt "#32108"
 msgid "Color of the label descriptions."
@@ -221,7 +221,7 @@ msgstr "لون أوصاف التسميات."
 
 msgctxt "#32109"
 msgid "Output"
-msgstr ""
+msgstr "المخرج"
 
 msgctxt "#32110"
 msgid "Color of the output values."
