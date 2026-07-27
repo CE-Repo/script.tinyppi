@@ -29,7 +29,7 @@ msgstr ""
 
 msgctxt "#32007"
 msgid "Processing"
-msgstr ""
+msgstr "المعالجة"
 
 msgctxt "#32012"
 msgid "720p skins are not supported"
@@ -137,7 +137,7 @@ msgstr ""
 
 msgctxt "#32054"
 msgid "Video"
-msgstr ""
+msgstr "الفيديو"
 
 msgctxt "#32055"
 msgid "Output"
@@ -145,7 +145,7 @@ msgstr ""
 
 msgctxt "#32056"
 msgid "Audio"
-msgstr ""
+msgstr "الصوت"
 
 msgctxt "#32069"
 msgid "Audio resolution"
@@ -161,7 +161,7 @@ msgstr ""
 
 msgctxt "#32088"
 msgid "System"
-msgstr ""
+msgstr "النظام"
 
 msgctxt "#32091"
 msgid "Disabled"
@@ -877,11 +877,12 @@ msgstr "البيانات الوصفية"
 
 msgctxt "#32290"
 msgid "Profile"
-msgstr "الملف الشخصي"
+msgstr ""
 
 msgctxt "#32291"
 msgid "Level"
-msgstr "المستوى"
+msgstr "msgstr ""
+"
 
 msgctxt "#32292"
 msgid "RPU"
@@ -889,15 +890,15 @@ msgstr "RPU"
 
 msgctxt "#32293"
 msgid "Base Layer"
-msgstr "الطبقة الأساسية"
+msgstr ""
 
 msgctxt "#32294"
 msgid "Enhancement Layer"
-msgstr "طبقة التحسين"
+msgstr ""
 
 msgctxt "#32295"
 msgid "Enhancement Layer Type"
-msgstr "نوع طبقة التحسين"
+msgstr ""
 
 msgctxt "#32296"
 msgid "HDR10 MDL"
