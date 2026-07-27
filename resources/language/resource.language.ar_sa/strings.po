@@ -9,11 +9,11 @@ msgstr ""
 
 msgctxt "#32000"
 msgid "Display output"
-msgstr "مخرج العرض"
+msgstr ""
 
 msgctxt "#32001"
 msgid "Video stream"
-msgstr "تدفق الفيديو"
+msgstr ""
 
 msgctxt "#32002"
 msgid "General"
@@ -25,11 +25,11 @@ msgstr "إعدادات TinyPPI"
 
 msgctxt "#32005"
 msgid "Decoder"
-msgstr "وحدة فك الترميز"
+msgstr ""
 
 msgctxt "#32007"
 msgid "Processing"
-msgstr "المعالجة"
+msgstr ""
 
 msgctxt "#32012"
 msgid "720p skins are not supported"
@@ -37,15 +37,15 @@ msgstr "سمات 720p غير مدعومة"
 
 msgctxt "#32013"
 msgid "Playback time"
-msgstr "وقت التشغيل"
+msgstr ""
 
 msgctxt "#32014"
 msgid "Processor"
-msgstr "المعالج"
+msgstr ""
 
 msgctxt "#32015"
 msgid "Color gamut"
-msgstr "نطاق الألوان"
+msgstr ""
 
 msgctxt "#32016"
 msgid "Only CoreELEC 22 or later is supported"
@@ -57,7 +57,7 @@ msgstr "تعذّر التعرّف على إصدار CoreELEC"
 
 msgctxt "#32018"
 msgid "Temperature"
-msgstr "درجة الحرارة"
+msgstr ""
 
 msgctxt "#32019"
 msgid "Show file name"
@@ -69,103 +69,103 @@ msgstr "عرض اسم الملف الجاري تشغيله في TinyPPI."
 
 msgctxt "#32022"
 msgid "Video queue / data"
-msgstr "طابور / بيانات الفيديو"
+msgstr ""
 
 msgctxt "#32023"
 msgid "Pixel format"
-msgstr "صيغة البكسل"
+msgstr ""
 
 msgctxt "#32024"
 msgid "Aspect ratio"
-msgstr "نسبة العرض إلى الارتفاع"
+msgstr ""
 
 msgctxt "#32025"
 msgid "Audio queue / data"
-msgstr "طابور / بيانات الصوت"
+msgstr ""
 
 msgctxt "#32027"
 msgid "Output mode"
-msgstr "وضع المخرج"
+msgstr ""
 
 msgctxt "#32028"
 msgid "Converting"
-msgstr "جارٍ التحويل"
+msgstr ""
 
 msgctxt "#32030"
 msgid "L5 active area"
-msgstr "منطقة L5 النشطة"
+msgstr ""
 
 msgctxt "#32032"
 msgid "Player cache"
-msgstr "ذاكرة التخزين المؤقت للمشغّل"
+msgstr ""
 
 msgctxt "#32033"
 msgid "N/A"
-msgstr "غير متوفر"
+msgstr ""
 
 msgctxt "#32034"
 msgid "Memory usage"
-msgstr "استخدام الذاكرة"
+msgstr ""
 
 msgctxt "#32035"
 msgid "Passthrough"
-msgstr "التمرير المباشر"
+msgstr ""
 
 msgctxt "#32036"
 msgid "In / drop / out"
-msgstr "دخول / إسقاط / خروج"
+msgstr ""
 
 msgctxt "#32045"
 msgid "Audio codec"
-msgstr "ترميز الصوت"
+msgstr ""
 
 msgctxt "#32047"
 msgid "Bitrate"
-msgstr "معدل البت"
+msgstr ""
 
 msgctxt "#32051"
 msgid "Input"
-msgstr "الدخل"
+msgstr ""
 
 msgctxt "#32052"
 msgid "Audio language"
-msgstr "لغة الصوت"
+msgstr ""
 
 msgctxt "#32053"
 msgid "Subtitle language"
-msgstr "لغة الترجمة"
+msgstr ""
 
 msgctxt "#32054"
 msgid "Video"
-msgstr "الفيديو"
+msgstr ""
 
 msgctxt "#32055"
 msgid "Output"
-msgstr "المخرج"
+msgstr ""
 
 msgctxt "#32056"
 msgid "Audio"
-msgstr "الصوت"
+msgstr ""
 
 msgctxt "#32069"
 msgid "Audio resolution"
-msgstr "دقة الصوت"
+msgstr ""
 
 msgctxt "#32070"
 msgid "Mode"
-msgstr "الوضع"
+msgstr ""
 
 msgctxt "#32087"
 msgid "Decoding"
-msgstr "فك الترميز"
+msgstr ""
 
 msgctxt "#32088"
 msgid "System"
-msgstr "النظام"
+msgstr ""
 
 msgctxt "#32091"
 msgid "Disabled"
-msgstr "معطّل"
+msgstr ""
 
 msgctxt "#32092"
 msgid "Launch mode"
@@ -189,7 +189,7 @@ msgstr "جارٍ الجلب..."
 
 msgctxt "#32099"
 msgid "Bit depth"
-msgstr "عمق البت"
+msgstr ""
 
 msgctxt "#32101"
 msgid "Customise the TinyPPI overlay colors."
@@ -213,7 +213,7 @@ msgstr "لون عناوين الأقسام."
 
 msgctxt "#32107"
 msgid "Description"
-msgstr "الوصف"
+msgstr ""
 
 msgctxt "#32108"
 msgid "Color of the label descriptions."
@@ -221,11 +221,11 @@ msgstr "لون أوصاف التسميات."
 
 msgctxt "#32109"
 msgid "Output"
-msgstr "المخرج"
+msgstr ""
 
 msgctxt "#32110"
 msgid "Color of the output values."
-msgstr "لون قيم المخرج."
+msgstr ""
 
 msgctxt "#32111"
 msgid "Progress bar"
@@ -341,7 +341,7 @@ msgstr "[COLOR=FF444444]●[/COLOR] رمادي داكن"
 
 msgctxt "#32140"
 msgid "FPS"
-msgstr "إطار/ثانية"
+msgstr ""
 
 msgctxt "#32141"
 msgid "Color of the In / drop / out FPS values."
@@ -865,11 +865,11 @@ msgstr "[COLOR=FFFFB74D]●[/COLOR] يوسفي (افتراضي)"
 
 msgctxt "#32287"
 msgid "Decode method"
-msgstr "طريقة فك الترميز"
+msgstr ""
 
 msgctxt "#32288"
 msgid "Media source"
-msgstr "مصدر الوسائط"
+msgstr ""
 
 msgctxt "#32289"
 msgid "Metadata"
