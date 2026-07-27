@@ -1,0 +1,1129 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: POEditor.com\n"
+"Project-Id-Version: TinyPPI\n"
+"Language: ar\n"
+
+msgctxt "#32000"
+msgid "Display output"
+msgstr ""
+
+msgctxt "#32001"
+msgid "Video stream"
+msgstr ""
+
+msgctxt "#32002"
+msgid "General"
+msgstr "عام"
+
+msgctxt "#32003"
+msgid "TinyPPI settings"
+msgstr "إعدادات TinyPPI"
+
+msgctxt "#32005"
+msgid "Decoder"
+msgstr ""
+
+msgctxt "#32007"
+msgid "Processing"
+msgstr "المعالجة"
+
+msgctxt "#32012"
+msgid "720p skins are not supported"
+msgstr "سمات 720p غير مدعومة"
+
+msgctxt "#32013"
+msgid "Playback time"
+msgstr ""
+
+msgctxt "#32014"
+msgid "Processor"
+msgstr ""
+
+msgctxt "#32015"
+msgid "Color gamut"
+msgstr ""
+
+msgctxt "#32016"
+msgid "Only CoreELEC 22 or later is supported"
+msgstr "يُدعم فقط CoreELEC 22 أو أحدث"
+
+msgctxt "#32017"
+msgid "The CoreELEC version could not be detected"
+msgstr "تعذّر التعرّف على إصدار CoreELEC"
+
+msgctxt "#32018"
+msgid "Temperature"
+msgstr ""
+
+msgctxt "#32019"
+msgid "Show file name"
+msgstr "عرض اسم الملف"
+
+msgctxt "#32021"
+msgid "Show the currently playing file name in TinyPPI."
+msgstr "عرض اسم الملف الجاري تشغيله في TinyPPI."
+
+msgctxt "#32022"
+msgid "Video queue / data"
+msgstr ""
+
+msgctxt "#32023"
+msgid "Pixel format"
+msgstr ""
+
+msgctxt "#32024"
+msgid "Aspect ratio"
+msgstr ""
+
+msgctxt "#32025"
+msgid "Audio queue / data"
+msgstr ""
+
+msgctxt "#32027"
+msgid "Output mode"
+msgstr ""
+
+msgctxt "#32028"
+msgid "Converting"
+msgstr ""
+
+msgctxt "#32030"
+msgid "L5 active area"
+msgstr ""
+
+msgctxt "#32032"
+msgid "Player cache"
+msgstr ""
+
+msgctxt "#32033"
+msgid "N/A"
+msgstr ""
+
+msgctxt "#32034"
+msgid "Memory usage"
+msgstr ""
+
+msgctxt "#32035"
+msgid "Passthrough"
+msgstr ""
+
+msgctxt "#32036"
+msgid "In / drop / out"
+msgstr ""
+
+msgctxt "#32045"
+msgid "Audio codec"
+msgstr ""
+
+msgctxt "#32047"
+msgid "Bitrate"
+msgstr ""
+
+msgctxt "#32051"
+msgid "Input"
+msgstr ""
+
+msgctxt "#32052"
+msgid "Audio language"
+msgstr ""
+
+msgctxt "#32053"
+msgid "Subtitle language"
+msgstr ""
+
+msgctxt "#32054"
+msgid "Video"
+msgstr "الفيديو"
+
+msgctxt "#32055"
+msgid "Output"
+msgstr ""
+
+msgctxt "#32056"
+msgid "Audio"
+msgstr "الصوت"
+
+msgctxt "#32069"
+msgid "Audio resolution"
+msgstr ""
+
+msgctxt "#32070"
+msgid "Mode"
+msgstr ""
+
+msgctxt "#32087"
+msgid "Decoding"
+msgstr ""
+
+msgctxt "#32088"
+msgid "System"
+msgstr "النظام"
+
+msgctxt "#32091"
+msgid "Disabled"
+msgstr ""
+
+msgctxt "#32092"
+msgid "Launch mode"
+msgstr "وضع التشغيل"
+
+msgctxt "#32093"
+msgid "Choose what opens when the add-on is launched."
+msgstr "اختر ما يُفتح عند تشغيل الإضافة."
+
+msgctxt "#32094"
+msgid "TinyPPI"
+msgstr "TinyPPI"
+
+msgctxt "#32095"
+msgid "VS10 dialog"
+msgstr "حوار VS10"
+
+msgctxt "#32096"
+msgid "Fetching..."
+msgstr "جارٍ الجلب..."
+
+msgctxt "#32099"
+msgid "Bit depth"
+msgstr ""
+
+msgctxt "#32101"
+msgid "Customise the TinyPPI overlay colors."
+msgstr "تخصيص ألوان طبقة TinyPPI."
+
+msgctxt "#32103"
+msgid "Background"
+msgstr "الخلفية"
+
+msgctxt "#32104"
+msgid "Background color of the overlay style."
+msgstr "لون خلفية نمط الطبقة."
+
+msgctxt "#32105"
+msgid "Title"
+msgstr "العنوان"
+
+msgctxt "#32106"
+msgid "Color of the section titles."
+msgstr "لون عناوين الأقسام."
+
+msgctxt "#32107"
+msgid "Description"
+msgstr "الوصف
+
+msgctxt "#32108"
+msgid "Color of the label descriptions."
+msgstr "لون أوصاف التسميات."
+
+msgctxt "#32109"
+msgid "Output"
+msgstr "المخرج"
+
+msgctxt "#32110"
+msgid "Color of the output values."
+msgstr ""
+
+msgctxt "#32111"
+msgid "Progress bar"
+msgstr "شريط التقدّم"
+
+msgctxt "#32112"
+msgid "Color of the progress bars."
+msgstr "لون أشرطة التقدّم."
+
+msgctxt "#32113"
+msgid "Detail"
+msgstr "التفاصيل"
+
+msgctxt "#32114"
+msgid "Color of the dimmed detail values shown in parentheses."
+msgstr "لون قيم التفاصيل الخافتة المعروضة بين قوسين."
+
+msgctxt "#32115"
+msgid "Icon"
+msgstr "الأيقونة"
+
+msgctxt "#32116"
+msgid "Color of the section icons."
+msgstr "لون أيقونات الأقسام."
+
+msgctxt "#32117"
+msgid "Unit (cd/m², nits)"
+msgstr "الوحدة (cd/m²، nits)"
+
+msgctxt "#32118"
+msgid "Color of the cd/m² brightness unit."
+msgstr "لون وحدة السطوع cd/m²."
+
+msgctxt "#32120"
+msgid "[COLOR=FFEDEDED]●[/COLOR] White (Default)"
+msgstr "[COLOR=FFEDEDED]●[/COLOR] أبيض (افتراضي)"
+
+msgctxt "#32121"
+msgid "[COLOR=FFE0E0E0]●[/COLOR] Light gray"
+msgstr "[COLOR=FFE0E0E0]●[/COLOR] رمادي فاتح"
+
+msgctxt "#32122"
+msgid "[COLOR=FFFF8A80]●[/COLOR] Light red"
+msgstr "[COLOR=FFFF8A80]●[/COLOR] أحمر فاتح"
+
+msgctxt "#32123"
+msgid "[COLOR=FFFFCC80]●[/COLOR] Light orange"
+msgstr "[COLOR=FFFFCC80]●[/COLOR] برتقالي فاتح"
+
+msgctxt "#32124"
+msgid "[COLOR=FFFFFF8D]●[/COLOR] Light yellow"
+msgstr "[COLOR=FFFFFF8D]●[/COLOR] أصفر فاتح"
+
+msgctxt "#32125"
+msgid "[COLOR=FFB9F6CA]●[/COLOR] Light green"
+msgstr "[COLOR=FFB9F6CA]●[/COLOR] أخضر فاتح"
+
+msgctxt "#32126"
+msgid "[COLOR=FF84FFFF]●[/COLOR] Light cyan"
+msgstr "[COLOR=FF84FFFF]●[/COLOR] سماوي فاتح"
+
+msgctxt "#32127"
+msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue"
+msgstr "[COLOR=FF82B1FF]●[/COLOR] أزرق فاتح"
+
+msgctxt "#32128"
+msgid "[COLOR=FFE1BEE7]●[/COLOR] Light purple"
+msgstr "[COLOR=FFE1BEE7]●[/COLOR] بنفسجي فاتح"
+
+msgctxt "#32129"
+msgid "[COLOR=FFFF80AB]●[/COLOR] Light pink"
+msgstr "[COLOR=FFFF80AB]●[/COLOR] وردي فاتح"
+
+msgctxt "#32130"
+msgid "[COLOR=FF2A2E33]●[/COLOR] Charcoal (Default)"
+msgstr "[COLOR=FF2A2E33]●[/COLOR] فحمي (افتراضي)"
+
+msgctxt "#32131"
+msgid "[COLOR=FF000000]●[/COLOR] Black"
+msgstr "[COLOR=FF000000]●[/COLOR] أسود"
+
+msgctxt "#32132"
+msgid "[COLOR=FF3A1414]●[/COLOR] Dark red"
+msgstr "[COLOR=FF3A1414]●[/COLOR] أحمر داكن"
+
+msgctxt "#32133"
+msgid "[COLOR=FF3A2A12]●[/COLOR] Dark orange"
+msgstr "[COLOR=FF3A2A12]●[/COLOR] برتقالي داكن"
+
+msgctxt "#32134"
+msgid "[COLOR=FF3A360F]●[/COLOR] Dark yellow"
+msgstr "[COLOR=FF3A360F]●[/COLOR] أصفر داكن"
+
+msgctxt "#32135"
+msgid "[COLOR=FF123A12]●[/COLOR] Dark green"
+msgstr "[COLOR=FF123A12]●[/COLOR] أخضر داكن"
+
+msgctxt "#32136"
+msgid "[COLOR=FF0F3A3A]●[/COLOR] Dark cyan"
+msgstr "[COLOR=FF0F3A3A]●[/COLOR] سماوي داكن"
+
+msgctxt "#32137"
+msgid "[COLOR=FF12203A]●[/COLOR] Dark blue"
+msgstr "[COLOR=FF12203A]●[/COLOR] أزرق داكن"
+
+msgctxt "#32138"
+msgid "[COLOR=FF26123A]●[/COLOR] Dark purple"
+msgstr "[COLOR=FF26123A]●[/COLOR] بنفسجي داكن"
+
+msgctxt "#32139"
+msgid "[COLOR=FF444444]●[/COLOR] Dark gray"
+msgstr "[COLOR=FF444444]●[/COLOR] رمادي داكن"
+
+msgctxt "#32140"
+msgid "FPS"
+msgstr ""
+
+msgctxt "#32141"
+msgid "Color of the In / drop / out FPS values."
+msgstr "لون قيم إطار/ثانية للدخول / الإسقاط / الخروج."
+
+msgctxt "#32143"
+msgid "Color of the overlay header label (Modern)."
+msgstr "لون تسمية رأس الطبقة (حديث)."
+
+msgctxt "#32144"
+msgid "Header icon"
+msgstr "أيقونة الرأس"
+
+msgctxt "#32145"
+msgid "Color of the chart icon (Modern)."
+msgstr "لون أيقونة الرسم البياني (حديث)."
+
+msgctxt "#32150"
+msgid "[COLOR=FFFF8A65]●[/COLOR] Coral"
+msgstr "[COLOR=FFFF8A65]●[/COLOR] مرجاني"
+
+msgctxt "#32151"
+msgid "[COLOR=FFFFAB91]●[/COLOR] Salmon"
+msgstr "[COLOR=FFFFAB91]●[/COLOR] سلموني"
+
+msgctxt "#32152"
+msgid "[COLOR=FFFFD54F]●[/COLOR] Amber"
+msgstr "[COLOR=FFFFD54F]●[/COLOR] كهرماني"
+
+msgctxt "#32153"
+msgid "[COLOR=FFFFE082]●[/COLOR] Gold"
+msgstr "[COLOR=FFFFE082]●[/COLOR] ذهبي"
+
+msgctxt "#32154"
+msgid "[COLOR=FFCCFF90]●[/COLOR] Lime"
+msgstr "[COLOR=FFCCFF90]●[/COLOR] ليموني"
+
+msgctxt "#32155"
+msgid "[COLOR=FFA7FFEB]●[/COLOR] Mint"
+msgstr "[COLOR=FFA7FFEB]●[/COLOR] نعناعي"
+
+msgctxt "#32156"
+msgid "[COLOR=FF80CBC4]●[/COLOR] Teal"
+msgstr "[COLOR=FF80CBC4]●[/COLOR] أزرق مخضر"
+
+msgctxt "#32157"
+msgid "[COLOR=FF80D8FF]●[/COLOR] Sky blue"
+msgstr "[COLOR=FF80D8FF]●[/COLOR] أزرق سماوي"
+
+msgctxt "#32158"
+msgid "[COLOR=FF40C4FF]●[/COLOR] Azure"
+msgstr "[COLOR=FF40C4FF]●[/COLOR] لازوردي"
+
+msgctxt "#32159"
+msgid "[COLOR=FF8C9EFF]●[/COLOR] Indigo"
+msgstr "[COLOR=FF8C9EFF]●[/COLOR] نيلي"
+
+msgctxt "#32160"
+msgid "[COLOR=FFB388FF]●[/COLOR] Violet"
+msgstr "[COLOR=FFB388FF]●[/COLOR] بنفسجي"
+
+msgctxt "#32161"
+msgid "[COLOR=FFD1C4E9]●[/COLOR] Lavender"
+msgstr "[COLOR=FFD1C4E9]●[/COLOR] خزامي"
+
+msgctxt "#32162"
+msgid "[COLOR=FFEA80FC]●[/COLOR] Magenta"
+msgstr "[COLOR=FFEA80FC]●[/COLOR] أرجواني"
+
+msgctxt "#32163"
+msgid "[COLOR=FFF48FB1]●[/COLOR] Fuchsia"
+msgstr "[COLOR=FFF48FB1]●[/COLOR] فوشيا"
+
+msgctxt "#32164"
+msgid "[COLOR=FFF06292]●[/COLOR] Rose"
+msgstr "[COLOR=FFF06292]●[/COLOR] وردي غامق"
+
+msgctxt "#32165"
+msgid "[COLOR=FFFF5252]●[/COLOR] Crimson"
+msgstr "[COLOR=FFFF5252]●[/COLOR] قرمزي"
+
+msgctxt "#32166"
+msgid "[COLOR=FFBCAAA4]●[/COLOR] Brown"
+msgstr "[COLOR=FFBCAAA4]●[/COLOR] بني"
+
+msgctxt "#32167"
+msgid "[COLOR=FFDCE775]●[/COLOR] Olive"
+msgstr "[COLOR=FFDCE775]●[/COLOR] زيتوني"
+
+msgctxt "#32168"
+msgid "[COLOR=FFB0BEC5]●[/COLOR] Slate"
+msgstr "[COLOR=FFB0BEC5]●[/COLOR] أردوازي"
+
+msgctxt "#32169"
+msgid "[COLOR=FFCFD8DC]●[/COLOR] Silver"
+msgstr "[COLOR=FFCFD8DC]●[/COLOR] فضي"
+
+msgctxt "#32170"
+msgid "[COLOR=FF0F3A36]●[/COLOR] Dark teal"
+msgstr "[COLOR=FF0F3A36]●[/COLOR] أزرق مخضر داكن"
+
+msgctxt "#32171"
+msgid "[COLOR=FF0F2A3A]●[/COLOR] Dark sky"
+msgstr "[COLOR=FF0F2A3A]●[/COLOR] سماوي داكن"
+
+msgctxt "#32172"
+msgid "[COLOR=FF1E2240]●[/COLOR] Dark indigo"
+msgstr "[COLOR=FF1E2240]●[/COLOR] نيلي داكن"
+
+msgctxt "#32173"
+msgid "[COLOR=FF2E1E40]●[/COLOR] Dark violet"
+msgstr "[COLOR=FF2E1E40]●[/COLOR] بنفسجي داكن"
+
+msgctxt "#32174"
+msgid "[COLOR=FF3A1E3A]●[/COLOR] Dark magenta"
+msgstr "[COLOR=FF3A1E3A]●[/COLOR] أرجواني داكن"
+
+msgctxt "#32175"
+msgid "[COLOR=FF3A1E2C]●[/COLOR] Dark pink"
+msgstr "[COLOR=FF3A1E2C]●[/COLOR] وردي داكن"
+
+msgctxt "#32176"
+msgid "[COLOR=FF3A1E24]●[/COLOR] Dark rose"
+msgstr "[COLOR=FF3A1E24]●[/COLOR] وردي غامق داكن"
+
+msgctxt "#32177"
+msgid "[COLOR=FF3A2A1E]●[/COLOR] Dark brown"
+msgstr "[COLOR=FF3A2A1E]●[/COLOR] بني داكن"
+
+msgctxt "#32178"
+msgid "[COLOR=FF2A2E12]●[/COLOR] Dark olive"
+msgstr "[COLOR=FF2A2E12]●[/COLOR] زيتوني داكن"
+
+msgctxt "#32179"
+msgid "[COLOR=FF223A12]●[/COLOR] Dark lime"
+msgstr "[COLOR=FF223A12]●[/COLOR] ليموني داكن"
+
+msgctxt "#32180"
+msgid "[COLOR=FF123A28]●[/COLOR] Dark mint"
+msgstr "[COLOR=FF123A28]●[/COLOR] نعناعي داكن"
+
+msgctxt "#32181"
+msgid "[COLOR=FF12303A]●[/COLOR] Dark azure"
+msgstr "[COLOR=FF12303A]●[/COLOR] لازوردي داكن"
+
+msgctxt "#32182"
+msgid "[COLOR=FF222E33]●[/COLOR] Dark slate"
+msgstr "[COLOR=FF222E33]●[/COLOR] أردوازي داكن"
+
+msgctxt "#32183"
+msgid "[COLOR=FF12182E]●[/COLOR] Dark navy"
+msgstr "[COLOR=FF12182E]●[/COLOR] كحلي داكن"
+
+msgctxt "#32184"
+msgid "[COLOR=FF3A1212]●[/COLOR] Dark maroon"
+msgstr "[COLOR=FF3A1212]●[/COLOR] عنابي داكن"
+
+msgctxt "#32185"
+msgid "[COLOR=FF1A1A2A]●[/COLOR] Midnight"
+msgstr "[COLOR=FF1A1A2A]●[/COLOR] منتصف الليل"
+
+msgctxt "#32186"
+msgid "[COLOR=FF2E2418]●[/COLOR] Espresso"
+msgstr "[COLOR=FF2E2418]●[/COLOR] إسبريسو"
+
+msgctxt "#32187"
+msgid "[COLOR=FF1E1E1E]●[/COLOR] Onyx"
+msgstr "[COLOR=FF1E1E1E]●[/COLOR] أونيكس"
+
+msgctxt "#32188"
+msgid "[COLOR=FF2C2C30]●[/COLOR] Graphite"
+msgstr "[COLOR=FF2C2C30]●[/COLOR] غرافيت"
+
+msgctxt "#32189"
+msgid "[COLOR=FF2E343A]●[/COLOR] Steel"
+msgstr "[COLOR=FF2E343A]●[/COLOR] فولاذي"
+
+msgctxt "#32190"
+msgid "Brightness unit"
+msgstr "وحدة السطوع"
+
+msgctxt "#32191"
+msgid "Choose the unit shown for the L6 brightness values."
+msgstr "اختر الوحدة المعروضة لقيم سطوع L6."
+
+msgctxt "#32192"
+msgid "cd/m²"
+msgstr "cd/m²"
+
+msgctxt "#32193"
+msgid "nits"
+msgstr "nits"
+
+msgctxt "#32194"
+msgid "Hidden"
+msgstr "مخفي"
+
+msgctxt "#32195"
+msgid "Show L5 offsets icon"
+msgstr "عرض أيقونة إزاحات L5"
+
+msgctxt "#32196"
+msgid "Show the L5 offsets icon (lrtb) next to the L5 values."
+msgstr "عرض أيقونة إزاحات L5 (lrtb) بجوار قيم L5."
+
+msgctxt "#32197"
+msgid "File name"
+msgstr "اسم الملف"
+
+msgctxt "#32198"
+msgid "Color of the playing file name."
+msgstr "لون اسم الملف الجاري تشغيله."
+
+msgctxt "#32200"
+msgid "[COLOR=FFFFCCBC]●[/COLOR] Peach"
+msgstr "[COLOR=FFFFCCBC]●[/COLOR] خوخي"
+
+msgctxt "#32201"
+msgid "[COLOR=FFFFB74D]●[/COLOR] Tangerine"
+msgstr "[COLOR=FFFFB74D]●[/COLOR] يوسفي"
+
+msgctxt "#32202"
+msgid "[COLOR=FFE4C441]●[/COLOR] Mustard"
+msgstr "[COLOR=FFE4C441]●[/COLOR] خردلي"
+
+msgctxt "#32203"
+msgid "[COLOR=FFE6EE9C]●[/COLOR] Chartreuse"
+msgstr "[COLOR=FFE6EE9C]●[/COLOR] أخضر مصفر"
+
+msgctxt "#32204"
+msgid "[COLOR=FF81C784]●[/COLOR] Forest"
+msgstr "[COLOR=FF81C784]●[/COLOR] غابي"
+
+msgctxt "#32205"
+msgid "[COLOR=FF69F0AE]●[/COLOR] Emerald"
+msgstr "[COLOR=FF69F0AE]●[/COLOR] زمردي"
+
+msgctxt "#32206"
+msgid "[COLOR=FFB2FF59]●[/COLOR] Spring"
+msgstr "[COLOR=FFB2FF59]●[/COLOR] ربيعي"
+
+msgctxt "#32207"
+msgid "[COLOR=FF18FFFF]●[/COLOR] Aqua"
+msgstr "[COLOR=FF18FFFF]●[/COLOR] مائي"
+
+msgctxt "#32208"
+msgid "[COLOR=FF64FFDA]●[/COLOR] Turquoise"
+msgstr "[COLOR=FF64FFDA]●[/COLOR] فيروزي"
+
+msgctxt "#32209"
+msgid "[COLOR=FF4FC3F7]●[/COLOR] Cerulean"
+msgstr "[COLOR=FF4FC3F7]●[/COLOR] أزرق سماوي فاتح"
+
+msgctxt "#32210"
+msgid "[COLOR=FF536DFE]●[/COLOR] Cobalt"
+msgstr "[COLOR=FF536DFE]●[/COLOR] كوبالت"
+
+msgctxt "#32211"
+msgid "[COLOR=FFB39DDB]●[/COLOR] Periwinkle"
+msgstr "[COLOR=FFB39DDB]●[/COLOR] بنفسجي مزرق"
+
+msgctxt "#32212"
+msgid "[COLOR=FFCE93D8]●[/COLOR] Plum"
+msgstr "[COLOR=FFCE93D8]●[/COLOR] برقوقي"
+
+msgctxt "#32213"
+msgid "[COLOR=FFBA68C8]●[/COLOR] Orchid"
+msgstr "[COLOR=FFBA68C8]●[/COLOR] سحلبي"
+
+msgctxt "#32214"
+msgid "[COLOR=FFFF4081]●[/COLOR] Raspberry"
+msgstr "[COLOR=FFFF4081]●[/COLOR] توت العليق"
+
+msgctxt "#32215"
+msgid "[COLOR=FFFF5C8D]●[/COLOR] Watermelon"
+msgstr "[COLOR=FFFF5C8D]●[/COLOR] بطيخي"
+
+msgctxt "#32216"
+msgid "[COLOR=FFFF6E40]●[/COLOR] Scarlet"
+msgstr "[COLOR=FFFF6E40]●[/COLOR] قرمزي فاتح"
+
+msgctxt "#32217"
+msgid "[COLOR=FFD7CCC8]●[/COLOR] Sand"
+msgstr "[COLOR=FFD7CCC8]●[/COLOR] رملي"
+
+msgctxt "#32218"
+msgid "[COLOR=FFC5E1A5]●[/COLOR] Pistachio"
+msgstr "[COLOR=FFC5E1A5]●[/COLOR] فستقي"
+
+msgctxt "#32219"
+msgid "[COLOR=FF90A4AE]●[/COLOR] Cadet"
+msgstr "[COLOR=FF90A4AE]●[/COLOR] أزرق رمادي"
+
+msgctxt "#32220"
+msgid "[COLOR=FF3E2820]●[/COLOR] Dark peach"
+msgstr "[COLOR=FF3E2820]●[/COLOR] خوخي داكن"
+
+msgctxt "#32221"
+msgid "[COLOR=FF3E2C10]●[/COLOR] Dark tangerine"
+msgstr "[COLOR=FF3E2C10]●[/COLOR] يوسفي داكن"
+
+msgctxt "#32222"
+msgid "[COLOR=FF383010]●[/COLOR] Dark mustard"
+msgstr "[COLOR=FF383010]●[/COLOR] خردلي داكن"
+
+msgctxt "#32223"
+msgid "[COLOR=FF303814]●[/COLOR] Dark chartreuse"
+msgstr "[COLOR=FF303814]●[/COLOR] أخضر مصفر داكن"
+
+msgctxt "#32224"
+msgid "[COLOR=FF1C3420]●[/COLOR] Dark forest"
+msgstr "[COLOR=FF1C3420]●[/COLOR] غابي داكن"
+
+msgctxt "#32225"
+msgid "[COLOR=FF143424]●[/COLOR] Dark emerald"
+msgstr "[COLOR=FF143424]●[/COLOR] زمردي داكن"
+
+msgctxt "#32226"
+msgid "[COLOR=FF203814]●[/COLOR] Dark spring"
+msgstr "[COLOR=FF203814]●[/COLOR] ربيعي داكن"
+
+msgctxt "#32227"
+msgid "[COLOR=FF143838]●[/COLOR] Dark aqua"
+msgstr "[COLOR=FF143838]●[/COLOR] مائي داكن"
+
+msgctxt "#32228"
+msgid "[COLOR=FF143830]●[/COLOR] Dark turquoise"
+msgstr "[COLOR=FF143830]●[/COLOR] فيروزي داكن"
+
+msgctxt "#32229"
+msgid "[COLOR=FF142C3E]●[/COLOR] Dark cerulean"
+msgstr "[COLOR=FF142C3E]●[/COLOR] أزرق سماوي فاتح داكن"
+
+msgctxt "#32230"
+msgid "[COLOR=FF1C2040]●[/COLOR] Dark cobalt"
+msgstr "[COLOR=FF1C2040]●[/COLOR] كوبالت داكن"
+
+msgctxt "#32231"
+msgid "[COLOR=FF2A2040]●[/COLOR] Dark periwinkle"
+msgstr "[COLOR=FF2A2040]●[/COLOR] بنفسجي مزرق داكن"
+
+msgctxt "#32232"
+msgid "[COLOR=FF341E38]●[/COLOR] Dark plum"
+msgstr "[COLOR=FF341E38]●[/COLOR] برقوقي داكن"
+
+msgctxt "#32233"
+msgid "[COLOR=FF301C34]●[/COLOR] Dark orchid"
+msgstr "[COLOR=FF301C34]●[/COLOR] سحلبي داكن"
+
+msgctxt "#32234"
+msgid "[COLOR=FF3E1428]●[/COLOR] Dark raspberry"
+msgstr "[COLOR=FF3E1428]●[/COLOR] توت العليق داكن"
+
+msgctxt "#32235"
+msgid "[COLOR=FF3E1424]●[/COLOR] Dark watermelon"
+msgstr "[COLOR=FF3E1424]●[/COLOR] بطيخي داكن"
+
+msgctxt "#32236"
+msgid "[COLOR=FF3E1C14]●[/COLOR] Dark scarlet"
+msgstr "[COLOR=FF3E1C14]●[/COLOR] قرمزي فاتح داكن"
+
+msgctxt "#32237"
+msgid "[COLOR=FF342E28]●[/COLOR] Dark sand"
+msgstr "[COLOR=FF342E28]●[/COLOR] رملي داكن"
+
+msgctxt "#32238"
+msgid "[COLOR=FF28341C]●[/COLOR] Dark pistachio"
+msgstr "[COLOR=FF28341C]●[/COLOR] فستقي داكن"
+
+msgctxt "#32239"
+msgid "[COLOR=FF242E34]●[/COLOR] Dark cadet"
+msgstr "[COLOR=FF242E34]●[/COLOR] أزرق رمادي داكن"
+
+msgctxt "#32241"
+msgid "HEX color"
+msgstr "لون HEX"
+
+msgctxt "#32242"
+msgid "Enter your own 6-digit HEX color using the keyboard."
+msgstr "أدخل لون HEX خاصًا بك من 6 خانات باستخدام لوحة المفاتيح."
+
+msgctxt "#32243"
+msgid "Enter a 6-digit HEX color (e.g. FF5733)"
+msgstr "أدخل لون HEX من 6 خانات (مثال FF5733)"
+
+msgctxt "#32244"
+msgid "Invalid HEX color – using the default color"
+msgstr "لون HEX غير صالح – سيُستخدم اللون الافتراضي"
+
+msgctxt "#32245"
+msgid "Custom color applied"
+msgstr "تم تطبيق اللون المخصّص"
+
+msgctxt "#32250"
+msgid "Custom"
+msgstr "مخصّص"
+
+msgctxt "#32251"
+msgid "Separator line"
+msgstr "خط الفاصل"
+
+msgctxt "#32252"
+msgid "Color of the separator lines."
+msgstr "لون خطوط الفصل."
+
+msgctxt "#32253"
+msgid "Selection"
+msgstr "التحديد"
+
+msgctxt "#32254"
+msgid "Background color of the focused button in the VS10 dialog."
+msgstr "لون خلفية الزر المحدّد في حوار VS10."
+
+msgctxt "#32255"
+msgid "Selection text"
+msgstr "نص التحديد"
+
+msgctxt "#32256"
+msgid "Text color of the focused button in the VS10 dialog."
+msgstr "لون نص الزر المحدّد في حوار VS10."
+
+msgctxt "#32257"
+msgid "[COLOR=FF000000]●[/COLOR] Black (Default)"
+msgstr "[COLOR=FF000000]●[/COLOR] أسود (افتراضي)"
+
+msgctxt "#32258"
+msgid "[COLOR=FFFFFFFF]●[/COLOR] White"
+msgstr "[COLOR=FFFFFFFF]●[/COLOR] أبيض"
+
+msgctxt "#32260"
+msgid "Overlay position"
+msgstr "موضع الطبقة"
+
+msgctxt "#32261"
+msgid "Horizontal offset (SDR only)"
+msgstr "الإزاحة الأفقية (SDR فقط)"
+
+msgctxt "#32262"
+msgid "Shifts the overlay to the right from its default position. 100% is the maximum shift that keeps the content on screen."
+msgstr "يزيح الطبقة إلى اليمين من موضعها الافتراضي. 100% هي أقصى إزاحة تبقي المحتوى على الشاشة."
+
+msgctxt "#32263"
+msgid "Vertical offset"
+msgstr "الإزاحة العمودية"
+
+msgctxt "#32264"
+msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
+msgstr "يزيح الطبقة إلى الأعلى من موضعها الافتراضي. 100% هي أقصى إزاحة تبقي المحتوى على الشاشة."
+
+msgctxt "#32266"
+msgid "Opacity of the overlay background, from 0% (fully transparent) to 100% (fully opaque)."
+msgstr "شفافية خلفية الطبقة، من 0% (شفافة تمامًا) إلى 100% (معتمة تمامًا)."
+
+msgctxt "#32267"
+msgid "Transparency"
+msgstr "الشفافية"
+
+msgctxt "#32268"
+msgid "Opacity of the full-screen background behind the overlay, from 0% (off) to 100% (fully opaque)."
+msgstr "شفافية خلفية ملء الشاشة خلف الطبقة، من 0% (متوقفة) إلى 100% (معتمة تمامًا)."
+
+msgctxt "#32269"
+msgid "Global background"
+msgstr "خلفية عامة"
+
+msgctxt "#32271"
+msgid "Color of the full-screen global background."
+msgstr "لون الخلفية العامة لملء الشاشة."
+
+msgctxt "#32274"
+msgid "Opacity of this element, from 0% (fully transparent) to 100% (fully opaque)."
+msgstr "شفافية هذا العنصر، من 0% (شفاف تمامًا) إلى 100% (معتم تمامًا)."
+
+msgctxt "#32275"
+msgid "Conversion (yes)"
+msgstr "التحويل (نعم)"
+
+msgctxt "#32276"
+msgid "Color of the check-circle icon shown when conversion is active."
+msgstr "لون أيقونة دائرة الاختيار المعروضة عند تفعيل التحويل."
+
+msgctxt "#32277"
+msgid "Conversion (no)"
+msgstr "التحويل (لا)"
+
+msgctxt "#32278"
+msgid "Color of the cross-circle icon shown when conversion is inactive."
+msgstr "لون أيقونة دائرة التقاطع المعروضة عند تعطيل التحويل."
+
+msgctxt "#32279"
+msgid "FEL tag"
+msgstr "وسم FEL"
+
+msgctxt "#32280"
+msgid "Color of the FEL enhancement-layer tag in the output mode."
+msgstr "لون وسم طبقة التحسين FEL في وضع المخرج."
+
+msgctxt "#32281"
+msgid "MEL tag"
+msgstr "وسم MEL"
+
+msgctxt "#32282"
+msgid "Color of the MEL enhancement-layer tag in the output mode."
+msgstr "لون وسم طبقة التحسين MEL في وضع المخرج."
+
+msgctxt "#32283"
+msgid "[COLOR=FFEDEDED]●[/COLOR] White"
+msgstr "[COLOR=FFEDEDED]●[/COLOR] أبيض"
+
+msgctxt "#32284"
+msgid "[COLOR=FF81C784]●[/COLOR] Forest (Default)"
+msgstr "[COLOR=FF81C784]●[/COLOR] غابي (افتراضي)"
+
+msgctxt "#32285"
+msgid "[COLOR=FFFF5252]●[/COLOR] Crimson (Default)"
+msgstr "[COLOR=FFFF5252]●[/COLOR] قرمزي (افتراضي)"
+
+msgctxt "#32286"
+msgid "[COLOR=FFFFB74D]●[/COLOR] Tangerine (Default)"
+msgstr "[COLOR=FFFFB74D]●[/COLOR] يوسفي (افتراضي)"
+
+msgctxt "#32287"
+msgid "Decode method"
+msgstr ""
+
+msgctxt "#32288"
+msgid "Media source"
+msgstr ""
+
+msgctxt "#32289"
+msgid "Metadata"
+msgstr "البيانات الوصفية"
+
+msgctxt "#32290"
+msgid "Profile"
+msgstr ""
+
+msgctxt "#32291"
+msgid "Level"
+msgstr "msgstr ""
+"
+
+msgctxt "#32292"
+msgid "RPU"
+msgstr "RPU"
+
+msgctxt "#32293"
+msgid "Base Layer"
+msgstr ""
+
+msgctxt "#32294"
+msgid "Enhancement Layer"
+msgstr ""
+
+msgctxt "#32295"
+msgid "Enhancement Layer Type"
+msgstr ""
+
+msgctxt "#32296"
+msgid "HDR10 MDL"
+msgstr "HDR10 MDL"
+
+msgctxt "#32297"
+msgid "HDR10 MaxCLL/FALL"
+msgstr "HDR10 MaxCLL/FALL"
+
+msgctxt "#32298"
+msgid "RPU MDL"
+msgstr "RPU MDL"
+
+msgctxt "#32299"
+msgid "RPU MaxCLL/FALL"
+msgstr "RPU MaxCLL/FALL"
+
+msgctxt "#32300"
+msgid "HDR Static Metadata"
+msgstr "البيانات الوصفية الثابتة لـ HDR"
+
+msgctxt "#32301"
+msgid "Codec logos"
+msgstr "شعارات الترميز"
+
+msgctxt "#32302"
+msgid "Show codec logos on playback start"
+msgstr "عرض شعارات الترميز عند بدء التشغيل"
+
+msgctxt "#32303"
+msgid "When a video starts, briefly shows the audio format and HDR/video format logos in the top-right corner."
+msgstr "عند بدء تشغيل فيديو، يعرض بإيجاز شعارات صيغة الصوت و HDR/الفيديو في الزاوية العلوية اليمنى."
+
+msgctxt "#32304"
+msgid "Display duration (seconds)"
+msgstr "مدة العرض (ثوانٍ)"
+
+msgctxt "#32305"
+msgid "How long the format logos stay on screen before they disappear."
+msgstr "المدة التي تبقى فيها شعارات الصيغة على الشاشة قبل اختفائها."
+
+msgctxt "#32306"
+msgid "Show codec logos in the video OSD"
+msgstr "عرض شعارات الترميز في OSD الفيديو"
+
+msgctxt "#32307"
+msgid "Also shows the format logos whenever the on-screen playback controls (video OSD) are visible."
+msgstr "يعرض أيضًا شعارات الصيغة كلما ظهرت عناصر التحكم بالتشغيل على الشاشة (OSD الفيديو)."
+
+msgctxt "#32308"
+msgid "Horizontal offset"
+msgstr "الإزاحة الأفقية"
+
+msgctxt "#32309"
+msgid "Moves the logos from the left edge (0%) to the right edge (100%) of the screen."
+msgstr "يحرّك الشعارات من الحافة اليسرى (0%) إلى الحافة اليمنى (100%) للشاشة."
+
+msgctxt "#32310"
+msgid "Codec logos shown on the picture when playback starts or the OSD is open."
+msgstr "شعارات الترميز المعروضة على الصورة عند بدء التشغيل أو فتح OSD."
+
+msgctxt "#32313"
+msgid "Background color"
+msgstr "لون الخلفية"
+
+msgctxt "#32314"
+msgid "Color and transparency of the panel behind the logos."
+msgstr "لون وشفافية اللوحة خلف الشعارات."
+
+msgctxt "#32315"
+msgid "Video logo"
+msgstr "شعار الفيديو"
+
+msgctxt "#32316"
+msgid "Color and transparency of the HDR/video format logo."
+msgstr "لون وشفافية شعار صيغة HDR/الفيديو."
+
+msgctxt "#32317"
+msgid "Audio logo"
+msgstr "شعار الصوت"
+
+msgctxt "#32318"
+msgid "Color and transparency of the audio format logo."
+msgstr "لون وشفافية شعار صيغة الصوت."
+
+msgctxt "#32319"
+msgid "Show codec logos in the TinyPPI overlay"
+msgstr "عرض شعارات الترميز في طبقة TinyPPI"
+
+msgctxt "#32320"
+msgid "Also shows the format logos while the TinyPPI info overlay is open."
+msgstr "يعرض أيضًا شعارات الصيغة أثناء فتح طبقة معلومات TinyPPI."
+
+msgctxt "#32321"
+msgid "Divider"
+msgstr "الفاصل"
+
+msgctxt "#32322"
+msgid "Color and transparency of the divider line between the two logos."
+msgstr "لون وشفافية خط الفاصل بين الشعارين."
+
+msgctxt "#32323"
+msgid "Vertical offset"
+msgstr "الإزاحة العمودية"
+
+msgctxt "#32324"
+msgid "Moves the logos from the top edge (0%) to the bottom edge (100%) of the screen."
+msgstr "يحرّك الشعارات من الحافة العلوية (0%) إلى الحافة السفلية (100%) للشاشة."
+
+msgctxt "#32325"
+msgid "On playback start"
+msgstr "عند بدء التشغيل"
+
+msgctxt "#32326"
+msgid "Video OSD"
+msgstr "OSD الفيديو"
+
+msgctxt "#32327"
+msgid "TinyPPI overlay"
+msgstr "طبقة TinyPPI"
+
+msgctxt "#32328"
+msgid "Size (%)"
+msgstr "الحجم (%)"
+
+msgctxt "#32329"
+msgid "Scales the format logos. 100% is the default size; lower values shrink them, higher values enlarge them. The horizontal and vertical offset are kept."
+msgstr "يقيس حجم شعارات الصيغة. 100% هو الحجم الافتراضي؛ القيم الأقل تصغّرها والأعلى تكبّرها. تبقى الإزاحة الأفقية والعمودية."
+
+msgctxt "#32334"
+msgid "Launch"
+msgstr "تشغيل"
+
+msgctxt "#32335"
+msgid "Overlay content"
+msgstr "محتوى الطبقة"
+
+msgctxt "#32337"
+msgid "Background color of the VS10 selection dialog panel."
+msgstr "لون خلفية لوحة حوار تحديد VS10."
+
+msgctxt "#32339"
+msgid "Color of the separator lines in the VS10 selection dialog."
+msgstr "لون خطوط الفصل في حوار تحديد VS10."
+
+msgctxt "#32341"
+msgid "Color of the chart icon in the VS10 selection dialog."
+msgstr "لون أيقونة الرسم البياني في حوار تحديد VS10."
+
+msgctxt "#32342"
+msgid "Header title"
+msgstr "عنوان الرأس"
+
+msgctxt "#32343"
+msgid "Color of the VS10 header label in the selection dialog."
+msgstr "لون تسمية رأس VS10 في حوار التحديد."
+
+msgctxt "#32344"
+msgid "Auto-hide"
+msgstr "إخفاء تلقائي"
+
+msgctxt "#32345"
+msgid "Automatically hides the TinyPPI overlay after the selected time (in seconds). 0 = off. Does not apply to the VS10 dialog."
+msgstr "يُخفي طبقة TinyPPI تلقائيًا بعد الوقت المحدّد (بالثواني). 0 = متوقف. لا ينطبق على حوار VS10."
+
+msgctxt "#32348"
+msgid "Horizontal offset of the channel box"
+msgstr "الإزاحة الأفقية لصندوق القنوات"
+
+msgctxt "#32349"
+msgid "Moves the channel box in Dolby Vision to the right. 0% places it at the left edge, 100% keeps it in its default position on the right."
+msgstr "يحرّك صندوق القنوات في Dolby Vision إلى اليمين. 0% يضعه عند الحافة اليسرى، و100% يبقيه في موضعه الافتراضي على اليمين."
+
+msgctxt "#32350"
+msgid "Channels"
+msgstr "القنوات"
+
+msgctxt "#32351"
+msgid "Customise the colors of the channel layout graphic."
+msgstr "تخصيص ألوان رسم تخطيط القنوات."
+
+msgctxt "#32352"
+msgid "Layout"
+msgstr "التخطيط"
+
+msgctxt "#32353"
+msgid "Background color of the channel box shown in Dolby Vision."
+msgstr "لون خلفية صندوق القنوات المعروض في Dolby Vision."
+
+msgctxt "#32354"
+msgid "Color of the speaker layout graphic behind the active channels."
+msgstr "لون رسم تخطيط السماعات خلف القنوات النشطة."
+
+msgctxt "#32355"
+msgid "Color of the active channels in the layout graphic."
+msgstr "لون القنوات النشطة في رسم التخطيط."
+
+msgctxt "#32356"
+msgid "Channels in SDR"
+msgstr "القنوات في SDR"
+
+msgctxt "#32357"
+msgid "Show the channel layout graphic while playing SDR content."
+msgstr "عرض رسم تخطيط القنوات أثناء تشغيل محتوى SDR."
+
+msgctxt "#32358"
+msgid "Channels in HDR10 / HLG / HDR10+"
+msgstr "القنوات في HDR10 / HLG / HDR10+"
+
+msgctxt "#32359"
+msgid "Show the channel layout graphic while playing HDR10, HLG or HDR10+ content."
+msgstr "عرض رسم تخطيط القنوات أثناء تشغيل محتوى HDR10 أو HLG أو HDR10+."
+
+msgctxt "#32360"
+msgid "Channels in Dolby Vision"
+msgstr "القنوات في Dolby Vision"
+
+msgctxt "#32361"
+msgid "Show the channel layout graphic while playing Dolby Vision content."
+msgstr "عرض رسم تخطيط القنوات أثناء تشغيل محتوى Dolby Vision."
+
+msgctxt "#32362"
+msgid "Live TV"
+msgstr "البث التلفزيوني المباشر"
+
+msgctxt "#32363"
+msgid "Livestream"
+msgstr "بث مباشر"
