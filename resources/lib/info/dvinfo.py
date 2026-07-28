@@ -562,6 +562,18 @@ def _sl_hdr_label(sl_hdr: dict) -> str:
     return ""
 
 
+def _static_mastering(hdr: dict) -> dict:
+    """Return the base layer's mastering-display block from the ``hdr`` block.
+
+    Schema 3.0 renamed ``hdr.mastering`` to ``hdr.mastering_display`` (one name
+    for the shape shared with the Dolby Vision and SL-HDR blocks).  Both names
+    are read, newest first, so a report from either schema resolves — the
+    bundled on-device hdrprobe may still be a 2.x build.
+    """
+    mastering = hdr.get("mastering_display") or hdr.get("mastering")
+    return mastering if isinstance(mastering, dict) else {}
+
+
 def _static_hdr_token(
     general: dict, hdr: dict, hdr10plus: dict, raw_format: str
 ) -> str:
@@ -587,7 +599,7 @@ def _static_hdr_token(
     ).lower()
     if "hlg" in transfer or "b67" in transfer:
         return "hlg"
-    if "pq" in transfer or "2084" in transfer or hdr.get("mastering"):
+    if "pq" in transfer or "2084" in transfer or _static_mastering(hdr):
         return "hdr10"
 
     return _hdr_type_token(raw_format)
@@ -800,14 +812,14 @@ def _parse_probe(data: dict) -> dict[str, str]:
         content_light = dovi.get("l6") or {}
     else:
         # HDR10 and other static-HDR formats carry them as static metadata.
-        mdl = hdr.get("mastering") or {}
+        mdl = _static_mastering(hdr)
         content_light = hdr.get("content_light") or {}
 
     # The ``l6_*`` rows come from the source selected above; the ``hdr10_*``
     # rows always come from the static ``hdr`` block, so a DV stream shows its
     # HDR10 fallback layer distinctly from the RPU (L6) values.  Missing values
     # are left blank (rendered as ``0 | 0`` by the luminance getters).
-    static_mdl = hdr.get("mastering") or {}
+    static_mdl = _static_mastering(hdr)
     static_light = hdr.get("content_light") or {}
     for key, source, key_a, key_b in (
         ("l6_mdl", mdl, "max_luminance", "min_luminance"),
