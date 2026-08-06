@@ -55,9 +55,8 @@ _BLOCK_BYTES = 1024 * 1024
 # result falls back to N/A, exactly like any other failed detection.
 _PROBE_TIMEOUT = 30
 
-_LABEL_FETCH     = 32096
-_LABEL_NA        = 32033
-_LABEL_COMPUTING = 32366
+_LABEL_FETCH = 32096
+_LABEL_NA    = 32033
 
 # Shown for L5 when neither an RPU nor a measurement has anything to report.
 L5_EMPTY = "0 | 0 | 0 | 0"
@@ -110,15 +109,6 @@ def _fetch_label() -> str:
 def _na_label() -> str:
     """Return the localized label shown when DV metadata could not be fetched."""
     return _localized(_LABEL_NA, "N/A")
-
-
-def l5_computing_label() -> str:
-    """Return the label shown while live black-bar detection is still settling.
-
-    Deliberately outside ``is_status_label``: that one gates the output-mode
-    fallbacks, which have nothing to do with L5.
-    """
-    return _localized(_LABEL_COMPUTING, "Calculating...")
 
 
 def is_status_label(value: str) -> bool:

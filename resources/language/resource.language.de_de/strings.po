@@ -1134,7 +1134,3 @@ msgstr "L5-Offsets live erkennen"
 msgctxt "#32365"
 msgid "Experimental. Measure the black bars of the running picture once a second (Amlogic video capture) and update the L5 values from them, so a title that changes aspect ratio mid-film keeps up. Falls back to the static RPU value when the capture is unavailable."
 msgstr "Experimentell. Misst die schwarzen Bildränder des laufenden Bildes einmal pro Sekunde (Amlogic-Videocapture) und aktualisiert die L5-Werte daraus, damit ein Titel mit wechselndem Seitenverhältnis mitgeführt wird. Fällt auf den statischen RPU-Wert zurück, wenn die Aufnahme nicht verfügbar ist."
-
-msgctxt "#32366"
-msgid "Calculating..."
-msgstr "Rechne..."

@@ -1135,7 +1135,3 @@ msgstr "اكتشاف إزاحات L5 مباشرة"
 msgctxt "#32365"
 msgid "Experimental. Measure the black bars of the running picture once a second (Amlogic video capture) and update the L5 values from them, so a title that changes aspect ratio mid-film keeps up. Falls back to the static RPU value when the capture is unavailable."
 msgstr "تجريبي. قياس الأشرطة السوداء للصورة الجارية مرة كل ثانية (التقاط فيديو Amlogic) وتحديث قيم L5 منها، بحيث يواكب العمل الذي تتغير نسبة أبعاده أثناء العرض. يعود إلى قيمة RPU الثابتة عند عدم توفر الالتقاط."
-
-msgctxt "#32366"
-msgid "Calculating..."
-msgstr "جارٍ الحساب..."

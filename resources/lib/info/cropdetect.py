@@ -54,6 +54,14 @@ _LIT_ALLOWANCE = 32
 # the widest ratio in circulation, still only reaches 0.36.
 _MAX_BAR_FRACTION = 0.45
 
+# A frame must carry at least this share of lit pixels before its edges mean
+# anything.  A black screen with a little sensor or compression noise spread
+# across it has every edge reading "not black" and measures as no bars at all --
+# and in IMAX titles a black screen is exactly where the aspect ratio changes,
+# so that reading would land right when it does the most damage.  Below this
+# share the frame is not judged at all and the previous value stands.
+_MIN_LIT_FRACTION = 0.05
+
 # Publish only after this many consecutive grabs agree to within the tolerance
 # (in grab pixels).  Keeps the values still through cuts and dark shots.
 _SAMPLE_WINDOW = 3
@@ -218,18 +226,21 @@ def _measure(lit: bytes) -> tuple[int, int, int, int] | None:
     """Return ``(left, right, top, bottom)`` in grab pixels, or None when the
     frame carries no usable picture (fade to black, or too dark to trust)."""
     rows = [sum(lit[y * _GRAB_W:(y + 1) * _GRAB_W]) for y in range(_GRAB_H)]
-    row_allowance = _GRAB_W // _LIT_ALLOWANCE
-    if not any(count > row_allowance for count in rows):
+    if sum(rows) < _GRAB_W * _GRAB_H * _MIN_LIT_FRACTION:
         return None
 
+    row_allowance = _GRAB_W // _LIT_ALLOWANCE
     top, bottom = _paired(
         _leading_black(rows, row_allowance),
         _leading_black(reversed(rows), row_allowance),
     )
+    if top + bottom > _GRAB_H * _MAX_BAR_FRACTION:
+        return None
 
     # Columns are judged inside the picture band only.  Counting the letterbox
     # rows would measure a column mostly against black that is already accounted
     # for, and scale the allowance against rows the picture never occupies.
+    # Checking the vertical bars first also guarantees the band is not empty.
     band_start, band_end = top, _GRAB_H - bottom
     cols = [sum(lit[band_start * _GRAB_W + x:band_end * _GRAB_W:_GRAB_W])
             for x in range(_GRAB_W)]
@@ -239,9 +250,7 @@ def _measure(lit: bytes) -> tuple[int, int, int, int] | None:
         _leading_black(cols, col_allowance),
         _leading_black(reversed(cols), col_allowance),
     )
-
-    if (top + bottom > _GRAB_H * _MAX_BAR_FRACTION
-            or left + right > _GRAB_W * _MAX_BAR_FRACTION):
+    if left + right > _GRAB_W * _MAX_BAR_FRACTION:
         return None
 
     return left, right, top, bottom
@@ -346,17 +355,14 @@ def _ensure_sampler() -> None:
         _thread.start()
 
 
-def live_l5_offsets() -> tuple[str, str]:
-    """Return ``(offsets, status)`` for the playing file.
+def live_l5_offsets() -> str:
+    """Return the measured active-area offsets for the playing file as
+    ``left | right | top | bottom`` in coded pixels.
 
-    ``offsets`` is ``left | right | top | bottom`` in coded pixels, or ``''``
-    when there is nothing confident to show yet.  ``status`` is:
-
-    ``''``           detection off, stream is not Dolby Vision, nothing playing,
-                     or the capture node gave up -- the caller shows the static
-                     RPU value untouched.
-    ``'computing'``  capture works, but no settled reading yet.
-    ``'ready'``      ``offsets`` holds a measured value.
+    Returns ``''`` whenever there is nothing confident to show -- detection off,
+    stream is not Dolby Vision, nothing playing, the capture node gave up, or
+    the sampler has not settled on a reading yet -- which is the caller's signal
+    to show the static RPU value.
 
     Never blocks: the reading is whatever the sampler thread last settled on,
     and calling this is what keeps that thread alive.  Scaling to coded pixels
@@ -365,30 +371,28 @@ def live_l5_offsets() -> tuple[str, str]:
     global _path, _last_request
 
     if not _enabled() or not _is_dolby_vision():
-        return "", ""
+        return ""
 
     try:
         path = xbmc.Player().getPlayingFile()
     except RuntimeError:
-        return "", ""
+        return ""
     if not path:
-        return "", ""
+        return ""
 
     coded = _coded_size()
     if coded is None:
-        return "", ""
+        return ""
 
     with _lock:
         if path != _path:
             _clear_locked()
             _path = path
         if _disabled:
-            return "", ""
+            return ""
         _last_request = time.monotonic()
         reading = _settled_reading
 
     _ensure_sampler()
 
-    if reading is None:
-        return "", "computing"
-    return _format(reading, coded), "ready"
+    return _format(reading, coded) if reading is not None else ""
