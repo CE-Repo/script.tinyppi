@@ -38,7 +38,7 @@ from info.cropdetect import (
     live_measurement_available,
     resolve_l5_offsets,
 )
-from info.imax import is_imax_scene
+from info.imax import is_enhanced_title, is_imax_scene
 from info.dvinfo import (
     L5_EMPTY,
     L5_PENDING_FRAMES,
@@ -87,13 +87,6 @@ def _channel_dir() -> str:
 def _channels_shown() -> bool:
     """Return whether the channel graphics are switched on."""
     return xbmcgui.Window(10000).getProperty("TinyPPI.ShowChannelIcon") == "1"
-
-
-
-    try:
-        return float(match.group(0).replace(",", "."))
-    except (TypeError, ValueError):
-        return None
 
 
 # --- Video properties ------------------------------------------------------
@@ -231,9 +224,9 @@ def get_ImaxVar(l5_offsets: str) -> str:
     title would then wear the badge for its whole runtime.  See info.imax for
     how an IMAX scene is told from an ordinary one.
     """
-    if not live_measurement_available():
+    if not live_measurement_available() or not is_imax_scene(l5_offsets):
         return ""
-    return "IMAX" if is_imax_scene(l5_offsets) else ""
+    return "IMAX Enhanced" if is_enhanced_title() else "IMAX"
 
 
 def get_VideoBitrateMBVar() -> str:

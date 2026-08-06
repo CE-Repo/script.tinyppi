@@ -9,10 +9,13 @@ video plane -- the node Hyperion's Amlogic grabber uses -- the frame is scanned
 for black rows and columns, and the bar thickness is scaled back to coded-frame
 pixels so the values stay comparable with the RPU ones.
 
-Measured streams are Dolby Vision ones, plus any title known to hold IMAX
-material whatever its HDR format -- much IMAX Enhanced content is HDR10, and its
-aspect ratio and IMAX badge need the same bars.  Everything else costs no grab
-at all.
+Every stream is measured, whatever its HDR format.  The bars feed the aspect
+ratio row, which is drawn for all of them and can otherwise only report the
+container's ratio -- an HDR10 film at 1.90:1 inside a 16:9 frame would read as
+1.78:1 for its whole runtime.  This was once limited to Dolby Vision, back when
+the bars fed the L5 row alone (which the skin still draws for DV only); the
+aspect ratio has no such restriction, and neither does the IMAX badge, whose
+material is more often HDR10 than DV.
 
 Everything here is best-effort.  A missing node, a kernel that refuses the
 capture or a frame that is too dark to judge all yield ``''``, and properties.py
@@ -32,7 +35,6 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 from core.utils import coded_frame, parse_offsets
-from info.imax import is_known_imax_title
 
 try:
     import fcntl
@@ -174,33 +176,6 @@ def live_detection_enabled() -> bool:
         return False
 
 
-def _is_dolby_vision() -> bool:
-    """Return whether the playing stream is Dolby Vision.
-
-    The property is published by properties.publish_hdr_type() just before the
-    L5 block runs, and stays empty until hdrprobe has classified the stream, so
-    nothing is measured before the format is known.  Mirrors properties._is_dv(),
-    which cannot be imported here without a cycle.
-    """
-    return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.HdrType").lower()
-
-
-def _measurement_wanted() -> bool:
-    """Return whether this stream is worth grabbing frames for.
-
-    Dolby Vision, because L5 is a DV concept and the field is drawn for it; and
-    any title known to hold IMAX material, whatever its HDR format, because that
-    is the one other place the bars are shown -- in the aspect ratio and the
-    IMAX badge.  Much IMAX Enhanced material is HDR10 rather than DV (3D discs,
-    most of the Disney+ catalogue), and without this it would never be measured
-    at all: its bars would read as an unbroken zero and mark the whole film as
-    IMAX, letterboxed scenes included.
-
-    Everything else costs no grab, exactly as before.
-    """
-    return _is_dolby_vision() or is_known_imax_title()
-
-
 def _grab() -> bytes | None:
     """Return one BGR24 frame of the video plane at the grab size, or None."""
     if fcntl is None:
@@ -324,6 +299,24 @@ def _format(settled: tuple[int, int, int, int], coded: tuple[int, int]) -> str:
     ))
 
 
+def _has_moved(settled: tuple[int, int, int, int],
+               published: tuple[int, int, int, int] | None) -> bool:
+    """Return whether a new reading is far enough from the published one to
+    replace it.
+
+    A bar whose true edge sits near a grab-row boundary reads as 23 rows in one
+    shot and 24 in the next, which is what makes a held value flick between
+    ``276`` and ``288`` on a film that never changed.  Both readings are equally
+    settled, so the window cannot tell them apart -- but the published value can
+    simply refuse to move for them.  A genuine change of framing shifts the bars
+    by twenty rows or more and passes straight through.
+    """
+    if published is None:
+        return True
+    return any(abs(new - old) > _EDGE_TOLERANCE
+               for new, old in zip(settled, published))
+
+
 def _sample_once() -> None:
     """Take one reading and fold it into the sample window.
 
@@ -356,7 +349,7 @@ def _sample_once() -> None:
         _samples.append(reading)
         del _samples[:-_SAMPLE_WINDOW]
         settled = _settled()
-        if settled is not None:
+        if settled is not None and _has_moved(settled, _settled_reading):
             _settled_reading = settled
 
 
@@ -453,7 +446,7 @@ def live_detection_pending() -> bool:
     A pure state read: it neither grabs a frame nor keeps the sampler alive --
     resolve_l5_offsets() does both, and must be called first in a poll.
     """
-    if not live_detection_enabled() or not _measurement_wanted():
+    if not live_detection_enabled():
         return False
     with _lock:
         return bool(_path) and not _disabled and _settled_reading is None
@@ -537,7 +530,7 @@ def live_l5_offsets() -> str:
     """
     global _path, _last_request
 
-    if not live_detection_enabled() or not _measurement_wanted():
+    if not live_detection_enabled():
         return ""
 
     try:

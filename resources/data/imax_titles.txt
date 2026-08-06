@@ -13,6 +13,11 @@
 #
 # A release with IMAX in its filename is recognised without being listed here.
 #
+# Add @enhanced after a title that carries the IMAX Enhanced certification, and
+# the badge says "IMAX Enhanced" instead of "IMAX":
+#   Eternals @enhanced                         # Disney+ IMAX Enhanced only
+# A filename saying "IMAX Enhanced" is recognised on its own, tag or no tag.
+#
 # This list is a starting point, not a complete catalogue: whether a given disc
 # actually switches aspect ratio varies between releases and territories, so
 # verify before adding — a wrong entry makes the badge appear on a film that
@@ -57,15 +62,15 @@ Wonder Woman 1984
 # Special-edition or 3D Blu-ray releases
 # ---------------------------------------------------------------------------
 
-Ant Man and the Wasp                         # 3D Blu-ray and Disney+ IMAX Enhanced
-Black Panther                                # 3D Blu-ray and Disney+ IMAX Enhanced
-Black Widow                                  # Japanese 3D Blu-ray and Disney+ IMAX Enhanced
-Captain America Civil War                    # 3D Blu-ray and Disney+ IMAX Enhanced
-Captain Marvel                               # 3D Blu-ray and Disney+ IMAX Enhanced
-Doctor Strange 2016                          # 3D Blu-ray and Disney+ IMAX Enhanced
-Guardians of the Galaxy 2014                 # 3D Blu-ray and Disney+ IMAX Enhanced
-Guardians of the Galaxy Vol 2                # 3D Blu-ray and Disney+ IMAX Enhanced
-Thor Ragnarok                                # 3D Blu-ray and Disney+ IMAX Enhanced
+Ant Man and the Wasp @enhanced               # 3D Blu-ray and Disney+ IMAX Enhanced
+Black Panther @enhanced                      # 3D Blu-ray and Disney+ IMAX Enhanced
+Black Widow @enhanced                        # Japanese 3D Blu-ray and Disney+ IMAX Enhanced
+Captain America Civil War @enhanced          # 3D Blu-ray and Disney+ IMAX Enhanced
+Captain Marvel @enhanced                     # 3D Blu-ray and Disney+ IMAX Enhanced
+Doctor Strange 2016 @enhanced                # 3D Blu-ray and Disney+ IMAX Enhanced
+Guardians of the Galaxy 2014 @enhanced       # 3D Blu-ray and Disney+ IMAX Enhanced
+Guardians of the Galaxy Vol 2 @enhanced      # 3D Blu-ray and Disney+ IMAX Enhanced
+Thor Ragnarok @enhanced                      # 3D Blu-ray and Disney+ IMAX Enhanced
 Transformers Age of Extinction               # 3D Blu-ray and selected IMAX streams
 Transformers Revenge of the Fallen           # Walmart Big Screen Edition Blu-ray
 
@@ -75,13 +80,13 @@ Transformers Revenge of the Fallen           # Walmart Big Screen Edition Blu-ra
 # ---------------------------------------------------------------------------
 
 The Aeronauts                                # Amazon Prime expanded version
-Ant Man and the Wasp Quantumania             # Disney+ IMAX Enhanced only
-Black Panther Wakanda Forever                # Disney+ IMAX Enhanced only
-Captain America Brave New World              # Disney+ IMAX Enhanced only
-Eternals                                     # Disney+ IMAX Enhanced only
-Iron Man 2008                                # Disney+ IMAX Enhanced only
-Lightyear                                    # Disney+ IMAX Enhanced only
-The Marvels                                  # Disney+ IMAX Enhanced only
-Spider Man Far from Home                     # Sony Pictures Core IMAX Enhanced
-Thor Love and Thunder                        # Disney+ IMAX Enhanced only
-Tron Ares                                    # Disney+ IMAX Enhanced only
+Ant Man and the Wasp Quantumania @enhanced   # Disney+ IMAX Enhanced only
+Black Panther Wakanda Forever @enhanced      # Disney+ IMAX Enhanced only
+Captain America Brave New World @enhanced    # Disney+ IMAX Enhanced only
+Eternals @enhanced                           # Disney+ IMAX Enhanced only
+Iron Man 2008 @enhanced                      # Disney+ IMAX Enhanced only
+Lightyear @enhanced                          # Disney+ IMAX Enhanced only
+The Marvels @enhanced                        # Disney+ IMAX Enhanced only
+Spider Man Far from Home @enhanced           # Sony Pictures Core IMAX Enhanced
+Thor Love and Thunder @enhanced              # Disney+ IMAX Enhanced only
+Tron Ares @enhanced                          # Disney+ IMAX Enhanced only
