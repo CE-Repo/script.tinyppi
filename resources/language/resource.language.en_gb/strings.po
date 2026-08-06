@@ -1126,3 +1126,15 @@ msgstr ""
 msgctxt "#32363"
 msgid "Livestream"
 msgstr ""
+
+msgctxt "#32364"
+msgid "Detect L5 offsets live"
+msgstr ""
+
+msgctxt "#32365"
+msgid "Experimental. Measure the black bars of the running picture once a second (Amlogic video capture) and update the L5 values from them, so a title that changes aspect ratio mid-film keeps up. Falls back to the static RPU value when the capture is unavailable."
+msgstr ""
+
+msgctxt "#32366"
+msgid "Calculating..."
+msgstr ""

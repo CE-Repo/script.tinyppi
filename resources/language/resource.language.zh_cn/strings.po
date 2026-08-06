@@ -1126,3 +1126,15 @@ msgstr "直播电视"
 msgctxt "#32363"
 msgid "Livestream"
 msgstr "网络直播"
+
+msgctxt "#32364"
+msgid "Detect L5 offsets live"
+msgstr "实时检测 L5 偏移"
+
+msgctxt "#32365"
+msgid "Experimental. Measure the black bars of the running picture once a second (Amlogic video capture) and update the L5 values from them, so a title that changes aspect ratio mid-film keeps up. Falls back to the static RPU value when the capture is unavailable."
+msgstr "实验性功能。每秒测量一次当前画面的黑边（Amlogic 视频捕获）并据此更新 L5 数值，使画面比例中途变化的影片也能同步。捕获不可用时回退到静态 RPU 数值。"
+
+msgctxt "#32366"
+msgid "Calculating..."
+msgstr "正在计算..."

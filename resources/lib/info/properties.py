@@ -24,7 +24,9 @@ from core.maps import (
     VIDEO_CODEC_MAP,
 )
 from core.utils import clean, cond, info, set_window_properties
+from info.cropdetect import live_l5_offsets
 from info.dvinfo import (
+    L5_EMPTY,
     get_active_audio_bit_depth,
     get_active_audio_sample_rate,
     get_bit_depth,
@@ -45,6 +47,7 @@ from info.dvinfo import (
     get_structure,
     is_fetch_label,
     is_status_label,
+    l5_computing_label,
 )
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
@@ -656,10 +659,20 @@ def update_properties(window) -> None:
     if is_status_label(output_mode) and not is_fetch_label(output_mode):
         output_mode = _output_mode_from_videoplayer() or output_mode
 
-    l5_offsets = get_l5_offsets()
+    # Black bars measured off the running picture win over the RPU offsets, so
+    # a title that changes aspect ratio mid-film keeps up; the measurement is
+    # empty whenever it cannot be trusted, leaving the static value in place.
+    l5_offsets_live, l5_live_status = live_l5_offsets()
+    l5_offsets = l5_offsets_live or get_l5_offsets()
+    # A stream whose RPU carries no L5 would sit on a row of zeros for the first
+    # few seconds of sampling; say what is actually happening instead.  Only
+    # while the sampler is alive — once it gives up, the zeros are the truth.
+    l5_computing = l5_live_status == "computing" and l5_offsets == L5_EMPTY
+    if l5_computing:
+        l5_offsets = l5_computing_label()
     l5_offsets_icon_visible = (
         "true"
-        if l5_offsets and not is_status_label(l5_offsets)
+        if l5_offsets and not l5_computing and not is_status_label(l5_offsets)
         else "false"
     )
 
@@ -690,6 +703,7 @@ def update_properties(window) -> None:
             ("DoviStructureVar", get_structure()),
             ("DoviLevel5OffsetsVar", l5_offsets),
             ("DoviLevel5OffsetsIconVisible", l5_offsets_icon_visible),
+            ("DoviLevel5OffsetsLive", "true" if l5_offsets_live else "false"),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
             ("Hdr10MdlVar", hdr10_mdl),
