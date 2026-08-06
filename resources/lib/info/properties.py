@@ -34,6 +34,7 @@ from core.utils import (
 from info.cropdetect import (
     live_detection_enabled,
     live_detection_pending,
+    live_measurement_available,
     resolve_l5_offsets,
 )
 from info.imax import is_imax_scene
@@ -243,9 +244,13 @@ def get_AspectRatioVar(l5_offsets: str) -> str:
 def get_ImaxVar(l5_offsets: str) -> str:
     """Return ``IMAX`` while the picture is opened up past its base framing.
 
-    See info.imax for how an IMAX scene is told from an ordinary one — the RPU
-    is no help, since plenty of titles declare no L5 at all.
+    Requires a settled measurement: without one the offsets are zeros because
+    nothing looked, not because the picture fills the frame, and a known IMAX
+    title would then wear the badge for its whole runtime.  See info.imax for
+    how an IMAX scene is told from an ordinary one.
     """
+    if not live_measurement_available():
+        return ""
     return "IMAX" if is_imax_scene(l5_offsets) else ""
 
 

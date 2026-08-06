@@ -18,18 +18,70 @@
 # verify before adding — a wrong entry makes the badge appear on a film that
 # never opens up.
 
+
+# ---------------------------------------------------------------------------
+# Regular Blu-ray, UHD Blu-ray or widely available digital releases
+# ---------------------------------------------------------------------------
+
+Aquaman                                      # Not present on the 3D Blu-ray
+Batman v Superman Dawn of Justice            # 2021 remastered Ultimate Edition UHD only
+The Conjuring Last Rites
 The Dark Knight
 The Dark Knight Rises
-Interstellar
 Dunkirk
-Tenet
-Oppenheimer
-
-Mission Impossible Ghost Protocol
-Mission Impossible Rogue Nation
+First Man
+Ghostbusters 2016
+Guardians of the Galaxy Vol 3                # VAR home version; not IMAX-exclusive
+Him 2025                                     # Expanded opening sequence
+How to Train Your Dragon 2025
+The Hunger Games Catching Fire               # US Blu-ray; UHD and some regional BDs are fixed
+Interstellar
+Joker Folie a Deux
 Mission Impossible Fallout
+Mission Impossible The Final Reckoning
+Mojin The Lost Legend
+Nope
+Oppenheimer
+Project Hail Mary                            # UHD uses 2.39:1 and 1.78:1
+Sinners 2025
+Star Trek Into Darkness                      # UHD and Compendium Blu-ray; standard BD is fixed
+Tenet
+Top Gun Maverick                             # Netflix version is fixed at 2.39:1
+Transformers The Last Knight                 # VAR presentation; not exclusive to IMAX
+Tron Legacy
+The Wandering Earth II                       # Chinese Blu-ray and UHD releases
+Wonder Woman 1984
 
-Top Gun Maverick
 
-Transformers Age of Extinction
-Transformers The Last Knight
+# ---------------------------------------------------------------------------
+# Special-edition or 3D Blu-ray releases
+# ---------------------------------------------------------------------------
+
+Ant Man and the Wasp                         # 3D Blu-ray and Disney+ IMAX Enhanced
+Black Panther                                # 3D Blu-ray and Disney+ IMAX Enhanced
+Black Widow                                  # Japanese 3D Blu-ray and Disney+ IMAX Enhanced
+Captain America Civil War                    # 3D Blu-ray and Disney+ IMAX Enhanced
+Captain Marvel                               # 3D Blu-ray and Disney+ IMAX Enhanced
+Doctor Strange 2016                          # 3D Blu-ray and Disney+ IMAX Enhanced
+Guardians of the Galaxy 2014                 # 3D Blu-ray and Disney+ IMAX Enhanced
+Guardians of the Galaxy Vol 2                # 3D Blu-ray and Disney+ IMAX Enhanced
+Thor Ragnarok                                # 3D Blu-ray and Disney+ IMAX Enhanced
+Transformers Age of Extinction               # 3D Blu-ray and selected IMAX streams
+Transformers Revenge of the Fallen           # Walmart Big Screen Edition Blu-ray
+
+
+# ---------------------------------------------------------------------------
+# Expanded version available primarily through streaming
+# ---------------------------------------------------------------------------
+
+The Aeronauts                                # Amazon Prime expanded version
+Ant Man and the Wasp Quantumania             # Disney+ IMAX Enhanced only
+Black Panther Wakanda Forever                # Disney+ IMAX Enhanced only
+Captain America Brave New World              # Disney+ IMAX Enhanced only
+Eternals                                     # Disney+ IMAX Enhanced only
+Iron Man 2008                                # Disney+ IMAX Enhanced only
+Lightyear                                    # Disney+ IMAX Enhanced only
+The Marvels                                  # Disney+ IMAX Enhanced only
+Spider Man Far from Home                     # Sony Pictures Core IMAX Enhanced
+Thor Love and Thunder                        # Disney+ IMAX Enhanced only
+Tron Ares                                    # Disney+ IMAX Enhanced only

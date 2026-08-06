@@ -9,8 +9,10 @@ video plane -- the node Hyperion's Amlogic grabber uses -- the frame is scanned
 for black rows and columns, and the bar thickness is scaled back to coded-frame
 pixels so the values stay comparable with the RPU ones.
 
-Only Dolby Vision streams are measured -- L5 means nothing for HDR10 or SDR, so
-those cost no grab at all.
+Measured streams are Dolby Vision ones, plus any title known to hold IMAX
+material whatever its HDR format -- much IMAX Enhanced content is HDR10, and its
+aspect ratio and IMAX badge need the same bars.  Everything else costs no grab
+at all.
 
 Everything here is best-effort.  A missing node, a kernel that refuses the
 capture or a frame that is too dark to judge all yield ``''``, and properties.py
@@ -30,6 +32,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 from core.utils import coded_frame, parse_offsets
+from info.imax import is_known_imax_title
 
 try:
     import fcntl
@@ -167,14 +170,28 @@ def live_detection_enabled() -> bool:
 def _is_dolby_vision() -> bool:
     """Return whether the playing stream is Dolby Vision.
 
-    L5 is a DV concept: measuring bars for an HDR10 or SDR stream would fill a
-    field that means nothing there, and spend a grab per poll doing it.  The
-    property is published by properties.publish_hdr_type() just before the L5
-    block runs, and stays empty until hdrprobe has classified the stream, so
+    The property is published by properties.publish_hdr_type() just before the
+    L5 block runs, and stays empty until hdrprobe has classified the stream, so
     nothing is measured before the format is known.  Mirrors properties._is_dv(),
     which cannot be imported here without a cycle.
     """
     return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.HdrType").lower()
+
+
+def _measurement_wanted() -> bool:
+    """Return whether this stream is worth grabbing frames for.
+
+    Dolby Vision, because L5 is a DV concept and the field is drawn for it; and
+    any title known to hold IMAX material, whatever its HDR format, because that
+    is the one other place the bars are shown -- in the aspect ratio and the
+    IMAX badge.  Much IMAX Enhanced material is HDR10 rather than DV (3D discs,
+    most of the Disney+ catalogue), and without this it would never be measured
+    at all: its bars would read as an unbroken zero and mark the whole film as
+    IMAX, letterboxed scenes included.
+
+    Everything else costs no grab, exactly as before.
+    """
+    return _is_dolby_vision() or is_known_imax_title()
 
 
 def _grab() -> bytes | None:
@@ -400,6 +417,19 @@ def _prefer_static(static: str, measured: str) -> str:
     return static if same_framing else measured
 
 
+def live_measurement_available() -> bool:
+    """Return whether a settled measurement exists for the playing file.
+
+    Lets a caller tell "the picture has no bars" from "nobody has looked".  Both
+    read as ``0 | 0 | 0 | 0``, and acting on the second would mark a whole film
+    as IMAX on the strength of a value nothing ever measured.
+
+    A pure state read: no grab, and it does not keep the sampler alive.
+    """
+    with _lock:
+        return _settled_reading is not None
+
+
 def live_detection_pending() -> bool:
     """Return whether a measurement is expected for this stream but has not
     settled yet, so the caller can show a placeholder rather than a value.
@@ -407,7 +437,7 @@ def live_detection_pending() -> bool:
     A pure state read: it neither grabs a frame nor keeps the sampler alive --
     resolve_l5_offsets() does both, and must be called first in a poll.
     """
-    if not live_detection_enabled() or not _is_dolby_vision():
+    if not live_detection_enabled() or not _measurement_wanted():
         return False
     with _lock:
         return bool(_path) and not _disabled and _settled_reading is None
@@ -491,7 +521,7 @@ def live_l5_offsets() -> str:
     """
     global _path, _last_request
 
-    if not live_detection_enabled() or not _is_dolby_vision():
+    if not live_detection_enabled() or not _measurement_wanted():
         return ""
 
     try:
