@@ -67,6 +67,14 @@ _MIN_LIT_FRACTION = 0.05
 _SAMPLE_WINDOW = 3
 _EDGE_TOLERANCE = 2
 
+# How far a measurement may sit from the RPU's own numbers and still count as
+# describing the same framing, in grab pixels.  The RPU value is exact; a grab
+# quantises a 4K frame to 12 coded lines and the paired-edge rule can shave off
+# another, so a couple of grab pixels of disagreement say nothing about the
+# picture.  A real change of framing is an order of magnitude larger -- an IMAX
+# shot opening from 2.39:1 to 1.90:1 moves the bars by over 200 coded lines.
+_STATIC_MATCH_TOLERANCE = 3
+
 # Sampling runs on its own thread rather than on the overlay's one-second poll:
 # at one sample per second the window alone costs three seconds before a change
 # of aspect ratio shows up.  Four samples a second cut that to 0.75s, and the
@@ -353,6 +361,61 @@ def _ensure_sampler() -> None:
             return
         _thread = threading.Thread(target=_sampler, daemon=True)
         _thread.start()
+
+
+def _parse(value: str) -> tuple[int, int, int, int] | None:
+    """Return the four offsets in ``L | R | T | B``, or None for anything else
+    (an empty field, or one of dvinfo's status labels)."""
+    parts = value.split("|")
+    if len(parts) != 4:
+        return None
+    try:
+        return tuple(int(part.strip()) for part in parts)
+    except ValueError:
+        return None
+
+
+def _prefer_static(static: str, measured: str) -> str:
+    """Return the offsets to display, keeping the RPU's own numbers where they
+    still describe the picture.
+
+    The RPU is exact and the measurement is not, so replacing 276 with 288 for
+    the same framing only makes the display worse.  The static value therefore
+    stands until the measurement clearly departs from it -- which is what an
+    aspect ratio change does -- and takes over again once the film returns to
+    its base framing.
+    """
+    if not measured:
+        return static
+
+    wanted = _parse(static)
+    got = _parse(measured)
+    coded = _coded_size()
+    if wanted is None or got is None or coded is None:
+        # No usable pair to compare (static is still "Fetching...", say): the
+        # measurement is the only real information available.
+        return measured
+
+    coded_w, coded_h = coded
+    per_column = _STATIC_MATCH_TOLERANCE * coded_w / _GRAB_W
+    per_row = _STATIC_MATCH_TOLERANCE * coded_h / _GRAB_H
+    tolerances = (per_column, per_column, per_row, per_row)
+
+    same_framing = all(
+        abs(a - b) <= tolerance
+        for a, b, tolerance in zip(wanted, got, tolerances)
+    )
+    return static if same_framing else measured
+
+
+def resolve_l5_offsets(static: str) -> str:
+    """Return the offsets to display for the playing file.
+
+    ``static`` is what the RPU reported (or dvinfo's placeholder / status
+    label).  It is preferred; the live measurement only overrides it once the
+    picture stops matching it.
+    """
+    return _prefer_static(static, live_l5_offsets())
 
 
 def live_l5_offsets() -> str:

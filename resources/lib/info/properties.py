@@ -24,7 +24,7 @@ from core.maps import (
     VIDEO_CODEC_MAP,
 )
 from core.utils import clean, cond, info, set_window_properties
-from info.cropdetect import live_l5_offsets
+from info.cropdetect import resolve_l5_offsets
 from info.dvinfo import (
     get_active_audio_bit_depth,
     get_active_audio_sample_rate,
@@ -657,11 +657,12 @@ def update_properties(window) -> None:
     if is_status_label(output_mode) and not is_fetch_label(output_mode):
         output_mode = _output_mode_from_videoplayer() or output_mode
 
-    # Black bars measured off the running picture win over the RPU offsets, so
-    # a title that changes aspect ratio mid-film keeps up; the measurement is
-    # empty whenever it cannot be trusted, leaving the static value in place.
-    l5_offsets_live = live_l5_offsets()
-    l5_offsets = l5_offsets_live or get_l5_offsets()
+    # The RPU offsets are exact, so they stand for as long as the picture still
+    # matches them.  Black bars measured off the running picture take over only
+    # once it stops matching — a title that changes aspect ratio mid-film — and
+    # hand back as soon as the film returns to its base framing.
+    l5_offsets_static = get_l5_offsets()
+    l5_offsets = resolve_l5_offsets(l5_offsets_static)
     l5_offsets_icon_visible = (
         "true"
         if l5_offsets and not is_status_label(l5_offsets)
@@ -695,7 +696,8 @@ def update_properties(window) -> None:
             ("DoviStructureVar", get_structure()),
             ("DoviLevel5OffsetsVar", l5_offsets),
             ("DoviLevel5OffsetsIconVisible", l5_offsets_icon_visible),
-            ("DoviLevel5OffsetsLive", "true" if l5_offsets_live else "false"),
+            ("DoviLevel5OffsetsLive",
+             "true" if l5_offsets != l5_offsets_static else "false"),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
             ("Hdr10MdlVar", hdr10_mdl),
