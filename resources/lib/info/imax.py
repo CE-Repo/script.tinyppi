@@ -12,8 +12,8 @@ single frame can tell those apart, so the film has to be identified first:
 
 Neither says anything about the scene currently running -- they identify the
 film, not the moment.  Once the film is known, though, the scene follows from
-the bars: a title that holds IMAX material shows it in its expanded framing, so
-thin bars are the IMAX scenes and the letterboxed ones are not.
+the ratio on screen: a title that holds IMAX material shows it in its expanded
+framing, so a picture around 1.90:1 or taller is IMAX and a scope one is not.
 
 A film that is not identified is never marked.  That is deliberate: guessing
 from the picture alone would claim IMAX for every ordinary 1.78:1 film.
@@ -25,14 +25,19 @@ import re
 import xbmc
 import xbmcaddon
 import xbmcvfs
-from core.utils import coded_frame, parse_offsets
+from core.utils import picture_aspect_ratio
 
 _ADDON = xbmcaddon.Addon()
 
-# For a title known to be IMAX, bars this thin (as a share of the coded height)
-# are its expanded framing.  2.39:1 in a 16:9 frame sits at 0.26 and 2.20:1 at
-# 0.19, both well clear; 1.90:1 reaches 0.06 and a full frame 0.
-_EXPANDED_BAR_FRACTION = 0.12
+# For a title known to be IMAX, a picture at or below this ratio is its expanded
+# framing.  IMAX framings run 1.43, 1.66, 1.78 and 1.90; the next ratio up in
+# use is 2.00, so this separates them with room to spare on both sides.
+#
+# The test is on the ratio rather than on how thick the bars are, because a disc
+# encoded natively at its scope ratio has no bars at all -- Top Gun Maverick on
+# Netflix is 2.39:1 from end to end -- and thin bars would read as an expanded
+# framing when the frame simply is the picture.
+_MAX_IMAX_RATIO = 1.95
 
 _TITLE_FILE = "imax_titles.txt"
 _titles: frozenset[str] | None = None       # parsed once per script instance
@@ -124,9 +129,5 @@ def is_imax_scene(offsets: str) -> bool:
     if not is_known_imax_title():
         return False
 
-    bars = parse_offsets(offsets)
-    coded = coded_frame()
-    if bars is None or coded is None:
-        return False
-
-    return bars[2] + bars[3] <= coded[1] * _EXPANDED_BAR_FRACTION
+    ratio = picture_aspect_ratio(offsets)
+    return ratio is not None and ratio <= _MAX_IMAX_RATIO

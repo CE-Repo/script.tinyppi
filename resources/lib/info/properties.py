@@ -25,10 +25,11 @@ from core.maps import (
 )
 from core.utils import (
     clean,
-    coded_frame,
     cond,
+    first_float,
     info,
     parse_offsets,
+    picture_aspect_ratio,
     set_window_properties,
 )
 from info.cropdetect import (
@@ -65,8 +66,6 @@ from info.dvinfo import (
     l5_pending_frame,
 )
 
-_DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
-
 # Channel graphics ship pre-scaled to the exact box the skin draws them in
 # (see script-tinyppi-main.xml), so Kodi never resamples them: SDR and
 # HDR10 / HDR10+ / HLG share the 495x298 box, DV uses the smaller 400x241 panel.
@@ -90,12 +89,6 @@ def _channels_shown() -> bool:
     return xbmcgui.Window(10000).getProperty("TinyPPI.ShowChannelIcon") == "1"
 
 
-
-def _first_float(raw: str) -> float | None:
-    """Return the first decimal number found in *raw*, or None."""
-    match = _DECIMAL_RE.search(raw)
-    if not match:
-        return None
 
     try:
         return float(match.group(0).replace(",", "."))
@@ -223,22 +216,11 @@ def get_AspectRatioVar(l5_offsets: str) -> str:
         return raw
 
     bars = parse_offsets(l5_offsets)
-    coded = coded_frame()
-    coded_dar = _first_float(raw)
-    if bars is None or coded is None or coded_dar is None or not any(bars):
+    if bars is None or not any(bars):
         return raw
 
-    left, right, top, bottom = bars
-    coded_w, coded_h = coded
-    picture_w = coded_w - left - right
-    picture_h = coded_h - top - bottom
-    if picture_w <= 0 or picture_h <= 0:
-        return raw
-
-    # Scaling the coded ratio rather than dividing the picture's own dimensions
-    # carries any non-square pixel aspect through unchanged.
-    ratio = coded_dar * (picture_w / coded_w) * (coded_h / picture_h)
-    return _snapped_ar(ratio)
+    ratio = picture_aspect_ratio(l5_offsets)
+    return _snapped_ar(ratio) if ratio is not None else raw
 
 
 def get_ImaxVar(l5_offsets: str) -> str:
@@ -651,7 +633,7 @@ def get_CpuTemperatureProgressVar() -> float:
     if not raw:
         return 0.0
 
-    temperature = _first_float(raw)
+    temperature = first_float(raw)
     if temperature is None:
         return 0.0
 

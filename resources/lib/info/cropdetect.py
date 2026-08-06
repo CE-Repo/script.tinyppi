@@ -163,8 +163,15 @@ def live_detection_enabled() -> bool:
 
     A fresh ``Addon()`` avoids the cached settings, so toggling the option
     applies while the overlay stays open -- same trick as publish_channel_visibility.
+
+    Updating the addon mid-playback unregisters our id for a moment, and this
+    runs on the overlay's poll: treat that window as "off" rather than letting
+    it take the polling loop down, the way it once took the splash down.
     """
-    return xbmcaddon.Addon().getSetting("l5_live_detect") == "true"
+    try:
+        return xbmcaddon.Addon().getSetting("l5_live_detect") == "true"
+    except (RuntimeError, TypeError):
+        return False
 
 
 def _is_dolby_vision() -> bool:
@@ -424,10 +431,19 @@ def live_measurement_available() -> bool:
     read as ``0 | 0 | 0 | 0``, and acting on the second would mark a whole film
     as IMAX on the strength of a value nothing ever measured.
 
+    Tied to the playing file: the reading is only cleared on a file change by
+    live_l5_offsets(), which returns early when detection is off, so without
+    this check a reading from the previous film could still answer for this one.
+
     A pure state read: no grab, and it does not keep the sampler alive.
     """
+    try:
+        path = xbmc.Player().getPlayingFile()
+    except RuntimeError:
+        return False
+
     with _lock:
-        return _settled_reading is not None
+        return _settled_reading is not None and path == _path
 
 
 def live_detection_pending() -> bool:
