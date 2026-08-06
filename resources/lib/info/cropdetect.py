@@ -14,15 +14,17 @@ those cost no grab at all.
 
 Everything here is best-effort.  A missing node, a kernel that refuses the
 capture or a frame that is too dark to judge all yield ``''``, and properties.py
-falls back to the static RPU value.  Grabs run inline on the overlay's
-one-second poll; a circuit breaker stops trying for the rest of the file once
-the node has failed repeatedly, so a box without working capture pays a handful
-of failed opens and nothing more.
+falls back to the static RPU value.  Grabbing happens on a sampler thread that
+runs only while the overlay is reading, so nothing ever blocks the window; a
+circuit breaker stops trying for the rest of the file once the node has failed
+repeatedly, so a box without working capture pays a handful of failed opens and
+nothing more.
 """
 
 import os
 import struct
 import threading
+import time
 
 import xbmc
 import xbmcaddon
@@ -57,6 +59,15 @@ _MAX_BAR_FRACTION = 0.45
 _SAMPLE_WINDOW = 3
 _EDGE_TOLERANCE = 2
 
+# Sampling runs on its own thread rather than on the overlay's one-second poll:
+# at one sample per second the window alone costs three seconds before a change
+# of aspect ratio shows up.  Four samples a second cut that to 0.75s, and the
+# window still spans enough real time that a single dark shot cannot flip the
+# value.  The thread stops once nothing has read a value for a while, so it
+# lives exactly as long as the overlay is on screen.
+_SAMPLE_INTERVAL = 0.25
+_IDLE_TIMEOUT = 3.0
+
 # Give up on the node after this many consecutive failures.
 _FAILURE_LIMIT = 3
 
@@ -83,26 +94,37 @@ _LIT_TABLE = bytes(0 if level <= _BLACK_LEVEL else 1 for level in range(256))
 
 _lock = threading.Lock()
 _samples: list[tuple[int, int, int, int]] = []
-_published = ""     # last value we were confident enough to show
-_path = ""          # file the state above belongs to
+_settled_reading: tuple[int, int, int, int] | None = None  # in grab pixels
+_path = ""            # file the state above belongs to
 _failures = 0
-_disabled = False   # circuit breaker, cleared on the next file
+_disabled = False     # circuit breaker, cleared on the next file
+_thread: threading.Thread | None = None
+_last_request = 0.0   # monotonic clock of the last live_l5_offsets() call
 
 
 def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
     xbmc.log(f"TinyPPI: {msg}", level)
 
 
-def reset_live_detection() -> None:
-    """Drop all detection state; called on playback stop and on a file change."""
-    global _published, _path, _failures, _disabled
+def _clear_locked() -> None:
+    """Drop the sampling state; call under the lock."""
+    global _settled_reading, _path, _failures, _disabled
 
+    _samples.clear()
+    _settled_reading = None
+    _path = ""
+    _failures = 0
+    _disabled = False
+
+
+def reset_live_detection() -> None:
+    """Drop all detection state; called on playback stop and on a file change.
+
+    The sampler thread is left to notice on its own: it stops as soon as
+    nothing has asked for a value, which happens the moment the overlay closes.
+    """
     with _lock:
-        _samples.clear()
-        _published = ""
-        _path = ""
-        _failures = 0
-        _disabled = False
+        _clear_locked()
 
 
 def _enabled() -> bool:
@@ -235,6 +257,72 @@ def _format(settled: tuple[int, int, int, int], coded: tuple[int, int]) -> str:
     ))
 
 
+def _sample_once() -> None:
+    """Take one reading and fold it into the sample window.
+
+    The grab and the scan both run outside the lock -- the grab can sit on the
+    driver for a frame interval, and a reader must never wait that long.
+    """
+    global _settled_reading, _failures, _disabled
+
+    frame = _grab()
+    if frame is None:
+        with _lock:
+            _failures += 1
+            if _failures >= _FAILURE_LIMIT:
+                _disabled = True
+                _settled_reading = None
+                _log(f"L5 live: {_NODE} unusable, staying on the RPU value",
+                     xbmc.LOGINFO)
+        return
+
+    with _lock:
+        _failures = 0
+
+    reading = _measure(_lit_map(frame))
+    if reading is None:
+        # Fade to black or a shot with no discernible edge: hold the last
+        # confident value rather than flickering back to the static one.
+        return
+
+    with _lock:
+        _samples.append(reading)
+        del _samples[:-_SAMPLE_WINDOW]
+        settled = _settled()
+        if settled is not None:
+            _settled_reading = settled
+
+
+def _sampler() -> None:
+    """Sample until the overlay stops reading, or the node gives up."""
+    global _thread
+
+    monitor = xbmc.Monitor()
+    try:
+        while True:
+            with _lock:
+                stop = _disabled or time.monotonic() - _last_request > _IDLE_TIMEOUT
+            if stop:
+                return
+            _sample_once()
+            if monitor.waitForAbort(_SAMPLE_INTERVAL):
+                return
+    finally:
+        with _lock:
+            _thread = None
+
+
+def _ensure_sampler() -> None:
+    """Start the sampler thread unless one is already running."""
+    global _thread
+
+    with _lock:
+        if _thread is not None and _thread.is_alive():
+            return
+        _thread = threading.Thread(target=_sampler, daemon=True)
+        _thread.start()
+
+
 def live_l5_offsets() -> tuple[str, str]:
     """Return ``(offsets, status)`` for the playing file.
 
@@ -247,9 +335,11 @@ def live_l5_offsets() -> tuple[str, str]:
     ``'computing'``  capture works, but no settled reading yet.
     ``'ready'``      ``offsets`` holds a measured value.
 
-    Safe to call once per poll; one grab plus one scan of a 320x180 frame.
+    Never blocks: the reading is whatever the sampler thread last settled on,
+    and calling this is what keeps that thread alive.  Scaling to coded pixels
+    happens here, so a resolution change is picked up on the next poll.
     """
-    global _published, _path, _failures, _disabled
+    global _path, _last_request
 
     if not _enabled() or not _is_dolby_vision():
         return "", ""
@@ -267,44 +357,15 @@ def live_l5_offsets() -> tuple[str, str]:
 
     with _lock:
         if path != _path:
-            _samples.clear()
-            _published = ""
+            _clear_locked()
             _path = path
-            _failures = 0
-            _disabled = False
-
         if _disabled:
             return "", ""
+        _last_request = time.monotonic()
+        reading = _settled_reading
 
-        frame = _grab()
-        if frame is None:
-            _failures += 1
-            if _failures >= _FAILURE_LIMIT:
-                _disabled = True
-                _published = ""
-                _log(f"L5 live: {_NODE} unusable, staying on the RPU value",
-                     xbmc.LOGINFO)
-                return "", ""
-            return _published, _status()
+    _ensure_sampler()
 
-        _failures = 0
-
-        reading = _measure(_lit_map(frame))
-        if reading is None:
-            # Fade to black or a shot with no discernible edge: hold the last
-            # confident value rather than flickering back to the static one.
-            return _published, _status()
-
-        _samples.append(reading)
-        del _samples[:-_SAMPLE_WINDOW]
-
-        settled = _settled()
-        if settled is not None:
-            _published = _format(settled, coded)
-
-        return _published, _status()
-
-
-def _status() -> str:
-    """Return the status for the current state; call under the lock."""
-    return "ready" if _published else "computing"
+    if reading is None:
+        return "", "computing"
+    return _format(reading, coded), "ready"
