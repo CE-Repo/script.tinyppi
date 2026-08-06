@@ -409,16 +409,22 @@ def _fade_out(video_window, home, monitor, mode: str, controls) -> None:
 
 
 def _safe_addon():
-    """Return a fresh Addon, or None while Kodi has our id unregistered.
+    """Return a fresh Addon whose settings can be read, or None.
 
     Updating the addon during playback briefly deletes and re-registers
-    ``script.tinyppi``; an ``Addon()`` built in that window raises
-    ``RuntimeError: Unknown addon id``.  The long-lived splash loop must tolerate
-    that and exit quietly instead of crashing (which also leaks Kodi classes).
+    ``script.tinyppi``.  An ``Addon()`` built in that window raises
+    ``RuntimeError: Unknown addon id`` — but one built a moment later can be
+    handed back with its settings definition not yet loaded, and every read off
+    it then raises ``TypeError: Invalid setting type``.  Constructing is
+    therefore not proof of a usable object; one read is.  The long-lived splash
+    loop must tolerate both and exit quietly instead of crashing (which also
+    leaks Kodi classes).
     """
     try:
-        return xbmcaddon.Addon()
-    except RuntimeError:
+        addon = xbmcaddon.Addon()
+        addon.getSettingBool("splash_enabled")
+        return addon
+    except (RuntimeError, TypeError):
         return None
 
 
@@ -545,6 +551,11 @@ def open_splash() -> None:
 
             if monitor.waitForAbort(wait_time):
                 break
+    except TypeError:
+        # The settings went away mid-poll, between _safe_addon() proving them
+        # readable and a later read here.  Same update window, same answer:
+        # leave quietly, the finally below still tidies up.
+        pass
     finally:
         for controls in controls_by_mode.values():
             _remove_controls(video_window, controls)
