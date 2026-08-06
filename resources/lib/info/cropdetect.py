@@ -201,6 +201,19 @@ def _leading_black(counts, allowance: int) -> int:
     return black
 
 
+def _paired(near: int, far: int) -> tuple[int, int]:
+    """Return the bar width both edges of an axis support.
+
+    Letterboxing and pillarboxing are symmetric: a bar the encoder put there
+    exists on both sides.  A bar found on one side only is a dark edge in the
+    picture -- a night scene against the left frame border reads as black just
+    as convincingly as a real pillarbox -- so the axis is held to whatever the
+    weaker edge can back up.  This is what stops readings like ``103 | 0``.
+    """
+    agreed = min(near, far)
+    return agreed, agreed
+
+
 def _measure(lit: bytes) -> tuple[int, int, int, int] | None:
     """Return ``(left, right, top, bottom)`` in grab pixels, or None when the
     frame carries no usable picture (fade to black, or too dark to trust)."""
@@ -209,13 +222,23 @@ def _measure(lit: bytes) -> tuple[int, int, int, int] | None:
     if not any(count > row_allowance for count in rows):
         return None
 
-    cols = [sum(lit[x::_GRAB_W]) for x in range(_GRAB_W)]
-    col_allowance = _GRAB_H // _LIT_ALLOWANCE
+    top, bottom = _paired(
+        _leading_black(rows, row_allowance),
+        _leading_black(reversed(rows), row_allowance),
+    )
 
-    top = _leading_black(rows, row_allowance)
-    bottom = _leading_black(reversed(rows), row_allowance)
-    left = _leading_black(cols, col_allowance)
-    right = _leading_black(reversed(cols), col_allowance)
+    # Columns are judged inside the picture band only.  Counting the letterbox
+    # rows would measure a column mostly against black that is already accounted
+    # for, and scale the allowance against rows the picture never occupies.
+    band_start, band_end = top, _GRAB_H - bottom
+    cols = [sum(lit[band_start * _GRAB_W + x:band_end * _GRAB_W:_GRAB_W])
+            for x in range(_GRAB_W)]
+    col_allowance = (band_end - band_start) // _LIT_ALLOWANCE
+
+    left, right = _paired(
+        _leading_black(cols, col_allowance),
+        _leading_black(reversed(cols), col_allowance),
+    )
 
     if (top + bottom > _GRAB_H * _MAX_BAR_FRACTION
             or left + right > _GRAB_W * _MAX_BAR_FRACTION):
