@@ -23,12 +23,20 @@ from core.maps import (
     SUBTITLE_CODEC_MAP,
     VIDEO_CODEC_MAP,
 )
-from core.utils import clean, cond, info, set_window_properties
+from core.utils import (
+    clean,
+    coded_frame,
+    cond,
+    info,
+    parse_offsets,
+    set_window_properties,
+)
 from info.cropdetect import (
     live_detection_enabled,
     live_detection_pending,
     resolve_l5_offsets,
 )
+from info.imax import is_imax_scene
 from info.dvinfo import (
     L5_EMPTY,
     L5_PENDING_FRAMES,
@@ -80,16 +88,6 @@ def _channels_shown() -> bool:
     """Return whether the channel graphics are switched on."""
     return xbmcgui.Window(10000).getProperty("TinyPPI.ShowChannelIcon") == "1"
 
-
-def _parse_offsets(value: str) -> tuple[int, int, int, int] | None:
-    """Return the four L5 offsets, or None for a placeholder or status label."""
-    parts = value.split("|")
-    if len(parts) != 4:
-        return None
-    try:
-        return tuple(int(part.strip()) for part in parts)
-    except ValueError:
-        return None
 
 
 def _first_float(raw: str) -> float | None:
@@ -193,15 +191,6 @@ _STANDARD_ARS = (
 _AR_SNAP_TOLERANCE = 0.02           # relative to the standard ratio
 
 
-def _coded_frame() -> tuple[int, int] | None:
-    """Return the coded frame size, or None when it is not known."""
-    try:
-        width = int(clean(info("Player.Process(videowidth)")))
-        height = int(clean(info("Player.Process(videoheight)")))
-    except ValueError:
-        return None
-    return (width, height) if width > 0 and height > 0 else None
-
 
 def _snapped_ar(ratio: float) -> str:
     """Format an aspect ratio to two decimals, snapping to a standard one."""
@@ -232,8 +221,8 @@ def get_AspectRatioVar(l5_offsets: str) -> str:
     if not live_detection_enabled():
         return raw
 
-    bars = _parse_offsets(l5_offsets)
-    coded = _coded_frame()
+    bars = parse_offsets(l5_offsets)
+    coded = coded_frame()
     coded_dar = _first_float(raw)
     if bars is None or coded is None or coded_dar is None or not any(bars):
         return raw
@@ -249,6 +238,15 @@ def get_AspectRatioVar(l5_offsets: str) -> str:
     # carries any non-square pixel aspect through unchanged.
     ratio = coded_dar * (picture_w / coded_w) * (coded_h / picture_h)
     return _snapped_ar(ratio)
+
+
+def get_ImaxVar(l5_offsets: str) -> str:
+    """Return ``IMAX`` while the picture is opened up past its base framing.
+
+    See info.imax for how an IMAX scene is told from an ordinary one — the RPU
+    is no help, since plenty of titles declare no L5 at all.
+    """
+    return "IMAX" if is_imax_scene(l5_offsets) else ""
 
 
 def get_VideoBitrateMBVar() -> str:
@@ -813,6 +811,7 @@ def update_properties(window) -> None:
             ("DisplayModeVar", get_DisplayModeVar()),
             ("VideoResolutionVar", get_VideoResolutionVar()),
             ("AspectRatioVar", get_AspectRatioVar(l5_offsets)),
+            ("ImaxVar", get_ImaxVar(l5_offsets)),
             ("VideoBitrateMBVar", get_VideoBitrateMBVar()),
             ("VideoLiveBitrateVar", get_VideoLiveBitrateVar()),
             ("VideoCodecVar", get_VideoCodecVar()),

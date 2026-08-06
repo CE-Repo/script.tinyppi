@@ -20,6 +20,7 @@ from ui.theme import apply_theme
 _ADDON_ID = "script.tinyppi"
 _HOME_WINDOW_ID = 10000
 
+
 # Set True locally to promote debug messages to INFO in a non-debug Kodi log.
 _FORCE_DEBUG_LOG = False
 

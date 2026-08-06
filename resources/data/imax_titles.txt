@@ -1,0 +1,35 @@
+# Films whose home release carries IMAX material at an expanded aspect ratio.
+#
+# One title per line; anything after a # is a comment.  Matching ignores case
+# and punctuation and looks for the entry inside the playing file's name and
+# its folder, so "The Dark Knight" matches "The.Dark.Knight.2008.2160p.UHD".
+# Keep entries as short as they can be while staying unambiguous — a year is
+# only worth adding to separate a remake from its original.
+#
+# A file with the same name in the addon's profile folder is read as well and
+# survives addon updates:
+#   .kodi/userdata/addon_data/script.tinyppi/imax_titles.txt
+# Put your own additions there rather than editing this list.
+#
+# A release with IMAX in its filename is recognised without being listed here.
+#
+# This list is a starting point, not a complete catalogue: whether a given disc
+# actually switches aspect ratio varies between releases and territories, so
+# verify before adding — a wrong entry makes the badge appear on a film that
+# never opens up.
+
+The Dark Knight
+The Dark Knight Rises
+Interstellar
+Dunkirk
+Tenet
+Oppenheimer
+
+Mission Impossible Ghost Protocol
+Mission Impossible Rogue Nation
+Mission Impossible Fallout
+
+Top Gun Maverick
+
+Transformers Age of Extinction
+Transformers The Last Knight

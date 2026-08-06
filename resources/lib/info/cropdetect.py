@@ -29,7 +29,7 @@ import time
 import xbmc
 import xbmcaddon
 import xbmcgui
-from core.utils import clean, info
+from core.utils import coded_frame, parse_offsets
 
 try:
     import fcntl
@@ -48,6 +48,12 @@ _GRAB_W, _GRAB_H = 320, 180
 # compression noise in the bars without swallowing a genuine dim edge.
 _BLACK_LEVEL = 26
 _LIT_ALLOWANCE = 32
+
+# Columns are held to a far stricter standard than rows: a side bar is flat
+# black in the encode, so a column that is a bar has essentially no lit pixels
+# at all.  A dark left or right edge in the picture is common enough that any
+# slack here invents a pillarbox that is not in the film.
+_COLUMN_LIT_ALLOWANCE = 1
 
 # Reject a reading whose bars would eat this much of an axis: at that point the
 # frame is a dark scene rather than a letterboxed one.  2.76:1 in a 16:9 frame,
@@ -74,6 +80,7 @@ _EDGE_TOLERANCE = 2
 # picture.  A real change of framing is an order of magnitude larger -- an IMAX
 # shot opening from 2.39:1 to 1.90:1 moves the bars by over 200 coded lines.
 _STATIC_MATCH_TOLERANCE = 3
+
 
 # Sampling runs on its own thread rather than on the overlay's one-second poll:
 # at one sample per second the window alone costs three seconds before a change
@@ -118,6 +125,7 @@ _thread: threading.Thread | None = None
 _last_request = 0.0   # monotonic clock of the last live_l5_offsets() call
 
 
+
 def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
     xbmc.log(f"TinyPPI: {msg}", level)
 
@@ -131,6 +139,10 @@ def _clear_locked() -> None:
     _path = ""
     _failures = 0
     _disabled = False
+
+    window = xbmcgui.Window(10000)
+    window.clearProperty(_SIDES_PATH_PROPERTY)
+    window.clearProperty(_SIDES_PROPERTY)
 
 
 def reset_live_detection() -> None:
@@ -252,7 +264,7 @@ def _measure(lit: bytes) -> tuple[int, int, int, int] | None:
     band_start, band_end = top, _GRAB_H - bottom
     cols = [sum(lit[band_start * _GRAB_W + x:band_end * _GRAB_W:_GRAB_W])
             for x in range(_GRAB_W)]
-    col_allowance = (band_end - band_start) // _LIT_ALLOWANCE
+    col_allowance = _COLUMN_LIT_ALLOWANCE
 
     left, right = _paired(
         _leading_black(cols, col_allowance),
@@ -263,15 +275,6 @@ def _measure(lit: bytes) -> tuple[int, int, int, int] | None:
 
     return left, right, top, bottom
 
-
-def _coded_size() -> tuple[int, int] | None:
-    """Return the coded frame size the offsets have to be expressed in."""
-    try:
-        width = int(clean(info("Player.Process(videowidth)")))
-        height = int(clean(info("Player.Process(videoheight)")))
-    except ValueError:
-        return None
-    return (width, height) if width > 0 and height > 0 else None
 
 
 def _settled() -> tuple[int, int, int, int] | None:
@@ -363,17 +366,6 @@ def _ensure_sampler() -> None:
         _thread.start()
 
 
-def _parse(value: str) -> tuple[int, int, int, int] | None:
-    """Return the four offsets in ``L | R | T | B``, or None for anything else
-    (an empty field, or one of dvinfo's status labels)."""
-    parts = value.split("|")
-    if len(parts) != 4:
-        return None
-    try:
-        return tuple(int(part.strip()) for part in parts)
-    except ValueError:
-        return None
-
 
 def _prefer_static(static: str, measured: str) -> str:
     """Return the offsets to display, keeping the RPU's own numbers where they
@@ -388,9 +380,9 @@ def _prefer_static(static: str, measured: str) -> str:
     if not measured:
         return static
 
-    wanted = _parse(static)
-    got = _parse(measured)
-    coded = _coded_size()
+    wanted = parse_offsets(static)
+    got = parse_offsets(measured)
+    coded = coded_frame()
     if wanted is None or got is None or coded is None:
         # No usable pair to compare (static is still "Fetching...", say): the
         # measurement is the only real information available.
@@ -421,14 +413,67 @@ def live_detection_pending() -> bool:
         return bool(_path) and not _disabled and _settled_reading is None
 
 
+_SIDES_PATH_PROPERTY = "TinyPPI.Sides.Path"
+_SIDES_PROPERTY = "TinyPPI.Sides.Min"
+
+
+def _hold_sides(static: str, measured: str) -> str:
+    """Return the measurement with its side bars pinned to the thinnest known.
+
+    Side bars do not come and go.  A film is pillarboxed or it is not, unlike
+    the top and bottom bars an IMAX sequence genuinely moves -- but a picture
+    that happens to be dark down both edges reads exactly like a pillarbox, and
+    that is what turns ``0 | 0 | 276 | 276`` into ``600 | 600 | 276 | 276`` on a
+    film with no side bars at all.
+
+    A dark edge can only ever add apparent bar, never remove real one, so the
+    thinnest value seen is the trustworthy one and this only ever shrinks.  It
+    starts from what the RPU declares, which settles the common case on the very
+    first poll instead of after the first bright scene.
+
+    Kept on the home window so it survives the overlay being closed, like the
+    rest of the per-file state.
+    """
+    bars = parse_offsets(measured)
+    if bars is None:
+        return measured
+
+    try:
+        path = xbmc.Player().getPlayingFile()
+    except RuntimeError:
+        return measured
+
+    window = xbmcgui.Window(10000)
+    known = None
+    if window.getProperty(_SIDES_PATH_PROPERTY) == path:
+        try:
+            known = int(window.getProperty(_SIDES_PROPERTY))
+        except ValueError:
+            known = None
+    if known is None:
+        declared = parse_offsets(static)
+        if declared is not None:
+            known = min(declared[0], declared[1])
+
+    side = min(bars[0], bars[1])
+    if known is not None:
+        side = min(side, known)
+
+    window.setProperty(_SIDES_PATH_PROPERTY, path)
+    window.setProperty(_SIDES_PROPERTY, str(side))
+
+    return " | ".join(str(value) for value in (side, side, bars[2], bars[3]))
+
+
 def resolve_l5_offsets(static: str) -> str:
     """Return the offsets to display for the playing file.
 
     ``static`` is what the RPU reported (or dvinfo's placeholder / status
     label).  It is preferred; the live measurement only overrides it once the
-    picture stops matching it.
+    picture stops matching it -- and only ever on the top and bottom bars, the
+    sides being pinned by _hold_sides before the comparison.
     """
-    return _prefer_static(static, live_l5_offsets())
+    return _prefer_static(static, _hold_sides(static, live_l5_offsets()))
 
 
 def live_l5_offsets() -> str:
@@ -456,7 +501,7 @@ def live_l5_offsets() -> str:
     if not path:
         return ""
 
-    coded = _coded_size()
+    coded = coded_frame()
     if coded is None:
         return ""
 
