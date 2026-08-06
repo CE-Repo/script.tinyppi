@@ -1128,9 +1128,9 @@ msgid "Livestream"
 msgstr "网络直播"
 
 msgctxt "#32364"
-msgid "Detect L5 offsets live"
-msgstr "实时检测 L5 偏移"
+msgid "Detect L5 offsets and aspect ratio live"
+msgstr "实时检测 L5 偏移与画面比例"
 
 msgctxt "#32365"
-msgid "Experimental. Measure the black bars of the running picture once a second (Amlogic video capture) and update the L5 values from them, so a title that changes aspect ratio mid-film keeps up. Falls back to the static RPU value when the capture is unavailable."
-msgstr "实验性功能。每秒测量一次当前画面的黑边（Amlogic 视频捕获）并据此更新 L5 数值，使画面比例中途变化的影片也能同步。捕获不可用时回退到静态 RPU 数值。"
+msgid "Experimental. Measures the black bars of the running picture several times a second (Amlogic video capture) and updates the L5 offsets and the aspect ratio from them, so a title that changes its framing mid-film keeps up. Dolby Vision only. Falls back to the RPU values when the capture is unavailable; switched off, the aspect ratio is Kodi's own again."
+msgstr "实验性功能。每秒多次测量当前画面的黑边（Amlogic 视频捕获），并据此更新 L5 偏移与画面比例，使中途改变构图的影片也能同步。仅适用于 Dolby Vision。捕获不可用时回退到 RPU 数值；关闭后画面比例恢复为 Kodi 自身的数值。"

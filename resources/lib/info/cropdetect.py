@@ -143,7 +143,7 @@ def reset_live_detection() -> None:
         _clear_locked()
 
 
-def _enabled() -> bool:
+def live_detection_enabled() -> bool:
     """Return whether live detection is switched on.
 
     A fresh ``Addon()`` avoids the cached settings, so toggling the option
@@ -415,7 +415,7 @@ def live_detection_pending() -> bool:
     A pure state read: it neither grabs a frame nor keeps the sampler alive --
     resolve_l5_offsets() does both, and must be called first in a poll.
     """
-    if not _enabled() or not _is_dolby_vision():
+    if not live_detection_enabled() or not _is_dolby_vision():
         return False
     with _lock:
         return bool(_path) and not _disabled and _settled_reading is None
@@ -446,7 +446,7 @@ def live_l5_offsets() -> str:
     """
     global _path, _last_request
 
-    if not _enabled() or not _is_dolby_vision():
+    if not live_detection_enabled() or not _is_dolby_vision():
         return ""
 
     try:

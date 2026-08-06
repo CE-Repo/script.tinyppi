@@ -1128,9 +1128,9 @@ msgid "Livestream"
 msgstr ""
 
 msgctxt "#32364"
-msgid "Detect L5 offsets live"
+msgid "Detect L5 offsets and aspect ratio live"
 msgstr ""
 
 msgctxt "#32365"
-msgid "Experimental. Measure the black bars of the running picture once a second (Amlogic video capture) and update the L5 values from them, so a title that changes aspect ratio mid-film keeps up. Falls back to the static RPU value when the capture is unavailable."
+msgid "Experimental. Measures the black bars of the running picture several times a second (Amlogic video capture) and updates the L5 offsets and the aspect ratio from them, so a title that changes its framing mid-film keeps up. Dolby Vision only. Falls back to the RPU values when the capture is unavailable; switched off, the aspect ratio is Kodi's own again."
 msgstr ""

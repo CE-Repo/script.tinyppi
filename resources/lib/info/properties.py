@@ -24,7 +24,11 @@ from core.maps import (
     VIDEO_CODEC_MAP,
 )
 from core.utils import clean, cond, info, set_window_properties
-from info.cropdetect import live_detection_pending, resolve_l5_offsets
+from info.cropdetect import (
+    live_detection_enabled,
+    live_detection_pending,
+    resolve_l5_offsets,
+)
 from info.dvinfo import (
     L5_EMPTY,
     L5_PENDING_FRAMES,
@@ -75,6 +79,17 @@ def _channel_dir() -> str:
 def _channels_shown() -> bool:
     """Return whether the channel graphics are switched on."""
     return xbmcgui.Window(10000).getProperty("TinyPPI.ShowChannelIcon") == "1"
+
+
+def _parse_offsets(value: str) -> tuple[int, int, int, int] | None:
+    """Return the four L5 offsets, or None for a placeholder or status label."""
+    parts = value.split("|")
+    if len(parts) != 4:
+        return None
+    try:
+        return tuple(int(part.strip()) for part in parts)
+    except ValueError:
+        return None
 
 
 def _first_float(raw: str) -> float | None:
@@ -159,6 +174,81 @@ def get_VideoResolutionVar() -> str:
         return ""
 
     return f"{width}x{height}{scan} {format_fps(fps)}FPS"
+
+
+# Aspect ratios a computed picture is snapped to when it lands close enough.
+# A measured bar is quantised to one grab row — 12 coded lines at 4K, which
+# moves a scope ratio by about 0.04 — so without snapping the row would read
+# 2.43 for a 2.39 film.  Anything further out than the tolerance is shown as
+# calculated rather than forced onto a familiar number.
+#
+# Note the limit this cannot cross: 2.35 and 2.39 are themselves only 0.04
+# apart, so a *measured* bar cannot tell them apart and lands on whichever is
+# nearer.  It does not matter in practice, because a DV title carries those
+# offsets in its RPU and the exact value is preferred over the measurement;
+# only a ratio the RPU does not describe is ever measured.
+_STANDARD_ARS = (
+    1.33, 1.37, 1.43, 1.66, 1.78, 1.85, 1.90, 2.00, 2.20, 2.35, 2.39, 2.55, 2.76,
+)
+_AR_SNAP_TOLERANCE = 0.02           # relative to the standard ratio
+
+
+def _coded_frame() -> tuple[int, int] | None:
+    """Return the coded frame size, or None when it is not known."""
+    try:
+        width = int(clean(info("Player.Process(videowidth)")))
+        height = int(clean(info("Player.Process(videoheight)")))
+    except ValueError:
+        return None
+    return (width, height) if width > 0 and height > 0 else None
+
+
+def _snapped_ar(ratio: float) -> str:
+    """Format an aspect ratio to two decimals, snapping to a standard one."""
+    closest = min(_STANDARD_ARS, key=lambda standard: abs(standard - ratio))
+    if abs(closest - ratio) <= closest * _AR_SNAP_TOLERANCE:
+        ratio = closest
+    return f"{ratio:.2f}"
+
+
+def get_AspectRatioVar(l5_offsets: str) -> str:
+    """Return the display aspect ratio of the picture inside the black bars.
+
+    Kodi's ``videodar`` describes the coded frame, so an IMAX title sits on 1.78
+    for its whole runtime even while the picture on screen is 2.39.  The bars
+    say where the picture actually is — from the RPU where it carries them, from
+    the live measurement otherwise — and the coded ratio scaled by them gives
+    the ratio being watched.
+
+    Kodi's own value is returned untouched whenever live detection is switched
+    off, and whenever the bars are unknown or all zero, so a film without
+    letterboxing reads exactly as it did before.
+    """
+    raw = clean(info("Player.Process(videodar)"))
+
+    # The ratio belongs to the same feature as the offsets it is derived from,
+    # so one switch governs both.  Without this the RPU's own offsets would
+    # still move the ratio off Kodi's value with the option turned off.
+    if not live_detection_enabled():
+        return raw
+
+    bars = _parse_offsets(l5_offsets)
+    coded = _coded_frame()
+    coded_dar = _first_float(raw)
+    if bars is None or coded is None or coded_dar is None or not any(bars):
+        return raw
+
+    left, right, top, bottom = bars
+    coded_w, coded_h = coded
+    picture_w = coded_w - left - right
+    picture_h = coded_h - top - bottom
+    if picture_w <= 0 or picture_h <= 0:
+        return raw
+
+    # Scaling the coded ratio rather than dividing the picture's own dimensions
+    # carries any non-square pixel aspect through unchanged.
+    ratio = coded_dar * (picture_w / coded_w) * (coded_h / picture_h)
+    return _snapped_ar(ratio)
 
 
 def get_VideoBitrateMBVar() -> str:
@@ -722,6 +812,7 @@ def update_properties(window) -> None:
             ("VideoPixelFormatVar", get_VideoPixelFormatVar()),
             ("DisplayModeVar", get_DisplayModeVar()),
             ("VideoResolutionVar", get_VideoResolutionVar()),
+            ("AspectRatioVar", get_AspectRatioVar(l5_offsets)),
             ("VideoBitrateMBVar", get_VideoBitrateMBVar()),
             ("VideoLiveBitrateVar", get_VideoLiveBitrateVar()),
             ("VideoCodecVar", get_VideoCodecVar()),

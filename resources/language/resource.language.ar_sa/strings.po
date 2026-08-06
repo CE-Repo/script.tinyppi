@@ -1129,9 +1129,9 @@ msgid "Livestream"
 msgstr "بث مباشر"
 
 msgctxt "#32364"
-msgid "Detect L5 offsets live"
-msgstr "اكتشاف إزاحات L5 مباشرة"
+msgid "Detect L5 offsets and aspect ratio live"
+msgstr "اكتشاف إزاحات L5 ونسبة الأبعاد مباشرة"
 
 msgctxt "#32365"
-msgid "Experimental. Measure the black bars of the running picture once a second (Amlogic video capture) and update the L5 values from them, so a title that changes aspect ratio mid-film keeps up. Falls back to the static RPU value when the capture is unavailable."
-msgstr "تجريبي. قياس الأشرطة السوداء للصورة الجارية مرة كل ثانية (التقاط فيديو Amlogic) وتحديث قيم L5 منها، بحيث يواكب العمل الذي تتغير نسبة أبعاده أثناء العرض. يعود إلى قيمة RPU الثابتة عند عدم توفر الالتقاط."
+msgid "Experimental. Measures the black bars of the running picture several times a second (Amlogic video capture) and updates the L5 offsets and the aspect ratio from them, so a title that changes its framing mid-film keeps up. Dolby Vision only. Falls back to the RPU values when the capture is unavailable; switched off, the aspect ratio is Kodi's own again."
+msgstr "تجريبي. يقيس الأشرطة السوداء للصورة الجارية عدة مرات في الثانية (التقاط فيديو Amlogic) ويحدّث منها إزاحات L5 ونسبة الأبعاد، بحيث يواكب العمل الذي يغيّر تأطيره أثناء العرض. لدولبي فيجن فقط. يعود إلى قيم RPU عند عدم توفر الالتقاط؛ وعند إيقافه تعود نسبة الأبعاد إلى قيمة Kodi نفسها."
