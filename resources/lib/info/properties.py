@@ -24,8 +24,11 @@ from core.maps import (
     VIDEO_CODEC_MAP,
 )
 from core.utils import clean, cond, info, set_window_properties
-from info.cropdetect import resolve_l5_offsets
+from info.cropdetect import live_detection_pending, resolve_l5_offsets
 from info.dvinfo import (
+    L5_EMPTY,
+    L5_PENDING_FRAMES,
+    L5_PENDING_STEP,
     get_active_audio_bit_depth,
     get_active_audio_sample_rate,
     get_bit_depth,
@@ -46,6 +49,7 @@ from info.dvinfo import (
     get_structure,
     is_fetch_label,
     is_status_label,
+    l5_pending_frame,
 )
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
@@ -633,6 +637,37 @@ def _set_progress(window, values: tuple[tuple[int, float], ...]) -> None:
         window.getControl(control_id).setPercent(value)
 
 
+_L5_PROPERTY = "DoviLevel5OffsetsVar"
+
+
+def tick_l5_placeholder(window) -> None:
+    """Advance the L5 placeholder animation, if that is what is on screen.
+
+    A no-op for every real value, so this stays safe to call blindly between
+    full updates -- only a frame of the animation is ever overwritten.
+    """
+    if window.getProperty(_L5_PROPERTY) in L5_PENDING_FRAMES:
+        window.setProperty(_L5_PROPERTY, l5_pending_frame())
+
+
+def wait_poll(monitor, window, seconds: float = 1.0) -> bool:
+    """Wait out one polling interval, animating the L5 placeholder meanwhile.
+
+    Returns True when Kodi asked to abort.  The placeholder needs a faster beat
+    than the poll to read as an animation; every other property is left on the
+    original cadence, since recomputing them all that often would cost far more
+    than the one string this touches.
+    """
+    remaining = seconds
+    while remaining > 0:
+        step = min(L5_PENDING_STEP, remaining)
+        if monitor.waitForAbort(step):
+            return True
+        remaining -= step
+        tick_l5_placeholder(window)
+    return False
+
+
 def update_properties(window) -> None:
     """Compute all player properties and publish them to ``window``.
 
@@ -663,6 +698,11 @@ def update_properties(window) -> None:
     # hand back as soon as the film returns to its base framing.
     l5_offsets_static = get_l5_offsets()
     l5_offsets = resolve_l5_offsets(l5_offsets_static)
+    l5_offsets_measured = l5_offsets != l5_offsets_static
+    # Only the RPU's "no L5 here" placeholder is stood in for; a settled
+    # measurement of zero is an answer, not a wait, and keeps its zeros.
+    if l5_offsets == L5_EMPTY and live_detection_pending():
+        l5_offsets = l5_pending_frame()
     l5_offsets_icon_visible = (
         "true"
         if l5_offsets and not is_status_label(l5_offsets)
@@ -696,8 +736,7 @@ def update_properties(window) -> None:
             ("DoviStructureVar", get_structure()),
             ("DoviLevel5OffsetsVar", l5_offsets),
             ("DoviLevel5OffsetsIconVisible", l5_offsets_icon_visible),
-            ("DoviLevel5OffsetsLive",
-             "true" if l5_offsets != l5_offsets_static else "false"),
+            ("DoviLevel5OffsetsLive", "true" if l5_offsets_measured else "false"),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
             ("Hdr10MdlVar", hdr10_mdl),

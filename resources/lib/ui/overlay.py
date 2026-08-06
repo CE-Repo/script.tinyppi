@@ -320,7 +320,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
             properties.update_properties(self)
             self._apply_position_offset()
 
-            if self._monitor.waitForAbort(1):
+            if properties.wait_poll(self._monitor, self):
                 break
 
         self.close_dialog()

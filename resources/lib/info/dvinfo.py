@@ -27,6 +27,7 @@ import json
 import os
 import subprocess
 import threading
+import time
 import urllib.parse
 import uuid
 
@@ -60,6 +61,30 @@ _LABEL_NA    = 32033
 
 # Shown for L5 when neither an RPU nor a measurement has anything to report.
 L5_EMPTY = "0 | 0 | 0 | 0"
+
+# Stands in for L5_EMPTY while a live measurement is still on its way: a row of
+# zeros would claim the picture has no bars, which is a different statement from
+# not knowing yet.  Keeps the four-field shape so the row does not jump, and
+# turns on the spot so it reads as waiting rather than as a value.
+L5_PENDING_FRAMES = (
+    "/ | / | / | /",
+    "- | - | - | -",
+    "\\ | \\ | \\ | \\",
+)
+
+# Seconds per frame.  Three frames make up one turn, so the animation completes
+# in step with the overlay's one-second poll.
+L5_PENDING_STEP = 1 / 3
+
+
+def l5_pending_frame() -> str:
+    """Return the frame of the L5 placeholder animation due right now.
+
+    Driven by the clock rather than a counter so every writer -- the full poll
+    and the animation ticks in between -- lands on the same frame.
+    """
+    turn = int(time.monotonic() / L5_PENDING_STEP)
+    return L5_PENDING_FRAMES[turn % len(L5_PENDING_FRAMES)]
 
 # Kodi Window properties survive separate script invocations, so the completed
 # result is kept there to avoid re-running hdrprobe during the same playback.

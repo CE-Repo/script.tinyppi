@@ -408,6 +408,19 @@ def _prefer_static(static: str, measured: str) -> str:
     return static if same_framing else measured
 
 
+def live_detection_pending() -> bool:
+    """Return whether a measurement is expected for this stream but has not
+    settled yet, so the caller can show a placeholder rather than a value.
+
+    A pure state read: it neither grabs a frame nor keeps the sampler alive --
+    resolve_l5_offsets() does both, and must be called first in a poll.
+    """
+    if not _enabled() or not _is_dolby_vision():
+        return False
+    with _lock:
+        return bool(_path) and not _disabled and _settled_reading is None
+
+
 def resolve_l5_offsets(static: str) -> str:
     """Return the offsets to display for the playing file.
 
