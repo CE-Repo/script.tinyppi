@@ -1132,5 +1132,5 @@ msgid "Detect L5 offsets and aspect ratio live"
 msgstr ""
 
 msgctxt "#32365"
-msgid "Experimental. Measures the black bars of the running picture several times a second (Amlogic video capture) and updates the aspect ratio and the Dolby Vision L5 offsets from them, so a title that changes its framing mid-film keeps up. The aspect ratio applies to every format; the L5 offsets only to Dolby Vision. Falls back to the RPU values when the capture is unavailable; switched off, the aspect ratio is Kodi's own again."
+msgid "Experimental. Measures the black bars of the running picture once a second, by decoding the frame at the current playback position, and updates the aspect ratio and the Dolby Vision L5 offsets from them, so a title that changes its framing mid-film keeps up. The aspect ratio applies to every format; the L5 offsets only to Dolby Vision. Falls back to the RPU values when the measurement is unavailable; switched off, the aspect ratio is Kodi's own again."
 msgstr ""
