@@ -73,10 +73,12 @@ class KodiMonitor(xbmc.Monitor):
         self._maybe_show_splash()
 
     def _prime_detection(self) -> None:
-        """Start hdrprobe / audio / border detection as soon as a video begins
+        """Start audio / metadata / border detection as soon as a video begins
         playing, so results are already cached when the overlay opens instead
-        of showing ``Fetching...``.  A no-op when live detection is off; its
-        sampler stops decoding on its own if the overlay is never opened.
+        of showing ``Fetching...``.  The HDR scan is only needed on a Kodi
+        without the live player metadata labels; live detection is a no-op when
+        switched off, and its sampler stops decoding on its own if the overlay
+        is never opened.
         """
         try:
             if not xbmc.getCondVisibility("Player.HasVideo"):

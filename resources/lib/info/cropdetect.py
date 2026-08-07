@@ -1,14 +1,16 @@
 """Live black-bar detection from the decoded picture.
 
-Dolby Vision Level 5 offsets live in the RPU and are read once per file by
-dvinfo.py, so a title whose aspect ratio changes mid-playback (IMAX Enhanced
-and friends) keeps showing whatever shot hdrprobe happened to see.  This module
-derives the same four numbers from the picture itself, without touching an
-RPU, via the **borderprobe** helper (info.borderprobe): it opens the playing
-file, seeks to the current position, decodes a few frames and scans their luma
-plane for black rows/columns.  Every stream is measured regardless of HDR
-format; the bars feed the aspect-ratio row, which would otherwise only be able
-to report the container's ratio.
+Dolby Vision Level 5 offsets live in the RPU, and only a Dolby Vision title has
+them at all: every other format states nothing about where the picture sits in
+the frame.  Where they are read from a probe (dvinfo.py's fallback path) they
+are read once per file, so a title whose aspect ratio changes mid-playback (IMAX
+Enhanced and friends) keeps showing whatever shot the probe happened to see.
+This module derives the same four numbers from the picture itself, without
+touching an RPU, via the **borderprobe** helper (info.borderprobe): it opens the
+playing file, seeks to the current position, decodes a few frames and scans
+their luma plane for black rows/columns.  Every stream is measured regardless of
+HDR format; the bars feed the aspect-ratio row, which would otherwise only be
+able to report the container's ratio.
 
 This replaces an earlier approach reading ``/dev/amvideocap0`` (Hyperion's
 Amlogic grabber): cheap, but Amlogic-only, so nothing about it could be
