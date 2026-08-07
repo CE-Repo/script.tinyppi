@@ -1135,6 +1135,12 @@ def _get_info_status_value(key: str) -> tuple[str, str]:
             return "", "fetching"
         return "", "failed"
 
+    if key not in _CACHE_FIELD_PROPERTIES:
+        # A live-only field (the Level 1 frame luminance): it describes the
+        # frame on screen, which no probe of the file can answer, so without
+        # the labels there is nothing to say and nothing worth starting.
+        return "", ""
+
     session_token = _session_token()
     value = _read_cached_field(path, session_token, key)
     if value is not None:
@@ -1207,6 +1213,28 @@ def get_l6_rpu_mdl() -> str:
 def get_l6_rpu_max_cll_fall() -> str:
     """Return Dolby Vision Level 6 RPU MaxCLL/MaxFALL."""
     return _get_info_value_or("l6_max_cll_fall", "0 | 0")
+
+
+def get_l1_frame_nits() -> str:
+    """Return the Dolby Vision Level 1 frame light level as
+    ``min | max | average`` in nits, or '' when the stream has no RPU.
+
+    Level 1 describes the frame on screen rather than the title, so this follows
+    the picture as it plays.  Only Kodi's live player metadata carries it -- a
+    probe reads the file, not the frame being shown -- so it stays empty on a
+    build without those labels, which leaves the row out of the overlay
+    altogether rather than showing it as N/A.
+    """
+    value, _status = _get_info_status_value("l1_nits")
+    return value
+
+
+def get_l1_frame_pq() -> str:
+    """Return the Dolby Vision Level 1 frame luminance as ``min | max |
+    average`` in raw 12-bit PQ codes -- the values ``get_l1_frame_nits`` is
+    derived from.  Empty on the same terms."""
+    value, _status = _get_info_status_value("l1_pq")
+    return value
 
 
 def get_hdr10_mdl() -> str:

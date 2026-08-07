@@ -58,6 +58,8 @@ PENDING_FIELDS = frozenset({
     "l5_offsets",
     "l6_mdl",
     "l6_max_cll_fall",
+    "l1_nits",
+    "l1_pq",
     "hdr10_mdl",
     "hdr10_max_cll_fall",
     "dv_version",
@@ -96,21 +98,21 @@ def _int(name: str) -> int | None:
 
 
 def _num(name: str) -> str:
-    """Return a numeric label as a display string, or ``''``.
+    """Return a numeric label as a display string, or ``''`` when it is empty or
+    not a number.
 
-    Kodi formats luminance to four decimals (``1000.0000``, ``0.0001``); the
-    redundant tail is dropped so the row reads the way hdrprobe's numbers did.
+    Kodi's own formatting is kept: whole numbers print bare and luminance prints
+    to four decimals, so a minimum that rounds to nothing still reads ``0.0000``
+    -- measured and almost zero -- rather than an unqualified ``0``.
     """
     raw = clean(_label(name))
     if not raw:
         return ""
     try:
-        value = float(raw)
+        float(raw)
     except ValueError:
         return ""
-    if value.is_integer():
-        return str(int(value))
-    return f"{value:.4f}".rstrip("0").rstrip(".")
+    return raw
 
 
 def _flag(name: str) -> bool:
@@ -123,6 +125,12 @@ def _pair(first: str, second: str) -> str:
     a = _num(first)
     b = _num(second)
     return f"{a} | {b}" if a and b else ""
+
+
+def _triple(first: str, second: str, third: str) -> str:
+    """Return ``"<a> | <b> | <c>"``, or '' when any of the three is empty."""
+    values = [_num(name) for name in (first, second, third)]
+    return " | ".join(values) if all(values) else ""
 
 
 def _hdr_token(name: str) -> str:
@@ -303,6 +311,27 @@ def _l5_offsets() -> str:
     return " | ".join(offsets)
 
 
+def _l1_frame_luminance(unit: str) -> str:
+    """Return the level 1 min / max / average luminance of the frame on screen.
+
+    Level 1 is the one metadata level every RPU carries, so it needs no presence
+    flag of its own: it is there for as long as an rpu has been parsed, and it
+    describes the frame being shown rather than the title as a whole.  ``unit``
+    picks the two ways Kodi reports it -- ``nits`` for the frame light level,
+    ``pq`` for the raw 12-bit PQ codes it is derived from.
+
+    Empty for a stream with no rpu, which is the overlay's cue to leave the row
+    out entirely: nothing but Dolby Vision has these numbers.
+    """
+    if not _flag("video.dovi.has.header"):
+        return ""
+    return _triple(
+        f"video.dovi.l1.min.{unit}",
+        f"video.dovi.l1.max.{unit}",
+        f"video.dovi.l1.avg.{unit}",
+    )
+
+
 def _bit_depth() -> str:
     """Return the source bit depth.
 
@@ -375,6 +404,8 @@ _FIELDS = {
         _pair("video.hdr.max.cll", "video.hdr.max.fall")
         if _flag("video.hdr.has.cll") else ""
     ),
+    "l1_nits": lambda: _l1_frame_luminance("nits"),
+    "l1_pq": lambda: _l1_frame_luminance("pq"),
     "dv_version": _dv_level,
     "dv_profile": _dv_profile_number,
     "dv_rpu_present": lambda: _dovi_flag("video.dovi.rpu.present"),
