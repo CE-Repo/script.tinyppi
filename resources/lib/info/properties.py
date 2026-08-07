@@ -281,7 +281,7 @@ def get_VideoDecoderNameVar() -> str:
 def get_VideoBitDepthVar() -> str:
     """Return the source bit depth for display, e.g. ``12-bit``.
 
-    Uses hdrprobe's detected depth (see dvinfo.py).  The ``Fetching...`` label
+    Uses the detected source depth (see dvinfo.py).  The ``Fetching...`` label
     passes through while detection runs; when the depth is unknown, falls back
     to ``10-bit`` for HDR and ``8-bit`` for SDR instead of the ``N/A`` label.
     """
@@ -360,9 +360,9 @@ def _output_mode_from_videoplayer() -> str:
     """Classify Kodi's ``VideoPlayer.HDRType`` InfoLabel into an output-mode
     label (``SDR`` / ``HDR10`` / ``HLG`` / ``HDR10+`` / ``Dolby Vision``).
 
-    Reads Kodi's own source-side HDR detection, so it works as the fallback when
-    hdrprobe detection could not run.  An empty ``VideoPlayer.HDRType`` means no
-    HDR signalling, i.e. ``SDR``.
+    Reads Kodi's own source-side HDR detection, so it works as the last resort
+    when neither the live player metadata nor hdrprobe could answer.  An empty
+    ``VideoPlayer.HDRType`` means no HDR signalling, i.e. ``SDR``.
     """
     hdr = info("VideoPlayer.HDRType").lower()
     if not hdr:
@@ -688,8 +688,8 @@ def publish_channel_visibility(home=None) -> None:
 
 
 def publish_hdr_type(home=None) -> None:
-    """Publish the hdrprobe-detected HDR type as ``TinyPPI.HdrType`` on the Home
-    window, for the overlay and mode-select dialog to branch on.
+    """Publish the detected HDR type as ``TinyPPI.HdrType`` on the Home window,
+    for the overlay and mode-select dialog to branch on.
 
     HDR10+ is published as ``hdr10plus`` because Kodi's boolean parser treats
     ``+`` as AND; it still contains ``hdr10`` so ``String.Contains`` branches match.
@@ -784,8 +784,9 @@ def update_properties(window) -> None:
         clean(info("Player.Process(videofps)"))
     )
 
-    # Output-mode line from hdrprobe; fall back to a plain label from Kodi's
-    # ``VideoPlayer.HDRType`` when it would show N/A (``Fetching...`` is kept).
+    # Output-mode line from the detected metadata; fall back to a plain label
+    # from Kodi's ``VideoPlayer.HDRType`` when it would show N/A
+    # (``Fetching...`` is kept).
     output_mode = get_output_mode()
     # Pending flag: the skin uses it to suppress the conversion-arrow suffix
     # while only the ``Fetching...`` placeholder should show.

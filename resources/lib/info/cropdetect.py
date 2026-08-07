@@ -1,10 +1,12 @@
 """Live black-bar detection from the decoded picture.
 
-Dolby Vision Level 5 offsets live in the RPU and are read once per file by
-dvinfo.py, so a title whose aspect ratio changes mid-playback (IMAX Enhanced
-and friends) keeps showing the offsets of whatever shot hdrprobe happened to
-see.  This module derives the same four numbers from the picture itself,
-without touching an RPU.
+Dolby Vision Level 5 offsets live in the RPU, and only a Dolby Vision title has
+them at all: every other format states nothing about where the picture sits in
+the frame.  Where the RPU is read from a probe (dvinfo.py's fallback path) it is
+also read once per file, so a title whose aspect ratio changes mid-playback
+(IMAX Enhanced and friends) keeps showing the offsets of whatever shot the probe
+happened to see.  This module derives the same four numbers from the picture
+itself, without touching an RPU.
 
 The measurement comes from the **borderprobe** helper (info.borderprobe): it
 opens the playing file, seeks to the current position, decodes a few frames and

@@ -73,10 +73,11 @@ class KodiMonitor(xbmc.Monitor):
         self._maybe_show_splash()
 
     def _prime_detection(self) -> None:
-        """Start hdrprobe / audio detection as soon as a video begins playing.
+        """Start metadata detection as soon as a video begins playing.
 
         Runs the same background scan the overlay would trigger lazily, so the
-        Dolby Vision, HDR and audio metadata are already cached and shown
+        audio metadata — and, on a Kodi without the live player metadata labels,
+        the Dolby Vision and HDR metadata too — are already cached and shown
         instantly when the overlay (or dialog mode) is opened — no ``Fetching...``.
         """
         try:
