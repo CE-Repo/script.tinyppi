@@ -93,7 +93,7 @@ msgstr "Konvertálás"
 
 msgctxt "#32030"
 msgid "L5 active area"
-msgstr ""
+msgstr "L5 aktív terület"
 
 msgctxt "#32032"
 msgid "Player cache"
@@ -125,7 +125,7 @@ msgstr "Bitráta"
 
 msgctxt "#32051"
 msgid "Input"
-msgstr "Forrás"
+msgstr "Hang forrás"
 
 msgctxt "#32052"
 msgid "Audio language"
@@ -149,7 +149,7 @@ msgstr "Hang"
 
 msgctxt "#32069"
 msgid "Audio resolution"
-msgstr "Hang felbontás"
+msgstr "Hangfelbontás"
 
 msgctxt "#32070"
 msgid "Mode"
@@ -181,7 +181,7 @@ msgstr ""
 
 msgctxt "#32095"
 msgid "VS10 dialog"
-msgstr ""
+msgstr "VS10 dialóg"
 
 msgctxt "#32096"
 msgid "Fetching..."
@@ -917,7 +917,7 @@ msgstr ""
 
 msgctxt "#32300"
 msgid "HDR Static Metadata"
-msgstr ""
+msgstr "HDR statikus metaadat"
 
 msgctxt "#32301"
 msgid "Codec logos"
@@ -1065,19 +1065,19 @@ msgstr "Automatikusan elrejti a TinyPPI panelt a kiválasztott idő (másodpercb
 
 msgctxt "#32348"
 msgid "Horizontal offset of the channel box"
-msgstr "A hang-csatorna ikonok vízszintes eltolása"
+msgstr "Hangszóró ikonok vízszintes eltolása"
 
 msgctxt "#32349"
 msgid "Moves the channel box in Dolby Vision to the right. 0% places it at the left edge, 100% keeps it in its default position on the right."
-msgstr "Dolby Vision esetén jobbra mozgatja a csatornaikonokat. 0% beállítás esetén a bal szélre kerül, 100% esetén pedig az alapértelmezett jobb szélre."
+msgstr "Dolby Vision esetén jobbra mozgatja a hangszóró ikonokat. 0% beállítás esetén a bal szélre kerül, 100% esetén pedig az alapértelmezett jobb szélre."
 
 msgctxt "#32350"
 msgid "Channels"
-msgstr "Csatornák"
+msgstr "Hangszóró ikonok"
 
 msgctxt "#32351"
 msgid "Customise the colors of the channel layout graphic."
-msgstr "Testreszabhatod a csatornaelrendezési grafika színeit."
+msgstr "Testreszabhatod a hangszóró ikonok elrendezési grafikájának színeit."
 
 msgctxt "#32352"
 msgid "Layout"
@@ -1085,47 +1085,47 @@ msgstr "Elrendezés"
 
 msgctxt "#32353"
 msgid "Background color of the channel box shown in Dolby Vision."
-msgstr "A csatornák háttérszíne Dolby Vision-ben."
+msgstr "Hangszóró ikonok panel háttérszíne Dolby Vision-ben."
 
 msgctxt "#32354"
 msgid "Color of the speaker layout graphic behind the active channels."
-msgstr "Az aktív csatornák mögötti hangszóróelrendezési grafika színe."
+msgstr "Az aktív hangszóró ikonok mögötti, elrendezési grafika színe."
 
 msgctxt "#32355"
 msgid "Color of the active channels in the layout graphic."
-msgstr "Az aktív csatornák színe az elrendezési grafikán."
+msgstr "Az aktív hangszóró ikonok színe az elrendezési grafikán."
 
 msgctxt "#32356"
 msgid "Channels in SDR"
-msgstr "Csatornák SDR-nél"
+msgstr "Hangszóró ikonok SDR-nél"
 
 msgctxt "#32357"
 msgid "Show the channel layout graphic while playing SDR content."
-msgstr "A csatornaelrendezés grafikák megjelenítése SDR tartalom lejátszása közben."
+msgstr "A hangszóró ikonok elrendezés grafikáinak megjelenítése SDR tartalom lejátszása közben."
 
 msgctxt "#32358"
 msgid "Channels in HDR10 / HLG / HDR10+"
-msgstr "Csatornák HDR10 / HLG / HDR10+ -nél"
+msgstr "Hangszóró ikonok HDR10 / HLG / HDR10+ -nél"
 
 msgctxt "#32359"
 msgid "Show the channel layout graphic while playing HDR10, HLG or HDR10+ content."
-msgstr "A csatornaelrendezés grafikájának megjelenítése HDR10, HLG vagy HDR10+ tartalom lejátszása közben."
+msgstr "A hangszóró ikonok elrendezés grafikáinak megjelenítése HDR10, HLG vagy HDR10+ tartalom lejátszása közben."
 
 msgctxt "#32360"
 msgid "Channels in Dolby Vision"
-msgstr "Csatornák Vision-nél"
+msgstr "Hangszóró ikonok Dolby Vision-nél"
 
 msgctxt "#32361"
 msgid "Show the channel layout graphic while playing Dolby Vision content."
-msgstr "A csatornaelrendezés grafikájának megjelenítése Dolby Vision tartalom lejátszása közben."
+msgstr "A hangszóró ikonok elrendezés grafikáinak megjelenítése Dolby Vision tartalom lejátszása közben."
 
 msgctxt "#32362"
 msgid "Live TV"
-msgstr ""
+msgstr "Élő TV"
 
 msgctxt "#32363"
 msgid "Livestream"
-msgstr ""
+msgstr "Élő Stream"
 
 msgctxt "#32364"
 msgid "Detect L5 offsets and aspect ratio live"
