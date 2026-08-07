@@ -162,9 +162,10 @@ def get_VideoResolutionVar() -> str:
 
 
 # Aspect ratios a computed picture is snapped to when it lands close enough.
-# A measured bar is quantised to one grab row — 12 coded lines at 4K, which
-# moves a scope ratio by about 0.04 — so without snapping the row would read
-# 2.43 for a 2.39 film.  Anything further out than the tolerance is shown as
+# borderprobe measures the coded frame at full resolution, but a bar edge that
+# falls inside a coding block can still be read a pixel or two either way (see
+# cropdetect.py's _STATIC_MATCH_TOLERANCE) — enough to nudge a 2.39 film to
+# 2.40 without snapping.  Anything further out than the tolerance is shown as
 # calculated rather than forced onto a familiar number.
 #
 # Note the limit this cannot cross: 2.35 and 2.39 are themselves only 0.04
