@@ -1129,9 +1129,13 @@ msgid "Livestream"
 msgstr "بث مباشر"
 
 msgctxt "#32364"
-msgid "Detect L5 offsets and aspect ratio live"
-msgstr "اكتشاف إزاحات L5 ونسبة الأبعاد مباشرة"
+msgid "Live active offsets"
+msgstr "إزاحات نشطة مباشرة"
 
 msgctxt "#32365"
 msgid "Experimental. Measures the black bars of the running picture once a second, by decoding the frame at the current playback position, and updates the aspect ratio and the Dolby Vision L5 offsets from them, so a title that changes its framing mid-film keeps up. The aspect ratio applies to every format; the L5 offsets only to Dolby Vision. Falls back to the RPU values when the measurement is unavailable; switched off, the aspect ratio is Kodi's own again."
 msgstr "تجريبي. يقيس الأشرطة السوداء للصورة الجارية مرة واحدة في الثانية، بفكّ ترميز الإطار عند موضع التشغيل الحالي، ويحدّث منها نسبة الأبعاد وإزاحات L5 الخاصة بدولبي فيجن، بحيث يواكب العمل الذي يغيّر تأطيره أثناء العرض. تنطبق نسبة الأبعاد على كل الصيغ، أما إزاحات L5 فعلى دولبي فيجن فقط. يعود إلى قيم RPU عند عدم توفر القياس؛ وعند إيقافه تعود نسبة الأبعاد إلى قيمة Kodi نفسها."
+
+msgctxt "#32366"
+msgid "Active offsets"
+msgstr "إزاحات نشطة"

@@ -1128,9 +1128,13 @@ msgid "Livestream"
 msgstr "Élő Stream"
 
 msgctxt "#32364"
-msgid "Detect L5 offsets and aspect ratio live"
-msgstr "L5 eltolások és képarány élő érzékelése"
+msgid "Live active offsets"
+msgstr "Élő aktív eltolások"
 
 msgctxt "#32365"
 msgid "Experimental. Measures the black bars of the running picture once a second, by decoding the frame at the current playback position, and updates the aspect ratio and the Dolby Vision L5 offsets from them, so a title that changes its framing mid-film keeps up. The aspect ratio applies to every format; the L5 offsets only to Dolby Vision. Falls back to the RPU values when the measurement is unavailable; switched off, the aspect ratio is Kodi's own again."
 msgstr "Kísérleti. Másodpercenként egyszer méri a futó kép fekete sávjait az aktuális lejátszási pozíciónál dekódolt képkocka alapján, és ebből frissíti a képarányt és a Dolby Vision L5 eltolásokat, így egy olyan cím is naprakész marad, amely film közben megváltoztatja a keretezését. A képarány minden formátumra vonatkozik, az L5 eltolások csak a Dolby Visionre. Visszaáll az RPU-értékekre, ha a mérés nem érhető el; kikapcsolva a képarány ismét Kodi saját értéke."
+
+msgctxt "#32366"
+msgid "Active offsets"
+msgstr "Aktív eltolások"
