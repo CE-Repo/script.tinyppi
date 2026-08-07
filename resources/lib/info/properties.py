@@ -42,7 +42,6 @@ from info.cropdetect import (
 from info.imax import is_enhanced_title, is_imax_scene
 from info.dvinfo import (
     L5_EMPTY,
-    L5_PENDING_FRAMES,
     L5_PENDING_STEP,
     get_active_audio_bit_depth,
     get_active_audio_sample_rate,
@@ -707,26 +706,58 @@ def _set_progress(window, values: tuple[tuple[int, float], ...]) -> None:
         window.getControl(control_id).setPercent(value)
 
 
-_L5_PROPERTY = "DoviLevel5OffsetsVar"
+def _l5_derived() -> tuple[tuple[str, str], ...]:
+    """Return every property that follows from the L5 offsets.
 
+    Kept together deliberately: the offsets, the aspect ratio and the IMAX
+    badge are three readings of one measurement, and publishing them from
+    separate places would let the badge disagree with the numbers it is drawn
+    from.  Split out of update_properties so wait_poll can refresh exactly this
+    set between full updates -- see there for why that is worth doing.
 
-def tick_l5_placeholder(window) -> None:
-    """Advance the L5 placeholder animation, if that is what is on screen.
-
-    A no-op for every real value, so this stays safe to call blindly between
-    full updates -- only a frame of the animation is ever overwritten.
+    Cheap enough to call several times a second: the RPU side is a cache read
+    (dvinfo's detection is non-blocking), and the measurement is whatever the
+    sampler thread last published.  Nothing here decodes a frame.
     """
-    if window.getProperty(_L5_PROPERTY) in L5_PENDING_FRAMES:
-        window.setProperty(_L5_PROPERTY, l5_pending_frame())
+    static = get_l5_offsets()
+    offsets = resolve_l5_offsets(static)
+    # Says the displayed value came from the picture rather than the RPU — not
+    # that the two differ, which they usually do not on a fixed-framing title.
+    measured = live_detection_enabled() and live_measurement_available()
+    # Show the placeholder while the value on screen is not yet the one that
+    # will stand: either nothing is known at all (no RPU offsets, nothing
+    # measured), or the measurement that outranks the RPU is still on its way
+    # and within its grace period.  A settled measurement of zero is an answer,
+    # not a wait, and keeps its zeros.
+    if (offsets == L5_EMPTY and live_detection_pending()) or live_detection_settling():
+        offsets = l5_pending_frame()
+    icon_visible = "true" if offsets and not is_status_label(offsets) else "false"
+
+    return (
+        ("AspectRatioVar", get_AspectRatioVar(offsets)),
+        ("ImaxVar", get_ImaxVar(offsets)),
+        ("DoviLevel5OffsetsVar", offsets),
+        ("DoviLevel5OffsetsIconVisible", icon_visible),
+        ("DoviLevel5OffsetsLive", "true" if measured else "false"),
+    )
 
 
 def wait_poll(monitor, window, seconds: float = 1.0) -> bool:
-    """Wait out one polling interval, animating the L5 placeholder meanwhile.
+    """Wait out one polling interval, keeping the L5 row current meanwhile.
 
-    Returns True when Kodi asked to abort.  The placeholder needs a faster beat
-    than the poll to read as an animation; every other property is left on the
-    original cadence, since recomputing them all that often would cost far more
-    than the one string this touches.
+    Returns True when Kodi asked to abort.
+
+    The placeholder needs a faster beat than the poll to read as an animation,
+    and the measurement it stands in for benefits from the same beat: a reading
+    that lands just after a full update would otherwise sit unseen for the rest
+    of the second, which is dead time on top of the sampler's own interval and
+    the up-to-one-GOP lag in the measurement itself.  On an aspect-ratio change
+    -- an IMAX sequence opening up -- those add up to the delay before the row
+    and the badge follow the picture, so this is the cheapest second to win.
+
+    Only the L5-derived set is refreshed.  Every other property stays on the
+    original cadence, since recomputing them all this often would cost far more
+    than the handful of cached reads this touches.
     """
     remaining = seconds
     while remaining > 0:
@@ -734,7 +765,7 @@ def wait_poll(monitor, window, seconds: float = 1.0) -> bool:
         if monitor.waitForAbort(step):
             return True
         remaining -= step
-        tick_l5_placeholder(window)
+        set_window_properties(window, _l5_derived())
     return False
 
 
@@ -764,24 +795,8 @@ def update_properties(window) -> None:
 
     # Black bars measured off the running picture are what gets shown once a
     # measurement has landed; the RPU's own offsets stand in until then, and
-    # again whenever detection is off or has given up.
-    l5_offsets_static = get_l5_offsets()
-    l5_offsets = resolve_l5_offsets(l5_offsets_static)
-    # Says the displayed value came from the picture rather than the RPU — not
-    # that the two differ, which they usually do not on a fixed-framing title.
-    l5_offsets_measured = live_detection_enabled() and live_measurement_available()
-    # Show the placeholder while the value on screen is not yet the one that
-    # will stand: either nothing is known at all (no RPU offsets, nothing
-    # measured), or the measurement that outranks the RPU is still on its way
-    # and within its grace period.  A settled measurement of zero is an answer,
-    # not a wait, and keeps its zeros.
-    if (l5_offsets == L5_EMPTY and live_detection_pending()) or live_detection_settling():
-        l5_offsets = l5_pending_frame()
-    l5_offsets_icon_visible = (
-        "true"
-        if l5_offsets and not is_status_label(l5_offsets)
-        else "false"
-    )
+    # again whenever detection is off or has given up.  Computed by
+    # _l5_derived() so the poll loop can refresh the same set between updates.
 
     l6_rpu_mdl          = _with_unit(get_l6_rpu_mdl(), unit)
     l6_rpu_max_cll_fall = _with_unit(get_l6_rpu_max_cll_fall(), unit)
@@ -796,8 +811,7 @@ def update_properties(window) -> None:
             ("VideoPixelFormatVar", get_VideoPixelFormatVar()),
             ("DisplayModeVar", get_DisplayModeVar()),
             ("VideoResolutionVar", get_VideoResolutionVar()),
-            ("AspectRatioVar", get_AspectRatioVar(l5_offsets)),
-            ("ImaxVar", get_ImaxVar(l5_offsets)),
+            *_l5_derived(),
             ("VideoBitrateMBVar", get_VideoBitrateMBVar()),
             ("VideoLiveBitrateVar", get_VideoLiveBitrateVar()),
             ("VideoCodecVar", get_VideoCodecVar()),
@@ -810,9 +824,6 @@ def update_properties(window) -> None:
             ("DoviTunnelVar", get_DoviTunnelVar()),
             ("DoviCmVersionVar", get_cm_version()),
             ("DoviStructureVar", get_structure()),
-            ("DoviLevel5OffsetsVar", l5_offsets),
-            ("DoviLevel5OffsetsIconVisible", l5_offsets_icon_visible),
-            ("DoviLevel5OffsetsLive", "true" if l5_offsets_measured else "false"),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
             ("Hdr10MdlVar", hdr10_mdl),

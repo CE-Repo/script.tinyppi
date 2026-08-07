@@ -60,13 +60,18 @@ import xbmcgui
 from core.utils import parse_offsets
 from info import borderprobe
 
-# One measurement per second, which is the rate the overlay refreshes at and
-# the rate the helper was designed around.  The old capture path sampled four
-# times a second only because it needed three agreeing grabs before it could
-# publish anything; borderprobe samples several frames inside a single query,
-# so the window is gone and with it the reason to poll faster than the display
-# changes.
-_SAMPLE_INTERVAL = 1.0
+# Twice a second.  What the display can actually follow is set by three delays
+# in series: this interval, the up-to-one-GOP lag in measuring the keyframe at
+# or before the current position (one second on a UHD remux), and how long the
+# overlay takes to pick the reading up -- the last of which properties.py now
+# closes to a third of a second.  Halving this halves the largest term left
+# that TinyPPI controls, which is what an aspect-ratio change waits on before
+# the row and the IMAX badge follow the picture.
+#
+# It is paid for by asking borderprobe for fewer frames per query (see
+# _PROBE_OPTIONS), so the decoding cost per second is roughly what it was; the
+# bytes pulled per second do rise, which is the trade for a file on a share.
+_SAMPLE_INTERVAL = 0.5
 
 # Stop sampling once nothing has read a value for this long: the sampler exists
 # to serve the overlay, and the overlay closing is what ends it.
