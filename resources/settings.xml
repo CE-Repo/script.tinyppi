@@ -38,7 +38,7 @@
                 </setting>
                 <setting id="l5_live_detect" type="boolean" label="32364" help="32365">
                     <level>0</level>
-                    <default>true</default>
+                    <default>false</default>
                     <control type="toggle" />
                 </setting>
                 <setting id="unit_type" type="integer" label="32190" help="32191">
