@@ -19,6 +19,7 @@ from core.utils import (
     set_window_properties,
 )
 from info import properties
+from info.cropdetect import reset_live_detection
 from ui import fonts  # noqa: F401  imported for its install-fonts-on-import side effect
 from ui.theme import apply_theme
 
@@ -352,6 +353,17 @@ def open_tinyppi() -> None:
         return
 
     elements_visible = _elements_visible()
+    live_offsets_enabled = _ADDON.getSetting("l5_live_detect") == "true"
+    # Every opening starts detection over: a film that never got a measurement
+    # in an earlier session of the overlay (or that changed framing since) gets
+    # a fresh attempt instead of staying stuck on whatever the last session
+    # settled on.
+    reset_live_detection()
+    xbmc.log(
+        f"TinyPPI: Live active offsets "
+        f"{'enabled' if live_offsets_enabled else 'disabled'}",
+        xbmc.LOGINFO,
+    )
     _set_overlay_state(home)
     set_window_properties(
         home,
@@ -361,10 +373,7 @@ def open_tinyppi() -> None:
                 "TinyPPI.ShowL5Icon",
                 "0" if _ADDON.getSetting("show_l5_icon") == "false" else "1",
             ),
-            (
-                "TinyPPI.L5LiveDetect",
-                "1" if _ADDON.getSetting("l5_live_detect") == "true" else "0",
-            ),
+            ("TinyPPI.L5LiveDetect", "1" if live_offsets_enabled else "0"),
             ("TinyPPI.ShowLine", elements_visible),
             ("TinyPPI.ShowHeaderTitle", elements_visible),
             ("TinyPPI.ShowHeaderIcon", elements_visible),

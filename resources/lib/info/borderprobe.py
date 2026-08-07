@@ -34,7 +34,9 @@ anywhere else, deadlocks both sides.
 """
 
 import os
+import queue
 import subprocess
+import threading
 
 import xbmc
 import xbmcaddon
@@ -80,6 +82,7 @@ def binary_path() -> str:
     try:
         base = xbmcaddon.Addon("tools.tinyppi").getAddonInfo("path")
     except Exception:
+        _log("borderprobe: tools.tinyppi is not installed", xbmc.LOGWARNING)
         return ""
 
     path = os.path.join(base, "tools", "borderprobe", "borderprobe")
@@ -121,6 +124,10 @@ class _Probe:
     def __init__(self, binary: str, source: str):
         self._vfs = None
         self._proc = None
+        self._lines: queue.Queue = queue.Queue()
+        # Why the last NONE was returned ("too-dark", say).  Kept so the caller
+        # can say what the helper is doing, rather than only that it is quiet.
+        self.last_none_reason = ""
 
         flags = 0
         if os.name == "nt":  # keep a console window from flashing up on dev boxes
@@ -137,6 +144,13 @@ class _Probe:
             )
         except OSError as exc:
             raise BorderProbeError(f"cannot start borderprobe: {exc}") from exc
+
+        # stdout carries nothing but text lines -- the binary payload travels
+        # the other way, on stdin -- so it can safely be pumped into a queue.
+        # That is what puts a clock on _readline: a blocking readline() cannot
+        # be interrupted, so a wedged helper would otherwise hang the sampler
+        # thread for the rest of playback with nothing said in the log.
+        threading.Thread(target=self._pump, daemon=True).start()
 
         local = _local_path(source)
         if local:
@@ -177,12 +191,24 @@ class _Probe:
         except (OSError, ValueError) as exc:
             raise BorderProbeError(f"borderprobe stdin closed: {exc}") from exc
 
+    def _pump(self) -> None:
+        """Feed stdout lines to _readline until the helper closes it."""
+        try:
+            for raw in iter(self._proc.stdout.readline, b""):
+                self._lines.put(raw)
+        except (OSError, ValueError):
+            pass  # the pipe went away; the None below says so
+        finally:
+            self._lines.put(None)
+
     def _readline(self) -> str:
         try:
-            raw = self._proc.stdout.readline()
-        except (OSError, ValueError) as exc:
-            raise BorderProbeError(f"borderprobe stdout closed: {exc}") from exc
-        if not raw:
+            raw = self._lines.get(timeout=_TIMEOUT_SECONDS)
+        except queue.Empty:
+            raise BorderProbeError(
+                f"no reply within {_TIMEOUT_SECONDS:.0f}s"
+            ) from None
+        if raw is None:
             raise BorderProbeError("borderprobe exited")
         return raw.decode("utf-8", "replace").strip()
 
@@ -239,6 +265,7 @@ class _Probe:
                 raise BorderProbeError(f"malformed reply: {reply}")
 
         if reply.startswith("NONE"):
+            self.last_none_reason = reply[4:].strip() or "no reason given"
             return None
 
         raise BorderProbeError(reply or "borderprobe stopped answering")

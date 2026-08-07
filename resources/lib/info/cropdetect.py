@@ -28,16 +28,27 @@ flickering between 276 and 288 on a film that never changed.
 borderprobe measures the coded frame at full resolution, so the bar edge it
 reports is the bar edge, and it does its own multi-frame median and hysteresis
 where the pixels are.  All of that machinery is therefore gone from here, and
-what is left is the part that was always TinyPPI's own: deciding when a
-measurement should override the RPU's exact numbers.
+what is left is the part that was always TinyPPI's own: holding the side bars
+to the thinnest ever seen, and standing in the RPU's numbers until a
+measurement has actually landed.
+
+A measurement, once it lands, is what gets shown.  An earlier version kept the
+RPU's own numbers whenever the two agreed to within a few pixels, on the
+grounds that the RPU is exact and a measured bar edge is only nearly so; that
+made the feature invisible on the many titles whose framing never changes,
+where the measurement simply confirms the RPU.  Showing what was measured is
+the honest answer to "what is on screen", and borderprobe's own hysteresis
+already keeps the number from twitching between neighbouring pixels.
 
 Everything here is still best-effort.  A missing binary, a file the helper
 cannot open, or a picture too dark to judge all yield ``''``, and properties.py
 falls back to the static RPU value.  Measuring happens on a sampler thread that
-runs only while the overlay is reading, so nothing ever blocks the window; a
-circuit breaker stops trying for the rest of the file once the helper has
-failed repeatedly, so a box without a working binary pays a handful of failed
-starts and nothing more.
+runs only while the overlay is reading, so nothing ever blocks the window;
+retries keep going for as long as the overlay stays open, and a circuit
+breaker only stops them once the helper has failed continuously for ten
+seconds, so a box without a working binary still pays for that once and then
+nothing more, while a file that is merely slow to start gets the time it
+needs.  Reopening the overlay clears the breaker and starts the attempt over.
 """
 
 import threading
@@ -61,21 +72,35 @@ _SAMPLE_INTERVAL = 1.0
 # to serve the overlay, and the overlay closing is what ends it.
 _IDLE_TIMEOUT = 3.0
 
-# Give up on the helper after this many consecutive failures.
-_FAILURE_LIMIT = 3
+# Say so once when the helper keeps answering "nothing measurable" this many
+# times running.  That is not a failure -- it is the honest answer for a fade
+# to black or a shot too dark to judge -- but a file that never gives anything
+# else would otherwise measure nothing in complete silence.
+_UNMEASURABLE_REPORT_AFTER = 5
 
-# How far a measurement may sit from the RPU's own numbers and still count as
-# describing the same framing, in coded pixels.  The RPU value is exact and the
-# measurement is very nearly so, but a bar edge that falls inside a coding
-# block can legitimately be read a pixel or two either way.  A real change of
-# framing is an order of magnitude larger -- an IMAX shot opening from 2.39:1
-# to 1.90:1 moves the bars by over two hundred coded lines.
-_STATIC_MATCH_TOLERANCE = 8
+# Give up on the helper only after it has failed continuously for this long.
+# A single bad file (broken binary, unreadable stream) reaches this quickly and
+# stops retrying for the rest of the playback; a file that is merely slow to
+# seek at the start (a network share, a large remux) gets long enough to come
+# good instead of being written off after a couple of one-second samples.
+_FAILURE_TIMEOUT = 10.0
+
+# How long the display waits for the first measurement before falling back to
+# whatever the RPU declared.  The measurement is the value that will be shown,
+# so until it lands the RPU's number is a stand-in, and the placeholder says so
+# rather than showing a figure that is about to be replaced.  Long enough for a
+# first seek into a large remux across the network, which is seconds, not
+# milliseconds; after it the RPU value stands and the measurement still takes
+# over the moment it arrives.
+_PENDING_GRACE = 10.0
 
 _lock = threading.Lock()
 _measurement: tuple[int, int, int, int] | None = None
 _path = ""            # file the state above belongs to
-_failures = 0
+_pending_since: float | None = None  # monotonic clock of when this file's
+                                      # first measurement was set in motion
+_failure_since: float | None = None  # monotonic clock of the start of the
+                                      # current unbroken run of failures
 _disabled = False     # circuit breaker, cleared on the next file
 _thread: threading.Thread | None = None
 _last_request = 0.0   # monotonic clock of the last live_l5_offsets() call
@@ -90,11 +115,12 @@ def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
 
 def _clear_locked() -> None:
     """Drop the sampling state; call under the lock."""
-    global _measurement, _path, _failures, _disabled
+    global _measurement, _path, _pending_since, _failure_since, _disabled
 
     _measurement = None
     _path = ""
-    _failures = 0
+    _pending_since = None
+    _failure_since = None
     _disabled = False
 
     window = xbmcgui.Window(10000)
@@ -103,7 +129,9 @@ def _clear_locked() -> None:
 
 
 def reset_live_detection() -> None:
-    """Drop all detection state; called on playback stop and on a file change.
+    """Drop all detection state; called on playback stop, on a file change, and
+    every time the overlay opens, so a film that never got a measurement in an
+    earlier session -- or that had detection give up -- gets a clean attempt.
 
     The sampler thread is left to notice on its own: it stops as soon as
     nothing has asked for a value, which happens the moment the overlay closes,
@@ -142,24 +170,58 @@ def _sampler(source: str) -> None:
     file across the network it can take a second or two while libavformat pulls
     the index -- and the overlay's poll must never wait for that.
     """
-    global _thread, _measurement, _failures, _disabled
+    global _thread, _measurement, _failure_since, _disabled
 
     monitor = xbmc.Monitor()
     probe = None
+    unmeasurable = 0   # consecutive "nothing measurable" answers
+
+    if not borderprobe.binary_path():
+        # The binary is either shipped or it is not; unlike a file that is slow
+        # to open, retrying this every second for ten seconds cannot change the
+        # answer, and binary_path() has already logged what it looked for.
+        with _lock:
+            _disabled = True
+        return
+
+    def _record_failure(exc: object) -> bool:
+        """Note a failed attempt; return True once it has failed continuously
+        for ``_FAILURE_TIMEOUT``.  Call under the lock."""
+        global _failure_since, _disabled, _measurement
+
+        now = time.monotonic()
+        if _failure_since is None:
+            _failure_since = now
+        give_up = now - _failure_since >= _FAILURE_TIMEOUT
+        if give_up:
+            _disabled = True
+            _measurement = None
+            _log(f"L5 live: borderprobe unusable ({exc}), "
+                 "staying on the RPU value", xbmc.LOGINFO)
+        return give_up
 
     try:
-        probe = borderprobe.open_probe(source)
-        if probe is None:
-            with _lock:
-                _disabled = True
-            return
-
         while True:
             with _lock:
                 idle = time.monotonic() - _last_request > _IDLE_TIMEOUT
                 stale = _path != source
                 if _disabled or idle or stale:
                     return
+
+            if probe is None:
+                # Opening is retried every sample interval for as long as the
+                # overlay keeps reading, rather than giving up the moment it
+                # fails once: a file across the network can take a few tries
+                # before libavformat has the index.
+                probe = borderprobe.open_probe(source)
+                if probe is None:
+                    with _lock:
+                        if _record_failure("helper failed to start"):
+                            return
+                    if monitor.waitForAbort(_SAMPLE_INTERVAL):
+                        return
+                    continue
+                _log("L5 live: measuring the picture", xbmc.LOGINFO)
 
             try:
                 seconds = xbmc.Player().getTime()
@@ -169,37 +231,38 @@ def _sampler(source: str) -> None:
             try:
                 bars = probe.measure(seconds)
             except borderprobe.BorderProbeError as exc:
-                with _lock:
-                    _failures += 1
-                    give_up = _failures >= _FAILURE_LIMIT
-                    if give_up:
-                        _disabled = True
-                        _measurement = None
-                        _log(f"L5 live: borderprobe unusable ({exc}), "
-                             "staying on the RPU value", xbmc.LOGINFO)
-                if give_up:
-                    return
-
-                # A broken helper cannot recover on its own; start a new one.
-                # The failure count deliberately survives this: a helper that
-                # dies on every measurement can be restarted every time, so
-                # counting only the restarts that *fail* would never reach the
-                # limit and the breaker would never trip.
+                # A broken helper cannot recover on its own; drop it here so
+                # the top of the loop opens a fresh one next time round. The
+                # failure clock deliberately survives the restart: a helper
+                # that dies on every measurement could otherwise be restarted
+                # forever without ever reaching the timeout.
                 probe.close()
-                probe = borderprobe.open_probe(source)
-                if probe is None:
-                    with _lock:
-                        _disabled = True
-                    return
+                probe = None
+                with _lock:
+                    if _record_failure(exc):
+                        return
             else:
                 with _lock:
-                    _failures = 0
+                    _failure_since = None
                     # None means the helper had nothing for this position -- a
                     # fade to black, a shot too dark to judge.  Hold the last
                     # confident value rather than flickering back to the static
                     # one.
                     if bars is not None:
+                        first = _measurement is None
                         _measurement = bars
+
+                if bars is None:
+                    unmeasurable += 1
+                    if unmeasurable == _UNMEASURABLE_REPORT_AFTER:
+                        _log(f"L5 live: nothing measurable in the picture "
+                             f"({probe.last_none_reason}) after {unmeasurable} "
+                             "tries; holding the static value", xbmc.LOGINFO)
+                else:
+                    unmeasurable = 0
+                    if first:
+                        _log("L5 live: measured "
+                             + " | ".join(str(v) for v in bars), xbmc.LOGINFO)
 
             if monitor.waitForAbort(_SAMPLE_INTERVAL):
                 return
@@ -224,32 +287,6 @@ def _ensure_sampler(source: str) -> None:
 # --------------------------------------------------------------------------- #
 # Publishing
 # --------------------------------------------------------------------------- #
-
-def _prefer_static(static: str, measured: str) -> str:
-    """Return the offsets to display, keeping the RPU's own numbers where they
-    still describe the picture.
-
-    The RPU is exact and the measurement is not quite, so replacing 276 with
-    277 for the same framing only makes the display worse.  The static value
-    therefore stands until the measurement clearly departs from it -- which is
-    what an aspect ratio change does -- and takes over again once the film
-    returns to its base framing.
-    """
-    if not measured:
-        return static
-
-    wanted = parse_offsets(static)
-    got = parse_offsets(measured)
-    if wanted is None or got is None:
-        # No usable pair to compare (static is still "Fetching...", say): the
-        # measurement is the only real information available.
-        return measured
-
-    same_framing = all(
-        abs(a - b) <= _STATIC_MATCH_TOLERANCE for a, b in zip(wanted, got)
-    )
-    return static if same_framing else measured
-
 
 def _hold_sides(static: str, measured: str) -> str:
     """Return the measurement with its side bars pinned to the thinnest known.
@@ -323,6 +360,25 @@ def live_measurement_available() -> bool:
         return _measurement is not None and path == _path
 
 
+def live_detection_settling() -> bool:
+    """Return whether the first measurement for this file is still expected
+    *soon* -- the window in which a caller should show the placeholder rather
+    than a static value that is about to be replaced.
+
+    Bounded by ``_PENDING_GRACE`` so a picture that never yields a measurement
+    (dark throughout, say) hands the display back to the RPU instead of
+    spinning for the rest of the film.
+
+    A pure state read: it neither measures nor keeps the sampler alive.
+    """
+    if not live_detection_enabled():
+        return False
+    with _lock:
+        if _disabled or _measurement is not None or _pending_since is None:
+            return False
+        return time.monotonic() - _pending_since < _PENDING_GRACE
+
+
 def live_detection_pending() -> bool:
     """Return whether a measurement is expected for this stream but has not
     arrived yet, so the caller can show a placeholder rather than a value.
@@ -340,11 +396,18 @@ def resolve_l5_offsets(static: str) -> str:
     """Return the offsets to display for the playing file.
 
     ``static`` is what the RPU reported (or dvinfo's placeholder / status
-    label).  It is preferred; the live measurement only overrides it once the
-    picture stops matching it -- and only ever on the top and bottom bars, the
-    sides being pinned by _hold_sides before the comparison.
+    label).  The measurement wins whenever there is one: it describes the
+    picture actually on screen, which is the point of the feature, and a title
+    whose RPU already names the same framing loses nothing by being shown the
+    number that was measured from it.  ``static`` therefore stands in only
+    until the first measurement lands, and again when detection is switched
+    off or has given up.
+
+    The sides are pinned by _hold_sides first -- see there for why they are
+    held differently from the top and bottom bars.
     """
-    return _prefer_static(static, _hold_sides(static, live_l5_offsets()))
+    measured = _hold_sides(static, live_l5_offsets())
+    return measured or static
 
 
 def live_l5_offsets() -> str:
@@ -358,7 +421,7 @@ def live_l5_offsets() -> str:
     Never blocks: the reading is whatever the sampler thread last measured, and
     calling this is what keeps that thread alive.
     """
-    global _path, _last_request
+    global _path, _pending_since, _last_request
 
     if not live_detection_enabled():
         return ""
@@ -374,6 +437,7 @@ def live_l5_offsets() -> str:
         if path != _path:
             _clear_locked()
             _path = path
+            _pending_since = time.monotonic()
         if _disabled:
             return ""
         _last_request = time.monotonic()

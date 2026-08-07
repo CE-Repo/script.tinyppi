@@ -35,6 +35,7 @@ from core.utils import (
 from info.cropdetect import (
     live_detection_enabled,
     live_detection_pending,
+    live_detection_settling,
     live_measurement_available,
     resolve_l5_offsets,
 )
@@ -163,16 +164,16 @@ def get_VideoResolutionVar() -> str:
 
 # Aspect ratios a computed picture is snapped to when it lands close enough.
 # borderprobe measures the coded frame at full resolution, but a bar edge that
-# falls inside a coding block can still be read a pixel or two either way (see
-# cropdetect.py's _STATIC_MATCH_TOLERANCE) — enough to nudge a 2.39 film to
-# 2.40 without snapping.  Anything further out than the tolerance is shown as
-# calculated rather than forced onto a familiar number.
+# falls inside a coding block can still be read a pixel or two either way —
+# enough to nudge a 2.39 film to 2.40 without snapping.  Anything further out
+# than the tolerance is shown as calculated rather than forced onto a familiar
+# number.
 #
 # Note the limit this cannot cross: 2.35 and 2.39 are themselves only 0.04
-# apart, so a *measured* bar cannot tell them apart and lands on whichever is
-# nearer.  It does not matter in practice, because a DV title carries those
-# offsets in its RPU and the exact value is preferred over the measurement;
-# only a ratio the RPU does not describe is ever measured.
+# apart, so a measured bar cannot tell them apart and lands on whichever is
+# nearer.  Since the live measurement is preferred over the RPU whenever one
+# exists, that applies to DV titles too — their RPU would have named the ratio
+# exactly, and a 2.35 title can read as 2.39 while detection is on.
 _STANDARD_ARS = (
     1.33, 1.37, 1.43, 1.66, 1.78, 1.85, 1.90, 2.00, 2.20, 2.35, 2.39, 2.55, 2.76,
 )
@@ -761,16 +762,20 @@ def update_properties(window) -> None:
     if is_status_label(output_mode) and not is_fetch_label(output_mode):
         output_mode = _output_mode_from_videoplayer() or output_mode
 
-    # The RPU offsets are exact, so they stand for as long as the picture still
-    # matches them.  Black bars measured off the running picture take over only
-    # once it stops matching — a title that changes aspect ratio mid-film — and
-    # hand back as soon as the film returns to its base framing.
+    # Black bars measured off the running picture are what gets shown once a
+    # measurement has landed; the RPU's own offsets stand in until then, and
+    # again whenever detection is off or has given up.
     l5_offsets_static = get_l5_offsets()
     l5_offsets = resolve_l5_offsets(l5_offsets_static)
-    l5_offsets_measured = l5_offsets != l5_offsets_static
-    # Only the RPU's "no L5 here" placeholder is stood in for; a settled
-    # measurement of zero is an answer, not a wait, and keeps its zeros.
-    if l5_offsets == L5_EMPTY and live_detection_pending():
+    # Says the displayed value came from the picture rather than the RPU — not
+    # that the two differ, which they usually do not on a fixed-framing title.
+    l5_offsets_measured = live_detection_enabled() and live_measurement_available()
+    # Show the placeholder while the value on screen is not yet the one that
+    # will stand: either nothing is known at all (no RPU offsets, nothing
+    # measured), or the measurement that outranks the RPU is still on its way
+    # and within its grace period.  A settled measurement of zero is an answer,
+    # not a wait, and keeps its zeros.
+    if (l5_offsets == L5_EMPTY and live_detection_pending()) or live_detection_settling():
         l5_offsets = l5_pending_frame()
     l5_offsets_icon_visible = (
         "true"
