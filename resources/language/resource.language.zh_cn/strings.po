@@ -1138,3 +1138,11 @@ msgstr "实验性功能。每秒通过解码当前播放位置的画面测量一
 msgctxt "#32366"
 msgid "Active offsets"
 msgstr "有效偏移"
+
+msgctxt "#32367"
+msgid "FLL MIN / MAX / Ø"
+msgstr "FLL MIN / MAX / Ø"
+
+msgctxt "#32368"
+msgid "PQ  MIN / MAX / Ø"
+msgstr "PQ  MIN / MAX / Ø"

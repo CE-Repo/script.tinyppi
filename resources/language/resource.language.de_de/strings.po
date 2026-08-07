@@ -1138,3 +1138,11 @@ msgstr "Experimentell. Misst die schwarzen Bildränder des laufenden Bildes einm
 msgctxt "#32366"
 msgid "Active offsets"
 msgstr "Aktive Offsets"
+
+msgctxt "#32367"
+msgid "FLL MIN / MAX / Ø"
+msgstr "FLL MIN / MAX / Ø"
+
+msgctxt "#32368"
+msgid "PQ  MIN / MAX / Ø"
+msgstr "PQ  MIN / MAX / Ø"

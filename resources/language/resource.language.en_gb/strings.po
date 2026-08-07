@@ -1138,3 +1138,11 @@ msgstr ""
 msgctxt "#32366"
 msgid "Active offsets"
 msgstr ""
+
+msgctxt "#32367"
+msgid "FLL MIN / MAX / Ø"
+msgstr ""
+
+msgctxt "#32368"
+msgid "PQ  MIN / MAX / Ø"
+msgstr ""

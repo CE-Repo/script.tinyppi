@@ -1836,9 +1836,49 @@
 						<aligny>top</aligny>
 					</control>
 					
-					<!-- L5 active offsets -->
+					<!-- L1 frame light level (min / max / average) -->
 					<control type="label">
 						<top>210</top>
+						<visible>!String.IsEmpty(Window.Property(DoviLevel1NitsVar))</visible>
+						<label>$ADDON[script.tinyppi 32367]:</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>195</left>
+						<top>210</top>
+						<width>300</width>
+						<align>right</align>
+						<label>$INFO[Window().Property(DoviLevel1NitsVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
+					
+					<!-- L1 frame luminance in PQ codes (min / max / average) -->
+					<control type="label">
+						<top>240</top>
+						<visible>!String.IsEmpty(Window.Property(DoviLevel1PqVar))</visible>
+						<label>$ADDON[script.tinyppi 32368]:</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>195</left>
+						<top>240</top>
+						<width>300</width>
+						<align>right</align>
+						<label>$INFO[Window().Property(DoviLevel1PqVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
+					
+					<!-- L5 active offsets -->
+					<control type="label">
+						<top>270</top>
 						<visible>!String.IsEqual(Window(10000).Property(TinyPPI.L5LiveDetect),1)</visible>
 						<label>$ADDON[script.tinyppi 32030]:</label>
 						<font>font23_narrow</font>
@@ -1846,7 +1886,7 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<top>210</top>
+						<top>270</top>
 						<visible>String.IsEqual(Window(10000).Property(TinyPPI.L5LiveDetect),1)</visible>
 						<label>$ADDON[script.tinyppi 32366]:</label>
 						<font>font23_narrow</font>
@@ -1855,7 +1895,7 @@
 					</control>
 					<control type="grouplist">
 						<left>45</left>
-						<top>210</top>
+						<top>270</top>
 						<width>450</width>
 						<height>31</height>
 						<orientation>horizontal</orientation>

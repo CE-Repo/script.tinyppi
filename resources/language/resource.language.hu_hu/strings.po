@@ -1138,3 +1138,11 @@ msgstr "Kísérleti. Másodpercenként egyszer méri a futó kép fekete sávjai
 msgctxt "#32366"
 msgid "Active offsets"
 msgstr "Aktív eltolások"
+
+msgctxt "#32367"
+msgid "FLL MIN / MAX / Ø"
+msgstr "FLL MIN / MAX / Ø"
+
+msgctxt "#32368"
+msgid "PQ  MIN / MAX / Ø"
+msgstr "PQ  MIN / MAX / Ø"

@@ -1219,6 +1219,28 @@ def get_l6_rpu_max_cll_fall() -> str:
     return _get_info_value_or("l6_max_cll_fall", "0 | 0")
 
 
+def get_l1_frame_nits() -> str:
+    """Return the Dolby Vision Level 1 frame light level as
+    ``min | max | average`` in nits, or '' when the stream has no RPU.
+
+    Level 1 describes the frame on screen rather than the title, so this follows
+    the picture as it plays.  Only Kodi's live player metadata carries it -- a
+    probe reads the file, not the frame being shown -- so it stays empty on a
+    build without those labels, which leaves the row out of the overlay
+    altogether rather than showing it as N/A.
+    """
+    value, _status = _get_info_status_value("l1_nits")
+    return value
+
+
+def get_l1_frame_pq() -> str:
+    """Return the Dolby Vision Level 1 frame luminance as ``min | max |
+    average`` in raw 12-bit PQ codes -- the values ``get_l1_frame_nits`` is
+    derived from.  Empty on the same terms."""
+    value, _status = _get_info_status_value("l1_pq")
+    return value
+
+
 def get_hdr10_mdl() -> str:
     """Return the HDR10 static mastering-display luminance (``max | min``)."""
     return _get_info_value_or("hdr10_mdl", "0 | 0")

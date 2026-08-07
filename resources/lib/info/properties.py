@@ -56,6 +56,8 @@ from info.dvinfo import (
     get_hdr10_max_cll_fall,
     get_hdr10_mdl,
     get_hdr_format,
+    get_l1_frame_nits,
+    get_l1_frame_pq,
     get_l5_offsets,
     get_l6_rpu_max_cll_fall,
     get_l6_rpu_mdl,
@@ -647,16 +649,34 @@ def get_CpuTemperatureProgressVar() -> float:
     )
 
 
-def _metadata_unit() -> str:
-    """Return the configured L6 metadata unit, including Kodi color markup."""
-    unit_color = info("Window(10000).Property(TinyPPI.UnitColor)")
-    unit_label = info("Window(10000).Property(TinyPPI.UnitLabel)")
-
-    if not unit_label:
+def _unit_markup(label: str) -> str:
+    """Return a unit label in the configured unit colour, or '' for no label."""
+    if not label:
         return ""
-    if unit_color:
-        return f"[COLOR={unit_color}]{unit_label}[/COLOR]"
-    return unit_label
+    unit_color = info("Window(10000).Property(TinyPPI.UnitColor)")
+    return f"[COLOR={unit_color}]{label}[/COLOR]" if unit_color else label
+
+
+def _metadata_unit() -> str:
+    """Return the configured brightness unit, including Kodi color markup."""
+    return _unit_markup(info("Window(10000).Property(TinyPPI.UnitLabel)"))
+
+
+# The Level 1 PQ row states code values rather than a brightness, so it carries
+# the code's word length instead of the configured brightness unit.
+_PQ_UNIT = "12-bit"
+
+
+def _pq_unit() -> str:
+    """Return the unit for the Level 1 PQ row.
+
+    Fixed rather than configurable — the numbers are 12-bit PQ codes whatever
+    the brightness rows are shown in — but it follows the same switch: choosing
+    ``Hidden`` for the unit means a value column with no units in it at all.
+    """
+    if not info("Window(10000).Property(TinyPPI.UnitLabel)"):
+        return ""
+    return _unit_markup(_PQ_UNIT)
 
 
 def _channel_setting_for(hdr_type: str) -> str:
@@ -803,6 +823,11 @@ def update_properties(window) -> None:
     l6_rpu_max_cll_fall = _with_unit(get_l6_rpu_max_cll_fall(), unit)
     hdr10_mdl           = _with_unit(get_hdr10_mdl(), unit)
     hdr10_max_cll_fall  = _with_unit(get_hdr10_max_cll_fall(), unit)
+    # Level 1 describes the frame on screen, so unlike the rows above these two
+    # move as the film plays.  Both stay empty unless Kodi publishes the RPU
+    # itself, which hides their rows rather than showing them as N/A.
+    l1_frame_nits       = _with_unit(get_l1_frame_nits(), unit)
+    l1_frame_pq         = _with_unit(get_l1_frame_pq(), _pq_unit())
 
     set_window_properties(
         window,
@@ -827,6 +852,8 @@ def update_properties(window) -> None:
             ("DoviStructureVar", get_structure()),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
+            ("DoviLevel1NitsVar", l1_frame_nits),
+            ("DoviLevel1PqVar", l1_frame_pq),
             ("Hdr10MdlVar", hdr10_mdl),
             ("Hdr10MaxCllFallVar", hdr10_max_cll_fall),
             ("DoviVersionVar", get_dv_version()),
