@@ -1146,3 +1146,27 @@ msgstr "转换指示点"
 msgctxt "#32368"
 msgid "Color of the dot shown on the video-format logo while a conversion is active."
 msgstr "转换进行时，显示在视频格式图标上的圆点颜色。"
+
+msgctxt "#32369"
+msgid "FEL indicator"
+msgstr "FEL 指示"
+
+msgctxt "#32370"
+msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision FEL."
+msgstr "当源为 Dolby Vision FEL 时，显示在 Splash 图标底部的圆角条颜色。"
+
+msgctxt "#32371"
+msgid "MEL indicator"
+msgstr "MEL 指示"
+
+msgctxt "#32372"
+msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision MEL."
+msgstr "当源为 Dolby Vision MEL 时，显示在 Splash 图标底部的圆角条颜色。"
+
+msgctxt "#32373"
+msgid "Other Dolby Vision"
+msgstr "其他 Dolby Vision"
+
+msgctxt "#32374"
+msgid "Color of the pill shown at the bottom of the splash logo for any other Dolby Vision profile (no enhancement layer)."
+msgstr "适用于其他任何 Dolby Vision 配置（无增强层）时，显示在 Splash 图标底部的圆角条颜色。"

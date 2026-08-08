@@ -262,12 +262,7 @@ def _premultiply_rgba(
 
 def _box_taps(src_len: int, dst_len: int) -> list[tuple[int, list[float]]]:
     """Return one ``(first source index, normalised weights)`` box-filter tap per
-    output pixel.
-
-    The taps depend only on the axis lengths, so they are computed once and
-    reused for every row / column instead of per pixel.  Normalising here also
-    keeps the division out of the sampling loop.
-    """
+    output pixel, computed once per axis and reused for every row/column."""
     scale = src_len / float(dst_len)
     taps = []
     for i in range(dst_len):
@@ -369,12 +364,8 @@ def _write_png_rgba(path: str, width: int, height: int, rgba: bytes) -> None:
 
 
 def _scale_png_to_cache(src_path: str, dst_path: str, dst_w: int, dst_h: int) -> None:
-    """Scale ``src_path`` into ``dst_path``, publishing it in one step.
-
-    The scaled file is written under a unique temporary name and then moved into
-    place, so a second builder (the playback-start prewarm and the overlay poll
-    can race) never observes a half-written PNG.
-    """
+    """Scale ``src_path`` into ``dst_path`` via a temp file + rename, so a
+    concurrent builder never observes a half-written PNG."""
     tmp_path = f"{dst_path}.{os.getpid()}-{threading.get_ident()}.tmp"
     _scale_png_for_display(src_path, tmp_path, dst_w, dst_h)
     try:
@@ -396,11 +387,9 @@ def _scale_png_for_display(src_path: str, dst_path: str, dst_w: int, dst_h: int)
 
 
 def _cache_target(path: str, box_w: int, box_h: int):
-    """Return ``(cache_path, dst_w, dst_h)`` for a texture worth scaling.
-
-    ``None`` means the source can be used as-is: not a PNG, unreadable, or
-    already at or below its display size (this never upscales).
-    """
+    """Return ``(cache_path, dst_w, dst_h)`` for a texture worth scaling, or
+    ``None`` when the source can be used as-is (not a PNG, unreadable, or
+    already at/below display size — this never upscales)."""
     if not path.lower().endswith(".png"):
         return None
 
@@ -421,12 +410,11 @@ def _cache_target(path: str, box_w: int, box_h: int):
 
 def display_texture(path: str, box_w: int, box_h: int) -> str:
     """Return ``path`` scaled to fit ``box_w`` x ``box_h`` and cached, building
-    the cache entry now if it is missing.
+    the cache entry now if missing.
 
-    Scaling is slow, so only call this off the UI thread; ``ready_texture``
-    is the non-blocking counterpart.  Returns the source path unchanged when no
-    scaling is needed or the cache cannot be built, so the result is always
-    usable as a texture.
+    Scaling is slow, so only call this off the UI thread (``ready_texture`` is
+    the non-blocking counterpart).  Falls back to the source path unchanged if
+    no scaling is needed or the cache can't be built.
     """
     try:
         target = _cache_target(path, box_w, box_h)

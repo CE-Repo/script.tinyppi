@@ -1,36 +1,29 @@
 """Client for the borderprobe helper binary.
 
 borderprobe measures the black bars in the picture by decoding the frame at a
-given playback position, which replaces the ``/dev/amvideocap0`` capture this
-module's caller used to depend on: that node exists on Amlogic and nowhere
-else, so the measurement could not be developed, tested or reproduced anywhere
-but on the box itself.
+given playback position, replacing the ``/dev/amvideocap0`` capture this
+module's caller used to depend on -- a node that exists only on Amlogic, so
+that measurement could never be developed or tested off the box.
 
-The process is held open for as long as a file is playing.  Opening a container
-and probing its streams costs far more than decoding one frame does -- on a
-file across the network it is nearly all of the time -- so a process launched
-per poll would pay it sixty times a minute.  Held open, a poll is a seek, a
-decode and a line of text.  See ``docs/PROTOCOL.md`` in the borderprobe repo.
-
-## Serving Kodi's own filesystem
+The process is held open for as long as a file is playing, since opening a
+container and probing its streams costs far more than decoding one frame (on
+a networked file, nearly all of it); a held-open process turns a poll into a
+seek, a decode and a line of text.  See ``docs/PROTOCOL.md`` in the
+borderprobe repo.
 
 Kodi plays from ``nfs://``, ``smb://``, ``bluray://`` and friends, which a
-standalone binary cannot open -- the same problem dvinfo.py solves for hdrprobe
-by piping the file in on stdin.  That trick does not transfer here, because
-borderprobe seeks to an arbitrary position on every poll and a pipe only goes
-forwards.
+standalone binary cannot open -- and unlike dvinfo.py's stdin trick for
+hdrprobe, piping doesn't work here because borderprobe seeks to an arbitrary
+position on every poll.  So the flow is inverted: borderprobe asks, and this
+module answers out of an ``xbmcvfs.File`` handle that speaks every protocol
+Kodi does. Each request names its own absolute offset, so there's no shared
+cursor and a far-side seek costs no round trip.
 
-So the flow is inverted: borderprobe asks, and this module answers out of an
-``xbmcvfs.File`` handle, which speaks every protocol Kodi does with Kodi's own
-credentials and mounts.  Each request names its own absolute offset, so there
-is no shared cursor to keep in step and a seek on the far side costs no round
-trip at all.
-
-The consequence for this code is that a command's answer is not the next thing
-to arrive on the pipe: a ``READ`` can come first, and more than one.  Every
-exchange therefore runs through :meth:`_Probe._exchange`, which serves requests
-until a real reply shows up.  Answering out of order, or reading the pipe
-anywhere else, deadlocks both sides.
+The consequence is that a command's answer isn't necessarily the next thing on
+the pipe -- a ``READ`` (or several) can come first.  Every exchange therefore
+runs through :meth:`_Probe._exchange`, which serves requests until a real
+reply shows up; answering out of order, or reading the pipe anywhere else,
+deadlocks both sides.
 """
 
 import io
@@ -98,16 +91,10 @@ def binary_path() -> str:
     """Return the borderprobe path from tools.tinyppi, restoring the exec bit.
 
     Mirrors dvinfo.py's ``_hdrprobe``: the binaries live in the companion addon
-    so a TinyPPI update does not have to carry them, and an addon install can
-    drop the executable bit.
-
-    The binary is called ``borderprobe`` on every platform, Windows included:
-    it is spawned from a full path rather than typed at a prompt, and Windows
-    runs a PE from a full path whatever it is called.  One name means there is
-    no platform branch here to get wrong -- an earlier version looked for
-    ``borderprobe.exe`` beside a file called ``borderprobe`` and reported the
-    binary as missing, which reads as a packaging fault rather than a naming
-    one.
+    so a TinyPPI update needn't carry them, and an install can drop the exec
+    bit.  Called ``borderprobe`` on every platform including Windows, since
+    it's spawned from a full path -- one name means no platform branch to get
+    wrong.
     """
     try:
         base = xbmcaddon.Addon("tools.tinyppi").getAddonInfo("path")
@@ -133,10 +120,9 @@ def binary_path() -> str:
 def _local_path(source: str) -> str:
     """Return a real filesystem path for *source*, or '' when there is none.
 
-    ``translatePath`` resolves Kodi's own ``special://`` scheme and leaves
-    everything else alone, so the existence check is what actually decides:
-    a path the OS can open goes straight to libavformat, and anything else --
-    every network protocol, every Blu-ray structure -- goes over the bridge.
+    ``translatePath`` resolves Kodi's ``special://`` scheme and leaves
+    everything else alone, so the existence check decides: a path the OS can
+    open goes straight to libavformat, everything else goes over the bridge.
     """
     try:
         translated = xbmcvfs.translatePath(source)
@@ -217,11 +203,9 @@ class _Probe:
     # -- wire ------------------------------------------------------------- #
 
     def _file_size(self) -> int:
-        """Size of the open VFS handle, or -1 when it cannot be determined.
-
-        -1 is honest rather than fatal: libavformat copes with an unknown size
-        on a seekable stream, it just probes more conservatively.
-        """
+        """Size of the open VFS handle, or -1 when unknown (libavformat copes
+        with an unknown size on a seekable stream; it just probes more
+        conservatively)."""
         try:
             return int(self._vfs.size())
         except Exception:
@@ -235,11 +219,9 @@ class _Probe:
             return -1
 
     def _write(self, data) -> None:
-        """Write one buffer to the helper's stdin.
-
-        Takes any bytes-like object so a VFS read can go out without being
-        converted first; the pipe is blocking, so a write transfers in full.
-        """
+        """Write one buffer to the helper's stdin.  Takes any bytes-like object
+        so a VFS read can go out unconverted; the pipe is blocking, so a write
+        transfers in full."""
         try:
             self._proc.stdin.write(data)
             self._proc.stdin.flush()
