@@ -157,19 +157,21 @@ _LAYER_COLOR_FALLBACK = {
 
 
 def _dv_layer_token() -> str:
-    """Classify the current source into a layer-indicator pill token.
+    """Classify what is actually on screen into a layer-indicator pill token.
 
-    ``'fel'`` / ``'mel'`` for a Dolby Vision source with that enhancement
-    layer, ``'other'`` for any other Dolby Vision profile (e.g. 5, 8.1), or
-    ``''`` when the source is not (yet known to be) Dolby Vision, or it is but
-    the actual output has been converted away from Dolby Vision (e.g. down to
-    HDR10 or SDR) -- the pill only claims a layer type that is genuinely on
-    screen, and is omitted for ``''``.
+    Driven by the real Amlogic output, not the source: ``'fel'`` / ``'mel'``
+    for a Dolby Vision source with that enhancement layer, ``'other'`` for any
+    other Dolby Vision profile (e.g. 5, 8.1) *and* for a non-DV source (HDR10,
+    SDR, ...) converted up to Dolby Vision -- the pill then simply confirms
+    Dolby Vision is on screen, with no enhancement-layer info to show.  ``''``
+    when the output is not Dolby Vision at all, including a DV source
+    converted away (e.g. down to HDR10 or SDR) -- the pill only claims what is
+    genuinely on screen, and is omitted for ``''``.
     """
-    if "dolby" not in get_hdr_format():
-        return ""
     if _amlogic_hdr_token() != "dolbyvision":
         return ""
+    if "dolby" not in get_hdr_format():
+        return "other"
     el_type = get_dv_el_type_raw().upper()
     if el_type == "FEL":
         return "fel"
