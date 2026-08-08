@@ -33,10 +33,12 @@ until a real reply shows up.  Answering out of order, or reading the pipe
 anywhere else, deadlocks both sides.
 """
 
+import io
 import os
 import queue
 import subprocess
 import threading
+import time
 
 import xbmc
 import xbmcaddon
@@ -55,21 +57,33 @@ _MAX_READ = 32 << 20
 # second or two while libavformat pulls the index.
 _TIMEOUT_SECONDS = 20.0
 
-# Options the server is started with.  borderprobe's own defaults are tuned for
-# a one-shot measurement, where decoding three frames and publishing the
-# per-edge median costs nothing anyone waits for.  Held open and polled twice a
-# second, that median is the expensive part of every query, and it is also the
-# least necessary: a reading that survives is one the next poll confirms half a
-# second later, and the server's hysteresis already refuses to republish a
-# reading that has barely moved.  Two frames keeps a frame-level cross-check
-# against a single odd decode while measurably cutting both the time and the
-# bytes a query costs -- on a 2160p HEVC remux, roughly 130 ms and 2.6 MB down
-# to 68 ms and 2.1 MB.
+# Options the server is started with.
+#
+# --threads 1 is what makes the load measurable, which is what makes it
+# controllable.  FFmpeg's default is a decoder thread per core, so a query
+# briefly took the whole box and its wall time said nothing about what it had
+# cost.  On one thread the wall time of a query is very nearly its CPU time, and
+# cropdetect times every query and paces itself by the result (see _MAX_DUTY
+# there) -- so the helper is held to a known share of one core instead of an
+# assumed share of an unknown number of them.  Nothing waits on a query, so the
+# longer each one now takes costs nobody anything.
+#
+# --frames 2 rather than the helper's default of three, for the same reason it
+# was chosen before: it keeps a frame-level cross-check against a single odd
+# decode while measurably cutting what a query costs -- and under a duty cycle a
+# cheaper query is not just cheaper, it is one the sampler can afford to make
+# more often.
 #
 # --accurate is deliberately not used.  It would drop the keyframe lag by
 # decoding forward to the exact position, but it costs about three times a
 # plain query, which buys less than it spends on the Amlogic boxes this runs on.
-_PROBE_OPTIONS = ("--frames", "2")
+#
+# --recycle-decoder is deliberately not used either.  It would cut the helper
+# from roughly 190 MB resident to 12 MB on 4K HEVC, but at about twice the CPU
+# per query, which is the one thing this configuration is trying not to spend.
+# cropdetect bounds the memory by closing the helper once nothing has read a
+# value for a while instead -- see _KEEPALIVE_TIMEOUT there.
+_PROBE_OPTIONS = ("--threads", "1", "--frames", "2")
 
 
 def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
@@ -140,10 +154,21 @@ class _Probe:
     def __init__(self, binary: str, source: str):
         self._vfs = None
         self._proc = None
+        self._stdout = None
         self._lines: queue.Queue = queue.Queue()
         # Why the last NONE was returned ("too-dark", say).  Kept so the caller
         # can say what the helper is doing, rather than only that it is quiet.
         self.last_none_reason = ""
+
+        # Running totals, for the caller to difference across one query.  What
+        # they are for: a query's wall time says the feature is expensive, but
+        # not where the expense is.  These separate the two candidates -- bytes
+        # hauled out of Kodi's VFS on our thread, against everything the helper
+        # does on its own -- which on a file over a share are not remotely the
+        # same size, and are not fixed by the same thing.
+        self.reads_served = 0
+        self.bytes_served = 0
+        self.vfs_seconds = 0.0
 
         flags = 0
         if os.name == "nt":  # keep a console window from flashing up on dev boxes
@@ -160,6 +185,15 @@ class _Probe:
             )
         except OSError as exc:
             raise BorderProbeError(f"cannot start borderprobe: {exc}") from exc
+
+        # bufsize=0 above is for stdin, where a buffer would sit between us and
+        # a helper waiting on a reply.  stdout must not inherit it: a raw stream
+        # has no readline of its own, so the generic one falls back to reading a
+        # single byte per syscall, and every "READ <offset> <length>" the helper
+        # sends -- hundreds of them for one query on a network file -- was being
+        # picked up a character at a time.  A buffer in front of it makes that
+        # one read.
+        self._stdout = io.BufferedReader(self._proc.stdout)
 
         # stdout carries nothing but text lines -- the binary payload travels
         # the other way, on stdin -- so it can safely be pumped into a queue.
@@ -200,7 +234,12 @@ class _Probe:
         except Exception:
             return -1
 
-    def _write(self, data: bytes) -> None:
+    def _write(self, data) -> None:
+        """Write one buffer to the helper's stdin.
+
+        Takes any bytes-like object so a VFS read can go out without being
+        converted first; the pipe is blocking, so a write transfers in full.
+        """
         try:
             self._proc.stdin.write(data)
             self._proc.stdin.flush()
@@ -210,7 +249,7 @@ class _Probe:
     def _pump(self) -> None:
         """Feed stdout lines to _readline until the helper closes it."""
         try:
-            for raw in iter(self._proc.stdout.readline, b""):
+            for raw in iter(self._stdout.readline, b""):
                 self._lines.put(raw)
         except (OSError, ValueError):
             pass  # the pipe went away; the None below says so
@@ -240,10 +279,16 @@ class _Probe:
             raise BorderProbeError(f"refusing a {length}-byte read")
 
         data = b""
+        started = time.monotonic()
         if self._vfs is not None:
             try:
                 self._vfs.seek(offset, 0)
-                data = bytes(self._vfs.readBytes(length))
+                # Left as whatever readBytes hands back (a bytearray) and
+                # written straight out.  A query pulls a couple of megabytes
+                # through here several times a minute, and every conversion on
+                # the way is a full copy of that made under the GIL, in the same
+                # interpreter the overlay's own polling loop runs in.
+                data = self._vfs.readBytes(length)
             except Exception as exc:
                 # A short read is end of file; a failed one is not, but both
                 # leave us with nothing to send.  Zero bytes is the protocol's
@@ -251,7 +296,16 @@ class _Probe:
                 _log(f"borderprobe: read at {offset} failed: {exc}")
                 data = b""
 
-        self._write(b"DATA %d\n" % len(data) + data)
+        self.vfs_seconds += time.monotonic() - started
+        self.reads_served += 1
+        self.bytes_served += len(data)
+
+        # Header and payload go out as two writes rather than one concatenated
+        # buffer, for the same reason: joining them would copy the payload
+        # again.  The pipe is blocking, so each write transfers in full.
+        self._write(b"DATA %d\n" % len(data))
+        if data:
+            self._write(data)
 
     def _exchange(self, command: str) -> str:
         """Send a command and return its reply, serving reads along the way."""
@@ -298,11 +352,14 @@ class _Probe:
                     self._proc.wait(timeout=2)
                 except Exception:
                     pass
-            for stream in (self._proc.stdin, self._proc.stdout):
+            for stream in (self._proc.stdin, self._stdout, self._proc.stdout):
+                if stream is None:
+                    continue
                 try:
                     stream.close()
                 except Exception:
                     pass
+            self._stdout = None
             self._proc = None
 
         if self._vfs is not None:

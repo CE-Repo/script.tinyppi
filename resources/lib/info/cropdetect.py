@@ -42,13 +42,31 @@ already keeps the number from twitching between neighbouring pixels.
 
 Everything here is still best-effort.  A missing binary, a file the helper
 cannot open, or a picture too dark to judge all yield ``''``, and properties.py
-falls back to the static RPU value.  Measuring happens on a sampler thread that
-runs only while the overlay is reading, so nothing ever blocks the window;
-retries keep going for as long as the overlay stays open, and a circuit
-breaker only stops them once the helper has failed continuously for ten
-seconds, so a box without a working binary still pays for that once and then
-nothing more, while a file that is merely slow to start gets the time it
-needs.  Reopening the overlay clears the breaker and starts the attempt over.
+falls back to the static RPU value.  Measuring happens on a sampler thread, so
+nothing ever blocks the window; retries keep going for as long as the overlay
+stays open, and a circuit breaker only stops them once the helper has failed
+continuously for ten seconds, so a box without a working binary still pays for
+that once and then nothing more, while a file that is merely slow to start gets
+the time it needs.  Reopening the overlay clears the breaker and lets it try
+again.
+
+## What it costs, and when
+
+Every query decodes a full intra keyframe of the coded picture, which on a UHD
+remux is the most expensive frame in the GOP.  That is the whole cost of this
+feature, and three things keep it in proportion:
+
+* the helper decodes with a bounded number of threads, so a query cannot take
+  the whole box for as long as it runs (see ``_PROBE_OPTIONS``);
+* the cadence backs off once the framing has settled, which on the many films
+  that never change framing is nearly all of the time;
+* the sampler stops decoding as soon as the overlay stops reading, and keeps
+  only the *open helper* warm after that, so reopening does not pay the
+  container open again.
+
+The one thing deliberately paid for up front is priming: the background service
+starts the sampler at playback start, so the first launch of the overlay finds a
+measurement rather than a placeholder.
 """
 
 import threading
@@ -60,22 +78,68 @@ import xbmcgui
 from core.utils import parse_offsets
 from info import borderprobe
 
-# Twice a second.  What the display can actually follow is set by three delays
-# in series: this interval, the up-to-one-GOP lag in measuring the keyframe at
-# or before the current position (one second on a UHD remux), and how long the
-# overlay takes to pick the reading up -- the last of which properties.py now
-# closes to a third of a second.  Halving this halves the largest term left
-# that TinyPPI controls, which is what an aspect-ratio change waits on before
-# the row and the IMAX badge follow the picture.
+# How often to measure while the framing is still moving, and how often once it
+# has stopped.  Every query decodes a full intra keyframe of the coded picture
+# -- on a UHD remux the most expensive frame in the GOP -- so the sample rate is
+# very nearly the whole cost of this feature, and the two cases want opposite
+# things from it.
 #
-# It is paid for by asking borderprobe for fewer frames per query (see
-# _PROBE_OPTIONS), so the decoding cost per second is roughly what it was; the
-# bytes pulled per second do rise, which is the trade for a file on a share.
-_SAMPLE_INTERVAL = 0.5
+# While something is changing, a fast cadence is the point: an IMAX sequence
+# opening up should reach the row and the badge quickly, and the delay before it
+# does is this interval plus the up-to-one-GOP lag in measuring the keyframe at
+# or before the current position plus however long the overlay takes to pick the
+# reading up.
+#
+# Once the framing has held still for _SETTLE_AFTER readings in a row, though,
+# the fast cadence buys nothing at all: the overwhelming majority of films never
+# change framing, and re-measuring them twice a second only re-confirms a number
+# that was already right.  Backing off to the slow cadence there is what takes
+# this feature from costing a fifth of the box to costing a twentieth of it, and
+# it costs only the worst-case delay in noticing the next change -- which is a
+# transition that lasts minutes, spotted up to _SETTLE_INTERVAL later.
+_SAMPLE_INTERVAL = 1.0
+_SETTLE_INTERVAL = 3.0
+_SETTLE_AFTER = 6
 
-# Stop sampling once nothing has read a value for this long: the sampler exists
-# to serve the overlay, and the overlay closing is what ends it.
+# The ceiling that does not depend on any of the above being right.
+#
+# The intervals are a guess about what a query costs, and a guess is a bad thing
+# to have between a user's box and a decoder: the same query is milliseconds on
+# a local file and seconds on a 4K remux over a busy share, and picking one
+# number for both means picking a number that is wrong on one of them.  So the
+# rate is not set by the interval alone.  Each query is timed, and the wait
+# after it is stretched until the time spent measuring is at most this share of
+# the time that has passed.
+#
+# With the helper capped at a single decoder thread (see _PROBE_OPTIONS), the
+# wall time of a query is very nearly its CPU time, so this is a direct bound:
+# the feature cannot cost more than about a seventh of one core, whatever the
+# file, the network or the box.  A query that costs more simply happens less
+# often -- a measurement every ten seconds still follows an IMAX transition,
+# which lasts minutes, and it is what an expensive file can afford.
+_MAX_DUTY = 0.15
+
+# Report timings this often.  The first query is always reported, because the
+# first one is the one that says whether this file is cheap or expensive, and
+# what the answer is made of.
+_STATS_EVERY = 25
+
+# Stop measuring once nothing has read a value for this long: the sampler exists
+# to serve the overlay, and the overlay closing is what should end the decoding.
 _IDLE_TIMEOUT = 3.0
+
+# ...but keep the helper process itself, and the measurement it has produced, for
+# a good while longer.  Opening the container is far and away the slowest thing
+# here -- seconds, on a large remux across the network, while libavformat pulls
+# the index -- and closing the overlay for a moment and opening it again is the
+# single most common thing a user does with it.  Paying the cold open every time
+# is what made the row sit on its placeholder at every launch.
+#
+# Bounded rather than open-ended because a warm helper holds the decoder's
+# picture buffers, which is roughly 190 MB on 4K HEVC (see _PROBE_OPTIONS in
+# borderprobe.py).  A minute covers looking away and back; a film left running
+# with the overlay closed gives the memory back.
+_KEEPALIVE_TIMEOUT = 60.0
 
 # Say so once when the helper keeps answering "nothing measurable" this many
 # times running.  That is not a failure -- it is the honest answer for a fade
@@ -110,8 +174,22 @@ _disabled = False     # circuit breaker, cleared on the next file
 _thread: threading.Thread | None = None
 _last_request = 0.0   # monotonic clock of the last live_l5_offsets() call
 
+# Bumped every time the state is cleared.  A sampler carries the generation it
+# was started for and checks it before writing anything, so a thread still
+# winding down from the previous file cannot publish a measurement of that file
+# as if it belonged to this one -- it holds no lock across a measurement, so
+# without this the two overlap for exactly as long as one query takes.
+_generation = 0
+
 _SIDES_PATH_PROPERTY = "TinyPPI.Sides.Path"
 _SIDES_PROPERTY = "TinyPPI.Sides.Min"
+
+# (read at, value) for live_detection_enabled(); see there.  The initial stamp
+# is -inf rather than 0 because time.monotonic() has no defined epoch: on a
+# platform where it starts near zero, a 0 here would serve the placeholder False
+# as though it had just been read.
+_SETTING_TTL = 2.0
+_setting_cache: tuple[float, bool] = (float("-inf"), False)
 
 
 def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
@@ -121,12 +199,14 @@ def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
 def _clear_locked() -> None:
     """Drop the sampling state; call under the lock."""
     global _measurement, _path, _pending_since, _failure_since, _disabled
+    global _generation
 
     _measurement = None
     _path = ""
     _pending_since = None
     _failure_since = None
     _disabled = False
+    _generation += 1
 
     window = xbmcgui.Window(10000)
     window.clearProperty(_SIDES_PATH_PROPERTY)
@@ -134,16 +214,44 @@ def _clear_locked() -> None:
 
 
 def reset_live_detection() -> None:
-    """Drop all detection state; called on playback stop, on a file change, and
-    every time the overlay opens, so a film that never got a measurement in an
-    earlier session -- or that had detection give up -- gets a clean attempt.
+    """Drop all detection state; called on playback stop and on a file change.
 
     The sampler thread is left to notice on its own: it stops as soon as
-    nothing has asked for a value, which happens the moment the overlay closes,
-    and it closes the helper process on its way out.
+    nothing has asked for a value, and it closes the helper process on its way
+    out.
+
+    Not called when the overlay merely opens -- see retry_live_detection() for
+    why that is a different thing.
     """
     with _lock:
         _clear_locked()
+
+
+def retry_live_detection() -> None:
+    """Give detection a fresh chance for the file that is already playing.
+
+    Called every time the overlay opens.  What wants clearing there is the
+    circuit breaker and the failure clock: a film that had detection give up --
+    a helper that would not start, a stream it could not open -- should get
+    another attempt rather than staying written off for the rest of playback,
+    and the user opening the overlay again is as good a cue as any.
+
+    What does *not* want clearing is the measurement and the helper process
+    behind it.  This used to call reset_live_detection(), which threw both away
+    on every launch and made each one pay the cold container open again -- the
+    slowest part of the whole path, and the reason the row sat spinning at every
+    launch.  A measurement of the file still playing is still true.
+    """
+    global _failure_since, _disabled, _pending_since
+
+    with _lock:
+        _failure_since = None
+        if _disabled:
+            _disabled = False
+            # The breaker having tripped means the grace period ran out long
+            # ago; restart it, or the retry we just allowed would have no
+            # window in which to show its placeholder.
+            _pending_since = time.monotonic()
 
 
 def live_detection_enabled() -> bool:
@@ -153,33 +261,66 @@ def live_detection_enabled() -> bool:
     applies while the overlay stays open -- same trick as
     publish_channel_visibility.
 
+    Constructing one is not free, though: it is a lookup in Kodi's addon manager
+    plus a settings read, and this sits on a path the overlay walks several
+    times a second through half a dozen callers.  The answer is therefore held
+    for _SETTING_TTL, which is short enough that toggling the option still
+    applies while the overlay stays open -- the point of the fresh Addon() --
+    and long enough to turn some fifteen of those lookups a second into one.
+
     Updating the addon mid-playback unregisters our id for a moment, and this
     runs on the overlay's poll: treat that window as "off" rather than letting
     it take the polling loop down, the way it once took the splash down.
     """
+    global _setting_cache
+
+    now = time.monotonic()
+    read_at, value = _setting_cache
+    if now - read_at < _SETTING_TTL:
+        return value
+
     try:
-        return xbmcaddon.Addon().getSetting("l5_live_detect") == "true"
+        value = xbmcaddon.Addon().getSetting("l5_live_detect") == "true"
     except (RuntimeError, TypeError):
         return False
+
+    # One tuple assignment, so a reader either sees the old pair or the new one
+    # and never a torn mix of the two; two threads refreshing at once just do
+    # the same work twice, which is why this needs no lock of its own.
+    _setting_cache = (now, value)
+    return value
 
 
 # --------------------------------------------------------------------------- #
 # Sampler
 # --------------------------------------------------------------------------- #
 
-def _sampler(source: str) -> None:
-    """Measure *source* once a second until the overlay stops reading.
+def _sampler(source: str, generation: int) -> None:
+    """Measure *source* for as long as anything is interested in the answer.
 
     The helper process lives exactly as long as this thread does.  It is opened
     here rather than by the caller because opening it is the slow part -- on a
     file across the network it can take a second or two while libavformat pulls
     the index -- and the overlay's poll must never wait for that.
+
+    Which is also why the thread outlives the overlay.  It stops *measuring*
+    _IDLE_TIMEOUT after the last read, so a closed overlay decodes nothing, but
+    it holds the open helper until _KEEPALIVE_TIMEOUT so that closing the
+    overlay and opening it again resumes instantly instead of starting the whole
+    container open over.
+
+    *generation* is the state generation this thread was started for; a clear
+    bumps it, and every write below checks it, so a thread still winding down
+    from the previous file cannot publish into the new one's state.
     """
     global _thread, _measurement, _failure_since, _disabled
 
     monitor = xbmc.Monitor()
     probe = None
     unmeasurable = 0   # consecutive "nothing measurable" answers
+    stable = 0         # consecutive readings that told us nothing new
+    queries = 0        # completed measurements, for the timing report
+    throttled = False  # whether the duty cycle has already been reported
 
     if not borderprobe.binary_path():
         # The binary is either shipped or it is not; unlike a file that is slow
@@ -208,10 +349,19 @@ def _sampler(source: str) -> None:
     try:
         while True:
             with _lock:
-                idle = time.monotonic() - _last_request > _IDLE_TIMEOUT
-                stale = _path != source
-                if _disabled or idle or stale:
+                if _generation != generation or _disabled or _path != source:
                     return
+                idle_for = time.monotonic() - _last_request
+
+            if idle_for > _KEEPALIVE_TIMEOUT:
+                return
+            if idle_for > _IDLE_TIMEOUT:
+                # Nobody is reading -- the overlay is closed.  Decode nothing,
+                # but stay here holding the open helper, which is the whole
+                # point of outliving the overlay.
+                if monitor.waitForAbort(_SAMPLE_INTERVAL):
+                    return
+                continue
 
             if probe is None:
                 # Opening is retried every sample interval for as long as the
@@ -233,6 +383,8 @@ def _sampler(source: str) -> None:
             except RuntimeError:
                 return  # playback ended under us
 
+            before = (probe.reads_served, probe.bytes_served, probe.vfs_seconds)
+            started = time.monotonic()
             try:
                 bars = probe.measure(seconds)
             except borderprobe.BorderProbeError as exc:
@@ -241,13 +393,34 @@ def _sampler(source: str) -> None:
                 # failure clock deliberately survives the restart: a helper
                 # that dies on every measurement could otherwise be restarted
                 # forever without ever reaching the timeout.
+                elapsed = time.monotonic() - started
                 probe.close()
                 probe = None
+                stable = 0   # nothing was confirmed, so keep retrying briskly
                 with _lock:
+                    if _generation != generation:
+                        return
                     if _record_failure(exc):
                         return
             else:
+                elapsed = time.monotonic() - started
+                queries += 1
+                if queries == 1 or queries % _STATS_EVERY == 0:
+                    reads = probe.reads_served - before[0]
+                    served = probe.bytes_served - before[1]
+                    vfs = probe.vfs_seconds - before[2]
+                    _log(
+                        f"L5 live: query {queries} took {elapsed * 1000:.0f} ms, "
+                        f"{vfs * 1000:.0f} ms of it serving {reads} reads "
+                        f"({served / 1048576.0:.1f} MB) out of Kodi's VFS",
+                        xbmc.LOGINFO,
+                    )
+
+                first = False
+                changed = False
                 with _lock:
+                    if _generation != generation:
+                        return
                     _failure_since = None
                     # None means the helper had nothing for this position -- a
                     # fade to black, a shot too dark to judge.  Hold the last
@@ -255,37 +428,128 @@ def _sampler(source: str) -> None:
                     # one.
                     if bars is not None:
                         first = _measurement is None
+                        changed = bars != _measurement
                         _measurement = bars
 
                 if bars is None:
                     unmeasurable += 1
+                    # A picture that cannot be judged is not a picture that has
+                    # changed.  Counting it as settled keeps a reel of dark
+                    # scenes from holding the fast cadence for its whole length,
+                    # measuring nothing at full price.
+                    stable += 1
                     if unmeasurable == _UNMEASURABLE_REPORT_AFTER:
                         _log(f"L5 live: nothing measurable in the picture "
                              f"({probe.last_none_reason}) after {unmeasurable} "
                              "tries; holding the static value", xbmc.LOGINFO)
                 else:
                     unmeasurable = 0
+                    stable = 0 if changed else stable + 1
                     if first:
                         _log("L5 live: measured "
                              + " | ".join(str(v) for v in bars), xbmc.LOGINFO)
 
-            if monitor.waitForAbort(_SAMPLE_INTERVAL):
+            # Fast while the framing is moving, slow once it has stopped; a
+            # single changed reading puts it straight back on the fast cadence.
+            settled = stable >= _SETTLE_AFTER
+            wait = _SETTLE_INTERVAL if settled else _SAMPLE_INTERVAL
+
+            # ...and then held to the duty cycle, which is what actually decides
+            # the rate on a file where a query is expensive.  An interval is a
+            # guess; this is measured.
+            duty_wait = elapsed * (1.0 / _MAX_DUTY - 1.0)
+            if duty_wait > wait:
+                if not throttled:
+                    throttled = True
+                    _log(f"L5 live: a query costs {elapsed * 1000:.0f} ms here, "
+                         f"so measuring every {duty_wait:.1f} s to stay within "
+                         f"{_MAX_DUTY:.0%} of a core", xbmc.LOGINFO)
+                wait = duty_wait
+
+            if monitor.waitForAbort(wait):
                 return
     finally:
         if probe is not None:
             probe.close()
         with _lock:
-            _thread = None
+            # Only if it is still us: a later sampler may already have claimed
+            # the slot, and clearing it then would let a third start alongside.
+            if _thread is threading.current_thread():
+                _thread = None
+
+
+def _claim_locked(path: str) -> bool:
+    """Adopt *path* as the file being measured and register interest in it.
+
+    Registering interest is what keeps the sampler measuring: it stops when
+    nothing has claimed a reading for _IDLE_TIMEOUT.  Returns False when
+    detection has given up on this file, in which case there is nothing to wait
+    for.  Call under the lock.
+    """
+    global _path, _pending_since, _last_request
+
+    if path != _path:
+        _clear_locked()
+        _path = path
+        _pending_since = time.monotonic()
+    if _disabled:
+        return False
+    _last_request = time.monotonic()
+    return True
+
+
+def prime_live_detection() -> bool:
+    """Start measuring the playing file before anything asks to see the result.
+
+    Called from the background service at playback start, for the same reason
+    hdrprobe is primed there: the slow part is opening the container, and doing
+    it while the film gets going means the row has a real number in it the first
+    time the overlay is opened, rather than a placeholder and a wait.
+
+    Returns True when a sampler was started.  A no-op when detection is off,
+    when nothing is playing, or when this file has already been measured.
+
+    The sampler this starts is bound by the same idle rules as any other, so a
+    film nobody ever opens the overlay on stops decoding after _IDLE_TIMEOUT and
+    releases the helper after _KEEPALIVE_TIMEOUT.  Priming buys the first launch
+    within that window; it does not leave anything running for the whole film.
+    """
+    if not live_detection_enabled():
+        return False
+
+    try:
+        path = xbmc.Player().getPlayingFile()
+    except RuntimeError:
+        return False
+    if not path:
+        return False
+
+    with _lock:
+        if not _claim_locked(path):
+            return False
+        if _measurement is not None:
+            return False
+
+    _ensure_sampler(path)
+    return True
 
 
 def _ensure_sampler(source: str) -> None:
-    """Start the sampler thread unless one is already running."""
+    """Start the sampler thread unless one is already running.
+
+    Only ever one at a time: two would mean two helper processes, and a helper
+    is not a cheap thing to hold in duplicate.  A sampler left over from the
+    previous file therefore delays the new one until it notices it is stale,
+    which it does at the top of its loop -- promptly when it is idling, and
+    after at most one query when it is measuring.
+    """
     global _thread
 
     with _lock:
         if _thread is not None and _thread.is_alive():
             return
-        _thread = threading.Thread(target=_sampler, args=(source,), daemon=True)
+        _thread = threading.Thread(
+            target=_sampler, args=(source, _generation), daemon=True)
         _thread.start()
 
 
@@ -322,7 +586,8 @@ def _hold_sides(static: str, measured: str) -> str:
 
     window = xbmcgui.Window(10000)
     known = None
-    if window.getProperty(_SIDES_PATH_PROPERTY) == path:
+    stored = window.getProperty(_SIDES_PATH_PROPERTY) == path
+    if stored:
         try:
             known = int(window.getProperty(_SIDES_PROPERTY))
         except ValueError:
@@ -336,8 +601,14 @@ def _hold_sides(static: str, measured: str) -> str:
     if known is not None:
         side = min(side, known)
 
-    window.setProperty(_SIDES_PATH_PROPERTY, path)
-    window.setProperty(_SIDES_PROPERTY, str(side))
+    # Only when it actually moves.  This runs on the overlay's fast refresh, and
+    # on a settled film the answer is the same every time; a window property
+    # write is not free on the skin side, which re-evaluates whatever is bound
+    # to it.  The path is part of the test so a new file still records its own
+    # value even when that value happens to match the previous file's.
+    if not stored or side != known:
+        window.setProperty(_SIDES_PATH_PROPERTY, path)
+        window.setProperty(_SIDES_PROPERTY, str(side))
 
     return " | ".join(str(value) for value in (side, side, bars[2], bars[3]))
 
@@ -426,8 +697,6 @@ def live_l5_offsets() -> str:
     Never blocks: the reading is whatever the sampler thread last measured, and
     calling this is what keeps that thread alive.
     """
-    global _path, _pending_since, _last_request
-
     if not live_detection_enabled():
         return ""
 
@@ -439,13 +708,8 @@ def live_l5_offsets() -> str:
         return ""
 
     with _lock:
-        if path != _path:
-            _clear_locked()
-            _path = path
-            _pending_since = time.monotonic()
-        if _disabled:
+        if not _claim_locked(path):
             return ""
-        _last_request = time.monotonic()
         reading = _measurement
 
     _ensure_sampler(path)
