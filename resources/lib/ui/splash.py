@@ -24,7 +24,7 @@ import xbmcvfs
 from core.images import display_texture
 from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
-from info.dvinfo import get_hdr_format
+from info.dvinfo import get_dv_el_type_raw, get_hdr_format
 from ui.theme import apply_theme
 
 _ADDON      = xbmcaddon.Addon()
@@ -52,6 +52,9 @@ _DIVIDER_COLOR  = "59FFFFFF"
 # _is_converting / PROP_CONVERTING below).
 _DOT_TEXTURE       = os.path.join("common", "dot-circle.png")
 _CONVERT_DOT_COLOR = "FF81C784"  # palette Forest
+# Dolby Vision layer-indicator pill, centred on the panel's bottom edge (see
+# _dv_layer_token below).
+_PILL_TEXTURE = os.path.join("common", "pill.png")
 _CORNER_TEXTURES = {
     "tl": os.path.join("splash", "corner-tl.png"),
     "tr": os.path.join("splash", "corner-tr.png"),
@@ -78,6 +81,9 @@ _COLOR_PROP_SUFFIX = {
     "audio":       "AudioColor",
     "divider":     "DividerColor",
     "convert_dot": "ConvertDotColor",
+    "fel":         "FelColor",
+    "mel":         "MelColor",
+    "other":       "DvColor",
 }
 
 # Controller poll interval (seconds).
@@ -137,6 +143,39 @@ def _is_converting() -> bool:
     if hdr_or_dv_source and "SDR" in gamut:
         return True
     return bool(sdr_or_dv_source and mode == "HDR10")
+
+
+# Dolby Vision layer-indicator pill: which enhancement-layer bucket the current
+# source falls into, themed independently per context (FEL forest, MEL
+# tangerine, any other DV profile white by default -- see theme.py / the
+# "fel" / "mel" / "other" keys _mode_colors adds to every mode's colour dict).
+_LAYER_COLOR_FALLBACK = {
+    "fel":   "FF81C784",  # palette Forest
+    "mel":   "FFFFB74D",  # palette Tangerine
+    "other": "FFEDEDED",  # palette White
+}
+
+
+def _dv_layer_token() -> str:
+    """Classify the current source into a layer-indicator pill token.
+
+    ``'fel'`` / ``'mel'`` for a Dolby Vision source with that enhancement
+    layer, ``'other'`` for any other Dolby Vision profile (e.g. 5, 8.1), or
+    ``''`` when the source is not (yet known to be) Dolby Vision, or it is but
+    the actual output has been converted away from Dolby Vision (e.g. down to
+    HDR10 or SDR) -- the pill only claims a layer type that is genuinely on
+    screen, and is omitted for ``''``.
+    """
+    if "dolby" not in get_hdr_format():
+        return ""
+    if _amlogic_hdr_token() != "dolbyvision":
+        return ""
+    el_type = get_dv_el_type_raw().upper()
+    if el_type == "FEL":
+        return "fel"
+    if el_type == "MEL":
+        return "mel"
+    return "other"
 
 
 # Per-mode horizontal / vertical offset settings (priority when several are
@@ -254,7 +293,7 @@ def _panel_controls(
 def _build_controls(
     logos: list[str], colors: dict[str, str],
     offset_x: int, offset_y: int, screen_w: int, screen_h: int,
-    user_scale: float = 1.0,
+    user_scale: float = 1.0, layer_token: str = "",
 ) -> tuple[list[xbmcgui.ControlImage], xbmcgui.ControlImage | None]:
     """Lay out the logos as a vertical stack, sized to the skin.
 
@@ -264,7 +303,9 @@ def _build_controls(
     ``user_scale`` resizes it.  A rounded panel is drawn first (behind the
     logos); it and the divider are shown/hidden purely by their themed opacity.
     ``colors`` supplies the ARGB tints keyed by ``bg`` / ``video`` / ``audio`` /
-    ``divider`` / ``convert_dot``.
+    ``divider`` / ``convert_dot`` / ``fel`` / ``mel`` / ``other``.  ``layer_token``
+    (``'fel'`` / ``'mel'`` / ``'other'`` / ``''``) selects the Dolby Vision
+    layer-indicator pill's colour, or omits the pill entirely when ``''``.
 
     Returns ``(controls, dot)``: ``dot`` is the conversion-indicator badge
     (also included in ``controls``, for add/remove/fade purposes), so the
@@ -329,6 +370,18 @@ def _build_controls(
     dot = _make_dot(dot_cx, dot_cy, dot_d, colors["convert_dot"])
     controls.append(dot)
 
+    # Dolby Vision layer-indicator pill, centred on the panel's bottom edge
+    # (FEL / MEL / any other DV profile); omitted for non-DV sources.
+    if layer_token in ("fel", "mel", "other"):
+        pill_w      = max(1, int(box_w * 0.30))
+        pill_h      = max(1, int(box_h * 0.15))
+        pill_margin = max(1, int(box_h * 0.10))
+        pill_x = panel_x + (panel_w - pill_w) // 2
+        pill_y = panel_y + panel_h - pill_margin - pill_h
+        controls.append(
+            _make_image(_PILL_TEXTURE, pill_x, pill_y, pill_w, pill_h, colors[layer_token])
+        )
+
     return controls, dot
 
 
@@ -358,7 +411,8 @@ def _read_triggers(addon) -> tuple[bool, bool, bool]:
 
 
 def _mode_colors(home, mode: str) -> dict[str, str]:
-    """Read *mode*'s bg / video / audio / divider / convert_dot tints off *home*.
+    """Read *mode*'s bg / video / audio / divider / convert_dot / fel / mel /
+    other tints off *home*.
 
     Call after ``apply_theme`` has published the themed properties; falls back to
     the pre-theme defaults if a property is somehow missing.
@@ -370,6 +424,7 @@ def _mode_colors(home, mode: str) -> dict[str, str]:
         "audio":       _LOGO_COLOR,
         "divider":     _DIVIDER_COLOR,
         "convert_dot": _CONVERT_DOT_COLOR,
+        **_LAYER_COLOR_FALLBACK,
     }
     return {
         key: home.getProperty(prefix + _COLOR_PROP_SUFFIX[key]) or fallback[key]
@@ -578,6 +633,7 @@ def open_splash() -> None:
                         # Publish every themed colour once, then read each
                         # context's own tints back so they stay independent.
                         apply_theme(home, addon)
+                        layer_token = _dv_layer_token()
                         for mode in modes:
                             colors = _mode_colors(home, mode)
                             colors_by_mode[mode] = colors
@@ -589,6 +645,7 @@ def open_splash() -> None:
                                 _mode_scale(addon, mode),
                                 tuple(sorted(colors.items())),
                                 _visible_condition(mode, show_on_osd),
+                                layer_token,
                             )
 
             remove_modes = [
@@ -611,7 +668,7 @@ def open_splash() -> None:
                     _fade_out(video_window, home, monitor, mode, controls_by_mode[mode])
                 controls, dot = _build_controls(
                     list(desired[0]), colors_by_mode[mode], desired[1], desired[2],
-                    screen_w, screen_h, desired[3],
+                    screen_w, screen_h, desired[3], desired[6],
                 )
                 controls_by_mode[mode] = controls
                 states[mode] = desired

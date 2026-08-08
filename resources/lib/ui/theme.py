@@ -167,6 +167,12 @@ _DEFAULT_COLOR_INDEX = {
     "splash_start_convert_dot_color":   "34",  # Forest
     "splash_osd_convert_dot_color":     "34",  # Forest
     "splash_tinyppi_convert_dot_color": "34",  # Forest
+    "splash_start_fel_color":   "34",  # Forest
+    "splash_osd_fel_color":     "34",  # Forest
+    "splash_tinyppi_fel_color": "34",  # Forest
+    "splash_start_mel_color":   "31",  # Tangerine
+    "splash_osd_mel_color":     "31",  # Tangerine
+    "splash_tinyppi_mel_color": "31",  # Tangerine
 }
 
 # Custom HEX colors (8-digit ARGB), keyed by setting id, persisted as JSON in
@@ -266,6 +272,17 @@ _DEFAULT_OPACITIES = {
     "splash_osd_divider_color":     35,
     "splash_tinyppi_bg_color":      98,
     "splash_tinyppi_divider_color": 35,
+    # Dolby Vision layer-indicator pill: FEL/MEL fully opaque, any other DV
+    # profile faint, out of the box.
+    "splash_start_fel_color":   100,
+    "splash_start_mel_color":   100,
+    "splash_start_dv_color":    20,
+    "splash_osd_fel_color":     100,
+    "splash_osd_mel_color":     100,
+    "splash_osd_dv_color":      20,
+    "splash_tinyppi_fel_color": 100,
+    "splash_tinyppi_mel_color": 100,
+    "splash_tinyppi_dv_color":  20,
 }
 
 
@@ -335,16 +352,27 @@ _THEME_PROPERTIES = (
     ("TinyPPI.SplashStartAudioColor",     _TEXT_COLORS,       "splash_start_audio_color"),
     ("TinyPPI.SplashStartDividerColor",   _TEXT_COLORS,       "splash_start_divider_color"),
     ("TinyPPI.SplashStartConvertDotColor", _TEXT_COLORS,      "splash_start_convert_dot_color"),
+    # Dolby Vision layer-indicator pill: one colour per FEL / MEL / other-profile
+    # bucket, independent per context like the rest of the codec-logo tints.
+    ("TinyPPI.SplashStartFelColor", _TEXT_COLORS, "splash_start_fel_color"),
+    ("TinyPPI.SplashStartMelColor", _TEXT_COLORS, "splash_start_mel_color"),
+    ("TinyPPI.SplashStartDvColor",  _TEXT_COLORS, "splash_start_dv_color"),
     ("TinyPPI.SplashOsdBgColor",          _BACKGROUND_COLORS, "splash_osd_bg_color"),
     ("TinyPPI.SplashOsdVideoColor",       _TEXT_COLORS,       "splash_osd_video_color"),
     ("TinyPPI.SplashOsdAudioColor",       _TEXT_COLORS,       "splash_osd_audio_color"),
     ("TinyPPI.SplashOsdDividerColor",     _TEXT_COLORS,       "splash_osd_divider_color"),
     ("TinyPPI.SplashOsdConvertDotColor",  _TEXT_COLORS,       "splash_osd_convert_dot_color"),
+    ("TinyPPI.SplashOsdFelColor", _TEXT_COLORS, "splash_osd_fel_color"),
+    ("TinyPPI.SplashOsdMelColor", _TEXT_COLORS, "splash_osd_mel_color"),
+    ("TinyPPI.SplashOsdDvColor",  _TEXT_COLORS, "splash_osd_dv_color"),
     ("TinyPPI.SplashTinyppiBgColor",      _BACKGROUND_COLORS, "splash_tinyppi_bg_color"),
     ("TinyPPI.SplashTinyppiVideoColor",   _TEXT_COLORS,       "splash_tinyppi_video_color"),
     ("TinyPPI.SplashTinyppiAudioColor",   _TEXT_COLORS,       "splash_tinyppi_audio_color"),
     ("TinyPPI.SplashTinyppiDividerColor", _TEXT_COLORS,       "splash_tinyppi_divider_color"),
     ("TinyPPI.SplashTinyppiConvertDotColor", _TEXT_COLORS,    "splash_tinyppi_convert_dot_color"),
+    ("TinyPPI.SplashTinyppiFelColor", _TEXT_COLORS, "splash_tinyppi_fel_color"),
+    ("TinyPPI.SplashTinyppiMelColor", _TEXT_COLORS, "splash_tinyppi_mel_color"),
+    ("TinyPPI.SplashTinyppiDvColor",  _TEXT_COLORS, "splash_tinyppi_dv_color"),
     # Channel layout: the DV panel background, the speaker layout graphic behind
     # the channels, and the active channels themselves.
     ("TinyPPI.ChannelBackgroundColor", _BACKGROUND_COLORS, "channel_background_color"),

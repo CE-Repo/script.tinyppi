@@ -1147,3 +1147,27 @@ msgstr "مؤشر التحويل"
 msgctxt "#32368"
 msgid "Color of the dot shown on the video-format logo while a conversion is active."
 msgstr "لون النقطة المعروضة على شعار صيغة الفيديو أثناء تفعيل تحويل."
+
+msgctxt "#32369"
+msgid "FEL indicator"
+msgstr "مؤشر FEL"
+
+msgctxt "#32370"
+msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision FEL."
+msgstr "لون الشريط المعروض أسفل شعار البداية عندما يكون المصدر Dolby Vision FEL."
+
+msgctxt "#32371"
+msgid "MEL indicator"
+msgstr "مؤشر MEL"
+
+msgctxt "#32372"
+msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision MEL."
+msgstr "لون الشريط المعروض أسفل شعار البداية عندما يكون المصدر Dolby Vision MEL."
+
+msgctxt "#32373"
+msgid "Other Dolby Vision"
+msgstr "دولبي فيجن آخر"
+
+msgctxt "#32374"
+msgid "Color of the pill shown at the bottom of the splash logo for any other Dolby Vision profile (no enhancement layer)."
+msgstr "لون الشريط المعروض أسفل شعار البداية لأي ملف تعريف آخر من دولبي فيجن (بدون طبقة تحسين)."

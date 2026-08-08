@@ -1246,6 +1246,17 @@ def get_dv_el_type() -> str:
     return _colourise_el_tag(value)
 
 
+def get_dv_el_type_raw() -> str:
+    """Return the enhancement-layer type (``FEL`` / ``MEL``), or the plain
+    profile number when there is no EL, uncoloured; '' when unknown.
+
+    Unlike ``get_dv_el_type``, this carries no ``[COLOR]`` wrapper, for callers
+    that theme it themselves (e.g. the splash's Dolby Vision layer-indicator
+    pill, one colour per FEL / MEL / other-profile bucket)."""
+    value, _status = _get_info_status_value("dv_el_type")
+    return value
+
+
 def get_bit_depth() -> str:
     """Return the source bit depth as a bare number string (e.g. ``12``);
     FEL uses the reconstructed depth, others the container depth."""
