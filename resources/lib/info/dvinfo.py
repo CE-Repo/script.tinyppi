@@ -162,20 +162,32 @@ def _empty_info() -> dict[str, str]:
     return dict.fromkeys(_CACHE_FIELD_PROPERTIES, "")
 
 
-def _read_cached_info(path: str, session_token: str) -> dict[str, str] | None:
-    """Return the completed playback cache for ``path``, if available."""
+def _cache_is_current(window, path: str, session_token: str) -> bool:
+    """Return whether the window cache holds a completed result for ``path``."""
+    return (
+        window.getProperty(_CACHE_READY_PROPERTY) == "true"
+        and window.getProperty(_CACHE_RESULT_SESSION_PROPERTY) == session_token
+        and window.getProperty(_CACHE_PATH_PROPERTY) == path
+    )
+
+
+def _read_cached_field(path: str, session_token: str, key: str) -> str | None:
+    """Return one cached field for ``path``, or None when the cache is not current.
+
+    None means "no completed result to read"; ``''`` means the result is there
+    and this field is empty, which is a different answer and drives a different
+    label.
+
+    Reading the one field rather than the whole result matters because callers
+    ask for a single one at a time: rebuilding the seventeen-field dict on each
+    of them turned a poll of the overlay into several hundred window-property
+    reads, and the L5 row alone is refreshed several times a second.
+    """
     window = _cache_window()
-    if window.getProperty(_CACHE_READY_PROPERTY) != "true":
-        return None
-    if window.getProperty(_CACHE_RESULT_SESSION_PROPERTY) != session_token:
-        return None
-    if window.getProperty(_CACHE_PATH_PROPERTY) != path:
+    if not _cache_is_current(window, path, session_token):
         return None
 
-    return {
-        key: window.getProperty(property_name)
-        for key, property_name in _CACHE_FIELD_PROPERTIES.items()
-    }
+    return window.getProperty(_CACHE_FIELD_PROPERTIES[key])
 
 
 def _write_cached_info(
@@ -1090,7 +1102,7 @@ def prime_playback_detection() -> bool:
         return False
 
     session_token = _session_token()
-    if _read_cached_info(path, session_token) is not None:
+    if _cache_is_current(_cache_window(), path, session_token):
         return False
 
     return _start_worker(path, session_token)
@@ -1111,9 +1123,8 @@ def _get_info_status_value(key: str) -> tuple[str, str]:
         return "", ""
 
     session_token = _session_token()
-    cached_info = _read_cached_info(path, session_token)
-    if cached_info is not None:
-        value = cached_info.get(key, "")
+    value = _read_cached_field(path, session_token, key)
+    if value is not None:
         return value, "ready" if value else "failed"
 
     _start_worker(path, session_token)

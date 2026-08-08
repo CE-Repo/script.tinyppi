@@ -19,7 +19,7 @@ from core.utils import (
     set_window_properties,
 )
 from info import properties
-from info.cropdetect import reset_live_detection
+from info.cropdetect import retry_live_detection
 from ui import fonts  # noqa: F401  imported for its install-fonts-on-import side effect
 from ui.theme import apply_theme
 
@@ -354,11 +354,14 @@ def open_tinyppi() -> None:
 
     elements_visible = _elements_visible()
     live_offsets_enabled = _ADDON.getSetting("l5_live_detect") == "true"
-    # Every opening starts detection over: a film that never got a measurement
-    # in an earlier session of the overlay (or that changed framing since) gets
-    # a fresh attempt instead of staying stuck on whatever the last session
-    # settled on.
-    reset_live_detection()
+    # Every opening gives detection a fresh chance: a film it gave up on -- a
+    # helper that would not start, a stream it could not open -- gets another
+    # attempt rather than staying written off for the rest of playback.  What
+    # this deliberately does *not* do is discard a measurement that already
+    # exists, or the helper behind it; both still describe the file that is
+    # still playing, and throwing them away made every launch pay the container
+    # open again.
+    retry_live_detection()
     xbmc.log(
         f"TinyPPI: Live active offsets "
         f"{'enabled' if live_offsets_enabled else 'disabled'}",

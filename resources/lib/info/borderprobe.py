@@ -55,21 +55,32 @@ _MAX_READ = 32 << 20
 # second or two while libavformat pulls the index.
 _TIMEOUT_SECONDS = 20.0
 
-# Options the server is started with.  borderprobe's own defaults are tuned for
-# a one-shot measurement, where decoding three frames and publishing the
-# per-edge median costs nothing anyone waits for.  Held open and polled twice a
-# second, that median is the expensive part of every query, and it is also the
-# least necessary: a reading that survives is one the next poll confirms half a
-# second later, and the server's hysteresis already refuses to republish a
-# reading that has barely moved.  Two frames keeps a frame-level cross-check
-# against a single odd decode while measurably cutting both the time and the
-# bytes a query costs -- on a 2160p HEVC remux, roughly 130 ms and 2.6 MB down
-# to 68 ms and 2.1 MB.
+# Options the server is started with.
+#
+# --threads is the one that matters for load.  FFmpeg's default is to take a
+# decoder thread per core, so every query briefly ran the whole box up: two
+# frames of 2160p HEVC is a modest amount of work, but spread over four cores it
+# lands as a spike, and it lands twice a second next to a video that is already
+# playing.  Nothing waits on a query -- the sampler publishes into a value the
+# overlay reads whenever it next looks -- so the longer wall time a capped
+# decoder takes is free, and the peak it no longer causes is not.
+#
+# --frames is left at the helper's own default of three.  An earlier version
+# asked for two to pay for a twice-a-second sample interval; cropdetect now
+# backs off to a slow cadence once the framing has settled instead, which is a
+# far larger saving, and at that cadence the third frame's contribution to the
+# per-edge median is worth what it costs.
 #
 # --accurate is deliberately not used.  It would drop the keyframe lag by
 # decoding forward to the exact position, but it costs about three times a
 # plain query, which buys less than it spends on the Amlogic boxes this runs on.
-_PROBE_OPTIONS = ("--frames", "2")
+#
+# --recycle-decoder is deliberately not used either.  It would cut the helper
+# from roughly 190 MB resident to 12 MB on 4K HEVC, but at about twice the CPU
+# per query, which is the one thing this configuration is trying not to spend.
+# cropdetect bounds the memory by closing the helper once nothing has read a
+# value for a while instead -- see _KEEPALIVE_TIMEOUT there.
+_PROBE_OPTIONS = ("--threads", "2")
 
 
 def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
@@ -200,7 +211,12 @@ class _Probe:
         except Exception:
             return -1
 
-    def _write(self, data: bytes) -> None:
+    def _write(self, data) -> None:
+        """Write one buffer to the helper's stdin.
+
+        Takes any bytes-like object so a VFS read can go out without being
+        converted first; the pipe is blocking, so a write transfers in full.
+        """
         try:
             self._proc.stdin.write(data)
             self._proc.stdin.flush()
@@ -243,7 +259,12 @@ class _Probe:
         if self._vfs is not None:
             try:
                 self._vfs.seek(offset, 0)
-                data = bytes(self._vfs.readBytes(length))
+                # Left as whatever readBytes hands back (a bytearray) and
+                # written straight out.  A query pulls a couple of megabytes
+                # through here several times a minute, and every conversion on
+                # the way is a full copy of that made under the GIL, in the same
+                # interpreter the overlay's own polling loop runs in.
+                data = self._vfs.readBytes(length)
             except Exception as exc:
                 # A short read is end of file; a failed one is not, but both
                 # leave us with nothing to send.  Zero bytes is the protocol's
@@ -251,7 +272,12 @@ class _Probe:
                 _log(f"borderprobe: read at {offset} failed: {exc}")
                 data = b""
 
-        self._write(b"DATA %d\n" % len(data) + data)
+        # Header and payload go out as two writes rather than one concatenated
+        # buffer, for the same reason: joining them would copy the payload
+        # again.  The pipe is blocking, so each write transfers in full.
+        self._write(b"DATA %d\n" % len(data))
+        if data:
+            self._write(data)
 
     def _exchange(self, command: str) -> str:
         """Send a command and return its reply, serving reads along the way."""
