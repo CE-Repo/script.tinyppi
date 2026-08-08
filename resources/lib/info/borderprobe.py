@@ -33,10 +33,12 @@ until a real reply shows up.  Answering out of order, or reading the pipe
 anywhere else, deadlocks both sides.
 """
 
+import io
 import os
 import queue
 import subprocess
 import threading
+import time
 
 import xbmc
 import xbmcaddon
@@ -57,19 +59,20 @@ _TIMEOUT_SECONDS = 20.0
 
 # Options the server is started with.
 #
-# --threads is the one that matters for load.  FFmpeg's default is to take a
-# decoder thread per core, so every query briefly ran the whole box up: two
-# frames of 2160p HEVC is a modest amount of work, but spread over four cores it
-# lands as a spike, and it lands twice a second next to a video that is already
-# playing.  Nothing waits on a query -- the sampler publishes into a value the
-# overlay reads whenever it next looks -- so the longer wall time a capped
-# decoder takes is free, and the peak it no longer causes is not.
+# --threads 1 is what makes the load measurable, which is what makes it
+# controllable.  FFmpeg's default is a decoder thread per core, so a query
+# briefly took the whole box and its wall time said nothing about what it had
+# cost.  On one thread the wall time of a query is very nearly its CPU time, and
+# cropdetect times every query and paces itself by the result (see _MAX_DUTY
+# there) -- so the helper is held to a known share of one core instead of an
+# assumed share of an unknown number of them.  Nothing waits on a query, so the
+# longer each one now takes costs nobody anything.
 #
-# --frames is left at the helper's own default of three.  An earlier version
-# asked for two to pay for a twice-a-second sample interval; cropdetect now
-# backs off to a slow cadence once the framing has settled instead, which is a
-# far larger saving, and at that cadence the third frame's contribution to the
-# per-edge median is worth what it costs.
+# --frames 2 rather than the helper's default of three, for the same reason it
+# was chosen before: it keeps a frame-level cross-check against a single odd
+# decode while measurably cutting what a query costs -- and under a duty cycle a
+# cheaper query is not just cheaper, it is one the sampler can afford to make
+# more often.
 #
 # --accurate is deliberately not used.  It would drop the keyframe lag by
 # decoding forward to the exact position, but it costs about three times a
@@ -80,7 +83,7 @@ _TIMEOUT_SECONDS = 20.0
 # per query, which is the one thing this configuration is trying not to spend.
 # cropdetect bounds the memory by closing the helper once nothing has read a
 # value for a while instead -- see _KEEPALIVE_TIMEOUT there.
-_PROBE_OPTIONS = ("--threads", "2")
+_PROBE_OPTIONS = ("--threads", "1", "--frames", "2")
 
 
 def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
@@ -151,10 +154,21 @@ class _Probe:
     def __init__(self, binary: str, source: str):
         self._vfs = None
         self._proc = None
+        self._stdout = None
         self._lines: queue.Queue = queue.Queue()
         # Why the last NONE was returned ("too-dark", say).  Kept so the caller
         # can say what the helper is doing, rather than only that it is quiet.
         self.last_none_reason = ""
+
+        # Running totals, for the caller to difference across one query.  What
+        # they are for: a query's wall time says the feature is expensive, but
+        # not where the expense is.  These separate the two candidates -- bytes
+        # hauled out of Kodi's VFS on our thread, against everything the helper
+        # does on its own -- which on a file over a share are not remotely the
+        # same size, and are not fixed by the same thing.
+        self.reads_served = 0
+        self.bytes_served = 0
+        self.vfs_seconds = 0.0
 
         flags = 0
         if os.name == "nt":  # keep a console window from flashing up on dev boxes
@@ -171,6 +185,15 @@ class _Probe:
             )
         except OSError as exc:
             raise BorderProbeError(f"cannot start borderprobe: {exc}") from exc
+
+        # bufsize=0 above is for stdin, where a buffer would sit between us and
+        # a helper waiting on a reply.  stdout must not inherit it: a raw stream
+        # has no readline of its own, so the generic one falls back to reading a
+        # single byte per syscall, and every "READ <offset> <length>" the helper
+        # sends -- hundreds of them for one query on a network file -- was being
+        # picked up a character at a time.  A buffer in front of it makes that
+        # one read.
+        self._stdout = io.BufferedReader(self._proc.stdout)
 
         # stdout carries nothing but text lines -- the binary payload travels
         # the other way, on stdin -- so it can safely be pumped into a queue.
@@ -226,7 +249,7 @@ class _Probe:
     def _pump(self) -> None:
         """Feed stdout lines to _readline until the helper closes it."""
         try:
-            for raw in iter(self._proc.stdout.readline, b""):
+            for raw in iter(self._stdout.readline, b""):
                 self._lines.put(raw)
         except (OSError, ValueError):
             pass  # the pipe went away; the None below says so
@@ -256,6 +279,7 @@ class _Probe:
             raise BorderProbeError(f"refusing a {length}-byte read")
 
         data = b""
+        started = time.monotonic()
         if self._vfs is not None:
             try:
                 self._vfs.seek(offset, 0)
@@ -271,6 +295,10 @@ class _Probe:
                 # end-of-file answer and stops the helper cleanly either way.
                 _log(f"borderprobe: read at {offset} failed: {exc}")
                 data = b""
+
+        self.vfs_seconds += time.monotonic() - started
+        self.reads_served += 1
+        self.bytes_served += len(data)
 
         # Header and payload go out as two writes rather than one concatenated
         # buffer, for the same reason: joining them would copy the payload
@@ -324,11 +352,14 @@ class _Probe:
                     self._proc.wait(timeout=2)
                 except Exception:
                     pass
-            for stream in (self._proc.stdin, self._proc.stdout):
+            for stream in (self._proc.stdin, self._stdout, self._proc.stdout):
+                if stream is None:
+                    continue
                 try:
                     stream.close()
                 except Exception:
                     pass
+            self._stdout = None
             self._proc = None
 
         if self._vfs is not None:

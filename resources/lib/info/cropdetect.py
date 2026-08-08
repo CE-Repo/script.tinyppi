@@ -101,6 +101,29 @@ _SAMPLE_INTERVAL = 1.0
 _SETTLE_INTERVAL = 3.0
 _SETTLE_AFTER = 6
 
+# The ceiling that does not depend on any of the above being right.
+#
+# The intervals are a guess about what a query costs, and a guess is a bad thing
+# to have between a user's box and a decoder: the same query is milliseconds on
+# a local file and seconds on a 4K remux over a busy share, and picking one
+# number for both means picking a number that is wrong on one of them.  So the
+# rate is not set by the interval alone.  Each query is timed, and the wait
+# after it is stretched until the time spent measuring is at most this share of
+# the time that has passed.
+#
+# With the helper capped at a single decoder thread (see _PROBE_OPTIONS), the
+# wall time of a query is very nearly its CPU time, so this is a direct bound:
+# the feature cannot cost more than about a seventh of one core, whatever the
+# file, the network or the box.  A query that costs more simply happens less
+# often -- a measurement every ten seconds still follows an IMAX transition,
+# which lasts minutes, and it is what an expensive file can afford.
+_MAX_DUTY = 0.15
+
+# Report timings this often.  The first query is always reported, because the
+# first one is the one that says whether this file is cheap or expensive, and
+# what the answer is made of.
+_STATS_EVERY = 25
+
 # Stop measuring once nothing has read a value for this long: the sampler exists
 # to serve the overlay, and the overlay closing is what should end the decoding.
 _IDLE_TIMEOUT = 3.0
@@ -296,6 +319,8 @@ def _sampler(source: str, generation: int) -> None:
     probe = None
     unmeasurable = 0   # consecutive "nothing measurable" answers
     stable = 0         # consecutive readings that told us nothing new
+    queries = 0        # completed measurements, for the timing report
+    throttled = False  # whether the duty cycle has already been reported
 
     if not borderprobe.binary_path():
         # The binary is either shipped or it is not; unlike a file that is slow
@@ -358,6 +383,8 @@ def _sampler(source: str, generation: int) -> None:
             except RuntimeError:
                 return  # playback ended under us
 
+            before = (probe.reads_served, probe.bytes_served, probe.vfs_seconds)
+            started = time.monotonic()
             try:
                 bars = probe.measure(seconds)
             except borderprobe.BorderProbeError as exc:
@@ -366,6 +393,7 @@ def _sampler(source: str, generation: int) -> None:
                 # failure clock deliberately survives the restart: a helper
                 # that dies on every measurement could otherwise be restarted
                 # forever without ever reaching the timeout.
+                elapsed = time.monotonic() - started
                 probe.close()
                 probe = None
                 stable = 0   # nothing was confirmed, so keep retrying briskly
@@ -375,6 +403,19 @@ def _sampler(source: str, generation: int) -> None:
                     if _record_failure(exc):
                         return
             else:
+                elapsed = time.monotonic() - started
+                queries += 1
+                if queries == 1 or queries % _STATS_EVERY == 0:
+                    reads = probe.reads_served - before[0]
+                    served = probe.bytes_served - before[1]
+                    vfs = probe.vfs_seconds - before[2]
+                    _log(
+                        f"L5 live: query {queries} took {elapsed * 1000:.0f} ms, "
+                        f"{vfs * 1000:.0f} ms of it serving {reads} reads "
+                        f"({served / 1048576.0:.1f} MB) out of Kodi's VFS",
+                        xbmc.LOGINFO,
+                    )
+
                 first = False
                 changed = False
                 with _lock:
@@ -411,7 +452,21 @@ def _sampler(source: str, generation: int) -> None:
             # Fast while the framing is moving, slow once it has stopped; a
             # single changed reading puts it straight back on the fast cadence.
             settled = stable >= _SETTLE_AFTER
-            if monitor.waitForAbort(_SETTLE_INTERVAL if settled else _SAMPLE_INTERVAL):
+            wait = _SETTLE_INTERVAL if settled else _SAMPLE_INTERVAL
+
+            # ...and then held to the duty cycle, which is what actually decides
+            # the rate on a file where a query is expensive.  An interval is a
+            # guess; this is measured.
+            duty_wait = elapsed * (1.0 / _MAX_DUTY - 1.0)
+            if duty_wait > wait:
+                if not throttled:
+                    throttled = True
+                    _log(f"L5 live: a query costs {elapsed * 1000:.0f} ms here, "
+                         f"so measuring every {duty_wait:.1f} s to stay within "
+                         f"{_MAX_DUTY:.0%} of a core", xbmc.LOGINFO)
+                wait = duty_wait
+
+            if monitor.waitForAbort(wait):
                 return
     finally:
         if probe is not None:
