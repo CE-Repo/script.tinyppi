@@ -192,17 +192,11 @@ def get_AspectRatioVar(l5_offsets: str, enabled: bool | None = None) -> str:
     """Return the display aspect ratio of the picture inside the black bars.
 
     Kodi's ``videodar`` describes the coded frame, so an IMAX title sits on 1.78
-    for its whole runtime even while the picture on screen is 2.39.  The bars
-    say where the picture actually is — from the RPU where it carries them, from
-    the live measurement otherwise — and the coded ratio scaled by them gives
-    the ratio being watched.
-
-    Kodi's own value is returned untouched whenever live detection is switched
-    off, and whenever the bars are unknown or all zero, so a film without
-    letterboxing reads exactly as it did before.
-
-    ``enabled`` lets a caller that has already read the setting pass it in; left
-    out, it is read here.
+    for its whole runtime even while the picture on screen is 2.39; scaling the
+    coded ratio by the bars (RPU or live measurement) gives the ratio actually
+    being watched.  Falls back to Kodi's own value when detection is off or the
+    bars are unknown/zero.  ``enabled`` lets a caller pass in an already-read
+    setting; left out, it is read here.
     """
     raw = clean(info("Player.Process(videodar)"))
 
@@ -224,12 +218,10 @@ def get_ImaxVar(l5_offsets: str, available: bool | None = None) -> str:
     """Return ``IMAX`` while the picture is opened up past its base framing.
 
     Requires a settled measurement: without one the offsets are zeros because
-    nothing looked, not because the picture fills the frame, and a known IMAX
-    title would then wear the badge for its whole runtime.  See info.imax for
-    how an IMAX scene is told from an ordinary one.
-
-    ``available`` lets a caller that has already established whether there is a
-    measurement pass it in; left out, it is looked up here.
+    nothing looked, not because the picture fills the frame, which would wear
+    the badge for the whole runtime.  See info.imax for scene detection.
+    ``available`` lets a caller pass in an already-established measurement
+    state; left out, it is looked up here.
     """
     if available is None:
         available = live_measurement_available()
@@ -505,19 +497,13 @@ def get_ChannelIconVar() -> str:
 def get_AudioBitDepthVar() -> str:
     """Return the source audio bit depth for display, e.g. ``24-bit``.
 
-    The depth is read from the source bitstream itself by the audioprobe binary,
-    for the currently active audio track (see dvinfo.py): DTS carries it in the
-    core header, MLP in the major sync, FLAC in STREAMINFO; TrueHD encodes none,
-    so a detected stream reports the universal 24.
-
-    While detection still runs (or found nothing), known bitstream codecs
-    fall back to AUDIO_BIT_DEPTH_MAP, because Kodi's own
-    ``Player.Process(audiobitspersample)`` reports the sink format — during
-    passthrough the packed IEC 61937 byte stream, always ``8``.  Kodi's value
-    is only used for lossless/uncompressed codecs Kodi decodes itself
-    (AUDIO_PCM_DEPTH_CODECS).  Every other codec — the lossy formats — has no
-    PCM bit depth at all and returns ``''``, so the skin shows only the
-    sample rate.
+    Prefers the depth audioprobe read from the source bitstream itself for the
+    active track (see dvinfo.py).  While detection runs or finds nothing, known
+    bitstream codecs fall back to AUDIO_BIT_DEPTH_MAP, since Kodi's own
+    ``audiobitspersample`` reports the sink format (always ``8`` during
+    passthrough).  Kodi's value is used only for codecs it decodes itself
+    (AUDIO_PCM_DEPTH_CODECS); lossy codecs have no PCM bit depth and return
+    ``''``, so the skin shows only the sample rate.
     """
     probed = get_active_audio_bit_depth()
     if probed:
@@ -539,11 +525,9 @@ def get_AudioBitDepthVar() -> str:
 def get_AudioSampleRateVar() -> str:
     """Return the source audio sample rate for display, e.g. ``96 kHz``.
 
-    The rate probed from the source bitstream for the active audio track
-    (audioprobe binary) takes precedence: Kodi reports the DTS compatibility
-    core's rate (48 kHz) even when the extension carries 96/192 kHz (DTS 96/24,
-    high-rate DTS-HD).  Everywhere else the probed rate already equals Kodi's
-    own value, and Kodi's is the fallback while detection runs.
+    Prefers the rate audioprobe read from the source bitstream: Kodi reports
+    the DTS compatibility core's rate (48 kHz) even when the extension carries
+    96/192 kHz.  Falls back to Kodi's own value while detection runs.
     """
     samplerate = get_active_audio_sample_rate()
     if not samplerate:
@@ -723,19 +707,14 @@ _l5_published: tuple[tuple[str, str], ...] | None = None
 def _l5_derived() -> tuple[tuple[str, str], ...]:
     """Return every property that follows from the L5 offsets.
 
-    Kept together deliberately: the offsets, the aspect ratio and the IMAX
-    badge are three readings of one measurement, and publishing them from
-    separate places would let the badge disagree with the numbers it is drawn
-    from.  Split out of update_properties so wait_poll can refresh exactly this
-    set between full updates -- see there for why that is worth doing.
-
-    Cheap enough to call several times a second: the RPU side is a cache read
-    (dvinfo's detection is non-blocking), and the measurement is whatever the
-    sampler thread last published.  Nothing here decodes a frame.
-
-    It is called often enough, though, that the *number* of Kodi round-trips it
-    makes is worth minding — hence ``enabled`` and ``available`` being read once
-    each and passed down, rather than every caller below asking again.
+    Kept together because the offsets, aspect ratio and IMAX badge are three
+    readings of one measurement, and publishing them separately would let the
+    badge disagree with the numbers it's drawn from.  Split out of
+    update_properties so wait_poll can refresh just this set between full
+    updates.  Cheap enough to call several times a second (a cache read plus
+    whatever the sampler last published, no frame decoding); ``enabled`` and
+    ``available`` are read once here and passed down rather than re-read by
+    every caller below.
     """
     enabled = live_detection_enabled()
 
@@ -771,23 +750,12 @@ def wait_poll(monitor, window, seconds: float = 1.0) -> bool:
     Returns True when Kodi asked to abort.
 
     The placeholder needs a faster beat than the poll to read as an animation,
-    and the measurement it stands in for benefits from the same beat: a reading
-    that lands just after a full update would otherwise sit unseen for the rest
-    of the second, which is dead time on top of the sampler's own interval and
-    the up-to-one-GOP lag in the measurement itself.  On an aspect-ratio change
-    -- an IMAX sequence opening up -- those add up to the delay before the row
-    and the badge follow the picture, so this is the cheapest second to win.
-
-    Only the L5-derived set is refreshed.  Every other property stays on the
-    original cadence, since recomputing them all this often would cost far more
-    than the handful of cached reads this touches.
-
-    And it is published only when it has actually changed, which on a film whose
-    framing never moves is never: the values are recomputed on every tick, but
-    the writes -- and the skin re-evaluating everything bound to them -- happen
-    on the ticks that carry news.  ``update_properties`` writes the set
-    unconditionally and records it, so the comparison below always starts from
-    what is really on the window.
+    and a fresh measurement benefits from the same beat instead of sitting
+    unseen for the rest of the second.  Only the L5-derived set is refreshed
+    here — every other property stays on the original cadence — and only when
+    it actually changed, so a film whose framing never moves triggers no writes
+    (``update_properties`` always writes and records the set, so the comparison
+    starts from what's really on the window).
     """
     global _l5_published
 

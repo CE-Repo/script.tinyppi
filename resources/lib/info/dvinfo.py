@@ -4,23 +4,21 @@ Inspects the playing stream with hdrprobe and parses its JSON report into the
 Dolby Vision, Level 5/6 and bit-depth properties consumed by properties.py.
 
 Kodi plays from VFS URLs (nfs://, smb://, http://) that standalone hdrprobe
-cannot open, so the stream is piped straight into ``hdrprobe --json -`` over
-stdin (hdrprobe's stdin integration): blocks are read through xbmcvfs and
-written to the probe until it has taken its head budget — the write then fails
-with a broken pipe, the documented success signal — or the stream ends.  Real
-filesystem paths are handed to hdrprobe directly, where it can read to EOF for
-the fullest analysis.  Nothing is copied to a temporary chunk file any more.
+cannot open, so the stream is piped into ``hdrprobe --json -`` over stdin:
+blocks are read through xbmcvfs and written to the probe until it has taken
+its head budget (the write then fails with a broken pipe, the documented
+success signal) or the stream ends.  Real filesystem paths are handed to
+hdrprobe directly instead, where it reads to EOF for the fullest analysis.
 Detection runs once per file in a cached background thread so the polling loop
 never blocks.  CoreELEC only; the hdrprobe binary is the aarch64 build in
 tools.tinyppi (tools/hdrprobe/hdrprobe).
 
-Blu-ray discs are a special case: Kodi hands us the raw ``*.iso`` (whose first
-bytes are the UDF filesystem header, not video), a ``bluray://`` title stream,
-or a ``.mpls`` playlist for the selected title.  Probing the ISO header reports
-the wrong output mode, so ``_resolve_disc_stream`` maps the reference to the
-``.m2ts`` clip that is actually playing: a playlist is parsed to its clip, a
-bare image falls back to the main feature, and an already-resolved title stream
-is read as-is.
+Blu-ray discs are a special case: Kodi hands us the raw ``*.iso``, a
+``bluray://`` title stream, or a ``.mpls`` playlist, and probing the ISO
+header alone reports the wrong output mode.  ``_resolve_disc_stream`` maps the
+reference to the ``.m2ts`` clip actually playing: a playlist is parsed to its
+clip, a bare image falls back to the main feature, and an already-resolved
+title stream is read as-is.
 """
 
 import json
@@ -270,12 +268,10 @@ def _vfs_join(base: str, tail: str) -> str:
 
 def _mpls_clip_names(data: bytes) -> list[str]:
     """Return the ordered clip stems (e.g. ``['00801']``) a Blu-ray ``.mpls``
-    playlist plays, or ``[]`` when the bytes are not a parseable playlist.
-
-    Only the PlayList section is walked: each PlayItem begins with a 2-byte
-    length, then the 5-char ``clip_information_file_name`` and the 4-char
-    ``clip_codec_identifier`` (``M2TS``).  That is all that is needed to map a
-    title back to its stream file(s)."""
+    playlist plays, or ``[]`` when unparseable.  Only the PlayList section is
+    walked: each PlayItem's 5-char ``clip_information_file_name`` plus 4-char
+    ``clip_codec_identifier`` (``M2TS``) is all that's needed to map a title
+    back to its stream file(s)."""
     if len(data) < 12 or data[:4] != b"MPLS":
         return []
 
@@ -303,10 +299,9 @@ def _mpls_clip_names(data: bytes) -> list[str]:
 def _clip_from_playlist(mpls_path: str) -> str:
     """Return the VFS path of the first ``.m2ts`` clip the given ``.mpls``
     playlist plays, so the title the viewer actually selected is probed.
-
     Returns ``''`` when the playlist can't be read/parsed (e.g. the VFS handed
-    back the already-assembled title stream instead of the raw playlist), so the
-    caller can fall back to reading the playing URL directly."""
+    back the already-assembled title stream), letting the caller fall back to
+    the playing URL directly."""
     idx = mpls_path.lower().rfind("/playlist/")
     if idx == -1:
         return ""
@@ -334,11 +329,9 @@ def _clip_from_playlist(mpls_path: str) -> str:
 
 def _disc_image_stream_dir(path: str) -> str:
     """Return the ``BDMV/STREAM/`` VFS directory URL for a raw Blu-ray image or
-    extracted disc folder, or ``''`` otherwise.
-
-    Only used when Kodi hands us a bare image with no title information — a
-    ``bluray://`` / ``.mpls`` / ``.m2ts`` path already identifies the playing
-    stream and is not routed here."""
+    extracted disc folder, or ``''`` otherwise.  Only used for a bare image
+    with no title information; a ``bluray://``/``.mpls``/``.m2ts`` path already
+    identifies the playing stream and isn't routed here."""
     low = path.lower()
 
     # A raw disc image: wrap it in Kodi's UDF VFS so its files can be listed.
@@ -355,10 +348,9 @@ def _disc_image_stream_dir(path: str) -> str:
 
 def _largest_stream_file(stream_dir: str) -> str:
     """Return the VFS path of the largest ``.m2ts`` in a ``BDMV/STREAM``
-    directory, or ``''`` when it can't be listed or holds no stream files.
-
-    Used only as the last-resort fallback for a bare disc image (Kodi's
-    "play main movie" mode), where the largest clip is the main feature."""
+    directory, or ``''`` when it can't be listed or holds no stream files.  Used
+    only as the last-resort fallback for a bare disc image ("play main movie"
+    mode), where the largest clip is the main feature."""
     try:
         _dirs, files = xbmcvfs.listdir(stream_dir)
     except Exception as exc:
@@ -380,16 +372,12 @@ def _largest_stream_file(stream_dir: str) -> str:
 
 
 def _resolve_disc_stream(path: str) -> str:
-    """Resolve a Blu-ray reference to the ``.m2ts`` clip that is actually
-    playing, so the probe reads the selected title rather than a heuristic guess
-    or the disc-image filesystem header.
-
-    - A ``.mpls`` playlist (menu / title selection) is parsed to its first clip.
-    - A bare ``.iso`` / extracted ``BDMV`` folder (main-movie mode) carries no
-      title info in the path, so the main feature (largest clip) is used.
-    - Everything else — a ``bluray://`` title stream, a direct ``.m2ts``, or an
-      ordinary media file — already refers to the playing stream and is returned
-      unchanged for the existing VFS read to handle.
+    """Resolve a Blu-ray reference to the ``.m2ts`` clip actually playing, so
+    the probe reads the selected title rather than the disc-image filesystem
+    header.  A ``.mpls`` playlist is parsed to its first clip; a bare ``.iso``/
+    extracted ``BDMV`` folder carries no title info, so the largest clip is
+    used; everything else already refers to the playing stream and is
+    returned unchanged.
     """
     low = path.lower()
 
@@ -417,10 +405,9 @@ def _resolve_disc_stream(path: str) -> str:
 def _decode_audio_tracks(out: str) -> list[dict]:
     """Parse audioprobe's JSON report from ``out`` and return the audio-track
     list of the first (only) file, trimmed to the fields the overlay needs.
-
-    Decoding starts at the first brace so stray leading log text is tolerated,
-    mirroring ``_decode_report``.  Returns ``[]`` when the output holds no
-    decodable report, the file could not be read, or it carries no audio track.
+    Decoding starts at the first brace so stray leading log text is tolerated
+    (mirrors ``_decode_report``).  Returns ``[]`` when there's no decodable
+    report, the file couldn't be read, or it carries no audio track.
     """
     start = out.find("{")
     if start == -1:
@@ -458,9 +445,8 @@ def _decode_audio_tracks(out: str) -> list[dict]:
 
 def _run_audioprobe(probe: str, src: str) -> list[dict]:
     """Run audioprobe on a real filesystem ``src`` and return its audio-track
-    list, or ``[]``.  Used only for genuine local paths, where audioprobe opens
-    the file itself; Kodi VFS URLs are streamed in over stdin instead (see
-    ``_probe_stream_stdin``)."""
+    list, or ``[]``.  Local paths only; Kodi VFS URLs are streamed over stdin
+    instead (see ``_probe_stream_stdin``)."""
     try:
         out = subprocess.run(
             [probe, "--json", src],
@@ -619,13 +605,11 @@ def _static_hdr_token(
 ) -> str:
     """Classify a non-Dolby-Vision stream into an HDR token.
 
-    The ``format`` label is unreliable for HDR10 (its SEI is not in every
+    The ``format`` label is unreliable for HDR10 (its SEI isn't in every
     chunk), so the transfer characteristic and mastering-display block are
-    checked first; the format label is only a last resort.
-
-    hdrprobe's schema 2.x nests the transfer characteristic in a ``color``
-    block (``color.transfer``); 1.x kept it on the track/``hdr`` block.  All
-    three spots are consulted so the read location does not matter.
+    checked first, with the format label only as a last resort.  Schema 2.x
+    nests the transfer characteristic under ``color.transfer``; 1.x kept it on
+    the track/``hdr`` block -- all three spots are consulted here.
     """
     if hdr10plus:
         return "hdr10+"
@@ -726,11 +710,10 @@ def _build_output_mode(
     """Build the overlay's output-mode string from hdrprobe's report.
 
     Dolby Vision reads as ``Dolby Vision Profile <p>``; HDR Vivid (CUVA) and
-    SL-HDR — dynamic-metadata formats riding on an HDR10 / HLG base — read as
-    their own name; HDR10+ appends its ``Profile A`` / ``B``; other streams show
-    the classified format name, falling back to hdrprobe's plain label.  A stream
-    that signals Dolby Vision alongside an SL-HDR fallback still reads as DV,
-    which is authoritative.
+    SL-HDR (dynamic-metadata formats riding on an HDR10/HLG base) read as their
+    own name; HDR10+ appends ``Profile A``/``B``; other streams show the
+    classified format name.  A stream signalling Dolby Vision alongside an
+    SL-HDR fallback still reads as DV, which is authoritative.
     """
     if dovi:
         profile = _dv_profile_label(dovi) or "8.1"
@@ -767,12 +750,9 @@ def _select_report_blocks(
     data: dict,
 ) -> tuple[dict, dict, dict, dict, dict, dict]:
     """Return the ``(general, hdr, dolby_vision, hdr10plus, sl_hdr, hdr_vivid)``
-    blocks of a report.
-
-    Schema 2.0 nests everything under ``video_tracks[0]`` (which stands in for
-    ``general``); 1.x keeps all blocks at the root.  The ``sl_hdr`` / ``hdr_vivid``
-    blocks (schema 2.4+, hdrprobe 0.8.0) follow the same layout.  Both are
-    resolved here so the rest of the parser stays schema-agnostic.
+    blocks of a report.  Schema 2.0 nests everything under ``video_tracks[0]``
+    (standing in for ``general``); 1.x keeps all blocks at the root.  Both
+    layouts are resolved here so the rest of the parser stays schema-agnostic.
     """
     tracks = data.get("video_tracks")
     if isinstance(tracks, list) and tracks and isinstance(tracks[0], dict):
@@ -797,11 +777,10 @@ def _select_report_blocks(
 
 
 def _parse_probe(data: dict) -> dict[str, str]:
-    """Turn an hdrprobe JSON report into the separate overlay fields.
-
-    Dolby Vision fills every field from the RPU; HDR10 and other static-HDR
-    formats fill the mastering-display / content-light fields from the ``hdr``
-    block; SDR carries neither, so those fields stay empty (shown as N/A).
+    """Turn an hdrprobe JSON report into the separate overlay fields.  Dolby
+    Vision fills every field from the RPU; HDR10 and other static-HDR formats
+    fill the mastering-display/content-light fields from the ``hdr`` block;
+    SDR carries neither, so those fields stay empty (shown as N/A).
     """
     info = _empty_info()
 
@@ -963,19 +942,19 @@ def _probe_stream_stdin(
 ) -> tuple[dict | None, list[dict]]:
     """Probe a Kodi VFS stream without copying it to disk.
 
-    Neither hdrprobe nor audioprobe can open nfs:// / smb:// / bluray:// /
-    udf:// / https:// URLs itself, so the stream is read once through xbmcvfs and
-    each block is written to whichever probes are available over their
-    ``--json -`` stdin.  Feeding a probe stops once its stdin write fails with a
-    broken pipe (it has taken its head budget — the documented success signal);
-    the read as a whole stops once every probe has done so or the stream ends.
-    Each probe self-bounds its stdin head, so no fixed byte cap is needed (and
-    none is imposed — it would truncate whichever probe needs the most data);
-    nothing larger than a single block is ever held in memory.
+    Neither hdrprobe nor audioprobe can open nfs:///smb:///bluray:///https://
+    URLs itself, so the stream is read once through xbmcvfs and each block is
+    written to whichever probes are available over their ``--json -`` stdin.
+    Feeding a probe stops once its stdin write fails with a broken pipe (it has
+    taken its head budget); the read as a whole stops once every probe has done
+    so or the stream ends.  No fixed byte cap is imposed, since each probe
+    self-bounds its own stdin head and a cap would truncate whichever probe
+    needs the most data; nothing larger than a single block is ever held in
+    memory.
 
-    ``hdr_probe`` / ``audio_probe`` may be ``''`` when that binary is missing.
-    Returns ``(report, audio_tracks)``; ``report`` is ``None`` when hdrprobe is
-    absent or emitted no decodable JSON, ``audio_tracks`` is ``[]`` likewise.
+    ``hdr_probe``/``audio_probe`` may be ``''`` when that binary is missing.
+    Returns ``(report, audio_tracks)``, ``None``/``[]`` respectively when
+    hdrprobe is absent or emitted no decodable JSON.
     """
     hdr = _spawn_stdin_probe(hdr_probe) if hdr_probe else None
     audio = _spawn_stdin_probe(audio_probe) if audio_probe else None
@@ -1016,11 +995,11 @@ def _probe_stream_stdin(
 def _detect(path: str) -> dict[str, str]:
     """Return compact Dolby Vision + audio metadata for the given playing path.
 
-    Real filesystem paths are probed by hdrprobe and audioprobe directly
-    (fullest analysis); Kodi VFS URLs — which neither binary can open — are
-    streamed into both over stdin in a single read, so nothing is copied to a
-    temporary chunk file.  The full audio-track list is cached so the active
-    track can be selected — and re-selected on a track change — at read time.
+    Real filesystem paths are probed by hdrprobe/audioprobe directly (fullest
+    analysis); Kodi VFS URLs, which neither binary can open, are streamed into
+    both over stdin in a single read.  The full audio-track list is cached so
+    the active track can be selected -- and re-selected on a track change -- at
+    read time.
     """
     source = _resolve_disc_stream(path)
     is_local = source.startswith("/")
@@ -1086,13 +1065,13 @@ def _start_worker(path: str, session_token: str) -> bool:
 
 
 def prime_playback_detection() -> bool:
-    """Kick off DV / audio detection for the currently playing file ahead of time.
+    """Kick off DV/audio detection for the currently playing file ahead of time.
 
-    Called from the background service at playback start so the hdrprobe and
-    audio-bitstream scan finish while the video plays, leaving the result cached
-    before the overlay is ever opened.  Non-blocking; a no-op when nothing is
-    playing or a result is already cached / in flight.  Returns True when a new
-    detection worker was started.
+    Called from the background service at playback start so hdrprobe and the
+    audio-bitstream scan finish while the video plays, leaving the result
+    cached before the overlay is ever opened.  Non-blocking; a no-op when
+    nothing is playing or a result is already cached/in flight.  Returns True
+    when a new detection worker was started.
     """
     try:
         path = xbmc.Player().getPlayingFile()
@@ -1330,12 +1309,11 @@ def _current_audio_stream() -> dict:
 def _active_audio_track() -> dict | None:
     """Select the probed track for the audio stream Kodi is currently playing.
 
-    Both Kodi and audioprobe enumerate the container's audio tracks in order, so
-    the active stream ``index`` maps straight into the probed list; the codec
-    family is cross-checked to guard against the two orderings diverging, and a
-    unique family match is used as a fallback when they do.  A single-track file
-    needs no selection at all.  Re-evaluated on every read, so switching audio
-    track updates the values without re-probing the file.
+    Both Kodi and audioprobe enumerate the container's audio tracks in order,
+    so the active stream ``index`` maps straight into the probed list; the
+    codec family is cross-checked to guard against the two orderings diverging,
+    falling back to a unique family match when they do.  Re-evaluated on every
+    read, so switching audio track updates the values without re-probing.
     """
     tracks = _cached_audio_tracks()
     if not tracks:
@@ -1379,9 +1357,9 @@ def get_active_audio_bit_depth() -> str:
 def get_active_audio_sample_rate() -> str:
     """Return the sample rate in Hz of the active audio track as read from the
     source bitstream by audioprobe (e.g. ``"96000"``), or '' while detection
-    runs or when no track could be selected.  Unlike Kodi's own value this is
-    the true source rate, so DTS 96/24 and high-rate DTS-HD read correctly
-    rather than as their 48 kHz compatibility core.  No status label."""
+    runs or no track could be selected.  Unlike Kodi's own value this is the
+    true source rate, so DTS 96/24 and high-rate DTS-HD read correctly instead
+    of as their 48 kHz compatibility core.  No status label."""
     track = _active_audio_track()
     if not track:
         return ""

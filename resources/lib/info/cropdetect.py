@@ -2,71 +2,38 @@
 
 Dolby Vision Level 5 offsets live in the RPU and are read once per file by
 dvinfo.py, so a title whose aspect ratio changes mid-playback (IMAX Enhanced
-and friends) keeps showing the offsets of whatever shot hdrprobe happened to
-see.  This module derives the same four numbers from the picture itself,
-without touching an RPU.
+and friends) keeps showing whatever shot hdrprobe happened to see.  This module
+derives the same four numbers from the picture itself, without touching an
+RPU, via the **borderprobe** helper (info.borderprobe): it opens the playing
+file, seeks to the current position, decodes a few frames and scans their luma
+plane for black rows/columns.  Every stream is measured regardless of HDR
+format; the bars feed the aspect-ratio row, which would otherwise only be able
+to report the container's ratio.
 
-The measurement comes from the **borderprobe** helper (info.borderprobe): it
-opens the playing file, seeks to the current position, decodes a few frames and
-scans their luma plane for black rows and columns, reporting the bar thickness
-in coded pixels.  Every stream is measured, whatever its HDR format.  The bars
-feed the aspect ratio row, which is drawn for all of them and can otherwise
-only report the container's ratio -- an HDR10 film at 1.90:1 inside a 16:9
-frame would read as 1.78:1 for its whole runtime.
+This replaces an earlier approach reading ``/dev/amvideocap0`` (Hyperion's
+Amlogic grabber): cheap, but Amlogic-only, so nothing about it could be
+developed or tested off the box, and its 320x180 scaled grab quantised a
+2160-line frame's bars to 12 coded lines, needing extra damping to stop the
+number flickering.  borderprobe measures the coded frame at full resolution
+and does its own median/hysteresis, so what's left here is TinyPPI's own part:
+holding the side bars to the thinnest ever seen, and standing in the RPU's
+numbers until a measurement lands -- at which point the measurement is shown
+outright, since borderprobe's hysteresis already keeps it from twitching.
 
-## Why not the capture node any more
+Everything here is best-effort: a missing binary, an unopenable file, or a
+picture too dark to judge all yield ``''``, and properties.py falls back to
+the static RPU value.  Measuring happens on a sampler thread so the window
+never blocks; a circuit breaker stops retries once the helper has failed
+continuously for ten seconds (reopening the overlay clears it).
 
-This used to read ``/dev/amvideocap0``, the scaled copy of the video plane that
-Hyperion's Amlogic grabber uses.  That was very cheap and showed exactly what
-was on screen, and it had one fatal property: it exists on Amlogic and nowhere
-else, so nothing about this file could be developed, tested or reproduced off
-the box.  It also read a 320x180 scaled grab, which quantised a 2160-line
-frame's bars to 12 coded lines and needed a sample window, a settle test and a
-"has it really moved" damper on top just to stop the displayed number
-flickering between 276 and 288 on a film that never changed.
-
-borderprobe measures the coded frame at full resolution, so the bar edge it
-reports is the bar edge, and it does its own multi-frame median and hysteresis
-where the pixels are.  All of that machinery is therefore gone from here, and
-what is left is the part that was always TinyPPI's own: holding the side bars
-to the thinnest ever seen, and standing in the RPU's numbers until a
-measurement has actually landed.
-
-A measurement, once it lands, is what gets shown.  An earlier version kept the
-RPU's own numbers whenever the two agreed to within a few pixels, on the
-grounds that the RPU is exact and a measured bar edge is only nearly so; that
-made the feature invisible on the many titles whose framing never changes,
-where the measurement simply confirms the RPU.  Showing what was measured is
-the honest answer to "what is on screen", and borderprobe's own hysteresis
-already keeps the number from twitching between neighbouring pixels.
-
-Everything here is still best-effort.  A missing binary, a file the helper
-cannot open, or a picture too dark to judge all yield ``''``, and properties.py
-falls back to the static RPU value.  Measuring happens on a sampler thread, so
-nothing ever blocks the window; retries keep going for as long as the overlay
-stays open, and a circuit breaker only stops them once the helper has failed
-continuously for ten seconds, so a box without a working binary still pays for
-that once and then nothing more, while a file that is merely slow to start gets
-the time it needs.  Reopening the overlay clears the breaker and lets it try
-again.
-
-## What it costs, and when
-
-Every query decodes a full intra keyframe of the coded picture, which on a UHD
-remux is the most expensive frame in the GOP.  That is the whole cost of this
-feature, and three things keep it in proportion:
-
-* the helper decodes with a bounded number of threads, so a query cannot take
-  the whole box for as long as it runs (see ``_PROBE_OPTIONS``);
-* the cadence backs off once the framing has settled, which on the many films
-  that never change framing is nearly all of the time;
-* the sampler stops decoding as soon as the overlay stops reading, and keeps
-  only the *open helper* warm after that, so reopening does not pay the
-  container open again.
-
-The one thing deliberately paid for up front is priming: the background service
-starts the sampler at playback start, so the first launch of the overlay finds a
-measurement rather than a placeholder.
+Every query decodes a full intra keyframe -- on a UHD remux the most expensive
+frame in the GOP -- which is the whole cost of this feature.  It's kept in
+proportion by a bounded decoder-thread count (``_PROBE_OPTIONS``), a cadence
+that backs off once the framing has settled, and the sampler stopping once the
+overlay stops reading while keeping only the open helper warm.  The one cost
+paid up front is priming: the background service starts the sampler at
+playback start, so the first overlay launch finds a measurement rather than a
+placeholder.
 """
 
 import threading
@@ -216,12 +183,9 @@ def _clear_locked() -> None:
 def reset_live_detection() -> None:
     """Drop all detection state; called on playback stop and on a file change.
 
-    The sampler thread is left to notice on its own: it stops as soon as
-    nothing has asked for a value, and it closes the helper process on its way
-    out.
-
-    Not called when the overlay merely opens -- see retry_live_detection() for
-    why that is a different thing.
+    The sampler thread is left to notice on its own -- it stops once nothing
+    has asked for a value, closing the helper on its way out.  Not called when
+    the overlay merely opens; see retry_live_detection() for why that differs.
     """
     with _lock:
         _clear_locked()
@@ -230,17 +194,12 @@ def reset_live_detection() -> None:
 def retry_live_detection() -> None:
     """Give detection a fresh chance for the file that is already playing.
 
-    Called every time the overlay opens.  What wants clearing there is the
-    circuit breaker and the failure clock: a film that had detection give up --
-    a helper that would not start, a stream it could not open -- should get
-    another attempt rather than staying written off for the rest of playback,
-    and the user opening the overlay again is as good a cue as any.
-
-    What does *not* want clearing is the measurement and the helper process
-    behind it.  This used to call reset_live_detection(), which threw both away
-    on every launch and made each one pay the cold container open again -- the
-    slowest part of the whole path, and the reason the row sat spinning at every
-    launch.  A measurement of the file still playing is still true.
+    Called every time the overlay opens.  Clears the circuit breaker and
+    failure clock, so a film detection had given up on gets another attempt,
+    but deliberately keeps the measurement and helper process: those still
+    describe the file still playing.  This used to call
+    reset_live_detection(), which threw both away and made every launch pay
+    the cold container open again.
     """
     global _failure_since, _disabled, _pending_since
 
@@ -257,20 +216,14 @@ def retry_live_detection() -> None:
 def live_detection_enabled() -> bool:
     """Return whether live detection is switched on.
 
-    A fresh ``Addon()`` avoids the cached settings, so toggling the option
-    applies while the overlay stays open -- same trick as
-    publish_channel_visibility.
-
-    Constructing one is not free, though: it is a lookup in Kodi's addon manager
-    plus a settings read, and this sits on a path the overlay walks several
-    times a second through half a dozen callers.  The answer is therefore held
-    for _SETTING_TTL, which is short enough that toggling the option still
-    applies while the overlay stays open -- the point of the fresh Addon() --
-    and long enough to turn some fifteen of those lookups a second into one.
-
-    Updating the addon mid-playback unregisters our id for a moment, and this
-    runs on the overlay's poll: treat that window as "off" rather than letting
-    it take the polling loop down, the way it once took the splash down.
+    A fresh ``Addon()`` avoids cached settings, so toggling the option applies
+    live (same trick as publish_channel_visibility) -- but constructing one
+    costs a lookup plus a settings read, and this sits on a path walked several
+    times a second by half a dozen callers.  The answer is cached for
+    _SETTING_TTL: short enough to still apply live, long enough to turn ~15
+    lookups a second into one.  Updating the addon mid-playback briefly
+    unregisters our id; treat that window as "off" rather than crashing the
+    polling loop, the way it once took the splash down.
     """
     global _setting_cache
 
@@ -298,20 +251,16 @@ def live_detection_enabled() -> bool:
 def _sampler(source: str, generation: int) -> None:
     """Measure *source* for as long as anything is interested in the answer.
 
-    The helper process lives exactly as long as this thread does.  It is opened
-    here rather than by the caller because opening it is the slow part -- on a
-    file across the network it can take a second or two while libavformat pulls
-    the index -- and the overlay's poll must never wait for that.
-
-    Which is also why the thread outlives the overlay.  It stops *measuring*
-    _IDLE_TIMEOUT after the last read, so a closed overlay decodes nothing, but
-    it holds the open helper until _KEEPALIVE_TIMEOUT so that closing the
-    overlay and opening it again resumes instantly instead of starting the whole
-    container open over.
+    The helper process lives exactly as long as this thread does; it's opened
+    here rather than by the caller because opening it is the slow part (a
+    second or two on a networked file), and the overlay's poll must never wait
+    for that.  The thread also outlives the overlay for the same reason: it
+    stops *measuring* _IDLE_TIMEOUT after the last read, but holds the open
+    helper until _KEEPALIVE_TIMEOUT so reopening the overlay resumes instantly.
 
     *generation* is the state generation this thread was started for; a clear
-    bumps it, and every write below checks it, so a thread still winding down
-    from the previous file cannot publish into the new one's state.
+    bumps it, and every write below checks it, so a thread winding down from
+    the previous file cannot publish into the new one's state.
     """
     global _thread, _measurement, _failure_since, _disabled
 
@@ -481,10 +430,9 @@ def _sampler(source: str, generation: int) -> None:
 def _claim_locked(path: str) -> bool:
     """Adopt *path* as the file being measured and register interest in it.
 
-    Registering interest is what keeps the sampler measuring: it stops when
-    nothing has claimed a reading for _IDLE_TIMEOUT.  Returns False when
-    detection has given up on this file, in which case there is nothing to wait
-    for.  Call under the lock.
+    Registering interest keeps the sampler measuring: it stops when nothing has
+    claimed a reading for _IDLE_TIMEOUT.  Returns False when detection has
+    given up on this file.  Call under the lock.
     """
     global _path, _pending_since, _last_request
 
@@ -502,17 +450,12 @@ def prime_live_detection() -> bool:
     """Start measuring the playing file before anything asks to see the result.
 
     Called from the background service at playback start, for the same reason
-    hdrprobe is primed there: the slow part is opening the container, and doing
-    it while the film gets going means the row has a real number in it the first
-    time the overlay is opened, rather than a placeholder and a wait.
-
-    Returns True when a sampler was started.  A no-op when detection is off,
-    when nothing is playing, or when this file has already been measured.
-
-    The sampler this starts is bound by the same idle rules as any other, so a
-    film nobody ever opens the overlay on stops decoding after _IDLE_TIMEOUT and
-    releases the helper after _KEEPALIVE_TIMEOUT.  Priming buys the first launch
-    within that window; it does not leave anything running for the whole film.
+    hdrprobe is primed there: opening the container is the slow part, so doing
+    it while the film gets going means the row has a real number the first time
+    the overlay opens.  Returns True when a sampler was started; a no-op when
+    detection is off, nothing is playing, or this file is already measured.
+    The sampler is bound by the usual idle rules, so it doesn't leave anything
+    running for a film whose overlay is never opened.
     """
     if not live_detection_enabled():
         return False
@@ -537,11 +480,10 @@ def prime_live_detection() -> bool:
 def _ensure_sampler(source: str) -> None:
     """Start the sampler thread unless one is already running.
 
-    Only ever one at a time: two would mean two helper processes, and a helper
-    is not a cheap thing to hold in duplicate.  A sampler left over from the
-    previous file therefore delays the new one until it notices it is stale,
-    which it does at the top of its loop -- promptly when it is idling, and
-    after at most one query when it is measuring.
+    Only ever one at a time, since a helper process isn't cheap to hold in
+    duplicate.  A sampler left over from the previous file delays the new one
+    until it notices it's stale at the top of its loop -- promptly when idling,
+    after at most one query when measuring.
     """
     global _thread
 
@@ -560,20 +502,14 @@ def _ensure_sampler(source: str) -> None:
 def _hold_sides(static: str, measured: str) -> str:
     """Return the measurement with its side bars pinned to the thinnest known.
 
-    Side bars do not come and go.  A film is pillarboxed or it is not, unlike
-    the top and bottom bars an IMAX sequence genuinely moves.  borderprobe
-    already refuses to report a bar that only one side of the frame supports,
-    which is what a dark edge in the picture looks like -- but a scene that is
-    dark down *both* edges defeats that test, because the two sides agree.
-    Only time tells those apart, and this is where time is available.
-
-    A dark edge can only ever add apparent bar, never remove real one, so the
-    thinnest value seen is the trustworthy one and this only ever shrinks.  It
-    starts from what the RPU declares, which settles the common case on the
-    very first poll instead of after the first bright scene.
-
-    Kept on the home window so it survives the overlay being closed, like the
-    rest of the per-file state.
+    Side bars don't come and go, unlike the top/bottom bars an IMAX sequence
+    genuinely moves.  borderprobe already refuses to report a bar only one side
+    supports (what a dark edge looks like), but a scene dark down *both* edges
+    defeats that test -- only time tells those apart.  A dark edge can only add
+    apparent bar, never remove a real one, so the thinnest value seen is
+    trustworthy and this only ever shrinks.  Starts from the RPU's own value,
+    settling the common case on the first poll.  Kept on the home window so it
+    survives the overlay closing, like the rest of the per-file state.
     """
     bars = parse_offsets(measured)
     if bars is None:
@@ -616,16 +552,12 @@ def _hold_sides(static: str, measured: str) -> str:
 def live_measurement_available() -> bool:
     """Return whether a measurement exists for the playing file.
 
-    Lets a caller tell "the picture has no bars" from "nobody has looked".  Both
-    read as ``0 | 0 | 0 | 0``, and acting on the second would mark a whole film
-    as IMAX on the strength of a value nothing ever measured.
-
-    Tied to the playing file: the reading is only cleared on a file change by
-    live_l5_offsets(), which returns early when detection is off, so without
-    this check a reading from the previous film could still answer for this one.
-
-    A pure state read: it does not start a measurement and does not keep the
-    sampler alive.
+    Lets a caller tell "the picture has no bars" from "nobody has looked" --
+    both read as ``0 | 0 | 0 | 0``, and acting on the second would mark a whole
+    film as IMAX on a value nothing ever measured.  Tied to the playing file,
+    since live_l5_offsets() only clears the reading on a file change and
+    returns early when detection is off.  A pure state read: it neither
+    measures nor keeps the sampler alive.
     """
     try:
         path = xbmc.Player().getPlayingFile()
@@ -671,16 +603,11 @@ def live_detection_pending() -> bool:
 def resolve_l5_offsets(static: str) -> str:
     """Return the offsets to display for the playing file.
 
-    ``static`` is what the RPU reported (or dvinfo's placeholder / status
-    label).  The measurement wins whenever there is one: it describes the
-    picture actually on screen, which is the point of the feature, and a title
-    whose RPU already names the same framing loses nothing by being shown the
-    number that was measured from it.  ``static`` therefore stands in only
-    until the first measurement lands, and again when detection is switched
-    off or has given up.
-
-    The sides are pinned by _hold_sides first -- see there for why they are
-    held differently from the top and bottom bars.
+    ``static`` is what the RPU reported (or dvinfo's placeholder/status label).
+    The measurement wins whenever there is one, since it describes the picture
+    actually on screen; ``static`` stands in only until the first measurement
+    lands, or when detection is off or has given up.  Sides are pinned first by
+    _hold_sides -- see there for why they're held differently from top/bottom.
     """
     measured = _hold_sides(static, live_l5_offsets())
     return measured or static

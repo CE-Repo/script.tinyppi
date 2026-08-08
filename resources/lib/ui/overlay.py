@@ -195,12 +195,10 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
     def _base_offset(self) -> tuple:
         """Return the (x, y) offset configured in the settings.
 
-        From the bottom-left origin, the horizontal offset moves content right,
-        the vertical offset moves it up; 100 % is the max on-screen travel
-        (30.9 % / 28.1 % of the screen).  The horizontal offset applies to SDR
-        without channels only (HDR and SDR with channels stay left-aligned); the
-        vertical one stops 35 px short of the top edge in DV with channels,
-        which leaves it 2 px there.
+        100 % is the max on-screen travel (30.9 % / 28.1 % of the screen);
+        horizontal only applies to SDR without channels (HDR and SDR with
+        channels stay left-aligned), and vertical stops short of the top edge
+        in DV with channels.
         """
         max_x = 0.309
         max_y = 0.281
@@ -242,13 +240,11 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
     def _apply_position_offset(self) -> None:
         """Move group 5000 to the configured offset plus the current nudge.
 
-        The nudge is clamped here rather than where it is applied, so that a
-        later HDR switch or channel icon appearing (both grow the content)
-        pulls an already nudged overlay back on screen.  Clamping the nudge
-        instead of the resulting position keeps the first press in the opposite
-        direction effective.
-        Re-applied each cycle since the HDR type is detected asynchronously, and
-        cached so the unchanged case is skipped.
+        The nudge is clamped here (not at the resulting position) so a later
+        HDR switch or channel icon appearing pulls an already-nudged overlay
+        back on screen, while keeping the first press in the opposite
+        direction effective.  Re-applied each cycle since HDR type is detected
+        asynchronously; cached so the unchanged case is skipped.
         """
         base_x, base_y = self._base_offset()
         nudge_x, nudge_y = self._nudge
@@ -354,13 +350,9 @@ def open_tinyppi() -> None:
 
     elements_visible = _elements_visible()
     live_offsets_enabled = _ADDON.getSetting("l5_live_detect") == "true"
-    # Every opening gives detection a fresh chance: a film it gave up on -- a
-    # helper that would not start, a stream it could not open -- gets another
-    # attempt rather than staying written off for the rest of playback.  What
-    # this deliberately does *not* do is discard a measurement that already
-    # exists, or the helper behind it; both still describe the file that is
-    # still playing, and throwing them away made every launch pay the container
-    # open again.
+    # Give detection a fresh chance without discarding an existing measurement
+    # or helper (both still describe the still-playing file, and discarding them
+    # would make every launch pay the container open again).
     retry_live_detection()
     xbmc.log(
         f"TinyPPI: Live active offsets "

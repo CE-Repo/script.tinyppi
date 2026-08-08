@@ -74,19 +74,9 @@ class KodiMonitor(xbmc.Monitor):
 
     def _prime_detection(self) -> None:
         """Start hdrprobe / audio / border detection as soon as a video begins
-        playing.
-
-        Runs the same background scans the overlay would trigger lazily, so the
-        Dolby Vision, HDR and audio metadata are already cached and shown
-        instantly when the overlay (or dialog mode) is opened — no ``Fetching...``.
-
-        Live border detection is primed for the same reason and has the most to
-        gain from it: its slow step is opening the container, which on a large
-        remux across the network is seconds, and doing it here means it happens
-        while the film gets going rather than while the user watches the row
-        spin.  It is a no-op when the option is off, and the sampler it starts
-        stops decoding on its own shortly after — nothing is left running for a
-        film whose overlay is never opened.
+        playing, so results are already cached when the overlay opens instead
+        of showing ``Fetching...``.  A no-op when live detection is off; its
+        sampler stops decoding on its own if the overlay is never opened.
         """
         try:
             if not xbmc.getCondVisibility("Player.HasVideo"):

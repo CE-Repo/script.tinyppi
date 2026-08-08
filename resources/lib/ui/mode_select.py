@@ -190,10 +190,9 @@ _VS10_ACTION = {
 def _probe_vs10_actions() -> bool:
     """Return True if this Kodi build ships the native VS10 output engine.
 
-    The engine's settings and its ``vs10.*`` keymap actions were added in the
-    same commit, so we probe for one of the settings over JSON-RPC: a ``result``
-    means the actions exist too; an ``error`` (or any failure) means we must
-    drive sysfs ourselves.
+    Probes one of its settings over JSON-RPC, since the settings and the
+    ``vs10.*`` keymap actions were added in the same commit: a ``result`` means
+    the actions exist too, an ``error`` means we must drive sysfs ourselves.
     """
     request = json.dumps(
         {
@@ -234,12 +233,10 @@ def _vs10_actions_available() -> bool:
 def set_mode(name: str) -> None:
     """Apply the VS10 mode ``name`` (see ``_MODES``), preferring native actions.
 
-    The native ``vs10.*`` actions are player actions, so they only do anything
-    while a video is playing. We therefore only try them during playback and,
-    because they can still silently no-op, verify that the DV driver state
-    actually moved afterwards. When either condition fails we fall back to
-    TinyPPI's built-in sysfs sequence, which works regardless of state. Every
-    branch logs which path ran so it is visible what happened.
+    The native ``vs10.*`` actions only do anything during playback and can
+    still silently no-op, so we try them only then and verify the DV driver
+    state actually moved; either failure falls back to the built-in sysfs
+    sequence, which always works.
     """
     sysfs = _MODES.get(name)
     if sysfs is None:

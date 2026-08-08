@@ -122,12 +122,11 @@ PROP_CONVERTING = "TinyPPI.SplashConverting"
 def _is_converting() -> bool:
     """Mirror script-tinyppi-main.xml's converting check-circle condition.
 
-    True when the Amlogic output gamut (``amlogic.eoft_gamut``) shows a real
-    HDR<->Dolby Vision conversion: a non-DV source now outputting DV, a DV/HDR
-    source falling back to SDR, or an SDR/DV source being tone-mapped to HDR10.
-    Uses hdrprobe's own detected format (primed at playback start, see
-    dvinfo.prime_playback_detection) rather than the Home-window property the
-    overlay publishes, so it works before the TinyPPI overlay is ever opened.
+    True when the Amlogic output gamut shows a real HDR<->Dolby Vision
+    conversion (non-DV source now DV, DV/HDR source falling back to SDR, or
+    SDR/DV tone-mapped to HDR10).  Uses hdrprobe's own detected format rather
+    than the overlay's Home-window property, so it works before the overlay is
+    ever opened.
     """
     hdr_type = get_hdr_format()
     gamut = info("Player.Process(amlogic.eoft_gamut)").upper()
@@ -159,14 +158,11 @@ _LAYER_COLOR_FALLBACK = {
 def _dv_layer_token() -> str:
     """Classify what is actually on screen into a layer-indicator pill token.
 
-    Driven by the real Amlogic output, not the source: ``'fel'`` / ``'mel'``
-    for a Dolby Vision source with that enhancement layer, ``'other'`` for any
-    other Dolby Vision profile (e.g. 5, 8.1) *and* for a non-DV source (HDR10,
-    SDR, ...) converted up to Dolby Vision -- the pill then simply confirms
-    Dolby Vision is on screen, with no enhancement-layer info to show.  ``''``
-    when the output is not Dolby Vision at all, including a DV source
-    converted away (e.g. down to HDR10 or SDR) -- the pill only claims what is
-    genuinely on screen, and is omitted for ``''``.
+    Driven by the real Amlogic output, not the source: ``'fel'``/``'mel'`` for
+    a DV source with that layer, ``'other'`` for any other DV profile and for a
+    non-DV source converted up to DV, ``''`` when the output isn't DV at all
+    (including a DV source converted away) — the pill only claims what's
+    genuinely on screen.
     """
     if _amlogic_hdr_token() != "dolbyvision":
         return ""
@@ -300,19 +296,16 @@ def _build_controls(
     """Lay out the logos as a vertical stack, sized to the skin.
 
     Sizes are fractions of the window's coordinate space so placement holds up
-    across 720p / 1080p skins.  ``offset_x`` / ``offset_y`` (0–100 %) slide the
-    block from a top-left inset (0 %) to the bottom-right corner (100 %);
-    ``user_scale`` resizes it.  A rounded panel is drawn first (behind the
-    logos); it and the divider are shown/hidden purely by their themed opacity.
-    ``colors`` supplies the ARGB tints keyed by ``bg`` / ``video`` / ``audio`` /
-    ``divider`` / ``convert_dot`` / ``fel`` / ``mel`` / ``other``.  ``layer_token``
-    (``'fel'`` / ``'mel'`` / ``'other'`` / ``''``) selects the Dolby Vision
-    layer-indicator pill's colour, or omits the pill entirely when ``''``.
+    across 720p / 1080p skins.  ``offset_x``/``offset_y`` (0–100 %) slide the
+    block from a top-left inset to the bottom-right corner; ``user_scale``
+    resizes it.  A rounded panel is drawn behind the logos; ``colors`` supplies
+    the ARGB tints (``bg``/``video``/``audio``/``divider``/``convert_dot``/
+    ``fel``/``mel``/``other``), and ``layer_token`` selects the Dolby Vision
+    layer-indicator pill's colour, omitting the pill when ``''``.
 
-    Returns ``(controls, dot)``: ``dot`` is the conversion-indicator badge
-    (also included in ``controls``, for add/remove/fade purposes), so the
-    caller can give it its own stricter visible condition; ``None`` when there
-    are no logos to show.
+    Returns ``(controls, dot)``, where ``dot`` is the conversion-indicator
+    badge (also in ``controls``) so the caller can give it its own stricter
+    visible condition; ``None`` when there are no logos to show.
     """
     if not logos:
         return [], None
@@ -494,16 +487,10 @@ def _fade_in(
     conversion-indicator dot, which additionally requires PROP_CONVERTING);
     every other control uses *condition*.
 
-    The ordering is load-bearing (deviating makes the logos pop or flash):
-
-    1. Force-hide every control *before* adding it, so freshly added controls
-       don't flash at full opacity before their condition is first evaluated.
-    2. Bind the visibility condition with the property cleared and before arming
-       any animation, so the initial edge cannot play a "Hidden" fade.
-    3. Wait one render tick to settle the hidden state.
-    4. Arm the animations (only works once the controls belong to a window),
-       then lift the force-hide — the condition is still false.
-    5. Wait a tick, then flip the property false→true to play the "Visible" fade.
+    Ordering is load-bearing (deviating makes the logos pop or flash):
+    force-hide before adding, bind the visibility condition before arming any
+    animation, settle a render tick, arm animations and lift the force-hide,
+    then flip the property to play the "Visible" fade.
     """
     overrides = overrides or {}
     home.clearProperty(_MODE_VISIBLE_PROPS[mode])
@@ -542,13 +529,10 @@ def _safe_addon():
     """Return a fresh Addon whose settings can be read, or None.
 
     Updating the addon during playback briefly deletes and re-registers
-    ``script.tinyppi``.  An ``Addon()`` built in that window raises
-    ``RuntimeError: Unknown addon id`` — but one built a moment later can be
-    handed back with its settings definition not yet loaded, and every read off
-    it then raises ``TypeError: Invalid setting type``.  Constructing is
-    therefore not proof of a usable object; one read is.  The long-lived splash
-    loop must tolerate both and exit quietly instead of crashing (which also
-    leaks Kodi classes).
+    ``script.tinyppi``: an ``Addon()`` built then can raise ``RuntimeError``, or
+    load with its settings definition not ready (``TypeError`` on any read).
+    Construction alone doesn't prove it's usable — one read does — so the
+    long-lived splash loop must tolerate both and exit quietly.
     """
     try:
         addon = xbmcaddon.Addon()

@@ -1,22 +1,15 @@
 """Deciding whether the scene on screen is IMAX material.
 
-An IMAX sequence is not a ratio.  A film shot for IMAX carries two framings and
-switches between them, and the taller one is the IMAX material -- so 1.78:1 is
-IMAX in The Dark Knight and merely the format in a television production.  No
-single frame can tell those apart, so the film has to be identified first:
+An IMAX sequence is not a ratio: a film shot for IMAX carries two framings and
+switches between them, so 1.78:1 is IMAX in The Dark Knight but just the format
+in a TV production. No single frame can tell those apart, so the film is
+identified first, from its filename (an ``IMAX`` release name) or from
+``resources/data/imax_titles.txt`` plus the user's own copy under the addon's
+profile folder. Neither says anything about the current scene, only the film;
+once the film is known, a picture around 1.90:1 or taller is the IMAX framing.
 
-* **Filename** -- a release with ``IMAX`` in its name is telling us outright.
-* **Title list** -- ``resources/data/imax_titles.txt``, plus anything the user
-  adds in their own ``imax_titles.txt`` under the addon's profile folder, which
-  an addon update will not overwrite.
-
-Neither says anything about the scene currently running -- they identify the
-film, not the moment.  Once the film is known, though, the scene follows from
-the ratio on screen: a title that holds IMAX material shows it in its expanded
-framing, so a picture around 1.90:1 or taller is IMAX and a scope one is not.
-
-A film that is not identified is never marked.  That is deliberate: guessing
-from the picture alone would claim IMAX for every ordinary 1.78:1 film.
+A film that is not identified is never marked, since guessing from the picture
+alone would claim IMAX for every ordinary 1.78:1 film.
 """
 
 import os
@@ -55,13 +48,9 @@ def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
 
 
 def _normalise(text: str) -> str:
-    """Reduce a name to lowercase words separated by single spaces.
-
-    Release names differ only in punctuation -- ``The.Dark.Knight.2008.2160p``
-    against ``The Dark Knight (2008) UHD`` -- so everything that is not a letter
-    or a digit becomes a gap, and both sides are compared in those terms.  The
-    result is padded so a match can be anchored on whole words.
-    """
+    """Reduce a name to lowercase words separated by single spaces, so release
+    names differing only in punctuation compare equal.  Padded so a match can
+    be anchored on whole words."""
     return " %s " % re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
 
 
