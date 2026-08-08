@@ -9,11 +9,11 @@ msgstr ""
 
 msgctxt "#32000"
 msgid "Display output"
-msgstr ""
+msgstr "إخراج العرض"
 
 msgctxt "#32001"
 msgid "Video stream"
-msgstr ""
+msgstr "دفق الفيديو"
 
 msgctxt "#32002"
 msgid "General"
@@ -25,7 +25,7 @@ msgstr "إعدادات TinyPPI"
 
 msgctxt "#32005"
 msgid "Decoder"
-msgstr ""
+msgstr "فك الترميز"
 
 msgctxt "#32007"
 msgid "Processing"
@@ -37,15 +37,15 @@ msgstr "سمات 720p غير مدعومة"
 
 msgctxt "#32013"
 msgid "Playback time"
-msgstr ""
+msgstr "وقت التشغيل"
 
 msgctxt "#32014"
 msgid "Processor"
-msgstr ""
+msgstr "المعالج"
 
 msgctxt "#32015"
 msgid "Color gamut"
-msgstr ""
+msgstr "نطاق الألوان"
 
 msgctxt "#32016"
 msgid "Only CoreELEC 22 or later is supported"
@@ -57,7 +57,7 @@ msgstr "تعذّر التعرّف على إصدار CoreELEC"
 
 msgctxt "#32018"
 msgid "Temperature"
-msgstr ""
+msgstr "درجة الحرارة"
 
 msgctxt "#32019"
 msgid "Show file name"
@@ -69,71 +69,71 @@ msgstr "عرض اسم الملف الجاري تشغيله في TinyPPI."
 
 msgctxt "#32022"
 msgid "Video queue / data"
-msgstr ""
+msgstr "قائمة انتظار / بيانات الفيديو"
 
 msgctxt "#32023"
 msgid "Pixel format"
-msgstr ""
+msgstr "تنسيق البِكسل"
 
 msgctxt "#32024"
 msgid "Aspect ratio"
-msgstr ""
+msgstr "نسبة العرض إلى الارتفاع"
 
 msgctxt "#32025"
 msgid "Audio queue / data"
-msgstr ""
+msgstr "قائمة انتظار / بيانات الصوت"
 
 msgctxt "#32027"
 msgid "Output mode"
-msgstr ""
+msgstr "وضع الإخراج"
 
 msgctxt "#32028"
 msgid "Converting"
-msgstr ""
+msgstr "جارٍ التحويل"
 
 msgctxt "#32030"
 msgid "L5 active area"
-msgstr ""
+msgstr "منطقة L5 النشطة"
 
 msgctxt "#32032"
 msgid "Player cache"
-msgstr ""
+msgstr "الكاش"
 
 msgctxt "#32033"
 msgid "N/A"
-msgstr ""
+msgstr "غير متوفّر"
 
 msgctxt "#32034"
 msgid "Memory usage"
-msgstr ""
+msgstr "الذاكرة"
 
 msgctxt "#32035"
 msgid "Passthrough"
-msgstr ""
+msgstr "التمرير المباشر"
 
 msgctxt "#32036"
 msgid "In / drop / out"
-msgstr ""
+msgstr "داخل / مُسقَط / خارج"
 
 msgctxt "#32045"
 msgid "Audio codec"
-msgstr ""
+msgstr "ترميز الصوت"
 
 msgctxt "#32047"
 msgid "Bitrate"
-msgstr ""
+msgstr "معدّل البِت"
 
 msgctxt "#32051"
 msgid "Input"
-msgstr ""
+msgstr "الإدخال"
 
 msgctxt "#32052"
 msgid "Audio language"
-msgstr ""
+msgstr "لغة الصوت"
 
 msgctxt "#32053"
 msgid "Subtitle language"
-msgstr ""
+msgstr "لغة الترجمة"
 
 msgctxt "#32054"
 msgid "Video"
@@ -141,7 +141,7 @@ msgstr "الفيديو"
 
 msgctxt "#32055"
 msgid "Output"
-msgstr ""
+msgstr "الإخراج"
 
 msgctxt "#32056"
 msgid "Audio"
@@ -149,15 +149,15 @@ msgstr "الصوت"
 
 msgctxt "#32069"
 msgid "Audio resolution"
-msgstr ""
+msgstr "دقّة الصوت"
 
 msgctxt "#32070"
 msgid "Mode"
-msgstr ""
+msgstr "الوضع"
 
 msgctxt "#32087"
 msgid "Decoding"
-msgstr ""
+msgstr "جارٍ فكّ الترميز"
 
 msgctxt "#32088"
 msgid "System"
@@ -165,7 +165,7 @@ msgstr "النظام"
 
 msgctxt "#32091"
 msgid "Disabled"
-msgstr ""
+msgstr "مُعطّل"
 
 msgctxt "#32092"
 msgid "Launch mode"
@@ -189,7 +189,7 @@ msgstr "جارٍ الجلب..."
 
 msgctxt "#32099"
 msgid "Bit depth"
-msgstr ""
+msgstr "عمق البِت"
 
 msgctxt "#32101"
 msgid "Customise the TinyPPI overlay colors."
@@ -213,7 +213,7 @@ msgstr "لون عناوين الأقسام."
 
 msgctxt "#32107"
 msgid "Description"
-msgstr "الوصف
+msgstr "الوصف"
 
 msgctxt "#32108"
 msgid "Color of the label descriptions."
@@ -221,11 +221,11 @@ msgstr "لون أوصاف التسميات."
 
 msgctxt "#32109"
 msgid "Output"
-msgstr "المخرج"
+msgstr "الإخراج"
 
 msgctxt "#32110"
 msgid "Color of the output values."
-msgstr ""
+msgstr "لون قيم الإخراج."
 
 msgctxt "#32111"
 msgid "Progress bar"
@@ -341,7 +341,7 @@ msgstr "[COLOR=FF444444]●[/COLOR] رمادي داكن"
 
 msgctxt "#32140"
 msgid "FPS"
-msgstr ""
+msgstr "إطار/ث"
 
 msgctxt "#32141"
 msgid "Color of the In / drop / out FPS values."
@@ -865,11 +865,11 @@ msgstr "[COLOR=FFFFB74D]●[/COLOR] يوسفي (افتراضي)"
 
 msgctxt "#32287"
 msgid "Decode method"
-msgstr ""
+msgstr "طريقة فكّ الترميز"
 
 msgctxt "#32288"
 msgid "Media source"
-msgstr ""
+msgstr "مصدر الوسائط"
 
 msgctxt "#32289"
 msgid "Metadata"
@@ -877,28 +877,28 @@ msgstr "البيانات الوصفية"
 
 msgctxt "#32290"
 msgid "Profile"
-msgstr ""
+msgstr "الملف الشخصي"
 
 msgctxt "#32291"
 msgid "Level"
-msgstr "msgstr ""
+msgstr "المستوى"
 "
 
 msgctxt "#32292"
 msgid "RPU"
-msgstr "RPU"
+msgstr " RPU وحدة المعالجة المرجعية"
 
 msgctxt "#32293"
 msgid "Base Layer"
-msgstr ""
+msgstr "الطبقة الأساسية"
 
 msgctxt "#32294"
 msgid "Enhancement Layer"
-msgstr ""
+msgstr "طبقة التحسين"
 
 msgctxt "#32295"
 msgid "Enhancement Layer Type"
-msgstr ""
+msgstr "نوع طبقة التحسين"
 
 msgctxt "#32296"
 msgid "HDR10 MDL"
