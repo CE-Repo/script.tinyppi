@@ -1221,8 +1221,7 @@ def get_dv_el_present() -> str:
 def get_dv_el_type() -> str:
     """Return the enhancement-layer type (``FEL`` / ``MEL``, themed), or the
     plain profile number when there is no EL, or '' when unknown."""
-    value, _status = _get_info_status_value("dv_el_type")
-    return _colourise_el_tag(value)
+    return _colourise_el_tag(get_dv_el_type_raw())
 
 
 def get_dv_el_type_raw() -> str:

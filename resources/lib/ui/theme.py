@@ -218,18 +218,38 @@ def _notify(addon, message_id: int, icon: str, duration: int) -> None:
     )
 
 
+# Last (mtime, size) read and the mapping it yielded.  apply_theme() runs on
+# the splash controller's four-times-a-second poll, so without this every one
+# of those re-read and re-parsed the JSON off disk; keying on the stamp keeps a
+# colour written by custom_color() picked up on the very next call.
+_custom_cache: tuple[tuple, dict] | None = None
+
+
 def _load_custom() -> dict:
     """Return the stored custom colors mapping, or an empty dict."""
+    global _custom_cache
+
     try:
-        path = xbmcvfs.translatePath(_CUSTOM_FILE)
-        if os.path.exists(path):
-            with open(path, encoding="utf-8") as handle:
-                data = json.load(handle)
-            if isinstance(data, dict):
-                return data
+        stat = os.stat(xbmcvfs.translatePath(_CUSTOM_FILE))
+    except OSError:  # no file yet -> no custom colors
+        _custom_cache = None
+        return {}
+
+    stamp = (stat.st_mtime, stat.st_size)
+    if _custom_cache is not None and _custom_cache[0] == stamp:
+        # Copied out: callers (custom_color) mutate what they get back.
+        return dict(_custom_cache[1])
+
+    try:
+        with open(xbmcvfs.translatePath(_CUSTOM_FILE), encoding="utf-8") as handle:
+            data = json.load(handle)
     except Exception:  # corrupt/unreadable file -> ignore
-        pass
-    return {}
+        return {}
+    if not isinstance(data, dict):
+        return {}
+
+    _custom_cache = (stamp, data)
+    return dict(data)
 
 
 def _save_custom(data: dict) -> None:
