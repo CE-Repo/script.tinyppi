@@ -1138,3 +1138,11 @@ msgstr ""
 msgctxt "#32366"
 msgid "Active offsets"
 msgstr ""
+
+msgctxt "#32367"
+msgid "Conversion indicator"
+msgstr ""
+
+msgctxt "#32368"
+msgid "Color of the dot shown on the video-format logo while a conversion is active."
+msgstr ""

@@ -1138,3 +1138,11 @@ msgstr "Experimentell. Misst die schwarzen Bildränder des laufenden Bildes einm
 msgctxt "#32366"
 msgid "Active offsets"
 msgstr "Aktive Offsets"
+
+msgctxt "#32367"
+msgid "Conversion indicator"
+msgstr "Konvertierungsanzeige"
+
+msgctxt "#32368"
+msgid "Color of the dot shown on the video-format logo while a conversion is active."
+msgstr "Farbe des Punkts auf dem Videoformat-Logo, der angezeigt wird, während eine Konvertierung aktiv ist."

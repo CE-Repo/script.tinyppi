@@ -24,6 +24,7 @@ import xbmcvfs
 from core.images import display_texture
 from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
+from info.dvinfo import get_hdr_format
 from ui.theme import apply_theme
 
 _ADDON      = xbmcaddon.Addon()
@@ -47,6 +48,10 @@ _ASPECT_STRETCH = 0
 # four rounded-corner masks, all tinted the same ARGB colour.
 _BG_TEXTURE     = os.path.join("common", "dot-1x1.png")
 _DIVIDER_COLOR  = "59FFFFFF"
+# Conversion-indicator badge, straddling the panel's top-right corner (see
+# _is_converting / PROP_CONVERTING below).
+_DOT_TEXTURE       = os.path.join("common", "dot-circle.png")
+_CONVERT_DOT_COLOR = "FF81C784"  # palette Forest
 _CORNER_TEXTURES = {
     "tl": os.path.join("splash", "corner-tl.png"),
     "tr": os.path.join("splash", "corner-tr.png"),
@@ -68,10 +73,11 @@ _MODE_PROP_PREFIX = {
     "tinyppi": "TinyPPI.SplashTinyppi",
 }
 _COLOR_PROP_SUFFIX = {
-    "bg":      "BgColor",
-    "video":   "VideoColor",
-    "audio":   "AudioColor",
-    "divider": "DividerColor",
+    "bg":          "BgColor",
+    "video":       "VideoColor",
+    "audio":       "AudioColor",
+    "divider":     "DividerColor",
+    "convert_dot": "ConvertDotColor",
 }
 
 # Controller poll interval (seconds).
@@ -99,6 +105,39 @@ _ANIM_IN  = ("Visible",
              f"effect=fade start=0 end=100 time={_FADE_IN_MS} tween=cubic easing=inout")
 _ANIM_OUT = ("Hidden",
              f"effect=fade start=100 end=0 time={_FADE_OUT_MS}")
+
+# Conversion-indicator badge: true while an HDR<->Dolby Vision conversion is
+# active, mirroring script-tinyppi-main.xml's check-circle condition (updated
+# every poll below; the dot's own visibleCondition ANDs this in, so Kodi shows
+# or hides it live without a control rebuild).
+PROP_CONVERTING = "TinyPPI.SplashConverting"
+
+
+def _is_converting() -> bool:
+    """Mirror script-tinyppi-main.xml's converting check-circle condition.
+
+    True when the Amlogic output gamut (``amlogic.eoft_gamut``) shows a real
+    HDR<->Dolby Vision conversion: a non-DV source now outputting DV, a DV/HDR
+    source falling back to SDR, or an SDR/DV source being tone-mapped to HDR10.
+    Uses hdrprobe's own detected format (primed at playback start, see
+    dvinfo.prime_playback_detection) rather than the Home-window property the
+    overlay publishes, so it works before the TinyPPI overlay is ever opened.
+    """
+    hdr_type = get_hdr_format()
+    gamut = info("Player.Process(amlogic.eoft_gamut)").upper()
+    parts = gamut.split()
+    mode = parts[0] if parts else ""
+
+    non_dv_source     = hdr_type in ("hdr10", "hlg", "hdr10+", "")
+    hdr_or_dv_source  = hdr_type in ("hdr10", "hlg", "hdr10+") or "dolby" in hdr_type
+    sdr_or_dv_source  = hdr_type in ("", "hdr10+") or "dolby" in hdr_type
+
+    if non_dv_source and "DV" in gamut:
+        return True
+    if hdr_or_dv_source and "SDR" in gamut:
+        return True
+    return bool(sdr_or_dv_source and mode == "HDR10")
+
 
 # Per-mode horizontal / vertical offset settings (priority when several are
 # active: TinyPPI overlay > OSD > start-up window).
@@ -171,6 +210,16 @@ def _make_image(rel_path: str, x: int, y: int, w: int, h: int, color: str) -> xb
     )
 
 
+def _make_dot(cx: int, cy: int, diameter: int, color: str) -> xbmcgui.ControlImage:
+    """Build a filled circle centred on ``(cx, cy)``, e.g. straddling a corner."""
+    full_path = os.path.join(_MEDIA_PATH, _DOT_TEXTURE)
+    texture = display_texture(full_path, diameter, diameter)
+    return xbmcgui.ControlImage(
+        cx - diameter // 2, cy - diameter // 2, diameter, diameter, texture,
+        aspectRatio=_ASPECT_KEEP, colorDiffuse=color,
+    )
+
+
 def _solid(x: int, y: int, w: int, h: int, color: str) -> xbmcgui.ControlImage:
     """Return a stretched, solid-colour fill built from the 1x1 texture."""
     texture = os.path.join(_MEDIA_PATH, _BG_TEXTURE)
@@ -206,7 +255,7 @@ def _build_controls(
     logos: list[str], colors: dict[str, str],
     offset_x: int, offset_y: int, screen_w: int, screen_h: int,
     user_scale: float = 1.0,
-) -> list[xbmcgui.ControlImage]:
+) -> tuple[list[xbmcgui.ControlImage], xbmcgui.ControlImage | None]:
     """Lay out the logos as a vertical stack, sized to the skin.
 
     Sizes are fractions of the window's coordinate space so placement holds up
@@ -215,10 +264,15 @@ def _build_controls(
     ``user_scale`` resizes it.  A rounded panel is drawn first (behind the
     logos); it and the divider are shown/hidden purely by their themed opacity.
     ``colors`` supplies the ARGB tints keyed by ``bg`` / ``video`` / ``audio`` /
-    ``divider``.
+    ``divider`` / ``convert_dot``.
+
+    Returns ``(controls, dot)``: ``dot`` is the conversion-indicator badge
+    (also included in ``controls``, for add/remove/fade purposes), so the
+    caller can give it its own stricter visible condition; ``None`` when there
+    are no logos to show.
     """
     if not logos:
-        return []
+        return [], None
 
     # Overall size multiplier: base layout scale times the per-mode user scale.
     scale = _BASE_SCALE * user_scale
@@ -265,7 +319,17 @@ def _build_controls(
     for index, logo in enumerate(logos):
         y = top + index * (box_h + v_gap)
         controls.append(_make_image(logo, block_x, y, box_w, box_h, logo_colors[index]))
-    return controls
+
+    # Conversion-indicator badge, tucked inside the panel's top-right corner;
+    # its own visible condition (set by the caller) ANDs in PROP_CONVERTING.
+    dot_d   = max(1, int(box_h * 0.20))
+    dot_pad = max(1, int(box_h * 0.20))
+    dot_cx  = panel_x + panel_w - dot_pad - dot_d // 2
+    dot_cy  = panel_y + dot_pad + dot_d // 2
+    dot = _make_dot(dot_cx, dot_cy, dot_d, colors["convert_dot"])
+    controls.append(dot)
+
+    return controls, dot
 
 
 def _window_dims(window) -> tuple[int, int]:
@@ -294,17 +358,18 @@ def _read_triggers(addon) -> tuple[bool, bool, bool]:
 
 
 def _mode_colors(home, mode: str) -> dict[str, str]:
-    """Read *mode*'s bg / video / audio / divider tints off *home*.
+    """Read *mode*'s bg / video / audio / divider / convert_dot tints off *home*.
 
     Call after ``apply_theme`` has published the themed properties; falls back to
     the pre-theme defaults if a property is somehow missing.
     """
     prefix = _MODE_PROP_PREFIX[mode]
     fallback = {
-        "bg":      _BG_COLOR,
-        "video":   _LOGO_COLOR,
-        "audio":   _LOGO_COLOR,
-        "divider": _DIVIDER_COLOR,
+        "bg":          _BG_COLOR,
+        "video":       _LOGO_COLOR,
+        "audio":       _LOGO_COLOR,
+        "divider":     _DIVIDER_COLOR,
+        "convert_dot": _CONVERT_DOT_COLOR,
     }
     return {
         key: home.getProperty(prefix + _COLOR_PROP_SUFFIX[key]) or fallback[key]
@@ -362,8 +427,15 @@ def _clear_mode_visibility(home, mode: str | None = None) -> None:
         home.clearProperty(prop)
 
 
-def _fade_in(video_window, home, monitor, mode: str, controls, condition: str) -> None:
+def _fade_in(
+    video_window, home, monitor, mode: str, controls, condition: str,
+    overrides: dict | None = None,
+) -> None:
     """Add *controls* to the video window and fade them in.
+
+    ``overrides`` maps a control to its own visible condition (used by the
+    conversion-indicator dot, which additionally requires PROP_CONVERTING);
+    every other control uses *condition*.
 
     The ordering is load-bearing (deviating makes the logos pop or flash):
 
@@ -376,12 +448,13 @@ def _fade_in(video_window, home, monitor, mode: str, controls, condition: str) -
        then lift the force-hide — the condition is still false.
     5. Wait a tick, then flip the property false→true to play the "Visible" fade.
     """
+    overrides = overrides or {}
     home.clearProperty(_MODE_VISIBLE_PROPS[mode])
     for control in controls:
         control.setVisible(False)
     video_window.addControls(controls)
     for control in controls:
-        control.setVisibleCondition(condition, False)
+        control.setVisibleCondition(overrides.get(control, condition), False)
     monitor.waitForAbort(_RENDER_TICK)
     for control in controls:
         control.setAnimations([_ANIM_IN, _ANIM_OUT])
@@ -484,6 +557,10 @@ def open_splash() -> None:
             in_fullscreen = xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)")
             in_start_window = show_on_start and (now - started < duration)
 
+            # Live-updated every poll so the dot's own visibleCondition can pop
+            # it in/out without a control rebuild (see _is_converting).
+            home.setProperty(PROP_CONVERTING, "true" if _is_converting() else "false")
+
             desired_states: dict[str, tuple] = {}
             colors_by_mode: dict[str, dict[str, str]] = {}
             if in_fullscreen:
@@ -532,13 +609,18 @@ def open_splash() -> None:
                     continue
                 if mode in controls_by_mode:
                     _fade_out(video_window, home, monitor, mode, controls_by_mode[mode])
-                controls = _build_controls(
+                controls, dot = _build_controls(
                     list(desired[0]), colors_by_mode[mode], desired[1], desired[2],
                     screen_w, screen_h, desired[3],
                 )
                 controls_by_mode[mode] = controls
                 states[mode] = desired
-                _fade_in(video_window, home, monitor, mode, controls, desired[5])
+                overrides = None
+                if dot is not None:
+                    overrides = {
+                        dot: desired[5] + " + " + _home_prop_condition(PROP_CONVERTING),
+                    }
+                _fade_in(video_window, home, monitor, mode, controls, desired[5], overrides)
 
             if not show_on_osd and not show_on_tinyppi and not in_start_window and not states:
                 break
@@ -561,4 +643,5 @@ def open_splash() -> None:
             _remove_controls(video_window, controls)
         home.clearProperty(PROP_SPLASH_VISIBLE)
         _clear_mode_visibility(home)
+        home.clearProperty(PROP_CONVERTING)
         home.clearProperty(PROP_SPLASH_ACTIVE)

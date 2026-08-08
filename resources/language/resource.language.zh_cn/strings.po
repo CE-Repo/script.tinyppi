@@ -1138,3 +1138,11 @@ msgstr "实验性功能。每秒通过解码当前播放位置的画面测量一
 msgctxt "#32366"
 msgid "Active offsets"
 msgstr "有效偏移"
+
+msgctxt "#32367"
+msgid "Conversion indicator"
+msgstr "转换指示点"
+
+msgctxt "#32368"
+msgid "Color of the dot shown on the video-format logo while a conversion is active."
+msgstr "转换进行时，显示在视频格式图标上的圆点颜色。"
