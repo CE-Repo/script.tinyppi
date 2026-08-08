@@ -85,7 +85,7 @@ msgstr ""
 
 msgctxt "#32027"
 msgid "Output mode"
-msgstr "Média kimenet"
+msgstr "Videó kimenet"
 
 msgctxt "#32028"
 msgid "Converting"
@@ -93,7 +93,7 @@ msgstr "Konvertálás"
 
 msgctxt "#32030"
 msgid "L5 active area"
-msgstr "L5 aktív terület"
+msgstr "L5 aktív képterület"
 
 msgctxt "#32032"
 msgid "Player cache"
@@ -125,7 +125,7 @@ msgstr "Bitráta"
 
 msgctxt "#32051"
 msgid "Input"
-msgstr "Hang forrás"
+msgstr "Hangforrás"
 
 msgctxt "#32052"
 msgid "Audio language"
@@ -141,7 +141,7 @@ msgstr "Videó"
 
 msgctxt "#32055"
 msgid "Output"
-msgstr "Kimenet"
+msgstr "Hangkimenet"
 
 msgctxt "#32056"
 msgid "Audio"
@@ -1129,12 +1129,12 @@ msgstr "Élő Stream"
 
 msgctxt "#32364"
 msgid "Live active offsets"
-msgstr "Élő aktív eltolások"
+msgstr "Élő aktív képterület (pixel)"
 
 msgctxt "#32365"
 msgid "Experimental. Measures the black bars of the running picture once a second, by decoding the frame at the current playback position, and updates the aspect ratio and the Dolby Vision L5 offsets from them, so a title that changes its framing mid-film keeps up. The aspect ratio applies to every format; the L5 offsets only to Dolby Vision. Falls back to the RPU values when the measurement is unavailable; switched off, the aspect ratio is Kodi's own again."
-msgstr "Kísérleti. Másodpercenként egyszer méri a futó kép fekete sávjait az aktuális lejátszási pozíciónál dekódolt képkocka alapján, és ebből frissíti a képarányt és a Dolby Vision L5 eltolásokat, így egy olyan cím is naprakész marad, amely film közben megváltoztatja a keretezését. A képarány minden formátumra vonatkozik, az L5 eltolások csak a Dolby Visionre. Visszaáll az RPU-értékekre, ha a mérés nem érhető el; kikapcsolva a képarány ismét Kodi saját értéke."
+msgstr "Kísérleti. Másodpercenként egyszer méri a futó kép fekete sávjait az aktuális lejátszási pozíciónál dekódolt képkocka alapján, és ebből frissíti a képarányt és a Dolby Vision L5 vágásokat, így egy olyan cím is naprakész marad, amely film közben megváltoztatja az aktív területet. A képarány minden formátumra vonatkozik, az L5 vágások csak a Dolby Visionre. Visszaáll az RPU-értékekre, ha a mérés nem érhető el; kikapcsolva a képarány ismét Kodi saját értékét mutatja."
 
 msgctxt "#32366"
 msgid "Active offsets"
-msgstr "Aktív eltolások"
+msgstr "Aktív képterület (pixel)"
