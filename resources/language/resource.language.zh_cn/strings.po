@@ -1132,8 +1132,8 @@ msgid "Live active offsets"
 msgstr "实时有效偏移"
 
 msgctxt "#32365"
-msgid "Experimental. Measures the black bars of the running picture once a second, by decoding the frame at the current playback position, so a title that changes its framing mid-film keeps up. On a Dolby Vision stream this only runs while the RPU itself reports no active area (a bare 0 | 0 | 0 | 0); once the RPU reports its own offsets, those are used instead and no more measuring is done. The aspect ratio always follows whichever offsets are current, RPU or measured, and applies to every format — including a confirmed 0 | 0 | 0 | 0 on Dolby Vision, where that reading is itself an answer; every other format still falls back to Kodi's own ratio for a plain zero. The L5 offsets only apply to Dolby Vision. Switched off, Dolby Vision keeps computing the aspect ratio from the RPU's own L5 offsets, zero included; every other format shows Kodi's own value again."
-msgstr "实验性功能。每秒通过解码当前播放位置的画面测量一次黑边，使中途改变构图的影片也能同步。对 Dolby Vision 内容而言，只有在 RPU 本身未报告任何有效区域（纯粹的 0 | 0 | 0 | 0）时才会进行测量；一旦 RPU 报告了自身的偏移值，便改用该值，并停止测量。画面比例始终跟随当前生效的偏移值——无论来自 RPU 还是实时测量——并适用于所有格式；在 Dolby Vision 上，即便是确认的 0 | 0 | 0 | 0 也会据此计算，因为该读数本身就是一个结果；其他格式在纯零值时仍显示 Kodi 自身的比例。L5 偏移仅适用于 Dolby Vision。关闭该选项后，Dolby Vision 仍会根据 RPU 自身的 L5 偏移计算画面比例，包括零值；其他格式则恢复显示 Kodi 自身的数值。"
+msgid "Experimental. Measures the black bars of the running picture once a second by decoding the current frame, so the aspect ratio keeps up with a title that changes its framing. On Dolby Vision, it only measures while the RPU itself has no active-area data — once the RPU reports its own values, those are used instead. While switched on, the aspect ratio is shown for every format; switched off, only Dolby Vision computes it, from the RPU."
+msgstr "实验性功能。每秒通过解码当前画面测量一次黑边，使画面比例能跟上中途改变构图的影片。对于 Dolby Vision，只有在 RPU 本身没有有效区域数据时才会测量；一旦 RPU 报告了自身数值，便改用该数值。开启该选项后，画面比例会在所有格式下显示；关闭后，仅 Dolby Vision 会根据 RPU 计算画面比例。"
 
 msgctxt "#32366"
 msgid "Active offsets"

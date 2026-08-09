@@ -188,7 +188,9 @@ def _snapped_ar(ratio: float) -> str:
     return f"{ratio:.2f}"
 
 
-def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
+def get_AspectRatioVar(
+    l5_offsets: str, is_dv: bool | None = None, live_available: bool = False
+) -> str:
     """Return the display aspect ratio of the picture inside the black bars.
 
     Kodi's ``videodar`` describes the coded frame, so an IMAX title sits on 1.78
@@ -196,13 +198,15 @@ def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
     coded ratio by the bars (RPU or live measurement, whichever ``l5_offsets``
     carries) gives the ratio actually being watched.  Falls back to Kodi's own
     value when the bars are unknown, or when they're a genuine ``0 | 0 | 0 | 0``
-    outside Dolby Vision -- there the reading is only ever dvinfo's placeholder,
-    never a confirmed measurement, so it carries no more information than
-    Kodi's own ratio.  On a Dolby Vision stream a confirmed ``0 | 0 | 0 | 0`` --
-    from the RPU or a settled live measurement -- is computed anyway, since
-    there it is a real answer (no crop) rather than an unset placeholder.
-    ``is_dv`` lets a caller pass in an already-read state; left out, it is read
-    here.
+    that isn't backed by anything: outside Dolby Vision, with no live
+    measurement landed yet, ``l5_offsets`` is only ever dvinfo's placeholder,
+    never a confirmed reading, so it carries no more information than Kodi's
+    own ratio.  A confirmed ``0 | 0 | 0 | 0`` is computed anyway, since there it
+    is a real answer (no crop) rather than an unset placeholder -- true on a
+    Dolby Vision stream (the RPU itself is the confirmation, live measurement
+    or not) and on any format once a live measurement has actually landed.
+    ``is_dv`` and ``live_available`` let a caller pass in already-read state;
+    left out, ``is_dv`` is read here and ``live_available`` defaults to False.
     """
     raw = clean(info("Player.Process(videodar)"))
 
@@ -210,7 +214,7 @@ def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
     if bars is None:
         return raw
 
-    if not any(bars):
+    if not any(bars) and not live_available:
         if is_dv is None:
             is_dv = _is_dv()
         if not is_dv:
@@ -753,7 +757,7 @@ def _l5_derived() -> tuple[tuple[str, str], ...]:
     icon_visible = "true" if offsets and not is_status_label(offsets) else "false"
 
     return (
-        ("AspectRatioVar", get_AspectRatioVar(offsets)),
+        ("AspectRatioVar", get_AspectRatioVar(offsets, live_available=available)),
         ("ImaxVar", get_ImaxVar(offsets, available)),
         ("DoviLevel5OffsetsVar", offsets),
         ("DoviLevel5OffsetsIconVisible", icon_visible),
