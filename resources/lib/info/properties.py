@@ -39,7 +39,7 @@ from info.cropdetect import (
     live_measurement_available,
     resolve_l5_offsets,
 )
-from info.imax import is_enhanced_title, is_imax_scene
+from info.imax import is_enhanced_title, is_known_imax_title
 from info.dvinfo import (
     L5_EMPTY,
     L5_PENDING_STEP,
@@ -224,18 +224,18 @@ def get_AspectRatioVar(
     return _snapped_ar(ratio) if ratio is not None else raw
 
 
-def get_ImaxVar(l5_offsets: str, available: bool | None = None) -> str:
-    """Return ``IMAX`` while the picture is opened up past its base framing.
+def get_ImaxVar() -> str:
+    """Return ``IMAX Enhanced`` / ``IMAX`` for a film recognised as IMAX
+    material, or ``''`` otherwise.
 
-    Requires a settled measurement: without one the offsets are zeros because
-    nothing looked, not because the picture fills the frame, which would wear
-    the badge for the whole runtime.  See info.imax for scene detection.
-    ``available`` lets a caller pass in an already-established measurement
-    state; left out, it is looked up here.
+    Recognised from its filename (an ``IMAX`` / ``IMAX Enhanced`` release
+    name), or failing that from an entry in ``imax_titles.txt`` (bundled plus
+    the user's own copy) -- see info.imax.  Shown for the whole runtime
+    regardless of the live-detection setting: the badge names the film, not
+    the framing of whatever is on screen this second, so it neither needs nor
+    benefits from a live measurement.
     """
-    if available is None:
-        available = live_measurement_available()
-    if not available or not is_imax_scene(l5_offsets):
+    if not is_known_imax_title():
         return ""
     return "IMAX Enhanced" if is_enhanced_title() else "IMAX"
 
@@ -715,16 +715,15 @@ _l5_published: tuple[tuple[str, str], ...] | None = None
 
 
 def _l5_derived() -> tuple[tuple[str, str], ...]:
-    """Return every property that follows from the L5 offsets.
+    """Return every property that follows from the L5 offsets, plus the IMAX
+    badge (which does not, but is refreshed on the same fast beat so it never
+    lags a change of file).
 
-    Kept together because the offsets, aspect ratio and IMAX badge are three
-    readings of one measurement, and publishing them separately would let the
-    badge disagree with the numbers it's drawn from.  Split out of
-    update_properties so wait_poll can refresh just this set between full
-    updates.  Cheap enough to call several times a second (a cache read plus
-    whatever the sampler last published, no frame decoding); ``enabled`` and
-    ``available`` are read once here and passed down rather than re-read by
-    every caller below.
+    Split out of update_properties so wait_poll can refresh just this set
+    between full updates.  Cheap enough to call several times a second (a
+    cache read plus whatever the sampler last published, no frame decoding);
+    ``enabled`` and ``available`` are read once here and passed down rather
+    than re-read by every caller below.
     """
     enabled = live_detection_enabled()
 
@@ -758,7 +757,7 @@ def _l5_derived() -> tuple[tuple[str, str], ...]:
 
     return (
         ("AspectRatioVar", get_AspectRatioVar(offsets, live_available=available)),
-        ("ImaxVar", get_ImaxVar(offsets, available)),
+        ("ImaxVar", get_ImaxVar()),
         ("DoviLevel5OffsetsVar", offsets),
         ("DoviLevel5OffsetsIconVisible", icon_visible),
         ("DoviLevel5OffsetsLive", "true" if available else "false"),

@@ -1132,8 +1132,8 @@ msgid "Live active offsets"
 msgstr "Élő aktív képterület (pixel)"
 
 msgctxt "#32365"
-msgid "Experimental. Measures the black bars of the running picture once a second by decoding the current frame, so the aspect ratio keeps up with a title that changes its framing. On Dolby Vision, it only measures while the RPU itself has no active-area data — once the RPU reports its own values, those are used instead. While switched on, the aspect ratio is shown for every format; switched off, only Dolby Vision computes it, from the RPU."
-msgstr "Kísérleti. Másodpercenként egyszer méri a futó kép fekete sávjait az aktuális képkocka dekódolásával, hogy a képarány kövesse a film közben megváltozó kép kereteit. Dolby Visionnél csak addig mér, amíg maga az RPU nem ad meg aktív terület adatot – amint az RPU saját értékeket jelez, azok kerülnek felhasználásra. Bekapcsolt állapotban a képarány minden formátumnál megjelenik; kikapcsolva csak a Dolby Vision számítja, az RPU-ból."
+msgid "Measures the black bars of the running picture once a second by decoding the current frame, so the aspect ratio keeps up with a title that changes its framing. On Dolby Vision, it only measures while the RPU itself has no active-area data — once the RPU reports its own values, those are used instead. While switched on, the aspect ratio is shown for every format; switched off, only Dolby Vision computes it, from the RPU."
+msgstr "Másodpercenként egyszer méri a futó kép fekete sávjait az aktuális képkocka dekódolásával, hogy a képarány kövesse a film közben megváltozó kép kereteit. Dolby Visionnél csak addig mér, amíg maga az RPU nem ad meg aktív terület adatot – amint az RPU saját értékeket jelez, azok kerülnek felhasználásra. Bekapcsolt állapotban a képarány minden formátumnál megjelenik; kikapcsolva csak a Dolby Vision számítja, az RPU-ból."
 
 msgctxt "#32366"
 msgid "Active offsets"

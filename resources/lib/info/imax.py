@@ -1,12 +1,11 @@
-"""Deciding whether the scene on screen is IMAX material.
+"""Deciding whether a film is IMAX material.
 
 An IMAX sequence is not a ratio: a film shot for IMAX carries two framings and
 switches between them, so 1.78:1 is IMAX in The Dark Knight but just the format
 in a TV production. No single frame can tell those apart, so the film is
-identified first, from its filename (an ``IMAX`` release name) or from
+identified instead, from its filename (an ``IMAX`` release name) or from
 ``resources/data/imax_titles.txt`` plus the user's own copy under the addon's
-profile folder. Neither says anything about the current scene, only the film;
-once the film is known, a picture around 1.90:1 or taller is the IMAX framing.
+profile folder.
 
 A film that is not identified is never marked, since guessing from the picture
 alone would claim IMAX for every ordinary 1.78:1 film.
@@ -18,19 +17,8 @@ import re
 import xbmc
 import xbmcaddon
 import xbmcvfs
-from core.utils import picture_aspect_ratio
 
 _ADDON = xbmcaddon.Addon()
-
-# For a title known to be IMAX, a picture at or below this ratio is its expanded
-# framing.  IMAX framings run 1.43, 1.66, 1.78 and 1.90; the next ratio up in
-# use is 2.00, so this separates them with room to spare on both sides.
-#
-# The test is on the ratio rather than on how thick the bars are, because a disc
-# encoded natively at its scope ratio has no bars at all -- Top Gun Maverick on
-# Netflix is 2.39:1 from end to end -- and thin bars would read as an expanded
-# framing when the frame simply is the picture.
-_MAX_IMAX_RATIO = 1.95
 
 _TITLE_FILE = "imax_titles.txt"
 
@@ -126,7 +114,7 @@ def is_known_imax_title(name: str = "") -> bool:
     """Return whether the playing file is known to hold IMAX material.
 
     True when the name says ``IMAX`` outright, or matches an entry in the title
-    lists.  Says nothing about the scene currently on screen.
+    lists.
     """
     name = name or _playing_name()
     if not name:
@@ -149,16 +137,3 @@ def is_enhanced_title(name: str = "") -> bool:
     if " imax enhanced " in name:
         return True
     return any(title in name for title in _title_lists()[1])
-
-
-def is_imax_scene(offsets: str) -> bool:
-    """Return whether the scene on screen is IMAX material.
-
-    Call once per poll with the offsets actually on display.  False for a
-    placeholder, a status label, or any film that is not a known IMAX title.
-    """
-    if not is_known_imax_title():
-        return False
-
-    ratio = picture_aspect_ratio(offsets)
-    return ratio is not None and ratio <= _MAX_IMAX_RATIO
