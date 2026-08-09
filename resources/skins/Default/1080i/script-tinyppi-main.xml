@@ -1839,7 +1839,7 @@
 					<!-- L5 active offsets -->
 					<control type="label">
 						<top>210</top>
-						<visible>!String.IsEqual(Window(10000).Property(TinyPPI.L5LiveDetect),1)</visible>
+						<visible>!String.IsEqual(Window.Property(DoviLevel5OffsetsLive),true)</visible>
 						<label>$ADDON[script.tinyppi 32030]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -1847,7 +1847,7 @@
 					</control>
 					<control type="label">
 						<top>210</top>
-						<visible>String.IsEqual(Window(10000).Property(TinyPPI.L5LiveDetect),1)</visible>
+						<visible>String.IsEqual(Window.Property(DoviLevel5OffsetsLive),true)</visible>
 						<label>$ADDON[script.tinyppi 32366]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
