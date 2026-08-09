@@ -188,27 +188,33 @@ def _snapped_ar(ratio: float) -> str:
     return f"{ratio:.2f}"
 
 
-def get_AspectRatioVar(l5_offsets: str, enabled: bool | None = None) -> str:
+def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
     """Return the display aspect ratio of the picture inside the black bars.
 
     Kodi's ``videodar`` describes the coded frame, so an IMAX title sits on 1.78
     for its whole runtime even while the picture on screen is 2.39; scaling the
-    coded ratio by the bars (RPU or live measurement) gives the ratio actually
-    being watched.  Falls back to Kodi's own value when detection is off or the
-    bars are unknown/zero.  ``enabled`` lets a caller pass in an already-read
-    setting; left out, it is read here.
+    coded ratio by the bars (RPU or live measurement, whichever ``l5_offsets``
+    carries) gives the ratio actually being watched.  Falls back to Kodi's own
+    value when the bars are unknown, or when they're a genuine ``0 | 0 | 0 | 0``
+    outside Dolby Vision -- there the reading is only ever dvinfo's placeholder,
+    never a confirmed measurement, so it carries no more information than
+    Kodi's own ratio.  On a Dolby Vision stream a confirmed ``0 | 0 | 0 | 0`` --
+    from the RPU or a settled live measurement -- is computed anyway, since
+    there it is a real answer (no crop) rather than an unset placeholder.
+    ``is_dv`` lets a caller pass in an already-read state; left out, it is read
+    here.
     """
     raw = clean(info("Player.Process(videodar)"))
 
-    # The ratio belongs to the same feature as the offsets it is derived from,
-    # so one switch governs both.  Without this the RPU's own offsets would
-    # still move the ratio off Kodi's value with the option turned off.
-    if not (live_detection_enabled() if enabled is None else enabled):
+    bars = parse_offsets(l5_offsets)
+    if bars is None:
         return raw
 
-    bars = parse_offsets(l5_offsets)
-    if bars is None or not any(bars):
-        return raw
+    if not any(bars):
+        if is_dv is None:
+            is_dv = _is_dv()
+        if not is_dv:
+            return raw
 
     ratio = picture_aspect_ratio(l5_offsets)
     return _snapped_ar(ratio) if ratio is not None else raw
@@ -719,24 +725,35 @@ def _l5_derived() -> tuple[tuple[str, str], ...]:
     enabled = live_detection_enabled()
 
     static = get_l5_offsets()
-    offsets = resolve_l5_offsets(static)
-    # Says the displayed value came from the picture rather than the RPU — not
-    # that the two differ, which they usually do not on a fixed-framing title.
-    available = enabled and live_measurement_available()
-    # Show the placeholder while the value on screen is not yet the one that
-    # will stand: either nothing is known at all (no RPU offsets, nothing
-    # measured), or the measurement that outranks the RPU is still on its way
-    # and within its grace period.  A settled measurement of zero is an answer,
-    # not a wait, and keeps its zeros.
-    if enabled and (
-        (offsets == L5_EMPTY and live_detection_pending())
-        or live_detection_settling()
-    ):
-        offsets = l5_pending_frame()
+    static_bars = parse_offsets(static)
+    # A genuine RPU reading -- anything past all-zero -- is authoritative and
+    # ends the question; live measurement exists only to answer it when the
+    # RPU itself has nothing (a bare "0 | 0 | 0 | 0", or detection still
+    # fetching, which parses to no bars at all).
+    has_rpu_area = static_bars is not None and any(static_bars)
+
+    if enabled and not has_rpu_area:
+        offsets = resolve_l5_offsets(static)
+        # Says the displayed value came from the picture rather than the RPU —
+        # not that the two differ, which they usually do not on a fixed-framing
+        # title.
+        available = live_measurement_available()
+        # Show the placeholder while the value on screen is not yet the one
+        # that will stand: either nothing is known at all (no RPU offsets,
+        # nothing measured), or the measurement that outranks the RPU is still
+        # on its way and within its grace period.  A settled measurement of
+        # zero is an answer, not a wait, and keeps its zeros.
+        if (offsets == L5_EMPTY and live_detection_pending()) or live_detection_settling():
+            offsets = l5_pending_frame()
+    else:
+        # The RPU already has the answer (or the option is off, in which case
+        # it's the only answer there is) -- no live measurement is run or shown.
+        offsets = static
+        available = False
     icon_visible = "true" if offsets and not is_status_label(offsets) else "false"
 
     return (
-        ("AspectRatioVar", get_AspectRatioVar(offsets, enabled)),
+        ("AspectRatioVar", get_AspectRatioVar(offsets)),
         ("ImaxVar", get_ImaxVar(offsets, available)),
         ("DoviLevel5OffsetsVar", offsets),
         ("DoviLevel5OffsetsIconVisible", icon_visible),
