@@ -34,9 +34,9 @@ from core.utils import (
     set_window_properties,
 )
 from info.cropdetect import (
-    l5_fallback_required,
     live_detection_enabled,
     live_detection_settling,
+    live_measurement_required,
     live_measurement_available,
     resolve_l5_offsets,
     stop_live_detection,
@@ -170,22 +170,22 @@ def _snapped_ar(ratio: float) -> str:
     return f"{ratio:.2f}"
 
 
-def get_AspectRatioVar(l5_offsets: str) -> str:
-    """Return the Dolby Vision picture ratio described by active offsets.
+def get_AspectRatioVar(active_offsets: str) -> str:
+    """Return the current picture ratio described by active offsets.
 
     Kodi's ``videodar`` describes the coded frame.  Scaling it by the current
-    RPU L5 offsets, or by borderprobe's fallback measurement while L5 is
-    explicitly all-zero, yields the picture ratio actually being watched and
-    follows framing changes during playback.  When offsets are unavailable,
-    Kodi's unmodified value is returned.
+    Dolby Vision RPU L5 offsets, or by borderprobe's permitted measurement,
+    yields the picture ratio actually being watched and follows framing changes
+    during playback.  When offsets are unavailable, Kodi's unmodified value is
+    returned.
     """
     raw = clean(info("Player.Process(videodar)"))
 
-    bars = parse_offsets(l5_offsets)
+    bars = parse_offsets(active_offsets)
     if bars is None:
         return raw
 
-    ratio = picture_aspect_ratio(l5_offsets)
+    ratio = picture_aspect_ratio(active_offsets)
     return _snapped_ar(ratio) if ratio is not None else raw
 
 
@@ -647,12 +647,11 @@ def _set_progress(window, values: tuple[tuple[int, float], ...]) -> None:
         window.getControl(control_id).setPercent(value)
 
 
-# The L5-derived set as last written to the overlay window, so wait_poll can
-# tell a tick that carries news from one that does not.  Kept in step by
-# update_properties, which always writes the set and always records it.
+# The active-area-derived set as last written to the overlay window, so
+# wait_poll can tell a tick that carries news from one that does not.  Kept in
+# step by update_properties, which always writes the set and always records it.
 _l5_published: tuple[tuple[str, str], ...] | None = None
 _LIVE_METADATA_STEP = 1 / 3
-_L5_EMPTY = "0 | 0 | 0 | 0"
 _L5_PENDING_FRAMES = (
     "/ | / | / | /",
     "- | - | - | -",
@@ -676,21 +675,20 @@ def _dovi_l5_offsets() -> str:
 
 
 def _l5_derived() -> tuple[tuple[str, str], ...]:
-    """Return the effective DV offsets, derived ratio and independent IMAX badge.
+    """Return effective offsets, derived ratio and independent IMAX badge.
 
     Live RPU L5 is authoritative whenever any of its four values is non-zero.
-    borderprobe is allowed only for an explicit all-zero L5 value; missing
-    labels do not qualify.  The effective value is published because the skin
-    cannot express the measured Python fallback as a ``Player.Process`` label.
+    For Dolby Vision, borderprobe is allowed only for an explicit all-zero L5
+    value; missing labels do not qualify.  HDR10, HDR10+, HLG and SDR use the
+    same measurement for their derived aspect ratio, while the skin keeps the
+    active-offset row inside its Dolby Vision group.
     """
     rpu_offsets = _dovi_l5_offsets()
-    use_fallback = (
-        live_detection_enabled()
-        and rpu_offsets == _L5_EMPTY
-        and l5_fallback_required()
+    use_measurement = (
+        live_detection_enabled() and live_measurement_required()
     )
 
-    if use_fallback:
+    if use_measurement:
         offsets = resolve_l5_offsets(rpu_offsets)
         measured = live_measurement_available()
         if not measured and live_detection_settling():
@@ -712,13 +710,14 @@ def _l5_derived() -> tuple[tuple[str, str], ...]:
 
 
 def wait_poll(monitor, window, seconds: float = 1.0) -> bool:
-    """Wait out one polling interval, keeping the DV L5 row current meanwhile.
+    """Wait one polling interval, keeping the active-area result current.
 
     Returns True when Kodi asked to abort.
 
-    CoreELEC's L5 InfoLabels and borderprobe's permitted fallback can change
-    with the presented frame.  Only the L5-derived set is refreshed here, and
-    only when it changed; every other property stays on the original cadence.
+    CoreELEC's L5 InfoLabels and borderprobe's permitted measurements can change
+    with the presented frame.  Only the active-area-derived set is refreshed
+    here, and only when it changed; every other property stays on the original
+    cadence.
     """
     global _l5_published
 
@@ -759,7 +758,7 @@ def update_properties(window) -> None:
     if is_status_label(output_mode) and not is_fetch_label(output_mode):
         output_mode = _output_mode_from_videoplayer() or output_mode
 
-    # Keep live L5, its zero-only borderprobe fallback, the derived aspect ratio
+    # Keep live L5, permitted borderprobe measurements, the derived aspect ratio
     # and the independent IMAX badge on the fast refresh path.
     l5_derived = _l5_derived()
 

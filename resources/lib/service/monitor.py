@@ -73,10 +73,11 @@ class KodiMonitor(xbmc.Monitor):
         self._maybe_show_splash()
 
     def _prime_detection(self) -> None:
-        """Prime playback metadata and the permitted all-zero L5 fallback.
+        """Prime playback metadata and permitted active-area measurement.
 
-        borderprobe starts only when all four live DV L5 labels are explicitly
-        zero; hdrprobe remains required for Output mode.
+        borderprobe measures HDR10, HDR10+, HLG and SDR, and starts for Dolby
+        Vision only when all four live L5 labels are explicitly zero. hdrprobe
+        remains required for Output mode.
         """
         try:
             if not xbmc.getCondVisibility("Player.HasVideo"):
@@ -84,7 +85,7 @@ class KodiMonitor(xbmc.Monitor):
             if prime_playback_detection():
                 _log("Preloading playback metadata in background")
             if prime_live_detection():
-                _log("Preloading zero-L5 active-area fallback in background")
+                _log("Preloading live active-area detection in background")
         except Exception as exc:
             _log(f"Exception priming detection: {exc}", xbmc.LOGERROR)
 

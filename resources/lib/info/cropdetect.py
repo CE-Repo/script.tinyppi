@@ -1,12 +1,14 @@
-"""Live black-bar fallback for Dolby Vision streams without L5 offsets.
+"""Live black-bar measurement for the picture aspect ratio.
 
 CoreELEC publishes the current Dolby Vision Level 5 offsets as four live
 ``Player.Process(...)`` InfoLabels.  Those RPU values are authoritative whenever
 at least one of them is non-zero.  Only when all four labels are present and
 exactly ``0 | 0 | 0 | 0`` does this module use the **borderprobe** helper
 (:mod:`info.borderprobe`) to decode the current picture and measure its black
-rows and columns.  Empty labels, non-Dolby-Vision playback and any non-zero L5
-value never start or keep the helper measuring.
+rows and columns.  HDR10, HDR10+, HLG and SDR are measured as well so their
+picture aspect ratio can follow changing black bars; those measurements do not
+create a non-DV active-offset row.  Empty Dolby Vision labels and any non-zero
+Dolby Vision L5 value never start or keep the helper measuring.
 
 This replaces an earlier approach reading ``/dev/amvideocap0`` (Hyperion's
 Amlogic grabber): cheap, but Amlogic-only, so nothing about it could be
@@ -15,14 +17,16 @@ developed or tested off the box, and its 320x180 scaled grab quantised a
 number flickering.  borderprobe measures the coded frame at full resolution
 and does its own median/hysteresis, so what's left here is TinyPPI's own part:
 holding the side bars to the thinnest ever seen, and standing in the RPU's
-numbers until a measurement lands -- at which point the measurement is shown
-outright, since borderprobe's hysteresis already keeps it from twitching.
+numbers (for DV) or Kodi's coded-frame ratio (for non-DV) until a measurement
+lands -- at which point the measurement is used outright, since borderprobe's
+hysteresis already keeps it from twitching.
 
 Everything here is best-effort: a missing binary, an unopenable file, or a
 picture too dark to judge all yield ``''``, and properties.py falls back to the
-four zero RPU values.  Measuring happens on a sampler thread so the window never
-blocks; a circuit breaker stops retries once the helper has failed continuously
-for ten seconds (reopening the overlay clears it).
+DV RPU values or Kodi's coded-frame ratio.  Measuring happens on a sampler
+thread so the window never blocks; a circuit breaker stops retries once the
+helper has failed continuously for ten seconds (reopening the overlay clears
+it).
 
 Every query decodes a full intra keyframe -- on a UHD remux the most expensive
 frame in the GOP -- which is the whole cost of this feature.  It's kept in
@@ -42,6 +46,7 @@ import xbmcaddon
 import xbmcgui
 from core.utils import clean, info, parse_offsets
 from info import borderprobe
+from info.dvinfo import get_hdr_format, get_output_mode, is_status_label
 
 # How often to measure while the framing is still moving, and how often once it
 # has stopped.  Every query decodes a full intra keyframe of the coded picture
@@ -120,12 +125,12 @@ _UNMEASURABLE_REPORT_AFTER = 5
 _FAILURE_TIMEOUT = 10.0
 
 # How long the display waits for the first measurement before falling back to
-# whatever the RPU declared.  The measurement is the value that will be shown,
-# so until it lands the RPU's number is a stand-in, and the placeholder says so
-# rather than showing a figure that is about to be replaced.  Long enough for a
-# first seek into a large remux across the network, which is seconds, not
-# milliseconds; after it the RPU value stands and the measurement still takes
-# over the moment it arrives.
+# the DV RPU or Kodi's coded-frame ratio.  The measurement is the value that
+# will be used, so until it lands the placeholder says so rather than showing a
+# figure that is about to be replaced.  Long enough for a first seek into a
+# large remux across the network, which is seconds, not milliseconds; after it
+# the declared value stands and the measurement still takes over the moment it
+# arrives.
 _PENDING_GRACE = 10.0
 
 _lock = threading.Lock()
@@ -189,6 +194,36 @@ def l5_fallback_required() -> bool:
     return tuple(values) == (0, 0, 0, 0)
 
 
+def live_measurement_required() -> bool:
+    """Return whether borderprobe may measure the current video.
+
+    Dolby Vision is deliberately strict: its profile and all four L5 labels
+    must be present, and all offsets must be zero.  When no DV profile label is
+    present, wait for the existing hdrprobe classification to finish before
+    treating the stream as HDR10/HDR10+/HLG or SDR.  That wait prevents a DV
+    stream from being measured during the short interval before its live
+    InfoLabels arrive.  Reading the cached classification here does not change
+    the independently rendered Output mode.
+    """
+    if clean(info(_DOVI_PROFILE_LABEL)).strip():
+        return l5_fallback_required()
+
+    hdr_format = get_hdr_format()
+    if hdr_format == "dolbyvision":
+        return False
+    if hdr_format in ("hdr10", "hdr10+", "hlg"):
+        return True
+
+    # A completed non-HDR report has an empty HDR token.  Its output-mode value
+    # is used only to distinguish that valid SDR result from detection that is
+    # still fetching, failed, or produced no usable report.
+    output_mode = clean(get_output_mode()).strip()
+    if not output_mode or is_status_label(output_mode):
+        return False
+    mode = output_mode.lower()
+    return "dolby vision" not in mode and "dolbyvision" not in mode
+
+
 def _clear_locked() -> None:
     """Drop the sampling state; call under the lock."""
     global _measurement, _path, _pending_since, _failure_since, _disabled
@@ -218,7 +253,7 @@ def reset_live_detection() -> None:
 
 
 def stop_live_detection() -> None:
-    """Stop and forget a fallback that is no longer permitted by live L5."""
+    """Stop and forget a measurement that is no longer permitted."""
     with _lock:
         if not _path and _measurement is None:
             return
@@ -325,8 +360,8 @@ def _sampler(source: str, generation: int) -> None:
         if give_up:
             _disabled = True
             _measurement = None
-            _log(f"L5 live: borderprobe unusable ({exc}), "
-                 "staying on the RPU value", xbmc.LOGINFO)
+            _log(f"Active area live: borderprobe unusable ({exc}), "
+                 "staying on the declared aspect ratio", xbmc.LOGINFO)
         return give_up
 
     try:
@@ -346,10 +381,10 @@ def _sampler(source: str, generation: int) -> None:
                     return
                 continue
 
-            # The RPU can change with the presented frame.  Stop immediately
-            # when its live L5 value is no longer explicitly all-zero, even if
-            # the overlay has not made its next polling call yet.
-            if not live_detection_enabled() or not l5_fallback_required():
+            # The format or DV RPU can change with the presented frame.  Stop
+            # immediately when measurement is no longer allowed, even if the
+            # overlay has not made its next polling call yet.
+            if not live_detection_enabled() or not live_measurement_required():
                 with _lock:
                     if _generation == generation:
                         _clear_locked()
@@ -368,7 +403,7 @@ def _sampler(source: str, generation: int) -> None:
                     if monitor.waitForAbort(_SAMPLE_INTERVAL):
                         return
                     continue
-                _log("L5 live: measuring the picture", xbmc.LOGINFO)
+                _log("Active area live: measuring the picture", xbmc.LOGINFO)
 
             try:
                 seconds = xbmc.Player().getTime()
@@ -402,7 +437,8 @@ def _sampler(source: str, generation: int) -> None:
                     served = probe.bytes_served - before[1]
                     vfs = probe.vfs_seconds - before[2]
                     _log(
-                        f"L5 live: query {queries} took {elapsed * 1000:.0f} ms, "
+                        f"Active area live: query {queries} took "
+                        f"{elapsed * 1000:.0f} ms, "
                         f"{vfs * 1000:.0f} ms of it serving {reads} reads "
                         f"({served / 1048576.0:.1f} MB) out of Kodi's VFS",
                         xbmc.LOGINFO,
@@ -431,14 +467,14 @@ def _sampler(source: str, generation: int) -> None:
                     # measuring nothing at full price.
                     stable += 1
                     if unmeasurable == _UNMEASURABLE_REPORT_AFTER:
-                        _log(f"L5 live: nothing measurable in the picture "
+                        _log(f"Active area live: nothing measurable in the picture "
                              f"({probe.last_none_reason}) after {unmeasurable} "
                              "tries; holding the static value", xbmc.LOGINFO)
                 else:
                     unmeasurable = 0
                     stable = 0 if changed else stable + 1
                     if first:
-                        _log("L5 live: measured "
+                        _log("Active area live: measured "
                              + " | ".join(str(v) for v in bars), xbmc.LOGINFO)
 
             # Fast while the framing is moving, slow once it has stopped; a
@@ -453,7 +489,8 @@ def _sampler(source: str, generation: int) -> None:
             if duty_wait > wait:
                 if not throttled:
                     throttled = True
-                    _log(f"L5 live: a query costs {elapsed * 1000:.0f} ms here, "
+                    _log(f"Active area live: a query costs "
+                         f"{elapsed * 1000:.0f} ms here, "
                          f"so measuring every {duty_wait:.1f} s to stay within "
                          f"{_MAX_DUTY:.0%} of a core", xbmc.LOGINFO)
                 wait = duty_wait
@@ -500,7 +537,7 @@ def prime_live_detection() -> bool:
     The sampler is bound by the usual idle rules, so it doesn't leave anything
     running for a film whose overlay is never opened.
     """
-    if not live_detection_enabled() or not l5_fallback_required():
+    if not live_detection_enabled() or not live_measurement_required():
         return False
 
     try:
@@ -602,7 +639,7 @@ def live_measurement_available() -> bool:
     returns early when detection is off.  A pure state read: it neither
     measures nor keeps the sampler alive.
     """
-    if not l5_fallback_required():
+    if not live_measurement_required():
         return False
 
     try:
@@ -620,12 +657,12 @@ def live_detection_settling() -> bool:
     than a static value that is about to be replaced.
 
     Bounded by ``_PENDING_GRACE`` so a picture that never yields a measurement
-    (dark throughout, say) hands the display back to the RPU instead of
-    spinning for the rest of the film.
+    (dark throughout, say) hands the display back to its declared ratio instead
+    of spinning for the rest of the film.
 
     A pure state read: it neither measures nor keeps the sampler alive.
     """
-    if not live_detection_enabled() or not l5_fallback_required():
+    if not live_detection_enabled() or not live_measurement_required():
         return False
     with _lock:
         if _disabled or _measurement is not None or _pending_since is None:
@@ -634,9 +671,9 @@ def live_detection_settling() -> bool:
 
 
 def resolve_l5_offsets(static: str) -> str:
-    """Return the offsets to display for the playing file.
+    """Return the effective offsets for the playing file.
 
-    ``static`` is what the RPU reported (or dvinfo's placeholder/status label).
+    ``static`` is what the DV RPU reported; it is empty for non-DV playback.
     The measurement wins whenever there is one, since it describes the picture
     actually on screen; ``static`` stands in only until the first measurement
     lands, or when detection is off or has given up.  Sides are pinned first by
@@ -652,14 +689,14 @@ def live_l5_offsets() -> str:
 
     Returns ``''`` whenever there is nothing confident to show -- detection off,
     nothing playing, the helper gave up, or no measurement has arrived yet --
-    which is the caller's signal to show the static RPU value.
+    which is the caller's signal to use the declared fallback value.
 
     Never blocks: the reading is whatever the sampler thread last measured, and
     calling this is what keeps that thread alive.
     """
     if not live_detection_enabled():
         return ""
-    if not l5_fallback_required():
+    if not live_measurement_required():
         stop_live_detection()
         return ""
 
