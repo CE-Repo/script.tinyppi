@@ -172,17 +172,15 @@ def live_measurement_required() -> bool:
 
     HDR10, HDR10+, HLG and SDR keep the original Main behaviour and are always
     eligible.  For Dolby Vision, the new live CoreELEC L5 InfoLabels are
-    authoritative: borderprobe is used only when all four offsets are present
-    and exactly zero.
+    authoritative; an empty offset is treated as zero, and borderprobe is used
+    when all four effective offsets are zero.
     """
     if not clean(info(_DOVI_PROFILE_LABEL)).strip():
         return True
 
     values = []
     for label in _L5_LABELS:
-        raw = clean(info(label)).strip()
-        if not raw:
-            return False
+        raw = clean(info(label)).strip() or "0"
         try:
             values.append(int(raw))
         except ValueError:

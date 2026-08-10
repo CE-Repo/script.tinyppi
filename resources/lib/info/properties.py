@@ -664,22 +664,21 @@ def _l5_pending_frame() -> str:
 
 
 def _dovi_l5_offsets() -> str:
-    """Read the four live L5 offsets directly from CoreELEC's InfoLabels."""
+    """Read live L5 offsets, treating each empty InfoLabel as zero."""
     offsets = tuple(
-        clean(info(f"Player.Process(video.dovi.l5.{edge}.offset)")).strip()
+        clean(info(f"Player.Process(video.dovi.l5.{edge}.offset)")).strip() or "0"
         for edge in ("left", "right", "top", "bottom")
     )
-    return " l ".join(offsets) if all(offsets) else ""
+    return " l ".join(offsets)
 
 
 def _l5_derived() -> tuple[tuple[str, str], ...]:
     """Return effective offsets, derived ratio and independent IMAX badge.
 
     Live RPU L5 is authoritative whenever any of its four values is non-zero.
-    For Dolby Vision, borderprobe is allowed only for an explicit all-zero L5
-    value; missing labels do not qualify.  HDR10, HDR10+, HLG and SDR use the
-    same measurement for their derived aspect ratio, while the skin keeps the
-    active-offset row inside its Dolby Vision group.
+    Empty live L5 labels are treated as zero.  HDR10, HDR10+, HLG and SDR use
+    the same measurement for their derived aspect ratio, while the skin keeps
+    the active-offset row inside its Dolby Vision group.
     """
     rpu_offsets = _dovi_l5_offsets()
     rpu_bars = parse_offsets(rpu_offsets)
