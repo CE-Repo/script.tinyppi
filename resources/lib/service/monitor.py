@@ -13,6 +13,7 @@ _LIB_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _LIB_PATH not in sys.path:
     sys.path.insert(0, _LIB_PATH)
 
+from info.cropdetect import prime_live_detection, reset_live_detection
 from info.dvinfo import prime_playback_detection, reset_playback_cache
 from ui.theme import apply_theme
 
@@ -49,6 +50,7 @@ class KodiMonitor(xbmc.Monitor):
     def onNotification(self, sender: str, method: str, data: str) -> None:
         if method == "Player.OnStop":
             reset_playback_cache()
+            reset_live_detection()
             _log("Dolby Vision playback cache cleared")
 
         if method == "Player.OnAVStart":
@@ -71,15 +73,18 @@ class KodiMonitor(xbmc.Monitor):
         self._maybe_show_splash()
 
     def _prime_detection(self) -> None:
-        """Start hdrprobe / audio detection as soon as a video begins playing,
-        so results are already cached when the overlay opens instead of showing
-        ``Fetching...``.  hdrprobe remains required for Output mode.
+        """Prime playback metadata and the permitted all-zero L5 fallback.
+
+        borderprobe starts only when all four live DV L5 labels are explicitly
+        zero; hdrprobe remains required for Output mode.
         """
         try:
             if not xbmc.getCondVisibility("Player.HasVideo"):
                 return
             if prime_playback_detection():
                 _log("Preloading playback metadata in background")
+            if prime_live_detection():
+                _log("Preloading zero-L5 active-area fallback in background")
         except Exception as exc:
             _log(f"Exception priming detection: {exc}", xbmc.LOGERROR)
 

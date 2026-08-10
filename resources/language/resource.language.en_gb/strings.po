@@ -1127,6 +1127,18 @@ msgctxt "#32363"
 msgid "Livestream"
 msgstr ""
 
+msgctxt "#32364"
+msgid "Live active offsets"
+msgstr ""
+
+msgctxt "#32365"
+msgid "Measure the running picture with borderprobe only when Dolby Vision reports exactly 0 | 0 | 0 | 0 for L5 active offsets. Any non-zero L5 value remains authoritative and stops the measurement."
+msgstr ""
+
+msgctxt "#32366"
+msgid "Active offsets"
+msgstr ""
+
 msgctxt "#32367"
 msgid "Conversion indicator"
 msgstr ""

@@ -19,6 +19,7 @@ from core.utils import (
     set_window_properties,
 )
 from info import properties
+from info.cropdetect import retry_live_detection
 from ui import fonts  # noqa: F401  imported for its install-fonts-on-import side effect
 from ui.theme import apply_theme
 
@@ -348,6 +349,15 @@ def open_tinyppi() -> None:
         return
 
     elements_visible = _elements_visible()
+    live_offsets_enabled = _ADDON.getSetting("l5_live_detect") == "true"
+    # Re-enable a previous circuit-breaker attempt without discarding a valid
+    # measurement or warm helper for the still-playing file.
+    retry_live_detection()
+    xbmc.log(
+        "TinyPPI: Zero-L5 borderprobe fallback "
+        f"{'enabled' if live_offsets_enabled else 'disabled'}",
+        xbmc.LOGINFO,
+    )
     _set_overlay_state(home)
     set_window_properties(
         home,
