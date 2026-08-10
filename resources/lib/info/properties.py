@@ -672,6 +672,27 @@ def _dovi_l5_offsets() -> str:
     return " l ".join(offsets)
 
 
+def get_DoviRpuMdlVar() -> str:
+    """Return the live RPU mastering bounds as ``min l max``.
+
+    Prefer the source PQ bounds converted to nits.  Some titles do not publish
+    those labels, so fall back as a complete pair to the Level 6 mastering
+    luminance instead of mixing values from the two metadata sources.
+    """
+    source = tuple(
+        clean(info(f"Player.Process(video.dovi.source.{bound}.nits)")).strip()
+        for bound in ("min", "max")
+    )
+    if all(source):
+        return " l ".join(source)
+
+    level6 = tuple(
+        clean(info(f"Player.Process(video.dovi.l6.{bound}.lum)")).strip()
+        for bound in ("min", "max")
+    )
+    return " l ".join(level6) if all(level6) else ""
+
+
 def _l5_derived() -> tuple[tuple[str, str], ...]:
     """Return effective offsets, derived ratio and independent IMAX badge.
 
@@ -782,6 +803,7 @@ def update_properties(window) -> None:
             ("DoviRpuPresentVar", get_dv_rpu_present()),
             ("DoviBlPresentVar", get_dv_bl_present()),
             ("DoviElPresentVar", get_dv_el_present()),
+            ("DoviRpuMdlVar", get_DoviRpuMdlVar()),
             ("ModeVar", get_ModeVar()),
             ("GamutVar", get_GamutVar()),
             ("FpsInfoVar", fps_info_text),

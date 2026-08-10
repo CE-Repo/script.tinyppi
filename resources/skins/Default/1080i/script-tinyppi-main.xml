@@ -1811,7 +1811,7 @@
 						<top>90</top>
 						<width>270</width>
 						<align>right</align>
-						<label>$INFO[Player.Process(video.dovi.source.min.nits)] l $INFO[Player.Process(video.dovi.source.max.nits)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
+						<label>$INFO[Window().Property(DoviRpuMdlVar)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
