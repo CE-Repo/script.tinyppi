@@ -233,11 +233,19 @@ xbmc.executebuiltin('RunScript(script.tinyppi,run_mode,dv)')
 
 TinyPPI builds on the work of the following projects — many thanks to their authors and contributors.
 
+### CoreELEC Kodi — live player metadata
+
+[**Playerprocessinfo: add live Dolby Vision and HDR metadata infolabels**](https://github.com/CoreELEC/xbmc/pull/67)
+
+CoreELEC's Kodi publishes the Dolby Vision configuration record, the RPU's Level 1/5/6 metadata, the HDR10 static metadata and the stream's bit depth as `Player.Process(...)` InfoLabels. On a build that has them TinyPPI reads its HDR rows straight from the player: nothing is scanned, the values are there the moment playback starts, and the per-frame ones (Level 5 active area) follow the picture. The Level 5 offsets shown for a Dolby Vision title therefore change with the scene, instead of standing on the single reading a probe took at the start.
+
+Builds without those labels keep using hdrprobe exactly as before.
+
 ### hdrprobe
 
 [**hdrprobe**](https://github.com/matthane/hdrprobe) by [matthane](https://github.com/matthane)
 
-A tool for probing and analyzing HDR metadata from video streams. TinyPPI draws on hdrprobe's approach to detecting and interpreting HDR formats — including HDR10, HDR10+, HLG and Dolby Vision — to display accurate HDR information in the overlay.
+A tool for probing and analyzing HDR metadata from video streams. TinyPPI draws on hdrprobe's approach to detecting and interpreting HDR formats — including HDR10, HDR10+, HLG and Dolby Vision — to display accurate HDR information in the overlay. It is the fallback whenever Kodi does not publish the metadata itself, and the source audio bit depth and sample rate come from its companion audioprobe either way.
 
 ### Google Noto Fonts
 

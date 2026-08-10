@@ -56,6 +56,8 @@ from info.dvinfo import (
     get_hdr10_max_cll_fall,
     get_hdr10_mdl,
     get_hdr_format,
+    get_l1_frame_nits,
+    get_l1_frame_pq,
     get_l5_offsets,
     get_l6_rpu_max_cll_fall,
     get_l6_rpu_mdl,
@@ -291,7 +293,7 @@ def get_VideoDecoderNameVar() -> str:
 def get_VideoBitDepthVar() -> str:
     """Return the source bit depth for display, e.g. ``12-bit``.
 
-    Uses hdrprobe's detected depth (see dvinfo.py).  The ``Fetching...`` label
+    Uses the detected source depth (see dvinfo.py).  The ``Fetching...`` label
     passes through while detection runs; when the depth is unknown, falls back
     to ``10-bit`` for HDR and ``8-bit`` for SDR instead of the ``N/A`` label.
     """
@@ -370,9 +372,9 @@ def _output_mode_from_videoplayer() -> str:
     """Classify Kodi's ``VideoPlayer.HDRType`` InfoLabel into an output-mode
     label (``SDR`` / ``HDR10`` / ``HLG`` / ``HDR10+`` / ``Dolby Vision``).
 
-    Reads Kodi's own source-side HDR detection, so it works as the fallback when
-    hdrprobe detection could not run.  An empty ``VideoPlayer.HDRType`` means no
-    HDR signalling, i.e. ``SDR``.
+    Reads Kodi's own source-side HDR detection, so it works as the last resort
+    when neither the live player metadata nor hdrprobe could answer.  An empty
+    ``VideoPlayer.HDRType`` means no HDR signalling, i.e. ``SDR``.
     """
     hdr = info("VideoPlayer.HDRType").lower()
     if not hdr:
@@ -649,16 +651,34 @@ def get_CpuTemperatureProgressVar() -> float:
     )
 
 
-def _metadata_unit() -> str:
-    """Return the configured L6 metadata unit, including Kodi color markup."""
-    unit_color = info("Window(10000).Property(TinyPPI.UnitColor)")
-    unit_label = info("Window(10000).Property(TinyPPI.UnitLabel)")
-
-    if not unit_label:
+def _unit_markup(label: str) -> str:
+    """Return a unit label in the configured unit colour, or '' for no label."""
+    if not label:
         return ""
-    if unit_color:
-        return f"[COLOR={unit_color}]{unit_label}[/COLOR]"
-    return unit_label
+    unit_color = info("Window(10000).Property(TinyPPI.UnitColor)")
+    return f"[COLOR={unit_color}]{label}[/COLOR]" if unit_color else label
+
+
+def _metadata_unit() -> str:
+    """Return the configured brightness unit, including Kodi color markup."""
+    return _unit_markup(info("Window(10000).Property(TinyPPI.UnitLabel)"))
+
+
+# The Level 1 PQ row states code values rather than a brightness, so it carries
+# the code's word length instead of the configured brightness unit.
+_PQ_UNIT = "12-bit"
+
+
+def _pq_unit() -> str:
+    """Return the unit for the Level 1 PQ row.
+
+    Fixed rather than configurable — the numbers are 12-bit PQ codes whatever
+    the brightness rows are shown in — but it follows the same switch: choosing
+    ``Hidden`` for the unit means a value column with no units in it at all.
+    """
+    if not info("Window(10000).Property(TinyPPI.UnitLabel)"):
+        return ""
+    return _unit_markup(_PQ_UNIT)
 
 
 def _channel_setting_for(hdr_type: str) -> str:
@@ -690,8 +710,8 @@ def publish_channel_visibility(home=None) -> None:
 
 
 def publish_hdr_type(home=None) -> None:
-    """Publish the hdrprobe-detected HDR type as ``TinyPPI.HdrType`` on the Home
-    window, for the overlay and mode-select dialog to branch on.
+    """Publish the detected HDR type as ``TinyPPI.HdrType`` on the Home window,
+    for the overlay and mode-select dialog to branch on.
 
     HDR10+ is published as ``hdr10plus`` because Kodi's boolean parser treats
     ``+`` as AND; it still contains ``hdr10`` so ``String.Contains`` branches match.
@@ -808,8 +828,9 @@ def update_properties(window) -> None:
         clean(info("Player.Process(videofps)"))
     )
 
-    # Output-mode line from hdrprobe; fall back to a plain label from Kodi's
-    # ``VideoPlayer.HDRType`` when it would show N/A (``Fetching...`` is kept).
+    # Output-mode line from the detected metadata; fall back to a plain label
+    # from Kodi's ``VideoPlayer.HDRType`` when it would show N/A
+    # (``Fetching...`` is kept).
     output_mode = get_output_mode()
     # Pending flag: the skin uses it to suppress the conversion-arrow suffix
     # while only the ``Fetching...`` placeholder should show.
@@ -827,6 +848,11 @@ def update_properties(window) -> None:
     l6_rpu_max_cll_fall = _with_unit(get_l6_rpu_max_cll_fall(), unit)
     hdr10_mdl           = _with_unit(get_hdr10_mdl(), unit)
     hdr10_max_cll_fall  = _with_unit(get_hdr10_max_cll_fall(), unit)
+    # Level 1 describes the frame on screen, so unlike the rows above these two
+    # move as the film plays.  Both stay empty unless Kodi publishes the RPU
+    # itself, which hides their rows rather than showing them as N/A.
+    l1_frame_nits       = _with_unit(get_l1_frame_nits(), unit)
+    l1_frame_pq         = _with_unit(get_l1_frame_pq(), _pq_unit())
 
     set_window_properties(
         window,
@@ -851,6 +877,8 @@ def update_properties(window) -> None:
             ("DoviStructureVar", get_structure()),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
+            ("DoviLevel1NitsVar", l1_frame_nits),
+            ("DoviLevel1PqVar", l1_frame_pq),
             ("Hdr10MdlVar", hdr10_mdl),
             ("Hdr10MaxCllFallVar", hdr10_max_cll_fall),
             ("DoviVersionVar", get_dv_version()),

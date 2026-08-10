@@ -1,7 +1,17 @@
-"""Dolby Vision / HDR metadata detection via hdrprobe.
+"""Dolby Vision / HDR + audio metadata detection.
 
-Inspects the playing stream with hdrprobe and parses its JSON report into the
-Dolby Vision, Level 5/6 and bit-depth properties consumed by properties.py.
+Publishes the Dolby Vision, Level 5/6, bit-depth and audio fields consumed by
+properties.py, from whichever of two sources can answer.
+
+Kodi's own player is asked first: CoreELEC builds publish everything their
+decoder parsed out of the stream as ``Player.Process(...)`` InfoLabels (see
+info.playerprocess), which is free, immediate and live.  On a build that has
+them no HDR probe is started at all.
+
+hdrprobe is the fallback for builds that do not, and the rest of this file is
+that fallback: it inspects the playing stream with hdrprobe and parses its JSON
+report into the same fields.  audioprobe runs either way -- the source audio bit
+depth and sample rate have no InfoLabel equivalent.
 
 Kodi plays from VFS URLs (nfs://, smb://, http://) that standalone hdrprobe
 cannot open, so the stream is piped into ``hdrprobe --json -`` over stdin:
@@ -33,6 +43,8 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcvfs
+
+from info import playerprocess
 
 _ADDON      = xbmcaddon.Addon()
 
@@ -1000,14 +1012,23 @@ def _detect(path: str) -> dict[str, str]:
     both over stdin in a single read.  The full audio-track list is cached so
     the active track can be selected -- and re-selected on a track change -- at
     read time.
+
+    hdrprobe is skipped entirely when Kodi publishes the metadata itself: its
+    whole result would be read past (see ``_get_info_status_value``), so running
+    it would only spend a scan of the stream on nothing.  audioprobe still runs;
+    no InfoLabel carries the source audio bit depth or sample rate.
     """
     source = _resolve_disc_stream(path)
     is_local = source.startswith("/")
 
-    probe = _hdrprobe()
-    have_probe = bool(probe) and os.path.exists(probe)
-    if not have_probe:
-        _log(f"DV: hdrprobe binary missing ({probe})", xbmc.LOGWARNING)
+    if playerprocess.available():
+        probe, have_probe = "", False
+        _log("DV: using Kodi's live player metadata; hdrprobe not needed")
+    else:
+        probe = _hdrprobe()
+        have_probe = bool(probe) and os.path.exists(probe)
+        if not have_probe:
+            _log(f"DV: hdrprobe binary missing ({probe})", xbmc.LOGWARNING)
 
     audio_probe = _audioprobe()
     have_audio = bool(audio_probe) and os.path.exists(audio_probe)
@@ -1088,8 +1109,10 @@ def prime_playback_detection() -> bool:
 
 
 def _get_info_status_value(key: str) -> tuple[str, str]:
-    """Non-blocking.  Return one cached DV metadata field for the current file,
-    starting background detection on first call.
+    """Non-blocking.  Return one DV metadata field for the current file.
+
+    Kodi's live metadata answers where it can (info.playerprocess); everything
+    else comes from the probe cache, starting background detection on first call.
 
     Returns ``(value, status)`` where status is ``''`` (non-DV/no-file),
     ``'fetching'``, ``'ready'`` or ``'failed'``.
@@ -1099,6 +1122,23 @@ def _get_info_status_value(key: str) -> tuple[str, str]:
     except RuntimeError:
         return "", ""
     if not path:
+        return "", ""
+
+    if key in playerprocess.FIELDS and playerprocess.available():
+        value = playerprocess.field(key)
+        if value:
+            return value, "ready"
+        # An empty answer is an answer -- the stream carries no such metadata --
+        # except while the RPU that fills the Dolby Vision fields has yet to be
+        # parsed, which reads as the same "Fetching..." a probe would show.
+        if key in playerprocess.PENDING_FIELDS and playerprocess.pending():
+            return "", "fetching"
+        return "", "failed"
+
+    if key not in _CACHE_FIELD_PROPERTIES:
+        # A live-only field (the Level 1 frame luminance): it describes the
+        # frame on screen, which no probe of the file can answer, so without
+        # the labels there is nothing to say and nothing worth starting.
         return "", ""
 
     session_token = _session_token()
@@ -1173,6 +1213,28 @@ def get_l6_rpu_mdl() -> str:
 def get_l6_rpu_max_cll_fall() -> str:
     """Return Dolby Vision Level 6 RPU MaxCLL/MaxFALL."""
     return _get_info_value_or("l6_max_cll_fall", "0 | 0")
+
+
+def get_l1_frame_nits() -> str:
+    """Return the Dolby Vision Level 1 frame light level as
+    ``min | max | average`` in nits, or '' when the stream has no RPU.
+
+    Level 1 describes the frame on screen rather than the title, so this follows
+    the picture as it plays.  Only Kodi's live player metadata carries it -- a
+    probe reads the file, not the frame being shown -- so it stays empty on a
+    build without those labels, which leaves the row out of the overlay
+    altogether rather than showing it as N/A.
+    """
+    value, _status = _get_info_status_value("l1_nits")
+    return value
+
+
+def get_l1_frame_pq() -> str:
+    """Return the Dolby Vision Level 1 frame luminance as ``min | max |
+    average`` in raw 12-bit PQ codes -- the values ``get_l1_frame_nits`` is
+    derived from.  Empty on the same terms."""
+    value, _status = _get_info_status_value("l1_pq")
+    return value
 
 
 def get_hdr10_mdl() -> str:

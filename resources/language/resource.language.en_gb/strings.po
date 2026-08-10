@@ -1170,3 +1170,11 @@ msgstr ""
 msgctxt "#32374"
 msgid "Color of the pill shown at the bottom of the splash logo for any other Dolby Vision profile (no enhancement layer)."
 msgstr ""
+
+msgctxt "#32375"
+msgid "FLL MIN / MAX / Ø"
+msgstr ""
+
+msgctxt "#32376"
+msgid "PQ  MIN / MAX / Ø"
+msgstr ""
