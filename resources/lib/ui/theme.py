@@ -431,10 +431,12 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
         )
         home.setProperty(property_name, alpha + value[2:])
 
-    home.setProperty(
-        "TinyPPI.UnitLabel",
-        _pick(_UNIT_LABELS, _setting_value(addon, "unit_type", overrides)),
+    unit_label = _pick(
+        _UNIT_LABELS,
+        _setting_value(addon, "unit_type", overrides),
     )
+    home.setProperty("TinyPPI.UnitLabel", unit_label)
+    home.setProperty("TinyPPI.PqUnitLabel", "12-bit" if unit_label else "")
 
 
 def custom_color(setting_id, addon=None) -> None:

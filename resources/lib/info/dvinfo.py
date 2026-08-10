@@ -2,8 +2,7 @@
 
 CoreELEC/xbmc PR #68 publishes the DV profile/EL type, RPU source/L1/L5/L6
 metadata and HDR10 static metadata as ``Player.Process(...)`` InfoLabels.  The
-corresponding TinyPPI rows read those labels directly through
-:mod:`info.playerprocess`; hdrprobe is not used for them on a supported build.
+TinyPPI skin reads those labels directly; hdrprobe is not used for those rows.
 
 The existing hdrprobe path intentionally remains for the Output mode and for
 fields PR #68 does not expose (HDR type, DV level/structure/presence and source
@@ -41,8 +40,6 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
-from info import playerprocess
-
 _ADDON      = xbmcaddon.Addon()
 
 # Read granularity for the VFS stream on the stdin path.  Both hdrprobe and
@@ -65,9 +62,6 @@ _PROBE_TIMEOUT = 30
 
 _LABEL_FETCH = 32096
 _LABEL_NA    = 32033
-
-# Shown for L5 when the player has no active-area metadata to report.
-L5_EMPTY = "0 | 0 | 0 | 0"
 
 # Kodi Window properties survive separate script invocations, so the completed
 # result is kept there to avoid re-running hdrprobe during the same playback.
@@ -1014,9 +1008,9 @@ def prime_playback_detection() -> bool:
 def _get_info_status_value(key: str) -> tuple[str, str]:
     """Non-blocking.  Return one DV metadata field for the current file.
 
-    Fields represented by PR #68 always use its live InfoLabels and never fall
-    back to hdrprobe.  Everything else comes from the probe cache, starting
-    background detection on first call.
+    Fields represented by PR #68 are read directly by the skin.  The remaining
+    fields come from the probe cache, starting background detection on first
+    call.
 
     Returns ``(value, status)`` where status is ``''`` (non-DV/no-file),
     ``'fetching'``, ``'ready'`` or ``'failed'``.
@@ -1028,14 +1022,8 @@ def _get_info_status_value(key: str) -> tuple[str, str]:
     if not path:
         return "", ""
 
-    if key in playerprocess.FIELDS:
-        if not playerprocess.available():
-            return "", "failed"
-        value = playerprocess.field(key)
-        return (value, "ready") if value else ("", "failed")
-
     if key not in _CACHE_FIELD_PROPERTIES:
-        # Unknown/live-only field: there is no probe-backed value to read.
+        # Unknown field: there is no probe-backed value to read.
         return "", ""
 
     session_token = _session_token()
@@ -1059,17 +1047,6 @@ def _get_info_value(key: str) -> str:
     return ""
 
 
-def _get_info_value_or(key: str, fallback: str) -> str:
-    """Return a metadata field, showing ``fallback`` (e.g. ``0 | 0``) instead of
-    N/A when absent; the ``Fetching...`` label is kept while detection runs."""
-    value, status = _get_info_status_value(key)
-    if value:
-        return value
-    if status == "fetching":
-        return _fetch_label()
-    return fallback
-
-
 def get_hdr_format() -> str:
     """Return the detected HDR type token (``''`` / ``'hdr10'`` / ``'hdr10+'`` /
     ``'hlg'`` / ``'dolbyvision'``), empty until detection completes.  No status label."""
@@ -1083,12 +1060,6 @@ def get_output_mode() -> str:
     return _colourise_el_tag(_get_info_value("output_mode"))
 
 
-def get_cm_version() -> str:
-    """Return the DV Content-Mapping version, or '' when unknown.  No status label."""
-    value, _status = _get_info_status_value("cm_version")
-    return value
-
-
 def get_structure() -> str:
     """Return the layer-structure tag (``(ST-DL)`` / ``(DT-DL)`` / ``(ST-SL)``),
     or '' when unknown.  No status label."""
@@ -1096,65 +1067,10 @@ def get_structure() -> str:
     return value
 
 
-def get_l5_offsets() -> str:
-    """Return Dolby Vision Level 5 active-area offsets, falling back to
-    ``0 | 0 | 0 | 0`` (left | right | top | bottom) rather than N/A."""
-    return _get_info_value_or("l5_offsets", L5_EMPTY)
-
-
-def get_l6_rpu_mdl() -> str:
-    """Return the RPU source mastering bounds as ``min | max`` nits."""
-    return _get_info_value_or("l6_mdl", "0 | 0")
-
-
-def get_l6_rpu_max_cll_fall() -> str:
-    """Return Dolby Vision Level 6 RPU MaxCLL/MaxFALL."""
-    return _get_info_value_or("l6_max_cll_fall", "0 | 0")
-
-
-def get_l1_frame_nits() -> str:
-    """Return the Dolby Vision Level 1 frame light level as
-    ``min | max | average`` in nits, or '' when the stream has no RPU.
-
-    Level 1 describes the frame on screen rather than the title, so this follows
-    the picture as it plays.  Only Kodi's live player metadata carries it -- a
-    probe reads the file, not the frame being shown -- so it stays empty on a
-    build without those labels, which leaves the row out of the overlay
-    altogether rather than showing it as N/A.
-    """
-    value, _status = _get_info_status_value("l1_nits")
-    return value
-
-
-def get_l1_frame_pq() -> str:
-    """Return the Dolby Vision Level 1 frame luminance as ``min | max |
-    average`` in raw 12-bit PQ codes -- the values ``get_l1_frame_nits`` is
-    derived from.  Empty on the same terms."""
-    value, _status = _get_info_status_value("l1_pq")
-    return value
-
-
-def get_hdr10_mdl() -> str:
-    """Return HDR10 mastering-display luminance as ``min | max``."""
-    return _get_info_value_or("hdr10_mdl", "0 | 0")
-
-
-def get_hdr10_max_cll_fall() -> str:
-    """Return the HDR10 static MaxCLL/MaxFALL (``cll | fall``)."""
-    return _get_info_value_or("hdr10_max_cll_fall", "0 | 0")
-
-
 def get_dv_version() -> str:
     """Return the Dolby Vision ``level`` (e.g. ``6``), or '' when unknown.  No
     status label."""
     value, _status = _get_info_status_value("dv_version")
-    return value
-
-
-def get_dv_profile() -> str:
-    """Return the bare Dolby Vision profile number (e.g. ``7.6``), or '' when
-    not (yet) known.  Surfaces no status label."""
-    value, _status = _get_info_status_value("dv_profile")
     return value
 
 
@@ -1174,23 +1090,6 @@ def get_dv_el_present() -> str:
     """Return ``true`` / ``false`` for enhancement-layer presence, or '' when
     unknown."""
     value, _status = _get_info_status_value("dv_el_present")
-    return value
-
-
-def get_dv_el_type() -> str:
-    """Return the enhancement-layer type (``FEL`` / ``MEL``, themed), or the
-    plain profile number when there is no EL, or '' when unknown."""
-    return _colourise_el_tag(get_dv_el_type_raw())
-
-
-def get_dv_el_type_raw() -> str:
-    """Return the enhancement-layer type (``FEL`` / ``MEL``), or the plain
-    profile number when there is no EL, uncoloured; '' when unknown.
-
-    Unlike ``get_dv_el_type``, this carries no ``[COLOR]`` wrapper, for callers
-    that theme it themselves (e.g. the splash's Dolby Vision layer-indicator
-    pill, one colour per FEL / MEL / other-profile bucket)."""
-    value, _status = _get_info_status_value("dv_el_type")
     return value
 
 

@@ -25,7 +25,7 @@ import xbmcvfs
 from core.images import display_texture
 from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
-from info.dvinfo import get_dv_el_type_raw, get_hdr_format
+from info.dvinfo import get_hdr_format
 from ui.theme import apply_theme
 
 _ADDON      = xbmcaddon.Addon()
@@ -185,7 +185,7 @@ def _dv_layer_token(hdr_token: str, hdr_type: str) -> str:
         return ""
     if "dolby" not in hdr_type:
         return "other"
-    el_type = get_dv_el_type_raw().upper()
+    el_type = info("Player.Process(video.dovi.el.type)").strip().upper()
     if el_type == "FEL":
         return "fel"
     if el_type == "MEL":

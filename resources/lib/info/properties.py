@@ -37,21 +37,11 @@ from info.dvinfo import (
     get_active_audio_bit_depth,
     get_active_audio_sample_rate,
     get_bit_depth,
-    get_cm_version,
     get_dv_bl_present,
     get_dv_el_present,
-    get_dv_el_type,
-    get_dv_profile,
     get_dv_rpu_present,
     get_dv_version,
-    get_hdr10_max_cll_fall,
-    get_hdr10_mdl,
     get_hdr_format,
-    get_l1_frame_nits,
-    get_l1_frame_pq,
-    get_l5_offsets,
-    get_l6_rpu_max_cll_fall,
-    get_l6_rpu_mdl,
     get_output_mode,
     get_structure,
     is_fetch_label,
@@ -301,19 +291,6 @@ def get_DoviTunnelVar() -> str:
 
     _dovi_tunnel_cache = (pixformat, result)
     return result
-
-
-def _with_unit(value: str, unit: str) -> str:
-    """Append ``unit`` to a metadata value, but not to status labels.
-
-    The ``0 | 0`` placeholder still gets the unit (``0 | 0 cd/m²``); the
-    ``Fetching...`` label is left unchanged.
-    """
-    if not value or is_status_label(value):
-        return value
-    if not unit:
-        return value
-    return f"{value} {unit}"
 
 
 # --- Amlogic EOFT / gamut --------------------------------------------------
@@ -613,36 +590,6 @@ def get_CpuTemperatureProgressVar() -> float:
     )
 
 
-def _unit_markup(label: str) -> str:
-    """Return a unit label in the configured unit colour, or '' for no label."""
-    if not label:
-        return ""
-    unit_color = info("Window(10000).Property(TinyPPI.UnitColor)")
-    return f"[COLOR={unit_color}]{label}[/COLOR]" if unit_color else label
-
-
-def _metadata_unit() -> str:
-    """Return the configured brightness unit, including Kodi color markup."""
-    return _unit_markup(info("Window(10000).Property(TinyPPI.UnitLabel)"))
-
-
-# The Level 1 PQ row states code values rather than a brightness, so it carries
-# the code's word length instead of the configured brightness unit.
-_PQ_UNIT = "12-bit"
-
-
-def _pq_unit() -> str:
-    """Return the unit for the Level 1 PQ row.
-
-    Fixed rather than configurable — the numbers are 12-bit PQ codes whatever
-    the brightness rows are shown in — but it follows the same switch: choosing
-    ``Hidden`` for the unit means a value column with no units in it at all.
-    """
-    if not info("Window(10000).Property(TinyPPI.UnitLabel)"):
-        return ""
-    return _unit_markup(_PQ_UNIT)
-
-
 def _channel_setting_for(hdr_type: str) -> str:
     """Return the channel setting that governs an ``HdrType`` token.
 
@@ -697,21 +644,28 @@ _l5_published: tuple[tuple[str, str], ...] | None = None
 _LIVE_METADATA_STEP = 1 / 3
 
 
-def _l5_derived() -> tuple[tuple[str, str], ...]:
-    """Return live Dolby Vision L5 properties and the independent IMAX badge.
+def _dovi_l5_offsets() -> str:
+    """Read the four live L5 offsets directly from CoreELEC's InfoLabels."""
+    offsets = tuple(
+        clean(info(f"Player.Process(video.dovi.l5.{edge}.offset)")).strip()
+        for edge in ("left", "right", "top", "bottom")
+    )
+    return " | ".join(offsets) if all(offsets) else ""
 
-    CoreELEC supplies L5 through frame-updated InfoLabels, so this fast path is
-    only a set of cheap label reads.  Non-Dolby-Vision playback deliberately
-    receives no active offsets.
+
+def _l5_derived() -> tuple[tuple[str, str], ...]:
+    """Return L5-derived aspect ratio and the independent IMAX badge.
+
+    The skin displays L5 itself with direct ``$INFO`` expressions.  Python only
+    reads the same live labels here because the aspect-ratio calculation needs
+    their numeric values.  Non-Dolby-Vision playback deliberately receives no
+    active offsets.
     """
-    offsets = get_l5_offsets() if _is_dv() else ""
-    icon_visible = "true" if offsets and not is_status_label(offsets) else "false"
+    offsets = _dovi_l5_offsets() if _is_dv() else ""
 
     return (
         ("AspectRatioVar", get_AspectRatioVar(offsets)),
         ("ImaxVar", get_ImaxVar()),
-        ("DoviLevel5OffsetsVar", offsets),
-        ("DoviLevel5OffsetsIconVisible", icon_visible),
     )
 
 
@@ -750,7 +704,6 @@ def update_properties(window) -> None:
     # Depends on the type just published, and gates the channel graphics below.
     publish_channel_visibility()
 
-    unit = _metadata_unit()
     fps_info_text, fps_out_text = fps_display_texts(
         clean(info("Player.Process(videofps)"))
     )
@@ -764,18 +717,9 @@ def update_properties(window) -> None:
     if is_status_label(output_mode) and not is_fetch_label(output_mode):
         output_mode = _output_mode_from_videoplayer() or output_mode
 
-    # CoreELEC publishes the current DV L5 offsets as live InfoLabels.  Keep the
-    # derived row separate so the poll loop can refresh it between full updates.
-    l5_derived          = _l5_derived()
-    l6_rpu_mdl          = _with_unit(get_l6_rpu_mdl(), unit)
-    l6_rpu_max_cll_fall = _with_unit(get_l6_rpu_max_cll_fall(), unit)
-    hdr10_mdl           = _with_unit(get_hdr10_mdl(), unit)
-    hdr10_max_cll_fall  = _with_unit(get_hdr10_max_cll_fall(), unit)
-    # Level 1 describes the frame on screen, so unlike the rows above these two
-    # move as the film plays.  Both stay empty unless Kodi publishes the RPU
-    # itself, which hides their rows rather than showing them as N/A.
-    l1_frame_nits       = _with_unit(get_l1_frame_nits(), unit)
-    l1_frame_pq         = _with_unit(get_l1_frame_pq(), _pq_unit())
+    # L5 is displayed directly by the skin.  Keep only its derived aspect ratio
+    # (plus the independent IMAX badge) on the fast Python refresh path.
+    l5_derived = _l5_derived()
 
     set_window_properties(
         window,
@@ -796,20 +740,11 @@ def update_properties(window) -> None:
             ("MediaSourceVar", _media_source_name(output_mode)),
             ("DoviProfilePending", "true" if output_mode_pending else "false"),
             ("DoviTunnelVar", get_DoviTunnelVar()),
-            ("DoviCmVersionVar", get_cm_version()),
             ("DoviStructureVar", get_structure()),
-            ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
-            ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
-            ("DoviLevel1NitsVar", l1_frame_nits),
-            ("DoviLevel1PqVar", l1_frame_pq),
-            ("Hdr10MdlVar", hdr10_mdl),
-            ("Hdr10MaxCllFallVar", hdr10_max_cll_fall),
             ("DoviVersionVar", get_dv_version()),
-            ("DoviProfileNumberVar", get_dv_profile()),
             ("DoviRpuPresentVar", get_dv_rpu_present()),
             ("DoviBlPresentVar", get_dv_bl_present()),
             ("DoviElPresentVar", get_dv_el_present()),
-            ("DoviElTypeVar", get_dv_el_type()),
             ("ModeVar", get_ModeVar()),
             ("GamutVar", get_GamutVar()),
             ("FpsInfoVar", fps_info_text),

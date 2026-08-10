@@ -237,7 +237,7 @@ TinyPPI builds on the work of the following projects — many thanks to their au
 
 [**Add a CoreELEC label registry and live DV/HDR info labels**](https://github.com/CoreELEC/xbmc/pull/68)
 
-CoreELEC's Kodi publishes the Dolby Vision profile and enhancement-layer type, RPU source/L1/L5/L6 metadata, and HDR10 static metadata as `Player.Process(...)` InfoLabels. TinyPPI reads the corresponding rows straight from the player. The Dolby Vision L1 light levels and L5 active-area offsets follow the presented frame, including scene and aspect-ratio changes. L5 active-area display is intentionally limited to Dolby Vision and no longer runs a separate frame-decoding probe.
+CoreELEC's Kodi publishes the Dolby Vision profile and enhancement-layer type, RPU source/L1/L5/L6 metadata, and HDR10 static metadata as `Player.Process(...)` InfoLabels. TinyPPI's skin reads these values directly with `$INFO[Player.Process(...)]`; there is no helper module or API-version probe in between. The Dolby Vision L1 light levels and L5 active-area offsets follow the presented frame, including scene and aspect-ratio changes. L5 active-area display is intentionally limited to Dolby Vision and no longer runs a separate frame-decoding probe.
 
 The **Output mode is unchanged and continues to come from hdrprobe**. hdrprobe also remains responsible for fields the new label set does not expose, such as the DV level/structure/presence data and source bit depth.
 
