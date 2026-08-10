@@ -367,6 +367,7 @@ def open_tinyppi() -> None:
                 "TinyPPI.ShowL5Icon",
                 "0" if _ADDON.getSetting("show_l5_icon") == "false" else "1",
             ),
+            ("TinyPPI.L5LiveDetect", "1" if live_offsets_enabled else "0"),
             ("TinyPPI.ShowLine", elements_visible),
             ("TinyPPI.ShowHeaderTitle", elements_visible),
             ("TinyPPI.ShowHeaderIcon", elements_visible),

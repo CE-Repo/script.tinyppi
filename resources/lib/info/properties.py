@@ -36,10 +36,8 @@ from core.utils import (
 from info.cropdetect import (
     live_detection_enabled,
     live_detection_settling,
-    live_measurement_required,
     live_measurement_available,
     resolve_l5_offsets,
-    stop_live_detection,
 )
 from info.imax import is_enhanced_title, is_known_imax_title
 from info.dvinfo import (
@@ -684,9 +682,9 @@ def _l5_derived() -> tuple[tuple[str, str], ...]:
     active-offset row inside its Dolby Vision group.
     """
     rpu_offsets = _dovi_l5_offsets()
-    use_measurement = (
-        live_detection_enabled() and live_measurement_required()
-    )
+    rpu_bars = parse_offsets(rpu_offsets)
+    has_rpu_area = rpu_bars is not None and any(rpu_bars)
+    use_measurement = live_detection_enabled() and not has_rpu_area
 
     if use_measurement:
         offsets = resolve_l5_offsets(rpu_offsets)
@@ -694,7 +692,6 @@ def _l5_derived() -> tuple[tuple[str, str], ...]:
         if not measured and live_detection_settling():
             offsets = _l5_pending_frame()
     else:
-        stop_live_detection()
         offsets = rpu_offsets
         measured = False
 
