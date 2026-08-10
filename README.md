@@ -233,19 +233,11 @@ xbmc.executebuiltin('RunScript(script.tinyppi,run_mode,dv)')
 
 TinyPPI builds on the work of the following projects — many thanks to their authors and contributors.
 
-### CoreELEC Kodi — live player metadata
-
-[**Add a CoreELEC label registry and live DV/HDR info labels**](https://github.com/CoreELEC/xbmc/pull/68)
-
-CoreELEC's Kodi publishes the Dolby Vision profile and enhancement-layer type, RPU source/L1/L5/L6 metadata, and HDR10 static metadata as `Player.Process(...)` InfoLabels. TinyPPI reads these labels without an API-version probe. The Dolby Vision L1 light levels and L5 active-area offsets follow the presented frame, including scene and aspect-ratio changes. For Dolby Vision, the optional borderprobe fallback measures the running picture only when all four L5 labels are present and exactly `0 | 0 | 0 | 0`; empty labels or any non-zero L5 value never start or keep that measurement running. HDR10, HDR10+, HLG and SDR are also measured so their displayed aspect ratio follows changing black bars, but no active-offset row is added outside the Dolby Vision panel.
-
-The **Output mode is unchanged and continues to come from hdrprobe**. hdrprobe also remains responsible for fields the new label set does not expose, such as the DV level/structure/presence data and source bit depth.
-
 ### hdrprobe
 
 [**hdrprobe**](https://github.com/matthane/hdrprobe) by [matthane](https://github.com/matthane)
 
-A tool for probing and analyzing HDR metadata from video streams. TinyPPI draws on hdrprobe's approach to detecting and interpreting HDR formats — including HDR10, HDR10+, HLG and Dolby Vision — to display accurate HDR information in the overlay. It continues to provide the Output mode and metadata for which CoreELEC has no direct InfoLabel. Source audio bit depth and sample rate come from its companion audioprobe.
+A tool for probing and analyzing HDR metadata from video streams. TinyPPI draws on hdrprobe's approach to detecting and interpreting HDR formats — including HDR10, HDR10+, HLG and Dolby Vision — to display accurate HDR information in the overlay.
 
 ### Google Noto Fonts
 
