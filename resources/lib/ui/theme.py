@@ -147,9 +147,9 @@ _BACKGROUND_COLORS = (
 
 # Brightness unit labels for the L6 metadata values ("" = hidden).
 _UNIT_LABELS = (
-    "cd/m²",  # 0  cd/m² (default)
-    "nits",   # 1  nits
-    "",       # 2  Hidden
+    "  cd/m²",  # 0  cd/m² (default)
+    "  nits",   # 1  nits
+    "",         # 2  Hidden
 )
 
 
@@ -436,7 +436,7 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
         _setting_value(addon, "unit_type", overrides),
     )
     home.setProperty("TinyPPI.UnitLabel", unit_label)
-    home.setProperty("TinyPPI.PqUnitLabel", "12-bit" if unit_label else "")
+    home.setProperty("TinyPPI.PqUnitLabel", "  12-bit" if unit_label else "")
 
 
 def custom_color(setting_id, addon=None) -> None:

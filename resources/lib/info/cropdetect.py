@@ -440,7 +440,7 @@ def _sampler(source: str, generation: int) -> None:
                     stable = 0 if changed else stable + 1
                     if first:
                         _log("L5 live: measured "
-                             + " | ".join(str(v) for v in bars), xbmc.LOGINFO)
+                             + " l ".join(str(v) for v in bars), xbmc.LOGINFO)
 
             # Fast while the framing is moving, slow once it has stopped; a
             # single changed reading puts it straight back on the fast cadence.
@@ -590,14 +590,14 @@ def _hold_sides(static: str, measured: str) -> str:
         window.setProperty(_SIDES_PATH_PROPERTY, path)
         window.setProperty(_SIDES_PROPERTY, str(side))
 
-    return " | ".join(str(value) for value in (side, side, bars[2], bars[3]))
+    return " l ".join(str(value) for value in (side, side, bars[2], bars[3]))
 
 
 def live_measurement_available() -> bool:
     """Return whether a measurement exists for the playing file.
 
     Lets a caller tell "the picture has no bars" from "nobody has looked" --
-    both read as ``0 | 0 | 0 | 0``, and acting on the second would mark a whole
+    both read as ``0 l 0 l 0 l 0``, and acting on the second would mark a whole
     film as IMAX on a value nothing ever measured.  Tied to the playing file,
     since live_l5_offsets() only clears the reading on a file change and
     returns early when detection is off.  A pure state read: it neither
@@ -662,7 +662,7 @@ def resolve_l5_offsets(static: str) -> str:
 
 def live_l5_offsets() -> str:
     """Return the measured active-area offsets for the playing file as
-    ``left | right | top | bottom`` in coded pixels.
+    ``left l right l top l bottom`` in coded pixels.
 
     Returns ``''`` whenever there is nothing confident to show -- detection off,
     nothing playing, the helper gave up, or no measurement has arrived yet --
@@ -693,4 +693,4 @@ def live_l5_offsets() -> str:
 
     if reading is None:
         return ""
-    return " | ".join(str(value) for value in reading)
+    return " l ".join(str(value) for value in reading)

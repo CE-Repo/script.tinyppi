@@ -651,9 +651,9 @@ def _set_progress(window, values: tuple[tuple[int, float], ...]) -> None:
 _l5_published: tuple[tuple[str, str], ...] | None = None
 _LIVE_METADATA_STEP = 1 / 3
 _L5_PENDING_FRAMES = (
-    "/ | / | / | /",
-    "- | - | - | -",
-    "\\ | \\ | \\ | \\",
+    "/ l / l / l /",
+    "- l - l - l -",
+    "\\ l \\ l \\ l \\",
 )
 
 
@@ -669,7 +669,7 @@ def _dovi_l5_offsets() -> str:
         clean(info(f"Player.Process(video.dovi.l5.{edge}.offset)")).strip()
         for edge in ("left", "right", "top", "bottom")
     )
-    return " | ".join(offsets) if all(offsets) else ""
+    return " l ".join(offsets) if all(offsets) else ""
 
 
 def _l5_derived() -> tuple[tuple[str, str], ...]:

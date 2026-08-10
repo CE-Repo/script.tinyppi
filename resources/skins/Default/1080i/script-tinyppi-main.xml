@@ -1353,7 +1353,7 @@
 							<top>30</top>
 							<width>270</width>
 							<align>right</align>
-							<label>$INFO[Player.Process(video.hdr.min.lum)] l $INFO[Player.Process(video.hdr.max.lum)]  [COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
+							<label>$INFO[Player.Process(video.hdr.min.lum)] l $INFO[Player.Process(video.hdr.max.lum)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
 							<font>font23_narrow</font>
 							<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 							<aligny>top</aligny>
@@ -1372,7 +1372,7 @@
 							<top>60</top>
 							<width>270</width>
 							<align>right</align>
-							<label>$INFO[Player.Process(video.hdr.max.cll)] l $INFO[Player.Process(video.hdr.max.fall)]  [COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
+							<label>$INFO[Player.Process(video.hdr.max.cll)] l $INFO[Player.Process(video.hdr.max.fall)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
 							<font>font23_narrow</font>
 							<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 							<aligny>top</aligny>
@@ -1475,7 +1475,7 @@
 							<top>30</top>
 							<width>270</width>
 							<align>right</align>
-							<label>$INFO[Player.Process(video.hdr.min.lum)] l $INFO[Player.Process(video.hdr.max.lum)]  [COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
+							<label>$INFO[Player.Process(video.hdr.min.lum)] l $INFO[Player.Process(video.hdr.max.lum)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
 							<font>font23_narrow</font>
 							<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 							<aligny>top</aligny>
@@ -1494,7 +1494,7 @@
 							<top>60</top>
 							<width>270</width>
 							<align>right</align>
-							<label>$INFO[Player.Process(video.hdr.max.cll)] l $INFO[Player.Process(video.hdr.max.fall)]  [COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
+							<label>$INFO[Player.Process(video.hdr.max.cll)] l $INFO[Player.Process(video.hdr.max.fall)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
 							<font>font23_narrow</font>
 							<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 							<aligny>top</aligny>
@@ -1773,7 +1773,7 @@
 						<top>30</top>
 						<width>270</width>
 						<align>right</align>
-						<label>$INFO[Player.Process(video.hdr.min.lum)] l $INFO[Player.Process(video.hdr.max.lum)]  [COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
+						<label>$INFO[Player.Process(video.hdr.min.lum)] l $INFO[Player.Process(video.hdr.max.lum)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
@@ -1792,7 +1792,7 @@
 						<top>57</top>
 						<width>270</width>
 						<align>right</align>
-						<label>$INFO[Player.Process(video.hdr.max.cll)] l $INFO[Player.Process(video.hdr.max.fall)]  [COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
+						<label>$INFO[Player.Process(video.hdr.max.cll)] l $INFO[Player.Process(video.hdr.max.fall)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
@@ -1811,7 +1811,7 @@
 						<top>90</top>
 						<width>270</width>
 						<align>right</align>
-						<label>$INFO[Player.Process(video.dovi.source.min.nits)] l $INFO[Player.Process(video.dovi.source.max.nits)]  [COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
+						<label>$INFO[Player.Process(video.dovi.source.min.nits)] l $INFO[Player.Process(video.dovi.source.max.nits)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
@@ -1830,7 +1830,7 @@
 						<top>117</top>
 						<width>270</width>
 						<align>right</align>
-						<label>$INFO[Player.Process(video.dovi.l6.max.cll)] l $INFO[Player.Process(video.dovi.l6.max.fall)]  [COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
+						<label>$INFO[Player.Process(video.dovi.l6.max.cll)] l $INFO[Player.Process(video.dovi.l6.max.fall)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
@@ -1851,7 +1851,7 @@
 						<width>300</width>
 						<align>right</align>
 						<visible>!String.IsEmpty(Player.Process(video.dovi.l1.min.nits))</visible>
-						<label>$INFO[Player.Process(video.dovi.l1.min.nits)] l $INFO[Player.Process(video.dovi.l1.max.nits)] l $INFO[Player.Process(video.dovi.l1.avg.nits)]  [COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
+						<label>$INFO[Player.Process(video.dovi.l1.min.nits)] l $INFO[Player.Process(video.dovi.l1.max.nits)] l $INFO[Player.Process(video.dovi.l1.avg.nits)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
@@ -1872,7 +1872,7 @@
 						<width>300</width>
 						<align>right</align>
 						<visible>!String.IsEmpty(Player.Process(video.dovi.l1.min.pq))</visible>
-						<label>$INFO[Player.Process(video.dovi.l1.min.pq)] l $INFO[Player.Process(video.dovi.l1.max.pq)] l $INFO[Player.Process(video.dovi.l1.avg.pq)]  [COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.PqUnitLabel)][/COLOR]</label>
+						<label>$INFO[Player.Process(video.dovi.l1.min.pq)] l $INFO[Player.Process(video.dovi.l1.max.pq)] l $INFO[Player.Process(video.dovi.l1.avg.pq)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.PqUnitLabel)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
@@ -1896,44 +1896,44 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="grouplist">
-						<left>40</left>
+						<left>50</left>
 						<top>210</top>
-						<width>450</width>
+						<width>445</width>
 						<height>31</height>
 						<orientation>horizontal</orientation>
 						<align>right</align>
-						<itemgap>15</itemgap>
+						<itemgap>20</itemgap>
 						<control type="label">
 							<width>auto</width>
 							<height>31</height>
-							<label>$INFO[Window.Property(DoviLevel5OffsetsVar)] </label>
+							<label>$INFO[Window.Property(DoviLevel5OffsetsVar)]</label>
 							<font>font23_narrow</font>
 							<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 							<aligny>top</aligny>
 						</control>
-						<!-- Icon for L5 active offsets -->
+						<!-- L5 active offsets / Icon -->
 						<control type="group">
 							<visible>!String.IsEqual(Window(10000).Property(TinyPPI.L5LiveDetect),1) + String.IsEqual(Window.Property(DoviLevel5OffsetsIconVisible),true) + String.IsEqual(Window(10000).Property(TinyPPI.ShowL5Icon),1)</visible>
-							<width>48</width>
-							<height>31</height>
+							<width>57</width>
+							<height>27</height>
 							<control type="image">
 								<top>4</top>
-								<width>48</width>
-								<height>25</height>
+								<width>57</width>
+								<height>27</height>
 								<texture>icons/lrtb.png</texture>
 								<colordiffuse>$INFO[Window(10000).Property(TinyPPI.IconColor)]</colordiffuse>
 								<aspectratio>keep</aspectratio>
 							</control>
 						</control>
-						<!-- Icon for measured active offsets -->
+						<!-- Active offsets / Icon -->
 						<control type="group">
 							<visible>String.IsEqual(Window(10000).Property(TinyPPI.L5LiveDetect),1) + String.IsEqual(Window(10000).Property(TinyPPI.ShowL5Icon),1)</visible>
-							<width>48</width>
+							<width>57</width>
 							<height>31</height>
 							<control type="image">
 								<top>4</top>
-								<width>48</width>
-								<height>25</height>
+								<width>57</width>
+								<height>27</height>
 								<texture>icons/lrtb.png</texture>
 								<colordiffuse>$INFO[Window(10000).Property(TinyPPI.IconColor)]</colordiffuse>
 								<aspectratio>keep</aspectratio>
