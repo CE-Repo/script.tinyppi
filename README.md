@@ -235,17 +235,17 @@ TinyPPI builds on the work of the following projects — many thanks to their au
 
 ### CoreELEC Kodi — live player metadata
 
-[**Playerprocessinfo: add live Dolby Vision and HDR metadata infolabels**](https://github.com/CoreELEC/xbmc/pull/67)
+[**Add a CoreELEC label registry and live DV/HDR info labels**](https://github.com/CoreELEC/xbmc/pull/68)
 
-CoreELEC's Kodi publishes the Dolby Vision configuration record, the RPU's Level 1/5/6 metadata, the HDR10 static metadata and the stream's bit depth as `Player.Process(...)` InfoLabels. On a build that has them TinyPPI reads its HDR rows straight from the player: nothing is scanned, the values are there the moment playback starts, and the per-frame ones (Level 5 active area) follow the picture. The Level 5 offsets shown for a Dolby Vision title therefore change with the scene, instead of standing on the single reading a probe took at the start.
+CoreELEC's Kodi publishes the Dolby Vision profile and enhancement-layer type, RPU source/L1/L5/L6 metadata, and HDR10 static metadata as `Player.Process(...)` InfoLabels. TinyPPI reads the corresponding rows straight from the player. The Dolby Vision L1 light levels and L5 active-area offsets follow the presented frame, including scene and aspect-ratio changes. L5 active-area display is intentionally limited to Dolby Vision and no longer runs a separate frame-decoding probe.
 
-Builds without those labels keep using hdrprobe exactly as before.
+The **Output mode is unchanged and continues to come from hdrprobe**. hdrprobe also remains responsible for fields the new label set does not expose, such as the DV level/structure/presence data and source bit depth.
 
 ### hdrprobe
 
 [**hdrprobe**](https://github.com/matthane/hdrprobe) by [matthane](https://github.com/matthane)
 
-A tool for probing and analyzing HDR metadata from video streams. TinyPPI draws on hdrprobe's approach to detecting and interpreting HDR formats — including HDR10, HDR10+, HLG and Dolby Vision — to display accurate HDR information in the overlay. It is the fallback whenever Kodi does not publish the metadata itself, and the source audio bit depth and sample rate come from its companion audioprobe either way.
+A tool for probing and analyzing HDR metadata from video streams. TinyPPI draws on hdrprobe's approach to detecting and interpreting HDR formats — including HDR10, HDR10+, HLG and Dolby Vision — to display accurate HDR information in the overlay. It continues to provide the Output mode and metadata for which CoreELEC has no direct InfoLabel. Source audio bit depth and sample rate come from its companion audioprobe.
 
 ### Google Noto Fonts
 

@@ -1,17 +1,15 @@
-"""Dolby Vision / HDR + audio metadata detection.
+"""Dolby Vision / HDR and audio metadata detection.
 
-Publishes the Dolby Vision, Level 5/6, bit-depth and audio fields consumed by
-properties.py, from whichever of two sources can answer.
+CoreELEC/xbmc PR #68 publishes the DV profile/EL type, RPU source/L1/L5/L6
+metadata and HDR10 static metadata as ``Player.Process(...)`` InfoLabels.  The
+corresponding TinyPPI rows read those labels directly through
+:mod:`info.playerprocess`; hdrprobe is not used for them on a supported build.
 
-Kodi's own player is asked first: CoreELEC builds publish everything their
-decoder parsed out of the stream as ``Player.Process(...)`` InfoLabels (see
-info.playerprocess), which is free, immediate and live.  On a build that has
-them no HDR probe is started at all.
-
-hdrprobe is the fallback for builds that do not, and the rest of this file is
-that fallback: it inspects the playing stream with hdrprobe and parses its JSON
-report into the same fields.  audioprobe runs either way -- the source audio bit
-depth and sample rate have no InfoLabel equivalent.
+The existing hdrprobe path intentionally remains for the Output mode and for
+fields PR #68 does not expose (HDR type, DV level/structure/presence and source
+bit depth).  In particular, Output mode is still built exclusively from the
+hdrprobe report exactly as before.  audioprobe likewise remains responsible for
+the source audio bit depth and sample rate.
 
 Kodi plays from VFS URLs (nfs://, smb://, http://) that standalone hdrprobe
 cannot open, so the stream is piped into ``hdrprobe --json -`` over stdin:
@@ -35,7 +33,6 @@ import json
 import os
 import subprocess
 import threading
-import time
 import urllib.parse
 import uuid
 
@@ -69,32 +66,8 @@ _PROBE_TIMEOUT = 30
 _LABEL_FETCH = 32096
 _LABEL_NA    = 32033
 
-# Shown for L5 when neither an RPU nor a measurement has anything to report.
+# Shown for L5 when the player has no active-area metadata to report.
 L5_EMPTY = "0 | 0 | 0 | 0"
-
-# Stands in for L5_EMPTY while a live measurement is still on its way: a row of
-# zeros would claim the picture has no bars, which is a different statement from
-# not knowing yet.  Keeps the four-field shape so the row does not jump, and
-# turns on the spot so it reads as waiting rather than as a value.
-L5_PENDING_FRAMES = (
-    "/ | / | / | /",
-    "- | - | - | -",
-    "\\ | \\ | \\ | \\",
-)
-
-# Seconds per frame.  Three frames make up one turn, so the animation completes
-# in step with the overlay's one-second poll.
-L5_PENDING_STEP = 1 / 3
-
-
-def l5_pending_frame() -> str:
-    """Return the frame of the L5 placeholder animation due right now.
-
-    Driven by the clock rather than a counter so every writer -- the full poll
-    and the animation ticks in between -- lands on the same frame.
-    """
-    turn = int(time.monotonic() / L5_PENDING_STEP)
-    return L5_PENDING_FRAMES[turn % len(L5_PENDING_FRAMES)]
 
 # Kodi Window properties survive separate script invocations, so the completed
 # result is kept there to avoid re-running hdrprobe during the same playback.
@@ -105,19 +78,11 @@ _CACHE_READY_PROPERTY = "TinyPPI.DVInfo.Ready"
 _CACHE_FIELD_PROPERTIES = {
     "hdr_format": "TinyPPI.DVInfo.HdrFormat",
     "output_mode": "TinyPPI.DVInfo.OutputMode",
-    "cm_version": "TinyPPI.DVInfo.CmVersion",
     "structure": "TinyPPI.DVInfo.Structure",
-    "l5_offsets": "TinyPPI.DVInfo.L5Offsets",
-    "l6_mdl": "TinyPPI.DVInfo.L6Mdl",
-    "l6_max_cll_fall": "TinyPPI.DVInfo.L6MaxCllFall",
-    "hdr10_mdl": "TinyPPI.DVInfo.Hdr10Mdl",
-    "hdr10_max_cll_fall": "TinyPPI.DVInfo.Hdr10MaxCllFall",
     "dv_version": "TinyPPI.DVInfo.DvVersion",
-    "dv_profile": "TinyPPI.DVInfo.DvProfile",
     "dv_rpu_present": "TinyPPI.DVInfo.DvRpuPresent",
     "dv_bl_present": "TinyPPI.DVInfo.DvBlPresent",
     "dv_el_present": "TinyPPI.DVInfo.DvElPresent",
-    "dv_el_type": "TinyPPI.DVInfo.DvElType",
     "bit_depth": "TinyPPI.DVInfo.BitDepth",
     "audio_tracks": "TinyPPI.DVInfo.AudioTracks",
 }
@@ -477,36 +442,12 @@ def _run_audioprobe(probe: str, src: str) -> list[dict]:
     return _decode_audio_tracks(out)
 
 
-def _compact_cm_version(value: str) -> str:
-    """Collapse hdrprobe's ``"CM v2.9"`` / ``"CM v4.0"`` into ``"CMv2.9"`` /
-    ``"CMv4.0"`` (or both), or ``''`` when it carries neither."""
-    lower = value.lower()
-    has_29 = "2.9" in lower
-    has_40 = "4.0" in lower
-
-    if has_29 and has_40:
-        return "CMv2.9/4.0"
-    if has_40:
-        return "CMv4.0"
-    if has_29:
-        return "CMv2.9"
-    return ""
-
-
 def _present_flag(value) -> str:
     """Return ``true`` / ``false`` for a presence flag (rendered as an icon via
     ``String.IsEqual``), or ``''`` when ``None`` so neither icon shows."""
     if value is None:
         return ""
     return "true" if value else "false"
-
-
-def _fmt_pair(source: dict, key_a: str, key_b: str) -> str:
-    """Return ``"<a> | <b>"`` for two numeric fields, or '' if either is missing
-    (the luminance getters then render the ``0 | 0`` placeholder)."""
-    a = _fmt_num(source.get(key_a))
-    b = _fmt_num(source.get(key_b))
-    return f"{a} | {b}" if a and b else ""
 
 
 def _report_format(data: dict, general: dict, hdr: dict) -> str:
@@ -789,10 +730,11 @@ def _select_report_blocks(
 
 
 def _parse_probe(data: dict) -> dict[str, str]:
-    """Turn an hdrprobe JSON report into the separate overlay fields.  Dolby
-    Vision fills every field from the RPU; HDR10 and other static-HDR formats
-    fill the mastering-display/content-light fields from the ``hdr`` block;
-    SDR carries neither, so those fields stay empty (shown as N/A).
+    """Turn an hdrprobe report into fields not replaced by PR #68.
+
+    Output mode and HDR type remain probe-owned by design.  The DV structural
+    fields, presence flags and source bit depth also stay here because the PR
+    exposes no direct equivalents.
     """
     info = _empty_info()
 
@@ -827,52 +769,18 @@ def _parse_probe(data: dict) -> dict[str, str]:
         info["bit_depth"] = str(general["bit_depth"])
 
     if dovi:
-        info["cm_version"] = _compact_cm_version(dovi.get("cm_version") or "")
+        # PR #68 supplies CM, source/L1/L5/L6 and HDR10 values directly.  The
+        # probe keeps only fields with no corresponding label; parsing the
+        # replaced rows here would make it too easy to accidentally reintroduce
+        # an hdrprobe fallback later.
         info["structure"] = _structure_abbr(dovi)
-
-        areas = dovi.get("l5_active_areas") or []
-        if areas:
-            area = areas[0]
-            info["l5_offsets"] = " | ".join(
-                _fmt_num(area.get(edge, 0)) or "0"
-                for edge in ("left", "right", "top", "bottom")
-            )
-
-        # DV carries the mastering display and content light in its RPU.
-        mdl = dovi.get("mastering_display") or {}
-        content_light = dovi.get("l6") or {}
-    else:
-        # HDR10 and other static-HDR formats carry them as static metadata.
-        mdl = _static_mastering(hdr)
-        content_light = hdr.get("content_light") or {}
-
-    # The ``l6_*`` rows come from the source selected above; the ``hdr10_*``
-    # rows always come from the static ``hdr`` block, so a DV stream shows its
-    # HDR10 fallback layer distinctly from the RPU (L6) values.  Missing values
-    # are left blank (rendered as ``0 | 0`` by the luminance getters).
-    static_mdl = _static_mastering(hdr)
-    static_light = hdr.get("content_light") or {}
-    for key, source, key_a, key_b in (
-        ("l6_mdl", mdl, "max_luminance", "min_luminance"),
-        ("l6_max_cll_fall", content_light, "max_cll", "max_fall"),
-        ("hdr10_mdl", static_mdl, "max_luminance", "min_luminance"),
-        ("hdr10_max_cll_fall", static_light, "max_cll", "max_fall"),
-    ):
-        pair = _fmt_pair(source, key_a, key_b)
-        if pair:
-            info[key] = pair
 
     # Dolby Vision layer descriptors, straight from the RPU report.
     if dovi:
         info["dv_version"] = _dv_level_label(dovi)
-        info["dv_profile"] = (_dv_profile_label(dovi).split() or [""])[0]
         info["dv_rpu_present"] = _present_flag(dovi.get("rpu_present"))
         info["dv_bl_present"] = _present_flag(dovi.get("bl_present"))
         info["dv_el_present"] = _present_flag(dovi.get("el_present"))
-        # FEL/MEL type; profiles without an EL (e.g. 8.1) fall back to the
-        # profile number.  Stored uncoloured, themed at read time.
-        el_type = (dovi.get("el_type") or "").upper()
-        info["dv_el_type"] = el_type or info["dv_profile"]
 
     return info
 
@@ -1013,22 +921,17 @@ def _detect(path: str) -> dict[str, str]:
     the active track can be selected -- and re-selected on a track change -- at
     read time.
 
-    hdrprobe is skipped entirely when Kodi publishes the metadata itself: its
-    whole result would be read past (see ``_get_info_status_value``), so running
-    it would only spend a scan of the stream on nothing.  audioprobe still runs;
-    no InfoLabel carries the source audio bit depth or sample rate.
+    hdrprobe always remains active because Output mode and several structural
+    fields still depend on it.  Values replaced by PR #68 are neither cached
+    nor read from its report.
     """
     source = _resolve_disc_stream(path)
     is_local = source.startswith("/")
 
-    if playerprocess.available():
-        probe, have_probe = "", False
-        _log("DV: using Kodi's live player metadata; hdrprobe not needed")
-    else:
-        probe = _hdrprobe()
-        have_probe = bool(probe) and os.path.exists(probe)
-        if not have_probe:
-            _log(f"DV: hdrprobe binary missing ({probe})", xbmc.LOGWARNING)
+    probe = _hdrprobe()
+    have_probe = bool(probe) and os.path.exists(probe)
+    if not have_probe:
+        _log(f"DV: hdrprobe binary missing ({probe})", xbmc.LOGWARNING)
 
     audio_probe = _audioprobe()
     have_audio = bool(audio_probe) and os.path.exists(audio_probe)
@@ -1111,8 +1014,9 @@ def prime_playback_detection() -> bool:
 def _get_info_status_value(key: str) -> tuple[str, str]:
     """Non-blocking.  Return one DV metadata field for the current file.
 
-    Kodi's live metadata answers where it can (info.playerprocess); everything
-    else comes from the probe cache, starting background detection on first call.
+    Fields represented by PR #68 always use its live InfoLabels and never fall
+    back to hdrprobe.  Everything else comes from the probe cache, starting
+    background detection on first call.
 
     Returns ``(value, status)`` where status is ``''`` (non-DV/no-file),
     ``'fetching'``, ``'ready'`` or ``'failed'``.
@@ -1124,21 +1028,14 @@ def _get_info_status_value(key: str) -> tuple[str, str]:
     if not path:
         return "", ""
 
-    if key in playerprocess.FIELDS and playerprocess.available():
+    if key in playerprocess.FIELDS:
+        if not playerprocess.available():
+            return "", "failed"
         value = playerprocess.field(key)
-        if value:
-            return value, "ready"
-        # An empty answer is an answer -- the stream carries no such metadata --
-        # except while the RPU that fills the Dolby Vision fields has yet to be
-        # parsed, which reads as the same "Fetching..." a probe would show.
-        if key in playerprocess.PENDING_FIELDS and playerprocess.pending():
-            return "", "fetching"
-        return "", "failed"
+        return (value, "ready") if value else ("", "failed")
 
     if key not in _CACHE_FIELD_PROPERTIES:
-        # A live-only field (the Level 1 frame luminance): it describes the
-        # frame on screen, which no probe of the file can answer, so without
-        # the labels there is nothing to say and nothing worth starting.
+        # Unknown/live-only field: there is no probe-backed value to read.
         return "", ""
 
     session_token = _session_token()
@@ -1206,7 +1103,7 @@ def get_l5_offsets() -> str:
 
 
 def get_l6_rpu_mdl() -> str:
-    """Return Dolby Vision Level 6 RPU mastering-display luminance."""
+    """Return the RPU source mastering bounds as ``min | max`` nits."""
     return _get_info_value_or("l6_mdl", "0 | 0")
 
 
@@ -1238,7 +1135,7 @@ def get_l1_frame_pq() -> str:
 
 
 def get_hdr10_mdl() -> str:
-    """Return the HDR10 static mastering-display luminance (``max | min``)."""
+    """Return HDR10 mastering-display luminance as ``min | max``."""
     return _get_info_value_or("hdr10_mdl", "0 | 0")
 
 

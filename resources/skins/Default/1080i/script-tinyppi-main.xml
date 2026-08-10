@@ -1378,47 +1378,6 @@
 							<aligny>top</aligny>
 						</control>
 
-						<!-- Active offsets -->
-						<control type="label">
-							<top>90</top>
-							<visible>String.IsEqual(Window(10000).Property(TinyPPI.L5LiveDetect),1)</visible>
-							<label>$ADDON[script.tinyppi 32366]:</label>
-							<font>font23_narrow</font>
-							<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-							<aligny>top</aligny>
-						</control>
-						<control type="grouplist">
-							<left>45</left>
-							<top>90</top>
-							<width>450</width>
-							<height>31</height>
-							<orientation>horizontal</orientation>
-							<align>right</align>
-							<itemgap>15</itemgap>
-							<visible>String.IsEqual(Window(10000).Property(TinyPPI.L5LiveDetect),1)</visible>
-							<control type="label">
-								<width>auto</width>
-								<height>31</height>
-								<label>$INFO[Window.Property(DoviLevel5OffsetsVar)]</label>
-								<font>font23_narrow</font>
-								<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-								<aligny>top</aligny>
-							</control>
-							<control type="group">
-								<visible>String.IsEqual(Window.Property(DoviLevel5OffsetsIconVisible),true) + String.IsEqual(Window(10000).Property(TinyPPI.ShowL5Icon),1)</visible>
-								<width>48</width>
-								<height>31</height>
-								<control type="image">
-									<top>4</top>
-									<width>48</width>
-									<height>25</height>
-									<texture>icons/lrtb.png</texture>
-									<colordiffuse>$INFO[Window(10000).Property(TinyPPI.IconColor)]</colordiffuse>
-									<aspectratio>keep</aspectratio>
-								</control>
-							</control>
-						</control>
-
 						<!-- Channel layout -->
 						<control type="group">
 							<top>170</top>
@@ -1500,46 +1459,6 @@
 							<aligny>top</aligny>
 						</control>
 
-						<!-- Active offsets -->
-						<control type="label">
-							<top>90</top>
-							<visible>String.IsEqual(Window(10000).Property(TinyPPI.L5LiveDetect),1)</visible>
-							<label>$ADDON[script.tinyppi 32366]:</label>
-							<font>font23_narrow</font>
-							<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-							<aligny>top</aligny>
-						</control>
-						<control type="grouplist">
-							<left>45</left>
-							<top>90</top>
-							<width>450</width>
-							<height>31</height>
-							<orientation>horizontal</orientation>
-							<align>right</align>
-							<itemgap>15</itemgap>
-							<visible>String.IsEqual(Window(10000).Property(TinyPPI.L5LiveDetect),1)</visible>
-							<control type="label">
-								<width>auto</width>
-								<height>31</height>
-								<label>$INFO[Window.Property(DoviLevel5OffsetsVar)]</label>
-								<font>font23_narrow</font>
-								<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-								<aligny>top</aligny>
-							</control>
-							<control type="group">
-								<visible>String.IsEqual(Window.Property(DoviLevel5OffsetsIconVisible),true) + String.IsEqual(Window(10000).Property(TinyPPI.ShowL5Icon),1)</visible>
-								<width>48</width>
-								<height>31</height>
-								<control type="image">
-									<top>4</top>
-									<width>48</width>
-									<height>25</height>
-									<texture>icons/lrtb.png</texture>
-									<colordiffuse>$INFO[Window(10000).Property(TinyPPI.IconColor)]</colordiffuse>
-									<aspectratio>keep</aspectratio>
-								</control>
-							</control>
-						</control>
 					</control>
 				</control>
 				
@@ -1855,7 +1774,7 @@
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- L1 frame luminance in PQ codes (min / max / average) -->
 					<control type="label">
 						<top>240</top>
@@ -1875,20 +1794,11 @@
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
 					</control>
-					
+
 					<!-- L5 active offsets -->
 					<control type="label">
 						<top>270</top>
-						<visible>!String.IsEqual(Window.Property(DoviLevel5OffsetsLive),true)</visible>
 						<label>$ADDON[script.tinyppi 32030]:</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<top>270</top>
-						<visible>String.IsEqual(Window.Property(DoviLevel5OffsetsLive),true)</visible>
-						<label>$ADDON[script.tinyppi 32366]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 						<aligny>top</aligny>

@@ -1127,18 +1127,6 @@ msgctxt "#32363"
 msgid "Livestream"
 msgstr ""
 
-msgctxt "#32364"
-msgid "Live active offsets"
-msgstr ""
-
-msgctxt "#32365"
-msgid "Measures the black bars of the running picture once a second by decoding the current frame, so the aspect ratio keeps up with a title that changes its framing. On Dolby Vision, it only measures while the RPU itself has no active-area data — once the RPU reports its own values, those are used instead. While switched on, the aspect ratio is shown for every format; switched off, only Dolby Vision computes it, from the RPU."
-msgstr ""
-
-msgctxt "#32366"
-msgid "Active offsets"
-msgstr ""
-
 msgctxt "#32367"
 msgid "Conversion indicator"
 msgstr ""

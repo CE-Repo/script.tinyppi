@@ -19,7 +19,6 @@ from core.utils import (
     set_window_properties,
 )
 from info import properties
-from info.cropdetect import retry_live_detection
 from ui import fonts  # noqa: F401  imported for its install-fonts-on-import side effect
 from ui.theme import apply_theme
 
@@ -349,16 +348,6 @@ def open_tinyppi() -> None:
         return
 
     elements_visible = _elements_visible()
-    live_offsets_enabled = _ADDON.getSetting("l5_live_detect") == "true"
-    # Give detection a fresh chance without discarding an existing measurement
-    # or helper (both still describe the still-playing file, and discarding them
-    # would make every launch pay the container open again).
-    retry_live_detection()
-    xbmc.log(
-        f"TinyPPI: Live active offsets "
-        f"{'enabled' if live_offsets_enabled else 'disabled'}",
-        xbmc.LOGINFO,
-    )
     _set_overlay_state(home)
     set_window_properties(
         home,
@@ -368,7 +357,6 @@ def open_tinyppi() -> None:
                 "TinyPPI.ShowL5Icon",
                 "0" if _ADDON.getSetting("show_l5_icon") == "false" else "1",
             ),
-            ("TinyPPI.L5LiveDetect", "1" if live_offsets_enabled else "0"),
             ("TinyPPI.ShowLine", elements_visible),
             ("TinyPPI.ShowHeaderTitle", elements_visible),
             ("TinyPPI.ShowHeaderIcon", elements_visible),
