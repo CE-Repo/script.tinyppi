@@ -69,7 +69,7 @@ msgstr "عرض اسم الملف الجاري تشغيله في TinyPPI."
 
 msgctxt "#32022"
 msgid "Video queue / data"
-msgstr "قائمة انتظار / بيانات الفيديو"
+msgstr "بيانات الفيديو"
 
 msgctxt "#32023"
 msgid "Pixel format"
@@ -77,11 +77,11 @@ msgstr "تنسيق البِكسل"
 
 msgctxt "#32024"
 msgid "Aspect ratio"
-msgstr "نسبة العرض إلى الارتفاع"
+msgstr "نسبة العرض/الارتفاع"
 
 msgctxt "#32025"
 msgid "Audio queue / data"
-msgstr "قائمة انتظار / بيانات الصوت"
+msgstr "بيانات الصوت"
 
 msgctxt "#32027"
 msgid "Output mode"
