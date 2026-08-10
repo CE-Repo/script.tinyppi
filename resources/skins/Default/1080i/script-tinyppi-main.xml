@@ -1497,7 +1497,7 @@
 					<control type="label">
 						<left>332</left>
 						<top>30</top>
-						<label>$INFO[Player.Process(video.dovi.meta.version)] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(DoviStructureVar)][/COLOR]</label>
+						<label>$INFO[Player.Process(video.dovi.meta.version),CMv] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(DoviStructureVar)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
