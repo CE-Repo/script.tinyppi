@@ -1839,7 +1839,6 @@
 					<!-- FLL MIN / MAX / Ø -->
 					<control type="label">
 						<top>150</top>
-						<visible>!String.IsEmpty(Player.Process(video.dovi.l1.min.nits))</visible>
 						<label>$ADDON[script.tinyppi 32375]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -1850,7 +1849,6 @@
 						<top>150</top>
 						<width>300</width>
 						<align>right</align>
-						<visible>!String.IsEmpty(Player.Process(video.dovi.l1.min.nits))</visible>
 						<label>$INFO[Player.Process(video.dovi.l1.min.nits)] l $INFO[Player.Process(video.dovi.l1.max.nits)] l $INFO[Player.Process(video.dovi.l1.avg.nits)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.UnitLabel)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -1860,7 +1858,6 @@
 					<!-- PQ  MIN / MAX / Ø -->
 					<control type="label">
 						<top>177</top>
-						<visible>!String.IsEmpty(Player.Process(video.dovi.l1.min.pq))</visible>
 						<label>$ADDON[script.tinyppi 32376]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -1871,7 +1868,6 @@
 						<top>177</top>
 						<width>300</width>
 						<align>right</align>
-						<visible>!String.IsEmpty(Player.Process(video.dovi.l1.min.pq))</visible>
 						<label>$INFO[Player.Process(video.dovi.l1.min.pq)] l $INFO[Player.Process(video.dovi.l1.max.pq)] l $INFO[Player.Process(video.dovi.l1.avg.pq)][COLOR $INFO[Window(10000).Property(TinyPPI.UnitColor)]]$INFO[Window(10000).Property(TinyPPI.PqUnitLabel)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -1881,7 +1877,7 @@
 					<!-- L5 active offsets -->
 					<control type="label">
 						<top>210</top>
-						<visible>!String.IsEqual(Window(10000).Property(TinyPPI.L5LiveDetect),1)</visible>
+						<visible>!String.IsEqual(Window.Property(DoviLevel5OffsetsLive),true)</visible>
 						<label>$ADDON[script.tinyppi 32030]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -1889,7 +1885,7 @@
 					</control>
 					<control type="label">
 						<top>210</top>
-						<visible>String.IsEqual(Window(10000).Property(TinyPPI.L5LiveDetect),1)</visible>
+						<visible>String.IsEqual(Window.Property(DoviLevel5OffsetsLive),true)</visible>
 						<label>$ADDON[script.tinyppi 32366]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
