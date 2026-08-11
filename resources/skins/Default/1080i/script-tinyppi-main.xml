@@ -1763,9 +1763,9 @@
 						<aligny>top</aligny>
 					</control>
 					<control type="grouplist">
-						<left>45</left>
+						<left>50</left>
 						<top>210</top>
-						<width>450</width>
+						<width>445</width>
 						<height>31</height>
 						<orientation>horizontal</orientation>
 						<align>right</align>
@@ -1780,12 +1780,12 @@
 						</control>
 						<control type="group">
 							<visible>String.IsEqual(Window.Property(DoviLevel5OffsetsIconVisible),true) + String.IsEqual(Window(10000).Property(TinyPPI.ShowL5Icon),1)</visible>
-							<width>48</width>
-							<height>31</height>
+							<width>57</width>
+							<height>27</height>
 							<control type="image">
 								<top>4</top>
-								<width>48</width>
-								<height>25</height>
+								<width>57</width>
+								<height>27</height>
 								<texture>icons/lrtb.png</texture>
 								<colordiffuse>$INFO[Window(10000).Property(TinyPPI.IconColor)]</colordiffuse>
 								<aspectratio>keep</aspectratio>

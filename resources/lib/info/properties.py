@@ -314,17 +314,23 @@ def get_DoviTunnelVar() -> str:
     return result
 
 
+# Between the value and its unit.  Two spaces rather than one: the unit is set
+# in the accent colour and reads as a label of its own, so it wants a little
+# more air than a word break gives it (``1000 | 400  cd/m²``).
+_UNIT_GAP = "  "
+
+
 def _with_unit(value: str, unit: str) -> str:
     """Append ``unit`` to a metadata value, but not to status labels.
 
-    The ``0 | 0`` placeholder still gets the unit (``0 | 0 cd/m²``); the
+    The ``0 | 0`` placeholder still gets the unit (``0 | 0  cd/m²``); the
     ``Fetching...`` label is left unchanged.
     """
     if not value or is_status_label(value):
         return value
     if not unit:
         return value
-    return f"{value} {unit}"
+    return f"{value}{_UNIT_GAP}{unit}"
 
 
 # --- Amlogic EOFT / gamut --------------------------------------------------
