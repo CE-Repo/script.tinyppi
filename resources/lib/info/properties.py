@@ -32,17 +32,8 @@ from core.utils import (
     picture_aspect_ratio,
     set_window_properties,
 )
-from info.cropdetect import (
-    live_detection_enabled,
-    live_detection_pending,
-    live_detection_settling,
-    live_measurement_available,
-    resolve_l5_offsets,
-)
 from info.imax import is_enhanced_title, is_known_imax_title
 from info.dvinfo import (
-    L5_EMPTY,
-    L5_PENDING_STEP,
     get_active_audio_bit_depth,
     get_active_audio_sample_rate,
     get_bit_depth,
@@ -63,7 +54,6 @@ from info.dvinfo import (
     get_structure,
     is_fetch_label,
     is_status_label,
-    l5_pending_frame,
 )
 
 # Channel graphics ship pre-scaled to the exact box the skin draws them in
@@ -162,17 +152,10 @@ def get_VideoResolutionVar() -> str:
 
 
 # Aspect ratios a computed picture is snapped to when it lands close enough.
-# borderprobe measures the coded frame at full resolution, but a bar edge that
-# falls inside a coding block can still be read a pixel or two either way —
-# enough to nudge a 2.39 film to 2.40 without snapping.  Anything further out
-# than the tolerance is shown as calculated rather than forced onto a familiar
-# number.
-#
-# Note the limit this cannot cross: 2.35 and 2.39 are themselves only 0.04
-# apart, so a measured bar cannot tell them apart and lands on whichever is
-# nearer.  Since the live measurement is preferred over the RPU whenever one
-# exists, that applies to DV titles too — their RPU would have named the ratio
-# exactly, and a 2.35 title can read as 2.39 while detection is on.
+# The RPU places the active area to the pixel, but the ratio that falls out of
+# it still lands a hair off a familiar number — enough to show a 2.39 film as
+# 2.40 without snapping.  Anything further out than the tolerance is shown as
+# calculated rather than forced onto a familiar number.
 _STANDARD_ARS = (
     1.33, 1.37, 1.43, 1.66, 1.78, 1.85, 1.90, 2.00, 2.20, 2.35, 2.39, 2.55, 2.76,
 )
@@ -188,25 +171,19 @@ def _snapped_ar(ratio: float) -> str:
     return f"{ratio:.2f}"
 
 
-def get_AspectRatioVar(
-    l5_offsets: str, is_dv: bool | None = None, live_available: bool = False
-) -> str:
+def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
     """Return the display aspect ratio of the picture inside the black bars.
 
-    Kodi's ``videodar`` describes the coded frame, so an IMAX title sits on 1.78
-    for its whole runtime even while the picture on screen is 2.39; scaling the
-    coded ratio by the bars (RPU or live measurement, whichever ``l5_offsets``
-    carries) gives the ratio actually being watched.  Falls back to Kodi's own
-    value when the bars are unknown, or when they're a genuine ``0 | 0 | 0 | 0``
-    that isn't backed by anything: outside Dolby Vision, with no live
-    measurement landed yet, ``l5_offsets`` is only ever dvinfo's placeholder,
-    never a confirmed reading, so it carries no more information than Kodi's
-    own ratio.  A confirmed ``0 | 0 | 0 | 0`` is computed anyway, since there it
-    is a real answer (no crop) rather than an unset placeholder -- true on a
-    Dolby Vision stream (the RPU itself is the confirmation, live measurement
-    or not) and on any format once a live measurement has actually landed.
-    ``is_dv`` and ``live_available`` let a caller pass in already-read state;
-    left out, ``is_dv`` is read here and ``live_available`` defaults to False.
+    Kodi's ``videodar`` describes the coded frame, so a title letterboxed inside
+    it reads as 1.78 even while the picture on screen is 2.39; scaling the coded
+    ratio by the RPU's active-area offsets gives the ratio actually being
+    watched.  Falls back to Kodi's own value when the bars are unknown, or when
+    they're a ``0 | 0 | 0 | 0`` that isn't backed by anything: outside Dolby
+    Vision ``l5_offsets`` is only ever dvinfo's placeholder, never a real
+    reading, so it carries no more information than Kodi's own ratio.  On a
+    Dolby Vision stream the same value is computed anyway, since there the RPU
+    is the confirmation and all-zero means a genuine no crop.  ``is_dv`` lets a
+    caller pass in already-read state; left out, it is read here.
     """
     raw = clean(info("Player.Process(videodar)"))
 
@@ -214,7 +191,7 @@ def get_AspectRatioVar(
     if bars is None:
         return raw
 
-    if not any(bars) and not live_available:
+    if not any(bars):
         if is_dv is None:
             is_dv = _is_dv()
         if not is_dv:
@@ -230,10 +207,8 @@ def get_ImaxVar() -> str:
 
     Recognised from its filename (an ``IMAX`` / ``IMAX Enhanced`` release
     name), or failing that from an entry in ``imax_titles.txt`` (bundled plus
-    the user's own copy) -- see info.imax.  Shown for the whole runtime
-    regardless of the live-detection setting: the badge names the film, not
-    the framing of whatever is on screen this second, so it neither needs nor
-    benefits from a live measurement.
+    the user's own copy) -- see info.imax.  Shown for the whole runtime: the
+    badge names the film, not the framing of whatever is on screen this second.
     """
     if not is_known_imax_title():
         return ""
@@ -708,97 +683,11 @@ def _set_progress(window, values: tuple[tuple[int, float], ...]) -> None:
         window.getControl(control_id).setPercent(value)
 
 
-# The L5-derived set as last written to the overlay window, so wait_poll can
-# tell a tick that carries news from one that does not.  Kept in step by
-# update_properties, which always writes the set and always records it.
-_l5_published: tuple[tuple[str, str], ...] | None = None
-
-
-def _l5_derived() -> tuple[tuple[str, str], ...]:
-    """Return every property that follows from the L5 offsets, plus the IMAX
-    badge (which does not, but is refreshed on the same fast beat so it never
-    lags a change of file).
-
-    Split out of update_properties so wait_poll can refresh just this set
-    between full updates.  Cheap enough to call several times a second (a
-    cache read plus whatever the sampler last published, no frame decoding);
-    ``enabled`` and ``available`` are read once here and passed down rather
-    than re-read by every caller below.
-    """
-    enabled = live_detection_enabled()
-
-    static = get_l5_offsets()
-    static_bars = parse_offsets(static)
-    # A genuine RPU reading -- anything past all-zero -- is authoritative and
-    # ends the question; live measurement exists only to answer it when the
-    # RPU itself has nothing (a bare "0 | 0 | 0 | 0", or detection still
-    # fetching, which parses to no bars at all).
-    has_rpu_area = static_bars is not None and any(static_bars)
-
-    if enabled and not has_rpu_area:
-        offsets = resolve_l5_offsets(static)
-        # Says the displayed value came from the picture rather than the RPU —
-        # not that the two differ, which they usually do not on a fixed-framing
-        # title.
-        available = live_measurement_available()
-        # Show the placeholder while the value on screen is not yet the one
-        # that will stand: either nothing is known at all (no RPU offsets,
-        # nothing measured), or the measurement that outranks the RPU is still
-        # on its way and within its grace period.  A settled measurement of
-        # zero is an answer, not a wait, and keeps its zeros.
-        if (offsets == L5_EMPTY and live_detection_pending()) or live_detection_settling():
-            offsets = l5_pending_frame()
-    else:
-        # The RPU already has the answer (or the option is off, in which case
-        # it's the only answer there is) -- no live measurement is run or shown.
-        offsets = static
-        available = False
-    icon_visible = "true" if offsets and not is_status_label(offsets) else "false"
-
-    return (
-        ("AspectRatioVar", get_AspectRatioVar(offsets, live_available=available)),
-        ("ImaxVar", get_ImaxVar()),
-        ("DoviLevel5OffsetsVar", offsets),
-        ("DoviLevel5OffsetsIconVisible", icon_visible),
-        ("DoviLevel5OffsetsLive", "true" if available else "false"),
-    )
-
-
-def wait_poll(monitor, window, seconds: float = 1.0) -> bool:
-    """Wait out one polling interval, keeping the L5 row current meanwhile.
-
-    Returns True when Kodi asked to abort.
-
-    The placeholder needs a faster beat than the poll to read as an animation,
-    and a fresh measurement benefits from the same beat instead of sitting
-    unseen for the rest of the second.  Only the L5-derived set is refreshed
-    here — every other property stays on the original cadence — and only when
-    it actually changed, so a film whose framing never moves triggers no writes
-    (``update_properties`` always writes and records the set, so the comparison
-    starts from what's really on the window).
-    """
-    global _l5_published
-
-    remaining = seconds
-    while remaining > 0:
-        step = min(L5_PENDING_STEP, remaining)
-        if monitor.waitForAbort(step):
-            return True
-        remaining -= step
-        derived = _l5_derived()
-        if derived != _l5_published:
-            set_window_properties(window, derived)
-            _l5_published = derived
-    return False
-
-
 def update_properties(window) -> None:
     """Compute all player properties and publish them to ``window``.
 
     Call from ``onInit()`` and from the polling loop.
     """
-    global _l5_published
-
     publish_hdr_type()
     # Depends on the type just published, and gates the channel graphics below.
     publish_channel_visibility()
@@ -817,12 +706,14 @@ def update_properties(window) -> None:
     if is_status_label(output_mode) and not is_fetch_label(output_mode):
         output_mode = _output_mode_from_videoplayer() or output_mode
 
-    # Black bars measured off the running picture are what gets shown once a
-    # measurement has landed; the RPU's own offsets stand in until then, and
-    # again whenever detection is off or has given up.  Computed by
-    # _l5_derived() so the poll loop can refresh the same set between updates.
-
-    l5_derived          = _l5_derived()
+    # The active-area offsets the RPU declared, and everything that follows from
+    # them: the icon beside the row, and the aspect ratio of the picture inside
+    # the bars (which Kodi's own ``videodar`` cannot give, since it describes
+    # the coded frame).
+    l5_offsets          = get_l5_offsets()
+    l5_icon_visible     = (
+        "true" if l5_offsets and not is_status_label(l5_offsets) else "false"
+    )
     l6_rpu_mdl          = _with_unit(get_l6_rpu_mdl(), unit)
     l6_rpu_max_cll_fall = _with_unit(get_l6_rpu_max_cll_fall(), unit)
     hdr10_mdl           = _with_unit(get_hdr10_mdl(), unit)
@@ -836,7 +727,10 @@ def update_properties(window) -> None:
             ("VideoPixelFormatVar", get_VideoPixelFormatVar()),
             ("DisplayModeVar", get_DisplayModeVar()),
             ("VideoResolutionVar", get_VideoResolutionVar()),
-            *l5_derived,
+            ("AspectRatioVar", get_AspectRatioVar(l5_offsets)),
+            ("ImaxVar", get_ImaxVar()),
+            ("DoviLevel5OffsetsVar", l5_offsets),
+            ("DoviLevel5OffsetsIconVisible", l5_icon_visible),
             ("VideoBitrateMBVar", get_VideoBitrateMBVar()),
             ("VideoLiveBitrateVar", get_VideoLiveBitrateVar()),
             ("VideoCodecVar", get_VideoCodecVar()),
@@ -882,10 +776,6 @@ def update_properties(window) -> None:
             ("CpuTopUsageVar", get_CpuTopUsageVar()),
         ),
     )
-
-    # Recorded after the write above, so wait_poll's comparison starts from what
-    # is actually on the window.
-    _l5_published = l5_derived
 
     _set_progress(
         window,
