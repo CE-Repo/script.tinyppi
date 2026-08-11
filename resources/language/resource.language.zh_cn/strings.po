@@ -1158,3 +1158,11 @@ msgstr "其他 Dolby Vision"
 msgctxt "#32374"
 msgid "Color of the pill shown at the bottom of the splash logo for any other Dolby Vision profile (no enhancement layer)."
 msgstr "适用于其他任何 Dolby Vision 配置（无增强层）时，显示在 Splash 图标底部的圆角条颜色。"
+
+msgctxt "#32375"
+msgid "FLL Min / Max / Ø"
+msgstr "FLL Min / Max / Ø"
+
+msgctxt "#32376"
+msgid "PQ Min / Max / Ø"
+msgstr "PQ Min / Max / Ø"

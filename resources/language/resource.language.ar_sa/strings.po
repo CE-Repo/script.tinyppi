@@ -1159,3 +1159,11 @@ msgstr "دولبي فيجن آخر"
 msgctxt "#32374"
 msgid "Color of the pill shown at the bottom of the splash logo for any other Dolby Vision profile (no enhancement layer)."
 msgstr "لون الشريط المعروض أسفل شعار البداية لأي ملف تعريف آخر من دولبي فيجن (بدون طبقة تحسين)."
+
+msgctxt "#32375"
+msgid "FLL Min / Max / Ø"
+msgstr "FLL Min / Max / Ø"
+
+msgctxt "#32376"
+msgid "PQ Min / Max / Ø"
+msgstr "PQ Min / Max / Ø"
