@@ -49,7 +49,7 @@ msgstr "Színtér"
 
 msgctxt "#32016"
 msgid "Only CoreELEC 22 or later is supported"
-msgstr "Csak a CoreELEC 22 vagy újabb verzió támogatott"
+msgstr "Csak CoreELEC 22 vagy újabb verzió támogatott"
 
 msgctxt "#32017"
 msgid "The CoreELEC version could not be detected"
@@ -233,7 +233,7 @@ msgstr ""
 
 msgctxt "#32112"
 msgid "Color of the progress bars."
-msgstr "A progress bar színe"
+msgstr "A progressbar színe"
 
 msgctxt "#32113"
 msgid "Detail"
@@ -553,7 +553,7 @@ msgstr "Fájlnév"
 
 msgctxt "#32198"
 msgid "Color of the playing file name."
-msgstr "A lejátszott fájl nevének színe."
+msgstr "A lejátszott fájl nevének a színe."
 
 msgctxt "#32200"
 msgid "[COLOR=FFFFCCBC]●[/COLOR] Peach"
@@ -1133,7 +1133,7 @@ msgstr "Élő aktív képterület (pixel)"
 
 msgctxt "#32365"
 msgid "Measures the black bars of the running picture once a second by decoding the current frame, so the aspect ratio keeps up with a title that changes its framing. On Dolby Vision, it only measures while the RPU itself has no active-area data — once the RPU reports its own values, those are used instead. While switched on, the aspect ratio is shown for every format; switched off, only Dolby Vision computes it, from the RPU."
-msgstr "Másodpercenként egyszer méri a futó kép fekete sávjait az aktuális képkocka dekódolásával, hogy a képarány kövesse a film közben megváltozó kép kereteit. Dolby Visionnél csak addig mér, amíg maga az RPU nem ad meg aktív terület adatot – amint az RPU saját értékeket jelez, azok kerülnek felhasználásra. Bekapcsolt állapotban a képarány minden formátumnál megjelenik; kikapcsolva csak a Dolby Vision számítja, az RPU-ból."
+msgstr "Másodpercenként egyszer méri a futó kép fekete sávjait az aktuális képkocka dekódolásával, hogy a képarány kövesse a film közben megváltozó kép kereteit. Dolby Visionnél csak addig mér, amíg maga az RPU nem ad meg aktív terület adatot – amint az RPU saját értékeket jelez, azok kerülnek felhasználásra. Bekapcsolt állapotban a képarány minden formátumnál megjelenik; kikapcsolva csak a Dolby Vision számítja ki, az RPU-ból."
 
 msgctxt "#32366"
 msgid "Active offsets"
@@ -1145,7 +1145,7 @@ msgstr "Konverziójelző"
 
 msgctxt "#32368"
 msgid "Color of the dot shown on the video-format logo while a conversion is active."
-msgstr "A videoformátum-logón megjelenő pont színe, amíg aktív egy konverzió."
+msgstr "A videoformátum-logón megjelenő kör színe, amíg aktív egy konverzió."
 
 msgctxt "#32369"
 msgid "FEL indicator"
@@ -1153,7 +1153,7 @@ msgstr "FEL jelző"
 
 msgctxt "#32370"
 msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision FEL."
-msgstr "A splash logó alján megjelenő pilula színe, ha a forrás Dolby Vision FEL."
+msgstr "A splash logó alján megjelenő hasáb színe, ha a forrás Dolby Vision FEL."
 
 msgctxt "#32371"
 msgid "MEL indicator"
@@ -1161,7 +1161,7 @@ msgstr "MEL jelző"
 
 msgctxt "#32372"
 msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision MEL."
-msgstr "A splash logó alján megjelenő pilula színe, ha a forrás Dolby Vision MEL."
+msgstr "A splash logó alján megjelenő hasáb színe, ha a forrás Dolby Vision MEL."
 
 msgctxt "#32373"
 msgid "Other Dolby Vision"
@@ -1169,4 +1169,4 @@ msgstr "Egyéb Dolby Vision"
 
 msgctxt "#32374"
 msgid "Color of the pill shown at the bottom of the splash logo for any other Dolby Vision profile (no enhancement layer)."
-msgstr "A splash logó alján megjelenő pilula színe minden más Dolby Vision profilhoz (enhancement layer nélkül)."
+msgstr "A splash logó alján megjelenő hasáb színe minden más Dolby Vision profilhoz (enhancement layer nélkül)."
