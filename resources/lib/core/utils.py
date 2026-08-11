@@ -35,8 +35,8 @@ def clean(val) -> str:
 def parse_offsets(value: str) -> tuple[int, int, int, int] | None:
     """Return the four L5 offsets from an ``L | R | T | B`` string.
 
-    None for anything that is not four numbers: an empty field, the pending
-    placeholder, or one of dvinfo's status labels.
+    None for anything that is not four numbers: an empty field, or one of
+    dvinfo's status labels.
     """
     parts = value.split("|")
     if len(parts) != 4:
