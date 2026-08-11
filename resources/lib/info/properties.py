@@ -316,8 +316,21 @@ def get_DoviTunnelVar() -> str:
 
 # Between the value and its unit.  Two spaces rather than one: the unit is set
 # in the accent colour and reads as a label of its own, so it wants a little
-# more air than a word break gives it (``1000 | 400  cd/m²``).
+# more air than a word break gives it (``1000 l 400  cd/m²``).
 _UNIT_GAP = "  "
+
+# What separates the numbers of a multi-part metadata value on screen: a
+# lowercase L, not the pipe the values carry internally.  Purely a matter of
+# how font23_narrow draws the two.  Swapped here, at the point of publishing,
+# so the values themselves stay pipe-joined and parse_offsets() keeps working
+# on them (the aspect-ratio row is computed from the same L5 string).
+_DISPLAY_SEPARATOR = "l"
+
+
+def _separated(value: str) -> str:
+    """Return a metadata value with its pipes swapped for the display
+    separator.  Status labels carry none, so they pass through untouched."""
+    return value.replace("|", _DISPLAY_SEPARATOR)
 
 
 def _with_unit(value: str, unit: str) -> str:
@@ -720,10 +733,10 @@ def update_properties(window) -> None:
     l5_icon_visible     = (
         "true" if l5_offsets and not is_status_label(l5_offsets) else "false"
     )
-    l6_rpu_mdl          = _with_unit(get_l6_rpu_mdl(), unit)
-    l6_rpu_max_cll_fall = _with_unit(get_l6_rpu_max_cll_fall(), unit)
-    hdr10_mdl           = _with_unit(get_hdr10_mdl(), unit)
-    hdr10_max_cll_fall  = _with_unit(get_hdr10_max_cll_fall(), unit)
+    l6_rpu_mdl          = _with_unit(_separated(get_l6_rpu_mdl()), unit)
+    l6_rpu_max_cll_fall = _with_unit(_separated(get_l6_rpu_max_cll_fall()), unit)
+    hdr10_mdl           = _with_unit(_separated(get_hdr10_mdl()), unit)
+    hdr10_max_cll_fall  = _with_unit(_separated(get_hdr10_max_cll_fall()), unit)
 
     set_window_properties(
         window,
@@ -735,7 +748,7 @@ def update_properties(window) -> None:
             ("VideoResolutionVar", get_VideoResolutionVar()),
             ("AspectRatioVar", get_AspectRatioVar(l5_offsets)),
             ("ImaxVar", get_ImaxVar()),
-            ("DoviLevel5OffsetsVar", l5_offsets),
+            ("DoviLevel5OffsetsVar", _separated(l5_offsets)),
             ("DoviLevel5OffsetsIconVisible", l5_icon_visible),
             ("VideoBitrateMBVar", get_VideoBitrateMBVar()),
             ("VideoLiveBitrateVar", get_VideoLiveBitrateVar()),
