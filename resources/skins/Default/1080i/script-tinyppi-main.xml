@@ -1499,6 +1499,17 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
+						<visible>!String.IsEmpty(Window().Property(DoviCmVersionVar))</visible>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>332</left>
+						<top>30</top>
+						<label>$ADDON[script.tinyppi 32033] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(DoviStructureVar)][/COLOR]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window().Property(DoviCmVersionVar))</visible>
 					</control>
 					
 					<!-- Profile -->
@@ -1516,6 +1527,17 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
+						<visible>!String.IsEmpty(Window().Property(DoviProfileNumberVar))</visible>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>332</left>
+						<top>60</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window().Property(DoviProfileNumberVar))</visible>
 					</control>
 					
 					<!-- Level -->
@@ -1533,6 +1555,17 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
+						<visible>!String.IsEmpty(Window().Property(DoviVersionVar))</visible>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>332</left>
+						<top>90</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window().Property(DoviVersionVar))</visible>
 					</control>
 					
 					<!-- RPU -->
@@ -1563,6 +1596,16 @@
 						<aspectratio>keep</aspectratio>
 						<visible>String.IsEqual(Window.Property(DoviRpuPresentVar),false)</visible>
 					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>332</left>
+						<top>120</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window.Property(DoviRpuPresentVar))</visible>
+					</control>
 					
 					<!-- Base Layer -->
 					<control type="label">
@@ -1591,6 +1634,16 @@
 						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.ConvertNoColor)]</colordiffuse>
 						<aspectratio>keep</aspectratio>
 						<visible>String.IsEqual(Window.Property(DoviBlPresentVar),false)</visible>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>332</left>
+						<top>150</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window.Property(DoviBlPresentVar))</visible>
 					</control>
 					
 					<!-- Enhancement Layer -->
@@ -1621,6 +1674,16 @@
 						<aspectratio>keep</aspectratio>
 						<visible>String.IsEqual(Window.Property(DoviElPresentVar),false)</visible>
 					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>332</left>
+						<top>180</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window.Property(DoviElPresentVar))</visible>
+					</control>
 					
 					<!-- Enhancement Layer Type -->
 					<control type="label">
@@ -1649,6 +1712,16 @@
 						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.ConvertNoColor)]</colordiffuse>
 						<aspectratio>keep</aspectratio>
 						<visible>![String.Contains(Window.Property(DoviElTypeVar),FEL) | String.Contains(Window.Property(DoviElTypeVar),MEL) | String.IsEmpty(Window.Property(DoviElTypeVar))]</visible>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>332</left>
+						<top>210</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window.Property(DoviElTypeVar))</visible>
 					</control>
 				</control>
 				
