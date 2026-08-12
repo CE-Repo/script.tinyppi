@@ -1,12 +1,17 @@
-"""Install the required fonts into the active Kodi skin.
+"""Register the overlay's font sizes in the active Kodi skin.
 
-Runs install_fonts() on import so fonts are ready before the overlay opens;
-FontInstallMonitor re-runs it on skin change or Kodi update.
+The overlay lays out against two specific sizes (21 for the metadata rows, 32
+for the headers), so it registers them in the skin's Font.xml under its own
+names.  Both name ``arial.ttf``, which Kodi distributes itself -- nothing is
+copied into the skin, so there is no font file that can go missing or drift out
+of sync with the entry that names it.
+
+Runs install_fonts() on import so the entries are in place before the overlay
+opens; FontInstallMonitor re-runs it on skin change or Kodi update.
 """
 
 import os
 import re
-import shutil
 import traceback
 import xml.etree.ElementTree as ET
 
@@ -18,39 +23,27 @@ _ADDON_DIR = _ADDON.getAddonInfo("path")
 
 _ADDONS_ROOT = os.path.dirname(os.path.dirname(_ADDON_DIR))
 
+# Kodi's own copy, named by its full path rather than as a bare "arial.ttf".
+# A bare name is looked up in the skin's font directory first, and skins that
+# ship an arial.ttf of their own -- a different typeface under the same name --
+# would answer with it, so the overlay would render in whatever that skin
+# happens to bundle.  A value carrying "://" passes CURL::IsFullPath, which
+# makes Kodi take the path as given and skip the directory search entirely.
+# Should this path ever fail to load, Kodi still substitutes its bare
+# "arial.ttf" on its own, which is the behaviour this replaces.
+_FONT_FILE = "special://xbmc/media/Fonts/arial.ttf"
+
+# Only the sizes are the overlay's own; the headers ask for their weight with
+# [B] markup in the skin XML, so no separate bold face is registered.
 _REQUIRED_FONTS = (
-    {"name": "font23_narrow", "filename": "Noto-Regular.ttf", "size": "21"},
-    {"name": "font32",        "filename": "Noto-Bold.ttf",    "size": "32"},
+    {"name": "font23_narrow", "filename": _FONT_FILE, "size": "21"},
+    {"name": "font32",        "filename": _FONT_FILE, "size": "32"},
 )
 
-# The fonts ship with this addon.  Their file names are the ones _REQUIRED_FONTS
-# registers in Font.xml, so what is written into the skin's XML and what is
-# copied next to it always name the same file.
-_ADDON_FONTS_DIR = os.path.normpath(
-    os.path.join(_ADDON_DIR, "resources", "fonts")
-)
-
-# Everything in the font directory that is not a font (the OFL text shipped
-# alongside them) must not be copied into the skin.
-_FONT_SUFFIXES = (".ttf", ".otf")
 
 
 def _log(msg: str, level: int = xbmc.LOGINFO) -> None:
     xbmc.log(f"TinyPPI: {msg}", level)
-
-
-def _font_files() -> list[tuple[str, str]]:
-    """Return the ``(source path, file name)`` of every font the addon ships."""
-    try:
-        names = sorted(os.listdir(_ADDON_FONTS_DIR))
-    except OSError as exc:
-        _log(f"Font directory unreadable: {exc}", xbmc.LOGERROR)
-        return []
-    return [
-        (os.path.normpath(os.path.join(_ADDON_FONTS_DIR, name)), name)
-        for name in names
-        if name.lower().endswith(_FONT_SUFFIXES)
-    ]
 
 
 def _find_font_xml(skin_path: str) -> str | None:
@@ -62,14 +55,6 @@ def _find_font_xml(skin_path: str) -> str | None:
                 _log(f"Font.xml found: {found}")
                 return found
     _log(f"No Font.xml in: {skin_path}", xbmc.LOGWARNING)
-    return None
-
-
-def _find_ttf_dir(skin_path: str) -> str | None:
-    """Return the first directory under *skin_path* that contains a .ttf file."""
-    for root, _dirs, files in os.walk(skin_path):
-        if any(fname.lower().endswith(".ttf") for fname in files):
-            return root
     return None
 
 
@@ -89,21 +74,39 @@ def _get_skin_path() -> str | None:
     return None
 
 
-def _registered_fonts(xml_root) -> set[tuple[str, str]]:
-    """Return a set of (name, filename) pairs already present in Font.xml."""
-    registered: set[tuple[str, str]] = set()
+def _spec_entry(spec: dict) -> tuple[str, str, str]:
+    """Return the ``(name, filename, size)`` a required font is looked up by."""
+    return (spec["name"], spec["filename"], spec["size"])
+
+
+def _registered_fonts(xml_root) -> set[tuple[str, str, str]]:
+    """Return the (name, filename, size) of every font already in Font.xml.
+
+    The size is part of the identity, not just the name and file: ``arial.ttf``
+    and a name like ``font32`` are common enough in skins that a match on those
+    two alone would report a font as present at a size the overlay never asked
+    for, and its rows would be laid out against the wrong metrics.
+    """
+    registered: set[tuple[str, str, str]] = set()
     for font in xml_root.findall(".//font"):
-        name_el     = font.find("name")
-        filename_el = font.find("filename")
-        name = (name_el.text or "").strip() if name_el is not None else ""
-        filename = (filename_el.text or "").strip() if filename_el is not None else ""
-        if name and filename:
-            registered.add((name, filename))
+        values = []
+        for tag in ("name", "filename", "size"):
+            element = font.find(tag)
+            values.append(
+                (element.text or "").strip() if element is not None else ""
+            )
+        if all(values):
+            registered.add(tuple(values))
     return registered
 
 
 def fonts_already_installed(skin_path: str) -> bool:
-    """Return True only when every required font is in Font.xml and on disk."""
+    """Return True only when every required font is registered in Font.xml.
+
+    Nothing is checked on disk: the file named is Kodi's own ``arial.ttf``,
+    which it locates through its own search path, and substitutes for itself
+    when it cannot.
+    """
     font_xml_path = _find_font_xml(skin_path)
     if not font_xml_path:
         return False
@@ -122,24 +125,12 @@ def fonts_already_installed(skin_path: str) -> bool:
 
     for fontset in fontsets:
         registered = _registered_fonts(fontset)
+        fset_id = fontset.get("id", "?")
+
         for font_spec in _REQUIRED_FONTS:
-            if (font_spec["name"], font_spec["filename"]) not in registered:
-                _log(
-                    f"XML entry missing: {font_spec['name']} "
-                    f'in fontset "{fontset.get("id", "?")}"'
-                )
+            if _spec_entry(font_spec) not in registered:
+                _log(f'XML entry missing: {font_spec["name"]} in fontset "{fset_id}"')
                 return False
-
-    ttf_dest_dir = _find_ttf_dir(skin_path)
-    if not ttf_dest_dir:
-        _log("No TTF directory found", xbmc.LOGWARNING)
-        return False
-
-    for _src, fname in _font_files():
-        dest = os.path.normpath(os.path.join(ttf_dest_dir, fname))
-        if not os.path.exists(dest):
-            _log(f"TTF missing: {fname}")
-            return False
 
     return True
 
@@ -150,15 +141,33 @@ def fonts_already_installed(skin_path: str) -> bool:
 _FONTSET_RE = re.compile(r"(<fontset\b[^>]*>)(.*?)(</fontset>)", re.DOTALL)
 _INCLUDE_RE = re.compile(r"<include\b.*?(?:/>|</include>)", re.DOTALL)
 _ID_RE      = re.compile(r'\bid\s*=\s*"([^"]*)"')
+# A whole <font> element with the indent it sits on, so removing one takes its
+# line with it instead of leaving a blank.
+_FONT_RE    = re.compile(r"[ \t]*<font>.*?</font>[ \t]*\r?\n?", re.DOTALL)
+
+
+def _block_entry(block: str) -> tuple[str, str, str] | None:
+    """Return the ``(name, filename, size)`` a <font> block declares, or None
+    when it does not carry all three."""
+    values = []
+    for tag in ("name", "filename", "size"):
+        match = re.search(rf"<{tag}>\s*(.*?)\s*</{tag}>", block, re.DOTALL)
+        if match is None:
+            return None
+        values.append(match.group(1))
+    return tuple(values)
 
 
 def _fontset_has(inner: str, spec: dict) -> bool:
-    """True if *inner* (a fontset body) already declares this font."""
-    name_ok = re.search(r"<name>\s*" + re.escape(spec["name"]) + r"\s*</name>",
-                        inner)
-    file_ok = re.search(r"<filename>\s*" + re.escape(spec["filename"])
-                        + r"\s*</filename>", inner)
-    return bool(name_ok and file_ok)
+    """True if *inner* (a fontset body) already declares this exact font.
+
+    Name, file and size have to meet inside one <font> block.  Matching them
+    anywhere in the fontset would pair this addon's font name with an unrelated
+    entry's font file -- names like ``font32`` are common in skins -- and skip
+    an insert the overlay needs.
+    """
+    target = _spec_entry(spec)
+    return any(_block_entry(block) == target for block in _FONT_RE.findall(inner))
 
 
 def _font_block(spec: dict, indent: str, nl: str) -> str:
@@ -175,8 +184,9 @@ def _font_block(spec: dict, indent: str, nl: str) -> str:
 def _install_xml(skin_path: str) -> bool:
     """Insert missing font entries into every <fontset>; True if any written.
 
-    Works purely on the file text so nothing outside the inserted <font>
-    blocks is altered.
+    Nothing already in the file is edited or removed -- the entries go in ahead
+    of it, where Kodi reads them first.  Works purely on the file text so
+    nothing outside the inserted <font> blocks is altered.
     """
     font_xml_path = _find_font_xml(skin_path)
     if not font_xml_path:
@@ -203,8 +213,12 @@ def _install_xml(skin_path: str) -> bool:
         if not missing:
             return match.group(0)
 
-        # Insert right after the <include> element; derive the child indent
-        # from the include line so it matches the surrounding formatting.
+        # Insert right after the <include> element, which puts these at the top
+        # of the fontset -- Kodi keeps the first <font> of a given name and never
+        # opens the later ones, so entries an older version left behind, or a
+        # skin's own font of the same name, lose to the one written here.  The
+        # indent comes from the include line so it matches the formatting around
+        # it.
         inc = _INCLUDE_RE.search(inner)
         if inc:
             insert_pos = inc.end()
@@ -235,32 +249,9 @@ def _install_xml(skin_path: str) -> bool:
     return modified
 
 
-def _install_ttf(skin_path: str) -> bool:
-    """Copy missing .ttf files into the skin; True if any file was copied."""
-    ttf_dest_dir = _find_ttf_dir(skin_path)
-    if not ttf_dest_dir:
-        _log("installttf: no TTF destination directory", xbmc.LOGWARNING)
-        return False
-
-    _log(f"TTF source: {_ADDON_FONTS_DIR}")
-    _log(f"TTF target: {ttf_dest_dir}")
-
-    modified = False
-    for src, fname in _font_files():
-        dest = os.path.normpath(os.path.join(ttf_dest_dir, fname))
-        if not os.path.exists(dest):
-            shutil.copy(src, dest)
-            _log(f"TTF copied: {fname}")
-            modified = True
-        else:
-            _log(f"TTF already exists: {fname}")
-
-    return modified
-
-
 def install_fonts() -> None:
-    """Install missing fonts into the active skin, reloading it if anything
-    changed.  No-op when the fonts are already installed."""
+    """Register the missing font entries in the active skin, reloading it if
+    anything changed.  No-op when they are already there."""
     skin_path = _get_skin_path()
     if not skin_path:
         _log("Skin path not found", xbmc.LOGWARNING)
@@ -269,18 +260,17 @@ def install_fonts() -> None:
     _log(f"Skin path: {skin_path}")
 
     if fonts_already_installed(skin_path):
-        _log("All fonts already installed – skipping")
+        _log("All fonts already registered – skipping")
         return
 
     try:
-        xml_modified = _install_xml(skin_path)
-        ttf_modified = _install_ttf(skin_path)
+        modified = _install_xml(skin_path)
     except Exception as exc:
         _log(f"Installation error: {exc}", xbmc.LOGERROR)
         _log(traceback.format_exc(), xbmc.LOGERROR)
         return
 
-    if xml_modified or ttf_modified:
+    if modified:
         try:
             xbmc.executebuiltin("ReloadSkin(reload)")
         except Exception:

@@ -1879,7 +1879,7 @@
 						<height>31</height>
 						<orientation>horizontal</orientation>
 						<align>right</align>
-						<itemgap>15</itemgap>
+						<itemgap>17</itemgap>
 						<control type="label">
 							<width>auto</width>
 							<height>31</height>

@@ -258,9 +258,3 @@ Parses Matroska, MPEG-TS and BDAV M2TS, MP4, AVI, MPEG program streams, FLAC,
 WAV and Ogg, plus Blu-ray and DVD-Video disc images. Field layouts follow
 FFmpeg's own parsers, so the numbers match what other tools report for the same
 stream.
-
-### Google Noto Fonts
-
-[**Google Noto Fonts**](https://github.com/notofonts/notofonts.github.io) by [The Noto Project (Google)](https://fonts.google.com/noto)
-
-Noto ("No Tofu") is Google's font family designed to cover all languages with a harmonious look, eliminating missing-character boxes ("tofu"). TinyPPI uses Noto fonts to render the overlay text clearly and consistently across a wide range of characters. The fonts are licensed under the [SIL Open Font License 1.1](https://openfontlicense.org/).
