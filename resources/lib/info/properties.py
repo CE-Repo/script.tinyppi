@@ -32,10 +32,12 @@ from core.utils import (
     picture_aspect_ratio,
     set_window_properties,
 )
-from info.imax import is_enhanced_title, is_known_imax_title
-from info.dvinfo import (
+from info.audioinfo import (
     get_active_audio_bit_depth,
     get_active_audio_sample_rate,
+)
+from info.imax import is_enhanced_title, is_known_imax_title
+from info.dvinfo import (
     get_bit_depth,
     get_cm_version,
     get_dv_bl_present,
@@ -47,12 +49,13 @@ from info.dvinfo import (
     get_hdr10_max_cll_fall,
     get_hdr10_mdl,
     get_hdr_format,
+    get_l1_nits,
+    get_l1_pq,
     get_l5_offsets,
     get_l6_rpu_max_cll_fall,
     get_l6_rpu_mdl,
     get_output_mode,
     get_structure,
-    is_fetch_label,
     is_status_label,
 )
 
@@ -266,13 +269,12 @@ def get_VideoDecoderNameVar() -> str:
 def get_VideoBitDepthVar() -> str:
     """Return the source bit depth for display, e.g. ``12-bit``.
 
-    Uses hdrprobe's detected depth (see dvinfo.py).  The ``Fetching...`` label
-    passes through while detection runs; when the depth is unknown, falls back
-    to ``10-bit`` for HDR and ``8-bit`` for SDR instead of the ``N/A`` label.
+    Uses the depth the Dolby Vision RPU declares (see dvinfo.py).  Only a DV
+    stream carries one, so everything else -- and a DV stream whose RPU omits
+    the sequence info -- falls back to ``10-bit`` for HDR and ``8-bit`` for SDR
+    instead of showing the ``N/A`` label.
     """
     value = get_bit_depth()
-    if is_fetch_label(value):
-        return value
     if not value or is_status_label(value):
         return "10-bit" if get_hdr_format() else "8-bit"
     return f"{value}-bit"
@@ -337,7 +339,7 @@ def _with_unit(value: str, unit: str) -> str:
     """Append ``unit`` to a metadata value, but not to status labels.
 
     The ``0 | 0`` placeholder still gets the unit (``0 | 0  cd/m²``); the
-    ``Fetching...`` label is left unchanged.
+    ``N/A`` label is left unchanged.
     """
     if not value or is_status_label(value):
         return value
@@ -364,9 +366,9 @@ def _output_mode_from_videoplayer() -> str:
     """Classify Kodi's ``VideoPlayer.HDRType`` InfoLabel into an output-mode
     label (``SDR`` / ``HDR10`` / ``HLG`` / ``HDR10+`` / ``Dolby Vision``).
 
-    Reads Kodi's own source-side HDR detection, so it works as the fallback when
-    hdrprobe detection could not run.  An empty ``VideoPlayer.HDRType`` means no
-    HDR signalling, i.e. ``SDR``.
+    Reads Kodi's own source-side HDR detection, so a stream that carries no
+    side-data payload still names its format.  An empty ``VideoPlayer.HDRType``
+    means no HDR signalling, i.e. ``SDR``.
     """
     hdr = info("VideoPlayer.HDRType").lower()
     if not hdr:
@@ -502,7 +504,7 @@ def get_AudioBitDepthVar() -> str:
     """Return the source audio bit depth for display, e.g. ``24-bit``.
 
     Prefers the depth audioprobe read from the source bitstream itself for the
-    active track (see dvinfo.py).  While detection runs or finds nothing, known
+    active track (see audioinfo.py).  While detection runs or finds nothing, known
     bitstream codecs fall back to AUDIO_BIT_DEPTH_MAP, since Kodi's own
     ``audiobitspersample`` reports the sink format (always ``8`` during
     passthrough).  Kodi's value is used only for codecs it decodes itself
@@ -684,7 +686,7 @@ def publish_channel_visibility(home=None) -> None:
 
 
 def publish_hdr_type(home=None) -> None:
-    """Publish the hdrprobe-detected HDR type as ``TinyPPI.HdrType`` on the Home
+    """Publish the detected source HDR type as ``TinyPPI.HdrType`` on the Home
     window, for the overlay and mode-select dialog to branch on.
 
     HDR10+ is published as ``hdr10plus`` because Kodi's boolean parser treats
@@ -716,23 +718,24 @@ def update_properties(window) -> None:
         clean(info("Player.Process(videofps)"))
     )
 
-    # Output-mode line from hdrprobe; fall back to a plain label from Kodi's
-    # ``VideoPlayer.HDRType`` when it would show N/A (``Fetching...`` is kept).
+    # Output-mode line from the stream's side data; fall back to a plain label
+    # from Kodi's ``VideoPlayer.HDRType`` when it would show N/A.
     output_mode = get_output_mode()
-    # Pending flag: the skin uses it to suppress the conversion-arrow suffix
-    # while only the ``Fetching...`` placeholder should show.
-    output_mode_pending = is_fetch_label(output_mode)
-    if is_status_label(output_mode) and not is_fetch_label(output_mode):
+    if is_status_label(output_mode):
         output_mode = _output_mode_from_videoplayer() or output_mode
 
-    # The active-area offsets the RPU declared, and everything that follows from
-    # them: the icon beside the row, and the aspect ratio of the picture inside
-    # the bars (which Kodi's own ``videodar`` cannot give, since it describes
-    # the coded frame).
+    # The active-area offsets the RPU declares for the frame on screen, and
+    # everything that follows from them: the icon beside the row, and the aspect
+    # ratio of the picture inside the bars (which Kodi's own ``videodar`` cannot
+    # give, since it describes the coded frame).
     l5_offsets          = get_l5_offsets()
     l5_icon_visible     = (
         "true" if l5_offsets and not is_status_label(l5_offsets) else "false"
     )
+    # Level 1 frame luminance: nits carry the brightness unit, the raw PQ codes
+    # (0-4095) are unitless.
+    l1_fll              = _with_unit(_separated(get_l1_nits()), unit)
+    l1_pq               = _separated(get_l1_pq())
     l6_rpu_mdl          = _with_unit(_separated(get_l6_rpu_mdl()), unit)
     l6_rpu_max_cll_fall = _with_unit(_separated(get_l6_rpu_max_cll_fall()), unit)
     hdr10_mdl           = _with_unit(_separated(get_hdr10_mdl()), unit)
@@ -758,10 +761,11 @@ def update_properties(window) -> None:
             ("DoviProfileVar", output_mode),
             ("DoviProfileAltVar", output_mode.replace("Dolby Vision Profile", "DV Profile")),
             ("MediaSourceVar", _media_source_name(output_mode)),
-            ("DoviProfilePending", "true" if output_mode_pending else "false"),
             ("DoviTunnelVar", get_DoviTunnelVar()),
             ("DoviCmVersionVar", get_cm_version()),
             ("DoviStructureVar", get_structure()),
+            ("DoviLevel1FllVar", l1_fll),
+            ("DoviLevel1PqVar", l1_pq),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
             ("Hdr10MdlVar", hdr10_mdl),

@@ -233,11 +233,25 @@ xbmc.executebuiltin('RunScript(script.tinyppi,run_mode,dv)')
 
 TinyPPI builds on the work of the following projects — many thanks to their authors and contributors.
 
-### hdrprobe
+### script.module.sidedata
 
-[**hdrprobe**](https://github.com/matthane/hdrprobe) by [matthane](https://github.com/matthane)
+[**script.module.sidedata**](https://github.com/matthane/script.module.sidedata) by [matthane](https://github.com/matthane)
 
-A tool for probing and analyzing HDR metadata from video streams. TinyPPI draws on hdrprobe's approach to detecting and interpreting HDR formats — including HDR10, HDR10+, HLG and Dolby Vision — to display accurate HDR information in the overlay.
+Parsers for the raw Dolby Vision and HDR payloads CoreELEC 22 publishes through
+`Player.Process(video.sidedata)` — the Dolby Vision RPU and dvcC/dvvC
+configuration record, the HDR10+ ST 2094-40 metadata and the static MDCV / CLL
+SEIs. TinyPPI reads every DV/HDR value it shows through this module, so the
+overlay follows the stream frame by frame instead of probing the file. RPU
+parsing is done by quietvoid's [dovi_tool](https://github.com/quietvoid/dovi_tool)
+(libdovi), HDR10+ parsing by FFmpeg's libavutil.
+
+### script.dvhdr.labels.diagnostic
+
+[**script.dvhdr.labels.diagnostic**](https://github.com/matthane/script.dvhdr.labels.diagnostic)
+by [matthane](https://github.com/matthane)
+
+The reference overlay for the side-data labels, used to cross-check how TinyPPI
+reads and presents the parsed metadata.
 
 ### Google Noto Fonts
 

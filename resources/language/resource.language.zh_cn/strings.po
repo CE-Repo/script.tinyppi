@@ -183,10 +183,6 @@ msgctxt "#32095"
 msgid "VS10 dialog"
 msgstr "VS10 对话框"
 
-msgctxt "#32096"
-msgid "Fetching..."
-msgstr "正在获取..."
-
 msgctxt "#32099"
 msgid "Bit depth"
 msgstr "位深度"

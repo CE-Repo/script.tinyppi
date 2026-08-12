@@ -142,9 +142,10 @@ def _is_converting(hdr_type: str, gamut: str) -> bool:
 
     True when the Amlogic output *gamut* shows a real HDR<->Dolby Vision
     conversion (non-DV source now DV, DV/HDR source falling back to SDR, or
-    SDR/DV tone-mapped to HDR10).  *hdr_type* is hdrprobe's own detected format
-    rather than the overlay's Home-window property, so this works before the
-    overlay is ever opened.  Both are read once per poll by the caller.
+    SDR/DV tone-mapped to HDR10).  *hdr_type* is the source format detected from
+    the stream's side data rather than the overlay's Home-window property, so
+    this works before the overlay is ever opened.  Both are read once per poll
+    by the caller.
     """
     gamut = gamut.upper()
     parts = gamut.split()

@@ -311,9 +311,9 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
     """Menu dialog to pick a VS10 output mode or launch the TinyPPI overlay."""
 
     def onInit(self) -> None:
-        # The SDR / HDR10 / DV groups branch on TinyPPI.HdrType, filled by
-        # hdrprobe in the background; refresh it so the right group appears
-        # once detection completes.
+        # The SDR / HDR10 / DV groups branch on TinyPPI.HdrType, derived from
+        # the stream's side data; refresh it so the right group appears as soon
+        # as the player publishes it.
         self._running = True
         self._pending_mode = None
         self._monitor = xbmc.Monitor()
