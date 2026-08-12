@@ -503,8 +503,8 @@ def get_ChannelIconVar() -> str:
 def get_AudioBitDepthVar() -> str:
     """Return the source audio bit depth for display, e.g. ``24-bit``.
 
-    Prefers the depth audioprobe read from the source bitstream itself for the
-    active track (see audioinfo.py).  While detection runs or finds nothing, known
+    Prefers the depth read from the source bitstream itself for the active
+    track (see audioinfo.py).  While detection runs or finds nothing, known
     bitstream codecs fall back to AUDIO_BIT_DEPTH_MAP, since Kodi's own
     ``audiobitspersample`` reports the sink format (always ``8`` during
     passthrough).  Kodi's value is used only for codecs it decodes itself
@@ -531,7 +531,7 @@ def get_AudioBitDepthVar() -> str:
 def get_AudioSampleRateVar() -> str:
     """Return the source audio sample rate for display, e.g. ``96 kHz``.
 
-    Prefers the rate audioprobe read from the source bitstream: Kodi reports
+    Prefers the rate read from the source bitstream: Kodi reports
     the DTS compatibility core's rate (48 kHz) even when the extension carries
     96/192 kHz.  Falls back to Kodi's own value while detection runs.
     """

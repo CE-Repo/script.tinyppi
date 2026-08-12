@@ -125,7 +125,7 @@ AUDIO_CODEC_MAP = {
 }
 
 # Audio codec -> source PCM bit depth fallback.  The real depth is read from
-# the source bitstream by the audioprobe binary; this map covers the moment
+# the source bitstream by script.module.audiodata; this map covers the moment
 # while that detection still runs and tracks it could not read.  During
 # passthrough Kodi itself reports the packed IEC 61937 byte stream (always
 # ``8``) instead of the source resolution, so falling back to Kodi is not an
@@ -153,8 +153,9 @@ AUDIO_BIT_DEPTH_MAP = {
 
 # Codecs whose decoded stream has a defined PCM bit depth, so Kodi's reported
 # depth is meaningful when Kodi decodes itself (lossless / uncompressed
-# formats; the DTS / TrueHD / MLP / FLAC families are covered by the audioprobe
-# binary and AUDIO_BIT_DEPTH_MAP before this set is consulted).  Lossy codecs (AC3 /
+# formats; the DTS / TrueHD / MLP / FLAC families are covered by
+# script.module.audiodata and AUDIO_BIT_DEPTH_MAP before this set is consulted).
+# Lossy codecs (AC3 /
 # E-AC3 / AAC / MP3 / Vorbis / Opus / WMA / ...) are intentionally absent —
 # they store frequency coefficients, not PCM samples, so no bit depth exists
 # and none is displayed.

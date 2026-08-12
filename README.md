@@ -245,6 +245,18 @@ overlay follows the stream frame by frame instead of probing the file. RPU
 parsing is done by quietvoid's [dovi_tool](https://github.com/quietvoid/dovi_tool)
 (libdovi), HDR10+ parsing by FFmpeg's libavutil.
 
+### script.module.audiodata
+
+Bundled in this repository (`script.module.audiodata/`), published as its own
+Kodi module addon.
+
+Reads the true sample rate and bit depth of the playing audio track out of its
+own bitstream, because Kodi reports the format it is feeding the sink instead:
+no PCM bit depth at all during passthrough, and a DTS-HD track's 48 kHz
+compatibility core rather than the 96 kHz its extension substream stores. Field
+layouts follow FFmpeg's own parsers, so the numbers match what other tools
+report for the same stream.
+
 ### script.dvhdr.labels.diagnostic
 
 [**script.dvhdr.labels.diagnostic**](https://github.com/matthane/script.dvhdr.labels.diagnostic)
