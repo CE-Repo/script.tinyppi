@@ -1540,7 +1540,7 @@
 						<visible>String.IsEmpty(Window().Property(DoviProfileNumberVar))</visible>
 					</control>
 					
-					<!-- Level -->
+					<!-- Version -->
 					<control type="label">
 						<top>90</top>
 						<label>$ADDON[script.tinyppi 32291]:</label>

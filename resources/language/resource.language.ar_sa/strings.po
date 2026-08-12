@@ -876,8 +876,8 @@ msgid "Profile"
 msgstr "الملف الشخصي"
 
 msgctxt "#32291"
-msgid "Level"
-msgstr "المستوى"
+msgid "Version"
+msgstr "الإصدار"
 "
 
 msgctxt "#32292"

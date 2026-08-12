@@ -876,7 +876,7 @@ msgid "Profile"
 msgstr ""
 
 msgctxt "#32291"
-msgid "Level"
+msgid "Version"
 msgstr ""
 
 msgctxt "#32292"

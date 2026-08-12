@@ -876,8 +876,8 @@ msgid "Profile"
 msgstr "Profil"
 
 msgctxt "#32291"
-msgid "Level"
-msgstr "Level"
+msgid "Version"
+msgstr "Version"
 
 msgctxt "#32292"
 msgid "RPU"

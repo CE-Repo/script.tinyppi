@@ -876,8 +876,8 @@ msgid "Profile"
 msgstr "配置文件"
 
 msgctxt "#32291"
-msgid "Level"
-msgstr "级别"
+msgid "Version"
+msgstr "版本"
 
 msgctxt "#32292"
 msgid "RPU"

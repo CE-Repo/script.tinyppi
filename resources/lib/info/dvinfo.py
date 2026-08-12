@@ -440,11 +440,16 @@ def _structure_abbr(structure, config: dict | None, el_type: str) -> str:
     return "(ST-DL)" if dual else "(ST-SL)"
 
 
-def _dv_level(config: dict | None) -> str:
-    """Return the Dolby Vision level from the configuration record (e.g. ``6``),
-    or ``''`` when it is absent or unset."""
-    level = (config or {}).get("level")
-    return str(level) if isinstance(level, int) and level > 0 else ""
+def _dv_record_version(config: dict | None) -> str:
+    """Return the dvcC/dvvC record version as ``<major>.<minor>`` (e.g. ``1.0``),
+    or ``''`` without a configuration record.
+
+    This is the version of the configuration record itself, not the Dolby Vision
+    level (``config['level']``) the same record also carries.
+    """
+    major = _fmt_num((config or {}).get("version_major"))
+    minor = _fmt_num((config or {}).get("version_minor"))
+    return f"{major}.{minor}" if major and minor else ""
 
 
 def _presence(
@@ -507,7 +512,7 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
     if token == "dolbyvision":
         info["cm_version"]     = _cm_version(rpu)
         info["structure"]      = _structure_abbr(parsed.get("structure"), config, el_type)
-        info["dv_version"]     = _dv_level(config)
+        info["dv_version"]     = _dv_record_version(config)
         info["dv_profile"]     = profile
         # FEL/MEL type; profiles without an EL (e.g. 8.1) fall back to the
         # profile number.  Stored uncoloured, themed at read time.
@@ -646,8 +651,8 @@ def get_hdr10_max_cll_fall() -> str:
 
 
 def get_dv_version() -> str:
-    """Return the Dolby Vision ``level`` (e.g. ``6``), or '' when unknown.  No
-    status label."""
+    """Return the dvcC/dvvC record version (e.g. ``1.0``), or '' when unknown.
+    No status label."""
     return _raw("dv_version")
 
 
