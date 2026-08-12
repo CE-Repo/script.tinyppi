@@ -233,11 +233,31 @@ xbmc.executebuiltin('RunScript(script.tinyppi,run_mode,dv)')
 
 TinyPPI builds on the work of the following projects — many thanks to their authors and contributors.
 
-### hdrprobe
+### script.module.sidedata
 
-[**hdrprobe**](https://github.com/matthane/hdrprobe) by [matthane](https://github.com/matthane)
+[**script.module.sidedata**](https://github.com/matthane/script.module.sidedata) by [matthane](https://github.com/matthane)
 
-A tool for probing and analyzing HDR metadata from video streams. TinyPPI draws on hdrprobe's approach to detecting and interpreting HDR formats — including HDR10, HDR10+, HLG and Dolby Vision — to display accurate HDR information in the overlay.
+Parsers for the raw Dolby Vision and HDR payloads CoreELEC 22 publishes through
+`Player.Process(video.sidedata)` — the Dolby Vision RPU and dvcC/dvvC
+configuration record, the HDR10+ ST 2094-40 metadata and the static MDCV / CLL
+SEIs. TinyPPI reads every DV/HDR value it shows through this module, so the
+overlay follows the stream frame by frame instead of probing the file. RPU
+parsing is done by quietvoid's [dovi_tool](https://github.com/quietvoid/dovi_tool)
+(libdovi), HDR10+ parsing by FFmpeg's libavutil.
+
+### script.module.audiodata
+
+Bundled in this repository (`script.module.audiodata/`), published as its own
+Kodi module addon.
+
+Reads the true sample rate and bit depth of the playing audio track out of its
+own bitstream, because Kodi reports the format it is feeding the sink instead:
+no PCM bit depth at all during passthrough, and a DTS-HD track's 48 kHz
+compatibility core rather than the 96 kHz its extension substream stores.
+Parses Matroska, MPEG-TS and BDAV M2TS, MP4, AVI, MPEG program streams, FLAC,
+WAV and Ogg, plus Blu-ray and DVD-Video disc images. Field layouts follow
+FFmpeg's own parsers, so the numbers match what other tools report for the same
+stream.
 
 ### Google Noto Fonts
 

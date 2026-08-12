@@ -311,20 +311,32 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
     """Menu dialog to pick a VS10 output mode or launch the TinyPPI overlay."""
 
     def onInit(self) -> None:
-        # The SDR / HDR10 / DV groups branch on TinyPPI.HdrType, filled by
-        # hdrprobe in the background; refresh it so the right group appears
-        # once detection completes.
+        # The SDR / HDR10 / DV groups branch on TinyPPI.HdrType, derived from
+        # the stream's side data; refresh it so the right group appears as soon
+        # as the player publishes it.
         self._running = True
         self._pending_mode = None
         self._monitor = xbmc.Monitor()
         threading.Thread(target=self._hdr_type_loop, daemon=True).start()
 
     def _hdr_type_loop(self) -> None:
+        """Republish the HDR type until the dialog closes.
+
+        A failed read only costs this cycle: the dialog would otherwise keep
+        showing whichever SDR / HDR10 / DV group was up when the thread died.
+        """
         from info.properties import publish_hdr_type
 
         home = xbmcgui.Window(10000)
+        logged = False
         while self._running and not self._monitor.abortRequested():
-            publish_hdr_type(home)
+            try:
+                publish_hdr_type(home)
+            except Exception as e:
+                if not logged:
+                    logged = True
+                    xbmc.log(f"TinyPPI: HDR type refresh failed: {e}",
+                             xbmc.LOGWARNING)
             if self._monitor.waitForAbort(0.5):
                 break
 

@@ -183,10 +183,6 @@ msgctxt "#32095"
 msgid "VS10 dialog"
 msgstr "حوار VS10"
 
-msgctxt "#32096"
-msgid "Fetching..."
-msgstr "جارٍ الجلب..."
-
 msgctxt "#32099"
 msgid "Bit depth"
 msgstr "عمق البِت"

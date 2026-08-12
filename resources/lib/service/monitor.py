@@ -13,7 +13,7 @@ _LIB_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _LIB_PATH not in sys.path:
     sys.path.insert(0, _LIB_PATH)
 
-from info.dvinfo import prime_playback_detection, reset_playback_cache
+from info.audioinfo import prime_playback_detection, reset_playback_cache
 from ui.theme import apply_theme
 
 _ADDON_ID = "script.tinyppi"
@@ -43,13 +43,13 @@ def _notification_media_type(data: str) -> str:
 
 
 class KodiMonitor(xbmc.Monitor):
-    """Listens for Kodi notifications; resets the DV cache on stop and, on
-    playback start, preloads the metadata detection and fires the splash."""
+    """Listens for Kodi notifications; resets the audio-scan cache on stop and,
+    on playback start, preloads the audio detection and fires the splash."""
 
     def onNotification(self, sender: str, method: str, data: str) -> None:
         if method == "Player.OnStop":
             reset_playback_cache()
-            _log("Dolby Vision playback cache cleared")
+            _log("Audio bitstream playback cache cleared")
 
         if method == "Player.OnAVStart":
             self._prime_detection()
@@ -71,15 +71,18 @@ class KodiMonitor(xbmc.Monitor):
         self._maybe_show_splash()
 
     def _prime_detection(self) -> None:
-        """Start hdrprobe / audio detection as soon as a video begins playing,
-        so results are already cached when the overlay opens instead of showing
-        ``Fetching...``.
+        """Start the audio-bitstream scan as soon as a video begins playing, so
+        the result is already cached when the overlay opens instead of falling
+        back to Kodi's own sink-side values.
+
+        The DV/HDR side is read live from ``Player.Process(video.sidedata)`` and
+        needs no priming.
         """
         try:
             if not xbmc.getCondVisibility("Player.HasVideo"):
                 return
             if prime_playback_detection():
-                _log("Preloading playback metadata in background")
+                _log("Preloading audio bitstream metadata in background")
         except Exception as exc:
             _log(f"Exception priming detection: {exc}", xbmc.LOGERROR)
 

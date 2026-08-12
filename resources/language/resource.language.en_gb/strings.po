@@ -183,10 +183,6 @@ msgctxt "#32095"
 msgid "VS10 dialog"
 msgstr ""
 
-msgctxt "#32096"
-msgid "Fetching..."
-msgstr ""
-
 msgctxt "#32099"
 msgid "Bit depth"
 msgstr ""

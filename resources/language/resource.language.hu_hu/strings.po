@@ -183,10 +183,6 @@ msgctxt "#32095"
 msgid "VS10 dialog"
 msgstr "VS10 dialóg"
 
-msgctxt "#32096"
-msgid "Fetching..."
-msgstr "Betöltés..."
-
 msgctxt "#32099"
 msgid "Bit depth"
 msgstr "Bitmélység"

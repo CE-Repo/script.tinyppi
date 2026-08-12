@@ -177,6 +177,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._auto_hide = 0
         self._nudge     = (0, 0)
         self._dv_channel_offset = None
+        self._refresh_failed    = False
 
     def onInit(self) -> None:
         self._running   = True
@@ -303,23 +304,47 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         t.start()
 
     def _update_loop(self) -> None:
+        """Refresh the overlay once a second until it should close.
+
+        A failed refresh never ends the loop: the values come from the player
+        and from the stream's side data, so a bad cycle is worth one stale
+        second, not a window that stops auto-closing.  ``close_dialog`` runs
+        from ``finally`` so even an unforeseen failure still releases the
+        overlay instead of leaving it up, frozen and marked active.
+        """
         player = xbmc.Player()
 
-        while self._running and not self._monitor.abortRequested():
-            if not player.isPlaying():
-                break
-            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
-                break
-            if self._auto_hide and time.time() - self._opened_at >= self._auto_hide:
-                break
+        try:
+            while self._running and not self._monitor.abortRequested():
+                if not player.isPlaying():
+                    break
+                if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
+                    break
+                if self._auto_hide and time.time() - self._opened_at >= self._auto_hide:
+                    break
 
-            properties.update_properties(self)
-            self._apply_position_offset()
+                try:
+                    properties.update_properties(self)
+                    self._apply_position_offset()
+                except Exception as exc:
+                    self._log_refresh_failure(exc)
 
-            if self._monitor.waitForAbort(1):
-                break
+                if self._monitor.waitForAbort(1):
+                    break
+        finally:
+            self.close_dialog()
 
-        self.close_dialog()
+    def _log_refresh_failure(self, exc: Exception) -> None:
+        """Log a failed refresh once per overlay, so a persistent fault leaves
+        a trace without writing to the log every second."""
+        if self._refresh_failed:
+            return
+        self._refresh_failed = True
+        xbmc.log(
+            f"TinyPPI: overlay refresh failed, continuing with the last "
+            f"values: {exc}",
+            xbmc.LOGWARNING,
+        )
 
     def close_dialog(self) -> None:
         self._running = False
