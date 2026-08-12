@@ -186,9 +186,12 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         # overlay only, not the VS10 selection dialog.
         self._auto_hide = _ADDON.getSettingInt("auto_hide")
 
-        # Publish properties first so the HDR type is known before the initial
-        # position is applied (matters when reopening with a cached result).
-        properties.update_properties(self)
+        # Everything the first frame needs was published before doModal(), so
+        # there is nothing to fetch here: place the overlay against the HDR type
+        # already known and hand over to the polling loop, whose first pass runs
+        # immediately and covers the progress control a loaded window adds.
+        # Kodi dispatches onInit to this thread with the window already on
+        # screen, so work done here is work the viewer waits through.
         self._apply_position_offset()
         self._start_update_loop()
 
@@ -399,6 +402,12 @@ def open_tinyppi() -> None:
             "Default",
             "1080i",
         )
+        # Fill the window before Kodi draws it.  onInit() is dispatched to the
+        # script thread only once the window is up and fading in, so anything
+        # published there arrives after the viewer is already looking at the
+        # rows; done here, the first frame carries the values.  Properties only
+        # -- the controls the full refresh touches do not exist yet.
+        properties.publish_properties(dialog)
         dialog.doModal()
         del dialog
     finally:

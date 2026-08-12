@@ -1,6 +1,7 @@
 """Compute and publish Window properties for TinyPPI.
 
-Call ``update_properties(window)`` once per polling interval.
+Call ``update_properties(window)`` once per polling interval, and
+``publish_properties(window)`` ahead of a window Kodi has not built yet.
 """
 
 import re
@@ -719,9 +720,30 @@ def _set_progress(window, values: tuple[tuple[int, float], ...]) -> None:
 
 
 def update_properties(window) -> None:
+    """Compute all player properties and refresh the progress controls.
+
+    Call from the polling loop, and from anywhere else the window's controls
+    are known to exist -- ``_set_progress`` addresses one by id, which only
+    resolves once Kodi has loaded the window's XML.  Before that, and only
+    before that, use ``publish_properties``.
+    """
+    publish_properties(window)
+    _set_progress(
+        window,
+        (
+            (9100, get_CpuTemperatureProgressVar()),
+        ),
+    )
+
+
+def publish_properties(window) -> None:
     """Compute all player properties and publish them to ``window``.
 
-    Call from ``onInit()`` and from the polling loop.
+    Sets properties and nothing else, so it is safe on a window Kodi has not
+    built yet.  That is the point: called just before ``doModal()``, the values
+    are already in place when the window is first drawn, instead of arriving
+    with ``onInit()`` -- which Kodi dispatches to the script thread while the
+    window is on screen and fading in, leaving the rows empty until it lands.
     """
     publish_hdr_type()
     # Depends on the type just published, and gates the channel graphics below.
@@ -811,12 +833,5 @@ def update_properties(window) -> None:
             ("SubtitleNameShortVar", get_SubtitleNameShortVar()),
             ("CpuUsageVar", get_CpuUsageVar()),
             ("CpuTopUsageVar", get_CpuTopUsageVar()),
-        ),
-    )
-
-    _set_progress(
-        window,
-        (
-            (9100, get_CpuTemperatureProgressVar()),
         ),
     )
