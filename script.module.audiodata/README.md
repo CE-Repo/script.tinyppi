@@ -8,9 +8,7 @@ track reports the 48 kHz core every decoder can fall back to rather than the
 96 or 192 kHz its extension substream actually stores. This module reads those
 numbers from the stream itself.
 
-A pure-Python port of [audioprobe](https://github.com/CE-Repo/audioprobe),
-covering the same containers and codecs. Stdlib only — no binaries, no native
-libraries, no subprocesses.
+Stdlib only — no binaries, no native libraries, no subprocesses.
 
 ## Installation
 
@@ -103,8 +101,8 @@ meaningful bit depth and report `None`.
 | PCM, others | container | container |
 
 Field layouts follow FFmpeg's own parsers (`dca_exss.c`, `dca_parser.c`,
-`mlp_parser.c`, `ac3_parser.c`) and audioprobe, so the numbers line up with
-what other tools report for the same stream.
+`mlp_parser.c`, `ac3_parser.c`), so the numbers line up with what other tools
+report for the same stream.
 
 ## How a disc image is read
 
@@ -123,15 +121,13 @@ stream.
 Both address the image by absolute byte range rather than mapping it, so a
 40 GB image costs only the ranges actually read.
 
-## Differences from audioprobe
+## Scope
 
-- **No NAS prefetcher.** audioprobe memory-maps a file and pre-streams the
-  regions it is about to parse. A Kodi VFS handle cannot be mapped, so reads go
-  straight through the VFS. Local files lose the mmap fast path.
-- **No CLI, no directory walking, no output rendering.** This is the parsing
-  half; presentation belongs to the caller.
-- An AACS-encrypted Blu-ray is reported as such, but not decrypted — same as
-  audioprobe.
+This is the parsing half only. There is no CLI, no directory walking and no
+output rendering — presentation belongs to the caller. Reads go straight
+through whatever source is handed in, so there is no memory mapping and no
+network-filesystem prefetching; a Kodi VFS handle cannot be mapped anyway.
+An AACS-encrypted Blu-ray is reported as such, but not decrypted.
 
 ## Known limitations
 
@@ -159,4 +155,5 @@ those layouts match a real encoder's output, which only a real stream can show.
 
 ## License
 
-MIT.
+MIT — see `LICENSE`, which also carries the copyright notice of the project
+this package derives from, as that project's MIT licence requires.

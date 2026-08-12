@@ -23,19 +23,34 @@ _REQUIRED_FONTS = (
     {"name": "font32",        "filename": "Noto-Bold.ttf",    "size": "32"},
 )
 
-# Fonts ship in the tools.tinyppi addon; resolve defensively so a missing
-# tools addon never breaks import.
-try:
-    _TOOLS_DIR = xbmcaddon.Addon("tools.tinyppi").getAddonInfo("path")
-except Exception:
-    _TOOLS_DIR = ""
+# The fonts ship with this addon.  Their file names are the ones _REQUIRED_FONTS
+# registers in Font.xml, so what is written into the skin's XML and what is
+# copied next to it always name the same file.
+_ADDON_FONTS_DIR = os.path.normpath(
+    os.path.join(_ADDON_DIR, "resources", "fonts")
+)
 
-_ADDON_FONTS_DIR = (os.path.normpath(os.path.join(_TOOLS_DIR, "tools", "fonts"))
-                    if _TOOLS_DIR else "")
+# Everything in the font directory that is not a font (the OFL text shipped
+# alongside them) must not be copied into the skin.
+_FONT_SUFFIXES = (".ttf", ".otf")
 
 
 def _log(msg: str, level: int = xbmc.LOGINFO) -> None:
     xbmc.log(f"TinyPPI: {msg}", level)
+
+
+def _font_files() -> list[tuple[str, str]]:
+    """Return the ``(source path, file name)`` of every font the addon ships."""
+    try:
+        names = sorted(os.listdir(_ADDON_FONTS_DIR))
+    except OSError as exc:
+        _log(f"Font directory unreadable: {exc}", xbmc.LOGERROR)
+        return []
+    return [
+        (os.path.normpath(os.path.join(_ADDON_FONTS_DIR, name)), name)
+        for name in names
+        if name.lower().endswith(_FONT_SUFFIXES)
+    ]
 
 
 def _find_font_xml(skin_path: str) -> str | None:
@@ -120,12 +135,11 @@ def fonts_already_installed(skin_path: str) -> bool:
         _log("No TTF directory found", xbmc.LOGWARNING)
         return False
 
-    for _root, _dirs, files in os.walk(_ADDON_FONTS_DIR):
-        for fname in files:
-            dest = os.path.normpath(os.path.join(ttf_dest_dir, fname))
-            if not os.path.exists(dest):
-                _log(f"TTF missing: {fname}")
-                return False
+    for _src, fname in _font_files():
+        dest = os.path.normpath(os.path.join(ttf_dest_dir, fname))
+        if not os.path.exists(dest):
+            _log(f"TTF missing: {fname}")
+            return False
 
     return True
 
@@ -232,16 +246,14 @@ def _install_ttf(skin_path: str) -> bool:
     _log(f"TTF target: {ttf_dest_dir}")
 
     modified = False
-    for _root, _dirs, files in os.walk(_ADDON_FONTS_DIR):
-        for fname in files:
-            src  = os.path.normpath(os.path.join(_root, fname))
-            dest = os.path.normpath(os.path.join(ttf_dest_dir, fname))
-            if not os.path.exists(dest):
-                shutil.copy(src, dest)
-                _log(f"TTF copied: {fname}")
-                modified = True
-            else:
-                _log(f"TTF already exists: {fname}")
+    for src, fname in _font_files():
+        dest = os.path.normpath(os.path.join(ttf_dest_dir, fname))
+        if not os.path.exists(dest):
+            shutil.copy(src, dest)
+            _log(f"TTF copied: {fname}")
+            modified = True
+        else:
+            _log(f"TTF already exists: {fname}")
 
     return modified
 

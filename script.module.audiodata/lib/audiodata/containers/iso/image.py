@@ -1,9 +1,9 @@
 """Random access over a disc image, and a bounded reader for one clip inside it.
 
-audioprobe works from an mmap of the whole image.  A Kodi VFS handle cannot be
-mapped, and a Blu-ray ISO runs to tens of gigabytes, so the same walks are
-driven here by reading the ranges they ask for as they ask for them.  Every
-read is bounded and nothing larger than the requested range is held.
+A Kodi VFS handle cannot be memory-mapped, and a Blu-ray ISO runs to tens of
+gigabytes, so the filesystem walks are driven by reading the ranges they ask
+for as they ask for them.  Every read is bounded and nothing larger than the
+requested range is held.
 """
 
 

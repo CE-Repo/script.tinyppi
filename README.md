@@ -245,15 +245,6 @@ overlay follows the stream frame by frame instead of probing the file. RPU
 parsing is done by quietvoid's [dovi_tool](https://github.com/quietvoid/dovi_tool)
 (libdovi), HDR10+ parsing by FFmpeg's libavutil.
 
-### audioprobe
-
-[**audioprobe**](https://github.com/CE-Repo/audioprobe)
-
-The native audio-track inspector TinyPPI used to call as a binary.
-`script.module.audiodata` is a pure-Python port of it, covering the same
-containers and codecs, so the values TinyPPI shows are unchanged while the
-binary dependency is gone.
-
 ### script.module.audiodata
 
 Bundled in this repository (`script.module.audiodata/`), published as its own
@@ -280,4 +271,4 @@ reads and presents the parsed metadata.
 
 [**Google Noto Fonts**](https://github.com/notofonts/notofonts.github.io) by [The Noto Project (Google)](https://fonts.google.com/noto)
 
-Noto ("No Tofu") is Google's font family designed to cover all languages with a harmonious look, eliminating missing-character boxes ("tofu"). TinyPPI uses Noto fonts to render the overlay text clearly and consistently across a wide range of characters. The fonts are licensed under the [SIL Open Font License 1.1](https://openfontlicense.org/).
+Noto ("No Tofu") is Google's font family designed to cover all languages with a harmonious look, eliminating missing-character boxes ("tofu"). TinyPPI uses Noto fonts to render the overlay text clearly and consistently across a wide range of characters. They ship with the add-on in `resources/fonts/` and are installed into the active skin on first run. Licensed under the [SIL Open Font License 1.1](https://openfontlicense.org/); the licence text is included alongside the fonts.
