@@ -55,6 +55,9 @@ from info.dvinfo import (
     get_l5_offsets,
     get_l6_rpu_max_cll_fall,
     get_l6_rpu_mdl,
+    get_l9_primaries,
+    get_source_max,
+    get_source_min,
     get_output_mode,
     get_structure,
     is_status_label,
@@ -317,10 +320,8 @@ def get_DoviTunnelVar() -> str:
     return result
 
 
-# Between the value and its unit.  Two spaces rather than one: the unit is set
-# in the accent colour and reads as a label of its own, so it wants a little
-# more air than a word break gives it (``1000 l 400  cd/m²``).
-_UNIT_GAP = "  "
+# Between the value and its unit (``1000 l 400 cd/m²``).
+_UNIT_GAP = " "
 
 # What separates the numbers of a multi-part metadata value on screen: a
 # lowercase L, not the pipe the values carry internally.  Purely a matter of
@@ -772,6 +773,10 @@ def publish_properties(window) -> None:
     # carry the depth of their code space.
     l1_fll              = _with_unit(_separated(get_l1_nits()), unit)
     l1_pq               = _with_unit(_separated(get_l1_pq()), pq_unit)
+    # The master's PQ range: raw code and the luminance it decodes to, so the
+    # unit lands on the reading it belongs to, the second one.
+    source_min          = _with_unit(_separated(get_source_min()), unit)
+    source_max          = _with_unit(_separated(get_source_max()), unit)
     l6_rpu_mdl          = _with_unit(_separated(get_l6_rpu_mdl()), unit)
     l6_rpu_max_cll_fall = _with_unit(_separated(get_l6_rpu_max_cll_fall()), unit)
     hdr10_mdl           = _with_unit(_separated(get_hdr10_mdl()), unit)
@@ -797,6 +802,11 @@ def publish_properties(window) -> None:
             ("DoviProfileVar", output_mode),
             ("DoviProfileAltVar", output_mode.replace("Dolby Vision Profile", "DV Profile")),
             ("MediaSourceVar", _media_source_name(output_mode)),
+            # The primaries the content was graded in, shown after the gamut
+            # the driver is putting out so the two can be read against each
+            # other.  Bracketed and coloured by the skin, like the DV tunnel
+            # tag: empty here means the row just ends after the gamut.
+            ("DoviPrimariesVar", get_l9_primaries()),
             ("DoviTunnelVar", get_DoviTunnelVar()),
             ("DoviCmVersionVar", get_cm_version()),
             ("DoviStructureVar", get_structure()),
@@ -804,6 +814,8 @@ def publish_properties(window) -> None:
             ("DoviLevel1PqVar", l1_pq),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
+            ("DoviSourceMinVar", source_min),
+            ("DoviSourceMaxVar", source_max),
             ("Hdr10MdlVar", hdr10_mdl),
             ("Hdr10MaxCllFallVar", hdr10_max_cll_fall),
             ("DoviVersionVar", get_dv_version()),

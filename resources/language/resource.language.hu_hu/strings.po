@@ -892,7 +892,7 @@ msgid "Enhancement Layer"
 msgstr ""
 
 msgctxt "#32295"
-msgid "Enhancement Layer Type"
+msgid "EL Type"
 msgstr ""
 
 msgctxt "#32296"
@@ -904,11 +904,11 @@ msgid "HDR10 MaxCLL/FALL"
 msgstr ""
 
 msgctxt "#32298"
-msgid "RPU MDL"
+msgid "L6 MDL"
 msgstr ""
 
 msgctxt "#32299"
-msgid "RPU MaxCLL/FALL"
+msgid "L6 MaxCLL/FALL"
 msgstr ""
 
 msgctxt "#32300"
@@ -1156,9 +1156,17 @@ msgid "Color of the pill shown at the bottom of the splash logo for any other Do
 msgstr "A splash logó alján megjelenő hasáb színe minden más Dolby Vision profilhoz (enhancement layer nélkül)."
 
 msgctxt "#32375"
-msgid "FLL MIN / MAX / Ø"
+msgid "L1 Lum Min/Max/Ø"
 msgstr ""
 
 msgctxt "#32376"
-msgid "PQ MIN / MAX / Ø"
+msgid "L1 PQ Min/Max/Ø"
+msgstr ""
+
+msgctxt "#32377"
+msgid "VDR Min PQ/Lum"
+msgstr ""
+
+msgctxt "#32378"
+msgid "VDR Max PQ/Lum"
 msgstr ""

@@ -77,6 +77,9 @@ _FIELDS = (
     "l1_pq",
     "l6_mdl",
     "l6_max_cll_fall",
+    "l9_primaries",
+    "source_min",
+    "source_max",
     "hdr10_mdl",
     "hdr10_max_cll_fall",
     "dv_version",
@@ -87,6 +90,13 @@ _FIELDS = (
     "dv_el_type",
     "bit_depth",
 )
+
+# Fields the RPU carries only now and then because they describe the title
+# rather than the frame; see _hold_static.  The source range shares the reason:
+# the module fills it only on frames whose DM data is uncompressed.
+_STATIC_FIELDS = ("l9_primaries", "source_min", "source_max")
+
+_latched: dict[str, str] = {}
 
 _lock              = threading.Lock()
 _snapshot_key      = None
@@ -195,6 +205,27 @@ def _derive(key: tuple[str, str, str]) -> dict[str, str]:
         return _empty_info()
 
 
+def _hold_static(fields: dict[str, str]) -> None:
+    """Carry the title-level fields across the frames that omit them.
+
+    L9 and L11 describe the grade, not the picture, so the bitstream does not
+    repeat them in every RPU -- under DM metadata compression a frame refers
+    back to an earlier one's metadata instead of carrying its own.  Read frame
+    by frame they are therefore absent most of the time, which would leave
+    their rows blinking N/A at a stream that plainly has them.
+
+    So the last reading stands until a new one replaces it.  ``_latched`` is
+    cleared when playback stops, and the overlay closes with it, so nothing is
+    carried from one title into the next.  Call under ``_lock``.
+    """
+    for name in _STATIC_FIELDS:
+        value = fields.get(name, "")
+        if value:
+            _latched[name] = value
+        elif _latched.get(name):
+            fields[name] = _latched[name]
+
+
 def _snapshot() -> tuple[dict[str, str], bool]:
     """Return ``(fields, playing)`` for the frame on screen.
 
@@ -220,6 +251,7 @@ def _snapshot() -> tuple[dict[str, str], bool]:
             _snapshot_info    = empty
             _snapshot_playing = False
             _snapshot_until   = now + _SNAPSHOT_TTL
+            _latched.clear()
         return empty, False
 
     key = (
@@ -237,6 +269,7 @@ def _snapshot() -> tuple[dict[str, str], bool]:
     fields = _derive(key)
 
     with _lock:
+        _hold_static(fields)
         _snapshot_key     = key
         _snapshot_info    = fields
         _snapshot_playing = True
@@ -552,6 +585,26 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
             _fmt_num(l6.get("max_cll")), _fmt_num(l6.get("max_fall")),
         ])
 
+    # L9 names the primaries the content was graded against, already resolved to
+    # a name -- ``BT.2020``, ``DCI-P3 D65`` -- so it is taken as given; a block
+    # carrying explicit CIE coordinates instead of a known index reads as
+    # ``custom``.  It qualifies the media source rather than filling a row.
+    l9 = (rpu or {}).get("l9")
+    if l9:
+        info["l9_primaries"] = str(l9.get("name") or "")
+
+    # The PQ range of the master the grade was made from, each as the raw code
+    # and the luminance it decodes to.  Only frames whose DM data is
+    # uncompressed carry it, hence _STATIC_FIELDS.
+    source = (rpu or {}).get("source")
+    if source:
+        info["source_min"] = _joined([
+            _fmt_num(source.get("min_pq")), _fmt_lum(source.get("min_nits")),
+        ])
+        info["source_max"] = _joined([
+            _fmt_num(source.get("max_pq")), _fmt_lum(source.get("max_nits")),
+        ])
+
     if mdcv:
         info["hdr10_mdl"] = _joined([
             _fmt_lum(mdcv.get("max_luminance")), _fmt_lum(mdcv.get("min_luminance")),
@@ -638,6 +691,28 @@ def get_l6_rpu_mdl() -> str:
 def get_l6_rpu_max_cll_fall() -> str:
     """Return Dolby Vision Level 6 RPU MaxCLL/MaxFALL."""
     return _value_or("l6_max_cll_fall", "0 | 0")
+
+
+def get_l9_primaries() -> str:
+    """Return the Level 9 source primaries by name (e.g. ``DCI-P3 D65``), or ''
+    when the stream carries no L9 block.
+
+    No status label: the media source row appends this in brackets and simply
+    says nothing when there is nothing to say.
+    """
+    return _raw("l9_primaries")
+
+
+def get_source_min() -> str:
+    """Return the master's minimum source luminance as ``PQ code | nits``,
+    falling back to ``0 | 0``."""
+    return _value_or("source_min", "0 | 0")
+
+
+def get_source_max() -> str:
+    """Return the master's maximum source luminance as ``PQ code | nits``,
+    falling back to ``0 | 0``."""
+    return _value_or("source_max", "0 | 0")
 
 
 def get_hdr10_mdl() -> str:
