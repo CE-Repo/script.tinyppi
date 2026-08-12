@@ -8,8 +8,9 @@ track reports the 48 kHz core every decoder can fall back to rather than the
 96 or 192 kHz its extension substream actually stores. This module reads those
 numbers from the stream itself.
 
-Stdlib only. No binaries, no native libraries, no player API — every parser is
-testable off the device.
+A pure-Python port of [audioprobe](https://github.com/CE-Repo/audioprobe),
+covering the same containers and codecs. Stdlib only — no binaries, no native
+libraries, no subprocesses.
 
 ## Installation
 
@@ -24,85 +25,126 @@ Declare it in your addon's `addon.xml`:
 ```python
 import audiodata
 
-with open("movie.mkv", "rb") as f:
-    tracks = audiodata.probe(f.read)
-
-for track in tracks:
-    print(track["codec"], track["sample_rate"], track["bit_depth"])
+report = audiodata.probe("movie.mkv")
+print(report.container)                       # "Matroska"
+for track in report.tracks:
+    print(track.codec, track.sample_rate, track.bit_depth, track.layout())
 ```
 
-`probe(read, budget=...)` takes any callable returning up to `n` bytes and
-`b""` at the end of the stream. It is only ever called forwards, so a Kodi VFS
-handle works directly:
+`probe(source, ...)` accepts a filesystem path, a `bytes` buffer, or any
+seekable file-like object with `read` and `seek` — so a Kodi VFS handle works
+through a thin adapter:
 
 ```python
-handle = xbmcvfs.File(url)
-tracks = audiodata.probe(lambda n: bytes(handle.readBytes(n) or b""))
+class VfsSource:
+    def __init__(self, handle): self._h = handle
+    def read(self, n):          return bytes(self._h.readBytes(n) or b"")
+    def seek(self, off, wh=0):  return self._h.seek(off, wh)
+    def size(self):             return self._h.size()
+
+report = audiodata.probe(VfsSource(xbmcvfs.File(url)))
 ```
+
+`probe_tracks(source, ...)` returns the same tracks as plain dicts, for callers
+crossing a JSON edge.
+
+### Options
+
+| Argument | Meaning |
+|---|---|
+| `scan_limit` | how far into a transport or program stream the audio PES is followed (default 64 MiB) |
+| `deep` | sample frames out of the container for codecs the container describes incompletely (default on) |
+| `extension` | orders the candidates for a raw elementary stream, which carries no magic to sniff |
 
 ## Result
 
-One entry per audio track:
+`probe` returns a `Report` with `container`, `tracks`, `error` and `truncated`.
+Each `Track`:
 
-| Key | Content |
+| Field | Content |
 |---|---|
-| `codec` | plain codec name (`dts`, `truehd`, `mlp`, `ac3`, `eac3`, `flac`, `pcm`, `aac`, …) |
+| `id` | container-specific identifier (Matroska track number, TS PID, MP4 track id) |
+| `codec` | display name (`DTS-HD MA`, `TrueHD`, `LPCM (Blu-ray)`, `AAC-LC`, …) |
 | `sample_rate` | sample rate in Hz, or `None` |
-| `bit_depth` | PCM bit depth, or `None` when the format codes none |
-| `channels` | channel count, or `None` |
-| `language` | ISO language tag, `"und"` when unknown |
+| `bit_depth` | PCM bit depth, or `None` where the format codes none |
+| `channels`, `lfe` | channel count and whether an LFE channel is present |
+| `layout()` | `5.1`-style layout derived from those two |
+| `language`, `title`, `default` | as the container declares them |
+| `note` | how a reading was qualified, e.g. `parameters from embedded AC-3 core` |
 
-`probe` never raises. A stream it cannot read yields `[]`, which callers should
-read as "no reading", not as "no audio".
+`probe` never raises. A source it cannot read yields a `Report` whose `error`
+carries the reason and whose `tracks` are empty — read that as "no reading",
+not as "no audio".
 
-## How a stream is read
+## Supported inputs
 
-Two paths, picked from what the stream turns out to be:
+| Containers | Matroska/WebM, MPEG-TS, BDAV M2TS (192-byte packets), MP4/MOV/M4A, AVI, MPEG program streams (`.mpg .vob`), FLAC, WAV, Ogg |
+|---|---|
+| **Disc images** | Blu-ray ISO (BDMV over UDF, including UDF 2.50 metadata partitions) and DVD-Video ISO (VIDEO_TS over ISO9660) |
+| **Codecs** | AC-3, E-AC-3, DTS, DTS-ES, DTS 96/24, DTS-HD MA/HRA, DTS Express, TrueHD, MLP, AAC (ADTS, LATM/LOAS, ASC), HE-AAC, MP1/MP2/MP3, FLAC, PCM/LPCM (Blu-ray + DVD), ALAC, Opus, Vorbis, WAVEFORMATEX |
+| **Elementary streams** | `.ac3 .eac3 .dts .dtshd .thd .mlp .aac .mp3` … |
 
-- **Matroska** is parsed properly. Its Tracks element gives every audio track
-  in declaration order, which is what lets a caller match the track a player
-  reports as active against the one read here. Clusters are only walked for the
-  formats whose container header can be wrong (DTS, TrueHD, MLP); a PCM or FLAC
-  track is fully described where it sits.
-- **Everything else** (MPEG-TS/M2TS, MP4, a raw elementary stream) is scanned
-  for the codecs' own sync words, yielding one entry per codec family rather
-  than per track. A caller matching on codec family still resolves it; one that
-  needs track order does not.
+Bit depth is reported where the format defines one (PCM, FLAC, ALAC, DTS,
+TrueHD, Blu-ray and DVD LPCM). Perceptual codecs like AC-3, AAC or Opus have no
+meaningful bit depth and report `None`.
 
-Reading is sequential and budgeted (16 MiB by default) so a stream whose frames
-never parse still terminates, and nothing larger than one chunk is held.
-
-## Formats
+### Where each reading comes from
 
 | Format | Sample rate | Bit depth |
 |---|---|---|
 | DTS extension substream | asset descriptor `nuMaxSampleRate` | `nuBitResolution` |
-| DTS core | `SFREQ` | — (lossy) |
-| TrueHD | major sync rate code | 24, the value FFmpeg also hardcodes; the bitstream carries none |
+| DTS core | `SFREQ` | `PCMR` |
+| TrueHD | major sync rate code | 24, the value FFmpeg also assumes; the bitstream carries none |
 | MLP | major sync rate code | major sync quantization code |
-| FLAC | STREAMINFO | STREAMINFO |
-| AC-3 / E-AC-3 | `fscod` / `fscod2` | — (lossy) |
+| Blu-ray / DVD LPCM | PES audio data header | same header |
+| FLAC / ALAC | STREAMINFO / ALACSpecificConfig | same |
+| AAC | ASC, ADTS or LATM (SBR extension rate wins) | — |
+| AC-3 / E-AC-3 | `fscod` / `fscod2` | — |
 | PCM, others | container | container |
 
 Field layouts follow FFmpeg's own parsers (`dca_exss.c`, `dca_parser.c`,
-`mlp_parser.c`, `ac3_parser.c`) so the numbers line up with what other tools
-report for the same stream.
+`mlp_parser.c`, `ac3_parser.c`) and audioprobe, so the numbers line up with
+what other tools report for the same stream.
+
+## How a disc image is read
+
+Blu-ray: walk the UDF filesystem to `BDMV/PLAYLIST`, rank the playlists by
+deduped duration, pick the winner's largest clip and read that
+`BDMV/STREAM/*.m2ts` as a transport stream. Deduping by `(clip, in, out)`
+collapses an obfuscation decoy's looped segment to a single contribution, so a
+decoy cannot out-rank the real feature; playlists naming clips absent from
+`STREAM` are dropped, and identical PlayItem sequences collapse to the
+lowest-numbered playlist.
+
+DVD-Video: walk the ISO9660 bridge to `VIDEO_TS`, pick the title set with the
+most VOB bytes across its parts and read its first `VTS_tt_1.VOB` as a program
+stream.
+
+Both address the image by absolute byte range rather than mapping it, so a
+40 GB image costs only the ranges actually read.
+
+## Differences from audioprobe
+
+- **No NAS prefetcher.** audioprobe memory-maps a file and pre-streams the
+  regions it is about to parse. A Kodi VFS handle cannot be mapped, so reads go
+  straight through the VFS. Local files lose the mmap fast path.
+- **No CLI, no directory walking, no output rendering.** This is the parsing
+  half; presentation belongs to the caller.
+- An AACS-encrypted Blu-ray is reported as such, but not decrypted — same as
+  audioprobe.
 
 ## Known limitations
 
-- **AC-3 is not scanned for.** Its sync word is 16 bits, which turns up roughly
-  every 64 KiB of arbitrary data, and range-checking the rest of the header does
-  not make that reliable without a track boundary to anchor it to. It is parsed
-  where Matroska names the track. Nothing is lost: AC-3 and E-AC-3 are lossy, so
-  they code no PCM bit depth, and their sample rate is whatever the container
-  already says.
-- **MP4 and MPEG-TS are scanned, not demuxed.** Their results carry no track
-  order and no language, and a file with two tracks of the same codec family at
-  different rates reports whichever header comes first.
-- **TrueHD carries no bit depth.** 24 is reported because that is what the
-  format is in practice and what FFmpeg assumes; it is not read from the stream.
 - **Only the first DTS asset is read.** Multi-asset extension substreams are
   not enumerated.
+- **TrueHD carries no bit depth.** 24 is reported because that is what the
+  format is in practice and what FFmpeg assumes; it is not read from the
+  stream.
+- **Fragmented clips inside an ISO are not read.** UDF caps a single extent
+  near 1 GiB, so a feature-length clip is many exactly-adjacent extents; a
+  genuinely scattered file is refused rather than read wrongly.
+- **DVB Opus in a transport stream** carries no in-band OpusHead, so it is
+  named but not measured.
 
 ## Testing
 
@@ -110,10 +152,10 @@ report for the same stream.
 python3 -m unittest discover tests
 ```
 
-The tests build synthetic bitstreams whose field values are known and assert
-they survive the round trip. That proves the parsers agree with the layouts
-documented in `codecs.py`; it does not prove those layouts match a real
-encoder's output, which only a real stream can show.
+The tests build synthetic bitstreams, containers and disc images whose field
+values are known, and assert they survive the round trip. That proves the
+parsers agree with the layouts documented in the source; it does not prove
+those layouts match a real encoder's output, which only a real stream can show.
 
 ## License
 

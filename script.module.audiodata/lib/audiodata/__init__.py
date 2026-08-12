@@ -3,148 +3,116 @@
 A player reports the audio format it is feeding its sink, not the one the file
 carries.  During passthrough that means no PCM bit depth at all, and a DTS-HD
 track reports the 48 kHz core every decoder can fall back to rather than the
-96 kHz the extension substream actually stores.  This package reads those
+96 kHz its extension substream actually stores.  This package reads those
 numbers out of the stream itself, so an overlay can show the source rather than
 the sink.
 
-Public entry point: ``probe(read, budget=...) -> list[dict]``, one entry per
-audio track:
+Containers are parsed natively -- Matroska/WebM, MPEG-TS and BDAV M2TS, MP4/MOV,
+AVI, MPEG program streams, FLAC, WAV and Ogg -- down to the audio track table,
+and the codec sync headers are parsed from the frames those tables point at.
+Blu-ray and DVD-Video disc images are walked to their main feature first.
 
-    {'codec': str, 'sample_rate': int|None, 'bit_depth': int|None,
-     'channels': int|None, 'language': str}
+Public entry points:
 
-Two ways of getting there, picked from what the stream turns out to be:
+    probe(source, ...) -> Report          full result model
+    probe_tracks(source, ...) -> [dict]   the same, as plain dicts
 
-* **Matroska** is parsed properly -- its Tracks element gives every audio track
-  in declaration order, which is what lets a caller match the track a player
-  says is active against the one read here.
-* **Anything else** (MPEG-TS/M2TS, MP4, a raw elementary stream) is scanned for
-  the codecs' own sync words, yielding one entry per codec family found rather
-  than per track.  A caller that matches on codec family still resolves it;
-  one that needs track order does not, and should treat the result as the
-  best available reading rather than an enumeration.
+``source`` is a seekable file-like object (anything with ``read`` and
+``seek``), a ``bytes`` buffer, or a filesystem path.  Neither entry point
+raises: a source that cannot be read yields an empty result carrying the
+reason, which callers should read as "no reading", not as "no audio".
 
-Reading is sequential and budgeted: ``read(n)`` is called until the budget is
-spent or every track has answered, and nothing larger than one chunk is held.
-Nothing here raises -- a stream that cannot be read yields ``[]``, which the
-caller is expected to treat as "no reading", not as "no audio".
-
-Pure stdlib, no player API, so every parser is testable off the device.
+Pure stdlib, no binaries and no native libraries, so every parser is testable
+off the device.
 """
 
-from . import codecs as _codecs
-from . import matroska as _matroska
+import io
+import os
 
-__all__ = ["probe", "DEFAULT_BUDGET"]
+from . import containers
+from .codecinfo import CodecInfo
+from .report import Report, Track
 
-# How much of a stream is ever read.  A Matroska file answers within the first
-# cluster or two; the scan path needs enough to pass whatever leading structure
-# a container puts in front of its first audio frame.  Matched to what the
-# binary this replaces was measured to take of a UHD stream.
-DEFAULT_BUDGET = 16 * 1024 * 1024
+__all__ = ["probe", "probe_tracks", "Report", "Track", "CodecInfo",
+           "DEFAULT_SCAN_LIMIT"]
 
-# Chunk size for the scan path.  Overlapped by the longest sync word minus one
-# so a header never hides in the seam between two chunks.
-_SCAN_CHUNK = 1024 * 1024
-_SCAN_OVERLAP = 4096
-
-# How much of the Matroska attempt is retained so the scan can replay it.
-_REWIND_LIMIT = 256 * 1024
+# How far into a transport or program stream the audio PES is followed.  Audio
+# metadata rides much deeper into those than a container header does, which is
+# what this budget is for; a Matroska or MP4 file answers long before it.
+DEFAULT_SCAN_LIMIT = 64 * 1024 * 1024
 
 
-def probe(read, budget: int = DEFAULT_BUDGET) -> list[dict]:
-    """Return the audio tracks a stream declares in its own bitstream.
+def probe(source, scan_limit: int = DEFAULT_SCAN_LIMIT, deep: bool = True,
+          extension: str = "") -> Report:
+    """Read a source and return its Report.
 
-    ``read(n)`` must return up to ``n`` bytes and ``b''`` at the end of the
-    stream; it is only ever called forwards.  Returns ``[]`` when the stream
-    holds nothing recognisable.
+    ``deep`` samples frames out of the container for the codecs whose header
+    the container states incompletely; turning it off keeps only what the
+    container itself declares.  ``extension`` (e.g. ``"dts"``) only orders the
+    candidates for a raw elementary stream, which carries no magic to sniff.
     """
     try:
-        return _probe(read, budget)
-    except Exception:
+        return _probe(source, scan_limit, deep, extension)
+    except Exception as exc:
         # A reader that fails midway, a container that lies about its sizes:
         # either way the answer is "no reading", never an exception into a
         # caller that is only trying to label a row on screen.
-        return []
+        return Report(error=str(exc) or exc.__class__.__name__)
 
 
-def _probe(read, budget: int) -> list[dict]:
-    buffered = _Rewindable(read)
-
-    tracks = _matroska.parse(buffered.read, budget)
-    if tracks:
-        return tracks
-
-    # Not Matroska (or it yielded nothing): scan from the top for sync words.
-    buffered.rewind()
-    return _scan(buffered.read, budget)
+def probe_tracks(source, **kwargs) -> list:
+    """Return just the audio tracks, as plain dicts.  Empty on any failure."""
+    return [track.as_dict() for track in probe(source, **kwargs).tracks]
 
 
-def _scan(read, budget: int) -> list[dict]:
-    """Return one entry per codec family whose header is found in the stream."""
-    found: dict[str, dict] = {}
-    tail = b""
-    left = budget
+def _probe(source, scan_limit: int, deep: bool, extension: str) -> Report:
+    close_after = False
 
-    while left > 0:
-        chunk = read(min(_SCAN_CHUNK, left))
-        if not chunk:
-            break
-        left -= len(chunk)
+    if isinstance(source, (bytes, bytearray, memoryview)):
+        handle, length = io.BytesIO(bytes(source)), len(source)
+    elif isinstance(source, str):
+        handle = open(source, "rb")       # noqa: SIM115 - closed in the finally
+        close_after = True
+        length = os.fstat(handle.fileno()).st_size
+        extension = extension or os.path.splitext(source)[1]
+    else:
+        handle = source
+        length = _source_length(handle)
 
-        window = tail + chunk
-        for family, reading in _codecs.scan_families(window).items():
-            found.setdefault(family, reading)
-
-        # Carry the seam so a header split across two chunks is still seen.
-        tail = window[-_SCAN_OVERLAP:]
-
-    return [
-        {
-            "codec": family,
-            "sample_rate": reading.get("sample_rate"),
-            "bit_depth": reading.get("bit_depth"),
-            "channels": reading.get("channels"),
-            "language": "und",
-        }
-        for family, reading in found.items()
-    ]
+    try:
+        # A disc image is dispatched by absolute byte range: the main feature
+        # sits far from any front magic, so it needs random access rather than
+        # the sniff-and-stream path every other container takes.
+        image = containers.iso.Image(handle, length)
+        if containers.iso.looks_like_iso(image):
+            return containers.iso.probe(image, length, scan_limit, deep)
+        return containers.probe_source(handle, length, scan_limit, deep,
+                                       extension)
+    finally:
+        if close_after:
+            handle.close()
 
 
-class _Rewindable:
-    """A forward reader that can be replayed once from the start.
-
-    The Matroska attempt has to be able to give up and let the scan start over
-    from the top, on a source that cannot seek.  What the first pass read is
-    kept until then -- but only up to ``_REWIND_LIMIT``, since a stream that
-    turns out to be Matroska is read far past any point worth holding.  Beyond
-    that the head is dropped and the scan simply continues forwards from where
-    the first pass stopped, which still finds every sync word after it.
-    """
-
-    def __init__(self, read):
-        self._read = read
-        self._log: list[bytes] = []
-        self._logged = 0
-        self._replay = b""
-        self._recording = True
-
-    def read(self, count: int) -> bytes:
-        if self._replay:
-            out = self._replay[:count]
-            self._replay = self._replay[len(out):]
-            return out
-        data = self._read(count)
-        if self._recording and data:
-            self._log.append(data)
-            self._logged += len(data)
-            if self._logged > _REWIND_LIMIT:
-                self._log = []
-                self._recording = False
-        return data
-
-    def rewind(self) -> None:
-        """Replay what was retained, then continue reading the source."""
-        self._replay = b"".join(self._log)
-        self._log = []
-        self._recording = False
+def _source_length(handle) -> int:
+    """Return the byte length of a source, however it reports one."""
+    for attr in ("size", "getSize"):
+        method = getattr(handle, attr, None)
+        if callable(method):
+            try:
+                value = method()
+                if value:
+                    return int(value)
+            except Exception:
+                pass
+    try:
+        pos = handle.tell() if hasattr(handle, "tell") else 0
+        handle.seek(0, os.SEEK_END)
+        end = handle.tell() if hasattr(handle, "tell") else 0
+        handle.seek(pos)
+        if end:
+            return int(end)
+    except Exception:
+        pass
+    # Unknown: a length only bounds the container walks, so an optimistic
+    # ceiling is better than a zero that would stop them before they start.
+    return 1 << 62

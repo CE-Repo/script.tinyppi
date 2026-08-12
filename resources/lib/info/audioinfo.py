@@ -300,18 +300,56 @@ def _detect(path: str) -> list[dict]:
         _log(f"Audio: cannot open {source}: {exc}", xbmc.LOGWARNING)
         return []
 
-    def read(count: int) -> bytes:
-        # readBytes hands back a bytearray; the parsers are handed plain bytes
-        # so nothing downstream has to care which it got.
-        return bytes(handle.readBytes(count) or b"")
-
     try:
-        return _audiodata.probe(read)
+        report = _audiodata.probe(_VfsSource(handle),
+                                  extension=_extension_of(source))
     finally:
         try:
             handle.close()
         except Exception:
             pass
+
+    if report.error:
+        _log(f"Audio: {source}: {report.error}", xbmc.LOGWARNING)
+    elif report.container:
+        _log(f"Audio: {source} read as {report.container}, "
+             f"{len(report.tracks)} audio track(s)")
+    return [track.as_dict() for track in report.tracks]
+
+
+def _extension_of(source: str) -> str:
+    """Return the source's file extension, for a raw elementary stream.
+
+    Every container is sniffed from its own magic; only a bare ``.dts`` or
+    ``.thd`` has none, and there the extension picks which parser to try first.
+    """
+    tail = source.rsplit("/", 1)[-1]
+    return tail.rsplit(".", 1)[-1] if "." in tail else ""
+
+
+class _VfsSource:
+    """Adapts a Kodi VFS file handle to the seekable reader audiodata wants.
+
+    ``readBytes`` hands back a bytearray, so it is normalised to bytes here and
+    nothing downstream has to care which it got.
+    """
+
+    __slots__ = ("_handle",)
+
+    def __init__(self, handle):
+        self._handle = handle
+
+    def read(self, count: int) -> bytes:
+        return bytes(self._handle.readBytes(count) or b"")
+
+    def seek(self, offset: int, whence: int = 0) -> int:
+        return self._handle.seek(offset, whence)
+
+    def size(self) -> int:
+        try:
+            return int(self._handle.size())
+        except Exception:
+            return 0
 
 
 def _worker(path: str, session_token: str) -> None:
@@ -401,7 +439,7 @@ def _cached_audio_tracks() -> list[dict]:
 
 
 def _norm_audio_family(name) -> str:
-    """Collapse a codec name — audiodata's (``"dts"``) or Kodi's
+    """Collapse a codec name — audiodata's (``"DTS-HD MA"``) or Kodi's
     (``"dtshd_ma"`` / ``"dca"``) — to a comparable family token, so the active
     Kodi stream can be matched against a read track regardless of naming."""
     token = "".join(ch for ch in str(name or "").lower() if ch.isalnum())
@@ -419,6 +457,11 @@ def _norm_audio_family(name) -> str:
         return "ac3"
     if "flac" in token:
         return "flac"
+    if "pcm" in token:
+        # audiodata says "LPCM (Blu-ray)" / "PCM"; Kodi says "pcm_bluray".
+        return "pcm"
+    if "aac" in token:
+        return "aac"
     return token
 
 
