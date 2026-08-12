@@ -33,8 +33,8 @@ from . import containers
 from .codecinfo import CodecInfo
 from .report import Report, Track
 
-__all__ = ["probe", "probe_tracks", "Report", "Track", "CodecInfo",
-           "DEFAULT_SCAN_LIMIT"]
+__all__ = ["probe", "probe_tracks", "parse_playlist", "Report", "Track",
+           "CodecInfo", "DEFAULT_SCAN_LIMIT"]
 
 # How far into a transport or program stream the audio PES is followed.  Audio
 # metadata rides much deeper into those than a container header does, which is
@@ -63,6 +63,21 @@ def probe(source, scan_limit: int = DEFAULT_SCAN_LIMIT, deep: bool = True,
 def probe_tracks(source, **kwargs) -> list:
     """Return just the audio tracks, as plain dicts.  Empty on any failure."""
     return [track.as_dict() for track in probe(source, **kwargs).tracks]
+
+
+def parse_playlist(data):
+    """Parse a Blu-ray ``.mpls`` playlist, or return None.
+
+    Exposed because a caller reading a disc through a player's own filesystem
+    layer -- rather than from an image this package can walk -- still has to
+    map the title the viewer picked onto the clip that carries it.  The result
+    carries the PlayItems in order, plus ``distinct_clips()`` and
+    ``duration_secs_deduped()`` for ranking them.
+    """
+    try:
+        return containers.iso.mpls.parse(bytes(data))
+    except Exception:
+        return None
 
 
 def _probe(source, scan_limit: int, deep: bool, extension: str) -> Report:
