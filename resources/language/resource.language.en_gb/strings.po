@@ -1156,9 +1156,9 @@ msgid "Color of the pill shown at the bottom of the splash logo for any other Do
 msgstr ""
 
 msgctxt "#32375"
-msgid "FLL Min / Max / Ø"
+msgid "FLL MIN / MAX / Ø"
 msgstr ""
 
 msgctxt "#32376"
-msgid "PQ Min / Max / Ø"
+msgid "PQ MIN / MAX / Ø"
 msgstr ""

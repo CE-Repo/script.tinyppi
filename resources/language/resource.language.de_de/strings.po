@@ -1156,9 +1156,9 @@ msgid "Color of the pill shown at the bottom of the splash logo for any other Do
 msgstr "Farbe der Pille am unteren Rand des Splash-Logos für jedes andere Dolby-Vision-Profil (ohne Enhancement Layer)."
 
 msgctxt "#32375"
-msgid "FLL Min / Max / Ø"
-msgstr "FLL Min / Max / Ø"
+msgid "FLL MIN / MAX / Ø"
+msgstr "FLL MIN / MAX / Ø"
 
 msgctxt "#32376"
-msgid "PQ Min / Max / Ø"
-msgstr "PQ Min / Max / Ø"
+msgid "PQ MIN / MAX / Ø"
+msgstr "PQ MIN / MAX / Ø"
