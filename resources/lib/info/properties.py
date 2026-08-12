@@ -645,16 +645,30 @@ def get_CpuTemperatureProgressVar() -> float:
     )
 
 
-def _metadata_unit() -> str:
-    """Return the configured L6 metadata unit, including Kodi color markup."""
+# The PQ row carries raw code words rather than a brightness, so its unit is
+# fixed at the depth of the code space (0-4095) instead of following the
+# cd/m² / nits choice.
+_PQ_UNIT = "12-bit"
+
+
+def _metadata_units() -> tuple[str, str]:
+    """Return the (brightness, PQ) metadata units, including Kodi color markup.
+
+    One setting governs both: ``unit_type`` set to hidden empties the brightness
+    label, and the PQ unit goes with it, so the metadata rows either all wear a
+    unit or none of them do.
+    """
     unit_color = info("Window(10000).Property(TinyPPI.UnitColor)")
     unit_label = info("Window(10000).Property(TinyPPI.UnitLabel)")
 
     if not unit_label:
-        return ""
+        return "", ""
     if unit_color:
-        return f"[COLOR={unit_color}]{unit_label}[/COLOR]"
-    return unit_label
+        return (
+            f"[COLOR={unit_color}]{unit_label}[/COLOR]",
+            f"[COLOR={unit_color}]{_PQ_UNIT}[/COLOR]",
+        )
+    return unit_label, _PQ_UNIT
 
 
 def _channel_setting_for(hdr_type: str) -> str:
@@ -713,7 +727,7 @@ def update_properties(window) -> None:
     # Depends on the type just published, and gates the channel graphics below.
     publish_channel_visibility()
 
-    unit = _metadata_unit()
+    unit, pq_unit = _metadata_units()
     fps_info_text, fps_out_text = fps_display_texts(
         clean(info("Player.Process(videofps)"))
     )
@@ -733,9 +747,9 @@ def update_properties(window) -> None:
         "true" if l5_offsets and not is_status_label(l5_offsets) else "false"
     )
     # Level 1 frame luminance: nits carry the brightness unit, the raw PQ codes
-    # (0-4095) are unitless.
+    # carry the depth of their code space.
     l1_fll              = _with_unit(_separated(get_l1_nits()), unit)
-    l1_pq               = _separated(get_l1_pq())
+    l1_pq               = _with_unit(_separated(get_l1_pq()), pq_unit)
     l6_rpu_mdl          = _with_unit(_separated(get_l6_rpu_mdl()), unit)
     l6_rpu_max_cll_fall = _with_unit(_separated(get_l6_rpu_max_cll_fall()), unit)
     hdr10_mdl           = _with_unit(_separated(get_hdr10_mdl()), unit)
