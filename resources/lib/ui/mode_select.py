@@ -320,11 +320,23 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         threading.Thread(target=self._hdr_type_loop, daemon=True).start()
 
     def _hdr_type_loop(self) -> None:
+        """Republish the HDR type until the dialog closes.
+
+        A failed read only costs this cycle: the dialog would otherwise keep
+        showing whichever SDR / HDR10 / DV group was up when the thread died.
+        """
         from info.properties import publish_hdr_type
 
         home = xbmcgui.Window(10000)
+        logged = False
         while self._running and not self._monitor.abortRequested():
-            publish_hdr_type(home)
+            try:
+                publish_hdr_type(home)
+            except Exception as e:
+                if not logged:
+                    logged = True
+                    xbmc.log(f"TinyPPI: HDR type refresh failed: {e}",
+                             xbmc.LOGWARNING)
             if self._monitor.waitForAbort(0.5):
                 break
 

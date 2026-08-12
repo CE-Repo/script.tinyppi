@@ -95,6 +95,7 @@ _snapshot_playing  = False
 _snapshot_until    = 0.0
 
 _logged_import_error = False
+_logged_derive_error = False
 
 
 def _log(msg: str, level: int = xbmc.LOGINFO) -> None:
@@ -169,6 +170,31 @@ def _parse(raw: str) -> dict:
     return parsed if isinstance(parsed, dict) else _empty_sidedata()
 
 
+def _derive(key: tuple[str, str, str]) -> dict[str, str]:
+    """Parse one raw payload and derive the fields, never raising.
+
+    ``parse_sidedata`` degrades rather than raising and ``_build_info`` only
+    reads with ``.get``, so nothing here is expected to throw -- but the whole
+    chain now runs inside polling loops that would lose their thread if it did,
+    and it crosses into a third-party module and a native library on the way.
+    So the derivation is contained here: an unexpected failure costs the frame's
+    metadata, logged once, and nothing else.
+    """
+    global _logged_derive_error
+
+    try:
+        return _build_info(_parse(key[0]), key[1], key[2])
+    except Exception as exc:
+        if not _logged_derive_error:
+            _logged_derive_error = True
+            _log(
+                f"DV: side data could not be interpreted ({exc}); "
+                "DV/HDR fields stay empty for now",
+                xbmc.LOGWARNING,
+            )
+        return _empty_info()
+
+
 def _snapshot() -> tuple[dict[str, str], bool]:
     """Return ``(fields, playing)`` for the frame on screen.
 
@@ -208,7 +234,7 @@ def _snapshot() -> tuple[dict[str, str], bool]:
             _snapshot_until   = now + _SNAPSHOT_TTL
             return _snapshot_info, True
 
-    fields = _build_info(_parse(key[0]), key[1], key[2])
+    fields = _derive(key)
 
     with _lock:
         _snapshot_key     = key
@@ -349,14 +375,17 @@ def _dv_profile(hdr_detail: str, config: dict | None, rpu: dict | None) -> str:
     carries no compatibility digit: a profile 10 stream has a profile 8-shaped
     RPU, so it is reported plain rather than invented.
     """
-    if config:
-        return f"{config['profile']}.{config['compat_id']}"
+    profile = (config or {}).get("profile")
+    compat  = (config or {}).get("compat_id")
+    if profile is not None and compat is not None:
+        return f"{profile}.{compat}"
+
     detail = (hdr_detail or "").strip()
     if _PROFILE_RE.match(detail):
         return detail
-    if rpu and rpu.get("profile") is not None:
-        return str(rpu["profile"])
-    return ""
+
+    guess = (rpu or {}).get("profile")
+    return str(guess) if guess is not None else ""
 
 
 def _hdr10plus_profile_label(hdr10plus: dict | None) -> str:
