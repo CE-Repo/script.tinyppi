@@ -259,16 +259,8 @@ WAV and Ogg, plus Blu-ray and DVD-Video disc images. Field layouts follow
 FFmpeg's own parsers, so the numbers match what other tools report for the same
 stream.
 
-### script.dvhdr.labels.diagnostic
-
-[**script.dvhdr.labels.diagnostic**](https://github.com/matthane/script.dvhdr.labels.diagnostic)
-by [matthane](https://github.com/matthane)
-
-The reference overlay for the side-data labels, used to cross-check how TinyPPI
-reads and presents the parsed metadata.
-
 ### Google Noto Fonts
 
 [**Google Noto Fonts**](https://github.com/notofonts/notofonts.github.io) by [The Noto Project (Google)](https://fonts.google.com/noto)
 
-Noto ("No Tofu") is Google's font family designed to cover all languages with a harmonious look, eliminating missing-character boxes ("tofu"). TinyPPI uses Noto fonts to render the overlay text clearly and consistently across a wide range of characters. They ship with the add-on in `resources/fonts/` and are installed into the active skin on first run. Licensed under the [SIL Open Font License 1.1](https://openfontlicense.org/); the licence text is included alongside the fonts.
+Noto ("No Tofu") is Google's font family designed to cover all languages with a harmonious look, eliminating missing-character boxes ("tofu"). TinyPPI uses Noto fonts to render the overlay text clearly and consistently across a wide range of characters. The fonts are licensed under the [SIL Open Font License 1.1](https://openfontlicense.org/).
