@@ -269,10 +269,10 @@ def get_VideoDecoderNameVar() -> str:
 def get_VideoBitDepthVar() -> str:
     """Return the source bit depth for display, e.g. ``12-bit``.
 
-    Uses the depth the Dolby Vision RPU declares (see dvinfo.py).  Only a DV
-    stream carries one, so everything else -- and a DV stream whose RPU omits
-    the sequence info -- falls back to ``10-bit`` for HDR and ``8-bit`` for SDR
-    instead of showing the ``N/A`` label.
+    Only a full enhancement layer raises the depth, to the 12-bit the base
+    layer and FEL reconstruct to; dvinfo reports that one case.  Every other
+    HDR format -- MEL, single-layer Dolby Vision, HDR10, HDR10+, HLG -- is
+    10-bit, and SDR is 8-bit.
     """
     value = get_bit_depth()
     if not value or is_status_label(value):

@@ -17,11 +17,18 @@ happens only when the raw payload actually changes, and the field dict it
 yields is held for a fraction of a second so one polling pass over the ~20
 getters costs a single parse.
 
-Kodi's own ``VideoPlayer.HdrType`` / ``VideoPlayer.HdrDetail`` describe the
-stream as it was demuxed and are read alongside: they classify HLG (which
-carries no side-data payload of its own) and they survive the profile 7 -> 8
-rewrite CoreELEC applies before the decoder, where the side data would
-otherwise report the rewritten profile.
+What the side data describes is the source, not the picture after the player
+has had its way with it: CoreELEC latches the payloads from the demuxer's own
+hints and from the packets before its bitstream conversion runs, and records
+what it then did in the ``flags`` key (``converted`` for a profile 4/7 -> 8
+rewrite, ``rpu-removed`` / ``hdr10plus-removed`` for metadata stripped for a
+display that cannot take it).  So the Dolby Vision profile, its enhancement
+layer and the layer structure all still read as the file carries them.
+
+Kodi's own ``VideoPlayer.HdrType`` / ``VideoPlayer.HdrDetail`` are read
+alongside: the type classifies HLG, which carries no side-data payload of its
+own, and the detail stands in for a Dolby Vision profile that arrives without a
+configuration record.
 
 CoreELEC 22 on Amlogic only; on anything else the label stays empty and every
 field degrades to its N/A label, exactly as an absent metadata block does.
@@ -301,8 +308,8 @@ def _hdr_token(label: str, parsed: dict) -> str:
     carries no payload of its own.  The side data is the bitstream itself, so
     it settles what the container does not signal -- Dolby Vision announced
     through a Blu-ray playlist rather than the PMT, or HDR10+ the demuxer did
-    not flag.  Both describe the source: the payloads are latched before
-    CoreELEC's own conversion may strip or rewrite them.
+    not flag.  Both describe the source, so a stream the player converts or
+    strips downstream still reads as the format it actually is.
     """
     low = (label or "").strip().lower()
     if "dolby" in low or "dovi" in low:
@@ -330,17 +337,23 @@ def _hdr_token(label: str, parsed: dict) -> str:
 def _dv_profile(hdr_detail: str, config: dict | None, rpu: dict | None) -> str:
     """Return the Dolby Vision ``<profile>.<compatibility>`` string.
 
-    ``VideoPlayer.HdrDetail`` describes the stream as demuxed, so it survives
-    the profile 4/7 -> 8 rewrite CoreELEC applies before the decoder (flagged
-    ``converted`` in the side data, whose dvcC record then reads 8.x).  The
-    configuration record answers when the label carries no profile, and the
-    RPU's own guess is the last resort.
+    The dvcC/dvvC configuration record is container-level truth and the same
+    thing the old probe read, so it answers first.  CoreELEC latches it from the
+    demuxer's own hints rather than the rewritten ones, so it still names the
+    source profile after the profile 4/7 -> 8 conversion the player applies
+    before the decoder (which the side data notes with a ``converted`` flag).
+
+    Without a configuration record, ``VideoPlayer.HdrDetail`` is asked next --
+    only when it holds a bare profile number, so an unrelated value cannot leak
+    into the line -- and the RPU's own guess is the last resort.  That guess
+    carries no compatibility digit: a profile 10 stream has a profile 8-shaped
+    RPU, so it is reported plain rather than invented.
     """
+    if config:
+        return f"{config['profile']}.{config['compat_id']}"
     detail = (hdr_detail or "").strip()
     if _PROFILE_RE.match(detail):
         return detail
-    if config:
-        return f"{config['profile']}.{config['compat_id']}"
     if rpu and rpu.get("profile") is not None:
         return str(rpu["profile"])
     return ""
@@ -360,9 +373,16 @@ def _output_mode(
     Dolby Vision reads as ``Dolby Vision Profile <p>`` plus its FEL/MEL tag,
     HDR10+ appends ``Profile A``/``B``; SDR yields ``''`` so the caller can
     fall back to a plain label from Kodi's own HDR type.
+
+    A Dolby Vision stream whose profile is not known at all -- Kodi says so but
+    no side data reached us, e.g. on a build without the label -- reads as the
+    bare format name.  Naming a profile there would be a guess, and this line
+    is the one the overlay is read for.
     """
     if token == "dolbyvision":
-        return f"Dolby Vision Profile {_format_el_tag(profile or '8.1', el_type)}"
+        if not profile:
+            return "Dolby Vision"
+        return f"Dolby Vision Profile {_format_el_tag(profile, el_type)}"
     if token == "hdr10+":
         return f"HDR10+ {_hdr10plus_profile_label(hdr10plus)}".strip()
     if token == "hdr10":
@@ -418,19 +438,16 @@ def _presence(
     return "", "", ""
 
 
-def _bit_depth(header: dict, el_type: str) -> str:
-    """Return the source bit depth from the RPU header.
+def _bit_depth(el_type: str) -> str:
+    """Return the source bit depth, which only a full enhancement layer can
+    raise: base layer plus FEL reconstruct to 12-bit.
 
-    A full enhancement layer reconstructs to the VDR depth (12-bit), which is
-    what the picture is actually decoded at; every other Dolby Vision stream is
-    its base layer's depth.  ``''`` when the RPU carries no sequence info, which
-    leaves the caller to fall back on the HDR type.
+    Everything else -- MEL, single-layer Dolby Vision, HDR10, HDR10+, HLG -- is
+    a 10-bit stream, and SDR an 8-bit one, so ``''`` is returned there and the
+    caller derives the depth from the HDR type (see
+    properties.get_VideoBitDepthVar).
     """
-    if el_type == "FEL":
-        depth = header.get("vdr_bit_depth")
-        return str(depth) if isinstance(depth, int) else "12"
-    depth = header.get("bl_bit_depth")
-    return str(depth) if isinstance(depth, int) else ""
+    return "12" if el_type == "FEL" else ""
 
 
 def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]:
@@ -466,7 +483,7 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
         # FEL/MEL type; profiles without an EL (e.g. 8.1) fall back to the
         # profile number.  Stored uncoloured, themed at read time.
         info["dv_el_type"]     = el_type or profile
-        info["bit_depth"]      = _bit_depth(header, el_type)
+        info["bit_depth"]      = _bit_depth(el_type)
         (
             info["dv_rpu_present"],
             info["dv_bl_present"],
