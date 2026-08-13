@@ -23,7 +23,7 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 from core.images import display_texture
-from core.maps import AUDIO_LOGO_MAP, DV_IMAX_LOGO, HDR_LOGO_MAP
+from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
 from info.dvinfo import get_dv_el_type_raw, get_hdr_format
 from info.imax import is_known_imax_title
@@ -230,22 +230,24 @@ def _amlogic_hdr_token(gamut: str) -> str:
     return ""
 
 
-# Whether the combined DV/IMAX logo is installed; looked up once, since each
-# playback start runs this module in its own process.
-_dv_imax_installed: bool | None = None
+# Which combined IMAX logos are installed, by relative path; each is looked up
+# once, since every playback start runs this module in its own process.
+_imax_logo_installed: dict[str, bool] = {}
 
 
-def _dv_imax_logo() -> str:
-    """Return the combined Dolby Vision / IMAX logo, or '' when it is absent.
+def _imax_logo(hdr_token: str) -> str:
+    """Return the combined IMAX logo for *hdr_token*, or '' when there is none.
 
-    The file is optional: it ships separately from the code, so a missing one
-    means the plain Dolby Vision logo rather than a splash with a hole in it.
+    The files are optional and ship separately from the code, so a missing one
+    means the plain logo for that format rather than a splash with a hole in it.
     """
-    global _dv_imax_installed
-    if _dv_imax_installed is None:
-        path = os.path.join(_MEDIA_PATH, DV_IMAX_LOGO.replace("/", os.sep))
-        _dv_imax_installed = os.path.exists(path)
-    return DV_IMAX_LOGO if _dv_imax_installed else ""
+    rel_path = IMAX_LOGO_MAP.get(hdr_token, "")
+    if not rel_path:
+        return ""
+    if rel_path not in _imax_logo_installed:
+        path = os.path.join(_MEDIA_PATH, rel_path.replace("/", os.sep))
+        _imax_logo_installed[rel_path] = os.path.exists(path)
+    return rel_path if _imax_logo_installed[rel_path] else ""
 
 
 def _current_logos(hdr_token: str) -> list[str]:
@@ -255,12 +257,14 @@ def _current_logos(hdr_token: str) -> list[str]:
     audio_logo = AUDIO_LOGO_MAP.get(codec, "")
 
     video_logo = HDR_LOGO_MAP.get(hdr_token, HDR_LOGO_MAP[""])
-    # An IMAX film shown in Dolby Vision gets the combined logo.  *hdr_token*
-    # is the Amlogic output, so this follows what is genuinely on screen -- a
-    # DV source converted away keeps its output's own logo.  The film is
-    # identified for the whole runtime (see info.imax), not per frame.
-    if hdr_token == "dolbyvision" and is_known_imax_title():
-        video_logo = _dv_imax_logo() or video_logo
+    # An IMAX film gets the combined logo for the format it is shown in.
+    # *hdr_token* is the Amlogic output, so this follows what is genuinely on
+    # screen -- a source converted to another format takes that format's logo.
+    # The film is identified for the whole runtime (see info.imax), not per
+    # frame, and the map lookup comes first so only a candidate format pays for
+    # the title match.
+    if hdr_token in IMAX_LOGO_MAP and is_known_imax_title():
+        video_logo = _imax_logo(hdr_token) or video_logo
 
     if not audio_logo or not video_logo:
         return []
