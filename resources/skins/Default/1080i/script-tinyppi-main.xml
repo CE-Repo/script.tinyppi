@@ -1496,7 +1496,6 @@
 						<left>225</left>
 						<top>30</top>
 						<width>270</width>
-						<align>right</align>
 						<label>$INFO[Window().Property(DoviCmVersionVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -1508,7 +1507,6 @@
 						<left>225</left>
 						<top>30</top>
 						<width>270</width>
-						<align>right</align>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -1528,7 +1526,6 @@
 						<left>225</left>
 						<top>60</top>
 						<width>270</width>
-						<align>right</align>
 						<label>$INFO[Window().Property(DoviStructureVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -1540,7 +1537,6 @@
 						<left>225</left>
 						<top>60</top>
 						<width>270</width>
-						<align>right</align>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -1560,7 +1556,6 @@
 						<left>225</left>
 						<top>90</top>
 						<width>270</width>
-						<align>right</align>
 						<label>$INFO[Window().Property(DoviVersionVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -1572,7 +1567,6 @@
 						<left>225</left>
 						<top>90</top>
 						<width>270</width>
-						<align>right</align>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
