@@ -232,6 +232,11 @@ HDR_LOGO_MAP = {
     "dolbyvision": "codecs/Dolby_Vision.png",
 }
 
+# Stands in for the plain Dolby Vision logo above while a film recognised as
+# IMAX material plays -- see ui.splash._current_logos, which falls back to the
+# plain logo when this file is not installed.
+DV_IMAX_LOGO = "codecs/Dolby_Vision_IMAX.png"
+
 # Channel count -> surround layout string
 CHANNELS_MAP = {
     1:  "1.0",

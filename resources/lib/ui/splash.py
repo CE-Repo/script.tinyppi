@@ -23,9 +23,10 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 from core.images import display_texture
-from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP
+from core.maps import AUDIO_LOGO_MAP, DV_IMAX_LOGO, HDR_LOGO_MAP
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
 from info.dvinfo import get_dv_el_type_raw, get_hdr_format
+from info.imax import is_known_imax_title
 from ui.theme import apply_theme
 
 _ADDON      = xbmcaddon.Addon()
@@ -229,6 +230,24 @@ def _amlogic_hdr_token(gamut: str) -> str:
     return ""
 
 
+# Whether the combined DV/IMAX logo is installed; looked up once, since each
+# playback start runs this module in its own process.
+_dv_imax_installed: bool | None = None
+
+
+def _dv_imax_logo() -> str:
+    """Return the combined Dolby Vision / IMAX logo, or '' when it is absent.
+
+    The file is optional: it ships separately from the code, so a missing one
+    means the plain Dolby Vision logo rather than a splash with a hole in it.
+    """
+    global _dv_imax_installed
+    if _dv_imax_installed is None:
+        path = os.path.join(_MEDIA_PATH, DV_IMAX_LOGO.replace("/", os.sep))
+        _dv_imax_installed = os.path.exists(path)
+    return DV_IMAX_LOGO if _dv_imax_installed else ""
+
+
 def _current_logos(hdr_token: str) -> list[str]:
     """Return [video, audio] logos to stack, or [] unless both are available.
     The video logo falls back to SDR, so this effectively gates on the audio codec."""
@@ -236,6 +255,12 @@ def _current_logos(hdr_token: str) -> list[str]:
     audio_logo = AUDIO_LOGO_MAP.get(codec, "")
 
     video_logo = HDR_LOGO_MAP.get(hdr_token, HDR_LOGO_MAP[""])
+    # An IMAX film shown in Dolby Vision gets the combined logo.  *hdr_token*
+    # is the Amlogic output, so this follows what is genuinely on screen -- a
+    # DV source converted away keeps its output's own logo.  The film is
+    # identified for the whole runtime (see info.imax), not per frame.
+    if hdr_token == "dolbyvision" and is_known_imax_title():
+        video_logo = _dv_imax_logo() or video_logo
 
     if not audio_logo or not video_logo:
         return []
