@@ -6,11 +6,11 @@ A CoreELEC addon that displays detailed playback information in a custom overlay
 
 ## Screenshots
 <p align="center">
-<img width="1200" alt="VS10-Dialog" src="https://github.com/user-attachments/assets/6e3d9687-f6b6-4724-a346-e5ffb9a4c3dc" />
+<img width="1200" alt="No Convert" src="https://github.com/user-attachments/assets/f786a616-ef85-4413-a743-63e7ab3d5b4b" />
 </p>
 
 <p align="center">
-<img width="1200" alt="VS10-Dialog" src="https://github.com/user-attachments/assets/de617104-cf29-4ead-9c8a-a0fb75ce5b94" />
+<img width="1200" alt="Convert" src="https://github.com/user-attachments/assets/b7c10a0e-2828-4e21-a41f-6c2e5231cfbe" />
 </p>
 
 <p align="center">

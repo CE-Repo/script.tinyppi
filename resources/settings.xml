@@ -71,31 +71,16 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="4" label="32350">
-                <setting id="channels_sdr" type="boolean" label="32356" help="32357">
+            <group id="4" label="32383">
+                <setting id="keep_area_on_sdr" type="boolean" label="32384" help="32385">
                     <level>0</level>
-                    <default>false</default>
+                    <default>true</default>
                     <control type="toggle" />
                 </setting>
-                <setting id="channels_hdr" type="boolean" label="32358" help="32359">
+                <setting id="keep_dv_area_on_hdr10" type="boolean" label="32386" help="32387">
                     <level>0</level>
-                    <default>false</default>
+                    <default>true</default>
                     <control type="toggle" />
-                </setting>
-                <setting id="channels_dv" type="boolean" label="32360" help="32361">
-                    <level>0</level>
-                    <default>false</default>
-                    <control type="toggle" />
-                </setting>
-                <setting id="offset_x_dv" type="integer" label="32348" help="32349">
-                    <level>0</level>
-                    <default>100</default>
-                    <constraints>
-                        <minimum>0</minimum>
-                        <step>1</step>
-                        <maximum>100</maximum>
-                    </constraints>
-                    <control type="slider" format="percentage" />
                 </setting>
             </group>
         </category>
@@ -4730,7 +4715,34 @@
             </group>
         </category>
         <category id="Channels" label="32350" help="32351">
-            <group id="1" label="32103">
+            <group id="1" label="32388">
+                <setting id="channels_sdr" type="boolean" label="32356" help="32357">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="channels_hdr" type="boolean" label="32358" help="32359">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="channels_dv" type="boolean" label="32360" help="32361">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="offset_x_dv" type="integer" label="32348" help="32349">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
+            </group>
+            <group id="2" label="32103">
                 <setting id="channel_background_color" type="integer" label="32103" help="32353">
                     <level>0</level>
                     <default>0</default>
@@ -4816,7 +4828,7 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="2" label="32352">
+            <group id="3" label="32352">
                 <setting id="channel_layout_color" type="integer" label="32352" help="32354">
                     <level>0</level>
                     <default>0</default>
@@ -4902,7 +4914,7 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="3" label="32350">
+            <group id="4" label="32350">
                 <setting id="channel_icon_color" type="integer" label="32350" help="32355">
                     <level>0</level>
                     <default>0</default>

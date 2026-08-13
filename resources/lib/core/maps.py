@@ -232,6 +232,16 @@ HDR_LOGO_MAP = {
     "dolbyvision": "codecs/Dolby_Vision.png",
 }
 
+# Stand in for the plain logos above while a film recognised as IMAX material
+# plays -- see ui.splash._current_logos, which falls back to the plain logo for
+# any of these files that is not installed.  HLG and SDR have no combined logo,
+# so they keep theirs.
+IMAX_LOGO_MAP = {
+    "hdr10":       "codecs/HDR10_IMAX.png",
+    "hdr10+":      "codecs/HDR10Plus_IMAX.png",
+    "dolbyvision": "codecs/Dolby_Vision_IMAX.png",
+}
+
 # Channel count -> surround layout string
 CHANNELS_MAP = {
     1:  "1.0",

@@ -83,16 +83,12 @@ msgctxt "#32025"
 msgid "Audio queue / data"
 msgstr "音频队列 / 数据"
 
-msgctxt "#32027"
-msgid "Output mode"
-msgstr "输出模式"
-
 msgctxt "#32028"
 msgid "Converting"
 msgstr "正在转换"
 
 msgctxt "#32030"
-msgid "L5 active area"
+msgid "L5 Active Area"
 msgstr "L5 有效区域"
 
 msgctxt "#32032"
@@ -832,16 +828,16 @@ msgid "FEL tag"
 msgstr "FEL 标记"
 
 msgctxt "#32280"
-msgid "Color of the FEL enhancement-layer tag in the output mode."
-msgstr "输出模式中 FEL 增强层标记的颜色。"
+msgid "Color of the FEL enhancement-layer tag in the input."
+msgstr "输入中 FEL 增强层标记的颜色。"
 
 msgctxt "#32281"
 msgid "MEL tag"
 msgstr "MEL 标记"
 
 msgctxt "#32282"
-msgid "Color of the MEL enhancement-layer tag in the output mode."
-msgstr "输出模式中 MEL 增强层标记的颜色。"
+msgid "Color of the MEL enhancement-layer tag in the input."
+msgstr "输入中 MEL 增强层标记的颜色。"
 
 msgctxt "#32283"
 msgid "[COLOR=FFEDEDED]●[/COLOR] White"
@@ -900,16 +896,16 @@ msgid "HDR10 MDL"
 msgstr "HDR10 MDL"
 
 msgctxt "#32297"
-msgid "HDR10 MaxCLL/FALL"
-msgstr "HDR10 MaxCLL/FALL"
+msgid "HDR10 CLL/FALL"
+msgstr "HDR10 CLL/FALL"
 
 msgctxt "#32298"
 msgid "L6 MDL"
 msgstr "L6 MDL"
 
 msgctxt "#32299"
-msgid "L6 MaxCLL/FALL"
-msgstr "L6 MaxCLL/FALL"
+msgid "L6 CLL/FALL"
+msgstr "L6 CLL/FALL"
 
 msgctxt "#32300"
 msgid "HDR Static Metadata"
@@ -1170,3 +1166,43 @@ msgstr "VDR Min PQ/Lum"
 msgctxt "#32378"
 msgid "VDR Max PQ/Lum"
 msgstr "VDR Max PQ/Lum"
+
+msgctxt "#32379"
+msgid "CM Version"
+msgstr "CM 版本"
+
+msgctxt "#32380"
+msgid "Structure"
+msgstr "结构"
+
+msgctxt "#32381"
+msgid "RPU / BL"
+msgstr "RPU / BL"
+
+msgctxt "#32382"
+msgid "EL / Type"
+msgstr "EL / 类型"
+
+msgctxt "#32383"
+msgid "Converted output"
+msgstr "转换后的输出"
+
+msgctxt "#32384"
+msgid "Keep the HDR/DV area when converting to SDR"
+msgstr "转换为 SDR 时保留 HDR/DV 区域"
+
+msgctxt "#32385"
+msgid "Keeps the HDR static-metadata and Dolby Vision panels on screen while VS10 converts the source to SDR. Turn off to draw the overlay in its SDR layout instead."
+msgstr "在 VS10 将源转换为 SDR 期间，仍显示 HDR 静态元数据面板和杜比视界面板。关闭后，叠加层改用 SDR 布局。"
+
+msgctxt "#32386"
+msgid "Keep the Dolby Vision area when converting to HDR10"
+msgstr "转换为 HDR10 时保留杜比视界区域"
+
+msgctxt "#32387"
+msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
+msgstr "在 VS10 将杜比视界源转换为 HDR10 期间，仍显示杜比视界面板。关闭后，改为显示 HDR 静态元数据面板。"
+
+msgctxt "#32388"
+msgid "Display"
+msgstr "显示"

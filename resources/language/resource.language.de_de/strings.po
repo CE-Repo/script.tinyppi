@@ -83,16 +83,12 @@ msgctxt "#32025"
 msgid "Audio queue / data"
 msgstr "Audio-Queue / Daten"
 
-msgctxt "#32027"
-msgid "Output mode"
-msgstr "Ausgabemodus"
-
 msgctxt "#32028"
 msgid "Converting"
 msgstr "Umwandlung"
 
 msgctxt "#32030"
-msgid "L5 active area"
+msgid "L5 Active Area"
 msgstr "L5 aktiver Bereich"
 
 msgctxt "#32032"
@@ -832,16 +828,16 @@ msgid "FEL tag"
 msgstr "FEL-Kennzeichnung"
 
 msgctxt "#32280"
-msgid "Color of the FEL enhancement-layer tag in the output mode."
-msgstr "Farbe der FEL-Enhancement-Layer-Kennzeichnung im Ausgabemodus."
+msgid "Color of the FEL enhancement-layer tag in the input."
+msgstr "Farbe der FEL-Enhancement-Layer-Kennzeichnung im Eingang."
 
 msgctxt "#32281"
 msgid "MEL tag"
 msgstr "MEL-Kennzeichnung"
 
 msgctxt "#32282"
-msgid "Color of the MEL enhancement-layer tag in the output mode."
-msgstr "Farbe der MEL-Enhancement-Layer-Kennzeichnung im Ausgabemodus."
+msgid "Color of the MEL enhancement-layer tag in the input."
+msgstr "Farbe der MEL-Enhancement-Layer-Kennzeichnung im Eingang."
 
 msgctxt "#32283"
 msgid "[COLOR=FFEDEDED]●[/COLOR] White"
@@ -900,16 +896,16 @@ msgid "HDR10 MDL"
 msgstr "HDR10 MDL"
 
 msgctxt "#32297"
-msgid "HDR10 MaxCLL/FALL"
-msgstr "HDR10 MaxCLL/FALL"
+msgid "HDR10 CLL/FALL"
+msgstr "HDR10 CLL/FALL"
 
 msgctxt "#32298"
 msgid "L6 MDL"
 msgstr "L6 MDL"
 
 msgctxt "#32299"
-msgid "L6 MaxCLL/FALL"
-msgstr "L6 MaxCLL/FALL"
+msgid "L6 CLL/FALL"
+msgstr "L6 CLL/FALL"
 
 msgctxt "#32300"
 msgid "HDR Static Metadata"
@@ -1170,3 +1166,43 @@ msgstr "VDR Min PQ/Lum"
 msgctxt "#32378"
 msgid "VDR Max PQ/Lum"
 msgstr "VDR Max PQ/Lum"
+
+msgctxt "#32379"
+msgid "CM Version"
+msgstr "CM-Version"
+
+msgctxt "#32380"
+msgid "Structure"
+msgstr "Struktur"
+
+msgctxt "#32381"
+msgid "RPU / BL"
+msgstr "RPU / BL"
+
+msgctxt "#32382"
+msgid "EL / Type"
+msgstr "EL / Typ"
+
+msgctxt "#32383"
+msgid "Converted output"
+msgstr "Umgewandelte Ausgabe"
+
+msgctxt "#32384"
+msgid "Keep the HDR/DV area when converting to SDR"
+msgstr "HDR-/DV-Bereich bei Umwandlung nach SDR beibehalten"
+
+msgctxt "#32385"
+msgid "Keeps the HDR static-metadata and Dolby Vision panels on screen while VS10 converts the source to SDR. Turn off to draw the overlay in its SDR layout instead."
+msgstr "Behält die Panels für statische HDR-Metadaten und Dolby Vision auf dem Bildschirm, während VS10 die Quelle nach SDR umwandelt. Ausschalten, um das Overlay stattdessen im SDR-Layout darzustellen."
+
+msgctxt "#32386"
+msgid "Keep the Dolby Vision area when converting to HDR10"
+msgstr "Dolby-Vision-Bereich bei Umwandlung nach HDR10 beibehalten"
+
+msgctxt "#32387"
+msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
+msgstr "Behält die Dolby-Vision-Panels auf dem Bildschirm, während VS10 eine Dolby-Vision-Quelle nach HDR10 umwandelt. Ausschalten, um stattdessen das Panel für statische HDR-Metadaten anzuzeigen."
+
+msgctxt "#32388"
+msgid "Display"
+msgstr "Anzeige"

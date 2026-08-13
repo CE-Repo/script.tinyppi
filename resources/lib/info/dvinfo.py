@@ -462,15 +462,15 @@ def _cm_version(rpu: dict | None) -> str:
 
 
 def _structure_abbr(structure, config: dict | None, el_type: str) -> str:
-    """Return the layer structure as a compact ``(<track>-<layer>)`` tag:
-    ``(ST-DL)`` / ``(DT-DL)`` / ``(ST-SL)`` (Single/Dual Track, Single/Dual
-    Layer).  The side data names a structure only for dual-layer streams, so a
-    single-layer profile (5 / 8) falls through to ``(ST-SL)``."""
+    """Return the layer structure as a compact ``<track>-<layer>`` tag:
+    ``ST-DL`` / ``DT-DL`` / ``ST-SL`` (Single/Dual Track, Single/Dual Layer).
+    The side data names a structure only for dual-layer streams, so a
+    single-layer profile (5 / 8) falls through to ``ST-SL``."""
     if isinstance(structure, str) and structure.strip():
         track = "DT" if structure.strip().lower().startswith("dt") else "ST"
-        return f"({track}-DL)"
+        return f"{track}-DL"
     dual = bool((config or {}).get("el_present")) or el_type in _EL_COLOURS
-    return "(ST-DL)" if dual else "(ST-SL)"
+    return "ST-DL" if dual else "ST-SL"
 
 
 def _dv_record_version(config: dict | None) -> str:
@@ -660,8 +660,8 @@ def get_cm_version() -> str:
 
 
 def get_structure() -> str:
-    """Return the layer-structure tag (``(ST-DL)`` / ``(DT-DL)`` / ``(ST-SL)``),
-    or '' when unknown.  No status label."""
+    """Return the layer-structure tag (``ST-DL`` / ``DT-DL`` / ``ST-SL``), or
+    '' when unknown.  No status label."""
     return _raw("structure")
 
 
@@ -715,14 +715,29 @@ def get_source_max() -> str:
     return _value_or("source_max", "0 | 0")
 
 
-def get_hdr10_mdl() -> str:
-    """Return the HDR10 static mastering-display luminance (``max | min``)."""
-    return _value_or("hdr10_mdl", "0 | 0")
+def get_hdr10_mdl(l6_fallback: bool = False) -> str:
+    """Return the HDR10 static mastering-display luminance (``max | min``).
+
+    ``l6_fallback`` borrows the RPU's L6 block when the stream carries no MDCV
+    SEI: a profile 5 stream carries no static SEIs at all -- it is Dolby Vision
+    the whole way down -- so its mastering display is only ever declared in L6,
+    and the HDR panel would otherwise read ``0 | 0``.  Off by default, because
+    the Dolby Vision metadata panel prints L6 and the static SEIs as separate
+    rows and must not show the same numbers in both.
+    """
+    value = _raw("hdr10_mdl")
+    if not value and l6_fallback:
+        value = _raw("l6_mdl")
+    return value or "0 | 0"
 
 
-def get_hdr10_max_cll_fall() -> str:
-    """Return the HDR10 static MaxCLL/MaxFALL (``cll | fall``)."""
-    return _value_or("hdr10_max_cll_fall", "0 | 0")
+def get_hdr10_max_cll_fall(l6_fallback: bool = False) -> str:
+    """Return the HDR10 static MaxCLL/MaxFALL (``cll | fall``), optionally
+    borrowing the RPU's L6 block -- see ``get_hdr10_mdl``."""
+    value = _raw("hdr10_max_cll_fall")
+    if not value and l6_fallback:
+        value = _raw("l6_max_cll_fall")
+    return value or "0 | 0"
 
 
 def get_dv_version() -> str:
