@@ -837,7 +837,7 @@ msgstr "MEL réteg"
 
 msgctxt "#32282"
 msgid "Color of the MEL enhancement-layer tag in the input."
-msgstr "A MEL réteg kijelzésének színe kimeneti módban."
+msgstr "A MEL réteg kijelzésének színe a bemeneten."
 
 msgctxt "#32283"
 msgid "[COLOR=FFEDEDED]●[/COLOR] White"

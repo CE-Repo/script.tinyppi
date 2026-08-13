@@ -837,7 +837,7 @@ msgstr "وسم MEL"
 
 msgctxt "#32282"
 msgid "Color of the MEL enhancement-layer tag in the input."
-msgstr "لون وسم طبقة التحسين MEL في وضع المخرج."
+msgstr "لون وسم طبقة التحسين MEL في الإدخال."
 
 msgctxt "#32283"
 msgid "[COLOR=FFEDEDED]●[/COLOR] White"

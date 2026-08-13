@@ -837,7 +837,7 @@ msgstr "MEL-Kennzeichnung"
 
 msgctxt "#32282"
 msgid "Color of the MEL enhancement-layer tag in the input."
-msgstr "Farbe der MEL-Enhancement-Layer-Kennzeichnung im Ausgabemodus."
+msgstr "Farbe der MEL-Enhancement-Layer-Kennzeichnung im Eingang."
 
 msgctxt "#32283"
 msgid "[COLOR=FFEDEDED]●[/COLOR] White"
