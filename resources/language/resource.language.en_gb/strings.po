@@ -92,7 +92,7 @@ msgid "Converting"
 msgstr ""
 
 msgctxt "#32030"
-msgid "L5 active area"
+msgid "L5 Active Area"
 msgstr ""
 
 msgctxt "#32032"
@@ -900,7 +900,7 @@ msgid "HDR10 MDL"
 msgstr ""
 
 msgctxt "#32297"
-msgid "HDR10 MaxCLL/FALL"
+msgid "HDR10 CLL/FALL"
 msgstr ""
 
 msgctxt "#32298"
@@ -908,7 +908,7 @@ msgid "L6 MDL"
 msgstr ""
 
 msgctxt "#32299"
-msgid "L6 MaxCLL/FALL"
+msgid "L6 CLL/FALL"
 msgstr ""
 
 msgctxt "#32300"
@@ -1169,4 +1169,20 @@ msgstr ""
 
 msgctxt "#32378"
 msgid "VDR Max PQ/Lum"
+msgstr ""
+
+msgctxt "#32379"
+msgid "CM Version"
+msgstr ""
+
+msgctxt "#32380"
+msgid "Structure"
+msgstr ""
+
+msgctxt "#32381"
+msgid "RPU / BL"
+msgstr ""
+
+msgctxt "#32382"
+msgid "EL / Type"
 msgstr ""

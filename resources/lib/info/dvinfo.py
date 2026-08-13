@@ -462,15 +462,15 @@ def _cm_version(rpu: dict | None) -> str:
 
 
 def _structure_abbr(structure, config: dict | None, el_type: str) -> str:
-    """Return the layer structure as a compact ``(<track>-<layer>)`` tag:
-    ``(ST-DL)`` / ``(DT-DL)`` / ``(ST-SL)`` (Single/Dual Track, Single/Dual
-    Layer).  The side data names a structure only for dual-layer streams, so a
-    single-layer profile (5 / 8) falls through to ``(ST-SL)``."""
+    """Return the layer structure as a compact ``<track>-<layer>`` tag:
+    ``ST-DL`` / ``DT-DL`` / ``ST-SL`` (Single/Dual Track, Single/Dual Layer).
+    The side data names a structure only for dual-layer streams, so a
+    single-layer profile (5 / 8) falls through to ``ST-SL``."""
     if isinstance(structure, str) and structure.strip():
         track = "DT" if structure.strip().lower().startswith("dt") else "ST"
-        return f"({track}-DL)"
+        return f"{track}-DL"
     dual = bool((config or {}).get("el_present")) or el_type in _EL_COLOURS
-    return "(ST-DL)" if dual else "(ST-SL)"
+    return "ST-DL" if dual else "ST-SL"
 
 
 def _dv_record_version(config: dict | None) -> str:
@@ -660,8 +660,8 @@ def get_cm_version() -> str:
 
 
 def get_structure() -> str:
-    """Return the layer-structure tag (``(ST-DL)`` / ``(DT-DL)`` / ``(ST-SL)``),
-    or '' when unknown.  No status label."""
+    """Return the layer-structure tag (``ST-DL`` / ``DT-DL`` / ``ST-SL``), or
+    '' when unknown.  No status label."""
     return _raw("structure")
 
 

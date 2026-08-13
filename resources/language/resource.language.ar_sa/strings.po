@@ -92,7 +92,7 @@ msgid "Converting"
 msgstr "جارٍ التحويل"
 
 msgctxt "#32030"
-msgid "L5 active area"
+msgid "L5 Active Area"
 msgstr "منطقة L5 النشطة"
 
 msgctxt "#32032"
@@ -901,16 +901,16 @@ msgid "HDR10 MDL"
 msgstr "HDR10 MDL"
 
 msgctxt "#32297"
-msgid "HDR10 MaxCLL/FALL"
-msgstr "HDR10 MaxCLL/FALL"
+msgid "HDR10 CLL/FALL"
+msgstr "HDR10 CLL/FALL"
 
 msgctxt "#32298"
 msgid "L6 MDL"
 msgstr "L6 MDL"
 
 msgctxt "#32299"
-msgid "L6 MaxCLL/FALL"
-msgstr "L6 MaxCLL/FALL"
+msgid "L6 CLL/FALL"
+msgstr "L6 CLL/FALL"
 
 msgctxt "#32300"
 msgid "HDR Static Metadata"
@@ -1171,3 +1171,19 @@ msgstr "VDR Min PQ/Lum"
 msgctxt "#32378"
 msgid "VDR Max PQ/Lum"
 msgstr "VDR Max PQ/Lum"
+
+msgctxt "#32379"
+msgid "CM Version"
+msgstr "إصدار CM"
+
+msgctxt "#32380"
+msgid "Structure"
+msgstr "البنية"
+
+msgctxt "#32381"
+msgid "RPU / BL"
+msgstr "RPU / BL"
+
+msgctxt "#32382"
+msgid "EL / Type"
+msgstr "EL / النوع"

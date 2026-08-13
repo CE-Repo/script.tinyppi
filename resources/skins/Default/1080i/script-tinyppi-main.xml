@@ -1484,20 +1484,20 @@
 						<aligny>top</aligny>
 					</control>
 					
-					<!-- Metadata -->
+					<!-- CM Version -->
 					<control type="label">
 						<top>30</top>
-						<label>$ADDON[script.tinyppi 32289]:</label>
+						<label>$ADDON[script.tinyppi 32379]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<width>270</width>
-						<align>right</align>
 						<left>225</left>
 						<top>30</top>
-						<label>$INFO[Window().Property(DoviCmVersionVar)] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(DoviStructureVar)][/COLOR]</label>
+						<width>270</width>
+						<align>right</align>
+						<label>$INFO[Window().Property(DoviCmVersionVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
@@ -1505,62 +1505,62 @@
 					</control>
 					<!-- N/A -->
 					<control type="label">
-						<width>270</width>
-						<align>right</align>
 						<left>225</left>
 						<top>30</top>
-						<label>$ADDON[script.tinyppi 32033] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(DoviStructureVar)][/COLOR]</label>
+						<width>270</width>
+						<align>right</align>
+						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
 						<visible>String.IsEmpty(Window().Property(DoviCmVersionVar))</visible>
 					</control>
 					
-					<!-- Profile -->
+					<!-- Structure -->
 					<control type="label">
-						<top>57</top>
-						<label>$ADDON[script.tinyppi 32290]:</label>
+						<top>60</top>
+						<label>$ADDON[script.tinyppi 32380]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
+						<left>225</left>
+						<top>60</top>
 						<width>270</width>
 						<align>right</align>
-						<left>160</left>
-						<top>57</top>
-						<label>$INFO[Window().Property(DoviProfileNumberVar)]</label>
+						<label>$INFO[Window().Property(DoviStructureVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
-						<visible>!String.IsEmpty(Window().Property(DoviProfileNumberVar))</visible>
+						<visible>!String.IsEmpty(Window().Property(DoviStructureVar))</visible>
 					</control>
 					<!-- N/A -->
 					<control type="label">
+						<left>225</left>
+						<top>60</top>
 						<width>270</width>
 						<align>right</align>
-						<left>160</left>
-						<top>57</top>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
-						<visible>String.IsEmpty(Window().Property(DoviProfileNumberVar))</visible>
+						<visible>String.IsEmpty(Window().Property(DoviStructureVar))</visible>
 					</control>
 					
 					<!-- Version -->
 					<control type="label">
-						<top>84</top>
+						<top>90</top>
 						<label>$ADDON[script.tinyppi 32291]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
+						<left>225</left>
+						<top>90</top>
 						<width>270</width>
 						<align>right</align>
-						<left>160</left>
-						<top>84</top>
 						<label>$INFO[Window().Property(DoviVersionVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -1569,10 +1569,10 @@
 					</control>
 					<!-- N/A -->
 					<control type="label">
+						<left>225</left>
+						<top>90</top>
 						<width>270</width>
 						<align>right</align>
-						<left>160</left>
-						<top>84</top>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -1580,17 +1580,17 @@
 						<visible>String.IsEmpty(Window().Property(DoviVersionVar))</visible>
 					</control>
 					
-					<!-- RPU -->
+					<!-- RPU / Base Layer -->
 					<control type="label">
-						<top>117</top>
-						<label>$ADDON[script.tinyppi 32292]:</label>
+						<top>120</top>
+						<label>$ADDON[script.tinyppi 32381] :</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="image">
-						<left>402</left>
-						<top>122</top>
+						<left>387</left>
+						<top>125</top>
 						<width>24</width>
 						<height>24</height>
 						<texture>icons/check-circle.png</texture>
@@ -1599,8 +1599,8 @@
 						<visible>String.IsEqual(Window.Property(DoviRpuPresentVar),true)</visible>
 					</control>
 					<control type="image">
-						<left>402</left>
-						<top>122</top>
+						<left>387</left>
+						<top>125</top>
 						<width>24</width>
 						<height>24</height>
 						<texture>icons/circle-xmark.png</texture>
@@ -1610,28 +1610,29 @@
 					</control>
 					<!-- N/A -->
 					<control type="label">
+						<left>129</left>
+						<top>120</top>
 						<width>270</width>
 						<align>right</align>
-						<left>160</left>
-						<top>117</top>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
 						<visible>String.IsEmpty(Window.Property(DoviRpuPresentVar))</visible>
 					</control>
-					
-					<!-- Base Layer -->
 					<control type="label">
-						<top>144</top>
-						<label>$ADDON[script.tinyppi 32293]:</label>
+						<left>411</left>
+						<top>120</top>
+						<width>60</width>
+						<align>center</align>
+						<label>|</label>
 						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="image">
-						<left>402</left>
-						<top>149</top>
+						<left>471</left>
+						<top>125</top>
 						<width>24</width>
 						<height>24</height>
 						<texture>icons/check-circle.png</texture>
@@ -1640,8 +1641,8 @@
 						<visible>String.IsEqual(Window.Property(DoviBlPresentVar),true)</visible>
 					</control>
 					<control type="image">
-						<left>402</left>
-						<top>149</top>
+						<left>471</left>
+						<top>125</top>
 						<width>24</width>
 						<height>24</height>
 						<texture>icons/circle-xmark.png</texture>
@@ -1651,10 +1652,10 @@
 					</control>
 					<!-- N/A -->
 					<control type="label">
+						<left>225</left>
+						<top>120</top>
 						<width>270</width>
 						<align>right</align>
-						<left>160</left>
-						<top>144</top>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -1662,17 +1663,17 @@
 						<visible>String.IsEmpty(Window.Property(DoviBlPresentVar))</visible>
 					</control>
 					
-					<!-- Enhancement Layer -->
+					<!-- Enhancement Layer / EL Type -->
 					<control type="label">
-						<top>171</top>
-						<label>$ADDON[script.tinyppi 32294]:</label>
+						<top>150</top>
+						<label>$ADDON[script.tinyppi 32382]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="image">
-						<left>402</left>
-						<top>176</top>
+						<left>387</left>
+						<top>155</top>
 						<width>24</width>
 						<height>24</height>
 						<texture>icons/check-circle.png</texture>
@@ -1681,8 +1682,8 @@
 						<visible>String.IsEqual(Window.Property(DoviElPresentVar),true)</visible>
 					</control>
 					<control type="image">
-						<left>402</left>
-						<top>176</top>
+						<left>387</left>
+						<top>155</top>
 						<width>24</width>
 						<height>24</height>
 						<texture>icons/circle-xmark.png</texture>
@@ -1692,28 +1693,29 @@
 					</control>
 					<!-- N/A -->
 					<control type="label">
+						<left>129</left>
+						<top>150</top>
 						<width>270</width>
 						<align>right</align>
-						<left>160</left>
-						<top>171</top>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
 						<visible>String.IsEmpty(Window.Property(DoviElPresentVar))</visible>
 					</control>
-					
-					<!-- EL Type -->
 					<control type="label">
-						<top>198</top>
-						<label>$ADDON[script.tinyppi 32295]:</label>
+						<left>411</left>
+						<top>150</top>
+						<width>60</width>
+						<align>center</align>
+						<label>|</label>
 						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
-						<left>165</left>
-						<top>198</top>
+						<left>225</left>
+						<top>150</top>
 						<width>270</width>
 						<align>right</align>
 						<label>$INFO[Window.Property(DoviElTypeVar)]</label>
@@ -1723,8 +1725,8 @@
 						<visible>String.Contains(Window.Property(DoviElTypeVar),FEL) | String.Contains(Window.Property(DoviElTypeVar),MEL)</visible>
 					</control>
 					<control type="image">
-						<left>402</left>
-						<top>203</top>
+						<left>471</left>
+						<top>155</top>
 						<width>24</width>
 						<height>24</height>
 						<texture>icons/circle-xmark.png</texture>
@@ -1734,10 +1736,10 @@
 					</control>
 					<!-- N/A -->
 					<control type="label">
+						<left>225</left>
+						<top>150</top>
 						<width>270</width>
 						<align>right</align>
-						<left>160</left>
-						<top>198</top>
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
@@ -1745,9 +1747,29 @@
 						<visible>String.IsEmpty(Window.Property(DoviElTypeVar))</visible>
 					</control>
 					
+					<!-- Metadata Icon -->
+					<control type="image">
+						<top>196</top>
+						<width>26</width>
+						<height>26</height>
+						<texture>icons/layer-group.png</texture>
+						<colordiffuse>$INFO[Window(10000).Property(TinyPPI.IconColor)]</colordiffuse>
+						<aligny>top</aligny>
+					</control>
+					
+					<!-- Metadata -->
+					<control type="label">
+						<top>192</top>
+						<left>35</left>
+						<label>[B][UPPERCASE]$ADDON[script.tinyppi 32289][/UPPERCASE][/B]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
+					
 					<!-- L6 MDL -->
 					<control type="label">
-						<top>231</top>
+						<top>225</top>
 						<label>$ADDON[script.tinyppi 32298]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -1755,7 +1777,7 @@
 					</control>
 					<control type="label">
 						<left>225</left>
-						<top>231</top>
+						<top>225</top>
 						<width>270</width>
 						<align>right</align>
 						<label>$INFO[Window().Property(DoviLevel6RpuMdlVar)]</label>
@@ -1766,7 +1788,7 @@
 					
 					<!-- HDR10 MDL -->
 					<control type="label">
-						<top>258</top>
+						<top>255</top>
 						<label>$ADDON[script.tinyppi 32296]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -1774,7 +1796,7 @@
 					</control>
 					<control type="label">
 						<left>225</left>
-						<top>258</top>
+						<top>255</top>
 						<width>270</width>
 						<align>right</align>
 						<label>$INFO[Window().Property(Hdr10MdlVar)]</label>
@@ -1783,9 +1805,9 @@
 						<aligny>top</aligny>
 					</control>
 					
-					<!-- L6 MaxCLL/FALL -->
+					<!-- L6 CLL/FALL -->
 					<control type="label">
-						<top>291</top>
+						<top>297</top>
 						<label>$ADDON[script.tinyppi 32299]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -1793,7 +1815,7 @@
 					</control>
 					<control type="label">
 						<left>225</left>
-						<top>291</top>
+						<top>297</top>
 						<width>270</width>
 						<align>right</align>
 						<label>$INFO[Window().Property(DoviLevel6RpuMaxCllFallVar)]</label>
@@ -1802,9 +1824,9 @@
 						<aligny>top</aligny>
 					</control>
 					
-					<!-- HDR10 MaxCLL/FALL -->
+					<!-- HDR10 CLL/FALL -->
 					<control type="label">
-						<top>318</top>
+						<top>327</top>
 						<label>$ADDON[script.tinyppi 32297]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -1812,7 +1834,7 @@
 					</control>
 					<control type="label">
 						<left>225</left>
-						<top>318</top>
+						<top>327</top>
 						<width>270</width>
 						<align>right</align>
 						<label>$INFO[Window().Property(Hdr10MaxCllFallVar)]</label>
@@ -1823,7 +1845,7 @@
 					
 					<!-- VDR Min PQ/Lum -->
 					<control type="label">
-						<top>351</top>
+						<top>369</top>
 						<label>$ADDON[script.tinyppi 32377]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -1831,7 +1853,7 @@
 					</control>
 					<control type="label">
 						<left>225</left>
-						<top>351</top>
+						<top>369</top>
 						<width>270</width>
 						<align>right</align>
 						<label>$INFO[Window().Property(DoviSourceMinVar)]</label>
@@ -1842,7 +1864,7 @@
 					
 					<!-- VDR Max PQ/Lum -->
 					<control type="label">
-						<top>378</top>
+						<top>399</top>
 						<label>$ADDON[script.tinyppi 32378]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -1850,7 +1872,7 @@
 					</control>
 					<control type="label">
 						<left>225</left>
-						<top>378</top>
+						<top>399</top>
 						<width>270</width>
 						<align>right</align>
 						<label>$INFO[Window().Property(DoviSourceMaxVar)]</label>
@@ -1859,9 +1881,9 @@
 						<aligny>top</aligny>
 					</control>
 					
-					<!-- L1 Lum Min/Max/Ø: -->
+					<!-- L1 Lum Min/Max/Ø -->
 					<control type="label">
-						<top>411</top>
+						<top>441</top>
 						<label>$ADDON[script.tinyppi 32375]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -1869,7 +1891,7 @@
 					</control>
 					<control type="label">
 						<left>225</left>
-						<top>411</top>
+						<top>441</top>
 						<width>270</width>
 						<align>right</align>
 						<label>$INFO[Window().Property(DoviLevel1FllVar)]</label>
@@ -1878,9 +1900,9 @@
 						<aligny>top</aligny>
 					</control>
 					
-					<!-- L1 PQ Min/Max/Ø: -->
+					<!-- L1 PQ Min/Max/Ø -->
 					<control type="label">
-						<top>438</top>
+						<top>471</top>
 						<label>$ADDON[script.tinyppi 32376]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -1888,7 +1910,7 @@
 					</control>
 					<control type="label">
 						<left>225</left>
-						<top>438</top>
+						<top>471</top>
 						<width>270</width>
 						<align>right</align>
 						<label>$INFO[Window().Property(DoviLevel1PqVar)]</label>
@@ -1897,9 +1919,9 @@
 						<aligny>top</aligny>
 					</control>
 					
-					<!-- L5 active offsets -->
+					<!-- L5 Active Area -->
 					<control type="label">
-						<top>470</top>
+						<top>501</top>
 						<label>$ADDON[script.tinyppi 32030]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -1907,7 +1929,7 @@
 					</control>
 					<control type="grouplist">
 						<left>50</left>
-						<top>470</top>
+						<top>501</top>
 						<width>445</width>
 						<height>31</height>
 						<orientation>horizontal</orientation>
