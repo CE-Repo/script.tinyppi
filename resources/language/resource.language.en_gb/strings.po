@@ -1202,3 +1202,7 @@ msgstr ""
 msgctxt "#32387"
 msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
 msgstr ""
+
+msgctxt "#32388"
+msgid "Display"
+msgstr ""

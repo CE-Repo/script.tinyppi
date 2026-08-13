@@ -1203,3 +1203,7 @@ msgstr "الإبقاء على منطقة دولبي فيجن عند التحوي
 msgctxt "#32387"
 msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
 msgstr "يُبقي لوحات دولبي فيجن ظاهرة أثناء تحويل VS10 لمصدر دولبي فيجن إلى HDR10. أوقفه لعرض لوحة بيانات HDR الثابتة بدلاً من ذلك."
+
+msgctxt "#32388"
+msgid "Display"
+msgstr "العرض"

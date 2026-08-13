@@ -1202,3 +1202,7 @@ msgstr "A Dolby Vision terület megtartása HDR10-re alakításkor"
 msgctxt "#32387"
 msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
 msgstr "A képernyőn tartja a Dolby Vision paneljeit, miközben a VS10 HDR10-re alakít egy Dolby Vision forrást. Kikapcsolva helyette a statikus HDR-metaadatok panelje jelenik meg."
+
+msgctxt "#32388"
+msgid "Display"
+msgstr "Megjelenítés"
