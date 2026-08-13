@@ -488,9 +488,27 @@
 						<aligny>top</aligny>
 					</control>
 					
-					<!-- Converting -->
+					<!-- Input -->
 					<control type="label">
 						<top>30</top>
+						<label>$ADDON[script.tinyppi 32051]:</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<left>240</left>
+						<top>30</top>
+						<width>380</width>
+						<label>$INFO[Window().Property(DoviProfileVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
+					
+					<!-- Converting -->
+					<control type="label">
+						<top>60</top>
 						<label>$ADDON[script.tinyppi 32028]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
@@ -498,7 +516,7 @@
 					</control>
 					<control type="image">
 						<left>240</left>
-						<top>35</top>
+						<top>65</top>
 						<width>24</width>
 						<height>24</height>
 						<texture>icons/check-circle.png</texture>
@@ -508,7 +526,7 @@
 					</control>
 					<control type="image">
 						<left>240</left>
-						<top>35</top>
+						<top>65</top>
 						<width>24</width>
 						<height>24</height>
 						<texture>icons/circle-xmark.png</texture>
@@ -516,50 +534,31 @@
 						<aligny>top</aligny>
 						<visible>![[[String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hlg) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))] + String.Contains(Player.Process(amlogic.eoft_gamut),DV)] | [[String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hlg) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)] | [[String.IsEmpty(Window(10000).Property(TinyPPI.HdrType)) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.IsEqual(Window().Property(ModeVar),HDR10)]]</visible>
 					</control>
-					
-					<!-- Output mode -->
 					<control type="label">
-						<top>60</top>
-						<label>$ADDON[script.tinyppi 32027]:</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-						<aligny>top</aligny>
-					</control>
-					<control type="label">
-						<left>240</left>
+						<left>280</left>
 						<top>60</top>
 						<width>380</width>
-						<label>$INFO[Window().Property(DoviProfileVar)]</label>
-						<font>font23_narrow</font>
-						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<aligny>top</aligny>
-						<visible>![[[String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hlg) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))] + String.Contains(Player.Process(amlogic.eoft_gamut),DV)] | [[String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hlg) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.Contains(Player.Process(amlogic.eoft_gamut),SDR)] | [[String.IsEmpty(Window(10000).Property(TinyPPI.HdrType)) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.IsEqual(Window().Property(ModeVar),HDR10)]]</visible>
-					</control>
-					<control type="label">
-						<left>240</left>
-						<top>60</top>
-						<width>380</width>
-						<label>$INFO[Window().Property(DoviProfileAltVar)] → DV Profile 8.1</label>
+						<label>→  DV Profile 8.1</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
 						<visible>[String.IsEmpty(Window(10000).Property(TinyPPI.HdrType)) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg)] + String.Contains(Player.Process(amlogic.eoft_gamut),DV)</visible>
 					</control>
 					<control type="label">
-						<left>240</left>
+						<left>280</left>
 						<top>60</top>
 						<width>380</width>
-						<label>$INFO[Window().Property(DoviProfileAltVar)] → HDR10</label>
+						<label>→  HDR10</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
 						<visible>[String.IsEmpty(Window(10000).Property(TinyPPI.HdrType)) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)] + String.IsEqual(Window().Property(ModeVar),HDR10)</visible>
 					</control>
 					<control type="label">
-						<left>240</left>
+						<left>280</left>
 						<top>60</top>
 						<width>380</width>
-						<label>$INFO[Window().Property(DoviProfileAltVar)] → SDR</label>
+						<label>→  SDR</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>

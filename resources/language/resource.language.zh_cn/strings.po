@@ -83,10 +83,6 @@ msgctxt "#32025"
 msgid "Audio queue / data"
 msgstr "音频队列 / 数据"
 
-msgctxt "#32027"
-msgid "Output mode"
-msgstr "输出模式"
-
 msgctxt "#32028"
 msgid "Converting"
 msgstr "正在转换"
@@ -832,15 +828,15 @@ msgid "FEL tag"
 msgstr "FEL 标记"
 
 msgctxt "#32280"
-msgid "Color of the FEL enhancement-layer tag in the output mode."
-msgstr "输出模式中 FEL 增强层标记的颜色。"
+msgid "Color of the FEL enhancement-layer tag in the input."
+msgstr "输入中 FEL 增强层标记的颜色。"
 
 msgctxt "#32281"
 msgid "MEL tag"
 msgstr "MEL 标记"
 
 msgctxt "#32282"
-msgid "Color of the MEL enhancement-layer tag in the output mode."
+msgid "Color of the MEL enhancement-layer tag in the input."
 msgstr "输出模式中 MEL 增强层标记的颜色。"
 
 msgctxt "#32283"

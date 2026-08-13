@@ -83,10 +83,6 @@ msgctxt "#32025"
 msgid "Audio queue / data"
 msgstr ""
 
-msgctxt "#32027"
-msgid "Output mode"
-msgstr "Videó kimenet"
-
 msgctxt "#32028"
 msgid "Converting"
 msgstr "Konvertálás"
@@ -832,15 +828,15 @@ msgid "FEL tag"
 msgstr "FEL réteg"
 
 msgctxt "#32280"
-msgid "Color of the FEL enhancement-layer tag in the output mode."
-msgstr "A FEL réteg kijelzésének színe kimeneti módban."
+msgid "Color of the FEL enhancement-layer tag in the input."
+msgstr "A FEL réteg kijelzésének színe a bemeneten."
 
 msgctxt "#32281"
 msgid "MEL tag"
 msgstr "MEL réteg"
 
 msgctxt "#32282"
-msgid "Color of the MEL enhancement-layer tag in the output mode."
+msgid "Color of the MEL enhancement-layer tag in the input."
 msgstr "A MEL réteg kijelzésének színe kimeneti módban."
 
 msgctxt "#32283"

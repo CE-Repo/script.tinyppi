@@ -83,10 +83,6 @@ msgctxt "#32025"
 msgid "Audio queue / data"
 msgstr "Audio-Queue / Daten"
 
-msgctxt "#32027"
-msgid "Output mode"
-msgstr "Ausgabemodus"
-
 msgctxt "#32028"
 msgid "Converting"
 msgstr "Umwandlung"
@@ -832,15 +828,15 @@ msgid "FEL tag"
 msgstr "FEL-Kennzeichnung"
 
 msgctxt "#32280"
-msgid "Color of the FEL enhancement-layer tag in the output mode."
-msgstr "Farbe der FEL-Enhancement-Layer-Kennzeichnung im Ausgabemodus."
+msgid "Color of the FEL enhancement-layer tag in the input."
+msgstr "Farbe der FEL-Enhancement-Layer-Kennzeichnung im Eingang."
 
 msgctxt "#32281"
 msgid "MEL tag"
 msgstr "MEL-Kennzeichnung"
 
 msgctxt "#32282"
-msgid "Color of the MEL enhancement-layer tag in the output mode."
+msgid "Color of the MEL enhancement-layer tag in the input."
 msgstr "Farbe der MEL-Enhancement-Layer-Kennzeichnung im Ausgabemodus."
 
 msgctxt "#32283"
