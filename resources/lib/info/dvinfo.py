@@ -715,14 +715,29 @@ def get_source_max() -> str:
     return _value_or("source_max", "0 | 0")
 
 
-def get_hdr10_mdl() -> str:
-    """Return the HDR10 static mastering-display luminance (``max | min``)."""
-    return _value_or("hdr10_mdl", "0 | 0")
+def get_hdr10_mdl(l6_fallback: bool = False) -> str:
+    """Return the HDR10 static mastering-display luminance (``max | min``).
+
+    ``l6_fallback`` borrows the RPU's L6 block when the stream carries no MDCV
+    SEI: a profile 5 stream carries no static SEIs at all -- it is Dolby Vision
+    the whole way down -- so its mastering display is only ever declared in L6,
+    and the HDR panel would otherwise read ``0 | 0``.  Off by default, because
+    the Dolby Vision metadata panel prints L6 and the static SEIs as separate
+    rows and must not show the same numbers in both.
+    """
+    value = _raw("hdr10_mdl")
+    if not value and l6_fallback:
+        value = _raw("l6_mdl")
+    return value or "0 | 0"
 
 
-def get_hdr10_max_cll_fall() -> str:
-    """Return the HDR10 static MaxCLL/MaxFALL (``cll | fall``)."""
-    return _value_or("hdr10_max_cll_fall", "0 | 0")
+def get_hdr10_max_cll_fall(l6_fallback: bool = False) -> str:
+    """Return the HDR10 static MaxCLL/MaxFALL (``cll | fall``), optionally
+    borrowing the RPU's L6 block -- see ``get_hdr10_mdl``."""
+    value = _raw("hdr10_max_cll_fall")
+    if not value and l6_fallback:
+        value = _raw("l6_max_cll_fall")
+    return value or "0 | 0"
 
 
 def get_dv_version() -> str:

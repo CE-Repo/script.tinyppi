@@ -1183,3 +1183,23 @@ msgstr "RPU / BL"
 msgctxt "#32382"
 msgid "EL / Type"
 msgstr "EL / النوع"
+
+msgctxt "#32383"
+msgid "Converted output"
+msgstr "المخرج المحوَّل"
+
+msgctxt "#32384"
+msgid "Keep the HDR/DV area when converting to SDR"
+msgstr "الإبقاء على منطقة HDR/DV عند التحويل إلى SDR"
+
+msgctxt "#32385"
+msgid "Keeps the HDR static-metadata and Dolby Vision panels on screen while VS10 converts the source to SDR. Turn off to draw the overlay in its SDR layout instead."
+msgstr "يُبقي لوحتَي بيانات HDR الثابتة ودولبي فيجن ظاهرتين أثناء تحويل VS10 للمصدر إلى SDR. أوقفه لعرض التراكب بتخطيط SDR بدلاً من ذلك."
+
+msgctxt "#32386"
+msgid "Keep the Dolby Vision area when converting to HDR10"
+msgstr "الإبقاء على منطقة دولبي فيجن عند التحويل إلى HDR10"
+
+msgctxt "#32387"
+msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
+msgstr "يُبقي لوحات دولبي فيجن ظاهرة أثناء تحويل VS10 لمصدر دولبي فيجن إلى HDR10. أوقفه لعرض لوحة بيانات HDR الثابتة بدلاً من ذلك."

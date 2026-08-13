@@ -22,7 +22,7 @@
 			<!-- Overlay - SDR - w/o Channels -->
 			<control type="group">
 			<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowChannelIcon),0) | String.IsEmpty(Window().Property(ChannelIconVar))</visible>
-			<visible>String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))</visible>
+			<visible>String.IsEmpty(Window(10000).Property(TinyPPI.EffectiveHdrType))</visible>
 			
 				<!-- Background - Start -->
 				<control type="group">
@@ -126,7 +126,7 @@
 			
 			<!-- Overlay - wide box: SDR with Channels, and HDR / HLG / DV -->
 			<control type="group">
-			<visible>[String.IsEqual(Window(10000).Property(TinyPPI.ShowChannelIcon),1) + !String.IsEmpty(Window().Property(ChannelIconVar)) + String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))] | String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr) | String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) | String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)</visible>
+			<visible>[String.IsEqual(Window(10000).Property(TinyPPI.ShowChannelIcon),1) + !String.IsEmpty(Window().Property(ChannelIconVar)) + String.IsEmpty(Window(10000).Property(TinyPPI.EffectiveHdrType))] | String.Contains(Window(10000).Property(TinyPPI.EffectiveHdrType),hdr) | String.Contains(Window(10000).Property(TinyPPI.EffectiveHdrType),hlg) | String.Contains(Window(10000).Property(TinyPPI.EffectiveHdrType),dolby)</visible>
 			
 				<!-- Background - Start -->
 				<control type="group">
@@ -229,7 +229,7 @@
 				
 				<!-- Channel layout - only the SDR variant; DV uses panel 5100 below -->
 				<control type="group">
-				<visible>String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))</visible>
+				<visible>String.IsEmpty(Window(10000).Property(TinyPPI.EffectiveHdrType))</visible>
 				<top>580</top>
 				<left>1355</left>
 					<control type="image">
@@ -252,7 +252,7 @@
 			<!-- Channel layout - DV -->
 			<control type="group" id="5100">
 			<visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowChannelIcon),1) + !String.IsEmpty(Window().Property(ChannelIconVar))</visible>
-			<visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)</visible>
+			<visible>String.Contains(Window(10000).Property(TinyPPI.EffectiveHdrType),dolby)</visible>
 			
 				<!-- Background - Start -->
 				<control type="group">
@@ -1312,7 +1312,7 @@
 				
 				<!-- Group: HDR Static Metadata -->
 				<control type="group">
-				<visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),hdr) | String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg)</visible>
+				<visible>String.Contains(Window(10000).Property(TinyPPI.EffectiveHdrType),hdr) | String.Contains(Window(10000).Property(TinyPPI.EffectiveHdrType),hlg)</visible>
 					<left>1315</left>
 					
 					<control type="group">
@@ -1461,7 +1461,7 @@
 				
 				<!-- Group: Dolby Vision -->
 				<control type="group">
-				<visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)</visible>
+				<visible>String.Contains(Window(10000).Property(TinyPPI.EffectiveHdrType),dolby)</visible>
 					<left>1315</left>
 					
 					<!-- Dolby Vision Logo Icon -->
@@ -1755,7 +1755,7 @@
 				
 				<!-- Group: Metadata -->
 				<control type="group">
-				<visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)</visible>
+				<visible>String.Contains(Window(10000).Property(TinyPPI.EffectiveHdrType),dolby)</visible>
 					<top>200</top>
 					<left>1315</left>
 					

@@ -1182,3 +1182,23 @@ msgstr "RPU / BL"
 msgctxt "#32382"
 msgid "EL / Type"
 msgstr "EL / Typ"
+
+msgctxt "#32383"
+msgid "Converted output"
+msgstr "Umgewandelte Ausgabe"
+
+msgctxt "#32384"
+msgid "Keep the HDR/DV area when converting to SDR"
+msgstr "HDR-/DV-Bereich bei Umwandlung nach SDR beibehalten"
+
+msgctxt "#32385"
+msgid "Keeps the HDR static-metadata and Dolby Vision panels on screen while VS10 converts the source to SDR. Turn off to draw the overlay in its SDR layout instead."
+msgstr "Behält die Panels für statische HDR-Metadaten und Dolby Vision auf dem Bildschirm, während VS10 die Quelle nach SDR umwandelt. Ausschalten, um das Overlay stattdessen im SDR-Layout darzustellen."
+
+msgctxt "#32386"
+msgid "Keep the Dolby Vision area when converting to HDR10"
+msgstr "Dolby-Vision-Bereich bei Umwandlung nach HDR10 beibehalten"
+
+msgctxt "#32387"
+msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
+msgstr "Behält die Dolby-Vision-Panels auf dem Bildschirm, während VS10 eine Dolby-Vision-Quelle nach HDR10 umwandelt. Ausschalten, um stattdessen das Panel für statische HDR-Metadaten anzuzeigen."

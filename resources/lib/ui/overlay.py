@@ -212,11 +212,14 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         offset_y = max(offset_y, -self._offset_up_limit())
         return offset_x, offset_y
 
+    # Both read EffectiveHdrType, not the source type: a stream VS10 converts to
+    # SDR is drawn in the SDR layout, so the box these clamp against is the
+    # narrow one.
     def _is_hdr(self) -> bool:
-        return bool(xbmcgui.Window(10000).getProperty("TinyPPI.HdrType"))
+        return bool(xbmcgui.Window(10000).getProperty("TinyPPI.EffectiveHdrType"))
 
     def _is_dv(self) -> bool:
-        return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.HdrType").lower()
+        return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.EffectiveHdrType").lower()
 
     def _has_channels(self) -> bool:
         """Mirror the skin's visibility condition for the channel variant."""

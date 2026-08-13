@@ -71,7 +71,7 @@ _CHANNEL_DIR_DV      = "channels/400x241"
 
 def _is_dv() -> bool:
     """Mirror the skin's DV branch, which draws the smaller channel panel."""
-    return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.HdrType").lower()
+    return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.EffectiveHdrType").lower()
 
 
 def _channel_dir() -> str:
@@ -694,7 +694,7 @@ def _metadata_units() -> tuple[str, str]:
 
 
 def _channel_setting_for(hdr_type: str) -> str:
-    """Return the channel setting that governs an ``HdrType`` token.
+    """Return the channel setting that governs an ``EffectiveHdrType`` token.
 
     Mirrors the branches the skin draws: DV has its own panel, HDR10 / HDR10+ /
     HLG share one layout, and an empty type means SDR.
@@ -716,22 +716,76 @@ def publish_channel_visibility(home=None) -> None:
     settings, so toggling one applies without reopening.
     """
     home = home or xbmcgui.Window(10000)
-    setting = _channel_setting_for(home.getProperty("TinyPPI.HdrType"))
+    setting = _channel_setting_for(home.getProperty("TinyPPI.EffectiveHdrType"))
     enabled = xbmcaddon.Addon().getSetting(setting) == "true"
     home.setProperty("TinyPPI.ShowChannelIcon", "1" if enabled else "0")
 
 
+def _effective_hdr_type(hdr_type: str) -> str:
+    """Return the HDR type the overlay layout follows for a source ``hdr_type``.
+
+    Normally the source itself; the two VS10 conversions that leave the source's
+    panels describing a signal the display never receives can each be made to
+    follow the output instead:
+
+    * to SDR (``keep_area_on_sdr`` off), where no HDR panel applies at all, so
+      the overlay drops to its SDR box;
+    * DV to HDR10 (``keep_dv_area_on_hdr10`` off), where the HDR
+      static-metadata panel takes over from the Dolby Vision one.
+
+    Both settings default to keeping the source's area, so the layout only
+    changes for someone who asked for it.  A fresh ``Addon()`` avoids the cached
+    settings, so a toggle applies without reopening the overlay.
+
+    The output side is the mode field of ``amlogic.eoft_gamut``, the same signal
+    the skin's ``-> SDR`` / ``-> HDR10`` conversion rows branch on.  Anything
+    else -- a passed-through source, an unreadable field (no playback, a kernel
+    that does not expose it) -- keeps the source type, so a missing value never
+    collapses the layout on its own.
+    """
+    mode = get_ModeVar().upper()
+    addon = xbmcaddon.Addon()
+    if mode.startswith("SDR"):
+        return hdr_type if addon.getSetting("keep_area_on_sdr") == "true" else ""
+    if mode.startswith("HDR") and "dolby" in hdr_type.lower():
+        if addon.getSetting("keep_dv_area_on_hdr10") != "true":
+            return "hdr10"
+    return hdr_type
+
+
+def _hdr10_panel_stands_in_for_dv() -> bool:
+    """Return whether the HDR static-metadata panel is drawn for a DV source.
+
+    True only in the DV -> HDR10 case with ``keep_dv_area_on_hdr10`` off, where
+    the Dolby Vision panels are off screen and the HDR panel is left holding
+    rows a profile 5 stream has no static SEI for.  Reads the properties
+    ``publish_hdr_type`` refreshed at the top of this pass.
+    """
+    home = xbmcgui.Window(10000)
+    return (
+        "dolby" in home.getProperty("TinyPPI.HdrType").lower()
+        and home.getProperty("TinyPPI.EffectiveHdrType") == "hdr10"
+    )
+
+
 def publish_hdr_type(home=None) -> None:
     """Publish the detected source HDR type as ``TinyPPI.HdrType`` on the Home
-    window, for the overlay and mode-select dialog to branch on.
+    window, plus the type the overlay layout follows as
+    ``TinyPPI.EffectiveHdrType``.
 
     HDR10+ is published as ``hdr10plus`` because Kodi's boolean parser treats
     ``+`` as AND; it still contains ``hdr10`` so ``String.Contains`` branches match.
+
+    The two differ once VS10 converts (see ``_effective_hdr_type``): the source
+    stays HDR / DV -- the mode-select dialog and the ``Converting`` row need it
+    to name what is being converted -- while the overlay follows the output.
     """
     hdr_type = get_hdr_format()
     if hdr_type == "hdr10+":
         hdr_type = "hdr10plus"
-    (home or xbmcgui.Window(10000)).setProperty("TinyPPI.HdrType", hdr_type)
+    home = home or xbmcgui.Window(10000)
+    home.setProperty("TinyPPI.HdrType", hdr_type)
+    home.setProperty("TinyPPI.EffectiveHdrType", _effective_hdr_type(hdr_type))
 
 
 def _set_progress(window, values: tuple[tuple[int, float], ...]) -> None:
@@ -799,8 +853,13 @@ def publish_properties(window) -> None:
     source_max          = _with_unit(_separated(get_source_max()), unit)
     l6_rpu_mdl          = _with_unit(_separated(get_l6_rpu_mdl()), unit)
     l6_rpu_max_cll_fall = _with_unit(_separated(get_l6_rpu_max_cll_fall()), unit)
-    hdr10_mdl           = _with_unit(_separated(get_hdr10_mdl()), unit)
-    hdr10_max_cll_fall  = _with_unit(_separated(get_hdr10_max_cll_fall()), unit)
+    # Only while the HDR panel stands in for the Dolby Vision one may the static
+    # rows borrow L6; the DV panel itself prints both as separate rows.
+    l6_fallback         = _hdr10_panel_stands_in_for_dv()
+    hdr10_mdl           = _with_unit(_separated(get_hdr10_mdl(l6_fallback)), unit)
+    hdr10_max_cll_fall  = _with_unit(
+        _separated(get_hdr10_max_cll_fall(l6_fallback)), unit
+    )
 
     set_window_properties(
         window,

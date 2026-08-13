@@ -1182,3 +1182,23 @@ msgstr "RPU / BL"
 msgctxt "#32382"
 msgid "EL / Type"
 msgstr "EL / 类型"
+
+msgctxt "#32383"
+msgid "Converted output"
+msgstr "转换后的输出"
+
+msgctxt "#32384"
+msgid "Keep the HDR/DV area when converting to SDR"
+msgstr "转换为 SDR 时保留 HDR/DV 区域"
+
+msgctxt "#32385"
+msgid "Keeps the HDR static-metadata and Dolby Vision panels on screen while VS10 converts the source to SDR. Turn off to draw the overlay in its SDR layout instead."
+msgstr "在 VS10 将源转换为 SDR 期间，仍显示 HDR 静态元数据面板和杜比视界面板。关闭后，叠加层改用 SDR 布局。"
+
+msgctxt "#32386"
+msgid "Keep the Dolby Vision area when converting to HDR10"
+msgstr "转换为 HDR10 时保留杜比视界区域"
+
+msgctxt "#32387"
+msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
+msgstr "在 VS10 将杜比视界源转换为 HDR10 期间，仍显示杜比视界面板。关闭后，改为显示 HDR 静态元数据面板。"

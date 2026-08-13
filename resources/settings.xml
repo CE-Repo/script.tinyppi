@@ -98,6 +98,18 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
+            <group id="5" label="32383">
+                <setting id="keep_area_on_sdr" type="boolean" label="32384" help="32385">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="keep_dv_area_on_hdr10" type="boolean" label="32386" help="32387">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle" />
+                </setting>
+            </group>
         </category>
         <category id="TinyPPIOverlay" label="32327" help="32101">
             <group id="1" label="32269">
