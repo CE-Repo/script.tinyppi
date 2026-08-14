@@ -1214,3 +1214,19 @@ msgstr "杜比视界元数据"
 msgctxt "#32390"
 msgid "OK: back to TinyPPI     Back: close"
 msgstr "OK：返回 TinyPPI     返回：关闭"
+
+msgctxt "#32391"
+msgid "Debug"
+msgstr "调试"
+
+msgctxt "#32392"
+msgid "Diagnostic views for reading what a stream actually carries. Off by default; nothing here changes playback."
+msgstr "用于查看数据流实际携带内容的诊断视图。默认关闭；其中的选项不会改变播放。"
+
+msgctxt "#32393"
+msgid "Dolby Vision metadata view"
+msgstr "杜比视界元数据视图"
+
+msgctxt "#32394"
+msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK returns to the normal TinyPPI view, Back closes TinyPPI. On any other source OK does nothing."
+msgstr "在 TinyPPI 叠加层打开且正在播放杜比视界源时，按 OK 打开杜比视界元数据视图。它会列出该数据流附加数据中的每个块——配置记录、从头部到 L11 的 RPU、修剪参数以及静态 SEI。再按 OK 返回普通 TinyPPI 视图，按返回关闭 TinyPPI。其他源按 OK 无效。"

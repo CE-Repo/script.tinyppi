@@ -1214,3 +1214,19 @@ msgstr ""
 msgctxt "#32390"
 msgid "OK: back to TinyPPI     Back: close"
 msgstr ""
+
+msgctxt "#32391"
+msgid "Debug"
+msgstr ""
+
+msgctxt "#32392"
+msgid "Diagnostic views for reading what a stream actually carries. Off by default; nothing here changes playback."
+msgstr ""
+
+msgctxt "#32393"
+msgid "Dolby Vision metadata view"
+msgstr ""
+
+msgctxt "#32394"
+msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK returns to the normal TinyPPI view, Back closes TinyPPI. On any other source OK does nothing."
+msgstr ""

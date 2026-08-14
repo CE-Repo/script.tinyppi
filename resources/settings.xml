@@ -5001,5 +5001,14 @@
                 </setting>
             </group>
         </category>
+        <category id="Debug" label="32391" help="32392">
+            <group id="1" label="32389">
+                <setting id="dv_debug_view" type="boolean" label="32393" help="32394">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle" />
+                </setting>
+            </group>
+        </category>
     </section>
 </settings>

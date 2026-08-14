@@ -1214,3 +1214,19 @@ msgstr "Dolby-Vision-Metadaten"
 msgctxt "#32390"
 msgid "OK: back to TinyPPI     Back: close"
 msgstr "OK: zurück zu TinyPPI     Zurück: schließen"
+
+msgctxt "#32391"
+msgid "Debug"
+msgstr "Debug"
+
+msgctxt "#32392"
+msgid "Diagnostic views for reading what a stream actually carries. Off by default; nothing here changes playback."
+msgstr "Diagnoseansichten, die zeigen, was ein Stream tatsächlich mitbringt. Standardmäßig aus; nichts davon verändert die Wiedergabe."
+
+msgctxt "#32393"
+msgid "Dolby Vision metadata view"
+msgstr "Dolby-Vision-Metadatenansicht"
+
+msgctxt "#32394"
+msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK returns to the normal TinyPPI view, Back closes TinyPPI. On any other source OK does nothing."
+msgstr "Öffnet mit OK die Dolby-Vision-Metadatenansicht, während das TinyPPI-Overlay offen ist und eine Dolby-Vision-Quelle läuft. Sie listet jeden Block auf, den die SideData des Streams enthält – den Konfigurationsdatensatz, die RPU vom Header bis L11, die Trim-Durchgänge und die statischen SEIs. OK kehrt zur normalen TinyPPI-Ansicht zurück, Zurück schließt TinyPPI. Bei anderen Quellen bewirkt OK nichts."

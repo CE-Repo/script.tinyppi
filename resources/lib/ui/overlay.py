@@ -147,6 +147,17 @@ def _preflight(home, player, toggle_log: str) -> bool:
     return not _dialog_lock
 
 
+def _dv_debug_enabled() -> bool:
+    """Return whether OK may open the Dolby Vision metadata view.
+
+    Off out of the box: OK does nothing on the overlay until someone turns the
+    view on under Debug, so the key keeps behaving as it always has for anyone
+    who has no use for the metadata.  A fresh ``Addon()`` avoids the cached
+    settings, so the toggle applies to a session already under way.
+    """
+    return xbmcaddon.Addon().getSettingBool("dv_debug_view")
+
+
 def _elements_visible() -> str:
     """Return the "1"/"0" flag for the header title, header icon and separator
     lines: they follow the background and hide only when it is fully transparent."""
@@ -328,8 +339,9 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
     def _open_dv_debug(self) -> None:
         """Hand over to the Dolby Vision debug view.
 
-        Only for a Dolby Vision source -- on anything else there is no side
-        data to show and OK keeps doing nothing.
+        Only when the debug setting is on, and only for a Dolby Vision source
+        -- on anything else there is no side data to show, and OK keeps doing
+        what it did before either way, which is nothing.
 
         The view is not opened from here: open_tinyppi() opens it once this
         window is gone.  A modal opened from inside a callback would nest
@@ -337,7 +349,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         what the VS10 dialog does with a picked mode, for the same reason --
         an action fired while a modal is still closing is dropped.
         """
-        if not self._is_dv_source():
+        if not _dv_debug_enabled() or not self._is_dv_source():
             return
         self.next_view = _VIEW_DV_DEBUG
         self.close_dialog()

@@ -174,12 +174,17 @@ simply omit the image.
 
 ## Dolby Vision Metadata View
 
-While a **Dolby Vision** source is playing, pressing **OK** on the open TinyPPI
-overlay switches to a debug view listing everything the stream's side data
-carries — far more than the overlay itself has room for. Pressing **OK** again
-switches back to the normal TinyPPI view; **Back** closes TinyPPI altogether.
-Up/Down scroll through the list, which refreshes once a second, so the
-per-frame blocks follow the picture.
+Enable **Settings → Debug → Dolby Vision metadata view** first; it is off out of
+the box, and while it is off **OK** on the overlay does nothing, exactly as
+before.
+
+With it on, pressing **OK** on the open TinyPPI overlay during a **Dolby
+Vision** source switches to a debug view listing everything the stream's side
+data carries — far more than the overlay itself has room for. Pressing **OK**
+again switches back to the normal TinyPPI view; **Back** closes TinyPPI
+altogether. Up/Down scroll through the list, which refreshes once a second, so
+the per-frame blocks follow the picture. On any other source **OK** keeps doing
+nothing: there is no Dolby Vision side data to show.
 
 The view is grouped by metadata block:
 
