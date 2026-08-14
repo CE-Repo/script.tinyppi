@@ -63,6 +63,10 @@ _NUDGE_ACTIONS = {
     xbmcgui.ACTION_MOVE_DOWN:  (0, _NUDGE_STEP),
 }
 
+# The view open_tinyppi() shows next once the current one closes.  OK switches
+# between the two on a Dolby Vision source; anything else ends the session.
+_VIEW_DV_DEBUG = "dv_debug"
+
 
 def _is_coreelec() -> bool:
     """Return True when running on a CoreELEC installation."""
@@ -178,6 +182,8 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._nudge     = (0, 0)
         self._dv_channel_offset = None
         self._refresh_failed    = False
+        # Read by open_tinyppi() once doModal() returns; see _open_dv_debug.
+        self.next_view  = None
 
     def onInit(self) -> None:
         self._running   = True
@@ -220,6 +226,17 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
     def _is_dv(self) -> bool:
         return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.EffectiveHdrType").lower()
+
+    @staticmethod
+    def _is_dv_source() -> bool:
+        """Whether the stream itself is Dolby Vision, which is what decides
+        there is anything for the debug view to show.
+
+        The source type, not the effective one the layout follows: VS10 may be
+        converting the picture to SDR or HDR10, but the side data still
+        describes the Dolby Vision stream being decoded.
+        """
+        return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.HdrType").lower()
 
     def _has_channels(self) -> bool:
         """Mirror the skin's visibility condition for the channel variant."""
@@ -301,9 +318,29 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         if action_id in (xbmcgui.ACTION_PREVIOUS_MENU, xbmcgui.ACTION_NAV_BACK):
             self.close_dialog()
             return
+        if action_id == xbmcgui.ACTION_SELECT_ITEM:
+            self._open_dv_debug()
+            return
         step = _NUDGE_ACTIONS.get(action_id)
         if step:
             self._move(*step)
+
+    def _open_dv_debug(self) -> None:
+        """Hand over to the Dolby Vision debug view.
+
+        Only for a Dolby Vision source -- on anything else there is no side
+        data to show and OK keeps doing nothing.
+
+        The view is not opened from here: open_tinyppi() opens it once this
+        window is gone.  A modal opened from inside a callback would nest
+        inside the loop that dispatched the callback, and the same deferral is
+        what the VS10 dialog does with a picked mode, for the same reason --
+        an action fired while a modal is still closing is dropped.
+        """
+        if not self._is_dv_source():
+            return
+        self.next_view = _VIEW_DV_DEBUG
+        self.close_dialog()
 
     def _start_update_loop(self) -> None:
         t = threading.Thread(target=self._update_loop, daemon=True)
@@ -365,8 +402,41 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 # Entry points
 # ---------------------------------------------------------------------------
 
+def _show_overlay(home) -> str | None:
+    """Show the overlay window once, and return the view it handed over to.
+
+    None when the overlay was simply closed, which ends the session.
+    """
+    # Marks the overlay itself as on screen, which the codec-logo splash
+    # follows.  Set per showing, not once per session: the overlay clears it as
+    # it closes, including when it closes to hand over to the debug view, and
+    # the splash belongs with the overlay rather than with that view.
+    home.setProperty(PROP_ACTIVE, "true")
+
+    dialog = TinyPPIDialog(
+        "script-tinyppi-main.xml",
+        _ADDON_PATH,
+        "Default",
+        "1080i",
+    )
+    # Fill the window before Kodi draws it.  onInit() is dispatched to the
+    # script thread only once the window is up and fading in, so anything
+    # published there arrives after the viewer is already looking at the
+    # rows; done here, the first frame carries the values.  Properties only
+    # -- the controls the full refresh touches do not exist yet.
+    properties.publish_properties(dialog)
+    dialog.doModal()
+    next_view = dialog.next_view
+    del dialog
+    return next_view
+
+
 def open_tinyppi() -> None:
-    """Validate the environment and open the overlay window.
+    """Validate the environment and show TinyPPI until the viewer closes it.
+
+    The overlay is the view it opens with; on a Dolby Vision source OK switches
+    to the metadata debug view and back, so this runs until one of them is
+    closed for good rather than handing over to the other.
 
     Skips silently on non-CoreELEC (unless ``_ALLOW_NON_COREELEC``), Kodi < 22,
     a 720p skin, no fullscreen video, or nothing playing; toggle-closes when the
@@ -399,20 +469,12 @@ def open_tinyppi() -> None:
     apply_theme(home, _ADDON)
 
     try:
-        dialog = TinyPPIDialog(
-            "script-tinyppi-main.xml",
-            _ADDON_PATH,
-            "Default",
-            "1080i",
-        )
-        # Fill the window before Kodi draws it.  onInit() is dispatched to the
-        # script thread only once the window is up and fading in, so anything
-        # published there arrives after the viewer is already looking at the
-        # rows; done here, the first frame carries the values.  Properties only
-        # -- the controls the full refresh touches do not exist yet.
-        properties.publish_properties(dialog)
-        dialog.doModal()
-        del dialog
+        while _show_overlay(home) == _VIEW_DV_DEBUG:
+            # Loaded on the first hand-over, so a session that never opens the
+            # debug view never pays for it.
+            from ui.dvdebug import open_dv_debug
+            if not open_dv_debug():
+                break
     finally:
         _release_overlay(home)
 

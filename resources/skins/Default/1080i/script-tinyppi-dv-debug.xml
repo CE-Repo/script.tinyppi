@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window type="dialog">
+    <defaultcontrol always="true">6000</defaultcontrol>
+    <onload>Dialog.Close(fullscreenvideo,true)</onload>
+    <onload>Dialog.Close(videoosd,true)</onload>
+    <onload>Dialog.Close(seekbar,true)</onload>
+    <onload>Dialog.Close(1159,true)</onload>
+    <animation effect="fade" start="0" end="100" time="200" tween="cubic" easing="inout">WindowOpen</animation>
+    <animation effect="fade" end="0" start="100" time="150">WindowClose</animation>
+    <controls>
+        <!-- Global background -->
+        <control type="image">
+            <left>0</left>
+            <top>0</top>
+            <width>1920</width>
+            <height>1080</height>
+            <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogGlobalBackgroundColor)]">common/dot-1x1.png</texture>
+        </control>
+
+        <control type="group">
+            <left>315</left>
+            <top>40</top>
+
+            <!-- Panel -->
+            <control type="group">
+                <left>0</left>
+                <top>0</top>
+                <width>23</width>
+                <height>1000</height>
+                <control type="image">
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogBackgroundColor)]">background/dialog-bg-start.png</texture>
+                </control>
+            </control>
+            <control type="image">
+                <left>23</left>
+                <top>0</top>
+                <width>1244</width>
+                <height>1000</height>
+                <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogBackgroundColor)]">common/dot-1x1.png</texture>
+            </control>
+            <control type="group">
+                <left>1267</left>
+                <top>0</top>
+                <width>23</width>
+                <height>1000</height>
+                <control type="image">
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogBackgroundColor)]">background/dialog-bg-end.png</texture>
+                </control>
+            </control>
+
+            <!-- Label -->
+            <control type="group">
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderTitle),1)</visible>
+                <left>35</left>
+                <top>37</top>
+                <control type="label">
+                    <label>[B]$ADDON[script.tinyppi 32389][/B]</label>
+                    <font>font32</font>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogHeaderColor)]</textcolor>
+                    <aligny>top</aligny>
+                </control>
+            </control>
+
+            <!-- Dolby Vision logo icon -->
+            <control type="group">
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderIcon),1)</visible>
+                <left>1150</left>
+                <top>45</top>
+                <control type="image">
+                    <width>105</width>
+                    <height>32</height>
+                    <aspectratio align="right" aligny="top">keep</aspectratio>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogHeaderIconColor)]">icons/dv-logo.png</texture>
+                </control>
+            </control>
+
+            <!-- Line / Top -->
+            <control type="group">
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
+                <left>35</left>
+                <top>120</top>
+                <control type="image">
+                    <width>1220</width>
+                    <height>1</height>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogLineColor)]">common/dot-1x1.png</texture>
+                </control>
+            </control>
+
+            <!-- Metadata rows -->
+            <control type="list" id="6000">
+                <left>35</left>
+                <top>150</top>
+                <width>1195</width>
+                <height>750</height>
+                <onup>6000</onup>
+                <ondown>6000</ondown>
+                <onleft>6000</onleft>
+                <onright>6000</onright>
+                <pagecontrol>6001</pagecontrol>
+                <scrolltime tween="sine" easing="out">200</scrolltime>
+
+                <!-- Section heading.  Every layout is the same 30 px high: a
+                     list container scrolls by one uniform item size, so rows
+                     of different heights would drift out of step with it. -->
+                <itemlayout height="30" condition="String.IsEqual(ListItem.Property(kind),section)">
+                    <control type="label">
+                        <left>0</left>
+                        <top>0</top>
+                        <width>1195</width>
+                        <height>30</height>
+                        <label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="image">
+                        <left>0</left>
+                        <top>28</top>
+                        <width>1195</width>
+                        <height>1</height>
+                        <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogLineColor)]">common/dot-1x1.png</texture>
+                    </control>
+                </itemlayout>
+                <focusedlayout height="30" condition="String.IsEqual(ListItem.Property(kind),section)">
+                    <control type="image">
+                        <left>-10</left>
+                        <top>-2</top>
+                        <width>1215</width>
+                        <height>32</height>
+                        <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogLineColor)]">common/dot-1x1.png</texture>
+                    </control>
+                    <control type="label">
+                        <left>0</left>
+                        <top>0</top>
+                        <width>1195</width>
+                        <height>30</height>
+                        <label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                </focusedlayout>
+
+                <!-- Full-width row: one line carrying a whole set of readings -->
+                <itemlayout height="30" condition="String.IsEqual(ListItem.Property(kind),wide)">
+                    <control type="label">
+                        <left>0</left>
+                        <top>0</top>
+                        <width>1195</width>
+                        <height>30</height>
+                        <label>$INFO[ListItem.Label2]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                </itemlayout>
+                <focusedlayout height="30" condition="String.IsEqual(ListItem.Property(kind),wide)">
+                    <control type="image">
+                        <left>-10</left>
+                        <top>-2</top>
+                        <width>1215</width>
+                        <height>32</height>
+                        <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogLineColor)]">common/dot-1x1.png</texture>
+                    </control>
+                    <control type="label">
+                        <left>0</left>
+                        <top>0</top>
+                        <width>1195</width>
+                        <height>30</height>
+                        <label>$INFO[ListItem.Label2]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                </focusedlayout>
+
+                <!-- Name / value row -->
+                <itemlayout height="30">
+                    <control type="label">
+                        <left>0</left>
+                        <top>0</top>
+                        <width>420</width>
+                        <height>30</height>
+                        <label>$INFO[ListItem.Label]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>420</left>
+                        <top>0</top>
+                        <width>775</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Label2]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                </itemlayout>
+                <focusedlayout height="30">
+                    <control type="image">
+                        <left>-10</left>
+                        <top>-2</top>
+                        <width>1215</width>
+                        <height>32</height>
+                        <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogLineColor)]">common/dot-1x1.png</texture>
+                    </control>
+                    <control type="label">
+                        <left>0</left>
+                        <top>0</top>
+                        <width>420</width>
+                        <height>30</height>
+                        <label>$INFO[ListItem.Label]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>420</left>
+                        <top>0</top>
+                        <width>775</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Label2]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                </focusedlayout>
+            </control>
+
+            <!-- Scroll position -->
+            <control type="scrollbar" id="6001">
+                <left>1243</left>
+                <top>150</top>
+                <width>6</width>
+                <height>750</height>
+                <orientation>vertical</orientation>
+                <showonepage>false</showonepage>
+                <texturesliderbackground colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogLineColor)]">common/dot-1x1.png</texturesliderbackground>
+                <texturesliderbar colordiffuse="$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]">common/dot-1x1.png</texturesliderbar>
+                <texturesliderbarfocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]">common/dot-1x1.png</texturesliderbarfocus>
+                <textureslidernib colordiffuse="$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]">common/dot-1x1.png</textureslidernib>
+                <textureslidernibfocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]">common/dot-1x1.png</textureslidernibfocus>
+            </control>
+
+            <!-- Line / Bottom -->
+            <control type="group">
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
+                <left>35</left>
+                <top>925</top>
+                <control type="image">
+                    <width>1220</width>
+                    <height>1</height>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogLineColor)]">common/dot-1x1.png</texture>
+                </control>
+            </control>
+
+            <!-- Key hint -->
+            <control type="label">
+                <left>35</left>
+                <top>945</top>
+                <width>1220</width>
+                <height>30</height>
+                <align>center</align>
+                <label>$ADDON[script.tinyppi 32390]</label>
+                <font>font23_narrow</font>
+                <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                <aligny>top</aligny>
+            </control>
+        </control>
+    </controls>
+</window>

@@ -101,6 +101,7 @@ _latched: dict[str, str] = {}
 _lock              = threading.Lock()
 _snapshot_key      = None
 _snapshot_info: dict[str, str] = dict.fromkeys(_FIELDS, "")
+_snapshot_parsed: dict | None  = None
 _snapshot_playing  = False
 _snapshot_until    = 0.0
 
@@ -180,8 +181,12 @@ def _parse(raw: str) -> dict:
     return parsed if isinstance(parsed, dict) else _empty_sidedata()
 
 
-def _derive(key: tuple[str, str, str]) -> dict[str, str]:
+def _derive(key: tuple[str, str, str]) -> tuple[dict | None, dict[str, str]]:
     """Parse one raw payload and derive the fields, never raising.
+
+    Returns the parse result alongside the derived fields, so a caller after
+    the whole structure (the Dolby Vision debug view prints every block of it)
+    shares this one parse instead of running libdovi a second time.
 
     ``parse_sidedata`` degrades rather than raising and ``_build_info`` only
     reads with ``.get``, so nothing here is expected to throw -- but the whole
@@ -192,8 +197,10 @@ def _derive(key: tuple[str, str, str]) -> dict[str, str]:
     """
     global _logged_derive_error
 
+    parsed = None
     try:
-        return _build_info(_parse(key[0]), key[1], key[2])
+        parsed = _parse(key[0])
+        return parsed, _build_info(parsed, key[1], key[2])
     except Exception as exc:
         if not _logged_derive_error:
             _logged_derive_error = True
@@ -202,7 +209,7 @@ def _derive(key: tuple[str, str, str]) -> dict[str, str]:
                 "DV/HDR fields stay empty for now",
                 xbmc.LOGWARNING,
             )
-        return _empty_info()
+        return parsed, _empty_info()
 
 
 def _hold_static(fields: dict[str, str]) -> None:
@@ -237,7 +244,8 @@ def _snapshot() -> tuple[dict[str, str], bool]:
     held for ``_SNAPSHOT_TTL``, so a polling pass costs one parse no matter how
     many fields it asks for.
     """
-    global _snapshot_key, _snapshot_info, _snapshot_playing, _snapshot_until
+    global _snapshot_key, _snapshot_info, _snapshot_parsed
+    global _snapshot_playing, _snapshot_until
 
     now = time.monotonic()
     with _lock:
@@ -249,6 +257,7 @@ def _snapshot() -> tuple[dict[str, str], bool]:
         with _lock:
             _snapshot_key     = None
             _snapshot_info    = empty
+            _snapshot_parsed  = None
             _snapshot_playing = False
             _snapshot_until   = now + _SNAPSHOT_TTL
             _latched.clear()
@@ -266,15 +275,33 @@ def _snapshot() -> tuple[dict[str, str], bool]:
             _snapshot_until   = now + _SNAPSHOT_TTL
             return _snapshot_info, True
 
-    fields = _derive(key)
+    parsed, fields = _derive(key)
 
     with _lock:
         _hold_static(fields)
         _snapshot_key     = key
         _snapshot_info    = fields
+        _snapshot_parsed  = parsed
         _snapshot_playing = True
         _snapshot_until   = time.monotonic() + _SNAPSHOT_TTL
     return fields, True
+
+
+def get_sidedata() -> dict | None:
+    """Return the parse result the current field values were derived from.
+
+    The compact fields above name one reading each; this hands out the whole
+    structure behind them, for the debug view that prints every block the side
+    data carries.  It comes from the same snapshot, so a view polling alongside
+    the overlay costs no extra parse.
+
+    ``None`` while no video is playing, and for a payload that did not parse at
+    all -- the sections it would have filled are simply absent, exactly as the
+    per-section ``None`` a partial parse yields.
+    """
+    _snapshot()
+    with _lock:
+        return _snapshot_parsed
 
 
 # --- Value formatting ------------------------------------------------------

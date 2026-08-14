@@ -1206,3 +1206,11 @@ msgstr ""
 msgctxt "#32388"
 msgid "Display"
 msgstr ""
+
+msgctxt "#32389"
+msgid "Dolby Vision metadata"
+msgstr ""
+
+msgctxt "#32390"
+msgid "OK: back to TinyPPI     Back: close"
+msgstr ""

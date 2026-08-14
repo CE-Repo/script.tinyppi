@@ -1206,3 +1206,11 @@ msgstr "Behält die Dolby-Vision-Panels auf dem Bildschirm, während VS10 eine D
 msgctxt "#32388"
 msgid "Display"
 msgstr "Anzeige"
+
+msgctxt "#32389"
+msgid "Dolby Vision metadata"
+msgstr "Dolby-Vision-Metadaten"
+
+msgctxt "#32390"
+msgid "OK: back to TinyPPI     Back: close"
+msgstr "OK: zurück zu TinyPPI     Zurück: schließen"

@@ -1206,3 +1206,11 @@ msgstr "A képernyőn tartja a Dolby Vision paneljeit, miközben a VS10 HDR10-re
 msgctxt "#32388"
 msgid "Display"
 msgstr "Megjelenítés"
+
+msgctxt "#32389"
+msgid "Dolby Vision metadata"
+msgstr "Dolby Vision metaadatok"
+
+msgctxt "#32390"
+msgid "OK: back to TinyPPI     Back: close"
+msgstr "OK: vissza a TinyPPI-hez     Vissza: bezárás"

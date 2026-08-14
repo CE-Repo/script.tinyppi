@@ -1206,3 +1206,11 @@ msgstr "在 VS10 将杜比视界源转换为 HDR10 期间，仍显示杜比视�
 msgctxt "#32388"
 msgid "Display"
 msgstr "显示"
+
+msgctxt "#32389"
+msgid "Dolby Vision metadata"
+msgstr "杜比视界元数据"
+
+msgctxt "#32390"
+msgid "OK: back to TinyPPI     Back: close"
+msgstr "OK：返回 TinyPPI     返回：关闭"
