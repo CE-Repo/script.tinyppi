@@ -1,4 +1,4 @@
-"""Dolby Vision debug view: everything the stream's side data carries.
+"""Dolby Vision metadata view: everything the stream's side data carries.
 
 The overlay shows the readings that fit its rows.  This view is the other half
 of that: pressing OK on a Dolby Vision source hands over to it, and it lists
@@ -7,7 +7,7 @@ configuration record, the RPU from its header through L11, the static SEIs --
 one line each, live, for the frame on screen.  OK hands back to the overlay,
 Back closes both (see ui.overlay.open_tinyppi, which switches between the two).
 
-The rows themselves come from info.dvdebug; this module is the window around
+The rows themselves come from info.dvmetadata; this module is the window around
 them: it fills the list, keeps it current, and gets out of the way again.  The
 one thing it says of its own accord is which readings just moved -- a refresh
 writes those in the highlight color for as long as they keep moving, so a list
@@ -22,12 +22,12 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-from info import dvdebug
+from info import dvmetadata
 
 _ADDON      = xbmcaddon.Addon()
 _ADDON_PATH = _ADDON.getAddonInfo("path")
 
-# The list holding the metadata rows (see script-tinyppi-dv-debug.xml).
+# The list holding the metadata rows (see script-tinyppi-dv-metadata.xml).
 _LIST = 6000
 
 # Home window, where ui.theme publishes the colors the skin resolves.
@@ -36,9 +36,9 @@ _HOME = 10000
 # A reading that moved since the last refresh is written in this color for the
 # one second it stays changed, so the eye finds what is live among rows that
 # mostly stand still -- the trims and the frame luminance move with the
-# picture, the title-level blocks do not.  Its own setting (Debug -> Changed
+# picture, the title-level blocks do not.  Its own setting (Metadata -> Changed
 # values), published by ui.theme like every other color.
-_CHANGED_COLOR = "TinyPPI.DebugChangedColor"
+_CHANGED_COLOR = "TinyPPI.MetadataChangedColor"
 
 # Used when that property is not published, which means apply_theme never ran.
 # The highlighting is the whole point of a view that refreshes, so a missing
@@ -167,18 +167,18 @@ def _areas(rows: list) -> list:
     it is spacing, not something to land on.
     """
     starts = [index for index, (kind, _name, _value) in enumerate(rows)
-              if kind == dvdebug.SECTION]
+              if kind == dvmetadata.SECTION]
     areas = []
     for position, start in enumerate(starts):
         end = (starts[position + 1] - 1 if position + 1 < len(starts)
                else len(rows) - 1)
-        while end > start and rows[end][0] == dvdebug.SPACE:
+        while end > start and rows[end][0] == dvmetadata.SPACE:
             end -= 1
         areas.append((start, rows[start][1], end))
     return areas
 
 
-class DVDebugDialog(xbmcgui.WindowXMLDialog):
+class DVMetadataDialog(xbmcgui.WindowXMLDialog):
     """The metadata list.  Closes on OK (back to the overlay), on Back, and on
     its own once playback stops or leaves the fullscreen video window.
 
@@ -208,7 +208,7 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
         # them (see _focus_area).
         self._areas: list = []
         self._area_title  = ""
-        # Read by open_dv_debug() once doModal() returns: True when the viewer
+        # Read by open_dv_metadata() once doModal() returns: True when the viewer
         # asked for the overlay back rather than for the overlay to end.
         self.back_to_overlay = False
 
@@ -219,7 +219,7 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
         # builds the window, a list has to be filled through its control -- so
         # the first fill happens here, under the opening fade.
         try:
-            self._fill(dvdebug.build_rows())
+            self._fill(dvmetadata.build_rows())
         except Exception as exc:
             self._log_refresh_failure(exc)
         self.setFocusId(_LIST)
@@ -236,11 +236,11 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
         refresh, so a column that goes away has to be emptied rather than left
         holding what it said last.
         """
-        if kind not in (dvdebug.HEADINGS, dvdebug.COLUMNS):
+        if kind not in (dvmetadata.HEADINGS, dvmetadata.COLUMNS):
             item.setLabel2(label)
             return
-        prefix = _CELL_HEADING if kind == dvdebug.HEADINGS else _CELL_VALUE
-        for position in range(dvdebug.MAX_COLUMNS):
+        prefix = _CELL_HEADING if kind == dvmetadata.HEADINGS else _CELL_VALUE
+        for position in range(dvmetadata.MAX_COLUMNS):
             item.setProperty(
                 f"{prefix}{position}",
                 label[position] if position < len(label) else "",
@@ -263,13 +263,13 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
         which is what puts each in a fixed column.  A blank row fills nothing.
         """
         kind, name, _value = row
-        named = kind in (dvdebug.ROW, dvdebug.HEADINGS, dvdebug.COLUMNS)
+        named = kind in (dvmetadata.ROW, dvmetadata.HEADINGS, dvmetadata.COLUMNS)
         item = xbmcgui.ListItem(name if named else "", "")
-        if kind == dvdebug.SECTION:
+        if kind == dvmetadata.SECTION:
             item.setProperty("head", name)
             item.setProperty("rule", _RULE_TEXTURE)
-        elif kind in (dvdebug.ROW, dvdebug.WIDE, dvdebug.HEADINGS,
-                      dvdebug.COLUMNS):
+        elif kind in (dvmetadata.ROW, dvmetadata.WIDE, dvmetadata.HEADINGS,
+                      dvmetadata.COLUMNS):
             cls._write(item, kind, label)
         return item
 
@@ -435,7 +435,7 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
                     break
 
                 try:
-                    self._fill(dvdebug.build_rows())
+                    self._fill(dvmetadata.build_rows())
                 except Exception as exc:
                     self._log_refresh_failure(exc)
 
@@ -453,16 +453,16 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
             return
         self._refresh_failed = True
         xbmc.log(
-            f"TinyPPI: DV debug refresh failed, continuing with the last "
+            f"TinyPPI: DV metadata refresh failed, continuing with the last "
             f"values: {exc}",
             xbmc.LOGWARNING,
         )
 
 
-def open_dv_debug() -> bool:
-    """Show the debug view; True when OK asked for the overlay back."""
-    dialog = DVDebugDialog(
-        "script-tinyppi-dv-debug.xml",
+def open_dv_metadata() -> bool:
+    """Show the metadata view; True when OK asked for the overlay back."""
+    dialog = DVMetadataDialog(
+        "script-tinyppi-dv-metadata.xml",
         _ADDON_PATH,
         "Default",
         "1080i",

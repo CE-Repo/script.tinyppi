@@ -67,7 +67,7 @@ _NUDGE_ACTIONS = {
 
 # The view open_tinyppi() shows next once the current one closes.  OK switches
 # between the two on a Dolby Vision source; anything else ends the session.
-_VIEW_DV_DEBUG = "dv_debug"
+_VIEW_DV_METADATA = "dv_metadata"
 
 
 def _is_coreelec() -> bool:
@@ -149,15 +149,15 @@ def _preflight(home, player, toggle_log: str) -> bool:
     return not _dialog_lock
 
 
-def _dv_debug_enabled() -> bool:
+def _dv_metadata_enabled() -> bool:
     """Return whether OK may open the Dolby Vision metadata view.
 
     Off out of the box: OK does nothing on the overlay until someone turns the
-    view on under Debug, so the key keeps behaving as it always has for anyone
+    view on under Metadata, so the key keeps behaving as it always has for anyone
     who has no use for the metadata.  A fresh ``Addon()`` avoids the cached
     settings, so the toggle applies to a session already under way.
     """
-    return xbmcaddon.Addon().getSettingBool("dv_debug_view")
+    return xbmcaddon.Addon().getSettingBool("dv_metadata_view")
 
 
 def _nudge_enabled() -> bool:
@@ -208,7 +208,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._nudge_on  = False
         self._dv_channel_offset = None
         self._refresh_failed    = False
-        # Read by open_tinyppi() once doModal() returns; see _open_dv_debug.
+        # Read by open_tinyppi() once doModal() returns; see _open_dv_metadata.
         self.next_view  = None
 
     def onInit(self) -> None:
@@ -257,7 +257,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
     @staticmethod
     def _is_dv_source() -> bool:
         """Whether the stream itself is Dolby Vision, which is what decides
-        there is anything for the debug view to show.
+        there is anything for the metadata view to show.
 
         The source type, not the effective one the layout follows: VS10 may be
         converting the picture to SDR or HDR10, but the side data still
@@ -346,7 +346,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
             self.close_dialog()
             return
         if action_id == xbmcgui.ACTION_SELECT_ITEM:
-            self._open_dv_debug()
+            self._open_dv_metadata()
             return
         if not self._nudge_on:
             return
@@ -354,10 +354,10 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         if step:
             self._move(*step)
 
-    def _open_dv_debug(self) -> None:
-        """Hand over to the Dolby Vision debug view.
+    def _open_dv_metadata(self) -> None:
+        """Hand over to the Dolby Vision metadata view.
 
-        Only when the debug setting is on, and only for a Dolby Vision source
+        Only when the metadata setting is on, and only for a Dolby Vision source
         -- on anything else there is no side data to show, and OK keeps doing
         what it did before either way, which is nothing.
 
@@ -367,9 +367,9 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         what the VS10 dialog does with a picked mode, for the same reason --
         an action fired while a modal is still closing is dropped.
         """
-        if not _dv_debug_enabled() or not self._is_dv_source():
+        if not _dv_metadata_enabled() or not self._is_dv_source():
             return
-        self.next_view = _VIEW_DV_DEBUG
+        self.next_view = _VIEW_DV_METADATA
         self.close_dialog()
 
     def _start_update_loop(self) -> None:
@@ -439,7 +439,7 @@ def _show_overlay(home) -> str | None:
     """
     # Marks the overlay itself as on screen, which the codec-logo splash
     # follows.  Set per showing, not once per session: the overlay clears it as
-    # it closes, including when it closes to hand over to the debug view, and
+    # it closes, including when it closes to hand over to the metadata view, and
     # the splash belongs with the overlay rather than with that view.
     home.setProperty(PROP_ACTIVE, "true")
 
@@ -465,7 +465,7 @@ def open_tinyppi() -> None:
     """Validate the environment and show TinyPPI until the viewer closes it.
 
     The overlay is the view it opens with; on a Dolby Vision source OK switches
-    to the metadata debug view and back, so this runs until one of them is
+    to the metadata metadata view and back, so this runs until one of them is
     closed for good rather than handing over to the other.
 
     Skips silently on non-CoreELEC (unless ``_ALLOW_NON_COREELEC``), Kodi < 22,
@@ -499,11 +499,11 @@ def open_tinyppi() -> None:
     apply_theme(home, _ADDON)
 
     try:
-        while _show_overlay(home) == _VIEW_DV_DEBUG:
+        while _show_overlay(home) == _VIEW_DV_METADATA:
             # Loaded on the first hand-over, so a session that never opens the
-            # debug view never pays for it.
-            from ui.dvdebug import open_dv_debug
-            if not open_dv_debug():
+            # metadata view never pays for it.
+            from ui.dvmetadata import open_dv_metadata
+            if not open_dv_metadata():
                 break
     finally:
         _release_overlay(home)

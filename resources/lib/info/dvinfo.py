@@ -185,7 +185,7 @@ def _derive(key: tuple[str, str, str]) -> tuple[dict | None, dict[str, str]]:
     """Parse one raw payload and derive the fields, never raising.
 
     Returns the parse result alongside the derived fields, so a caller after
-    the whole structure (the Dolby Vision debug view prints every block of it)
+    the whole structure (the Dolby Vision metadata view prints every block of it)
     shares this one parse instead of running libdovi a second time.
 
     ``parse_sidedata`` degrades rather than raising and ``_build_info`` only
@@ -291,7 +291,7 @@ def get_sidedata() -> dict | None:
     """Return the parse result the current field values were derived from.
 
     The compact fields above name one reading each; this hands out the whole
-    structure behind them, for the debug view that prints every block the side
+    structure behind them, for the metadata view that prints every block the side
     data carries.  It comes from the same snapshot, so a view polling alongside
     the overlay costs no extra parse.
 

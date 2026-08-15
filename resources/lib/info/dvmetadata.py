@@ -1,12 +1,12 @@
-"""Row model for the Dolby Vision debug view.
+"""Row model for the Dolby Vision metadata view.
 
 ``dvinfo`` picks the handful of readings the overlay has room for and formats
 each one for its row.  This module does the opposite: it walks the whole parse
 result ``script.module.sidedata`` returns -- flags, structure, the dvcC/dvvC
 configuration record, every RPU block from the header through L11, and the
 static MDCV / CLL SEIs (plus the HDR10+ payload when the stream carries one) --
-and lays it out as ``(kind, name, value)`` rows for ui.dvdebug to put in a list.
-Nothing is left out and nothing is interpreted: the debug view is where you go
+and lays it out as ``(kind, name, value)`` rows for ui.dvmetadata to put in a list.
+Nothing is left out and nothing is interpreted: the metadata view is where you go
 to see what the bitstream actually says.
 
 Field names, units and value scalings follow the module's own FIELDS.md, so a
@@ -27,7 +27,7 @@ import xbmcaddon
 
 from info.dvinfo import get_sidedata
 
-# Row kinds, which ui.dvdebug turns into the fields of a list item: a heading,
+# Row kinds, which ui.dvmetadata turns into the fields of a list item: a heading,
 # a name / value pair, one line of text across the full width -- for a value
 # with no name worth giving it, which needs the name column's room too -- and
 # an empty row.
@@ -545,7 +545,7 @@ def _hdr10plus_pairs(hdr10plus: dict) -> list:
 # --- Row model -------------------------------------------------------------
 
 def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
-    """Return the debug view's rows for the frame on screen.
+    """Return the metadata view's rows for the frame on screen.
 
     Reads the current side data unless a parse result is passed in.  Every
     section is laid out in the same order every time, but only the readings the

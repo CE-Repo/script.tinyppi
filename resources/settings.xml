@@ -1661,16 +1661,16 @@
                 </setting>
             </group>
         </category>
-        <category id="Debug" label="32391" help="32392">
+        <category id="Metadata" label="32391" help="32392">
             <group id="1" label="32389">
-                <setting id="dv_debug_view" type="boolean" label="32393" help="32394">
+                <setting id="dv_metadata_view" type="boolean" label="32393" help="32394">
                     <level>0</level>
                     <default>true</default>
                     <control type="toggle" />
                 </setting>
             </group>
             <group id="2" label="32269">
-                <setting id="debug_global_background_color" type="integer" label="32269" help="32401">
+                <setting id="metadata_global_background_color" type="integer" label="32269" help="32401">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -1730,21 +1730,21 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="debug_global_background_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="metadata_global_background_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="debug_global_background_color">999</condition>
+                            <condition operator="is" setting="metadata_global_background_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_global_background_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,metadata_global_background_color)</data>
                     </control>
                 </setting>
-                <setting id="debug_global_background_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_global_background_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -1756,7 +1756,7 @@
                 </setting>
             </group>
             <group id="3" label="32103">
-                <setting id="debug_background_color" type="integer" label="32103" help="32403">
+                <setting id="metadata_background_color" type="integer" label="32103" help="32403">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -1816,21 +1816,21 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="debug_background_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="metadata_background_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="debug_background_color">999</condition>
+                            <condition operator="is" setting="metadata_background_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_background_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,metadata_background_color)</data>
                     </control>
                 </setting>
-                <setting id="debug_background_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_background_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>98</default>
                     <constraints>
@@ -1842,7 +1842,7 @@
                 </setting>
             </group>
             <group id="4" label="32342">
-                <setting id="debug_header_color" type="integer" label="32342" help="32405">
+                <setting id="metadata_header_color" type="integer" label="32342" help="32405">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -1902,21 +1902,21 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="debug_header_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="metadata_header_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="debug_header_color">999</condition>
+                            <condition operator="is" setting="metadata_header_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_header_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,metadata_header_color)</data>
                     </control>
                 </setting>
-                <setting id="debug_header_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_header_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1928,7 +1928,7 @@
                 </setting>
             </group>
             <group id="5" label="32144">
-                <setting id="debug_header_icon_color" type="integer" label="32144" help="32407">
+                <setting id="metadata_header_icon_color" type="integer" label="32144" help="32407">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -1988,21 +1988,21 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="debug_header_icon_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="metadata_header_icon_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="debug_header_icon_color">999</condition>
+                            <condition operator="is" setting="metadata_header_icon_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_header_icon_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,metadata_header_icon_color)</data>
                     </control>
                 </setting>
-                <setting id="debug_header_icon_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_header_icon_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -2014,7 +2014,7 @@
                 </setting>
             </group>
             <group id="6" label="32105">
-                <setting id="debug_title_color" type="integer" label="32105" help="32409">
+                <setting id="metadata_title_color" type="integer" label="32105" help="32409">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -2074,21 +2074,21 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="debug_title_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="metadata_title_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="debug_title_color">999</condition>
+                            <condition operator="is" setting="metadata_title_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_title_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,metadata_title_color)</data>
                     </control>
                 </setting>
-                <setting id="debug_title_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_title_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -2100,7 +2100,7 @@
                 </setting>
             </group>
             <group id="7" label="32410">
-                <setting id="debug_column_color" type="integer" label="32410" help="32411">
+                <setting id="metadata_column_color" type="integer" label="32410" help="32411">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -2160,21 +2160,21 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="debug_column_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="metadata_column_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="debug_column_color">999</condition>
+                            <condition operator="is" setting="metadata_column_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_column_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,metadata_column_color)</data>
                     </control>
                 </setting>
-                <setting id="debug_column_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_column_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -2186,7 +2186,7 @@
                 </setting>
             </group>
             <group id="8" label="32107">
-                <setting id="debug_name_color" type="integer" label="32107" help="32413">
+                <setting id="metadata_name_color" type="integer" label="32107" help="32413">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -2246,21 +2246,21 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="debug_name_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="metadata_name_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="debug_name_color">999</condition>
+                            <condition operator="is" setting="metadata_name_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_name_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,metadata_name_color)</data>
                     </control>
                 </setting>
-                <setting id="debug_name_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_name_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -2272,7 +2272,7 @@
                 </setting>
             </group>
             <group id="9" label="32109">
-                <setting id="debug_value_color" type="integer" label="32109" help="32415">
+                <setting id="metadata_value_color" type="integer" label="32109" help="32415">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -2332,21 +2332,21 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="debug_value_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="metadata_value_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="debug_value_color">999</condition>
+                            <condition operator="is" setting="metadata_value_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_value_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,metadata_value_color)</data>
                     </control>
                 </setting>
-                <setting id="debug_value_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_value_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -2358,7 +2358,7 @@
                 </setting>
             </group>
             <group id="10" label="32395">
-                <setting id="debug_changed_color" type="integer" label="32395" help="32396">
+                <setting id="metadata_changed_color" type="integer" label="32395" help="32396">
                     <level>0</level>
                     <default>7</default>
                     <constraints>
@@ -2418,21 +2418,21 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="debug_changed_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="metadata_changed_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="debug_changed_color">999</condition>
+                            <condition operator="is" setting="metadata_changed_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_changed_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,metadata_changed_color)</data>
                     </control>
                 </setting>
-                <setting id="debug_changed_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_changed_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -2444,7 +2444,7 @@
                 </setting>
             </group>
             <group id="11" label="32251">
-                <setting id="debug_line_color" type="integer" label="32251" help="32417">
+                <setting id="metadata_line_color" type="integer" label="32251" help="32417">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -2504,21 +2504,21 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="debug_line_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="metadata_line_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="debug_line_color">999</condition>
+                            <condition operator="is" setting="metadata_line_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_line_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,metadata_line_color)</data>
                     </control>
                 </setting>
-                <setting id="debug_line_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_line_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>15</default>
                     <constraints>
@@ -2530,7 +2530,7 @@
                 </setting>
             </group>
             <group id="12" label="32253">
-                <setting id="debug_focus_color" type="integer" label="32253" help="32419">
+                <setting id="metadata_focus_color" type="integer" label="32253" help="32419">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -2590,21 +2590,21 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="debug_focus_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="metadata_focus_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="debug_focus_color">999</condition>
+                            <condition operator="is" setting="metadata_focus_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_focus_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,metadata_focus_color)</data>
                     </control>
                 </setting>
-                <setting id="debug_focus_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_focus_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>15</default>
                     <constraints>
@@ -2616,7 +2616,7 @@
                 </setting>
             </group>
             <group id="13" label="32420">
-                <setting id="debug_scrollbar_color" type="integer" label="32420" help="32421">
+                <setting id="metadata_scrollbar_color" type="integer" label="32420" help="32421">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -2676,21 +2676,21 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="debug_scrollbar_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="metadata_scrollbar_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="debug_scrollbar_color">999</condition>
+                            <condition operator="is" setting="metadata_scrollbar_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_scrollbar_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,metadata_scrollbar_color)</data>
                     </control>
                 </setting>
-                <setting id="debug_scrollbar_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_scrollbar_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -2702,7 +2702,7 @@
                 </setting>
             </group>
             <group id="14" label="32422">
-                <setting id="debug_hint_color" type="integer" label="32422" help="32423">
+                <setting id="metadata_hint_color" type="integer" label="32422" help="32423">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -2762,21 +2762,21 @@
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="debug_hint_color_custom_btn" type="string" label="32241" help="32242">
+                <setting id="metadata_hint_color_custom_btn" type="string" label="32241" help="32242">
                     <level>0</level>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <dependencies>
                         <dependency type="visible">
-                            <condition operator="is" setting="debug_hint_color">999</condition>
+                            <condition operator="is" setting="metadata_hint_color">999</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_hint_color)</data>
+                        <data>RunScript(script.tinyppi,custom_color,metadata_hint_color)</data>
                     </control>
                 </setting>
-                <setting id="debug_hint_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_hint_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
