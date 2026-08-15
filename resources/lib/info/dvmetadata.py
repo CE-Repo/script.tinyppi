@@ -17,9 +17,17 @@ say drops with it, so the view is what this stream has rather than a form with
 most of its boxes blank.  Everything is read live: the per-frame blocks (L1,
 L2, L5, L8) move with the picture, the title-level ones stand still.
 
+Carries what a frame omits, though.  Under DM metadata compression an RPU
+refers back to an earlier frame's metadata rather than repeating it, so a block
+this stream plainly has -- L2, L8, the source range, the title-level levels --
+is missing from most frames of it.  Read strictly frame by frame those sections
+would come and go every second or two; instead the last block that arrived
+stands until a new one replaces it (see _hold).
+
 Formatting only, apart from the stream labels and the parser version the first
-section names: hand ``build_rows`` a parse result and it yields the same rows
-anywhere.
+section names, and the held blocks the live path fills in: hand ``build_rows``
+a parse result of your own and it yields the same rows anywhere, holding
+nothing.
 """
 
 import xbmc
@@ -63,6 +71,10 @@ MAX_COLUMNS = 6
 EMPTY = "—"
 
 _SIDEDATA_ID = "script.module.sidedata"
+
+# What is playing, which is what the held blocks are kept against: they
+# describe this title's grade and nothing of the next one's (see _hold).
+_SOURCE_LABEL = "Player.FilenameAndPath"
 
 # Between the parts of a composite value ("2081 | 1000").
 _JOIN = " | "
@@ -199,13 +211,18 @@ def _payload_summary(parsed: dict) -> str:
     return ", ".join(present) if present else EMPTY
 
 
-def _stream_pairs(parsed: dict) -> list:
-    """Kodi's own view of the stream, plus what the raw label delivered."""
+def _stream_pairs(parsed: dict, carried: str) -> list:
+    """Kodi's own view of the stream, plus what the raw label delivered.
+
+    *carried* names the sections this frame's own payload brought, which is not
+    the same as the sections below it: those may be held from an earlier frame
+    (see _hold), and this row is where a reader can tell.
+    """
     flags = parsed.get("flags") or []
     return [
         ("HDR type (Kodi)", _text(xbmc.getInfoLabel("VideoPlayer.HdrType"))),
         ("HDR detail (Kodi)", _text(xbmc.getInfoLabel("VideoPlayer.HdrDetail"))),
-        ("Side data", _payload_summary(parsed)),
+        ("Side data", carried),
         ("Flags", ", ".join(flags) if flags else EMPTY),
         ("Structure", _text(parsed.get("structure"))),
         ("Parser module", _module_version()),
@@ -542,6 +559,74 @@ def _hdr10plus_pairs(hdr10plus: dict) -> list:
     return pairs
 
 
+# --- Held blocks -----------------------------------------------------------
+
+# The blocks a frame may leave out and still be described by, at the top level
+# and inside the RPU.  Under DM metadata compression a frame's RPU refers back
+# to an earlier one's metadata instead of carrying its own, so these arrive
+# once and then stay away for as long as the grade does not change -- the
+# reading still holds for the frame on screen, it is simply not repeated in it.
+#
+# Per block and never per field.  A block that is here is this frame's own, so
+# a control it leaves out is one this pass disables, not one to fill in from an
+# older pass -- the whole point of the trim tables is what a pass sets.
+_HELD_TOP = ("config", "rpu", "mdcv", "cll", "hdr10plus")
+_HELD_RPU = ("header", "source", "l1", "l2", "l3", "l5", "l6", "l8", "l9",
+             "l10", "l11")
+
+# The blocks last seen, by name, and what was playing when they were: nothing
+# is carried from one title into the next, and stopping playback empties the
+# label, which empties this with it.  Only the metadata view's own refresh
+# reaches these, one call at a time.
+_held: dict = {}
+_held_source: str | None = None
+
+
+def _fill_in(current: dict, names: tuple, prefix: str) -> dict:
+    """Return *current* with the blocks it omits filled in from _held, and the
+    ones it carries remembered in their place."""
+    filled = dict(current)
+    for name in names:
+        block = current.get(name)
+        key   = prefix + name
+        if block:
+            _held[key] = block
+        elif _held.get(key) is not None:
+            filled[name] = _held[key]
+    return filled
+
+
+def _hold(parsed: dict) -> dict:
+    """Fill *parsed* out with the blocks the frame on screen does not repeat.
+
+    What a compressed frame leaves out is not absent from the stream, only
+    from this RPU, so the view keeps the last block of each kind and puts it
+    back when the next frame comes without one.  Rows that would otherwise
+    blink out every second or two -- L2 and L8 trims above all, whole sections
+    of them -- then stand still, and a reading that really does change still
+    replaces the held one on the frame that carries it.
+
+    Kept against what is playing: a title change clears them, and so does the
+    end of playback, which is what empties the label they are kept against.
+    """
+    global _held_source
+
+    source = xbmc.getInfoLabel(_SOURCE_LABEL)
+    if source != _held_source:
+        _held.clear()
+        _held_source = source
+
+    parsed = _fill_in(parsed, _HELD_TOP, "")
+    rpu = parsed.get("rpu")
+    if isinstance(rpu, dict):
+        parsed["rpu"] = _fill_in(rpu, _HELD_RPU, "rpu.")
+        # Hold the filled-out RPU rather than the frame's own, so a frame that
+        # carries no RPU at all still gets every block, not just the ones the
+        # last frame to carry one happened to have.
+        _held["rpu"] = parsed["rpu"]
+    return parsed
+
+
 # --- Row model -------------------------------------------------------------
 
 def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
@@ -552,15 +637,26 @@ def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
     stream carries survive it: a block this stream has no data for takes no
     room, so what is on screen is what the bitstream said and the sections that
     are there can be read without hunting between empty ones.
+
+    Read live, the blocks a compressed frame omits are held from the last frame
+    that carried them (see _hold).  A parse result passed in is taken as it
+    comes and holds nothing, so a caller with its own data gets its own data.
     """
-    if parsed is None:
-        parsed = get_sidedata()
+    live   = parsed is None
+    parsed = get_sidedata() if live else parsed
     parsed = parsed if isinstance(parsed, dict) else {}
+
+    # Which blocks this frame itself brought, named before the held ones are
+    # put back: the Stream section reports the payload in hand, and a held
+    # block is precisely one that is not in it.
+    carried = _payload_summary(parsed)
+    if live:
+        parsed = _hold(parsed)
 
     rpu = parsed.get("rpu")
     rows: list[tuple[str, str, str]] = []
 
-    _section(rows, "Stream", _stream_pairs(parsed))
+    _section(rows, "Stream", _stream_pairs(parsed, carried))
     _section(rows, "Configuration record (dvcC / dvvC)",
              _config_pairs(parsed.get("config")))
     _section(rows, "RPU", _rpu_pairs(rpu))
