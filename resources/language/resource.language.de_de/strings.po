@@ -1212,8 +1212,8 @@ msgid "Dolby Vision metadata"
 msgstr "Dolby-Vision-Metadaten"
 
 msgctxt "#32390"
-msgid "OK: back to TinyPPI     Back: close"
-msgstr "OK: zurück zu TinyPPI     Zurück: schließen"
+msgid "OK button: \"Back\""
+msgstr "OK-Taste: \"Zurück\""
 
 msgctxt "#32391"
 msgid "Debug"

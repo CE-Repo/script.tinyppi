@@ -1212,7 +1212,7 @@ msgid "Dolby Vision metadata"
 msgstr ""
 
 msgctxt "#32390"
-msgid "OK: back to TinyPPI     Back: close"
+msgid "OK button: \"Back\""
 msgstr ""
 
 msgctxt "#32391"

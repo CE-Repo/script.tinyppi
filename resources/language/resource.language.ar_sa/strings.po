@@ -1213,8 +1213,8 @@ msgid "Dolby Vision metadata"
 msgstr "بيانات دولبي فيجن الوصفية"
 
 msgctxt "#32390"
-msgid "OK: back to TinyPPI     Back: close"
-msgstr "موافق: العودة إلى TinyPPI     رجوع: إغلاق"
+msgid "OK button: \"Back\""
+msgstr "زر موافق: \"رجوع\""
 
 msgctxt "#32391"
 msgid "Debug"
