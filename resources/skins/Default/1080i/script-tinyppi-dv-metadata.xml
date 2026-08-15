@@ -24,13 +24,21 @@
             <!-- Panel: the two edge caps and the fill between them.  The
                  height here is the tallest it ever gets; ui.dvmetadata cuts
                  all three down to what the rows on screen need, which is why
-                 each carries an id and none of them sits in a group. -->
+                 each carries an id and none of them sits in a group.
+
+                 The caps are 23 x 1000 strips whose rounded corners take the
+                 top and bottom 20 px of the texture.  Scaled as a whole they
+                 squash with the panel, so a short window draws its corners
+                 flattened.  The border keeps those 20 px at their own size
+                 and stretches only the straight edge between them, which is
+                 one repeated row of pixels and stretches invisibly, so the
+                 corners come out the same at any height. -->
             <control type="image" id="6100">
                 <left>0</left>
                 <top>0</top>
                 <width>23</width>
                 <height>1000</height>
-                <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.MetadataBackgroundColor)]">background/dv-overlay-bg-start.png</texture>
+                <texture border="0,20,0,20" colordiffuse="$INFO[Window(10000).Property(TinyPPI.MetadataBackgroundColor)]">background/dv-overlay-bg-start.png</texture>
             </control>
             <control type="image" id="6101">
                 <left>23</left>
@@ -44,7 +52,7 @@
                 <top>0</top>
                 <width>23</width>
                 <height>1000</height>
-                <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.MetadataBackgroundColor)]">background/dv-overlay-bg-end.png</texture>
+                <texture border="0,20,0,20" colordiffuse="$INFO[Window(10000).Property(TinyPPI.MetadataBackgroundColor)]">background/dv-overlay-bg-end.png</texture>
             </control>
 
             <!-- Label -->
