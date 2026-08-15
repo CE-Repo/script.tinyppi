@@ -1669,93 +1669,7 @@
                     <control type="toggle" />
                 </setting>
             </group>
-            <group id="2" label="32395">
-                <setting id="debug_changed_color" type="integer" label="32395" help="32396">
-                    <level>0</level>
-                    <default>7</default>
-                    <constraints>
-                        <options>
-                            <option label="32283">0</option>
-                            <option label="32121">1</option>
-                            <option label="32122">2</option>
-                            <option label="32123">3</option>
-                            <option label="32124">4</option>
-                            <option label="32125">5</option>
-                            <option label="32126">6</option>
-                            <option label="32397">7</option>
-                            <option label="32128">8</option>
-                            <option label="32129">9</option>
-                            <option label="32150">10</option>
-                            <option label="32151">11</option>
-                            <option label="32152">12</option>
-                            <option label="32153">13</option>
-                            <option label="32154">14</option>
-                            <option label="32155">15</option>
-                            <option label="32156">16</option>
-                            <option label="32157">17</option>
-                            <option label="32158">18</option>
-                            <option label="32159">19</option>
-                            <option label="32160">20</option>
-                            <option label="32161">21</option>
-                            <option label="32162">22</option>
-                            <option label="32163">23</option>
-                            <option label="32164">24</option>
-                            <option label="32165">25</option>
-                            <option label="32166">26</option>
-                            <option label="32167">27</option>
-                            <option label="32168">28</option>
-                            <option label="32169">29</option>
-                            <option label="32200">30</option>
-                            <option label="32201">31</option>
-                            <option label="32202">32</option>
-                            <option label="32203">33</option>
-                            <option label="32204">34</option>
-                            <option label="32205">35</option>
-                            <option label="32206">36</option>
-                            <option label="32207">37</option>
-                            <option label="32208">38</option>
-                            <option label="32209">39</option>
-                            <option label="32210">40</option>
-                            <option label="32211">41</option>
-                            <option label="32212">42</option>
-                            <option label="32213">43</option>
-                            <option label="32214">44</option>
-                            <option label="32215">45</option>
-                            <option label="32216">46</option>
-                            <option label="32217">47</option>
-                            <option label="32218">48</option>
-                            <option label="32219">49</option>
-                            <option label="32250">999</option>
-                        </options>
-                    </constraints>
-                    <control type="list" format="string" />
-                </setting>
-                <setting id="debug_changed_color_custom_btn" type="string" label="32241" help="32242">
-                    <level>0</level>
-                    <constraints>
-                        <allowempty>true</allowempty>
-                    </constraints>
-                    <dependencies>
-                        <dependency type="visible">
-                            <condition operator="is" setting="debug_changed_color">999</condition>
-                        </dependency>
-                    </dependencies>
-                    <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,custom_color,debug_changed_color)</data>
-                    </control>
-                </setting>
-                <setting id="debug_changed_opacity" type="integer" label="32267" help="32274">
-                    <level>0</level>
-                    <default>100</default>
-                    <constraints>
-                        <minimum>0</minimum>
-                        <step>1</step>
-                        <maximum>100</maximum>
-                    </constraints>
-                    <control type="slider" format="percentage" />
-                </setting>
-            </group>
-            <group id="3" label="32269">
+            <group id="2" label="32269">
                 <setting id="debug_global_background_color" type="integer" label="32269" help="32401">
                     <level>0</level>
                     <default>0</default>
@@ -1841,7 +1755,7 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="4" label="32103">
+            <group id="3" label="32103">
                 <setting id="debug_background_color" type="integer" label="32103" help="32403">
                     <level>0</level>
                     <default>0</default>
@@ -1927,7 +1841,7 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="5" label="32342">
+            <group id="4" label="32342">
                 <setting id="debug_header_color" type="integer" label="32342" help="32405">
                     <level>0</level>
                     <default>0</default>
@@ -2013,7 +1927,7 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="6" label="32144">
+            <group id="5" label="32144">
                 <setting id="debug_header_icon_color" type="integer" label="32144" help="32407">
                     <level>0</level>
                     <default>0</default>
@@ -2099,7 +2013,7 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="7" label="32105">
+            <group id="6" label="32105">
                 <setting id="debug_title_color" type="integer" label="32105" help="32409">
                     <level>0</level>
                     <default>0</default>
@@ -2185,7 +2099,7 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="8" label="32410">
+            <group id="7" label="32410">
                 <setting id="debug_column_color" type="integer" label="32410" help="32411">
                     <level>0</level>
                     <default>0</default>
@@ -2271,7 +2185,7 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="9" label="32107">
+            <group id="8" label="32107">
                 <setting id="debug_name_color" type="integer" label="32107" help="32413">
                     <level>0</level>
                     <default>0</default>
@@ -2357,7 +2271,7 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="10" label="32109">
+            <group id="9" label="32109">
                 <setting id="debug_value_color" type="integer" label="32109" help="32415">
                     <level>0</level>
                     <default>0</default>
@@ -2433,6 +2347,92 @@
                     </control>
                 </setting>
                 <setting id="debug_value_opacity" type="integer" label="32267" help="32274">
+                    <level>0</level>
+                    <default>100</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
+            </group>
+            <group id="10" label="32395">
+                <setting id="debug_changed_color" type="integer" label="32395" help="32396">
+                    <level>0</level>
+                    <default>7</default>
+                    <constraints>
+                        <options>
+                            <option label="32283">0</option>
+                            <option label="32121">1</option>
+                            <option label="32122">2</option>
+                            <option label="32123">3</option>
+                            <option label="32124">4</option>
+                            <option label="32125">5</option>
+                            <option label="32126">6</option>
+                            <option label="32397">7</option>
+                            <option label="32128">8</option>
+                            <option label="32129">9</option>
+                            <option label="32150">10</option>
+                            <option label="32151">11</option>
+                            <option label="32152">12</option>
+                            <option label="32153">13</option>
+                            <option label="32154">14</option>
+                            <option label="32155">15</option>
+                            <option label="32156">16</option>
+                            <option label="32157">17</option>
+                            <option label="32158">18</option>
+                            <option label="32159">19</option>
+                            <option label="32160">20</option>
+                            <option label="32161">21</option>
+                            <option label="32162">22</option>
+                            <option label="32163">23</option>
+                            <option label="32164">24</option>
+                            <option label="32165">25</option>
+                            <option label="32166">26</option>
+                            <option label="32167">27</option>
+                            <option label="32168">28</option>
+                            <option label="32169">29</option>
+                            <option label="32200">30</option>
+                            <option label="32201">31</option>
+                            <option label="32202">32</option>
+                            <option label="32203">33</option>
+                            <option label="32204">34</option>
+                            <option label="32205">35</option>
+                            <option label="32206">36</option>
+                            <option label="32207">37</option>
+                            <option label="32208">38</option>
+                            <option label="32209">39</option>
+                            <option label="32210">40</option>
+                            <option label="32211">41</option>
+                            <option label="32212">42</option>
+                            <option label="32213">43</option>
+                            <option label="32214">44</option>
+                            <option label="32215">45</option>
+                            <option label="32216">46</option>
+                            <option label="32217">47</option>
+                            <option label="32218">48</option>
+                            <option label="32219">49</option>
+                            <option label="32250">999</option>
+                        </options>
+                    </constraints>
+                    <control type="list" format="string" />
+                </setting>
+                <setting id="debug_changed_color_custom_btn" type="string" label="32241" help="32242">
+                    <level>0</level>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="debug_changed_color">999</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,custom_color,debug_changed_color)</data>
+                    </control>
+                </setting>
+                <setting id="debug_changed_opacity" type="integer" label="32267" help="32274">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
