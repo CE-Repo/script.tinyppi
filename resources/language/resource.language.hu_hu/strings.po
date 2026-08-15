@@ -1250,3 +1250,63 @@ msgstr "Mozgatás az iránygombokkal"
 msgctxt "#32399"
 msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above. Off by default, so the arrow keys do nothing while TinyPPI is up."
 msgstr "Lehetővé teszi, hogy a távirányító iránygombjaival mozgasd a TinyPPI réteget a képernyőn, amíg nyitva van. A mozgatás nem kerül mentésre: a következő indításkor újra a fent beállított pozíció érvényes. Alapértelmezetten kikapcsolva, ilyenkor az iránygombok nem csinálnak semmit nyitott TinyPPI mellett."
+
+msgctxt "#32401"
+msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Off by default; raise its opacity to dim the picture behind it."
+msgstr "A Dolby Vision metaadat-nézet mögött az egész képernyőre helyezett szín. Alapértelmezetten kikapcsolva; növeld az átlátszatlanságát a mögötte lévő kép sötétítéséhez."
+
+msgctxt "#32403"
+msgid "Background color of the metadata view itself."
+msgstr "Magának a metaadat-nézetnek a háttérszíne."
+
+msgctxt "#32405"
+msgid "Color of the heading at the top of the metadata view."
+msgstr "A metaadat-nézet tetején lévő cím színe."
+
+msgctxt "#32407"
+msgid "Color of the Dolby Vision logo in the top right corner."
+msgstr "A jobb felső sarokban lévő Dolby Vision logó színe."
+
+msgctxt "#32409"
+msgid "Color of the section headings, such as RPU or L2 — Trims."
+msgstr "A szakaszcímek színe, például RPU vagy L2 — Trims."
+
+msgctxt "#32410"
+msgid "Column headings"
+msgstr "Oszlopfejlécek"
+
+msgctxt "#32411"
+msgid "Color of the column headings in the trim tables: Slope, Offset, Power and the rest."
+msgstr "A trim táblázatok oszlopfejléceinek színe: Slope, Offset, Power és a többi."
+
+msgctxt "#32413"
+msgid "Color of the field names down the left column."
+msgstr "A bal oldali oszlopban lévő mezőnevek színe."
+
+msgctxt "#32415"
+msgid "Color of the readings. A value that just changed is written in the \"Changed values\" color instead, for as long as it keeps changing."
+msgstr "A leolvasott értékek színe. Az éppen megváltozott érték helyette a \"Változott értékek\" színével jelenik meg, amíg változik."
+
+msgctxt "#32417"
+msgid "Color of the rules under the section headings and above and below the list."
+msgstr "A szakaszcímek alatti, valamint a lista fölötti és alatti vonalak színe."
+
+msgctxt "#32419"
+msgid "Color of the bar behind the row the selection is on."
+msgstr "A kijelölés alatti sor mögötti sáv színe."
+
+msgctxt "#32420"
+msgid "Scrollbar"
+msgstr "Görgetősáv"
+
+msgctxt "#32421"
+msgid "Color of the scrollbar down the right-hand edge."
+msgstr "A jobb szélen lévő görgetősáv színe."
+
+msgctxt "#32422"
+msgid "Key hint"
+msgstr "Billentyű-súgó"
+
+msgctxt "#32423"
+msgid "Color of the line at the bottom naming what the keys do."
+msgstr "Az alul lévő sor színe, amely a billentyűk funkcióját nevezi meg."

@@ -1251,3 +1251,63 @@ msgstr "التحريك بأزرار الاتجاهات"
 msgctxt "#32399"
 msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above. Off by default, so the arrow keys do nothing while TinyPPI is up."
 msgstr "يتيح تحريك طبقة TinyPPI على الشاشة بأزرار الاتجاهات في جهاز التحكم أثناء فتحها. لا يُحفظ التحريك: يبدأ التشغيل التالي من الموضع المضبوط أعلاه. مُعطّل افتراضيًا، وعندها لا تفعل أزرار الاتجاهات شيئًا أثناء فتح TinyPPI."
+
+msgctxt "#32401"
+msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Off by default; raise its opacity to dim the picture behind it."
+msgstr "لون يُوضع على الشاشة بأكملها خلف عرض بيانات دولبي فيجن الوصفية. مُعطّل افتراضيًا؛ ارفع درجة عتامته لتعتيم الصورة خلفه."
+
+msgctxt "#32403"
+msgid "Background color of the metadata view itself."
+msgstr "لون خلفية عرض البيانات الوصفية نفسه."
+
+msgctxt "#32405"
+msgid "Color of the heading at the top of the metadata view."
+msgstr "لون العنوان في أعلى عرض البيانات الوصفية."
+
+msgctxt "#32407"
+msgid "Color of the Dolby Vision logo in the top right corner."
+msgstr "لون شعار دولبي فيجن في الزاوية العلوية اليمنى."
+
+msgctxt "#32409"
+msgid "Color of the section headings, such as RPU or L2 — Trims."
+msgstr "لون عناوين الأقسام، مثل RPU أو L2 — Trims."
+
+msgctxt "#32410"
+msgid "Column headings"
+msgstr "عناوين الأعمدة"
+
+msgctxt "#32411"
+msgid "Color of the column headings in the trim tables: Slope, Offset, Power and the rest."
+msgstr "لون عناوين الأعمدة في جداول التعديل: Slope وOffset وPower وبقيتها."
+
+msgctxt "#32413"
+msgid "Color of the field names down the left column."
+msgstr "لون أسماء الحقول في العمود الأيسر."
+
+msgctxt "#32415"
+msgid "Color of the readings. A value that just changed is written in the \"Changed values\" color instead, for as long as it keeps changing."
+msgstr "لون القراءات. القيمة التي تغيّرت للتو تُكتب بلون \"القيم المتغيّرة\" بدلًا من ذلك، ما دامت تتغيّر."
+
+msgctxt "#32417"
+msgid "Color of the rules under the section headings and above and below the list."
+msgstr "لون الخطوط أسفل عناوين الأقسام وفوق القائمة وتحتها."
+
+msgctxt "#32419"
+msgid "Color of the bar behind the row the selection is on."
+msgstr "لون الشريط خلف الصف الذي يقع عليه التحديد."
+
+msgctxt "#32420"
+msgid "Scrollbar"
+msgstr "شريط التمرير"
+
+msgctxt "#32421"
+msgid "Color of the scrollbar down the right-hand edge."
+msgstr "لون شريط التمرير على الحافة اليمنى."
+
+msgctxt "#32422"
+msgid "Key hint"
+msgstr "تلميح المفاتيح"
+
+msgctxt "#32423"
+msgid "Color of the line at the bottom naming what the keys do."
+msgstr "لون السطر في الأسفل الذي يذكر وظيفة المفاتيح."

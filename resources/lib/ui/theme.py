@@ -191,6 +191,11 @@ _CUSTOM_ALPHA = {
     "accent_color":            "B3",  # dimmed detail accents (~70%)
     "line_color":              "26",  # faint separator lines (~15%)
     "dialog_line_color":       "26",  # faint VS10 dialog separator lines (~15%)
+    # The debug view's own shades, matching the elements they stand in for.
+    "debug_global_background_color": "FA",
+    "debug_background_color":        "FA",
+    "debug_line_color":              "26",
+    "debug_focus_color":             "26",
 }
 _DEFAULT_ALPHA = "FF"
 
@@ -285,6 +290,10 @@ _DEFAULT_OPACITIES = {
     "channel_layout_color":     33,  # 54 – speaker layout graphic
     "accent_color":            70,  # B3 – dimmed inline detail accents
     "line_color":              15,  # 26 – faint separator lines
+    "debug_global_background_color": 0,
+    "debug_background_color":    98,
+    "debug_line_color":          15,
+    "debug_focus_color":         15,
     "dialog_line_color":       15,  # 26 – faint VS10 dialog separator lines
     # Per-context codec-logo panel (FA – Charcoal) and divider (59 – faint).
     "splash_start_bg_color":        98,
@@ -405,9 +414,23 @@ _THEME_PROPERTIES = (
     ("TinyPPI.ChannelBackgroundColor", _BACKGROUND_COLORS, "channel_background_color"),
     ("TinyPPI.ChannelLayoutColor",     _CHANNEL_COLORS,    "channel_layout_color"),
     ("TinyPPI.ChannelIconColor",       _CHANNEL_COLORS,    "channel_icon_color"),
-    # Dolby Vision debug view: the readings that moved since the last refresh
-    # (see ui.dvdebug), which is the one colour there that is not the skin's.
+    # Dolby Vision debug view.  It draws nothing the overlay draws, so it
+    # carries its own colour per element rather than borrowing the overlay's:
+    # a view for reading a bitstream wants a different balance from one laid
+    # over a film.
     ("TinyPPI.DebugChangedColor",     _TEXT_COLORS, "debug_changed_color"),
+    ("TinyPPI.DebugGlobalBackgroundColor",  _BACKGROUND_COLORS, "debug_global_background_color"),
+    ("TinyPPI.DebugBackgroundColor",        _BACKGROUND_COLORS, "debug_background_color"),
+    ("TinyPPI.DebugHeaderColor",            _TEXT_COLORS, "debug_header_color"),
+    ("TinyPPI.DebugHeaderIconColor",        _TEXT_COLORS, "debug_header_icon_color"),
+    ("TinyPPI.DebugTitleColor",             _TEXT_COLORS, "debug_title_color"),
+    ("TinyPPI.DebugColumnColor",            _TEXT_COLORS, "debug_column_color"),
+    ("TinyPPI.DebugNameColor",              _TEXT_COLORS, "debug_name_color"),
+    ("TinyPPI.DebugValueColor",             _TEXT_COLORS, "debug_value_color"),
+    ("TinyPPI.DebugLineColor",              _LINE_COLORS, "debug_line_color"),
+    ("TinyPPI.DebugFocusColor",             _LINE_COLORS, "debug_focus_color"),
+    ("TinyPPI.DebugScrollbarColor",         _TEXT_COLORS, "debug_scrollbar_color"),
+    ("TinyPPI.DebugHintColor",              _TEXT_COLORS, "debug_hint_color"),
     ("TinyPPI.LineColor",             _LINE_COLORS, "line_color"),
     ("TinyPPI.DialogHeaderColor",     _TEXT_COLORS, "dialog_header_color"),
     ("TinyPPI.DialogHeaderIconColor", _TEXT_COLORS, "dialog_header_icon_color"),

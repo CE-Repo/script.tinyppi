@@ -1250,3 +1250,63 @@ msgstr ""
 msgctxt "#32399"
 msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above. Off by default, so the arrow keys do nothing while TinyPPI is up."
 msgstr ""
+
+msgctxt "#32401"
+msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Off by default; raise its opacity to dim the picture behind it."
+msgstr ""
+
+msgctxt "#32403"
+msgid "Background color of the metadata view itself."
+msgstr ""
+
+msgctxt "#32405"
+msgid "Color of the heading at the top of the metadata view."
+msgstr ""
+
+msgctxt "#32407"
+msgid "Color of the Dolby Vision logo in the top right corner."
+msgstr ""
+
+msgctxt "#32409"
+msgid "Color of the section headings, such as RPU or L2 — Trims."
+msgstr ""
+
+msgctxt "#32410"
+msgid "Column headings"
+msgstr ""
+
+msgctxt "#32411"
+msgid "Color of the column headings in the trim tables: Slope, Offset, Power and the rest."
+msgstr ""
+
+msgctxt "#32413"
+msgid "Color of the field names down the left column."
+msgstr ""
+
+msgctxt "#32415"
+msgid "Color of the readings. A value that just changed is written in the \"Changed values\" color instead, for as long as it keeps changing."
+msgstr ""
+
+msgctxt "#32417"
+msgid "Color of the rules under the section headings and above and below the list."
+msgstr ""
+
+msgctxt "#32419"
+msgid "Color of the bar behind the row the selection is on."
+msgstr ""
+
+msgctxt "#32420"
+msgid "Scrollbar"
+msgstr ""
+
+msgctxt "#32421"
+msgid "Color of the scrollbar down the right-hand edge."
+msgstr ""
+
+msgctxt "#32422"
+msgid "Key hint"
+msgstr ""
+
+msgctxt "#32423"
+msgid "Color of the line at the bottom naming what the keys do."
+msgstr ""

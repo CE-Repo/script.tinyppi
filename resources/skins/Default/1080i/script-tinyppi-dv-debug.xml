@@ -14,7 +14,7 @@
             <top>0</top>
             <width>1920</width>
             <height>1080</height>
-            <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.GlobalBackgroundColor)]">common/dot-1x1.png</texture>
+            <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugGlobalBackgroundColor)]">common/dot-1x1.png</texture>
         </control>
 
         <control type="group">
@@ -28,7 +28,7 @@
                 <width>23</width>
                 <height>1000</height>
                 <control type="image">
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/dv-overlay-bg-start.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugBackgroundColor)]">background/dv-overlay-bg-start.png</texture>
                 </control>
             </control>
             <control type="image">
@@ -36,7 +36,7 @@
                 <top>0</top>
                 <width>1244</width>
                 <height>1000</height>
-                <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">common/dot-1x1.png</texture>
+                <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugBackgroundColor)]">common/dot-1x1.png</texture>
             </control>
             <control type="group">
                 <left>1267</left>
@@ -44,7 +44,7 @@
                 <width>23</width>
                 <height>1000</height>
                 <control type="image">
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.BackgroundColor)]">background/dv-overlay-bg-end.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugBackgroundColor)]">background/dv-overlay-bg-end.png</texture>
                 </control>
             </control>
 
@@ -56,7 +56,7 @@
                 <control type="label">
                     <label>[B]$ADDON[script.tinyppi 32389][/B]</label>
                     <font>font32</font>
-                    <textcolor>$INFO[Window(10000).Property(TinyPPI.HeaderColor)]</textcolor>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugHeaderColor)]</textcolor>
                     <aligny>top</aligny>
                 </control>
             </control>
@@ -70,7 +70,7 @@
                     <width>105</width>
                     <height>32</height>
                     <aspectratio align="right" aligny="top">keep</aspectratio>
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.HeaderIconColor)]">icons/dv-logo.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugHeaderIconColor)]">icons/dv-logo.png</texture>
                 </control>
             </control>
 
@@ -82,7 +82,7 @@
                 <control type="image">
                     <width>1220</width>
                     <height>1</height>
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugLineColor)]">common/dot-1x1.png</texture>
                 </control>
             </control>
 
@@ -108,7 +108,7 @@
                         <height>30</height>
                         <label>[B][UPPERCASE]$INFO[ListItem.Property(head)][/UPPERCASE][/B]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugTitleColor)]</textcolor>
                         <aligny>center</aligny>
                     </control>
                     <control type="image">
@@ -116,7 +116,7 @@
                         <top>28</top>
                         <width>1195</width>
                         <height>1</height>
-                        <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">$INFO[ListItem.Property(rule)]</texture>
+                        <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugLineColor)]">$INFO[ListItem.Property(rule)]</texture>
                     </control>
                     <control type="label">
                         <left>0</left>
@@ -125,7 +125,7 @@
                         <height>30</height>
                         <label>$INFO[ListItem.Label]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugNameColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -136,7 +136,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Label2]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <!-- Table cells: a fixed 160 px slot per column, so a
@@ -153,7 +153,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h0)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugColumnColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -164,7 +164,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h1)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugColumnColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -175,7 +175,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h2)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugColumnColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -186,7 +186,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h3)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugColumnColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -197,7 +197,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h4)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugColumnColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -208,7 +208,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h5)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugColumnColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -219,7 +219,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c0)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -230,7 +230,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c1)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -241,7 +241,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c2)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -252,7 +252,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c3)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -263,7 +263,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c4)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -274,7 +274,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c5)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                 </itemlayout>
@@ -284,7 +284,7 @@
                         <top>-2</top>
                         <width>1215</width>
                         <height>32</height>
-                        <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+                        <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugFocusColor)]">common/dot-1x1.png</texture>
                     </control>
                     <control type="label">
                         <left>0</left>
@@ -293,7 +293,7 @@
                         <height>30</height>
                         <label>[B][UPPERCASE]$INFO[ListItem.Property(head)][/UPPERCASE][/B]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugTitleColor)]</textcolor>
                         <aligny>center</aligny>
                     </control>
                     <control type="label">
@@ -303,7 +303,7 @@
                         <height>30</height>
                         <label>$INFO[ListItem.Label]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugNameColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -314,7 +314,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Label2]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <!-- Table cells: a fixed 160 px slot per column, so a
@@ -331,7 +331,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h0)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugColumnColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -342,7 +342,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h1)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugColumnColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -353,7 +353,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h2)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugColumnColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -364,7 +364,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h3)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugColumnColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -375,7 +375,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h4)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugColumnColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -386,7 +386,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h5)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugColumnColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -397,7 +397,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c0)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -408,7 +408,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c1)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -419,7 +419,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c2)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -430,7 +430,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c3)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -441,7 +441,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c4)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -452,7 +452,7 @@
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c5)]</label>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
                 </focusedlayout>
@@ -466,11 +466,11 @@
                 <height>750</height>
                 <orientation>vertical</orientation>
                 <showonepage>false</showonepage>
-                <texturesliderbackground colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texturesliderbackground>
-                <texturesliderbar colordiffuse="$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]">common/dot-1x1.png</texturesliderbar>
-                <texturesliderbarfocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]">common/dot-1x1.png</texturesliderbarfocus>
-                <textureslidernib colordiffuse="$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]">common/dot-1x1.png</textureslidernib>
-                <textureslidernibfocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]">common/dot-1x1.png</textureslidernibfocus>
+                <texturesliderbackground colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugLineColor)]">common/dot-1x1.png</texturesliderbackground>
+                <texturesliderbar colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugScrollbarColor)]">common/dot-1x1.png</texturesliderbar>
+                <texturesliderbarfocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugScrollbarColor)]">common/dot-1x1.png</texturesliderbarfocus>
+                <textureslidernib colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugScrollbarColor)]">common/dot-1x1.png</textureslidernib>
+                <textureslidernibfocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugScrollbarColor)]">common/dot-1x1.png</textureslidernibfocus>
             </control>
 
             <!-- Line / Bottom -->
@@ -481,7 +481,7 @@
                 <control type="image">
                     <width>1220</width>
                     <height>1</height>
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DebugLineColor)]">common/dot-1x1.png</texture>
                 </control>
             </control>
 
@@ -494,7 +494,7 @@
                 <align>center</align>
                 <label>$ADDON[script.tinyppi 32390]</label>
                 <font>font23_narrow</font>
-                <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                <textcolor>$INFO[Window(10000).Property(TinyPPI.DebugHintColor)]</textcolor>
                 <aligny>top</aligny>
             </control>
         </control>

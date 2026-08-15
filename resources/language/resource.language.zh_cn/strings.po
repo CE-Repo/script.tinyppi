@@ -1250,3 +1250,63 @@ msgstr "使用方向键移动"
 msgctxt "#32399"
 msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above. Off by default, so the arrow keys do nothing while TinyPPI is up."
 msgstr "允许在 TinyPPI 叠加层打开时，用遥控器的方向键在屏幕上移动它。移动结果不会保存：下次打开时仍使用上面设置的位置。默认关闭，此时方向键在 TinyPPI 打开期间不起作用。"
+
+msgctxt "#32401"
+msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Off by default; raise its opacity to dim the picture behind it."
+msgstr "在杜比视界元数据视图后面覆盖整个屏幕的颜色。默认关闭；提高其不透明度可让后面的画面变暗。"
+
+msgctxt "#32403"
+msgid "Background color of the metadata view itself."
+msgstr "元数据视图本身的背景颜色。"
+
+msgctxt "#32405"
+msgid "Color of the heading at the top of the metadata view."
+msgstr "元数据视图顶部标题的颜色。"
+
+msgctxt "#32407"
+msgid "Color of the Dolby Vision logo in the top right corner."
+msgstr "右上角杜比视界标志的颜色。"
+
+msgctxt "#32409"
+msgid "Color of the section headings, such as RPU or L2 — Trims."
+msgstr "章节标题的颜色，例如 RPU 或 L2 — Trims。"
+
+msgctxt "#32410"
+msgid "Column headings"
+msgstr "列标题"
+
+msgctxt "#32411"
+msgid "Color of the column headings in the trim tables: Slope, Offset, Power and the rest."
+msgstr "trim 表格中列标题的颜色：Slope、Offset、Power 等。"
+
+msgctxt "#32413"
+msgid "Color of the field names down the left column."
+msgstr "左列字段名称的颜色。"
+
+msgctxt "#32415"
+msgid "Color of the readings. A value that just changed is written in the \"Changed values\" color instead, for as long as it keeps changing."
+msgstr "读数的颜色。刚刚变化的数值会改用\"变化的数值\"颜色显示，直到它不再变化为止。"
+
+msgctxt "#32417"
+msgid "Color of the rules under the section headings and above and below the list."
+msgstr "章节标题下方以及列表上下分隔线的颜色。"
+
+msgctxt "#32419"
+msgid "Color of the bar behind the row the selection is on."
+msgstr "选中所在行背后横条的颜色。"
+
+msgctxt "#32420"
+msgid "Scrollbar"
+msgstr "滚动条"
+
+msgctxt "#32421"
+msgid "Color of the scrollbar down the right-hand edge."
+msgstr "右侧边缘滚动条的颜色。"
+
+msgctxt "#32422"
+msgid "Key hint"
+msgstr "按键提示"
+
+msgctxt "#32423"
+msgid "Color of the line at the bottom naming what the keys do."
+msgstr "底部说明按键功能那一行的颜色。"
