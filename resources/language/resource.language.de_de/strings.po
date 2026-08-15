@@ -1242,3 +1242,11 @@ msgstr "Farbe für die Werte, die sich in der Dolby-Vision-Metadatenansicht gera
 msgctxt "#32397"
 msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue (Default)"
 msgstr "[COLOR=FF82B1FF]●[/COLOR] Hellblau (Standard)"
+
+msgctxt "#32398"
+msgid "Move with the arrow keys"
+msgstr "Mit dem Steuerkreuz verschieben"
+
+msgctxt "#32399"
+msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above. Off by default, so the arrow keys do nothing while TinyPPI is up."
+msgstr "Erlaubt es, das TinyPPI-Overlay mit dem Steuerkreuz der Fernbedienung über den Bildschirm zu verschieben, solange es offen ist. Die Verschiebung wird nicht gespeichert – beim nächsten Öffnen gilt wieder die oben eingestellte Position. Standardmäßig aus; dann bewirkt das Steuerkreuz bei offenem TinyPPI nichts."

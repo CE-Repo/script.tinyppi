@@ -35,8 +35,10 @@ _dialog_lock = False
 _ALLOW_NON_COREELEC = False
 
 # Runtime nudge: pixels moved per arrow-key press, and the direction each key
-# shifts the overlay by.  Deliberately not persisted – the nudge lives on the
-# dialog instance, so the next launch starts from the configured offsets again.
+# shifts the overlay by.  Off unless the viewer turns it on (see
+# _nudge_enabled), and deliberately not persisted even then – the nudge lives
+# on the dialog instance, so the next launch starts from the configured
+# offsets again.
 _NUDGE_STEP = 10
 
 # Outermost edges of the overlay content inside group 5000 (see the skin XML);
@@ -158,6 +160,18 @@ def _dv_debug_enabled() -> bool:
     return xbmcaddon.Addon().getSettingBool("dv_debug_view")
 
 
+def _nudge_enabled() -> bool:
+    """Return whether the arrow keys may move the overlay around.
+
+    Off out of the box, like the metadata view: the arrow keys do nothing on
+    the overlay until someone turns the nudge on under General -> Position, so
+    a stray press on the remote cannot walk the overlay off where it was put.
+    Read once when the overlay opens rather than per key press, which is where
+    a held-down arrow key would land it.
+    """
+    return xbmcaddon.Addon().getSettingBool("nudge_position")
+
+
 def _elements_visible() -> str:
     """Return the "1"/"0" flag for the header title, header icon and separator
     lines: they follow the background and hide only when it is fully transparent."""
@@ -191,6 +205,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._offset    = None
         self._auto_hide = 0
         self._nudge     = (0, 0)
+        self._nudge_on  = False
         self._dv_channel_offset = None
         self._refresh_failed    = False
         # Read by open_tinyppi() once doModal() returns; see _open_dv_debug.
@@ -202,6 +217,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         # Auto-hide timeout in seconds (0 = off). Applies to the TinyPPI
         # overlay only, not the VS10 selection dialog.
         self._auto_hide = _ADDON.getSettingInt("auto_hide")
+        self._nudge_on  = _nudge_enabled()
 
         # Everything the first frame needs was published before doModal(), so
         # there is nothing to fetch here: place the overlay against the HDR type
@@ -331,6 +347,8 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
             return
         if action_id == xbmcgui.ACTION_SELECT_ITEM:
             self._open_dv_debug()
+            return
+        if not self._nudge_on:
             return
         step = _NUDGE_ACTIONS.get(action_id)
         if step:

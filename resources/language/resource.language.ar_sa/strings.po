@@ -1243,3 +1243,11 @@ msgstr "لون القراءات التي تغيّرت للتو في عرض بي�
 msgctxt "#32397"
 msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue (Default)"
 msgstr "[COLOR=FF82B1FF]●[/COLOR] أزرق فاتح (افتراضي)"
+
+msgctxt "#32398"
+msgid "Move with the arrow keys"
+msgstr "التحريك بأزرار الاتجاهات"
+
+msgctxt "#32399"
+msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above. Off by default, so the arrow keys do nothing while TinyPPI is up."
+msgstr "يتيح تحريك طبقة TinyPPI على الشاشة بأزرار الاتجاهات في جهاز التحكم أثناء فتحها. لا يُحفظ التحريك: يبدأ التشغيل التالي من الموضع المضبوط أعلاه. مُعطّل افتراضيًا، وعندها لا تفعل أزرار الاتجاهات شيئًا أثناء فتح TinyPPI."

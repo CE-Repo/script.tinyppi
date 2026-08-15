@@ -1242,3 +1242,11 @@ msgstr "杜比视界元数据视图中刚刚变化的数值的颜色。该视图
 msgctxt "#32397"
 msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue (Default)"
 msgstr "[COLOR=FF82B1FF]●[/COLOR] 浅蓝色 (默认)"
+
+msgctxt "#32398"
+msgid "Move with the arrow keys"
+msgstr "使用方向键移动"
+
+msgctxt "#32399"
+msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above. Off by default, so the arrow keys do nothing while TinyPPI is up."
+msgstr "允许在 TinyPPI 叠加层打开时，用遥控器的方向键在屏幕上移动它。移动结果不会保存：下次打开时仍使用上面设置的位置。默认关闭，此时方向键在 TinyPPI 打开期间不起作用。"

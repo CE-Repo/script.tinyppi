@@ -70,6 +70,11 @@
                     </constraints>
                     <control type="slider" format="percentage" />
                 </setting>
+                <setting id="nudge_position" type="boolean" label="32398" help="32399">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle" />
+                </setting>
             </group>
             <group id="4" label="32383">
                 <setting id="keep_area_on_sdr" type="boolean" label="32384" help="32385">
