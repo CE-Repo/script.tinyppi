@@ -682,6 +682,13 @@ def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
     room, so what is on screen is what the bitstream said and the sections that
     are there can be read without hunting between empty ones.
 
+    Ordered by what moves rather than by the numbers the levels carry: the
+    per-frame blocks first, then the ones that describe the grade, then what
+    the file is.  A list this long is read from the top, and the top is worth
+    the readings that are different every time it is looked at -- the levels
+    still run in order within the first group, save for L8 kept beside L2,
+    which is the other half of the same answer.
+
     Read live, the blocks a compressed frame omits are held from the last frame
     that carried them and their heading says so (see _hold).  A parse result
     passed in is taken as it comes and holds nothing, so a caller with its own
@@ -702,25 +709,31 @@ def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
     rpu = parsed.get("rpu")
     rows: list[tuple[str, str, str]] = []
 
-    _section(rows, "Stream", _stream_pairs(parsed, carried))
-    _section(rows, "Configuration record (dvcC / dvvC)",
-             _config_pairs(parsed.get("config")), _state(origin, "config"))
-    # The RPU section is the header block plus the three readings that sit
-    # beside it, which are the frame's own whenever it has an RPU at all.
-    _section(rows, "RPU", _rpu_pairs(rpu),
-             _state(origin, "rpu", "rpu.header"))
+    # What moves with the picture, first, and the trims ahead of the rest of
+    # it: L1 says how bright the frame is, L2 and L8 say what was done about
+    # it, and those three are what there is to watch.
     _section(rows, "L1 — Frame luminance", _l1_pairs(rpu),
              _state(origin, "rpu.l1"))
-    _section(rows, "Source PQ range", _source_pairs(rpu),
-             _state(origin, "rpu.source"))
     _section(rows, "L2 — Trims", _trim_entries("l2", (rpu or {}).get("l2")),
              _state(origin, "rpu.l2"))
-    _section(rows, "L3 — PQ offsets", _l3_pairs(rpu), _state(origin, "rpu.l3"))
-    _section(rows, "L5 — Active area", _l5_pairs(rpu), _state(origin, "rpu.l5"))
-    _section(rows, "L6 — RPU mastering display", _l6_pairs(rpu),
-             _state(origin, "rpu.l6"))
     _section(rows, "L8 — Trims", _trim_entries("l8", (rpu or {}).get("l8")),
              _state(origin, "rpu.l8"))
+    _section(rows, "L5 — Active area", _l5_pairs(rpu), _state(origin, "rpu.l5"))
+    _section(rows, "L3 — PQ offsets", _l3_pairs(rpu), _state(origin, "rpu.l3"))
+    hdr10plus = parsed.get("hdr10plus")
+    if hdr10plus:
+        # Dynamic too, scene by scene, so it belongs up here with the rest of
+        # what changes rather than at the far end of the list.
+        _section(rows, "HDR10+ (ST 2094-40)", _hdr10plus_pairs(hdr10plus),
+                 _state(origin, "hdr10plus"))
+
+    # Then the grade: settled before the film was ever played, and the same on
+    # every frame of it.  The source range is here rather than above because
+    # it describes the master, however per-frame the RPU carrying it is.
+    _section(rows, "Source PQ range", _source_pairs(rpu),
+             _state(origin, "rpu.source"))
+    _section(rows, "L6 — RPU mastering display", _l6_pairs(rpu),
+             _state(origin, "rpu.l6"))
     _section(rows, "L9 — Source primaries", _l9_pairs(rpu),
              _state(origin, "rpu.l9"))
     _section(rows, "L10 — Target displays", _l10_pairs((rpu or {}).get("l10")),
@@ -731,10 +744,16 @@ def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
              _static_pairs(parsed.get("mdcv"), parsed.get("cll")),
              _state(origin, "mdcv", "cll"))
 
-    hdr10plus = parsed.get("hdr10plus")
-    if hdr10plus:
-        _section(rows, "HDR10+ (ST 2094-40)", _hdr10plus_pairs(hdr10plus),
-                 _state(origin, "hdr10plus"))
+    # And last what the file is, which answers a question asked once: it was
+    # the first thing on screen and took the whole of it, so a viewer after
+    # the readings had to scroll past what cannot change to reach what does.
+    # The RPU section is the header block plus the three readings that sit
+    # beside it, which are the frame's own whenever it has an RPU at all.
+    _section(rows, "RPU", _rpu_pairs(rpu),
+             _state(origin, "rpu", "rpu.header"))
+    _section(rows, "Configuration record (dvcC / dvvC)",
+             _config_pairs(parsed.get("config")), _state(origin, "config"))
+    _section(rows, "Stream", _stream_pairs(parsed, carried))
 
     if not rows:
         # Nothing was parsed at all -- no module, no side data, a frame that
