@@ -1212,7 +1212,7 @@ msgid "Dolby Vision metadata"
 msgstr ""
 
 msgctxt "#32390"
-msgid "OK button: \"Back\""
+msgid "OK: open section — Back: TinyPPI overlay"
 msgstr ""
 
 msgctxt "#32391"
@@ -1228,7 +1228,7 @@ msgid "Dolby Vision metadata view"
 msgstr ""
 
 msgctxt "#32394"
-msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK returns to the normal TinyPPI view, Back closes TinyPPI. On any other source OK does nothing."
+msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK opens the section under the cursor in a window of its own, Back returns to the TinyPPI overlay. On any other source OK does nothing."
 msgstr ""
 
 msgctxt "#32395"
@@ -1309,4 +1309,8 @@ msgstr ""
 
 msgctxt "#32423"
 msgid "Color of the line at the bottom naming what the keys do."
+msgstr ""
+
+msgctxt "#32424"
+msgid "Back: metadata list"
 msgstr ""

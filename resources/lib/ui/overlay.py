@@ -66,8 +66,9 @@ _NUDGE_ACTIONS = {
     xbmcgui.ACTION_MOVE_DOWN:  (0, _NUDGE_STEP),
 }
 
-# The view open_tinyppi() shows next once the current one closes.  OK switches
-# between the two on a Dolby Vision source; anything else ends the session.
+# The view open_tinyppi() shows next once the current one closes.  On a Dolby
+# Vision source OK goes down into it and Back comes back up out of it; Back
+# here, on the overlay itself, is the end of the session.
 _VIEW_DV_METADATA = "dv_metadata"
 
 # Label properties carrying the readings in the overlay's two Dolby Vision
@@ -536,9 +537,9 @@ def _show_overlay(home) -> str | None:
 def open_tinyppi() -> None:
     """Validate the environment and show TinyPPI until the viewer closes it.
 
-    The overlay is the view it opens with; on a Dolby Vision source OK switches
-    to the metadata metadata view and back, so this runs until one of them is
-    closed for good rather than handing over to the other.
+    The overlay is the view it opens with; on a Dolby Vision source OK hands
+    over to the metadata view and Back hands back, so this runs until one of
+    them is closed for good rather than handing over to the other.
 
     Skips silently on non-CoreELEC (unless ``_ALLOW_NON_COREELEC``), Kodi < 22,
     a 720p skin, no fullscreen video, or nothing playing; toggle-closes when the

@@ -21,31 +21,30 @@
             <left>315</left>
             <top>40</top>
 
-            <!-- Panel -->
-            <control type="group">
+            <!-- Panel: the two edge caps and the fill between them.  The
+                 height here is the tallest it ever gets; ui.dvmetadata cuts
+                 all three down to what the rows on screen need, which is why
+                 each carries an id and none of them sits in a group. -->
+            <control type="image" id="6100">
                 <left>0</left>
                 <top>0</top>
                 <width>23</width>
                 <height>1000</height>
-                <control type="image">
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.MetadataBackgroundColor)]">background/dv-overlay-bg-start.png</texture>
-                </control>
+                <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.MetadataBackgroundColor)]">background/dv-overlay-bg-start.png</texture>
             </control>
-            <control type="image">
+            <control type="image" id="6101">
                 <left>23</left>
                 <top>0</top>
                 <width>1244</width>
                 <height>1000</height>
                 <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.MetadataBackgroundColor)]">common/dot-1x1.png</texture>
             </control>
-            <control type="group">
+            <control type="image" id="6102">
                 <left>1267</left>
                 <top>0</top>
                 <width>23</width>
                 <height>1000</height>
-                <control type="image">
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.MetadataBackgroundColor)]">background/dv-overlay-bg-end.png</texture>
-                </control>
+                <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.MetadataBackgroundColor)]">background/dv-overlay-bg-end.png</texture>
             </control>
 
             <!-- Label -->
@@ -473,26 +472,43 @@
                 <textureslidernibfocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.MetadataScrollbarColor)]">common/dot-1x1.png</textureslidernibfocus>
             </control>
 
-            <!-- Line / Bottom -->
-            <control type="group">
+            <!-- Line / Bottom.  Follows the foot of the list, so it carries
+                 an id and its own visibility rather than a group's: a control
+                 ui.dvmetadata moves has to be one it can ask for. -->
+            <control type="image" id="6110">
                 <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
                 <left>35</left>
                 <top>925</top>
-                <control type="image">
-                    <width>1220</width>
-                    <height>1</height>
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.MetadataLineColor)]">common/dot-1x1.png</texture>
-                </control>
+                <width>1220</width>
+                <height>1</height>
+                <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.MetadataLineColor)]">common/dot-1x1.png</texture>
             </control>
 
-            <!-- Key hint -->
-            <control type="label">
+            <!-- Key hint.  The same window shows the whole list and a single
+                 section, and the keys mean different things in each: OK opens
+                 a section out of the list, and in a section there is only the
+                 way back.  ui.dvmetadata sets the property while a section is
+                 the one on screen. -->
+            <control type="label" id="6120">
+                <visible>!String.IsEqual(Window(10000).Property(TinyPPI.MetadataSectionView),1)</visible>
                 <left>35</left>
                 <top>945</top>
                 <width>1220</width>
                 <height>30</height>
                 <align>center</align>
                 <label>$ADDON[script.tinyppi 32390]</label>
+                <font>font23_narrow</font>
+                <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataHintColor)]</textcolor>
+                <aligny>top</aligny>
+            </control>
+            <control type="label" id="6121">
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.MetadataSectionView),1)</visible>
+                <left>35</left>
+                <top>945</top>
+                <width>1220</width>
+                <height>30</height>
+                <align>center</align>
+                <label>$ADDON[script.tinyppi 32424]</label>
                 <font>font23_narrow</font>
                 <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataHintColor)]</textcolor>
                 <aligny>top</aligny>

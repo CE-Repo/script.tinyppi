@@ -4,8 +4,14 @@ The overlay shows the readings that fit its rows.  This view is the other half
 of that: pressing OK on a Dolby Vision source hands over to it, and it lists
 every block ``script.module.sidedata`` parsed out of the raw payload -- the
 configuration record, the RPU from its header through L11, the static SEIs --
-one line each, live, for the frame on screen.  OK hands back to the overlay,
-Back closes both (see ui.overlay.open_tinyppi, which switches between the two).
+one line each, live, for the frame on screen.
+
+Three views deep, and one key each way.  OK goes down -- from the overlay to
+the list, and from a section of the list into a window holding that section
+alone -- and Back comes up the same way, to the list, to the overlay, and out.
+Nothing is ever nested: each window closes before the next one opens, and
+open_dv_metadata below drives the list and its sections the way
+ui.overlay.open_tinyppi drives the overlay and this.
 
 The rows themselves come from info.dvmetadata; this module is the window around
 them: it fills the list, keeps it current, and gets out of the way again.  The
@@ -13,7 +19,7 @@ one thing it says of its own accord is which readings just moved -- a refresh
 writes those in the highlight color for as long as they keep moving, so a list
 this long can be read as a live one.  Which is also why a heading whose block
 this frame did not carry reads ``(Cached)``: what is on screen should say
-whether it is the frame's own (see _headline).
+whether it is the frame's own (see _write).
 """
 
 import threading
@@ -32,8 +38,40 @@ _ADDON_PATH = _ADDON.getAddonInfo("path")
 # The list holding the metadata rows (see script-tinyppi-dv-metadata.xml).
 _LIST = 6000
 
+# The controls the window is cut down to size by, and the measurements the
+# skin lays them out on.  A Kodi skin cannot size a panel from the number of
+# rows in it -- coordinates are literals, and the list is not a grouplist that
+# grows with its content -- so what the skin holds is the tallest the window
+# ever gets, and _resize takes the rest off: a section of four readings should
+# be a panel four readings tall, not a screenful of background under them.
+#
+# The three panel images (left cap, fill, right cap), the rule under the list
+# and the two key hints below it, all of which follow the foot of the list.
+_PANEL = (6100, 6101, 6102)
+_RULE  = 6110
+_HINTS = (6120, 6121)
+
+# Where the list starts, how tall one row is, and how much panel there is
+# below it -- the rule sits 25 px under its foot, the hint 45, and the panel
+# ends 100 px under it.
+_LIST_TOP  = 150
+_ROW       = 30
+_RULE_GAP  = 25
+_HINT_GAP  = 45
+_PANEL_GAP = 100
+
+# Rows that fit before the panel stops growing, which is the height the skin
+# itself is laid out at: 750 px of list.
+_MAX_ROWS = 25
+
 # Home window, where ui.theme publishes the colors the skin resolves.
 _HOME = 10000
+
+# Set while a single section is on screen rather than the whole list.  The two
+# views share one window definition and differ in what the keys do, so this is
+# what the skin draws the right key hint from -- and nothing else: the rows
+# come through the list either way.
+_SECTION_VIEW = "TinyPPI.MetadataSectionView"
 
 # A reading that moved since the last refresh is written in this color for the
 # one second it stays changed, so the eye finds what is live among rows that
@@ -131,13 +169,15 @@ def _areas(rows: list) -> list:
 
 
 class DVMetadataDialog(xbmcgui.WindowXMLDialog):
-    """The metadata list.  Closes on OK (back to the overlay), on Back, and on
-    its own once playback stops or leaves the fullscreen video window.
+    """The metadata list.  Closes on OK into the section the viewer is on, on
+    Back to the overlay, and on its own once playback stops or leaves the
+    fullscreen video window.
 
     The arrow keys move between sections rather than between rows: this is a
     list to read a block of at a time, and stepping through sixty rows to
     reach the next heading is not reading.  Each jump puts the whole section
-    on screen where it fits."""
+    on screen where it fits -- and OK on one of them opens it on its own, for
+    the sections that do not fit at all."""
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -154,24 +194,40 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self._closing        = False
         self._refresh_failed = False
         self._color_missing  = False
+        # The list height the window is currently cut to, so a refresh that
+        # leaves the row count alone leaves the geometry alone with it.
+        self._list_height   = 0
+        self._resize_failed = False
         # The sections the arrow keys move between, and which one the viewer
         # is on -- held by title rather than by number, so a section that
         # comes or goes with the frame does not shift the view out from under
         # them (see _focus_area).
         self._areas: list = []
         self._area_title  = ""
-        # Read by open_dv_metadata() once doModal() returns: True when the viewer
-        # asked for the overlay back rather than for the overlay to end.
-        self.back_to_overlay = False
+        # Set before doModal(): the section to open on, which is the one the
+        # viewer was reading when they went into it, so coming back out of a
+        # section lands where they left rather than at the top of the list.
+        self.start_section = ""
+        # Read by open_dv_metadata() once doModal() returns.  True when the
+        # viewer asked for the view that opened this one -- the overlay for
+        # the list, the list for a section -- rather than for it to end; and
+        # the section OK asked to be opened on its own, if any.
+        self.back_to_caller = False
+        self.open_section   = ""
+
+    def _rows(self) -> list:
+        """The rows to show: all of them.  A section view narrows this."""
+        return dvmetadata.build_rows()
 
     def onInit(self) -> None:
         self._running   = True
         self._opened_at = time.time()
+        self._area_title = self.start_section
         # Unlike the overlay, whose properties can be published before Kodi
         # builds the window, a list has to be filled through its control -- so
         # the first fill happens here, under the opening fade.
         try:
-            self._fill(dvmetadata.build_rows())
+            self._fill(self._rows())
         except Exception as exc:
             self._log_refresh_failure(exc)
         self.setFocusId(_LIST)
@@ -345,12 +401,54 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
                 self._paint(control.getListItem(index), _BLANK_ROW, "")
             self._keys  = keys
             self._areas = _areas(rows)
+            self._resize(len(rows))
             self._focus_area(self._area_index())
         else:
             for index, (row, label) in enumerate(zip(rows, labels)):
                 self._write(control.getListItem(index), row, label)
 
         self._values = values
+
+    # --- Geometry -----------------------------------------------------------
+
+    def _resize(self, shown: int) -> None:
+        """Cut the window down to the *shown* rows it has to hold.
+
+        The list keeps every item it has ever been given -- blanking the ones
+        a shorter refresh leaves over rather than removing them, which is what
+        keeps it from blinking (see _fill) -- so the height comes from the row
+        count passed in, not from the size of the control's own list.
+
+        Everything below the list moves with its foot and the panel ends under
+        that, so what is drawn is the rows and their frame, with no empty
+        panel beneath them.  Nothing grows past what the skin is laid out at:
+        the whole list is far longer than the screen, and a section that is
+        too has the same page to scroll as before.
+        """
+        height = max(1, min(shown, _MAX_ROWS)) * _ROW
+        if height == self._list_height:
+            return
+        try:
+            foot = _LIST_TOP + height
+            for control_id in _PANEL:
+                self.getControl(control_id).setHeight(foot + _PANEL_GAP)
+            self.getControl(_LIST).setHeight(height)
+            self.getControl(_RULE).setPosition(35, foot + _RULE_GAP)
+            for control_id in _HINTS:
+                self.getControl(control_id).setPosition(35, foot + _HINT_GAP)
+        except Exception as exc:
+            # A skin without the ids costs the fitted panel, not the readings:
+            # the window stays at the height it was laid out at, which is the
+            # height it had before any of this.
+            if not self._resize_failed:
+                self._resize_failed = True
+                xbmc.log(
+                    f"TinyPPI: DV metadata window cannot be resized to its "
+                    f"rows, leaving it at full height: {exc}",
+                    xbmc.LOGWARNING,
+                )
+            return
+        self._list_height = height
 
     # --- Sections -----------------------------------------------------------
 
@@ -397,11 +495,42 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         """False while the opening key press could still be arriving."""
         return time.time() - self._opened_at >= _SETTLE
 
+    def _cursor_area(self) -> str:
+        """The section the selection is in, by title.
+
+        Read from where the list actually is rather than from the section last
+        jumped to: the arrow keys are not the only way to move a Kodi list --
+        the scrollbar and a mouse move it too -- and OK should open what the
+        viewer is looking at however they got there.
+        """
+        try:
+            position = self.getControl(_LIST).getSelectedPosition()
+        except Exception:
+            return self._area_title
+        for start, title, end in self._areas:
+            if start <= position <= end:
+                return title
+        return self._area_title
+
+    def _open_area(self) -> None:
+        """Close, asking for the section under the selection on its own.
+
+        Opened by open_dv_metadata once this window is gone, not from here: a
+        modal opened inside a callback nests inside the loop that dispatched
+        it, and the overlay hands over to this view the same way for the same
+        reason (see ui.overlay._open_dv_metadata).
+        """
+        title = self._cursor_area()
+        if not title:
+            return
+        self.open_section = title
+        self._close(back_to_caller=False)
+
     def onClick(self, control_id: int) -> None:
         # OK on the focused list.  Kodi delivers the same press to onAction as
         # well, hence the guard in _close.
         if control_id == _LIST and self._settled():
-            self._close(back_to_overlay=True)
+            self._open_area()
 
     def onAction(self, action: xbmcgui.Action) -> None:
         action_id = action.getId()
@@ -409,15 +538,15 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             # The press that opened this view is the one action that must not
             # be acted on; nothing else needs the settling guard.
             if self._settled():
-                self._close(back_to_overlay=True)
-        elif action_id in (
-            xbmcgui.ACTION_PREVIOUS_MENU,
-            xbmcgui.ACTION_NAV_BACK,
-            xbmcgui.ACTION_STOP,
-        ):
+                self._open_area()
+        elif action_id in (xbmcgui.ACTION_PREVIOUS_MENU,
+                           xbmcgui.ACTION_NAV_BACK):
             # Kodi's own handling has already closed the window by now; this
             # records the answer and stops the refresh thread with it.
-            self._close(back_to_overlay=False)
+            self._close(back_to_caller=True)
+        elif action_id == xbmcgui.ACTION_STOP:
+            # Not a step back up: the film is what all of this was about.
+            self._close(back_to_caller=False)
         elif action_id in _STEP_ACTIONS:
             # The list has already moved itself a row by the time this runs --
             # Kodi hands the action to the control before the window sees it.
@@ -426,13 +555,13 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             # selection is put back on a heading either way.
             self._step_area(_STEP_ACTIONS[action_id])
 
-    def _close(self, back_to_overlay: bool) -> None:
+    def _close(self, back_to_caller: bool) -> None:
         """Close once, remembering what the viewer asked for."""
         if self._closing:
             return
-        self._closing        = True
-        self.back_to_overlay = back_to_overlay
-        self._running        = False
+        self._closing       = True
+        self.back_to_caller = back_to_caller
+        self._running       = False
         try:
             self.close()
         except Exception:
@@ -458,7 +587,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
                     break
 
                 try:
-                    self._fill(dvmetadata.build_rows())
+                    self._fill(self._rows())
                 except Exception as exc:
                     self._log_refresh_failure(exc)
 
@@ -467,7 +596,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         finally:
             # Playback ended under the view: close it for good, not back to an
             # overlay that has nothing left to show either.
-            self._close(back_to_overlay=False)
+            self._close(back_to_caller=False)
 
     def _log_refresh_failure(self, exc: Exception) -> None:
         """Log a failed refresh once per view, so a persistent fault leaves a
@@ -482,15 +611,114 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         )
 
 
-def open_dv_metadata() -> bool:
-    """Show the metadata view; True when OK asked for the overlay back."""
-    dialog = DVMetadataDialog(
+class DVSectionDialog(DVMetadataDialog):
+    """One section of the metadata list, on its own.
+
+    The same window and the same refresh, holding one block: what OK opens
+    when the list is on a section.  A block worth reading as a whole is worth
+    seeing as a whole, and several of them -- the trims with a pass per target
+    display, the RPU header, the static SEIs -- are longer than the room the
+    list can spare for them among thirteen others.
+
+    Only Back does anything here.  There is nowhere further down to go, so OK
+    is left alone rather than made into a second way back: down and up are one
+    key each, all the way through (see the module docstring).  The arrow keys
+    are the list's own again -- one section is not something to step through a
+    section at a time -- so they scroll it by rows.
+    """
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        # Set before doModal(): the title of the section to show.
+        self.section     = ""
+        self._settled_in = False
+
+    def _rows(self) -> list:
+        """The rows of this section alone, heading included.
+
+        Sliced out of the whole list each refresh rather than kept, because
+        the section is live: a trim pass the frame adds belongs in here too.
+        A stream that stops carrying the block entirely leaves the heading, so
+        the window says what it is standing on rather than going blank.
+        """
+        rows = dvmetadata.build_rows()
+        for start, title, end in _areas(rows):
+            if title == self.section:
+                return rows[start:end + 1]
+        return [(dvmetadata.SECTION, self.section, "")]
+
+    def _focus_area(self, index: int) -> None:
+        """Land on the heading when the window opens, and then keep still.
+
+        The list refocuses its section whenever the rows change under it,
+        which is what keeps the viewer's place there.  Here it would take
+        their place away: with one section on screen, scrolling within it is
+        the only movement there is, and a refresh must not undo it.
+        """
+        if self._settled_in:
+            return
+        self._settled_in = True
+        super()._focus_area(index)
+
+    def onClick(self, control_id: int) -> None:
+        pass
+
+    def onAction(self, action: xbmcgui.Action) -> None:
+        action_id = action.getId()
+        if action_id in (xbmcgui.ACTION_PREVIOUS_MENU, xbmcgui.ACTION_NAV_BACK):
+            self._close(back_to_caller=True)
+        elif action_id == xbmcgui.ACTION_STOP:
+            self._close(back_to_caller=False)
+
+
+def _dialog(dialog_class):
+    """Build one of the two views on the metadata window."""
+    return dialog_class(
         "script-tinyppi-dv-metadata.xml",
         _ADDON_PATH,
         "Default",
         "1080i",
     )
-    dialog.doModal()
-    back_to_overlay = dialog.back_to_overlay
-    del dialog
-    return back_to_overlay
+
+
+def _show_section(title: str) -> bool:
+    """Show *title* on its own; True when Back asked for the list again.
+
+    The property is what tells the skin which of the two key hints to draw --
+    the window is the same one either way, and the keys it answers to are not.
+    """
+    home = xbmcgui.Window(_HOME)
+    home.setProperty(_SECTION_VIEW, "1")
+    try:
+        dialog = _dialog(DVSectionDialog)
+        dialog.section = title
+        dialog.doModal()
+        back_to_list = dialog.back_to_caller
+        del dialog
+    finally:
+        home.clearProperty(_SECTION_VIEW)
+    return back_to_list
+
+
+def open_dv_metadata() -> bool:
+    """Show the metadata view; True when Back asked for the overlay back.
+
+    A loop, because OK opens a section as a window of its own: the list closes
+    to let it open, and Back closes it to let the list open again -- on the
+    section it was opened from, so a look inside one costs the viewer no place
+    in the list.  Playback ending under either of them ends the session
+    instead, overlay and all.
+    """
+    section = ""
+    while True:
+        dialog = _dialog(DVMetadataDialog)
+        dialog.start_section = section
+        dialog.doModal()
+        section         = dialog.open_section
+        back_to_overlay = dialog.back_to_caller
+        del dialog
+
+        if not section:
+            return back_to_overlay
+        if not _show_section(section):
+            return False
