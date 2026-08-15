@@ -1216,8 +1216,8 @@ msgid "OK button: \"Back\""
 msgstr "OK 键：\"返回\""
 
 msgctxt "#32391"
-msgid "Debug"
-msgstr "调试"
+msgid "DV metadata"
+msgstr "DV 元数据"
 
 msgctxt "#32392"
 msgid "Diagnostic views for reading what a stream actually carries. Off by default; nothing here changes playback."

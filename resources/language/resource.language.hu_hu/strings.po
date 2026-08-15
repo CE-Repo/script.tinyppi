@@ -1216,8 +1216,8 @@ msgid "OK button: \"Back\""
 msgstr "OK gomb: \"Vissza\""
 
 msgctxt "#32391"
-msgid "Debug"
-msgstr "Hibakeresés"
+msgid "DV metadata"
+msgstr "DV metaadatok"
 
 msgctxt "#32392"
 msgid "Diagnostic views for reading what a stream actually carries. Off by default; nothing here changes playback."

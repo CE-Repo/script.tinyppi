@@ -1216,7 +1216,7 @@ msgid "OK button: \"Back\""
 msgstr ""
 
 msgctxt "#32391"
-msgid "Debug"
+msgid "DV metadata"
 msgstr ""
 
 msgctxt "#32392"
