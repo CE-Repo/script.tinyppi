@@ -106,7 +106,7 @@
                         <top>0</top>
                         <width>1195</width>
                         <height>30</height>
-                        <label>[B][UPPERCASE]$INFO[ListItem.Property(head)][/UPPERCASE][/B]</label>
+                        <label>[B][UPPERCASE]$INFO[ListItem.Property(head)][/UPPERCASE][/B]$INFO[ListItem.Property(state), (,)]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataTitleColor)]</textcolor>
                         <aligny>center</aligny>
@@ -291,7 +291,7 @@
                         <top>0</top>
                         <width>1195</width>
                         <height>30</height>
-                        <label>[B][UPPERCASE]$INFO[ListItem.Property(head)][/UPPERCASE][/B]</label>
+                        <label>[B][UPPERCASE]$INFO[ListItem.Property(head)][/UPPERCASE][/B]$INFO[ListItem.Property(state), (,)]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataTitleColor)]</textcolor>
                         <aligny>center</aligny>

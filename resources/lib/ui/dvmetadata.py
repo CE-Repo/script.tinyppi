@@ -11,7 +11,9 @@ The rows themselves come from info.dvmetadata; this module is the window around
 them: it fills the list, keeps it current, and gets out of the way again.  The
 one thing it says of its own accord is which readings just moved -- a refresh
 writes those in the highlight color for as long as they keep moving, so a list
-this long can be read as a live one.
+this long can be read as a live one.  Which is also why a heading whose block
+this frame did not carry reads ``(Cached)``: what is on screen should say
+whether it is the frame's own (see _headline).
 """
 
 import threading
@@ -178,14 +180,26 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
     # --- List ---------------------------------------------------------------
 
     @staticmethod
-    def _write(item: xbmcgui.ListItem, kind: str, label) -> None:
+    def _write(item: xbmcgui.ListItem, row: tuple, label) -> None:
         """Put a row's value into whichever of the item's fields draws it.
 
-        A table row hands its cells over one property at a time, and clears
-        the ones it has no cell for: the item is reused from refresh to
-        refresh, so a column that goes away has to be emptied rather than left
-        holding what it said last.
+        A heading's value is not a reading but where the block under it came
+        from, so it goes into ``state``, which the skin draws after the title
+        in brackets -- ``L8 — Trims (Cached)`` for a section standing on a
+        block held from an earlier frame, and nothing after the title for one
+        the frame itself carried.  Beside the title and not in it: the title is
+        what the view finds the viewer's section by (see _area_index), and one
+        that changed with the frame would lose them.
+
+        A table row hands its cells over one property at a time, and clears the
+        ones it has no cell for -- the item is reused from refresh to refresh,
+        so a column that goes away has to be emptied rather than left holding
+        what it said last.
         """
+        kind, _name, _value = row
+        if kind == dvmetadata.SECTION:
+            item.setProperty("state", label)
+            return
         if kind not in (dvmetadata.HEADINGS, dvmetadata.COLUMNS):
             item.setLabel2(label)
             return
@@ -207,10 +221,11 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         layout is fed one of them and draws nothing when it comes back empty.
 
         A heading puts its title in the ``head`` property, which is the one
-        the large font is on, and names the texture for the rule under it.  A
-        two-column row fills both labels.  A full-width line fills only the
-        second, which spans the row.  A table row fills a property per cell,
-        which is what puts each in a fixed column.  A blank row fills nothing.
+        the large font is on, its ``(Cached)`` in ``state`` beside it (see
+        _write), and names the texture for the rule under it.  A two-column
+        row fills both labels.  A full-width line fills only the second, which
+        spans the row.  A table row fills a property per cell, which is what
+        puts each in a fixed column.  A blank row fills nothing.
 
         Every field is written on every call, the unused ones with nothing:
         items outlive the row that was on them -- a rebuild hands an item
@@ -226,6 +241,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         item.setLabel2(label if kind in (dvmetadata.ROW, dvmetadata.WIDE)
                        else "")
         item.setProperty("head", name if heading else "")
+        item.setProperty("state", label if heading else "")
         item.setProperty("rule", _RULE_TEXTURE if heading else "")
         for position in range(dvmetadata.MAX_COLUMNS):
             cell = label[position] if table and position < len(label) else ""
@@ -304,13 +320,21 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         from the fifty-nine that did not.  The comparison is by identity, not
         by position, so the rows a rebuild kept are still compared against
         what they said before it.
+
+        Headings are the one thing left out of that.  What a heading carries
+        is not a reading but where its block came from, and a section that
+        goes in and out of being held would spend half the film lit up as
+        though something in it had changed.
         """
         control = self.getControl(_LIST)
         keys   = _identities(rows)
         values = dict(zip(keys, (value for _kind, _name, value in rows)))
         color  = self._changed_color()
-        labels = [highlight_changes(self._values.get(key), values[key], color)
-                  for key in keys]
+        labels = [
+            values[key] if row[0] == dvmetadata.SECTION
+            else highlight_changes(self._values.get(key), values[key], color)
+            for row, key in zip(rows, keys)
+        ]
 
         if keys != self._keys:
             held = self._extend(control, rows, labels)
@@ -324,7 +348,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             self._focus_area(self._area_index())
         else:
             for index, (row, label) in enumerate(zip(rows, labels)):
-                self._write(control.getListItem(index), row[0], label)
+                self._write(control.getListItem(index), row, label)
 
         self._values = values
 

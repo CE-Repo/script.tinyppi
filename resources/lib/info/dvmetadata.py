@@ -70,6 +70,13 @@ MAX_COLUMNS = 6
 # internal "nothing here", not a label anyone reads.
 EMPTY = "—"
 
+# Where the block under a section heading came from.  Only CACHED is ever said
+# out loud, on the heading of a section this frame did not carry and that is
+# standing on the last frame that did (see _hold); LIVE is what the rest are,
+# and a heading with nothing after it is the ordinary case worth no ink.
+LIVE   = "Live"
+CACHED = "Cached"
+
 _SIDEDATA_ID = "script.module.sidedata"
 
 # What is playing, which is what the held blocks are kept against: they
@@ -167,7 +174,7 @@ def _module_version() -> str:
 
 # --- Sections --------------------------------------------------------------
 
-def _section(rows: list, title: str, entries) -> None:
+def _section(rows: list, title: str, entries, state: str = "") -> None:
     """Append a heading and its entries to *rows*, skipping what is not there.
 
     An entry is either a ``(name, value)`` pair for a two-column row, or an
@@ -180,6 +187,13 @@ def _section(rows: list, title: str, entries) -> None:
     kept, but only between readings.  One that ends up at either end of a
     section is dropped, so a section can never open or close on a gap it does
     not need -- the row before the next heading is already there.
+
+    *state* is CACHED for a section standing on a block held from an earlier
+    frame, and empty for one the frame itself carried.  The heading row takes
+    it as its value, beside the title rather than in it: the title is what a
+    section is known by -- it is what the view remembers the viewer's place
+    with -- and a word that came and went with the frame would take their place
+    with it.  ui.dvmetadata is what puts the two together for the eye.
     """
     kept = [
         entry if len(entry) == 3 else (ROW, entry[0], entry[1])
@@ -197,7 +211,7 @@ def _section(rows: list, title: str, entries) -> None:
         # Air ahead of the heading -- not before the first one, which needs no
         # separating from what is above it.
         rows.append((SPACE, f"space.{title}", ""))
-    rows.append((SECTION, title, ""))
+    rows.append((SECTION, title, state))
     rows.extend(kept)
 
 
@@ -582,21 +596,30 @@ _held: dict = {}
 _held_source: str | None = None
 
 
-def _fill_in(current: dict, names: tuple, prefix: str) -> dict:
+def _fill_in(current: dict, names: tuple, prefix: str) -> tuple[dict, dict]:
     """Return *current* with the blocks it omits filled in from _held, and the
-    ones it carries remembered in their place."""
-    filled = dict(current)
+    ones it carries remembered in their place.
+
+    Alongside it, where each block came from: LIVE for one this frame brought,
+    CACHED for one put back from an earlier frame, and no entry at all for one
+    neither has -- there is nothing to say about a block the stream does not
+    carry, and its section is not there to say it on.
+    """
+    filled: dict = dict(current)
+    origin: dict = {}
     for name in names:
         block = current.get(name)
         key   = prefix + name
         if block:
-            _held[key] = block
+            _held[key]   = block
+            origin[key]  = LIVE
         elif _held.get(key) is not None:
             filled[name] = _held[key]
-    return filled
+            origin[key]  = CACHED
+    return filled, origin
 
 
-def _hold(parsed: dict) -> dict:
+def _hold(parsed: dict) -> tuple[dict, dict]:
     """Fill *parsed* out with the blocks the frame on screen does not repeat.
 
     What a compressed frame leaves out is not absent from the stream, only
@@ -605,6 +628,10 @@ def _hold(parsed: dict) -> dict:
     blink out every second or two -- L2 and L8 trims above all, whole sections
     of them -- then stand still, and a reading that really does change still
     replaces the held one on the frame that carries it.
+
+    Returns the origin map with it, which is what the headings say Live or
+    Cached from: holding readings quietly would make a still reading and a
+    stale one look alike.
 
     Kept against what is playing: a title change clears them, and so does the
     end of playback, which is what empties the label they are kept against.
@@ -616,15 +643,32 @@ def _hold(parsed: dict) -> dict:
         _held.clear()
         _held_source = source
 
-    parsed = _fill_in(parsed, _HELD_TOP, "")
+    parsed, origin = _fill_in(parsed, _HELD_TOP, "")
     rpu = parsed.get("rpu")
     if isinstance(rpu, dict):
-        parsed["rpu"] = _fill_in(rpu, _HELD_RPU, "rpu.")
+        filled, inside = _fill_in(rpu, _HELD_RPU, "rpu.")
         # Hold the filled-out RPU rather than the frame's own, so a frame that
         # carries no RPU at all still gets every block, not just the ones the
         # last frame to carry one happened to have.
-        _held["rpu"] = parsed["rpu"]
-    return parsed
+        parsed["rpu"] = _held["rpu"] = filled
+        if origin.get("rpu") == CACHED:
+            # No RPU in this frame at all: every block in the one standing in
+            # for it is held, however live it looked when it was put away.
+            inside = dict.fromkeys(inside, CACHED)
+        origin.update(inside)
+    return parsed, origin
+
+
+def _state(origin: dict, *keys: str) -> str:
+    """CACHED when every block a section was built from was held, else "".
+
+    Every one of them and not merely one: a section with a reading from this
+    frame in it is a live section, whatever else it had to fall back on.  A
+    block the stream carries nowhere leaves no entry to judge, and its section
+    is not in the list to be judged.
+    """
+    seen = [origin[key] for key in keys if key in origin]
+    return CACHED if seen and all(state == CACHED for state in seen) else ""
 
 
 # --- Row model -------------------------------------------------------------
@@ -639,8 +683,9 @@ def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
     are there can be read without hunting between empty ones.
 
     Read live, the blocks a compressed frame omits are held from the last frame
-    that carried them (see _hold).  A parse result passed in is taken as it
-    comes and holds nothing, so a caller with its own data gets its own data.
+    that carried them and their heading says so (see _hold).  A parse result
+    passed in is taken as it comes and holds nothing, so a caller with its own
+    data gets its own data, every section of it live.
     """
     live   = parsed is None
     parsed = get_sidedata() if live else parsed
@@ -650,32 +695,46 @@ def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
     # put back: the Stream section reports the payload in hand, and a held
     # block is precisely one that is not in it.
     carried = _payload_summary(parsed)
+    origin: dict = {}
     if live:
-        parsed = _hold(parsed)
+        parsed, origin = _hold(parsed)
 
     rpu = parsed.get("rpu")
     rows: list[tuple[str, str, str]] = []
 
     _section(rows, "Stream", _stream_pairs(parsed, carried))
     _section(rows, "Configuration record (dvcC / dvvC)",
-             _config_pairs(parsed.get("config")))
-    _section(rows, "RPU", _rpu_pairs(rpu))
-    _section(rows, "L1 — Frame luminance", _l1_pairs(rpu))
-    _section(rows, "Source PQ range", _source_pairs(rpu))
-    _section(rows, "L2 — Trims", _trim_entries("l2", (rpu or {}).get("l2")))
-    _section(rows, "L3 — PQ offsets", _l3_pairs(rpu))
-    _section(rows, "L5 — Active area", _l5_pairs(rpu))
-    _section(rows, "L6 — RPU mastering display", _l6_pairs(rpu))
-    _section(rows, "L8 — Trims", _trim_entries("l8", (rpu or {}).get("l8")))
-    _section(rows, "L9 — Source primaries", _l9_pairs(rpu))
-    _section(rows, "L10 — Target displays", _l10_pairs((rpu or {}).get("l10")))
-    _section(rows, "L11 — Content type", _l11_pairs(rpu))
+             _config_pairs(parsed.get("config")), _state(origin, "config"))
+    # The RPU section is the header block plus the three readings that sit
+    # beside it, which are the frame's own whenever it has an RPU at all.
+    _section(rows, "RPU", _rpu_pairs(rpu),
+             _state(origin, "rpu", "rpu.header"))
+    _section(rows, "L1 — Frame luminance", _l1_pairs(rpu),
+             _state(origin, "rpu.l1"))
+    _section(rows, "Source PQ range", _source_pairs(rpu),
+             _state(origin, "rpu.source"))
+    _section(rows, "L2 — Trims", _trim_entries("l2", (rpu or {}).get("l2")),
+             _state(origin, "rpu.l2"))
+    _section(rows, "L3 — PQ offsets", _l3_pairs(rpu), _state(origin, "rpu.l3"))
+    _section(rows, "L5 — Active area", _l5_pairs(rpu), _state(origin, "rpu.l5"))
+    _section(rows, "L6 — RPU mastering display", _l6_pairs(rpu),
+             _state(origin, "rpu.l6"))
+    _section(rows, "L8 — Trims", _trim_entries("l8", (rpu or {}).get("l8")),
+             _state(origin, "rpu.l8"))
+    _section(rows, "L9 — Source primaries", _l9_pairs(rpu),
+             _state(origin, "rpu.l9"))
+    _section(rows, "L10 — Target displays", _l10_pairs((rpu or {}).get("l10")),
+             _state(origin, "rpu.l10"))
+    _section(rows, "L11 — Content type", _l11_pairs(rpu),
+             _state(origin, "rpu.l11"))
     _section(rows, "Static metadata (MDCV / CLL)",
-             _static_pairs(parsed.get("mdcv"), parsed.get("cll")))
+             _static_pairs(parsed.get("mdcv"), parsed.get("cll")),
+             _state(origin, "mdcv", "cll"))
 
     hdr10plus = parsed.get("hdr10plus")
     if hdr10plus:
-        _section(rows, "HDR10+ (ST 2094-40)", _hdr10plus_pairs(hdr10plus))
+        _section(rows, "HDR10+ (ST 2094-40)", _hdr10plus_pairs(hdr10plus),
+                 _state(origin, "hdr10plus"))
 
     if not rows:
         # Nothing was parsed at all -- no module, no side data, a frame that
