@@ -148,12 +148,22 @@ def _section(rows: list, title: str, entries) -> None:
     entry whose value came back EMPTY is left out, and a heading whose entries
     all went that way is left out with them: an absent block should take no
     room at all rather than a screenful of dashes.
+
+    A blank row is the one entry that carries no value and is meant to: it is
+    kept, but only between readings.  One that ends up at either end of a
+    section is dropped, so a section can never open or close on a gap it does
+    not need -- the row before the next heading is already there.
     """
     kept = [
         entry if len(entry) == 3 else (ROW, entry[0], entry[1])
         for entry in entries
     ]
-    kept = [row for row in kept if row[2] and row[2] != EMPTY]
+    kept = [row for row in kept
+            if row[0] == SPACE or (row[2] and row[2] != EMPTY)]
+    while kept and kept[0][0] == SPACE:
+        kept.pop(0)
+    while kept and kept[-1][0] == SPACE:
+        kept.pop()
     if not kept:
         return
     if rows:
@@ -289,114 +299,127 @@ def _l6_pairs(rpu: dict | None) -> list:
     ]
 
 
-# Raw trim codes, 12 bit with 2048 neutral, in the order Dolby lists them, as
-# (short code, field, name).  A whole pass goes on one line, so the codes are
-# abbreviated and the legend row below spells them out once per section.
+# Raw trim controls, 12 bit with 2048 neutral, in the order Dolby lists them,
+# as (field, name).  A whole pass goes on one line with every control named in
+# full, so the line says what it carries on its own -- an abbreviation and a
+# legend row to decode it are two things to read where one will do.
 _TRIM_RAW = (
-    ("S",  "slope",        "slope"),
-    ("O",  "offset",       "offset"),
-    ("P",  "power",        "power"),
-    ("CW", "chromaweight", "chroma"),
-    ("SG", "saturation",   "saturation"),
-    ("TD", "tonedetail",   "detail"),
+    ("slope",        "Slope"),
+    ("offset",       "Offset"),
+    ("power",        "Power"),
+    ("chromaweight", "Chroma"),
+    ("saturation",   "Saturation"),
+    ("tonedetail",   "Detail"),
 )
-# L8 carries two codes L2 does not.
+# L8 carries two controls L2 does not.
 _TRIM_RAW_L8 = _TRIM_RAW + (
-    ("MC", "mid_contrast", "mid contrast"),
-    ("CT", "clip_trim",    "clip trim"),
+    ("mid_contrast", "Mid contrast"),
+    ("clip_trim",    "Clip trim"),
 )
 # The same pass on the -1..1 scale the Dolby UI shows.  Gain, lift and gamma
-# are derived from the slope / offset / power codes above, the rest are those
-# codes rescaled.
+# are derived from the slope / offset / power controls above, the rest are
+# those rescaled.
 _TRIM_UI = (
-    ("G",  "gain",         "gain"),
-    ("L",  "lift",         "lift"),
-    ("Gm", "gamma",        "gamma"),
-    ("CW", "chromaweight", "chroma"),
-    ("SG", "saturation",   "saturation"),
-    ("TD", "tonedetail",   "detail"),
+    ("gain",         "Gain"),
+    ("lift",         "Lift"),
+    ("gamma",        "Gamma"),
+    ("chromaweight", "Chroma"),
+    ("saturation",   "Saturation"),
+    ("tonedetail",   "Detail"),
 )
 
-
-# What the left column says on each of a level's lines.  The readings sit in
-# the value column like every other row, so the name column is free to say
-# which line is which -- which is what the pass target and these do.
-_LEGEND_RAW = "Legend (raw)"
-_LEGEND_UI  = "Legend (UI)"
-_PASS_UI    = "UI"
-
-
-def _legend(controls) -> str:
-    """Spell out one line of trim codes."""
-    return "  ".join(f"{code} {name}" for code, _key, name in controls)
+# Characters a row holds across both its columns before the value runs into
+# the name beside it.  A rough count against a proportional font, so it is
+# deliberately short of the ~110 the 1195 px list really fits: a pass that
+# overruns it continues on a row of its own, and guessing a little low costs a
+# wrap where guessing high would cost the start of a line.  L2 fits; L8's
+# eight controls are what take the second row.
+_ROW_CHARS = 104
 
 
-def _line(readings) -> str:
-    """Run a pass's readings across one line, ``code value`` each."""
-    return "  ".join(f"{code} {text}" for code, text in readings)
+# What the left column says on the line restating a pass on the UI scale; the
+# line above it is named for the target display the pass was graded for.
+_PASS_UI = "UI"
 
 
 def _controls(block: dict, controls, formatter) -> list:
-    """The controls of one trim pass that carry a value, ``(code, text)`` each.
+    """The controls of one trim pass that carry a value, ``Name: text`` each.
 
     A control the pass leaves out -- which is how a disabled trim reads -- does
     not come back, so the line built from this carries the controls that were
     actually set rather than a row of dashes between them.
     """
     readings = []
-    for code, key, _name in controls:
+    for key, name in controls:
         text = formatter(block.get(key))
         if text != EMPTY:
-            readings.append((code, text))
+            readings.append(f"{name}: {text}")
     return readings
 
 
+def _lines(readings: list, room: int) -> list:
+    """Run *readings* across as few lines as *room* characters allow.
+
+    One line is the normal answer and the one worth reading: a pass is a
+    single trim, and breaking it up hides that.  Only a level that carries
+    more controls than a row can hold takes a second line, and then it takes
+    it whole rather than letting the start of the line fall off the edge.
+    """
+    lines: list = []
+    current: list = []
+    for reading in readings:
+        if current and len(_JOIN.join(current + [reading])) > room:
+            lines.append(_JOIN.join(current))
+            current = [reading]
+        else:
+            current.append(reading)
+    if current:
+        lines.append(_JOIN.join(current))
+    return lines
+
+
 def _trim_entries(level: str, trims: list | None) -> list:
-    """Two legends, then a raw and a UI line per trim pass of *level*.
+    """A raw and a UI line per trim pass of *level* (l2 / l8).
 
     A pass is one trim, so it reads as one line rather than a dozen rows: the
-    codes run across the value column, and the line below repeats the same
-    pass on the scale a colourist would recognise.  The name column says which
-    line is which -- the target display the pass was graded for, then UI for
-    the line restating it -- so a pass reads as the pair of lines it is
-    instead of a block of figures with nothing down its left edge.
+    controls run across the value column, each named in full, and the line
+    below restates the same pass on the scale a colourist would recognise.
+    The name column says which line is which -- the target display the pass
+    was graded for, then UI for the line restating it -- so a pass reads as
+    the pair of lines it is instead of a block of figures with nothing down
+    its left edge.
 
-    A legend only spells out the codes the lines below it actually use, and
-    the UI legend leaves out the codes the raw one has already named: the two
-    scales share their last three controls, and saying so twice costs a line's
-    width to no purpose.  A level whose passes set nothing returns no lines at
-    all, which drops its section with them.
+    There is no legend above them: a control that names itself needs none, and
+    the two rows a legend cost were two rows of the readings themselves.  A
+    level whose passes set nothing returns no lines at all, which drops its
+    section with them.
     """
     raw_controls = _TRIM_RAW_L8 if level == "l8" else _TRIM_RAW
-    lines: list = []
-    used_raw: set = set()
-    used_ui:  set = set()
+    entries: list = []
 
-    for trim in trims or []:
+    for position, trim in enumerate(trims or []):
         raw = _controls(trim, raw_controls, _num)
         ui  = _controls(trim.get("ui") or {}, _TRIM_UI, _scaled)
         if not raw and not ui:
             continue
+        if entries:
+            # Air between one pass and the next, so the pair of lines a pass
+            # takes reads as a pair.  Ahead of a pass rather than after one,
+            # which is what keeps it from ever landing last in the section,
+            # where the blank row before the next heading already sits.
+            entries.append((SPACE, f"space.{level}.{position}", ""))
         target = f"{_num(trim.get('nits'))} nits"
         index  = trim.get("target_display_index")
         if index is not None:
             target += f" (#{_num(index)})"
-        if raw:
-            used_raw.update(code for code, _text in raw)
-            lines.append((target, _line(raw)))
-        if ui:
-            used_ui.update(code for code, _text in ui)
-            lines.append((_PASS_UI, _line(ui)))
-
-    legends = []
-    if used_raw:
-        legends.append((_LEGEND_RAW, _legend(
-            [entry for entry in raw_controls if entry[0] in used_raw])))
-    if used_ui:
-        legends.append((_LEGEND_UI, _legend(
-            [entry for entry in _TRIM_UI
-             if entry[0] in used_ui and entry[0] not in used_raw])))
-    return legends + lines
+        for name, readings in ((target, raw), (_PASS_UI, ui)):
+            # The name shares the row with the readings, so it is what is left
+            # of the row that they have to fit in; a continuation line carries
+            # no name and gets the whole row.
+            for position, line in enumerate(_lines(readings,
+                                                   _ROW_CHARS - len(name))):
+                entries.append((name if position == 0 else "", line))
+    return entries
 
 
 def _l9_pairs(rpu: dict | None) -> list:

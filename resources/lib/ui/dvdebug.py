@@ -45,10 +45,11 @@ _CHANGED_COLOR = "TinyPPI.DebugChangedColor"
 # color costs the viewer's choice of color, not the highlighting itself.
 _CHANGED_FALLBACK = "FF82B1FF"  # Light blue, the setting's own default
 
-# Splits a value into the readings it carries: the wide lines run a whole trim
-# pass across one row, separated by runs of spaces, and it is the reading that
-# moved that should light up rather than the line it sits on.
-_GAP = re.compile(r"(\s{2,})")
+# Splits a value into the readings it carries -- a trim pass runs a whole set
+# of them across one row, and it is the reading that moved that should light
+# up rather than the line it sits on.  Both separators the rows are built
+# from: a run of spaces, and the bar between the parts of a composite value.
+_GAP = re.compile(r"(\s{2,}|\s+\|\s+)")
 
 # The rule drawn under a section heading.  Named per row rather than by the
 # skin, because the layout is shared: the image control that draws it is on
