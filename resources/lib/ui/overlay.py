@@ -16,6 +16,7 @@ from core.utils import (
     PROP_DIALOG_MODE,
     PROP_RUNNING,
     clear_overlay_state,
+    highlight_changes,
     set_window_properties,
 )
 from info import properties
@@ -68,6 +69,30 @@ _NUDGE_ACTIONS = {
 # The view open_tinyppi() shows next once the current one closes.  OK switches
 # between the two on a Dolby Vision source; anything else ends the session.
 _VIEW_DV_METADATA = "dv_metadata"
+
+# Label properties carrying the readings in the overlay's two Dolby Vision
+# panels.  The RPU / BL / EL fields are icons whose green/red state already
+# makes a change visible, and the FEL/MEL tag has its own themed color; the
+# remaining text would otherwise all use the normal output color.  HDR10 rows
+# are included because they sit inside the DV metadata panel and are part of
+# the side data shown for a DV source.
+_DV_VALUE_PROPERTIES = (
+    "DoviCmVersionVar",
+    "DoviStructureVar",
+    "DoviVersionVar",
+    "DoviLevel1FllVar",
+    "DoviLevel1PqVar",
+    "DoviLevel5OffsetsVar",
+    "DoviLevel6RpuMdlVar",
+    "DoviLevel6RpuMaxCllFallVar",
+    "DoviSourceMinVar",
+    "DoviSourceMaxVar",
+    "Hdr10MdlVar",
+    "Hdr10MaxCllFallVar",
+)
+
+_DV_CHANGED_COLOR    = "TinyPPI.OutputChangedColor"
+_DV_CHANGED_FALLBACK = "FF82B1FF"  # Light blue, the setting's default
 
 
 def _is_coreelec() -> bool:
@@ -208,6 +233,8 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._nudge_on  = False
         self._dv_channel_offset = None
         self._refresh_failed    = False
+        self._dv_values: dict   = {}
+        self._color_missing     = False
         # Read by open_tinyppi() once doModal() returns; see _open_dv_metadata.
         self.next_view  = None
 
@@ -226,7 +253,51 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         # Kodi dispatches onInit to this thread with the window already on
         # screen, so work done here is work the viewer waits through.
         self._apply_position_offset()
+        self._remember_dv_values()
         self._start_update_loop()
+
+    def _remember_dv_values(self) -> None:
+        """Store the plain DV readings currently published on the dialog."""
+        self._dv_values = {
+            name: self.getProperty(name) for name in _DV_VALUE_PROPERTIES
+        }
+
+    def _dv_changed_color(self) -> str:
+        """Return the themed DV-change color, with its light-blue fallback."""
+        color = xbmcgui.Window(10000).getProperty(_DV_CHANGED_COLOR)
+        if color:
+            return color
+        if not self._color_missing:
+            self._color_missing = True
+            xbmc.log(
+                f"TinyPPI: {_DV_CHANGED_COLOR} is not published, highlighting "
+                f"changed overlay values in {_DV_CHANGED_FALLBACK} instead",
+                xbmc.LOGWARNING,
+            )
+        return _DV_CHANGED_FALLBACK
+
+    def _highlight_dv_changes(self) -> None:
+        """Highlight DV readings that moved during the latest refresh.
+
+        ``properties.update_properties`` has just replaced every property with
+        its uncolored current value.  Compare those against the plain values
+        remembered from the previous pass, publish the marked display strings,
+        then retain the plain values for next time.  A continuously moving
+        reading therefore stays highlighted; after one stable pass it returns
+        to the normal output color.
+        """
+        current = {
+            name: self.getProperty(name) for name in _DV_VALUE_PROPERTIES
+        }
+        hdr_type = xbmcgui.Window(10000).getProperty("TinyPPI.HdrType").lower()
+        if "dolby" in hdr_type:
+            color = self._dv_changed_color()
+            for name, value in current.items():
+                self.setProperty(
+                    name,
+                    highlight_changes(self._dv_values.get(name), value, color),
+                )
+        self._dv_values = current
 
     def _base_offset(self) -> tuple:
         """Return the (x, y) offset configured in the settings.
@@ -398,6 +469,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
                 try:
                     properties.update_properties(self)
+                    self._highlight_dv_changes()
                     self._apply_position_offset()
                 except Exception as exc:
                     self._log_refresh_failure(exc)

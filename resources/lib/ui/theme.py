@@ -164,6 +164,7 @@ _DEFAULT_COLOR_INDEX = {
     "convert_no_color":  "25",  # Crimson
     "fel_color":         "34",  # Forest
     "mel_color":         "31",  # Tangerine
+    "output_changed_color": "7",  # Light blue
     "metadata_changed_color": "7",  # Light blue
     "splash_start_convert_dot_color":   "34",  # Forest
     "splash_osd_convert_dot_color":     "34",  # Forest
@@ -369,6 +370,7 @@ _THEME_PROPERTIES = (
     ("TinyPPI.HeaderIconColor",       _TEXT_COLORS, "header_icon_color"),
     ("TinyPPI.DescriptionColor",      _TEXT_COLORS, "description_color"),
     ("TinyPPI.OutputColor",           _TEXT_COLORS, "output_color"),
+    ("TinyPPI.OutputChangedColor",    _TEXT_COLORS, "output_changed_color"),
     ("TinyPPI.ProgressColor",         _TEXT_COLORS, "progress_color"),
     ("TinyPPI.FpsColor",              _TEXT_COLORS, "fps_color"),
     ("TinyPPI.UnitColor",             _TEXT_COLORS, "unit_color"),

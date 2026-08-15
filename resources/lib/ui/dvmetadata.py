@@ -14,7 +14,6 @@ writes those in the highlight color for as long as they keep moving, so a list
 this long can be read as a live one.
 """
 
-import re
 import threading
 import time
 
@@ -22,6 +21,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
+from core.utils import highlight_changes
 from info import dvmetadata
 
 _ADDON      = xbmcaddon.Addon()
@@ -44,12 +44,6 @@ _CHANGED_COLOR = "TinyPPI.MetadataChangedColor"
 # The highlighting is the whole point of a view that refreshes, so a missing
 # color costs the viewer's choice of color, not the highlighting itself.
 _CHANGED_FALLBACK = "FF82B1FF"  # Light blue, the setting's own default
-
-# Splits a value into the readings it carries -- a trim pass runs a whole set
-# of them across one row, and it is the reading that moved that should light
-# up rather than the line it sits on.  Both separators the rows are built
-# from: a run of spaces, and the bar between the parts of a composite value.
-_GAP = re.compile(r"(\s{2,}|\s+\|\s+)")
 
 # The rule drawn under a section heading.  Named per row rather than by the
 # skin, because the layout is shared: the image control that draws it is on
@@ -106,55 +100,6 @@ def _identities(rows: list) -> list:
         seen[(kind, name)] = repeat + 1
         keys.append((kind, name, repeat))
     return keys
-
-
-def _shown(previous, current, color: str):
-    """The value to write into a row, with whatever moved in it highlighted.
-
-    A row that was not on screen before has nothing it could have changed
-    from, so it goes up plain.  A table row carries its cells as a list and is
-    compared cell by cell, which is exact -- the column a reading sits in is
-    the same column it sat in a second ago.
-    """
-    if previous is None or previous == current:
-        return current
-    if isinstance(current, list):
-        if not color:
-            return current
-        return [
-            cell if index < len(previous) and previous[index] == cell
-            else _colored(cell, color)
-            for index, cell in enumerate(current)
-        ]
-    return _marked(previous, current, color)
-
-
-def _colored(text: str, color: str) -> str:
-    """Wrap a reading in the highlight color, leaving an empty cell empty --
-    markup around nothing is still nothing, but it need not be written."""
-    return f"[COLOR={color}]{text}[/COLOR]" if text else text
-
-
-def _marked(previous: str, current: str, color: str) -> str:
-    """Return *current* with the readings that differ from *previous* colored.
-
-    A two-column value is one reading and lights up whole.  A wide line is a
-    whole trim pass, so it is compared reading by reading and only the ones
-    that moved are colored -- a pass where the slope changed should point at
-    the slope, not at the eight numbers beside it.  A line that gained or lost
-    a reading no longer lines up with the one before it and lights up whole.
-    """
-    if not color:
-        return current
-    parts = _GAP.split(current)
-    before = _GAP.split(previous)
-    if len(parts) != len(before):
-        return f"[COLOR={color}]{current}[/COLOR]"
-    return "".join(
-        part if index % 2 or part == before[index]
-        else f"[COLOR={color}]{part}[/COLOR]"
-        for index, part in enumerate(parts)
-    )
 
 
 def _areas(rows: list) -> list:
@@ -312,7 +257,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         keys   = _identities(rows)
         values = dict(zip(keys, (value for _kind, _name, value in rows)))
         color  = self._changed_color()
-        labels = [_shown(self._values.get(key), values[key], color)
+        labels = [highlight_changes(self._values.get(key), values[key], color)
                   for key in keys]
 
         if keys != self._keys:
