@@ -29,6 +29,7 @@ from core.utils import (
     cond,
     first_float,
     info,
+    is_effective_dv,
     parse_offsets,
     picture_aspect_ratio,
     set_window_properties,
@@ -69,15 +70,10 @@ _CHANNEL_DIR_DEFAULT = "channels/495x298"
 _CHANNEL_DIR_DV      = "channels/400x241"
 
 
-def _is_dv() -> bool:
-    """Mirror the skin's DV branch, which draws the smaller channel panel."""
-    return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.EffectiveHdrType").lower()
-
-
 def _channel_dir() -> str:
     """Return the folder holding the display-sized graphics for the current
     output type: the DV panel is smaller than the SDR / HDR box."""
-    return _CHANNEL_DIR_DV if _is_dv() else _CHANNEL_DIR_DEFAULT
+    return _CHANNEL_DIR_DV if is_effective_dv() else _CHANNEL_DIR_DEFAULT
 
 
 def _channels_shown() -> bool:
@@ -199,7 +195,7 @@ def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
 
     if not any(bars):
         if is_dv is None:
-            is_dv = _is_dv()
+            is_dv = is_effective_dv()
         if not is_dv:
             return raw
 
@@ -879,7 +875,6 @@ def publish_properties(window) -> None:
             ("VideoDecoderNameVar", get_VideoDecoderNameVar()),
             ("VideoBitDepthVar", get_VideoBitDepthVar()),
             ("DoviProfileVar", output_mode),
-            ("DoviProfileAltVar", output_mode.replace("Dolby Vision Profile", "DV Profile")),
             ("MediaSourceVar", _media_source_name(output_mode)),
             # The primaries the content was graded in, shown after the gamut
             # the driver is putting out so the two can be read against each

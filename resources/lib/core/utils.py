@@ -5,6 +5,7 @@ utils.py – Generic Kodi API wrappers and shared window-state helpers.
 import re
 
 import xbmc
+import xbmcgui
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
 
@@ -20,10 +21,33 @@ PROP_RUNNING     = "TinyPPI.Running"
 PROP_ACTIVE      = "TinyPPI.Active"
 PROP_DIALOG_MODE = "TinyPPI.DialogMode"
 
+# The output type the overlay's layout follows, published by
+# info.properties.publish_hdr_type.
+PROP_EFFECTIVE_HDR_TYPE = "TinyPPI.EffectiveHdrType"
+
 
 def cond(condition: str) -> bool:
     """Return True when the given Kodi condition string is satisfied."""
     return xbmc.getCondVisibility(condition)
+
+
+def effective_hdr_type() -> str:
+    """Return the HDR type the overlay's layout follows.
+
+    The effective type, not the source: a stream VS10 converts to SDR is drawn
+    in the SDR layout, so this is what the boxes and panels are sized against.
+    """
+    return xbmcgui.Window(10000).getProperty(PROP_EFFECTIVE_HDR_TYPE)
+
+
+def is_effective_dv() -> bool:
+    """Return whether the layout follows the Dolby Vision branch.
+
+    Mirrors the skin's own condition, which puts the channel graphics in the
+    smaller panel and the Dolby Vision panels on screen.  Answered in one place
+    rather than restated per caller, so the copies cannot drift apart.
+    """
+    return "dolby" in effective_hdr_type().lower()
 
 
 def info(label: str) -> str:

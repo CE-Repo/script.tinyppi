@@ -21,7 +21,6 @@ from typing import NamedTuple
 import xbmc
 import xbmcaddon
 import xbmcgui
-import xbmcvfs
 from core.images import display_texture
 from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
@@ -269,20 +268,6 @@ def _current_logos(hdr_token: str) -> list[str]:
     if not audio_logo or not video_logo:
         return []
     return [video_logo, audio_logo]
-
-
-def _translate_path(path: str) -> str:
-    try:
-        return xbmcvfs.translatePath(path)
-    except AttributeError:
-        return xbmc.translatePath(path)
-
-
-def _log_debug(message: str) -> None:
-    try:
-        xbmc.log(f"TinyPPI splash: {message}", xbmc.LOGDEBUG)
-    except Exception:
-        pass
 
 
 def _make_image(rel_path: str, x: int, y: int, w: int, h: int, color: str) -> xbmcgui.ControlImage:

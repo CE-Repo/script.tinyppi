@@ -291,5 +291,7 @@ class FontInstallMonitor(xbmc.Monitor):
             install_fonts()
 
 
+# Kept in a module global rather than discarded: the name is the only reference
+# to the monitor, and without it the instance is collected and stops listening.
 _monitor = FontInstallMonitor()
 install_fonts()

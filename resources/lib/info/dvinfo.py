@@ -773,12 +773,6 @@ def get_dv_version() -> str:
     return _raw("dv_version")
 
 
-def get_dv_profile() -> str:
-    """Return the bare Dolby Vision profile number (e.g. ``7.6``), or '' when
-    not known.  Surfaces no status label."""
-    return _raw("dv_profile")
-
-
 def get_dv_rpu_present() -> str:
     """Return ``true`` / ``false`` for RPU presence, or '' when unknown."""
     return _raw("dv_rpu_present")

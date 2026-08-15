@@ -16,7 +16,9 @@ from core.utils import (
     PROP_DIALOG_MODE,
     PROP_RUNNING,
     clear_overlay_state,
+    effective_hdr_type,
     highlight_changes,
+    is_effective_dv,
     set_window_properties,
 )
 from info import properties
@@ -317,14 +319,16 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         offset_y = max(offset_y, -self._offset_up_limit())
         return offset_x, offset_y
 
-    # Both read EffectiveHdrType, not the source type: a stream VS10 converts to
+    # Both read the effective type, not the source: a stream VS10 converts to
     # SDR is drawn in the SDR layout, so the box these clamp against is the
     # narrow one.
-    def _is_hdr(self) -> bool:
-        return bool(xbmcgui.Window(10000).getProperty("TinyPPI.EffectiveHdrType"))
+    @staticmethod
+    def _is_hdr() -> bool:
+        return bool(effective_hdr_type())
 
-    def _is_dv(self) -> bool:
-        return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.EffectiveHdrType").lower()
+    @staticmethod
+    def _is_dv() -> bool:
+        return is_effective_dv()
 
     @staticmethod
     def _is_dv_source() -> bool:
