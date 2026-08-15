@@ -139,16 +139,16 @@
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
-                    <!-- Table cells: a fixed 150 px slot per column, so a
+                    <!-- Table cells: a fixed 160 px slot per column, so a
                          reading always lands under the heading that names it.
                          Only a table row fills these, and only as many as it
                          has cells; the rest draw nothing.  Headings and
                          readings are separate controls in the same slots so
                          each can keep its own colour. -->
                     <control type="label">
-                        <left>220</left>
+                        <left>235</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h0)]</label>
@@ -157,9 +157,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>370</left>
+                        <left>395</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h1)]</label>
@@ -168,9 +168,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>520</left>
+                        <left>555</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h2)]</label>
@@ -179,9 +179,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>670</left>
+                        <left>715</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h3)]</label>
@@ -190,9 +190,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>820</left>
+                        <left>875</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h4)]</label>
@@ -201,9 +201,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>970</left>
+                        <left>1035</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h5)]</label>
@@ -212,9 +212,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>220</left>
+                        <left>235</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c0)]</label>
@@ -223,9 +223,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>370</left>
+                        <left>395</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c1)]</label>
@@ -234,9 +234,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>520</left>
+                        <left>555</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c2)]</label>
@@ -245,9 +245,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>670</left>
+                        <left>715</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c3)]</label>
@@ -256,9 +256,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>820</left>
+                        <left>875</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c4)]</label>
@@ -267,9 +267,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>970</left>
+                        <left>1035</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c5)]</label>
@@ -317,16 +317,16 @@
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
-                    <!-- Table cells: a fixed 150 px slot per column, so a
+                    <!-- Table cells: a fixed 160 px slot per column, so a
                          reading always lands under the heading that names it.
                          Only a table row fills these, and only as many as it
                          has cells; the rest draw nothing.  Headings and
                          readings are separate controls in the same slots so
                          each can keep its own colour. -->
                     <control type="label">
-                        <left>220</left>
+                        <left>235</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h0)]</label>
@@ -335,9 +335,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>370</left>
+                        <left>395</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h1)]</label>
@@ -346,9 +346,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>520</left>
+                        <left>555</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h2)]</label>
@@ -357,9 +357,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>670</left>
+                        <left>715</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h3)]</label>
@@ -368,9 +368,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>820</left>
+                        <left>875</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h4)]</label>
@@ -379,9 +379,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>970</left>
+                        <left>1035</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(h5)]</label>
@@ -390,9 +390,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>220</left>
+                        <left>235</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c0)]</label>
@@ -401,9 +401,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>370</left>
+                        <left>395</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c1)]</label>
@@ -412,9 +412,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>520</left>
+                        <left>555</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c2)]</label>
@@ -423,9 +423,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>670</left>
+                        <left>715</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c3)]</label>
@@ -434,9 +434,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>820</left>
+                        <left>875</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c4)]</label>
@@ -445,9 +445,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>970</left>
+                        <left>1035</left>
                         <top>0</top>
-                        <width>150</width>
+                        <width>160</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c5)]</label>

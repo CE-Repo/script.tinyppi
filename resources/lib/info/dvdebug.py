@@ -49,10 +49,11 @@ SPACE   = "space"
 HEADINGS = "headings"
 COLUMNS  = "columns"
 
-# Cells such a row can hold.  The list is 1195 px: the name column takes 220
-# and each cell 150, so six of them reach 1120.  A level with more controls
-# than that -- L8, with eight -- takes a second table underneath the first,
-# headings and all, rather than a column running off the edge.
+# Cells such a row can hold.  The list is 1195 px wide and the grid divides it
+# exactly: the name column takes 235, then six cells of 160 reach the right
+# edge with nothing left over.  A level with more controls than that -- L8,
+# with eight -- takes a second table underneath the first, headings and all,
+# rather than a column running off the edge.
 MAX_COLUMNS = 6
 
 # What a formatter returns wherever the bitstream carries no reading: an absent
