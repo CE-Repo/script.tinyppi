@@ -73,6 +73,21 @@ _REFRESH = 1.0
 # so the key press that opened it cannot immediately close it again.
 _SETTLE = 0.3
 
+# What the arrow keys move by: a section, not a row.  Page up and down step
+# the same way rather than by a screenful -- a screenful of a list whose rows
+# are only readable in blocks would land the viewer mid-block.  Fetched by
+# name because not every Kodi build exposes the paging actions.
+_STEP_ACTIONS = {
+    action: step
+    for action, step in (
+        (getattr(xbmcgui, "ACTION_MOVE_UP", None), -1),
+        (getattr(xbmcgui, "ACTION_MOVE_DOWN", None), 1),
+        (getattr(xbmcgui, "ACTION_PAGE_UP", None), -1),
+        (getattr(xbmcgui, "ACTION_PAGE_DOWN", None), 1),
+    )
+    if action is not None
+}
+
 
 def _identities(rows: list) -> list:
     """Give every row a key that survives a rebuild.
@@ -142,9 +157,35 @@ def _marked(previous: str, current: str, color: str) -> str:
     )
 
 
+def _areas(rows: list) -> list:
+    """Where each section starts and ends, as ``(heading row, title, last
+    row)``.
+
+    What the viewer moves between: a section is the unit that means something,
+    a row of it on its own is a number without its neighbours.  The blank row
+    ahead of a heading belongs to neither section, so it is left out of both --
+    it is spacing, not something to land on.
+    """
+    starts = [index for index, (kind, _name, _value) in enumerate(rows)
+              if kind == dvdebug.SECTION]
+    areas = []
+    for position, start in enumerate(starts):
+        end = (starts[position + 1] - 1 if position + 1 < len(starts)
+               else len(rows) - 1)
+        while end > start and rows[end][0] == dvdebug.SPACE:
+            end -= 1
+        areas.append((start, rows[start][1], end))
+    return areas
+
+
 class DVDebugDialog(xbmcgui.WindowXMLDialog):
     """The metadata list.  Closes on OK (back to the overlay), on Back, and on
-    its own once playback stops or leaves the fullscreen video window."""
+    its own once playback stops or leaves the fullscreen video window.
+
+    The arrow keys move between sections rather than between rows: this is a
+    list to read a block of at a time, and stepping through sixty rows to
+    reach the next heading is not reading.  Each jump puts the whole section
+    on screen where it fits."""
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -161,6 +202,12 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
         self._closing        = False
         self._refresh_failed = False
         self._color_missing  = False
+        # The sections the arrow keys move between, and which one the viewer
+        # is on -- held by title rather than by number, so a section that
+        # comes or goes with the frame does not shift the view out from under
+        # them (see _focus_area).
+        self._areas: list = []
+        self._area_title  = ""
         # Read by open_dv_debug() once doModal() returns: True when the viewer
         # asked for the overlay back rather than for the overlay to end.
         self.back_to_overlay = False
@@ -251,8 +298,8 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
         to, so a refresh normally just writes the new values into the items
         that are already there.  A structural change -- a stream that starts
         carrying trim passes, a section the frame no longer has any readings
-        for -- does rebuild, and carries the scroll position over so the list
-        does not jump back to the top underneath the viewer.
+        for -- does rebuild, and puts the viewer back on the section they were
+        reading rather than at the top of the list.
 
         Either way the values that moved go up in the highlight color, which
         is the whole point of a view that refreshes: with sixty rows on
@@ -269,19 +316,57 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
                   for key in keys]
 
         if keys != self._keys:
-            position = control.getSelectedPosition()
             control.reset()
             control.addItems([
                 self._item(row, label) for row, label in zip(rows, labels)
             ])
-            self._keys = keys
-            if 0 < position < len(rows):
-                control.selectItem(position)
+            self._keys  = keys
+            self._areas = _areas(rows)
+            self._focus_area(self._area_index())
         else:
             for index, (row, label) in enumerate(zip(rows, labels)):
                 self._write(control.getListItem(index), row[0], label)
 
         self._values = values
+
+    # --- Sections -----------------------------------------------------------
+
+    def _area_index(self) -> int:
+        """Which section the viewer is on, found by its title.
+
+        By title and not by number: sections come and go with the frame -- a
+        block the stream stops carrying drops out of the list -- and a viewer
+        reading L8 should still be reading L8 afterwards, not whatever has
+        taken its place.  A section that goes away entirely leaves them on the
+        one that has taken its number, which is the nearest thing to where
+        they were.
+        """
+        for index, (_start, title, _end) in enumerate(self._areas):
+            if title == self._area_title:
+                return index
+        return 0
+
+    def _focus_area(self, index: int) -> None:
+        """Move to section *index* and put as much of it on screen as fits.
+
+        The list is asked for the section's last row first and for its heading
+        second.  The first call scrolls far enough that the end of the section
+        is in view; the second lands the selection on the heading and moves
+        the list no further than it has to -- which leaves the whole section
+        showing when it fits, and its heading at the top when it does not.
+        """
+        if not self._areas:
+            return
+        index = max(0, min(index, len(self._areas) - 1))
+        start, title, end = self._areas[index]
+        self._area_title = title
+        control = self.getControl(_LIST)
+        control.selectItem(end)
+        control.selectItem(start)
+
+    def _step_area(self, direction: int) -> None:
+        """Move one section up or down."""
+        self._focus_area(self._area_index() + direction)
 
     # --- Input --------------------------------------------------------------
 
@@ -310,6 +395,13 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
             # Kodi's own handling has already closed the window by now; this
             # records the answer and stops the refresh thread with it.
             self._close(back_to_overlay=False)
+        elif action_id in _STEP_ACTIONS:
+            # The list has already moved itself a row by the time this runs --
+            # Kodi hands the action to the control before the window sees it.
+            # Nothing here reads where it ended up, so that does not matter:
+            # the step is counted from the section the viewer was on, and the
+            # selection is put back on a heading either way.
+            self._step_area(_STEP_ACTIONS[action_id])
 
     def _close(self, back_to_overlay: bool) -> None:
         """Close once, remembering what the viewer asked for."""
