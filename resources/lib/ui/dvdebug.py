@@ -8,9 +8,13 @@ one line each, live, for the frame on screen.  OK hands back to the overlay,
 Back closes both (see ui.overlay.open_tinyppi, which switches between the two).
 
 The rows themselves come from info.dvdebug; this module is the window around
-them: it fills the list, keeps it current, and gets out of the way again.
+them: it fills the list, keeps it current, and gets out of the way again.  The
+one thing it says of its own accord is which readings just moved -- a refresh
+writes those in the highlight color for as long as they keep moving, so a list
+this long can be read as a live one.
 """
 
+import re
 import threading
 import time
 
@@ -26,6 +30,26 @@ _ADDON_PATH = _ADDON.getAddonInfo("path")
 # The list holding the metadata rows (see script-tinyppi-dv-debug.xml).
 _LIST = 6000
 
+# Home window, where ui.theme publishes the colors the skin resolves.
+_HOME = 10000
+
+# A reading that moved since the last refresh is written in this color for the
+# one second it stays changed, so the eye finds what is live among rows that
+# mostly stand still -- the trims and the frame luminance move with the
+# picture, the title-level blocks do not.  Its own setting (Debug -> Changed
+# values), published by ui.theme like every other color.
+_CHANGED_COLOR = "TinyPPI.DebugChangedColor"
+
+# Used when that property is not published, which means apply_theme never ran.
+# The highlighting is the whole point of a view that refreshes, so a missing
+# color costs the viewer's choice of color, not the highlighting itself.
+_CHANGED_FALLBACK = "FF82B1FF"  # Light blue, the setting's own default
+
+# Splits a value into the readings it carries: the wide lines run a whole trim
+# pass across one row, separated by runs of spaces, and it is the reading that
+# moved that should light up rather than the line it sits on.
+_GAP = re.compile(r"(\s{2,})")
+
 # Seconds between refreshes, matching the overlay's own polling interval: the
 # per-frame blocks (L1, L5, the trims) move with the picture, so they are worth
 # re-reading, but not faster than a viewer can read them.
@@ -34,6 +58,56 @@ _REFRESH = 1.0
 # Actions arriving within this many seconds of the window opening are ignored,
 # so the key press that opened it cannot immediately close it again.
 _SETTLE = 0.3
+
+
+def _identities(rows: list) -> list:
+    """Give every row a key that survives a rebuild.
+
+    Its kind and name, plus which repeat of them it is -- names are not unique
+    on their own, MaxCLL appearing under both L6 and the static SEIs.  The
+    identity is what a value is remembered against, so a row keeps its history
+    across a rebuild: a stream whose DM compression alternates drops and
+    restores whole sections from one frame to the next, and the readings that
+    stayed put through that should not read as new.
+    """
+    seen: dict = {}
+    keys = []
+    for kind, name, _value in rows:
+        repeat = seen.get((kind, name), 0)
+        seen[(kind, name)] = repeat + 1
+        keys.append((kind, name, repeat))
+    return keys
+
+
+def _shown(previous, current: str, color: str) -> str:
+    """The text to write into a row: its value, with whatever moved in it
+    highlighted.  A row that was not on screen before has nothing it could
+    have changed from, so it goes up plain."""
+    if previous is None or previous == current:
+        return current
+    return _marked(previous, current, color)
+
+
+def _marked(previous: str, current: str, color: str) -> str:
+    """Return *current* with the readings that differ from *previous* colored.
+
+    A two-column value is one reading and lights up whole.  A wide line is a
+    whole trim pass, so it is compared reading by reading and only the ones
+    that moved are colored -- a pass where the slope changed should point at
+    the slope, not at the eight numbers beside it.  A line that gained or lost
+    a reading no longer lines up with the one before it and lights up whole.
+    """
+    if not color:
+        return current
+    parts = _GAP.split(current)
+    before = _GAP.split(previous)
+    if len(parts) != len(before):
+        return f"[COLOR={color}]{current}[/COLOR]"
+    return "".join(
+        part if index % 2 or part == before[index]
+        else f"[COLOR={color}]{part}[/COLOR]"
+        for index, part in enumerate(parts)
+    )
 
 
 class DVDebugDialog(xbmcgui.WindowXMLDialog):
@@ -46,10 +120,15 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
         self._monitor   = xbmc.Monitor()
         self._opened_at = 0.0
         # Row identities currently in the list, so a refresh that only changes
-        # values leaves the list itself alone (see _fill).
+        # values leaves the list itself alone, and the value each identity was
+        # last filled with, which is what a refresh highlights against.  Keyed
+        # by identity rather than by position so a rebuild does not lose it
+        # (see _identities).
         self._keys: list = []
+        self._values: dict = {}
         self._closing        = False
         self._refresh_failed = False
+        self._color_missing  = False
         # Read by open_dv_debug() once doModal() returns: True when the viewer
         # asked for the overlay back rather than for the overlay to end.
         self.back_to_overlay = False
@@ -70,13 +149,30 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
     # --- List ---------------------------------------------------------------
 
     @staticmethod
-    def _item(row: tuple[str, str, str]) -> xbmcgui.ListItem:
-        """Build the list item for one row; the skin picks its layout from the
-        ``kind`` property."""
-        kind, name, value = row
-        item = xbmcgui.ListItem(name, value)
+    def _item(row: tuple[str, str, str], label: str) -> xbmcgui.ListItem:
+        """Build the list item for one row, showing *label* as its value; the
+        skin picks its layout from the ``kind`` property."""
+        kind, name, _value = row
+        item = xbmcgui.ListItem(name, label)
         item.setProperty("kind", kind)
         return item
+
+    def _changed_color(self) -> str:
+        """The highlight color the theme published, or the setting's own
+        default when it did not -- and a line in the log saying so, since a
+        view that quietly stops highlighting looks like one that has nothing
+        to highlight."""
+        color = xbmcgui.Window(_HOME).getProperty(_CHANGED_COLOR)
+        if color:
+            return color
+        if not self._color_missing:
+            self._color_missing = True
+            xbmc.log(
+                f"TinyPPI: {_CHANGED_COLOR} is not published, highlighting "
+                f"changed values in {_CHANGED_FALLBACK} instead",
+                xbmc.LOGWARNING,
+            )
+        return _CHANGED_FALLBACK
 
     def _fill(self, rows: list) -> None:
         """Put *rows* in the list, rebuilding it only when it has to be.
@@ -85,24 +181,38 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
         Rebuilding regardless would throw away where the viewer had scrolled
         to, so a refresh normally just writes the new values into the items
         that are already there.  A structural change -- a stream that starts
-        carrying trim passes, an HDR10+ section appearing -- does rebuild, and
-        carries the scroll position over so the list does not jump back to the
-        top underneath the viewer.
+        carrying trim passes, a section the frame no longer has any readings
+        for -- does rebuild, and carries the scroll position over so the list
+        does not jump back to the top underneath the viewer.
+
+        Either way the values that moved go up in the highlight color, which
+        is the whole point of a view that refreshes: with sixty rows on
+        screen, a reading that changed is worth nothing if it cannot be told
+        from the fifty-nine that did not.  The comparison is by identity, not
+        by position, so the rows a rebuild kept are still compared against
+        what they said before it.
         """
         control = self.getControl(_LIST)
-        keys = [(kind, name) for kind, name, _value in rows]
+        keys   = _identities(rows)
+        values = dict(zip(keys, (value for _kind, _name, value in rows)))
+        color  = self._changed_color()
+        labels = [_shown(self._values.get(key), values[key], color)
+                  for key in keys]
 
         if keys != self._keys:
             position = control.getSelectedPosition()
             control.reset()
-            control.addItems([self._item(row) for row in rows])
+            control.addItems([
+                self._item(row, label) for row, label in zip(rows, labels)
+            ])
             self._keys = keys
             if 0 < position < len(rows):
                 control.selectItem(position)
-            return
+        else:
+            for index, label in enumerate(labels):
+                control.getListItem(index).setLabel2(label)
 
-        for index, (_kind, _name, value) in enumerate(rows):
-            control.getListItem(index).setLabel2(value)
+        self._values = values
 
     # --- Input --------------------------------------------------------------
 

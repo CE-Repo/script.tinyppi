@@ -1231,3 +1231,15 @@ msgstr "عرض بيانات دولبي فيجن الوصفية"
 msgctxt "#32394"
 msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK returns to the normal TinyPPI view, Back closes TinyPPI. On any other source OK does nothing."
 msgstr "يتيح فتح عرض بيانات دولبي فيجن الوصفية بالضغط على موافق أثناء ظهور واجهة TinyPPI وتشغيل مصدر دولبي فيجن. يعرض كل كتلة تحملها البيانات الجانبية للدفق: سجل الإعداد، وRPU من ترويسته حتى L11، وتمريرات الضبط، وبيانات SEI الثابتة. موافق يعيدك إلى عرض TinyPPI المعتاد، ورجوع يغلق TinyPPI. مع المصادر الأخرى لا يفعل موافق شيئًا."
+
+msgctxt "#32395"
+msgid "Changed values"
+msgstr "القيم المتغيّرة"
+
+msgctxt "#32396"
+msgid "Color for the readings that just changed in the Dolby Vision metadata view. The view refreshes once a second, and a value that moved is written in this color until it stands still again, so the live readings can be told from the ones that do not move."
+msgstr "لون القراءات التي تغيّرت للتو في عرض بيانات دولبي فيجن الوصفية. يُحدَّث العرض مرة كل ثانية، وتُكتب القيمة التي تغيّرت بهذا اللون إلى أن تستقر مجددًا، ليتسنى تمييز القراءات المتحركة عن الثابتة."
+
+msgctxt "#32397"
+msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue (Default)"
+msgstr "[COLOR=FF82B1FF]●[/COLOR] أزرق فاتح (افتراضي)"

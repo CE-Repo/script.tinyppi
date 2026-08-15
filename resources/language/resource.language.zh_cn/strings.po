@@ -1230,3 +1230,15 @@ msgstr "杜比视界元数据视图"
 msgctxt "#32394"
 msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK returns to the normal TinyPPI view, Back closes TinyPPI. On any other source OK does nothing."
 msgstr "在 TinyPPI 叠加层打开且正在播放杜比视界源时，按 OK 打开杜比视界元数据视图。它会列出该数据流附加数据中的每个块——配置记录、从头部到 L11 的 RPU、修剪参数以及静态 SEI。再按 OK 返回普通 TinyPPI 视图，按返回关闭 TinyPPI。其他源按 OK 无效。"
+
+msgctxt "#32395"
+msgid "Changed values"
+msgstr "变化的数值"
+
+msgctxt "#32396"
+msgid "Color for the readings that just changed in the Dolby Vision metadata view. The view refreshes once a second, and a value that moved is written in this color until it stands still again, so the live readings can be told from the ones that do not move."
+msgstr "杜比视界元数据视图中刚刚变化的数值的颜色。该视图每秒刷新一次，变化的数值会以此颜色显示，直到它不再变化为止，这样便能将实时变化的数值与静止的数值区分开。"
+
+msgctxt "#32397"
+msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue (Default)"
+msgstr "[COLOR=FF82B1FF]●[/COLOR] 浅蓝色 (默认)"

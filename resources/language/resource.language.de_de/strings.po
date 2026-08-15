@@ -1230,3 +1230,15 @@ msgstr "Dolby-Vision-Metadatenansicht"
 msgctxt "#32394"
 msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK returns to the normal TinyPPI view, Back closes TinyPPI. On any other source OK does nothing."
 msgstr "Öffnet mit OK die Dolby-Vision-Metadatenansicht, während das TinyPPI-Overlay offen ist und eine Dolby-Vision-Quelle läuft. Sie listet jeden Block auf, den die SideData des Streams enthält – den Konfigurationsdatensatz, die RPU vom Header bis L11, die Trim-Durchgänge und die statischen SEIs. OK kehrt zur normalen TinyPPI-Ansicht zurück, Zurück schließt TinyPPI. Bei anderen Quellen bewirkt OK nichts."
+
+msgctxt "#32395"
+msgid "Changed values"
+msgstr "Geänderte Werte"
+
+msgctxt "#32396"
+msgid "Color for the readings that just changed in the Dolby Vision metadata view. The view refreshes once a second, and a value that moved is written in this color until it stands still again, so the live readings can be told from the ones that do not move."
+msgstr "Farbe für die Werte, die sich in der Dolby-Vision-Metadatenansicht gerade geändert haben. Die Ansicht wird einmal pro Sekunde aktualisiert; ein Wert, der sich bewegt hat, wird in dieser Farbe geschrieben, bis er wieder stillsteht — so sind die lebenden Werte von den unveränderten zu unterscheiden."
+
+msgctxt "#32397"
+msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue (Default)"
+msgstr "[COLOR=FF82B1FF]●[/COLOR] Hellblau (Standard)"

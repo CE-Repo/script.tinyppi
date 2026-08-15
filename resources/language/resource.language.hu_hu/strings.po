@@ -1230,3 +1230,15 @@ msgstr "Dolby Vision metaadat-nézet"
 msgctxt "#32394"
 msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK returns to the normal TinyPPI view, Back closes TinyPPI. On any other source OK does nothing."
 msgstr "Az OK gomb megnyitja a Dolby Vision metaadat-nézetet, amíg a TinyPPI-átfedés látható és Dolby Vision forrás játszik. Felsorolja az adatfolyam oldalsó adatainak minden blokkját – a konfigurációs rekordot, az RPU-t a fejlécétől L11-ig, a trimmeléseket és a statikus SEI-ket. Az OK visszatér a normál TinyPPI-nézethez, a Vissza bezárja a TinyPPI-t. Más forrásoknál az OK nem csinál semmit."
+
+msgctxt "#32395"
+msgid "Changed values"
+msgstr "Változott értékek"
+
+msgctxt "#32396"
+msgid "Color for the readings that just changed in the Dolby Vision metadata view. The view refreshes once a second, and a value that moved is written in this color until it stands still again, so the live readings can be told from the ones that do not move."
+msgstr "A Dolby Vision metaadat-nézetben éppen megváltozott értékek színe. A nézet másodpercenként frissül, és a megváltozott érték ebben a színben jelenik meg, amíg újra állandó nem lesz, így a mozgó értékek megkülönböztethetők az állóktól."
+
+msgctxt "#32397"
+msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue (Default)"
+msgstr ""

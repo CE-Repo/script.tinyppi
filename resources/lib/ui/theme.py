@@ -164,6 +164,7 @@ _DEFAULT_COLOR_INDEX = {
     "convert_no_color":  "25",  # Crimson
     "fel_color":         "34",  # Forest
     "mel_color":         "31",  # Tangerine
+    "debug_changed_color": "7",  # Light blue
     "splash_start_convert_dot_color":   "34",  # Forest
     "splash_osd_convert_dot_color":     "34",  # Forest
     "splash_tinyppi_convert_dot_color": "34",  # Forest
@@ -342,6 +343,12 @@ def _resolve(palette: tuple, addon, setting_id: str, custom: dict, overrides=Non
         if _HEX8_RE.match(stored):
             return stored
         return _pick(palette, _DEFAULT_COLOR_INDEX.get(setting_id, "0"))
+    if not value:
+        # Unset -- a setting newer than the profile that stores it.  Reads as
+        # the default settings.xml gives it rather than as palette index 0,
+        # which for a text color is white: the debug view's highlight would
+        # come out the same color as the values it has to stand out from.
+        value = _DEFAULT_COLOR_INDEX.get(setting_id, "0")
     return _pick(palette, value)
 
 
@@ -398,6 +405,9 @@ _THEME_PROPERTIES = (
     ("TinyPPI.ChannelBackgroundColor", _BACKGROUND_COLORS, "channel_background_color"),
     ("TinyPPI.ChannelLayoutColor",     _CHANNEL_COLORS,    "channel_layout_color"),
     ("TinyPPI.ChannelIconColor",       _CHANNEL_COLORS,    "channel_icon_color"),
+    # Dolby Vision debug view: the readings that moved since the last refresh
+    # (see ui.dvdebug), which is the one colour there that is not the skin's.
+    ("TinyPPI.DebugChangedColor",     _TEXT_COLORS, "debug_changed_color"),
     ("TinyPPI.LineColor",             _LINE_COLORS, "line_color"),
     ("TinyPPI.DialogHeaderColor",     _TEXT_COLORS, "dialog_header_color"),
     ("TinyPPI.DialogHeaderIconColor", _TEXT_COLORS, "dialog_header_icon_color"),
