@@ -41,6 +41,20 @@ ROW     = "row"
 WIDE    = "wide"
 SPACE   = "space"
 
+# And two that make a table: a row of column headings and a row of readings
+# under it, each carrying its cells as a list rather than as one string.  A
+# trim pass is a set of readings that only mean anything read against each
+# other, and a proportional font cannot be padded into columns -- so the cells
+# go to the skin one at a time, and it draws each in a fixed slot of its own.
+HEADINGS = "headings"
+COLUMNS  = "columns"
+
+# Cells such a row can hold.  The list is 1195 px: the name column takes 220
+# and each cell 150, so six of them reach 1120.  A level with more controls
+# than that -- L8, with eight -- takes a second table underneath the first,
+# headings and all, rather than a column running off the edge.
+MAX_COLUMNS = 6
+
 # What a formatter returns wherever the bitstream carries no reading: an absent
 # block, a field the parser could not fill.  It never reaches the list -- see
 # _section, which drops the rows that come back holding it -- so it is the
@@ -300,9 +314,8 @@ def _l6_pairs(rpu: dict | None) -> list:
 
 
 # Raw trim controls, 12 bit with 2048 neutral, in the order Dolby lists them,
-# as (field, name).  A whole pass goes on one line with every control named in
-# full, so the line says what it carries on its own -- an abbreviation and a
-# legend row to decode it are two things to read where one will do.
+# as (field, column heading).  A pass fills one row of the table, a control per
+# cell, under a heading row naming them.
 _TRIM_RAW = (
     ("slope",        "Slope"),
     ("offset",       "Offset"),
@@ -311,7 +324,7 @@ _TRIM_RAW = (
     ("saturation",   "Saturation"),
     ("tonedetail",   "Detail"),
 )
-# L8 carries two controls L2 does not.
+# L8 carries two controls L2 does not, which is what takes it past MAX_COLUMNS.
 _TRIM_RAW_L8 = _TRIM_RAW + (
     ("mid_contrast", "Mid contrast"),
     ("clip_trim",    "Clip trim"),
@@ -328,97 +341,82 @@ _TRIM_UI = (
     ("tonedetail",   "Detail"),
 )
 
-# Characters a row holds across both its columns before the value runs into
-# the name beside it.  A rough count against a proportional font, so it is
-# deliberately short of the ~110 the 1195 px list really fits: a pass that
-# overruns it continues on a row of its own, and guessing a little low costs a
-# wrap where guessing high would cost the start of a line.  L2 fits; L8's
-# eight controls are what take the second row.
-_ROW_CHARS = 104
+# What the name column says on each heading row.
+_LEGEND_RAW = "Legend (raw)"
+_LEGEND_UI  = "Legend (UI)"
 
 
-# What the left column says on the line restating a pass on the UI scale; the
-# line above it is named for the target display the pass was graded for.
-_PASS_UI = "UI"
+def _target(trim: dict) -> str:
+    """Name a pass by the display it was graded for."""
+    target = f"{_num(trim.get('nits'))} nits"
+    index  = trim.get("target_display_index")
+    if index is not None:
+        target += f" (#{_num(index)})"
+    return target
 
 
-def _controls(block: dict, controls, formatter) -> list:
-    """The controls of one trim pass that carry a value, ``Name: text`` each.
+def _table(legend: str, controls, trims: list, block_of, formatter) -> list:
+    """One trim table: a heading row, then a row of cells per pass.
 
-    A control the pass leaves out -- which is how a disabled trim reads -- does
-    not come back, so the line built from this carries the controls that were
-    actually set rather than a row of dashes between them.
+    Only the controls some pass actually sets get a column -- a column of
+    nothing but blanks is a column's width spent saying so.  A cell the pass
+    itself leaves out comes out blank rather than as a dash, which is how a
+    disabled trim reads, and a pass that sets nothing in this table gets no
+    row at all.
+
+    More controls than a row holds means a second table under the first,
+    headings repeated, rather than columns running off the edge of the list.
     """
-    readings = []
-    for key, name in controls:
-        text = formatter(block.get(key))
-        if text != EMPTY:
-            readings.append(f"{name}: {text}")
-    return readings
+    used = [
+        (key, heading) for key, heading in controls
+        if any(formatter(block_of(trim).get(key)) != EMPTY for trim in trims)
+    ]
+    if not used:
+        return []
 
-
-def _lines(readings: list, room: int) -> list:
-    """Run *readings* across as few lines as *room* characters allow.
-
-    One line is the normal answer and the one worth reading: a pass is a
-    single trim, and breaking it up hides that.  Only a level that carries
-    more controls than a row can hold takes a second line, and then it takes
-    it whole rather than letting the start of the line fall off the edge.
-    """
-    lines: list = []
-    current: list = []
-    for reading in readings:
-        if current and len(_JOIN.join(current + [reading])) > room:
-            lines.append(_JOIN.join(current))
-            current = [reading]
-        else:
-            current.append(reading)
-    if current:
-        lines.append(_JOIN.join(current))
-    return lines
+    entries: list = []
+    for start in range(0, len(used), MAX_COLUMNS):
+        chunk = used[start:start + MAX_COLUMNS]
+        if entries:
+            entries.append((SPACE, f"space.{legend}.{start}", ""))
+        entries.append((HEADINGS, legend, [heading for _key, heading in chunk]))
+        for trim in trims:
+            cells = [formatter(block_of(trim).get(key)) for key, _h in chunk]
+            if all(cell == EMPTY for cell in cells):
+                continue
+            entries.append((COLUMNS, _target(trim),
+                            ["" if cell == EMPTY else cell for cell in cells]))
+    return entries
 
 
 def _trim_entries(level: str, trims: list | None) -> list:
-    """A raw and a UI line per trim pass of *level* (l2 / l8).
+    """The trim passes of *level* (l2 / l8) as two tables.
 
-    A pass is one trim, so it reads as one line rather than a dozen rows: the
-    controls run across the value column, each named in full, and the line
-    below restates the same pass on the scale a colourist would recognise.
-    The name column says which line is which -- the target display the pass
-    was graded for, then UI for the line restating it -- so a pass reads as
-    the pair of lines it is instead of a block of figures with nothing down
-    its left edge.
+    A pass is a set of readings that only mean anything read against each
+    other and against the other passes, so they are laid out as the table they
+    are: the controls across the top, one row per pass, the target display it
+    was graded for down the left.  The raw codes and the -1..1 scale a
+    colourist would recognise are two tables rather than two interleaved rows,
+    because the column a reading sits in is what says what it is, and a
+    heading is worth repeating far less often than it is worth reading.
 
-    There is no legend above them: a control that names itself needs none, and
-    the two rows a legend cost were two rows of the readings themselves.  A
-    level whose passes set nothing returns no lines at all, which drops its
-    section with them.
+    A level whose passes set nothing returns nothing, which drops its section.
     """
     raw_controls = _TRIM_RAW_L8 if level == "l8" else _TRIM_RAW
+    trims = list(trims or [])
     entries: list = []
 
-    for position, trim in enumerate(trims or []):
-        raw = _controls(trim, raw_controls, _num)
-        ui  = _controls(trim.get("ui") or {}, _TRIM_UI, _scaled)
-        if not raw and not ui:
+    for legend, controls, block_of, formatter in (
+        (_LEGEND_RAW, raw_controls, lambda trim: trim, _num),
+        (_LEGEND_UI, _TRIM_UI, lambda trim: trim.get("ui") or {}, _scaled),
+    ):
+        table = _table(legend, controls, trims, block_of, formatter)
+        if not table:
             continue
         if entries:
-            # Air between one pass and the next, so the pair of lines a pass
-            # takes reads as a pair.  Ahead of a pass rather than after one,
-            # which is what keeps it from ever landing last in the section,
-            # where the blank row before the next heading already sits.
-            entries.append((SPACE, f"space.{level}.{position}", ""))
-        target = f"{_num(trim.get('nits'))} nits"
-        index  = trim.get("target_display_index")
-        if index is not None:
-            target += f" (#{_num(index)})"
-        for name, readings in ((target, raw), (_PASS_UI, ui)):
-            # The name shares the row with the readings, so it is what is left
-            # of the row that they have to fit in; a continuation line carries
-            # no name and gets the whole row.
-            for position, line in enumerate(_lines(readings,
-                                                   _ROW_CHARS - len(name))):
-                entries.append((name if position == 0 else "", line))
+            # Air between the two tables, so each reads as one.
+            entries.append((SPACE, f"space.{level}.ui", ""))
+        entries.extend(table)
     return entries
 
 

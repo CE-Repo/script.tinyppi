@@ -57,6 +57,13 @@ _GAP = re.compile(r"(\s{2,}|\s+\|\s+)")
 # draw none.
 _RULE_TEXTURE = "common/dot-1x1.png"
 
+# Property name each cell of a table row goes into: the skin has a label per
+# column reading one of these, so cell 0 lands in the first fixed slot, cell 1
+# in the second, and a cell nobody filled draws nothing.  Headings and
+# readings take separate ones so the skin can draw them in separate colors.
+_CELL_HEADING = "h"
+_CELL_VALUE   = "c"
+
 # Seconds between refreshes, matching the overlay's own polling interval: the
 # per-frame blocks (L1, L5, the trims) move with the picture, so they are worth
 # re-reading, but not faster than a viewer can read them.
@@ -86,13 +93,31 @@ def _identities(rows: list) -> list:
     return keys
 
 
-def _shown(previous, current: str, color: str) -> str:
-    """The text to write into a row: its value, with whatever moved in it
-    highlighted.  A row that was not on screen before has nothing it could
-    have changed from, so it goes up plain."""
+def _shown(previous, current, color: str):
+    """The value to write into a row, with whatever moved in it highlighted.
+
+    A row that was not on screen before has nothing it could have changed
+    from, so it goes up plain.  A table row carries its cells as a list and is
+    compared cell by cell, which is exact -- the column a reading sits in is
+    the same column it sat in a second ago.
+    """
     if previous is None or previous == current:
         return current
+    if isinstance(current, list):
+        if not color:
+            return current
+        return [
+            cell if index < len(previous) and previous[index] == cell
+            else _colored(cell, color)
+            for index, cell in enumerate(current)
+        ]
     return _marked(previous, current, color)
+
+
+def _colored(text: str, color: str) -> str:
+    """Wrap a reading in the highlight color, leaving an empty cell empty --
+    markup around nothing is still nothing, but it need not be written."""
+    return f"[COLOR={color}]{text}[/COLOR]" if text else text
 
 
 def _marked(previous: str, current: str, color: str) -> str:
@@ -156,7 +181,26 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
     # --- List ---------------------------------------------------------------
 
     @staticmethod
-    def _item(row: tuple[str, str, str], label: str) -> xbmcgui.ListItem:
+    def _write(item: xbmcgui.ListItem, kind: str, label) -> None:
+        """Put a row's value into whichever of the item's fields draws it.
+
+        A table row hands its cells over one property at a time, and clears
+        the ones it has no cell for: the item is reused from refresh to
+        refresh, so a column that goes away has to be emptied rather than left
+        holding what it said last.
+        """
+        if kind not in (dvdebug.HEADINGS, dvdebug.COLUMNS):
+            item.setLabel2(label)
+            return
+        prefix = _CELL_HEADING if kind == dvdebug.HEADINGS else _CELL_VALUE
+        for position in range(dvdebug.MAX_COLUMNS):
+            item.setProperty(
+                f"{prefix}{position}",
+                label[position] if position < len(label) else "",
+            )
+
+    @classmethod
+    def _item(cls, row: tuple, label) -> xbmcgui.ListItem:
         """Build the list item for one row, showing *label* as its value.
 
         The skin draws every row through the same layout, because that is all
@@ -168,15 +212,18 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
         A heading puts its title in the ``head`` property, which is the one
         the large font is on, and names the texture for the rule under it.  A
         two-column row fills both labels.  A full-width line fills only the
-        second, which spans the row.  A blank row fills nothing at all.
+        second, which spans the row.  A table row fills a property per cell,
+        which is what puts each in a fixed column.  A blank row fills nothing.
         """
         kind, name, _value = row
-        item = xbmcgui.ListItem(name if kind == dvdebug.ROW else "",
-                                label if kind in (dvdebug.ROW, dvdebug.WIDE)
-                                else "")
+        named = kind in (dvdebug.ROW, dvdebug.HEADINGS, dvdebug.COLUMNS)
+        item = xbmcgui.ListItem(name if named else "", "")
         if kind == dvdebug.SECTION:
             item.setProperty("head", name)
             item.setProperty("rule", _RULE_TEXTURE)
+        elif kind in (dvdebug.ROW, dvdebug.WIDE, dvdebug.HEADINGS,
+                      dvdebug.COLUMNS):
+            cls._write(item, kind, label)
         return item
 
     def _changed_color(self) -> str:
@@ -231,8 +278,8 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
             if 0 < position < len(rows):
                 control.selectItem(position)
         else:
-            for index, label in enumerate(labels):
-                control.getListItem(index).setLabel2(label)
+            for index, (row, label) in enumerate(zip(rows, labels)):
+                self._write(control.getListItem(index), row[0], label)
 
         self._values = values
 
