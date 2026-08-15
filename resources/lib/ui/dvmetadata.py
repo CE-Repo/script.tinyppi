@@ -51,6 +51,11 @@ _CHANGED_FALLBACK = "FF82B1FF"  # Light blue, the setting's own default
 # draw none.
 _RULE_TEXTURE = "common/dot-1x1.png"
 
+# A row that fills nothing, which is what the items left over from a longer
+# list are painted with: the list only ever grows, so a rebuild with fewer
+# rows blanks the surplus in place rather than removing it (see _fill).
+_BLANK_ROW = (dvmetadata.SPACE, "", "")
+
 # Property name each cell of a table row goes into: the skin has a label per
 # column reading one of these, so cell 0 lands in the first fixed slot, cell 1
 # in the second, and a cell nobody filled draws nothing.  Headings and
@@ -192,8 +197,8 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             )
 
     @classmethod
-    def _item(cls, row: tuple, label) -> xbmcgui.ListItem:
-        """Build the list item for one row, showing *label* as its value.
+    def _paint(cls, item: xbmcgui.ListItem, row: tuple, label) -> None:
+        """Make *item* show *row*, with *label* as its value.
 
         The skin draws every row through the same layout, because that is all
         a Kodi list container offers: its layout conditions are evaluated once
@@ -206,17 +211,54 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         two-column row fills both labels.  A full-width line fills only the
         second, which spans the row.  A table row fills a property per cell,
         which is what puts each in a fixed column.  A blank row fills nothing.
+
+        Every field is written on every call, the unused ones with nothing:
+        items outlive the row that was on them -- a rebuild hands an item
+        whatever row now falls at its position -- so painting one is as much
+        about what it stops saying as about what it says.
         """
         kind, name, _value = row
-        named = kind in (dvmetadata.ROW, dvmetadata.HEADINGS, dvmetadata.COLUMNS)
-        item = xbmcgui.ListItem(name if named else "", "")
-        if kind == dvmetadata.SECTION:
-            item.setProperty("head", name)
-            item.setProperty("rule", _RULE_TEXTURE)
-        elif kind in (dvmetadata.ROW, dvmetadata.WIDE, dvmetadata.HEADINGS,
-                      dvmetadata.COLUMNS):
-            cls._write(item, kind, label)
-        return item
+        heading = kind == dvmetadata.SECTION
+        named   = kind in (dvmetadata.ROW, dvmetadata.HEADINGS,
+                           dvmetadata.COLUMNS)
+        table   = kind in (dvmetadata.HEADINGS, dvmetadata.COLUMNS)
+        item.setLabel(name if named else "")
+        item.setLabel2(label if kind in (dvmetadata.ROW, dvmetadata.WIDE)
+                       else "")
+        item.setProperty("head", name if heading else "")
+        item.setProperty("rule", _RULE_TEXTURE if heading else "")
+        for position in range(dvmetadata.MAX_COLUMNS):
+            cell = label[position] if table and position < len(label) else ""
+            item.setProperty(f"{_CELL_HEADING}{position}",
+                             cell if kind == dvmetadata.HEADINGS else "")
+            item.setProperty(f"{_CELL_VALUE}{position}",
+                             cell if kind == dvmetadata.COLUMNS else "")
+
+    @classmethod
+    def _extend(cls, control: xbmcgui.ControlList, rows: list,
+                labels: list) -> int:
+        """Append the items a longer list needs, and say how many it had.
+
+        Appending is one message to the GUI thread, which applies it whole, so
+        the list is never drawn without its rows -- clearing it first is what
+        would be seen (see _fill).  The new items are painted before they are
+        handed over rather than after, for the same reason: what the GUI
+        thread binds is already the rows it should show, not blanks waiting to
+        be filled in.
+
+        The count returned is the one from before the append: those are the
+        items still holding an older row, and so the ones the caller has to
+        paint.
+        """
+        held = control.size()
+        if len(rows) > held:
+            items = []
+            for row, label in zip(rows[held:], labels[held:]):
+                item = xbmcgui.ListItem("", "")
+                cls._paint(item, row, label)
+                items.append(item)
+            control.addItems(items)
+        return held
 
     def _changed_color(self) -> str:
         """The highlight color the theme published, or the setting's own
@@ -236,15 +278,25 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         return _CHANGED_FALLBACK
 
     def _fill(self, rows: list) -> None:
-        """Put *rows* in the list, rebuilding it only when it has to be.
+        """Put *rows* in the list, reusing the items already in it.
 
         The values change every second; the rows they sit in almost never do.
-        Rebuilding regardless would throw away where the viewer had scrolled
-        to, so a refresh normally just writes the new values into the items
-        that are already there.  A structural change -- a stream that starts
-        carrying trim passes, a section the frame no longer has any readings
-        for -- does rebuild, and puts the viewer back on the section they were
-        reading rather than at the top of the list.
+        Rewriting every row regardless would cost more than it buys, so a
+        refresh normally just writes the new values into the items that are
+        already there.  A structural change -- a stream that starts carrying
+        trim passes, a section the frame no longer has any readings for --
+        repaints all of them, and puts the viewer back on the section they
+        were reading rather than at the top of the list.
+
+        What no refresh does is empty the list first.  Clearing a Kodi list
+        and refilling it are two separate messages to the GUI thread, which is
+        free to draw the list between them: a block appearing mid-film -- L2
+        or L8 arriving with a shot that needed trims -- would blank the whole
+        view for a frame or more before the rows came back.  So the list only
+        ever grows: items are appended when a rebuild wants more of them, and
+        the ones a shorter rebuild leaves over are blanked in place rather
+        than removed.  They cost nothing but a little empty room under the
+        last section, and the next block to arrive lands in them.
 
         Either way the values that moved go up in the highlight color, which
         is the whole point of a view that refreshes: with sixty rows on
@@ -261,10 +313,12 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
                   for key in keys]
 
         if keys != self._keys:
-            control.reset()
-            control.addItems([
-                self._item(row, label) for row, label in zip(rows, labels)
-            ])
+            held = self._extend(control, rows, labels)
+            for index in range(min(held, len(rows))):
+                self._paint(control.getListItem(index), rows[index],
+                            labels[index])
+            for index in range(len(rows), control.size()):
+                self._paint(control.getListItem(index), _BLANK_ROW, "")
             self._keys  = keys
             self._areas = _areas(rows)
             self._focus_area(self._area_index())
