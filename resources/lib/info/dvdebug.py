@@ -27,10 +27,10 @@ import xbmcaddon
 
 from info.dvinfo import get_sidedata
 
-# Row kinds, which ui.dvdebug turns into list layouts: a heading, a name /
-# value pair, one line of text across the full width -- for the values that are
-# a whole set of readings at once (a trim pass, a luminance distribution) and
-# would not fit the value column -- and an empty row.
+# Row kinds, which ui.dvdebug turns into the fields of a list item: a heading,
+# a name / value pair, one line of text across the full width -- for a value
+# with no name worth giving it, which needs the name column's room too -- and
+# an empty row.
 #
 # The empty row is what sets the headings apart.  A Kodi list scrolls by one
 # uniform item size, so a heading cannot simply be given a taller layout than
@@ -318,10 +318,17 @@ _TRIM_UI = (
 )
 
 
-def _legend(prefix: str, controls) -> str:
+# What the left column says on each of a level's lines.  The readings sit in
+# the value column like every other row, so the name column is free to say
+# which line is which -- which is what the pass target and these do.
+_LEGEND_RAW = "Legend (raw)"
+_LEGEND_UI  = "Legend (UI)"
+_PASS_UI    = "UI"
+
+
+def _legend(controls) -> str:
     """Spell out one line of trim codes."""
-    parts = "  ".join(f"{code} {name}" for code, _key, name in controls)
-    return f"{prefix}   {parts}"
+    return "  ".join(f"{code} {name}" for code, _key, name in controls)
 
 
 def _line(readings) -> str:
@@ -345,26 +352,27 @@ def _controls(block: dict, controls, formatter) -> list:
 
 
 def _trim_entries(level: str, trims: list | None) -> list:
-    """A legend, then a raw and a UI line per trim pass of *level* (l2 / l8).
+    """Two legends, then a raw and a UI line per trim pass of *level*.
 
     A pass is one trim, so it reads as one line rather than a dozen rows: the
-    codes run across it, and the line below repeats the same pass on the scale
-    a colourist would recognise.  Both run the full width -- see WIDE.
+    codes run across the value column, and the line below repeats the same
+    pass on the scale a colourist would recognise.  The name column says which
+    line is which -- the target display the pass was graded for, then UI for
+    the line restating it -- so a pass reads as the pair of lines it is
+    instead of a block of figures with nothing down its left edge.
 
-    Each line is identified by its position in the level rather than by its
-    text, which changes with every frame: the identity is what tells a refresh
-    that only the readings moved from one that changed the view itself.
-
-    A legend only spells out the codes the lines below it actually use, and a
-    level whose passes set nothing returns no lines at all, which drops its
-    section with them.
+    A legend only spells out the codes the lines below it actually use, and
+    the UI legend leaves out the codes the raw one has already named: the two
+    scales share their last three controls, and saying so twice costs a line's
+    width to no purpose.  A level whose passes set nothing returns no lines at
+    all, which drops its section with them.
     """
     raw_controls = _TRIM_RAW_L8 if level == "l8" else _TRIM_RAW
     lines: list = []
     used_raw: set = set()
     used_ui:  set = set()
 
-    for position, trim in enumerate(trims or []):
+    for trim in trims or []:
         raw = _controls(trim, raw_controls, _num)
         ui  = _controls(trim.get("ui") or {}, _TRIM_UI, _scaled)
         if not raw and not ui:
@@ -375,24 +383,19 @@ def _trim_entries(level: str, trims: list | None) -> list:
             target += f" (#{_num(index)})"
         if raw:
             used_raw.update(code for code, _text in raw)
-            lines.append((WIDE, f"{level}.{position}.raw",
-                          f"{target}   " + _line(raw)))
+            lines.append((target, _line(raw)))
         if ui:
             used_ui.update(code for code, _text in ui)
-            lines.append((WIDE, f"{level}.{position}.ui", "UI   " + _line(ui)))
+            lines.append((_PASS_UI, _line(ui)))
 
     legends = []
-    for prefix, controls, used, name in (
-        ("Raw", raw_controls, used_raw, "raw"),
-        ("UI ", _TRIM_UI,     used_ui,  "ui"),
-    ):
-        if used:
-            legends.append((
-                WIDE,
-                f"{level}.legend.{name}",
-                _legend(prefix, [entry for entry in controls
-                                 if entry[0] in used]),
-            ))
+    if used_raw:
+        legends.append((_LEGEND_RAW, _legend(
+            [entry for entry in raw_controls if entry[0] in used_raw])))
+    if used_ui:
+        legends.append((_LEGEND_UI, _legend(
+            [entry for entry in _TRIM_UI
+             if entry[0] in used_ui and entry[0] not in used_raw])))
     return legends + lines
 
 
