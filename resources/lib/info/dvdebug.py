@@ -28,12 +28,18 @@ import xbmcaddon
 from info.dvinfo import get_sidedata
 
 # Row kinds, which ui.dvdebug turns into list layouts: a heading, a name /
-# value pair, and one line of text across the full width -- for the values that
-# are a whole set of readings at once (a trim pass, a luminance distribution)
-# and would not fit the value column.
+# value pair, one line of text across the full width -- for the values that are
+# a whole set of readings at once (a trim pass, a luminance distribution) and
+# would not fit the value column -- and an empty row.
+#
+# The empty row is what sets the headings apart.  A Kodi list scrolls by one
+# uniform item size, so a heading cannot simply be given a taller layout than
+# the rows under it; a blank row of the same height ahead of each one buys the
+# same air without putting the container's scrolling out of step.
 SECTION = "section"
 ROW     = "row"
 WIDE    = "wide"
+SPACE   = "space"
 
 # What a formatter returns wherever the bitstream carries no reading: an absent
 # block, a field the parser could not fill.  It never reaches the list -- see
@@ -150,6 +156,10 @@ def _section(rows: list, title: str, entries) -> None:
     kept = [row for row in kept if row[2] and row[2] != EMPTY]
     if not kept:
         return
+    if rows:
+        # Air ahead of the heading -- not before the first one, which needs no
+        # separating from what is above it.
+        rows.append((SPACE, f"space.{title}", ""))
     rows.append((SECTION, title, ""))
     rows.extend(kept)
 

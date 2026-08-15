@@ -50,6 +50,12 @@ _CHANGED_FALLBACK = "FF82B1FF"  # Light blue, the setting's own default
 # moved that should light up rather than the line it sits on.
 _GAP = re.compile(r"(\s{2,})")
 
+# The rule drawn under a section heading.  Named per row rather than by the
+# skin, because the layout is shared: the image control that draws it is on
+# every row and takes its texture from the item, so the rows that name none
+# draw none.
+_RULE_TEXTURE = "common/dot-1x1.png"
+
 # Seconds between refreshes, matching the overlay's own polling interval: the
 # per-frame blocks (L1, L5, the trims) move with the picture, so they are worth
 # re-reading, but not faster than a viewer can read them.
@@ -150,11 +156,26 @@ class DVDebugDialog(xbmcgui.WindowXMLDialog):
 
     @staticmethod
     def _item(row: tuple[str, str, str], label: str) -> xbmcgui.ListItem:
-        """Build the list item for one row, showing *label* as its value; the
-        skin picks its layout from the ``kind`` property."""
+        """Build the list item for one row, showing *label* as its value.
+
+        The skin draws every row through the same layout, because that is all
+        a Kodi list container offers: its layout conditions are evaluated once
+        for the whole list, not per row.  So what tells the kinds apart is
+        which of the item's fields carry anything -- each control in the
+        layout is fed one of them and draws nothing when it comes back empty.
+
+        A heading puts its title in the ``head`` property, which is the one
+        the large font is on, and names the texture for the rule under it.  A
+        two-column row fills both labels.  A full-width line fills only the
+        second, which spans the row.  A blank row fills nothing at all.
+        """
         kind, name, _value = row
-        item = xbmcgui.ListItem(name, label)
-        item.setProperty("kind", kind)
+        item = xbmcgui.ListItem(name if kind == dvdebug.ROW else "",
+                                label if kind in (dvdebug.ROW, dvdebug.WIDE)
+                                else "")
+        if kind == dvdebug.SECTION:
+            item.setProperty("head", name)
+            item.setProperty("rule", _RULE_TEXTURE)
         return item
 
     def _changed_color(self) -> str:

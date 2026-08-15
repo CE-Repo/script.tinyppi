@@ -52,7 +52,7 @@
             <control type="group">
                 <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderTitle),1)</visible>
                 <left>35</left>
-                <top>37</top>
+                <top>35</top>
                 <control type="label">
                     <label>[B]$ADDON[script.tinyppi 32389][/B]</label>
                     <font>font32</font>
@@ -65,7 +65,7 @@
             <control type="group">
                 <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderIcon),1)</visible>
                 <left>1150</left>
-                <top>45</top>
+                <top>48</top>
                 <control type="image">
                     <width>105</width>
                     <height>32</height>
@@ -99,87 +99,29 @@
                 <pagecontrol>6001</pagecontrol>
                 <scrolltime tween="sine" easing="out">200</scrolltime>
 
-                <!-- Section heading.  Every layout is the same 30 px high: a
-                     list container scrolls by one uniform item size, so rows
-                     of different heights would drift out of step with it. -->
-                <itemlayout height="30" condition="String.IsEqual(ListItem.Property(kind),section)">
+                <!-- One layout for every row -->
+                <itemlayout height="30">
                     <control type="label">
                         <left>0</left>
                         <top>0</top>
                         <width>1195</width>
                         <height>30</height>
-                        <label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
+                        <label>[B][UPPERCASE]$INFO[ListItem.Property(head)][/UPPERCASE][/B]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
-                        <aligny>top</aligny>
+                        <aligny>center</aligny>
                     </control>
                     <control type="image">
                         <left>0</left>
                         <top>28</top>
                         <width>1195</width>
                         <height>1</height>
-                        <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
-                    </control>
-                </itemlayout>
-                <focusedlayout height="30" condition="String.IsEqual(ListItem.Property(kind),section)">
-                    <control type="image">
-                        <left>-10</left>
-                        <top>-2</top>
-                        <width>1215</width>
-                        <height>32</height>
-                        <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
+                        <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">$INFO[ListItem.Property(rule)]</texture>
                     </control>
                     <control type="label">
                         <left>0</left>
                         <top>0</top>
                         <width>1195</width>
-                        <height>30</height>
-                        <label>[B][UPPERCASE]$INFO[ListItem.Label][/UPPERCASE][/B]</label>
-                        <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
-                        <aligny>top</aligny>
-                    </control>
-                </focusedlayout>
-
-                <!-- Full-width row: one line carrying a whole set of readings -->
-                <itemlayout height="30" condition="String.IsEqual(ListItem.Property(kind),wide)">
-                    <control type="label">
-                        <left>0</left>
-                        <top>0</top>
-                        <width>1195</width>
-                        <height>30</height>
-                        <label>$INFO[ListItem.Label2]</label>
-                        <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-                        <aligny>top</aligny>
-                    </control>
-                </itemlayout>
-                <focusedlayout height="30" condition="String.IsEqual(ListItem.Property(kind),wide)">
-                    <control type="image">
-                        <left>-10</left>
-                        <top>-2</top>
-                        <width>1215</width>
-                        <height>32</height>
-                        <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.LineColor)]">common/dot-1x1.png</texture>
-                    </control>
-                    <control type="label">
-                        <left>0</left>
-                        <top>0</top>
-                        <width>1195</width>
-                        <height>30</height>
-                        <label>$INFO[ListItem.Label2]</label>
-                        <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-                        <aligny>top</aligny>
-                    </control>
-                </focusedlayout>
-
-                <!-- Name / value row -->
-                <itemlayout height="30">
-                    <control type="label">
-                        <left>0</left>
-                        <top>0</top>
-                        <width>420</width>
                         <height>30</height>
                         <label>$INFO[ListItem.Label]</label>
                         <font>font23_narrow</font>
@@ -187,9 +129,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>420</left>
+                        <left>0</left>
                         <top>0</top>
-                        <width>775</width>
+                        <width>1195</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Label2]</label>
@@ -209,7 +151,17 @@
                     <control type="label">
                         <left>0</left>
                         <top>0</top>
-                        <width>420</width>
+                        <width>1195</width>
+                        <height>30</height>
+                        <label>[B][UPPERCASE]$INFO[ListItem.Property(head)][/UPPERCASE][/B]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
+                        <aligny>center</aligny>
+                    </control>
+                    <control type="label">
+                        <left>0</left>
+                        <top>0</top>
+                        <width>1195</width>
                         <height>30</height>
                         <label>$INFO[ListItem.Label]</label>
                         <font>font23_narrow</font>
@@ -217,9 +169,9 @@
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
-                        <left>420</left>
+                        <left>0</left>
                         <top>0</top>
-                        <width>775</width>
+                        <width>1195</width>
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Label2]</label>
