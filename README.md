@@ -172,6 +172,46 @@ simply omit the image.
 
 ---
 
+## Dolby Vision Metadata View
+
+Enable **Settings → Debug → Dolby Vision metadata view** first; it is off out of
+the box, and while it is off **OK** on the overlay does nothing, exactly as
+before.
+
+With it on, pressing **OK** on the open TinyPPI overlay during a **Dolby
+Vision** source switches to a debug view listing everything the stream's side
+data carries — far more than the overlay itself has room for. Pressing **OK**
+again switches back to the normal TinyPPI view; **Back** closes TinyPPI
+altogether. Up/Down scroll through the list, which refreshes once a second, so
+the per-frame blocks follow the picture. On any other source **OK** keeps doing
+nothing: there is no Dolby Vision side data to show.
+
+The view is grouped by metadata block:
+
+| Section | Contents |
+|---------|----------|
+| Stream | Kodi's own HDR type and detail, the side-data sections that arrived, the stream flags (`converted`, `rpu-removed`, …), the layer structure and the parser version |
+| Configuration record | The dvcC / dvvC record: version, profile, compatibility ID, level, RPU / BL / EL presence, metadata compression |
+| RPU | Guessed profile, CM version, DM compression, and the full RPU header (types, VDR profile / level, BL / EL / VDR bit depth, EL type, resampling and residual flags) |
+| L1 | Frame luminance, min / max / average, as raw PQ codes and nits |
+| Source PQ range | The PQ range of the master the grade was made from |
+| L2 / L8 | Every trim pass, as raw 12-bit codes and on the Dolby UI scale |
+| L3 | PQ offsets |
+| L5 | Active-area offsets (the black bars the RPU declares) |
+| L6 | The RPU's own mastering display and MaxCLL / MaxFALL |
+| L9 / L10 | Source primaries and the target displays the L8 trims are graded against |
+| L11 | Content type, whitepoint and reference mode |
+| Static metadata | The MDCV / CLL SEIs — the stream's own HDR10 layer, shown apart from L6 |
+| HDR10+ | The ST 2094-40 payload, when the stream carries one alongside Dolby Vision |
+
+Blocks the stream does not carry are still listed, with their values shown as
+`—`, so an absent block is visible rather than silently missing. Reading and
+parsing is done by
+[script.module.sidedata](https://github.com/matthane/script.module.sidedata);
+the field names and units follow its own field reference.
+
+---
+
 ## Advanced Launch Arguments
 
 TinyPPI supports additional arguments to open specific modes or apply VS10 output modes directly — without opening the overlay or the dialog first.

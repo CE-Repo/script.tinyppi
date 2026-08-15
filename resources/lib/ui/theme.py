@@ -164,6 +164,8 @@ _DEFAULT_COLOR_INDEX = {
     "convert_no_color":  "25",  # Crimson
     "fel_color":         "34",  # Forest
     "mel_color":         "31",  # Tangerine
+    "output_changed_color": "7",  # Light blue
+    "metadata_changed_color": "7",  # Light blue
     "splash_start_convert_dot_color":   "34",  # Forest
     "splash_osd_convert_dot_color":     "34",  # Forest
     "splash_tinyppi_convert_dot_color": "34",  # Forest
@@ -190,6 +192,11 @@ _CUSTOM_ALPHA = {
     "accent_color":            "B3",  # dimmed detail accents (~70%)
     "line_color":              "26",  # faint separator lines (~15%)
     "dialog_line_color":       "26",  # faint VS10 dialog separator lines (~15%)
+    # The metadata view's own shades, matching the elements they stand in for.
+    "metadata_global_background_color": "FA",
+    "metadata_background_color":        "FA",
+    "metadata_line_color":              "26",
+    "metadata_focus_color":             "26",
 }
 _DEFAULT_ALPHA = "FF"
 
@@ -284,6 +291,10 @@ _DEFAULT_OPACITIES = {
     "channel_layout_color":     33,  # 54 – speaker layout graphic
     "accent_color":            70,  # B3 – dimmed inline detail accents
     "line_color":              15,  # 26 – faint separator lines
+    "metadata_global_background_color": 0,
+    "metadata_background_color":    98,
+    "metadata_line_color":          15,
+    "metadata_focus_color":         15,
     "dialog_line_color":       15,  # 26 – faint VS10 dialog separator lines
     # Per-context codec-logo panel (FA – Charcoal) and divider (59 – faint).
     "splash_start_bg_color":        98,
@@ -342,6 +353,12 @@ def _resolve(palette: tuple, addon, setting_id: str, custom: dict, overrides=Non
         if _HEX8_RE.match(stored):
             return stored
         return _pick(palette, _DEFAULT_COLOR_INDEX.get(setting_id, "0"))
+    if not value:
+        # Unset -- a setting newer than the profile that stores it.  Reads as
+        # the default settings.xml gives it rather than as palette index 0,
+        # which for a text color is white: the metadata view's highlight would
+        # come out the same color as the values it has to stand out from.
+        value = _DEFAULT_COLOR_INDEX.get(setting_id, "0")
     return _pick(palette, value)
 
 
@@ -353,6 +370,7 @@ _THEME_PROPERTIES = (
     ("TinyPPI.HeaderIconColor",       _TEXT_COLORS, "header_icon_color"),
     ("TinyPPI.DescriptionColor",      _TEXT_COLORS, "description_color"),
     ("TinyPPI.OutputColor",           _TEXT_COLORS, "output_color"),
+    ("TinyPPI.OutputChangedColor",    _TEXT_COLORS, "output_changed_color"),
     ("TinyPPI.ProgressColor",         _TEXT_COLORS, "progress_color"),
     ("TinyPPI.FpsColor",              _TEXT_COLORS, "fps_color"),
     ("TinyPPI.UnitColor",             _TEXT_COLORS, "unit_color"),
@@ -398,6 +416,23 @@ _THEME_PROPERTIES = (
     ("TinyPPI.ChannelBackgroundColor", _BACKGROUND_COLORS, "channel_background_color"),
     ("TinyPPI.ChannelLayoutColor",     _CHANNEL_COLORS,    "channel_layout_color"),
     ("TinyPPI.ChannelIconColor",       _CHANNEL_COLORS,    "channel_icon_color"),
+    # Dolby Vision metadata view.  It draws nothing the overlay draws, so it
+    # carries its own colour per element rather than borrowing the overlay's:
+    # a view for reading a bitstream wants a different balance from one laid
+    # over a film.
+    ("TinyPPI.MetadataChangedColor",     _TEXT_COLORS, "metadata_changed_color"),
+    ("TinyPPI.MetadataGlobalBackgroundColor",  _BACKGROUND_COLORS, "metadata_global_background_color"),
+    ("TinyPPI.MetadataBackgroundColor",        _BACKGROUND_COLORS, "metadata_background_color"),
+    ("TinyPPI.MetadataHeaderColor",            _TEXT_COLORS, "metadata_header_color"),
+    ("TinyPPI.MetadataHeaderIconColor",        _TEXT_COLORS, "metadata_header_icon_color"),
+    ("TinyPPI.MetadataTitleColor",             _TEXT_COLORS, "metadata_title_color"),
+    ("TinyPPI.MetadataColumnColor",            _TEXT_COLORS, "metadata_column_color"),
+    ("TinyPPI.MetadataNameColor",              _TEXT_COLORS, "metadata_name_color"),
+    ("TinyPPI.MetadataValueColor",             _TEXT_COLORS, "metadata_value_color"),
+    ("TinyPPI.MetadataLineColor",              _LINE_COLORS, "metadata_line_color"),
+    ("TinyPPI.MetadataFocusColor",             _LINE_COLORS, "metadata_focus_color"),
+    ("TinyPPI.MetadataScrollbarColor",         _TEXT_COLORS, "metadata_scrollbar_color"),
+    ("TinyPPI.MetadataHintColor",              _TEXT_COLORS, "metadata_hint_color"),
     ("TinyPPI.LineColor",             _LINE_COLORS, "line_color"),
     ("TinyPPI.DialogHeaderColor",     _TEXT_COLORS, "dialog_header_color"),
     ("TinyPPI.DialogHeaderIconColor", _TEXT_COLORS, "dialog_header_icon_color"),

@@ -8,6 +8,12 @@ import xbmc
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
 
+# Separators between individual readings in a composite value.  The metadata
+# view uses a pipe; the compact overlay swaps it for a lowercase ``l`` because
+# that glyph reads more clearly in its narrow font.  Runs of spaces separate
+# the wide trim-table values.
+_READING_GAP_RE = re.compile(r"(\s{2,}|\s+[|l]\s+)")
+
 # Home-window (10000) properties describing the TinyPPI overlay state.
 # Shared by overlay.py and mode_select.py.
 PROP_RUNNING     = "TinyPPI.Running"
@@ -30,6 +36,39 @@ def clean(val) -> str:
     if val is None:
         return ""
     return str(val).replace(",", "")
+
+
+def highlight_changes(previous, current, color: str):
+    """Return *current* with readings changed from *previous* color-marked.
+
+    Strings containing several readings are compared part by part, so one
+    moving number does not light up its whole row.  Lists are compared cell by
+    cell for the metadata view's fixed-column tables.  A value without history
+    is left plain because there is nothing to compare it with yet.
+    """
+    if previous is None or previous == current or not color:
+        return current
+    if isinstance(current, list):
+        return [
+            cell if index < len(previous) and previous[index] == cell
+            else _colored(cell, color)
+            for index, cell in enumerate(current)
+        ]
+
+    parts = _READING_GAP_RE.split(current)
+    before = _READING_GAP_RE.split(previous)
+    if len(parts) != len(before):
+        return _colored(current, color)
+    return "".join(
+        part if index % 2 or part == before[index]
+        else _colored(part, color)
+        for index, part in enumerate(parts)
+    )
+
+
+def _colored(text: str, color: str) -> str:
+    """Wrap non-empty *text* in Kodi color markup."""
+    return f"[COLOR={color}]{text}[/COLOR]" if text else text
 
 
 def parse_offsets(value: str) -> tuple[int, int, int, int] | None:

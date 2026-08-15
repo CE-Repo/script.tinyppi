@@ -1206,3 +1206,111 @@ msgstr "Behält die Dolby-Vision-Panels auf dem Bildschirm, während VS10 eine D
 msgctxt "#32388"
 msgid "Display"
 msgstr "Anzeige"
+
+msgctxt "#32389"
+msgid "Dolby Vision metadata"
+msgstr "Dolby-Vision-Metadaten"
+
+msgctxt "#32390"
+msgid "OK: open section — Back: TinyPPI overlay"
+msgstr "OK: Bereich öffnen — Zurück: TinyPPI-Overlay"
+
+msgctxt "#32391"
+msgid "DV metadata"
+msgstr "DV-Metadaten"
+
+msgctxt "#32392"
+msgid "Diagnostic views for reading what a stream actually carries. Off by default; nothing here changes playback."
+msgstr "Diagnoseansichten, die zeigen, was ein Stream tatsächlich mitbringt. Standardmäßig aus; nichts davon verändert die Wiedergabe."
+
+msgctxt "#32393"
+msgid "Dolby Vision metadata view"
+msgstr "Dolby-Vision-Metadatenansicht"
+
+msgctxt "#32394"
+msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK opens the section under the cursor in a window of its own, Back returns to the TinyPPI overlay. On any other source OK does nothing."
+msgstr "Öffnet mit OK die Dolby-Vision-Metadatenansicht, während das TinyPPI-Overlay offen ist und eine Dolby-Vision-Quelle läuft. Sie listet jeden Block auf, den die SideData des Streams enthält – den Konfigurationsdatensatz, die RPU vom Header bis L11, die Trim-Durchgänge und die statischen SEIs. OK öffnet den ausgewählten Bereich in einem eigenen Fenster, Zurück kehrt zum TinyPPI-Overlay zurück. Bei anderen Quellen bewirkt OK nichts."
+
+msgctxt "#32395"
+msgid "Changed values"
+msgstr "Geänderte Werte"
+
+msgctxt "#32396"
+msgid "Color for the readings that just changed in the Dolby Vision metadata view. The view refreshes once a second, and a value that moved is written in this color until it stands still again, so the live readings can be told from the ones that do not move."
+msgstr "Farbe für die Werte, die sich in der Dolby-Vision-Metadatenansicht gerade geändert haben. Die Ansicht wird einmal pro Sekunde aktualisiert; ein Wert, der sich bewegt hat, wird in dieser Farbe geschrieben, bis er wieder stillsteht — so sind die lebenden Werte von den unveränderten zu unterscheiden."
+
+msgctxt "#32397"
+msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue (Default)"
+msgstr "[COLOR=FF82B1FF]●[/COLOR] Hellblau (Standard)"
+
+msgctxt "#32398"
+msgid "Move with the arrow keys"
+msgstr "Mit dem Steuerkreuz verschieben"
+
+msgctxt "#32399"
+msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above. Off by default, so the arrow keys do nothing while TinyPPI is up."
+msgstr "Erlaubt es, das TinyPPI-Overlay mit dem Steuerkreuz der Fernbedienung über den Bildschirm zu verschieben, solange es offen ist. Die Verschiebung wird nicht gespeichert – beim nächsten Öffnen gilt wieder die oben eingestellte Position. Standardmäßig aus; dann bewirkt das Steuerkreuz bei offenem TinyPPI nichts."
+
+msgctxt "#32401"
+msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Off by default; raise its opacity to dim the picture behind it."
+msgstr "Farbe, die hinter der Dolby-Vision-Metadatenansicht über den ganzen Bildschirm gelegt wird. Standardmäßig aus – erhöhe die Deckkraft, um das Bild dahinter abzudunkeln."
+
+msgctxt "#32403"
+msgid "Background color of the metadata view itself."
+msgstr "Hintergrundfarbe der Metadatenansicht selbst."
+
+msgctxt "#32405"
+msgid "Color of the heading at the top of the metadata view."
+msgstr "Farbe der Überschrift am oberen Rand der Metadatenansicht."
+
+msgctxt "#32407"
+msgid "Color of the Dolby Vision logo in the top right corner."
+msgstr "Farbe des Dolby-Vision-Logos in der oberen rechten Ecke."
+
+msgctxt "#32409"
+msgid "Color of the section headings, such as RPU or L2 — Trims."
+msgstr "Farbe der Abschnittsüberschriften wie RPU oder L2 — Trims."
+
+msgctxt "#32410"
+msgid "Column headings"
+msgstr "Spaltenüberschriften"
+
+msgctxt "#32411"
+msgid "Color of the column headings in the trim tables: Slope, Offset, Power and the rest."
+msgstr "Farbe der Spaltenüberschriften in den Trim-Tabellen: Slope, Offset, Power und die übrigen."
+
+msgctxt "#32413"
+msgid "Color of the field names down the left column."
+msgstr "Farbe der Feldnamen in der linken Spalte."
+
+msgctxt "#32415"
+msgid "Color of the readings. A value that just changed is written in the \"Changed values\" color instead, for as long as it keeps changing."
+msgstr "Farbe der Messwerte. Ein Wert, der sich gerade geändert hat, wird stattdessen in der Farbe unter \"Geänderte Werte\" geschrieben, solange er sich weiter ändert."
+
+msgctxt "#32417"
+msgid "Color of the rules under the section headings and above and below the list."
+msgstr "Farbe der Linien unter den Abschnittsüberschriften sowie oberhalb und unterhalb der Liste."
+
+msgctxt "#32419"
+msgid "Color of the bar behind the row the selection is on."
+msgstr "Farbe des Balkens hinter der Zeile, auf der die Auswahl steht."
+
+msgctxt "#32420"
+msgid "Scrollbar"
+msgstr "Bildlaufleiste"
+
+msgctxt "#32421"
+msgid "Color of the scrollbar down the right-hand edge."
+msgstr "Farbe der Bildlaufleiste am rechten Rand."
+
+msgctxt "#32422"
+msgid "Key hint"
+msgstr "Tastenhinweis"
+
+msgctxt "#32423"
+msgid "Color of the line at the bottom naming what the keys do."
+msgstr "Farbe der Zeile am unteren Rand, die die Tastenbelegung nennt."
+
+msgctxt "#32424"
+msgid "Back: metadata list"
+msgstr "Zurück: Metadatenliste"
