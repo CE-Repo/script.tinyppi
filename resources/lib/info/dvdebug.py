@@ -10,11 +10,12 @@ Nothing is left out and nothing is interpreted: the debug view is where you go
 to see what the bitstream actually says.
 
 Field names, units and value scalings follow the module's own FIELDS.md, so a
-row here reads the same as the documented field it comes from.  A block the
-stream does not carry renders as ``EMPTY`` rather than disappearing, so its
-absence is visible rather than merely unmentioned.  Everything is read live:
-the per-frame blocks (L1, L2, L5, L8) move with the picture, the title-level
-ones stand still.
+row here reads the same as the documented field it comes from.  Only readings
+the bitstream actually carries make it into the list: a field the stream leaves
+out is dropped rather than shown as a dash, and a section left with nothing to
+say drops with it, so the view is what this stream has rather than a form with
+most of its boxes blank.  Everything is read live: the per-frame blocks (L1,
+L2, L5, L8) move with the picture, the title-level ones stand still.
 
 Formatting only, apart from the stream labels and the parser version the first
 section names: hand ``build_rows`` a parse result and it yields the same rows
@@ -34,10 +35,10 @@ SECTION = "section"
 ROW     = "row"
 WIDE    = "wide"
 
-# Shown wherever the bitstream carries no reading: an absent block, a field the
-# parser could not fill.  Deliberately not the overlay's N/A label -- the rows
-# below are field names straight out of the bitstream, and a dash reads as
-# "nothing here" in every language.
+# What a formatter returns wherever the bitstream carries no reading: an absent
+# block, a field the parser could not fill.  It never reaches the list -- see
+# _section, which drops the rows that come back holding it -- so it is the
+# internal "nothing here", not a label anyone reads.
 EMPTY = "—"
 
 _SIDEDATA_ID = "script.module.sidedata"
@@ -105,15 +106,11 @@ def _flag(value) -> str:
 
 
 def _joined(*values: str) -> str:
-    """Join the parts of a composite value.
-
-    An absent part stays a dash so the parts that are there still read in
-    place; a row with nothing at all in it collapses to the single dash it
-    would otherwise repeat.
-    """
-    if not values or all(value == EMPTY for value in values):
-        return EMPTY
-    return _JOIN.join(values)
+    """Join the parts of a composite value, leaving out the parts the stream
+    does not carry.  EMPTY when none of them survive, which is what drops the
+    row."""
+    present = [value for value in values if value != EMPTY]
+    return _JOIN.join(present) if present else EMPTY
 
 
 def _coords(pair) -> str:
@@ -138,14 +135,23 @@ def _module_version() -> str:
 # --- Sections --------------------------------------------------------------
 
 def _section(rows: list, title: str, entries) -> None:
-    """Append a heading and its entries to *rows*.
+    """Append a heading and its entries to *rows*, skipping what is not there.
 
     An entry is either a ``(name, value)`` pair for a two-column row, or an
-    already complete ``(kind, name, value)`` triple for one that is not.
+    already complete ``(kind, name, value)`` triple for one that is not.  An
+    entry whose value came back EMPTY is left out, and a heading whose entries
+    all went that way is left out with them: an absent block should take no
+    room at all rather than a screenful of dashes.
     """
+    kept = [
+        entry if len(entry) == 3 else (ROW, entry[0], entry[1])
+        for entry in entries
+    ]
+    kept = [row for row in kept if row[2] and row[2] != EMPTY]
+    if not kept:
+        return
     rows.append((SECTION, title, ""))
-    for entry in entries:
-        rows.append(entry if len(entry) == 3 else (ROW, entry[0], entry[1]))
+    rows.extend(kept)
 
 
 def _payload_summary(parsed: dict) -> str:
@@ -308,6 +314,26 @@ def _legend(prefix: str, controls) -> str:
     return f"{prefix}   {parts}"
 
 
+def _line(readings) -> str:
+    """Run a pass's readings across one line, ``code value`` each."""
+    return "  ".join(f"{code} {text}" for code, text in readings)
+
+
+def _controls(block: dict, controls, formatter) -> list:
+    """The controls of one trim pass that carry a value, ``(code, text)`` each.
+
+    A control the pass leaves out -- which is how a disabled trim reads -- does
+    not come back, so the line built from this carries the controls that were
+    actually set rather than a row of dashes between them.
+    """
+    readings = []
+    for code, key, _name in controls:
+        text = formatter(block.get(key))
+        if text != EMPTY:
+            readings.append((code, text))
+    return readings
+
+
 def _trim_entries(level: str, trims: list | None) -> list:
     """A legend, then a raw and a UI line per trim pass of *level* (l2 / l8).
 
@@ -318,38 +344,46 @@ def _trim_entries(level: str, trims: list | None) -> list:
     Each line is identified by its position in the level rather than by its
     text, which changes with every frame: the identity is what tells a refresh
     that only the readings moved from one that changed the view itself.
-    """
-    trims = trims or []
-    if not trims:
-        return [("Trim passes", EMPTY)]
 
+    A legend only spells out the codes the lines below it actually use, and a
+    level whose passes set nothing returns no lines at all, which drops its
+    section with them.
+    """
     raw_controls = _TRIM_RAW_L8 if level == "l8" else _TRIM_RAW
-    entries = [
-        (WIDE, f"{level}.legend.raw", _legend("Raw", raw_controls)),
-        (WIDE, f"{level}.legend.ui", _legend("UI ", _TRIM_UI)),
-    ]
-    for position, trim in enumerate(trims):
+    lines: list = []
+    used_raw: set = set()
+    used_ui:  set = set()
+
+    for position, trim in enumerate(trims or []):
+        raw = _controls(trim, raw_controls, _num)
+        ui  = _controls(trim.get("ui") or {}, _TRIM_UI, _scaled)
+        if not raw and not ui:
+            continue
         target = f"{_num(trim.get('nits'))} nits"
         index  = trim.get("target_display_index")
         if index is not None:
             target += f" (#{_num(index)})"
-        ui = trim.get("ui") or {}
-        entries.append((
-            WIDE,
-            f"{level}.{position}.raw",
-            f"{target}   " + "  ".join(
-                f"{code} {_num(trim.get(key))}"
-                for code, key, _name in raw_controls
-            ),
-        ))
-        entries.append((
-            WIDE,
-            f"{level}.{position}.ui",
-            "UI   " + "  ".join(
-                f"{code} {_scaled(ui.get(key))}" for code, key, _name in _TRIM_UI
-            ),
-        ))
-    return entries
+        if raw:
+            used_raw.update(code for code, _text in raw)
+            lines.append((WIDE, f"{level}.{position}.raw",
+                          f"{target}   " + _line(raw)))
+        if ui:
+            used_ui.update(code for code, _text in ui)
+            lines.append((WIDE, f"{level}.{position}.ui", "UI   " + _line(ui)))
+
+    legends = []
+    for prefix, controls, used, name in (
+        ("Raw", raw_controls, used_raw, "raw"),
+        ("UI ", _TRIM_UI,     used_ui,  "ui"),
+    ):
+        if used:
+            legends.append((
+                WIDE,
+                f"{level}.legend.{name}",
+                _legend(prefix, [entry for entry in controls
+                                 if entry[0] in used]),
+            ))
+    return legends + lines
 
 
 def _l9_pairs(rpu: dict | None) -> list:
@@ -370,21 +404,26 @@ def _l9_pairs(rpu: dict | None) -> list:
 
 
 def _l10_pairs(targets: list | None) -> list:
-    """The target displays L8's trim passes are graded against."""
-    targets = targets or []
-    if not targets:
-        return [("Target displays", EMPTY)]
-    return [
-        (
-            f"{_num(target.get('nits'))} nits (#{_num(target.get('target_display_index'))})",
-            "  ".join((
-                _text(target.get("primary_name")),
-                f"max PQ {_num(target.get('target_max_pq'))}",
-                f"min PQ {_num(target.get('target_min_pq'))}",
-            )),
-        )
-        for target in targets
-    ]
+    """The target displays L8's trim passes are graded against, each as one row
+    naming what the display is and the PQ range it covers."""
+    pairs = []
+    for target in targets or []:
+        name = f"{_num(target.get('nits'))} nits"
+        index = target.get("target_display_index")
+        if index is not None:
+            name += f" (#{_num(index)})"
+        readings = []
+        primary = _text(target.get("primary_name"))
+        if primary != EMPTY:
+            readings.append(primary)
+        for label, key in (("max PQ", "target_max_pq"),
+                           ("min PQ", "target_min_pq")):
+            reading = _num(target.get(key))
+            if reading != EMPTY:
+                readings.append(f"{label} {reading}")
+        if readings:
+            pairs.append((name, "  ".join(readings)))
+    return pairs
 
 
 def _l11_pairs(rpu: dict | None) -> list:
@@ -460,12 +499,11 @@ def _hdr10plus_pairs(hdr10plus: dict) -> list:
     percentiles = "  ".join(
         f"{percent}% {_lum(distribution[percent])}"
         for percent in _HDR10PLUS_PERCENTILES
-        if percent in distribution
+        if percent in distribution and _lum(distribution[percent]) != EMPTY
     )
-    pairs.append(
-        (WIDE, "hdr10plus.distribution", f"Distribution   {percentiles}")
-        if percentiles else ("Distribution", EMPTY)
-    )
+    if percentiles:
+        pairs.append((WIDE, "hdr10plus.distribution",
+                      f"Distribution   {percentiles}"))
     return pairs
 
 
@@ -475,11 +513,10 @@ def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
     """Return the debug view's rows for the frame on screen.
 
     Reads the current side data unless a parse result is passed in.  Every
-    Dolby Vision section is always laid out, carrying EMPTY values when the
-    stream has no such block -- an absent L11 is a finding, not a reason to
-    renumber the view under the reader.  HDR10+ is the one section that only
-    appears when the payload is there: it is not Dolby Vision metadata, and a
-    permanently empty block would just push the rest down.
+    section is laid out in the same order every time, but only the readings the
+    stream carries survive it: a block this stream has no data for takes no
+    room, so what is on screen is what the bitstream said and the sections that
+    are there can be read without hunting between empty ones.
     """
     if parsed is None:
         parsed = get_sidedata()
@@ -508,5 +545,11 @@ def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
     hdr10plus = parsed.get("hdr10plus")
     if hdr10plus:
         _section(rows, "HDR10+ (ST 2094-40)", _hdr10plus_pairs(hdr10plus))
+
+    if not rows:
+        # Nothing was parsed at all -- no module, no side data, a frame that
+        # arrived empty.  An empty window would read as a broken view rather
+        # than as an answer, so say which it is.
+        rows.append((SECTION, "No metadata in this frame", ""))
 
     return rows
