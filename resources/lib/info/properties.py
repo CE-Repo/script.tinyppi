@@ -55,7 +55,6 @@ from info.dvinfo import (
     get_l1_pq,
     get_l5_offsets,
     get_l6_rpu_max_cll_fall,
-    get_l9_primaries,
     get_output_mode,
     get_rpu_mdl,
     get_rpu_mdl_from_source,
@@ -318,26 +317,6 @@ def get_DoviTunnelVar() -> str:
 # Between the value and its unit (``1000 l 400 cd/m²``).
 _UNIT_GAP = " "
 
-
-def _bracketed(text: str) -> str:
-    """Return ``(text)``, or '' so an absent value brings no empty brackets."""
-    return f"({text})" if text else ""
-
-
-def _accented(text: str) -> str:
-    """Return ``text`` in the accent colour, or '' when there is nothing to set.
-
-    Colouring here rather than in the skin because the separator in front of it
-    must stay uncoloured: a skin can only put its ``$INFO`` prefix inside the
-    ``[COLOR]`` block it opened, and reopening the themed colour inside that
-    prefix would need an ``$INFO`` within an ``$INFO``, which Kodi does not
-    resolve.  Mirrors dvinfo._colourise_el_tag, which themes the FEL/MEL tag the
-    same way and for the same reason.
-    """
-    if not text:
-        return ""
-    colour = info("Window(10000).Property(TinyPPI.AccentColor)")
-    return f"[COLOR={colour}]{text}[/COLOR]" if colour else text
 
 # What separates the numbers of a multi-part metadata value on screen: a
 # lowercase L, not the pipe the values carry internally.  Purely a matter of
@@ -876,7 +855,6 @@ def publish_properties(window) -> None:
             ("VideoBitDepthVar", get_VideoBitDepthVar()),
             ("DoviProfileVar", output_mode),
             ("MediaSourceVar", _media_source_name(output_mode)),
-            ("DoviPrimariesVar", _accented(_bracketed(get_l9_primaries()))),
             ("DoviTunnelVar", get_DoviTunnelVar()),
             ("DoviCmVersionVar", get_cm_version()),
             ("DoviStructureVar", get_structure()),

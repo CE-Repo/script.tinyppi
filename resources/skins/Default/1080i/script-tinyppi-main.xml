@@ -645,7 +645,7 @@
 						<left>240</left>
 						<top>150</top>
 						<width>380</width>
-						<label>$INFO[Window().Property(GamutVar)]$INFO[Window().Property(DoviPrimariesVar), - ,]</label>
+						<label>$INFO[Window().Property(GamutVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>

@@ -78,7 +78,6 @@ _FIELDS = (
     "l6_mdl",
     "l6_max_cll_fall",
     "source_mdl",
-    "l9_primaries",
     "hdr10_mdl",
     "hdr10_max_cll_fall",
     "dv_version",
@@ -90,12 +89,11 @@ _FIELDS = (
     "bit_depth",
 )
 
-# Fields the RPU carries only now and then because they describe the title
-# rather than the frame; see _hold_static.  The source mastering display shares
-# the reason: the module fills it only on frames whose DM data is uncompressed,
-# and without the latch the MDL row would fall back to L6 -- label and all --
-# every other frame.
-_STATIC_FIELDS = ("l9_primaries", "source_mdl")
+# Fields the RPU carries only now and then rather than in every frame; see
+# _hold_static.  The source mastering display is filled only on frames whose DM
+# data is uncompressed, and without the latch the MDL row would fall back to L6
+# -- label and all -- every other frame.
+_STATIC_FIELDS = ("source_mdl",)
 
 _latched: dict[str, str] = {}
 
@@ -216,11 +214,11 @@ def _derive(key: tuple[str, str, str]) -> tuple[dict | None, dict[str, str]]:
 def _hold_static(fields: dict[str, str]) -> None:
     """Carry the title-level fields across the frames that omit them.
 
-    L9 and L11 describe the grade, not the picture, so the bitstream does not
-    repeat them in every RPU -- under DM metadata compression a frame refers
-    back to an earlier one's metadata instead of carrying its own.  Read frame
-    by frame they are therefore absent most of the time, which would leave
-    their rows blinking N/A at a stream that plainly has them.
+    They describe the grade, not the picture, so the bitstream does not repeat
+    them in every RPU -- under DM metadata compression a frame refers back to an
+    earlier one's metadata instead of carrying its own.  Read frame by frame
+    they are therefore absent most of the time, which would leave their rows
+    blinking N/A at a stream that plainly has them.
 
     So the last reading stands until a new one replaces it.  ``_latched`` is
     cleared when playback stops, and the overlay closes with it, so nothing is
@@ -623,14 +621,6 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
             _fmt_lum(source.get("max_nits")), _fmt_lum(source.get("min_nits")),
         ])
 
-    # L9 names the primaries the content was graded against, already resolved to
-    # a name -- ``BT.2020``, ``DCI-P3 D65`` -- so it is taken as given; a block
-    # carrying explicit CIE coordinates instead of a known index reads as
-    # ``custom``.  It qualifies the media source rather than filling a row.
-    l9 = (rpu or {}).get("l9")
-    if l9:
-        info["l9_primaries"] = str(l9.get("name") or "")
-
     if mdcv:
         info["hdr10_mdl"] = _joined([
             _fmt_lum(mdcv.get("max_luminance")), _fmt_lum(mdcv.get("min_luminance")),
@@ -731,16 +721,6 @@ def get_rpu_mdl_from_source() -> str:
 def get_l6_rpu_max_cll_fall() -> str:
     """Return Dolby Vision Level 6 RPU MaxCLL/MaxFALL."""
     return _value_or("l6_max_cll_fall", "0 | 0")
-
-
-def get_l9_primaries() -> str:
-    """Return the Level 9 source primaries by name (e.g. ``DCI-P3 D65``), or ''
-    when the stream carries no L9 block.
-
-    No status label: the media source row appends this in brackets and simply
-    says nothing when there is nothing to say.
-    """
-    return _raw("l9_primaries")
 
 
 def get_hdr10_mdl(l6_fallback: bool = False) -> str:
