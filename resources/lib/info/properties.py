@@ -56,8 +56,6 @@ from info.dvinfo import (
     get_l6_rpu_max_cll_fall,
     get_l6_rpu_mdl,
     get_l9_primaries,
-    get_source_max,
-    get_source_min,
     get_output_mode,
     get_structure,
     is_status_label,
@@ -843,10 +841,6 @@ def publish_properties(window) -> None:
     # carry the depth of their code space.
     l1_fll              = _with_unit(_separated(get_l1_nits()), unit)
     l1_pq               = _with_unit(_separated(get_l1_pq()), pq_unit)
-    # The master's PQ range: raw code and the luminance it decodes to, so the
-    # unit lands on the reading it belongs to, the second one.
-    source_min          = _with_unit(_separated(get_source_min()), unit)
-    source_max          = _with_unit(_separated(get_source_max()), unit)
     l6_rpu_mdl          = _with_unit(_separated(get_l6_rpu_mdl()), unit)
     l6_rpu_max_cll_fall = _with_unit(_separated(get_l6_rpu_max_cll_fall()), unit)
     # Only while the HDR panel stands in for the Dolby Vision one may the static
@@ -889,8 +883,6 @@ def publish_properties(window) -> None:
             ("DoviLevel1PqVar", l1_pq),
             ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
-            ("DoviSourceMinVar", source_min),
-            ("DoviSourceMaxVar", source_max),
             ("Hdr10MdlVar", hdr10_mdl),
             ("Hdr10MaxCllFallVar", hdr10_max_cll_fall),
             ("DoviVersionVar", get_dv_version()),

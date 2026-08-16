@@ -905,8 +905,8 @@ msgid "L6 MDL"
 msgstr "L6 MDL"
 
 msgctxt "#32299"
-msgid "L6 CLL/FALL"
-msgstr "L6 CLL/FALL"
+msgid "L6 MaxCLL/FALL"
+msgstr "L6 MaxCLL/FALL"
 
 msgctxt "#32300"
 msgid "HDR Static Metadata"
@@ -1159,14 +1159,6 @@ msgstr "L1 Lum Min/Max/Ø"
 msgctxt "#32376"
 msgid "L1 PQ Min/Max/Ø"
 msgstr "L1 PQ Min/Max/Ø"
-
-msgctxt "#32377"
-msgid "VDR Min PQ/Lum"
-msgstr "VDR Min PQ/Lum"
-
-msgctxt "#32378"
-msgid "VDR Max PQ/Lum"
-msgstr "VDR Max PQ/Lum"
 
 msgctxt "#32379"
 msgid "CM Version"

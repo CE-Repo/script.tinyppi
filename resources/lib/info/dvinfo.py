@@ -78,8 +78,6 @@ _FIELDS = (
     "l6_mdl",
     "l6_max_cll_fall",
     "l9_primaries",
-    "source_min",
-    "source_max",
     "hdr10_mdl",
     "hdr10_max_cll_fall",
     "dv_version",
@@ -92,9 +90,8 @@ _FIELDS = (
 )
 
 # Fields the RPU carries only now and then because they describe the title
-# rather than the frame; see _hold_static.  The source range shares the reason:
-# the module fills it only on frames whose DM data is uncompressed.
-_STATIC_FIELDS = ("l9_primaries", "source_min", "source_max")
+# rather than the frame; see _hold_static.
+_STATIC_FIELDS = ("l9_primaries",)
 
 _latched: dict[str, str] = {}
 
@@ -620,18 +617,6 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
     if l9:
         info["l9_primaries"] = str(l9.get("name") or "")
 
-    # The PQ range of the master the grade was made from, each as the raw code
-    # and the luminance it decodes to.  Only frames whose DM data is
-    # uncompressed carry it, hence _STATIC_FIELDS.
-    source = (rpu or {}).get("source")
-    if source:
-        info["source_min"] = _joined([
-            _fmt_num(source.get("min_pq")), _fmt_lum(source.get("min_nits")),
-        ])
-        info["source_max"] = _joined([
-            _fmt_num(source.get("max_pq")), _fmt_lum(source.get("max_nits")),
-        ])
-
     if mdcv:
         info["hdr10_mdl"] = _joined([
             _fmt_lum(mdcv.get("max_luminance")), _fmt_lum(mdcv.get("min_luminance")),
@@ -728,18 +713,6 @@ def get_l9_primaries() -> str:
     says nothing when there is nothing to say.
     """
     return _raw("l9_primaries")
-
-
-def get_source_min() -> str:
-    """Return the master's minimum source luminance as ``PQ code | nits``,
-    falling back to ``0 | 0``."""
-    return _value_or("source_min", "0 | 0")
-
-
-def get_source_max() -> str:
-    """Return the master's maximum source luminance as ``PQ code | nits``,
-    falling back to ``0 | 0``."""
-    return _value_or("source_max", "0 | 0")
 
 
 def get_hdr10_mdl(l6_fallback: bool = False) -> str:
