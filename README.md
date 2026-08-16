@@ -6,11 +6,11 @@ A CoreELEC addon that displays detailed playback information in a custom overlay
 
 ## Screenshots
 <p align="center">
-<img width="1200" alt="No Convert" src="https://github.com/user-attachments/assets/f786a616-ef85-4413-a743-63e7ab3d5b4b" />
+<img width="1200" alt="No Convert" src="https://github.com/user-attachments/assets/b083e2b2-bff2-40de-bdc4-361688e4df5c" />
 </p>
 
 <p align="center">
-<img width="1200" alt="Convert" src="https://github.com/user-attachments/assets/b7c10a0e-2828-4e21-a41f-6c2e5231cfbe" />
+<img width="1200" alt="Convert" src="https://github.com/user-attachments/assets/0260625f-7d2e-4bf8-b07c-10547dfc0956" />
 </p>
 
 <p align="center">
