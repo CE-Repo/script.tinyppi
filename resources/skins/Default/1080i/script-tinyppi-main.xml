@@ -1579,6 +1579,38 @@
 						<visible>String.IsEmpty(Window().Property(DoviVersionVar))</visible>
 					</control>
 					
+					<!-- Profile -->
+					<control type="label">
+						<top>120</top>
+						<label>$ADDON[script.tinyppi 32290]:</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+						<aligny>top</aligny>
+					</control>
+					<control type="label">
+						<width>270</width>
+						<align>right</align>
+						<left>177</left>
+						<top>120</top>
+						<label>$INFO[Window().Property(DoviProfileNumberVar)]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>!String.IsEmpty(Window().Property(DoviProfileNumberVar))</visible>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<width>270</width>
+						<align>right</align>
+						<left>177</left>
+						<top>120</top>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window().Property(DoviProfileNumberVar))</visible>
+					</control>
+					
 					<!-- RPU / BL -->
 					<control type="label">
 						<top>150</top>

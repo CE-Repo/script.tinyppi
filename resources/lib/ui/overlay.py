@@ -83,6 +83,7 @@ _DV_VALUE_PROPERTIES = (
     "DoviCmVersionVar",
     "DoviStructureVar",
     "DoviVersionVar",
+    "DoviProfileNumberVar",
     "DoviLevel1FllVar",
     "DoviLevel1PqVar",
     "DoviLevel5OffsetsVar",

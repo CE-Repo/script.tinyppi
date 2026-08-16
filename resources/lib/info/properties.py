@@ -45,6 +45,7 @@ from info.dvinfo import (
     get_dv_bl_present,
     get_dv_el_present,
     get_dv_el_type,
+    get_dv_profile,
     get_dv_rpu_present,
     get_dv_version,
     get_hdr10_max_cll_fall,
@@ -870,11 +871,6 @@ def publish_properties(window) -> None:
             ("VideoBitDepthVar", get_VideoBitDepthVar()),
             ("DoviProfileVar", output_mode),
             ("MediaSourceVar", _media_source_name(output_mode)),
-            # The primaries the content was graded in, shown after the gamut
-            # the driver is putting out so the two can be read against each
-            # other.  Brackets and colour come along here; the skin adds only
-            # the separator, which stays in the row's own colour.  Empty means
-            # the row just ends after the gamut, separator and all.
             ("DoviPrimariesVar", _accented(_bracketed(get_l9_primaries()))),
             ("DoviTunnelVar", get_DoviTunnelVar()),
             ("DoviCmVersionVar", get_cm_version()),
@@ -886,6 +882,7 @@ def publish_properties(window) -> None:
             ("Hdr10MdlVar", hdr10_mdl),
             ("Hdr10MaxCllFallVar", hdr10_max_cll_fall),
             ("DoviVersionVar", get_dv_version()),
+            ("DoviProfileNumberVar", get_dv_profile()),
             ("DoviRpuPresentVar", get_dv_rpu_present()),
             ("DoviBlPresentVar", get_dv_bl_present()),
             ("DoviElPresentVar", get_dv_el_present()),
