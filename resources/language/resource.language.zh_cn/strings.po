@@ -1220,8 +1220,8 @@ msgid "DV metadata"
 msgstr "DV 元数据"
 
 msgctxt "#32392"
-msgid "Diagnostic views for reading what a stream actually carries. Off by default; nothing here changes playback."
-msgstr "用于查看数据流实际携带内容的诊断视图。默认关闭；其中的选项不会改变播放。"
+msgid "Diagnostic views for reading what a stream actually carries."
+msgstr "用于查看数据流实际携带内容的诊断视图。"
 
 msgctxt "#32393"
 msgid "Dolby Vision metadata view"
@@ -1248,12 +1248,12 @@ msgid "Move with the arrow keys"
 msgstr "使用方向键移动"
 
 msgctxt "#32399"
-msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above. Off by default, so the arrow keys do nothing while TinyPPI is up."
-msgstr "允许在 TinyPPI 叠加层打开时，用遥控器的方向键在屏幕上移动它。移动结果不会保存：下次打开时仍使用上面设置的位置。默认关闭，此时方向键在 TinyPPI 打开期间不起作用。"
+msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above."
+msgstr "允许在 TinyPPI 叠加层打开时，用遥控器的方向键在屏幕上移动它。移动结果不会保存：下次打开时仍使用上面设置的位置。"
 
 msgctxt "#32401"
-msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Off by default; raise its opacity to dim the picture behind it."
-msgstr "在杜比视界元数据视图后面覆盖整个屏幕的颜色。默认关闭；提高其不透明度可让后面的画面变暗。"
+msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Raise its opacity to dim the picture behind it."
+msgstr "在杜比视界元数据视图后面覆盖整个屏幕的颜色。提高其不透明度可让后面的画面变暗。"
 
 msgctxt "#32403"
 msgid "Background color of the metadata view itself."

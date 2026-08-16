@@ -1220,8 +1220,8 @@ msgid "DV metadata"
 msgstr "DV metaadatok"
 
 msgctxt "#32392"
-msgid "Diagnostic views for reading what a stream actually carries. Off by default; nothing here changes playback."
-msgstr "Diagnosztikai nézetek annak megtekintéséhez, hogy egy adatfolyam valójában mit hordoz. Alapértelmezés szerint kikapcsolva; semmi sem befolyásolja a lejátszást."
+msgid "Diagnostic views for reading what a stream actually carries."
+msgstr "Diagnosztikai nézetek annak megtekintéséhez, hogy egy adatfolyam valójában mit hordoz."
 
 msgctxt "#32393"
 msgid "Dolby Vision metadata view"
@@ -1248,12 +1248,12 @@ msgid "Move with the arrow keys"
 msgstr "Mozgatás az iránygombokkal"
 
 msgctxt "#32399"
-msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above. Off by default, so the arrow keys do nothing while TinyPPI is up."
-msgstr "Lehetővé teszi, hogy a távirányító iránygombjaival mozgasd a TinyPPI réteget a képernyőn, amíg nyitva van. A mozgatás nem kerül mentésre: a következő indításkor újra a fent beállított pozíció érvényes. Alapértelmezetten kikapcsolva, ilyenkor az iránygombok nem csinálnak semmit nyitott TinyPPI mellett."
+msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above."
+msgstr "Lehetővé teszi, hogy a távirányító iránygombjaival mozgasd a TinyPPI réteget a képernyőn, amíg nyitva van. A mozgatás nem kerül mentésre: a következő indításkor újra a fent beállított pozíció érvényes."
 
 msgctxt "#32401"
-msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Off by default; raise its opacity to dim the picture behind it."
-msgstr "A Dolby Vision metaadat-nézet mögött az egész képernyőre helyezett szín. Alapértelmezetten kikapcsolva; növeld az átlátszatlanságát a mögötte lévő kép sötétítéséhez."
+msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Raise its opacity to dim the picture behind it."
+msgstr "A Dolby Vision metaadat-nézet mögött az egész képernyőre helyezett szín. Növeld az átlátszatlanságát a mögötte lévő kép sötétítéséhez."
 
 msgctxt "#32403"
 msgid "Background color of the metadata view itself."

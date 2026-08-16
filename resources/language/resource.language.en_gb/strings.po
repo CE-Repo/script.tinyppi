@@ -1220,7 +1220,7 @@ msgid "DV metadata"
 msgstr ""
 
 msgctxt "#32392"
-msgid "Diagnostic views for reading what a stream actually carries. Off by default; nothing here changes playback."
+msgid "Diagnostic views for reading what a stream actually carries."
 msgstr ""
 
 msgctxt "#32393"
@@ -1248,11 +1248,11 @@ msgid "Move with the arrow keys"
 msgstr ""
 
 msgctxt "#32399"
-msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above. Off by default, so the arrow keys do nothing while TinyPPI is up."
+msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above."
 msgstr ""
 
 msgctxt "#32401"
-msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Off by default; raise its opacity to dim the picture behind it."
+msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Raise its opacity to dim the picture behind it."
 msgstr ""
 
 msgctxt "#32403"

@@ -1220,8 +1220,8 @@ msgid "DV metadata"
 msgstr "DV-Metadaten"
 
 msgctxt "#32392"
-msgid "Diagnostic views for reading what a stream actually carries. Off by default; nothing here changes playback."
-msgstr "Diagnoseansichten, die zeigen, was ein Stream tatsächlich mitbringt. Standardmäßig aus; nichts davon verändert die Wiedergabe."
+msgid "Diagnostic views for reading what a stream actually carries."
+msgstr "Diagnoseansichten, die zeigen, was ein Stream tatsächlich mitbringt."
 
 msgctxt "#32393"
 msgid "Dolby Vision metadata view"
@@ -1248,12 +1248,12 @@ msgid "Move with the arrow keys"
 msgstr "Mit dem Steuerkreuz verschieben"
 
 msgctxt "#32399"
-msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above. Off by default, so the arrow keys do nothing while TinyPPI is up."
-msgstr "Erlaubt es, das TinyPPI-Overlay mit dem Steuerkreuz der Fernbedienung über den Bildschirm zu verschieben, solange es offen ist. Die Verschiebung wird nicht gespeichert – beim nächsten Öffnen gilt wieder die oben eingestellte Position. Standardmäßig aus; dann bewirkt das Steuerkreuz bei offenem TinyPPI nichts."
+msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above."
+msgstr "Erlaubt es, das TinyPPI-Overlay mit dem Steuerkreuz der Fernbedienung über den Bildschirm zu verschieben, solange es offen ist. Die Verschiebung wird nicht gespeichert – beim nächsten Öffnen gilt wieder die oben eingestellte Position."
 
 msgctxt "#32401"
-msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Off by default; raise its opacity to dim the picture behind it."
-msgstr "Farbe, die hinter der Dolby-Vision-Metadatenansicht über den ganzen Bildschirm gelegt wird. Standardmäßig aus – erhöhe die Deckkraft, um das Bild dahinter abzudunkeln."
+msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Raise its opacity to dim the picture behind it."
+msgstr "Farbe, die hinter der Dolby-Vision-Metadatenansicht über den ganzen Bildschirm gelegt wird. Erhöhe die Deckkraft, um das Bild dahinter abzudunkeln."
 
 msgctxt "#32403"
 msgid "Background color of the metadata view itself."
