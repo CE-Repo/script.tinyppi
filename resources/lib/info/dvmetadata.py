@@ -673,26 +673,25 @@ def _state(origin: dict, *keys: str) -> str:
 
 # --- Row model -------------------------------------------------------------
 
-def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
-    """Return the metadata view's rows for the frame on screen.
+def build_scene_rows(
+    parsed: dict | None = None,
+) -> tuple[list[tuple[str, str, str]], dict, dict, str]:
+    """Return the rows that can change every scene, plus the held-filled
+    parse result, its origin map and its payload summary for
+    ``build_static_rows`` to render the rest of the view from the same
+    frame's data without re-deriving any of it.
 
-    Reads the current side data unless a parse result is passed in.  Every
-    section is laid out in the same order every time, but only the readings the
-    stream carries survive it: a block this stream has no data for takes no
-    room, so what is on screen is what the bitstream said and the sections that
-    are there can be read without hunting between empty ones.
+    Reads the current side data unless a parse result is passed in.  L1 says
+    how bright the frame is, L2 and L8 say what was done about it, L5 and L3
+    describe the active area and its PQ offsets, and HDR10+'s dynamic
+    metadata is scene by scene too -- these are the readings a viewer is
+    watching move, so unlike the rest of the view (see build_static_rows)
+    they need re-reading on every poll rather than settling for a slower one.
 
-    Ordered by what moves rather than by the numbers the levels carry: the
-    per-frame blocks first, then the ones that describe the grade, then what
-    the file is.  A list this long is read from the top, and the top is worth
-    the readings that are different every time it is looked at -- the levels
-    still run in order within the first group, save for L8 kept beside L2,
-    which is the other half of the same answer.
-
-    Read live, the blocks a compressed frame omits are held from the last frame
-    that carried them and their heading says so (see _hold).  A parse result
-    passed in is taken as it comes and holds nothing, so a caller with its own
-    data gets its own data, every section of it live.
+    Read live, the blocks a compressed frame omits are held from the last
+    frame that carried them and their heading says so (see _hold).  A parse
+    result passed in is taken as it comes and holds nothing, so a caller with
+    its own data gets its own data, every section of it live.
     """
     live   = parsed is None
     parsed = get_sidedata() if live else parsed
@@ -727,6 +726,35 @@ def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
         _section(rows, "HDR10+ (ST 2094-40)", _hdr10plus_pairs(hdr10plus),
                  _state(origin, "hdr10plus"))
 
+    return rows, parsed, origin, carried
+
+
+def build_static_rows(parsed: dict, origin: dict, carried: str) -> list[tuple[str, str, str]]:
+    """Return the rows that settle before the film was ever played, from a
+    parse result, origin map and payload summary ``build_scene_rows`` already
+    produced for the same frame.
+
+    The source range, L6, L9, L10, L11, the static SEIs, the RPU header and
+    the file-level blocks are all the same on every frame of a title, so
+    unlike build_scene_rows's readings a caller may re-render these on a
+    slower cadence -- their Live/Cached heading badge (see _state) reflects
+    whichever frame's origin map it was called with, not necessarily the one
+    on screen right now, which is the one place that trades off freshness for
+    the slower poll.
+
+    Returned without the blank row that would separate it from whatever
+    precedes it: a caller re-rendering this on its own slower cadence and
+    joining it against a scene list that is fresh every call (see
+    join_rows) needs that decided against the *current* scene rows, not
+    baked in here against whichever tick last rebuilt this list -- the two
+    can disagree on whether scene rows exist at all around the moment
+    detection resolves, and a blank row baked in against the wrong tick
+    would leave the joined list either missing its separator or opening on
+    an orphan one until this next re-renders.
+    """
+    rpu = parsed.get("rpu")
+    rows: list[tuple[str, str, str]] = []
+
     # Then the grade: settled before the film was ever played, and the same on
     # every frame of it.  The source range is here rather than above because
     # it describes the master, however per-frame the RPU carrying it is.
@@ -754,6 +782,97 @@ def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
     _section(rows, "Configuration record (dvcC / dvvC)",
              _config_pairs(parsed.get("config")), _state(origin, "config"))
     _section(rows, "Stream", _stream_pairs(parsed, carried))
+
+    return rows
+
+
+# The keys build_static_rows judges its headings' Live / Cached state by.
+_STATIC_STATE_KEYS = ("rpu.source", "rpu.l6", "rpu.l9", "rpu.l10", "rpu.l11",
+                      "mdcv", "cll", "rpu", "rpu.header", "config")
+
+
+def static_signature(parsed: dict, origin: dict, carried: str) -> tuple:
+    """What build_static_rows's rows are made from, as one comparable value.
+
+    A caller re-rendering those rows on a slower cadence than the scene rows
+    (see ui.dvmetadata's _merged_rows) can compare this against the last
+    tick's and re-render the moment a static block actually moves -- a DM
+    refresh that replaces the source range or a target display mid-title --
+    instead of up to a whole interval after it, which is the lag that reads
+    as rows changing out of step with the scene sections above them.  A tick
+    nothing moved in costs one tuple comparison and no formatting.
+
+    Almost everything build_static_rows reads from its three arguments is in
+    here, the heading states included.  Left out on purpose: the Stream
+    section's own live reads outside them (the Kodi labels and the parser
+    module version, see _stream_pairs), and the three scalars _rpu_pairs
+    reads straight off the RPU -- profile, cm_version, compressed.  Those are
+    the frame's own, not held (see _HELD_RPU), and compressed above all is
+    genuinely per-frame: it flips with DM compression's key/compressed
+    cadence, so carrying it here would rebuild on every such flip and defeat
+    the throttle this signature exists to protect.  Their rows ride the
+    caller's slower fallback interval instead, as they always did.
+    """
+    rpu = parsed.get("rpu") or {}
+    return (
+        carried,
+        parsed.get("flags"),
+        parsed.get("structure"),
+        parsed.get("config"),
+        parsed.get("mdcv"),
+        parsed.get("cll"),
+        rpu.get("header"),
+        rpu.get("source"),
+        rpu.get("l6"),
+        rpu.get("l9"),
+        rpu.get("l10"),
+        rpu.get("l11"),
+        tuple(origin.get(key) for key in _STATIC_STATE_KEYS),
+    )
+
+
+def join_rows(
+    scene_rows: list[tuple[str, str, str]], static_rows: list[tuple[str, str, str]],
+) -> list[tuple[str, str, str]]:
+    """Concatenate build_scene_rows's and build_static_rows's output, adding
+    back the blank row _section would have put ahead of the first static
+    heading if it had built straight into the scene rows rather than its own
+    fresh list.
+
+    Takes both lists as given rather than a ``preceded`` flag decided ahead
+    of time, so a caller re-rendering the two halves on different cadences
+    (see ui.dvmetadata's _merged_rows) gets this decided fresh against
+    whichever scene rows it is joining right now, not against whichever
+    tick's scene rows happened to be current when static_rows was last
+    rebuilt -- those can disagree for as long as the static side's own
+    refresh interval, and a stale decision baked into static_rows would
+    leave the joined list wrongly shaped for that whole window instead of
+    only the readings inside it being stale.
+    """
+    if scene_rows and static_rows:
+        static_rows = [(SPACE, f"space.{static_rows[0][1]}", "")] + static_rows
+    return scene_rows + static_rows
+
+
+def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
+    """Return the metadata view's rows for the frame on screen, scene and
+    static sections together in one call.
+
+    Every section is laid out in the same order every time, but only the
+    readings the stream carries survive it: a block this stream has no data
+    for takes no room, so what is on screen is what the bitstream said and
+    the sections that are there can be read without hunting between empty
+    ones.
+
+    A caller polling on its own timer -- ui.dvmetadata's dialogs, which need
+    build_scene_rows fresh on every tick and build_static_rows only on a
+    slower one -- should call the two halves and join_rows directly instead
+    of this; this single-call form is for a caller with no such split (a
+    one-shot dump, a caller passing its own parse result rather than reading
+    the side data live) that just wants every row at once.
+    """
+    scene_rows, parsed, origin, carried = build_scene_rows(parsed)
+    rows = join_rows(scene_rows, build_static_rows(parsed, origin, carried))
 
     if not rows:
         # Nothing was parsed at all -- no module, no side data, a frame that

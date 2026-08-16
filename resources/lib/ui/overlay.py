@@ -96,6 +96,17 @@ _DV_VALUE_PROPERTIES = (
 _DV_CHANGED_COLOR    = "TinyPPI.OutputChangedColor"
 _DV_CHANGED_FALLBACK = "FF82B1FF"  # Light blue, the setting's default
 
+# How often the tick loop refreshes properties.update_static_properties.
+# Video/audio/subtitle facts and CPU stats settle at most once a title, so
+# they do not need the loop's own 100ms cadence the way the Dolby Vision /
+# HDR10 readings in publish_scene_properties do.
+_STATIC_POLL_INTERVAL = 1.0
+
+# Seconds join_update_loop gives the refresh thread to wind down: far past
+# the tick it may still be sleeping through, so a live thread always makes it
+# and a wedged one does not hold the hand-off for good.
+_JOIN_TIMEOUT = 1.0
+
 
 def _is_coreelec() -> bool:
     """Return True when running on a CoreELEC installation."""
@@ -233,9 +244,14 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._auto_hide = 0
         self._nudge     = (0, 0)
         self._nudge_on  = False
+        self._thread    = None
         self._dv_channel_offset = None
         self._refresh_failed    = False
         self._dv_values: dict   = {}
+        # Not underscore-prefixed: _show_overlay() seeds this from outside the
+        # class, the same way next_view below is read from outside once doModal()
+        # returns.
+        self.published: dict    = {}
         self._color_missing     = False
         # Read by open_tinyppi() once doModal() returns; see _open_dv_metadata.
         self.next_view  = None
@@ -281,24 +297,26 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
     def _highlight_dv_changes(self) -> None:
         """Highlight DV readings that moved during the latest refresh.
 
-        ``properties.update_properties`` has just replaced every property with
-        its uncolored current value.  Compare those against the plain values
-        remembered from the previous pass, publish the marked display strings,
-        then retain the plain values for next time.  A continuously moving
-        reading therefore stays highlighted; after one stable pass it returns
-        to the normal output color.
+        Reads current values from ``self.published`` rather than back from
+        the window: whichever publish call last touched a given property (the
+        fast scene pass or the slower static one) already recorded its plain
+        current value there regardless of whether it needed a fresh
+        ``setProperty`` call.  The colored variant written here also goes
+        back into ``self.published``, so the next pass's plain recompute
+        reads as a change against it and clears the highlight, instead of
+        leaving it stuck.  A stable reading therefore costs nothing here.
         """
         current = {
-            name: self.getProperty(name) for name in _DV_VALUE_PROPERTIES
+            name: self.published.get(name, "") for name in _DV_VALUE_PROPERTIES
         }
-        hdr_type = xbmcgui.Window(10000).getProperty("TinyPPI.HdrType").lower()
+        hdr_type = self.published.get("TinyPPI.HdrType", "").lower()
         if "dolby" in hdr_type:
             color = self._dv_changed_color()
             for name, value in current.items():
-                self.setProperty(
-                    name,
-                    highlight_changes(self._dv_values.get(name), value, color),
-                )
+                highlighted = highlight_changes(self._dv_values.get(name), value, color)
+                if self.published.get(name) != highlighted:
+                    self.setProperty(name, highlighted)
+                    self.published[name] = highlighted
         self._dv_values = current
 
     def _base_offset(self) -> tuple:
@@ -448,19 +466,50 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self.close_dialog()
 
     def _start_update_loop(self) -> None:
-        t = threading.Thread(target=self._update_loop, daemon=True)
-        t.start()
+        self._thread = threading.Thread(target=self._update_loop, daemon=True)
+        self._thread.start()
+
+    def join_update_loop(self) -> None:
+        """Wait for the update loop to actually stop.
+
+        The loop only checks self._running between ticks, so it can outlive
+        doModal() by up to one tick -- still writing to a window Kodi is
+        tearing down, and still reading the side-data hold state the next
+        view's loop reads (info.dvmetadata's module-level _held /
+        _held_source).  The hand-over to the next view waits here instead of
+        racing it.  Logs once if the thread is still alive after the
+        timeout -- a wedged thread can only happen once per dialog instance,
+        so an unconditional log on that path is enough.
+        """
+        if self._thread is not None:
+            self._thread.join(_JOIN_TIMEOUT)
+            if self._thread.is_alive():
+                xbmc.log(
+                    f"TinyPPI: refresh thread still running after "
+                    f"{_JOIN_TIMEOUT}s, handing over anyway",
+                    xbmc.LOGWARNING,
+                )
 
     def _update_loop(self) -> None:
-        """Refresh the overlay once a second until it should close.
+        """Refresh the overlay every 100ms until it should close.
+
+        Only ``publish_scene_properties`` runs on every tick: it is the
+        Dolby Vision / HDR10 readings there that can move every scene.
+        Everything else settles at most once a title, so
+        ``update_static_properties`` runs on its own, slower
+        ``_STATIC_POLL_INTERVAL`` timer instead of every tick.
+
+        ``self.published`` makes both cadences cheap: whichever pass ran,
+        an idle tick costs no ``setProperty`` calls, only the recompute.
 
         A failed refresh never ends the loop: the values come from the player
         and from the stream's side data, so a bad cycle is worth one stale
-        second, not a window that stops auto-closing.  ``close_dialog`` runs
+        tick, not a window that stops auto-closing.  ``close_dialog`` runs
         from ``finally`` so even an unforeseen failure still releases the
         overlay instead of leaving it up, frozen and marked active.
         """
         player = xbmc.Player()
+        next_static_publish = 0.0
 
         try:
             while self._running and not self._monitor.abortRequested():
@@ -472,13 +521,22 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
                     break
 
                 try:
-                    properties.update_properties(self)
+                    properties.publish_scene_properties(self, self.published)
                     self._highlight_dv_changes()
                     self._apply_position_offset()
+
+                    now = time.time()
+                    if now >= next_static_publish:
+                        # Advance the deadline before the call, not after: a
+                        # failure below still counts this as tried, so it
+                        # retries in another _STATIC_POLL_INTERVAL rather than
+                        # every tick until it happens to succeed.
+                        next_static_publish = now + _STATIC_POLL_INTERVAL
+                        properties.update_static_properties(self, self.published)
                 except Exception as exc:
                     self._log_refresh_failure(exc)
 
-                if self._monitor.waitForAbort(1):
+                if self._monitor.waitForAbort(0.1):
                     break
         finally:
             self.close_dialog()
@@ -530,8 +588,9 @@ def _show_overlay(home) -> str | None:
     # published there arrives after the viewer is already looking at the
     # rows; done here, the first frame carries the values.  Properties only
     # -- the controls the full refresh touches do not exist yet.
-    properties.publish_properties(dialog)
+    properties.publish_properties(dialog, dialog.published)
     dialog.doModal()
+    dialog.join_update_loop()
     next_view = dialog.next_view
     del dialog
     return next_view

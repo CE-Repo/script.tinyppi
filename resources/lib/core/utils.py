@@ -165,6 +165,21 @@ def set_window_properties(window, values: tuple[tuple[str, str], ...]) -> None:
         window.setProperty(name, value)
 
 
+def set_changed_properties(window, published: dict, values: tuple[tuple[str, str], ...]) -> None:
+    """Publish only the values that differ from what ``published`` last recorded.
+
+    ``published`` is the caller's own tracking dict, kept for the life of
+    whatever polls this window; only the entries actually written here are
+    updated in it, so it stays an accurate record of what the window holds
+    even when something else (a highlight overwrite, say) also writes to the
+    same keys and updates the same dict.
+    """
+    for name, value in values:
+        if published.get(name) != value:
+            window.setProperty(name, value)
+            published[name] = value
+
+
 def clear_overlay_state(home) -> None:
     """Clear the Home-window properties that mark TinyPPI as open."""
     for prop in (PROP_RUNNING, PROP_ACTIVE, PROP_DIALOG_MODE):

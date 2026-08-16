@@ -19,7 +19,7 @@ one thing it says of its own accord is which readings just moved -- a refresh
 writes those in the highlight color for as long as they keep moving, so a list
 this long can be read as a live one.  Which is also why a heading whose block
 this frame did not carry reads ``(Cached)``: what is on screen should say
-whether it is the frame's own (see _write).
+whether it is the frame's own (see _paint).
 """
 
 import threading
@@ -74,7 +74,7 @@ _HOME = 10000
 _SECTION_VIEW = "TinyPPI.MetadataSectionView"
 
 # A reading that moved since the last refresh is written in this color for the
-# one second it stays changed, so the eye finds what is live among rows that
+# one tick it stays changed, so the eye finds what is live among rows that
 # mostly stand still -- the trims and the frame luminance move with the
 # picture, the title-level blocks do not.  Its own setting (Metadata -> Changed
 # values), published by ui.theme like every other color.
@@ -91,11 +91,6 @@ _CHANGED_FALLBACK = "FF82B1FF"  # Light blue, the setting's own default
 # draw none.
 _RULE_TEXTURE = "common/dot-1x1.png"
 
-# A row that fills nothing, which is what the items left over from a longer
-# list are painted with: the list only ever grows, so a rebuild with fewer
-# rows blanks the surplus in place rather than removing it (see _fill).
-_BLANK_ROW = (dvmetadata.SPACE, "", "")
-
 # Property name each cell of a table row goes into: the skin has a label per
 # column reading one of these, so cell 0 lands in the first fixed slot, cell 1
 # in the second, and a cell nobody filled draws nothing.  Headings and
@@ -104,9 +99,25 @@ _CELL_HEADING = "h"
 _CELL_VALUE   = "c"
 
 # Seconds between refreshes, matching the overlay's own polling interval: the
-# per-frame blocks (L1, L5, the trims) move with the picture, so they are worth
-# re-reading, but not faster than a viewer can read them.
-_REFRESH = 1.0
+# per-frame blocks (L1, L5, the trims) move with the picture, so a slower tick
+# here would fall behind the same scene cuts the overlay already tracks.  The
+# guard in _fill (self._keys and self._last_labels) is what keeps a tick this
+# fast from touching the list on the ticks nothing in it changed.
+_REFRESH = 0.1
+
+# Seconds between fallback re-renders of dvmetadata.build_static_rows's half
+# of the list, matching the overlay's own static cadence: those sections
+# settle before the film was ever played, so re-deriving them on every
+# _REFRESH tick would recompute nine formatting passes a second for rows that
+# changed maybe once.  The rare change they do have is caught the tick it
+# lands by dvmetadata.static_signature, so this timer only covers what the
+# signature cannot see.  See _merged_rows.
+_STATIC_ROWS_INTERVAL = 1.0
+
+# Seconds join_update_loop gives the refresh thread to wind down: far past
+# the tick it may still be sleeping through, so a live thread always makes it
+# and a wedged one does not hold the hand-off for good.
+_JOIN_TIMEOUT = 1.0
 
 # Actions arriving within this many seconds of the window opening are ignored,
 # so the key press that opened it cannot immediately close it again.
@@ -184,13 +195,28 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self._running   = False
         self._monitor   = xbmc.Monitor()
         self._opened_at = 0.0
-        # Row identities currently in the list, so a refresh that only changes
-        # values leaves the list itself alone, and the value each identity was
-        # last filled with, which is what a refresh highlights against.  Keyed
-        # by identity rather than by position so a rebuild does not lose it
-        # (see _identities).
+        # Row identities currently in the list, and the value each identity
+        # was last filled with, which is what a refresh highlights against.
+        # Keyed by identity rather than by position so a rebuild does not
+        # lose it (see _identities).
         self._keys: list = []
         self._values: dict = {}
+        # The label (or, for a table row, cell list) each row actually
+        # showed last tick, compared whole against a fresh tick's labels so
+        # an idle tick can return before it builds anything -- see _fill.
+        self._last_labels: list = []
+        # True from just before _fill's reset()/addItems() swap until the
+        # post-swap selection handling is done -- see _cursor_area.
+        self._swapping: bool = False
+        # The static half of the row list (see dvmetadata.build_static_rows),
+        # the signature of what it was rendered from, and when its fallback
+        # re-render is next due -- re-rendered the tick its blocks change and
+        # on _STATIC_ROWS_INTERVAL otherwise, rather than on every tick.
+        # _merged_rows() owns all three.
+        self._static_rows: list = []
+        self._static_signature = None
+        self._next_static_rows = 0.0
+        self._thread         = None
         self._closing        = False
         self._refresh_failed = False
         self._color_missing  = False
@@ -215,9 +241,44 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self.back_to_caller = False
         self.open_section   = ""
 
+    def _merged_rows(self) -> list:
+        """The scene rows fresh from this tick, plus the static rows from
+        whichever tick last re-rendered them.
+
+        dvmetadata.build_scene_rows already does the live side-data read and
+        the DM-compression hold-fill every call; build_static_rows only
+        needs the parse result and origin map that call produced, not a
+        fresh read of its own, so re-rendering it is cheap to skip on the
+        ticks it is not due.  It re-renders the tick its own blocks actually
+        change (dvmetadata.static_signature) and on _STATIC_ROWS_INTERVAL
+        otherwise, so a scene cut that also moves the static half is not
+        left waiting on the fallback timer to catch up.  join_rows decides
+        the blank row between the two halves against THIS tick's scene_rows
+        every time, not against whichever tick last rebuilt
+        self._static_rows, so a stale cache cannot leave the joined list
+        wrongly shaped even while its readings are still stale.
+
+        The deadline and signature both advance before the call, not after,
+        the same reason overlay.py's update_static_properties does it in
+        that order: a failure below still counts this as tried, so it
+        retries in another _STATIC_ROWS_INTERVAL rather than every tick
+        until it succeeds.
+        """
+        scene_rows, parsed, origin, carried = dvmetadata.build_scene_rows()
+        signature = dvmetadata.static_signature(parsed, origin, carried)
+        now = time.time()
+        if signature != self._static_signature or now >= self._next_static_rows:
+            self._next_static_rows = now + _STATIC_ROWS_INTERVAL
+            self._static_signature = signature
+            self._static_rows = dvmetadata.build_static_rows(parsed, origin, carried)
+        rows = dvmetadata.join_rows(scene_rows, self._static_rows)
+        if not rows:
+            rows = [(dvmetadata.SECTION, "No metadata in this frame", "")]
+        return rows
+
     def _rows(self) -> list:
         """The rows to show: all of them.  A section view narrows this."""
-        return dvmetadata.build_rows()
+        return self._merged_rows()
 
     def onInit(self) -> None:
         self._running   = True
@@ -231,40 +292,32 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         except Exception as exc:
             self._log_refresh_failure(exc)
         self.setFocusId(_LIST)
-        threading.Thread(target=self._update_loop, daemon=True).start()
+        self._thread = threading.Thread(target=self._update_loop, daemon=True)
+        self._thread.start()
+
+    def join_update_loop(self) -> None:
+        """Wait for the refresh thread to actually stop.
+
+        Mirrors ui.overlay.TinyPPIDialog.join_update_loop: the loop only
+        checks self._running between ticks, so it can outlive doModal() by
+        up to one tick, still writing to a window Kodi is tearing down and
+        still touching info.dvmetadata's module-level _held / _held_source
+        that the next view's own loop reads.  Called after doModal() so the
+        hand-over to the next view waits for it instead of racing it.  Logs
+        once if the thread is still alive after the timeout -- a wedged
+        thread can only happen once per dialog instance, so an unconditional
+        log on that path is enough.
+        """
+        if self._thread is not None:
+            self._thread.join(_JOIN_TIMEOUT)
+            if self._thread.is_alive():
+                xbmc.log(
+                    f"TinyPPI: refresh thread still running after "
+                    f"{_JOIN_TIMEOUT}s, handing over anyway",
+                    xbmc.LOGWARNING,
+                )
 
     # --- List ---------------------------------------------------------------
-
-    @staticmethod
-    def _write(item: xbmcgui.ListItem, row: tuple, label) -> None:
-        """Put a row's value into whichever of the item's fields draws it.
-
-        A heading's value is not a reading but where the block under it came
-        from, so it goes into ``state``, which the skin draws after the title
-        in brackets -- ``L8 — Trims (Cached)`` for a section standing on a
-        block held from an earlier frame, and nothing after the title for one
-        the frame itself carried.  Beside the title and not in it: the title is
-        what the view finds the viewer's section by (see _area_index), and one
-        that changed with the frame would lose them.
-
-        A table row hands its cells over one property at a time, and clears the
-        ones it has no cell for -- the item is reused from refresh to refresh,
-        so a column that goes away has to be emptied rather than left holding
-        what it said last.
-        """
-        kind, _name, _value = row
-        if kind == dvmetadata.SECTION:
-            item.setProperty("state", label)
-            return
-        if kind not in (dvmetadata.HEADINGS, dvmetadata.COLUMNS):
-            item.setLabel2(label)
-            return
-        prefix = _CELL_HEADING if kind == dvmetadata.HEADINGS else _CELL_VALUE
-        for position in range(dvmetadata.MAX_COLUMNS):
-            item.setProperty(
-                f"{prefix}{position}",
-                label[position] if position < len(label) else "",
-            )
 
     @classmethod
     def _paint(cls, item: xbmcgui.ListItem, row: tuple, label) -> None:
@@ -277,16 +330,18 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         layout is fed one of them and draws nothing when it comes back empty.
 
         A heading puts its title in the ``head`` property, which is the one
-        the large font is on, its ``(Cached)`` in ``state`` beside it (see
-        _write), and names the texture for the rule under it.  A two-column
-        row fills both labels.  A full-width line fills only the second, which
-        spans the row.  A table row fills a property per cell, which is what
-        puts each in a fixed column.  A blank row fills nothing.
+        the large font is on, its ``(Cached)`` in ``state`` beside it, and
+        names the texture for the rule under it.  A two-column row fills
+        both labels.  A full-width line fills only the second, which spans
+        the row.  A table row fills a property per cell, which is what puts
+        each in a fixed column.  A blank row fills nothing.
 
         Every field is written on every call, the unused ones with nothing:
-        items outlive the row that was on them -- a rebuild hands an item
-        whatever row now falls at its position -- so painting one is as much
-        about what it stops saying as about what it says.
+        the item is always a fresh one _fill just built for this one row, so
+        there is no earlier row's field left over to worry about -- but one
+        painter that always writes the whole shape is simpler than one that
+        has to know what an item said last, and it costs nothing extra on an
+        item that started out blank anyway.
         """
         kind, name, _value = row
         heading = kind == dvmetadata.SECTION
@@ -306,32 +361,6 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             item.setProperty(f"{_CELL_VALUE}{position}",
                              cell if kind == dvmetadata.COLUMNS else "")
 
-    @classmethod
-    def _extend(cls, control: xbmcgui.ControlList, rows: list,
-                labels: list) -> int:
-        """Append the items a longer list needs, and say how many it had.
-
-        Appending is one message to the GUI thread, which applies it whole, so
-        the list is never drawn without its rows -- clearing it first is what
-        would be seen (see _fill).  The new items are painted before they are
-        handed over rather than after, for the same reason: what the GUI
-        thread binds is already the rows it should show, not blanks waiting to
-        be filled in.
-
-        The count returned is the one from before the append: those are the
-        items still holding an older row, and so the ones the caller has to
-        paint.
-        """
-        held = control.size()
-        if len(rows) > held:
-            items = []
-            for row, label in zip(rows[held:], labels[held:]):
-                item = xbmcgui.ListItem("", "")
-                cls._paint(item, row, label)
-                items.append(item)
-            control.addItems(items)
-        return held
-
     def _changed_color(self) -> str:
         """The highlight color the theme published, or the setting's own
         default when it did not -- and a line in the log saying so, since a
@@ -350,25 +379,76 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         return _CHANGED_FALLBACK
 
     def _fill(self, rows: list) -> None:
-        """Put *rows* in the list, reusing the items already in it.
+        """Put *rows* in the list, wholesale, on any tick something in it
+        changed; touch nothing at all on a tick that did not.
 
-        The values change every second; the rows they sit in almost never do.
-        Rewriting every row regardless would cost more than it buys, so a
-        refresh normally just writes the new values into the items that are
-        already there.  A structural change -- a stream that starts carrying
-        trim passes, a section the frame no longer has any readings for --
-        repaints all of them, and puts the viewer back on the section they
-        were reading rather than at the top of the list.
+        On-device measurement is why: Kodi meters every in-place
+        ListItem.setLabel*/setProperty call made from a background thread
+        through a once-per-frame GUI lock, so a single row write blocked
+        47-250ms at 23.976Hz, a 6-row update spanned 85-627ms, and a 72-row
+        in-place repaint ran 829ms -- against 4.8ms for the same 72 rows
+        through the bind path below.  The one fast path Kodi offers is the
+        initial fill, which hands the control a whole item list through one
+        addItems() bind message.  So a changed tick takes that path every
+        time: a fresh, unattached ListItem is built and painted for every
+        row -- offscreen items are unsynchronized by design, so populating
+        them off the GUI thread costs nothing here -- and only once that is
+        done does the tick touch the list at all: control.reset()
+        immediately followed by control.addItems(items), with no work
+        between the two so both messages queue for what is meant to be the
+        same dispatch pass -- not even a read of the control, now that the
+        viewport it will need back comes from two infolabels rather than
+        ControlList.getSelectedPosition(), which blocked behind the same
+        once-per-frame lock as the writes above, close to a frame on its own
+        (about 34ms measured) for a call that used to sit in this exact
+        spot.  That is design intent, not a settled fact: this file's
+        previous design never reset the list at all, on the reasoning that
+        Kodi is free to draw between any two calls however close together
+        they are issued, and an empty list mid-swap would flash visibly.
+        Whether Kodi can in fact draw between reset() and addItems() is the
+        one open question this design carries -- taken deliberately to the
+        device for verification rather than settled here, because the per-call
+        alternative is the one measured above.  An item already handed to
+        the control this way is never reached back into; the next changed
+        tick builds a whole new set instead.
 
-        What no refresh does is empty the list first.  Clearing a Kodi list
-        and refilling it are two separate messages to the GUI thread, which is
-        free to draw the list between them: a block appearing mid-film -- L2
-        or L8 arriving with a shot that needed trims -- would blank the whole
-        view for a frame or more before the rows came back.  So the list only
-        ever grows: items are appended when a rebuild wants more of them, and
-        the ones a shorter rebuild leaves over are blanked in place rather
-        than removed.  They cost nothing but a little empty room under the
-        last section, and the next block to arrive lands in them.
+        An idle tick -- the row identities and the labels they would show
+        are both exactly what the list is already showing -- returns before
+        any of that runs, so a still frame between scene cuts costs nothing.
+
+        Every addItems() bind ends, inside Kodi itself, in an unconditional
+        SelectItem(0) -- the jump to the top of the list is built into the
+        engine, not a gap this code leaves open.  A single selectItem(current)
+        afterward puts the cursor back on the right row but not the view
+        under it: from that zeroed offset, Kodi's own SelectItem places an
+        off-page row at the bottom of the viewport (offset = row - page + 1)
+        rather than where it sat before, so a row thirty deep into the list
+        reappears at its foot, and a frame rendered before a second call
+        corrects that shows a snap to the top followed by an animated crawl
+        back down.  Landing exactly on the old viewport instead takes two
+        selects, the idiom _focus_area already uses to open a section:
+        selectItem(first_visible + page - 1) first, page being however many
+        rows are on screen at once, which pins the far edge of the old page
+        without moving the cursor there, then selectItem(current), which
+        lands the cursor on a row already on screen -- the one case
+        SelectItem leaves the offset untouched.  first_visible itself comes
+        from two infolabels read before reset() touches anything:
+        Container(_LIST).Position, the cursor's slot within the viewport,
+        and .CurrentItem, its absolute index one-based, give first_visible =
+        (CurrentItem - 1) - Position.  Either read coming back empty or
+        unparsable leaves the viewport unknown rather than guessed at zero,
+        and a value-only refresh under those conditions makes no
+        selectItem() call at all, leaving the list wherever the bind's own
+        SelectItem(0) put it.
+
+        A structural change -- a stream that starts carrying trim passes, a
+        section the frame no longer has any readings for -- puts the viewer
+        back on the section they were reading rather than at the top of the
+        list, same as before.  A value-only change instead restores the
+        exact viewport the control had right before the swap, by the
+        two-select recipe above, so a refresh cannot move the viewer even
+        though every item under them is a different object than a moment
+        ago.
 
         Either way the values that moved go up in the highlight color, which
         is the whole point of a view that refreshes: with sixty rows on
@@ -382,7 +462,6 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         goes in and out of being held would spend half the film lit up as
         though something in it had changed.
         """
-        control = self.getControl(_LIST)
         keys   = _identities(rows)
         values = dict(zip(keys, (value for _kind, _name, value in rows)))
         color  = self._changed_color()
@@ -392,32 +471,51 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             for row, key in zip(rows, keys)
         ]
 
-        if keys != self._keys:
-            held = self._extend(control, rows, labels)
-            for index in range(min(held, len(rows))):
-                self._paint(control.getListItem(index), rows[index],
-                            labels[index])
-            for index in range(len(rows), control.size()):
-                self._paint(control.getListItem(index), _BLANK_ROW, "")
-            self._keys  = keys
-            self._areas = _areas(rows)
-            self._resize(len(rows))
-            self._focus_area(self._area_index())
-        else:
-            for index, (row, label) in enumerate(zip(rows, labels)):
-                self._write(control.getListItem(index), row, label)
+        if keys == self._keys and labels == self._last_labels:
+            return
 
-        self._values = values
+        items = []
+        for row, label in zip(rows, labels):
+            item = xbmcgui.ListItem("", "", offscreen=True)
+            self._paint(item, row, label)
+            items.append(item)
+
+        control = self.getControl(_LIST)
+        self._swapping = True
+        try:
+            try:
+                slot    = int(xbmc.getInfoLabel(f"Container({_LIST}).Position"))
+                current = int(xbmc.getInfoLabel(f"Container({_LIST}).CurrentItem")) - 1
+            except Exception:
+                current = -1
+            first_visible = max(0, current - slot) if current >= 0 else 0
+            control.reset()
+            control.addItems(items)
+
+            if keys != self._keys:
+                self._keys  = keys
+                self._areas = _areas(rows)
+                self._resize(len(rows))
+                self._focus_area(self._area_index())
+            elif 0 <= current < len(items):
+                page   = max(1, min(len(items), _MAX_ROWS))
+                anchor = min(first_visible + page - 1, len(items) - 1)
+                control.selectItem(anchor)
+                control.selectItem(current)
+        finally:
+            self._swapping = False
+
+        self._values      = values
+        self._last_labels = labels
 
     # --- Geometry -----------------------------------------------------------
 
     def _resize(self, shown: int) -> None:
         """Cut the window down to the *shown* rows it has to hold.
 
-        The list keeps every item it has ever been given -- blanking the ones
-        a shorter refresh leaves over rather than removing them, which is what
-        keeps it from blinking (see _fill) -- so the height comes from the row
-        count passed in, not from the size of the control's own list.
+        Called with the row count _fill rebuilt the list to, from the same
+        call that just swapped it in -- there is no reason to ask the
+        control what it holds when the caller already knows.
 
         Everything below the list moves with its foot and the panel ends under
         that, so what is drawn is the rows and their frame, with no empty
@@ -502,7 +600,14 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         jumped to: the arrow keys are not the only way to move a Kodi list --
         the scrollbar and a mouse move it too -- and OK should open what the
         viewer is looking at however they got there.
+
+        Answers with the section already on screen while self._swapping is
+        set: a keypress can land between _fill's reset() and its addItems(),
+        and the control would read position 0 out of a list that is
+        momentarily empty.
         """
+        if self._swapping:
+            return self._area_title
         try:
             position = self.getControl(_LIST).getSelectedPosition()
         except Exception:
@@ -570,10 +675,11 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
     # --- Refresh ------------------------------------------------------------
 
     def _update_loop(self) -> None:
-        """Re-read the side data once a second until the view should close.
+        """Re-read the side data every _REFRESH seconds until the view should
+        close.
 
         Mirrors the overlay's loop, and for the same reasons: a failed refresh
-        costs one stale second rather than the window, and the close runs from
+        costs one stale tick rather than the window, and the close runs from
         ``finally`` so an unforeseen failure still puts the view away instead
         of leaving it up and frozen over the film.
         """
@@ -600,7 +706,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
 
     def _log_refresh_failure(self, exc: Exception) -> None:
         """Log a failed refresh once per view, so a persistent fault leaves a
-        trace without writing to the log every second."""
+        trace without writing to the log every tick."""
         if self._refresh_failed:
             return
         self._refresh_failed = True
@@ -636,12 +742,18 @@ class DVSectionDialog(DVMetadataDialog):
     def _rows(self) -> list:
         """The rows of this section alone, heading included.
 
-        Sliced out of the whole list each refresh rather than kept, because
+        Sliced out of the merged list each refresh rather than kept, because
         the section is live: a trim pass the frame adds belongs in here too.
         A stream that stops carrying the block entirely leaves the heading, so
         the window says what it is standing on rather than going blank.
+        Slicing from self._merged_rows() rather than a fresh
+        dvmetadata.build_rows() call means a section on the static side
+        (L9, the RPU header, and the rest -- see dvmetadata.build_static_rows)
+        re-renders the tick its own blocks change and on that half's fallback
+        cadence otherwise, same as it would be in the full list; only a scene
+        section is fresh every tick either way.
         """
-        rows = dvmetadata.build_rows()
+        rows = self._merged_rows()
         for start, title, end in _areas(rows):
             if title == self.section:
                 return rows[start:end + 1]
@@ -693,6 +805,7 @@ def _show_section(title: str) -> bool:
         dialog = _dialog(DVSectionDialog)
         dialog.section = title
         dialog.doModal()
+        dialog.join_update_loop()
         back_to_list = dialog.back_to_caller
         del dialog
     finally:
@@ -714,6 +827,7 @@ def open_dv_metadata() -> bool:
         dialog = _dialog(DVMetadataDialog)
         dialog.start_section = section
         dialog.doModal()
+        dialog.join_update_loop()
         section         = dialog.open_section
         back_to_overlay = dialog.back_to_caller
         del dialog

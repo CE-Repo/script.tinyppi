@@ -1,6 +1,7 @@
 """Compute and publish Window properties for TinyPPI.
 
-Call ``update_properties(window)`` once per polling interval, and
+Call ``publish_scene_properties(window)`` on every polling tick and
+``update_static_properties(window)`` on the slower one, and
 ``publish_properties(window)`` ahead of a window Kodi has not built yet.
 """
 
@@ -32,7 +33,7 @@ from core.utils import (
     is_effective_dv,
     parse_offsets,
     picture_aspect_ratio,
-    set_window_properties,
+    set_changed_properties,
 )
 from info.audioinfo import (
     get_active_audio_bit_depth,
@@ -682,18 +683,30 @@ def _channel_setting_for(hdr_type: str) -> str:
     return "channels_hdr"
 
 
-def publish_channel_visibility(home=None) -> None:
+def publish_channel_visibility(home=None, published=None) -> None:
     """Publish ``TinyPPI.ShowChannelIcon`` for the current output type.
 
     Re-read every poll rather than once at open: the HDR type is detected
     asynchronously, so a stream that turns out to be DV must switch to the DV
     setting while the overlay is up.  A fresh ``Addon()`` avoids its cached
     settings, so toggling one applies without reopening.
+
+    ``published`` tracks the polling loop's window; pass it from there to
+    skip the write when the setting hasn't changed.  Left unset, every call
+    writes unconditionally.
     """
     home = home or xbmcgui.Window(10000)
     setting = _channel_setting_for(home.getProperty("TinyPPI.EffectiveHdrType"))
     enabled = xbmcaddon.Addon().getSetting(setting) == "true"
-    home.setProperty("TinyPPI.ShowChannelIcon", "1" if enabled else "0")
+    if published is None:
+        published = {}
+    set_changed_properties(
+        home,
+        published,
+        (
+            ("TinyPPI.ShowChannelIcon", "1" if enabled else "0"),
+        ),
+    )
 
 
 def _effective_hdr_type(hdr_type: str) -> str:
@@ -743,7 +756,7 @@ def _hdr10_panel_stands_in_for_dv() -> bool:
     )
 
 
-def publish_hdr_type(home=None) -> None:
+def publish_hdr_type(home=None, published=None) -> None:
     """Publish the detected source HDR type as ``TinyPPI.HdrType`` on the Home
     window, plus the type the overlay layout follows as
     ``TinyPPI.EffectiveHdrType``.
@@ -754,61 +767,79 @@ def publish_hdr_type(home=None) -> None:
     The two differ once VS10 converts (see ``_effective_hdr_type``): the source
     stays HDR / DV -- the mode-select dialog and the ``Converting`` row need it
     to name what is being converted -- while the overlay follows the output.
+
+    ``published`` tracks the polling loop's window; pass it from there to
+    skip a write when neither value has changed.  Left unset, every call
+    writes unconditionally.
     """
     hdr_type = get_hdr_format()
     if hdr_type == "hdr10+":
         hdr_type = "hdr10plus"
     home = home or xbmcgui.Window(10000)
-    home.setProperty("TinyPPI.HdrType", hdr_type)
-    home.setProperty("TinyPPI.EffectiveHdrType", _effective_hdr_type(hdr_type))
+    if published is None:
+        published = {}
+    set_changed_properties(
+        home,
+        published,
+        (
+            ("TinyPPI.HdrType", hdr_type),
+            ("TinyPPI.EffectiveHdrType", _effective_hdr_type(hdr_type)),
+        ),
+    )
 
 
-def _set_progress(window, values: tuple[tuple[int, float], ...]) -> None:
-    """Publish a batch of progress-control percentages."""
+def _set_progress(window, published: dict, values: tuple[tuple[int, float], ...]) -> None:
+    """Publish a batch of progress-control percentages, skipping the ones
+    ``published`` already recorded at the same value."""
     for control_id, value in values:
-        window.getControl(control_id).setPercent(value)
+        key = f"__progress_{control_id}"
+        if published.get(key) != value:
+            window.getControl(control_id).setPercent(value)
+            published[key] = value
 
 
-def update_properties(window) -> None:
-    """Compute all player properties and refresh the progress controls.
+def update_static_properties(window, published=None) -> None:
+    """Compute the properties that settle at most once a title and refresh
+    the CPU-temperature progress control.
 
-    Call from the polling loop, and from anywhere else the window's controls
-    are known to exist -- ``_set_progress`` addresses one by id, which only
-    resolves once Kodi has loaded the window's XML.  Before that, and only
-    before that, use ``publish_properties``.
+    Call from the polling loop's slow cadence; ``publish_scene_properties``
+    covers the Dolby Vision / HDR10 readings that need the fast one instead.
+    ``_set_progress`` addresses a control by id, which only resolves once
+    Kodi has loaded the window's XML -- before that, and only before that,
+    use ``publish_properties``.
+
+    ``published`` tracks the polling loop's window across ticks, so an idle
+    tick costs no ``setProperty``/``setPercent`` calls; pass the loop's own
+    dict to get that.  Left unset, every call writes unconditionally.
     """
-    publish_properties(window)
+    if published is None:
+        published = {}
+    publish_static_properties(window, published)
     _set_progress(
         window,
+        published,
         (
             (9100, get_CpuTemperatureProgressVar()),
         ),
     )
 
 
-def publish_properties(window) -> None:
-    """Compute all player properties and publish them to ``window``.
+def publish_scene_properties(window, published=None) -> None:
+    """Publish the Dolby Vision / HDR10 readings that can move every scene:
+    the RPU's active-area offsets and L1 frame luminance come from the frame
+    on screen, not the title, so the aspect ratio and brightness rows can
+    change mid-playback (an IMAX Enhanced expansion, a brightness shift at a
+    scene cut) the way the rest of the overlay does not.  Also carries the
+    DV version and profile number, which don't move but are highlighted
+    alongside the rest by overlay.py and so need the same cadence.
 
-    Sets properties and nothing else, so it is safe on a window Kodi has not
-    built yet.  That is the point: called just before ``doModal()``, the values
-    are already in place when the window is first drawn, instead of arriving
-    with ``onInit()`` -- which Kodi dispatches to the script thread while the
-    window is on screen and fading in, leaving the rows empty until it lands.
+    ``published`` tracks the state of ``window``; pass the poll loop's own
+    dict to skip rewriting values that haven't changed.  Left unset, every
+    call writes unconditionally.
     """
-    publish_hdr_type()
-    # Depends on the type just published, and gates the channel graphics below.
-    publish_channel_visibility()
-
+    if published is None:
+        published = {}
     unit, pq_unit = _metadata_units()
-    fps_info_text, fps_out_text = fps_display_texts(
-        clean(info("Player.Process(videofps)"))
-    )
-
-    # Output-mode line from the stream's side data; fall back to a plain label
-    # from Kodi's ``VideoPlayer.HDRType`` when it would show N/A.
-    output_mode = get_output_mode()
-    if is_status_label(output_mode):
-        output_mode = _output_mode_from_videoplayer() or output_mode
 
     # The active-area offsets the RPU declares for the frame on screen, and
     # everything that follows from them: the icon beside the row, and the aspect
@@ -829,33 +860,23 @@ def publish_properties(window) -> None:
     rpu_mdl_from_source = get_rpu_mdl_from_source()
     l6_rpu_max_cll_fall = _with_unit(_separated(get_l6_rpu_max_cll_fall()), unit)
     # Only while the HDR panel stands in for the Dolby Vision one may the static
-    # rows borrow L6; the DV panel itself prints both as separate rows.
+    # rows borrow L6; the DV panel itself prints both as separate rows.  Reads
+    # the Home-window properties publish_static_properties last wrote, which
+    # may be up to a static-poll tick stale -- the type they describe settles
+    # at most once a title, so that is not a real staleness risk.
     l6_fallback         = _hdr10_panel_stands_in_for_dv()
     hdr10_mdl           = _with_unit(_separated(get_hdr10_mdl(l6_fallback)), unit)
     hdr10_max_cll_fall  = _with_unit(
         _separated(get_hdr10_max_cll_fall(l6_fallback)), unit
     )
 
-    set_window_properties(
+    set_changed_properties(
         window,
+        published,
         (
-            ("VideoDecoderVar", get_VideoDecoderVar()),
-            ("VideoDecoderLongVar", get_VideoDecoderLongVar()),
-            ("VideoPixelFormatVar", get_VideoPixelFormatVar()),
-            ("DisplayModeVar", get_DisplayModeVar()),
-            ("VideoResolutionVar", get_VideoResolutionVar()),
             ("AspectRatioVar", get_AspectRatioVar(l5_offsets)),
-            ("ImaxVar", get_ImaxVar()),
             ("DoviLevel5OffsetsVar", _separated(l5_offsets)),
             ("DoviLevel5OffsetsIconVisible", l5_icon_visible),
-            ("VideoBitrateMBVar", get_VideoBitrateMBVar()),
-            ("VideoLiveBitrateVar", get_VideoLiveBitrateVar()),
-            ("VideoCodecVar", get_VideoCodecVar()),
-            ("VideoDecoderNameVar", get_VideoDecoderNameVar()),
-            ("VideoBitDepthVar", get_VideoBitDepthVar()),
-            ("DoviProfileVar", output_mode),
-            ("MediaSourceVar", _media_source_name(output_mode)),
-            ("DoviTunnelVar", get_DoviTunnelVar()),
             ("DoviCmVersionVar", get_cm_version()),
             ("DoviStructureVar", get_structure()),
             ("DoviLevel1FllVar", l1_fll),
@@ -865,8 +886,72 @@ def publish_properties(window) -> None:
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
             ("Hdr10MdlVar", hdr10_mdl),
             ("Hdr10MaxCllFallVar", hdr10_max_cll_fall),
+            # Format facts, not scene-variant, but overlay.py's
+            # _DV_VALUE_PROPERTIES highlights both: that mechanism rewrites a
+            # property plain again on the tick after it colors it, and relies
+            # on every name it tracks getting freshly recomputed every tick to
+            # do that.  On the slow cadence, a colored value would sit in
+            # ``published`` for up to a second and get wrapped in another
+            # [COLOR] layer on every tick in between instead of clearing.
             ("DoviVersionVar", get_dv_version()),
             ("DoviProfileNumberVar", get_dv_profile()),
+        ),
+    )
+
+
+def publish_static_properties(window, published=None) -> None:
+    """Publish the properties that settle at most once a title: video and
+    audio format facts, the Dolby Vision / HDR10 presence flags, and CPU
+    load.  ``publish_scene_properties`` covers the readings that can move
+    every scene instead, plus the DV version and profile number, which are
+    also format facts but need the fast cadence anyway because overlay.py
+    highlights them when they change.
+
+    Sets properties and nothing else, so it is safe on a window Kodi has not
+    built yet.  That is the point: called just before ``doModal()``, the values
+    are already in place when the window is first drawn, instead of arriving
+    with ``onInit()`` -- which Kodi dispatches to the script thread while the
+    window is on screen and fading in, leaving the rows empty until it lands.
+
+    ``published`` tracks the state of ``window``; pass the poll loop's own
+    dict to skip rewriting values that haven't changed.  Left unset, every
+    call writes unconditionally, which is what the pre-``doModal()`` caller
+    above needs on a window nothing has been published to yet.
+    """
+    if published is None:
+        published = {}
+    publish_hdr_type(published=published)
+    # Depends on the type just published, and gates the channel graphics below.
+    publish_channel_visibility(published=published)
+
+    fps_info_text, fps_out_text = fps_display_texts(
+        clean(info("Player.Process(videofps)"))
+    )
+
+    # Output-mode line from the stream's side data; fall back to a plain label
+    # from Kodi's ``VideoPlayer.HDRType`` when it would show N/A.
+    output_mode = get_output_mode()
+    if is_status_label(output_mode):
+        output_mode = _output_mode_from_videoplayer() or output_mode
+
+    set_changed_properties(
+        window,
+        published,
+        (
+            ("VideoDecoderVar", get_VideoDecoderVar()),
+            ("VideoDecoderLongVar", get_VideoDecoderLongVar()),
+            ("VideoPixelFormatVar", get_VideoPixelFormatVar()),
+            ("DisplayModeVar", get_DisplayModeVar()),
+            ("VideoResolutionVar", get_VideoResolutionVar()),
+            ("ImaxVar", get_ImaxVar()),
+            ("VideoBitrateMBVar", get_VideoBitrateMBVar()),
+            ("VideoLiveBitrateVar", get_VideoLiveBitrateVar()),
+            ("VideoCodecVar", get_VideoCodecVar()),
+            ("VideoDecoderNameVar", get_VideoDecoderNameVar()),
+            ("VideoBitDepthVar", get_VideoBitDepthVar()),
+            ("DoviProfileVar", output_mode),
+            ("MediaSourceVar", _media_source_name(output_mode)),
+            ("DoviTunnelVar", get_DoviTunnelVar()),
             ("DoviRpuPresentVar", get_dv_rpu_present()),
             ("DoviBlPresentVar", get_dv_bl_present()),
             ("DoviElPresentVar", get_dv_el_present()),
@@ -894,3 +979,20 @@ def publish_properties(window) -> None:
             ("CpuTopUsageVar", get_CpuTopUsageVar()),
         ),
     )
+
+
+def publish_properties(window, published=None) -> None:
+    """Publish every player property to ``window`` in one pass: a thin
+    wrapper combining ``publish_scene_properties`` and
+    ``publish_static_properties``, called once before ``doModal()`` so the
+    first frame's values are already in place before Kodi draws the window.
+    The polling loop calls the two halves separately afterward, each at its
+    own cadence.
+
+    ``published`` tracks the state of ``window``, same as in the two halves
+    this wraps.
+    """
+    if published is None:
+        published = {}
+    publish_scene_properties(window, published)
+    publish_static_properties(window, published)
