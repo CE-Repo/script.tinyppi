@@ -102,6 +102,11 @@ _DV_CHANGED_FALLBACK = "FF82B1FF"  # Light blue, the setting's default
 # HDR10 readings in publish_scene_properties do.
 _STATIC_POLL_INTERVAL = 1.0
 
+# Seconds join_update_loop gives the refresh thread to wind down: far past
+# the tick it may still be sleeping through, so a live thread always makes it
+# and a wedged one does not hold the hand-off for good.
+_JOIN_TIMEOUT = 1.0
+
 
 def _is_coreelec() -> bool:
     """Return True when running on a CoreELEC installation."""
@@ -239,6 +244,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._auto_hide = 0
         self._nudge     = (0, 0)
         self._nudge_on  = False
+        self._thread    = None
         self._dv_channel_offset = None
         self._refresh_failed    = False
         self._dv_values: dict   = {}
@@ -460,8 +466,29 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self.close_dialog()
 
     def _start_update_loop(self) -> None:
-        t = threading.Thread(target=self._update_loop, daemon=True)
-        t.start()
+        self._thread = threading.Thread(target=self._update_loop, daemon=True)
+        self._thread.start()
+
+    def join_update_loop(self) -> None:
+        """Wait for the update loop to actually stop.
+
+        The loop only checks self._running between ticks, so it can outlive
+        doModal() by up to one tick -- still writing to a window Kodi is
+        tearing down, and still reading the side-data hold state the next
+        view's loop reads (info.dvmetadata's module-level _held /
+        _held_source).  The hand-over to the next view waits here instead of
+        racing it.  Logs once if the thread is still alive after the
+        timeout -- a wedged thread can only happen once per dialog instance,
+        so an unconditional log on that path is enough.
+        """
+        if self._thread is not None:
+            self._thread.join(_JOIN_TIMEOUT)
+            if self._thread.is_alive():
+                xbmc.log(
+                    f"TinyPPI: refresh thread still running after "
+                    f"{_JOIN_TIMEOUT}s, handing over anyway",
+                    xbmc.LOGWARNING,
+                )
 
     def _update_loop(self) -> None:
         """Refresh the overlay every 100ms until it should close.
@@ -563,6 +590,7 @@ def _show_overlay(home) -> str | None:
     # -- the controls the full refresh touches do not exist yet.
     properties.publish_properties(dialog, dialog.published)
     dialog.doModal()
+    dialog.join_update_loop()
     next_view = dialog.next_view
     del dialog
     return next_view
