@@ -1306,3 +1306,11 @@ msgstr "Az alul lévő sor színe, amely a billentyűk funkcióját nevezi meg."
 msgctxt "#32424"
 msgid "Back: metadata list"
 msgstr "Vissza: metaadatlista"
+
+msgctxt "#32425"
+msgid "RPU MDL"
+msgstr ""
+
+msgctxt "#32426"
+msgid "RPU MaxCLL/FALL"
+msgstr ""

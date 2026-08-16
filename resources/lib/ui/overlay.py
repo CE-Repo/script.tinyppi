@@ -87,7 +87,7 @@ _DV_VALUE_PROPERTIES = (
     "DoviLevel1FllVar",
     "DoviLevel1PqVar",
     "DoviLevel5OffsetsVar",
-    "DoviLevel6RpuMdlVar",
+    "DoviRpuMdlVar",
     "DoviLevel6RpuMaxCllFallVar",
     "Hdr10MdlVar",
     "Hdr10MaxCllFallVar",

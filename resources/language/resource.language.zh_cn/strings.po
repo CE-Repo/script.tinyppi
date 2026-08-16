@@ -1306,3 +1306,11 @@ msgstr "底部说明按键功能那一行的颜色。"
 msgctxt "#32424"
 msgid "Back: metadata list"
 msgstr "返回：元数据列表"
+
+msgctxt "#32425"
+msgid "RPU MDL"
+msgstr "RPU MDL"
+
+msgctxt "#32426"
+msgid "RPU MaxCLL/FALL"
+msgstr "RPU MaxCLL/FALL"

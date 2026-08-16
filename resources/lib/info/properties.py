@@ -55,9 +55,10 @@ from info.dvinfo import (
     get_l1_pq,
     get_l5_offsets,
     get_l6_rpu_max_cll_fall,
-    get_l6_rpu_mdl,
     get_l9_primaries,
     get_output_mode,
+    get_rpu_mdl,
+    get_rpu_mdl_from_source,
     get_structure,
     is_status_label,
 )
@@ -842,7 +843,11 @@ def publish_properties(window) -> None:
     # carry the depth of their code space.
     l1_fll              = _with_unit(_separated(get_l1_nits()), unit)
     l1_pq               = _with_unit(_separated(get_l1_pq()), pq_unit)
-    l6_rpu_mdl          = _with_unit(_separated(get_l6_rpu_mdl()), unit)
+    # The RPU's mastering display: the source range when the stream carries it,
+    # else L6.  The flag travels with it so the panel can label both RPU rows
+    # after whichever block was read.
+    rpu_mdl             = _with_unit(_separated(get_rpu_mdl()), unit)
+    rpu_mdl_from_source = get_rpu_mdl_from_source()
     l6_rpu_max_cll_fall = _with_unit(_separated(get_l6_rpu_max_cll_fall()), unit)
     # Only while the HDR panel stands in for the Dolby Vision one may the static
     # rows borrow L6; the DV panel itself prints both as separate rows.
@@ -877,7 +882,8 @@ def publish_properties(window) -> None:
             ("DoviStructureVar", get_structure()),
             ("DoviLevel1FllVar", l1_fll),
             ("DoviLevel1PqVar", l1_pq),
-            ("DoviLevel6RpuMdlVar", l6_rpu_mdl),
+            ("DoviRpuMdlVar", rpu_mdl),
+            ("DoviRpuMdlFromSourceVar", rpu_mdl_from_source),
             ("DoviLevel6RpuMaxCllFallVar", l6_rpu_max_cll_fall),
             ("Hdr10MdlVar", hdr10_mdl),
             ("Hdr10MaxCllFallVar", hdr10_max_cll_fall),

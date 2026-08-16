@@ -1848,6 +1848,15 @@
 						<aligny>top</aligny>
 					</control>
 					
+					<!-- RPU MDL: the source range when the RPU carries it, else L6 -->
+					<control type="label">
+						<top>100</top>
+						<label>$ADDON[script.tinyppi 32425]:</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>!String.IsEmpty(Window().Property(DoviRpuMdlFromSourceVar))</visible>
+					</control>
 					<!-- L6 MDL -->
 					<control type="label">
 						<top>100</top>
@@ -1855,18 +1864,28 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window().Property(DoviRpuMdlFromSourceVar))</visible>
 					</control>
 					<control type="label">
 						<left>225</left>
 						<top>100</top>
 						<width>270</width>
 						<align>right</align>
-						<label>$INFO[Window().Property(DoviLevel6RpuMdlVar)]</label>
+						<label>$INFO[Window().Property(DoviRpuMdlVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<aligny>top</aligny>
 					</control>
 					
+					<!-- RPU MaxCLL/FALL -->
+					<control type="label">
+						<top>127</top>
+						<label>$ADDON[script.tinyppi 32426]:</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+						<aligny>top</aligny>
+						<visible>!String.IsEmpty(Window().Property(DoviRpuMdlFromSourceVar))</visible>
+					</control>
 					<!-- L6 MaxCLL/FALL -->
 					<control type="label">
 						<top>127</top>
@@ -1874,6 +1893,7 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 						<aligny>top</aligny>
+						<visible>String.IsEmpty(Window().Property(DoviRpuMdlFromSourceVar))</visible>
 					</control>
 					<control type="label">
 						<left>225</left>

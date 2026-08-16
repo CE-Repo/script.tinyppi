@@ -1307,3 +1307,11 @@ msgstr "لون السطر في الأسفل الذي يذكر وظيفة الم�
 msgctxt "#32424"
 msgid "Back: metadata list"
 msgstr "رجوع: قائمة البيانات الوصفية"
+
+msgctxt "#32425"
+msgid "RPU MDL"
+msgstr "RPU MDL"
+
+msgctxt "#32426"
+msgid "RPU MaxCLL/FALL"
+msgstr "RPU MaxCLL/FALL"

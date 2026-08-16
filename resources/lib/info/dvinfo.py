@@ -77,6 +77,7 @@ _FIELDS = (
     "l1_pq",
     "l6_mdl",
     "l6_max_cll_fall",
+    "source_mdl",
     "l9_primaries",
     "hdr10_mdl",
     "hdr10_max_cll_fall",
@@ -90,8 +91,11 @@ _FIELDS = (
 )
 
 # Fields the RPU carries only now and then because they describe the title
-# rather than the frame; see _hold_static.
-_STATIC_FIELDS = ("l9_primaries",)
+# rather than the frame; see _hold_static.  The source mastering display shares
+# the reason: the module fills it only on frames whose DM data is uncompressed,
+# and without the latch the MDL row would fall back to L6 -- label and all --
+# every other frame.
+_STATIC_FIELDS = ("l9_primaries", "source_mdl")
 
 _latched: dict[str, str] = {}
 
@@ -609,6 +613,16 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
             _fmt_num(l6.get("max_cll")), _fmt_num(l6.get("max_fall")),
         ])
 
+    # The PQ range of the master the grade was made from, read as luminance:
+    # the mastering display the RPU itself describes, which the panel's MDL row
+    # prefers over L6.  Only frames whose DM data is uncompressed carry it,
+    # hence _STATIC_FIELDS.
+    source = (rpu or {}).get("source")
+    if source:
+        info["source_mdl"] = _joined([
+            _fmt_lum(source.get("max_nits")), _fmt_lum(source.get("min_nits")),
+        ])
+
     # L9 names the primaries the content was graded against, already resolved to
     # a name -- ``BT.2020``, ``DCI-P3 D65`` -- so it is taken as given; a block
     # carrying explicit CIE coordinates instead of a known index reads as
@@ -695,9 +709,23 @@ def get_l1_pq() -> str:
     return _value_or("l1_pq", L1_EMPTY)
 
 
-def get_l6_rpu_mdl() -> str:
-    """Return Dolby Vision Level 6 RPU mastering-display luminance."""
-    return _value_or("l6_mdl", "0 | 0")
+def get_rpu_mdl() -> str:
+    """Return the mastering-display luminance the RPU declares (``max | min``),
+    falling back to ``0 | 0``.
+
+    The source PQ range answers first: it is the master the grade was actually
+    made against, read straight off the RPU's DM data.  L6 stands in for the
+    frames that carry no source range at all -- a stream whose DM data is
+    compressed throughout never fills it -- and ``get_rpu_mdl_from_source``
+    says which of the two the reading came from, so the panel can name it.
+    """
+    return _raw("source_mdl") or _value_or("l6_mdl", "0 | 0")
+
+
+def get_rpu_mdl_from_source() -> str:
+    """Return ``true`` when ``get_rpu_mdl`` reads the source range rather than
+    the L6 block, else ''.  The metadata panel labels its RPU rows by it."""
+    return "true" if _raw("source_mdl") else ""
 
 
 def get_l6_rpu_max_cll_fall() -> str:

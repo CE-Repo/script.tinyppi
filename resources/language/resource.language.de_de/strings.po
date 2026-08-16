@@ -1306,3 +1306,11 @@ msgstr "Farbe der Zeile am unteren Rand, die die Tastenbelegung nennt."
 msgctxt "#32424"
 msgid "Back: metadata list"
 msgstr "Zurück: Metadatenliste"
+
+msgctxt "#32425"
+msgid "RPU MDL"
+msgstr "RPU MDL"
+
+msgctxt "#32426"
+msgid "RPU MaxCLL/FALL"
+msgstr "RPU MaxCLL/FALL"
