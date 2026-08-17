@@ -1229,8 +1229,8 @@ msgid "Changed values"
 msgstr "القيم المتغيّرة"
 
 msgctxt "#32396"
-msgid "Color for the readings that just changed in the Dolby Vision metadata view. The view refreshes once a second, and a value that moved is written in this color until it stands still again, so the live readings can be told from the ones that do not move."
-msgstr "لون القراءات التي تغيّرت للتو في عرض بيانات دولبي فيجن الوصفية. يُحدَّث العرض مرة كل ثانية، وتُكتب القيمة التي تغيّرت بهذا اللون إلى أن تستقر مجددًا، ليتسنى تمييز القراءات المتحركة عن الثابتة."
+msgid "Color for the readings that just changed. A value that moved is written in this color until the highlight duration below runs out, so the live readings can be told from the ones that do not move."
+msgstr "لون القراءات التي تغيّرت للتو. تُكتب القيمة التي تغيّرت بهذا اللون إلى أن تنتهي مدة الإبراز أدناه، ليتسنى تمييز القراءات المتحركة عن الثابتة."
 
 msgctxt "#32397"
 msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue (Default)"
@@ -1315,3 +1315,11 @@ msgstr "RPU MDL"
 msgctxt "#32426"
 msgid "RPU MaxCLL/FALL"
 msgstr "RPU MaxCLL/FALL"
+
+msgctxt "#32427"
+msgid "Highlight duration"
+msgstr "مدة الإبراز"
+
+msgctxt "#32428"
+msgid "How long a reading that just changed stays in the highlight color, in milliseconds. The readings behind it are still read ten times a second whatever this is set to, so no change is missed; at 100 the highlight lasts a single refresh, which is too brief to follow."
+msgstr "المدة التي تبقى فيها القراءة التي تغيّرت للتو بلون الإبراز، بالمللي ثانية. تُقرأ القيم نفسها عشر مرات في الثانية مهما كان هذا الإعداد، فلا يضيع أي تغيير؛ وعند 100 يدوم الإبراز تحديثًا واحدًا فقط، وهي مدة أقصر من أن تُتابَع."
