@@ -691,6 +691,16 @@
                     </constraints>
                     <control type="slider" format="percentage" />
                 </setting>
+                <setting id="output_changed_duration" type="integer" label="32427" help="32428">
+                    <level>0</level>
+                    <default>750</default>
+                    <constraints>
+                        <minimum>100</minimum>
+                        <step>50</step>
+                        <maximum>3000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer" />
+                </setting>
             </group>
             <group id="8" label="32197">
                 <setting id="filename_color" type="integer" label="32197" help="32198">
@@ -2527,6 +2537,16 @@
                         <maximum>100</maximum>
                     </constraints>
                     <control type="slider" format="percentage" />
+                </setting>
+                <setting id="metadata_changed_duration" type="integer" label="32427" help="32428">
+                    <level>0</level>
+                    <default>750</default>
+                    <constraints>
+                        <minimum>100</minimum>
+                        <step>50</step>
+                        <maximum>3000</maximum>
+                    </constraints>
+                    <control type="slider" format="integer" />
                 </setting>
             </group>
             <group id="11" label="32251">

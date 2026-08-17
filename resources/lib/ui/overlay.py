@@ -15,9 +15,10 @@ from core.utils import (
     PROP_ACTIVE,
     PROP_DIALOG_MODE,
     PROP_RUNNING,
+    ChangeHighlighter,
     clear_overlay_state,
     effective_hdr_type,
-    highlight_changes,
+    highlight_hold,
     is_effective_dv,
     set_window_properties,
 )
@@ -95,6 +96,11 @@ _DV_VALUE_PROPERTIES = (
 
 _DV_CHANGED_COLOR    = "TinyPPI.OutputChangedColor"
 _DV_CHANGED_FALLBACK = "FF82B1FF"  # Light blue, the setting's default
+
+# How long a changed reading stays in that color, in milliseconds (Output ->
+# Changed values -> Highlight duration).  The loop below still polls at 100ms:
+# what this setting holds is the highlight, not the reading behind it.
+_DV_CHANGED_HOLD = "output_changed_duration"
 
 # How often the tick loop refreshes properties.update_static_properties.
 # Video/audio/subtitle facts and CPU stats settle at most once a title, so
@@ -247,7 +253,13 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._thread    = None
         self._dv_channel_offset = None
         self._refresh_failed    = False
-        self._dv_values: dict   = {}
+        # What the DV readings said last, and how long each change of them
+        # stays lit; built in onInit, where the setting behind the duration is
+        # read.  self._shown is what the window itself currently holds for
+        # those properties, which is not the same thing as self.published --
+        # see _highlight_dv_changes.
+        self._highlighter       = None
+        self._shown: dict       = {}
         # Not underscore-prefixed: _show_overlay() seeds this from outside the
         # class, the same way next_view below is read from outside once doModal()
         # returns.
@@ -275,10 +287,19 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._start_update_loop()
 
     def _remember_dv_values(self) -> None:
-        """Store the plain DV readings currently published on the dialog."""
-        self._dv_values = {
+        """Take the DV readings the dialog opened with as the starting point.
+
+        Marked without a color, which records them as history without lighting
+        any of them: what is already on screen when the overlay opens has not
+        changed under anybody's eyes.  The window holds exactly these values,
+        so self._shown starts out saying so.
+        """
+        self._highlighter = ChangeHighlighter(highlight_hold(_DV_CHANGED_HOLD))
+        self._shown = {
             name: self.getProperty(name) for name in _DV_VALUE_PROPERTIES
         }
+        for name, value in self._shown.items():
+            self._highlighter.mark(name, value, "")
 
     def _dv_changed_color(self) -> str:
         """Return the themed DV-change color, with its light-blue fallback."""
@@ -295,29 +316,39 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         return _DV_CHANGED_FALLBACK
 
     def _highlight_dv_changes(self) -> None:
-        """Highlight DV readings that moved during the latest refresh.
+        """Light the DV readings that moved, and keep them lit for as long as
+        the highlight duration says.
 
         Reads current values from ``self.published`` rather than back from
         the window: whichever publish call last touched a given property (the
         fast scene pass or the slower static one) already recorded its plain
         current value there regardless of whether it needed a fresh
-        ``setProperty`` call.  The colored variant written here also goes
-        back into ``self.published``, so the next pass's plain recompute
-        reads as a change against it and clears the highlight, instead of
-        leaving it stuck.  A stable reading therefore costs nothing here.
+        ``setProperty`` call.  Nothing colored is ever written back into it,
+        so what it holds stays the plain reading -- which is what the publish
+        passes have to compare against, and what the highlighter has to be
+        given each tick.  The colored text goes to the window and is recorded
+        in ``self._shown`` instead, so a highlight held over several ticks
+        costs one ``setProperty`` on the tick it starts and one on the tick it
+        ends: the plain value is not rewritten underneath it in between, which
+        at ten ticks a second would be ten chances for a frame to catch the
+        reading mid-swap.
+
+        An empty color where the source is not Dolby Vision keeps the
+        readings' history without lighting any of them, so a stream that comes
+        back to DV is compared against what it last said rather than against
+        nothing.
         """
         current = {
             name: self.published.get(name, "") for name in _DV_VALUE_PROPERTIES
         }
         hdr_type = self.published.get("TinyPPI.HdrType", "").lower()
-        if "dolby" in hdr_type:
-            color = self._dv_changed_color()
-            for name, value in current.items():
-                highlighted = highlight_changes(self._dv_values.get(name), value, color)
-                if self.published.get(name) != highlighted:
-                    self.setProperty(name, highlighted)
-                    self.published[name] = highlighted
-        self._dv_values = current
+        color = self._dv_changed_color() if "dolby" in hdr_type else ""
+        now   = time.monotonic()
+        for name, value in current.items():
+            highlighted = self._highlighter.mark(name, value, color, now)
+            if self._shown.get(name) != highlighted:
+                self.setProperty(name, highlighted)
+                self._shown[name] = highlighted
 
     def _base_offset(self) -> tuple:
         """Return the (x, y) offset configured in the settings.

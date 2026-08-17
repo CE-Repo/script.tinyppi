@@ -16,10 +16,10 @@ ui.overlay.open_tinyppi drives the overlay and this.
 The rows themselves come from info.dvmetadata; this module is the window around
 them: it fills the list, keeps it current, and gets out of the way again.  The
 one thing it says of its own accord is which readings just moved -- a refresh
-writes those in the highlight color for as long as they keep moving, so a list
-this long can be read as a live one.  Which is also why a heading whose block
-this frame did not carry reads ``(Cached)``: what is on screen should say
-whether it is the frame's own (see _paint).
+writes those in the highlight color, and leaves them in it for the highlight
+duration afterwards, so a list this long can be read as a live one.  Which is
+also why a heading whose block this frame did not carry reads ``(Cached)``:
+what is on screen should say whether it is the frame's own (see _paint).
 """
 
 import threading
@@ -29,7 +29,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-from core.utils import highlight_changes
+from core.utils import ChangeHighlighter, highlight_hold
 from info import dvmetadata
 
 _ADDON      = xbmcaddon.Addon()
@@ -73,12 +73,17 @@ _HOME = 10000
 # come through the list either way.
 _SECTION_VIEW = "TinyPPI.MetadataSectionView"
 
-# A reading that moved since the last refresh is written in this color for the
-# one tick it stays changed, so the eye finds what is live among rows that
-# mostly stand still -- the trims and the frame luminance move with the
-# picture, the title-level blocks do not.  Its own setting (Metadata -> Changed
-# values), published by ui.theme like every other color.
+# A reading that moved is written in this color, so the eye finds what is live
+# among rows that mostly stand still -- the trims and the frame luminance move
+# with the picture, the title-level blocks do not.  Its own setting (Metadata
+# -> Changed values), published by ui.theme like every other color.
 _CHANGED_COLOR = "TinyPPI.MetadataChangedColor"
+
+# How long it stays written that way, in milliseconds (Metadata -> Changed
+# values -> Highlight duration).  A separate matter from _REFRESH below: the
+# rows are re-read ten times a second either way, and a change that lasted
+# only the tick that found it would be a tenth of a second on screen.
+_CHANGED_HOLD = "metadata_changed_duration"
 
 # Used when that property is not published, which means apply_theme never ran.
 # The highlighting is the whole point of a view that refreshes, so a missing
@@ -196,11 +201,12 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self._monitor   = xbmc.Monitor()
         self._opened_at = 0.0
         # Row identities currently in the list, and the value each identity
-        # was last filled with, which is what a refresh highlights against.
-        # Keyed by identity rather than by position so a rebuild does not
-        # lose it (see _identities).
+        # was last filled with, which is what a refresh highlights against --
+        # held by the highlighter, together with how long each change of them
+        # stays lit.  Keyed by identity rather than by position so a rebuild
+        # does not lose it (see _identities).
         self._keys: list = []
-        self._values: dict = {}
+        self._highlighter = ChangeHighlighter(highlight_hold(_CHANGED_HOLD))
         # The label (or, for a table row, cell list) each row actually
         # showed last tick, compared whole against a fresh tick's labels so
         # an idle tick can return before it builds anything -- see _fill.
@@ -415,6 +421,9 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         An idle tick -- the row identities and the labels they would show
         are both exactly what the list is already showing -- returns before
         any of that runs, so a still frame between scene cuts costs nothing.
+        A highlight running out is not an idle tick: the label it was lit in
+        is not the label it goes back to, so the tick a hold ends on rebuilds
+        the list the same way the tick it started on did.
 
         Every addItems() bind ends, inside Kodi itself, in an unconditional
         SelectItem(0) -- the jump to the top of the list is built into the
@@ -453,22 +462,27 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         Either way the values that moved go up in the highlight color, which
         is the whole point of a view that refreshes: with sixty rows on
         screen, a reading that changed is worth nothing if it cannot be told
-        from the fifty-nine that did not.  The comparison is by identity, not
-        by position, so the rows a rebuild kept are still compared against
-        what they said before it.
+        from the fifty-nine that did not.  They stay up in it for the
+        highlight duration rather than for the one tick that found them (see
+        core.utils.ChangeHighlighter), which at this refresh rate is a tenth
+        of a second -- a blink the eye is not given time to follow.  The
+        comparison is by identity, not by position, so the rows a rebuild
+        kept are still compared against what they said before it, and
+        ``retain`` drops the history of the rows it did not.
 
         Headings are the one thing left out of that.  What a heading carries
         is not a reading but where its block came from, and a section that
         goes in and out of being held would spend half the film lit up as
         though something in it had changed.
         """
-        keys   = _identities(rows)
-        values = dict(zip(keys, (value for _kind, _name, value in rows)))
-        color  = self._changed_color()
+        keys  = _identities(rows)
+        color = self._changed_color()
+        now   = time.monotonic()
+        self._highlighter.retain(keys)
         labels = [
-            values[key] if row[0] == dvmetadata.SECTION
-            else highlight_changes(self._values.get(key), values[key], color)
-            for row, key in zip(rows, keys)
+            value if kind == dvmetadata.SECTION
+            else self._highlighter.mark(key, value, color, now)
+            for (kind, _name, value), key in zip(rows, keys)
         ]
 
         if keys == self._keys and labels == self._last_labels:
@@ -505,7 +519,6 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         finally:
             self._swapping = False
 
-        self._values      = values
         self._last_labels = labels
 
     # --- Geometry -----------------------------------------------------------

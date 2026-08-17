@@ -1228,8 +1228,8 @@ msgid "Changed values"
 msgstr "变化的数值"
 
 msgctxt "#32396"
-msgid "Color for the readings that just changed in the Dolby Vision metadata view. The view refreshes once a second, and a value that moved is written in this color until it stands still again, so the live readings can be told from the ones that do not move."
-msgstr "杜比视界元数据视图中刚刚变化的数值的颜色。该视图每秒刷新一次，变化的数值会以此颜色显示，直到它不再变化为止，这样便能将实时变化的数值与静止的数值区分开。"
+msgid "Color for the readings that just changed. A value that moved is written in this color until the highlight duration below runs out, so the live readings can be told from the ones that do not move."
+msgstr "刚刚变化的数值的颜色。变化的数值会以此颜色显示，直到下方的高亮持续时间结束为止，这样便能将实时变化的数值与静止的数值区分开。"
 
 msgctxt "#32397"
 msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue (Default)"
@@ -1314,3 +1314,11 @@ msgstr "RPU MDL"
 msgctxt "#32426"
 msgid "RPU MaxCLL/FALL"
 msgstr "RPU MaxCLL/FALL"
+
+msgctxt "#32427"
+msgid "Highlight duration"
+msgstr "高亮持续时间"
+
+msgctxt "#32428"
+msgid "How long a reading that just changed stays in the highlight color, in milliseconds. The readings behind it are still read ten times a second whatever this is set to, so no change is missed; at 100 the highlight lasts a single refresh, which is too brief to follow."
+msgstr "刚刚变化的数值保持高亮颜色的时长（毫秒）。无论此项如何设置，数值本身仍每秒读取十次，因此不会遗漏任何变化；设为 100 时高亮仅持续一次刷新，短得难以看清。"

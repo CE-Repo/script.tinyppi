@@ -182,9 +182,14 @@ With it on, pressing **OK** on the open TinyPPI overlay during a **Dolby
 Vision** source switches to a debug view listing everything the stream's side
 data carries — far more than the overlay itself has room for. Pressing **OK**
 again switches back to the normal TinyPPI view; **Back** closes TinyPPI
-altogether. Up/Down scroll through the list, which refreshes once a second, so
-the per-frame blocks follow the picture. On any other source **OK** keeps doing
-nothing: there is no Dolby Vision side data to show.
+altogether. Up/Down scroll through the list, which refreshes ten times a second,
+so the per-frame blocks follow the picture. A reading that just moved is written
+in the highlight colour and stays in it for **Settings → DV metadata → Changed
+values → Highlight duration** (750 ms out of the box), so a change is readable
+without slowing the refresh down; the overlay's own Dolby Vision readings have
+the same pair of settings under **Settings → TinyPPI overlay → Changed values**.
+On any other source **OK** keeps doing nothing: there is no Dolby Vision side
+data to show.
 
 The view is grouped by metadata block:
 

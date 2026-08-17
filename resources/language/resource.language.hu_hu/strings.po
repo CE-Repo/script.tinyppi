@@ -1228,8 +1228,8 @@ msgid "Changed values"
 msgstr "Változott értékek"
 
 msgctxt "#32396"
-msgid "Color for the readings that just changed in the Dolby Vision metadata view. The view refreshes once a second, and a value that moved is written in this color until it stands still again, so the live readings can be told from the ones that do not move."
-msgstr "A Dolby Vision metaadat-nézetben éppen megváltozott értékek színe. A nézet másodpercenként frissül, és a megváltozott érték ebben a színben jelenik meg, amíg újra állandó nem lesz, így a mozgó értékek megkülönböztethetők az állóktól."
+msgid "Color for the readings that just changed. A value that moved is written in this color until the highlight duration below runs out, so the live readings can be told from the ones that do not move."
+msgstr "Az éppen megváltozott értékek színe. A megváltozott érték ebben a színben jelenik meg, amíg az alábbi kiemelési időtartam le nem telik, így a mozgó értékek megkülönböztethetők az állóktól."
 
 msgctxt "#32397"
 msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue (Default)"
@@ -1314,3 +1314,11 @@ msgstr ""
 msgctxt "#32426"
 msgid "RPU MaxCLL/FALL"
 msgstr ""
+
+msgctxt "#32427"
+msgid "Highlight duration"
+msgstr "Kiemelés időtartama"
+
+msgctxt "#32428"
+msgid "How long a reading that just changed stays in the highlight color, in milliseconds. The readings behind it are still read ten times a second whatever this is set to, so no change is missed; at 100 the highlight lasts a single refresh, which is too brief to follow."
+msgstr "Meddig marad a kiemelés színében egy éppen megváltozott érték, ezredmásodpercben. Maguk az értékek ettől függetlenül másodpercenként tízszer frissülnek, így egyetlen változás sem vész el; 100 esetén a kiemelés egyetlen frissítésig tart, ami túl rövid ahhoz, hogy követni lehessen."

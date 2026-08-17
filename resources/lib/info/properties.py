@@ -887,12 +887,10 @@ def publish_scene_properties(window, published=None) -> None:
             ("Hdr10MdlVar", hdr10_mdl),
             ("Hdr10MaxCllFallVar", hdr10_max_cll_fall),
             # Format facts, not scene-variant, but overlay.py's
-            # _DV_VALUE_PROPERTIES highlights both: that mechanism rewrites a
-            # property plain again on the tick after it colors it, and relies
-            # on every name it tracks getting freshly recomputed every tick to
-            # do that.  On the slow cadence, a colored value would sit in
-            # ``published`` for up to a second and get wrapped in another
-            # [COLOR] layer on every tick in between instead of clearing.
+            # _DV_VALUE_PROPERTIES highlights both, and a highlight is only as
+            # current as the reading behind it: on the slow cadence a profile
+            # or version that did change would go unlit for up to a second
+            # after the fact, which is the one moment it is worth seeing.
             ("DoviVersionVar", get_dv_version()),
             ("DoviProfileNumberVar", get_dv_profile()),
         ),
