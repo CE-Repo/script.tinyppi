@@ -65,9 +65,10 @@ def clean(val) -> str:
 
 
 # How long a reading that moved keeps the highlight color when the caller
-# names no duration of its own: one second, which is how long a change used to
-# stay lit back when the views polled once a second.
-DEFAULT_HIGHLIGHT_HOLD = 1.0
+# names no duration of its own.  The same 750ms the Highlight duration sliders
+# default to, so a profile too old to hold the setting behaves like one that
+# has never been touched rather than like one set to something else.
+DEFAULT_HIGHLIGHT_HOLD = 0.75
 
 # Deadline key standing for the whole value rather than one part of it, used
 # for the values that cannot be compared part by part (see _changed_parts).

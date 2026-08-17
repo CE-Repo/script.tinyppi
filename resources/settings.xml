@@ -693,10 +693,10 @@
                 </setting>
                 <setting id="output_changed_duration" type="integer" label="32427" help="32428">
                     <level>0</level>
-                    <default>1000</default>
+                    <default>750</default>
                     <constraints>
                         <minimum>100</minimum>
-                        <step>100</step>
+                        <step>50</step>
                         <maximum>3000</maximum>
                     </constraints>
                     <control type="slider" format="integer" />
@@ -2540,10 +2540,10 @@
                 </setting>
                 <setting id="metadata_changed_duration" type="integer" label="32427" help="32428">
                     <level>0</level>
-                    <default>1000</default>
+                    <default>750</default>
                     <constraints>
                         <minimum>100</minimum>
-                        <step>100</step>
+                        <step>50</step>
                         <maximum>3000</maximum>
                     </constraints>
                     <control type="slider" format="integer" />

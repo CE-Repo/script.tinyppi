@@ -185,7 +185,7 @@ again switches back to the normal TinyPPI view; **Back** closes TinyPPI
 altogether. Up/Down scroll through the list, which refreshes ten times a second,
 so the per-frame blocks follow the picture. A reading that just moved is written
 in the highlight colour and stays in it for **Settings → DV metadata → Changed
-values → Highlight duration** (1000 ms out of the box), so a change is readable
+values → Highlight duration** (750 ms out of the box), so a change is readable
 without slowing the refresh down; the overlay's own Dolby Vision readings have
 the same pair of settings under **Settings → TinyPPI overlay → Changed values**.
 On any other source **OK** keeps doing nothing: there is no Dolby Vision side
