@@ -121,7 +121,7 @@ msgstr "Bitráta"
 
 msgctxt "#32051"
 msgid "Input"
-msgstr "Hangforrás"
+msgstr "Forrás"
 
 msgctxt "#32052"
 msgid "Audio language"
