@@ -1,10 +1,24 @@
 # Films whose home release carries IMAX material at an expanded aspect ratio.
 #
-# One title per line; anything after a # is a comment.  Matching ignores case
-# and punctuation and looks for the entry inside the playing file's name and
-# its folder, so "The Dark Knight" matches "The.Dark.Knight.2008.2160p.UHD".
-# Keep entries as short as they can be while staying unambiguous — a year is
-# only worth adding to separate a remake from its original.
+# One title per line; anything after a # is a comment.  Matching ignores case,
+# punctuation and accents, reads "&" as "and" and roman numerals and number
+# words as figures, so "The Wandering Earth II" also matches a file named
+# "The.Wandering.Earth.2".
+#
+# The name is looked for in the playing file and its folder, and in the title,
+# original title and year Kodi holds for the item — a film streamed through an
+# addon has no name in its path, only a library entry.  A disc image is named
+# by the image itself or by the folder holding it, since what plays is a stream
+# inside the mounted disc.  Each name is cut where
+# it stops naming the film and starts describing the file (year, 2160p, UHD,
+# BluRay, x265, German ...), and the entry has to sit at the end of what
+# remains: "The Dark Knight" matches "The.Dark.Knight.2008.2160p.UHD" but
+# "Aquaman" does not match "Aquaman.and.the.Lost.Kingdom.2023".
+#
+# Keep entries as short as they can be while staying unambiguous.  A year is
+# only worth adding to separate a remake from its original — once written, it
+# has to be the item's year as well, so "Ghostbusters 2016" never marks the
+# 1984 film.
 #
 # A file with the same name in the addon's profile folder is read as well and
 # survives addon updates:
