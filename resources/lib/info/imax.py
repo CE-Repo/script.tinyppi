@@ -25,6 +25,7 @@ alone would claim IMAX for every ordinary 1.78:1 film.
 import os
 import re
 import unicodedata
+from urllib.parse import unquote
 
 import xbmc
 import xbmcaddon
@@ -89,8 +90,21 @@ _ALIASES = {
 # Folders that are part of a disc layout rather than a name; the film is named
 # by whatever holds them.
 _DISC_FOLDERS = frozenset({
-    "bdmv", "stream", "playlist", "video_ts", "audio_ts", "hvdvd_ts",
+    "bdmv", "stream", "playlist", "clipinf", "backup",
+    "video_ts", "audio_ts", "hvdvd_ts",
 })
+
+# Disc images.  Kodi plays one by mounting it and handing out a path into the
+# disc inside, so the name of the image is where the film is named.
+_IMAGE_TYPES = frozenset({"iso", "img", "nrg", "mdf", "udf", "bin", "cue"})
+
+# What may be dropped off the end of a name as a file type rather than kept as
+# a word.  Only these, so a title cannot lose "The.Dark.Knight.2008.2160p" to
+# an extension that was never there.
+_FILE_TYPES = _IMAGE_TYPES | frozenset("""
+    mkv mp4 m4v avi mov wmv webm flv ogm rmvb 3gp divx mpg mpeg m2v vob evo
+    m2ts mts ts trp mpls ifo bdmv dat strm disc
+""".split())
 
 # Paths whose item is a broadcast rather than a release (see _playing_names).
 _STREAM_PREFIXES = ("pvr://", "upnp://")
@@ -219,36 +233,80 @@ def _title_index() -> dict[str, tuple[tuple[int | None, bool], ...]]:
 
 
 def _playing_path() -> str:
-    """Return the playing file's path without any query string, or ''."""
+    """Return the path of the playing file, or ''.
+
+    Kodi hands out a path into whatever it opened, which for a disc image is a
+    stream inside the mounted disc and the image's own path wrapped up and
+    encoded inside that:
+
+        bluray://udf%3a%2f%2f%252fFilme%252fDunkirk.iso%2f/BDMV/PLAYLIST/00800.mpls
+
+    The encoding is undone here -- once per layer, since each wrapping encodes
+    the one below it again -- so the path can be read as the folders it names.
+    Any query string is dropped: an addon puts its own bookkeeping there.
+    """
     try:
         path = xbmc.Player().getPlayingFile()
     except RuntimeError:
         return ""
-    return (path or "").split("?", 1)[0]
+
+    path = (path or "").split("?", 1)[0]
+    for _ in range(4):
+        plain = unquote(path)
+        if plain == path:
+            break
+        path = plain
+    return path
+
+
+def _strip_type(part: str) -> str:
+    """Return *part* without a trailing file type."""
+    stem, extension = os.path.splitext(part)
+    return stem if stem and extension[1:].lower() in _FILE_TYPES else part
+
+
+def _is_image(part: str) -> bool:
+    """Return whether *part* names a disc image rather than a folder."""
+    return os.path.splitext(part)[1][1:].lower() in _IMAGE_TYPES
+
+
+def _path_names(path: str) -> list[str]:
+    """Return the names a path holds the film under.
+
+    The played file, and then the first thing above it that is a name rather
+    than part of a disc layout -- for a disc image that is the image itself.
+    An image is named after nothing at all often enough (VIDEO1.ISO, disc.iso)
+    that the folder holding it is worth having as well.
+    """
+    parts = [part for part in re.split(r"[\\/]+", path)
+             if part and not part.endswith(":")]
+    if not parts:
+        return []
+
+    names = [_strip_type(parts[-1])]
+
+    index = len(parts) - 2
+    while index >= 0 and parts[index].lower() in _DISC_FOLDERS:
+        index -= 1
+    if index >= 0:
+        names.append(_strip_type(parts[index]))
+        if _is_image(parts[index]) and index:
+            names.append(_strip_type(parts[index - 1]))
+
+    return names
 
 
 def _playing_names(path: str) -> tuple[str, ...]:
     """Return every name the playing item can be identified by.
 
-    The file name and the folder holding it, since a release name often lives
-    on one and not the other, plus what Kodi knows about the item -- a film
-    streamed through an addon has no name in its path at all, only a library
-    entry.  Names are kept apart rather than run together, so a title has to
-    end one of them rather than merely appear somewhere in the pile.
+    What the path names (see _path_names), since a release name lives on the
+    file or on the folder holding it and, for a disc image, on the image, plus
+    what Kodi knows about the item -- a film streamed through an addon has no
+    name in its path at all, only a library entry.  Names are kept apart rather
+    than run together, so a title has to end one of them rather than merely
+    appear somewhere in the pile.
     """
-    names: list[str] = []
-
-    if path:
-        folder, name = os.path.split(path.rstrip("/\\"))
-        names.append(os.path.splitext(name)[0])
-        # A disc layout names the film on the folder holding it, a couple of
-        # levels up from the stream.
-        for _ in range(3):
-            base = os.path.basename(folder.rstrip("/\\"))
-            if base.lower() not in _DISC_FOLDERS:
-                break
-            folder = os.path.dirname(folder.rstrip("/\\"))
-        names.append(os.path.basename(folder.rstrip("/\\")))
+    names: list[str] = _path_names(path.rstrip("/\\"))
 
     # An episode carries its own title, which is a film title often enough
     # (Nope, Him) to be worth leaving alone, and a live channel or a recording

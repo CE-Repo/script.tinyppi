@@ -7,7 +7,9 @@
 #
 # The name is looked for in the playing file and its folder, and in the title,
 # original title and year Kodi holds for the item — a film streamed through an
-# addon has no name in its path, only a library entry.  Each name is cut where
+# addon has no name in its path, only a library entry.  A disc image is named
+# by the image itself or by the folder holding it, since what plays is a stream
+# inside the mounted disc.  Each name is cut where
 # it stops naming the film and starts describing the file (year, 2160p, UHD,
 # BluRay, x265, German ...), and the entry has to sit at the end of what
 # remains: "The Dark Knight" matches "The.Dark.Knight.2008.2160p.UHD" but
