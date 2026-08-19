@@ -64,6 +64,12 @@ COLUMNS  = "columns"
 # rather than a column running off the edge.
 MAX_COLUMNS = 6
 
+# A table wider than the ordinary trim grid can instead use the compact grid
+# ui.dvmetadata and the skin reserve for it.  HDR10+'s distribution has nine
+# short percentile headings and readings, which fit there as one table without
+# changing the six-column L2 / L8 layout above.
+MAX_COMPACT_COLUMNS = 9
+
 # What a formatter returns wherever the bitstream carries no reading: an absent
 # block, a field the parser could not fill.  It never reaches the list -- see
 # _section, which drops the rows that come back holding it -- so it is the
@@ -560,16 +566,19 @@ def _hdr10plus_pairs(hdr10plus: dict) -> list:
             ("Bézier anchors", " ".join(_num(value) for value in anchors)
                                or EMPTY),
         ))
-    # The maxRGB percentiles run the full width: nine readings do not fit a
-    # value column, and they only mean anything read against each other.
-    percentiles = "  ".join(
-        f"{percent}% {_lum(distribution[percent])}"
-        for percent in _HDR10PLUS_PERCENTILES
-        if percent in distribution and _lum(distribution[percent]) != EMPTY
-    )
-    if percentiles:
-        pairs.append((WIDE, "hdr10plus.distribution",
-                      f"Distribution   {percentiles}"))
+    # The maxRGB percentiles are one compact table: percentage headings over
+    # fixed value cells, all nine abreast.  L2 / L8 keep the wider six-cell
+    # grid; ui.dvmetadata chooses the compact one from this row's cell count.
+    percentile_values = []
+    for percent in _HDR10PLUS_PERCENTILES:
+        value = _lum(distribution.get(percent))
+        percentile_values.append("" if value == EMPTY else value)
+    if any(percentile_values):
+        pairs.extend((
+            (HEADINGS, "Distribution",
+             [f"{percent}%" for percent in _HDR10PLUS_PERCENTILES]),
+            (COLUMNS, "maxRGB (nits)", percentile_values),
+        ))
     return pairs
 
 

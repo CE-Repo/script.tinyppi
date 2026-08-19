@@ -233,7 +233,9 @@ function render(next) {
      shape itself moves. */
   const shape = rows
     .map((row) => row.kind + "\u001f" + row.name +
-                  "\u001f" + (row.cells ? row.cells.length : ""))
+                  "\u001f" + (row.kind === "headings"
+                    ? (row.cells || []).join("\u001d")
+                    : (row.cells ? row.cells.length : "")))
     .join("\u001e");
   if (shape !== signature) {
     signature = shape;
@@ -315,7 +317,7 @@ function build(rows) {
    controls, then a row per pass.  Here it is turned on its side -- controls
    down the left, a column per pass -- because a row of the on-screen list is
    1195 px wide and a column of this page is a fifth of that, which is not
-   enough for six to eight controls abreast.  Passes are few, one per target
+   enough for six to nine controls abreast.  Passes are few, one per target
    display, so the tall shape is the one that fits.
 
    More controls than the on-screen row holds arrive as a second table with

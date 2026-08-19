@@ -284,6 +284,209 @@
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
                         <aligny>top</aligny>
                     </control>
+                    <!-- Compact table cells: HDR10+ Distribution keeps all
+                         nine percentiles on one row.  They share the same
+                         960 px value area as the six wider trim cells above;
+                         separate properties keep the two grids from drawing
+                         over each other. -->
+                    <control type="label">
+                        <left>235</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch0)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>342</left>
+                        <top>0</top>
+                        <width>106</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch1)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>448</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch2)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>555</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch3)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>662</left>
+                        <top>0</top>
+                        <width>106</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch4)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>768</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch5)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>875</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch6)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>982</left>
+                        <top>0</top>
+                        <width>106</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch7)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>1088</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch8)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>235</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc0)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>342</left>
+                        <top>0</top>
+                        <width>106</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc1)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>448</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc2)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>555</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc3)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>662</left>
+                        <top>0</top>
+                        <width>106</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc4)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>768</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc5)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>875</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc6)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>982</left>
+                        <top>0</top>
+                        <width>106</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc7)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>1088</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc8)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
                 </itemlayout>
                 <focusedlayout height="30">
                     <control type="image">
@@ -458,6 +661,209 @@
                         <height>30</height>
                         <align>right</align>
                         <label>$INFO[ListItem.Property(c5)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <!-- Compact table cells: HDR10+ Distribution keeps all
+                         nine percentiles on one row.  They share the same
+                         960 px value area as the six wider trim cells above;
+                         separate properties keep the two grids from drawing
+                         over each other. -->
+                    <control type="label">
+                        <left>235</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch0)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>342</left>
+                        <top>0</top>
+                        <width>106</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch1)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>448</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch2)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>555</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch3)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>662</left>
+                        <top>0</top>
+                        <width>106</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch4)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>768</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch5)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>875</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch6)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>982</left>
+                        <top>0</top>
+                        <width>106</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch7)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>1088</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(ch8)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataColumnColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>235</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc0)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>342</left>
+                        <top>0</top>
+                        <width>106</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc1)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>448</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc2)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>555</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc3)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>662</left>
+                        <top>0</top>
+                        <width>106</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc4)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>768</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc5)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>875</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc6)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>982</left>
+                        <top>0</top>
+                        <width>106</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc7)]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
+                        <aligny>top</aligny>
+                    </control>
+                    <control type="label">
+                        <left>1088</left>
+                        <top>0</top>
+                        <width>107</width>
+                        <height>30</height>
+                        <align>right</align>
+                        <label>$INFO[ListItem.Property(cc8)]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataValueColor)]</textcolor>
                         <aligny>top</aligny>

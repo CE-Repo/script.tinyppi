@@ -103,6 +103,12 @@ _RULE_TEXTURE = "common/dot-1x1.png"
 _CELL_HEADING = "h"
 _CELL_VALUE   = "c"
 
+# The same two property families for a table that uses the skin's compact
+# nine-cell grid.  Kept separate from h / c so L2 and L8 stay on their wider
+# six-cell grid while HDR10+'s short distribution readings sit nine abreast.
+_COMPACT_CELL_HEADING = "ch"
+_COMPACT_CELL_VALUE   = "cc"
+
 # Seconds between refreshes, matching the overlay's own polling interval: the
 # per-frame blocks (L1, L5, the trims) move with the picture, so a slower tick
 # here would fall behind the same scene cuts the overlay already tracks.  The
@@ -354,6 +360,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         named   = kind in (dvmetadata.ROW, dvmetadata.HEADINGS,
                            dvmetadata.COLUMNS)
         table   = kind in (dvmetadata.HEADINGS, dvmetadata.COLUMNS)
+        compact = table and len(label) == dvmetadata.MAX_COMPACT_COLUMNS
         item.setLabel(name if named else "")
         item.setLabel2(label if kind in (dvmetadata.ROW, dvmetadata.WIDE)
                        else "")
@@ -361,10 +368,17 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         item.setProperty("state", label if heading else "")
         item.setProperty("rule", _RULE_TEXTURE if heading else "")
         for position in range(dvmetadata.MAX_COLUMNS):
-            cell = label[position] if table and position < len(label) else ""
+            cell = (label[position]
+                    if table and not compact and position < len(label) else "")
             item.setProperty(f"{_CELL_HEADING}{position}",
                              cell if kind == dvmetadata.HEADINGS else "")
             item.setProperty(f"{_CELL_VALUE}{position}",
+                             cell if kind == dvmetadata.COLUMNS else "")
+        for position in range(dvmetadata.MAX_COMPACT_COLUMNS):
+            cell = label[position] if compact and position < len(label) else ""
+            item.setProperty(f"{_COMPACT_CELL_HEADING}{position}",
+                             cell if kind == dvmetadata.HEADINGS else "")
+            item.setProperty(f"{_COMPACT_CELL_VALUE}{position}",
                              cell if kind == dvmetadata.COLUMNS else "")
 
     def _changed_color(self) -> str:
