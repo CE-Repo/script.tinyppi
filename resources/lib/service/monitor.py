@@ -15,6 +15,7 @@ if _LIB_PATH not in sys.path:
 
 from info.audioinfo import prime_playback_detection, reset_playback_cache
 from ui.theme import apply_theme
+from web.server import WebDashboard
 
 _ADDON_ID = "script.tinyppi"
 _HOME_WINDOW_ID = 10000
@@ -44,7 +45,15 @@ def _notification_media_type(data: str) -> str:
 
 class KodiMonitor(xbmc.Monitor):
     """Listens for Kodi notifications; resets the audio-scan cache on stop and,
-    on playback start, preloads the audio detection and fires the splash."""
+    on playback start, preloads the audio detection and fires the splash.
+
+    Also owns the web dashboard's lifecycle: it is started and stopped from
+    here because this is the one thing that lives for the whole Kodi session.
+    """
+
+    def __init__(self, dashboard: WebDashboard | None = None) -> None:
+        super().__init__()
+        self._dashboard = dashboard
 
     def onNotification(self, sender: str, method: str, data: str) -> None:
         if method == "Player.OnStop":
@@ -62,13 +71,28 @@ class KodiMonitor(xbmc.Monitor):
             _log(f"Exception in KodiMonitor.onNotification: {exc}", xbmc.LOGERROR)
 
     def onSettingsChanged(self) -> None:
-        """(Re)launch the splash when settings change.
+        """(Re)launch the splash when settings change, and bring the web
+        dashboard in line with them.
 
         A running controller picks up edits on its own (its guard makes this a
         no-op); this covers the case where all triggers were off at playback
         start, so enabling one here starts it without restarting playback.
         """
         self._maybe_show_splash()
+        self.apply_dashboard_settings()
+
+    def apply_dashboard_settings(self) -> None:
+        """Start, stop or reconfigure the dashboard to match the settings.
+
+        A failure here must not take the monitor with it: the dashboard is an
+        extra, and Kodi still needs its notifications handled.
+        """
+        if self._dashboard is None:
+            return
+        try:
+            self._dashboard.apply_settings()
+        except Exception as exc:
+            _log(f"Exception applying web dashboard settings: {exc}", xbmc.LOGERROR)
 
     def _prime_detection(self) -> None:
         """Start the audio-bitstream scan as soon as a video begins playing, so
@@ -106,9 +130,10 @@ class KodiMonitor(xbmc.Monitor):
 
 
 if __name__ == "__main__":
-    addon   = xbmcaddon.Addon()
-    win     = xbmcgui.Window(_HOME_WINDOW_ID)
-    monitor = KodiMonitor()
+    addon     = xbmcaddon.Addon()
+    win       = xbmcgui.Window(_HOME_WINDOW_ID)
+    dashboard = WebDashboard()
+    monitor   = KodiMonitor(dashboard)
 
     reset_playback_cache()
 
@@ -119,9 +144,16 @@ if __name__ == "__main__":
     except Exception as exc:  # pragma: no cover - never block the service
         xbmc.log(f"TinyPPI: apply_theme at startup failed: {exc}", xbmc.LOGWARNING)
 
+    # Off unless the user switched it on; this is what starts it at boot.
+    monitor.apply_dashboard_settings()
+
     xbmc.log("TinyPPI: KodiMonitor started", xbmc.LOGINFO)
 
     # Block until Kodi shuts down; notifications arrive on their own thread.
     monitor.waitForAbort()
+
+    # The event streams hold threads of their own, so the server is closed
+    # here rather than left to the interpreter tearing down around it.
+    dashboard.stop()
 
     del monitor

@@ -1326,3 +1326,155 @@ msgstr "Wie lange ein gerade geänderter Wert in der Hervorhebungsfarbe bleibt, 
 msgctxt "#32429"
 msgid "Input"
 msgstr "Eingang"
+
+msgctxt "#32430"
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgctxt "#32431"
+msgid "A live view of the playing stream in a browser on your phone or laptop, so the picture itself stays untouched."
+msgstr "Eine Live-Ansicht des laufenden Streams im Browser auf Handy oder Laptop, während das Bild selbst unangetastet bleibt."
+
+msgctxt "#32432"
+msgid "Enable web dashboard"
+msgstr "Web-Dashboard aktivieren"
+
+msgctxt "#32433"
+msgid "Serves the dashboard on this box's own address. Off by default; once it is on, anything on the same network can reach it, so do not forward its port to the internet."
+msgstr "Stellt das Dashboard unter der Adresse dieser Box bereit. Standardmäßig aus; einmal eingeschaltet ist es für alles im selben Netzwerk erreichbar - den Port also nicht ins Internet weiterleiten."
+
+msgctxt "#32434"
+msgid "Port"
+msgstr "Port"
+
+msgctxt "#32435"
+msgid "The port the dashboard listens on. Leave 8080 alone - Kodi's own web server usually has it."
+msgstr "Der Port, auf dem das Dashboard lauscht. 8080 besser freilassen - den belegt meist Kodis eigener Webserver."
+
+msgctxt "#32436"
+msgid "Access token"
+msgstr "Zugriffstoken"
+
+msgctxt "#32437"
+msgid "The key the dashboard asks for. Switching a VS10 mode from the browser always needs it; reading needs it only when the setting below says so."
+msgstr "Der Schlüssel, nach dem das Dashboard fragt. Zum Umschalten eines VS10-Modus aus dem Browser wird er immer gebraucht, zum Lesen nur, wenn die Einstellung unten es verlangt."
+
+msgctxt "#32438"
+msgid "Generate a new token"
+msgstr "Neues Token erzeugen"
+
+msgctxt "#32439"
+msgid "Replaces the token with a fresh one. Every browser still holding the old one is logged out."
+msgstr "Ersetzt das Token durch ein frisches. Jeder Browser, der noch das alte hat, ist damit ausgesperrt."
+
+msgctxt "#32440"
+msgid "Require the token for reading too"
+msgstr "Token auch zum Lesen verlangen"
+
+msgctxt "#32441"
+msgid "Asks for the token before showing anything at all, not just before switching a mode. Turn this on when the box is on a shared network."
+msgstr "Fragt das Token schon ab, bevor überhaupt etwas angezeigt wird - nicht erst vor dem Umschalten. Sinnvoll, wenn die Box in einem geteilten Netzwerk steht."
+
+msgctxt "#32442"
+msgid "Allow VS10 switching from the dashboard"
+msgstr "VS10-Umschaltung im Dashboard erlauben"
+
+msgctxt "#32443"
+msgid "Shows the VS10 output modes for the playing source in the browser, so the mode can be switched from a phone. The token is required either way."
+msgstr "Zeigt die VS10-Ausgabemodi der laufenden Quelle im Browser, sodass sich der Modus vom Handy aus umschalten lässt. Das Token wird in jedem Fall verlangt."
+
+msgctxt "#32444"
+msgid "Show address and token"
+msgstr "Adresse und Token anzeigen"
+
+msgctxt "#32445"
+msgid "Shows the address to open in a browser, together with the current token."
+msgstr "Zeigt die Adresse zum Öffnen im Browser zusammen mit dem aktuellen Token."
+
+msgctxt "#32446"
+msgid "Web dashboard"
+msgstr "Web-Dashboard"
+
+msgctxt "#32447"
+msgid "Open this address in a browser on the same network:"
+msgstr "Diese Adresse in einem Browser im selben Netzwerk öffnen:"
+
+msgctxt "#32448"
+msgid "Connected"
+msgstr "Verbunden"
+
+msgctxt "#32449"
+msgid "Connecting..."
+msgstr "Verbinde ..."
+
+msgctxt "#32450"
+msgid "Disconnected"
+msgstr "Getrennt"
+
+msgctxt "#32451"
+msgid "Nothing is playing"
+msgstr "Es läuft nichts"
+
+msgctxt "#32452"
+msgid "Start a video on the box and everything it carries appears here."
+msgstr "Starte ein Video auf der Box, dann erscheint hier alles, was es mitbringt."
+
+msgctxt "#32453"
+msgid "Peak"
+msgstr "Spitze"
+
+msgctxt "#32454"
+msgid "Average"
+msgstr "Durchschnitt"
+
+msgctxt "#32455"
+msgid "Frame luminance, last 60 seconds"
+msgstr "Bildhelligkeit, letzte 60 Sekunden"
+
+msgctxt "#32456"
+msgid "Copy report"
+msgstr "Bericht kopieren"
+
+msgctxt "#32457"
+msgid "Copied"
+msgstr "Kopiert"
+
+msgctxt "#32458"
+msgid "Keep screen awake"
+msgstr "Bildschirm anlassen"
+
+msgctxt "#32459"
+msgid "Enter the access token"
+msgstr "Zugriffstoken eingeben"
+
+msgctxt "#32460"
+msgid "You will find it in the add-on settings under Dashboard."
+msgstr "Zu finden in den Addon-Einstellungen unter Dashboard."
+
+msgctxt "#32461"
+msgid "Save"
+msgstr "Speichern"
+
+msgctxt "#32462"
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgctxt "#32463"
+msgid "Wrong or missing token"
+msgstr "Token fehlt oder ist falsch"
+
+msgctxt "#32464"
+msgid "Switching..."
+msgstr "Wird umgeschaltet ..."
+
+msgctxt "#32465"
+msgid "Switched"
+msgstr "Umgeschaltet"
+
+msgctxt "#32466"
+msgid "Switching failed"
+msgstr "Umschalten fehlgeschlagen"
+
+msgctxt "#32467"
+msgid "VS10 output"
+msgstr "VS10-Ausgabe"

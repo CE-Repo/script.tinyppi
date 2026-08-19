@@ -1326,3 +1326,155 @@ msgstr "Meddig marad a kiemelés színében egy éppen megváltozott érték, ez
 msgctxt "#32429"
 msgid "Input"
 msgstr "Hangforrás"
+
+msgctxt "#32430"
+msgid "Dashboard"
+msgstr "Vezérlőpult"
+
+msgctxt "#32431"
+msgid "A live view of the playing stream in a browser on your phone or laptop, so the picture itself stays untouched."
+msgstr "A futó adatfolyam élő nézete böngészőben, telefonon vagy laptopon, miközben maga a kép érintetlen marad."
+
+msgctxt "#32432"
+msgid "Enable web dashboard"
+msgstr "Webes vezérlőpult bekapcsolása"
+
+msgctxt "#32433"
+msgid "Serves the dashboard on this box's own address. Off by default; once it is on, anything on the same network can reach it, so do not forward its port to the internet."
+msgstr "A vezérlőpultot a doboz saját címén szolgálja ki. Alapból ki van kapcsolva; bekapcsolva bárki eléri az azonos hálózaton, ezért a portját ne továbbítsd az internetre."
+
+msgctxt "#32434"
+msgid "Port"
+msgstr "Port"
+
+msgctxt "#32435"
+msgid "The port the dashboard listens on. Leave 8080 alone - Kodi's own web server usually has it."
+msgstr "A port, amelyen a vezérlőpult figyel. A 8080-at hagyd békén - azt általában a Kodi saját webkiszolgálója foglalja."
+
+msgctxt "#32436"
+msgid "Access token"
+msgstr "Hozzáférési token"
+
+msgctxt "#32437"
+msgid "The key the dashboard asks for. Switching a VS10 mode from the browser always needs it; reading needs it only when the setting below says so."
+msgstr "A kulcs, amelyet a vezérlőpult kér. A VS10-mód böngészőből való váltásához mindig kell; az olvasáshoz csak akkor, ha az alábbi beállítás így kéri."
+
+msgctxt "#32438"
+msgid "Generate a new token"
+msgstr "Új token létrehozása"
+
+msgctxt "#32439"
+msgid "Replaces the token with a fresh one. Every browser still holding the old one is logged out."
+msgstr "Frissre cseréli a tokent. Minden böngésző, amely még a régit őrzi, kilép."
+
+msgctxt "#32440"
+msgid "Require the token for reading too"
+msgstr "Token kérése olvasáshoz is"
+
+msgctxt "#32441"
+msgid "Asks for the token before showing anything at all, not just before switching a mode. Turn this on when the box is on a shared network."
+msgstr "Már azelőtt kéri a tokent, hogy bármit megjelenítene, nem csak váltás előtt. Kapcsold be, ha a doboz megosztott hálózaton van."
+
+msgctxt "#32442"
+msgid "Allow VS10 switching from the dashboard"
+msgstr "VS10-váltás engedélyezése a vezérlőpultról"
+
+msgctxt "#32443"
+msgid "Shows the VS10 output modes for the playing source in the browser, so the mode can be switched from a phone. The token is required either way."
+msgstr "Megjeleníti a futó forrás VS10 kimeneti módjait a böngészőben, így a mód telefonról is váltható. A token mindkét esetben szükséges."
+
+msgctxt "#32444"
+msgid "Show address and token"
+msgstr "Cím és token megjelenítése"
+
+msgctxt "#32445"
+msgid "Shows the address to open in a browser, together with the current token."
+msgstr "Megmutatja a böngészőben megnyitandó címet az aktuális tokennel együtt."
+
+msgctxt "#32446"
+msgid "Web dashboard"
+msgstr "Webes vezérlőpult"
+
+msgctxt "#32447"
+msgid "Open this address in a browser on the same network:"
+msgstr "Nyisd meg ezt a címet egy böngészőben az azonos hálózaton:"
+
+msgctxt "#32448"
+msgid "Connected"
+msgstr "Csatlakozva"
+
+msgctxt "#32449"
+msgid "Connecting..."
+msgstr "Csatlakozás..."
+
+msgctxt "#32450"
+msgid "Disconnected"
+msgstr "Szétkapcsolva"
+
+msgctxt "#32451"
+msgid "Nothing is playing"
+msgstr "Semmi sem játszik"
+
+msgctxt "#32452"
+msgid "Start a video on the box and everything it carries appears here."
+msgstr "Indíts el egy videót a dobozon, és itt megjelenik minden, amit hordoz."
+
+msgctxt "#32453"
+msgid "Peak"
+msgstr "Csúcs"
+
+msgctxt "#32454"
+msgid "Average"
+msgstr "Átlag"
+
+msgctxt "#32455"
+msgid "Frame luminance, last 60 seconds"
+msgstr "Képfényesség, az utolsó 60 másodperc"
+
+msgctxt "#32456"
+msgid "Copy report"
+msgstr "Jelentés másolása"
+
+msgctxt "#32457"
+msgid "Copied"
+msgstr "Másolva"
+
+msgctxt "#32458"
+msgid "Keep screen awake"
+msgstr "Képernyő ébren tartása"
+
+msgctxt "#32459"
+msgid "Enter the access token"
+msgstr "Add meg a hozzáférési tokent"
+
+msgctxt "#32460"
+msgid "You will find it in the add-on settings under Dashboard."
+msgstr "A bővítmény beállításaiban találod, a Vezérlőpult alatt."
+
+msgctxt "#32461"
+msgid "Save"
+msgstr "Mentés"
+
+msgctxt "#32462"
+msgid "Cancel"
+msgstr "Mégse"
+
+msgctxt "#32463"
+msgid "Wrong or missing token"
+msgstr "Hiányzó vagy hibás token"
+
+msgctxt "#32464"
+msgid "Switching..."
+msgstr "Váltás..."
+
+msgctxt "#32465"
+msgid "Switched"
+msgstr "Átváltva"
+
+msgctxt "#32466"
+msgid "Switching failed"
+msgstr "A váltás nem sikerült"
+
+msgctxt "#32467"
+msgid "VS10 output"
+msgstr "VS10 kimenet"

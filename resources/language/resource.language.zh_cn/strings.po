@@ -1326,3 +1326,155 @@ msgstr "刚刚变化的数值保持高亮颜色的时长（毫秒）。无论此
 msgctxt "#32429"
 msgid "Input"
 msgstr "输入"
+
+msgctxt "#32430"
+msgid "Dashboard"
+msgstr "仪表板"
+
+msgctxt "#32431"
+msgid "A live view of the playing stream in a browser on your phone or laptop, so the picture itself stays untouched."
+msgstr "在手机或笔记本电脑的浏览器中实时查看正在播放的流，而画面本身保持不变。"
+
+msgctxt "#32432"
+msgid "Enable web dashboard"
+msgstr "启用网页仪表板"
+
+msgctxt "#32433"
+msgid "Serves the dashboard on this box's own address. Off by default; once it is on, anything on the same network can reach it, so do not forward its port to the internet."
+msgstr "在本机地址上提供仪表板。默认关闭；开启后同一网络中的任何设备都可访问，因此请勿将其端口转发到互联网。"
+
+msgctxt "#32434"
+msgid "Port"
+msgstr "端口"
+
+msgctxt "#32435"
+msgid "The port the dashboard listens on. Leave 8080 alone - Kodi's own web server usually has it."
+msgstr "仪表板监听的端口。请避开 8080 - 它通常被 Kodi 自带的网页服务器占用。"
+
+msgctxt "#32436"
+msgid "Access token"
+msgstr "访问令牌"
+
+msgctxt "#32437"
+msgid "The key the dashboard asks for. Switching a VS10 mode from the browser always needs it; reading needs it only when the setting below says so."
+msgstr "仪表板要求的密钥。从浏览器切换 VS10 模式始终需要它；仅当下方设置要求时，读取才需要。"
+
+msgctxt "#32438"
+msgid "Generate a new token"
+msgstr "生成新令牌"
+
+msgctxt "#32439"
+msgid "Replaces the token with a fresh one. Every browser still holding the old one is logged out."
+msgstr "将令牌替换为新的。仍持有旧令牌的浏览器都会被登出。"
+
+msgctxt "#32440"
+msgid "Require the token for reading too"
+msgstr "读取也需要令牌"
+
+msgctxt "#32441"
+msgid "Asks for the token before showing anything at all, not just before switching a mode. Turn this on when the box is on a shared network."
+msgstr "在显示任何内容之前就要求令牌，而不仅仅是在切换之前。若本机位于共享网络，请开启此项。"
+
+msgctxt "#32442"
+msgid "Allow VS10 switching from the dashboard"
+msgstr "允许从仪表板切换 VS10"
+
+msgctxt "#32443"
+msgid "Shows the VS10 output modes for the playing source in the browser, so the mode can be switched from a phone. The token is required either way."
+msgstr "在浏览器中显示当前源可用的 VS10 输出模式，以便从手机切换模式。两种情况下均需令牌。"
+
+msgctxt "#32444"
+msgid "Show address and token"
+msgstr "显示地址和令牌"
+
+msgctxt "#32445"
+msgid "Shows the address to open in a browser, together with the current token."
+msgstr "显示要在浏览器中打开的地址以及当前令牌。"
+
+msgctxt "#32446"
+msgid "Web dashboard"
+msgstr "网页仪表板"
+
+msgctxt "#32447"
+msgid "Open this address in a browser on the same network:"
+msgstr "在同一网络的浏览器中打开此地址："
+
+msgctxt "#32448"
+msgid "Connected"
+msgstr "已连接"
+
+msgctxt "#32449"
+msgid "Connecting..."
+msgstr "连接中..."
+
+msgctxt "#32450"
+msgid "Disconnected"
+msgstr "已断开"
+
+msgctxt "#32451"
+msgid "Nothing is playing"
+msgstr "当前没有播放"
+
+msgctxt "#32452"
+msgid "Start a video on the box and everything it carries appears here."
+msgstr "在本机上开始播放视频，其携带的全部信息将显示在这里。"
+
+msgctxt "#32453"
+msgid "Peak"
+msgstr "峰值"
+
+msgctxt "#32454"
+msgid "Average"
+msgstr "平均"
+
+msgctxt "#32455"
+msgid "Frame luminance, last 60 seconds"
+msgstr "画面亮度，最近 60 秒"
+
+msgctxt "#32456"
+msgid "Copy report"
+msgstr "复制报告"
+
+msgctxt "#32457"
+msgid "Copied"
+msgstr "已复制"
+
+msgctxt "#32458"
+msgid "Keep screen awake"
+msgstr "保持屏幕常亮"
+
+msgctxt "#32459"
+msgid "Enter the access token"
+msgstr "输入访问令牌"
+
+msgctxt "#32460"
+msgid "You will find it in the add-on settings under Dashboard."
+msgstr "可在插件设置的“仪表板”中找到。"
+
+msgctxt "#32461"
+msgid "Save"
+msgstr "保存"
+
+msgctxt "#32462"
+msgid "Cancel"
+msgstr "取消"
+
+msgctxt "#32463"
+msgid "Wrong or missing token"
+msgstr "令牌缺失或错误"
+
+msgctxt "#32464"
+msgid "Switching..."
+msgstr "正在切换..."
+
+msgctxt "#32465"
+msgid "Switched"
+msgstr "已切换"
+
+msgctxt "#32466"
+msgid "Switching failed"
+msgstr "切换失败"
+
+msgctxt "#32467"
+msgid "VS10 output"
+msgstr "VS10 输出"

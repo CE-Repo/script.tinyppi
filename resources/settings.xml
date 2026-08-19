@@ -5952,6 +5952,65 @@
                 </setting>
             </group>
         </category>
+        <category id="Dashboard" label="32430" help="32431">
+            <group id="1" label="32430">
+                <setting id="web_enabled" type="boolean" label="32432" help="32433">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="web_port" type="integer" label="32434" help="32435">
+                    <level>0</level>
+                    <default>8099</default>
+                    <constraints>
+                        <minimum>1024</minimum>
+                        <step>1</step>
+                        <maximum>65535</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable" setting="web_enabled">true</dependency>
+                    </dependencies>
+                    <control type="edit" format="integer" />
+                </setting>
+                <setting id="web_info" type="action" label="32444" help="32445">
+                    <level>0</level>
+                    <dependencies>
+                        <dependency type="enable" setting="web_enabled">true</dependency>
+                    </dependencies>
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,web_info)</data>
+                    </control>
+                </setting>
+            </group>
+            <group id="2" label="32436">
+                <setting id="web_token" type="string" label="32436" help="32437">
+                    <level>0</level>
+                    <default></default>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="edit" format="string">
+                        <heading>32436</heading>
+                    </control>
+                </setting>
+                <setting id="web_token_new" type="action" label="32438" help="32439">
+                    <level>0</level>
+                    <control type="button" format="action">
+                        <data>RunScript(script.tinyppi,web_token)</data>
+                    </control>
+                </setting>
+                <setting id="web_auth_read" type="boolean" label="32440" help="32441">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle" />
+                </setting>
+                <setting id="web_allow_control" type="boolean" label="32442" help="32443">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle" />
+                </setting>
+            </group>
+        </category>
         <category id="Channels" label="32350" help="32351">
             <group id="1" label="32388">
                 <setting id="channels_sdr" type="boolean" label="32356" help="32357">

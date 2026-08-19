@@ -1327,3 +1327,155 @@ msgstr "المدة التي تبقى فيها القراءة التي تغيّر
 msgctxt "#32429"
 msgid "Input"
 msgstr "الإدخال"
+
+msgctxt "#32430"
+msgid "Dashboard"
+msgstr "لوحة المعلومات"
+
+msgctxt "#32431"
+msgid "A live view of the playing stream in a browser on your phone or laptop, so the picture itself stays untouched."
+msgstr "عرض مباشر للمحتوى قيد التشغيل في متصفح على هاتفك أو حاسوبك، مع بقاء الصورة نفسها دون تغيير."
+
+msgctxt "#32432"
+msgid "Enable web dashboard"
+msgstr "تفعيل لوحة المعلومات على الويب"
+
+msgctxt "#32433"
+msgid "Serves the dashboard on this box's own address. Off by default; once it is on, anything on the same network can reach it, so do not forward its port to the internet."
+msgstr "تقدّم اللوحة على عنوان هذا الجهاز. معطّلة افتراضيًا؛ وعند تفعيلها يمكن لأي جهاز على الشبكة نفسها الوصول إليها، لذا لا تُحوِّل منفذها إلى الإنترنت."
+
+msgctxt "#32434"
+msgid "Port"
+msgstr "المنفذ"
+
+msgctxt "#32435"
+msgid "The port the dashboard listens on. Leave 8080 alone - Kodi's own web server usually has it."
+msgstr "المنفذ الذي تستمع عليه اللوحة. تجنّب 8080 - فعادةً ما يشغله خادم الويب الخاص بـ Kodi."
+
+msgctxt "#32436"
+msgid "Access token"
+msgstr "رمز الوصول"
+
+msgctxt "#32437"
+msgid "The key the dashboard asks for. Switching a VS10 mode from the browser always needs it; reading needs it only when the setting below says so."
+msgstr "المفتاح الذي تطلبه اللوحة. تبديل وضع VS10 من المتصفح يحتاجه دائمًا، أما القراءة فتحتاجه فقط عند تفعيل الإعداد أدناه."
+
+msgctxt "#32438"
+msgid "Generate a new token"
+msgstr "إنشاء رمز جديد"
+
+msgctxt "#32439"
+msgid "Replaces the token with a fresh one. Every browser still holding the old one is logged out."
+msgstr "يستبدل الرمز بآخر جديد، فيخرج كل متصفح ما زال يحمل القديم."
+
+msgctxt "#32440"
+msgid "Require the token for reading too"
+msgstr "طلب الرمز للقراءة أيضًا"
+
+msgctxt "#32441"
+msgid "Asks for the token before showing anything at all, not just before switching a mode. Turn this on when the box is on a shared network."
+msgstr "يطلب الرمز قبل عرض أي شيء، لا قبل التبديل فقط. فعّله إذا كان الجهاز على شبكة مشتركة."
+
+msgctxt "#32442"
+msgid "Allow VS10 switching from the dashboard"
+msgstr "السماح بتبديل VS10 من اللوحة"
+
+msgctxt "#32443"
+msgid "Shows the VS10 output modes for the playing source in the browser, so the mode can be switched from a phone. The token is required either way."
+msgstr "يعرض أوضاع إخراج VS10 للمصدر قيد التشغيل في المتصفح، فيمكن التبديل من الهاتف. الرمز مطلوب في الحالتين."
+
+msgctxt "#32444"
+msgid "Show address and token"
+msgstr "عرض العنوان والرمز"
+
+msgctxt "#32445"
+msgid "Shows the address to open in a browser, together with the current token."
+msgstr "يعرض العنوان الذي يُفتح في المتصفح مع الرمز الحالي."
+
+msgctxt "#32446"
+msgid "Web dashboard"
+msgstr "لوحة المعلومات على الويب"
+
+msgctxt "#32447"
+msgid "Open this address in a browser on the same network:"
+msgstr "افتح هذا العنوان في متصفح على الشبكة نفسها:"
+
+msgctxt "#32448"
+msgid "Connected"
+msgstr "متصل"
+
+msgctxt "#32449"
+msgid "Connecting..."
+msgstr "جارٍ الاتصال..."
+
+msgctxt "#32450"
+msgid "Disconnected"
+msgstr "غير متصل"
+
+msgctxt "#32451"
+msgid "Nothing is playing"
+msgstr "لا يوجد تشغيل"
+
+msgctxt "#32452"
+msgid "Start a video on the box and everything it carries appears here."
+msgstr "شغّل فيديو على الجهاز ليظهر هنا كل ما يحمله."
+
+msgctxt "#32453"
+msgid "Peak"
+msgstr "الذروة"
+
+msgctxt "#32454"
+msgid "Average"
+msgstr "المتوسط"
+
+msgctxt "#32455"
+msgid "Frame luminance, last 60 seconds"
+msgstr "سطوع الإطار، آخر 60 ثانية"
+
+msgctxt "#32456"
+msgid "Copy report"
+msgstr "نسخ التقرير"
+
+msgctxt "#32457"
+msgid "Copied"
+msgstr "تم النسخ"
+
+msgctxt "#32458"
+msgid "Keep screen awake"
+msgstr "إبقاء الشاشة مضاءة"
+
+msgctxt "#32459"
+msgid "Enter the access token"
+msgstr "أدخل رمز الوصول"
+
+msgctxt "#32460"
+msgid "You will find it in the add-on settings under Dashboard."
+msgstr "تجده في إعدادات الإضافة ضمن لوحة المعلومات."
+
+msgctxt "#32461"
+msgid "Save"
+msgstr "حفظ"
+
+msgctxt "#32462"
+msgid "Cancel"
+msgstr "إلغاء"
+
+msgctxt "#32463"
+msgid "Wrong or missing token"
+msgstr "الرمز مفقود أو غير صحيح"
+
+msgctxt "#32464"
+msgid "Switching..."
+msgstr "جارٍ التبديل..."
+
+msgctxt "#32465"
+msgid "Switched"
+msgstr "تم التبديل"
+
+msgctxt "#32466"
+msgid "Switching failed"
+msgstr "فشل التبديل"
+
+msgctxt "#32467"
+msgid "VS10 output"
+msgstr "إخراج VS10"
