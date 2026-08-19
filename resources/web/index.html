@@ -435,6 +435,97 @@ main {
 .row .d { color: var(--dim); font-size: 12.5px; }
 .row.changed .v { color: var(--accent-2); transition: none; }
 
+/* --- Dolby Vision metadata view ----------------------------------------- */
+
+.meta > summary {
+  padding: 12px 16px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: var(--tap);
+  list-style-position: inside;
+}
+.meta[open] > summary { border-bottom: 1px solid var(--line-soft); }
+.meta > summary:hover { color: var(--text); }
+.meta > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.meta > summary .count { margin-left: auto; letter-spacing: 0; font-weight: 500; }
+
+.metarows { padding: 4px 0 12px; }
+
+/* The metadata list is one long column on a phone and two on a wide screen:
+   the sections are independent of each other, so they read fine side by side
+   and the page stops being a mile long. */
+@media (min-width: 900px) {
+  .metarows { columns: 2; column-gap: 28px; padding: 8px 8px 14px; }
+  .mblock   { break-inside: avoid; }
+}
+
+.msection {
+  margin: 14px 16px 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.msection .state {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  color: var(--dim);
+  text-transform: none;
+}
+
+.mrow {
+  display: grid;
+  grid-template-columns: minmax(110px, 45%) 1fr;
+  gap: 10px;
+  padding: 3px 16px;
+  font-size: 12.5px;
+}
+.mrow .k { color: var(--muted); overflow-wrap: anywhere; }
+.mrow .v { text-align: right; overflow-wrap: anywhere; }
+
+.mwide {
+  padding: 3px 16px;
+  font-size: 12.5px;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+/* A trim pass only means anything read against its neighbours, so its cells
+   go in a scrolling row of fixed slots rather than wrapping into each other. */
+.mtable { padding: 2px 16px; overflow-x: auto; }
+.mtable > div {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(62px, 1fr);
+  gap: 8px;
+  font-size: 12px;
+  min-width: max-content;
+}
+.mtable .lead {
+  grid-column: 1;
+  min-width: 108px;
+  color: var(--muted);
+  text-align: left;
+}
+.mtable > div > span { text-align: right; }
+.mhead > div > span { color: var(--dim); font-size: 10.5px;
+                      text-transform: uppercase; letter-spacing: .06em; }
+
 /* --- Empty state -------------------------------------------------------- */
 
 .empty {
@@ -589,10 +680,10 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
   </section>
 
   <section class="tiles hidden" id="tiles">
-    <div class="tile"><span class="k" id="kPeak"></span>
-      <span class="v mono" id="vPeak">—</span><span class="u" id="uPeak">nits</span></div>
-    <div class="tile"><span class="k" id="kAvg"></span>
-      <span class="v mono" id="vAvg">—</span><span class="u" id="uAvg">nits</span></div>
+    <div class="tile" id="tPeak"><span class="k" id="kPeak"></span>
+      <span class="v mono" id="vPeak">—</span><span class="u">nits</span></div>
+    <div class="tile" id="tAvg"><span class="k" id="kAvg"></span>
+      <span class="v mono" id="vAvg">—</span><span class="u">nits</span></div>
     <div class="tile"><span class="k" id="kAr"></span>
       <span class="v mono" id="vAr">—</span><span class="u">&nbsp;</span></div>
     <div class="tile"><span class="k" id="kFps"></span>
@@ -632,6 +723,11 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 
   <div class="groups" id="groups"></div>
 
+  <details class="card meta hidden" id="metaCard">
+    <summary><span id="metaTitle"></span><span class="count mono" id="metaCount"></span></summary>
+    <div class="metarows" id="metaRows"></div>
+  </details>
+
   <footer>
     <span id="foot"></span>
     <button class="ghost" id="copyBtn" type="button"></button>
@@ -670,6 +766,7 @@ const HISTORY_SECONDS = 60;
 /* Chrome strings, replaced by the localized set from /api/hello. */
 let T = {
   connected: "Connected", connecting: "Connecting…", offline: "Disconnected",
+  metadata: "Dolby Vision metadata view",
   idle_title: "Nothing is playing", idle_text: "",
   peak: "Peak", average: "Average", aspect: "Aspect ratio", fps: "FPS",
   chart: "Frame luminance", active_area: "Active picture", vs10: "VS10 output",
@@ -686,12 +783,13 @@ const el = {
   badges: $("badges"), title: $("title"), file: $("file"),
   bar: $("bar"), tElapsed: $("tElapsed"), tTotal: $("tTotal"),
   nowCard: $("nowCard"), idleCard: $("idleCard"),
-  tiles: $("tiles"), vPeak: $("vPeak"), vAvg: $("vAvg"), vAr: $("vAr"), vFps: $("vFps"),
-  uFps: $("uFps"),
+  tiles: $("tiles"), tPeak: $("tPeak"), tAvg: $("tAvg"),
+  vPeak: $("vPeak"), vAvg: $("vAvg"), vAr: $("vAr"), vFps: $("vFps"), uFps: $("uFps"),
   chartCard: $("chartCard"), chart: $("chart"), chartScale: $("chartScale"),
   frameCard: $("frameCard"), frameActive: $("frameActive"), frameNote: $("frameNote"),
   vs10Card: $("vs10Card"), vs10Out: $("vs10Out"), modes: $("modes"),
   groups: $("groups"), toast: $("toast"), foot: $("foot"),
+  metaCard: $("metaCard"), metaRows: $("metaRows"), metaCount: $("metaCount"),
   dialog: $("tokenDialog"), tokenInput: $("tokenInput"),
   wakeBtn: $("wakeBtn"), copyBtn: $("copyBtn")
 };
@@ -806,7 +904,7 @@ function render(next) {
   if (!next.playing) {
     el.nowCard.classList.add("hidden");
     el.idleCard.classList.remove("hidden");
-    for (const id of ["tiles", "chartCard", "frameCard", "vs10Card"]) {
+    for (const id of ["tiles", "chartCard", "frameCard", "vs10Card", "metaCard"]) {
       $(id).classList.add("hidden");
     }
     el.groups.innerHTML = "";
@@ -825,6 +923,7 @@ function render(next) {
   renderFrame(next.metrics || {});
   renderVs10(next.vs10 || {});
   renderGroups(next.groups || []);
+  renderMetadata(next.metadata);
 }
 
 function renderNow(snapshot) {
@@ -836,8 +935,10 @@ function renderNow(snapshot) {
     el.file.classList.add("hidden");
   }
 
-  const badges = [];
-  if (snapshot.hdr_type) badges.push({ text: prettyHdr(snapshot.hdr_type), alt: false });
+  /* An empty source type is SDR, not "unknown": the add-on publishes a token
+     only for the HDR formats (see publish_hdr_type), which is the same thing
+     the VS10 buttons branch on. */
+  const badges = [{ text: prettyHdr(snapshot.hdr_type || "sdr"), alt: false }];
   if (snapshot.effective && snapshot.effective !== snapshot.hdr_type) {
     badges.push({ text: "→ " + prettyHdr(snapshot.effective), alt: true });
   }
@@ -871,6 +972,12 @@ function prettyHdr(value) {
 function renderTiles(metrics) {
   el.tiles.classList.remove("hidden");
   const l1 = metrics.l1 || {};
+  /* Peak and average come from the Dolby Vision L1 block and from nowhere
+     else, so on any other source the two tiles are left out entirely rather
+     than shown holding a dash. */
+  const hasL1 = l1.max !== null && l1.max !== undefined;
+  el.tPeak.classList.toggle("hidden", !hasL1);
+  el.tAvg.classList.toggle("hidden", !hasL1);
   el.vPeak.textContent = fmtNits(l1.max);
   el.vAvg.textContent  = fmtNits(l1.avg);
   el.vAr.textContent   = metrics.aspect ? metrics.aspect.toFixed(2) + ":1" : "—";
@@ -1136,7 +1243,7 @@ function renderRows(container, group) {
       if (row.detail) {
         const detail = document.createElement("span");
         detail.className = "d";
-        detail.textContent = "(" + row.detail + ")";
+        detail.textContent = row.detail;
         node.value.append(detail);
       }
     }
@@ -1159,6 +1266,132 @@ function flash(node) {
   node.timer = setTimeout(() => node.element.classList.remove("changed"), 750);
 }
 
+/* --- Dolby Vision metadata view ----------------------------------------- */
+
+/* The rows arrive as (kind, name, value) exactly as info.dvmetadata builds
+   them for the on-screen view, so what is listed here is what the bitstream
+   said -- nothing is picked out or interpreted on the way. */
+
+const META_OPEN_KEY = "tinyppi.meta.open";
+let metaSignature = "";
+let live = [];   /* {node, index, field} for every reading that moves */
+
+function renderMetadata(rows) {
+  if (!rows || !rows.length) {
+    el.metaCard.classList.add("hidden");
+    metaSignature = "";
+    live = [];
+    return;
+  }
+  el.metaCard.classList.remove("hidden");
+  el.metaCount.textContent = rows.filter((r) => r.kind !== "space").length;
+
+  /* Rebuilding a hundred-odd nodes five times a second would fight the
+     browser for no gain, and the list only changes shape when a block comes
+     or goes.  So the values are written in place and the nodes are rebuilt
+     only when the shape itself moves. */
+  const signature = rows.map((r) => r.kind + "\u001f" + r.name).join("\u001e");
+  if (signature !== metaSignature) {
+    metaSignature = signature;
+    buildMetadata(rows);
+    return;
+  }
+  updateMetadata(rows);
+}
+
+function buildMetadata(rows) {
+  const frag = document.createDocumentFragment();
+  el.metaRows.textContent = "";
+  live = [];
+
+  /* Each section and its rows go in a block of their own, so the two-column
+     layout on a wide screen breaks between sections and never through one. */
+  let block = null;
+  const open = () => {
+    block = document.createElement("div");
+    block.className = "mblock";
+    frag.append(block);
+    return block;
+  };
+
+  rows.forEach((row, index) => {
+    if (row.kind === "space") return;          /* the blocks space themselves */
+    if (row.kind === "section" || !block) open();
+
+    let node;
+    if (row.kind === "section") {
+      node = document.createElement("div");
+      node.className = "msection";
+      const name = document.createElement("span");
+      name.textContent = row.name;
+      node.append(name);
+      /* A held block says so on its heading -- see info.dvmetadata._state. */
+      const state = document.createElement("span");
+      state.className = "state";
+      state.textContent = row.value || "";
+      node.append(state);
+      live.push({ node: state, index, field: "value" });
+    } else if (row.kind === "wide") {
+      node = document.createElement("div");
+      node.className = "mwide mono";
+      node.textContent = row.value;
+      live.push({ node, index, field: "value" });
+    } else if (row.kind === "headings" || row.kind === "columns") {
+      node = document.createElement("div");
+      node.className = "mtable" + (row.kind === "headings" ? " mhead" : " mono");
+      const line = document.createElement("div");
+      const lead = document.createElement("span");
+      lead.className = "lead";
+      lead.textContent = row.name;
+      line.append(lead);
+      for (const cell of row.cells || []) {
+        const span = document.createElement("span");
+        span.textContent = cell;
+        line.append(span);
+      }
+      node.append(line);
+      live.push({ node: line, index, field: "cells" });
+    } else {
+      node = document.createElement("div");
+      node.className = "mrow";
+      const key = document.createElement("span");
+      key.className = "k";
+      key.textContent = row.name;
+      const value = document.createElement("span");
+      value.className = "v mono";
+      value.textContent = row.value;
+      node.append(key, value);
+      live.push({ node: value, index, field: "value" });
+    }
+    block.append(node);
+  });
+
+  el.metaRows.append(frag);
+}
+
+/* Where each live reading landed, so a tick writes the values straight into
+   the nodes that hold them instead of walking the tree for them. */
+function updateMetadata(rows) {
+  for (const entry of live) {
+    const row = rows[entry.index];
+    if (!row) continue;
+    if (entry.field === "cells") {
+      const cells = entry.node.children;
+      (row.cells || []).forEach((cell, index) => {
+        const span = cells[index + 1];
+        if (span && span.textContent !== cell) span.textContent = cell;
+      });
+    } else {
+      const text = row.value || "";
+      if (entry.node.textContent !== text) entry.node.textContent = text;
+    }
+  }
+}
+
+el.metaCard.addEventListener("toggle", () => {
+  localStorage.setItem(META_OPEN_KEY, el.metaCard.open ? "1" : "0");
+});
+
 /* --- report ------------------------------------------------------------- */
 
 function buildReport() {
@@ -1175,6 +1408,13 @@ function buildReport() {
       lines.push("  " + row.label.padEnd(width) + "  " + row.value + detail);
     }
     lines.push("");
+  }
+  for (const row of state.metadata || []) {
+    if (row.kind === "space") lines.push("");
+    else if (row.kind === "section") lines.push("[" + row.name + (row.value ? " - " + row.value : "") + "]");
+    else if (row.kind === "wide") lines.push("  " + row.value);
+    else if (row.cells) lines.push("  " + row.name.padEnd(26) + row.cells.join("  "));
+    else lines.push("  " + row.name.padEnd(26) + row.value);
   }
   return lines.join("\n");
 }
@@ -1241,6 +1481,7 @@ function applyStrings(strings) {
   $("chartScale").textContent = "nits · log";
   $("frameTitle").textContent = T.active_area;
   $("vs10Title").textContent = T.vs10;
+  $("metaTitle").textContent = T.metadata;
   $("vs10OutLabel").textContent = T.output;
   $("dlgTitle").textContent = T.token_title;
   $("dlgText").textContent = T.token_text;
@@ -1254,6 +1495,7 @@ function applyStrings(strings) {
 
 async function boot() {
   applyStrings({});
+  el.metaCard.open = localStorage.getItem(META_OPEN_KEY) !== "0";
   try {
     const hello = await (await fetch("/api/hello")).json();
     el.version.textContent = "v" + hello.version;

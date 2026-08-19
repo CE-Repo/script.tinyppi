@@ -71,6 +71,7 @@ _UI_STRINGS = {
     "chart":         32455,
     "active_area":   32030,   # L5 Active Area
     "vs10":          32467,
+    "metadata":      32393,   # Dolby Vision metadata view
     "output":        32055,   # Output
     "copy":          32456,
     "copied":        32457,
@@ -222,6 +223,7 @@ class _Producer(threading.Thread):
                 snapshot = self._builder.build(
                     addon,
                     allow_filename=addon.getSetting("filename") == "true",
+                    metadata=addon.getSetting("web_metadata") == "true",
                 )
                 with self._condition:
                     self._snapshot = snapshot

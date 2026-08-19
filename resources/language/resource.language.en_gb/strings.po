@@ -1478,3 +1478,11 @@ msgstr ""
 msgctxt "#32467"
 msgid "VS10 output"
 msgstr ""
+
+msgctxt "#32468"
+msgid "Show the Dolby Vision metadata view"
+msgstr ""
+
+msgctxt "#32469"
+msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
+msgstr ""

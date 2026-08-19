@@ -240,16 +240,26 @@ a phone in your hand.
   bars, and the frame rate with dropped frames called out.
 - **A live luminance chart** — the Dolby Vision L1 peak and frame average over
   the last 60 seconds, on a logarithmic scale, so the film's own light
-  behaviour is visible as it plays. Only a Dolby Vision source carries L1, so
-  the chart appears for those and is left out otherwise.
+  behaviour is visible as it plays.
 - **The active picture area** the RPU declares (L5), drawn to scale inside the
   coded frame — the letterbox as the stream describes it, changing with the
   scene on an IMAX Enhanced title.
 - **Every row of the overlay**, grouped as it is on screen: Video, Processing,
   Audio, HDR static metadata, Dolby Vision metadata and System. A reading that
   just moved is highlighted the same way the overlay highlights it.
-- **Copy report** hands the whole set over as plain text, ready to paste into a
-  forum post.
+- **The full Dolby Vision metadata view** — every block the stream's side data
+  carries, the same list the on-screen view shows, laid out in two columns on
+  a wide screen. It can be collapsed, and turned off entirely under
+  **Settings → Dashboard** (it is the largest thing the page sends).
+- **Copy report** hands the whole set over as plain text — the rows and the
+  metadata list together — ready to paste into a forum post.
+
+What a source cannot carry is left out rather than shown empty: the peak and
+average tiles, the luminance chart, the active-area box and both metadata
+sections come from the Dolby Vision RPU, so they appear for a Dolby Vision
+title and not for any other, and the HDR static-metadata group is left out on
+an SDR one. That is the same rule the overlay follows when it decides which
+panels to draw.
 
 The row labels come from Kodi's own string table, so the dashboard is in the
 same language the overlay is. Nothing is loaded from the internet: the page is
@@ -261,9 +271,9 @@ while it is open.
 
 With **Allow VS10 switching from the dashboard** on (the default), the page
 shows the output modes that apply to the playing source — the same set the
-on-screen VS10 dialog offers — and a tap applies one. The switch is handed to
-the add-on's own `run_mode` entry point, so it takes exactly the path a keymap
-shortcut takes, native VS10 actions included.
+on-screen VS10 dialog offers, SDR sources included — and a tap applies one.
+The switch is handed to the add-on's own `run_mode` entry point, so it takes
+exactly the path a keymap shortcut takes, native VS10 actions included.
 
 Switching **always** requires the access token, whatever reading is set to.
 

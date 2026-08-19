@@ -1478,3 +1478,11 @@ msgstr "Umschalten fehlgeschlagen"
 msgctxt "#32467"
 msgid "VS10 output"
 msgstr "VS10-Ausgabe"
+
+msgctxt "#32468"
+msgid "Show the Dolby Vision metadata view"
+msgstr "Dolby-Vision-Metadatenansicht anzeigen"
+
+msgctxt "#32469"
+msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
+msgstr "Fügt dem Dashboard die vollständige Metadatenliste hinzu - jeden Block, den die Side Data des Streams mitbringt, dieselbe wie in der Ansicht auf dem Bildschirm. Sie wird nur für eine Dolby-Vision-Quelle gebaut und ist das Größte, was die Seite überträgt; in einem langsamen Netzwerk also besser aus."

@@ -26,6 +26,7 @@ from info.dvinfo import (
     get_l5_offsets,
     is_status_label,
 )
+from info import dvmetadata
 from info.properties import (
     publish_scene_properties,
     publish_static_properties,
@@ -79,10 +80,11 @@ def S(key: str, prefix: str = "", suffix: str = "") -> tuple[str, str, str]:
 _VIDEO = (
     (32000, (S("DisplayModeVar"),), ()),
     (32001, (S("VideoResolutionVar"),), ()),
-    (32023, (S("VideoPixelFormatVar"),), (S("DoviTunnelVar"),)),
+    (32023, (S("VideoPixelFormatVar"),), (S("DoviTunnelVar", "(", ")"),)),
     (32099, (S("VideoBitDepthVar"),), ()),
-    (32024, (S("AspectRatioVar", "", ":1"),), (S("ImaxVar"),)),
-    (32005, (S("VideoDecoderNameVar"), S("VideoCodecVar")), (S("VideoDecoderVar"),)),
+    (32024, (S("AspectRatioVar", "", ":1"),), (S("ImaxVar", "(", ")"),)),
+    (32005, (S("VideoDecoderNameVar"), S("VideoCodecVar")),
+            (S("VideoDecoderVar", "(", ")"),)),
     (32287, (S("VideoDecoderLongVar"),), ()),
 )
 
@@ -90,27 +92,29 @@ _PROCESSING = (
     (32051, (S("DoviProfileVar"),), ()),
     (32070, (S("ModeVar"),), ()),
     (32015, (S("GamutVar"),), ()),
-    (32047, (S("VideoLiveBitrateVar"),), (S("VideoBitrateMBVar", "Ø ", ""),)),
+    (32047, (S("VideoLiveBitrateVar"),), (S("VideoBitrateMBVar", "(Ø ", ")"),)),
     (32288, (S("MediaSourceVar"),), ()),
     (32013, (S("PlayerTime"), S("PlayerDuration", " / ", "")),
-             (S("PlayerProgress", "", "%"),)),
+             (S("PlayerProgress", "(", "%)"),)),
 )
 
 _AUDIO = (
+    # ``AudioCodecSpatialVar`` is stored as "(Atmos)" / "(IMAX Enhanced)",
+    # parentheses and all, so this is the one detail that adds none.
     (32045, (S("AudioCodecVar"), S("AudioChannelsVar", " ", "")),
              (S("AudioCodecSpatialVar"),)),
     (32069, (S("AudioBitDepthVar", "", " / "), S("AudioSampleRateVar")), ()),
     (32429, (S("AudioChannelsInputVar"),), ()),
     (32055, (S("AudioChannelsSink"),), ()),
-    (32047, (S("AudioLiveBitrateVar"),), (S("AudioBitrateKBVar", "Ø ", ""),)),
+    (32047, (S("AudioLiveBitrateVar"),), (S("AudioBitrateKBVar", "(Ø ", ")"),)),
     (32052, (S("AudioNameShortVar"), S("AudioNameVar", " | ", "")), ()),
     (32053, (S("SubtitleNameShortVar"), S("SubtitleNameVar", " | ", "")),
-             (S("SubtitleCodecVar"),)),
+             (S("SubtitleCodecVar", "(", ")"),)),
 )
 
 _SYSTEM = (
     (32036, (S("FpsInfoVar"), S("FpsDropVar", " = ", " FPS")), ()),
-    (32014, (S("CpuUsageVar"),), (S("CpuTopUsageVar"),)),
+    (32014, (S("CpuTopUsageVar", "", " |"), S("CpuUsageVar", " ", "")), ()),
     (32018, (S("CpuTemperature"),), ()),
     (32034, (S("MemoryUsed"),), ()),
     (32032, (S("PlayerCacheLevel", "", "%"),), ()),
@@ -129,7 +133,7 @@ _DOLBY_VISION = (
     (32379, (S("DoviCmVersionVar"),), ()),
     (32380, (S("DoviStructureVar"),), ()),
     (32381, (S("DoviRpuPresentFlag"), S("DoviBlPresentFlag", " / ", "")), ()),
-    (32382, (S("DoviElPresentFlag"),), (S("DoviElTypeVar"),)),
+    (32382, (S("DoviElPresentFlag"),), (S("DoviElTypeVar", "(", ")"),)),
     (32425, (S("DoviRpuMdlVar"),), ()),
     (32426, (S("DoviLevel6RpuMaxCllFallVar"),), ()),
     (32375, (S("DoviLevel1FllVar"),), ()),
@@ -137,15 +141,37 @@ _DOLBY_VISION = (
     (32030, (S("DoviLevel5OffsetsVar"),), ()),
 )
 
-# (group id, title string ID, rows).  The ids travel to the browser so the
-# page can style a group without matching on a translated title.
+def _always(source: str) -> bool:
+    return True
+
+
+def _is_dv(source: str) -> bool:
+    """Dolby Vision, the only source with an RPU behind these rows."""
+    return "dolby" in source
+
+
+def _is_hdr(source: str) -> bool:
+    """Any HDR source.  ``publish_hdr_type`` leaves the property empty for
+    SDR, which is what the skin's own ``String.IsEmpty`` branch tests."""
+    return bool(source)
+
+
+# (group id, title string ID, rows, applies-to).  The ids travel to the browser
+# so the page can style a group without matching on a translated title.
+#
+# The last entry is what keeps the page honest about a source: the RPU-backed
+# getters pad an absent block out to zeroes rather than leaving it empty (see
+# dvinfo._value_or), so on an SDR title every Dolby Vision row would render a
+# row of noughts and every HDR10 row a mastering display nothing declared.
+# The overlay solves this by not drawing those panels at all; the groups here
+# are left out for the same reason.
 _GROUPS = (
-    ("video",      32054, _VIDEO),
-    ("processing", 32007, _PROCESSING),
-    ("audio",      32056, _AUDIO),
-    ("hdr",        32300, _HDR_STATIC),
-    ("dv",         32389, _DOLBY_VISION),
-    ("system",     32088, _SYSTEM),
+    ("video",      32054, _VIDEO,       _always),
+    ("processing", 32007, _PROCESSING,  _always),
+    ("audio",      32056, _AUDIO,       _always),
+    ("hdr",        32300, _HDR_STATIC,  _is_hdr),
+    ("dv",         32389, _DOLBY_VISION, _is_dv),
+    ("system",     32088, _SYSTEM,      _always),
 )
 
 # Extra readings the overlay takes straight from Kodi rather than through
@@ -232,6 +258,19 @@ def _first_number(value: str) -> float | None:
     return numbers[0] if numbers else None
 
 
+def _metadata_row(kind: str, name: str, value) -> dict:
+    """One ``info.dvmetadata`` row as the page consumes it.
+
+    A trim-table row carries its cells as a list rather than as one string
+    (the on-screen view draws each in a fixed slot of its own), so the value
+    is passed on as a list where it arrives as one and as text otherwise.
+    """
+    if isinstance(value, (list, tuple)):
+        return {"kind": kind, "name": clean_value(name),
+                "cells": [clean_value(str(cell)) for cell in value]}
+    return {"kind": kind, "name": clean_value(name), "value": clean_value(str(value))}
+
+
 # --- Snapshot --------------------------------------------------------------
 
 class SnapshotBuilder:
@@ -253,6 +292,8 @@ class SnapshotBuilder:
         self._published: dict[str, str] = {}
         self._static_at = 0.0
         self._sequence  = 0
+        self._meta_static: list = []
+        self._meta_static_at = 0.0
 
     def _refresh(self) -> None:
         """Recompute the readings into the sink, static half on its own timer."""
@@ -321,15 +362,45 @@ class SnapshotBuilder:
             "cache":    _first_number(values.get("PlayerCacheLevel", "")),
         }
 
-    def _groups(self, values: dict[str, str], addon) -> list[dict]:
+    def _metadata(self, is_dv: bool, enabled: bool) -> list[dict]:
+        """The Dolby Vision metadata view's rows, the same list the on-screen
+        view is built from.
+
+        Split across the two cadences exactly as ``ui.dvmetadata`` splits it:
+        the per-frame blocks (L1, L2, L5, L8, HDR10+) are rebuilt every tick,
+        the title-level ones on the slower timer, and ``join_rows`` decides the
+        separator between them against whichever scene rows are current -- so
+        the halves cannot disagree about the shape of the joined list.
+
+        Only a Dolby Vision source has an RPU to walk, so anything else gets an
+        empty list and the page leaves the section out.
+        """
+        if not (is_dv and enabled):
+            self._meta_static = []
+            self._meta_static_at = 0.0
+            return []
+
+        scene, parsed, origin, carried = dvmetadata.build_scene_rows()
+        now = time.monotonic()
+        if not self._meta_static or now - self._meta_static_at >= self.STATIC_INTERVAL:
+            self._meta_static_at = now
+            self._meta_static = dvmetadata.build_static_rows(parsed, origin, carried)
+
+        rows = dvmetadata.join_rows(scene, self._meta_static)
+        return [_metadata_row(kind, name, value) for kind, name, value in rows]
+
+    def _groups(self, values: dict[str, str], addon, source: str) -> list[dict]:
         """The printed rows, grouped and titled the way the overlay is.
 
         A row whose value renders empty is left out entirely rather than shown
         blank: the panels a stream does not carry then simply do not appear,
-        which is what makes the page readable on a phone.
+        which is what makes the page readable on a phone.  A whole group whose
+        source cannot carry it goes the same way (see ``_GROUPS``).
         """
         groups = []
-        for group_id, title_id, rows in _GROUPS:
+        for group_id, title_id, rows, applies in _GROUPS:
+            if not applies(source):
+                continue
             rendered = []
             for label_id, segments, detail in rows:
                 value = _render(segments, values)
@@ -349,7 +420,8 @@ class SnapshotBuilder:
                 })
         return groups
 
-    def build(self, addon=None, allow_filename: bool = True) -> dict:
+    def build(self, addon=None, allow_filename: bool = True,
+              metadata: bool = True) -> dict:
         """One complete snapshot.  Cheap enough for the producer's cadence:
         the whole pass shares a single side-data parse (see ``info.dvinfo``)
         and writes nothing to any window Kodi draws."""
@@ -363,18 +435,24 @@ class SnapshotBuilder:
             self._sink   = PropertySink()
             self._published = {}
             self._static_at = 0.0
+            self._meta_static = []
+            self._meta_static_at = 0.0
             return {
-                "seq":     self._sequence,
-                "playing": False,
-                "groups":  [],
-                "metrics": {},
-                "vs10":    vs10_state(""),
+                "seq":      self._sequence,
+                "playing":  False,
+                "groups":   [],
+                "metrics":  {},
+                "metadata": [],
+                "vs10":     vs10_state("", playing=False),
             }
 
         self._refresh()
         values = self._values()
         home   = xbmcgui.Window(_HOME_WINDOW_ID)
         source = home.getProperty(_PROP_HDR_TYPE)
+        # Lower-cased once: every branch below asks the same question of it.
+        source_key = source.strip().lower()
+        is_dv      = _is_dv(source_key)
 
         return {
             "seq":       self._sequence,
@@ -388,9 +466,10 @@ class SnapshotBuilder:
             "effective": home.getProperty(PROP_EFFECTIVE_HDR_TYPE),
             "time":      values.get("PlayerTime", ""),
             "duration":  values.get("PlayerDuration", ""),
-            "metrics":   self._metrics(values, "dolby" in source.lower()),
-            "groups":    self._groups(values, addon),
-            "vs10":      vs10_state(source),
+            "metrics":   self._metrics(values, is_dv),
+            "groups":    self._groups(values, addon, source_key),
+            "metadata":  self._metadata(is_dv, metadata),
+            "vs10":      vs10_state(source_key),
         }
 
 
@@ -422,32 +501,34 @@ _VS10_OPTIONS = {
 }
 
 
-def _options_for(source: str) -> tuple:
+def _options_for(source: str, playing: bool = True) -> tuple:
     """The mode buttons that apply to ``source``.
 
     ``hdr10plus`` contains ``hdr10`` and takes the same three, matching the
-    skin's own ``String.Contains`` branches.
+    skin's own ``String.Contains`` branches.  An **empty** source is SDR, not
+    "unknown": ``publish_hdr_type`` writes a token only for the HDR formats,
+    and the dialog's own SDR group is the one behind ``String.IsEmpty`` (see
+    script-tinyppi-dialog.xml).  So the buttons only fall away when nothing is
+    playing at all and there is no source to convert.
     """
-    key = (source or "").strip().lower()
-    if not key:
+    if not playing:
         return ()
+    key = (source or "").strip().lower()
     if "dolby" in key:
         return _VS10_OPTIONS["dolby vision"]
     if "hlg" in key:
         return _VS10_OPTIONS["hlg"]
     if "hdr10" in key:
         return _VS10_OPTIONS["hdr10"]
-    if "sdr" in key:
-        return _VS10_OPTIONS["sdr"]
-    return ()
+    return _VS10_OPTIONS["sdr"]
 
 
-def vs10_state(source: str) -> dict:
+def vs10_state(source: str, playing: bool = True) -> dict:
     """What the dashboard needs to draw its VS10 controls: the buttons that
     apply to the playing source, and the output the driver is in now."""
     return {
         "options": [{"mode": mode, "label": label}
-                    for mode, label in _options_for(source)],
+                    for mode, label in _options_for(source, playing)],
         "output":  info("Player.Process(amlogic.eoft_gamut)").split(",")[0].strip(),
     }
 

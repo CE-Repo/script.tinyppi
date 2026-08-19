@@ -1478,3 +1478,11 @@ msgstr "A váltás nem sikerült"
 msgctxt "#32467"
 msgid "VS10 output"
 msgstr "VS10 kimenet"
+
+msgctxt "#32468"
+msgid "Show the Dolby Vision metadata view"
+msgstr "A Dolby Vision metaadat-nézet megjelenítése"
+
+msgctxt "#32469"
+msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
+msgstr "Hozzáadja a teljes metaadatlistát a vezérlőpulthoz - minden blokkot, amit az adatfolyam mellékadatai hordoznak, ugyanazt, amit a képernyőn látható nézet mutat. Csak Dolby Vision forráshoz készül el, és ez a legnagyobb, amit az oldal küld, ezért lassú hálózaton kapcsold ki."

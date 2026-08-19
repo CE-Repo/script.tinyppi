@@ -1478,3 +1478,11 @@ msgstr "切换失败"
 msgctxt "#32467"
 msgid "VS10 output"
 msgstr "VS10 输出"
+
+msgctxt "#32468"
+msgid "Show the Dolby Vision metadata view"
+msgstr "显示 Dolby Vision 元数据视图"
+
+msgctxt "#32469"
+msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
+msgstr "在仪表板中加入完整的元数据列表 - 流的附加数据所携带的每一个区块，与屏幕上的视图相同。仅对 Dolby Vision 源构建，也是页面传输量最大的部分，网络较慢时请关闭。"
