@@ -30,33 +30,9 @@
    down a mile of page. */
 main { max-width: 1360px; }
 
-.subject {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 10px;
-  padding: 2px 2px 0;
-}
-.subject h1 {
-  margin: 0;
-  font-size: clamp(17px, 3.6vw, 22px);
-  font-weight: 650;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-}
-.subject .badge {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  padding: 4px 9px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  white-space: nowrap;
-}
-.subject .count { margin-left: auto; color: var(--dim); font-size: 12.5px; }
+/* The row count, in the footer's small print: how many readings this list is
+   holding, which is the one thing the panels above do not say. */
+.count { color: var(--dim); font-size: 12.5px; }
 
 .metarows { padding: 6px 0 14px; }
 
@@ -176,11 +152,7 @@ main { max-width: 1360px; }
 </header>
 
 <main>
-  <div class="subject">
-    <span class="badge" id="badge">DV</span>
-    <h1 id="title">—</h1>
-    <span class="count mono" id="count"></span>
-  </div>
+  <div id="live"></div>
 
   <section class="card" id="listCard">
     <div class="metarows" id="metaRows"></div>
@@ -195,6 +167,7 @@ main { max-width: 1360px; }
 
   <footer>
     <span id="foot"></span>
+    <span class="count mono" id="count"></span>
     <button class="ghost" id="copyBtn" type="button"></button>
   </footer>
 </main>
@@ -215,7 +188,7 @@ const $ = TinyPPI.$;
 const T = TinyPPI.T;
 
 const el = {
-  version: $("version"), badge: $("badge"), title: $("title"), count: $("count"),
+  version: $("version"), count: $("count"),
   listCard: $("listCard"), idleCard: $("idleCard"), metaRows: $("metaRows"),
   foot: $("foot"), copyBtn: $("copyBtn")
 };
@@ -233,8 +206,10 @@ function render(next) {
   document.title = next.title
     ? next.title + " — " + T.metadata
     : "TinyPPI — " + T.metadata;
-  el.title.textContent = next.title || "—";
-  el.badge.textContent = TinyPPI.prettyHdr(next.hdr_type);
+  /* What is playing, the four figures and the last minute of luminance: the
+     same three the dashboard opens on, from the same snapshot, so a screen
+     left on this page still says what the film is doing. */
+  TinyPPI.panels.update(next);
 
   if (!rows.length) {
     el.listCard.classList.add("hidden");
@@ -244,7 +219,6 @@ function render(next) {
        one that has answered. */
     $("idleTitle").textContent = next.playing ? T.no_metadata : T.idle_title;
     $("idleText").textContent  = next.playing ? T.no_metadata_text : T.idle_text;
-    el.badge.classList.toggle("hidden", !next.playing);
     el.count.textContent = "";
     signature = "";
     live = [];
@@ -254,7 +228,6 @@ function render(next) {
 
   el.listCard.classList.remove("hidden");
   el.idleCard.classList.add("hidden");
-  el.badge.classList.remove("hidden");
   el.count.textContent = rows.filter((row) => row.kind !== "space").length;
 
   /* Rebuilding a hundred-odd nodes five times a second would fight the browser
@@ -502,6 +475,7 @@ el.copyBtn.addEventListener("click", async () => {
 /* --- boot --------------------------------------------------------------- */
 
 function applyStrings(strings, hello) {
+  TinyPPI.panels.strings(strings);
   el.copyBtn.textContent = strings.copy;
   if (hello) {
     el.version.textContent = "v" + hello.version;

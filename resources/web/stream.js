@@ -211,3 +211,284 @@ window.TinyPPI = (function () {
   };
 
 })();
+
+
+/* ===========================================================================
+   The live panels, for whichever page asks for them.
+
+   What is playing, the four figures worth a glance, and the last minute of
+   frame luminance -- the dashboard opens on them, and the metadata window
+   shows the same three, so a second screen left on that page still says what
+   the film is doing.
+
+   Here rather than in a file of its own for the same reason the toast and the
+   token dialog are: the pages reach this server through an allowlist of
+   routes built when the service starts (see web/server.py _static_routes), so
+   a new file is a file the running add-on has no route to until Kodi is
+   restarted, while this one is already served.
+
+   A page opts in by putting <div id="live"></div> where the panels belong;
+   the markup and the drawing are here, the styling is in style.css.  It then
+   hands the snapshot on through TinyPPI.panels.update() and the localized
+   strings through .strings().
+=========================================================================== */
+
+(function () {
+
+  const host = document.getElementById("live");
+  if (!host) return;
+
+  /* How much of the past the chart holds, in seconds.  The heading names the
+     same span, so the two move together. */
+  const HISTORY_SECONDS = 60;
+
+  host.innerHTML =
+    '<section class="card" id="nowCard">' +
+      '<div class="now">' +
+        '<div class="badges" id="badges"></div>' +
+        '<h1 id="title">—</h1>' +
+        '<p class="file mono hidden" id="file"></p>' +
+        '<div class="progress">' +
+          '<div class="track"><i id="bar"></i></div>' +
+          '<div class="times mono">' +
+            '<span id="tElapsed">--:--</span><span id="tTotal">--:--</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</section>' +
+    '<section class="tiles hidden" id="tiles">' +
+      '<div class="tile" id="tPeak"><span class="k" id="kPeak"></span>' +
+        '<span class="v mono" id="vPeak">—</span><span class="u">nits</span></div>' +
+      '<div class="tile" id="tAvg"><span class="k" id="kAvg"></span>' +
+        '<span class="v mono" id="vAvg">—</span><span class="u">nits</span></div>' +
+      '<div class="tile"><span class="k" id="kAr"></span>' +
+        '<span class="v mono" id="vAr">—</span><span class="u">&nbsp;</span></div>' +
+      '<div class="tile"><span class="k" id="kFps"></span>' +
+        '<span class="v mono" id="vFps">—</span><span class="u" id="uFps">&nbsp;</span></div>' +
+    '</section>' +
+    '<section class="card hidden" id="chartCard">' +
+      '<h2 id="chartTitle"></h2>' +
+      '<div class="chartwrap">' +
+        '<canvas id="chart" role="img"></canvas>' +
+        '<div class="legend">' +
+          '<span><i class="swatch band"></i>Max</span>' +
+          '<span><i class="swatch avg"></i>Ø</span>' +
+          '<span id="chartScale" style="margin-left:auto"></span>' +
+        '</div>' +
+      '</div>' +
+    '</section>';
+
+  const $ = (id) => document.getElementById(id);
+
+  const el = {
+    nowCard: $("nowCard"), badges: $("badges"), title: $("title"), file: $("file"),
+    bar: $("bar"), tElapsed: $("tElapsed"), tTotal: $("tTotal"),
+    tiles: $("tiles"), tPeak: $("tPeak"), tAvg: $("tAvg"),
+    vPeak: $("vPeak"), vAvg: $("vAvg"), vAr: $("vAr"),
+    vFps: $("vFps"), uFps: $("uFps"),
+    chartCard: $("chartCard"), chart: $("chart")
+  };
+
+  let history = [];   /* {t, min, max, avg}, the last HISTORY_SECONDS of them */
+
+  /* --- what is playing -------------------------------------------------- */
+
+  function renderNow(snapshot) {
+    el.title.textContent = snapshot.title || "—";
+    if (snapshot.filename) {
+      el.file.textContent = snapshot.filename;
+      el.file.classList.remove("hidden");
+    } else {
+      el.file.classList.add("hidden");
+    }
+
+    /* An empty source type is SDR, not "unknown": the add-on publishes a token
+       only for the HDR formats (see publish_hdr_type), which is the same thing
+       the VS10 buttons branch on. */
+    const badges = [{ text: TinyPPI.prettyHdr(snapshot.hdr_type || "sdr"), alt: false }];
+    if (snapshot.effective && snapshot.effective !== snapshot.hdr_type) {
+      badges.push({ text: "→ " + TinyPPI.prettyHdr(snapshot.effective), alt: true });
+    }
+    if (snapshot.paused) badges.push({ text: "❚❚", alt: true });
+    el.badges.innerHTML = "";
+    for (const badge of badges) {
+      const node = document.createElement("span");
+      node.className = badge.alt ? "badge alt" : "badge";
+      node.textContent = badge.text;
+      el.badges.appendChild(node);
+    }
+
+    const progress = (snapshot.metrics || {}).progress;
+    el.bar.style.width = (progress === null || progress === undefined ? 0 : progress) + "%";
+    el.tElapsed.textContent = snapshot.time || "--:--";
+    el.tTotal.textContent = snapshot.duration || "--:--";
+  }
+
+  /* --- the four figures ------------------------------------------------- */
+
+  function renderTiles(metrics) {
+    el.tiles.classList.remove("hidden");
+    const l1 = metrics.l1 || {};
+    /* Peak and average come from the Dolby Vision L1 block and from nowhere
+       else, so on any other source the two tiles are left out entirely rather
+       than shown holding a dash. */
+    const hasL1 = l1.max !== null && l1.max !== undefined;
+    el.tPeak.classList.toggle("hidden", !hasL1);
+    el.tAvg.classList.toggle("hidden", !hasL1);
+    el.vPeak.textContent = TinyPPI.fmtNits(l1.max);
+    el.vAvg.textContent  = TinyPPI.fmtNits(l1.avg);
+    el.vAr.textContent   = metrics.aspect ? metrics.aspect.toFixed(2) + ":1" : "—";
+    el.vFps.textContent  = metrics.fps_in
+      ? metrics.fps_in.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "") : "—";
+    el.uFps.textContent  = metrics.fps_drop ? "▼ " + metrics.fps_drop : " ";
+  }
+
+  /* --- the last minute -------------------------------------------------- */
+
+  /* Luminance spans four decades, from a black frame to a specular highlight,
+     so the y axis is logarithmic: a linear one would flatten everything below
+     a hundred nits into the baseline. */
+  const MIN_NITS = 0.01;
+  const MAX_NITS = 10000;
+  const logScale = (value) => {
+    const clamped = Math.min(MAX_NITS, Math.max(MIN_NITS, value));
+    return (Math.log10(clamped) - Math.log10(MIN_NITS)) /
+           (Math.log10(MAX_NITS) - Math.log10(MIN_NITS));
+  };
+
+  function renderChart(metrics) {
+    const l1 = metrics.l1 || {};
+    if (l1.max === null || l1.max === undefined) {
+      el.chartCard.classList.add("hidden");
+      return;
+    }
+    el.chartCard.classList.remove("hidden");
+
+    const now = Date.now() / 1000;
+    history.push({ t: now, min: l1.min || 0, max: l1.max || 0, avg: l1.avg || 0 });
+    while (history.length && now - history[0].t > HISTORY_SECONDS) history.shift();
+
+    drawChart();
+  }
+
+  function drawChart() {
+    const canvas = el.chart;
+    const ratio = window.devicePixelRatio || 1;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    if (!width || !height) return;
+    if (canvas.width !== Math.round(width * ratio) ||
+        canvas.height !== Math.round(height * ratio)) {
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+    }
+
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+
+    const style = getComputedStyle(document.documentElement);
+    const accent  = style.getPropertyValue("--accent").trim() || "#4fc3f7";
+    const line    = style.getPropertyValue("--line").trim() || "#242c36";
+    const accent2 = style.getPropertyValue("--accent-2").trim() || "#82b1ff";
+    const dim     = style.getPropertyValue("--dim").trim() || "#5d6875";
+
+    const padLeft = 34, padRight = 6, padTop = 8, padBottom = 6;
+    const plotW = width - padLeft - padRight;
+    const plotH = height - padTop - padBottom;
+    const y = (nits) => padTop + plotH * (1 - logScale(nits));
+
+    /* Gridlines, one per decade. */
+    ctx.strokeStyle = line;
+    ctx.fillStyle = dim;
+    ctx.lineWidth = 1;
+    ctx.font = "10px ui-monospace, monospace";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    for (const tick of [0.1, 1, 10, 100, 1000, 10000]) {
+      const ty = Math.round(y(tick)) + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(padLeft, ty);
+      ctx.lineTo(width - padRight, ty);
+      ctx.stroke();
+      ctx.fillText(tick >= 1000 ? (tick / 1000) + "k" : String(tick), padLeft - 6, ty);
+    }
+
+    if (history.length < 2) return;
+
+    const now = Date.now() / 1000;
+    const x = (t) => padLeft + plotW * (1 - Math.min(1, (now - t) / HISTORY_SECONDS));
+
+    /* Peak, as an area down to the floor.  The min of an L1 block sits near
+       zero on almost every frame, so a min-max band would be full height and
+       say nothing; the peak against the average is where the grade shows. */
+    ctx.beginPath();
+    ctx.moveTo(x(history[0].t), padTop + plotH);
+    for (const point of history) ctx.lineTo(x(point.t), y(point.max));
+    ctx.lineTo(x(history[history.length - 1].t), padTop + plotH);
+    ctx.closePath();
+    const fill = ctx.createLinearGradient(0, padTop, 0, padTop + plotH);
+    fill.addColorStop(0, accent);
+    fill.addColorStop(1, "transparent");
+    ctx.globalAlpha = 0.28;
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    const trace = (key, color, thickness, dash) => {
+      ctx.setLineDash(dash || []);
+      ctx.beginPath();
+      history.forEach((point, index) => {
+        const px = x(point.t), py = y(point[key]);
+        index === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      });
+      ctx.strokeStyle = color;
+      ctx.lineWidth = thickness;
+      ctx.lineJoin = "round";
+      ctx.stroke();
+      ctx.setLineDash([]);
+    };
+
+    /* The peak is the solid line the fill belongs to; the average is dashed, so
+       the two never read as one band even where they run close together. */
+    trace("max", accent, 1.7);
+    trace("avg", accent2, 1.5, [4, 3]);
+  }
+
+  let resizeTimer = 0;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(drawChart, 120);
+  });
+
+  /* --- what a page calls ------------------------------------------------ */
+
+  function strings(T) {
+    $("kPeak").textContent = T.peak;
+    $("kAvg").textContent = T.average;
+    $("kAr").textContent = T.aspect;
+    $("kFps").textContent = T.fps;
+    $("chartTitle").textContent = T.chart;
+    $("chartScale").textContent = "nits · log";
+  }
+
+  /* Everything the three show comes out of one snapshot, and a snapshot that
+     says nothing is playing takes them off the page rather than leaving the
+     last frame of a film that has ended standing there. */
+  function update(snapshot) {
+    if (!snapshot || !snapshot.playing) {
+      el.nowCard.classList.add("hidden");
+      el.tiles.classList.add("hidden");
+      el.chartCard.classList.add("hidden");
+      history = [];
+      return;
+    }
+    el.nowCard.classList.remove("hidden");
+    renderNow(snapshot);
+    renderTiles(snapshot.metrics || {});
+    renderChart(snapshot.metrics || {});
+  }
+
+  window.TinyPPI.panels = { strings, update };
+
+})();
