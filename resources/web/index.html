@@ -374,19 +374,19 @@
   </section>
 
   <div class="panels">
-  <section class="card hidden" id="frameCard">
-    <h2 id="frameTitle"></h2>
-    <div class="framewrap">
-      <div class="frame"><i id="frameActive"></i></div>
-      <div class="framenote mono" id="frameNote"></div>
-    </div>
-  </section>
-
   <section class="card hidden" id="vs10Card">
     <h2 id="vs10Title"></h2>
     <div class="vs10">
       <div class="out"><span id="vs10OutLabel"></span><b id="vs10Out">—</b></div>
       <div class="modes" id="modes"></div>
+    </div>
+  </section>
+
+  <section class="card hidden" id="frameCard">
+    <h2 id="frameTitle"></h2>
+    <div class="framewrap">
+      <div class="frame"><i id="frameActive"></i></div>
+      <div class="framenote mono" id="frameNote"></div>
     </div>
   </section>
 
@@ -472,7 +472,7 @@ function render(next) {
   renderChart(next.metrics || {});
   renderFrame(next.metrics || {});
   renderVs10(next.vs10 || {});
-  renderGroups(next.groups || []);
+  renderGroups(ordered(next.groups || []));
   /* The metadata list is a window of its own; this page only says whether
      there is one to open. */
   el.metaLink.classList.toggle("hidden", !(next.metadata && next.metadata.length));
@@ -726,10 +726,26 @@ async function switchMode(mode, button) {
 
 /* --- detail groups ------------------------------------------------------ */
 
+/* The order the cards are laid out in, by the group ids the snapshot carries.
+   The snapshot names them in an order of its own (web/snapshot.py _GROUPS),
+   but that one lives in the service, which reads its code once when Kodi
+   starts -- so the layout is decided here instead, where reloading the page
+   is enough to change it.  A group not named here keeps its place, after the
+   ones that are. */
+const GROUP_ORDER = ["video", "processing", "audio", "system", "hdr", "dv"];
+
+function ordered(groups) {
+  const rank = (group) => {
+    const at = GROUP_ORDER.indexOf(group.id);
+    return at === -1 ? GROUP_ORDER.length : at;
+  };
+  return [...groups].sort((first, second) => rank(first) - rank(second));
+}
+
 function renderGroups(groups) {
   const seen = new Set();
 
-  for (const group of groups) {
+  groups.forEach((group, index) => {
     seen.add(group.id);
     let card = groupNodes.get(group.id);
     if (!card) {
@@ -742,10 +758,16 @@ function renderGroups(groups) {
       card.append(heading, rows);
       card.dataset.group = group.id;
       groupNodes.set(group.id, card);
-      el.groups.appendChild(card);
     }
+    /* Placed on every pass, not just when the card is made: the groups do not
+       all arrive with the first snapshot -- the system readings settle after
+       playback has run for a moment, the HDR blocks once the source is known
+       -- and a card merely appended would keep whatever place it was late to,
+       rather than the one the snapshot gives it. */
+    const at = el.groups.children[index];
+    if (at !== card) el.groups.insertBefore(card, at || null);
     renderRows(card.querySelector(".rows"), group);
-  }
+  });
 
   for (const [id, card] of groupNodes) {
     if (!seen.has(id)) { card.remove(); groupNodes.delete(id); }
@@ -814,7 +836,7 @@ function buildReport() {
   if (state.title) lines.push(state.title);
   if (state.filename) lines.push(state.filename);
   lines.push("");
-  for (const group of state.groups || []) {
+  for (const group of ordered(state.groups || [])) {
     lines.push("[" + group.title + "]");
     const width = Math.max(...group.rows.map((row) => row.label.length));
     for (const row of group.rows) {
