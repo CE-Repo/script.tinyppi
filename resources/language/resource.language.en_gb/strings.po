@@ -1322,3 +1322,7 @@ msgstr ""
 msgctxt "#32428"
 msgid "How long a reading that just changed stays in the highlight color, in milliseconds. The readings behind it are still read ten times a second whatever this is set to, so no change is missed; at 100 the highlight lasts a single refresh, which is too brief to follow."
 msgstr ""
+
+msgctxt "#32429"
+msgid "Input"
+msgstr ""
