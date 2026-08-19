@@ -123,6 +123,12 @@ def _na_label() -> str:
     return _localized(_LABEL_NA, "N/A")
 
 
+def na_label() -> str:
+    """Return the localized ``N/A`` label, for callers outside this module
+    that need the same fallback text (see ``info.mediasource``)."""
+    return _na_label()
+
+
 def is_status_label(value: str) -> bool:
     """Return True when a value is the localized N/A status label rather than a
     reading, so callers can substitute their own fallback for it."""

@@ -40,6 +40,7 @@ from info.audioinfo import (
     get_active_audio_sample_rate,
 )
 from info.imax import is_enhanced_title, is_known_imax_title
+from info.mediasource import get_MediaSourceVar
 from info.dvinfo import (
     get_bit_depth,
     get_cm_version,
@@ -380,29 +381,6 @@ def _output_mode_from_videoplayer() -> str:
     if "hdr10" in hdr or "hdr" in hdr or "pq" in hdr:
         return "HDR10"
     return "SDR"
-
-
-def _media_source_name(output_mode: str) -> str:
-    """Collapse an output-mode string to the bare format name for the Media
-    source row (dropping the DV / HDR10+ profile suffix).
-
-    Status labels and unrecognised values pass through unchanged.
-    """
-    if not output_mode or is_status_label(output_mode):
-        return output_mode
-
-    low = output_mode.lower()
-    if "dolby" in low:
-        return "Dolby Vision"
-    if "hdr10+" in low:
-        return "HDR10+"
-    if "hdr10" in low:
-        return "HDR10"
-    if "hlg" in low:
-        return "HLG"
-    if "sdr" in low:
-        return "SDR"
-    return output_mode
 
 
 # --- Audio properties ------------------------------------------------------
@@ -948,7 +926,7 @@ def publish_static_properties(window, published=None) -> None:
             ("VideoDecoderNameVar", get_VideoDecoderNameVar()),
             ("VideoBitDepthVar", get_VideoBitDepthVar()),
             ("DoviProfileVar", output_mode),
-            ("MediaSourceVar", _media_source_name(output_mode)),
+            ("MediaSourceVar", get_MediaSourceVar()),
             ("DoviTunnelVar", get_DoviTunnelVar()),
             ("DoviRpuPresentVar", get_dv_rpu_present()),
             ("DoviBlPresentVar", get_dv_bl_present()),

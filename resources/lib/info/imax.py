@@ -232,7 +232,7 @@ def _title_index() -> dict[str, tuple[tuple[int | None, bool], ...]]:
     return _titles
 
 
-def _playing_path() -> str:
+def playing_path() -> str:
     """Return the path of the playing file, or ''.
 
     Kodi hands out a path into whatever it opened, which for a disc image is a
@@ -372,7 +372,7 @@ def _current() -> tuple[bool, bool]:
     """
     global _cache
 
-    path = _playing_path()
+    path = playing_path()
     names = _playing_names(path)
 
     if _cache is not None and _cache[0] == path:
