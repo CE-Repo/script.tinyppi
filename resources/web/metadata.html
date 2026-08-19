@@ -445,8 +445,8 @@ function buildReport() {
     else if (row.kind === "section")
       lines.push("[" + row.name + (row.value ? " - " + row.value : "") + "]");
     else if (row.kind === "wide") lines.push("  " + row.value);
-    else if (row.cells) lines.push("  " + row.name.padEnd(26) + row.cells.join("  "));
-    else lines.push("  " + row.name.padEnd(26) + row.value);
+    else if (row.cells) lines.push(TinyPPI.reportLine(row.name, row.cells.join("  ")));
+    else lines.push(TinyPPI.reportLine(row.name, row.value));
   }
   return lines.join("\n");
 }
@@ -455,7 +455,9 @@ function buildReport() {
    give it the clipboard; both pages hand it over the same way (see
    TinyPPI.copyReport). */
 el.copyBtn.addEventListener("click", () => {
-  TinyPPI.copyReport(buildReport(), (state || {}).title);
+  /* Tailed "metadata" so this list and the dashboard's report can both be
+     saved for the same film without one landing on the other. */
+  TinyPPI.copyReport(buildReport(), (state || {}).title, "metadata");
 });
 
 /* --- boot --------------------------------------------------------------- */

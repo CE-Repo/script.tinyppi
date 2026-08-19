@@ -517,10 +517,9 @@ function buildReport() {
   lines.push("");
   for (const group of ordered(state.groups || [])) {
     lines.push("[" + group.title + "]");
-    const width = Math.max(...group.rows.map((row) => row.label.length));
     for (const row of group.rows) {
       const detail = row.detail ? "  (" + row.detail + ")" : "";
-      lines.push("  " + row.label.padEnd(width) + "  " + row.value + detail);
+      lines.push(TinyPPI.reportLine(row.label, row.value + detail));
     }
     lines.push("");
   }

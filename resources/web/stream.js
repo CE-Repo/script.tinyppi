@@ -196,15 +196,33 @@ window.TinyPPI = (function () {
       .replace(/^[._]+|[._]+$/g, "");
   }
 
-  /* Hand *report* to the viewer, named after *title*.
+  /* Which column a reading starts in, counted from the left edge of the line,
+     one-based.  Fixed rather than fitted to the longest name of whatever
+     section is being written, so that every value in a saved report stands in
+     the same column and the file can be read down its right-hand side. */
+  const REPORT_COLUMN = 30;
+
+  /* One line of a report: two spaces, the name, and the reading in the column
+     above.  A name too long for that keeps its two spaces and pushes its own
+     reading out rather than losing the gap between the two. */
+  function reportLine(label, value) {
+    const head = "  " + String(label);
+    const pad  = REPORT_COLUMN - 1;
+    return (head.length < pad ? head.padEnd(pad) : head + "  ") + value;
+  }
+
+  /* Hand *report* to the viewer as TinyPPI_<title>_<tail>.txt, with either
+     part left out when there is none -- *tail* is what tells one page's report
+     from the other's when both are saved for the same film.
 
      The clipboard where the browser allows it, a file where it does not:
      clipboard access needs a secure context, which plain http over a LAN is
      not, and failing there silently would look like a button that does
      nothing.  Both pages copy the same way, so they copy from here.  */
-  function copyReport(report, title) {
+  function copyReport(report, title, tail) {
     if (!report) return;
-    const name = "TinyPPI" + (fileSafe(title || "") ? "_" + fileSafe(title) : "");
+    const named = fileSafe(title || "");
+    const name = "TinyPPI" + (named ? "_" + named : "") + (tail ? "_" + tail : "");
     return Promise.resolve()
       .then(() => navigator.clipboard.writeText(report))
       .then(() => toast(T.copied))
@@ -252,7 +270,8 @@ window.TinyPPI = (function () {
   }
 
   return {
-    T, $, boot, toast, setStatus, fmtNits, prettyHdr, askToken, copyReport,
+    T, $, boot, toast, setStatus, fmtNits, prettyHdr, askToken,
+    copyReport, reportLine,
     get token() { return token; }
   };
 
