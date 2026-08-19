@@ -11,6 +11,12 @@ the streaming protocol (HLS/DASH/RTMP/RTSP) for an addon-delivered stream.
 Whichever branch runs, an empty result falls back to the same localized
 ``N/A`` label the DV metadata rows use, so the row is never blank.
 
+A file reached over a network -- smb, nfs, or the plain http(s) a media
+server such as Plex or Jellyfin serves it over -- takes the file branch like
+any local one, and reads the same three parts off the URL and a VFS stat.
+Where that yields nothing, because the server names the file by an opaque
+id, the protocol itself (HTTP / SMB / NFS / ...) stands in before N/A does.
+
 Kodi has no container InfoLabel to ask -- there is no ``VideoPlayer.
 Container``, and ``Player.Process`` exposes only decoder and stream readings
 -- so the container comes from the played path's file type instead, which
@@ -48,6 +54,10 @@ _FILE_MARKERS = frozenset({
 })
 _RESOLUTION_SHAPE = re.compile(r"^\d{3,4}[pi]$")
 
+# Last size worked out, kept per path so the stat behind it runs once a title
+# rather than on every static-properties tick; see _size_text.
+_size_cache: tuple[str, str] | None = None
+
 # Kodi exposes no container/demuxer InfoLabel of any kind (there is no
 # ``VideoPlayer.Container``, and ``Player.Process`` carries only decoder and
 # stream readings), so the container is read off the played path's file type.
@@ -81,6 +91,23 @@ _CONTAINER_MAP = {
 # Simple, NextPVR, ...) is deliberately not spelled out: the row says where
 # the picture comes from, and which client serves it is a setup detail.
 _PVR_LABEL = "PVR"
+
+# Last-resort labels: what an item travels over, shown only when nothing
+# else about the source could be read (see _source_protocol).
+_PROTOCOL_MAP = {
+    "http": "HTTP",
+    "https": "HTTP",
+    "smb": "SMB",
+    "nfs": "NFS",
+    "upnp": "UPnP",
+    "ftp": "FTP",
+    "ftps": "FTP",
+    "sftp": "SFTP",
+    "ssh": "SFTP",
+    "davs": "WebDAV",
+    "dav": "WebDAV",
+    "plugin": "Addon",
+}
 
 
 def _tokens(name: str) -> set[str]:
@@ -154,9 +181,28 @@ def _container(path: str) -> str:
 def _size_text(path: str) -> str:
     """Return the played file's size, rounded to whole GB (or MB under
     1 GB), or '' when the path can't be stat'd -- an addon stream or a
-    disc path most often can't."""
+    disc path most often can't.
+
+    Answered once per path and remembered, including a failure: the row is
+    recomputed on every static-properties tick, and a file's size cannot
+    change while it plays, so re-running the stat would buy nothing and
+    would put a network round trip -- to an smb share, or to a media server
+    that may be slow to answer -- on the overlay's update thread each time.
+    """
+    global _size_cache
+
     if not path:
         return ""
+    if _size_cache and _size_cache[0] == path:
+        return _size_cache[1]
+
+    text = _measure(path)
+    _size_cache = (path, text)
+    return text
+
+
+def _measure(path: str) -> str:
+    """Stat *path* and render its size; '' when it cannot be stat'd."""
     try:
         size = xbmcvfs.Stat(path).st_size()
     except Exception:
@@ -199,8 +245,28 @@ def _raw_playing_path() -> str:
         return ""
 
 
+def _source_protocol(path: str) -> str:
+    """Return a label for the protocol the item travels over, used as the
+    last thing to say about a source nothing else could be read off -- a
+    media server handing out a file under an opaque id, say.  A local path
+    carries no protocol and so keeps the N/A label."""
+    scheme = path.split("://", 1)[0].lower() if "://" in path else ""
+    return _PROTOCOL_MAP.get(scheme, "")
+
+
 def _disc_release_type(path: str) -> str:
     return "BD Disc" if path.lower().startswith("bluray://") else "DVD Disc"
+
+
+def _is_live() -> bool:
+    """Return whether the item is a live stream rather than a file being
+    served.  ``Player.IsLive`` says so directly but only exists from Kodi 22,
+    and this addon runs from Kodi 19, so the test the skin itself uses for
+    its Livestream row carries the older versions: an internet stream with no
+    duration is live, while one that has a duration is a file on a server.
+    """
+    return cond("Player.IsLive") or cond(
+        "Player.IsInternetStream + String.IsEmpty(Player.Duration)")
 
 
 def _is_pvr() -> bool:
@@ -211,9 +277,8 @@ def _is_pvr() -> bool:
             or cond("PVR.IsPlayingRecording"))
 
 
-def _live_segments(raw_path: str, path: str) -> list[str]:
-    transport = _PVR_LABEL if _is_pvr() else _stream_protocol(path)
-    return [transport, _container(raw_path)]
+def _live_segments(raw_path: str, protocol: str) -> list[str]:
+    return [_PVR_LABEL if _is_pvr() else protocol, _container(raw_path)]
 
 
 def _file_segments(raw_path: str, path: str) -> list[str]:
@@ -232,14 +297,22 @@ def get_MediaSourceVar() -> str:
     what the VFS can stat and what carries the real file type, and the decoded
     one from ``imax.playing_path``, whose unwrapping is what makes a disc
     image's own name -- and the release tags on it -- readable.
+
+    What picks the branch is whether the item is live, not how it travels.
+    ``Player.IsInternetStream`` cannot decide that: it is true for plain
+    http(s), which is how a media server hands out ordinary files, so asking
+    it would drop the release name and size off every Plex title.  A file
+    served over http, smb or nfs is a file, and only a genuinely live item --
+    PVR, a player-reported live stream, or a streaming manifest -- is not.
     """
     raw_path = _raw_playing_path()
     path = playing_path() or raw_path
     raw_path = raw_path or path
 
-    segments = (_live_segments(raw_path, path)
-                if _is_pvr() or cond("Player.IsInternetStream")
+    protocol = _stream_protocol(path)
+    segments = (_live_segments(raw_path, protocol)
+                if _is_pvr() or protocol or _is_live()
                 else _file_segments(raw_path, path))
 
     text = " · ".join(segment for segment in segments if segment)
-    return text or na_label()
+    return text or _source_protocol(raw_path) or na_label()
