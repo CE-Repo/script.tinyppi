@@ -6,10 +6,10 @@ For a file this reads ``Release-Typ · Container · Groesse`` (e.g.
 ``Remux · MKV · 42GB``), each part reusing the same tag vocabulary the IMAX
 title matching in ``imax.py`` already knows about release names.  While a
 live channel, recording or stream plays there is no release tag and nothing
-to stat, so the line instead names the transport: the PVR backend for a PVR
-item, or the streaming protocol (HLS/DASH/RTMP/RTSP) for an addon-delivered
-stream.  Whichever branch runs, an empty result falls back to the same
-localized ``N/A`` label the DV metadata rows use, so the row is never blank.
+to stat, so the line instead names the transport: ``PVR`` for a PVR item, or
+the streaming protocol (HLS/DASH/RTMP/RTSP) for an addon-delivered stream.
+Whichever branch runs, an empty result falls back to the same localized
+``N/A`` label the DV metadata rows use, so the row is never blank.
 
 Kodi has no container InfoLabel to ask -- there is no ``VideoPlayer.
 Container``, and ``Player.Process`` exposes only decoder and stream readings
@@ -22,7 +22,7 @@ import re
 import xbmc
 import xbmcvfs
 
-from core.utils import clean, cond, info
+from core.utils import cond
 from info.dvinfo import na_label
 from info.imax import playing_path
 
@@ -77,23 +77,10 @@ _CONTAINER_MAP = {
     "ogv": "OGV",
 }
 
-# Common PVR backend add-ons, mapped to a name short enough to still leave
-# room for the container next to it.  An unrecognised backend still gets a
-# generic label rather than being left out -- the row must never go blank
-# just because a less common PVR client is running.
-_BACKEND_MAP = {
-    "iptv simple client": "IPTV",
-    "pvr.iptvsimple": "IPTV",
-    "tvheadend htsp client": "Tvheadend",
-    "pvr.hts": "Tvheadend",
-    "nextpvr": "NextPVR",
-    "pvr.nextpvr": "NextPVR",
-    "vdr-vnsi server": "VDR",
-    "vbox": "VBox",
-    "hdhomerun": "HDHomeRun",
-    "mediaportal tv server": "MediaPortal",
-    "argus tv": "ArgusTV",
-}
+# What a PVR item names itself as.  The backend behind it (Tvheadend, IPTV
+# Simple, NextPVR, ...) is deliberately not spelled out: the row says where
+# the picture comes from, and which client serves it is a setup detail.
+_PVR_LABEL = "PVR"
 
 
 def _tokens(name: str) -> set[str]:
@@ -184,13 +171,6 @@ def _size_text(path: str) -> str:
     return f"{round(mib)}MB" if mib >= 1 else ""
 
 
-def _pvr_backend() -> str:
-    """Return a short label for the PVR backend serving the live channel,
-    falling back to a generic one for a backend not in the map."""
-    raw = clean(info("PVR.BackendName")).strip().lower()
-    return _BACKEND_MAP.get(raw, "PVR")
-
-
 def _stream_protocol(path: str) -> str:
     """Return the delivery protocol for an addon-provided internet stream,
     guessed from its URL, or '' when none of the known markers show up."""
@@ -232,7 +212,7 @@ def _is_pvr() -> bool:
 
 
 def _live_segments(raw_path: str, path: str) -> list[str]:
-    transport = _pvr_backend() if _is_pvr() else _stream_protocol(path)
+    transport = _PVR_LABEL if _is_pvr() else _stream_protocol(path)
     return [transport, _container(raw_path)]
 
 
