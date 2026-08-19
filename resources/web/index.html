@@ -213,21 +213,31 @@
 .mode:disabled { opacity: .5; cursor: progress; }
 .mode.busy { border-color: var(--accent); color: var(--accent); }
 
+/* The active picture and the VS10 output, stacked like the cards below them:
+   at the page's reading width two of these fit side by side, which put the
+   one page's two halves out of step with each other. */
 .panels {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  align-items: start;
+  grid-template-columns: 1fr;
 }
 .panels:empty { display: none; }
 
 /* --- Detail groups ------------------------------------------------------ */
 
+/* One card under the next, whatever the window is wide enough for.  Side by
+   side the blocks tore open: they run from two rows of static HDR metadata to
+   eleven of Dolby Vision, and a grid row is as tall as its tallest card, so
+   every short one sat over a hole.  Stacked they are read as the list they
+   are, in the order the snapshot names them (see web/snapshot.py _GROUPS).
+
+   Their width is the page's own -- the shell holds every page but the
+   metadata window to a reading width (see style.css) -- so the cards line up
+   with everything above them rather than sitting in a lane of their own. */
 .groups {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
-  align-items: start;
+  grid-template-columns: 1fr;
 }
 
 .rows { padding: 4px 0 6px; }

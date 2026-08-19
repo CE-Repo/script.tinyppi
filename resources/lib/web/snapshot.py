@@ -159,7 +159,12 @@ def _is_hdr(source: str) -> bool:
 # (group id, title string ID, rows, applies-to).  The ids travel to the browser
 # so the page can style a group without matching on a translated title.
 #
-# The last entry is what keeps the page honest about a source: the RPU-backed
+# The order is the order the page stacks them in, one card under the next: the
+# four blocks every title has first -- picture, processing, sound, machine --
+# and then the HDR blocks, which only some titles bring and which are the ones
+# a viewer scrolls to on purpose.
+#
+# The applies-to is what keeps the page honest about a source: the RPU-backed
 # getters pad an absent block out to zeroes rather than leaving it empty (see
 # dvinfo._value_or), so on an SDR title every Dolby Vision row would render a
 # row of noughts and every HDR10 row a mastering display nothing declared.
@@ -169,9 +174,9 @@ _GROUPS = (
     ("video",      32054, _VIDEO,       _always),
     ("processing", 32007, _PROCESSING,  _always),
     ("audio",      32056, _AUDIO,       _always),
+    ("system",     32088, _SYSTEM,      _always),
     ("hdr",        32300, _HDR_STATIC,  _is_hdr),
     ("dv",         32389, _DOLBY_VISION, _is_dv),
-    ("system",     32088, _SYSTEM,      _always),
 )
 
 # Extra readings the overlay takes straight from Kodi rather than through

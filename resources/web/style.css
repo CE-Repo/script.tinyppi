@@ -164,8 +164,15 @@ body {
 
 /* --- Shell -------------------------------------------------------------- */
 
+/* A reading width, not the window's.  Every row on these pages sets a name
+   against the left edge and a reading against the right, so the wider the
+   page the further the two ends of one line drift apart; 840 px still holds
+   the longest of them -- the channel layouts, the side-data lists -- on a
+   single line.  The Dolby Vision metadata window overrides this: its list is
+   columns of readings rather than pairs, and it uses every pixel it is
+   given. */
 main {
-  max-width: 1360px;
+  max-width: 840px;
   margin: 0 auto;
   padding: 16px;
   display: grid;
