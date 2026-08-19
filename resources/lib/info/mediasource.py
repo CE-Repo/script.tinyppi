@@ -5,16 +5,21 @@ repeat the Input row in a shorter form.
 For a file this reads ``Release-Typ · Container · Groesse`` (e.g.
 ``Remux · MKV · 42GB``), each part reusing the same tag vocabulary the IMAX
 title matching in ``imax.py`` already knows about release names.  While a
-live channel or stream plays there is no release tag and no fixed file size,
-so the line instead names the transport: the PVR backend for a live channel,
-or the streaming protocol (HLS/DASH/RTMP/RTSP) for an addon-delivered
-stream, still paired with the container when Kodi reports one.  Whichever
-branch runs, an empty result falls back to the same localized ``N/A`` label
-the DV metadata rows use, so the row is never blank.
+live channel, recording or stream plays there is no release tag and nothing
+to stat, so the line instead names the transport: the PVR backend for a PVR
+item, or the streaming protocol (HLS/DASH/RTMP/RTSP) for an addon-delivered
+stream.  Whichever branch runs, an empty result falls back to the same
+localized ``N/A`` label the DV metadata rows use, so the row is never blank.
+
+Kodi has no container InfoLabel to ask -- there is no ``VideoPlayer.
+Container``, and ``Player.Process`` exposes only decoder and stream readings
+-- so the container comes from the played path's file type instead, which
+means a stream delivered without one simply leaves that part out.
 """
 
 import re
 
+import xbmc
 import xbmcvfs
 
 from core.utils import clean, cond, info
@@ -34,14 +39,42 @@ _BLURAY_TOKENS = frozenset({
 _HDTV_TOKENS = frozenset({"hdtv", "pdtv"})
 _DVD_TOKENS = frozenset({"dvdrip", "dvd5", "dvd9", "dvd"})
 
+# Tokens that describe the file rather than the film, used to confirm an
+# otherwise ordinary word like "web" really is a release tag.
+_FILE_MARKERS = frozenset({
+    "x264", "x265", "h264", "h265", "hevc", "avc", "av1", "xvid", "divx",
+    "ddp", "dd", "eac3", "ac3", "aac", "dts", "dtshd", "truehd", "atmos",
+    "flac", "opus", "hdr", "hdr10", "sdr", "dv", "dovi", "hlg", "10bit",
+})
+_RESOLUTION_SHAPE = re.compile(r"^\d{3,4}[pi]$")
+
+# Kodi exposes no container/demuxer InfoLabel of any kind (there is no
+# ``VideoPlayer.Container``, and ``Player.Process`` carries only decoder and
+# stream readings), so the container is read off the played path's file type.
+# Only real container types are listed: a playlist or PVR wrapper extension
+# (.m3u8, .strm, .pvr) names the delivery, not what the video sits in, and
+# would be misleading in this row.
 _CONTAINER_MAP = {
-    "matroska": "MKV",
+    "mkv": "MKV",
+    "webm": "WEBM",
     "mp4": "MP4",
-    "mov": "MP4",
-    "mpegts": "TS",
+    "m4v": "MP4",
+    "mov": "MOV",
+    "ts": "TS",
+    "m2ts": "TS",
+    "mts": "TS",
     "avi": "AVI",
-    "iso9660": "ISO",
     "iso": "ISO",
+    "img": "ISO",
+    "mpg": "MPEG",
+    "mpeg": "MPEG",
+    "m2v": "MPEG",
+    "vob": "MPEG",
+    "wmv": "WMV",
+    "asf": "WMV",
+    "flv": "FLV",
+    "divx": "DIVX",
+    "ogv": "OGV",
 }
 
 # Common PVR backend add-ons, mapped to a name short enough to still leave
@@ -69,6 +102,15 @@ def _tokens(name: str) -> set[str]:
     return set(_TAG_SEP.split(name.lower())) - {""}
 
 
+def _describes_a_file(tokens: set[str]) -> bool:
+    """Return whether a name carries a token that only a release name would:
+    a resolution, or one of the codec / audio-format tags.  Used to tell a
+    release apart from a plain film title (see _release_type)."""
+    if tokens & _FILE_MARKERS:
+        return True
+    return any(_RESOLUTION_SHAPE.match(token) for token in tokens)
+
+
 def _release_type(name: str) -> str:
     """Return the release-type label for a release name, or '' when it
     carries no recognised tag.  Checked in the priority order promised to
@@ -81,8 +123,15 @@ def _release_type(name: str) -> str:
         return "UHD BD" if "uhd" in tokens else "BD"
     if "webdl" in tokens or ("web" in tokens and "dl" in tokens):
         return "WEB-DL"
-    if "webrip" in tokens:
+    if "webrip" in tokens or ("web" in tokens and "rip" in tokens):
         return "WEBRip"
+    # A bare "WEB" is common and says only that the source was a stream, not
+    # which of the two it was, so it is shown as itself rather than guessed
+    # into one of them.  Unlike every other tag here it is also an ordinary
+    # word, so it counts only next to something that marks the name as a
+    # release rather than a title -- otherwise Charlotte's Web reads as one.
+    if "web" in tokens and _describes_a_file(tokens):
+        return "WEB"
     if tokens & _HDTV_TOKENS:
         return "HDTV"
     if tokens & _DVD_TOKENS:
@@ -107,22 +156,20 @@ def _release_type_from_path(path: str) -> str:
 
 
 def _container(path: str) -> str:
-    """Return the container label, preferring Kodi's own ``VideoPlayer.
-    Container`` reading over the file extension since it also covers addon
-    streams that carry no extension in their path at all."""
-    raw = info("VideoPlayer.Container").strip().lower()
-    if not raw:
-        name = path.rsplit("/", 1)[-1]
-        raw = name.rsplit(".", 1)[-1].lower() if "." in name else ""
-    if not raw:
+    """Return the container label for the played path's file type, or ''
+    when it names none this row would want to show (see _CONTAINER_MAP)."""
+    name = path.split("?", 1)[0].rsplit("/", 1)[-1]
+    if "." not in name:
         return ""
-    return _CONTAINER_MAP.get(raw, raw.upper())
+    return _CONTAINER_MAP.get(name.rsplit(".", 1)[-1].lower(), "")
 
 
 def _size_text(path: str) -> str:
     """Return the played file's size, rounded to whole GB (or MB under
     1 GB), or '' when the path can't be stat'd -- an addon stream or a
     disc path most often can't."""
+    if not path:
+        return ""
     try:
         size = xbmcvfs.Stat(path).st_size()
     except Exception:
@@ -159,29 +206,60 @@ def _stream_protocol(path: str) -> str:
     return ""
 
 
+def _raw_playing_path() -> str:
+    """Return the path of the playing file exactly as Kodi hands it out, or
+    ''.  ``imax.playing_path`` decodes the same path for reading names off
+    it; the undecoded one is what the VFS can stat and what names the real
+    file type, and it resolves what a plugin or ``.strm`` item actually
+    plays rather than the item's own path.
+    """
+    try:
+        return xbmc.Player().getPlayingFile() or ""
+    except RuntimeError:  # nothing playing
+        return ""
+
+
 def _disc_release_type(path: str) -> str:
     return "BD Disc" if path.lower().startswith("bluray://") else "DVD Disc"
 
 
-def _live_segments(path: str) -> list[str]:
-    is_pvr = cond("PVR.IsPlayingTV")
-    transport = _pvr_backend() if is_pvr else _stream_protocol(path)
-    return [transport, _container(path)]
+def _is_pvr() -> bool:
+    """Return whether a PVR item is playing.  A recording is grouped with the
+    live channels rather than with files: it has no release name and cannot be
+    stat'd either, so naming its backend says more than an empty row would."""
+    return (cond("PVR.IsPlayingTV") or cond("PVR.IsPlayingRadio")
+            or cond("PVR.IsPlayingRecording"))
 
 
-def _file_segments(path: str) -> list[str]:
+def _live_segments(raw_path: str, path: str) -> list[str]:
+    transport = _pvr_backend() if _is_pvr() else _stream_protocol(path)
+    return [transport, _container(raw_path)]
+
+
+def _file_segments(raw_path: str, path: str) -> list[str]:
     if path.lower().startswith(_DISC_PREFIXES):
         return [_disc_release_type(path)]
-    return [_release_type_from_path(path), _container(path), _size_text(path)]
+    return [_release_type_from_path(path), _container(raw_path),
+            _size_text(raw_path)]
 
 
 def get_MediaSourceVar() -> str:
     """Return the combined release-type / container / size line, or the
     transport / container line while live, joined with ' · '.  Falls back to
-    the localized N/A label when nothing about the source could be found."""
-    path = playing_path()
-    is_live = cond("PVR.IsPlayingTV") or cond("Player.IsInternetStream")
-    segments = _live_segments(path) if is_live else _file_segments(path)
+    the localized N/A label when nothing about the source could be found.
+
+    Two readings of the path are needed: the raw one Kodi hands out, which is
+    what the VFS can stat and what carries the real file type, and the decoded
+    one from ``imax.playing_path``, whose unwrapping is what makes a disc
+    image's own name -- and the release tags on it -- readable.
+    """
+    raw_path = _raw_playing_path()
+    path = playing_path() or raw_path
+    raw_path = raw_path or path
+
+    segments = (_live_segments(raw_path, path)
+                if _is_pvr() or cond("Player.IsInternetStream")
+                else _file_segments(raw_path, path))
 
     text = " · ".join(segment for segment in segments if segment)
     return text or na_label()
