@@ -110,6 +110,12 @@
 @media (min-width: 760px) {
   .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+/* The static HDR card takes the whole row.  It is two readings long, so as
+   half a row it would leave its partner standing over a hole -- and it only
+   appears at all on an HDR title that is not Dolby Vision, where it is the
+   last card and has nothing to pair with anyway.  The id comes from the
+   snapshot (see renderGroups). */
+.groups > [data-group="hdr"] { grid-column: 1 / -1; }
 
 .rows { padding: 4px 0 6px; }
 
@@ -285,7 +291,10 @@ function render(next) {
 
   if (!next.playing) {
     el.idleCard.classList.remove("hidden");
-    for (const id of ["frameCard", "vs10Card", "metaLink"]) {
+    /* The copy button goes with them: with nothing playing there is no report
+       to write, and a button that answers a press with nothing is worse than
+       one that is not there. */
+    for (const id of ["frameCard", "vs10Card", "metaLink", "copyBtn"]) {
       $(id).classList.add("hidden");
     }
     el.groups.innerHTML = "";
@@ -295,6 +304,7 @@ function render(next) {
   }
 
   el.idleCard.classList.add("hidden");
+  el.copyBtn.classList.remove("hidden");
 
   renderFrame(next.metrics || {});
   renderVs10(next.vs10 || {});
@@ -517,22 +527,11 @@ function buildReport() {
   return lines.join("\n");
 }
 
-el.copyBtn.addEventListener("click", async () => {
-  const report = buildReport();
-  if (!report) return;
-  try {
-    await navigator.clipboard.writeText(report);
-    TinyPPI.toast(T.copied);
-  } catch (_) {
-    /* Clipboard access needs a secure context, which plain http on a LAN is
-       not; hand the report over as a file instead of failing silently. */
-    const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "tinyppi.txt";
-    link.click();
-    URL.revokeObjectURL(url);
-  }
+/* The clipboard, or a file named after the film where the browser will not
+   give it the clipboard; both pages hand it over the same way (see
+   TinyPPI.copyReport). */
+el.copyBtn.addEventListener("click", () => {
+  TinyPPI.copyReport(buildReport(), (state || {}).title);
 });
 
 /* --- wake lock ---------------------------------------------------------- */

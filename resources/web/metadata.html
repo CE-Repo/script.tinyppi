@@ -212,6 +212,9 @@ function render(next) {
        one that has answered. */
     $("idleTitle").textContent = next.playing ? T.no_metadata : T.idle_title;
     $("idleText").textContent  = next.playing ? T.no_metadata_text : T.idle_text;
+    /* Nothing to list is nothing to copy, so the button goes with the list
+       rather than staying behind to answer a press with nothing. */
+    el.copyBtn.classList.add("hidden");
     el.count.textContent = "";
     signature = "";
     live = [];
@@ -221,6 +224,7 @@ function render(next) {
 
   el.listCard.classList.remove("hidden");
   el.idleCard.classList.add("hidden");
+  el.copyBtn.classList.remove("hidden");
   el.count.textContent = rows.filter((row) => row.kind !== "space").length;
 
   /* Rebuilding a hundred-odd nodes five times a second would fight the browser
@@ -447,22 +451,11 @@ function buildReport() {
   return lines.join("\n");
 }
 
-el.copyBtn.addEventListener("click", async () => {
-  const report = buildReport();
-  if (!report) return;
-  try {
-    await navigator.clipboard.writeText(report);
-    TinyPPI.toast(T.copied);
-  } catch (_) {
-    /* Clipboard access needs a secure context, which plain http on a LAN is
-       not; hand the report over as a file instead of failing silently. */
-    const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "tinyppi-metadata.txt";
-    link.click();
-    URL.revokeObjectURL(url);
-  }
+/* The clipboard, or a file named after the film where the browser will not
+   give it the clipboard; both pages hand it over the same way (see
+   TinyPPI.copyReport). */
+el.copyBtn.addEventListener("click", () => {
+  TinyPPI.copyReport(buildReport(), (state || {}).title);
 });
 
 /* --- boot --------------------------------------------------------------- */

@@ -182,6 +182,52 @@ window.TinyPPI = (function () {
     });
   }
 
+  /* --- the report ------------------------------------------------------- */
+
+  /* A film title as a file name: what a file system might object to taken
+     out, and the spaces closed up, so the download arrives under a name the
+     viewer can find again rather than one their browser had to rescue. */
+  function fileSafe(title) {
+    return String(title)
+      .replace(/[\\\/:*?"<>|]+/g, "")
+      .trim()
+      .replace(/\s+/g, "_")
+      .replace(/_{2,}/g, "_")
+      .replace(/^[._]+|[._]+$/g, "");
+  }
+
+  /* Hand *report* to the viewer, named after *title*.
+
+     The clipboard where the browser allows it, a file where it does not:
+     clipboard access needs a secure context, which plain http over a LAN is
+     not, and failing there silently would look like a button that does
+     nothing.  Both pages copy the same way, so they copy from here.  */
+  function copyReport(report, title) {
+    if (!report) return;
+    const name = "TinyPPI" + (fileSafe(title || "") ? "_" + fileSafe(title) : "");
+    return Promise.resolve()
+      .then(() => navigator.clipboard.writeText(report))
+      .then(() => toast(T.copied))
+      .catch(() => {
+        const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = name + ".txt";
+        /* In the document before it is clicked and out again after: a click on
+           an anchor no document holds is ignored outright by some browsers.
+           The address it points at is dropped a moment later rather than at
+           once, because revoking it in the same breath as the click can leave
+           the download reaching for a blob that is already gone. */
+        link.style.display = "none";
+        document.body.append(link);
+        link.click();
+        setTimeout(() => {
+          link.remove();
+          URL.revokeObjectURL(url);
+        }, 2000);
+      });
+  }
+
   /* --- boot ------------------------------------------------------------- */
 
   async function boot(options) {
@@ -206,7 +252,7 @@ window.TinyPPI = (function () {
   }
 
   return {
-    T, $, boot, toast, setStatus, fmtNits, prettyHdr, askToken,
+    T, $, boot, toast, setStatus, fmtNits, prettyHdr, askToken, copyReport,
     get token() { return token; }
   };
 
