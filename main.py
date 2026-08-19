@@ -49,6 +49,12 @@ def main() -> None:
     elif command == "custom_color" and len(args) > 1:
         from ui.theme import custom_color
         custom_color(args[1])
+    elif command == "web_info":
+        from ui.webinfo import show_web_info
+        show_web_info()
+    elif command == "web_token":
+        from ui.webinfo import new_web_token
+        new_web_token()
     else:
         open_tinyppi()
 

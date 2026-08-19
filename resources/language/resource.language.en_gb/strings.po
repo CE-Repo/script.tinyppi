@@ -1326,3 +1326,171 @@ msgstr ""
 msgctxt "#32429"
 msgid "Input"
 msgstr ""
+
+msgctxt "#32430"
+msgid "Dashboard"
+msgstr ""
+
+msgctxt "#32431"
+msgid "A live view of the playing stream in a browser on your phone or laptop, so the picture itself stays untouched."
+msgstr ""
+
+msgctxt "#32432"
+msgid "Enable web dashboard"
+msgstr ""
+
+msgctxt "#32433"
+msgid "Serves the dashboard on this box's own address. Off by default; once it is on, anything on the same network can reach it, so do not forward its port to the internet."
+msgstr ""
+
+msgctxt "#32434"
+msgid "Port"
+msgstr ""
+
+msgctxt "#32435"
+msgid "The port the dashboard listens on. Leave 8080 alone - Kodi's own web server usually has it."
+msgstr ""
+
+msgctxt "#32436"
+msgid "Access token"
+msgstr ""
+
+msgctxt "#32437"
+msgid "The key the dashboard asks for. Switching a VS10 mode from the browser always needs it; reading needs it only when the setting below says so."
+msgstr ""
+
+msgctxt "#32438"
+msgid "Generate a new token"
+msgstr ""
+
+msgctxt "#32439"
+msgid "Replaces the token with a fresh one. Every browser still holding the old one is logged out."
+msgstr ""
+
+msgctxt "#32440"
+msgid "Require the token for reading too"
+msgstr ""
+
+msgctxt "#32441"
+msgid "Asks for the token before showing anything at all, not just before switching a mode. Turn this on when the box is on a shared network."
+msgstr ""
+
+msgctxt "#32442"
+msgid "Allow VS10 switching from the dashboard"
+msgstr ""
+
+msgctxt "#32443"
+msgid "Shows the VS10 output modes for the playing source in the browser, so the mode can be switched from a phone. The token is required either way."
+msgstr ""
+
+msgctxt "#32444"
+msgid "Show address and token"
+msgstr ""
+
+msgctxt "#32445"
+msgid "Shows the address to open in a browser, together with the current token."
+msgstr ""
+
+msgctxt "#32446"
+msgid "Web dashboard"
+msgstr ""
+
+msgctxt "#32447"
+msgid "Open this address in a browser on the same network:"
+msgstr ""
+
+msgctxt "#32448"
+msgid "Connected"
+msgstr ""
+
+msgctxt "#32449"
+msgid "Connecting..."
+msgstr ""
+
+msgctxt "#32450"
+msgid "Disconnected"
+msgstr ""
+
+msgctxt "#32451"
+msgid "Nothing is playing"
+msgstr ""
+
+msgctxt "#32452"
+msgid "Start a video on the box and everything it carries appears here."
+msgstr ""
+
+msgctxt "#32453"
+msgid "Peak"
+msgstr ""
+
+msgctxt "#32454"
+msgid "Average"
+msgstr ""
+
+msgctxt "#32455"
+msgid "Frame luminance, last 60 seconds"
+msgstr ""
+
+msgctxt "#32456"
+msgid "Copy report"
+msgstr ""
+
+msgctxt "#32457"
+msgid "Copied"
+msgstr ""
+
+msgctxt "#32458"
+msgid "Keep screen awake"
+msgstr ""
+
+msgctxt "#32459"
+msgid "Enter the access token"
+msgstr ""
+
+msgctxt "#32460"
+msgid "You will find it in the add-on settings under Dashboard."
+msgstr ""
+
+msgctxt "#32461"
+msgid "Save"
+msgstr ""
+
+msgctxt "#32462"
+msgid "Cancel"
+msgstr ""
+
+msgctxt "#32463"
+msgid "Wrong or missing token"
+msgstr ""
+
+msgctxt "#32464"
+msgid "Switching..."
+msgstr ""
+
+msgctxt "#32465"
+msgid "Switched"
+msgstr ""
+
+msgctxt "#32466"
+msgid "Switching failed"
+msgstr ""
+
+msgctxt "#32467"
+msgid "VS10 output"
+msgstr ""
+
+msgctxt "#32468"
+msgid "Show the Dolby Vision metadata view"
+msgstr ""
+
+msgctxt "#32469"
+msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
+msgstr ""
+
+msgctxt "#32470"
+msgid "No Dolby Vision metadata"
+msgstr ""
+
+msgctxt "#32471"
+msgid "This source carries no Dolby Vision RPU, so there is no metadata to list. The window fills as soon as a Dolby Vision title starts."
+msgstr ""

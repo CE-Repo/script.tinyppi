@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0d10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="robots" content="noindex, nofollow">
+<title>TinyPPI</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon.jpg">
+<link rel="icon" href="/icon.jpg">
+<link rel="stylesheet" href="/style.css">
+<style>
+/* --- Now playing -------------------------------------------------------- */
+
+.now {
+  padding: 18px 16px 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.badges { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  white-space: nowrap;
+}
+.badge.alt {
+  border-color: color-mix(in srgb, var(--warn) 45%, transparent);
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+}
+
+.now h1 {
+  margin: 0;
+  font-size: clamp(19px, 4.4vw, 26px);
+  line-height: 1.2;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.now .file {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--dim);
+  overflow-wrap: anywhere;
+}
+
+.progress {
+  display: grid;
+  gap: 6px;
+}
+.track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  overflow: hidden;
+}
+.track > i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width .35s linear;
+}
+.times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* --- Stat tiles --------------------------------------------------------- */
+
+.tiles {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+}
+
+.tile {
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 15px;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+.tile .k {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.tile .v {
+  font-size: clamp(20px, 5vw, 27px);
+  font-weight: 650;
+  line-height: 1.1;
+}
+.tile .u { font-size: 12px; color: var(--dim); font-weight: 500; }
+
+/* --- Chart -------------------------------------------------------------- */
+
+.chartwrap { padding: 12px 12px 14px; }
+#chart {
+  display: block;
+  width: 100%;
+  height: 190px;
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+}
+@media (max-width: 640px) { #chart { height: 148px; } }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 10px 4px 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 12px; height: 3px; border-radius: 2px; background: var(--accent); }
+.swatch.band { height: 10px; border-radius: 3px; opacity: .4; }
+.swatch.avg {
+  background: transparent;
+  border-top: 2px dashed var(--accent-2);
+  height: 0;
+}
+
+/* --- Active picture ----------------------------------------------------- */
+
+.framewrap {
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+.frame {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 16 / 9;
+  background: #05070a;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.frame > i {
+  position: absolute;
+  background: linear-gradient(135deg,
+              color-mix(in srgb, var(--accent) 34%, transparent),
+              color-mix(in srgb, var(--accent-2) 24%, transparent));
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  border-radius: 3px;
+  transition: inset .35s ease;
+  inset: 0;
+}
+.framenote { font-size: 12px; color: var(--muted); }
+
+/* --- VS10 --------------------------------------------------------------- */
+
+.vs10 { padding: 14px 16px 16px; display: grid; gap: 12px; }
+.vs10 .out {
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.vs10 .out b { color: var(--text); font-weight: 650; }
+
+.modes {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+.mode {
+  appearance: none;
+  min-height: var(--tap);
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .08s;
+}
+.mode:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel-2));
+}
+.mode:active:not(:disabled) { transform: scale(.985); }
+.mode:disabled { opacity: .5; cursor: progress; }
+.mode.busy { border-color: var(--accent); color: var(--accent); }
+
+.panels {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: start;
+}
+.panels:empty { display: none; }
+
+/* --- Detail groups ------------------------------------------------------ */
+
+.groups {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  align-items: start;
+}
+
+.rows { padding: 4px 0 6px; }
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(96px, 38%) 1fr;
+  gap: 12px;
+  align-items: baseline;
+  padding: 7px 16px;
+}
+.row + .row { border-top: 1px solid var(--line-soft); }
+.row .k { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.row .v {
+  font-size: 13.5px;
+  text-align: right;
+  overflow-wrap: anywhere;
+  transition: color .45s ease-out;
+}
+.row .d { color: var(--dim); font-size: 12.5px; }
+.row.changed .v { color: var(--accent-2); transition: none; }
+
+/* --- Empty state -------------------------------------------------------- */
+
+.empty {
+  padding: 48px 24px;
+  text-align: center;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+.empty .big { font-size: 17px; font-weight: 600; }
+.empty p { margin: 0; color: var(--muted); font-size: 13.5px; max-width: 42ch; }
+
+/* --- Link to the metadata window ---------------------------------------- */
+
+/* Its own window rather than a section here: the list is long enough to bury
+   everything under it, and on a second screen it is worth a screen of its own.
+   A real link, so it can be opened in a tab, a window or not at all. */
+.metalink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  min-height: var(--tap);
+  border-radius: var(--radius);
+  border: 1px solid var(--line-soft);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+  transition: border-color .15s, background .15s;
+}
+.metalink:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel));
+}
+.metalink:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.metalink .dv {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 999px;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+.metalink .arrow { margin-left: auto; color: var(--muted); font-size: 18px; }
+
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <b>TinyPPI</b><span class="ver" id="version"></span>
+  </div>
+  <div class="status" id="status" data-state="wait" role="status" aria-live="polite">
+    <span class="dot"></span><span id="statusText">…</span>
+  </div>
+  <button class="iconbtn hidden" id="wakeBtn" type="button" aria-pressed="false">
+    <span aria-hidden="true">☀</span> <span class="lbl"></span>
+  </button>
+  <button class="iconbtn" id="tokenBtn" type="button" title="Token">🔑</button>
+</header>
+
+<main>
+  <section class="card" id="nowCard">
+    <div class="now">
+      <div class="badges" id="badges"></div>
+      <h1 id="title">—</h1>
+      <p class="file mono hidden" id="file"></p>
+      <div class="progress">
+        <div class="track"><i id="bar"></i></div>
+        <div class="times mono">
+          <span id="tElapsed">--:--</span><span id="tTotal">--:--</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card hidden" id="idleCard">
+    <div class="empty">
+      <div class="big" id="idleTitle">—</div>
+      <p id="idleText"></p>
+    </div>
+  </section>
+
+  <section class="tiles hidden" id="tiles">
+    <div class="tile" id="tPeak"><span class="k" id="kPeak"></span>
+      <span class="v mono" id="vPeak">—</span><span class="u">nits</span></div>
+    <div class="tile" id="tAvg"><span class="k" id="kAvg"></span>
+      <span class="v mono" id="vAvg">—</span><span class="u">nits</span></div>
+    <div class="tile"><span class="k" id="kAr"></span>
+      <span class="v mono" id="vAr">—</span><span class="u">&nbsp;</span></div>
+    <div class="tile"><span class="k" id="kFps"></span>
+      <span class="v mono" id="vFps">—</span><span class="u" id="uFps">&nbsp;</span></div>
+  </section>
+
+  <section class="card hidden" id="chartCard">
+    <h2 id="chartTitle"></h2>
+    <div class="chartwrap">
+      <canvas id="chart" role="img"></canvas>
+      <div class="legend">
+        <span><i class="swatch band"></i>Max</span>
+        <span><i class="swatch avg"></i>Ø</span>
+        <span id="chartScale" style="margin-left:auto"></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="panels">
+  <section class="card hidden" id="frameCard">
+    <h2 id="frameTitle"></h2>
+    <div class="framewrap">
+      <div class="frame"><i id="frameActive"></i></div>
+      <div class="framenote mono" id="frameNote"></div>
+    </div>
+  </section>
+
+  <section class="card hidden" id="vs10Card">
+    <h2 id="vs10Title"></h2>
+    <div class="vs10">
+      <div class="out"><span id="vs10OutLabel"></span><b id="vs10Out">—</b></div>
+      <div class="modes" id="modes"></div>
+    </div>
+  </section>
+
+  </div>
+
+  <div class="groups" id="groups"></div>
+
+
+  <a class="metalink hidden" id="metaLink" href="/metadata" target="tinyppi-metadata"
+     rel="noopener">
+    <span class="dv">DV</span><span id="metaLinkText"></span><span class="arrow">↗</span>
+  </a>
+
+  <footer>
+    <span id="foot"></span>
+    <button class="ghost" id="copyBtn" type="button"></button>
+  </footer>
+</main>
+
+<script src="/stream.js"></script>
+<script>
+"use strict";
+
+/* ===========================================================================
+   TinyPPI second-screen dashboard.
+
+   Everything printed here comes from the snapshot TinyPPI.boot delivers; the
+   labels come translated with it, out of Kodi's own string table.  The
+   connection itself lives in stream.js, which this page shares with the
+   metadata window.
+=========================================================================== */
+
+const $ = TinyPPI.$;
+const T = TinyPPI.T;
+
+const HISTORY_SECONDS = 60;
+
+const el = {
+  version: $("version"),
+  badges: $("badges"), title: $("title"), file: $("file"),
+  bar: $("bar"), tElapsed: $("tElapsed"), tTotal: $("tTotal"),
+  nowCard: $("nowCard"), idleCard: $("idleCard"),
+  tiles: $("tiles"), tPeak: $("tPeak"), tAvg: $("tAvg"),
+  vPeak: $("vPeak"), vAvg: $("vAvg"), vAr: $("vAr"), vFps: $("vFps"), uFps: $("uFps"),
+  chartCard: $("chartCard"), chart: $("chart"), chartScale: $("chartScale"),
+  frameCard: $("frameCard"), frameActive: $("frameActive"), frameNote: $("frameNote"),
+  vs10Card: $("vs10Card"), vs10Out: $("vs10Out"), modes: $("modes"),
+  groups: $("groups"), foot: $("foot"),
+  metaLink: $("metaLink"), wakeBtn: $("wakeBtn"), copyBtn: $("copyBtn")
+};
+
+let state = null;
+let control = false;
+let history = [];          /* {t, min, max, avg} for the chart          */
+let rowNodes = new Map();  /* row id -> {element, key, value, last}     */
+let groupNodes = new Map();
+let pending = null;        /* the VS10 mode a button is waiting on      */
+
+/* --- render ------------------------------------------------------------- */
+
+function render(next) {
+  state = next;
+  control = !!next.control;
+
+  if (!next.playing) {
+    el.nowCard.classList.add("hidden");
+    el.idleCard.classList.remove("hidden");
+    for (const id of ["tiles", "chartCard", "frameCard", "vs10Card", "metaLink"]) {
+      $(id).classList.add("hidden");
+    }
+    el.groups.innerHTML = "";
+    rowNodes.clear();
+    groupNodes.clear();
+    history = [];
+    return;
+  }
+
+  el.nowCard.classList.remove("hidden");
+  el.idleCard.classList.add("hidden");
+
+  renderNow(next);
+  renderTiles(next.metrics || {});
+  renderChart(next.metrics || {});
+  renderFrame(next.metrics || {});
+  renderVs10(next.vs10 || {});
+  renderGroups(next.groups || []);
+  /* The metadata list is a window of its own; this page only says whether
+     there is one to open. */
+  el.metaLink.classList.toggle("hidden", !(next.metadata && next.metadata.length));
+}
+
+function renderNow(snapshot) {
+  el.title.textContent = snapshot.title || "—";
+  if (snapshot.filename) {
+    el.file.textContent = snapshot.filename;
+    el.file.classList.remove("hidden");
+  } else {
+    el.file.classList.add("hidden");
+  }
+
+  /* An empty source type is SDR, not "unknown": the add-on publishes a token
+     only for the HDR formats (see publish_hdr_type), which is the same thing
+     the VS10 buttons branch on. */
+  const badges = [{ text: TinyPPI.prettyHdr(snapshot.hdr_type || "sdr"), alt: false }];
+  if (snapshot.effective && snapshot.effective !== snapshot.hdr_type) {
+    badges.push({ text: "→ " + TinyPPI.prettyHdr(snapshot.effective), alt: true });
+  }
+  if (snapshot.paused) badges.push({ text: "❚❚", alt: true });
+  el.badges.innerHTML = "";
+  for (const badge of badges) {
+    const node = document.createElement("span");
+    node.className = badge.alt ? "badge alt" : "badge";
+    node.textContent = badge.text;
+    el.badges.appendChild(node);
+  }
+
+  const progress = (snapshot.metrics || {}).progress;
+  el.bar.style.width = (progress === null || progress === undefined ? 0 : progress) + "%";
+  el.tElapsed.textContent = snapshot.time || "--:--";
+  el.tTotal.textContent = snapshot.duration || "--:--";
+}
+
+function renderTiles(metrics) {
+  el.tiles.classList.remove("hidden");
+  const l1 = metrics.l1 || {};
+  /* Peak and average come from the Dolby Vision L1 block and from nowhere
+     else, so on any other source the two tiles are left out entirely rather
+     than shown holding a dash. */
+  const hasL1 = l1.max !== null && l1.max !== undefined;
+  el.tPeak.classList.toggle("hidden", !hasL1);
+  el.tAvg.classList.toggle("hidden", !hasL1);
+  el.vPeak.textContent = TinyPPI.fmtNits(l1.max);
+  el.vAvg.textContent  = TinyPPI.fmtNits(l1.avg);
+  el.vAr.textContent   = metrics.aspect ? metrics.aspect.toFixed(2) + ":1" : "—";
+  el.vFps.textContent  = metrics.fps_in ? metrics.fps_in.toFixed(3).replace(/0+$/, "").replace(/\.$/, "") : "—";
+  el.uFps.textContent  = metrics.fps_drop ? "▼ " + metrics.fps_drop : " ";
+}
+
+/* --- chart -------------------------------------------------------------- */
+
+/* Luminance spans four decades, from a black frame to a specular highlight,
+   so the y axis is logarithmic: a linear one would flatten everything below
+   a hundred nits into the baseline. */
+const MIN_NITS = 0.01;
+const MAX_NITS = 10000;
+const logScale = (value) => {
+  const clamped = Math.min(MAX_NITS, Math.max(MIN_NITS, value));
+  return (Math.log10(clamped) - Math.log10(MIN_NITS)) /
+         (Math.log10(MAX_NITS) - Math.log10(MIN_NITS));
+};
+
+function renderChart(metrics) {
+  const l1 = metrics.l1 || {};
+  if (l1.max === null || l1.max === undefined) {
+    el.chartCard.classList.add("hidden");
+    return;
+  }
+  el.chartCard.classList.remove("hidden");
+
+  const now = Date.now() / 1000;
+  history.push({ t: now, min: l1.min || 0, max: l1.max || 0, avg: l1.avg || 0 });
+  while (history.length && now - history[0].t > HISTORY_SECONDS) history.shift();
+
+  drawChart();
+}
+
+function drawChart() {
+  const canvas = el.chart;
+  const ratio = window.devicePixelRatio || 1;
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  if (!width || !height) return;
+  if (canvas.width !== Math.round(width * ratio) ||
+      canvas.height !== Math.round(height * ratio)) {
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
+  }
+
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+
+  const style = getComputedStyle(document.documentElement);
+  const accent = style.getPropertyValue("--accent").trim() || "#4fc3f7";
+  const line   = style.getPropertyValue("--line").trim() || "#242c36";
+  const accent2 = style.getPropertyValue("--accent-2").trim() || "#82b1ff";
+  const dim    = style.getPropertyValue("--dim").trim() || "#5d6875";
+
+  const padLeft = 34, padRight = 6, padTop = 8, padBottom = 6;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+  const y = (nits) => padTop + plotH * (1 - logScale(nits));
+
+  /* Gridlines, one per decade. */
+  ctx.strokeStyle = line;
+  ctx.fillStyle = dim;
+  ctx.lineWidth = 1;
+  ctx.font = "10px ui-monospace, monospace";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  for (const tick of [0.1, 1, 10, 100, 1000, 10000]) {
+    const ty = Math.round(y(tick)) + 0.5;
+    ctx.beginPath();
+    ctx.moveTo(padLeft, ty);
+    ctx.lineTo(width - padRight, ty);
+    ctx.stroke();
+    ctx.fillText(tick >= 1000 ? (tick / 1000) + "k" : String(tick), padLeft - 6, ty);
+  }
+
+  if (history.length < 2) return;
+
+  const now = Date.now() / 1000;
+  const x = (t) => padLeft + plotW * (1 - Math.min(1, (now - t) / HISTORY_SECONDS));
+
+  /* Peak, as an area down to the floor.  The min of an L1 block sits near
+     zero on almost every frame, so a min-max band would be full height and
+     say nothing; the peak against the average is where the grade shows. */
+  ctx.beginPath();
+  ctx.moveTo(x(history[0].t), padTop + plotH);
+  for (const point of history) ctx.lineTo(x(point.t), y(point.max));
+  ctx.lineTo(x(history[history.length - 1].t), padTop + plotH);
+  ctx.closePath();
+  const fill = ctx.createLinearGradient(0, padTop, 0, padTop + plotH);
+  fill.addColorStop(0, accent);
+  fill.addColorStop(1, "transparent");
+  ctx.globalAlpha = 0.28;
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  const trace = (key, color, width, dash) => {
+    ctx.setLineDash(dash || []);
+    ctx.beginPath();
+    history.forEach((point, index) => {
+      const px = x(point.t), py = y(point[key]);
+      index === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    });
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineJoin = "round";
+    ctx.stroke();
+    ctx.setLineDash([]);
+  };
+
+  /* The peak is the solid line the fill belongs to; the average is dashed, so
+     the two never read as one band even where they run close together. */
+  trace("max", accent, 1.7);
+  trace("avg", accent2, 1.5, [4, 3]);
+}
+
+let resizeTimer = 0;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(drawChart, 120);
+});
+
+/* --- active picture ----------------------------------------------------- */
+
+function renderFrame(metrics) {
+  const bars = metrics.bars, frame = metrics.frame;
+  if (!bars || !frame || !frame.w || !frame.h) {
+    el.frameCard.classList.add("hidden");
+    return;
+  }
+  el.frameCard.classList.remove("hidden");
+  const [left, right, top, bottom] = bars;
+  const box = el.frameActive.parentElement;
+  box.style.aspectRatio = frame.w + " / " + frame.h;
+  el.frameActive.style.inset =
+    (top / frame.h * 100) + "% " + (right / frame.w * 100) + "% " +
+    (bottom / frame.h * 100) + "% " + (left / frame.w * 100) + "%";
+  el.frameNote.textContent =
+    frame.w + "×" + frame.h + "   L " + left + "  R " + right +
+    "  T " + top + "  B " + bottom;
+}
+
+/* --- VS10 --------------------------------------------------------------- */
+
+function renderVs10(vs10) {
+  const options = vs10.options || [];
+  if (!control || !options.length) {
+    el.vs10Card.classList.add("hidden");
+    return;
+  }
+  el.vs10Card.classList.remove("hidden");
+  el.vs10Out.textContent = vs10.output || "—";
+
+  const signature = options.map((option) => option.mode).join("|");
+  if (el.modes.dataset.signature !== signature) {
+    el.modes.dataset.signature = signature;
+    el.modes.innerHTML = "";
+    for (const option of options) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "mode";
+      button.dataset.mode = option.mode;
+      button.textContent = option.label;
+      button.addEventListener("click", () => switchMode(option.mode, button));
+      el.modes.appendChild(button);
+    }
+  }
+}
+
+async function switchMode(mode, button) {
+  if (pending) return;
+  pending = mode;
+  for (const node of el.modes.children) node.disabled = true;
+  button.classList.add("busy");
+  TinyPPI.toast(T.switching);
+  try {
+    const response = await fetch("/api/mode", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-TinyPPI-Token": TinyPPI.token },
+      body: JSON.stringify({ mode })
+    });
+    if (response.status === 401) {
+      TinyPPI.toast(T.token_bad, true);
+      TinyPPI.askToken();
+    } else if (!response.ok) {
+      TinyPPI.toast(T.switch_failed, true);
+    } else {
+      TinyPPI.toast(T.switched);
+    }
+  } catch (_) {
+    TinyPPI.toast(T.switch_failed, true);
+  } finally {
+    /* The driver needs a moment to settle before the next snapshot shows the
+       new output; keep the buttons locked until then rather than inviting a
+       second press into the middle of the switch. */
+    setTimeout(() => {
+      pending = null;
+      button.classList.remove("busy");
+      for (const node of el.modes.children) node.disabled = false;
+    }, 1200);
+  }
+}
+
+/* --- detail groups ------------------------------------------------------ */
+
+function renderGroups(groups) {
+  const seen = new Set();
+
+  for (const group of groups) {
+    seen.add(group.id);
+    let card = groupNodes.get(group.id);
+    if (!card) {
+      card = document.createElement("section");
+      card.className = "card";
+      const heading = document.createElement("h2");
+      heading.textContent = group.title;
+      const rows = document.createElement("div");
+      rows.className = "rows";
+      card.append(heading, rows);
+      card.dataset.group = group.id;
+      groupNodes.set(group.id, card);
+      el.groups.appendChild(card);
+    }
+    renderRows(card.querySelector(".rows"), group);
+  }
+
+  for (const [id, card] of groupNodes) {
+    if (!seen.has(id)) { card.remove(); groupNodes.delete(id); }
+  }
+}
+
+function renderRows(container, group) {
+  const wanted = group.rows.map((row) => row.id);
+  const seen = new Set(wanted);
+
+  group.rows.forEach((row, index) => {
+    let node = rowNodes.get(row.id);
+    if (!node) {
+      const element = document.createElement("div");
+      element.className = "row";
+      const key = document.createElement("span");
+      key.className = "k";
+      const value = document.createElement("span");
+      value.className = "v mono";
+      element.append(key, value);
+      node = { element, key, value, last: null, timer: 0 };
+      rowNodes.set(row.id, node);
+    }
+    /* Keep the DOM in the order the snapshot names, so a row that appears
+       mid-title lands where it belongs instead of at the end. */
+    const at = container.children[index];
+    if (at !== node.element) container.insertBefore(node.element, at || null);
+
+    node.key.textContent = row.label;
+    const text = row.detail ? row.value + "  " : row.value;
+    if (node.last !== row.value + "\n" + row.detail) {
+      if (node.last !== null) flash(node);
+      node.last = row.value + "\n" + row.detail;
+      node.value.textContent = text;
+      if (row.detail) {
+        const detail = document.createElement("span");
+        detail.className = "d";
+        detail.textContent = row.detail;
+        node.value.append(detail);
+      }
+    }
+  });
+
+  for (const [id, node] of rowNodes) {
+    if (id.startsWith(group.id + ".") && !seen.has(id)) {
+      node.element.remove();
+      rowNodes.delete(id);
+    }
+  }
+}
+
+/* Mirrors the overlay's own highlight: a reading that moved is written in the
+   change color and fades back, so the live values stand out from the fixed
+   ones without slowing the refresh down. */
+function flash(node) {
+  node.element.classList.add("changed");
+  clearTimeout(node.timer);
+  node.timer = setTimeout(() => node.element.classList.remove("changed"), 750);
+}
+
+/* --- report ------------------------------------------------------------- */
+
+function buildReport() {
+  if (!state || !state.playing) return "";
+  const lines = ["TinyPPI"];
+  if (state.title) lines.push(state.title);
+  if (state.filename) lines.push(state.filename);
+  lines.push("");
+  for (const group of state.groups || []) {
+    lines.push("[" + group.title + "]");
+    const width = Math.max(...group.rows.map((row) => row.label.length));
+    for (const row of group.rows) {
+      const detail = row.detail ? "  (" + row.detail + ")" : "";
+      lines.push("  " + row.label.padEnd(width) + "  " + row.value + detail);
+    }
+    lines.push("");
+  }
+  return lines.join("\n");
+}
+
+el.copyBtn.addEventListener("click", async () => {
+  const report = buildReport();
+  if (!report) return;
+  try {
+    await navigator.clipboard.writeText(report);
+    TinyPPI.toast(T.copied);
+  } catch (_) {
+    /* Clipboard access needs a secure context, which plain http on a LAN is
+       not; hand the report over as a file instead of failing silently. */
+    const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "tinyppi.txt";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+});
+
+/* --- wake lock ---------------------------------------------------------- */
+
+let wakeLock = null;
+if ("wakeLock" in navigator) {
+  el.wakeBtn.classList.remove("hidden");
+  el.wakeBtn.addEventListener("click", async () => {
+    if (wakeLock) {
+      await wakeLock.release().catch(() => {});
+      wakeLock = null;
+      el.wakeBtn.setAttribute("aria-pressed", "false");
+      return;
+    }
+    try {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => {
+        wakeLock = null;
+        el.wakeBtn.setAttribute("aria-pressed", "false");
+      });
+      el.wakeBtn.setAttribute("aria-pressed", "true");
+    } catch (_) { /* denied; the button simply stays off */ }
+  });
+  document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState === "visible" &&
+        el.wakeBtn.getAttribute("aria-pressed") === "true" && !wakeLock) {
+      try { wakeLock = await navigator.wakeLock.request("screen"); } catch (_) {}
+    }
+  });
+}
+
+
+/* --- boot --------------------------------------------------------------- */
+
+function applyStrings(strings, hello) {
+  $("idleTitle").textContent = strings.idle_title;
+  $("idleText").textContent = strings.idle_text;
+  $("kPeak").textContent = strings.peak;
+  $("kAvg").textContent = strings.average;
+  $("kAr").textContent = strings.aspect;
+  $("kFps").textContent = strings.fps;
+  $("chartTitle").textContent = strings.chart;
+  $("chartScale").textContent = "nits \u00b7 log";
+  $("frameTitle").textContent = strings.active_area;
+  $("vs10Title").textContent = strings.vs10;
+  $("vs10OutLabel").textContent = strings.output;
+  $("metaLinkText").textContent = strings.metadata;
+  el.copyBtn.textContent = strings.copy;
+  el.wakeBtn.querySelector(".lbl").textContent = strings.awake;
+  el.wakeBtn.setAttribute("aria-label", strings.awake);
+  el.wakeBtn.title = strings.awake;
+  if (hello) {
+    el.version.textContent = "v" + hello.version;
+    el.foot.textContent = "TinyPPI " + hello.version;
+  }
+}
+
+TinyPPI.boot({ onState: render, onStrings: applyStrings });
+</script>
+</body>
+</html>

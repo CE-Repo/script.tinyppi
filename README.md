@@ -217,6 +217,105 @@ the field names and units follow its own field reference.
 
 ---
 
+## Web Dashboard
+
+TinyPPI can serve everything the overlay shows to a browser on your phone or
+laptop, so the readings can be followed **while the picture stays untouched**.
+The dashboard is off out of the box; switch it on under **Settings →
+Dashboard**, then open the address it names on any device on the same network:
+
+```
+http://<box-ip>:8099/
+```
+
+**Settings → Dashboard → Show address and token** prints that address together
+with the access token, which is what you need standing in front of the TV with
+a phone in your hand.
+
+### What it shows
+
+- **Now playing** — title, file name (when *Show file name* is on), elapsed
+  time and progress.
+- **Peak / average brightness**, the aspect ratio of the picture inside the
+  bars, and the frame rate with dropped frames called out.
+- **A live luminance chart** — the Dolby Vision L1 peak and frame average over
+  the last 60 seconds, on a logarithmic scale, so the film's own light
+  behaviour is visible as it plays.
+- **The active picture area** the RPU declares (L5), drawn to scale inside the
+  coded frame — the letterbox as the stream describes it, changing with the
+  scene on an IMAX Enhanced title.
+- **Every row of the overlay**, grouped as it is on screen: Video, Processing,
+  Audio, HDR static metadata, Dolby Vision metadata and System. A reading that
+  just moved is highlighted the same way the overlay highlights it.
+- **A button to the Dolby Vision metadata view**, which opens in a **window of
+  its own** (see below).
+- **Copy report** hands the whole set over as plain text, ready to paste into a
+  forum post.
+
+What a source cannot carry is left out rather than shown empty: the peak and
+average tiles, the luminance chart, the active-area box and both metadata
+sections come from the Dolby Vision RPU, so they appear for a Dolby Vision
+title and not for any other, and the HDR static-metadata group is left out on
+an SDR one. That is the same rule the overlay follows when it decides which
+panels to draw.
+
+The row labels come from Kodi's own string table, so the dashboard is in the
+same language the overlay is. Nothing is loaded from the internet: the page is
+served entirely by the add-on and works on a box with no outside connection.
+On a phone it can be added to the home screen and will keep the screen awake
+while it is open.
+
+### The Dolby Vision metadata window
+
+On a Dolby Vision title the dashboard shows a **Dolby Vision metadata view**
+button. It opens a second window — `http://<box-ip>:8099/metadata`, which can
+also be bookmarked on its own — listing every block the stream's side data
+carries: the configuration record, the RPU from its header through L11, the
+trim passes and the static SEIs. It is the same list the on-screen view shows,
+built from the same rows, and it stays live: the per-frame blocks move with the
+picture and a reading that just changed is highlighted, exactly as in the
+overlay. On a wide screen it flows into two or three columns, never breaking a
+section across them, and **Copy report** hands the whole list over as plain
+text.
+
+The button appears only where there is something to open. On any other source
+the window says so rather than sitting empty.
+
+It can be turned off entirely under **Settings → Dashboard** — it is the
+largest thing the add-on sends, so on a slow network it is the first thing to
+switch off.
+
+### Switching VS10 from the browser
+
+With **Allow VS10 switching from the dashboard** on (the default), the page
+shows the output modes that apply to the playing source — the same set the
+on-screen VS10 dialog offers, SDR sources included — and a tap applies one.
+The switch is handed to the add-on's own `run_mode` entry point, so it takes
+exactly the path a keymap shortcut takes, native VS10 actions included.
+
+Switching **always** requires the access token, whatever reading is set to.
+
+### Security
+
+The dashboard is reachable by anything on the same network while it is on, so:
+
+- It is **off by default** and has to be switched on deliberately.
+- **Do not forward its port to the internet.** It is meant for a home network.
+- The **access token** is required for every VS10 switch. Turn on **Require the
+  token for reading too** if the network the box is on is shared — the page
+  then asks for the token before it shows anything at all.
+- **Generate a new token** replaces it and logs out every browser still holding
+  the old one.
+- The file name obeys the overlay's own *Show file name* setting: with it off,
+  the path is not sent to the browser either.
+- Only a fixed set of routes is served — no path is ever resolved against the
+  filesystem.
+
+Leave port 8080 alone; Kodi's own web server usually has it. 8099 is the
+default here.
+
+---
+
 ## Advanced Launch Arguments
 
 TinyPPI supports additional arguments to open specific modes or apply VS10 output modes directly — without opening the overlay or the dialog first.
