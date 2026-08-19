@@ -120,7 +120,12 @@
   min-width: max-content;
   font-size: 12.5px;
 }
-.mgrid > span { text-align: right; overflow-wrap: anywhere; }
+.mgrid > span {
+  text-align: right;
+  overflow-wrap: anywhere;
+  transition: color .45s ease-out;
+}
+.mgrid > span.changed { color: var(--accent-2); transition: none; }
 .mgrid .lead, .mgrid .corner { text-align: left; }
 .mgrid .lead { color: var(--muted); }
 .mgrid .corner, .mgrid .head {
@@ -423,7 +428,13 @@ function update(rows) {
     if (!row) continue;
     if (entry.field === "cell") {
       const cell = (row.cells || [])[entry.cell] || "";
-      if (entry.node.textContent !== cell) entry.node.textContent = cell;
+      if (entry.node.textContent === cell) continue;
+      entry.node.textContent = cell;
+      /* A trim is the fastest-moving reading the view has, and on screen it
+         is highlighted like any other; the cell itself lights up, since a
+         whole table row of them lit at once would say less than the one
+         control that actually moved. */
+      flash(entry);
       continue;
     }
     const text = row.value || "";
@@ -436,9 +447,12 @@ function update(rows) {
 }
 
 function flash(entry) {
-  entry.row.classList.add("changed");
+  /* A name and its value are lit as a pair -- the row carries the class -- and
+     a trim cell on its own. */
+  const node = entry.row || entry.node;
+  node.classList.add("changed");
   clearTimeout(entry.timer);
-  entry.timer = setTimeout(() => entry.row.classList.remove("changed"), 750);
+  entry.timer = setTimeout(() => node.classList.remove("changed"), 750);
 }
 
 /* --- report ------------------------------------------------------------- */
