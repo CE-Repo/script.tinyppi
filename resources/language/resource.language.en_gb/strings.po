@@ -1486,3 +1486,11 @@ msgstr ""
 msgctxt "#32469"
 msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
 msgstr ""
+
+msgctxt "#32470"
+msgid "No Dolby Vision metadata"
+msgstr ""
+
+msgctxt "#32471"
+msgid "This source carries no Dolby Vision RPU, so there is no metadata to list. The window fills as soon as a Dolby Vision title starts."
+msgstr ""

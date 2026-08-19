@@ -247,12 +247,10 @@ a phone in your hand.
 - **Every row of the overlay**, grouped as it is on screen: Video, Processing,
   Audio, HDR static metadata, Dolby Vision metadata and System. A reading that
   just moved is highlighted the same way the overlay highlights it.
-- **The full Dolby Vision metadata view** — every block the stream's side data
-  carries, the same list the on-screen view shows, laid out in two columns on
-  a wide screen. It can be collapsed, and turned off entirely under
-  **Settings → Dashboard** (it is the largest thing the page sends).
-- **Copy report** hands the whole set over as plain text — the rows and the
-  metadata list together — ready to paste into a forum post.
+- **A button to the Dolby Vision metadata view**, which opens in a **window of
+  its own** (see below).
+- **Copy report** hands the whole set over as plain text, ready to paste into a
+  forum post.
 
 What a source cannot carry is left out rather than shown empty: the peak and
 average tiles, the luminance chart, the active-area box and both metadata
@@ -266,6 +264,26 @@ same language the overlay is. Nothing is loaded from the internet: the page is
 served entirely by the add-on and works on a box with no outside connection.
 On a phone it can be added to the home screen and will keep the screen awake
 while it is open.
+
+### The Dolby Vision metadata window
+
+On a Dolby Vision title the dashboard shows a **Dolby Vision metadata view**
+button. It opens a second window — `http://<box-ip>:8099/metadata`, which can
+also be bookmarked on its own — listing every block the stream's side data
+carries: the configuration record, the RPU from its header through L11, the
+trim passes and the static SEIs. It is the same list the on-screen view shows,
+built from the same rows, and it stays live: the per-frame blocks move with the
+picture and a reading that just changed is highlighted, exactly as in the
+overlay. On a wide screen it flows into two or three columns, never breaking a
+section across them, and **Copy report** hands the whole list over as plain
+text.
+
+The button appears only where there is something to open. On any other source
+the window says so rather than sitting empty.
+
+It can be turned off entirely under **Settings → Dashboard** — it is the
+largest thing the add-on sends, so on a slow network it is the first thing to
+switch off.
 
 ### Switching VS10 from the browser
 

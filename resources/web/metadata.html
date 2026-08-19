@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0d10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="robots" content="noindex, nofollow">
+<title>TinyPPI — Dolby Vision metadata</title>
+<link rel="apple-touch-icon" href="/icon.jpg">
+<link rel="icon" href="/icon.jpg">
+<link rel="stylesheet" href="/style.css">
+<style>
+/* ---------------------------------------------------------------------------
+   The Dolby Vision metadata window.
+
+   A window of its own rather than a section of the dashboard: the list runs to
+   a hundred readings and more, and on a second screen it is worth the whole
+   screen.  Nothing here is picked out or interpreted -- the rows arrive as
+   info.dvmetadata builds them for the on-screen view, so what is listed is
+   what the bitstream said.
+--------------------------------------------------------------------------- */
+
+.subject {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  padding: 2px 2px 0;
+}
+.subject h1 {
+  margin: 0;
+  font-size: clamp(17px, 3.6vw, 22px);
+  font-weight: 650;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.subject .badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  white-space: nowrap;
+}
+.subject .count { margin-left: auto; color: var(--dim); font-size: 12.5px; }
+
+.metarows { padding: 6px 0 14px; }
+
+/* One column on a phone, more as the window widens: the sections stand alone,
+   so they read fine side by side and the page stops being a mile long. */
+@media (min-width: 900px)  { .metarows { columns: 2; column-gap: 28px; padding: 10px 8px 16px; } }
+@media (min-width: 1500px) { .metarows { columns: 3; } }
+.mblock { break-inside: avoid; }
+
+.msection {
+  margin: 14px 16px 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.msection .state {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  color: var(--dim);
+  text-transform: none;
+}
+
+.mrow {
+  display: grid;
+  grid-template-columns: minmax(110px, 45%) 1fr;
+  gap: 10px;
+  padding: 3px 16px;
+  font-size: 12.5px;
+}
+.mrow .k { color: var(--muted); overflow-wrap: anywhere; }
+.mrow .v { text-align: right; overflow-wrap: anywhere; transition: color .45s ease-out; }
+.mrow.changed .v { color: var(--accent-2); transition: none; }
+
+.mwide {
+  padding: 3px 16px;
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+
+/* A trim pass only means anything read against its neighbours, so its cells go
+   in a scrolling row of fixed slots rather than wrapping into each other. */
+.mtable { padding: 2px 16px; overflow-x: auto; }
+.mtable > div {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(62px, 1fr);
+  gap: 8px;
+  font-size: 12px;
+  min-width: max-content;
+}
+.mtable .lead {
+  grid-column: 1;
+  min-width: 108px;
+  color: var(--muted);
+  text-align: left;
+}
+.mtable > div > span { text-align: right; }
+.mhead > div > span {
+  color: var(--dim);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.empty {
+  padding: 48px 24px;
+  text-align: center;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+.empty .big { font-size: 17px; font-weight: 600; }
+.empty p { margin: 0; color: var(--muted); font-size: 13.5px; max-width: 46ch; }
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <b>TinyPPI</b><span class="ver" id="version"></span>
+  </div>
+  <div class="status" id="status" data-state="wait" role="status" aria-live="polite">
+    <span class="dot"></span><span id="statusText">…</span>
+  </div>
+  <button class="iconbtn" id="tokenBtn" type="button" title="Token">🔑</button>
+</header>
+
+<main>
+  <div class="subject">
+    <span class="badge" id="badge">DV</span>
+    <h1 id="title">—</h1>
+    <span class="count mono" id="count"></span>
+  </div>
+
+  <section class="card" id="listCard">
+    <div class="metarows" id="metaRows"></div>
+  </section>
+
+  <section class="card hidden" id="idleCard">
+    <div class="empty">
+      <div class="big" id="idleTitle">—</div>
+      <p id="idleText"></p>
+    </div>
+  </section>
+
+  <footer>
+    <span id="foot"></span>
+    <button class="ghost" id="copyBtn" type="button"></button>
+  </footer>
+</main>
+
+<script src="/stream.js"></script>
+<script>
+"use strict";
+
+/* ===========================================================================
+   The Dolby Vision metadata window.
+
+   Fed by the same stream the dashboard sits on: the rows arrive as
+   (kind, name, value) exactly as info.dvmetadata builds them for the
+   on-screen view, and this page only lays them out.
+=========================================================================== */
+
+const $ = TinyPPI.$;
+const T = TinyPPI.T;
+
+const el = {
+  version: $("version"), badge: $("badge"), title: $("title"), count: $("count"),
+  listCard: $("listCard"), idleCard: $("idleCard"), metaRows: $("metaRows"),
+  foot: $("foot"), copyBtn: $("copyBtn")
+};
+
+let state = null;
+let signature = "";   /* the list's shape, so nodes are rebuilt only when it moves */
+let live = [];        /* {node, index, field} for every reading that changes      */
+
+/* --- render ------------------------------------------------------------- */
+
+function render(next) {
+  state = next;
+  const rows = next.metadata || [];
+
+  document.title = next.title
+    ? next.title + " — " + T.metadata
+    : "TinyPPI — " + T.metadata;
+  el.title.textContent = next.title || "—";
+  el.badge.textContent = TinyPPI.prettyHdr(next.hdr_type);
+
+  if (!rows.length) {
+    el.listCard.classList.add("hidden");
+    el.idleCard.classList.remove("hidden");
+    /* Two different nothings: no film at all, or a film with no RPU behind it.
+       Saying which is the difference between a window that looks broken and
+       one that has answered. */
+    $("idleTitle").textContent = next.playing ? T.no_metadata : T.idle_title;
+    $("idleText").textContent  = next.playing ? T.no_metadata_text : T.idle_text;
+    el.badge.classList.toggle("hidden", !next.playing);
+    el.count.textContent = "";
+    signature = "";
+    live = [];
+    el.metaRows.textContent = "";
+    return;
+  }
+
+  el.listCard.classList.remove("hidden");
+  el.idleCard.classList.add("hidden");
+  el.badge.classList.remove("hidden");
+  el.count.textContent = rows.filter((row) => row.kind !== "space").length;
+
+  /* Rebuilding a hundred-odd nodes five times a second would fight the browser
+     for no gain, and the list only changes shape when a block comes or goes.
+     So the values are written in place and the nodes are rebuilt only when the
+     shape itself moves. */
+  const shape = rows.map((row) => row.kind + "\u001f" + row.name).join("\u001e");
+  if (shape !== signature) {
+    signature = shape;
+    build(rows);
+    return;
+  }
+  update(rows);
+}
+
+function build(rows) {
+  const frag = document.createDocumentFragment();
+  el.metaRows.textContent = "";
+  live = [];
+
+  /* Each section and its rows go in a block of their own, so a multi-column
+     layout breaks between sections and never through one. */
+  let block = null;
+  const open = () => {
+    block = document.createElement("div");
+    block.className = "mblock";
+    frag.append(block);
+  };
+
+  rows.forEach((row, index) => {
+    if (row.kind === "space") return;          /* the blocks space themselves */
+    if (row.kind === "section" || !block) open();
+
+    let node;
+    if (row.kind === "section") {
+      node = document.createElement("div");
+      node.className = "msection";
+      const name = document.createElement("span");
+      name.textContent = row.name;
+      const held = document.createElement("span");
+      held.className = "state";
+      /* A held block says so on its heading -- see info.dvmetadata._state. */
+      held.textContent = row.value || "";
+      node.append(name, held);
+      live.push({ node: held, index, field: "value" });
+    } else if (row.kind === "wide") {
+      node = document.createElement("div");
+      node.className = "mwide mono";
+      node.textContent = row.value;
+      live.push({ node, index, field: "value" });
+    } else if (row.kind === "headings" || row.kind === "columns") {
+      node = document.createElement("div");
+      node.className = "mtable" + (row.kind === "headings" ? " mhead" : " mono");
+      const line = document.createElement("div");
+      const lead = document.createElement("span");
+      lead.className = "lead";
+      lead.textContent = row.name;
+      line.append(lead);
+      for (const cell of row.cells || []) {
+        const span = document.createElement("span");
+        span.textContent = cell;
+        line.append(span);
+      }
+      node.append(line);
+      live.push({ node: line, index, field: "cells" });
+    } else {
+      node = document.createElement("div");
+      node.className = "mrow";
+      const key = document.createElement("span");
+      key.className = "k";
+      key.textContent = row.name;
+      const value = document.createElement("span");
+      value.className = "v mono";
+      value.textContent = row.value;
+      node.append(key, value);
+      live.push({ node: value, index, field: "value", row: node, last: row.value });
+    }
+    block.append(node);
+  });
+
+  el.metaRows.append(frag);
+}
+
+function update(rows) {
+  for (const entry of live) {
+    const row = rows[entry.index];
+    if (!row) continue;
+    if (entry.field === "cells") {
+      const cells = entry.node.children;
+      (row.cells || []).forEach((cell, index) => {
+        const span = cells[index + 1];
+        if (span && span.textContent !== cell) span.textContent = cell;
+      });
+      continue;
+    }
+    const text = row.value || "";
+    if (entry.node.textContent === text) continue;
+    entry.node.textContent = text;
+    /* Mirrors the overlay's own highlight: a reading that moved is written in
+       the change color and fades back. */
+    if (entry.row) flash(entry);
+  }
+}
+
+function flash(entry) {
+  entry.row.classList.add("changed");
+  clearTimeout(entry.timer);
+  entry.timer = setTimeout(() => entry.row.classList.remove("changed"), 750);
+}
+
+/* --- report ------------------------------------------------------------- */
+
+function buildReport() {
+  if (!state || !(state.metadata || []).length) return "";
+  const lines = ["TinyPPI — " + T.metadata];
+  if (state.title) lines.push(state.title);
+  if (state.filename) lines.push(state.filename);
+  lines.push("");
+  for (const row of state.metadata) {
+    if (row.kind === "space") lines.push("");
+    else if (row.kind === "section")
+      lines.push("[" + row.name + (row.value ? " - " + row.value : "") + "]");
+    else if (row.kind === "wide") lines.push("  " + row.value);
+    else if (row.cells) lines.push("  " + row.name.padEnd(26) + row.cells.join("  "));
+    else lines.push("  " + row.name.padEnd(26) + row.value);
+  }
+  return lines.join("\n");
+}
+
+el.copyBtn.addEventListener("click", async () => {
+  const report = buildReport();
+  if (!report) return;
+  try {
+    await navigator.clipboard.writeText(report);
+    TinyPPI.toast(T.copied);
+  } catch (_) {
+    /* Clipboard access needs a secure context, which plain http on a LAN is
+       not; hand the report over as a file instead of failing silently. */
+    const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "tinyppi-metadata.txt";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+});
+
+/* --- boot --------------------------------------------------------------- */
+
+function applyStrings(strings, hello) {
+  el.copyBtn.textContent = strings.copy;
+  if (hello) {
+    el.version.textContent = "v" + hello.version;
+    el.foot.textContent = "TinyPPI " + hello.version;
+  }
+  document.title = "TinyPPI — " + strings.metadata;
+}
+
+TinyPPI.boot({ onState: render, onStrings: applyStrings });
+</script>
+</body>
+</html>

@@ -1486,3 +1486,11 @@ msgstr "显示 Dolby Vision 元数据视图"
 msgctxt "#32469"
 msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
 msgstr "在仪表板中加入完整的元数据列表 - 流的附加数据所携带的每一个区块，与屏幕上的视图相同。仅对 Dolby Vision 源构建，也是页面传输量最大的部分，网络较慢时请关闭。"
+
+msgctxt "#32470"
+msgid "No Dolby Vision metadata"
+msgstr "没有 Dolby Vision 元数据"
+
+msgctxt "#32471"
+msgid "This source carries no Dolby Vision RPU, so there is no metadata to list. The window fills as soon as a Dolby Vision title starts."
+msgstr "该源不携带 Dolby Vision RPU，因此没有可列出的元数据。一旦开始播放 Dolby Vision 片源，此窗口便会填充内容。"

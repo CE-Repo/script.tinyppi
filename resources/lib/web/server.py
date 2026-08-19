@@ -72,6 +72,8 @@ _UI_STRINGS = {
     "active_area":   32030,   # L5 Active Area
     "vs10":          32467,
     "metadata":      32393,   # Dolby Vision metadata view
+    "no_metadata":      32470,
+    "no_metadata_text": 32471,
     "output":        32055,   # Output
     "copy":          32456,
     "copied":        32457,
@@ -172,9 +174,16 @@ def _addon_root() -> str:
 def _static_routes() -> dict[str, tuple[str, str]]:
     web = _web_root()
     root = _addon_root()
+    html = "text/html; charset=utf-8"
     return {
-        "/":                      (os.path.join(web, "index.html"), "text/html; charset=utf-8"),
-        "/index.html":            (os.path.join(web, "index.html"), "text/html; charset=utf-8"),
+        "/":                      (os.path.join(web, "index.html"), html),
+        "/index.html":            (os.path.join(web, "index.html"), html),
+        # The Dolby Vision metadata list, opened in a window of its own from
+        # the dashboard.  Both spellings answer, so a bookmark of either works.
+        "/metadata":              (os.path.join(web, "metadata.html"), html),
+        "/metadata.html":         (os.path.join(web, "metadata.html"), html),
+        "/style.css":             (os.path.join(web, "style.css"), "text/css; charset=utf-8"),
+        "/stream.js":             (os.path.join(web, "stream.js"), "text/javascript; charset=utf-8"),
         "/manifest.webmanifest":  (os.path.join(web, "manifest.webmanifest"), "application/manifest+json"),
         "/icon.jpg":              (os.path.join(root, "icon.jpg"), "image/jpeg"),
         "/fanart.jpg":            (os.path.join(root, "fanart.jpg"), "image/jpeg"),
