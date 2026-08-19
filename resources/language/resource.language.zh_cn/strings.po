@@ -1322,3 +1322,7 @@ msgstr "高亮持续时间"
 msgctxt "#32428"
 msgid "How long a reading that just changed stays in the highlight color, in milliseconds. The readings behind it are still read ten times a second whatever this is set to, so no change is missed; at 100 the highlight lasts a single refresh, which is too brief to follow."
 msgstr "刚刚变化的数值保持高亮颜色的时长（毫秒）。无论此项如何设置，数值本身仍每秒读取十次，因此不会遗漏任何变化；设为 100 时高亮仅持续一次刷新，短得难以看清。"
+
+msgctxt "#32429"
+msgid "Input"
+msgstr "输入"

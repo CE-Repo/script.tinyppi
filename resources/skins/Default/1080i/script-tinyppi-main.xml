@@ -795,7 +795,7 @@
 					<!-- Input -->
 					<control type="label">
 						<top>90</top>
-						<label>$ADDON[script.tinyppi 32051]:</label>
+						<label>$ADDON[script.tinyppi 32429]:</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
 						<aligny>top</aligny>
