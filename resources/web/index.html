@@ -97,19 +97,18 @@
 
 /* --- Detail groups ------------------------------------------------------ */
 
-/* One card under the next, whatever the window is wide enough for.  Side by
-   side the blocks tore open: they run from two rows of static HDR metadata to
-   eleven of Dolby Vision, and a grid row is as tall as its tallest card, so
-   every short one sat over a hole.  Stacked they are read as the list they
-   are, in the order the snapshot names them (see web/snapshot.py _GROUPS).
-
-   Their width is the page's own -- the shell holds every page but the
-   metadata window to a reading width (see style.css) -- so the cards line up
-   with everything above them rather than sitting in a lane of their own. */
+/* Two cards to a row where there is room for two, one under the next where
+   there is not.  A grid row is as tall as the taller of its two cards, so
+   which card sits next to which is what decides whether that shows: the
+   pairing in GROUP_ORDER puts blocks of a like length side by side, and the
+   two then end level rather than one of them standing over a hole. */
 .groups {
   display: grid;
   gap: 16px;
   grid-template-columns: 1fr;
+}
+@media (min-width: 760px) {
+  .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .rows { padding: 4px 0 6px; }
@@ -393,9 +392,16 @@ async function switchMode(mode, button) {
    but that one lives in the service, which reads its code once when Kodi
    starts -- so the layout is decided here instead, where reloading the page
    is enough to change it.  A group not named here keeps its place, after the
-   ones that are. */
+   ones that are.
+
+   Read in pairs, because the cards stand two to a row: picture beside sound,
+   what was done to it beside what it declares itself to be, the machine
+   beside the numbers.  Each pair is also two blocks of roughly one length,
+   which is what keeps the rows from ending ragged.  The static HDR card is
+   last because it only appears at all on an HDR title that is not Dolby
+   Vision -- where the two cards after it are absent (see snapshot.py). */
 const GROUP_ORDER =
-  ["video", "processing", "audio", "system", "hdr", "dv", "metadata"];
+  ["video", "audio", "processing", "dv", "system", "metadata", "hdr"];
 
 function ordered(groups) {
   const rank = (group) => {
