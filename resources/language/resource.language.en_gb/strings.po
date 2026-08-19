@@ -1494,3 +1494,7 @@ msgstr ""
 msgctxt "#32471"
 msgid "This source carries no Dolby Vision RPU, so there is no metadata to list. The window fills as soon as a Dolby Vision title starts."
 msgstr ""
+
+msgctxt "#32472"
+msgid "Dolby Vision"
+msgstr ""

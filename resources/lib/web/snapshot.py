@@ -194,7 +194,7 @@ _GROUPS = (
     ("audio",      32056, _AUDIO,       _always),
     ("system",     32088, _SYSTEM,      _always),
     ("hdr",        32300, _HDR_STATIC,  _is_plain_hdr),
-    ("dv",         32389, _DOLBY_VISION, _is_dv),
+    ("dv",         32472, _DOLBY_VISION, _is_dv),
     # One card out of two entries: what the file declares statically and what
     # the RPU says, in that order, which is the order the overlay's own
     # Metadata section reads in.  Entries sharing an id are one card (see
