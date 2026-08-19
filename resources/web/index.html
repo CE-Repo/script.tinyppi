@@ -732,7 +732,8 @@ async function switchMode(mode, button) {
    starts -- so the layout is decided here instead, where reloading the page
    is enough to change it.  A group not named here keeps its place, after the
    ones that are. */
-const GROUP_ORDER = ["video", "processing", "audio", "system", "hdr", "dv"];
+const GROUP_ORDER =
+  ["video", "processing", "audio", "system", "hdr", "dv", "metadata"];
 
 function ordered(groups) {
   const rank = (group) => {

@@ -127,6 +127,8 @@ _HDR_STATIC = (
     (32297, (S("Hdr10MaxCllFallVar"),), ()),
 )
 
+# What the stream declares itself to be: the profile, the version behind it,
+# and which layers it carries.  Settled before the film was ever played.
 _DOLBY_VISION = (
     (32290, (S("DoviProfileNumberVar"),), ()),
     (32291, (S("DoviVersionVar"),), ()),
@@ -134,6 +136,13 @@ _DOLBY_VISION = (
     (32380, (S("DoviStructureVar"),), ()),
     (32381, (S("DoviRpuPresentFlag"), S("DoviBlPresentFlag", " / ", "")), ()),
     (32382, (S("DoviElPresentFlag"),), (S("DoviElTypeVar", "(", ")"),)),
+)
+
+# And what the RPU says about the picture -- the mastering display it was
+# graded on, how bright the frame is, what part of it is picture.  These share
+# a card with the static readings above, under the overlay's own Metadata
+# heading (#32289), which is where the same two sets sit there.
+_DV_METADATA = (
     (32425, (S("DoviRpuMdlVar"),), ()),
     (32426, (S("DoviLevel6RpuMaxCllFallVar"),), ()),
     (32375, (S("DoviLevel1FllVar"),), ()),
@@ -156,6 +165,15 @@ def _is_hdr(source: str) -> bool:
     return bool(source)
 
 
+def _is_plain_hdr(source: str) -> bool:
+    """HDR that is not Dolby Vision, where the static metadata is all there
+    is and stands under its own heading -- as the overlay draws it.  A Dolby
+    Vision title carries the same two readings, but there they are the first
+    two lines of the Metadata section, above what the RPU says (see
+    ``_GROUPS``)."""
+    return _is_hdr(source) and not _is_dv(source)
+
+
 # (group id, title string ID, rows, applies-to).  The ids travel to the browser
 # so the page can style a group without matching on a translated title.
 #
@@ -175,8 +193,14 @@ _GROUPS = (
     ("processing", 32007, _PROCESSING,  _always),
     ("audio",      32056, _AUDIO,       _always),
     ("system",     32088, _SYSTEM,      _always),
-    ("hdr",        32300, _HDR_STATIC,  _is_hdr),
+    ("hdr",        32300, _HDR_STATIC,  _is_plain_hdr),
     ("dv",         32389, _DOLBY_VISION, _is_dv),
+    # One card out of two entries: what the file declares statically and what
+    # the RPU says, in that order, which is the order the overlay's own
+    # Metadata section reads in.  Entries sharing an id are one card (see
+    # _groups).
+    ("metadata",   32289, _HDR_STATIC,   _is_dv),
+    ("metadata",   32289, _DV_METADATA,  _is_dv),
 )
 
 # Extra readings the overlay takes straight from Kodi rather than through
@@ -401,8 +425,15 @@ class SnapshotBuilder:
         blank: the panels a stream does not carry then simply do not appear,
         which is what makes the page readable on a phone.  A whole group whose
         source cannot carry it goes the same way (see ``_GROUPS``).
+
+        Several entries may name the same card, and then its rows are those
+        of each entry that applies, in the order the entries are listed --
+        which is how the Metadata card holds the static readings of a source
+        that carries them and the RPU's own of a source that has an RPU,
+        without either set having to know about the other.
         """
-        groups = []
+        groups: list[dict] = []
+        by_id: dict[str, dict] = {}
         for group_id, title_id, rows, applies in _GROUPS:
             if not applies(source):
                 continue
@@ -417,12 +448,19 @@ class SnapshotBuilder:
                     "value":  value,
                     "detail": _render(detail, values),
                 })
-            if rendered:
-                groups.append({
+            if not rendered:
+                continue
+            group = by_id.get(group_id)
+            if group is None:
+                group = {
                     "id":    group_id,
                     "title": addon.getLocalizedString(title_id),
                     "rows":  rendered,
-                })
+                }
+                by_id[group_id] = group
+                groups.append(group)
+            else:
+                group["rows"].extend(rendered)
         return groups
 
     def build(self, addon=None, allow_filename: bool = True,
