@@ -61,8 +61,8 @@
         '</details>' +
       '</div>' +
     '</section>' +
-    '<section class="card hidden" id="tiles">' +
-      '<h2 id="tilesTitle"></h2>' +
+    '<details class="card hidden" id="tiles">' +
+      '<summary class="panel-toggle"><span id="tilesTitle"></span></summary>' +
       '<div class="tilegrid">' +
         '<div class="tile"><span class="k" id="kFps"></span>' +
           '<span class="v mono" id="vFps">—</span><span class="u" id="uFps">&nbsp;</span></div>' +
@@ -70,13 +70,11 @@
           '<span class="v mono" id="vDrops">0</span><span class="u">&nbsp;</span></div>' +
         '<div class="tile"><span class="k" id="kSwitches"></span>' +
           '<span class="v mono" id="vSwitches">0</span><span class="u">&nbsp;</span></div>' +
-        '<div class="tile"><span class="k" id="kAr"></span>' +
-          '<span class="v mono" id="vAr">—</span><span class="u">&nbsp;</span></div>' +
       '</div>' +
-    '</section>' +
-    '<section class="card hidden" id="chartCard">' +
-      '<div class="cardhead">' +
-        '<h2 id="chartTitle"></h2>' +
+    '</details>' +
+    '<details class="card hidden" id="chartCard">' +
+      '<summary class="panel-toggle"><span id="chartTitle"></span></summary>' +
+      '<div class="chart-options">' +
         '<div class="ranges" id="ranges"></div>' +
       '</div>' +
       '<div class="chartwrap">' +
@@ -87,9 +85,9 @@
           '<span id="chartScale" style="margin-left:auto"></span>' +
         '</div>' +
       '</div>' +
-    '</section>' +
+    '</details>' +
     '<details class="card hidden" id="eventsCard">' +
-      '<summary class="events-toggle"><span id="eventsTitle"></span></summary>' +
+      '<summary class="panel-toggle"><span id="eventsTitle"></span></summary>' +
       '<div class="events" id="events"></div>' +
     '</details>';
 
@@ -103,7 +101,6 @@
     controlDrawer: $("controlDrawer"), controlLabel: $("controlLabel"),
     transport: $("transport"), tracks: $("tracks"),
     tiles: $("tiles"), vSwitches: $("vSwitches"), vDrops: $("vDrops"),
-    vAr: $("vAr"),
     vFps: $("vFps"), uFps: $("uFps"),
     chartCard: $("chartCard"), chart: $("chart"), ranges: $("ranges"),
     eventsCard: $("eventsCard"), events: $("events")
@@ -402,11 +399,14 @@
   /* --- the four figures ------------------------------------------------- */
 
   function renderTiles(metrics, session) {
+    if (metadataPage) {
+      el.tiles.classList.add("hidden");
+      return;
+    }
     el.tiles.classList.remove("hidden");
     const totals = session || {};
     el.vSwitches.textContent = String(totals.switches || 0);
     el.vDrops.textContent = String(totals.drops || 0);
-    el.vAr.textContent   = metrics.aspect ? metrics.aspect.toFixed(2) + ":1" : "—";
     el.vFps.textContent  = metrics.fps_in
       ? metrics.fps_in.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "") : "—";
     el.uFps.textContent  = metrics.fps_drop ? "▼ " + metrics.fps_drop : " ";
@@ -559,11 +559,13 @@
   function renderChart(metrics) {
     if (!metadataPage) {
       el.chartCard.classList.add("hidden");
+      el.chartCard.open = false;
       return;
     }
     const l1 = metrics.l1 || {};
     if (l1.max === null || l1.max === undefined) {
       el.chartCard.classList.add("hidden");
+      el.chartCard.open = false;
       return;
     }
     el.chartCard.classList.remove("hidden");
@@ -677,7 +679,6 @@
     el.controlLabel.textContent = T.controls;
     $("kSwitches").textContent = T.switches;
     $("kDrops").textContent = T.drops;
-    $("kAr").textContent = T.aspect;
     $("kFps").textContent = T.fps;
     $("chartTitle").textContent = T.chart;
     $("chartScale").textContent = "nits · log";
@@ -700,6 +701,8 @@
       posterTag = "";
       trackKey = "";
       el.controlDrawer.open = false;
+      el.tiles.open = false;
+      el.chartCard.open = false;
       el.eventsCard.open = false;
       return;
     }

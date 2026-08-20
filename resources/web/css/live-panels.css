@@ -79,7 +79,7 @@
 .tilegrid {
   display: grid;
   gap: 1px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   background: var(--line-soft);
 }
 
@@ -89,6 +89,8 @@
   display: grid;
   gap: 4px;
   align-content: start;
+  justify-items: center;
+  text-align: center;
 }
 .tile .k {
   font-size: 10.5px;
@@ -106,6 +108,7 @@
 
 @media (max-width: 620px) {
   .tilegrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tilegrid .tile:last-child { grid-column: 1 / -1; }
 }
 
 /* --- Chart -------------------------------------------------------------- */
@@ -380,6 +383,11 @@
   flex-wrap: wrap;
 }
 .cardhead > h2 { flex: 1 1 auto; }
+.chart-options {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 10px;
+}
 .ranges {
   display: flex;
   gap: 4px;
@@ -408,7 +416,7 @@
 
 /* --- Events ------------------------------------------------------------- */
 
-.events-toggle {
+.panel-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -423,8 +431,8 @@
   list-style: none;
   user-select: none;
 }
-.events-toggle::-webkit-details-marker { display: none; }
-.events-toggle::after {
+.panel-toggle::-webkit-details-marker { display: none; }
+.panel-toggle::after {
   content: "";
   width: 7px;
   height: 7px;
@@ -433,14 +441,14 @@
   transform: rotate(45deg) translate(-2px, -2px);
   transition: transform .15s ease;
 }
-#eventsCard[open] .events-toggle {
+.card[open] > .panel-toggle {
   color: var(--text);
   border-bottom: 1px solid var(--line-soft);
 }
-#eventsCard[open] .events-toggle::after {
+.card[open] > .panel-toggle::after {
   transform: rotate(225deg) translate(-2px, -2px);
 }
-.events-toggle:focus-visible {
+.panel-toggle:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }

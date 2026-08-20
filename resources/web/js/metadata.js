@@ -87,6 +87,7 @@ function renderFrame(metrics) {
   const bars = metrics.bars, frame = metrics.frame;
   if (!bars || !frame || !frame.w || !frame.h) {
     el.frameCard.classList.add("hidden");
+    el.frameCard.open = false;
     return;
   }
   el.frameCard.classList.remove("hidden");

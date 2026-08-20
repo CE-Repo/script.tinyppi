@@ -16,14 +16,15 @@ const el = {
   version: $("version"), idleCard: $("idleCard"),
   vs10Card: $("vs10Card"), vs10Out: $("vs10Out"), modes: $("modes"),
   groups: $("groups"),
-  eventsCard: $("eventsCard"), metaLink: $("metaLink"),
+  metricsCard: $("tiles"), eventsCard: $("eventsCard"), metaLink: $("metaLink"),
   wakeBtn: $("wakeBtn"), copyBtn: $("copyBtn")
 };
 
-/* live-panels.js builds the playback card before this page starts.  Keep the
-   VS10 output directly behind it and ahead of the summary figures. */
+/* Keep VS10 by the playback card; the two optional summary cards belong at
+   the page end, immediately ahead of the metadata link. */
 $("nowCard").after(el.vs10Card);
 el.metaLink.before(el.eventsCard);
+el.eventsCard.before(el.metricsCard);
 
 let state = null;
 let control = false;
