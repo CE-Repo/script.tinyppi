@@ -1413,7 +1413,7 @@ msgstr "Szétkapcsolva"
 
 msgctxt "#32451"
 msgid "Nothing is playing"
-msgstr "Nics lejátszás"
+msgstr "Nincs lejátszás"
 
 msgctxt "#32452"
 msgid "Start a video on the box and everything it carries appears here."
