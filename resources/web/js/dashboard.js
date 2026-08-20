@@ -29,6 +29,9 @@ let rowNodes = new Map();  /* row id -> {element, key, value, last}     */
 let groupNodes = new Map();
 let pending = null;        /* the VS10 mode a button is waiting on      */
 
+/* Only the two per-frame L1 summaries use the transient change colour. */
+const FLASH_ROWS = new Set(["metadata.32375", "metadata.32376"]);
+
 /* --- render ------------------------------------------------------------- */
 
 function render(next) {
@@ -207,7 +210,7 @@ function renderRows(container, group) {
     node.key.textContent = row.label;
     const text = row.detail ? row.value + "  " : row.value;
     if (node.last !== row.value + "\n" + row.detail) {
-      if (node.last !== null) flash(node);
+      if (node.last !== null && FLASH_ROWS.has(row.id)) flash(node);
       node.last = row.value + "\n" + row.detail;
       TinyPPI.renderValue(node.value, text);
       if (row.detail) {
@@ -227,9 +230,7 @@ function renderRows(container, group) {
   }
 }
 
-/* Mirrors the overlay's own highlight: a reading that moved is written in the
-   change color and fades back, so the live values stand out from the fixed
-   ones without slowing the refresh down. */
+/* A changed L1 summary flashes briefly, then fades back to the normal colour. */
 function flash(node) {
   node.element.classList.add("changed");
   clearTimeout(node.timer);
