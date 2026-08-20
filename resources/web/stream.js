@@ -84,6 +84,11 @@ window.TinyPPI = (function () {
     $("dlgText").textContent   = T.token_text;
     $("dlgOk").textContent     = T.save;
     $("dlgCancel").textContent = T.cancel;
+    const tokenButton = $("tokenBtn");
+    if (tokenButton) {
+      tokenButton.title = T.token_title;
+      tokenButton.setAttribute("aria-label", T.token_title);
+    }
   }
 
   /* --- helpers ---------------------------------------------------------- */
@@ -491,12 +496,13 @@ window.TinyPPI = (function () {
     if (snapshot.effective && snapshot.effective !== snapshot.hdr_type) {
       badges.push({ text: "→ " + TinyPPI.prettyHdr(snapshot.effective), alt: true });
     }
-    if (snapshot.paused) badges.push({ text: "❚❚", alt: true });
+    if (snapshot.paused) badges.push({ icon: "pause", alt: true });
     el.badges.innerHTML = "";
     for (const badge of badges) {
       const node = document.createElement("span");
       node.className = badge.alt ? "badge alt" : "badge";
-      node.textContent = badge.text;
+      if (badge.icon) node.appendChild(uiIcon(badge.icon));
+      else node.textContent = badge.text;
       el.badges.appendChild(node);
     }
   }
@@ -519,7 +525,21 @@ window.TinyPPI = (function () {
         el.logos.appendChild(image);
       }
     }
+  }
 
+  function uiIcon(name) {
+    const image = document.createElement("img");
+    image.className = "ui-icon";
+    image.src = "/icons/" + name + ".svg";
+    image.alt = "";
+    image.setAttribute("aria-hidden", "true");
+    return image;
+  }
+
+  function setButtonIcon(node, name) {
+    if (node.dataset.icon === name) return;
+    node.dataset.icon = name;
+    node.replaceChildren(uiIcon(name));
   }
 
   /* --- the remote ------------------------------------------------------- */
@@ -537,7 +557,14 @@ window.TinyPPI = (function () {
       node.className = "tbtn" + (className ? " " + className : "");
       node.textContent = label;
       node.title = title || label;
+      if (title) node.setAttribute("aria-label", title);
       node.addEventListener("click", handler);
+      return node;
+    };
+
+    const imageButton = (name, title, handler, className) => {
+      const node = button("", title, handler, className);
+      setButtonIcon(node, name);
       return node;
     };
 
@@ -549,19 +576,21 @@ window.TinyPPI = (function () {
     keys.append(
       button("−1m", "", () => TinyPPI.command("seek", -60)),
       button("−10s", "", () => TinyPPI.command("seek", -10)),
-      /* The label says what pressing it does, so it follows the player:
-         ❚❚ while it plays, ▶ while it is paused. */
-      button("❚❚", TinyPPI.T.playpause,
-             () => TinyPPI.command("playpause"), "primary"),
+      /* The icon says what pressing it does, so it follows the player: pause
+         while it plays, play while it is paused. */
+      imageButton("pause", TinyPPI.T.playpause,
+                  () => TinyPPI.command("playpause"), "primary"),
       button("+10s", "", () => TinyPPI.command("seek", 10)),
       button("+1m", "", () => TinyPPI.command("seek", 60))
     );
 
     const rest = document.createElement("div");
     rest.className = "tvol";
-    rest.append(button("⏹", TinyPPI.T.stop, () => TinyPPI.command("stop")));
+    rest.append(imageButton("stop", TinyPPI.T.stop,
+                            () => TinyPPI.command("stop")));
 
-    const mute = button("🔊", TinyPPI.T.mute, () => TinyPPI.command("mute"), "mute");
+    const mute = imageButton("volume", TinyPPI.T.mute,
+                             () => TinyPPI.command("mute"), "mute");
     const slider = document.createElement("input");
     slider.type = "range";
     slider.min = 0;
@@ -610,7 +639,7 @@ window.TinyPPI = (function () {
     el.track.classList.add("seekable");
 
     const play = el.transport.querySelector(".tbtn.primary");
-    if (play) play.textContent = snapshot.paused ? "▶" : "❚❚";
+    if (play) setButtonIcon(play, snapshot.paused ? "play" : "pause");
 
     const slider = $("volume");
     const mute = el.transport.querySelector(".mute");
@@ -621,7 +650,7 @@ window.TinyPPI = (function () {
     }
     if (mute) {
       mute.classList.toggle("on", !!controls.muted);
-      mute.textContent = controls.muted ? "🔇" : "🔊";
+      setButtonIcon(mute, controls.muted ? "volume-muted" : "volume");
     }
     renderTracks(controls);
   }

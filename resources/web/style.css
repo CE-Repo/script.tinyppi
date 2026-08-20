@@ -158,6 +158,19 @@ body {
 }
 .iconbtn:hover  { color: var(--text); border-color: var(--accent); }
 .iconbtn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+.ui-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  pointer-events: none;
+}
+.iconbtn .ui-icon { width: 18px; height: 18px; margin: auto; opacity: .82; }
+.iconbtn:hover .ui-icon { opacity: 1; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .ui-icon { filter: invert(1); }
+}
+:root[data-theme="light"] .ui-icon { filter: invert(1); }
 .iconbtn:focus-visible,
 .mode:focus-visible,
 .ghost:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -212,6 +225,9 @@ main {
 .badges { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .08em;
@@ -228,6 +244,7 @@ main {
   color: var(--warn);
   background: color-mix(in srgb, var(--warn) 12%, transparent);
 }
+.badge .ui-icon { width: 12px; height: 12px; }
 
 .now h1 {
   margin: 0;
@@ -514,6 +531,7 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
    own; the two square ones keep theirs. */
 .tkeys .tbtn { min-width: 0; padding: 0 4px; font-size: 12.5px; }
 .tvol .tbtn { padding: 0; }
+.tbtn .ui-icon { margin: auto; }
 .tbtn {
   appearance: none;
   min-height: var(--tap);
@@ -534,7 +552,6 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 .tbtn:active { transform: scale(.96); }
 .tbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tbtn.primary {
-  font-size: 17px;
   border-color: color-mix(in srgb, var(--accent) 55%, transparent);
   color: var(--accent);
 }
