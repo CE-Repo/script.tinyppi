@@ -62,10 +62,10 @@
       '</div>' +
     '</section>' +
     '<section class="tiles hidden" id="tiles">' +
-      '<div class="tile" id="tPeak"><span class="k" id="kPeak"></span>' +
-        '<span class="v mono" id="vPeak">—</span><span class="u">nits</span></div>' +
-      '<div class="tile" id="tAvg"><span class="k" id="kAvg"></span>' +
-        '<span class="v mono" id="vAvg">—</span><span class="u">nits</span></div>' +
+      '<div class="tile"><span class="k" id="kSwitches"></span>' +
+        '<span class="v mono" id="vSwitches">0</span><span class="u">&nbsp;</span></div>' +
+      '<div class="tile"><span class="k" id="kDrops"></span>' +
+        '<span class="v mono" id="vDrops">0</span><span class="u">&nbsp;</span></div>' +
       '<div class="tile"><span class="k" id="kAr"></span>' +
         '<span class="v mono" id="vAr">—</span><span class="u">&nbsp;</span></div>' +
       '<div class="tile"><span class="k" id="kFps"></span>' +
@@ -85,10 +85,6 @@
         '</div>' +
       '</div>' +
     '</section>' +
-    '<section class="card hidden" id="sessionCard">' +
-      '<h2 id="sessionTitle"></h2>' +
-      '<div class="stats" id="stats"></div>' +
-    '</section>' +
     '<section class="card hidden" id="eventsCard">' +
       '<h2 id="eventsTitle"></h2>' +
       '<div class="events" id="events"></div>' +
@@ -103,11 +99,10 @@
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"), tTotal: $("tTotal"),
     controlDrawer: $("controlDrawer"), controlLabel: $("controlLabel"),
     transport: $("transport"), tracks: $("tracks"),
-    tiles: $("tiles"), tPeak: $("tPeak"), tAvg: $("tAvg"),
-    vPeak: $("vPeak"), vAvg: $("vAvg"), vAr: $("vAr"),
+    tiles: $("tiles"), vSwitches: $("vSwitches"), vDrops: $("vDrops"),
+    vAr: $("vAr"),
     vFps: $("vFps"), uFps: $("uFps"),
     chartCard: $("chartCard"), chart: $("chart"), ranges: $("ranges"),
-    sessionCard: $("sessionCard"), stats: $("stats"),
     eventsCard: $("eventsCard"), events: $("events")
   };
 
@@ -403,69 +398,15 @@
 
   /* --- the four figures ------------------------------------------------- */
 
-  function renderTiles(metrics) {
+  function renderTiles(metrics, session) {
     el.tiles.classList.remove("hidden");
-    const l1 = metrics.l1 || {};
-    /* Peak and average come from the Dolby Vision L1 block and from nowhere
-       else, so on any other source the two tiles are left out entirely rather
-       than shown holding a dash. */
-    const hasL1 = l1.max !== null && l1.max !== undefined;
-    el.tPeak.classList.toggle("hidden", !hasL1);
-    el.tAvg.classList.toggle("hidden", !hasL1);
-    el.vPeak.textContent = TinyPPI.fmtNits(l1.max);
-    el.vAvg.textContent  = TinyPPI.fmtNits(l1.avg);
+    const totals = session || {};
+    el.vSwitches.textContent = String(totals.switches || 0);
+    el.vDrops.textContent = String(totals.drops || 0);
     el.vAr.textContent   = metrics.aspect ? metrics.aspect.toFixed(2) + ":1" : "—";
     el.vFps.textContent  = metrics.fps_in
       ? metrics.fps_in.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "") : "—";
     el.uFps.textContent  = metrics.fps_drop ? "▼ " + metrics.fps_drop : " ";
-  }
-
-  /* --- what the whole title has done ------------------------------------ */
-
-  function renderSession(session) {
-    if (metadataPage) {
-      el.sessionCard.classList.add("hidden");
-      return;
-    }
-    if (!session || !session.samples) {
-      el.sessionCard.classList.add("hidden");
-      return;
-    }
-    el.sessionCard.classList.remove("hidden");
-    const T = TinyPPI.T;
-    const nits = (value) =>
-      (value === null || value === undefined) ? "—" : TinyPPI.fmtNits(value);
-    const stats = [
-      [T.peak, nits(session.peak), "nits"],
-      [T.average, nits(session.avg), "nits"],
-      [T.drops, String(session.drops || 0), ""],
-      [T.cache_min, (session.cache_min === null || session.cache_min === undefined)
-        ? "—" : Math.round(session.cache_min) + "%", ""],
-      [T.switches, String(session.switches || 0), ""]
-    ];
-
-    /* Only the numbers are written on every pass; the frames stay put. */
-    if (el.stats.children.length !== stats.length) {
-      el.stats.innerHTML = "";
-      for (let index = 0; index < stats.length; index++) {
-        const tile = document.createElement("div");
-        tile.className = "stat";
-        const key = document.createElement("span");
-        key.className = "k";
-        const value = document.createElement("span");
-        value.className = "v mono";
-        const unit = document.createElement("span");
-        unit.className = "u";
-        tile.append(key, value, unit);
-        el.stats.append(tile);
-      }
-    }
-    stats.forEach(([name, value, unit], index) => {
-      const tile = el.stats.children[index];
-      tile.children[0].textContent = name;
-      tile.children[1].textContent = value;
-      tile.children[2].textContent = unit;
-    });
   }
 
   const EVENT_LABEL = {
@@ -502,7 +443,12 @@
     for (const entry of events.slice().reverse()) {
       const shift = isTransition(entry);
       const row = document.createElement("div");
-      row.className = "event " + entry.kind + (shift ? " shift" : "");
+      if (entry.kind === "mode") {
+        row.className = "event drops";
+        if (shift) row.dataset.transition = "true";
+      } else {
+        row.className = "event " + entry.kind + (shift ? " shift" : "");
+      }
       const when = document.createElement("span");
       when.className = "at mono";
       when.textContent = entry.pos || "";
@@ -728,13 +674,12 @@
 
   function strings(T) {
     el.controlLabel.textContent = T.controls;
-    $("kPeak").textContent = T.peak;
-    $("kAvg").textContent = T.average;
+    $("kSwitches").textContent = T.switches;
+    $("kDrops").textContent = T.drops;
     $("kAr").textContent = T.aspect;
     $("kFps").textContent = T.fps;
     $("chartTitle").textContent = T.chart;
     $("chartScale").textContent = "nits · log";
-    $("sessionTitle").textContent = T.session;
     $("eventsTitle").textContent = T.events;
     for (const button of el.ranges.children) {
       button.textContent = T[button.dataset.key] || button.dataset.key;
@@ -746,8 +691,7 @@
      last frame of a film that has ended standing there. */
   function update(snapshot) {
     if (!snapshot || !snapshot.playing) {
-      const cards = [el.nowCard, el.tiles, el.chartCard,
-                     el.sessionCard, el.eventsCard];
+      const cards = [el.nowCard, el.tiles, el.chartCard, el.eventsCard];
       for (const node of cards) node.classList.add("hidden");
       live = [];
       past = null;
@@ -760,9 +704,8 @@
     el.nowCard.classList.remove("hidden");
     renderNow(snapshot);
     renderTransport(snapshot);
-    renderTiles(snapshot.metrics || {});
+    renderTiles(snapshot.metrics || {}, snapshot.session);
     renderChart(snapshot.metrics || {});
-    renderSession(snapshot.session);
 
     /* The event list travels apart from the snapshot -- it would otherwise be
        sent five times a second to say nothing.  The count in the summary is

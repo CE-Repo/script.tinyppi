@@ -19,9 +19,9 @@ const el = {
   metaLink: $("metaLink"), wakeBtn: $("wakeBtn"), copyBtn: $("copyBtn")
 };
 
-/* live-panels.js builds the playback card before this page starts.  Keep the
-   VS10 output directly behind it, ahead of the live figures and history. */
-$("nowCard").after(el.vs10Card);
+/* live-panels.js builds the playback card and its four summary figures before
+   this page starts.  Keep the VS10 output directly behind those figures. */
+$("tiles").after(el.vs10Card);
 
 let state = null;
 let control = false;

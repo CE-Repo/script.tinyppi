@@ -25,6 +25,7 @@ window.TinyPPI = (function () {
     no_metadata: "No Dolby Vision metadata", no_metadata_text: "",
     idle_title: "Nothing is playing", idle_text: "",
     peak: "Peak", average: "Average", aspect: "Aspect ratio", fps: "FPS",
+    drops: "Frame drops", switches: "Output switches",
     chart: "Frame luminance", active_area: "Active picture", vs10: "VS10 output",
     output: "Output", copy: "Copy report", copied: "Copied", awake: "Keep awake",
     controls: "Playback controls",
