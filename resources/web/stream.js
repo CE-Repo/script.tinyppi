@@ -568,9 +568,8 @@ window.TinyPPI = (function () {
       return node;
     };
 
-    /* Two rows of their own rather than one that wraps: five even keys, then
-       stop, mute and the slider.  A wrapping row leaves whatever did not fit
-       stranded on a line of its own, which on a phone is most of them. */
+    /* CSS keeps these as two full-width rows: seek and playback first, then
+       stop, mute and volume. */
     const keys = document.createElement("div");
     keys.className = "tkeys";
     keys.append(

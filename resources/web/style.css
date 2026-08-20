@@ -509,23 +509,21 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 
 /* Only drawn when the add-on will take orders; the page hides the whole row
    otherwise rather than showing buttons that answer with a refusal. */
-/* Two rows that keep their shape at every width, rather than one row that
-   wraps: five even keys, then stop, mute and the slider.  A wrapping row
-   strands whatever did not fit on a line of its own, and on a phone that is
-   most of it. */
+/* Two deliberate full-width rows: five even keys, then stop, mute and the
+   slider. */
 .transport { display: grid; gap: 8px; }
 .tkeys {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
-  max-width: 460px;
+  width: 100%;
 }
 .tvol {
   display: grid;
   grid-template-columns: var(--tap) var(--tap) minmax(0, 1fr);
   gap: 8px;
   align-items: center;
-  max-width: 460px;
+  width: 100%;
 }
 /* The keys share the row out between them, so they carry no width of their
    own; the two square ones keep theirs. */
