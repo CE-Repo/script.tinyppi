@@ -88,10 +88,10 @@
         '</div>' +
       '</div>' +
     '</section>' +
-    '<section class="card hidden" id="eventsCard">' +
-      '<h2 id="eventsTitle"></h2>' +
+    '<details class="card hidden" id="eventsCard">' +
+      '<summary class="events-toggle"><span id="eventsTitle"></span></summary>' +
       '<div class="events" id="events"></div>' +
-    '</section>';
+    '</details>';
 
   const $ = (id) => document.getElementById(id);
 
@@ -700,6 +700,7 @@
       posterTag = "";
       trackKey = "";
       el.controlDrawer.open = false;
+      el.eventsCard.open = false;
       return;
     }
     el.nowCard.classList.remove("hidden");

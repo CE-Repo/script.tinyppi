@@ -408,6 +408,42 @@
 
 /* --- Events ------------------------------------------------------------- */
 
+.events-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 10px 16px;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.events-toggle::-webkit-details-marker { display: none; }
+.events-toggle::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform .15s ease;
+}
+#eventsCard[open] .events-toggle {
+  color: var(--text);
+  border-bottom: 1px solid var(--line-soft);
+}
+#eventsCard[open] .events-toggle::after {
+  transform: rotate(225deg) translate(-2px, -2px);
+}
+.events-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
 .events { padding: 4px 0 6px; }
 .events.empty {
   padding: 18px 16px 20px;

@@ -18,6 +18,10 @@ const el = {
   copyBtn: $("copyBtn")
 };
 
+/* live-panels.js creates the L1 chart before this page starts.  Keep the L5
+   active-picture card immediately ahead of it. */
+$("chartCard").before(el.frameCard);
+
 let state = null;
 let signature = "";   /* the list's shape, so nodes are rebuilt only when it moves */
 let live = [];        /* {node, index, field} for every reading that changes      */
