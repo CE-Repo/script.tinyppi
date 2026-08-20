@@ -38,6 +38,8 @@ const DEFAULT_OPEN_GROUPS = new Set([
   "video", "audio", "processing", "dv", "system", "metadata"
 ]);
 
+TinyPPI.bindDisclosure(el.vs10Card, "dashboard.vs10", false);
+
 /* --- render ------------------------------------------------------------- */
 
 function render(next) {
@@ -56,7 +58,6 @@ function render(next) {
     for (const id of ["vs10Card", "metaLink", "copyBtn"]) {
       $(id).classList.add("hidden");
     }
-    el.vs10Card.open = false;
     el.groups.innerHTML = "";
     rowNodes.clear();
     groupNodes.clear();
@@ -79,7 +80,6 @@ function renderVs10(vs10) {
   const options = vs10.options || [];
   if (!control || !options.length) {
     el.vs10Card.classList.add("hidden");
-    el.vs10Card.open = false;
     return;
   }
   el.vs10Card.classList.remove("hidden");
@@ -170,7 +170,9 @@ function renderGroups(groups) {
     if (!card) {
       card = document.createElement("details");
       card.className = "card";
-      card.open = DEFAULT_OPEN_GROUPS.has(group.id);
+      TinyPPI.bindDisclosure(
+        card, "dashboard.group." + group.id, DEFAULT_OPEN_GROUPS.has(group.id)
+      );
       const heading = document.createElement("summary");
       heading.className = "panel-toggle";
       heading.textContent = group.title;

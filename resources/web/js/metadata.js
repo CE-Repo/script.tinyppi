@@ -21,6 +21,7 @@ const el = {
 /* live-panels.js creates the L1 chart before this page starts.  Keep the L5
    active-picture card immediately ahead of it. */
 $("chartCard").before(el.frameCard);
+TinyPPI.bindDisclosure(el.frameCard, "metadata.l5", false);
 
 let state = null;
 let signature = "";   /* the list's shape, so nodes are rebuilt only when it moves */
@@ -87,7 +88,6 @@ function renderFrame(metrics) {
   const bars = metrics.bars, frame = metrics.frame;
   if (!bars || !frame || !frame.w || !frame.h) {
     el.frameCard.classList.add("hidden");
-    el.frameCard.open = false;
     return;
   }
   el.frameCard.classList.remove("hidden");

@@ -22,6 +22,7 @@
   const host = document.getElementById("live");
   if (!host) return;
   const metadataPage = document.body.classList.contains("metadata-page");
+  const pageState = metadataPage ? "metadata" : "dashboard";
 
   /* How much of the past the live buffer holds, in seconds.  It is what the
      one-minute range draws; the longer ones come from the add-on, which has
@@ -130,15 +131,21 @@
   let posterTag = "";
   let volumeHeld = 0;   /* while a finger is on the slider, leave it alone  */
   let trackKey = "";
+  const controlStateKey = pageState + ".controls";
 
-  function setControlsOpen(open) {
+  function setControlsOpen(open, remember) {
     el.controlDrawer.classList.toggle("open", open);
     el.controlToggle.setAttribute("aria-expanded", String(open));
+    if (remember !== false) TinyPPI.setDisclosureState(controlStateKey, open);
   }
 
   el.controlToggle.addEventListener("click", () => {
     setControlsOpen(el.controlToggle.getAttribute("aria-expanded") !== "true");
   });
+  setControlsOpen(TinyPPI.disclosureState(controlStateKey, false), false);
+  TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
+  TinyPPI.bindDisclosure(el.chartCard, pageState + ".l1", false);
+  TinyPPI.bindDisclosure(el.eventsCard, pageState + ".events", false);
 
   /* --- what is playing -------------------------------------------------- */
 
@@ -336,10 +343,11 @@
   }
 
   function renderTransport(snapshot) {
+    const hadControl = control;
     control = !!snapshot.control;
     const controls = snapshot.controls || {};
     if (!control) {
-      setControlsOpen(false);
+      setControlsOpen(false, false);
       el.controlToggle.classList.add("hidden");
       el.transport.classList.add("hidden");
       el.tracks.classList.add("hidden");
@@ -347,6 +355,9 @@
       return;
     }
     buildTransport();
+    if (!hadControl) {
+      setControlsOpen(TinyPPI.disclosureState(controlStateKey, false), false);
+    }
     el.controlToggle.classList.remove("hidden");
     el.transport.classList.remove("hidden");
     el.track.classList.add("seekable");
@@ -581,13 +592,11 @@
   function renderChart(metrics) {
     if (!metadataPage) {
       el.chartCard.classList.add("hidden");
-      el.chartCard.open = false;
       return;
     }
     const l1 = metrics.l1 || {};
     if (l1.max === null || l1.max === undefined) {
       el.chartCard.classList.add("hidden");
-      el.chartCard.open = false;
       return;
     }
     el.chartCard.classList.remove("hidden");
@@ -723,10 +732,7 @@
       pastSeq = -1;
       posterTag = "";
       trackKey = "";
-      setControlsOpen(false);
-      el.tiles.open = false;
-      el.chartCard.open = false;
-      el.eventsCard.open = false;
+      setControlsOpen(false, false);
       return;
     }
     el.nowCard.classList.remove("hidden");

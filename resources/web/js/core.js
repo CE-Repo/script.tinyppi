@@ -16,6 +16,7 @@
 window.TinyPPI = (function () {
 
   const TOKEN_KEY = "tinyppi.token";
+  const DISCLOSURE_KEY = "tinyppi.disclosure.";
 
   /* Chrome strings, replaced by the localized set from /api/hello.  The
      English here is only what shows in the instant before that answers. */
@@ -36,6 +37,26 @@ window.TinyPPI = (function () {
   };
 
   const $ = (id) => document.getElementById(id);
+
+  function disclosureState(key, fallback) {
+    try {
+      const value = localStorage.getItem(DISCLOSURE_KEY + key);
+      return value === null ? !!fallback : value === "1";
+    } catch (_) {
+      return !!fallback;
+    }
+  }
+
+  function setDisclosureState(key, open) {
+    try { localStorage.setItem(DISCLOSURE_KEY + key, open ? "1" : "0"); }
+    catch (_) {}
+  }
+
+  function bindDisclosure(node, key, fallback) {
+    node.open = disclosureState(key, fallback);
+    node.addEventListener("toggle", () => setDisclosureState(key, node.open));
+    return node;
+  }
 
   let token = localStorage.getItem(TOKEN_KEY) || "";
   let onState = null;
@@ -337,6 +358,7 @@ window.TinyPPI = (function () {
   return {
     T, $, boot, toast, setStatus, fmtNits, prettyHdr, renderValue, plainValue, askToken,
     copyReport, reportLine, command, getJSON, withToken,
+    disclosureState, setDisclosureState, bindDisclosure,
     get token() { return token; }
   };
 
