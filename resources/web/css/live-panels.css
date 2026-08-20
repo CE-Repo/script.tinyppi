@@ -205,8 +205,8 @@
 
 /* Only drawn when the add-on will take orders; the page hides the whole row
    otherwise rather than showing buttons that answer with a refusal. */
-/* Two deliberate full-width rows: seven even keys, then stop, mute and the
-   slider. */
+/* Two deliberate full-width rows: seven even keys, then stop, the slider and
+   mute at the far right. */
 .transport { display: grid; gap: 8px; }
 .tkeys {
   display: grid;
@@ -216,7 +216,7 @@
 }
 .tvol {
   display: grid;
-  grid-template-columns: var(--tap) var(--tap) minmax(0, 1fr);
+  grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap);
   gap: 8px;
   align-items: center;
   width: 100%;

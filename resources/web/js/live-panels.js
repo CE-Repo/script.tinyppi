@@ -254,7 +254,7 @@
     };
 
     /* CSS keeps these as two full-width rows: seek and playback first, then
-       stop, mute and volume. */
+       stop, the volume slider and mute at the far right. */
     const keys = document.createElement("div");
     keys.className = "tkeys";
     keys.append(
@@ -288,7 +288,7 @@
       volumeHeld = Date.now();
       TinyPPI.command("volume", Number(slider.value));
     });
-    rest.append(mute, slider);
+    rest.append(slider, mute);
     el.transport.append(keys, rest);
 
     /* A tap anywhere on the bar seeks there, and the arrow keys do the same,
