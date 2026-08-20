@@ -109,7 +109,7 @@ _AUDIO = (
     # parentheses and all, so this is the one detail that adds none.
     (32045, (S("AudioCodecVar"), S("AudioChannelsVar", " ", "")),
              (S("AudioCodecSpatialVar"),)),
-    (32069, (S("AudioBitDepthVar", "", " / "), S("AudioSampleRateVar")), ()),
+    (32069, (S("AudioBitDepthVar", "", " | "), S("AudioSampleRateVar")), ()),
     (32429, (S("AudioChannelsInputVar"),), ()),
     (32055, (S("AudioChannelsSink"),), ()),
     (32047, (S("AudioLiveBitrateVar"),), (S("AudioBitrateKBVar", "(Ø ", ")"),)),
@@ -124,8 +124,8 @@ _SYSTEM = (
     (32018, (S("CpuTemperature"),), ()),
     (32034, (S("MemoryUsed"),), ()),
     (32032, (S("PlayerCacheLevel", "", "%"),), ()),
-    (32022, (S("VideoQueueLevel", "", "%"), S("VideoQueueDataLevel", " / ", "%")), ()),
-    (32025, (S("AudioQueueLevel", "", "%"), S("AudioQueueDataLevel", " / ", "%")), ()),
+    (32022, (S("VideoQueueLevel", "", "%"), S("VideoQueueDataLevel", " | ", "%")), ()),
+    (32025, (S("AudioQueueLevel", "", "%"), S("AudioQueueDataLevel", " | ", "%")), ()),
 )
 
 _HDR_STATIC = (
@@ -140,7 +140,7 @@ _DOLBY_VISION = (
     (32291, (S("DoviVersionVar"),), ()),
     (32379, (S("DoviCmVersionVar"),), ()),
     (32380, (S("DoviStructureVar"),), ()),
-    (32381, (S("DoviRpuPresentFlag"), S("DoviBlPresentFlag", " / ", "")), ()),
+    (32381, (S("DoviRpuPresentFlag"), S("DoviBlPresentFlag", " | ", "")), ()),
     (32382, (S("DoviElPresentFlag"),), (S("DoviElTypeVar", "(", ")"),)),
 )
 

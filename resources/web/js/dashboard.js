@@ -260,12 +260,12 @@ function reportValue(row) {
 
   /* The left report column already names both fields, so the right column
      only carries their values in the same order. */
-  const parts = value.split(/\s*\/\s*/);
+  const parts = value.split(/\s*[|/]\s*/);
   if (detail) {
     const cleanDetail = detail.replace(/^\((.*)\)$/, "$1");
     parts.push(cleanDetail);
   }
-  return parts.join(" / ");
+  return parts.join(" | ");
 }
 
 function buildReport() {
