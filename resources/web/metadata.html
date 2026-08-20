@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="/css/metadata.css">
 </head>
 
-<body>
+<body class="metadata-page">
 
 <header class="topbar">
   <div class="brand">
@@ -35,6 +35,14 @@
 
 <main>
   <div id="live"></div>
+
+  <section class="card hidden" id="frameCard">
+    <h2 id="frameTitle"></h2>
+    <div class="framewrap">
+      <div class="frame"><i id="frameActive"></i></div>
+      <div class="framenote mono" id="frameNote"></div>
+    </div>
+  </section>
 
   <section class="card" id="listCard">
     <div class="metarows" id="metaRows"></div>

@@ -14,7 +14,6 @@ const T = TinyPPI.T;
 
 const el = {
   version: $("version"), idleCard: $("idleCard"),
-  frameCard: $("frameCard"), frameActive: $("frameActive"), frameNote: $("frameNote"),
   vs10Card: $("vs10Card"), vs10Out: $("vs10Out"), modes: $("modes"),
   groups: $("groups"),
   metaLink: $("metaLink"), wakeBtn: $("wakeBtn"), copyBtn: $("copyBtn")
@@ -32,9 +31,8 @@ function render(next) {
   state = next;
   control = !!next.control;
 
-  /* What is playing, the tiles and the chart belong to the metadata window
-     too, and are drawn by the module both pages share: it reads the same
-     snapshot and takes itself off the page when nothing is playing. */
+  /* The common live module draws what is playing and the summary tiles.  Its
+     L1 chart is reserved for the metadata window. */
   TinyPPI.panels.update(next);
 
   if (!next.playing) {
@@ -42,7 +40,7 @@ function render(next) {
     /* The copy button goes with them: with nothing playing there is no report
        to write, and a button that answers a press with nothing is worse than
        one that is not there. */
-    for (const id of ["frameCard", "vs10Card", "metaLink", "copyBtn"]) {
+    for (const id of ["vs10Card", "metaLink", "copyBtn"]) {
       $(id).classList.add("hidden");
     }
     el.groups.innerHTML = "";
@@ -54,32 +52,11 @@ function render(next) {
   el.idleCard.classList.add("hidden");
   el.copyBtn.classList.remove("hidden");
 
-  renderFrame(next.metrics || {});
   renderVs10(next.vs10 || {});
   renderGroups(ordered(next.groups || []));
   /* The metadata list is a window of its own; this page only says whether
      there is one to open. */
   el.metaLink.classList.toggle("hidden", !(next.metadata && next.metadata.length));
-}
-
-/* --- active picture ----------------------------------------------------- */
-
-function renderFrame(metrics) {
-  const bars = metrics.bars, frame = metrics.frame;
-  if (!bars || !frame || !frame.w || !frame.h) {
-    el.frameCard.classList.add("hidden");
-    return;
-  }
-  el.frameCard.classList.remove("hidden");
-  const [left, right, top, bottom] = bars;
-  const box = el.frameActive.parentElement;
-  box.style.aspectRatio = frame.w + " / " + frame.h;
-  el.frameActive.style.inset =
-    (top / frame.h * 100) + "% " + (right / frame.w * 100) + "% " +
-    (bottom / frame.h * 100) + "% " + (left / frame.w * 100) + "%";
-  el.frameNote.textContent =
-    frame.w + "×" + frame.h + "   L " + left + "  R " + right +
-    "  T " + top + "  B " + bottom;
 }
 
 /* --- VS10 --------------------------------------------------------------- */
@@ -333,7 +310,6 @@ function applyStrings(strings, hello) {
   $("idleTitle").textContent = strings.idle_title;
   $("idleText").textContent = strings.idle_text;
   TinyPPI.panels.strings(strings);
-  $("frameTitle").textContent = strings.active_area;
   $("vs10Title").textContent = strings.vs10;
   $("vs10OutLabel").textContent = strings.output;
   $("metaLinkText").textContent = strings.metadata;

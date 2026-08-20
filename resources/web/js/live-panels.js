@@ -604,6 +604,10 @@
   }
 
   function renderChart(metrics) {
+    if (!document.body.classList.contains("metadata-page")) {
+      el.chartCard.classList.add("hidden");
+      return;
+    }
     const l1 = metrics.l1 || {};
     if (l1.max === null || l1.max === undefined) {
       el.chartCard.classList.add("hidden");

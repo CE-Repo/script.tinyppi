@@ -12,6 +12,36 @@
    holding, which is the one thing the panels above do not say. */
 .count { color: var(--dim); font-size: 12.5px; }
 
+/* --- L5 active picture -------------------------------------------------- */
+
+.framewrap {
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+.frame {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 16 / 9;
+  background: #05070a;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.frame > i {
+  position: absolute;
+  background: linear-gradient(135deg,
+              color-mix(in srgb, var(--accent) 34%, transparent),
+              color-mix(in srgb, var(--accent-2) 24%, transparent));
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  border-radius: 3px;
+  transition: inset .35s ease;
+  inset: 0;
+}
+.framenote { font-size: 12px; color: var(--muted); }
+
 .metarows { padding: 6px 0 14px; }
 
 /* One column on a phone, more as the window widens: the sections stand alone,

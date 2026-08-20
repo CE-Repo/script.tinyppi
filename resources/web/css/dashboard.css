@@ -1,36 +1,6 @@
 /* TinyPPI main dashboard only.  Shared chrome and live-player components are
    kept in base.css and live-panels.css. */
 
-/* --- Active picture ----------------------------------------------------- */
-
-.framewrap {
-  padding: 14px 16px 16px;
-  display: grid;
-  gap: 10px;
-  justify-items: center;
-}
-.frame {
-  position: relative;
-  width: 100%;
-  max-width: 420px;
-  aspect-ratio: 16 / 9;
-  background: #05070a;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-.frame > i {
-  position: absolute;
-  background: linear-gradient(135deg,
-              color-mix(in srgb, var(--accent) 34%, transparent),
-              color-mix(in srgb, var(--accent-2) 24%, transparent));
-  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
-  border-radius: 3px;
-  transition: inset .35s ease;
-  inset: 0;
-}
-.framenote { font-size: 12px; color: var(--muted); }
-
 /* --- VS10 --------------------------------------------------------------- */
 
 .vs10 { padding: 14px 16px 16px; display: grid; gap: 12px; }
@@ -71,16 +41,6 @@
 .mode:active:not(:disabled) { transform: scale(.985); }
 .mode:disabled { opacity: .5; cursor: progress; }
 .mode.busy { border-color: var(--accent); color: var(--accent); }
-
-/* The active picture and the VS10 output, stacked like the cards below them:
-   at the page's reading width two of these fit side by side, which put the
-   one page's two halves out of step with each other. */
-.panels {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: 1fr;
-}
-.panels:empty { display: none; }
 
 /* --- Detail groups ------------------------------------------------------ */
 

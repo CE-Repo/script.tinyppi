@@ -14,6 +14,7 @@ const T = TinyPPI.T;
 const el = {
   version: $("version"), count: $("count"),
   listCard: $("listCard"), idleCard: $("idleCard"), metaRows: $("metaRows"),
+  frameCard: $("frameCard"), frameActive: $("frameActive"), frameNote: $("frameNote"),
   copyBtn: $("copyBtn")
 };
 
@@ -30,10 +31,10 @@ function render(next) {
   document.title = next.title
     ? next.title + " — " + T.metadata
     : "TinyPPI — " + T.metadata;
-  /* What is playing, the four figures and the last minute of luminance: the
-     same three the dashboard opens on, from the same snapshot, so a screen
-     left on this page still says what the film is doing. */
+  /* What is playing, the summary figures and the L1 luminance chart come from
+     the shared live module.  The L5 active-picture card stays on this page. */
   TinyPPI.panels.update(next);
+  renderFrame(next.metrics || {});
 
   if (!rows.length) {
     el.listCard.classList.add("hidden");
@@ -74,6 +75,26 @@ function render(next) {
     return;
   }
   update(rows);
+}
+
+/* --- active picture ----------------------------------------------------- */
+
+function renderFrame(metrics) {
+  const bars = metrics.bars, frame = metrics.frame;
+  if (!bars || !frame || !frame.w || !frame.h) {
+    el.frameCard.classList.add("hidden");
+    return;
+  }
+  el.frameCard.classList.remove("hidden");
+  const [left, right, top, bottom] = bars;
+  const box = el.frameActive.parentElement;
+  box.style.aspectRatio = frame.w + " / " + frame.h;
+  el.frameActive.style.inset =
+    (top / frame.h * 100) + "% " + (right / frame.w * 100) + "% " +
+    (bottom / frame.h * 100) + "% " + (left / frame.w * 100) + "%";
+  el.frameNote.textContent =
+    frame.w + "×" + frame.h + "   L " + left + "  R " + right +
+    "  T " + top + "  B " + bottom;
 }
 
 function build(rows) {
@@ -302,6 +323,7 @@ el.copyBtn.addEventListener("click", () => {
 
 function applyStrings(strings, hello) {
   TinyPPI.panels.strings(strings);
+  $("frameTitle").textContent = strings.active_area;
   el.copyBtn.setAttribute("aria-label", strings.copy);
   el.copyBtn.title = strings.copy;
   if (hello) {
