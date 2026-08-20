@@ -439,12 +439,24 @@ def _video_player_id() -> int | None:
 
 
 def _stream_label(stream: dict, fallback: str) -> str:
-    """A track's name for a picker: what Kodi calls it, else its language."""
+    """A track's picker label with a canonical language-code prefix.
+
+    Kodi supplies ISO codes such as ``ger`` and ``eng`` separately from the
+    track name.  A substring check cannot tell ``eng`` from the beginning of
+    ``English``, so only an already separate leading token suppresses the
+    prefix.
+    """
     name = (stream.get("name") or "").strip()
     language = (stream.get("language") or "").strip()
-    if name and language and language.lower() not in name.lower():
-        return f"{language} · {name}"
-    return name or language or fallback
+    tag = language.upper() if re.fullmatch(r"[A-Za-z]{2,3}", language) else language
+    if name and tag:
+        leading_tag = re.compile(
+            rf"^{re.escape(language)}(?=$|[\s·|:/-])", re.IGNORECASE
+        )
+        if leading_tag.search(name):
+            return leading_tag.sub(tag, name, count=1)
+        return f"{tag} · {name}"
+    return name or tag or fallback
 
 
 def player_controls() -> dict:
