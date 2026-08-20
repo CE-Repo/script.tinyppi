@@ -197,15 +197,18 @@ The view is grouped by metadata block:
 |---------|----------|
 | Stream | Kodi's own HDR type and detail, the side-data sections that arrived, the stream flags (`converted`, `rpu-removed`, …), the layer structure and the parser version |
 | Configuration record | The dvcC / dvvC record: version, profile, compatibility ID, level, RPU / BL / EL presence, metadata compression |
-| RPU | Guessed profile, CM version, DM compression, and the full RPU header (types, VDR profile / level, BL / EL / VDR bit depth, EL type, resampling and residual flags) |
+| RPU | Guessed profile, CM version, DM compression, the DM metadata IDs and scene refresh flag, and the full RPU header (types, VDR profile / level / normalized IDC, BL / EL / VDR bit depth, EL type, full range, resampling, residual and coefficient fields, previous-RPU reuse) |
 | L1 | Frame luminance, min / max / average, as raw PQ codes and nits |
-| Source PQ range | The PQ range of the master the grade was made from |
-| L2 / L8 | Every trim pass, as raw 12-bit codes and on the Dolby UI scale |
+| Source master | The PQ range of the master the grade was made from, and its display diagonal |
+| Colorimetry | The VDR DM signal description and the YCC → RGB / RGB → LMS matrices, in raw codes |
+| L2 / L8 | Every trim pass, as raw 12-bit codes and on the Dolby UI scale, plus L8's secondary saturation / hue vectors on the streams that carry them |
 | L3 | PQ offsets |
+| L4 | Temporal stability: the anchor PQ and power |
 | L5 | Active-area offsets (the black bars the RPU declares) |
 | L6 | The RPU's own mastering display and MaxCLL / MaxFALL |
 | L9 / L10 | Source primaries and the target displays the L8 trims are graded against |
 | L11 | Content type, whitepoint and reference mode |
+| L254 / L255 | The CM v4.0 marker block, and the debug run mode block on the rare stream that carries one |
 | Static metadata | The MDCV / CLL SEIs — the stream's own HDR10 layer, shown apart from L6 |
 | HDR10+ | The ST 2094-40 payload, when the stream carries one alongside Dolby Vision |
 
@@ -282,7 +285,7 @@ while it is open.
 On a Dolby Vision title the dashboard shows a **Dolby Vision metadata view**
 button. It opens a second window — `http://<box-ip>:8099/metadata`, which can
 also be bookmarked on its own — listing every block the stream's side data
-carries: the configuration record, the RPU from its header through L11, the
+carries: the configuration record, the RPU from its header through L255, the
 trim passes and the static SEIs. It is the same list the on-screen view shows,
 built from the same rows, and it stays live: the per-frame blocks move with the
 picture and a reading that just changed is highlighted, exactly as in the

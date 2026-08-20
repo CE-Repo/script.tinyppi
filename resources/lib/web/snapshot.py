@@ -822,7 +822,7 @@ class SnapshotBuilder:
         view is built from.
 
         Split across the two cadences exactly as ``ui.dvmetadata`` splits it:
-        the per-frame blocks (L1, L2, L5, L8, HDR10+) are rebuilt every tick,
+        the per-frame blocks (L1, L2, L4, L5, L8, HDR10+) are rebuilt every tick,
         the title-level ones on the slower timer, and ``join_rows`` decides the
         separator between them against whichever scene rows are current -- so
         the halves cannot disagree about the shape of the joined list.

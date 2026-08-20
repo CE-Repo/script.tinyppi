@@ -3,7 +3,7 @@
 The overlay shows the readings that fit its rows.  This view is the other half
 of that: pressing OK on a Dolby Vision source hands over to it, and it lists
 every block ``script.module.sidedata`` parsed out of the raw payload -- the
-configuration record, the RPU from its header through L11, the static SEIs --
+configuration record, the RPU from its header through L255, the static SEIs --
 one line each, live, for the frame on screen.
 
 Three views deep, and one key each way.  OK goes down -- from the overlay to
