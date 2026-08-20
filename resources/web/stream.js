@@ -350,10 +350,7 @@ window.TinyPPI = (function () {
         '<p class="file mono hidden" id="file"></p>' +
         '<div class="logos" id="logos"></div>' +
       '</div>' +
-      '<div class="channels hidden" id="channels">' +
-        '<img class="layer" id="chLayer" alt=""><img class="active" id="chActive" alt="">' +
-      '</div>' +
-      /* The bar and the buttons take a row of their own under all three, so
+      /* The bar and the buttons take a row of their own under both, so
          they have the whole card to lay out in however narrow the poster
          leaves the column beside it. */
       '<div class="foot">' +
@@ -407,7 +404,6 @@ window.TinyPPI = (function () {
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), file: $("file"), logos: $("logos"),
     artBox: $("artBox"), poster: $("poster"),
-    channels: $("channels"), chLayer: $("chLayer"), chActive: $("chActive"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"), tTotal: $("tTotal"),
     transport: $("transport"), tracks: $("tracks"),
     tiles: $("tiles"), tPeak: $("tPeak"), tAvg: $("tAvg"),
@@ -524,16 +520,6 @@ window.TinyPPI = (function () {
       }
     }
 
-    if (!logos.channels) {
-      el.channels.classList.add("hidden");
-      return;
-    }
-    if (el.chActive.dataset.name !== logos.channels) {
-      el.chActive.dataset.name = logos.channels;
-      el.chActive.src = "/media/" + logos.channels;
-      el.chLayer.src = logos.layer ? "/media/" + logos.layer : "";
-    }
-    el.channels.classList.remove("hidden");
   }
 
   /* --- the remote ------------------------------------------------------- */

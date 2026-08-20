@@ -476,20 +476,6 @@ def get_ChannelIconVar() -> str:
     return f"{_channel_dir()}/{layout}.png" if layout else ""
 
 
-def web_channel_graphic() -> tuple[str, str]:
-    """Return ``(backdrop, layout)`` for the dashboard, or two empty strings.
-
-    The same two graphics the overlay draws, but always at the larger size and
-    without asking whether the overlay draws them: the browser has its own room
-    for it, and the channel settings are about what the on-screen panel holds.
-    """
-    layout = _channel_layout()
-    if not layout:
-        return "", ""
-    return (f"{_CHANNEL_DIR_DEFAULT}/layer.png",
-            f"{_CHANNEL_DIR_DEFAULT}/{layout}.png")
-
-
 def get_AudioBitDepthVar() -> str:
     """Return the source audio bit depth for display, e.g. ``24-bit``.
 

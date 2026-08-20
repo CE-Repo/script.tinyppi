@@ -423,15 +423,13 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 }
 
 /* --- The hero card ------------------------------------------------------
-   Poster, what is playing, and the speaker layout, side by side where there
-   is room and stacked where there is not.  The poster column is fixed and
-   the layout column shrinks away first: on a phone the title is what has to
-   survive.
+   Poster and what is playing, side by side where there is room.  The poster
+   column is fixed so the title gets the remaining space.
 ------------------------------------------------------------------------ */
 
 .hero {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
 }
 /* The bar, the buttons and the pickers span every column: what is left of the
@@ -442,10 +440,6 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
   display: grid;
   gap: 12px;
   padding: 4px 16px 16px;
-}
-@media (max-width: 720px) {
-  .hero { grid-template-columns: auto minmax(0, 1fr); }
-  .hero .channels { grid-column: 1 / -1; justify-self: center; }
 }
 .art {
   padding: 16px 0 16px 16px;
@@ -493,35 +487,6 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
   :root:not([data-theme="dark"]) .logo { filter: invert(1); }
 }
 :root[data-theme="light"] .logo { filter: invert(1); }
-
-/* --- Speaker layout ----------------------------------------------------- */
-
-/* The backdrop holds every speaker the graphic knows and sits far back; the
-   layout on top is the ones this track actually carries. */
-.channels {
-  position: relative;
-  padding: 16px 16px 16px 0;
-  width: 190px;
-  max-width: 46vw;
-  line-height: 0;
-}
-.channels img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-.channels .layer {
-  opacity: .14;
-}
-.channels .active {
-  position: absolute;
-  inset: 16px 16px 16px 0;
-  width: calc(100% - 16px);
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .channels img { filter: invert(1); }
-}
-:root[data-theme="light"] .channels img { filter: invert(1); }
 
 /* --- Transport ---------------------------------------------------------- */
 

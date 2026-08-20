@@ -36,7 +36,6 @@ from info.imax import is_known_imax_title
 from info.properties import (
     publish_scene_properties,
     publish_static_properties,
-    web_channel_graphic,
 )
 
 _HOME_WINDOW_ID = 10000
@@ -374,12 +373,9 @@ def _logos(values: dict[str, str]) -> dict:
         video = _imax_logo(token) or video
 
     codec = info("VideoPlayer.AudioCodec").lower().strip()
-    layer, channels = web_channel_graphic()
     return {
-        "video":    video,
-        "audio":    AUDIO_LOGO_MAP.get(codec, ""),
-        "layer":    layer,
-        "channels": channels,
+        "video": video,
+        "audio": AUDIO_LOGO_MAP.get(codec, ""),
     }
 
 

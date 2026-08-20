@@ -63,10 +63,6 @@ _ART_TYPES = {
 }
 _ART_FALLBACK_TYPE = "image/jpeg"
 
-# The channel graphics the dashboard serves.  The overlay has a smaller set
-# for its Dolby Vision panel; the page always takes the larger one.
-_CHANNEL_SIZE = "495x298"
-
 # Ambiguity-free alphabet: a token is read off a TV and typed on a phone.
 _TOKEN_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 _TOKEN_LENGTH   = 8
@@ -235,24 +231,16 @@ def _static_routes() -> dict[str, tuple[str, str]]:
 def _media_routes(root: str) -> dict[str, tuple[str, str]]:
     """The skin graphics the dashboard draws, as routes under ``/media/``.
 
-    Built from the very maps the overlay picks its logos out of, plus whatever
-    channel layouts are installed, so a format wears the same face on the TV
-    and on the phone.  Naming them here keeps the route table what it was: an
-    allowlist of files the add-on itself would draw, never a path that came in
-    with a request.  A logo that is not installed -- the IMAX ones ship
-    separately -- is simply not a route.
+    Built from the very maps the overlay picks its logos out of, so a format
+    wears the same face on the TV and on the phone.  Naming them here keeps the
+    route table what it was: an allowlist of files the add-on itself would
+    draw, never a path that came in with a request.  A logo that is not
+    installed -- the IMAX ones ship separately -- is simply not a route.
     """
     media = os.path.join(root, "resources", "skins", "Default", "media")
     names = set(HDR_LOGO_MAP.values())
     names |= set(AUDIO_LOGO_MAP.values())
     names |= set(IMAX_LOGO_MAP.values())
-
-    channels = os.path.join(media, "channels", _CHANNEL_SIZE)
-    try:
-        names |= {f"channels/{_CHANNEL_SIZE}/{name}"
-                  for name in os.listdir(channels) if name.endswith(".png")}
-    except OSError:
-        pass  # no channel graphics installed; the page leaves them out
 
     routes = {}
     for name in sorted(names):
