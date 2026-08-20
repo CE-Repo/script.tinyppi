@@ -760,10 +760,17 @@ window.TinyPPI = (function () {
     drops: () => TinyPPI.T.ev_drops
   };
 
+  /* A transition names two whole VS10 output states -- "SDR BT.709" to
+     "DV-LL BT.2020nc" is a realistic width -- while cache and drop events
+     carry one short number.  The two need different room, so the row itself
+     comes in two shapes (see .event.shift in style.css): a transition never
+     shares its line with the label, a value always does. */
+  function isTransition(entry) {
+    return entry.from !== undefined && entry.to !== undefined;
+  }
+
   function eventText(entry) {
-    if (entry.from !== undefined && entry.to !== undefined) {
-      return entry.from + "  →  " + entry.to;
-    }
+    if (isTransition(entry)) return entry.from + " → " + entry.to;
     if (entry.kind === "cache") return Math.round(entry.value) + "%";
     return String(entry.value);
   }
@@ -778,8 +785,9 @@ window.TinyPPI = (function () {
     el.events.innerHTML = "";
     /* Newest first: what just happened is what a glance is looking for. */
     for (const entry of events.slice().reverse()) {
+      const shift = isTransition(entry);
       const row = document.createElement("div");
-      row.className = "event " + entry.kind;
+      row.className = "event " + entry.kind + (shift ? " shift" : "");
       const when = document.createElement("span");
       when.className = "at mono";
       when.textContent = entry.pos || "";

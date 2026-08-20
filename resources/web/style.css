@@ -659,7 +659,7 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 .ranges {
   display: flex;
   gap: 4px;
-  padding: 0 16px 0 0;
+  padding: 0 16px 0 12px;
 }
 .range {
   appearance: none;
@@ -741,6 +741,42 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 .event.cache .detail,
 .event.drops .detail { color: var(--warn); }
 .event.vs10 .detail { color: var(--accent-2); }
+
+/* Below desktop width the row above is what breaks: a transition's "detail"
+   (two whole VS10 output states, easily wider than the row) claims the auto
+   column for itself and squeezes "what" down until overflow-wrap:anywhere
+   splits the label mid-word.  There is no such squeeze once the card itself
+   is wide, so this narrows the fix to where the problem exists and leaves the
+   desktop row exactly as it was. */
+@media (max-width: 640px) {
+  /* A value event (a cache dip, frames lost) keeps time, label and its one
+     short number on one line: "at" and "what" are sized to their content, so
+     "detail" -- the only column that can grow -- never has to fight either of
+     them for room. */
+  .event {
+    grid-template-columns: auto auto minmax(0, 1fr);
+    gap: 4px 12px;
+  }
+  .event .what {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .event .detail { overflow-wrap: break-word; }
+
+  /* A transition drops to a line of its own under the label instead of
+     squeezing into a column beside it. */
+  .event.shift {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "at what" ". detail";
+  }
+  .event.shift .at     { grid-area: at; }
+  .event.shift .what   { grid-area: what; }
+  .event.shift .detail { grid-area: detail; }
+  /* Free to use the row's full width, so it wraps at the spaces around its
+     arrow rather than at the right edge of a cramped column. */
+  .event.shift .detail { text-align: left; white-space: normal; }
+}
 
 .hidden { display: none !important; }
 
