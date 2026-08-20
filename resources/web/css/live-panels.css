@@ -160,7 +160,12 @@
 }
 .art img {
   width: 104px;
+  height: 156px;
+  aspect-ratio: 2 / 3;
   max-width: 30vw;
+  max-height: 45vw;
+  object-fit: cover;
+  object-position: center;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
   background: var(--panel-2);
