@@ -10,6 +10,7 @@ import time
 import xbmc
 import xbmcaddon
 import xbmcgui
+from core import display
 from core.utils import clear_overlay_state
 
 _ADDON      = xbmcaddon.Addon()
@@ -18,6 +19,17 @@ _ADDON_PATH = _ADDON.getAddonInfo("path")
 _POLICY = "/sys/module/aml_media/parameters/dolby_vision_policy"
 _ENABLE = "/sys/module/aml_media/parameters/dolby_vision_enable"
 _DVMODE = "/sys/class/amdolby_vision/dv_mode"
+
+# The output mode the Dolby Vision driver is actually sending, as opposed to
+# the one just asked for through _DVMODE.  It follows the driver's own enum,
+# where 0 (IPT) and 1 (IPT tunnelled) are the two Dolby Vision outputs and the
+# rest are HDR10, SDR10, SDR8 and bypass.
+_DV_OUTPUT       = "/sys/module/aml_media/parameters/dolby_vision_mode"
+_DV_OUTPUT_MODES = ("0", "1")
+
+# How long the driver gets to pick up a mode change before the switch is taken
+# to have stayed on the same side of the Dolby Vision line.
+_DV_OUTPUT_TIMEOUT_MS = 1000
 
 # One of the settings introduced alongside the native VS10 keymap actions in
 # SamuriHL/coreelec-xbmc commit 7df0943. Both were added in the same change, so
@@ -72,12 +84,81 @@ def _wait_for_dv_change(before, timeout_ms: int = 500, step_ms: int = 50) -> boo
     return False
 
 
+def _dv_output_active() -> bool:
+    """Return whether the driver is currently sending Dolby Vision."""
+    return _read(_DV_OUTPUT) in _DV_OUTPUT_MODES
+
+
+def _wait_for_dv_output_change(
+    before: bool,
+    timeout_ms: int = _DV_OUTPUT_TIMEOUT_MS,
+    step_ms: int = 50,
+) -> bool:
+    """Poll the driver's output mode, returning True once it crossed the
+    Dolby Vision line (and False if it never does)."""
+    waited = 0
+    while waited < timeout_ms:
+        if _dv_output_active() != before:
+            return True
+        _delay(step_ms)
+        waited += step_ms
+    return False
+
+
 def _is_playing_video() -> bool:
     """True when a video is playing, i.e. when native VS10 actions can apply."""
     try:
         return xbmc.Player().isPlayingVideo()
     except Exception:
         return False
+
+
+def _display_reset_enabled() -> bool:
+    """Return whether the display reset on Dolby Vision switches is wanted.
+
+    A fresh ``Addon()`` avoids the cached settings, so toggling it applies to
+    the very next switch.  An older settings.xml without the setting reads as
+    on: the reset is what makes such a switch land correctly.
+    """
+    try:
+        return xbmcaddon.Addon().getSettingBool("dv_display_reset")
+    except Exception:
+        return True
+
+
+def _reset_display_on_dv_change(name: str, dv_before: bool) -> None:
+    """Re-init the HDMI output when a switch crossed the Dolby Vision line.
+
+    Kodi only re-applies the display mode when the played stream's HDR type
+    changes, and a VS10 switch made mid-playback never tells it about one.  The
+    driver then starts sending Dolby Vision (or stops) while the HDMI output is
+    still set up for the format before it, so the TV never switches over and the
+    picture comes out with the wrong colours -- most visibly in Player-LED mode.
+    Asking the display driver to re-apply its output is the missing step; see
+    ``core.display`` for how that is done.
+
+    Only a switch that really crossed the line needs one.  A mode that stays on
+    the same side of it -- SDR8 to HDR10, say -- changes nothing about how the
+    output is signalled and returns here at once, without waiting on the driver.
+    The rest wait for the driver to confirm the crossing, because a mode the
+    driver did not take is a mode the display has nothing to re-apply for.
+    """
+    if not _display_reset_enabled() or not _is_playing_video():
+        return
+
+    if (name in _DV_MODES) == dv_before:
+        return
+
+    if not _wait_for_dv_output_change(dv_before):
+        xbmc.log(
+            f"TinyPPI: '{name}' did not move the driver's output mode "
+            "-> no display reset",
+            xbmc.LOGWARNING,
+        )
+        return
+
+    direction = "from" if dv_before else "to"
+    display.reset(f"VS10 output switched {direction} Dolby Vision")
 
 
 def _write_sequence(
@@ -165,6 +246,10 @@ _MODES = {
     "sdr10": sdr10,
 }
 
+# The modes that leave Dolby Vision on the wire, whether converted to it or
+# passed through: crossing in or out of this set is what needs a display reset.
+_DV_MODES = ("dv", "original_dv")
+
 
 # Native VS10 keymap action (SamuriHL/coreelec-xbmc commit 7df0943) that each
 # TinyPPI mode maps to. When these actions are available they are fired instead
@@ -231,18 +316,31 @@ def _vs10_actions_available() -> bool:
 
 
 def set_mode(name: str) -> None:
-    """Apply the VS10 mode ``name`` (see ``_MODES``), preferring native actions.
+    """Apply the VS10 mode ``name`` (see ``_MODES``).
+
+    The output is switched by ``_apply_mode``; what is left here is the step
+    neither path performs on its own -- the display reset a switch to or from
+    Dolby Vision needs.  The driver's output mode is sampled before the switch
+    so the two sides can be compared afterwards.
+    """
+    if name not in _MODES:
+        xbmc.log(f"TinyPPI: Unknown mode '{name}'", xbmc.LOGERROR)
+        return
+
+    dv_before = _dv_output_active()
+    _apply_mode(name)
+    _reset_display_on_dv_change(name, dv_before)
+
+
+def _apply_mode(name: str) -> None:
+    """Switch the VS10 output to ``name``, preferring the native actions.
 
     The native ``vs10.*`` actions only do anything during playback and can
     still silently no-op, so we try them only then and verify the DV driver
     state actually moved; either failure falls back to the built-in sysfs
     sequence, which always works.
     """
-    sysfs = _MODES.get(name)
-    if sysfs is None:
-        xbmc.log(f"TinyPPI: Unknown mode '{name}'", xbmc.LOGERROR)
-        return
-
+    sysfs = _MODES[name]
     action = _VS10_ACTION.get(name)
     if action and _vs10_actions_available():
         if _is_playing_video():

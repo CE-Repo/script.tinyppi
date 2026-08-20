@@ -352,6 +352,29 @@ RunScript(script.tinyppi,run_mode,original_dv)
 | `sdr8` | Convert to SDR 8-bit output |
 | `sdr10` | Convert to SDR 10-bit output |
 
+#### Display reset on a Dolby Vision switch
+
+Kodi re-applies the display mode only when the played stream's HDR type
+changes — that forced mode switch is what makes the HDMI output re-negotiate
+and the TV lock onto Dolby Vision. A VS10 switch made while a stream is already
+playing never reports one, no matter whether it goes through sysfs or through
+the native `vs10.*` actions, so the driver starts sending Dolby Vision (or stops)
+while the output is still set up for the format before it. The TV then never
+switches over and the picture comes out with the wrong colours, most visibly in
+Player-LED mode.
+
+TinyPPI therefore watches the driver's own output mode across a switch, and when
+it crossed the Dolby Vision line it asks the display driver to re-apply its
+output — the same step Kodi's forced mode switch falls back to. Since kernel 5.15
+that is no longer a sysfs write but a DRM property on the HDMI connector, which
+only the DRM master may set; add-ons run inside the Kodi process, so Kodi's own
+descriptor is used for it.
+
+A switch that stays on the same side (SDR8 to HDR10, say) never triggers it, and
+on a kernel that does not offer the property nothing happens at all. It can be
+turned off under **Settings → General → VS10 output → Display reset on Dolby
+Vision switch**.
+
 #### Example: keymap shortcut for a direct mode switch
 
 ```xml

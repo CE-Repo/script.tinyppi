@@ -88,6 +88,13 @@
                     <control type="toggle" />
                 </setting>
             </group>
+            <group id="5" label="32467">
+                <setting id="dv_display_reset" type="boolean" label="32473" help="32474">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle" />
+                </setting>
+            </group>
         </category>
         <category id="TinyPPIOverlay" label="32327" help="32101">
             <group id="1" label="32269">
