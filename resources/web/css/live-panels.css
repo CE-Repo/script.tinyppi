@@ -432,7 +432,7 @@
   transition: transform .15s ease;
 }
 .card[open] > .panel-toggle {
-  color: var(--text);
+  color: var(--muted);
   border-bottom: 1px solid var(--line-soft);
 }
 .card[open] > .panel-toggle::after {
