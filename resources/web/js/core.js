@@ -22,7 +22,7 @@ window.TinyPPI = (function () {
      English here is only what shows in the instant before that answers. */
   const T = {
     connected: "Connected", connecting: "Connecting…", offline: "Disconnected",
-    metadata: "Dolby Vision metadata view",
+    metadata: "Dolby Vision metadata view", metadata_section: "Metadata",
     no_metadata: "No Dolby Vision metadata", no_metadata_text: "",
     idle_title: "Nothing is playing", idle_text: "",
     peak: "Peak", average: "Average", aspect: "Aspect ratio", fps: "FPS",

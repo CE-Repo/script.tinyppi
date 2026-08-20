@@ -22,6 +22,7 @@ const el = {
    active-picture card immediately ahead of it. */
 $("chartCard").before(el.frameCard);
 TinyPPI.bindDisclosure(el.frameCard, "metadata.l5", false);
+TinyPPI.bindDisclosure(el.listCard, "metadata.details", true);
 
 let state = null;
 let signature = "";   /* the list's shape, so nodes are rebuilt only when it moves */
@@ -329,6 +330,7 @@ el.copyBtn.addEventListener("click", () => {
 function applyStrings(strings, hello) {
   TinyPPI.panels.strings(strings);
   $("frameTitle").textContent = strings.active_area;
+  $("metadataTitle").textContent = strings.metadata_section;
   el.copyBtn.setAttribute("aria-label", strings.copy);
   el.copyBtn.title = strings.copy;
   if (hello) {

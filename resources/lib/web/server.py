@@ -89,6 +89,7 @@ _UI_STRINGS = {
     "active_area":   32030,   # L5 Active Area
     "vs10":          32467,
     "metadata":      32393,   # Dolby Vision metadata view
+    "metadata_section": 32289,  # Metadata
     "no_metadata":      32470,
     "no_metadata_text": 32471,
     "output":        32055,   # Output
