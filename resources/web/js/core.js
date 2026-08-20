@@ -113,6 +113,7 @@ window.TinyPPI = (function () {
   function setStatus(kind, text) {
     if (!statusEl) return;
     statusEl.dataset.state = kind;
+    statusEl.title = text;
     statusText.textContent = text;
   }
 
