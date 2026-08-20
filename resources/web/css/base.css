@@ -1,0 +1,346 @@
+/* ---------------------------------------------------------------------------
+   TinyPPI dashboard -- the chrome both pages share.
+
+   Palette, page shell, cards, shared empty states, the toast and the token
+   dialog.  Live-player components and page-specific layouts live in their
+   own stylesheets.
+--------------------------------------------------------------------------- */
+
+/* Palette.  Dark first: this is watched in a dark room next to a projector.
+   The light block only restates the tokens, never a rule. */
+:root {
+  --bg:        #0b0d10;
+  --bg-glow:   #12181f;
+  --panel:     #14181d;
+  --panel-2:   #1a1f26;
+  --line:      #242c36;
+  --line-soft: #1d232b;
+  --text:      #e8ecf1;
+  --muted:     #8b97a6;
+  --dim:       #5d6875;
+  --accent:    #4fc3f7;
+  --accent-2:  #82b1ff;
+  --ok:        #81c784;
+  --warn:      #ffb74d;
+  --bad:       #ff5252;
+  --shadow:    0 1px 0 rgba(255,255,255,.03), 0 8px 24px rgba(0,0,0,.35);
+  --radius:    14px;
+  --radius-sm: 10px;
+  --tap:       44px;
+}
+/* The page follows the viewer's own setting.  The palette above is the dark
+   one, so only the tokens are restated here, never a rule; a data-theme="dark"
+   on <html> would pin it back to dark for a viewer who wants that. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg:        #eef1f5;
+    --bg-glow:   #e3e8ef;
+    --panel:     #ffffff;
+    --panel-2:   #f5f7fa;
+    --line:      #dbe1e9;
+    --line-soft: #e7ebf1;
+    --text:      #16202b;
+    --muted:     #5b6675;
+    --dim:       #8b97a6;
+    --accent:    #0277bd;
+    --accent-2:  #1a56db;
+    --ok:        #2e7d32;
+    --warn:      #b26a00;
+    --bad:       #c62828;
+    --shadow:    0 1px 2px rgba(16,32,48,.06), 0 8px 20px rgba(16,32,48,.08);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(120% 60% at 50% -10%, var(--bg-glow) 0%, var(--bg) 60%);
+  background-attachment: fixed;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Liberation Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* --- Top bar ------------------------------------------------------------ */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  padding-top: calc(10px + env(safe-area-inset-top));
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-weight: 650;
+  letter-spacing: .2px;
+  margin-right: auto;
+  min-width: 0;
+}
+.brand b { font-weight: 700; }
+.brand .ver { color: var(--dim); font-size: 11px; font-weight: 500; }
+@media (max-width: 620px) {
+  .brand .ver { display: none; }
+  .iconbtn .lbl { display: none; }
+  .iconbtn { padding: 0 10px; min-width: 40px; }
+  .topbar { gap: 8px; padding-left: 12px; padding-right: 12px; }
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--dim);
+  flex: none;
+}
+.status[data-state="live"] .dot {
+  background: var(--ok);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 70%, transparent);
+  animation: pulse 2.4s ease-out infinite;
+}
+.status[data-state="wait"] .dot { background: var(--warn); }
+.status[data-state="down"] .dot { background: var(--bad); }
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); }
+  70%  { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.iconbtn {
+  appearance: none;
+  min-width: var(--tap);
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.iconbtn:hover  { color: var(--text); border-color: var(--accent); }
+.iconbtn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+.ui-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  pointer-events: none;
+}
+.iconbtn .ui-icon { width: 18px; height: 18px; margin: auto; opacity: .82; }
+.iconbtn:hover .ui-icon { opacity: 1; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .ui-icon { filter: invert(1); }
+}
+:root[data-theme="light"] .ui-icon { filter: invert(1); }
+.presence-icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  vertical-align: -2px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .presence-icon { filter: invert(1); }
+}
+:root[data-theme="light"] .presence-icon { filter: invert(1); }
+.iconbtn:focus-visible,
+.mode:focus-visible,
+.ghost:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* --- Shell -------------------------------------------------------------- */
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card > h2,
+.card > .cardhead > h2 {
+  margin: 0;
+  padding: 12px 16px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+/* The mount point a page gives panels.js.  main is a grid and this is one of
+   its items, so the air between the three sections is set here. */
+#live { display: grid; gap: 16px; }
+
+/* --- Footer, toast, dialog ---------------------------------------------- */
+
+footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--dim);
+  font-size: 12px;
+  padding: 4px 2px;
+}
+.ghost {
+  appearance: none;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ghost:hover { color: var(--text); border-color: var(--accent); }
+
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 16px);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  font-size: 13.5px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s, transform .2s;
+  z-index: 40;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+#toast.bad { border-color: var(--bad); color: var(--bad); }
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  padding: 0;
+  width: min(400px, calc(100vw - 32px));
+  box-shadow: var(--shadow);
+}
+dialog::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(3px); }
+dialog form { padding: 18px; display: grid; gap: 12px; }
+dialog h3 { margin: 0; font-size: 16px; }
+dialog p { margin: 0; color: var(--muted); font-size: 13px; }
+dialog input {
+  font: inherit;
+  font-size: 18px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  padding: 11px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  width: 100%;
+}
+dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.dlgrow { display: flex; gap: 10px; justify-content: flex-end; }
+.dlgrow button {
+  appearance: none;
+  min-height: var(--tap);
+  padding: 0 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dlgrow button[value="ok"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #05131c;
+}
+
+/* --- Shared empty state ------------------------------------------------- */
+
+.empty {
+  padding: 48px 24px;
+  text-align: center;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+.empty .big { font-size: 17px; font-weight: 600; }
+.empty p { margin: 0; color: var(--muted); font-size: 13.5px; }
+
+/* The idle card is the page's only content worth looking at.  Centre the card
+   itself in the viewport while keeping the same usable width as main. */
+#idleCard:not(.hidden) {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: min(calc(100% - 32px), 1328px);
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.hidden { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}

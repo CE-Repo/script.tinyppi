@@ -1,0 +1,108 @@
+/* ---------------------------------------------------------------------------
+   The Dolby Vision metadata window.
+
+   A window of its own rather than a section of the dashboard: the list runs to
+   a hundred readings and more, and on a second screen it is worth the whole
+   screen.  Nothing here is picked out or interpreted -- the rows arrive as
+   info.dvmetadata builds them for the on-screen view, so what is listed is
+   what the bitstream said.
+--------------------------------------------------------------------------- */
+
+/* The row count, in the footer's small print: how many readings this list is
+   holding, which is the one thing the panels above do not say. */
+.count { color: var(--dim); font-size: 12.5px; }
+
+.metarows { padding: 6px 0 14px; }
+
+/* One column on a phone, more as the window widens: the sections stand alone,
+   so they read fine side by side and the page stops being a mile long. */
+@media (min-width: 900px)  { .metarows { columns: 2; column-gap: 28px; padding: 10px 8px 16px; } }
+@media (min-width: 1500px) { .metarows { columns: 3; } }
+.mblock { break-inside: avoid; }
+
+.msection {
+  margin: 14px 16px 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.msection .state {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  color: var(--dim);
+  text-transform: none;
+}
+
+.mrow {
+  display: grid;
+  grid-template-columns: minmax(110px, 45%) 1fr;
+  gap: 10px;
+  padding: 3px 16px;
+  font-size: 12.5px;
+}
+.mrow .k { color: var(--muted); overflow-wrap: anywhere; }
+.mrow .v { text-align: right; overflow-wrap: anywhere; transition: color .45s ease-out; }
+.mrow.changed .v { color: var(--accent-2); transition: none; }
+
+.mwide {
+  padding: 3px 16px;
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+
+/* A trim pass only means anything read against its neighbours, so its cells go
+   in fixed slots rather than wrapping into each other -- and the whole table
+   is one grid, so a reading always sits under the heading that names it.
+
+   Turned on its side against the on-screen view: there a pass is a row, which
+   fits because a row there is 1195 px wide, but a column of this page is a
+   fifth of that and the six-to-eight controls ran off the edge.  The controls
+   go down the left instead and each pass takes a column, which is the shape a
+   narrow column holds -- there are only ever a handful of passes, one per
+   target display. */
+.mtable { padding: 2px 16px 8px; overflow-x: auto; }
+.mgrid {
+  /* The track list is set on the element -- a count inside repeat() cannot be
+     a variable everywhere this page is opened -- from these two widths. */
+  --lead: 88px;
+  --cell: 54px;
+  display: grid;
+  grid-template-columns: minmax(var(--lead), auto) minmax(var(--cell), 1fr);
+  gap: 3px 12px;
+  min-width: max-content;
+  font-size: 12.5px;
+}
+.mgrid > span {
+  text-align: right;
+  overflow-wrap: anywhere;
+  transition: color .45s ease-out;
+}
+.mgrid > span.changed { color: var(--accent-2); transition: none; }
+.mgrid .lead, .mgrid .corner { text-align: left; }
+.mgrid .lead { color: var(--muted); }
+.mgrid .corner, .mgrid .head {
+  color: var(--dim);
+  font-size: 10.5px;
+  line-height: 1.6;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+/* The rule under the headings is a cell of its own across the whole grid: a
+   border on each heading would break at every gap between the columns. */
+.mgrid .rule {
+  grid-column: 1 / -1;
+  height: 1px;
+  margin-bottom: 3px;
+  background: var(--line-soft);
+}
+
+.empty p { max-width: 46ch; }
