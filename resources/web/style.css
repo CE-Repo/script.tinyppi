@@ -178,7 +178,7 @@ body {
 /* --- Shell -------------------------------------------------------------- */
 
 main {
-  max-width: 1360px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 16px;
   display: grid;
