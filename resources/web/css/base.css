@@ -181,8 +181,7 @@ body {
 }
 :root[data-theme="light"] .presence-icon { filter: invert(1); }
 .iconbtn:focus-visible,
-.mode:focus-visible,
-.ghost:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mode:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* --- Shell -------------------------------------------------------------- */
 
@@ -230,32 +229,8 @@ footer {
   font-size: 12px;
   padding: 4px 2px;
 }
-.ghost {
-  appearance: none;
-  min-height: 38px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-.ghost:hover { color: var(--text); border-color: var(--accent); }
-
-.topbar .ghost {
-  min-height: 36px;
-  padding: 0 12px;
-  white-space: nowrap;
-}
-
 @media (max-width: 480px) {
   .status #statusText { display: none; }
-  .topbar .ghost {
-    padding: 0 8px;
-    font-size: 12px;
-  }
 }
 
 #toast {

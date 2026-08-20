@@ -16,7 +16,7 @@ const el = {
   version: $("version"), idleCard: $("idleCard"),
   frameCard: $("frameCard"), frameActive: $("frameActive"), frameNote: $("frameNote"),
   vs10Card: $("vs10Card"), vs10Out: $("vs10Out"), modes: $("modes"),
-  groups: $("groups"), foot: $("foot"),
+  groups: $("groups"),
   metaLink: $("metaLink"), wakeBtn: $("wakeBtn"), copyBtn: $("copyBtn")
 };
 
@@ -337,13 +337,13 @@ function applyStrings(strings, hello) {
   $("vs10Title").textContent = strings.vs10;
   $("vs10OutLabel").textContent = strings.output;
   $("metaLinkText").textContent = strings.metadata;
-  el.copyBtn.textContent = strings.copy;
+  el.copyBtn.setAttribute("aria-label", strings.copy);
+  el.copyBtn.title = strings.copy;
   el.wakeBtn.querySelector(".lbl").textContent = strings.awake;
   el.wakeBtn.setAttribute("aria-label", strings.awake);
   el.wakeBtn.title = strings.awake;
   if (hello) {
     el.version.textContent = "v" + hello.version;
-    el.foot.textContent = "TinyPPI " + hello.version;
   }
 }
 

@@ -14,7 +14,7 @@ const T = TinyPPI.T;
 const el = {
   version: $("version"), count: $("count"),
   listCard: $("listCard"), idleCard: $("idleCard"), metaRows: $("metaRows"),
-  foot: $("foot"), copyBtn: $("copyBtn")
+  copyBtn: $("copyBtn")
 };
 
 let state = null;
@@ -302,10 +302,10 @@ el.copyBtn.addEventListener("click", () => {
 
 function applyStrings(strings, hello) {
   TinyPPI.panels.strings(strings);
-  el.copyBtn.textContent = strings.copy;
+  el.copyBtn.setAttribute("aria-label", strings.copy);
+  el.copyBtn.title = strings.copy;
   if (hello) {
     el.version.textContent = "v" + hello.version;
-    el.foot.textContent = "TinyPPI " + hello.version;
   }
   document.title = "TinyPPI — " + strings.metadata;
 }
