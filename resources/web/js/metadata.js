@@ -12,7 +12,7 @@ const $ = TinyPPI.$;
 const T = TinyPPI.T;
 
 const el = {
-  version: $("version"), count: $("count"),
+  version: $("version"),
   listCard: $("listCard"), idleCard: $("idleCard"), metaRows: $("metaRows"),
   frameCard: $("frameCard"), frameActive: $("frameActive"), frameNote: $("frameNote"),
   copyBtn: $("copyBtn")
@@ -53,7 +53,6 @@ function render(next) {
     /* Nothing to list is nothing to copy, so the button goes with the list
        rather than staying behind to answer a press with nothing. */
     el.copyBtn.classList.add("hidden");
-    el.count.textContent = "";
     signature = "";
     live = [];
     el.metaRows.textContent = "";
@@ -63,7 +62,6 @@ function render(next) {
   el.listCard.classList.remove("hidden");
   el.idleCard.classList.add("hidden");
   el.copyBtn.classList.remove("hidden");
-  el.count.textContent = rows.filter((row) => row.kind !== "space").length;
 
   /* Rebuilding a hundred-odd nodes five times a second would fight the browser
      for no gain, and the list only changes shape when a block comes or goes.

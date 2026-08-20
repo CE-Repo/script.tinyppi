@@ -8,10 +8,6 @@
    what the bitstream said.
 --------------------------------------------------------------------------- */
 
-/* The row count, in the footer's small print: how many readings this list is
-   holding, which is the one thing the panels above do not say. */
-.count { color: var(--dim); font-size: 12.5px; }
-
 /* --- L5 active picture -------------------------------------------------- */
 
 .framewrap {
@@ -58,7 +54,7 @@
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--text);
   display: flex;
   gap: 8px;
   align-items: baseline;
