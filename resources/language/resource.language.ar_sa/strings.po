@@ -1503,3 +1503,7 @@ msgstr "دولبي فيجن"
 msgctxt "#32494"
 msgid "Playback controls"
 msgstr "عناصر التحكم في التشغيل"
+
+msgctxt "#32495"
+msgid "Metrics"
+msgstr "المؤشرات"

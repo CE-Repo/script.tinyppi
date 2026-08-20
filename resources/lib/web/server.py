@@ -103,7 +103,7 @@ _UI_STRINGS = {
     "switching":     32464,
     "switched":      32465,
     "switch_failed": 32466,
-    # The session card, the history chart and the transport row.
+    # The summary figures, history chart and transport row.
     "drops":         32476,
     "cache_min":     32477,
     "switches":      32478,
@@ -123,6 +123,7 @@ _UI_STRINGS = {
     "ev_cache":      32492,
     "ev_drops":      32493,
     "controls":      32494,
+    "metrics":       32495,
 }
 
 

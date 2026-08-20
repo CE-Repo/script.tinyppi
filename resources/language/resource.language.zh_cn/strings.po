@@ -1502,3 +1502,7 @@ msgstr "杜比视界"
 msgctxt "#32494"
 msgid "Playback controls"
 msgstr "播放控制"
+
+msgctxt "#32495"
+msgid "Metrics"
+msgstr "指标"

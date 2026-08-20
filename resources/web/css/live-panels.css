@@ -76,17 +76,15 @@
 
 /* --- Stat tiles --------------------------------------------------------- */
 
-.tiles {
+.tilegrid {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 1px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--line-soft);
 }
 
 .tile {
   background: var(--panel);
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
   padding: 14px 15px;
   display: grid;
   gap: 4px;
@@ -105,6 +103,10 @@
   line-height: 1.1;
 }
 .tile .u { font-size: 12px; color: var(--dim); font-weight: 500; }
+
+@media (max-width: 620px) {
+  .tilegrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
 /* --- Chart -------------------------------------------------------------- */
 

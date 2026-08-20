@@ -1502,3 +1502,7 @@ msgstr "Dolby Vision"
 msgctxt "#32494"
 msgid "Playback controls"
 msgstr "Lejátszásvezérlők"
+
+msgctxt "#32495"
+msgid "Metrics"
+msgstr "Mérőszámok"

@@ -61,15 +61,18 @@
         '</details>' +
       '</div>' +
     '</section>' +
-    '<section class="tiles hidden" id="tiles">' +
-      '<div class="tile"><span class="k" id="kSwitches"></span>' +
-        '<span class="v mono" id="vSwitches">0</span><span class="u">&nbsp;</span></div>' +
-      '<div class="tile"><span class="k" id="kDrops"></span>' +
-        '<span class="v mono" id="vDrops">0</span><span class="u">&nbsp;</span></div>' +
-      '<div class="tile"><span class="k" id="kAr"></span>' +
-        '<span class="v mono" id="vAr">—</span><span class="u">&nbsp;</span></div>' +
-      '<div class="tile"><span class="k" id="kFps"></span>' +
-        '<span class="v mono" id="vFps">—</span><span class="u" id="uFps">&nbsp;</span></div>' +
+    '<section class="card hidden" id="tiles">' +
+      '<h2 id="tilesTitle"></h2>' +
+      '<div class="tilegrid">' +
+        '<div class="tile"><span class="k" id="kSwitches"></span>' +
+          '<span class="v mono" id="vSwitches">0</span><span class="u">&nbsp;</span></div>' +
+        '<div class="tile"><span class="k" id="kDrops"></span>' +
+          '<span class="v mono" id="vDrops">0</span><span class="u">&nbsp;</span></div>' +
+        '<div class="tile"><span class="k" id="kAr"></span>' +
+          '<span class="v mono" id="vAr">—</span><span class="u">&nbsp;</span></div>' +
+        '<div class="tile"><span class="k" id="kFps"></span>' +
+          '<span class="v mono" id="vFps">—</span><span class="u" id="uFps">&nbsp;</span></div>' +
+      '</div>' +
     '</section>' +
     '<section class="card hidden" id="chartCard">' +
       '<div class="cardhead">' +
@@ -673,6 +676,7 @@
   /* --- what a page calls ------------------------------------------------ */
 
   function strings(T) {
+    $("tilesTitle").textContent = T.metrics;
     el.controlLabel.textContent = T.controls;
     $("kSwitches").textContent = T.switches;
     $("kDrops").textContent = T.drops;
