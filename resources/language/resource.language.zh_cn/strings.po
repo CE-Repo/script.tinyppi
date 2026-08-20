@@ -1428,8 +1428,8 @@ msgid "Average"
 msgstr "平均"
 
 msgctxt "#32455"
-msgid "Frame luminance, last 60 seconds"
-msgstr "画面亮度，最近 60 秒"
+msgid "Frame luminance (L1)"
+msgstr "画面亮度 (L1)"
 
 msgctxt "#32456"
 msgid "Copy report"

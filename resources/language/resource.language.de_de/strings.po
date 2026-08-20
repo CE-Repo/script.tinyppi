@@ -1428,8 +1428,8 @@ msgid "Average"
 msgstr "Durchschnitt"
 
 msgctxt "#32455"
-msgid "Frame luminance, last 60 seconds"
-msgstr "Bildhelligkeit, letzte 60 Sekunden"
+msgid "Frame luminance (L1)"
+msgstr "Bildhelligkeit (L1)"
 
 msgctxt "#32456"
 msgid "Copy report"
@@ -1506,3 +1506,79 @@ msgstr "Display-Reset beim Dolby-Vision-Wechsel"
 msgctxt "#32474"
 msgid "Re-initialise the HDMI output whenever a VS10 switch turns Dolby Vision on or off. Kodi only re-applies the display mode when a stream's HDR type changes, which a switch made during playback never reports, so the TV keeps the previous signalling and the picture comes out with the wrong colours - most visibly in Player-LED mode. Turn it off if your TV or receiver dislikes the short re-sync."
 msgstr "Initialisiert die HDMI-Ausgabe neu, sobald ein VS10-Wechsel Dolby Vision ein- oder ausschaltet. Kodi setzt den Anzeigemodus nur dann neu, wenn sich der HDR-Typ des Streams ändert - und davon erfährt es bei einem Wechsel während der Wiedergabe nie. Der Fernseher bleibt deshalb bei der bisherigen Signalisierung und das Bild kommt mit falschen Farben heraus, am deutlichsten im Player-LED-Modus. Ausschalten, falls Fernseher oder Receiver die kurze Neusynchronisation nicht mögen."
+
+msgctxt "#32475"
+msgid "This playback"
+msgstr "Diese Wiedergabe"
+
+msgctxt "#32476"
+msgid "Frame drops"
+msgstr "Bildaussetzer"
+
+msgctxt "#32477"
+msgid "Lowest cache"
+msgstr "Cache-Tiefstand"
+
+msgctxt "#32478"
+msgid "Output switches"
+msgstr "Umschaltungen"
+
+msgctxt "#32479"
+msgid "Events"
+msgstr "Ereignisse"
+
+msgctxt "#32480"
+msgid "Nothing out of the ordinary yet"
+msgstr "Bisher nichts Auffälliges"
+
+msgctxt "#32481"
+msgid "1 min"
+msgstr "1 Min."
+
+msgctxt "#32482"
+msgid "10 min"
+msgstr "10 Min."
+
+msgctxt "#32483"
+msgid "Whole title"
+msgstr "Ganzer Titel"
+
+msgctxt "#32484"
+msgid "Audio track"
+msgstr "Tonspur"
+
+msgctxt "#32485"
+msgid "Subtitles"
+msgstr "Untertitel"
+
+msgctxt "#32486"
+msgid "Off"
+msgstr "Aus"
+
+msgctxt "#32487"
+msgid "Volume"
+msgstr "Lautstärke"
+
+msgctxt "#32488"
+msgid "Mute"
+msgstr "Stumm"
+
+msgctxt "#32489"
+msgid "Play / Pause"
+msgstr "Wiedergabe / Pause"
+
+msgctxt "#32490"
+msgid "Stop"
+msgstr "Stopp"
+
+msgctxt "#32491"
+msgid "Display mode"
+msgstr "Anzeigemodus"
+
+msgctxt "#32492"
+msgid "Cache dip"
+msgstr "Cache-Einbruch"
+
+msgctxt "#32493"
+msgid "Frames lost"
+msgstr "Verlorene Bilder"

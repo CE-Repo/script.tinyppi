@@ -1429,8 +1429,8 @@ msgid "Average"
 msgstr "المتوسط"
 
 msgctxt "#32455"
-msgid "Frame luminance, last 60 seconds"
-msgstr "سطوع الإطار، آخر 60 ثانية"
+msgid "Frame luminance (L1)"
+msgstr "سطوع الإطار (L1)"
 
 msgctxt "#32456"
 msgid "Copy report"

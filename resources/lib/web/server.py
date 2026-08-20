@@ -21,12 +21,14 @@ import time
 import traceback
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 import xbmc
 import xbmcaddon
+import xbmcvfs
 
-from web.snapshot import SnapshotBuilder, apply_mode
+from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
+from web.snapshot import SnapshotBuilder, apply_command, apply_mode, art_path
 
 _ADDON_ID = "script.tinyppi"
 
@@ -43,8 +45,27 @@ _HEARTBEAT_INTERVAL = 15.0
 # open, so the cap is what stops a forgotten phone from accumulating them.
 _MAX_STREAMS = 6
 
-# Longest request body accepted (only /api/mode has one, and it is tiny).
+# Longest request body accepted (only the two POSTs have one, and both are
+# tiny).
 _MAX_BODY = 4096
+
+# The artwork kinds the page may ask for, and how big one may be before it is
+# treated as something other than a poster.
+_ART_KINDS = ("poster", "fanart")
+_MAX_ART   = 8 * 1024 * 1024
+
+# Artwork comes from wherever the library points, so its type is read off the
+# name; anything unrecognised is sent as the JPEG that a poster almost always
+# is, and the browser corrects itself from the bytes.
+_ART_TYPES = {
+    ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
+    ".webp": "image/webp", ".gif": "image/gif", ".bmp": "image/bmp",
+}
+_ART_FALLBACK_TYPE = "image/jpeg"
+
+# The channel graphics the dashboard serves.  The overlay has a smaller set
+# for its Dolby Vision panel; the page always takes the larger one.
+_CHANNEL_SIZE = "495x298"
 
 # Ambiguity-free alphabet: a token is read off a TV and typed on a phone.
 _TOKEN_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -86,6 +107,26 @@ _UI_STRINGS = {
     "switching":     32464,
     "switched":      32465,
     "switch_failed": 32466,
+    # The session card, the history chart and the transport row.
+    "session":       32475,
+    "drops":         32476,
+    "cache_min":     32477,
+    "switches":      32478,
+    "events":        32479,
+    "events_empty":  32480,
+    "range_1m":      32481,
+    "range_10m":     32482,
+    "range_all":     32483,
+    "audio_track":   32484,
+    "subtitles":     32485,
+    "off":           32486,
+    "volume":        32487,
+    "mute":          32488,
+    "playpause":     32489,
+    "stop":          32490,
+    "ev_mode":       32491,
+    "ev_cache":      32492,
+    "ev_drops":      32493,
 }
 
 
@@ -187,7 +228,80 @@ def _static_routes() -> dict[str, tuple[str, str]]:
         "/manifest.webmanifest":  (os.path.join(web, "manifest.webmanifest"), "application/manifest+json"),
         "/icon.jpg":              (os.path.join(root, "icon.jpg"), "image/jpeg"),
         "/fanart.jpg":            (os.path.join(root, "fanart.jpg"), "image/jpeg"),
+        **_media_routes(root),
     }
+
+
+def _media_routes(root: str) -> dict[str, tuple[str, str]]:
+    """The skin graphics the dashboard draws, as routes under ``/media/``.
+
+    Built from the very maps the overlay picks its logos out of, plus whatever
+    channel layouts are installed, so a format wears the same face on the TV
+    and on the phone.  Naming them here keeps the route table what it was: an
+    allowlist of files the add-on itself would draw, never a path that came in
+    with a request.  A logo that is not installed -- the IMAX ones ship
+    separately -- is simply not a route.
+    """
+    media = os.path.join(root, "resources", "skins", "Default", "media")
+    names = set(HDR_LOGO_MAP.values())
+    names |= set(AUDIO_LOGO_MAP.values())
+    names |= set(IMAX_LOGO_MAP.values())
+
+    channels = os.path.join(media, "channels", _CHANNEL_SIZE)
+    try:
+        names |= {f"channels/{_CHANNEL_SIZE}/{name}"
+                  for name in os.listdir(channels) if name.endswith(".png")}
+    except OSError:
+        pass  # no channel graphics installed; the page leaves them out
+
+    routes = {}
+    for name in sorted(names):
+        path = os.path.join(media, name.replace("/", os.sep))
+        if name and os.path.exists(path):
+            routes[f"/media/{name}"] = (path, "image/png")
+    return routes
+
+
+# --- Artwork ---------------------------------------------------------------
+
+def _unwrap_image_url(path: str) -> str:
+    """The real file behind a Kodi ``image://`` address.
+
+    Kodi wraps art in a texture URL -- ``image://`` plus the source, percent
+    encoded, plus a trailing slash.  The wrapper is a name for its own texture
+    cache and not something the file system knows, so it is unwrapped back to
+    the path or URL the library actually points at.
+    """
+    if not path.startswith("image://"):
+        return path
+    inner = unquote(path[len("image://"):])
+    return inner[:-1] if inner.endswith("/") else inner
+
+
+def _art_type(path: str) -> str:
+    return _ART_TYPES.get(os.path.splitext(path)[1].lower(), _ART_FALLBACK_TYPE)
+
+
+def _read_art(path: str) -> bytes | None:
+    """Read an artwork file through Kodi's own VFS, or None.
+
+    Kodi's VFS rather than ``open``: art lives wherever the library put it,
+    which is as often a share or a URL as it is a local file, and only Kodi
+    knows how to reach all three.
+    """
+    handle = None
+    try:
+        handle = xbmcvfs.File(path)
+        data = bytes(handle.readBytes(_MAX_ART))
+    except Exception:
+        return None
+    finally:
+        if handle is not None:
+            try:
+                handle.close()
+            except Exception:
+                pass
+    return data or None
 
 
 # --- The server ------------------------------------------------------------
@@ -214,6 +328,15 @@ class _Producer(threading.Thread):
         with self._condition:
             return self._snapshot
 
+    def history(self) -> dict:
+        """The playing title's chart samples and events.
+
+        Reached straight from the request thread: the session keeps a lock of
+        its own, which is cheaper than holding up the producer for a list that
+        is only asked for when a page opens or an event lands.
+        """
+        return self._builder.session.history()
+
     def wait_for(self, seen: int, timeout: float) -> dict | None:
         """Block until a snapshot newer than ``seen`` exists, or the timeout
         runs out (then None, and the caller sends a heartbeat)."""
@@ -233,6 +356,7 @@ class _Producer(threading.Thread):
                     addon,
                     allow_filename=addon.getSetting("filename") == "true",
                     metadata=addon.getSetting("web_metadata") == "true",
+                    control=addon.getSetting("web_allow_control") == "true",
                 )
                 with self._condition:
                     self._snapshot = snapshot
@@ -313,12 +437,18 @@ class _Handler(BaseHTTPRequestHandler):
         if route in self.server.static_routes:
             self._serve_static(route)
             return
-        if route in ("/api/state", "/api/stream"):
+        if route in ("/api/state", "/api/stream", "/api/history", "/api/art"):
             if self.server.auth_read and not self._authorised():
                 self._send_error_json(HTTPStatus.UNAUTHORIZED, "token required")
                 return
             if route == "/api/state":
                 self._send_json(self._state_payload())
+            elif route == "/api/history":
+                # The chart's whole past and the event list, asked for on
+                # connect and again whenever the snapshot's event count moves.
+                self._send_json(self.server.producer.history())
+            elif route == "/api/art":
+                self._serve_art()
             else:
                 self._serve_stream()
             return
@@ -346,7 +476,7 @@ class _Handler(BaseHTTPRequestHandler):
             return
 
         route = urlparse(self.path).path
-        if route != "/api/mode":
+        if route not in ("/api/mode", "/api/command"):
             self._send_error_json(HTTPStatus.NOT_FOUND, "no such route")
             return
         if not self.server.allow_control:
@@ -357,12 +487,26 @@ class _Handler(BaseHTTPRequestHandler):
             self._send_error_json(HTTPStatus.UNAUTHORIZED, "token required")
             return
 
-        mode = str(payload.get("mode", "")).strip()
-        if not apply_mode(mode):
-            self._send_error_json(HTTPStatus.BAD_REQUEST, "unknown mode")
+        if route == "/api/mode":
+            mode = str(payload.get("mode", "")).strip()
+            if not apply_mode(mode):
+                self._send_error_json(HTTPStatus.BAD_REQUEST, "unknown mode")
+                return
+            _log(f"VS10 mode '{mode}' requested from {self.client_address[0]}")
+            self._send_json({"ok": True, "mode": mode})
             return
-        _log(f"VS10 mode '{mode}' requested from {self.client_address[0]}")
-        self._send_json({"ok": True, "mode": mode})
+
+        action = str(payload.get("action", "")).strip()
+        if not apply_command(action, payload.get("value")):
+            self._send_error_json(HTTPStatus.BAD_REQUEST, "command failed")
+            return
+        # A seek or a volume nudge arrives by the dozen while a finger is on
+        # the slider; only the ones that change what the player is doing are
+        # worth a line at the level a normal log keeps.
+        _log(f"'{action}' requested from {self.client_address[0]}",
+             xbmc.LOGDEBUG if action in ("seek", "seek_percent", "volume")
+             else xbmc.LOGINFO)
+        self._send_json({"ok": True, "action": action})
 
     def _read_json_body(self) -> dict | None:
         """The request body as a dict, or None once an error has been sent."""
@@ -389,6 +533,22 @@ class _Handler(BaseHTTPRequestHandler):
         payload = dict(self.server.producer.snapshot)
         payload["control"] = self.server.allow_control
         return payload
+
+    def _serve_art(self) -> None:
+        """Send the poster or the fanart of what is playing."""
+        query = parse_qs(urlparse(self.path).query)
+        kind = (query.get("kind") or [""])[0]
+        if kind not in _ART_KINDS:
+            self._send_error_json(HTTPStatus.NOT_FOUND, "no such artwork")
+            return
+        found = self.server.artwork(kind)
+        if found is None:
+            # Not every film has a poster, and a library-less file has none at
+            # all; the page hides the frame rather than showing a broken one.
+            self._send_error_json(HTTPStatus.NOT_FOUND, "no artwork")
+            return
+        body, content_type = found
+        self._send(HTTPStatus.OK, body, content_type)
 
     def _serve_static(self, route: str) -> None:
         path, content_type = self.server.static_routes[route]
@@ -471,6 +631,10 @@ class _Server(ThreadingHTTPServer):
         self.allow_control = True
         self._streams      = 0
         self._stream_lock  = threading.Lock()
+        # One picture per kind, kept between requests: every open tab asks for
+        # the same poster, and it can be a megabyte off a share.
+        self._art: dict[str, tuple[str, bytes, str]] = {}
+        self._art_lock = threading.Lock()
 
     def refresh_settings(self, addon=None) -> None:
         """Re-read the settings a request consults, so toggling one applies
@@ -478,6 +642,35 @@ class _Server(ThreadingHTTPServer):
         addon = addon or _addon()
         self.auth_read     = addon.getSetting("web_auth_read") == "true"
         self.allow_control = addon.getSetting("web_allow_control") == "true"
+
+    def artwork(self, kind: str) -> tuple[bytes, str] | None:
+        """The artwork bytes and type for ``kind``, or None when there is none.
+
+        Read once per picture rather than once per request: the film only
+        changes with the film.  The read happens outside the lock, so a poster
+        coming off a slow share holds nothing else up -- two requests racing
+        for the same new picture read it twice and agree on the answer.
+        """
+        path = art_path(kind)
+        if not path:
+            return None
+
+        with self._art_lock:
+            cached = self._art.get(kind)
+            if cached is not None and cached[0] == path:
+                return cached[1], cached[2]
+
+        source = _unwrap_image_url(path)
+        data = _read_art(source)
+        if data is None and source != path:
+            data = _read_art(path)   # an address only Kodi's VFS understands
+        if data is None:
+            return None
+
+        content_type = _art_type(source)
+        with self._art_lock:
+            self._art[kind] = (path, data, content_type)
+        return data, content_type
 
     def claim_stream(self) -> bool:
         with self._stream_lock:

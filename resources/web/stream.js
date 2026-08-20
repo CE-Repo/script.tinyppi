@@ -269,9 +269,37 @@ window.TinyPPI = (function () {
     connect();
   }
 
+  /* --- commands --------------------------------------------------------- */
+
+  /* One transport command to the add-on.  Resolves to true when the player
+     did it, false when it would not -- a page that shows a button is the page
+     that has to say whether the button worked. */
+  async function command(action, value) {
+    try {
+      const response = await fetch("/api/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json",
+                   "X-TinyPPI-Token": token },
+        body: JSON.stringify({ action, value })
+      });
+      if (response.status === 401) { toast(T.token_bad, true); askToken(); return false; }
+      return response.ok;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /* Whatever the stream and the images need: the token travels in the URL for
+     everything a browser cannot put a header on. */
+  async function getJSON(url) {
+    const response = await fetch(withToken(url));
+    if (!response.ok) throw new Error(String(response.status));
+    return response.json();
+  }
+
   return {
     T, $, boot, toast, setStatus, fmtNits, prettyHdr, askToken,
-    copyReport, reportLine,
+    copyReport, reportLine, command, getJSON, withToken,
     get token() { return token; }
   };
 
@@ -281,10 +309,11 @@ window.TinyPPI = (function () {
 /* ===========================================================================
    The live panels, for whichever page asks for them.
 
-   What is playing, the four figures worth a glance, and the last minute of
-   frame luminance -- the dashboard opens on them, and the metadata window
-   shows the same three, so a second screen left on that page still says what
-   the film is doing.
+   What is playing -- with its poster, the logos the overlay draws for the
+   format, and the speaker layout -- the four figures worth a glance, the
+   luminance chart, what the whole title has done so far, and the transport
+   row.  The dashboard opens on them and the metadata window shows the same,
+   so a second screen left on either page says what the film is doing.
 
    Here rather than in a file of its own for the same reason the toast and the
    token dialog are: the pages reach this server through an allowlist of
@@ -303,22 +332,40 @@ window.TinyPPI = (function () {
   const host = document.getElementById("live");
   if (!host) return;
 
-  /* How much of the past the chart holds, in seconds.  The heading names the
-     same span, so the two move together. */
+  /* How much of the past the live buffer holds, in seconds.  It is what the
+     one-minute range draws; the longer ones come from the add-on, which has
+     been sampling since the film started. */
   const HISTORY_SECONDS = 60;
 
+  /* How often a longer range is fetched again while it is on screen. */
+  const HISTORY_REFRESH = 5000;
+
   host.innerHTML =
-    '<section class="card" id="nowCard">' +
+    '<section class="card hero" id="nowCard">' +
+      '<div class="art hidden" id="artBox"><img id="poster" alt=""></div>' +
       '<div class="now">' +
         '<div class="badges" id="badges"></div>' +
         '<h1 id="title">—</h1>' +
+        '<p class="meta" id="meta"></p>' +
         '<p class="file mono hidden" id="file"></p>' +
+        '<div class="logos" id="logos"></div>' +
+      '</div>' +
+      '<div class="channels hidden" id="channels">' +
+        '<img class="layer" id="chLayer" alt=""><img class="active" id="chActive" alt="">' +
+      '</div>' +
+      /* The bar and the buttons take a row of their own under all three, so
+         they have the whole card to lay out in however narrow the poster
+         leaves the column beside it. */
+      '<div class="foot">' +
         '<div class="progress">' +
-          '<div class="track"><i id="bar"></i></div>' +
+          '<div class="track" id="track" role="slider" tabindex="0" ' +
+            'aria-valuemin="0" aria-valuemax="100"><i id="bar"></i></div>' +
           '<div class="times mono">' +
             '<span id="tElapsed">--:--</span><span id="tTotal">--:--</span>' +
           '</div>' +
         '</div>' +
+        '<div class="transport hidden" id="transport"></div>' +
+        '<div class="tracks hidden" id="tracks"></div>' +
       '</div>' +
     '</section>' +
     '<section class="tiles hidden" id="tiles">' +
@@ -332,7 +379,10 @@ window.TinyPPI = (function () {
         '<span class="v mono" id="vFps">—</span><span class="u" id="uFps">&nbsp;</span></div>' +
     '</section>' +
     '<section class="card hidden" id="chartCard">' +
-      '<h2 id="chartTitle"></h2>' +
+      '<div class="cardhead">' +
+        '<h2 id="chartTitle"></h2>' +
+        '<div class="ranges" id="ranges"></div>' +
+      '</div>' +
       '<div class="chartwrap">' +
         '<canvas id="chart" role="img"></canvas>' +
         '<div class="legend">' +
@@ -341,25 +391,62 @@ window.TinyPPI = (function () {
           '<span id="chartScale" style="margin-left:auto"></span>' +
         '</div>' +
       '</div>' +
+    '</section>' +
+    '<section class="card hidden" id="sessionCard">' +
+      '<h2 id="sessionTitle"></h2>' +
+      '<div class="stats" id="stats"></div>' +
+    '</section>' +
+    '<section class="card hidden" id="eventsCard">' +
+      '<h2 id="eventsTitle"></h2>' +
+      '<div class="events" id="events"></div>' +
     '</section>';
 
   const $ = (id) => document.getElementById(id);
 
   const el = {
-    nowCard: $("nowCard"), badges: $("badges"), title: $("title"), file: $("file"),
-    bar: $("bar"), tElapsed: $("tElapsed"), tTotal: $("tTotal"),
+    nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
+    meta: $("meta"), file: $("file"), logos: $("logos"),
+    artBox: $("artBox"), poster: $("poster"),
+    channels: $("channels"), chLayer: $("chLayer"), chActive: $("chActive"),
+    track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"), tTotal: $("tTotal"),
+    transport: $("transport"), tracks: $("tracks"),
     tiles: $("tiles"), tPeak: $("tPeak"), tAvg: $("tAvg"),
     vPeak: $("vPeak"), vAvg: $("vAvg"), vAr: $("vAr"),
     vFps: $("vFps"), uFps: $("uFps"),
-    chartCard: $("chartCard"), chart: $("chart")
+    chartCard: $("chartCard"), chart: $("chart"), ranges: $("ranges"),
+    sessionCard: $("sessionCard"), stats: $("stats"),
+    eventsCard: $("eventsCard"), events: $("events")
   };
 
-  let history = [];   /* {t, min, max, avg}, the last HISTORY_SECONDS of them */
+  let live = [];        /* {t, max, avg} for the last HISTORY_SECONDS       */
+  let past = null;      /* the add-on's own history, when a range needs it  */
+  let pastAt = 0;       /* when that arrived, to age it as time goes on     */
+  let pastSeq = -1;     /* the event count it was fetched at                */
+  let fetching = false;
+  let lastTry = 0;      /* when one was last attempted, failures included   */
+  let range = HISTORY_SECONDS;
+  let control = false;
+  let posterTag = "";
+  let volumeHeld = 0;   /* while a finger is on the slider, leave it alone  */
+  let trackKey = "";
 
   /* --- what is playing -------------------------------------------------- */
 
   function renderNow(snapshot) {
     el.title.textContent = snapshot.title || "—";
+
+    const media = snapshot.media || {};
+    const parts = [];
+    if (media.show) {
+      parts.push(media.season && media.episode
+        ? media.show + " · " + media.season + "×" +
+          String(media.episode).padStart(2, "0")
+        : media.show);
+    }
+    if (media.year) parts.push(media.year);
+    if (media.genre) parts.push(media.genre);
+    el.meta.textContent = parts.join("  ·  ");
+
     if (snapshot.filename) {
       el.file.textContent = snapshot.filename;
       el.file.classList.remove("hidden");
@@ -367,6 +454,40 @@ window.TinyPPI = (function () {
       el.file.classList.add("hidden");
     }
 
+    renderArt(snapshot.art || {});
+    renderBadges(snapshot);
+    renderLogos(snapshot.logos || {});
+
+    const progress = (snapshot.metrics || {}).progress;
+    const percent = (progress === null || progress === undefined) ? 0 : progress;
+    el.bar.style.width = percent + "%";
+    el.track.setAttribute("aria-valuenow", Math.round(percent));
+    el.tElapsed.textContent = snapshot.time || "--:--";
+    el.tTotal.textContent = snapshot.duration || "--:--";
+  }
+
+  /* The poster is fetched once per film: the add-on sends a tag that changes
+     only when the picture does, and it hangs on the address, so the browser
+     asks again exactly then. */
+  function renderArt(art) {
+    const tag = art.poster || "";
+    if (tag === posterTag) return;
+    posterTag = tag;
+    if (!tag) {
+      el.artBox.classList.add("hidden");
+      el.poster.removeAttribute("src");
+      return;
+    }
+    el.poster.src = TinyPPI.withToken("/api/art?kind=poster&v=" + tag);
+    el.artBox.classList.remove("hidden");
+  }
+
+  /* A film with no poster is not an error; the frame just goes away. */
+  el.poster.addEventListener("error", () => {
+    el.artBox.classList.add("hidden");
+  });
+
+  function renderBadges(snapshot) {
     /* An empty source type is SDR, not "unknown": the add-on publishes a token
        only for the HDR formats (see publish_hdr_type), which is the same thing
        the VS10 buttons branch on. */
@@ -382,11 +503,191 @@ window.TinyPPI = (function () {
       node.textContent = badge.text;
       el.badges.appendChild(node);
     }
+  }
 
-    const progress = (snapshot.metrics || {}).progress;
-    el.bar.style.width = (progress === null || progress === undefined ? 0 : progress) + "%";
-    el.tElapsed.textContent = snapshot.time || "--:--";
-    el.tTotal.textContent = snapshot.duration || "--:--";
+  /* The very files the overlay draws, served from the add-on's own skin (see
+     web/server.py _media_routes).  They are white on transparent and tinted
+     on the TV, so the page inverts them for a light theme rather than shipping
+     a second set. */
+  function renderLogos(logos) {
+    const wanted = [logos.video, logos.audio].filter(Boolean);
+    if (el.logos.dataset.signature !== wanted.join("|")) {
+      el.logos.dataset.signature = wanted.join("|");
+      el.logos.innerHTML = "";
+      for (const name of wanted) {
+        const image = document.createElement("img");
+        image.className = "logo";
+        image.src = "/media/" + name;
+        image.alt = "";
+        image.addEventListener("error", () => image.remove());
+        el.logos.appendChild(image);
+      }
+    }
+
+    if (!logos.channels) {
+      el.channels.classList.add("hidden");
+      return;
+    }
+    if (el.chActive.dataset.name !== logos.channels) {
+      el.chActive.dataset.name = logos.channels;
+      el.chActive.src = "/media/" + logos.channels;
+      el.chLayer.src = logos.layer ? "/media/" + logos.layer : "";
+    }
+    el.channels.classList.remove("hidden");
+  }
+
+  /* --- the remote ------------------------------------------------------- */
+
+  /* Built once, the first time a snapshot says the add-on will take orders.
+     Everything goes through TinyPPI.command, which carries the token and says
+     whether the player did it. */
+  function buildTransport() {
+    if (el.transport.dataset.built) return;
+    el.transport.dataset.built = "1";
+
+    const button = (label, title, handler, className) => {
+      const node = document.createElement("button");
+      node.type = "button";
+      node.className = "tbtn" + (className ? " " + className : "");
+      node.textContent = label;
+      node.title = title || label;
+      node.addEventListener("click", handler);
+      return node;
+    };
+
+    /* Two rows of their own rather than one that wraps: five even keys, then
+       stop, mute and the slider.  A wrapping row leaves whatever did not fit
+       stranded on a line of its own, which on a phone is most of them. */
+    const keys = document.createElement("div");
+    keys.className = "tkeys";
+    keys.append(
+      button("−1m", "", () => TinyPPI.command("seek", -60)),
+      button("−10s", "", () => TinyPPI.command("seek", -10)),
+      /* The label says what pressing it does, so it follows the player:
+         ❚❚ while it plays, ▶ while it is paused. */
+      button("❚❚", TinyPPI.T.playpause,
+             () => TinyPPI.command("playpause"), "primary"),
+      button("+10s", "", () => TinyPPI.command("seek", 10)),
+      button("+1m", "", () => TinyPPI.command("seek", 60))
+    );
+
+    const rest = document.createElement("div");
+    rest.className = "tvol";
+    rest.append(button("⏹", TinyPPI.T.stop, () => TinyPPI.command("stop")));
+
+    const mute = button("🔊", TinyPPI.T.mute, () => TinyPPI.command("mute"), "mute");
+    const slider = document.createElement("input");
+    slider.type = "range";
+    slider.min = 0;
+    slider.max = 100;
+    slider.className = "volume";
+    slider.id = "volume";
+    slider.setAttribute("aria-label", TinyPPI.T.volume);
+    slider.addEventListener("input", () => {
+      volumeHeld = Date.now();
+      TinyPPI.command("volume", Number(slider.value));
+    });
+    rest.append(mute, slider);
+    el.transport.append(keys, rest);
+
+    /* A tap anywhere on the bar seeks there, and the arrow keys do the same,
+       so the bar is not a control only a finger can reach. */
+    el.track.addEventListener("click", (event) => {
+      if (!control) return;
+      const box = el.track.getBoundingClientRect();
+      if (!box.width) return;
+      const where = Math.min(100, Math.max(0,
+        (event.clientX - box.left) / box.width * 100));
+      el.bar.style.width = where + "%";
+      TinyPPI.command("seek_percent", where);
+    });
+    el.track.addEventListener("keydown", (event) => {
+      if (!control) return;
+      if (event.key === "ArrowLeft") TinyPPI.command("seek", -10);
+      else if (event.key === "ArrowRight") TinyPPI.command("seek", 10);
+      else return;
+      event.preventDefault();
+    });
+  }
+
+  function renderTransport(snapshot) {
+    control = !!snapshot.control;
+    const controls = snapshot.controls || {};
+    if (!control) {
+      el.transport.classList.add("hidden");
+      el.tracks.classList.add("hidden");
+      el.track.classList.remove("seekable");
+      return;
+    }
+    buildTransport();
+    el.transport.classList.remove("hidden");
+    el.track.classList.add("seekable");
+
+    const play = el.transport.querySelector(".tbtn.primary");
+    if (play) play.textContent = snapshot.paused ? "▶" : "❚❚";
+
+    const slider = $("volume");
+    const mute = el.transport.querySelector(".mute");
+    if (slider && controls.volume !== null && controls.volume !== undefined) {
+      /* Not while a finger is on it: the snapshot is a fifth of a second
+         behind, and writing it back would drag the handle out from under. */
+      if (Date.now() - volumeHeld > 1500) slider.value = controls.volume;
+    }
+    if (mute) {
+      mute.classList.toggle("on", !!controls.muted);
+      mute.textContent = controls.muted ? "🔇" : "🔊";
+    }
+    renderTracks(controls);
+  }
+
+  /* One picker per kind, rebuilt only when the tracks themselves change --
+     a select rebuilt five times a second could never be opened. */
+  function renderTracks(controls) {
+    const audio = controls.audio || [];
+    const subs = controls.subtitle || [];
+    if (audio.length < 2 && !subs.length) {
+      el.tracks.classList.add("hidden");
+      return;
+    }
+    el.tracks.classList.remove("hidden");
+
+    const key = JSON.stringify([audio, subs]);
+    if (trackKey !== key) {
+      trackKey = key;
+      el.tracks.innerHTML = "";
+      if (audio.length > 1) {
+        el.tracks.append(picker("audio", TinyPPI.T.audio_track, audio, false));
+      }
+      if (subs.length) {
+        el.tracks.append(picker("subtitle", TinyPPI.T.subtitles, subs, true));
+      }
+    }
+
+    const audioPick = $("pick-audio");
+    if (audioPick) audioPick.value = String(controls.audio_current);
+    const subPick = $("pick-subtitle");
+    if (subPick) {
+      subPick.value = controls.subtitle_on
+        ? String(controls.subtitle_current) : "-1";
+    }
+  }
+
+  function picker(kind, label, options, withOff) {
+    const wrap = document.createElement("label");
+    wrap.className = "pick";
+    const caption = document.createElement("span");
+    caption.textContent = label;
+    const select = document.createElement("select");
+    select.id = "pick-" + kind;
+    if (withOff) select.append(new Option(TinyPPI.T.off, "-1"));
+    for (const option of options) {
+      select.append(new Option(option.label, String(option.index)));
+    }
+    select.addEventListener("change", () => {
+      TinyPPI.command(kind, Number(select.value));
+    });
+    wrap.append(caption, select);
+    return wrap;
   }
 
   /* --- the four figures ------------------------------------------------- */
@@ -408,7 +709,92 @@ window.TinyPPI = (function () {
     el.uFps.textContent  = metrics.fps_drop ? "▼ " + metrics.fps_drop : " ";
   }
 
-  /* --- the last minute -------------------------------------------------- */
+  /* --- what the whole title has done ------------------------------------ */
+
+  function renderSession(session) {
+    if (!session || !session.samples) {
+      el.sessionCard.classList.add("hidden");
+      return;
+    }
+    el.sessionCard.classList.remove("hidden");
+    const T = TinyPPI.T;
+    const nits = (value) =>
+      (value === null || value === undefined) ? "—" : TinyPPI.fmtNits(value);
+    const stats = [
+      [T.peak, nits(session.peak), "nits"],
+      [T.average, nits(session.avg), "nits"],
+      [T.drops, String(session.drops || 0), ""],
+      [T.cache_min, (session.cache_min === null || session.cache_min === undefined)
+        ? "—" : Math.round(session.cache_min) + "%", ""],
+      [T.switches, String(session.switches || 0), ""]
+    ];
+
+    /* Only the numbers are written on every pass; the frames stay put. */
+    if (el.stats.children.length !== stats.length) {
+      el.stats.innerHTML = "";
+      for (let index = 0; index < stats.length; index++) {
+        const tile = document.createElement("div");
+        tile.className = "stat";
+        const key = document.createElement("span");
+        key.className = "k";
+        const value = document.createElement("span");
+        value.className = "v mono";
+        const unit = document.createElement("span");
+        unit.className = "u";
+        tile.append(key, value, unit);
+        el.stats.append(tile);
+      }
+    }
+    stats.forEach(([name, value, unit], index) => {
+      const tile = el.stats.children[index];
+      tile.children[0].textContent = name;
+      tile.children[1].textContent = value;
+      tile.children[2].textContent = unit;
+    });
+  }
+
+  const EVENT_LABEL = {
+    vs10: () => TinyPPI.T.vs10,
+    mode: () => TinyPPI.T.ev_mode,
+    cache: () => TinyPPI.T.ev_cache,
+    drops: () => TinyPPI.T.ev_drops
+  };
+
+  function eventText(entry) {
+    if (entry.from !== undefined && entry.to !== undefined) {
+      return entry.from + "  →  " + entry.to;
+    }
+    if (entry.kind === "cache") return Math.round(entry.value) + "%";
+    return String(entry.value);
+  }
+
+  function renderEvents(events) {
+    if (!events || !events.length) {
+      el.events.className = "events empty";
+      el.events.textContent = TinyPPI.T.events_empty;
+      return;
+    }
+    el.events.className = "events";
+    el.events.innerHTML = "";
+    /* Newest first: what just happened is what a glance is looking for. */
+    for (const entry of events.slice().reverse()) {
+      const row = document.createElement("div");
+      row.className = "event " + entry.kind;
+      const when = document.createElement("span");
+      when.className = "at mono";
+      when.textContent = entry.pos || "";
+      const what = document.createElement("span");
+      what.className = "what";
+      what.textContent = (EVENT_LABEL[entry.kind] || (() => entry.kind))();
+      const detail = document.createElement("span");
+      detail.className = "detail mono";
+      detail.textContent = eventText(entry);
+      row.append(when, what, detail);
+      el.events.append(row);
+    }
+  }
+
+  /* --- the chart -------------------------------------------------------- */
 
   /* Luminance spans four decades, from a black frame to a specular highlight,
      so the y axis is logarithmic: a linear one would flatten everything below
@@ -421,6 +807,84 @@ window.TinyPPI = (function () {
            (Math.log10(MAX_NITS) - Math.log10(MIN_NITS));
   };
 
+  function buildRanges() {
+    if (el.ranges.dataset.built) return;
+    el.ranges.dataset.built = "1";
+    const spans = [[60, "range_1m"], [600, "range_10m"], [0, "range_all"]];
+    for (const [seconds, key] of spans) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "range";
+      button.dataset.range = String(seconds);
+      button.dataset.key = key;
+      button.textContent = TinyPPI.T[key] || key;
+      button.addEventListener("click", () => {
+        range = seconds;
+        markRange();
+        if (seconds !== HISTORY_SECONDS) fetchHistory(true);
+        drawChart();
+      });
+      el.ranges.append(button);
+    }
+    markRange();
+  }
+
+  function markRange() {
+    for (const button of el.ranges.children) {
+      button.classList.toggle("on", Number(button.dataset.range) === range);
+    }
+  }
+
+  /* The add-on has been sampling since the film started, so a page that opens
+     halfway through asks for what it missed instead of drawing from the moment
+     it arrived.  Fetched on connect, again whenever the event count moves, and
+     on a slow tick while a long range is on screen. */
+  function fetchHistory(force) {
+    const now = Date.now();
+    if (fetching) return;
+    /* Never faster than once a second, however urgent the reason: a fetch
+       that keeps failing leaves the event count unmatched, and every snapshot
+       after it would otherwise be a fresh reason to try again. */
+    if (now - lastTry < 1000) return;
+    if (!force && now - pastAt < HISTORY_REFRESH) return;
+    lastTry = now;
+    fetching = true;
+    TinyPPI.getJSON("/api/history").then((data) => {
+      past = data;
+      pastAt = Date.now();
+      pastSeq = data.seq;
+      renderEvents(data.events);
+      el.eventsCard.classList.remove("hidden");
+      drawChart();
+    }).catch(() => { /* the stream's own retry reports an outage */ })
+      .finally(() => { fetching = false; });
+  }
+
+  /* Both sources reduced to the same shape: how long ago, and what it was. */
+  function series() {
+    const now = Date.now() / 1000;
+    if (range === HISTORY_SECONDS) {
+      return live.map((point) => ({
+        age: now - point.t, max: point.max, avg: point.avg
+      }));
+    }
+    if (!past || !past.t || !past.t.length) return [];
+    /* The add-on counts from the start of the film and the page from the
+       moment the answer arrived; the drift is what puts the two on one axis. */
+    const drift = now - pastAt / 1000;
+    const points = [];
+    for (let index = 0; index < past.t.length; index++) {
+      if (past.max[index] === null || past.max[index] === undefined) continue;
+      points.push({
+        age: (past.now - past.t[index]) + drift,
+        max: past.max[index],
+        avg: past.avg[index] === null || past.avg[index] === undefined
+          ? past.max[index] : past.avg[index]
+      });
+    }
+    return points;
+  }
+
   function renderChart(metrics) {
     const l1 = metrics.l1 || {};
     if (l1.max === null || l1.max === undefined) {
@@ -428,11 +892,13 @@ window.TinyPPI = (function () {
       return;
     }
     el.chartCard.classList.remove("hidden");
+    buildRanges();
 
     const now = Date.now() / 1000;
-    history.push({ t: now, min: l1.min || 0, max: l1.max || 0, avg: l1.avg || 0 });
-    while (history.length && now - history[0].t > HISTORY_SECONDS) history.shift();
+    live.push({ t: now, min: l1.min || 0, max: l1.max || 0, avg: l1.avg || 0 });
+    while (live.length && now - live[0].t > HISTORY_SECONDS) live.shift();
 
+    if (range !== HISTORY_SECONDS) fetchHistory(false);
     drawChart();
   }
 
@@ -479,18 +945,21 @@ window.TinyPPI = (function () {
       ctx.fillText(tick >= 1000 ? (tick / 1000) + "k" : String(tick), padLeft - 6, ty);
     }
 
-    if (history.length < 2) return;
+    const points = series();
+    if (points.length < 2) return;
 
-    const now = Date.now() / 1000;
-    const x = (t) => padLeft + plotW * (1 - Math.min(1, (now - t) / HISTORY_SECONDS));
+    /* The window is whichever range is on, and for the whole title it is as
+       far back as the samples go. */
+    const span = range || Math.max(HISTORY_SECONDS, points[0].age);
+    const x = (age) => padLeft + plotW * (1 - Math.min(1, age / span));
 
     /* Peak, as an area down to the floor.  The min of an L1 block sits near
        zero on almost every frame, so a min-max band would be full height and
        say nothing; the peak against the average is where the grade shows. */
     ctx.beginPath();
-    ctx.moveTo(x(history[0].t), padTop + plotH);
-    for (const point of history) ctx.lineTo(x(point.t), y(point.max));
-    ctx.lineTo(x(history[history.length - 1].t), padTop + plotH);
+    ctx.moveTo(x(points[0].age), padTop + plotH);
+    for (const point of points) ctx.lineTo(x(point.age), y(point.max));
+    ctx.lineTo(x(points[points.length - 1].age), padTop + plotH);
     ctx.closePath();
     const fill = ctx.createLinearGradient(0, padTop, 0, padTop + plotH);
     fill.addColorStop(0, accent);
@@ -503,8 +972,8 @@ window.TinyPPI = (function () {
     const trace = (key, color, thickness, dash) => {
       ctx.setLineDash(dash || []);
       ctx.beginPath();
-      history.forEach((point, index) => {
-        const px = x(point.t), py = y(point[key]);
+      points.forEach((point, index) => {
+        const px = x(point.age), py = y(point[key]);
         index === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
       });
       ctx.strokeStyle = color;
@@ -535,23 +1004,40 @@ window.TinyPPI = (function () {
     $("kFps").textContent = T.fps;
     $("chartTitle").textContent = T.chart;
     $("chartScale").textContent = "nits · log";
+    $("sessionTitle").textContent = T.session;
+    $("eventsTitle").textContent = T.events;
+    for (const button of el.ranges.children) {
+      button.textContent = T[button.dataset.key] || button.dataset.key;
+    }
   }
 
-  /* Everything the three show comes out of one snapshot, and a snapshot that
+  /* Everything the panels show comes out of one snapshot, and a snapshot that
      says nothing is playing takes them off the page rather than leaving the
      last frame of a film that has ended standing there. */
   function update(snapshot) {
     if (!snapshot || !snapshot.playing) {
-      el.nowCard.classList.add("hidden");
-      el.tiles.classList.add("hidden");
-      el.chartCard.classList.add("hidden");
-      history = [];
+      const cards = [el.nowCard, el.tiles, el.chartCard,
+                     el.sessionCard, el.eventsCard];
+      for (const node of cards) node.classList.add("hidden");
+      live = [];
+      past = null;
+      pastSeq = -1;
+      posterTag = "";
+      trackKey = "";
       return;
     }
     el.nowCard.classList.remove("hidden");
     renderNow(snapshot);
+    renderTransport(snapshot);
     renderTiles(snapshot.metrics || {});
     renderChart(snapshot.metrics || {});
+    renderSession(snapshot.session);
+
+    /* The event list travels apart from the snapshot -- it would otherwise be
+       sent five times a second to say nothing.  The count in the summary is
+       what says there is something new to fetch. */
+    const session = snapshot.session || {};
+    if (session.seq !== undefined && session.seq !== pastSeq) fetchHistory(true);
   }
 
   window.TinyPPI.panels = { strings, update };

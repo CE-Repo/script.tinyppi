@@ -12,12 +12,17 @@ reuses its own string IDs, so the dashboard is translated wherever the overlay
 is, and a renamed label moves in both at once.
 """
 
+import json
+import os
 import re
+import threading
 import time
+import zlib
 
 import xbmc
 import xbmcaddon
 import xbmcgui
+from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
 from core.utils import PROP_EFFECTIVE_HDR_TYPE, cond, info
 from info.dvinfo import (
     L1_EMPTY,
@@ -27,9 +32,11 @@ from info.dvinfo import (
     is_status_label,
 )
 from info import dvmetadata
+from info.imax import is_known_imax_title
 from info.properties import (
     publish_scene_properties,
     publish_static_properties,
+    web_channel_graphic,
 )
 
 _HOME_WINDOW_ID = 10000
@@ -219,6 +226,14 @@ _EXTRA_INFOLABELS = (
     ("MemoryUsed",          "System.Memory(used.percent)"),
     ("Title",               "VideoPlayer.Title"),
     ("Filename",            "Player.Filename"),
+    # What the dashboard's now-playing card prints under the title; each is
+    # empty for a file the library knows nothing about, and the card then
+    # simply leaves the line out.
+    ("Year",                "VideoPlayer.Year"),
+    ("Genre",               "VideoPlayer.Genre"),
+    ("Show",                "VideoPlayer.TVShowTitle"),
+    ("Season",              "VideoPlayer.Season"),
+    ("Episode",             "VideoPlayer.Episode"),
 )
 
 # The presence flags arrive as ``true`` / ``false`` / '' (unknown); the overlay
@@ -300,7 +315,392 @@ def _metadata_row(kind: str, name: str, value) -> dict:
     return {"kind": kind, "name": clean_value(name), "value": clean_value(str(value))}
 
 
+# --- Logos -----------------------------------------------------------------
+
+# Where the skin keeps the graphics the overlay draws.  The dashboard serves
+# the very same files (see web/server.py _media_routes), so a format wears one
+# face on the TV and on the phone.
+_MEDIA_DIR = ("resources", "skins", "Default", "media")
+
+# Which combined IMAX logos are installed, by relative path.  They ship
+# separately from the code, so a missing one means the plain logo for that
+# format rather than a page with a hole in it.
+_imax_installed: dict[str, bool] = {}
+
+
+def _media_root() -> str:
+    return os.path.join(xbmcaddon.Addon().getAddonInfo("path"), *_MEDIA_DIR)
+
+
+def _output_token(mode: str) -> str:
+    """Classify the Amlogic output mode into an ``HDR_LOGO_MAP`` key.
+
+    The output, not the source: a stream VS10 converts to Dolby Vision wears
+    the Dolby Vision logo, which is the same thing the splash does with it
+    (see ``ui.splash._amlogic_hdr_token``, whose reading this follows).
+    """
+    mode = (mode or "").upper()
+    if "DV" in mode or "DOLBY" in mode:
+        return "dolbyvision"
+    if "HDR10+" in mode or "HDR10PLUS" in mode or "PLUS" in mode:
+        return "hdr10+"
+    if "HLG" in mode:
+        return "hlg"
+    if "HDR" in mode:
+        return "hdr10"
+    return ""
+
+
+def _imax_logo(token: str) -> str:
+    """The combined IMAX logo for ``token``, or '' when it is not installed."""
+    rel_path = IMAX_LOGO_MAP.get(token, "")
+    if not rel_path:
+        return ""
+    if rel_path not in _imax_installed:
+        path = os.path.join(_media_root(), rel_path.replace("/", os.sep))
+        _imax_installed[rel_path] = os.path.exists(path)
+    return rel_path if _imax_installed[rel_path] else ""
+
+
+def _logos(values: dict[str, str]) -> dict:
+    """The graphics for what is playing, as paths under the media route.
+
+    Each is left empty rather than guessed at: an unknown audio codec has no
+    logo, and the page simply prints the name it already has.
+    """
+    token = _output_token(values.get("ModeVar", ""))
+    video = HDR_LOGO_MAP.get(token, HDR_LOGO_MAP[""])
+    if token in IMAX_LOGO_MAP and is_known_imax_title():
+        video = _imax_logo(token) or video
+
+    codec = info("VideoPlayer.AudioCodec").lower().strip()
+    layer, channels = web_channel_graphic()
+    return {
+        "video":    video,
+        "audio":    AUDIO_LOGO_MAP.get(codec, ""),
+        "layer":    layer,
+        "channels": channels,
+    }
+
+
+# --- Artwork ---------------------------------------------------------------
+
+# Kind -> the info labels to try, best first.  Kodi answers with whichever art
+# the item actually has, so an episode falls back to its show's and a file with
+# no library entry to the thumbnail Kodi made for it.
+_ART_LABELS = {
+    "poster": ("Player.Art(poster)", "Player.Art(tvshow.poster)",
+               "Player.Art(thumb)", "VideoPlayer.Cover"),
+    "fanart": ("Player.Art(fanart)", "Player.Art(tvshow.fanart)",
+               "VideoPlayer.Fanart"),
+}
+
+
+def art_path(kind: str) -> str:
+    """The raw path Kodi holds for a kind of artwork, or ''."""
+    for label in _ART_LABELS.get(kind, ()):
+        path = info(label).strip()
+        if path:
+            return path
+    return ""
+
+
+def _art_tags() -> dict:
+    """A short tag per artwork kind, changing only when the picture does.
+
+    The page hangs it on the image's address, so the browser fetches a poster
+    once per film rather than once per snapshot -- and swaps it the moment the
+    next film brings another.
+    """
+    tags = {}
+    for kind in _ART_LABELS:
+        path = art_path(kind)
+        tags[kind] = f"{zlib.crc32(path.encode('utf-8', 'replace')):08x}" if path else ""
+    return tags
+
+
+# --- The player ------------------------------------------------------------
+
+def _rpc(method: str, params: dict | None = None) -> dict:
+    """One JSON-RPC call into the running Kodi, as a dict (empty on failure)."""
+    request = {"jsonrpc": "2.0", "id": 1, "method": method}
+    if params:
+        request["params"] = params
+    try:
+        answer = json.loads(xbmc.executeJSONRPC(json.dumps(request)))
+    except Exception:
+        return {}
+    return answer if isinstance(answer, dict) else {}
+
+
+def _video_player_id() -> int | None:
+    """The id of the playing video, or None when nothing is playing."""
+    result = _rpc("Player.GetActivePlayers").get("result") or []
+    for player in result:
+        if isinstance(player, dict) and player.get("type") == "video":
+            return player.get("playerid")
+    return None
+
+
+def _stream_label(stream: dict, fallback: str) -> str:
+    """A track's name for a picker: what Kodi calls it, else its language."""
+    name = (stream.get("name") or "").strip()
+    language = (stream.get("language") or "").strip()
+    if name and language and language.lower() not in name.lower():
+        return f"{language} · {name}"
+    return name or language or fallback
+
+
+def player_controls() -> dict:
+    """The switchable side of the player: tracks, volume, mute.
+
+    Read over JSON-RPC rather than from info labels, because a picker needs
+    the whole list and its indices, not the name of the one in use.  Only
+    gathered when the dashboard is allowed to switch anything, since that is
+    the only thing it is for.
+    """
+    state: dict = {"audio": [], "subtitle": [], "audio_current": -1,
+                   "subtitle_current": -1, "subtitle_on": False,
+                   "volume": None, "muted": False}
+
+    app = _rpc("Application.GetProperties",
+               {"properties": ["volume", "muted"]}).get("result") or {}
+    if isinstance(app, dict):
+        state["volume"] = app.get("volume")
+        state["muted"] = bool(app.get("muted"))
+
+    player_id = _video_player_id()
+    if player_id is None:
+        return state
+
+    properties = _rpc("Player.GetProperties", {
+        "playerid": player_id,
+        "properties": ["audiostreams", "currentaudiostream",
+                       "subtitles", "currentsubtitle", "subtitleenabled"],
+    }).get("result") or {}
+    if not isinstance(properties, dict):
+        return state
+
+    for index, stream in enumerate(properties.get("audiostreams") or []):
+        state["audio"].append({
+            "index": stream.get("index", index),
+            "label": clean_value(_stream_label(stream, f"#{index + 1}")),
+        })
+    for index, stream in enumerate(properties.get("subtitles") or []):
+        state["subtitle"].append({
+            "index": stream.get("index", index),
+            "label": clean_value(_stream_label(stream, f"#{index + 1}")),
+        })
+
+    current_audio = properties.get("currentaudiostream") or {}
+    current_sub   = properties.get("currentsubtitle") or {}
+    if isinstance(current_audio, dict):
+        state["audio_current"] = current_audio.get("index", -1)
+    if isinstance(current_sub, dict):
+        state["subtitle_current"] = current_sub.get("index", -1)
+    state["subtitle_on"] = bool(properties.get("subtitleenabled"))
+    return state
+
+
 # --- Snapshot --------------------------------------------------------------
+
+class SessionLog:
+    """What the playing title has done so far.
+
+    The producer sees every tick and the browser only the ones it was connected
+    for, so the readings that are worth keeping are kept here: the peak the
+    grade ever reached, the frames that were lost, the moment an output changed.
+    A page that opens halfway through a film still gets the whole picture, and
+    the chart is full the second it arrives rather than a minute later.
+
+    Reset by the title changing or by playback ending, since none of it means
+    anything about the next film.  Written by the producer thread and read by
+    whichever request thread asks for the history, so everything goes through
+    the lock.
+    """
+
+    #: Seconds between chart samples.  The stream runs five times faster; the
+    #: history is what is kept for an hour, and a second's resolution is all
+    #: an hour-wide chart can show.
+    SAMPLE_INTERVAL = 1.0
+    #: An hour of samples.  A longer film keeps its last hour and its totals.
+    MAX_SAMPLES = 3600
+    #: Events worth scrolling back through; the oldest fall off the end.
+    MAX_EVENTS = 60
+
+    #: Cache level that counts as a dip, and the one that ends it.  Two
+    #: figures rather than one, so a level hovering at the line writes one
+    #: event instead of a hundred.
+    CACHE_LOW   = 10.0
+    CACHE_CLEAR = 30.0
+    #: Frames lost in a second before it is worth an event.
+    DROP_FLOOR  = 2
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self.reset("")
+
+    def reset(self, key: str) -> None:
+        """Start over for ``key``, the title this session belongs to."""
+        self._key       = key
+        self._started   = time.monotonic()
+        self._samples: list[tuple] = []
+        self._events:  list[dict]  = []
+        self._seq       = 0
+        self._sampled   = 0.0
+        self._peak      = None
+        self._avg_sum   = 0.0
+        self._avg_count = 0
+        self._drops     = 0
+        self._cache_min = None
+        self._switches  = 0
+        self._watched: dict[str, str] = {}
+        self._cache_dipped = False
+        self._dropping  = False
+
+    # -- writing --
+
+    def clear(self) -> None:
+        """Drop the session, for a player that has stopped.
+
+        Cheap to call on every idle pass: with nothing recorded there is
+        nothing to throw away, and the clock is left where it is rather than
+        restarted five times a second.
+        """
+        with self._lock:
+            if not (self._key or self._samples or self._events):
+                return
+            self.reset("")
+
+    def observe(self, key: str, metrics: dict, watched: dict,
+                position: str) -> None:
+        """Fold one pass into the session, sampling on its own slower clock."""
+        with self._lock:
+            if key != self._key:
+                self.reset(key)
+            now = time.monotonic()
+            self._note_changes(watched, now, position)
+            if now - self._sampled < self.SAMPLE_INTERVAL:
+                return
+            self._sampled = now
+            self._sample(metrics, now, position)
+
+    def _note_changes(self, watched: dict, now: float, position: str) -> None:
+        """Log the readings that changed since the last pass.
+
+        Off the fast clock, not the sample one: an output switch is over in
+        less than a second and would otherwise be missed entirely.  The first
+        pass only records what things are, since everything has "changed" then.
+        """
+        for name, value in watched.items():
+            value = (value or "").strip()
+            if not value:
+                continue
+            previous = self._watched.get(name)
+            self._watched[name] = value
+            if previous is None or previous == value:
+                continue
+            if name == "vs10":
+                self._switches += 1
+            self._add_event(now, position, name, {"from": previous, "to": value})
+
+    def _sample(self, metrics: dict, now: float, position: str) -> None:
+        """Take one chart sample and fold it into the totals."""
+        level = metrics.get("l1") or {}
+        peak  = level.get("max")
+        mean  = level.get("avg")
+        drop  = metrics.get("fps_drop") or 0
+        cache = metrics.get("cache")
+
+        if peak is not None:
+            self._peak = peak if self._peak is None else max(self._peak, peak)
+        if mean is not None:
+            self._avg_sum += mean
+            self._avg_count += 1
+        # fps_drop is frames lost per second and this is one second of it.
+        self._drops += int(drop)
+        if cache is not None:
+            self._cache_min = (cache if self._cache_min is None
+                               else min(self._cache_min, cache))
+            self._watch_cache(cache, now, position)
+        self._watch_drops(int(drop), now, position)
+
+        self._samples.append((
+            round(now - self._started, 1), peak, mean, int(drop), cache,
+        ))
+        if len(self._samples) > self.MAX_SAMPLES:
+            del self._samples[:len(self._samples) - self.MAX_SAMPLES]
+
+    def _watch_cache(self, cache: float, now: float, position: str) -> None:
+        if not self._cache_dipped and cache <= self.CACHE_LOW:
+            self._cache_dipped = True
+            self._add_event(now, position, "cache", {"value": cache})
+        elif self._cache_dipped and cache >= self.CACHE_CLEAR:
+            self._cache_dipped = False
+
+    def _watch_drops(self, drop: int, now: float, position: str) -> None:
+        if not self._dropping and drop >= self.DROP_FLOOR:
+            self._dropping = True
+            self._add_event(now, position, "drops", {"value": drop})
+        elif self._dropping and drop == 0:
+            self._dropping = False
+
+    def _add_event(self, now: float, position: str, kind: str,
+                   detail: dict) -> None:
+        self._seq += 1
+        self._events.append({
+            "t": round(now - self._started, 1),
+            "pos": position,
+            "kind": kind,
+            **detail,
+        })
+        if len(self._events) > self.MAX_EVENTS:
+            del self._events[:len(self._events) - self.MAX_EVENTS]
+
+    # -- reading --
+
+    def summary(self) -> dict:
+        """The figures small enough to travel with every snapshot.
+
+        ``seq`` is what tells the page there is something new to fetch: it
+        counts events, so a page holding an older number knows to ask for the
+        history again instead of being sent one five times a second.
+        """
+        with self._lock:
+            return {
+                "seq":       self._seq,
+                "age":       round(time.monotonic() - self._started, 1),
+                "samples":   len(self._samples),
+                "peak":      self._peak,
+                "avg":       (self._avg_sum / self._avg_count
+                              if self._avg_count else None),
+                "drops":     self._drops,
+                "cache_min": self._cache_min,
+                "switches":  self._switches,
+            }
+
+    def history(self) -> dict:
+        """The whole chart and the whole event list, for a page that asks.
+
+        Sent as one array per reading rather than an object per sample: an
+        hour of samples is 3600 of them, and the names would be most of the
+        bytes.  ``now`` is the session's age as the answer leaves, so the page
+        can place each sample against the present without either clock
+        agreeing with the other.
+        """
+        with self._lock:
+            return {
+                "now":    round(time.monotonic() - self._started, 1),
+                "step":   self.SAMPLE_INTERVAL,
+                "t":      [sample[0] for sample in self._samples],
+                "max":    [sample[1] for sample in self._samples],
+                "avg":    [sample[2] for sample in self._samples],
+                "drop":   [sample[3] for sample in self._samples],
+                "cache":  [sample[4] for sample in self._samples],
+                "events": list(self._events),
+                "seq":    self._seq,
+            }
+
 
 class SnapshotBuilder:
     """Produces one dashboard snapshot per call, reusing the overlay's own
@@ -323,6 +723,13 @@ class SnapshotBuilder:
         self._sequence  = 0
         self._meta_static: list = []
         self._meta_static_at = 0.0
+        #: The running title's history and totals; read by /api/history.
+        self.session    = SessionLog()
+        # The switchable side of the player, refreshed on the static clock:
+        # a picker needs whole track lists, which cost a JSON-RPC round trip
+        # and settle at most once a title.
+        self._controls: dict = {}
+        self._controls_at = 0.0
 
     def _refresh(self) -> None:
         """Recompute the readings into the sink, static half on its own timer."""
@@ -463,8 +870,25 @@ class SnapshotBuilder:
                 group["rows"].extend(rendered)
         return groups
 
+    def _player_controls(self, control: bool) -> dict:
+        """The track lists and volume, on the static clock.
+
+        Only while the dashboard may switch something: the lists exist to be
+        picked from, and a read-only page would pay two JSON-RPC calls a
+        second for a picker it never draws.
+        """
+        if not control:
+            self._controls = {}
+            self._controls_at = 0.0
+            return {}
+        now = time.monotonic()
+        if not self._controls or now - self._controls_at >= self.STATIC_INTERVAL:
+            self._controls_at = now
+            self._controls = player_controls()
+        return self._controls
+
     def build(self, addon=None, allow_filename: bool = True,
-              metadata: bool = True) -> dict:
+              metadata: bool = True, control: bool = False) -> dict:
         """One complete snapshot.  Cheap enough for the producer's cadence:
         the whole pass shares a single side-data parse (see ``info.dvinfo``)
         and writes nothing to any window Kodi draws."""
@@ -474,12 +898,16 @@ class SnapshotBuilder:
 
         if not playing:
             # Nothing to read; the sink keeps the last title's values, so drop
-            # them rather than let the page show a film that has ended.
+            # them rather than let the page show a film that has ended.  The
+            # session goes with them: none of what it holds is about the next.
             self._sink   = PropertySink()
             self._published = {}
             self._static_at = 0.0
             self._meta_static = []
             self._meta_static_at = 0.0
+            self._controls = {}
+            self._controls_at = 0.0
+            self.session.clear()
             return {
                 "seq":      self._sequence,
                 "playing":  False,
@@ -487,6 +915,7 @@ class SnapshotBuilder:
                 "metrics":  {},
                 "metadata": [],
                 "vs10":     vs10_state("", playing=False),
+                "session":  self.session.summary(),
             }
 
         self._refresh()
@@ -497,22 +926,51 @@ class SnapshotBuilder:
         source_key = source.strip().lower()
         is_dv      = _is_dv(source_key)
 
+        metrics  = self._metrics(values, is_dv)
+        vs10     = vs10_state(source_key)
+        title    = values.get("Title", "")
+        position = values.get("PlayerTime", "")
+
+        # Folded in before the snapshot is handed over, so the totals the page
+        # is about to print already include the pass it is printing.  The key
+        # is what a new film changes: the title on its own would restart the
+        # session for two episodes of the same name.
+        self.session.observe(
+            f"{title}\n{values.get('PlayerDuration', '')}",
+            metrics,
+            {"vs10": vs10.get("output", ""),
+             "mode": values.get("DisplayModeVar", "")},
+            position,
+        )
+
         return {
             "seq":       self._sequence,
             "playing":   True,
             "paused":    cond("Player.Paused"),
-            "title":     values.get("Title", ""),
+            "title":     title,
             # The overlay's own file-name setting governs this too: turning it
             # off must not leave the path leaking over the network instead.
             "filename":  values.get("Filename", "") if allow_filename else "",
             "hdr_type":  source,
             "effective": home.getProperty(PROP_EFFECTIVE_HDR_TYPE),
-            "time":      values.get("PlayerTime", ""),
+            "time":      position,
             "duration":  values.get("PlayerDuration", ""),
-            "metrics":   self._metrics(values, is_dv),
+            "metrics":   metrics,
             "groups":    self._groups(values, addon, source_key),
             "metadata":  self._metadata(is_dv, metadata),
-            "vs10":      vs10_state(source_key),
+            "vs10":      vs10,
+            # What the overlay draws for this format, for the page to draw too.
+            "logos":     _logos(values),
+            "art":       _art_tags(),
+            "media":     {
+                "year":    values.get("Year", ""),
+                "genre":   values.get("Genre", ""),
+                "show":    values.get("Show", ""),
+                "season":  values.get("Season", ""),
+                "episode": values.get("Episode", ""),
+            },
+            "controls":  self._player_controls(control),
+            "session":   self.session.summary(),
         }
 
 
@@ -600,3 +1058,86 @@ def apply_mode(mode: str) -> bool:
         return False
     xbmc.executebuiltin(f"RunScript(script.tinyppi,run_mode,{mode})")
     return True
+
+
+# --- Player commands -------------------------------------------------------
+
+# What the dashboard's transport row may ask for.  A fixed set, checked before
+# anything reaches Kodi: the request names an action, never a JSON-RPC method,
+# so the page can only ever do these seven things.
+_COMMANDS = ("playpause", "stop", "seek", "seek_percent", "volume", "mute",
+             "audio", "subtitle")
+
+# How far a seek button may jump, in seconds.  Bounded so a malformed value
+# cannot ask the player for something absurd.
+_SEEK_LIMIT = 3600
+
+
+def _number(value, low: float, high: float) -> float | None:
+    """``value`` as a number inside ``[low, high]``, or None."""
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if number != number or not low <= number <= high:  # NaN fails both
+        return None
+    return number
+
+
+def apply_command(action: str, value=None) -> bool:
+    """Act on one transport command, returning whether it was carried out.
+
+    Everything goes through JSON-RPC into the running player rather than
+    through a builtin: the page needs to know whether the thing happened, and
+    a builtin is fire-and-forget.  A command that names no playing video is
+    False rather than a silent no-op, so the page can say so.
+    """
+    if action not in _COMMANDS:
+        return False
+
+    if action == "volume":
+        level = _number(value, 0, 100)
+        if level is None:
+            return False
+        return "result" in _rpc("Application.SetVolume",
+                                {"volume": int(level)})
+    if action == "mute":
+        return "result" in _rpc("Application.SetMute", {"mute": "toggle"})
+
+    player_id = _video_player_id()
+    if player_id is None:
+        return False
+
+    if action == "playpause":
+        return "result" in _rpc("Player.PlayPause", {"playerid": player_id})
+    if action == "stop":
+        return "result" in _rpc("Player.Stop", {"playerid": player_id})
+    if action == "seek":
+        step = _number(value, -_SEEK_LIMIT, _SEEK_LIMIT)
+        if step is None:
+            return False
+        return "result" in _rpc("Player.Seek", {
+            "playerid": player_id, "value": {"seconds": int(step)}})
+    if action == "seek_percent":
+        where = _number(value, 0, 100)
+        if where is None:
+            return False
+        return "result" in _rpc("Player.Seek", {
+            "playerid": player_id, "value": {"percentage": where}})
+    if action == "audio":
+        index = _number(value, 0, 64)
+        if index is None:
+            return False
+        return "result" in _rpc("Player.SetAudioStream", {
+            "playerid": player_id, "stream": int(index)})
+
+    # subtitle: -1 turns them off, anything else picks that track and turns
+    # them on -- one control on the page, so one command here.
+    index = _number(value, -1, 64)
+    if index is None:
+        return False
+    if index < 0:
+        return "result" in _rpc("Player.SetSubtitle", {
+            "playerid": player_id, "subtitle": "off"})
+    return "result" in _rpc("Player.SetSubtitle", {
+        "playerid": player_id, "subtitle": int(index), "enable": True})

@@ -234,13 +234,25 @@ a phone in your hand.
 
 ### What it shows
 
-- **Now playing** — title, file name (when *Show file name* is on), elapsed
-  time and progress.
+- **Now playing** — the poster, title, year and genre, the file name (when
+  *Show file name* is on), elapsed time and progress.
+- **The format logos the overlay draws** — the very files from the add-on's own
+  skin, so a Dolby Vision Atmos title wears the same two badges on the phone as
+  it does on the TV, next to the speaker-layout graphic for the track that is
+  playing.
 - **Peak / average brightness**, the aspect ratio of the picture inside the
   bars, and the frame rate with dropped frames called out.
-- **A live luminance chart** — the Dolby Vision L1 peak and frame average over
-  the last 60 seconds, on a logarithmic scale, so the film's own light
-  behaviour is visible as it plays.
+- **A live luminance chart** — the Dolby Vision L1 peak and frame average on a
+  logarithmic scale, over the last minute, the last ten, or the whole title:
+  the add-on has been sampling since playback started, so a page opened halfway
+  through a film gets the part it missed instead of starting from empty.
+- **This playback** — what the title has done so far: the highest peak the
+  grade ever reached, the average across the film, frames lost, the lowest the
+  cache ever fell, and how often the output was switched. Only the add-on sees
+  every frame, so these are figures a browser could not work out for itself.
+- **Events** — a list with timestamps of the things worth knowing about: an
+  output switched to or from Dolby Vision, a display mode change, the cache
+  dipping, frames going missing.
 - **The active picture area** the RPU declares (L5), drawn to scale inside the
   coded frame — the letterbox as the stream describes it, changing with the
   scene on an IMAX Enhanced title.
@@ -294,6 +306,23 @@ The switch is handed to the add-on's own `run_mode` entry point, so it takes
 exactly the path a keymap shortcut takes, native VS10 actions included.
 
 Switching **always** requires the access token, whatever reading is set to.
+
+### The remote
+
+The same setting turns on the transport row under the progress bar: play and
+pause, ten seconds and a minute either way, stop, the volume and its mute, and
+a picker each for the audio track and the subtitles. Tapping the progress bar
+itself seeks there, and the arrow keys nudge it ten seconds when it has the
+focus.
+
+Every one of them goes through Kodi's own JSON-RPC into the running player, and
+the page only offers what the player actually reports — a file with one audio
+track shows no audio picker. Like the VS10 buttons, they need the access token,
+and with **Allow VS10 switching from the dashboard** off the row is not drawn
+at all.
+
+Both the remote and the panels above it are on the metadata window too, so a
+second screen left on either page can still be used to drive playback.
 
 ### Security
 

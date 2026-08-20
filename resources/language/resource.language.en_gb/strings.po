@@ -1428,7 +1428,7 @@ msgid "Average"
 msgstr ""
 
 msgctxt "#32455"
-msgid "Frame luminance, last 60 seconds"
+msgid "Frame luminance (L1)"
 msgstr ""
 
 msgctxt "#32456"
@@ -1505,4 +1505,80 @@ msgstr ""
 
 msgctxt "#32474"
 msgid "Re-initialise the HDMI output whenever a VS10 switch turns Dolby Vision on or off. Kodi only re-applies the display mode when a stream's HDR type changes, which a switch made during playback never reports, so the TV keeps the previous signalling and the picture comes out with the wrong colours - most visibly in Player-LED mode. Turn it off if your TV or receiver dislikes the short re-sync."
+msgstr ""
+
+msgctxt "#32475"
+msgid "This playback"
+msgstr ""
+
+msgctxt "#32476"
+msgid "Frame drops"
+msgstr ""
+
+msgctxt "#32477"
+msgid "Lowest cache"
+msgstr ""
+
+msgctxt "#32478"
+msgid "Output switches"
+msgstr ""
+
+msgctxt "#32479"
+msgid "Events"
+msgstr ""
+
+msgctxt "#32480"
+msgid "Nothing out of the ordinary yet"
+msgstr ""
+
+msgctxt "#32481"
+msgid "1 min"
+msgstr ""
+
+msgctxt "#32482"
+msgid "10 min"
+msgstr ""
+
+msgctxt "#32483"
+msgid "Whole title"
+msgstr ""
+
+msgctxt "#32484"
+msgid "Audio track"
+msgstr ""
+
+msgctxt "#32485"
+msgid "Subtitles"
+msgstr ""
+
+msgctxt "#32486"
+msgid "Off"
+msgstr ""
+
+msgctxt "#32487"
+msgid "Volume"
+msgstr ""
+
+msgctxt "#32488"
+msgid "Mute"
+msgstr ""
+
+msgctxt "#32489"
+msgid "Play / Pause"
+msgstr ""
+
+msgctxt "#32490"
+msgid "Stop"
+msgstr ""
+
+msgctxt "#32491"
+msgid "Display mode"
+msgstr ""
+
+msgctxt "#32492"
+msgid "Cache dip"
+msgstr ""
+
+msgctxt "#32493"
+msgid "Frames lost"
 msgstr ""

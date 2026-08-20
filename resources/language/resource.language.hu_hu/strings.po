@@ -1428,8 +1428,8 @@ msgid "Average"
 msgstr "Átlag"
 
 msgctxt "#32455"
-msgid "Frame luminance, last 60 seconds"
-msgstr "Képfényesség, az utolsó 60 másodperc"
+msgid "Frame luminance (L1)"
+msgstr "Képfényesség (L1)"
 
 msgctxt "#32456"
 msgid "Copy report"

@@ -180,7 +180,8 @@ main {
   overflow: hidden;
 }
 
-.card > h2 {
+.card > h2,
+.card > .cardhead > h2 {
   margin: 0;
   padding: 12px 16px 10px;
   font-size: 11.5px;
@@ -203,7 +204,7 @@ main {
 /* --- Now playing -------------------------------------------------------- */
 
 .now {
-  padding: 18px 16px 16px;
+  padding: 18px 16px 12px;
   display: grid;
   gap: 12px;
 }
@@ -420,6 +421,326 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
   border-color: var(--accent);
   color: #05131c;
 }
+
+/* --- The hero card ------------------------------------------------------
+   Poster, what is playing, and the speaker layout, side by side where there
+   is room and stacked where there is not.  The poster column is fixed and
+   the layout column shrinks away first: on a phone the title is what has to
+   survive.
+------------------------------------------------------------------------ */
+
+.hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+}
+/* The bar, the buttons and the pickers span every column: what is left of the
+   middle column once a poster stands beside it is no width to lay a remote
+   out in, and a control that has to wrap is worse than one further down. */
+.hero .foot {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+  padding: 4px 16px 16px;
+}
+@media (max-width: 720px) {
+  .hero { grid-template-columns: auto minmax(0, 1fr); }
+  .hero .channels { grid-column: 1 / -1; justify-self: center; }
+}
+@media (max-width: 420px) {
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .hero .art { justify-self: center; }
+}
+
+.art {
+  padding: 16px 0 16px 16px;
+  line-height: 0;
+}
+.art img {
+  width: 104px;
+  max-width: 30vw;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  display: block;
+}
+
+.now .meta {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.now .meta:empty { display: none; }
+
+/* --- Format logos -------------------------------------------------------
+   The very files the overlay draws (see web/server.py _media_routes).  They
+   are white on transparent, tinted by the skin at draw time; here the dark
+   theme takes them as they are and the light one inverts them, rather than a
+   second set of files being shipped for it.
+------------------------------------------------------------------------ */
+
+.logos {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.logos:empty { display: none; }
+.logo {
+  height: 24px;
+  width: auto;
+  max-width: 148px;
+  object-fit: contain;
+  opacity: .92;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .logo { filter: invert(1); }
+}
+:root[data-theme="light"] .logo { filter: invert(1); }
+
+/* --- Speaker layout ----------------------------------------------------- */
+
+/* The backdrop holds every speaker the graphic knows and sits far back; the
+   layout on top is the ones this track actually carries. */
+.channels {
+  position: relative;
+  padding: 16px 16px 16px 0;
+  width: 190px;
+  max-width: 46vw;
+  line-height: 0;
+}
+.channels img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.channels .layer {
+  opacity: .14;
+}
+.channels .active {
+  position: absolute;
+  inset: 16px 16px 16px 0;
+  width: calc(100% - 16px);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .channels img { filter: invert(1); }
+}
+:root[data-theme="light"] .channels img { filter: invert(1); }
+
+/* --- Transport ---------------------------------------------------------- */
+
+/* Only drawn when the add-on will take orders; the page hides the whole row
+   otherwise rather than showing buttons that answer with a refusal. */
+/* Two rows that keep their shape at every width, rather than one row that
+   wraps: five even keys, then stop, mute and the slider.  A wrapping row
+   strands whatever did not fit on a line of its own, and on a phone that is
+   most of it. */
+.transport { display: grid; gap: 8px; }
+.tkeys {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 460px;
+}
+.tvol {
+  display: grid;
+  grid-template-columns: var(--tap) var(--tap) minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  max-width: 460px;
+}
+/* The keys share the row out between them, so they carry no width of their
+   own; the two square ones keep theirs. */
+.tkeys .tbtn { min-width: 0; padding: 0 4px; font-size: 12.5px; }
+.tvol .tbtn { padding: 0; }
+.tbtn {
+  appearance: none;
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .08s;
+}
+.tbtn:hover { border-color: var(--accent); }
+.tbtn:active { transform: scale(.96); }
+.tbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tbtn.primary {
+  font-size: 17px;
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--accent);
+}
+.tbtn.mute.on { color: var(--warn); border-color: var(--warn); }
+
+.volume {
+  flex: 1 1 120px;
+  min-width: 100px;
+  accent-color: var(--accent);
+  height: var(--tap);
+}
+
+/* A seekable bar is worth a finger's worth of height, and says so. */
+.track.seekable {
+  cursor: pointer;
+  padding: 9px 0;
+  height: auto;
+  background: none;
+  overflow: visible;
+}
+.track.seekable > i {
+  height: 6px;
+  box-shadow: 0 0 0 1px var(--panel-2);
+}
+.track.seekable::before {
+  content: "";
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  margin-bottom: -6px;
+}
+.track:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* --- Track pickers ------------------------------------------------------ */
+
+.tracks {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.pick {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.pick select {
+  appearance: none;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0 34px 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+  /* The arrow is drawn rather than fetched: the page loads no image it does
+     not already have a route for. */
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.pick select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* --- Card head with a switch -------------------------------------------- */
+
+.cardhead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.cardhead > h2 { flex: 1 1 auto; }
+.ranges {
+  display: flex;
+  gap: 4px;
+  padding: 0 16px 0 0;
+}
+.range {
+  appearance: none;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.range:hover { color: var(--text); }
+.range.on {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.range:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* --- Session figures ---------------------------------------------------- */
+
+/* Flowed rather than gridded, because there are five of them: a grid of even
+   columns leaves the last row holding a hole wherever five does not divide by
+   the column count, while a flowed row hands the leftover width to whatever
+   ended up on it.  Five fit one row on a desk, two to a row on a phone. */
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  background: var(--line-soft);
+  border-top: 1px solid var(--line-soft);
+}
+.stat {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  background: var(--panel);
+  flex: 1 1 128px;
+  min-width: 0;
+}
+.stat .k {
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.stat .v { font-size: 19px; font-weight: 650; line-height: 1.1; }
+.stat .u { font-size: 11px; color: var(--dim); }
+.stat .u:empty { display: none; }
+
+/* --- Events ------------------------------------------------------------- */
+
+.events { padding: 4px 0 6px; }
+.events.empty {
+  padding: 18px 16px 20px;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+.event {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: baseline;
+  padding: 8px 16px;
+}
+.event + .event { border-top: 1px solid var(--line-soft); }
+.event .at { font-size: 12.5px; color: var(--dim); white-space: nowrap; }
+.event .what { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.event .detail {
+  font-size: 13px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+/* The two that mean something went wrong say so in the colour the overlay
+   uses for the same thing. */
+.event.cache .detail,
+.event.drops .detail { color: var(--warn); }
+.event.vs10 .detail { color: var(--accent-2); }
 
 .hidden { display: none !important; }
 
