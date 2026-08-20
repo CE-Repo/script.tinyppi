@@ -230,7 +230,7 @@ main {
 .now {
   padding: 18px 16px 12px;
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
 .badges { display: flex; flex-wrap: wrap; gap: 6px; }
