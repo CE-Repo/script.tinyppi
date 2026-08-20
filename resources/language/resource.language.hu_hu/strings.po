@@ -121,7 +121,7 @@ msgstr "Bitráta"
 
 msgctxt "#32051"
 msgid "Input"
-msgstr "Forrás"
+msgstr "Média forrás"
 
 msgctxt "#32052"
 msgid "Audio language"
@@ -149,7 +149,7 @@ msgstr "Hangfelbontás"
 
 msgctxt "#32070"
 msgid "Mode"
-msgstr "Mód"
+msgstr "Videó kimenet"
 
 msgctxt "#32087"
 msgid "Decoding"
@@ -861,7 +861,7 @@ msgstr "Dekódolás"
 
 msgctxt "#32288"
 msgid "Media source"
-msgstr "Médiaforrás"
+msgstr "Média adatok"
 
 msgctxt "#32289"
 msgid "Metadata"
@@ -1165,7 +1165,7 @@ msgstr "CM verzió"
 
 msgctxt "#32380"
 msgid "Structure"
-msgstr "Struktúra"
+msgstr "Sávok"
 
 msgctxt "#32381"
 msgid "RPU / BL"
@@ -1325,7 +1325,7 @@ msgstr "Meddig marad a kiemelés színében egy éppen megváltozott érték, ez
 
 msgctxt "#32429"
 msgid "Input"
-msgstr "Hangforrás"
+msgstr "Hangcsatornák"
 
 msgctxt "#32430"
 msgid "Dashboard"
@@ -1341,7 +1341,7 @@ msgstr "Webes vezérlőpult bekapcsolása"
 
 msgctxt "#32433"
 msgid "Serves the dashboard on this box's own address. Off by default; once it is on, anything on the same network can reach it, so do not forward its port to the internet."
-msgstr "A vezérlőpultot a doboz saját címén szolgálja ki. Alapból ki van kapcsolva; bekapcsolva bárki eléri az azonos hálózaton, ezért a portját ne továbbítsd az internetre."
+msgstr "A vezérlőpultot a médialejátszó saját címén szolgálja ki. Alapból ki van kapcsolva; bekapcsolva bárki eléri az azonos hálózaton, ezért a portját ne továbbítsd az internetre."
 
 msgctxt "#32434"
 msgid "Port"
@@ -1349,7 +1349,7 @@ msgstr "Port"
 
 msgctxt "#32435"
 msgid "The port the dashboard listens on. Leave 8080 alone - Kodi's own web server usually has it."
-msgstr "A port, amelyen a vezérlőpult figyel. A 8080-at hagyd békén - azt általában a Kodi saját webkiszolgálója foglalja."
+msgstr "A port, amelyen a vezérlőpult figyel. A 8080-at hagyd válatozatlanul - azt általában a Kodi saját webkiszolgálója foglalja le."
 
 msgctxt "#32436"
 msgid "Access token"
@@ -1365,7 +1365,7 @@ msgstr "Új token létrehozása"
 
 msgctxt "#32439"
 msgid "Replaces the token with a fresh one. Every browser still holding the old one is logged out."
-msgstr "Frissre cseréli a tokent. Minden böngésző, amely még a régit őrzi, kilép."
+msgstr "Frissre cseréli a tokent. Minden böngésző, amely még a régit mentette, kilép."
 
 msgctxt "#32440"
 msgid "Require the token for reading too"
@@ -1373,7 +1373,7 @@ msgstr "Token kérése olvasáshoz is"
 
 msgctxt "#32441"
 msgid "Asks for the token before showing anything at all, not just before switching a mode. Turn this on when the box is on a shared network."
-msgstr "Már azelőtt kéri a tokent, hogy bármit megjelenítene, nem csak váltás előtt. Kapcsold be, ha a doboz megosztott hálózaton van."
+msgstr "Már azelőtt kéri a tokent, hogy bármit megjelenítene, nem csak váltás előtt. Kapcsold be, ha a médialejátszó megosztott hálózaton van."
 
 msgctxt "#32442"
 msgid "Allow VS10 switching from the dashboard"
@@ -1413,11 +1413,11 @@ msgstr "Szétkapcsolva"
 
 msgctxt "#32451"
 msgid "Nothing is playing"
-msgstr "Semmi sem játszik"
+msgstr "Nics lejátszás"
 
 msgctxt "#32452"
 msgid "Start a video on the box and everything it carries appears here."
-msgstr "Indíts el egy videót a dobozon, és itt megjelenik minden, amit hordoz."
+msgstr "Indíts el egy videót a médialejátszón, és itt megjelenik minden lehetséges adat, amit tartalmaz."
 
 msgctxt "#32453"
 msgid "Peak"
@@ -1449,7 +1449,7 @@ msgstr "Add meg a hozzáférési tokent"
 
 msgctxt "#32460"
 msgid "You will find it in the add-on settings under Dashboard."
-msgstr "A bővítmény beállításaiban találod, a Vezérlőpult alatt."
+msgstr "A kiegészítő beállításaiban találod, a Vezérlőpult alatt."
 
 msgctxt "#32461"
 msgid "Save"
@@ -1485,7 +1485,7 @@ msgstr "A Dolby Vision metaadat-nézet megjelenítése"
 
 msgctxt "#32469"
 msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
-msgstr "Hozzáadja a teljes metaadatlistát a vezérlőpulthoz - minden blokkot, amit az adatfolyam mellékadatai hordoznak, ugyanazt, amit a képernyőn látható nézet mutat. Csak Dolby Vision forráshoz készül el, és ez a legnagyobb, amit az oldal küld, ezért lassú hálózaton kapcsold ki."
+msgstr "Hozzáadja a teljes metaadatlistát a vezérlőpulthoz - minden blokkot, amit az adatfolyam mellékadatai hordoznak, ugyanazt, amit a képernyőn látható nézet mutat. Csak Dolby Vision forráshoz készül el, ez a legnagyobb, ami küldésre kerül, ezért lassú hálózaton kapcsold ki."
 
 msgctxt "#32470"
 msgid "No Dolby Vision metadata"
@@ -1493,7 +1493,7 @@ msgstr "Nincs Dolby Vision metaadat"
 
 msgctxt "#32471"
 msgid "This source carries no Dolby Vision RPU, so there is no metadata to list. The window fills as soon as a Dolby Vision title starts."
-msgstr "Ez a forrás nem hordoz Dolby Vision RPU-t, így nincs mit felsorolni. Az ablak megtelik, amint egy Dolby Vision cím elindul."
+msgstr "Ez a forrás nem tartalmaz Dolby Vision RPU-t, így nincs mit megjeleníteni. Az ablak betöltődik, amint egy Dolby Vision cím elindul."
 
 msgctxt "#32472"
 msgid "Dolby Vision"
