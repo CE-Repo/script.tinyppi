@@ -233,6 +233,7 @@ def _static_routes() -> dict[str, tuple[str, str]]:
         "/js/live-panels.js":     (os.path.join(web, "js", "live-panels.js"), "text/javascript; charset=utf-8"),
         "/js/dashboard.js":       (os.path.join(web, "js", "dashboard.js"), "text/javascript; charset=utf-8"),
         "/js/metadata.js":        (os.path.join(web, "js", "metadata.js"), "text/javascript; charset=utf-8"),
+        "/icons/download.svg":    (os.path.join(web, "icons", "download.svg"), "image/svg+xml"),
         "/icons/key.svg":         (os.path.join(web, "icons", "key.svg"), "image/svg+xml"),
         "/icons/play.svg":        (os.path.join(web, "icons", "play.svg"), "image/svg+xml"),
         "/icons/pause.svg":       (os.path.join(web, "icons", "pause.svg"), "image/svg+xml"),

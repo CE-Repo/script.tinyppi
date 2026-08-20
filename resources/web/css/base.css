@@ -330,6 +330,10 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
   z-index: 1;
 }
 
+@media (min-width: 760px) {
+  #idleCard:not(.hidden) { max-width: 400px; }
+}
+
 .hidden { display: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
