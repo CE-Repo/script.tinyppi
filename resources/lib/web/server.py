@@ -129,8 +129,14 @@ _UI_STRINGS = {
 def ui_strings(addon=None) -> dict[str, str]:
     """The page's chrome, localized through Kodi's own string table."""
     addon = addon or _addon()
-    return {key: addon.getLocalizedString(string_id)
-            for key, string_id in _UI_STRINGS.items()}
+    strings = {key: addon.getLocalizedString(string_id)
+               for key, string_id in _UI_STRINGS.items()}
+    # Yes and No are Kodi core strings, not entries in this add-on's table.
+    # Asking Addon.getLocalizedString for 106/107 returns an empty string and
+    # would erase the report values when the hello response reaches the page.
+    strings["yes"] = xbmc.getLocalizedString(107) or "Yes"
+    strings["no"] = xbmc.getLocalizedString(106) or "No"
+    return strings
 
 
 def _log(message: str, level: int = xbmc.LOGINFO) -> None:
@@ -227,6 +233,8 @@ def _static_routes() -> dict[str, tuple[str, str]]:
         "/icons/stop.svg":        (os.path.join(web, "icons", "stop.svg"), "image/svg+xml"),
         "/icons/volume.svg":      (os.path.join(web, "icons", "volume.svg"), "image/svg+xml"),
         "/icons/volume-muted.svg": (os.path.join(web, "icons", "volume-muted.svg"), "image/svg+xml"),
+        "/icons/yes.svg":         (os.path.join(web, "icons", "yes.svg"), "image/svg+xml"),
+        "/icons/no.svg":          (os.path.join(web, "icons", "no.svg"), "image/svg+xml"),
         "/manifest.webmanifest":  (os.path.join(web, "manifest.webmanifest"), "application/manifest+json"),
         "/icon.jpg":              (os.path.join(root, "icon.jpg"), "image/jpeg"),
         "/fanart.jpg":            (os.path.join(root, "fanart.jpg"), "image/jpeg"),

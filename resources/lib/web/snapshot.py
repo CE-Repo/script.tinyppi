@@ -235,10 +235,14 @@ _EXTRA_INFOLABELS = (
     ("Episode",             "VideoPlayer.Episode"),
 )
 
-# The presence flags arrive as ``true`` / ``false`` / '' (unknown); the overlay
-# draws them as icons, so the dashboard gets glyphs rather than a word that
-# would need translating.
+# The presence flags arrive as ``true`` / ``false`` / '' (unknown).  These
+# markers are converted to image icons by the browser and to localized words
+# in copied reports.
 _PRESENCE_GLYPH = {"true": "✔", "false": "✘"}
+_PRESENCE_WORD = {
+    xbmc.getLocalizedString(107): _PRESENCE_GLYPH["true"],
+    xbmc.getLocalizedString(106): _PRESENCE_GLYPH["false"],
+}
 
 _PRESENCE_FLAGS = (
     ("DoviRpuPresentFlag", "DoviRpuPresentVar"),
@@ -301,6 +305,12 @@ def _first_number(value: str) -> float | None:
     return numbers[0] if numbers else None
 
 
+def _web_presence_value(value) -> str:
+    """Replace standalone localized Yes/No fields with browser icon markers."""
+    parts = clean_value(str(value)).split(" | ")
+    return " | ".join(_PRESENCE_WORD.get(part, part) for part in parts)
+
+
 def _metadata_row(kind: str, name: str, value) -> dict:
     """One ``info.dvmetadata`` row as the page consumes it.
 
@@ -310,8 +320,9 @@ def _metadata_row(kind: str, name: str, value) -> dict:
     """
     if isinstance(value, (list, tuple)):
         return {"kind": kind, "name": clean_value(name),
-                "cells": [clean_value(str(cell)) for cell in value]}
-    return {"kind": kind, "name": clean_value(name), "value": clean_value(str(value))}
+                "cells": [_web_presence_value(cell) for cell in value]}
+    return {"kind": kind, "name": clean_value(name),
+            "value": _web_presence_value(value)}
 
 
 # --- Logos -----------------------------------------------------------------

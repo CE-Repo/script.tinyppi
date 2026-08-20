@@ -28,6 +28,7 @@ window.TinyPPI = (function () {
     chart: "Frame luminance", active_area: "Active picture", vs10: "VS10 output",
     output: "Output", copy: "Copy report", copied: "Copied", awake: "Keep awake",
     token_title: "Access token", token_text: "", save: "Save", cancel: "Cancel",
+    yes: "Yes", no: "No",
     token_bad: "Wrong or missing token", switching: "Switching…",
     switched: "Switched", switch_failed: "Switching failed"
   };
@@ -136,6 +137,34 @@ window.TinyPPI = (function () {
     return map[key] || value;
   }
 
+  /* Presence readings use neutral markers on the wire.  On screen they become
+     local SVG images; reports get localized words so copied text remains
+     meaningful outside the dashboard. */
+  function renderValue(node, value) {
+    const parts = String(value == null ? "" : value).split(/([✔✘])/);
+    node.replaceChildren();
+    for (const part of parts) {
+      if (part !== "✔" && part !== "✘") {
+        if (part) node.append(document.createTextNode(part));
+        continue;
+      }
+      const yes = part === "✔";
+      const word = yes ? (T.yes || "Yes") : (T.no || "No");
+      const image = document.createElement("img");
+      image.className = "presence-icon";
+      image.src = yes ? "/icons/yes.svg" : "/icons/no.svg";
+      image.alt = word;
+      image.title = word;
+      node.append(image);
+    }
+  }
+
+  function plainValue(value) {
+    return String(value == null ? "" : value)
+      .replace(/✔/g, T.yes || "Yes")
+      .replace(/✘/g, T.no || "No");
+  }
+
   function askToken() {
     tokenInput.value = token;
     dialogEl.showModal();
@@ -213,7 +242,7 @@ window.TinyPPI = (function () {
   function reportLine(label, value) {
     const head = "  " + String(label);
     const pad  = REPORT_COLUMN - 1;
-    return (head.length < pad ? head.padEnd(pad) : head + "  ") + value;
+    return (head.length < pad ? head.padEnd(pad) : head + "  ") + plainValue(value);
   }
 
   /* Hand *report* to the viewer as TinyPPI_<title>_<tail>.txt, with either
@@ -303,7 +332,7 @@ window.TinyPPI = (function () {
   }
 
   return {
-    T, $, boot, toast, setStatus, fmtNits, prettyHdr, askToken,
+    T, $, boot, toast, setStatus, fmtNits, prettyHdr, renderValue, plainValue, askToken,
     copyReport, reportLine, command, getJSON, withToken,
     get token() { return token; }
   };
@@ -573,6 +602,7 @@ window.TinyPPI = (function () {
     const keys = document.createElement("div");
     keys.className = "tkeys";
     keys.append(
+      button("−10m", "", () => TinyPPI.command("seek", -600)),
       button("−1m", "", () => TinyPPI.command("seek", -60)),
       button("−10s", "", () => TinyPPI.command("seek", -10)),
       /* The icon says what pressing it does, so it follows the player: pause
@@ -580,7 +610,8 @@ window.TinyPPI = (function () {
       imageButton("pause", TinyPPI.T.playpause,
                   () => TinyPPI.command("playpause"), "primary"),
       button("+10s", "", () => TinyPPI.command("seek", 10)),
-      button("+1m", "", () => TinyPPI.command("seek", 60))
+      button("+1m", "", () => TinyPPI.command("seek", 60)),
+      button("+10m", "", () => TinyPPI.command("seek", 600))
     );
 
     const rest = document.createElement("div");

@@ -482,7 +482,7 @@ function renderRows(container, group) {
     if (node.last !== row.value + "\n" + row.detail) {
       if (node.last !== null) flash(node);
       node.last = row.value + "\n" + row.detail;
-      node.value.textContent = text;
+      TinyPPI.renderValue(node.value, text);
       if (row.detail) {
         const detail = document.createElement("span");
         detail.className = "d";
@@ -511,6 +511,23 @@ function flash(node) {
 
 /* --- report ------------------------------------------------------------- */
 
+function reportValue(row) {
+  const value = TinyPPI.plainValue(row.value);
+  const detail = row.detail ? TinyPPI.plainValue(row.detail) : "";
+  if (!/[✔✘]/.test(row.value || "")) {
+    return value + (detail ? "  " + detail : "");
+  }
+
+  /* The left report column already names both fields, so the right column
+     only carries their values in the same order. */
+  const parts = value.split(/\s*\/\s*/);
+  if (detail) {
+    const cleanDetail = detail.replace(/^\((.*)\)$/, "$1");
+    parts.push(cleanDetail);
+  }
+  return parts.join(" / ");
+}
+
 function buildReport() {
   if (!state || !state.playing) return "";
   const lines = ["TinyPPI"];
@@ -520,8 +537,7 @@ function buildReport() {
   for (const group of ordered(state.groups || [])) {
     lines.push("[" + group.title + "]");
     for (const row of group.rows) {
-      const detail = row.detail ? "  (" + row.detail + ")" : "";
-      lines.push(TinyPPI.reportLine(row.label, row.value + detail));
+      lines.push(TinyPPI.reportLine(row.label, reportValue(row)));
     }
     lines.push("");
   }

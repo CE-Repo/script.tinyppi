@@ -283,14 +283,14 @@ function build(rows) {
       const held = document.createElement("span");
       held.className = "state";
       /* A held block says so on its heading -- see info.dvmetadata._state. */
-      held.textContent = row.value || "";
+      TinyPPI.renderValue(held, row.value || "");
       node.append(name, held);
-      live.push({ node: held, index, field: "value" });
+      live.push({ node: held, index, field: "value", last: row.value || "" });
     } else if (row.kind === "wide") {
       node = document.createElement("div");
       node.className = "mwide mono";
-      node.textContent = row.value;
-      live.push({ node, index, field: "value" });
+      TinyPPI.renderValue(node, row.value);
+      live.push({ node, index, field: "value", last: row.value || "" });
     } else {
       node = document.createElement("div");
       node.className = "mrow";
@@ -299,9 +299,10 @@ function build(rows) {
       key.textContent = row.name;
       const value = document.createElement("span");
       value.className = "v mono";
-      value.textContent = row.value;
+      TinyPPI.renderValue(value, row.value);
       node.append(key, value);
-      live.push({ node: value, index, field: "value", row: node, last: row.value });
+      live.push({ node: value, index, field: "value", row: node,
+                  last: row.value || "" });
     }
     block.append(node);
   }
@@ -392,9 +393,11 @@ function table(block, rows, start) {
     for (const cell of control.cells) {
       const node = document.createElement("span");
       node.className = "mono";
-      node.textContent = (rows[cell.source].cells || [])[cell.cell] || "";
+      const value = (rows[cell.source].cells || [])[cell.cell] || "";
+      TinyPPI.renderValue(node, value);
       grid.append(node);
-      live.push({ node, index: cell.source, field: "cell", cell: cell.cell });
+      live.push({ node, index: cell.source, field: "cell", cell: cell.cell,
+                  last: value });
     }
   }
 
@@ -409,8 +412,9 @@ function update(rows) {
     if (!row) continue;
     if (entry.field === "cell") {
       const cell = (row.cells || [])[entry.cell] || "";
-      if (entry.node.textContent === cell) continue;
-      entry.node.textContent = cell;
+      if (entry.last === cell) continue;
+      entry.last = cell;
+      TinyPPI.renderValue(entry.node, cell);
       /* A trim is the fastest-moving reading the view has, and on screen it
          is highlighted like any other; the cell itself lights up, since a
          whole table row of them lit at once would say less than the one
@@ -419,8 +423,9 @@ function update(rows) {
       continue;
     }
     const text = row.value || "";
-    if (entry.node.textContent === text) continue;
-    entry.node.textContent = text;
+    if (entry.last === text) continue;
+    entry.last = text;
+    TinyPPI.renderValue(entry.node, text);
     /* Mirrors the overlay's own highlight: a reading that moved is written in
        the change color and fades back. */
     if (entry.row) flash(entry);
@@ -447,8 +452,8 @@ function buildReport() {
   for (const row of state.metadata) {
     if (row.kind === "space") lines.push("");
     else if (row.kind === "section")
-      lines.push("[" + row.name + (row.value ? " - " + row.value : "") + "]");
-    else if (row.kind === "wide") lines.push("  " + row.value);
+      lines.push("[" + row.name + (row.value ? " - " + TinyPPI.plainValue(row.value) : "") + "]");
+    else if (row.kind === "wide") lines.push("  " + TinyPPI.plainValue(row.value));
     else if (row.cells) lines.push(TinyPPI.reportLine(row.name, row.cells.join("  ")));
     else lines.push(TinyPPI.reportLine(row.name, row.value));
   }
