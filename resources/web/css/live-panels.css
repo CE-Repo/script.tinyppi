@@ -438,39 +438,30 @@
    is wide, so this narrows the fix to where the problem exists and leaves the
    desktop row exactly as it was. */
 @media (max-width: 640px) {
-  /* A value event (a cache dip, frames lost) keeps time, label and its one
-     short number on one line: "at" and "what" are sized to their content, so
-     "detail" -- the only column that can grow -- never has to fight either of
-     them for room. */
+  /* Every event uses the same two-row shape: time centred on the left, label
+     above value on the right. */
   .event {
-    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "at what" "at detail";
     gap: 4px 12px;
   }
+  .event .at {
+    grid-area: at;
+    align-self: center;
+  }
   .event .what {
+    grid-area: what;
+    text-align: right;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .event .detail { overflow-wrap: break-word; }
-
-  /* A transition drops to a line of its own under the label instead of
-     squeezing into a column beside it. */
-  .event.shift,
-  .event[data-transition="true"] {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas: "at what" ". detail";
-  }
-  .event.shift .at,
-  .event[data-transition="true"] .at     { grid-area: at; }
-  .event.shift .what,
-  .event[data-transition="true"] .what   { grid-area: what; }
-  .event.shift .detail,
-  .event[data-transition="true"] .detail { grid-area: detail; }
-  /* Free to use the row's full width, so it wraps at the spaces around its
-     arrow rather than at the right edge of a cramped column. */
-  .event.shift .detail,
-  .event[data-transition="true"] .detail {
-    text-align: left;
-    white-space: normal;
+  .event .detail {
+    grid-area: detail;
+    text-align: right;
+    white-space: nowrap;
+    overflow: visible;
+    overflow-wrap: normal;
+    font-size: clamp(9px, 2.8vw, 12px);
   }
 }

@@ -420,10 +420,8 @@
   };
 
   /* A transition names two whole VS10 output states -- "SDR BT.709" to
-     "DV-LL BT.2020nc" is a realistic width -- while cache and drop events
-     carry one short number.  The two need different room, so the row itself
-     comes in two shapes (see .event.shift in live-panels.css): a transition never
-     shares its line with the label, a value always does. */
+     "DV-LL BT.2020nc" is a realistic width.  The mobile layout gives every
+     event a separate value line so transitions and short values align. */
   function isTransition(entry) {
     return entry.from !== undefined && entry.to !== undefined;
   }
@@ -448,7 +446,6 @@
       const row = document.createElement("div");
       if (entry.kind === "mode") {
         row.className = "event drops";
-        if (shift) row.dataset.transition = "true";
       } else {
         row.className = "event " + entry.kind + (shift ? " shift" : "");
       }
