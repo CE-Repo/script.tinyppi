@@ -1582,3 +1582,7 @@ msgstr "Cache-Einbruch"
 msgctxt "#32493"
 msgid "Frames lost"
 msgstr "Verlorene Bilder"
+
+msgctxt "#32494"
+msgid "Playback controls"
+msgstr "Wiedergabesteuerung"

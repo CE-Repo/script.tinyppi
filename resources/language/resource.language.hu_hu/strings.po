@@ -1498,3 +1498,7 @@ msgstr "Ez a forrás nem tartalmaz Dolby Vision RPU-t, így nincs mit megjelení
 msgctxt "#32472"
 msgid "Dolby Vision"
 msgstr "Dolby Vision"
+
+msgctxt "#32494"
+msgid "Playback controls"
+msgstr "Lejátszásvezérlők"

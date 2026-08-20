@@ -1498,3 +1498,7 @@ msgstr "该源不携带 Dolby Vision RPU，因此没有可列出的元数据。�
 msgctxt "#32472"
 msgid "Dolby Vision"
 msgstr "杜比视界"
+
+msgctxt "#32494"
+msgid "Playback controls"
+msgstr "播放控制"

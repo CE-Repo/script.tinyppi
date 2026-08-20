@@ -1499,3 +1499,7 @@ msgstr "لا يحمل هذا المصدر وحدة RPU الخاصة بـ Dolby V
 msgctxt "#32472"
 msgid "Dolby Vision"
 msgstr "دولبي فيجن"
+
+msgctxt "#32494"
+msgid "Playback controls"
+msgstr "عناصر التحكم في التشغيل"

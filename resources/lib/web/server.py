@@ -123,6 +123,7 @@ _UI_STRINGS = {
     "ev_mode":       32491,
     "ev_cache":      32492,
     "ev_drops":      32493,
+    "controls":      32494,
 }
 
 

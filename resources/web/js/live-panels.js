@@ -51,8 +51,13 @@
             '<span id="tElapsed">--:--</span><span id="tTotal">--:--</span>' +
           '</div>' +
         '</div>' +
-        '<div class="transport hidden" id="transport"></div>' +
-        '<div class="tracks hidden" id="tracks"></div>' +
+        '<details class="control-drawer hidden" id="controlDrawer">' +
+          '<summary><span id="controlLabel"></span></summary>' +
+          '<div class="control-body">' +
+            '<div class="transport hidden" id="transport"></div>' +
+            '<div class="tracks hidden" id="tracks"></div>' +
+          '</div>' +
+        '</details>' +
       '</div>' +
     '</section>' +
     '<section class="tiles hidden" id="tiles">' +
@@ -95,6 +100,7 @@
     meta: $("meta"), file: $("file"), logos: $("logos"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"), tTotal: $("tTotal"),
+    controlDrawer: $("controlDrawer"), controlLabel: $("controlLabel"),
     transport: $("transport"), tracks: $("tracks"),
     tiles: $("tiles"), tPeak: $("tPeak"), tAvg: $("tAvg"),
     vPeak: $("vPeak"), vAvg: $("vAvg"), vAr: $("vAr"),
@@ -315,12 +321,15 @@
     control = !!snapshot.control;
     const controls = snapshot.controls || {};
     if (!control) {
+      el.controlDrawer.open = false;
+      el.controlDrawer.classList.add("hidden");
       el.transport.classList.add("hidden");
       el.tracks.classList.add("hidden");
       el.track.classList.remove("seekable");
       return;
     }
     buildTransport();
+    el.controlDrawer.classList.remove("hidden");
     el.transport.classList.remove("hidden");
     el.track.classList.add("seekable");
 
@@ -707,6 +716,7 @@
   /* --- what a page calls ------------------------------------------------ */
 
   function strings(T) {
+    el.controlLabel.textContent = T.controls;
     $("kPeak").textContent = T.peak;
     $("kAvg").textContent = T.average;
     $("kAr").textContent = T.aspect;
@@ -733,6 +743,7 @@
       pastSeq = -1;
       posterTag = "";
       trackKey = "";
+      el.controlDrawer.open = false;
       return;
     }
     el.nowCard.classList.remove("hidden");
