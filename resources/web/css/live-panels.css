@@ -428,12 +428,8 @@
   font-size: 13px;
   text-align: right;
   overflow-wrap: anywhere;
+  color: var(--text);
 }
-/* The two that mean something went wrong say so in the colour the overlay
-   uses for the same thing. */
-.event.cache .detail,
-.event.drops .detail { color: var(--warn); }
-.event.vs10 .detail { color: var(--accent-2); }
 
 /* Below desktop width the row above is what breaks: a transition's "detail"
    (two whole VS10 output states, easily wider than the row) claims the auto
