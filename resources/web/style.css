@@ -447,11 +447,6 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
   .hero { grid-template-columns: auto minmax(0, 1fr); }
   .hero .channels { grid-column: 1 / -1; justify-self: center; }
 }
-@media (max-width: 420px) {
-  .hero { grid-template-columns: minmax(0, 1fr); }
-  .hero .art { justify-self: center; }
-}
-
 .art {
   padding: 16px 0 16px 16px;
   line-height: 0;
