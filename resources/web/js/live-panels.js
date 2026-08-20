@@ -21,6 +21,7 @@
 
   const host = document.getElementById("live");
   if (!host) return;
+  const metadataPage = document.body.classList.contains("metadata-page");
 
   /* How much of the past the live buffer holds, in seconds.  It is what the
      one-minute range draws; the longer ones come from the add-on, which has
@@ -422,6 +423,10 @@
   /* --- what the whole title has done ------------------------------------ */
 
   function renderSession(session) {
+    if (metadataPage) {
+      el.sessionCard.classList.add("hidden");
+      return;
+    }
     if (!session || !session.samples) {
       el.sessionCard.classList.add("hidden");
       return;
@@ -571,8 +576,10 @@
       past = data;
       pastAt = Date.now();
       pastSeq = data.seq;
-      renderEvents(data.events);
-      el.eventsCard.classList.remove("hidden");
+      if (!metadataPage) {
+        renderEvents(data.events);
+        el.eventsCard.classList.remove("hidden");
+      }
       drawChart();
     }).catch(() => { /* the stream's own retry reports an outage */ })
       .finally(() => { fetching = false; });
@@ -604,7 +611,7 @@
   }
 
   function renderChart(metrics) {
-    if (!document.body.classList.contains("metadata-page")) {
+    if (!metadataPage) {
       el.chartCard.classList.add("hidden");
       return;
     }

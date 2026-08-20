@@ -19,6 +19,10 @@ const el = {
   metaLink: $("metaLink"), wakeBtn: $("wakeBtn"), copyBtn: $("copyBtn")
 };
 
+/* live-panels.js builds the playback card before this page starts.  Keep the
+   VS10 output directly behind it, ahead of the live figures and history. */
+$("nowCard").after(el.vs10Card);
+
 let state = null;
 let control = false;
 let rowNodes = new Map();  /* row id -> {element, key, value, last}     */
