@@ -52,13 +52,12 @@
             '<span id="tElapsed">--:--</span><span id="tTotal">--:--</span>' +
           '</div>' +
         '</div>' +
-        '<details class="control-drawer hidden" id="controlDrawer">' +
-          '<summary><span id="controlLabel"></span></summary>' +
+        '<div class="control-drawer" id="controlDrawer">' +
           '<div class="control-body">' +
             '<div class="transport hidden" id="transport"></div>' +
             '<div class="tracks hidden" id="tracks"></div>' +
           '</div>' +
-        '</details>' +
+        '</div>' +
       '</div>' +
     '</section>' +
     '<details class="card hidden" id="tiles">' +
@@ -93,12 +92,26 @@
 
   const $ = (id) => document.getElementById(id);
 
+  const controlToggle = document.createElement("button");
+  controlToggle.type = "button";
+  controlToggle.id = "controlToggle";
+  controlToggle.className = "iconbtn control-toggle hidden";
+  controlToggle.setAttribute("aria-expanded", "false");
+  controlToggle.setAttribute("aria-controls", "controlDrawer");
+  const controlChevron = document.createElement("img");
+  controlChevron.className = "ui-icon control-chevron";
+  controlChevron.src = "/icons/chevron-down.svg";
+  controlChevron.alt = "";
+  controlChevron.setAttribute("aria-hidden", "true");
+  controlToggle.append(controlChevron);
+  $("nowCard").append(controlToggle);
+
   const el = {
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), file: $("file"), logos: $("logos"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"), tTotal: $("tTotal"),
-    controlDrawer: $("controlDrawer"), controlLabel: $("controlLabel"),
+    controlDrawer: $("controlDrawer"), controlToggle,
     transport: $("transport"), tracks: $("tracks"),
     tiles: $("tiles"), vSwitches: $("vSwitches"), vDrops: $("vDrops"),
     vFps: $("vFps"), uFps: $("uFps"),
@@ -117,6 +130,15 @@
   let posterTag = "";
   let volumeHeld = 0;   /* while a finger is on the slider, leave it alone  */
   let trackKey = "";
+
+  function setControlsOpen(open) {
+    el.controlDrawer.classList.toggle("open", open);
+    el.controlToggle.setAttribute("aria-expanded", String(open));
+  }
+
+  el.controlToggle.addEventListener("click", () => {
+    setControlsOpen(el.controlToggle.getAttribute("aria-expanded") !== "true");
+  });
 
   /* --- what is playing -------------------------------------------------- */
 
@@ -317,15 +339,15 @@
     control = !!snapshot.control;
     const controls = snapshot.controls || {};
     if (!control) {
-      el.controlDrawer.open = false;
-      el.controlDrawer.classList.add("hidden");
+      setControlsOpen(false);
+      el.controlToggle.classList.add("hidden");
       el.transport.classList.add("hidden");
       el.tracks.classList.add("hidden");
       el.track.classList.remove("seekable");
       return;
     }
     buildTransport();
-    el.controlDrawer.classList.remove("hidden");
+    el.controlToggle.classList.remove("hidden");
     el.transport.classList.remove("hidden");
     el.track.classList.add("seekable");
 
@@ -676,7 +698,8 @@
 
   function strings(T) {
     $("tilesTitle").textContent = T.metrics;
-    el.controlLabel.textContent = T.controls;
+    el.controlToggle.setAttribute("aria-label", T.controls);
+    el.controlToggle.title = T.controls;
     $("kSwitches").textContent = T.switches;
     $("kDrops").textContent = T.drops;
     $("kFps").textContent = T.fps;
@@ -700,7 +723,7 @@
       pastSeq = -1;
       posterTag = "";
       trackKey = "";
-      el.controlDrawer.open = false;
+      setControlsOpen(false);
       el.tiles.open = false;
       el.chartCard.open = false;
       el.eventsCard.open = false;
