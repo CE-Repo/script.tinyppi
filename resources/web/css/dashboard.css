@@ -128,4 +128,7 @@
   padding: 3px 9px;
   white-space: nowrap;
 }
-.metalink .arrow { margin-left: auto; color: var(--muted); font-size: 18px; }
+/* The accent, the same as the badge across the card from it: the two of them
+   are the marks on this link, and a mark takes the film's colour -- under the
+   adaptive theme that is the cover's, from the rule on .metalink in theme.css. */
+.metalink .arrow { margin-left: auto; color: var(--accent); font-size: 18px; }

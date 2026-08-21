@@ -65,11 +65,11 @@
       '<summary class="panel-toggle"><span id="tilesTitle"></span></summary>' +
       '<div class="tilegrid">' +
         '<div class="tile"><span class="k" id="kFps"></span>' +
-          '<span class="v mono" id="vFps">—</span><span class="u" id="uFps"></span></div>' +
+          '<span class="vwrap"><span class="v mono" id="vFps">—</span><span class="u" id="uFps"></span></span></div>' +
         '<div class="tile"><span class="k" id="kDrops"></span>' +
-          '<span class="v mono" id="vDrops">0</span><span class="u"></span></div>' +
+          '<span class="vwrap"><span class="v mono" id="vDrops">0</span><span class="u"></span></span></div>' +
         '<div class="tile"><span class="k" id="kSwitches"></span>' +
-          '<span class="v mono" id="vSwitches">0</span><span class="u"></span></div>' +
+          '<span class="vwrap"><span class="v mono" id="vSwitches">0</span><span class="u"></span></span></div>' +
       '</div>' +
     '</details>' +
     '<details class="card hidden" id="chartCard">' +

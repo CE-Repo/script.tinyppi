@@ -34,7 +34,7 @@ window.TinyPPITheme = (function () {
 
   /* What a first visit gets, and what an unreadable or unknown stored value
      falls back to. */
-  const DEFAULT_THEME = "dark";
+  const DEFAULT_THEME = "dark-adaptive";
 
   /* The one theme js/cover-tint.js paints for; every other one ignores it. */
   const ADAPTIVE = "dark-adaptive";

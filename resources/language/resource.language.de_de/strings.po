@@ -1601,7 +1601,7 @@ msgstr "Dunkel"
 
 msgctxt "#32497"
 msgid "Dark (adaptive)"
-msgstr "Dunkel (adaptiv)"
+msgstr "Dunkel (Adaptiv)"
 
 msgctxt "#32498"
 msgid "Midnight"

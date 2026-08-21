@@ -137,16 +137,11 @@
   background: var(--panel);
   padding: 14px 15px;
   display: grid;
-  /* The name at the top, the reading centred in whatever is left under it.
+  /* The name at the top, the reading -- and its unit, if it has one, beside
+     rather than under it -- centred in whatever is left under the name.
      Every tile in a row is as tall as the tallest, and it is the reading that
      should sit in the middle of that -- the name is a heading and belongs at
-     the top of its tile whatever the tile's height turns out to be.
-
-     Two rows declared, not three.  A unit lands in a third that the grid makes
-     for it, which is the difference between a row that exists when it is
-     needed and one that is always there: a declared third row is still worth a
-     gap when it is empty, and every tile without a unit -- which is usually
-     all of them -- carried those four pixels at the bottom. */
+     the top of its tile whatever the tile's height turns out to be. */
   grid-template-rows: auto 1fr;
   gap: 4px;
   justify-items: center;
@@ -161,16 +156,22 @@
   text-transform: uppercase;
   color: var(--text);
 }
+/* The reading and its unit run in one line, not two: a unit beside the number
+   it qualifies reads as one reading, where a line of its own under the number
+   read as a second, lesser one. */
+.tile .vwrap {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  align-self: center;
+}
 .tile .v {
   font-size: clamp(20px, 5vw, 27px);
   font-weight: 650;
   line-height: 1.1;
-  align-self: center;
 }
-/* Out of the way entirely when there is no unit to put on it, rather than
-   holding an empty line under the reading: the tiles are all as tall as the
-   tallest of them anyway, and a reserved line only pushed what is in them up
-   off centre. */
+/* Out of the way entirely when there is no unit to put beside the reading,
+   rather than holding an empty gap open next to it. */
 .tile .u { font-size: 12px; color: var(--dim); font-weight: 500; }
 .tile .u:empty { display: none; }
 
