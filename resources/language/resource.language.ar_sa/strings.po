@@ -1484,6 +1484,74 @@ msgctxt "#32472"
 msgid "Dolby Vision"
 msgstr "دولبي فيجن"
 
+msgctxt "#32476"
+msgid "Frame drops"
+msgstr "تساقط الإطارات"
+
+msgctxt "#32478"
+msgid "Output switches"
+msgstr "تبديلات الإخراج"
+
+msgctxt "#32479"
+msgid "Events"
+msgstr "الأحداث"
+
+msgctxt "#32480"
+msgid "Nothing out of the ordinary yet"
+msgstr "لا شيء غير معتاد حتى الآن"
+
+msgctxt "#32481"
+msgid "1 min"
+msgstr "دقيقة واحدة"
+
+msgctxt "#32482"
+msgid "10 min"
+msgstr "10 دقائق"
+
+msgctxt "#32483"
+msgid "Whole title"
+msgstr "العنوان كاملاً"
+
+msgctxt "#32484"
+msgid "Audio track"
+msgstr "المسار الصوتي"
+
+msgctxt "#32485"
+msgid "Subtitles"
+msgstr "الترجمة"
+
+msgctxt "#32486"
+msgid "Off"
+msgstr "إيقاف"
+
+msgctxt "#32487"
+msgid "Volume"
+msgstr "مستوى الصوت"
+
+msgctxt "#32488"
+msgid "Mute"
+msgstr "كتم الصوت"
+
+msgctxt "#32489"
+msgid "Play / Pause"
+msgstr "تشغيل / إيقاف مؤقت"
+
+msgctxt "#32490"
+msgid "Stop"
+msgstr "إيقاف التشغيل"
+
+msgctxt "#32491"
+msgid "Display mode"
+msgstr "وضع العرض"
+
+msgctxt "#32492"
+msgid "Cache dip"
+msgstr "انخفاض الكاش"
+
+msgctxt "#32493"
+msgid "Frames lost"
+msgstr "إطارات مفقودة"
+
 msgctxt "#32494"
 msgid "Playback controls"
 msgstr "عناصر التحكم في التشغيل"
