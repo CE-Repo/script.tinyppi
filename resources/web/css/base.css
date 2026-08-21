@@ -14,53 +14,58 @@
    never a rule -- so a value changed here changes in all three.  js/theme.js
    puts the chosen one on <html> as data-theme before the first paint. */
 :root {
-  --bg:        #0b0d10;
-  --bg-glow:   #12181f;
-  --panel:     #14181d;
-  --panel-2:   #1a1f26;
-  --line:      #242c36;
-  --line-soft: #1d232b;
-  --text:      #e8ecf1;
-  --muted:     #d0d5db;
-  --dim:       #aeb3ba;
-  --accent:    #4fc3f7;
-  --accent-2:  #82b1ff;
-  --ok:        #81c784;
-  --warn:      #ffb74d;
-  --bad:       #ff5252;
-  --shadow:    0 1px 0 rgba(255,255,255,.03), 0 8px 24px rgba(0,0,0,.35);
-  --radius:    14px;
-  --radius-sm: 10px;
+  --bg:           #070a0e;
+  --bg-glow:      #111d28;
+  --panel:        #10161d;
+  --panel-2:      #171f29;
+  --panel-raised: #1b2530;
+  --line:         #2a3643;
+  --line-soft:    #1d2731;
+  --text:         #f2f6fa;
+  --muted:        #bac4cf;
+  --dim:          #7f8b99;
+  --accent:       #51d3ff;
+  --accent-2:     #7c8cff;
+  --ok:           #55dfa4;
+  --warn:         #ffc15c;
+  --bad:          #ff6b7a;
+  --shadow:       0 1px 0 rgba(255,255,255,.04),
+                  0 16px 44px rgba(0,0,0,.34);
+  --shadow-soft:  0 10px 28px rgba(0,0,0,.22);
+  --radius:       20px;
+  --radius-sm:    13px;
   --tap:       44px;
   /* The air between two cards, wherever two cards meet.  Three grids lay cards
      out -- main, #live and .groups -- and they have to agree, so they read it
      from here rather than each carrying the number.  A value beats a rule that
      has to win a cascade: the first attempt at this set #live from a media
      query that happened to sit above #live's own declaration, and lost. */
-  --gap:       16px;
+  --gap:       18px;
 }
 @media (max-width: 620px) {
-  :root { --gap: 10px; }
+  :root { --gap: 12px; --radius: 17px; }
 }
 
 /* Deeper and bluer than the plain dark one, for a room with nothing else lit
    in it.  The same page, further down. */
 :root[data-theme="midnight"] {
-  --bg:        #04060c;
-  --bg-glow:   #0b1120;
-  --panel:     #0d121e;
-  --panel-2:   #131829;
-  --line:      #1e2942;
-  --line-soft: #161f33;
-  --text:      #e4eaf7;
-  --muted:     #d0d5db;
-  --dim:       #aeb3ba;
-  --accent:    #3b82f6;
-  --accent-2:  #6366f1;
-  --ok:        #34d399;
-  --warn:      #fbbf24;
-  --bad:       #f87171;
-  --shadow:    0 1px 0 rgba(255,255,255,.02), 0 10px 28px rgba(0,0,0,.5);
+  --bg:           #03060d;
+  --bg-glow:      #0a1530;
+  --panel:        #0b1220;
+  --panel-2:      #111b2d;
+  --panel-raised: #16233a;
+  --line:         #243451;
+  --line-soft:    #17243a;
+  --text:         #eef3ff;
+  --muted:        #b7c2d8;
+  --dim:          #74829e;
+  --accent:       #5ea2ff;
+  --accent-2:     #8b7cff;
+  --ok:           #45dfa5;
+  --warn:         #f7c85f;
+  --bad:          #ff7585;
+  --shadow:       0 1px 0 rgba(255,255,255,.025),
+                  0 20px 54px rgba(0,0,0,.52);
 }
 
 /* The plain dark theme, with one exception: the now-playing card takes its
@@ -76,7 +81,7 @@
    artwork therefore looks exactly as it does on that theme, which is what is
    true -- there was nothing to take a colour from. */
 :root[data-theme="dark-adaptive"] {
-  --cover-accent-rgb: 79, 195, 247;
+  --cover-accent-rgb: 81, 211, 255;
 }
 
 * { box-sizing: border-box; }
@@ -95,7 +100,12 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
-  background-image: radial-gradient(120% 60% at 50% -10%, var(--bg-glow) 0%, var(--bg) 60%);
+  background-image:
+    radial-gradient(900px 480px at 10% -12%,
+      color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%),
+    radial-gradient(760px 440px at 92% 2%,
+      color-mix(in srgb, var(--accent-2) 7%, transparent), transparent 72%),
+    radial-gradient(120% 70% at 50% -14%, var(--bg-glow) 0%, var(--bg) 62%);
   background-attachment: fixed;
   padding-bottom: calc(2px + env(safe-area-inset-bottom));
 }
@@ -109,38 +119,75 @@ body {
 
 /* --- Top bar ------------------------------------------------------------ */
 
-/* Left where it is at the top of the page rather than pinned to the viewport:
-   it is read once on arrival, and following the reader down cost a strip of
-   every screen for something already read.  Static, so the z-index it used to
-   need against the cards below it goes with it -- nothing stacks over anything
-   any more.  The blur and the part-transparent fill stay: the bar still sits
-   over the page background, and both are what give it its edge. */
+/* The connection and access controls stay reachable while a long metadata
+   page scrolls.  A translucent, saturated fill separates the compact bar from
+   the cards without turning it into a heavy second surface. */
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 24;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  padding-top: calc(10px + env(safe-area-inset-top));
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  gap: 10px;
+  min-height: 64px;
+  padding: 12px max(18px, calc((100vw - 1440px) / 2 + 24px));
+  padding-top: calc(12px + env(safe-area-inset-top));
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
   border-bottom: 1px solid var(--line-soft);
+  box-shadow: 0 10px 30px rgba(0,0,0,.16);
 }
 
 .brand {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 9px;
   font-weight: 650;
   letter-spacing: .2px;
   margin-right: auto;
   min-width: 0;
 }
-.brand b { font-weight: 700; }
-.brand .ver { color: var(--dim); font-size: 11px; font-weight: 500; }
+.brand::before {
+  content: "T";
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: 11px;
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255,255,255,.52), transparent 30%),
+    linear-gradient(145deg, var(--accent), var(--accent-2));
+  color: #061018;
+  font-size: 17px;
+  font-weight: 850;
+  line-height: 1;
+  box-shadow: 0 7px 22px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.brand b {
+  font-size: 17px;
+  font-weight: 760;
+  letter-spacing: -.02em;
+}
+.brand .ver {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .04em;
+  padding: 3px 7px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel-2) 70%, transparent);
+}
 @media (max-width: 620px) {
-  .iconbtn { padding: 0 10px; min-width: 40px; }
-  .topbar { gap: 8px; padding-left: 10px; padding-right: 10px; }
+  .iconbtn { padding: 0 9px; min-width: 38px; }
+  .topbar { gap: 7px; min-height: 58px; padding-left: 11px; padding-right: 11px; }
+  .brand { gap: 7px; }
+  .brand::before { width: 31px; height: 31px; border-radius: 10px; font-size: 15px; }
+  .brand b { font-size: 16px; }
+  .brand .ver { display: none; }
 }
 
 .status {
@@ -149,11 +196,11 @@ body {
   justify-content: center;
   gap: 7px;
   min-width: var(--tap);
-  min-height: 36px;
+  min-height: 38px;
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: var(--panel);
+  background: color-mix(in srgb, var(--panel) 86%, transparent);
   font-size: 12.5px;
   color: var(--muted);
   white-space: nowrap;
@@ -169,8 +216,14 @@ body {
   box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 70%, transparent);
   animation: pulse 2.4s ease-out infinite;
 }
+.status[data-state="live"] {
+  border-color: color-mix(in srgb, var(--ok) 34%, var(--line));
+  background: color-mix(in srgb, var(--ok) 7%, var(--panel));
+}
 .status[data-state="wait"] .dot { background: var(--warn); }
+.status[data-state="wait"] { border-color: color-mix(in srgb, var(--warn) 30%, var(--line)); }
 .status[data-state="down"] .dot { background: var(--bad); }
+.status[data-state="down"] { border-color: color-mix(in srgb, var(--bad) 32%, var(--line)); }
 @keyframes pulse {
   0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); }
   70%  { box-shadow: 0 0 0 7px transparent; }
@@ -179,19 +232,28 @@ body {
 
 .iconbtn {
   appearance: none;
-  min-width: var(--tap);
-  min-height: 36px;
+  min-width: 40px;
+  min-height: 38px;
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: var(--panel);
+  background: linear-gradient(180deg,
+              color-mix(in srgb, var(--panel-raised) 80%, transparent),
+              color-mix(in srgb, var(--panel) 90%, transparent));
   color: var(--muted);
   font: inherit;
   font-size: 13px;
   cursor: pointer;
-  transition: color .15s, border-color .15s, background .15s;
+  box-shadow: 0 5px 16px rgba(0,0,0,.16);
+  transition: color .16s, border-color .16s, background .16s, transform .16s;
 }
-.iconbtn:hover  { color: var(--text); border-color: var(--accent); }
+.iconbtn:hover  {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 68%, var(--line));
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+  transform: translateY(-1px);
+}
+.iconbtn:active { transform: translateY(0) scale(.97); }
 .iconbtn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
 .ui-icon {
   display: block;
@@ -226,9 +288,9 @@ body {
 /* --- Shell -------------------------------------------------------------- */
 
 main {
-  max-width: 1360px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 24px;
   display: grid;
   gap: var(--gap);
 }
@@ -240,20 +302,45 @@ main {
    what tells one card from the next, and the screen being narrow is no reason
    for less of it. */
 @media (max-width: 620px) {
-  main { padding: 10px; }
+  main { padding: 12px; }
 }
 
 .card {
-  background: var(--panel);
-  border: 1px solid var(--line-soft);
+  position: relative;
+  isolation: isolate;
+  background-color: var(--panel);
+  background-image: linear-gradient(145deg,
+                    rgba(255,255,255,.025), transparent 42%);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
 }
+.card::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.13), transparent);
+  pointer-events: none;
+}
+
+::selection {
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 34%, transparent);
+}
+
+html {
+  scrollbar-color: var(--line) var(--bg);
+  scrollbar-width: thin;
+}
 
 .card > h2 {
   margin: 0;
-  padding: 12px 16px 10px;
+  padding: 14px 18px 12px;
   font-size: 11.5px;
   font-weight: 700;
   letter-spacing: .12em;
@@ -307,15 +394,15 @@ footer {
 dialog {
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--panel);
+  background: linear-gradient(145deg, var(--panel-raised), var(--panel));
   color: var(--text);
   padding: 0;
   width: min(400px, calc(100vw - 32px));
-  box-shadow: var(--shadow);
+  box-shadow: 0 30px 90px rgba(0,0,0,.58);
 }
-dialog::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(3px); }
-dialog form { padding: 18px; display: grid; gap: 12px; }
-dialog h3 { margin: 0; font-size: 16px; }
+dialog::backdrop { background: rgba(0,0,0,.7); backdrop-filter: blur(7px); }
+dialog form { padding: 22px; display: grid; gap: 14px; }
+dialog h3 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
 dialog p { margin: 0; color: var(--muted); font-size: 13px; }
 dialog input {
   font: inherit;
@@ -352,13 +439,26 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 /* --- Shared empty state ------------------------------------------------- */
 
 .empty {
-  padding: 48px 24px;
+  padding: 58px 28px;
   text-align: center;
   display: grid;
   gap: 8px;
   justify-items: center;
 }
-.empty .big { font-size: 17px; font-weight: 600; }
+.empty::before {
+  content: "";
+  width: 50px;
+  height: 50px;
+  margin-bottom: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 46%, var(--line));
+  border-radius: 17px;
+  background:
+    radial-gradient(circle at center, color-mix(in srgb, var(--accent) 55%, transparent) 0 3px, transparent 4px),
+    radial-gradient(circle at center, transparent 0 10px, color-mix(in srgb, var(--accent) 25%, transparent) 11px 12px, transparent 13px),
+    color-mix(in srgb, var(--accent) 6%, var(--panel-2));
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.empty .big { font-size: 18px; font-weight: 700; letter-spacing: -.015em; }
 .empty p { margin: 0; color: var(--muted); font-size: 13.5px; }
 
 /* The idle card is the page's only content worth looking at.  Centre the card
@@ -369,12 +469,12 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
   left: 50%;
   /* Twice main's own padding taken off, so a card that has left the flow still
      lines up with the ones that have not. */
-  width: min(calc(100% - 32px), 1328px);
+  width: min(calc(100% - 48px), 1392px);
   transform: translate(-50%, -50%);
   z-index: 1;
 }
 @media (max-width: 620px) {
-  #idleCard:not(.hidden) { width: min(calc(100% - 20px), 1328px); }
+  #idleCard:not(.hidden) { width: min(calc(100% - 24px), 1392px); }
 }
 
 @media (min-width: 760px) {

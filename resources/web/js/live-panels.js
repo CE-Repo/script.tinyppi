@@ -201,6 +201,7 @@
     posterTag = tag;
     if (!tag) {
       el.artBox.classList.add("hidden");
+      el.nowCard.classList.remove("has-art");
       el.poster.removeAttribute("src");
       tint("");
       return;
@@ -208,6 +209,7 @@
     const url = TinyPPI.withToken("/api/art?kind=poster&v=" + tag);
     el.poster.src = url;
     el.artBox.classList.remove("hidden");
+    el.nowCard.classList.add("has-art");
     tint(url);
   }
 
@@ -219,6 +221,7 @@
      card goes back to the plain panel colour with it. */
   el.poster.addEventListener("error", () => {
     el.artBox.classList.add("hidden");
+    el.nowCard.classList.remove("has-art");
     tint("");
   });
 
@@ -602,6 +605,8 @@
       if (!metadataPage) {
         renderEvents(data.events);
         el.eventsCard.classList.remove("hidden");
+        const summary = document.getElementById("summaryGrid");
+        if (summary) summary.classList.add("has-events");
       }
       drawChart();
     }).catch(() => { /* the stream's own retry reports an outage */ })
@@ -785,7 +790,13 @@
       pastSeq = -1;
       posterTag = "";
       trackKey = "";
+      el.artBox.classList.add("hidden");
+      el.poster.removeAttribute("src");
+      el.nowCard.classList.remove("has-art");
+      tint("");
       setControlsOpen(false, false);
+      const summary = document.getElementById("summaryGrid");
+      if (summary) summary.classList.remove("has-events");
       return;
     }
     el.nowCard.classList.remove("hidden");

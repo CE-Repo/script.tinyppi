@@ -6,65 +6,67 @@
 /* --- Now playing -------------------------------------------------------- */
 
 .now {
-  padding: 18px 16px 12px;
+  padding: 26px 24px 18px;
   display: grid;
-  gap: 16px;
+  align-content: center;
+  gap: 12px;
 }
 
-.badges { display: flex; flex-wrap: wrap; gap: 6px; padding-right: 52px; }
+.badges { display: flex; flex-wrap: wrap; gap: 7px; padding-right: 54px; }
 
 .badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .08em;
+  min-height: 25px;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .1em;
   text-transform: uppercase;
-  padding: 4px 9px;
+  padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
   color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  background: color-mix(in srgb, var(--accent) 11%, var(--panel));
+  box-shadow: inset 0 1px rgba(255,255,255,.035);
   white-space: nowrap;
 }
 .badge.alt {
   border-color: color-mix(in srgb, var(--warn) 45%, transparent);
   color: var(--warn);
-  background: color-mix(in srgb, var(--warn) 12%, transparent);
+  background: color-mix(in srgb, var(--warn) 10%, var(--panel));
 }
 .badge .ui-icon { width: 12px; height: 12px; }
 
 .now h1 {
   margin: 0;
-  font-size: clamp(19px, 4.4vw, 26px);
-  line-height: 1.2;
-  font-weight: 650;
+  max-width: 24ch;
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 1.08;
+  font-weight: 740;
+  letter-spacing: -.035em;
   overflow-wrap: anywhere;
 }
 .now .file {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--dim);
   overflow-wrap: anywhere;
 }
 
 .progress {
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
-/* Both bars in this card -- the time and the volume -- are drawn the same way:
-   an outline in the accent with nothing behind it, and the part that has run
-   filled inside it.  The volume slider is a range input, whose track the
-   browser draws for itself, so it is taken over further down rather than left
-   to match by accident. */
+/* Both bars in this card -- time and volume -- share an accent outline and
+   fill.  The time bar adds a quiet bed for contrast; the range input is taken
+   over further down so the browser cannot draw a mismatched native track. */
 .track {
-  /* Eight rather than six: box-sizing is border-box, so the outline is inside
-     the height and what is left for the fill is the six it always was. */
-  height: 8px;
+  /* Border-box keeps the outline inside the compact seven-pixel track. */
+  height: 7px;
   border: 1px solid var(--bar-line);
   border-radius: 999px;
-  background: transparent;
+  background: color-mix(in srgb, var(--panel-2) 72%, transparent);
   overflow: hidden;
 }
 .track > i {
@@ -73,31 +75,30 @@
   width: 0%;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 38%, transparent);
   transition: width .35s linear;
 }
 .times {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--muted);
 }
-/* Unfilled like the keys it folds out, and for the same reason: it sits on the
-   card rather than in the top bar, so the card is what should show through it.
-   The .iconbtn fill it would otherwise take belongs to the buttons up there,
-   which stand on the bar's own colour. */
+/* A compact translucent key on the hero rather than the denser button surface
+   used by the top bar. */
 .control-toggle {
   display: inline-grid;
   place-items: center;
   position: absolute;
-  top: 18px;
-  right: 16px;
+  top: 24px;
+  right: 24px;
   z-index: 1;
-  min-width: 34px;
-  min-height: 26px;
-  height: 26px;
-  padding: 0 7px;
-  background: transparent;
+  min-width: 38px;
+  min-height: 30px;
+  height: 30px;
+  padding: 0 8px;
+  background: color-mix(in srgb, var(--panel) 76%, transparent);
   /* Outlined the way the badge across the card from it is, rather than in
      --line: that is a colour for a line between two surfaces, and with no fill
      behind it there was nothing for it to divide -- the button all but
@@ -137,14 +138,22 @@
 
 .tilegrid {
   display: grid;
-  gap: 1px;
+  gap: 10px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  background: var(--line-soft);
+  padding: 14px;
+  background: transparent;
 }
 
 .tile {
-  background: var(--panel);
-  padding: 14px 15px;
+  position: relative;
+  overflow: hidden;
+  min-height: 104px;
+  padding: 16px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(145deg,
+              color-mix(in srgb, var(--panel-raised) 86%, transparent),
+              color-mix(in srgb, var(--panel-2) 74%, transparent));
   display: grid;
   /* The name at the top, the reading -- and its unit, if it has one, beside
      rather than under it -- centred in whatever is left under the name.
@@ -152,18 +161,29 @@
      should sit in the middle of that -- the name is a heading and belongs at
      the top of its tile whatever the tile's height turns out to be. */
   grid-template-rows: auto 1fr;
-  gap: 4px;
+  gap: 8px;
   justify-items: center;
   text-align: center;
 }
-/* The reading's own name, in the reading's colour -- the same way round as the
-   detail rows (see .row .k in dashboard.css). */
+.tile::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 0;
+  height: 2px;
+  border-radius: 999px 999px 0 0;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: .7;
+}
+/* The muted name establishes hierarchy; the large value below is the reading
+   a glance should land on. */
 .tile .k {
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
-  color: var(--text);
+  color: var(--muted);
 }
 /* The reading and its unit run in one line, not two: a unit beside the number
    it qualifies reads as one reading, where a line of its own under the number
@@ -175,9 +195,10 @@
   align-self: center;
 }
 .tile .v {
-  font-size: clamp(20px, 5vw, 27px);
-  font-weight: 650;
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 700;
   line-height: 1.1;
+  letter-spacing: -.03em;
 }
 /* Out of the way entirely when there is no unit to put beside the reading,
    rather than holding an empty gap open next to it. */
@@ -185,19 +206,22 @@
 .tile .u:empty { display: none; }
 
 @media (max-width: 620px) {
-  .tilegrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .tilegrid .tile:last-child { grid-column: 1 / -1; }
+  .tilegrid { gap: 7px; padding: 10px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tile { min-height: 94px; padding: 13px 7px; }
+  .tile .k { font-size: 8.5px; letter-spacing: .07em; }
+  .tile .v { font-size: clamp(18px, 6.5vw, 25px); }
 }
 
 /* --- Chart -------------------------------------------------------------- */
 
-.chartwrap { padding: 12px 12px 14px; }
+.chartwrap { padding: 14px 16px 16px; }
 #chart {
   display: block;
   width: 100%;
   height: 190px;
+  border: 1px solid var(--line-soft);
   border-radius: var(--radius-sm);
-  background: var(--panel-2);
+  background: color-mix(in srgb, var(--panel-2) 82%, transparent);
 }
 @media (max-width: 640px) { #chart { height: 148px; } }
 
@@ -226,8 +250,9 @@
 .hero {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 250px;
   /* The outline both bars in this card are drawn with -- the time and the
      volume.  Neither has a fill any more, so this is the whole of what says
      where a bar is; it is the accent at the strength the badges use.
@@ -239,36 +264,42 @@
      card the adaptive theme had given the film's. */
   --bar-line: color-mix(in srgb, var(--accent) 45%, transparent);
 }
+.hero.has-art { grid-template-columns: auto minmax(0, 1fr); }
 /* The bar, the buttons and the pickers span every column: what is left of the
    middle column once a poster stands beside it is no width to lay a remote
    out in, and a control that has to wrap is worse than one further down. */
 .hero .foot {
   grid-column: 1 / -1;
   display: grid;
-  gap: 12px;
-  padding: 4px 16px 16px;
+  gap: 14px;
+  padding: 16px 22px 20px;
+  border-top: 1px solid color-mix(in srgb, var(--line-soft) 72%, transparent);
+  background: linear-gradient(180deg, transparent,
+              color-mix(in srgb, var(--panel-2) 32%, transparent));
 }
 .art {
-  padding: 16px 0 16px 16px;
+  padding: 24px 0 20px 24px;
   line-height: 0;
+  align-self: stretch;
 }
 .art img {
-  width: 104px;
-  height: 156px;
+  width: 142px;
+  height: 213px;
   aspect-ratio: 2 / 3;
   max-width: 30vw;
   max-height: 45vw;
   object-fit: cover;
   object-position: center;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--line) 82%, white 6%);
   background: var(--panel-2);
   display: block;
+  box-shadow: 0 18px 36px rgba(0,0,0,.34);
 }
 
 .now .meta {
   margin: 0;
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--muted);
   overflow-wrap: anywhere;
 }
@@ -283,16 +314,39 @@
 .logos {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 .logos:empty { display: none; }
 .logo {
-  height: 24px;
+  height: 26px;
   width: auto;
   max-width: 148px;
   object-fit: contain;
-  opacity: .92;
+  opacity: .88;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.26));
+}
+
+@media (max-width: 620px) {
+  .hero { min-height: 0; }
+  .now { padding: 18px 16px 13px; gap: 9px; }
+  .now h1 { font-size: clamp(21px, 6.8vw, 29px); }
+  .badges { padding-right: 43px; gap: 5px; }
+  .badge { min-height: 23px; padding: 3px 8px; font-size: 9px; }
+  .control-toggle { top: 17px; right: 15px; min-width: 34px; height: 28px; }
+  .hero .foot { padding: 13px 16px 16px; }
+  .art { padding: 17px 0 13px 16px; }
+  .art img { width: 96px; height: 144px; border-radius: 13px; }
+  .logo { height: 21px; max-width: 112px; }
+  .now .meta { font-size: 12.5px; }
+  .now .file { font-size: 10.5px; }
+}
+
+@media (max-width: 360px) {
+  .hero.has-art { grid-template-columns: 88px minmax(0, 1fr); }
+  .art img { width: 72px; height: 108px; }
+  .art { padding-right: 0; }
+  .now { padding-left: 12px; }
 }
 
 /* --- Transport ---------------------------------------------------------- */
@@ -329,11 +383,9 @@
 }
 .tvol .tbtn { padding: 0; }
 .tbtn .ui-icon { margin: auto; }
-/* Unfilled: the card behind them carries straight through, and each key is
-   held together by its outline alone.  A filled key was a slab of --panel-2 on
-   whatever the card happened to be, which on the adaptive theme meant a row of
-   cold grey boxes under a poster-coloured card; the outline says the same
-   thing without standing on anything. */
+/* The card still carries through the controls: their fill is deliberately
+   translucent, just enough to separate seven adjacent hit targets without
+   turning the remote into a row of heavy slabs. */
 .tbtn {
   appearance: none;
   min-height: var(--tap);
@@ -341,16 +393,20 @@
   padding: 0 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
-  background: transparent;
+  background: color-mix(in srgb, var(--panel-2) 45%, transparent);
   color: var(--text);
   font: inherit;
   font-size: 13px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
+  box-shadow: inset 0 1px rgba(255,255,255,.025);
   transition: border-color .15s, background .15s, transform .08s;
 }
-.tbtn:hover { border-color: var(--accent); }
+.tbtn:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--panel-2));
+}
 .tbtn:active { transform: scale(.96); }
 .tbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tbtn.primary {
@@ -470,7 +526,7 @@
   padding: 0 34px 0 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
-  background: var(--panel-2);
+  background-color: color-mix(in srgb, var(--panel-2) 86%, transparent);
   color: var(--text);
   font: inherit;
   font-size: 13.5px;
@@ -489,7 +545,7 @@
 .chart-options {
   display: flex;
   justify-content: flex-end;
-  padding-top: 10px;
+  padding-top: 12px;
 }
 .ranges {
   display: flex;
@@ -519,40 +575,48 @@
 
 /* --- Events ------------------------------------------------------------- */
 
-/* The accent on every theme, not only the adaptive one.  A card's heading is
-   the page's own furniture rather than a reading, and the accent is what marks
-   furniture here; held back to --muted it read as a third kind of text between
-   the headings above it and the readings below.  Inside a card the token is
-   the film's under the adaptive theme (see css/theme.css), so that theme keeps
-   what it had without a rule of its own -- and the disclosure arrow follows
-   either way, drawn in currentColor below. */
+/* A quiet closed label keeps repeated cards calm; opening one raises the label
+   to the main text colour.  The gradient rail remains the persistent accent
+   and follows the film under the adaptive theme. */
 .panel-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 40px;
-  padding: 10px 16px;
-  color: var(--accent);
+  min-height: 48px;
+  padding: 13px 18px;
+  color: var(--muted);
   font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: .12em;
+  letter-spacing: .13em;
   text-transform: uppercase;
   cursor: pointer;
   list-style: none;
   user-select: none;
 }
+.panel-toggle::before {
+  content: "";
+  width: 3px;
+  height: 15px;
+  margin-right: 10px;
+  flex: none;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 26%, transparent);
+}
+.panel-toggle > span { margin-right: auto; }
 .panel-toggle::-webkit-details-marker { display: none; }
 .panel-toggle::after {
   content: "";
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
   border-right: 2px solid currentColor;
   border-bottom: 2px solid currentColor;
   transform: rotate(45deg) translate(-2px, -2px);
   transition: transform .15s ease;
 }
 .card[open] > .panel-toggle {
-  color: var(--accent);
+  color: var(--text);
   border-bottom: 1px solid var(--line-soft);
 }
 .card[open] > .panel-toggle::after {
@@ -562,7 +626,7 @@
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
-.events { padding: 4px 0 6px; }
+.events { padding: 5px 0 8px; }
 .events.empty {
   padding: 18px 16px 20px;
   color: var(--muted);
@@ -573,9 +637,9 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
   align-items: baseline;
-  padding: 8px 16px;
+  padding: 10px 18px;
 }
-.event + .event { border-top: 1px solid var(--line-soft); }
+.event + .event { border-top: 1px solid color-mix(in srgb, var(--line-soft) 72%, transparent); }
 .event .at { font-size: 12.5px; color: var(--dim); white-space: nowrap; }
 .event .what { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
 .event .detail {

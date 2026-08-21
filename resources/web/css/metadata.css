@@ -11,20 +11,25 @@
 /* --- L5 active picture -------------------------------------------------- */
 
 .framewrap {
-  padding: 14px 16px 16px;
+  padding: 20px;
   display: grid;
-  gap: 10px;
+  gap: 13px;
   justify-items: center;
 }
 .frame {
   position: relative;
   width: 100%;
-  max-width: 420px;
+  max-width: 520px;
   aspect-ratio: 16 / 9;
-  background: #05070a;
+  background:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+    #04070a;
+  background-size: 24px 24px;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: inset 0 0 50px rgba(0,0,0,.45), var(--shadow-soft);
 }
 .frame > i {
   position: absolute;
@@ -32,32 +37,51 @@
               color-mix(in srgb, var(--accent) 34%, transparent),
               color-mix(in srgb, var(--accent-2) 24%, transparent));
   border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
-  border-radius: 3px;
+  border-radius: 6px;
+  box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 18%, transparent);
   transition: inset .35s ease;
   inset: 0;
 }
-.framenote { font-size: 12px; color: var(--muted); }
+.framenote {
+  padding: 5px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: var(--panel-2);
+  font-size: 11.5px;
+  color: var(--muted);
+}
 
-.metarows { padding: 6px 0 14px; }
+.metarows { padding: 8px 0 16px; }
 
 /* One column on a phone, more as the window widens: the sections stand alone,
    so they read fine side by side and the page stops being a mile long. */
-@media (min-width: 900px)  { .metarows { columns: 2; column-gap: 28px; padding: 10px 8px 16px; } }
+@media (min-width: 900px)  { .metarows { columns: 2; column-gap: 30px; padding: 12px 10px 18px; } }
 @media (min-width: 1500px) { .metarows { columns: 3; } }
 .mblock { break-inside: avoid; }
 
 .msection {
-  margin: 14px 16px 6px;
-  padding-bottom: 5px;
+  position: relative;
+  margin: 18px 16px 8px;
+  padding: 0 0 7px 11px;
   border-bottom: 1px solid var(--line);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
-  color: var(--text);
+  color: var(--muted);
   display: flex;
   gap: 8px;
   align-items: baseline;
+}
+.msection::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 3px;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
 }
 .msection .state {
   margin-left: auto;
@@ -71,18 +95,21 @@
 .mrow {
   display: grid;
   grid-template-columns: minmax(110px, 45%) 1fr;
-  gap: 10px;
-  padding: 3px 16px;
+  gap: 12px;
+  min-height: 30px;
+  padding: 5px 16px;
   font-size: 12.5px;
+  transition: background .15s;
 }
-/* As on the dashboard's own rows (see .row .k there): the name is half of what
-   the row says, so it is not held back from the reading beside it. */
-.mrow .k { color: var(--text); overflow-wrap: anywhere; }
-.mrow .v { text-align: right; overflow-wrap: anywhere; transition: color .45s ease-out; }
+.mrow:hover { background: color-mix(in srgb, var(--accent) 3%, transparent); }
+/* The label follows the dashboard's quieter hierarchy; live values retain the
+   strongest contrast and the transient change colour. */
+.mrow .k { color: var(--muted); overflow-wrap: anywhere; }
+.mrow .v { color: var(--text); text-align: right; overflow-wrap: anywhere; transition: color .45s ease-out; }
 .mrow.changed .v { color: var(--accent-2); transition: none; }
 
 .mwide {
-  padding: 3px 16px;
+  padding: 5px 16px;
   font-size: 12.5px;
   overflow-wrap: anywhere;
 }
@@ -97,7 +124,14 @@
    go down the left instead and each pass takes a column, which is the shape a
    narrow column holds -- there are only ever a handful of passes, one per
    target display. */
-.mtable { padding: 2px 16px 8px; overflow-x: auto; }
+.mtable {
+  margin: 4px 12px 10px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--panel-2) 58%, transparent);
+}
 .mgrid {
   /* The track list is set on the element -- a count inside repeat() cannot be
      a variable everywhere this page is opened -- from these two widths. */
@@ -119,7 +153,7 @@
 /* A trim table's row names are the same kind of thing as .mrow's, so they go
    the same way.  The headings above them do not: those name the columns rather
    than the readings, and stay the quieter colour below. */
-.mgrid .lead { color: var(--text); }
+.mgrid .lead { color: var(--muted); }
 .mgrid .corner, .mgrid .head {
   color: var(--dim);
   font-size: 10.5px;

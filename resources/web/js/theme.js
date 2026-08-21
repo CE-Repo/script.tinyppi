@@ -47,7 +47,7 @@ window.TinyPPITheme = (function () {
   /* What the phone paints its own bars in, per theme: the colour the top bar
      sits on rather than the page's, since that is what reaches the edge. */
   const META_COLORS = {
-    dark: "#0b0d10", "dark-adaptive": "#0b0d10", midnight: "#04060c"
+    dark: "#070a0e", "dark-adaptive": "#070a0e", midnight: "#03060d"
   };
 
   const NAME_KEYS = {

@@ -15,7 +15,7 @@ const T = TinyPPI.T;
 const el = {
   version: $("version"), idleCard: $("idleCard"),
   vs10Card: $("vs10Card"), vs10Out: $("vs10Out"), modes: $("modes"),
-  groups: $("groups"),
+  groups: $("groups"), live: $("live"), summaryGrid: $("summaryGrid"),
   metricsCard: $("tiles"), eventsCard: $("eventsCard"), metaLink: $("metaLink"),
   copyBtn: $("copyBtn")
 };
@@ -23,8 +23,7 @@ const el = {
 /* Keep VS10 by the playback card; the two optional summary cards belong at
    the page end, immediately ahead of the metadata link. */
 $("nowCard").after(el.vs10Card);
-el.metaLink.before(el.eventsCard);
-el.eventsCard.before(el.metricsCard);
+el.summaryGrid.append(el.metricsCard, el.eventsCard);
 
 let state = null;
 let control = false;
@@ -58,6 +57,7 @@ function render(next) {
     for (const id of ["vs10Card", "metaLink", "copyBtn"]) {
       $(id).classList.add("hidden");
     }
+    el.live.classList.remove("has-vs10");
     el.groups.innerHTML = "";
     rowNodes.clear();
     groupNodes.clear();
@@ -80,9 +80,11 @@ function renderVs10(vs10) {
   const options = vs10.options || [];
   if (!control || !options.length) {
     el.vs10Card.classList.add("hidden");
+    el.live.classList.remove("has-vs10");
     return;
   }
   el.vs10Card.classList.remove("hidden");
+  el.live.classList.add("has-vs10");
   el.vs10Out.textContent = vs10.output || "—";
 
   const signature = options.map((option) => option.mode).join("|");

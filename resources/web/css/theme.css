@@ -19,16 +19,18 @@
   z-index: 30;
   display: none;
   margin: 0;
-  padding: 6px;
+  padding: 8px;
   width: max-content;
-  min-width: 172px;
+  min-width: 190px;
   max-height: min(70vh, 520px);
   overflow-y: auto;
   list-style: none;
-  background: var(--panel);
+  background: color-mix(in srgb, var(--panel-raised) 94%, transparent);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: 0 24px 70px rgba(0,0,0,.52);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
 }
 .theme-menu.open {
   display: block;
@@ -43,14 +45,14 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 38px;
-  padding: 8px 10px;
+  min-height: 42px;
+  padding: 9px 11px;
   border-radius: var(--radius-sm);
   font-size: 14px;
   color: var(--text);
   cursor: pointer;
 }
-.theme-option:hover { background: var(--panel-2); }
+.theme-option:hover { background: color-mix(in srgb, var(--accent) 7%, var(--panel-2)); }
 .theme-option .ui-icon { width: 18px; height: 18px; opacity: .82; }
 .theme-option.selected {
   background: color-mix(in srgb, var(--accent) 14%, transparent);
@@ -134,6 +136,9 @@
   background-image: var(--cover-gradient, none);
   background-repeat: no-repeat;
   background-clip: padding-box;
+  border-color: rgba(var(--cover-accent-rgb), .32);
+  box-shadow: var(--shadow),
+              0 20px 60px rgba(var(--cover-accent-rgb), .08);
 }
 
 /* What a card lights up with.  The theme's own accent is one fixed blue, which
@@ -175,19 +180,19 @@
   color: rgb(var(--cover-accent-rgb));
   border-color: rgba(var(--cover-accent-rgb), .45);
 }
+:root[data-theme="dark-adaptive"] .brand::before {
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255,255,255,.52), transparent 30%),
+    linear-gradient(145deg,
+      rgb(var(--cover-accent-rgb)),
+      color-mix(in srgb, rgb(var(--cover-accent-rgb)) 62%, white));
+  box-shadow: 0 7px 22px rgba(var(--cover-accent-rgb), .23);
+}
 
-/* The title of what is playing, which is the one piece of text that is the
-   film rather than a reading about it -- and the heading of every card, which
-   is not the film but is the page's own furniture, the thing read past rather
-   than read.  Both go to the accent; what is between them, the readings
-   themselves, stays the plain text colour.
-
-   The disclosure headings are not named here.  They ask for --accent on every
-   theme now (see .panel-toggle in css/live-panels.css), and inside a card that
-   token is already the film's -- naming them again would only be the same
-   colour said twice.  Their arrow follows as currentColor either way. */
-:root[data-theme="dark-adaptive"] .hero .now h1,
-:root[data-theme="dark-adaptive"] .card > h2 {
+/* The title is the film rather than a reading about it, so it takes the cover
+   accent.  Ordinary card headings and values keep the neutral hierarchy; the
+   accent is already present in each disclosure heading's rail. */
+:root[data-theme="dark-adaptive"] .hero .now h1 {
   color: rgb(var(--cover-accent-rgb));
 }
 
@@ -213,9 +218,9 @@
 :root[data-theme="dark-adaptive"] .art::before {
   content: "";
   position: absolute;
-  inset: -4px 6px -4px -4px;
+  inset: -8px 2px -8px -8px;
   z-index: -1;
-  border-radius: 24px;
+  border-radius: 28px;
   background: radial-gradient(58% 66% at 50% 50%,
     rgba(var(--cover-accent-rgb), .30) 0%,
     rgba(var(--cover-accent-rgb), .11) 52%,
