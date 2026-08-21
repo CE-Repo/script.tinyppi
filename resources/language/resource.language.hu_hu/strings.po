@@ -1483,6 +1483,14 @@ msgctxt "#32472"
 msgid "Dolby Vision"
 msgstr "Dolby Vision"
 
+msgctxt "#32473"
+msgid "Display reset on Dolby Vision switch"
+msgstr "Képkimenet reset a Dolby Vision VS10 kapcsolásnál"
+
+msgctxt "#32474"
+msgid "Re-initialise the HDMI output whenever a VS10 switch turns Dolby Vision on or off. Kodi only re-applies the display mode when a stream's HDR type changes, which a switch made during playback never reports, so the output keeps the previous signalling and the picture comes out with the wrong colours. Automatic does it only in Player-LED mode, where the box maps the picture itself and nothing else re-negotiates the output; a TV-LED box signals the change on its own and is left alone, because resetting it there makes later switches in the same playback land on SDR."
+msgstr "Újrainicializálja a HDMI kimenetet, valahányszor egy VS10 kapcsolás be- vagy kikapcsolja a Dolby Visiont. A Kodi csak akkor alkalmazza újra a megjelenítési módot, ha egy stream HDR típusa megváltozik, amit a lejátszás közbeni váltás soha nem jelez, így a kimenet megtartja az előző jeltípust, és a kép rossz színekkel jelenik meg. Az „Automatikus” ezt csak Player-LED módban végzi el, ahol maga a doboz képezi le a képet, és semmi más nem egyezteti újra a kimenetet; a TV-LED doboz magától jelzi a váltást, ezért érintetlen marad - ott a reset azt okozná, hogy ugyanazon lejátszás későbbi váltásai SDR-en kötnek ki."
+
 msgctxt "#32476"
 msgid "Frame drops"
 msgstr "Kockakiesés"
@@ -1594,3 +1602,15 @@ msgstr "Normál"
 msgctxt "#32504"
 msgid "Strong"
 msgstr "Erős"
+
+msgctxt "#32505"
+msgid "Automatic (Player-LED only)"
+msgstr "Automatikus (csak Player-LED)"
+
+msgctxt "#32506"
+msgid "Always"
+msgstr "Mindig"
+
+msgctxt "#32507"
+msgid "Never"
+msgstr "Soha"

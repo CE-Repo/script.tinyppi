@@ -1483,6 +1483,14 @@ msgctxt "#32472"
 msgid "Dolby Vision"
 msgstr ""
 
+msgctxt "#32473"
+msgid "Display reset on Dolby Vision switch"
+msgstr ""
+
+msgctxt "#32474"
+msgid "Re-initialise the HDMI output whenever a VS10 switch turns Dolby Vision on or off. Kodi only re-applies the display mode when a stream's HDR type changes, which a switch made during playback never reports, so the output keeps the previous signalling and the picture comes out with the wrong colours. Automatic does it only in Player-LED mode, where the box maps the picture itself and nothing else re-negotiates the output; a TV-LED box signals the change on its own and is left alone, because resetting it there makes later switches in the same playback land on SDR."
+msgstr ""
+
 msgctxt "#32476"
 msgid "Frame drops"
 msgstr ""
@@ -1593,4 +1601,16 @@ msgstr ""
 
 msgctxt "#32504"
 msgid "Strong"
+msgstr ""
+
+msgctxt "#32505"
+msgid "Automatic (Player-LED only)"
+msgstr ""
+
+msgctxt "#32506"
+msgid "Always"
+msgstr ""
+
+msgctxt "#32507"
+msgid "Never"
 msgstr ""

@@ -1484,6 +1484,14 @@ msgctxt "#32472"
 msgid "Dolby Vision"
 msgstr "دولبي فيجن"
 
+msgctxt "#32473"
+msgid "Display reset on Dolby Vision switch"
+msgstr "إعادة ضبط الشاشة عند تبديل دولبي فيجن"
+
+msgctxt "#32474"
+msgid "Re-initialise the HDMI output whenever a VS10 switch turns Dolby Vision on or off. Kodi only re-applies the display mode when a stream's HDR type changes, which a switch made during playback never reports, so the output keeps the previous signalling and the picture comes out with the wrong colours. Automatic does it only in Player-LED mode, where the box maps the picture itself and nothing else re-negotiates the output; a TV-LED box signals the change on its own and is left alone, because resetting it there makes later switches in the same playback land on SDR."
+msgstr "إعادة تهيئة خرج HDMI في كل مرة يقوم فيها تبديل VS10 بتشغيل دولبي فيجن أو إيقافه. يعيد Kodi تطبيق وضع العرض فقط عند تغيّر نوع HDR للدفق، وهو ما لا يبلّغ عنه أي تبديل يتم أثناء التشغيل، فيبقى الخرج على الإشارة السابقة وتظهر الصورة بألوان خاطئة. يقوم الوضع «تلقائي» بذلك في وضع Player-LED فقط، حيث يعالج الجهاز الصورة بنفسه ولا يعيد أي شيء آخر التفاوض على الخرج؛ أما جهاز TV-LED فيشير إلى التبديل بنفسه ويُترك دون تدخل، لأن إعادة الضبط هناك تجعل عمليات التبديل اللاحقة في نفس التشغيل تنتهي إلى SDR."
+
 msgctxt "#32476"
 msgid "Frame drops"
 msgstr "تساقط الإطارات"
@@ -1595,3 +1603,15 @@ msgstr "قياسي"
 msgctxt "#32504"
 msgid "Strong"
 msgstr "قوي"
+
+msgctxt "#32505"
+msgid "Automatic (Player-LED only)"
+msgstr "تلقائي (Player-LED فقط)"
+
+msgctxt "#32506"
+msgid "Always"
+msgstr "دائمًا"
+
+msgctxt "#32507"
+msgid "Never"
+msgstr "أبدًا"

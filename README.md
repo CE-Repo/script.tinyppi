@@ -453,6 +453,15 @@ descriptor is used for it.
 A switch that stays on the same side (SDR8 to HDR10, say) never triggers it, and
 on a kernel that does not offer the property nothing happens at all.
 
+**Display reset on Dolby Vision switch** (Settings → General) says which boxes
+get one:
+
+| Option | Behaviour |
+|--------|-----------|
+| `Automatic (Player-LED only)` | The default. Reset only in Player-LED mode, where the box maps the picture itself and nothing else re-negotiates the output. A TV-LED box signals the change to the display on its own, so it is left alone — resetting it there re-applies the output over the VS10 mode the driver has only just taken, and later switches in the same playback then land on SDR instead of the mode picked. |
+| `Always` | Reset on every switch that crosses the Dolby Vision line, whichever end drives it. |
+| `Never` | No reset at all. |
+
 #### Example: keymap shortcut for a direct mode switch
 
 ```xml

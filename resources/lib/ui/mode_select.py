@@ -113,6 +113,52 @@ def _is_playing_video() -> bool:
         return False
 
 
+# When a VS10 switch that crosses the Dolby Vision line re-initialises the HDMI
+# output -- the ``dv_display_reset`` setting.  ``AUTO`` is the default and the
+# one that reads the box: see ``_display_reset_wanted`` for why.
+_RESET_AUTO   = 0
+_RESET_ALWAYS = 1
+_RESET_NEVER  = 2
+
+_RESET_POLICIES = (_RESET_AUTO, _RESET_ALWAYS, _RESET_NEVER)
+
+
+def _display_reset_policy() -> int:
+    """Return the configured display-reset policy (one of ``_RESET_*``).
+
+    A fresh ``Addon()`` avoids the cached settings, so a change applies to the
+    very next switch.  Anything unreadable -- an older settings.xml without the
+    setting, a value outside the range -- reads as ``_RESET_AUTO``, the default.
+    """
+    try:
+        value = int(xbmcaddon.Addon().getSetting("dv_display_reset"))
+    except Exception:
+        return _RESET_AUTO
+    return value if value in _RESET_POLICIES else _RESET_AUTO
+
+
+def _display_reset_wanted() -> bool:
+    """Return whether a switch across the Dolby Vision line should re-init the
+    HDMI output on this box.
+
+    On ``_RESET_AUTO`` that is the Player-LED question.  Player-LED is where the
+    reset is needed: the box itself maps the picture and sends it out as an
+    ordinary carrier, so nothing re-negotiates the HDMI output on its own and
+    without the reset the switch lands with the wrong colours.  TV-LED signals
+    Dolby Vision to the display itself and gets there without help -- and the
+    reset there does harm rather than nothing: it re-applies the output over a
+    VS10 mode the driver has only just taken, which leaves later switches in the
+    same playback landing on SDR instead of the mode picked (issue #64).
+
+    ``_RESET_ALWAYS`` and ``_RESET_NEVER`` skip the probe and answer outright,
+    for the box whose behaviour does not match its LED mode.
+    """
+    policy = _display_reset_policy()
+    if policy != _RESET_AUTO:
+        return policy == _RESET_ALWAYS
+    return _probe_dv_Player_LED_mode()
+
+
 def _reset_display_on_dv_change(name: str, dv_before: bool) -> None:
     """Re-init the HDMI output when a switch crossed the Dolby Vision line.
 
@@ -124,20 +170,29 @@ def _reset_display_on_dv_change(name: str, dv_before: bool) -> None:
     Asking the display driver to re-apply its output is the missing step; see
     ``core.display`` for how that is done.
 
-    Only a switch that really crossed the line needs one.  A mode that stays on
-    the same side of it -- SDR8 to HDR10, say -- changes nothing about how the
-    output is signalled and returns here at once, without waiting on the driver.
-    The rest wait for the driver to confirm the crossing, because a mode the
-    driver did not take is a mode the display has nothing to re-apply for.
+    Which switch needs one is decided twice over.  The crossing answers for the
+    switch: a mode that stays on the same side of the line -- SDR8 to HDR10,
+    say -- changes nothing about how the output is signalled and returns here at
+    once.  ``_display_reset_wanted`` then answers for the box, since a TV-LED
+    one signals the change itself and is left alone.  Only what is left waits
+    for the driver to confirm the crossing, because a mode the driver did not
+    take is a mode the display has nothing to re-apply for.
 
-    Not optional: without it such a switch simply lands wrong, so there is no
-    setting to turn it off.  Only playback gates it, since a switch with
-    nothing on screen has no output to re-apply.
+    Playback gates it too, since a switch with nothing on screen has no output
+    to re-apply.
     """
     if not _is_playing_video():
         return
 
     if (name in _DV_MODES) == dv_before:
+        return
+
+    if not _display_reset_wanted():
+        xbmc.log(
+            f"TinyPPI: '{name}' crossed the Dolby Vision line, but the "
+            "display reset does not apply here -> switching without one",
+            xbmc.LOGINFO,
+        )
         return
 
     if not _wait_for_dv_output_change(dv_before):
