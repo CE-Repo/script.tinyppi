@@ -61,15 +61,12 @@
    do there.
 
    js/cover-tint.js reads the poster and hands the colours over as
-   --cover-gradient, together with the scrim that keeps the text on them
-   readable and the accent the cards' own marks take.  The two values here are
-   what a film with no poster leaves them at: nothing to lay over a card, and
-   the plain dark theme's own accent to answer with rather than a colour that
-   was invented.  A title with no artwork therefore looks exactly as it does
-   on that theme, which is what is true -- there was nothing to take a colour
-   from. */
+   --cover-gradient, along with the accent the cards' own marks take.  The one
+   value here is what a film with no poster leaves that accent at: the plain
+   dark theme's own, rather than a colour that was invented.  A title with no
+   artwork therefore looks exactly as it does on that theme, which is what is
+   true -- there was nothing to take a colour from. */
 :root[data-theme="dark-adaptive"] {
-  --cover-scrim:      rgba(11, 13, 16, 0);
   --cover-accent-rgb: 79, 195, 247;
 }
 

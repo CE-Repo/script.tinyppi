@@ -292,10 +292,11 @@ straight to one:
 - **Dark (adaptive)** — the same page, with the **now-playing card** taking
   its colour from the poster of whatever is on screen. Five colours are read
   out of the artwork region by region and run down the card in the order the
-  poster gave them up, fading out towards the bottom; how much of the colour
-  survives is worked out per film against the contrast the card's text needs —
-  a dark poster keeps nearly all of it, a bright one is held down as far as it
-  has to be, and both end up equally readable. No other card is painted: the
+  poster gave them up — full colour at the top, spent by the middle, so the
+  bar and the controls under it are the same plain card every other panel is.
+  How much of the colour survives is worked out per film against the contrast
+  the card's text needs: a dark poster keeps nearly all of it, a bright one is
+  held down as far as it has to be, and both end up equally readable. No other card is painted: the
   surfaces around the film stay exactly what they are on the plain dark theme,
   so the page has one coloured thing on it and everything else is the page.
   What the other cards do take is the film's accent, for the things read past

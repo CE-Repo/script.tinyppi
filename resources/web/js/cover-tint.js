@@ -123,8 +123,7 @@ window.TinyPPICover = (function () {
 
   /* Every property this file may put on the card, so nothing is left behind
      when there is no poster to paint. */
-  const PAINTED = ["--cover-gradient", "--cover-scrim", "--cover-accent-rgb",
-                   "--muted", "--dim"];
+  const PAINTED = ["--cover-gradient", "--cover-accent-rgb", "--muted", "--dim"];
 
   /* The two of those that mean something to every theme rather than only to
      the one that measured them: the quietest text colours are read wherever
@@ -484,14 +483,20 @@ window.TinyPPICover = (function () {
   const deepen = (rgb, amount) => rgb.map((c) => Math.round(c * amount));
 
   /* Where each of the poster's five colours sits down the card, and how much
-     of it is left by the time it gets there.  The first is painted solid, so
-     that is the point the text has to stay readable against. */
+     of it is left by the time it gets there.
+
+     The first is painted solid, so that is the point the text has to stay
+     readable against, and the last is painted not at all: the colour is spent
+     by the middle of the card and everything below it is the plain panel every
+     other card is.  The film is what the top of the card is about -- the
+     poster, the title, what it is -- and the bar and the drawer under them are
+     the same controls whatever is playing. */
   const HERO_STOPS = [
-    { at: 0,   alpha: 1 },
-    { at: 22,  alpha: 0.86 },
-    { at: 48,  alpha: 0.64 },
-    { at: 74,  alpha: 0.38 },
-    { at: 100, alpha: 0.14 }
+    { at: 0,  alpha: 1 },
+    { at: 14, alpha: 0.88 },
+    { at: 28, alpha: 0.64 },
+    { at: 40, alpha: 0.34 },
+    { at: 50, alpha: 0 }
   ];
 
   /* The now-playing card's gradient: the poster's colours down the card, in
@@ -509,10 +514,16 @@ window.TinyPPICover = (function () {
      Every colour still keeps its place in the poster, top ones first, and
      none of them is averaged away -- five stops down the card is five colours,
      where a top half and a bottom half would have been two. */
-  function heroGradient(colors) {
+  function heroGradient(colors, scrim) {
     const stops = colors.map((rgb, index) => {
       const stop = HERO_STOPS[index];
-      const colour = stop.alpha >= 1 ? rgbText(rgb) : rgbaText(rgb, stop.alpha);
+      /* The scrim is carried by the colours rather than laid over the card as
+         a sheet of its own.  It is there to hold the painted surface down for
+         the text on it, and below the middle there is no painted surface -- a
+         sheet would have gone on darkening a card that is already the plain
+         panel, and left the bottom of this one darker than every other card. */
+      const held = composite(SCRIM_RGB, rgb, scrim);
+      const colour = stop.alpha >= 1 ? rgbText(held) : rgbaText(held, stop.alpha);
       return colour + " " + stop.at + "%";
     });
     return "linear-gradient(180deg, " + stops.join(", ") + ")";
@@ -621,8 +632,7 @@ window.TinyPPICover = (function () {
     const surface = composite(SCRIM_RGB, peak, scrim);
 
     return {
-      "--cover-gradient": heroGradient(colors),
-      "--cover-scrim": rgbaText(SCRIM_RGB, scrim.toFixed(3)),
+      "--cover-gradient": heroGradient(colors, scrim),
       "--cover-accent-rgb": accentColor(palette, surface).join(", "),
       /* The two quietest text colours in the card.  The theme picks them
          against one known surface; here they sit on whatever the poster

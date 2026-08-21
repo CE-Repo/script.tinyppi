@@ -126,13 +126,12 @@
 --------------------------------------------------------------------------- */
 
 /* The card is one box and rounds itself, so it paints the poster on its own
-   background: the scrim over the poster's colours, those over the panel colour
-   underneath.  Stopped at the padding edge rather than run under the border,
-   so the colour cannot spill past the line along the rounded corners. */
+   background, over the panel colour underneath -- one layer, since the scrim
+   that holds the colours down travels in them (see heroGradient).  Stopped at
+   the padding edge rather than run under the border, so the colour cannot
+   spill past the line along the rounded corners. */
 :root[data-theme="dark-adaptive"] .hero {
-  background-image:
-    linear-gradient(var(--cover-scrim), var(--cover-scrim)),
-    var(--cover-gradient, none);
+  background-image: var(--cover-gradient, none);
   background-repeat: no-repeat;
   background-clip: padding-box;
 }
@@ -176,34 +175,13 @@
   color: rgb(var(--cover-accent-rgb));
 }
 
-/* --- Letting the tint through -------------------------------------------
-   The surfaces inside the now-playing card that are opaque on the other
-   themes: the progress bar and, in the drawer under it, the transport keys and
-   the track pickers.  Left as they are, each would sit on the tinted card as a
-   cold grey box; a tint of their own would drag the poster's colour back
-   towards the same slate.  So they give up their fill for a plain darkening
-   and keep their outline, and the bar -- which is a mark rather than a surface
-   -- takes the film's colour instead.
-
-   Nothing outside this card needs any of it: those cards are not painted.
+/* Nothing in the card needs a surface of its own here.  The progress bar, the
+   transport keys and the track pickers all sit below the middle, where the
+   colour is spent and the card is the plain panel the theme drew them for --
+   so they are left exactly as they are on it.  What they do follow is the
+   accent above: the filled part of the bar, a pressed key, a focused picker
+   are marks, and marks take the film's colour.
 ------------------------------------------------------------------------- */
-
-:root[data-theme="dark-adaptive"] .hero :is(.tbtn, .pick select) {
-  background-color: rgba(0, 0, 0, .16);
-}
-
-/* The progress bar, both the plain one and the seekable one -- which draws its
-   own track in a pseudo-element and rings the filled part against it. */
-:root[data-theme="dark-adaptive"] .hero .track,
-:root[data-theme="dark-adaptive"] .hero .track.seekable::before {
-  background: rgba(var(--cover-accent-rgb), .16);
-}
-:root[data-theme="dark-adaptive"] .hero .track.seekable {
-  background: none;
-}
-:root[data-theme="dark-adaptive"] .hero .track.seekable > i {
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, .35);
-}
 
 /* --- The poster ---------------------------------------------------------- */
 
