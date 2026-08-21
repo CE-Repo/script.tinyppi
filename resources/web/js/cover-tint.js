@@ -541,28 +541,28 @@ window.TinyPPICover = (function () {
   const deepen = (rgb, amount) => rgb.map((c) => Math.round(c * amount));
 
   /* The now-playing card gets one continuous colour field rather than a stack
-     of horizontal poster-colour bands.  The wide glow starts at the artwork,
-     reaches behind the title, then disappears gradually towards the controls
-     and the far edge.  Two much quieter layers keep the result from looking
-     like a flat left-to-right fill while staying in the same colour family. */
+     of horizontal poster-colour bands.  The wide glow starts along the top,
+     reaches across the artwork and title, then disappears gradually towards
+     the controls below.  Two much quieter layers keep the result from looking
+     like a flat top-to-bottom fill while staying in the same colour family. */
   function heroGradient(color, scrim) {
     const held = composite(SCRIM_RGB, color, scrim);
     const deep = deepen(held, 0.72);
 
     return [
-      "radial-gradient(ellipse 82% 155% at 0% 38%, " +
+      "radial-gradient(ellipse 155% 105% at 38% 0%, " +
         rgbaText(held, 0.86) + " 0%, " +
-        rgbaText(held, 0.56) + " 34%, " +
-        rgbaText(deep, 0.20) + " 62%, " +
-        rgbaText(deep, 0) + " 84%)",
-      "radial-gradient(ellipse 62% 120% at 34% 0%, " +
+        rgbaText(held, 0.56) + " 36%, " +
+        rgbaText(deep, 0.20) + " 68%, " +
+        rgbaText(deep, 0) + " 94%)",
+      "radial-gradient(ellipse 120% 72% at 100% 34%, " +
         rgbaText(held, 0.18) + " 0%, " +
-        rgbaText(deep, 0.07) + " 52%, " +
-        rgbaText(deep, 0) + " 78%)",
-      "linear-gradient(105deg, " +
-        rgbaText(deep, 0.18) + " 0%, " +
         rgbaText(deep, 0.07) + " 58%, " +
-        rgbaText(deep, 0) + " 90%)"
+        rgbaText(deep, 0) + " 86%)",
+      "linear-gradient(180deg, " +
+        rgbaText(deep, 0.18) + " 0%, " +
+        rgbaText(deep, 0.07) + " 68%, " +
+        rgbaText(deep, 0) + " 100%)"
     ].join(", ");
   }
 
