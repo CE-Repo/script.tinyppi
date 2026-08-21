@@ -218,7 +218,8 @@ main {
    what tells one card from the next, and the screen being narrow is no reason
    for less of it. */
 @media (max-width: 620px) {
-  main { padding: 10px; }
+  main { padding: 10px; gap: 10px; }
+  #live { gap: 10px; }
 }
 
 .card {
