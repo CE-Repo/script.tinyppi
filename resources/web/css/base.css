@@ -109,10 +109,13 @@ body {
 
 /* --- Top bar ------------------------------------------------------------ */
 
+/* Left where it is at the top of the page rather than pinned to the viewport:
+   it is read once on arrival, and following the reader down cost a strip of
+   every screen for something already read.  Static, so the z-index it used to
+   need against the cards below it goes with it -- nothing stacks over anything
+   any more.  The blur and the part-transparent fill stay: the bar still sits
+   over the page background, and both are what give it its edge. */
 .topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -197,6 +200,17 @@ body {
   height: 20px;
   object-fit: contain;
   pointer-events: none;
+}
+/* An icon that has to follow a colour is painted rather than drawn: the file
+   is a white stroke, and an <img> cannot be given a colour, so the drawing
+   becomes a mask over whatever the button's own colour is.  Everything
+   carrying this is a <span> with the file in --icon, not an <img> -- the
+   image would otherwise still be painted over the mask.  Taking currentColor
+   means the hover and pressed states above keep working unchanged. */
+.ui-icon.painted {
+  background: currentColor;
+  -webkit-mask: var(--icon) no-repeat center / contain;
+  mask: var(--icon) no-repeat center / contain;
 }
 .iconbtn .ui-icon { width: 18px; height: 18px; margin: auto; opacity: .82; }
 .iconbtn:hover .ui-icon { opacity: 1; }

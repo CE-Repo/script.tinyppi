@@ -737,9 +737,17 @@ window.TinyPPICover = (function () {
 
   const panelHost = () => document.querySelector("main");
 
+  /* The top bar is a sibling of <main> rather than a child, so it inherits
+     nothing painted there and needs the quiet variant of its own.  That
+     variant carries the accent alone -- the lifted text colours belong to the
+     tinted card and are not wanted on the bar, which kept the theme's own
+     surface (see paintValues). */
+  const barHost = () => document.querySelector(".topbar");
+
   function paintBoth(palette, key) {
     paint(current.hero, palette, key, "hero");
     paint(panelHost(), palette, key, "panel");
+    paint(barHost(), palette, key, "panel");
     /* Anything drawn rather than styled has to be told: the luminance chart
        takes its colours from the card it sits in, and a canvas does not
        repaint itself when a custom property under it changes. */

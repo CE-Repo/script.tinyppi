@@ -12,8 +12,8 @@
 
 /* --- The menu ------------------------------------------------------------ */
 
-/* It lives in <body> rather than beside the button, so the sticky top bar
-   cannot clip it; js/theme.js places it against the button's own rect. */
+/* It lives in <body> rather than beside the button, so the top bar cannot clip
+   it; js/theme.js places it against the button's own rect. */
 .theme-menu {
   position: fixed;
   z-index: 30;
@@ -157,6 +157,16 @@
 :root[data-theme="dark-adaptive"] .metalink {
   --accent:   rgb(var(--cover-accent-rgb));
   --accent-2: rgb(var(--cover-accent-rgb));
+}
+
+/* The keys in the top bar are marks the same way a badge on a card is, so they
+   answer to the film too.  The bar is a sibling of <main> and inherits none of
+   its tint, so js/cover-tint.js paints the accent onto it as its own host.
+   Their icons are painted rather than drawn (see .ui-icon.painted in base.css)
+   and take this through currentColor; hover still lifts them to --text. */
+:root[data-theme="dark-adaptive"] .topbar .iconbtn {
+  color: rgb(var(--cover-accent-rgb));
+  border-color: rgba(var(--cover-accent-rgb), .45);
 }
 
 /* The title of what is playing, which is the one piece of text that is the

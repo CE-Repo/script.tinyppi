@@ -142,7 +142,7 @@ window.TinyPPITheme = (function () {
     if (!button) return;
     const next = nextTheme();
     const label = T.theme_switch.replace("{name}", T[NAME_KEYS[next]]);
-    icon.src = ICONS[next];
+    icon.style.setProperty("--icon", `url("${ICONS[next]}")`);
     button.title = label;
     button.setAttribute("aria-label", label);
   }
@@ -228,8 +228,11 @@ window.TinyPPITheme = (function () {
     }
   }
 
-  /* The menu lives in <body> rather than beside the button, so the sticky top
-     bar cannot clip it; that means placing it against the button's own rect. */
+  /* The menu lives in <body> rather than beside the button, so the top bar
+     cannot clip it; that means placing it against the button's own rect.  The
+     menu is fixed and the bar is not, so anything that moves one without the
+     other -- a resize, a scroll -- has to place it again; both are bound with
+     the button's own handlers below. */
   function placeMenu() {
     const rect = button.getBoundingClientRect();
     const bar = document.querySelector(".topbar");
@@ -312,9 +315,10 @@ window.TinyPPITheme = (function () {
     button.setAttribute("aria-expanded", "false");
     button.setAttribute("aria-controls", "themeMenu");
 
-    icon = document.createElement("img");
-    icon.className = "ui-icon";
-    icon.alt = "";
+    /* Painted, not drawn: this key takes the film's colour under the adaptive
+       theme, and an <img> cannot be given one (see .ui-icon.painted). */
+    icon = document.createElement("span");
+    icon.className = "ui-icon painted";
     button.append(icon);
     brand.after(button);
 
@@ -357,6 +361,14 @@ window.TinyPPITheme = (function () {
     window.addEventListener("resize", () => {
       if (menu.classList.contains("open")) placeMenu();
     });
+
+    /* The bar travels with the page rather than staying pinned to the top, so
+       an open menu has to be brought along with the button it hangs from --
+       fixed, it would otherwise sit still while the button scrolled out from
+       under it.  Passive: this only ever reads the layout. */
+    window.addEventListener("scroll", () => {
+      if (menu.classList.contains("open")) placeMenu();
+    }, { passive: true });
 
     buildMenu();
     paintButton();
