@@ -129,7 +129,7 @@ body {
 @media (max-width: 620px) {
   .iconbtn .lbl { display: none; }
   .iconbtn { padding: 0 10px; min-width: 40px; }
-  .topbar { gap: 8px; padding-left: 12px; padding-right: 12px; }
+  .topbar { gap: 8px; padding-left: 8px; padding-right: 8px; }
 }
 
 .status {
@@ -210,12 +210,13 @@ main {
   display: grid;
   gap: 16px;
 }
-/* On a phone the sides are the scarcest thing on the page, so the cards move
-   in to where the top bar's own buttons already sit.  The air between them
-   stays what it was: it is what tells one card from the next, and the screen
-   being narrow is no reason for less of it. */
+/* On a phone the sides are the scarcest thing on the page, so the cards go
+   right up to them -- and the top bar comes with them, above, so the page has
+   one edge rather than two.  The air between the cards stays what it was: it
+   is what tells one card from the next, and the screen being narrow is no
+   reason for less of it. */
 @media (max-width: 620px) {
-  main { padding-left: 12px; padding-right: 12px; }
+  main { padding-left: 8px; padding-right: 8px; }
 }
 
 .card {
@@ -350,7 +351,7 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
   z-index: 1;
 }
 @media (max-width: 620px) {
-  #idleCard:not(.hidden) { width: min(calc(100% - 24px), 1328px); }
+  #idleCard:not(.hidden) { width: min(calc(100% - 16px), 1328px); }
 }
 
 @media (min-width: 760px) {
