@@ -5,22 +5,20 @@
    with.
 
    Two areas take them, and they are not painted alike.  The now-playing card
-   has the poster standing in it, so it gets the artwork's five colours in the
-   places they came from, hung off the poster itself.  Every other card gets
-   one flat colour -- the accent's -- because there is no artwork in those to
-   arrange anything around: what they are for is saying which film it is, and a
-   single colour says that more plainly than five.  The hero stays the loudest
-   thing on the page that way, and the rest of it agrees with what is playing
-   without competing.
+   has the poster standing in it, so it gets a broad glow in the artwork's
+   representative colour, strongest beside the poster and fading gently into
+   the panel.  Every other card gets that accent as a flat colour because
+   there is no artwork in those to arrange anything around.  The hero stays
+   the loudest thing on the page that way, and the rest of it agrees with what
+   is playing without competing.
 
    Only the adaptive theme reads any of this; every other one ignores it and
    the card keeps the plain panel colour.  Three things decide what comes out,
    and each is a step of its own:
 
-     where a colour is taken from  the poster is read region by region, so the
-                                   gradient keeps the artwork's own layout
-                                   rather than sorting its colours by how often
-                                   they occur (see regionalPalette).
+     where a colour is taken from  the poster is read region by region, then a
+                                   representative accent is chosen from those
+                                   regions (see regionalPalette/accentBase).
      how far it may be taken       the lightness is set in OKLab, which leaves
                                    the hue alone and keeps the colour from
                                    washing out on the way down (see tintColor).
@@ -60,11 +58,6 @@ window.TinyPPICover = (function () {
     [0.5, 0.5, 1, 1],
     [0.25, 0.25, 0.75, 0.75]
   ];
-
-  /* What each stop's lightness is set to, as OKLab's L.  Staggered, so the
-     gradient keeps some depth instead of reading as one flat wash -- and low
-     enough that the scrim below has little left to do on an ordinary poster. */
-  const STOP_LIGHTNESS = [0.40, 0.36, 0.31, 0.29, 0.35];
 
   /* Below this much chroma a colour is a grey, and a grey has no colour to
      keep. */
@@ -286,13 +279,13 @@ window.TinyPPICover = (function () {
     return ranked;
   }
 
-  /* One colour per region, in the order the stops are placed.
+  /* One colour per region, kept as a representative pool for the artwork.
 
      A region whose strongest colour has already been taken by another one
      hands over its runner-up instead: neighbouring parts of a poster are often
-     the same colour, and five identical stops are a flat wash rather than a
-     gradient.  A region with nothing else to offer keeps its colour anyway --
-     a poster that really is one colour should look like one. */
+     the same colour, and a varied pool makes the accent fallback more useful.
+     A region with nothing else to offer keeps its colour anyway -- a poster
+     that really is one colour should look like one. */
   function regionalPalette(pixels, width, height) {
     const picked = [];
     for (const region of REGIONS) {
@@ -310,7 +303,7 @@ window.TinyPPICover = (function () {
   /* The colour that makes the most useful accent.
 
      Area still matters most, so a small bright logo cannot take over a poster.
-     Unlike the five stops above, though, greys are skipped outright and very
+     Unlike the regional pool above, though, greys are skipped outright and very
      bright buckets are discounted: what is wanted is the poster's substantial,
      darker colour field rather than a sky or a white title treatment. */
   function accentSource(pixels, width, height) {
@@ -547,70 +540,30 @@ window.TinyPPICover = (function () {
   const rgbaText = (c, a) => "rgba(" + c[0] + ", " + c[1] + ", " + c[2] + ", " + a + ")";
   const deepen = (rgb, amount) => rgb.map((c) => Math.round(c * amount));
 
-  /* Where each of the poster's five colours sits down the card, and how much
-     of it is left by the time it gets there.
+  /* The now-playing card gets one continuous colour field rather than a stack
+     of horizontal poster-colour bands.  The wide glow starts at the artwork,
+     reaches behind the title, then disappears gradually towards the controls
+     and the far edge.  Two much quieter layers keep the result from looking
+     like a flat left-to-right fill while staying in the same colour family. */
+  function heroGradient(color, scrim) {
+    const held = composite(SCRIM_RGB, color, scrim);
+    const deep = deepen(held, 0.72);
 
-     The first is painted solid, so that is the point the text has to stay
-     readable against, and the last is painted not at all: the colour is spent
-     with a fifth of the card still to go, and that last stretch is the plain
-     panel every other card is.  The foot of the card is the one part that owes
-     the film nothing -- it is the same controls whatever is playing -- so it
-     is the one part that reliably has none of it, however tall the drawer has
-     made the card.
-
-     They are percentages rather than lengths on purpose: the card is two
-     heights, with the control drawer open and shut, and what should hold
-     across both is the proportion -- most of the card carrying the film, its
-     foot not. */
-  const HERO_STOPS = [
-    { at: 0,  alpha: 1 },
-    { at: 18, alpha: 0.90 },
-    { at: 38, alpha: 0.70 },
-    { at: 58, alpha: 0.42 },
-    { at: 80, alpha: 0 }
-  ];
-
-  /* The now-playing card's gradient: the poster's colours down the card, in
-     the order the poster gave them up.
-
-     Straight down rather than out from the poster.  The card is a stack -- the
-     title, then the readings, then the bar and the drawer under them -- and a
-     gradient that runs with that stack fades as the card gets less about the
-     film, instead of cutting across it.  It also means the card is lit the
-     same way whatever is beside the poster and however tall the drawer has
-     made it, which the pools hung off the poster's own footprint were not:
-     they put the brightest colour where the artwork was and left the far end
-     of a wide card carrying almost nothing.
-
-     Every colour still keeps its place in the poster, top ones first, and
-     none of them is averaged away -- five stops down the card is five colours,
-     where a top half and a bottom half would have been two. */
-  function heroGradient(colors, scrim) {
-    const stops = colors.map((rgb, index) => {
-      const stop = HERO_STOPS[index];
-      /* The scrim is carried by the colours rather than laid over the card as
-         a sheet of its own.  It is there to hold the painted surface down for
-         the text on it, and below the middle there is no painted surface -- a
-         sheet would have gone on darkening a card that is already the plain
-         panel, and left the bottom of this one darker than every other card. */
-      const held = composite(SCRIM_RGB, rgb, scrim);
-      const colour = stop.alpha >= 1 ? rgbText(held) : rgbaText(held, stop.alpha);
-      return colour + " " + stop.at + "%";
-    });
-    return "linear-gradient(180deg, " + stops.join(", ") + ")";
-  }
-
-  /* The lightest point the card actually reaches: each colour as it lands on
-     the panel at the strength its own stop is painted at, and the lightest of
-     those.  Measuring the colours themselves would hold a card down for a
-     bright one that is only ever laid on thinly. */
-  function heroPeak(colors, base) {
-    return colors
-      .map((rgb, index) => {
-        const alpha = HERO_STOPS[index].alpha;
-        return alpha >= 1 ? rgb : composite(rgb, base, alpha);
-      })
-      .reduce((a, c) => (luminance(c) > luminance(a) ? c : a));
+    return [
+      "radial-gradient(ellipse 82% 155% at 0% 38%, " +
+        rgbaText(held, 0.86) + " 0%, " +
+        rgbaText(held, 0.56) + " 34%, " +
+        rgbaText(deep, 0.20) + " 62%, " +
+        rgbaText(deep, 0) + " 84%)",
+      "radial-gradient(ellipse 62% 120% at 34% 0%, " +
+        rgbaText(held, 0.18) + " 0%, " +
+        rgbaText(deep, 0.07) + " 52%, " +
+        rgbaText(deep, 0) + " 78%)",
+      "linear-gradient(105deg, " +
+        rgbaText(deep, 0.18) + " 0%, " +
+        rgbaText(deep, 0.07) + " 58%, " +
+        rgbaText(deep, 0) + " 90%)"
+    ].join(", ");
   }
 
   /* ============================================================
@@ -684,26 +637,25 @@ window.TinyPPICover = (function () {
     return values;
   }
 
-  /* The now-playing card: the poster's five colours in the places they came
-     from, with the middle one painted solid.  That last is where the text has
-     to stay readable, so it is what the scrim is solved against. */
+  /* The now-playing card: one representative cover colour, normalised to the
+     selected strength.  The unblended colour is the brightest the glow could
+     reach, so solving contrast against it is deliberately conservative. */
   function heroValues(palette, base) {
     const level = strengthLevel();
     const text = themeColor("--text", [232, 236, 241]);
 
-    const colors = palette.map((rgb, index) => {
-      const tinted = tintColor(rgb, STOP_LIGHTNESS[index] + level.lightness, level.chroma);
-      return level.mix < 1 ? composite(tinted, base, level.mix) : tinted;
-    });
+    const source = accentBase(palette);
+    const tinted = tintColor(source, 0.34 + level.lightness, level.chroma);
+    const color = level.mix < 1 ? composite(tinted, base, level.mix) : tinted;
 
-    const peak = heroPeak(colors, base);
+    const peak = color;
     const scrim = solveScrim(peak, text);
     /* What the text will actually sit on -- which is what everything below is
        measured against. */
     const surface = composite(SCRIM_RGB, peak, scrim);
 
     return {
-      "--cover-gradient": heroGradient(colors, scrim),
+      "--cover-gradient": heroGradient(color, scrim),
       "--cover-accent-rgb": accentColor(palette, surface).join(", "),
       /* The two quietest text colours in the card.  The theme picks them
          against one known surface; here they sit on whatever the poster
