@@ -360,16 +360,81 @@ window.TinyPPICover = (function () {
     };
   }
 
+  /* How much of the poster is held at once while it is read.  It is taken in
+     strips rather than whole: a 4K image as a single canvas is thirty-odd
+     megabytes, which is a lot to ask of a phone for something read once.  Each
+     strip is copied at its own size, so this changes nothing about the answer
+     -- only the peak. */
+  const STRIP_PIXELS = 1 << 20;
+
+  /* The sample, averaged down from the poster's own pixels rather than by the
+     canvas.
+
+     drawImage's downscale is not the same on every device -- browsers differ
+     over it and some hand it to the GPU -- so the 48 px sample came out a
+     little different on a phone than on a desktop.  A little is enough: where
+     a poster's two strongest colours score close together (a red title over a
+     cyan field, say) the accent can fall to either of them, and the same film
+     then wears a different colour on each screen.
+
+     Averaging here makes the reduction integer arithmetic over every source
+     pixel, which comes out the same everywhere.  Each source pixel lands in
+     exactly one cell, so it is a true area average.  Transparent pixels are
+     left out the way bucketize leaves them out, and a cell that collected none
+     stays clear so it is skipped there too. */
+  function reduce(image, width, height, size) {
+    const cells = size.width * size.height;
+    const sums = new Uint32Array(cells * 4);        // r, g, b, and the count
+    const strip = Math.max(1, Math.min(height, Math.floor(STRIP_PIXELS / width)));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = strip;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+
+    for (let top = 0; top < height; top += strip) {
+      const rows = Math.min(strip, height - top);
+      context.clearRect(0, 0, width, rows);
+      /* Source rectangle to destination rectangle at the same size: a copy,
+         never a scale, so nothing here is left to the browser's resampler. */
+      context.drawImage(image, 0, top, width, rows, 0, 0, width, rows);
+      const pixels = context.getImageData(0, 0, width, rows).data;
+
+      for (let y = 0; y < rows; y++) {
+        const row = (((top + y) * size.height / height) | 0) * size.width;
+        for (let x = 0; x < width; x++) {
+          const i = (y * width + x) * 4;
+          if (pixels[i + 3] < 128) continue;
+          const o = (row + ((x * size.width / width) | 0)) * 4;
+          sums[o]     += pixels[i];
+          sums[o + 1] += pixels[i + 1];
+          sums[o + 2] += pixels[i + 2];
+          sums[o + 3] += 1;
+        }
+      }
+    }
+
+    const out = new Uint8ClampedArray(cells * 4);
+    for (let cell = 0; cell < cells; cell++) {
+      const o = cell * 4;
+      const n = sums[o + 3];
+      if (!n) continue;
+      out[o]     = Math.round(sums[o] / n);
+      out[o + 1] = Math.round(sums[o + 1] / n);
+      out[o + 2] = Math.round(sums[o + 2] / n);
+      out[o + 3] = 255;
+    }
+    return out;
+  }
+
   function paletteFromImage(image) {
     try {
+      const width = image.naturalWidth || image.width;
+      const height = image.naturalHeight || image.height;
+      if (!width || !height) return null;
+
       const size = sampleSize(image);
-      const canvas = document.createElement("canvas");
-      canvas.width = size.width;
-      canvas.height = size.height;
-      const context = canvas.getContext("2d");
-      context.imageSmoothingQuality = "high";
-      context.drawImage(image, 0, 0, size.width, size.height);
-      const pixels = context.getImageData(0, 0, size.width, size.height).data;
+      const pixels = reduce(image, width, height, size);
 
       const palette = regionalPalette(pixels, size.width, size.height);
       if (palette.length < 2) return null;
