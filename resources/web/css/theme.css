@@ -125,19 +125,6 @@
    chrome does not belong to the film.
 --------------------------------------------------------------------------- */
 
-/* Where the poster sits inside the now-playing card, as the middle of its own
-   box: the light in that card comes from the artwork rather than from the
-   card's corners, and only the layout knows where that is.  The poster is
-   104x156 with a 16px inset, and shrinks with the viewport on a narrow screen
-   (see .art img in live-panels.css) -- these follow it. */
-:root[data-theme="dark-adaptive"] .hero {
-  --cover-anchor-x: calc(16px + min(52px, 15vw));
-  --cover-anchor-y: calc(16px + min(78px, 22.5vw));
-  --cover-spread-x: 34px;
-  --cover-spread-y: 44px;
-  --cover-fade-angle: 100deg;
-}
-
 /* The card is one box and rounds itself, so it paints the poster on its own
    background: the scrim over the poster's colours, those over the panel colour
    underneath.  Stopped at the padding edge rather than run under the border,
@@ -174,8 +161,18 @@
 }
 
 /* The title of what is playing, which is the one piece of text that is the
-   film rather than a reading about it. */
-:root[data-theme="dark-adaptive"] .hero .now h1 {
+   film rather than a reading about it -- and the heading of every card, which
+   is not the film but is the page's own furniture, the thing read past rather
+   than read.  Both go to the accent; what is between them, the readings
+   themselves, stays the plain text colour.
+
+   The headings carry their own disclosure arrow as currentColor, so it follows
+   without a rule of its own. */
+:root[data-theme="dark-adaptive"] .hero .now h1,
+:root[data-theme="dark-adaptive"] .card > .panel-toggle,
+:root[data-theme="dark-adaptive"] .card[open] > .panel-toggle,
+:root[data-theme="dark-adaptive"] .card > h2,
+:root[data-theme="dark-adaptive"] .card > .cardhead > h2 {
   color: rgb(var(--cover-accent-rgb));
 }
 

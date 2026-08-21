@@ -483,44 +483,52 @@ window.TinyPPICover = (function () {
   const rgbaText = (c, a) => "rgba(" + c[0] + ", " + c[1] + ", " + c[2] + ", " + a + ")";
   const deepen = (rgb, amount) => rgb.map((c) => Math.round(c * amount));
 
-  /* The now-playing card's gradient, hung off the poster rather than off the
-     card's own corners.
+  /* Where each of the poster's five colours sits down the card, and how much
+     of it is left by the time it gets there.  The first is painted solid, so
+     that is the point the text has to stay readable against. */
+  const HERO_STOPS = [
+    { at: 0,   alpha: 1 },
+    { at: 22,  alpha: 0.86 },
+    { at: 48,  alpha: 0.64 },
+    { at: 74,  alpha: 0.38 },
+    { at: 100, alpha: 0.14 }
+  ];
 
-     The card is much wider than the poster standing in it, so pools in its
-     corners would put the brightest colour where there is no artwork to
-     support it.  All five sources stay around the poster's own footprint
-     instead -- where that is belongs to the layout, so css/theme.css hands it
-     over as --cover-anchor-x and --cover-anchor-y -- and their long, quiet
-     tails merge into a final directional wash that fades back to the card's
-     own colour by the far edge. */
+  /* The now-playing card's gradient: the poster's colours down the card, in
+     the order the poster gave them up.
+
+     Straight down rather than out from the poster.  The card is a stack -- the
+     title, then the readings, then the bar and the drawer under them -- and a
+     gradient that runs with that stack fades as the card gets less about the
+     film, instead of cutting across it.  It also means the card is lit the
+     same way whatever is beside the poster and however tall the drawer has
+     made it, which the pools hung off the poster's own footprint were not:
+     they put the brightest colour where the artwork was and left the far end
+     of a wide card carrying almost nothing.
+
+     Every colour still keeps its place in the poster, top ones first, and
+     none of them is averaged away -- five stops down the card is five colours,
+     where a top half and a bottom half would have been two. */
   function heroGradient(colors) {
-    const tl = colors[0], tr = colors[1], bl = colors[2];
-    const br = colors[3], mid = colors[4] || colors[0];
-    const x = "var(--cover-anchor-x)", y = "var(--cover-anchor-y)";
-    const sx = "var(--cover-spread-x)", sy = "var(--cover-spread-y)";
-    const left = "calc(" + x + " - " + sx + ")", right = "calc(" + x + " + " + sx + ")";
-    const top = "calc(" + y + " - " + sy + ")", bottom = "calc(" + y + " + " + sy + ")";
+    const stops = colors.map((rgb, index) => {
+      const stop = HERO_STOPS[index];
+      const colour = stop.alpha >= 1 ? rgbText(rgb) : rgbaText(rgb, stop.alpha);
+      return colour + " " + stop.at + "%";
+    });
+    return "linear-gradient(180deg, " + stops.join(", ") + ")";
+  }
 
-    return [
-      "radial-gradient(ellipse 50% 96% at " + left + " " + top + ", " +
-        rgbaText(tl, 0.82) + " 0%, " + rgbaText(tl, 0.28) + " 24%, " +
-        rgbaText(deepen(tl, 0.4), 0) + " 74%)",
-      "radial-gradient(ellipse 64% 108% at " + right + " " + top + ", " +
-        rgbaText(tr, 0.68) + " 0%, " + rgbaText(tr, 0.24) + " 24%, " +
-        rgbaText(deepen(tr, 0.42), 0) + " 78%)",
-      "radial-gradient(ellipse 50% 96% at " + left + " " + bottom + ", " +
-        rgbaText(bl, 0.76) + " 0%, " + rgbaText(bl, 0.26) + " 24%, " +
-        rgbaText(deepen(bl, 0.45), 0) + " 74%)",
-      "radial-gradient(ellipse 64% 108% at " + right + " " + bottom + ", " +
-        rgbaText(br, 0.62) + " 0%, " + rgbaText(br, 0.22) + " 24%, " +
-        rgbaText(deepen(br, 0.48), 0) + " 78%)",
-      "radial-gradient(ellipse 62% 124% at " + x + " " + y + ", " +
-        rgbText(mid) + " 0%, " + rgbaText(mid, 0.48) + " 30%, " +
-        rgbaText(deepen(mid, 0.5), 0) + " 78%)",
-      "linear-gradient(var(--cover-fade-angle), " +
-        rgbaText(mid, 0.22) + " 0%, " + rgbaText(mid, 0.11) + " 42%, " +
-        rgbaText(br, 0.04) + " 72%, " + rgbaText(br, 0) + " 100%)"
-    ].join(", ");
+  /* The lightest point the card actually reaches: each colour as it lands on
+     the panel at the strength its own stop is painted at, and the lightest of
+     those.  Measuring the colours themselves would hold a card down for a
+     bright one that is only ever laid on thinly. */
+  function heroPeak(colors, base) {
+    return colors
+      .map((rgb, index) => {
+        const alpha = HERO_STOPS[index].alpha;
+        return alpha >= 1 ? rgb : composite(rgb, base, alpha);
+      })
+      .reduce((a, c) => (luminance(c) > luminance(a) ? c : a));
   }
 
   /* ============================================================
@@ -606,12 +614,11 @@ window.TinyPPICover = (function () {
       return level.mix < 1 ? composite(tinted, base, level.mix) : tinted;
     });
 
-    const brightest = colors.reduce(
-      (a, c) => (luminance(c) > luminance(a) ? c : a));
-    const scrim = solveScrim(brightest, text);
+    const peak = heroPeak(colors, base);
+    const scrim = solveScrim(peak, text);
     /* What the text will actually sit on -- which is what everything below is
        measured against. */
-    const surface = composite(SCRIM_RGB, brightest, scrim);
+    const surface = composite(SCRIM_RGB, peak, scrim);
 
     return {
       "--cover-gradient": heroGradient(colors),

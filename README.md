@@ -290,16 +290,18 @@ straight to one:
 
 - **Dark** — the plain one, and what a first visit gets.
 - **Dark (adaptive)** — the same page, with the **now-playing card** taking
-  its colour from the poster of whatever is on screen. The five colours are
-  read out of the artwork region by region, so the card keeps the poster's own
-  layout, and how much of the colour survives is worked out per film against
-  the contrast its text needs — a dark poster keeps nearly all of it, a bright
-  one is held down as far as it has to be, and both end up equally readable.
-  No other card is painted: the surfaces around the film stay exactly what they
-  are on the plain dark theme, so the page has one coloured thing on it and
-  everything else is the page. What the other cards do take is the film's
-  accent, for their marks alone — a badge, a button, the luminance chart's own
-  traces. A title with no poster looks exactly as it does on the plain dark
+  its colour from the poster of whatever is on screen. Five colours are read
+  out of the artwork region by region and run down the card in the order the
+  poster gave them up, fading out towards the bottom; how much of the colour
+  survives is worked out per film against the contrast the card's text needs —
+  a dark poster keeps nearly all of it, a bright one is held down as far as it
+  has to be, and both end up equally readable. No other card is painted: the
+  surfaces around the film stay exactly what they are on the plain dark theme,
+  so the page has one coloured thing on it and everything else is the page.
+  What the other cards do take is the film's accent, for the things read past
+  rather than read — the card headings, a badge, a button, the luminance
+  chart's own traces — while the readings themselves keep the plain text
+  colour. A title with no poster looks exactly as it does on the plain dark
   theme; there was nothing to take a colour from. While this theme is on, the
   menu also carries how strongly it tints: **subtle**, **standard** or
   **strong**.
