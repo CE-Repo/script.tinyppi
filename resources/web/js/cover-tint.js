@@ -487,16 +487,22 @@ window.TinyPPICover = (function () {
 
      The first is painted solid, so that is the point the text has to stay
      readable against, and the last is painted not at all: the colour is spent
-     by the middle of the card and everything below it is the plain panel every
-     other card is.  The film is what the top of the card is about -- the
-     poster, the title, what it is -- and the bar and the drawer under them are
-     the same controls whatever is playing. */
+     with a fifth of the card still to go, and that last stretch is the plain
+     panel every other card is.  The foot of the card is the one part that owes
+     the film nothing -- it is the same controls whatever is playing -- so it
+     is the one part that reliably has none of it, however tall the drawer has
+     made the card.
+
+     They are percentages rather than lengths on purpose: the card is two
+     heights, with the control drawer open and shut, and what should hold
+     across both is the proportion -- most of the card carrying the film, its
+     foot not. */
   const HERO_STOPS = [
     { at: 0,  alpha: 1 },
-    { at: 14, alpha: 0.88 },
-    { at: 28, alpha: 0.64 },
-    { at: 40, alpha: 0.34 },
-    { at: 50, alpha: 0 }
+    { at: 18, alpha: 0.90 },
+    { at: 38, alpha: 0.70 },
+    { at: 58, alpha: 0.42 },
+    { at: 80, alpha: 0 }
   ];
 
   /* The now-playing card's gradient: the poster's colours down the card, in

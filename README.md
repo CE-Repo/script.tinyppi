@@ -292,8 +292,9 @@ straight to one:
 - **Dark (adaptive)** — the same page, with the **now-playing card** taking
   its colour from the poster of whatever is on screen. Five colours are read
   out of the artwork region by region and run down the card in the order the
-  poster gave them up — full colour at the top, spent by the middle, so the
-  bar and the controls under it are the same plain card every other panel is.
+  poster gave them up — full colour at the top, spent with a fifth of the card
+  still to go, so its foot is the same plain card every other panel is whether
+  the controls are folded out or away.
   How much of the colour survives is worked out per film against the contrast
   the card's text needs: a dark poster keeps nearly all of it, a bright one is
   held down as far as it has to be, and both end up equally readable. No other card is painted: the
