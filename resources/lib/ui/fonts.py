@@ -13,7 +13,6 @@ opens; FontInstallMonitor re-runs it on skin change or Kodi update.
 import os
 import re
 import traceback
-import xml.etree.ElementTree as ET
 
 import xbmc
 import xbmcaddon
@@ -79,65 +78,19 @@ def _spec_entry(spec: dict) -> tuple[str, str, str]:
     return (spec["name"], spec["filename"], spec["size"])
 
 
-def _registered_fonts(xml_root) -> set[tuple[str, str, str]]:
-    """Return the (name, filename, size) of every font already in Font.xml.
-
-    The size is part of the identity, not just the name and file: ``arial.ttf``
-    and a name like ``font32`` are common enough in skins that a match on those
-    two alone would report a font as present at a size the overlay never asked
-    for, and its rows would be laid out against the wrong metrics.
-    """
-    registered: set[tuple[str, str, str]] = set()
-    for font in xml_root.findall(".//font"):
-        values = []
-        for tag in ("name", "filename", "size"):
-            element = font.find(tag)
-            values.append(
-                (element.text or "").strip() if element is not None else ""
-            )
-        if all(values):
-            registered.add(tuple(values))
-    return registered
-
-
-def fonts_already_installed(skin_path: str) -> bool:
-    """Return True only when every required font is registered in Font.xml.
-
-    Nothing is checked on disk: the file named is Kodi's own ``arial.ttf``,
-    which it locates through its own search path, and substitutes for itself
-    when it cannot.
-    """
-    font_xml_path = _find_font_xml(skin_path)
-    if not font_xml_path:
-        return False
-
-    try:
-        tree     = ET.parse(font_xml_path)
-        xml_root = tree.getroot()
-    except ET.ParseError as exc:
-        _log(f"XML parse error: {exc}", xbmc.LOGERROR)
-        return False
-
-    # Every fontset must carry all required fonts, not just the first.
-    fontsets = xml_root.findall("fontset")
-    if not fontsets:
-        return False
-
-    for fontset in fontsets:
-        registered = _registered_fonts(fontset)
-        fset_id = fontset.get("id", "?")
-
-        for font_spec in _REQUIRED_FONTS:
-            if _spec_entry(font_spec) not in registered:
-                _log(f'XML entry missing: {font_spec["name"]} in fontset "{fset_id}"')
-                return False
-
-    return True
-
-
-# Text-based editing preserves the file byte-for-byte apart from the inserted
-# entries: the original XML declaration, encoding, blank lines and line endings
-# stay untouched (ElementTree would rewrite all of these on re-serialisation).
+# Font.xml is read and written as text rather than through an XML parser.
+#
+# For the writer that is what preserves the file byte-for-byte apart from the
+# inserted entries: the original XML declaration, encoding, blank lines and
+# line endings stay untouched, where ElementTree would rewrite all of these on
+# re-serialisation.
+#
+# For the reader it means the check and the insert decide "is this font
+# already here?" by the same rule, so they cannot disagree about a file, and
+# it keeps a Font.xml this addon did not write away from a parser that expands
+# the entity declarations an internal DTD may carry -- the XML external entity
+# class of problem (CWE-611), which the stdlib parser is open to and which no
+# reading of a skin file needs.
 _FONTSET_RE = re.compile(r"(<fontset\b[^>]*>)(.*?)(</fontset>)", re.DOTALL)
 _INCLUDE_RE = re.compile(r"<include\b.*?(?:/>|</include>)", re.DOTALL)
 _ID_RE      = re.compile(r'\bid\s*=\s*"([^"]*)"')
@@ -170,6 +123,60 @@ def _fontset_has(inner: str, spec: dict) -> bool:
     return any(_block_entry(block) == target for block in _FONT_RE.findall(inner))
 
 
+def _read_font_xml(font_xml_path: str) -> str | None:
+    """Return the text of Font.xml, or None when it cannot be read."""
+    try:
+        with open(font_xml_path, "rb") as fh:
+            return fh.read().decode("utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        _log(f"cannot read Font.xml: {exc}", xbmc.LOGERROR)
+        return None
+
+
+def _fontset_id(open_tag: str) -> str:
+    """The id a <fontset> opening tag declares, for the log line naming it."""
+    match = _ID_RE.search(open_tag)
+    return match.group(1) if match else "?"
+
+
+def fonts_already_installed(skin_path: str) -> bool:
+    """Return True only when every required font is registered in Font.xml.
+
+    Nothing is checked on disk: the file named is Kodi's own ``arial.ttf``,
+    which it locates through its own search path, and substitutes for itself
+    when it cannot.
+
+    The size is part of a font's identity here, not just its name and file:
+    ``arial.ttf`` and a name like ``font32`` are common enough in skins that a
+    match on those two alone would report a font as present at a size the
+    overlay never asked for, and its rows would be laid out against the wrong
+    metrics.  That is _fontset_has's rule, which is also the one _install_xml
+    picks its inserts by.
+    """
+    font_xml_path = _find_font_xml(skin_path)
+    if not font_xml_path:
+        return False
+
+    original = _read_font_xml(font_xml_path)
+    if original is None:
+        return False
+
+    # Every fontset must carry all required fonts, not just the first.
+    fontsets = _FONTSET_RE.findall(original)
+    if not fontsets:
+        return False
+
+    for open_tag, inner, _close_tag in fontsets:
+        fset_id = _fontset_id(open_tag)
+        for font_spec in _REQUIRED_FONTS:
+            if not _fontset_has(inner, font_spec):
+                _log(f'XML entry missing: {font_spec["name"]} '
+                     f'in fontset "{fset_id}"')
+                return False
+
+    return True
+
+
 def _font_block(spec: dict, indent: str, nl: str) -> str:
     """Render a <font> element (leading newline included) at *indent*."""
     return (
@@ -193,11 +200,8 @@ def _install_xml(skin_path: str) -> bool:
         _log("installxml: Font.xml not found", xbmc.LOGERROR)
         return False
 
-    try:
-        with open(font_xml_path, "rb") as fh:
-            original = fh.read().decode("utf-8")
-    except (OSError, UnicodeDecodeError) as exc:
-        _log(f"installxml: cannot read Font.xml: {exc}", xbmc.LOGERROR)
+    original = _read_font_xml(font_xml_path)
+    if original is None:
         return False
 
     nl = "\r\n" if "\r\n" in original else "\n"
@@ -206,8 +210,7 @@ def _install_xml(skin_path: str) -> bool:
     def _process(match: "re.Match") -> str:
         nonlocal modified
         open_tag, inner, close_tag = match.group(1), match.group(2), match.group(3)
-        fset_id = (_ID_RE.search(open_tag).group(1)
-                   if _ID_RE.search(open_tag) else "?")
+        fset_id = _fontset_id(open_tag)
 
         missing = [s for s in _REQUIRED_FONTS if not _fontset_has(inner, s)]
         if not missing:

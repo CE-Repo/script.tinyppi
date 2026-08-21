@@ -490,23 +490,33 @@ _VECTOR_FIELDS = tuple((index, f"Field {index + 1}") for index in range(6))
 _LEGEND_RAW = "Legend (raw)"
 _LEGEND_UI  = "Legend (UI)"
 
+# The target displays a trim table shows a pass for.  A grade carries a pass
+# per display its CM was run against, which on a full L8 is a dozen rows of
+# near-identical cells; these four are the reference points the rest sit
+# between, so the table stays one screen worth of readings rather than a wall
+# of them.  A pass graded for any other display is left out of the view.
+_TRIM_TARGETS = (100, 600, 1000, 2000)
+
+
+def _target_nits(trim: dict) -> int | None:
+    """The whole-nits brightness of the display a pass was graded for, or None
+    when the pass does not name one."""
+    value = trim.get("nits")
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return int(round(value))
+
 
 def _target(trim: dict) -> str:
     """Name a pass by the display it was graded for.
 
-    L8 names that display by the index it resolves against L10, L2 names none
-    at all -- so L2's pass is named by the raw target PQ code its nits were
-    decoded from, which is the same thing said the only way L2 says it.  A
-    parser too old to publish that code leaves the pass on its nits alone.
+    The brightness alone, which is the reading anyone comparing passes is
+    after.  The codes a pass also carries -- L8's index into L10, the raw
+    target PQ code L2's nits were decoded from -- say the same display a
+    second time in a form nothing here reads against, so they are left out
+    and the row keeps the width for its cells.
     """
-    target = f"{_num(trim.get('nits'))} nits"
-    index  = trim.get("target_display_index")
-    max_pq = trim.get("target_max_pq")
-    if index is not None:
-        target += f" (#{_num(index)})"
-    elif max_pq is not None:
-        target += f" (PQ {_num(max_pq)})"
-    return target
+    return f"{_num(trim.get('nits'))} nits"
 
 
 def _vector_block(trim: dict, key: str) -> dict:
@@ -574,10 +584,13 @@ def _trim_entries(level: str, trims: list | None) -> list:
     than a run of unlabelled cells on the end of a row that means something
     else.  A vector no pass carries is a table that is never built.
 
-    A level whose passes set nothing returns nothing, which drops its section.
+    Only the passes graded for one of the reference displays (_TRIM_TARGETS)
+    are laid out; a level whose remaining passes set nothing returns nothing,
+    which drops its section.
     """
     raw_controls = _TRIM_RAW_L8 if level == "l8" else _TRIM_RAW
-    trims = list(trims or [])
+    trims = [trim for trim in (trims or [])
+             if _target_nits(trim) in _TRIM_TARGETS]
     entries: list = []
 
     tables = [

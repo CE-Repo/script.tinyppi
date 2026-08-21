@@ -143,6 +143,10 @@ msgctxt "#32056"
 msgid "Audio"
 msgstr ""
 
+msgctxt "#32057"
+msgid "Output"
+msgstr ""
+
 msgctxt "#32069"
 msgid "Audio resolution"
 msgstr ""
