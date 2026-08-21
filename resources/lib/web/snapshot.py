@@ -1008,19 +1008,38 @@ _VS10_OPTIONS = {
 }
 
 
+def _is_hdr10_plus(key: str) -> bool:
+    """Whether the lower-cased source token names HDR10+.
+
+    Both spellings are read: the Home window carries ``hdr10plus`` (see
+    ``info.properties.publish_hdr_type``, which avoids the ``+`` Kodi's boolean
+    parser would take for an AND), while ``get_hdr_format`` names the format
+    itself ``hdr10+``.
+    """
+    return "hdr10plus" in key or "hdr10+" in key
+
+
 def _options_for(source: str, playing: bool = True) -> tuple:
     """The mode buttons that apply to ``source``.
 
-    ``hdr10plus`` contains ``hdr10`` and takes the same three, matching the
-    skin's own ``String.Contains`` branches.  An **empty** source is SDR, not
-    "unknown": ``publish_hdr_type`` writes a token only for the HDR formats,
-    and the dialog's own SDR group is the one behind ``String.IsEmpty`` (see
-    script-tinyppi-dialog.xml).  So the buttons only fall away when nothing is
-    playing at all and there is no source to convert.
+    ``hdr10plus`` gets none.  The driver has no VS10 group for it and the
+    on-screen dialog draws none either -- its HDR10 group is behind
+    ``String.IsEqual(...,hdr10)``, which HDR10+ does not match, and the only
+    control it leaves standing is the player-process button (see
+    script-tinyppi-dialog.xml).  The page follows: with no options the whole
+    VS10 card goes, output line included, rather than offer a conversion that
+    is not on offer anywhere else.
+
+    An **empty** source is SDR, not "unknown": ``publish_hdr_type`` writes a
+    token only for the HDR formats, and the dialog's own SDR group is the one
+    behind ``String.IsEmpty``.  So the buttons otherwise only fall away when
+    nothing is playing at all and there is no source to convert.
     """
     if not playing:
         return ()
     key = (source or "").strip().lower()
+    if _is_hdr10_plus(key):
+        return ()
     if "dolby" in key:
         return _VS10_OPTIONS["dolby vision"]
     if "hlg" in key:
