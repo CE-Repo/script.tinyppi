@@ -210,6 +210,13 @@ main {
   display: grid;
   gap: 16px;
 }
+/* On a phone the sides are the scarcest thing on the page, so the cards move
+   in to where the top bar's own buttons already sit.  The air between them
+   stays what it was: it is what tells one card from the next, and the screen
+   being narrow is no reason for less of it. */
+@media (max-width: 620px) {
+  main { padding-left: 12px; padding-right: 12px; }
+}
 
 .card {
   background: var(--panel);
@@ -336,9 +343,14 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
   position: fixed;
   top: 50%;
   left: 50%;
+  /* Twice main's own padding taken off, so a card that has left the flow still
+     lines up with the ones that have not. */
   width: min(calc(100% - 32px), 1328px);
   transform: translate(-50%, -50%);
   z-index: 1;
+}
+@media (max-width: 620px) {
+  #idleCard:not(.hidden) { width: min(calc(100% - 24px), 1328px); }
 }
 
 @media (min-width: 760px) {
