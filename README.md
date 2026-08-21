@@ -351,10 +351,11 @@ on-screen VS10 dialog offers, SDR sources included — and a tap applies one.
 The switch is handed to the add-on's own `run_mode` entry point, so it takes
 exactly the path a keymap shortcut takes, native VS10 actions included.
 
-**HDR10+** is the one source with no modes: the driver has no VS10 group for
-it, and the on-screen dialog draws none either. The dashboard follows, and
-hides the whole VS10 card — output line included — for the length of an
-HDR10+ stream. HDR10 keeps its three.
+**HDR10+** and **HLG** are the two sources with no modes: neither is a VS10
+input, so the driver has no group for either and the on-screen dialog draws
+none — both are left with the player-process button alone. The dashboard
+follows, and hides the whole VS10 card — output line included — for the length
+of an HDR10+ or HLG stream. HDR10 keeps its three.
 
 Switching **always** requires the access token, whatever reading is set to.
 
@@ -407,6 +408,9 @@ RunScript(script.tinyppi,dialog)
 ```
 
 Opens the VS10 mode selection dialog instead of the main TinyPPI overlay.
+It shows the modes that apply to the playing source; on an **HDR10+** or
+an **HLG** stream — neither of which is a VS10 input — it draws no modes at
+all and leaves the player-process button on its own.
 
 ### Apply a VS10 output mode directly
 
