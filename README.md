@@ -197,17 +197,18 @@ The view is grouped by metadata block:
 |---------|----------|
 | Stream | Kodi's own HDR type and detail, the side-data sections that arrived, the stream flags (`converted`, `rpu-removed`, …), the layer structure and the parser version |
 | Configuration record | The dvcC / dvvC record: version, profile, compatibility ID, level, RPU / BL / EL presence, metadata compression |
-| RPU | Guessed profile, CM version, DM compression, the DM metadata IDs and scene refresh flag, and the full RPU header (types, VDR profile / level / normalized IDC, BL / EL / VDR bit depth, EL type, full range, resampling, residual and coefficient fields, previous-RPU reuse) |
+| RPU | Guessed profile, CM version, DM compression, the DM metadata IDs, scene refresh flag and extension-block count, and the full RPU header (types, VDR profile / level / normalized IDC, the VDR sequence-info and DM-metadata presence flags, BL / EL / VDR bit depth, EL type, full range, resampling, residual and coefficient fields, previous-RPU reuse, the NAL prefix and the reserved field) |
+| Composer | The reshaping metadata the decoder actually applies to the base layer: the mapping's colour space, chroma format and tile partitioning, then a section per component (Y, Cb, Cr) with its curve shape, its pivots and the coefficients of every segment — and, on the dual-layer profiles that carry one, the NLQ dequantization data |
 | L1 | Frame luminance, min / max / average, as raw PQ codes and nits |
 | Source master | The PQ range of the master the grade was made from, and its display diagonal |
 | Colorimetry | The VDR DM signal description and the YCC → RGB / RGB → LMS matrices, in raw codes |
-| L2 / L8 | Every trim pass, as raw 12-bit codes and on the Dolby UI scale, plus L8's secondary saturation / hue vectors on the streams that carry them |
+| L2 / L8 | Every trim pass, as raw 12-bit codes and on the Dolby UI scale, plus L8's secondary saturation / hue vectors on the streams that carry them and each pass's own block length |
 | L3 | PQ offsets |
 | L4 | Temporal stability: the anchor PQ and power |
 | L5 | Active-area offsets (the black bars the RPU declares) |
 | L6 | The RPU's own mastering display and MaxCLL / MaxFALL |
-| L9 / L10 | Source primaries and the target displays the L8 trims are graded against |
-| L11 | Content type, whitepoint and reference mode |
+| L9 / L10 | Source primaries and the target displays the L8 trims are graded against, each with its block length |
+| L11 | Content type, whitepoint, reference mode and the reserved bytes |
 | L254 / L255 | The CM v4.0 marker block, and the debug run mode block on the rare stream that carries one |
 | Static metadata | The MDCV / CLL SEIs — the stream's own HDR10 layer, shown apart from L6 |
 | HDR10+ | The ST 2094-40 payload, when the stream carries one alongside Dolby Vision |
@@ -217,6 +218,15 @@ Blocks the stream does not carry are still listed, with their values shown as
 parsing is done by
 [script.module.sidedata](https://github.com/matthane/script.module.sidedata);
 the field names and units follow its own field reference.
+
+Everything in the view is printed as the bitstream carries it, with one
+exception: the composer's coefficients. The RPU splits each of them into an
+integer and a fractional half that say nothing read apart, so they are shown
+combined — `int + frac / 2 ** coefficient_log2_denom`, the arithmetic the RPU
+syntax itself defines, with the denominator readable in the **RPU** section
+above. The composer is also the one part of a parse TinyPPI asks for rather
+than always builds: it runs to hundreds of coefficients, so it is read only
+while this view is open and the overlay's own polling never pays for it.
 
 ---
 
@@ -318,7 +328,8 @@ On a Dolby Vision title the dashboard shows a **Dolby Vision metadata view**
 button. It opens a second window — `http://<box-ip>:8099/metadata`, which can
 also be bookmarked on its own — listing every block the stream's side data
 carries: the configuration record, the RPU from its header through L255, the
-trim passes and the static SEIs. It is the same list the on-screen view shows,
+composer's reshaping curves, the trim passes and the static SEIs. It is the
+same list the on-screen view shows,
 built from the same rows, and it stays live: the per-frame blocks move with the
 picture and a reading that just changed is highlighted, exactly as in the
 overlay. On a wide screen it flows into two or three columns, never breaking a
