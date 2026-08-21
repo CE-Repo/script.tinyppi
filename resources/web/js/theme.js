@@ -159,10 +159,12 @@ window.TinyPPITheme = (function () {
       item.dataset.theme = theme;
       item.setAttribute("role", "menuitemradio");
 
-      const image = document.createElement("img");
-      image.className = "ui-icon";
-      image.src = ICONS[theme];
-      image.alt = "";
+      /* Painted like the key in the bar, so the mark follows the row it is in:
+         the chosen row already colours its text, and a white symbol beside
+         coloured text was the one part of the row that did not answer. */
+      const image = document.createElement("span");
+      image.className = "ui-icon painted";
+      image.style.setProperty("--icon", `url("${ICONS[theme]}")`);
       const text = document.createElement("span");
       text.textContent = T[NAME_KEYS[theme]];
 
