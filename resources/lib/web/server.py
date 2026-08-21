@@ -107,7 +107,6 @@ _UI_STRINGS = {
     "switch_failed": 32466,
     # The summary figures, history chart and transport row.
     "drops":         32476,
-    "cache_min":     32477,
     "switches":      32478,
     "events":        32479,
     "events_empty":  32480,

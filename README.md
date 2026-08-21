@@ -241,24 +241,22 @@ a phone in your hand.
   *Show file name* is on), elapsed time and progress.
 - **The format logos the overlay draws** — the very files from the add-on's own
   skin, so a Dolby Vision Atmos title wears the same two badges on the phone as
-  it does on the TV, next to the speaker-layout graphic for the track that is
-  playing.
-- **Peak / average brightness**, the aspect ratio of the picture inside the
-  bars, and the frame rate with dropped frames called out.
+  it does on the TV.
+- **Metrics** — the frame rate with dropped frames called out beneath it, the
+  frames lost across the whole title, and how often the output was switched.
+  Only the add-on sees every frame, so the last two are figures a browser
+  could not work out for itself.
 - **A live luminance chart** — the Dolby Vision L1 peak and frame average on a
   logarithmic scale, over the last minute, the last ten, or the whole title:
   the add-on has been sampling since playback started, so a page opened halfway
   through a film gets the part it missed instead of starting from empty.
-- **This playback** — what the title has done so far: the highest peak the
-  grade ever reached, the average across the film, frames lost, the lowest the
-  cache ever fell, and how often the output was switched. Only the add-on sees
-  every frame, so these are figures a browser could not work out for itself.
 - **Events** — a list with timestamps of the things worth knowing about: an
   output switched to or from Dolby Vision, a display mode change, the cache
   dipping, frames going missing.
 - **The active picture area** the RPU declares (L5), drawn to scale inside the
   coded frame — the letterbox as the stream describes it, changing with the
-  scene on an IMAX Enhanced title.
+  scene on an IMAX Enhanced title. It sits on the metadata window, with the
+  blocks it is read from.
 - **Every row of the overlay**, grouped as it is on screen: Video, Processing,
   Audio, HDR static metadata, Dolby Vision metadata and System. A reading that
   just moved is highlighted the same way the overlay highlights it.
@@ -289,16 +287,17 @@ straight to one:
 
 - **Dark** — the plain one, and what a first visit gets.
 - **Dark (adaptive)** — the same page, with the **now-playing card** taking
-  its colour from the poster of whatever is on screen. Five colours are read
-  out of the artwork region by region and run down the card in the order the
-  poster gave them up — full colour at the top, spent with a fifth of the card
-  still to go, so its foot is the same plain card every other panel is whether
-  the controls are folded out or away.
+  its colour from the poster of whatever is on screen. The artwork is read
+  region by region and the one colour that stands for it best is drawn across
+  the card as a broad glow — strongest beside the poster, spent well before the
+  foot, so the bottom of the card is the same plain panel every other one is
+  whether the controls are folded out or away.
   How much of the colour survives is worked out per film against the contrast
   the card's text needs: a dark poster keeps nearly all of it, a bright one is
-  held down as far as it has to be, and both end up equally readable. No other card is painted: the
-  surfaces around the film stay exactly what they are on the plain dark theme,
-  so the page has one coloured thing on it and everything else is the page.
+  held down as far as it has to be, and both end up equally readable. No other
+  card is painted: the surfaces around the film stay exactly what they are on
+  the plain dark theme, so the page has one coloured thing on it and everything
+  else is the page.
   What the other cards do take is the film's accent, for the things read past
   rather than read — the card headings, a badge, a button, the luminance
   chart's own traces — while the readings themselves keep the plain text
@@ -436,9 +435,7 @@ only the DRM master may set; add-ons run inside the Kodi process, so Kodi's own
 descriptor is used for it.
 
 A switch that stays on the same side (SDR8 to HDR10, say) never triggers it, and
-on a kernel that does not offer the property nothing happens at all. It can be
-turned off under **Settings → General → VS10 output → Display reset on Dolby
-Vision switch**.
+on a kernel that does not offer the property nothing happens at all.
 
 #### Example: keymap shortcut for a direct mode switch
 

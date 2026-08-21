@@ -187,8 +187,7 @@
    token is already the film's -- naming them again would only be the same
    colour said twice.  Their arrow follows as currentColor either way. */
 :root[data-theme="dark-adaptive"] .hero .now h1,
-:root[data-theme="dark-adaptive"] .card > h2,
-:root[data-theme="dark-adaptive"] .card > .cardhead > h2 {
+:root[data-theme="dark-adaptive"] .card > h2 {
   color: rgb(var(--cover-accent-rgb));
 }
 

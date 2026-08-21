@@ -880,22 +880,6 @@ msgid "Version"
 msgstr "الإصدار"
 "
 
-msgctxt "#32292"
-msgid "RPU"
-msgstr " RPU وحدة المعالجة المرجعية"
-
-msgctxt "#32293"
-msgid "Base Layer"
-msgstr "Base Layer"
-
-msgctxt "#32294"
-msgid "Enhancement Layer"
-msgstr "Enhancement Layer"
-
-msgctxt "#32295"
-msgid "EL Type"
-msgstr "نوع طبقة التحسين"
-
 msgctxt "#32296"
 msgid "HDR10 MDL"
 msgstr "HDR10 MDL"
@@ -1443,10 +1427,6 @@ msgstr "نسخ التقرير"
 msgctxt "#32457"
 msgid "Copied"
 msgstr "تم النسخ"
-
-msgctxt "#32458"
-msgid "Keep screen awake"
-msgstr "إبقاء الشاشة مضاءة"
 
 msgctxt "#32459"
 msgid "Enter the access token"

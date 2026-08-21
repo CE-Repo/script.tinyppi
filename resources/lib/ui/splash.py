@@ -25,7 +25,7 @@ from core.images import display_texture
 from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
 from info.dvinfo import get_dv_el_type_raw, get_hdr_format
-from info.imax import is_known_imax_title
+from info.imax import imax_logo, is_known_imax_title
 from ui.theme import apply_theme
 
 _ADDON      = xbmcaddon.Addon()
@@ -229,26 +229,6 @@ def _amlogic_hdr_token(gamut: str) -> str:
     return ""
 
 
-# Which combined IMAX logos are installed, by relative path; each is looked up
-# once, since every playback start runs this module in its own process.
-_imax_logo_installed: dict[str, bool] = {}
-
-
-def _imax_logo(hdr_token: str) -> str:
-    """Return the combined IMAX logo for *hdr_token*, or '' when there is none.
-
-    The files are optional and ship separately from the code, so a missing one
-    means the plain logo for that format rather than a splash with a hole in it.
-    """
-    rel_path = IMAX_LOGO_MAP.get(hdr_token, "")
-    if not rel_path:
-        return ""
-    if rel_path not in _imax_logo_installed:
-        path = os.path.join(_MEDIA_PATH, rel_path.replace("/", os.sep))
-        _imax_logo_installed[rel_path] = os.path.exists(path)
-    return rel_path if _imax_logo_installed[rel_path] else ""
-
-
 def _current_logos(hdr_token: str) -> list[str]:
     """Return [video, audio] logos to stack, or [] unless both are available.
     The video logo falls back to SDR, so this effectively gates on the audio codec."""
@@ -263,7 +243,7 @@ def _current_logos(hdr_token: str) -> list[str]:
     # frame, and the map lookup comes first so only a candidate format pays for
     # the title match.
     if hdr_token in IMAX_LOGO_MAP and is_known_imax_title():
-        video_logo = _imax_logo(hdr_token) or video_logo
+        video_logo = imax_logo(hdr_token) or video_logo
 
     if not audio_logo or not video_logo:
         return []

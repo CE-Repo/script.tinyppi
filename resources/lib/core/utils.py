@@ -312,6 +312,52 @@ def set_changed_properties(window, published: dict, values: tuple[tuple[str, str
             published[name] = value
 
 
+# --- Refresh thread --------------------------------------------------------
+
+# Seconds join_refresh_thread gives a refresh thread to wind down: far past
+# the tick it may still be sleeping through, so a live thread always makes it
+# and a wedged one does not hold the hand-off for good.
+_JOIN_TIMEOUT = 1.0
+
+
+def join_refresh_thread(thread) -> None:
+    """Wait for a view's refresh thread to actually stop.
+
+    Every view runs its loop the same way, so they all wind it down the same
+    way: the loop only checks the view's running flag between ticks, so it can
+    outlive doModal() by up to one tick -- still writing to a window Kodi is
+    tearing down, and still touching the side-data hold state the next view's
+    loop reads (info.dvmetadata's module-level _held / _held_source).  The
+    hand-over to the next view waits here instead of racing it.  Logs once if
+    the thread is still alive after the timeout -- a wedged thread can only
+    happen once per dialog instance, so an unconditional log on that path is
+    enough.
+    """
+    if thread is None:
+        return
+
+    thread.join(_JOIN_TIMEOUT)
+    if thread.is_alive():
+        xbmc.log(
+            f"TinyPPI: refresh thread still running after "
+            f"{_JOIN_TIMEOUT}s, handing over anyway",
+            xbmc.LOGWARNING,
+        )
+
+
+def log_refresh_failure(view: str, exc: Exception) -> None:
+    """Log a failed refresh of ``view`` (e.g. ``'overlay'``).
+
+    The caller keeps the once-per-view flag that gates this: a persistent
+    fault should leave a trace without writing to the log every tick.
+    """
+    xbmc.log(
+        f"TinyPPI: {view} refresh failed, continuing with the last "
+        f"values: {exc}",
+        xbmc.LOGWARNING,
+    )
+
+
 def clear_overlay_state(home) -> None:
     """Clear the Home-window properties that mark TinyPPI as open."""
     for prop in (PROP_RUNNING, PROP_ACTIVE, PROP_DIALOG_MODE):

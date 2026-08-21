@@ -13,7 +13,6 @@ is, and a renamed label moves in both at once.
 """
 
 import json
-import os
 import re
 import threading
 import time
@@ -32,7 +31,7 @@ from info.dvinfo import (
     is_status_label,
 )
 from info import dvmetadata
-from info.imax import is_known_imax_title
+from info.imax import imax_logo, is_known_imax_title
 from info.properties import (
     publish_scene_properties,
     publish_static_properties,
@@ -327,20 +326,6 @@ def _metadata_row(kind: str, name: str, value) -> dict:
 
 # --- Logos -----------------------------------------------------------------
 
-# Where the skin keeps the graphics the overlay draws.  The dashboard serves
-# the very same files (see web/server.py _media_routes), so a format wears one
-# face on the TV and on the phone.
-_MEDIA_DIR = ("resources", "skins", "Default", "media")
-
-# Which combined IMAX logos are installed, by relative path.  They ship
-# separately from the code, so a missing one means the plain logo for that
-# format rather than a page with a hole in it.
-_imax_installed: dict[str, bool] = {}
-
-
-def _media_root() -> str:
-    return os.path.join(xbmcaddon.Addon().getAddonInfo("path"), *_MEDIA_DIR)
-
 
 def _output_token(mode: str) -> str:
     """Classify the Amlogic output mode into an ``HDR_LOGO_MAP`` key.
@@ -383,17 +368,6 @@ def _output_hdr_type(mode: str, source: str) -> str:
     return "hdr10plus" if token == "hdr10+" else token
 
 
-def _imax_logo(token: str) -> str:
-    """The combined IMAX logo for ``token``, or '' when it is not installed."""
-    rel_path = IMAX_LOGO_MAP.get(token, "")
-    if not rel_path:
-        return ""
-    if rel_path not in _imax_installed:
-        path = os.path.join(_media_root(), rel_path.replace("/", os.sep))
-        _imax_installed[rel_path] = os.path.exists(path)
-    return rel_path if _imax_installed[rel_path] else ""
-
-
 def _logos(values: dict[str, str]) -> dict:
     """The graphics for what is playing, as paths under the media route.
 
@@ -403,7 +377,7 @@ def _logos(values: dict[str, str]) -> dict:
     token = _output_token(values.get("ModeVar", ""))
     video = HDR_LOGO_MAP.get(token, HDR_LOGO_MAP[""])
     if token in IMAX_LOGO_MAP and is_known_imax_title():
-        video = _imax_logo(token) or video
+        video = imax_logo(token) or video
 
     codec = info("VideoPlayer.AudioCodec").lower().strip()
     return {
@@ -589,11 +563,7 @@ class SessionLog:
         self._events:  list[dict]  = []
         self._seq       = 0
         self._sampled   = 0.0
-        self._peak      = None
-        self._avg_sum   = 0.0
-        self._avg_count = 0
         self._drops     = 0
-        self._cache_min = None
         self._switches  = 0
         self._watched: dict[str, str] = {}
         self._cache_dipped = False
@@ -653,16 +623,9 @@ class SessionLog:
         drop  = metrics.get("fps_drop") or 0
         cache = metrics.get("cache")
 
-        if peak is not None:
-            self._peak = peak if self._peak is None else max(self._peak, peak)
-        if mean is not None:
-            self._avg_sum += mean
-            self._avg_count += 1
         # fps_drop is frames lost per second and this is one second of it.
         self._drops += int(drop)
         if cache is not None:
-            self._cache_min = (cache if self._cache_min is None
-                               else min(self._cache_min, cache))
             self._watch_cache(cache, now, position)
         self._watch_drops(int(drop), now, position)
 
@@ -701,23 +664,22 @@ class SessionLog:
     # -- reading --
 
     def summary(self) -> dict:
-        """The figures small enough to travel with every snapshot.
+        """The figures small enough to travel with every snapshot: the two
+        tiles counting up over the title, and the sequence number.
 
         ``seq`` is what tells the page there is something new to fetch: it
         counts events, so a page holding an older number knows to ask for the
         history again instead of being sent one five times a second.
+
+        Everything else the title adds up to is in the samples themselves, and
+        travels with the history the chart asks for rather than five times a
+        second with this.
         """
         with self._lock:
             return {
-                "seq":       self._seq,
-                "age":       round(time.monotonic() - self._started, 1),
-                "samples":   len(self._samples),
-                "peak":      self._peak,
-                "avg":       (self._avg_sum / self._avg_count
-                              if self._avg_count else None),
-                "drops":     self._drops,
-                "cache_min": self._cache_min,
-                "switches":  self._switches,
+                "seq":      self._seq,
+                "drops":    self._drops,
+                "switches": self._switches,
             }
 
     def history(self) -> dict:

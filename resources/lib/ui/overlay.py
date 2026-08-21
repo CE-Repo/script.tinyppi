@@ -20,6 +20,8 @@ from core.utils import (
     effective_hdr_type,
     highlight_hold,
     is_effective_dv,
+    join_refresh_thread,
+    log_refresh_failure,
     set_window_properties,
 )
 from info import properties
@@ -107,11 +109,6 @@ _DV_CHANGED_HOLD = "output_changed_duration"
 # they do not need the loop's own 100ms cadence the way the Dolby Vision /
 # HDR10 readings in publish_scene_properties do.
 _STATIC_POLL_INTERVAL = 1.0
-
-# Seconds join_update_loop gives the refresh thread to wind down: far past
-# the tick it may still be sleeping through, so a live thread always makes it
-# and a wedged one does not hold the hand-off for good.
-_JOIN_TIMEOUT = 1.0
 
 
 def _is_coreelec() -> bool:
@@ -501,25 +498,8 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._thread.start()
 
     def join_update_loop(self) -> None:
-        """Wait for the update loop to actually stop.
-
-        The loop only checks self._running between ticks, so it can outlive
-        doModal() by up to one tick -- still writing to a window Kodi is
-        tearing down, and still reading the side-data hold state the next
-        view's loop reads (info.dvmetadata's module-level _held /
-        _held_source).  The hand-over to the next view waits here instead of
-        racing it.  Logs once if the thread is still alive after the
-        timeout -- a wedged thread can only happen once per dialog instance,
-        so an unconditional log on that path is enough.
-        """
-        if self._thread is not None:
-            self._thread.join(_JOIN_TIMEOUT)
-            if self._thread.is_alive():
-                xbmc.log(
-                    f"TinyPPI: refresh thread still running after "
-                    f"{_JOIN_TIMEOUT}s, handing over anyway",
-                    xbmc.LOGWARNING,
-                )
+        """Wait for the update loop to actually stop before handing over."""
+        join_refresh_thread(self._thread)
 
     def _update_loop(self) -> None:
         """Refresh the overlay every 100ms until it should close.
@@ -578,11 +558,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         if self._refresh_failed:
             return
         self._refresh_failed = True
-        xbmc.log(
-            f"TinyPPI: overlay refresh failed, continuing with the last "
-            f"values: {exc}",
-            xbmc.LOGWARNING,
-        )
+        log_refresh_failure("overlay", exc)
 
     def close_dialog(self) -> None:
         self._running = False

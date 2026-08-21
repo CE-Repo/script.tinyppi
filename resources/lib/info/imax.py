@@ -31,6 +31,8 @@ import xbmc
 import xbmcaddon
 import xbmcvfs
 
+from core.maps import IMAX_LOGO_MAP
+
 _ADDON = xbmcaddon.Addon()
 
 _TITLE_FILE = "imax_titles.txt"
@@ -408,3 +410,32 @@ def is_enhanced_title(name: str = "") -> bool:
     if name:
         return _classify((name,))[1]
     return _current()[1]
+
+
+# --- The combined IMAX logo ------------------------------------------------
+
+# Where the skin keeps the graphics both the splash and the dashboard draw
+# (the dashboard serves the very same files -- see web/server.py
+# _media_routes), so a format wears one face on the TV and on the phone.
+_MEDIA_PATH = os.path.join(
+    _ADDON.getAddonInfo("path"), "resources", "skins", "Default", "media"
+)
+
+# Which combined logos are installed, by relative path; each is looked up once.
+_logo_installed: dict[str, bool] = {}
+
+
+def imax_logo(hdr_token: str) -> str:
+    """Return the combined IMAX logo for *hdr_token*, or '' when there is none.
+
+    The files are optional and ship separately from the code, so a missing one
+    means the plain logo for that format rather than a splash -- or a dashboard
+    -- with a hole in it.
+    """
+    rel_path = IMAX_LOGO_MAP.get(hdr_token, "")
+    if not rel_path:
+        return ""
+    if rel_path not in _logo_installed:
+        path = os.path.join(_MEDIA_PATH, rel_path.replace("/", os.sep))
+        _logo_installed[rel_path] = os.path.exists(path)
+    return rel_path if _logo_installed[rel_path] else ""

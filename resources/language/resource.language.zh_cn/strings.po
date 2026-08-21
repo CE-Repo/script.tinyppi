@@ -879,22 +879,6 @@ msgctxt "#32291"
 msgid "Version"
 msgstr "版本"
 
-msgctxt "#32292"
-msgid "RPU"
-msgstr "RPU"
-
-msgctxt "#32293"
-msgid "Base Layer"
-msgstr "Base Layer"
-
-msgctxt "#32294"
-msgid "Enhancement Layer"
-msgstr "Enhancement Layer"
-
-msgctxt "#32295"
-msgid "EL Type"
-msgstr "增强层类型"
-
 msgctxt "#32296"
 msgid "HDR10 MDL"
 msgstr "HDR10 MDL"
@@ -1442,10 +1426,6 @@ msgstr "复制报告"
 msgctxt "#32457"
 msgid "Copied"
 msgstr "已复制"
-
-msgctxt "#32458"
-msgid "Keep screen awake"
-msgstr "保持屏幕常亮"
 
 msgctxt "#32459"
 msgid "Enter the access token"

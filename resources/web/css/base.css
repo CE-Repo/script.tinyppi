@@ -139,7 +139,6 @@ body {
 .brand b { font-weight: 700; }
 .brand .ver { color: var(--dim); font-size: 11px; font-weight: 500; }
 @media (max-width: 620px) {
-  .iconbtn .lbl { display: none; }
   .iconbtn { padding: 0 10px; min-width: 40px; }
   .topbar { gap: 8px; padding-left: 10px; padding-right: 10px; }
 }
@@ -252,8 +251,7 @@ main {
   overflow: hidden;
 }
 
-.card > h2,
-.card > .cardhead > h2 {
+.card > h2 {
   margin: 0;
   padding: 12px 16px 10px;
   font-size: 11.5px;

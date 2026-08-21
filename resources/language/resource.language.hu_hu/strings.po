@@ -879,22 +879,6 @@ msgctxt "#32291"
 msgid "Version"
 msgstr "Verzió"
 
-msgctxt "#32292"
-msgid "RPU"
-msgstr ""
-
-msgctxt "#32293"
-msgid "Base Layer"
-msgstr ""
-
-msgctxt "#32294"
-msgid "Enhancement Layer"
-msgstr ""
-
-msgctxt "#32295"
-msgid "EL Type"
-msgstr ""
-
 msgctxt "#32296"
 msgid "HDR10 MDL"
 msgstr ""
@@ -1442,10 +1426,6 @@ msgstr "Jelentés másolása"
 msgctxt "#32457"
 msgid "Copied"
 msgstr "Másolva"
-
-msgctxt "#32458"
-msgid "Keep screen awake"
-msgstr "Képernyő ébren tartása"
 
 msgctxt "#32459"
 msgid "Enter the access token"

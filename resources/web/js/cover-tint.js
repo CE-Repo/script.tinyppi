@@ -670,35 +670,6 @@ window.TinyPPICover = (function () {
     };
   }
 
-  /* Every other card: the accent's own colour, flat and held well back (see
-     the constants above).  Nothing on such a card is lighter than anywhere
-     else on it, so what the scrim is solved against is simply the whole of it
-     -- the fill as it lands on the panel.
-
-     The intensity moves the alpha rather than mixing the colour towards the
-     panel the way it does on the now-playing card.  On a flat fill the two
-     would be the same thing done twice, and the quietest setting came out as
-     barely a tint at all. */
-  function flatPanel(palette, level, base) {
-    const source = rgbToOklch(accentBase(palette));
-
-    /* A poster with no colour at all has nothing to tint a card with, and a
-       neutral fill would only lighten it -- so those cards are left as the
-       plain panel rather than given a grey wash the artwork never asked for. */
-    if (source[1] < GREY_CHROMA) return { image: "none", top: null };
-
-    const colour = oklchToRgb(
-      PANEL_LIGHTNESS + level.lightness,
-      Math.min(Math.max(source[1], MIN_CHROMA) * CHROMA_GAIN,
-               PANEL_CHROMA * level.chroma),
-      source[2]);
-    const alpha = Math.min(PANEL_ALPHA * level.mix, PANEL_ALPHA_MAX);
-    return {
-      image: panelFill(colour, alpha),
-      top: composite(colour, base, alpha)
-    };
-  }
-
   function clear(element) {
     for (const property of PAINTED) element.style.removeProperty(property);
   }

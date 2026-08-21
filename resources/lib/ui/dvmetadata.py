@@ -29,7 +29,12 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-from core.utils import ChangeHighlighter, highlight_hold
+from core.utils import (
+    ChangeHighlighter,
+    highlight_hold,
+    join_refresh_thread,
+    log_refresh_failure,
+)
 from info import dvmetadata
 
 _ADDON      = xbmcaddon.Addon()
@@ -124,11 +129,6 @@ _REFRESH = 0.1
 # lands by dvmetadata.static_signature, so this timer only covers what the
 # signature cannot see.  See _merged_rows.
 _STATIC_ROWS_INTERVAL = 1.0
-
-# Seconds join_update_loop gives the refresh thread to wind down: far past
-# the tick it may still be sleeping through, so a live thread always makes it
-# and a wedged one does not hold the hand-off for good.
-_JOIN_TIMEOUT = 1.0
 
 # Actions arriving within this many seconds of the window opening are ignored,
 # so the key press that opened it cannot immediately close it again.
@@ -310,24 +310,10 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
     def join_update_loop(self) -> None:
         """Wait for the refresh thread to actually stop.
 
-        Mirrors ui.overlay.TinyPPIDialog.join_update_loop: the loop only
-        checks self._running between ticks, so it can outlive doModal() by
-        up to one tick, still writing to a window Kodi is tearing down and
-        still touching info.dvmetadata's module-level _held / _held_source
-        that the next view's own loop reads.  Called after doModal() so the
-        hand-over to the next view waits for it instead of racing it.  Logs
-        once if the thread is still alive after the timeout -- a wedged
-        thread can only happen once per dialog instance, so an unconditional
-        log on that path is enough.
+        Called after doModal(), so the hand-over to the next view waits for
+        the loop instead of racing it.
         """
-        if self._thread is not None:
-            self._thread.join(_JOIN_TIMEOUT)
-            if self._thread.is_alive():
-                xbmc.log(
-                    f"TinyPPI: refresh thread still running after "
-                    f"{_JOIN_TIMEOUT}s, handing over anyway",
-                    xbmc.LOGWARNING,
-                )
+        join_refresh_thread(self._thread)
 
     # --- List ---------------------------------------------------------------
 
@@ -737,11 +723,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         if self._refresh_failed:
             return
         self._refresh_failed = True
-        xbmc.log(
-            f"TinyPPI: DV metadata refresh failed, continuing with the last "
-            f"values: {exc}",
-            xbmc.LOGWARNING,
-        )
+        log_refresh_failure("DV metadata", exc)
 
 
 class DVSectionDialog(DVMetadataDialog):

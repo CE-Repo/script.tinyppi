@@ -879,22 +879,6 @@ msgctxt "#32291"
 msgid "Version"
 msgstr ""
 
-msgctxt "#32292"
-msgid "RPU"
-msgstr ""
-
-msgctxt "#32293"
-msgid "Base Layer"
-msgstr ""
-
-msgctxt "#32294"
-msgid "Enhancement Layer"
-msgstr ""
-
-msgctxt "#32295"
-msgid "EL Type"
-msgstr ""
-
 msgctxt "#32296"
 msgid "HDR10 MDL"
 msgstr ""
@@ -1443,10 +1427,6 @@ msgctxt "#32457"
 msgid "Copied"
 msgstr ""
 
-msgctxt "#32458"
-msgid "Keep screen awake"
-msgstr ""
-
 msgctxt "#32459"
 msgid "Enter the access token"
 msgstr ""
@@ -1503,16 +1483,8 @@ msgctxt "#32472"
 msgid "Dolby Vision"
 msgstr ""
 
-msgctxt "#32475"
-msgid "This playback"
-msgstr ""
-
 msgctxt "#32476"
 msgid "Frame drops"
-msgstr ""
-
-msgctxt "#32477"
-msgid "Lowest cache"
 msgstr ""
 
 msgctxt "#32478"
