@@ -1483,14 +1483,6 @@ msgctxt "#32472"
 msgid "Dolby Vision"
 msgstr "杜比视界"
 
-msgctxt "#32473"
-msgid "Display reset on Dolby Vision switch"
-msgstr "杜比视界切换时重置显示输出"
-
-msgctxt "#32474"
-msgid "Re-initialise the HDMI output whenever a VS10 switch turns Dolby Vision on or off. Kodi only re-applies the display mode when a stream's HDR type changes, which a switch made during playback never reports, so the output keeps the previous signalling and the picture comes out with the wrong colours. Automatic does it only in Player-LED mode, where the box maps the picture itself and nothing else re-negotiates the output; a TV-LED box signals the change on its own and is left alone, because resetting it there makes later switches in the same playback land on SDR."
-msgstr "每当 VS10 切换开启或关闭杜比视界时重新初始化 HDMI 输出。Kodi 仅在片源的 HDR 类型发生变化时才会重新应用显示模式，而播放过程中的切换从不会上报这种变化，因此输出仍沿用之前的信令，画面会出现错误的色彩。“自动”仅在 Player-LED 模式下执行此操作——该模式下由机顶盒自行映射画面，没有其他环节会重新协商输出；TV-LED 设备会自行发出切换信令，因此不作处理，因为在该模式下重置会导致同一次播放中后续的切换落到 SDR。"
-
 msgctxt "#32476"
 msgid "Frame drops"
 msgstr "丢帧"
@@ -1602,15 +1594,3 @@ msgstr "标准"
 msgctxt "#32504"
 msgid "Strong"
 msgstr "强烈"
-
-msgctxt "#32505"
-msgid "Automatic (Player-LED only)"
-msgstr "自动（仅 Player-LED）"
-
-msgctxt "#32506"
-msgid "Always"
-msgstr "始终"
-
-msgctxt "#32507"
-msgid "Never"
-msgstr "从不"
