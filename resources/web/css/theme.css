@@ -111,10 +111,10 @@
    Dark adaptive
 
    The plain dark theme, with the page taking its colour from the poster of
-   whatever is on screen.  Two areas carry it and they differ only in how loud
-   they are: the now-playing card, where the poster is standing and the light
-   comes off it, and every other card, which gets the same colours as a quiet
-   wash from its own corners.
+   whatever is on screen.  Two areas carry it, painted differently: the
+   now-playing card, where the poster is standing and the light comes off it,
+   and every other card, which takes one flat colour -- the same accent its own
+   marks take, only at a surface's lightness rather than a mark's.
 
    js/cover-tint.js hands them over as --cover-gradient, together with the
    scrim that keeps the text on each readable and the accent its marks take.
@@ -190,16 +190,20 @@
 ------------------------------------------------------------------------- */
 
 /* The tiles are three panels in a grid whose 1px gaps *are* the rules between
-   them: the grid's own fill is what shows through them, so it is the only
-   thing the tiles can be told apart by.  It therefore keeps a fill, as a
-   hairline in the film's own colour -- and the tiles keep one too, or the
-   grid's would show across the whole block instead of only in the gaps.
-   Theirs is the same plain darkening the other wells use, so a tile reads as a
-   tile whatever the poster is. */
-:root[data-theme="dark-adaptive"] .tilegrid {
-  background: rgba(var(--cover-accent-rgb), .30);
+   them, drawn by the grid's own fill showing through.  That cannot stay: a
+   tile has to let the card's colour through, and anything translucent enough
+   to do that lets the grid's fill through with it -- so the whole block came
+   out a shade louder than every other card rather than three tiles with lines
+   between them.
+
+   So the grid gives up its fill and the tiles draw the lines themselves, as a
+   ring that costs no layout.  Two neighbouring rings meet in the 1px gap and
+   read as the one hairline that was there before, in the film's own colour. */
+:root[data-theme="dark-adaptive"] .tilegrid { background: transparent; }
+:root[data-theme="dark-adaptive"] .tile {
+  background: transparent;
+  box-shadow: 0 0 0 1px rgba(var(--cover-accent-rgb), .22);
 }
-:root[data-theme="dark-adaptive"] .tile { background: rgba(0, 0, 0, .22); }
 
 /* The chart is drawn on a transparent canvas, so the well behind it is this
    fill; a plain darkening keeps the plot legible over any tint without

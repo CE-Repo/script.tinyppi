@@ -296,10 +296,11 @@ straight to one:
   its text needs — a dark poster keeps nearly all of it, a bright one is held
   down as far as it has to be, and both end up equally readable. The
   now-playing card is the loud one, with the light coming off the poster
-  standing in it; the cards around it get the same colours as a quiet wash from
-  their own corners, so the page agrees with the film without becoming a
-  coloured page. Inside a card the accent is the film's too, so the title, the
-  badges, the buttons, the tile rules and the luminance chart all answer to it.
+  standing in it; every other card takes one flat colour instead — the same
+  accent its own marks take, held well back — so the page agrees with the film
+  without becoming a coloured page. Inside a card the accent is the film's too,
+  so the title, the badges, the buttons, the tile rules and the luminance chart
+  all answer to it.
   A title with no poster looks exactly as it does on the plain dark theme —
   there was nothing to take a colour from. While this theme is on, the menu
   also carries how strongly it tints: **subtle**, **standard** or **strong**.

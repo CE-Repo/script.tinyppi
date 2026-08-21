@@ -4,12 +4,14 @@
    The colours the poster is made of, as the surface every card is painted
    with.
 
-   Two areas take them, and they differ only in how loud they are: the
-   now-playing card, where the poster itself is standing and the gradient is
-   hung off it, and every other card on the page, which gets the same colours
-   as a quiet wash from its own corners.  The hero stays the loudest thing on
-   the page that way, and the rest of it agrees with what is playing without
-   competing.
+   Two areas take them, and they are not painted alike.  The now-playing card
+   has the poster standing in it, so it gets the artwork's five colours in the
+   places they came from, hung off the poster itself.  Every other card gets
+   one flat colour -- the accent's -- because there is no artwork in those to
+   arrange anything around: what they are for is saying which film it is, and a
+   single colour says that more plainly than five.  The hero stays the loudest
+   thing on the page that way, and the rest of it agrees with what is playing
+   without competing.
 
    Only the adaptive theme reads any of this; every other one ignores it and
    the card keeps the plain panel colour.  Three things decide what comes out,
@@ -119,14 +121,29 @@ window.TinyPPICover = (function () {
 
   const ADAPTIVE = "dark-adaptive";
 
-  /* What each of the two painted areas is: how its gradient is laid out, and
-     how much colour the strongest point of it actually ends up carrying.  The
-     second is what the contrast is solved against -- the hero paints its
-     middle stop solid, the quieter wash never gets past half. */
-  const VARIANTS = {
-    hero:  { gradient: heroGradient,  peak: 1 },
-    panel: { gradient: panelGradient, peak: 0.5 }
-  };
+  /* What a flat card is painted with, and it is meant to be quiet: such a card
+     should look like the plain dark panel with the film breathed over it, not
+     like a second poster.  The now-playing card is the one carrying the
+     colour; these only have to agree with it.
+
+     The chroma cap is what does most of that work, and it is the reason these
+     are not simply the hero's colours at a lower opacity.  A saturated poster
+     taken down to a surface's lightness has more chroma than the gamut can
+     hold there, so it clips to the pure hue -- and a pure hue over the whole
+     of a card is a red card, however thin it is laid on.  Held to this much
+     instead, the same poster leaves a warm grey that is plainly the film's
+     without being the film's poster.
+
+     The lightness is above the panel's own, so a card is tinted rather than
+     darkened: a fill below it would take the green and blue out and leave the
+     card looking sooty as well as coloured.
+
+     The intensity setting moves the alpha and the cap together, so the three
+     steps are a real range here rather than three shades of the same. */
+  const PANEL_LIGHTNESS = 0.42;
+  const PANEL_CHROMA = 0.07;
+  const PANEL_ALPHA = 0.22;
+  const PANEL_ALPHA_MAX = 0.34;
 
   /* Every property this file may put on the card, so nothing is left behind
      when there is no poster to paint. */
@@ -447,19 +464,28 @@ window.TinyPPICover = (function () {
   }
 
   /* The poster's colour as a mark rather than as a surface. */
-  function accentColor(palette, surface) {
+  /* Which colour of the poster the accent family comes from -- the mark and,
+     on every card but the now-playing one, the surface itself.  Both take it
+     from here so a card and the marks on it are the same colour taken to two
+     different places, rather than two colours that happen to be near. */
+  function accentBase(palette) {
     let best = palette.accent || palette[0];
-    let bestChroma = rgbToOklch(best)[1];
+    let chroma = rgbToOklch(best)[1];
 
     /* A large black, white or grey area must not hide a clearly coloured part
        of the poster -- a dark backdrop with a yellow title is common. */
-    if (bestChroma < MIN_ACCENT_CHROMA) {
+    if (chroma < MIN_ACCENT_CHROMA) {
       for (const rgb of palette) {
-        const chroma = rgbToOklch(rgb)[1];
-        if (chroma > bestChroma) { best = rgb; bestChroma = chroma; }
+        const other = rgbToOklch(rgb)[1];
+        if (other > chroma) { best = rgb; chroma = other; }
       }
     }
+    return best;
+  }
 
+  function accentColor(palette, surface) {
+    const best = accentBase(palette);
+    const bestChroma = rgbToOklch(best)[1];
     const source = rgbToOklch(best);
     const lightness = Math.max(ACCENT_MIN_LIGHTNESS,
       Math.min(ACCENT_MAX_LIGHTNESS, source[0] + 0.08));
@@ -521,39 +547,23 @@ window.TinyPPICover = (function () {
     ].join(", ");
   }
 
-  /* Every other card's gradient.
+  /* Every other card, which is not a gradient at all: one flat colour, the
+     accent's own, laid over the panel.
 
-     There is no poster standing in these, so there is nothing to hang the
-     light off and the card's own corners are the honest place for it: the same
-     five colours, in the same order, each pooling in the corner it came from.
+     There is no poster standing in these cards, so there is nothing for a
+     gradient to be about -- five pools in the corners of a card that is
+     showing a table of readings is decoration, not information.  What the
+     cards around the film are for is saying which film it is, and a single
+     colour says that more plainly than an arrangement of five.
 
-     It is the quiet one deliberately.  The now-playing card is what is being
-     looked at, and if every card carried the same weight of colour the page
-     would read as a coloured page rather than as a page with a film on it --
-     so nothing here gets past half strength, and the wash across the middle is
-     barely there.  What ties them together is that the colours are the same
-     ones, not that they are as loud. */
-  function panelGradient(colors) {
-    const tl = colors[0], tr = colors[1], bl = colors[2];
-    const br = colors[3], mid = colors[4] || colors[0];
-
-    return [
-      "radial-gradient(ellipse 72% 128% at 0% 0%, " +
-        rgbaText(tl, 0.42) + " 0%, " + rgbaText(tl, 0.16) + " 34%, " +
-        rgbaText(deepen(tl, 0.40), 0) + " 76%)",
-      "radial-gradient(ellipse 72% 128% at 100% 0%, " +
-        rgbaText(tr, 0.34) + " 0%, " + rgbaText(tr, 0.13) + " 34%, " +
-        rgbaText(deepen(tr, 0.42), 0) + " 78%)",
-      "radial-gradient(ellipse 72% 128% at 0% 100%, " +
-        rgbaText(bl, 0.30) + " 0%, " + rgbaText(bl, 0.12) + " 34%, " +
-        rgbaText(deepen(bl, 0.45), 0) + " 76%)",
-      "radial-gradient(ellipse 72% 128% at 100% 100%, " +
-        rgbaText(br, 0.26) + " 0%, " + rgbaText(br, 0.10) + " 34%, " +
-        rgbaText(deepen(br, 0.48), 0) + " 78%)",
-      "linear-gradient(120deg, " +
-        rgbaText(mid, 0.18) + " 0%, " + rgbaText(mid, 0.09) + " 50%, " +
-        rgbaText(br, 0.04) + " 100%)"
-    ].join(", ");
+     It is the same colour the marks in that card take, from accentBase, only
+     taken down to a surface's lightness instead of up to a mark's: the card
+     and the badges on it are then one hue at two distances rather than two
+     colours that happen to be close.  The alpha is what keeps it quieter than
+     the now-playing card, which stays the loud one. */
+  function panelFill(colour, alpha) {
+    const flat = rgbaText(colour, alpha.toFixed(3));
+    return "linear-gradient(" + flat + ", " + flat + ")";
   }
 
   /* ============================================================
@@ -618,31 +628,21 @@ window.TinyPPICover = (function () {
     const cacheKey = key && (key + "|" + variant + "|" + raw);
     if (cacheKey && derived.has(cacheKey)) return derived.get(cacheKey);
 
-    const spec = VARIANTS[variant] || VARIANTS.hero;
     const level = strengthLevel();
     const base = themeColor("--panel", [20, 24, 29]);
     const text = themeColor("--text", [232, 236, 241]);
+    const painted = variant === "panel"
+      ? flatPanel(palette, level, base)
+      : posterGradient(palette, level, base);
 
-    const colors = palette.map((rgb, index) => {
-      const tinted = tintColor(rgb, STOP_LIGHTNESS[index] + level.lightness, level.chroma);
-      return level.mix < 1 ? composite(tinted, base, level.mix) : tinted;
-    });
-
-    /* The lightest point the area actually reaches: its lightest colour, at
-       the strongest any stop of that gradient is painted.  The hero paints one
-       solid, the quieter wash never gets past half, so the same poster needs
-       far less holding down on the cards around it than in the card it is
-       standing in. */
-    const brightest = colors.reduce(
-      (a, c) => (luminance(c) > luminance(a) ? c : a));
-    const top = spec.peak >= 1 ? brightest : composite(brightest, base, spec.peak);
-    const scrim = solveScrim(top, text);
     /* What the text will actually sit on there -- which is what everything
-       below is measured against. */
-    const surface = composite(SCRIM_RGB, top, scrim);
+       below is measured against.  A card with nothing painted on it is the
+       plain panel, and needs no scrim to be readable on. */
+    const scrim = painted.top ? solveScrim(painted.top, text) : 0;
+    const surface = painted.top ? composite(SCRIM_RGB, painted.top, scrim) : base;
 
     const values = {
-      "--cover-gradient": spec.gradient(colors),
+      "--cover-gradient": painted.image,
       "--cover-scrim": rgbaText(SCRIM_RGB, scrim.toFixed(3)),
       "--cover-accent-rgb": accentColor(palette, surface).join(", "),
       /* The two quietest text colours in the area.  The theme picks them
@@ -656,6 +656,49 @@ window.TinyPPICover = (function () {
     };
     if (cacheKey) derived.set(cacheKey, values);
     return values;
+  }
+
+  /* The now-playing card: the poster's five colours in the places they came
+     from, with the middle one painted solid.  That last is where the text has
+     to stay readable, so it is what the scrim is solved against. */
+  function posterGradient(palette, level, base) {
+    const colors = palette.map((rgb, index) => {
+      const tinted = tintColor(rgb, STOP_LIGHTNESS[index] + level.lightness, level.chroma);
+      return level.mix < 1 ? composite(tinted, base, level.mix) : tinted;
+    });
+    return {
+      image: heroGradient(colors),
+      top: colors.reduce((a, c) => (luminance(c) > luminance(a) ? c : a))
+    };
+  }
+
+  /* Every other card: the accent's own colour, flat and held well back (see
+     the constants above).  Nothing on such a card is lighter than anywhere
+     else on it, so what the scrim is solved against is simply the whole of it
+     -- the fill as it lands on the panel.
+
+     The intensity moves the alpha rather than mixing the colour towards the
+     panel the way it does on the now-playing card.  On a flat fill the two
+     would be the same thing done twice, and the quietest setting came out as
+     barely a tint at all. */
+  function flatPanel(palette, level, base) {
+    const source = rgbToOklch(accentBase(palette));
+
+    /* A poster with no colour at all has nothing to tint a card with, and a
+       neutral fill would only lighten it -- so those cards are left as the
+       plain panel rather than given a grey wash the artwork never asked for. */
+    if (source[1] < GREY_CHROMA) return { image: "none", top: null };
+
+    const colour = oklchToRgb(
+      PANEL_LIGHTNESS + level.lightness,
+      Math.min(Math.max(source[1], MIN_CHROMA) * CHROMA_GAIN,
+               PANEL_CHROMA * level.chroma),
+      source[2]);
+    const alpha = Math.min(PANEL_ALPHA * level.mix, PANEL_ALPHA_MAX);
+    return {
+      image: panelFill(colour, alpha),
+      top: composite(colour, base, alpha)
+    };
   }
 
   function clear(element) {
