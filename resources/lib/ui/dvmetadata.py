@@ -347,6 +347,18 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
                            dvmetadata.COLUMNS)
         table   = kind in (dvmetadata.HEADINGS, dvmetadata.COLUMNS)
         compact = table and len(label) == dvmetadata.MAX_COMPACT_COLUMNS
+        # Which slot a table's first cell goes in.  The slots are fixed and the
+        # last of them ends exactly where every ordinary row's value does, so a
+        # table narrower than the grid is pushed across to the right rather
+        # than left where it was: the list then closes on one right edge
+        # instead of a ragged one -- an L8 continuation of two controls, a
+        # composer curve of four, the block-length table of one.  Safe because
+        # every row of a table is its heading row's width (see dvmetadata._grid
+        # and _table), so all of them shift together and a reading still lands
+        # under the heading that names it.  A full-width table, and the compact
+        # nine-cell grid, are exactly as they were.
+        offset  = (max(0, dvmetadata.MAX_COLUMNS - len(label))
+                   if table and not compact else 0)
         item.setLabel(name if named else "")
         item.setLabel2(label if kind in (dvmetadata.ROW, dvmetadata.WIDE)
                        else "")
@@ -354,8 +366,9 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         item.setProperty("state", label if heading else "")
         item.setProperty("rule", _RULE_TEXTURE if heading else "")
         for position in range(dvmetadata.MAX_COLUMNS):
-            cell = (label[position]
-                    if table and not compact and position < len(label) else "")
+            at   = position - offset
+            cell = (label[at]
+                    if table and not compact and 0 <= at < len(label) else "")
             item.setProperty(f"{_CELL_HEADING}{position}",
                              cell if kind == dvmetadata.HEADINGS else "")
             item.setProperty(f"{_CELL_VALUE}{position}",

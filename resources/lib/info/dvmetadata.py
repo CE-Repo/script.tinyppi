@@ -782,20 +782,27 @@ def _grid(legend: str, headings, rows) -> list:
     row of the list holds means a second table under the first with the
     headings repeated, exactly as the trim tables handle it -- the six-cell
     width belongs to the list, not to what is being laid out in it.
+
+    Every row a table yields is the width of its heading row, short ones padded
+    out rather than left ragged.  That is what lets the on-screen view place a
+    narrow table by its width alone and still have each reading land under the
+    heading naming it -- see ui.dvmetadata._paint, which right-aligns one into
+    the fixed slots so the list has a single right edge.
     """
     entries: list = []
     for start in range(0, len(headings), MAX_COLUMNS):
-        stop = start + MAX_COLUMNS
-        body = []
+        stop  = start + MAX_COLUMNS
+        chunk = list(headings[start:stop])
+        body  = []
         for name, cells in rows:
             part = ["" if cell == EMPTY else cell for cell in cells[start:stop]]
             if any(part):
-                body.append((COLUMNS, name, part))
+                body.append((COLUMNS, name, part + [""] * (len(chunk) - len(part))))
         if not body:
             continue
         if entries:
             entries.append((SPACE, f"space.{legend}.{start}", ""))
-        entries.append((HEADINGS, legend, list(headings[start:stop])))
+        entries.append((HEADINGS, legend, chunk))
         entries.extend(body)
     return entries
 
