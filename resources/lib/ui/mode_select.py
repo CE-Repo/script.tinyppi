@@ -205,7 +205,10 @@ def hdr10() -> None:
 
 
 def dv() -> None:
-    _set_passthrough_mode("2")
+    if _probe_dv_Player_LED_mode():
+        _set_passthrough_mode("1")
+    else:
+        _set_passthrough_mode("2")
 
 
 def original_hdr() -> None:
@@ -313,6 +316,39 @@ def _vs10_actions_available() -> bool:
                 xbmc.LOGINFO,
             )
     return _vs10_actions
+
+
+def _probe_dv_Player_LED_mode() -> bool:
+    """Return True if Dolby Vision is being driven player-led.
+
+    Unlike ``_probe_vs10_actions``, which asks whether a setting is there at
+    all, this one has to read what it says: ``coreelec.amlogic.dolbyvisionled``
+    exists on every build that can do either end -- 0 is TV-led, 1 player-led
+    -- so its presence alone answers nothing.  Going by presence put a TV-led
+    box on the player-led output, where the picture went out SDR BT.2020nc.
+    """
+    request = json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "Settings.GetSettingValue",
+            "params": {"setting": "coreelec.amlogic.dolbyvisionled"},
+        }
+    )
+    try:
+        response = json.loads(xbmc.executeJSONRPC(request))
+    except Exception as e:
+        xbmc.log(f"TinyPPI: probe failed: {e}", xbmc.LOGWARNING)
+        return False
+    if not isinstance(response, dict) or "result" not in response:
+        return False
+    value = response["result"].get("value")
+    # Read as a number, so a "0" that arrives as text is still false: taking
+    # it as a bare string would repeat the mistake this replaced.
+    try:
+        return int(value) != 0
+    except (TypeError, ValueError):
+        return bool(value)
 
 
 def set_mode(name: str) -> None:
