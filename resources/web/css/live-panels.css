@@ -137,11 +137,18 @@
   background: var(--panel);
   padding: 14px 15px;
   display: grid;
+  /* The name at the top, the reading centred in whatever is left under it.
+     Every tile in a row is as tall as the tallest, and it is the reading that
+     should sit in the middle of that -- the name is a heading and belongs at
+     the top of its tile whatever the tile's height turns out to be.
+
+     Two rows declared, not three.  A unit lands in a third that the grid makes
+     for it, which is the difference between a row that exists when it is
+     needed and one that is always there: a declared third row is still worth a
+     gap when it is empty, and every tile without a unit -- which is usually
+     all of them -- carried those four pixels at the bottom. */
+  grid-template-rows: auto 1fr;
   gap: 4px;
-  /* Centred rather than hung from the top.  Every tile in a row is as tall as
-     the tallest, so anything shorter used to sit high in its own box with all
-     of the slack under it. */
-  align-content: center;
   justify-items: center;
   text-align: center;
 }
@@ -158,6 +165,7 @@
   font-size: clamp(20px, 5vw, 27px);
   font-weight: 650;
   line-height: 1.1;
+  align-self: center;
 }
 /* Out of the way entirely when there is no unit to put on it, rather than
    holding an empty line under the reading: the tiles are all as tall as the
