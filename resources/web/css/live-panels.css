@@ -267,6 +267,11 @@
 }
 .tvol .tbtn { padding: 0; }
 .tbtn .ui-icon { margin: auto; }
+/* Unfilled: the card behind them carries straight through, and each key is
+   held together by its outline alone.  A filled key was a slab of --panel-2 on
+   whatever the card happened to be, which on the adaptive theme meant a row of
+   cold grey boxes under a poster-coloured card; the outline says the same
+   thing without standing on anything. */
 .tbtn {
   appearance: none;
   min-height: var(--tap);
@@ -274,7 +279,7 @@
   padding: 0 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
-  background: var(--panel-2);
+  background: transparent;
   color: var(--text);
   font: inherit;
   font-size: 13px;
