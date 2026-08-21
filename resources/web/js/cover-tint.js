@@ -802,17 +802,25 @@ window.TinyPPICover = (function () {
 
   const panelHost = () => document.querySelector("main");
 
-  /* The top bar is a sibling of <main> rather than a child, so it inherits
-     nothing painted there and needs the quiet variant of its own.  That
-     variant carries the accent alone -- the lifted text colours belong to the
-     tinted card and are not wanted on the bar, which kept the theme's own
-     surface (see paintValues). */
-  const barHost = () => document.querySelector(".topbar");
+  /* The chrome that sits outside <main> and so inherits nothing painted there:
+     the bar across the top, and the theme menu, which hangs from <body> so the
+     bar cannot clip it.  Both take the quiet variant, which carries the accent
+     alone -- the lifted text colours belong to the tinted card and are not
+     wanted out here, where the theme's own surface is what they would sit on
+     (see paintValues).
+
+     Read again on each paint rather than kept: the menu is built by
+     js/theme.js after this file has loaded.  Both survive being rebuilt --
+     buildMenu replaces the menu's children, never the menu itself. */
+  const chromeHosts = () => [
+    document.querySelector(".topbar"),
+    document.getElementById("themeMenu")
+  ];
 
   function paintBoth(palette, key) {
     paint(current.hero, palette, key, "hero");
     paint(panelHost(), palette, key, "panel");
-    paint(barHost(), palette, key, "panel");
+    for (const host of chromeHosts()) paint(host, palette, key, "panel");
     /* Anything drawn rather than styled has to be told: the luminance chart
        takes its colours from the card it sits in, and a canvas does not
        repaint itself when a custom property under it changes. */

@@ -152,9 +152,16 @@
    dark theme.
 
    --warn and --bad are left alone: a paused badge and a failed switch say what
-   they say in the colour they always say it in. */
+   they say in the colour they always say it in.
+
+   The theme menu is handed the same token for the same reason.  It is not a
+   card, but it is opened from a key that now wears the film's colour, and a
+   menu answering in the theme's blue instead read as belonging to some other
+   page.  Its chosen row, its strength keys and its focus rings all ask for
+   --accent already, so one token turns the lot. */
 :root[data-theme="dark-adaptive"] .card,
-:root[data-theme="dark-adaptive"] .metalink {
+:root[data-theme="dark-adaptive"] .metalink,
+:root[data-theme="dark-adaptive"] .theme-menu {
   --accent:   rgb(var(--cover-accent-rgb));
   --accent-2: rgb(var(--cover-accent-rgb));
 }
