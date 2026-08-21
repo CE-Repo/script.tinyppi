@@ -1,0 +1,212 @@
+/* ---------------------------------------------------------------------------
+   The theme button, its menu, and what the adaptive theme paints.
+
+   The palettes themselves are in base.css, which is where a theme is a list of
+   tokens and nothing else.  This file is the two things that could not go
+   there: the chrome for picking one (js/theme.js builds it), and the handful
+   of rules that belong to the adaptive theme alone.
+
+   Loaded after base.css and live-panels.css, so the rules below are the last
+   word on the cards they touch.
+--------------------------------------------------------------------------- */
+
+/* --- The menu ------------------------------------------------------------ */
+
+/* It lives in <body> rather than beside the button, so the sticky top bar
+   cannot clip it; js/theme.js places it against the button's own rect. */
+.theme-menu {
+  position: fixed;
+  z-index: 30;
+  display: none;
+  margin: 0;
+  padding: 6px;
+  width: max-content;
+  min-width: 172px;
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
+  list-style: none;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.theme-menu.open {
+  display: block;
+  animation: menuIn .15s ease;
+}
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+}
+.theme-option:hover { background: var(--panel-2); }
+.theme-option .ui-icon { width: 18px; height: 18px; opacity: .82; }
+.theme-option.selected {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+.theme-option.selected .ui-icon { opacity: 1; }
+
+/* How strongly the adaptive theme tints, as a labelled row under the themes.
+   Only that theme has it, so js/theme.js hides the row while any other one is
+   in force. */
+.theme-group {
+  list-style: none;
+  margin: 6px 2px 0;
+  padding: 8px 4px 2px;
+  border-top: 1px solid var(--line-soft);
+}
+.theme-group[hidden] { display: none; }
+.theme-group-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.theme-group-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+/* Three options leave a hole in a two-column grid, so the odd one out takes
+   the whole row rather than half of it. */
+.theme-group-option:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.theme-group-option {
+  appearance: none;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color .12s, border-color .12s, background .12s;
+}
+.theme-group-option:hover { color: var(--text); border-color: var(--accent); }
+.theme-group-option[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
+}
+.theme-group-option:focus-visible,
+.theme-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------------------
+   Dark adaptive
+
+   The plain dark theme, with the now-playing card taking its colour from the
+   poster of whatever is on screen.  No other card is painted: the surfaces
+   around the film stay exactly what they are on the plain dark theme, so the
+   page has one coloured thing on it and everything else is the page.
+
+   What the other cards do take is the film's accent, for their marks alone --
+   a badge, a button, a chart trace.  js/cover-tint.js sets it on <main> and
+   every card inherits it; the now-playing card, which measures its own against
+   the tint it is carrying, sets its own on itself.
+
+   Everything outside main -- the top bar, the status light, the toast and the
+   token dialog -- is the dark theme untouched, deliberately: the page's own
+   chrome does not belong to the film.
+--------------------------------------------------------------------------- */
+
+/* The card is one box and rounds itself, so it paints the poster on its own
+   background, over the panel colour underneath -- one layer, since the scrim
+   that holds the colours down travels in them (see heroGradient).  Stopped at
+   the padding edge rather than run under the border, so the colour cannot
+   spill past the line along the rounded corners. */
+:root[data-theme="dark-adaptive"] .hero {
+  background-image: var(--cover-gradient, none);
+  background-repeat: no-repeat;
+  background-clip: padding-box;
+}
+
+/* What a card lights up with.  The theme's own accent is one fixed blue, which
+   next to a card that has taken a poster's colours reads as a mark from a
+   different theme -- so inside a card the accent *is* the film's, handed down
+   as one token rather than as a rule per mark.  Every badge, button, picker,
+   chart trace and focus ring in there follows without knowing anything about
+   it.
+
+   Only the hue comes from the poster; how far it stands off the surface is
+   measured (see accentColor in js/cover-tint.js), so a mark stands off by the
+   same amount whatever the film is -- and the now-playing card, whose surface
+   is the tinted one, is measured against that rather than against the panel
+   every other card kept.  A film with no poster falls back to the theme's own
+   accent in base.css, so the page then looks exactly as it does on the plain
+   dark theme.
+
+   --warn and --bad are left alone: a paused badge and a failed switch say what
+   they say in the colour they always say it in. */
+:root[data-theme="dark-adaptive"] .card,
+:root[data-theme="dark-adaptive"] .metalink {
+  --accent:   rgb(var(--cover-accent-rgb));
+  --accent-2: rgb(var(--cover-accent-rgb));
+}
+
+/* The title of what is playing, which is the one piece of text that is the
+   film rather than a reading about it -- and the heading of every card, which
+   is not the film but is the page's own furniture, the thing read past rather
+   than read.  Both go to the accent; what is between them, the readings
+   themselves, stays the plain text colour.
+
+   The headings carry their own disclosure arrow as currentColor, so it follows
+   without a rule of its own. */
+:root[data-theme="dark-adaptive"] .hero .now h1,
+:root[data-theme="dark-adaptive"] .card > .panel-toggle,
+:root[data-theme="dark-adaptive"] .card[open] > .panel-toggle,
+:root[data-theme="dark-adaptive"] .card > h2,
+:root[data-theme="dark-adaptive"] .card > .cardhead > h2 {
+  color: rgb(var(--cover-accent-rgb));
+}
+
+/* Nothing in the card needs a surface of its own here.  The progress bar, the
+   transport keys and the track pickers all sit below the middle, where the
+   colour is spent and the card is the plain panel the theme drew them for --
+   so they are left exactly as they are on it.  What they do follow is the
+   accent above: the filled part of the bar, a pressed key, a focused picker
+   are marks, and marks take the film's colour.
+------------------------------------------------------------------------- */
+
+/* --- The poster ---------------------------------------------------------- */
+
+/* The poster lights the card it sits in, rather than only being lit: a very
+   quiet halo in the film's own colour.  The wrapper opens a stacking context
+   of its own so the halo lands between the card's tint and the picture -- a
+   negative z-index alone would put it behind the tint, which the card paints
+   itself. */
+:root[data-theme="dark-adaptive"] .art {
+  position: relative;
+  z-index: 0;
+}
+:root[data-theme="dark-adaptive"] .art::before {
+  content: "";
+  position: absolute;
+  inset: -4px 6px -4px -4px;
+  z-index: -1;
+  border-radius: 24px;
+  background: radial-gradient(58% 66% at 50% 50%,
+    rgba(var(--cover-accent-rgb), .30) 0%,
+    rgba(var(--cover-accent-rgb), .11) 52%,
+    rgba(var(--cover-accent-rgb), 0) 78%);
+  pointer-events: none;
+}
+:root[data-theme="dark-adaptive"] .art img {
+  border-color: rgba(var(--cover-accent-rgb), .45);
+  background: rgba(0, 0, 0, .2);
+}

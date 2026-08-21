@@ -1590,3 +1590,39 @@ msgstr "Wiedergabesteuerung"
 msgctxt "#32495"
 msgid "Metrics"
 msgstr "Kennzahlen"
+
+msgctxt "#32496"
+msgid "Dark"
+msgstr "Dunkel"
+
+msgctxt "#32497"
+msgid "Dark (adaptive)"
+msgstr "Dunkel (adaptiv)"
+
+msgctxt "#32498"
+msgid "Midnight"
+msgstr "Mitternacht"
+
+msgctxt "#32499"
+msgid "Switch to {name} (hold for the full list)"
+msgstr "Zu {name} wechseln (gedrückt halten für die Auswahl)"
+
+msgctxt "#32500"
+msgid "Choose a theme"
+msgstr "Design auswählen"
+
+msgctxt "#32501"
+msgid "Intensity"
+msgstr "Intensität"
+
+msgctxt "#32502"
+msgid "Subtle"
+msgstr "Dezent"
+
+msgctxt "#32503"
+msgid "Standard"
+msgstr "Standard"
+
+msgctxt "#32504"
+msgid "Strong"
+msgstr "Kräftig"

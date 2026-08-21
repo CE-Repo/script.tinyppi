@@ -65,11 +65,11 @@
       '<summary class="panel-toggle"><span id="tilesTitle"></span></summary>' +
       '<div class="tilegrid">' +
         '<div class="tile"><span class="k" id="kFps"></span>' +
-          '<span class="v mono" id="vFps">—</span><span class="u" id="uFps">&nbsp;</span></div>' +
+          '<span class="v mono" id="vFps">—</span><span class="u" id="uFps"></span></div>' +
         '<div class="tile"><span class="k" id="kDrops"></span>' +
-          '<span class="v mono" id="vDrops">0</span><span class="u">&nbsp;</span></div>' +
+          '<span class="v mono" id="vDrops">0</span><span class="u"></span></div>' +
         '<div class="tile"><span class="k" id="kSwitches"></span>' +
-          '<span class="v mono" id="vSwitches">0</span><span class="u">&nbsp;</span></div>' +
+          '<span class="v mono" id="vSwitches">0</span><span class="u"></span></div>' +
       '</div>' +
     '</details>' +
     '<details class="card hidden" id="chartCard">' +
@@ -185,7 +185,12 @@
 
   /* The poster is fetched once per film: the add-on sends a tag that changes
      only when the picture does, and it hangs on the address, so the browser
-     asks again exactly then. */
+     asks again exactly then.
+
+     It is handed to the tint as well as to the page.  On the adaptive theme
+     that is what the now-playing card is painted with; every other theme
+     ignores it, so the call is made whichever one is in force -- the theme can
+     change long after the film did (see js/cover-tint.js). */
   function renderArt(art) {
     const tag = art.poster || "";
     if (tag === posterTag) return;
@@ -193,15 +198,24 @@
     if (!tag) {
       el.artBox.classList.add("hidden");
       el.poster.removeAttribute("src");
+      tint("");
       return;
     }
-    el.poster.src = TinyPPI.withToken("/api/art?kind=poster&v=" + tag);
+    const url = TinyPPI.withToken("/api/art?kind=poster&v=" + tag);
+    el.poster.src = url;
     el.artBox.classList.remove("hidden");
+    tint(url);
   }
 
-  /* A film with no poster is not an error; the frame just goes away. */
+  function tint(url) {
+    if (window.TinyPPICover) TinyPPICover.show(el.nowCard, url, el.poster);
+  }
+
+  /* A film with no poster is not an error; the frame just goes away, and the
+     card goes back to the plain panel colour with it. */
   el.poster.addEventListener("error", () => {
     el.artBox.classList.add("hidden");
+    tint("");
   });
 
   function renderBadges(snapshot) {
@@ -315,8 +329,12 @@
     slider.className = "volume";
     slider.id = "volume";
     slider.setAttribute("aria-label", TinyPPI.T.volume);
+    /* Whatever the input already reads, so a slider the add-on has not
+       reported a level for looks exactly as it did before it was drawn here. */
+    setVolume(slider, slider.value);
     slider.addEventListener("input", () => {
       volumeHeld = Date.now();
+      setVolume(slider, Number(slider.value));
       TinyPPI.command("volume", Number(slider.value));
     });
     rest.append(slider, mute);
@@ -340,6 +358,17 @@
       else return;
       event.preventDefault();
     });
+  }
+
+  /* How far the slider has run, on the slider itself.
+
+     The bar is drawn rather than left to the browser (see .volume in
+     live-panels.css), and WebKit has no pseudo-element for the part that has
+     run -- so the value has to reach the stylesheet as well as the input.
+     Firefox fills its own and ignores this. */
+  function setVolume(slider, value) {
+    slider.value = value;
+    slider.style.setProperty("--vol", Number(value) + "%");
   }
 
   function renderTransport(snapshot) {
@@ -370,7 +399,7 @@
     if (slider && controls.volume !== null && controls.volume !== undefined) {
       /* Not while a finger is on it: the snapshot is a fifth of a second
          behind, and writing it back would drag the handle out from under. */
-      if (Date.now() - volumeHeld > 1500) slider.value = controls.volume;
+      if (Date.now() - volumeHeld > 1500) setVolume(slider, controls.volume);
     }
     if (mute) {
       mute.classList.toggle("on", !!controls.muted);
@@ -442,7 +471,9 @@
     el.vDrops.textContent = String(totals.drops || 0);
     el.vFps.textContent  = metrics.fps_in
       ? metrics.fps_in.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "") : "—";
-    el.uFps.textContent  = metrics.fps_drop ? "▼ " + metrics.fps_drop : " ";
+    /* Empty rather than a space, so the line goes away with it -- see
+       .tile .u:empty in live-panels.css. */
+    el.uFps.textContent  = metrics.fps_drop ? "▼ " + metrics.fps_drop : "";
   }
 
   const EVENT_LABEL = {
@@ -626,7 +657,11 @@
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    const style = getComputedStyle(document.documentElement);
+    /* Read off the canvas rather than off <html>: custom properties inherit,
+       so this is the theme's palette on every theme -- and the film's own
+       accent on the adaptive one, where the card the chart sits in has taken
+       the poster's colour (see css/theme.css). */
+    const style = getComputedStyle(canvas);
     const accent  = style.getPropertyValue("--accent").trim() || "#4fc3f7";
     const line    = style.getPropertyValue("--line").trim() || "#242c36";
     const accent2 = style.getPropertyValue("--accent-2").trim() || "#82b1ff";
@@ -696,6 +731,11 @@
     trace("max", accent, 1.7);
     trace("avg", accent2, 1.5, [4, 3]);
   }
+
+  /* The chart's colours come from the card it is drawn in, which the adaptive
+     theme repaints from the poster.  A canvas cannot notice that on its own,
+     so js/cover-tint.js says when it has happened. */
+  document.addEventListener("tinyppi-tint", () => drawChart());
 
   let resizeTimer = 0;
   window.addEventListener("resize", () => {

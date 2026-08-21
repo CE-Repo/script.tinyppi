@@ -1506,3 +1506,39 @@ msgstr "播放控制"
 msgctxt "#32495"
 msgid "Metrics"
 msgstr "指标"
+
+msgctxt "#32496"
+msgid "Dark"
+msgstr "深色"
+
+msgctxt "#32497"
+msgid "Dark (adaptive)"
+msgstr "深色（自适应）"
+
+msgctxt "#32498"
+msgid "Midnight"
+msgstr "午夜"
+
+msgctxt "#32499"
+msgid "Switch to {name} (hold for the full list)"
+msgstr "切换到{name}（长按查看全部）"
+
+msgctxt "#32500"
+msgid "Choose a theme"
+msgstr "选择主题"
+
+msgctxt "#32501"
+msgid "Intensity"
+msgstr "强度"
+
+msgctxt "#32502"
+msgid "Subtle"
+msgstr "轻微"
+
+msgctxt "#32503"
+msgid "Standard"
+msgstr "标准"
+
+msgctxt "#32504"
+msgid "Strong"
+msgstr "强烈"

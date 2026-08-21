@@ -1507,3 +1507,39 @@ msgstr "عناصر التحكم في التشغيل"
 msgctxt "#32495"
 msgid "Metrics"
 msgstr "المؤشرات"
+
+msgctxt "#32496"
+msgid "Dark"
+msgstr "داكن"
+
+msgctxt "#32497"
+msgid "Dark (adaptive)"
+msgstr "داكن (تكيفي)"
+
+msgctxt "#32498"
+msgid "Midnight"
+msgstr "منتصف الليل"
+
+msgctxt "#32499"
+msgid "Switch to {name} (hold for the full list)"
+msgstr "التبديل إلى {name} (اضغط مطولاً لعرض القائمة)"
+
+msgctxt "#32500"
+msgid "Choose a theme"
+msgstr "اختر مظهرًا"
+
+msgctxt "#32501"
+msgid "Intensity"
+msgstr "الشدة"
+
+msgctxt "#32502"
+msgid "Subtle"
+msgstr "خفيف"
+
+msgctxt "#32503"
+msgid "Standard"
+msgstr "قياسي"
+
+msgctxt "#32504"
+msgid "Strong"
+msgstr "قوي"

@@ -28,12 +28,17 @@ window.TinyPPI = (function () {
     peak: "Peak", average: "Average", aspect: "Aspect ratio", fps: "FPS",
     drops: "Frame drops", switches: "Output switches", metrics: "Metrics",
     chart: "Frame luminance", active_area: "Active picture", vs10: "VS10 output",
-    output: "Output", copy: "Copy report", copied: "Copied", awake: "Keep awake",
+    output: "Output", copy: "Copy report", copied: "Copied",
     controls: "Playback controls",
     token_title: "Access token", token_text: "", save: "Save", cancel: "Cancel",
     yes: "Yes", no: "No",
     token_bad: "Wrong or missing token", switching: "Switching…",
-    switched: "Switched", switch_failed: "Switching failed"
+    switched: "Switched", switch_failed: "Switching failed",
+    theme_dark: "Dark", theme_adaptive: "Dark (adaptive)",
+    theme_midnight: "Midnight", theme_menu: "Choose a theme",
+    theme_switch: "Switch to {name} (hold for the full list)",
+    tint_label: "Intensity", tint_subtle: "Subtle", tint_standard: "Standard",
+    tint_strong: "Strong"
   };
 
   const $ = (id) => document.getElementById(id);
@@ -104,6 +109,9 @@ window.TinyPPI = (function () {
   }
 
   function applyChromeStrings() {
+    /* The theme button and its menu are built before this file runs and carry
+       their own English until the localized set arrives; see js/theme.js. */
+    if (window.TinyPPITheme) TinyPPITheme.strings(T);
     $("dlgTitle").textContent  = T.token_title;
     $("dlgText").textContent   = T.token_text;
     $("dlgOk").textContent     = T.save;

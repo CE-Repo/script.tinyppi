@@ -1590,3 +1590,39 @@ msgstr ""
 msgctxt "#32495"
 msgid "Metrics"
 msgstr ""
+
+msgctxt "#32496"
+msgid "Dark"
+msgstr ""
+
+msgctxt "#32497"
+msgid "Dark (adaptive)"
+msgstr ""
+
+msgctxt "#32498"
+msgid "Midnight"
+msgstr ""
+
+msgctxt "#32499"
+msgid "Switch to {name} (hold for the full list)"
+msgstr ""
+
+msgctxt "#32500"
+msgid "Choose a theme"
+msgstr ""
+
+msgctxt "#32501"
+msgid "Intensity"
+msgstr ""
+
+msgctxt "#32502"
+msgid "Subtle"
+msgstr ""
+
+msgctxt "#32503"
+msgid "Standard"
+msgstr ""
+
+msgctxt "#32504"
+msgid "Strong"
+msgstr ""
