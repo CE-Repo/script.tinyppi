@@ -17,7 +17,7 @@ const el = {
   vs10Card: $("vs10Card"), vs10Out: $("vs10Out"), modes: $("modes"),
   groups: $("groups"),
   metricsCard: $("tiles"), eventsCard: $("eventsCard"), metaLink: $("metaLink"),
-  wakeBtn: $("wakeBtn"), copyBtn: $("copyBtn")
+  copyBtn: $("copyBtn")
 };
 
 /* Keep VS10 by the playback card; the two optional summary cards belong at
@@ -291,36 +291,6 @@ el.copyBtn.addEventListener("click", () => {
   TinyPPI.copyReport(buildReport(), (state || {}).title);
 });
 
-/* --- wake lock ---------------------------------------------------------- */
-
-let wakeLock = null;
-if ("wakeLock" in navigator) {
-  el.wakeBtn.classList.remove("hidden");
-  el.wakeBtn.addEventListener("click", async () => {
-    if (wakeLock) {
-      await wakeLock.release().catch(() => {});
-      wakeLock = null;
-      el.wakeBtn.setAttribute("aria-pressed", "false");
-      return;
-    }
-    try {
-      wakeLock = await navigator.wakeLock.request("screen");
-      wakeLock.addEventListener("release", () => {
-        wakeLock = null;
-        el.wakeBtn.setAttribute("aria-pressed", "false");
-      });
-      el.wakeBtn.setAttribute("aria-pressed", "true");
-    } catch (_) { /* denied; the button simply stays off */ }
-  });
-  document.addEventListener("visibilitychange", async () => {
-    if (document.visibilityState === "visible" &&
-        el.wakeBtn.getAttribute("aria-pressed") === "true" && !wakeLock) {
-      try { wakeLock = await navigator.wakeLock.request("screen"); } catch (_) {}
-    }
-  });
-}
-
-
 /* --- boot --------------------------------------------------------------- */
 
 function applyStrings(strings, hello) {
@@ -332,9 +302,6 @@ function applyStrings(strings, hello) {
   $("metaLinkText").textContent = strings.metadata;
   el.copyBtn.setAttribute("aria-label", strings.copy);
   el.copyBtn.title = strings.copy;
-  el.wakeBtn.querySelector(".lbl").textContent = strings.awake;
-  el.wakeBtn.setAttribute("aria-label", strings.awake);
-  el.wakeBtn.title = strings.awake;
   if (hello) {
     el.version.textContent = "v" + hello.version;
   }

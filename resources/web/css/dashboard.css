@@ -76,7 +76,11 @@
   padding: 7px 16px;
 }
 .row + .row { border-top: 1px solid var(--line-soft); }
-.row .k { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+/* The same colour as the reading beside it.  A quieter label is the usual way
+   round -- a name is scanned past, a value is read -- but these names are half
+   of what the row says: which reading this is.  The value keeps the mono face
+   and its own size, which is what still tells the two apart. */
+.row .k { color: var(--text); font-size: 13px; overflow-wrap: anywhere; }
 .row .v {
   font-size: 13.5px;
   text-align: right;

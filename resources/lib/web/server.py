@@ -95,7 +95,6 @@ _UI_STRINGS = {
     "output":        32055,   # Output
     "copy":          32456,
     "copied":        32457,
-    "awake":         32458,
     "token_title":   32459,
     "token_text":    32460,
     "save":          32461,

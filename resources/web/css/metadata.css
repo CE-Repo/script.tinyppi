@@ -75,7 +75,9 @@
   padding: 3px 16px;
   font-size: 12.5px;
 }
-.mrow .k { color: var(--muted); overflow-wrap: anywhere; }
+/* As on the dashboard's own rows (see .row .k there): the name is half of what
+   the row says, so it is not held back from the reading beside it. */
+.mrow .k { color: var(--text); overflow-wrap: anywhere; }
 .mrow .v { text-align: right; overflow-wrap: anywhere; transition: color .45s ease-out; }
 .mrow.changed .v { color: var(--accent-2); transition: none; }
 
@@ -114,7 +116,10 @@
 }
 .mgrid > span.changed { color: var(--accent-2); transition: none; }
 .mgrid .lead, .mgrid .corner { text-align: left; }
-.mgrid .lead { color: var(--muted); }
+/* A trim table's row names are the same kind of thing as .mrow's, so they go
+   the same way.  The headings above them do not: those name the columns rather
+   than the readings, and stay the quieter colour below. */
+.mgrid .lead { color: var(--text); }
 .mgrid .corner, .mgrid .head {
   color: var(--dim);
   font-size: 10.5px;

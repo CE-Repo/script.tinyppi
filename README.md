@@ -277,8 +277,7 @@ panels to draw.
 The row labels come from Kodi's own string table, so the dashboard is in the
 same language the overlay is. Nothing is loaded from the internet: the page is
 served entirely by the add-on and works on a box with no outside connection.
-On a phone it can be added to the home screen and will keep the screen awake
-while it is open.
+On a phone it can be added to the home screen.
 
 ### Themes
 

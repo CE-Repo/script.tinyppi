@@ -28,7 +28,7 @@ window.TinyPPI = (function () {
     peak: "Peak", average: "Average", aspect: "Aspect ratio", fps: "FPS",
     drops: "Frame drops", switches: "Output switches", metrics: "Metrics",
     chart: "Frame luminance", active_area: "Active picture", vs10: "VS10 output",
-    output: "Output", copy: "Copy report", copied: "Copied", awake: "Keep awake",
+    output: "Output", copy: "Copy report", copied: "Copied",
     controls: "Playback controls",
     token_title: "Access token", token_text: "", save: "Save", cancel: "Cancel",
     yes: "Yes", no: "No",
