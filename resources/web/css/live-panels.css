@@ -90,6 +90,17 @@
   height: 26px;
   padding: 0 7px;
   background: transparent;
+  /* Outlined the way the badge across the card from it is, rather than in
+     --line: that is a colour for a line between two surfaces, and with no fill
+     behind it there was nothing for it to divide -- the button all but
+     disappeared.  The accent is the film's inside this card, so the two marks
+     at the top of it answer to the same thing. */
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.control-toggle .control-chevron { opacity: 1; }
+.control-toggle:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 .control-toggle[aria-expanded="true"] {
   color: var(--text);
