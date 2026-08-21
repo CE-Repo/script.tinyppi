@@ -1483,6 +1483,74 @@ msgctxt "#32472"
 msgid "Dolby Vision"
 msgstr "Dolby Vision"
 
+msgctxt "#32476"
+msgid "Frame drops"
+msgstr "Kockakiesés"
+
+msgctxt "#32478"
+msgid "Output switches"
+msgstr "Kimenetváltások"
+
+msgctxt "#32479"
+msgid "Events"
+msgstr "Események"
+
+msgctxt "#32480"
+msgid "Nothing out of the ordinary yet"
+msgstr "Eddig semmi rendellenes"
+
+msgctxt "#32481"
+msgid "1 min"
+msgstr "1 perc"
+
+msgctxt "#32482"
+msgid "10 min"
+msgstr "10 perc"
+
+msgctxt "#32483"
+msgid "Whole title"
+msgstr "Teljes cím"
+
+msgctxt "#32484"
+msgid "Audio track"
+msgstr "Hangsáv"
+
+msgctxt "#32485"
+msgid "Subtitles"
+msgstr "Feliratok"
+
+msgctxt "#32486"
+msgid "Off"
+msgstr "Ki"
+
+msgctxt "#32487"
+msgid "Volume"
+msgstr "Hangerő"
+
+msgctxt "#32488"
+msgid "Mute"
+msgstr "Némítás"
+
+msgctxt "#32489"
+msgid "Play / Pause"
+msgstr "Lejátszás / Szünet"
+
+msgctxt "#32490"
+msgid "Stop"
+msgstr "Leállítás"
+
+msgctxt "#32491"
+msgid "Display mode"
+msgstr "Megjelenítési mód"
+
+msgctxt "#32492"
+msgid "Cache dip"
+msgstr "Puffer-visszaesés"
+
+msgctxt "#32493"
+msgid "Frames lost"
+msgstr "Elveszett képkockák"
+
 msgctxt "#32494"
 msgid "Playback controls"
 msgstr "Lejátszásvezérlők"
