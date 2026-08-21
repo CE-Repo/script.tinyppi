@@ -138,23 +138,33 @@
   padding: 14px 15px;
   display: grid;
   gap: 4px;
-  align-content: start;
+  /* Centred rather than hung from the top.  Every tile in a row is as tall as
+     the tallest, so anything shorter used to sit high in its own box with all
+     of the slack under it. */
+  align-content: center;
   justify-items: center;
   text-align: center;
 }
+/* The reading's own name, in the reading's colour -- the same way round as the
+   detail rows (see .row .k in dashboard.css). */
 .tile .k {
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--text);
 }
 .tile .v {
   font-size: clamp(20px, 5vw, 27px);
   font-weight: 650;
   line-height: 1.1;
 }
+/* Out of the way entirely when there is no unit to put on it, rather than
+   holding an empty line under the reading: the tiles are all as tall as the
+   tallest of them anyway, and a reserved line only pushed what is in them up
+   off centre. */
 .tile .u { font-size: 12px; color: var(--dim); font-weight: 500; }
+.tile .u:empty { display: none; }
 
 @media (max-width: 620px) {
   .tilegrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -65,11 +65,11 @@
       '<summary class="panel-toggle"><span id="tilesTitle"></span></summary>' +
       '<div class="tilegrid">' +
         '<div class="tile"><span class="k" id="kFps"></span>' +
-          '<span class="v mono" id="vFps">—</span><span class="u" id="uFps">&nbsp;</span></div>' +
+          '<span class="v mono" id="vFps">—</span><span class="u" id="uFps"></span></div>' +
         '<div class="tile"><span class="k" id="kDrops"></span>' +
-          '<span class="v mono" id="vDrops">0</span><span class="u">&nbsp;</span></div>' +
+          '<span class="v mono" id="vDrops">0</span><span class="u"></span></div>' +
         '<div class="tile"><span class="k" id="kSwitches"></span>' +
-          '<span class="v mono" id="vSwitches">0</span><span class="u">&nbsp;</span></div>' +
+          '<span class="v mono" id="vSwitches">0</span><span class="u"></span></div>' +
       '</div>' +
     '</details>' +
     '<details class="card hidden" id="chartCard">' +
@@ -471,7 +471,9 @@
     el.vDrops.textContent = String(totals.drops || 0);
     el.vFps.textContent  = metrics.fps_in
       ? metrics.fps_in.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "") : "—";
-    el.uFps.textContent  = metrics.fps_drop ? "▼ " + metrics.fps_drop : " ";
+    /* Empty rather than a space, so the line goes away with it -- see
+       .tile .u:empty in live-panels.css. */
+    el.uFps.textContent  = metrics.fps_drop ? "▼ " + metrics.fps_drop : "";
   }
 
   const EVENT_LABEL = {
