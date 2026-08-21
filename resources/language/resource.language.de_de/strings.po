@@ -1503,14 +1503,6 @@ msgctxt "#32472"
 msgid "Dolby Vision"
 msgstr "Dolby Vision"
 
-msgctxt "#32473"
-msgid "Display reset on Dolby Vision switch"
-msgstr "Display-Reset beim Dolby-Vision-Wechsel"
-
-msgctxt "#32474"
-msgid "Re-initialise the HDMI output whenever a VS10 switch turns Dolby Vision on or off. Kodi only re-applies the display mode when a stream's HDR type changes, which a switch made during playback never reports, so the TV keeps the previous signalling and the picture comes out with the wrong colours - most visibly in Player-LED mode. Turn it off if your TV or receiver dislikes the short re-sync."
-msgstr "Initialisiert die HDMI-Ausgabe neu, sobald ein VS10-Wechsel Dolby Vision ein- oder ausschaltet. Kodi setzt den Anzeigemodus nur dann neu, wenn sich der HDR-Typ des Streams ändert - und davon erfährt es bei einem Wechsel während der Wiedergabe nie. Der Fernseher bleibt deshalb bei der bisherigen Signalisierung und das Bild kommt mit falschen Farben heraus, am deutlichsten im Player-LED-Modus. Ausschalten, falls Fernseher oder Receiver die kurze Neusynchronisation nicht mögen."
-
 msgctxt "#32475"
 msgid "This playback"
 msgstr "Diese Wiedergabe"

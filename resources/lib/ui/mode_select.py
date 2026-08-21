@@ -113,19 +113,6 @@ def _is_playing_video() -> bool:
         return False
 
 
-def _display_reset_enabled() -> bool:
-    """Return whether the display reset on Dolby Vision switches is wanted.
-
-    A fresh ``Addon()`` avoids the cached settings, so toggling it applies to
-    the very next switch.  An older settings.xml without the setting reads as
-    on: the reset is what makes such a switch land correctly.
-    """
-    try:
-        return xbmcaddon.Addon().getSettingBool("dv_display_reset")
-    except Exception:
-        return True
-
-
 def _reset_display_on_dv_change(name: str, dv_before: bool) -> None:
     """Re-init the HDMI output when a switch crossed the Dolby Vision line.
 
@@ -142,8 +129,12 @@ def _reset_display_on_dv_change(name: str, dv_before: bool) -> None:
     output is signalled and returns here at once, without waiting on the driver.
     The rest wait for the driver to confirm the crossing, because a mode the
     driver did not take is a mode the display has nothing to re-apply for.
+
+    Not optional: without it such a switch simply lands wrong, so there is no
+    setting to turn it off.  Only playback gates it, since a switch with
+    nothing on screen has no output to re-apply.
     """
-    if not _display_reset_enabled() or not _is_playing_video():
+    if not _is_playing_video():
         return
 
     if (name in _DV_MODES) == dv_before:

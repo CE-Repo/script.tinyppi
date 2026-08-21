@@ -1503,14 +1503,6 @@ msgctxt "#32472"
 msgid "Dolby Vision"
 msgstr "Dolby Vision"
 
-msgctxt "#32473"
-msgid "Display reset on Dolby Vision switch"
-msgstr "Képkimenet reset a Dolby Vision VS10 kapcsolásnál"
-
-msgctxt "#32474"
-msgid "Re-initialise the HDMI output whenever a VS10 switch turns Dolby Vision on or off. Kodi only re-applies the display mode when a stream's HDR type changes, which a switch made during playback never reports, so the TV keeps the previous signalling and the picture comes out with the wrong colours - most visibly in Player-LED mode. Turn it off if your TV or receiver dislikes the short re-sync."
-msgstr "Inicializáld újra a HDMI kimenetet, valahányszor egy VS10 kapcsoló be- vagy kikapcsolja a Dolby Visiont. A Kodi csak akkor alkalmazza újra a megjelenítési módot, ha egy stream HDR típusa megváltozik, amit a lejátszás közbeni váltás soha nem jelez, így a TV megtartja az előző jeltípust, és a kép rossz színekkel jelenik meg - leginkább a Player-LED módban. Kapcsold ki, ha ez problémákat okoz."
-
 msgctxt "#32494"
 msgid "Playback controls"
 msgstr "Lejátszásvezérlők"
