@@ -92,7 +92,9 @@ _UI_STRINGS = {
     "metadata_section": 32289,  # Metadata
     "no_metadata":      32470,
     "no_metadata_text": 32471,
-    "output":        32055,   # Output
+    # The VS10 output the picture leaves on, not the audio row's sink,
+    # which keeps #32055: one string cannot be translated for both.
+    "output":        32057,   # Output (picture)
     "copy":          32456,
     "copied":        32457,
     "token_title":   32459,
