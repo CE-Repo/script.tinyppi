@@ -214,9 +214,8 @@
 
 /* --- Format logos -------------------------------------------------------
    The very files the overlay draws (see web/server.py _media_routes).  They
-   are white on transparent, tinted by the skin at draw time; here the dark
-   theme takes them as they are and the light one inverts them, rather than a
-   second set of files being shipped for it.
+   are white on transparent, tinted by the skin at draw time; every theme here
+   is a dark one, so they are taken as they are.
 ------------------------------------------------------------------------ */
 
 .logos {
@@ -233,10 +232,6 @@
   object-fit: contain;
   opacity: .92;
 }
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .logo { filter: invert(1); }
-}
-:root[data-theme="light"] .logo { filter: invert(1); }
 
 /* --- Transport ---------------------------------------------------------- */
 

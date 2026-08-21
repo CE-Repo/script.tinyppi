@@ -1506,3 +1506,39 @@ msgstr "Lejátszásvezérlők"
 msgctxt "#32495"
 msgid "Metrics"
 msgstr "Mérőszámok"
+
+msgctxt "#32496"
+msgid "Dark"
+msgstr "Sötét"
+
+msgctxt "#32497"
+msgid "Dark (adaptive)"
+msgstr "Sötét (adaptív)"
+
+msgctxt "#32498"
+msgid "Midnight"
+msgstr "Éjfél"
+
+msgctxt "#32499"
+msgid "Switch to {name} (hold for the full list)"
+msgstr "Váltás erre: {name} (tartsa nyomva a listához)"
+
+msgctxt "#32500"
+msgid "Choose a theme"
+msgstr "Téma választása"
+
+msgctxt "#32501"
+msgid "Intensity"
+msgstr "Intenzitás"
+
+msgctxt "#32502"
+msgid "Subtle"
+msgstr "Visszafogott"
+
+msgctxt "#32503"
+msgid "Standard"
+msgstr "Normál"
+
+msgctxt "#32504"
+msgid "Strong"
+msgstr "Erős"

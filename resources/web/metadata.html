@@ -3,17 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="dark light">
+<meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b0d10">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="robots" content="noindex, nofollow">
+<!-- Loaded here, ahead of everything it could flash against: it puts
+     the chosen theme on <html> before the page is first painted. -->
+<script src="/js/theme.js"></script>
 <title>TinyPPI — Dolby Vision metadata</title>
 <link rel="apple-touch-icon" href="/icon.jpg">
 <link rel="icon" href="/icon.jpg">
 <link rel="stylesheet" href="/css/base.css">
 <link rel="stylesheet" href="/css/live-panels.css">
 <link rel="stylesheet" href="/css/metadata.css">
+<link rel="stylesheet" href="/css/theme.css">
 </head>
 
 <body class="metadata-page">
@@ -58,6 +62,7 @@
 </main>
 
 <script src="/js/core.js"></script>
+<script src="/js/cover-tint.js"></script>
 <script src="/js/live-panels.js"></script>
 <script src="/js/metadata.js"></script>
 </body>

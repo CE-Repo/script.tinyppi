@@ -185,7 +185,12 @@
 
   /* The poster is fetched once per film: the add-on sends a tag that changes
      only when the picture does, and it hangs on the address, so the browser
-     asks again exactly then. */
+     asks again exactly then.
+
+     It is handed to the tint as well as to the page.  On the adaptive theme
+     that is what the now-playing card is painted with; every other theme
+     ignores it, so the call is made whichever one is in force -- the theme can
+     change long after the film did (see js/cover-tint.js). */
   function renderArt(art) {
     const tag = art.poster || "";
     if (tag === posterTag) return;
@@ -193,15 +198,24 @@
     if (!tag) {
       el.artBox.classList.add("hidden");
       el.poster.removeAttribute("src");
+      tint("");
       return;
     }
-    el.poster.src = TinyPPI.withToken("/api/art?kind=poster&v=" + tag);
+    const url = TinyPPI.withToken("/api/art?kind=poster&v=" + tag);
+    el.poster.src = url;
     el.artBox.classList.remove("hidden");
+    tint(url);
   }
 
-  /* A film with no poster is not an error; the frame just goes away. */
+  function tint(url) {
+    if (window.TinyPPICover) TinyPPICover.show(el.nowCard, url, el.poster);
+  }
+
+  /* A film with no poster is not an error; the frame just goes away, and the
+     card goes back to the plain panel colour with it. */
   el.poster.addEventListener("error", () => {
     el.artBox.classList.add("hidden");
+    tint("");
   });
 
   function renderBadges(snapshot) {

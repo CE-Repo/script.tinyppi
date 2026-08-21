@@ -280,6 +280,32 @@ served entirely by the add-on and works on a box with no outside connection.
 On a phone it can be added to the home screen and will keep the screen awake
 while it is open.
 
+### Themes
+
+The button beside the TinyPPI name in the top bar switches the page between
+three themes, and every one of them is dark — this is watched in the room the
+projector is in, so there is nothing here for a lit one. A press walks through
+them; **holding the button down** (or right-clicking it) opens a menu to jump
+straight to one:
+
+- **Dark** — the plain one, and what a first visit gets.
+- **Dark (adaptive)** — the same page, with the now-playing card taking its
+  colour from the poster of whatever is on screen. The five colours are read
+  out of the artwork region by region, so the card keeps the poster's own
+  layout, and how much of the colour survives is worked out per film against
+  the contrast its text needs — a dark poster keeps nearly all of it, a bright
+  one is held down as far as it has to be, and both end up equally readable.
+  The badge, the progress bar and the frame around the poster take the film's
+  own colour with it. A title with no poster simply keeps the plain card.
+  While this theme is on, the menu also carries how strongly it tints:
+  **subtle**, **standard** or **strong**.
+- **Midnight** — deeper and bluer, for a room with nothing else lit in it.
+
+The choice is remembered in the browser, per device, and is applied before the
+page is first drawn, so reopening the dashboard never flashes the wrong theme.
+Both windows share it, and the phone's own status bar follows it. Nothing is
+sent to the add-on: the theme is the browser's business, not the box's.
+
 ### The Dolby Vision metadata window
 
 On a Dolby Vision title the dashboard shows a **Dolby Vision metadata view**

@@ -125,6 +125,16 @@ _UI_STRINGS = {
     "ev_drops":      32493,
     "controls":      32494,
     "metrics":       32495,
+    # The theme button and the menu behind a long press on it.
+    "theme_dark":      32496,
+    "theme_adaptive":  32497,
+    "theme_midnight":  32498,
+    "theme_switch":    32499,
+    "theme_menu":      32500,
+    "tint_label":      32501,
+    "tint_subtle":     32502,
+    "tint_standard":   32503,
+    "tint_strong":     32504,
 }
 
 
@@ -231,7 +241,10 @@ def _static_routes() -> dict[str, tuple[str, str]]:
         "/css/live-panels.css":   (os.path.join(web, "css", "live-panels.css"), "text/css; charset=utf-8"),
         "/css/dashboard.css":     (os.path.join(web, "css", "dashboard.css"), "text/css; charset=utf-8"),
         "/css/metadata.css":      (os.path.join(web, "css", "metadata.css"), "text/css; charset=utf-8"),
+        "/css/theme.css":         (os.path.join(web, "css", "theme.css"), "text/css; charset=utf-8"),
         "/js/core.js":            (os.path.join(web, "js", "core.js"), "text/javascript; charset=utf-8"),
+        "/js/theme.js":           (os.path.join(web, "js", "theme.js"), "text/javascript; charset=utf-8"),
+        "/js/cover-tint.js":      (os.path.join(web, "js", "cover-tint.js"), "text/javascript; charset=utf-8"),
         "/js/live-panels.js":     (os.path.join(web, "js", "live-panels.js"), "text/javascript; charset=utf-8"),
         "/js/dashboard.js":       (os.path.join(web, "js", "dashboard.js"), "text/javascript; charset=utf-8"),
         "/js/metadata.js":        (os.path.join(web, "js", "metadata.js"), "text/javascript; charset=utf-8"),
@@ -245,6 +258,9 @@ def _static_routes() -> dict[str, tuple[str, str]]:
         "/icons/volume-muted.svg": (os.path.join(web, "icons", "volume-muted.svg"), "image/svg+xml"),
         "/icons/yes.svg":         (os.path.join(web, "icons", "yes.svg"), "image/svg+xml"),
         "/icons/no.svg":          (os.path.join(web, "icons", "no.svg"), "image/svg+xml"),
+        "/icons/theme-dark.svg":  (os.path.join(web, "icons", "theme-dark.svg"), "image/svg+xml"),
+        "/icons/theme-adaptive.svg": (os.path.join(web, "icons", "theme-adaptive.svg"), "image/svg+xml"),
+        "/icons/theme-midnight.svg": (os.path.join(web, "icons", "theme-midnight.svg"), "image/svg+xml"),
         "/manifest.webmanifest":  (os.path.join(web, "manifest.webmanifest"), "application/manifest+json"),
         "/icon.jpg":              (os.path.join(root, "icon.jpg"), "image/jpeg"),
         "/fanart.jpg":            (os.path.join(root, "fanart.jpg"), "image/jpeg"),

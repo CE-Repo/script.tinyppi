@@ -1,0 +1,200 @@
+/* ---------------------------------------------------------------------------
+   The theme button, its menu, and what the adaptive theme paints.
+
+   The palettes themselves are in base.css, which is where a theme is a list of
+   tokens and nothing else.  This file is the two things that could not go
+   there: the chrome for picking one (js/theme.js builds it), and the handful
+   of rules that belong to the adaptive theme alone.
+
+   Loaded after base.css and live-panels.css, so the rules below are the last
+   word on the cards they touch.
+--------------------------------------------------------------------------- */
+
+/* --- The menu ------------------------------------------------------------ */
+
+/* It lives in <body> rather than beside the button, so the sticky top bar
+   cannot clip it; js/theme.js places it against the button's own rect. */
+.theme-menu {
+  position: fixed;
+  z-index: 30;
+  display: none;
+  margin: 0;
+  padding: 6px;
+  width: max-content;
+  min-width: 172px;
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
+  list-style: none;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.theme-menu.open {
+  display: block;
+  animation: menuIn .15s ease;
+}
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+}
+.theme-option:hover { background: var(--panel-2); }
+.theme-option .ui-icon { width: 18px; height: 18px; opacity: .82; }
+.theme-option.selected {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+.theme-option.selected .ui-icon { opacity: 1; }
+
+/* How strongly the adaptive theme tints, as a labelled row under the themes.
+   Only that theme has it, so js/theme.js hides the row while any other one is
+   in force. */
+.theme-group {
+  list-style: none;
+  margin: 6px 2px 0;
+  padding: 8px 4px 2px;
+  border-top: 1px solid var(--line-soft);
+}
+.theme-group[hidden] { display: none; }
+.theme-group-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.theme-group-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+/* Three options leave a hole in a two-column grid, so the odd one out takes
+   the whole row rather than half of it. */
+.theme-group-option:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.theme-group-option {
+  appearance: none;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color .12s, border-color .12s, background .12s;
+}
+.theme-group-option:hover { color: var(--text); border-color: var(--accent); }
+.theme-group-option[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
+}
+.theme-group-option:focus-visible,
+.theme-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------------------
+   Dark adaptive
+
+   The plain dark theme, with one exception: the now-playing card takes its
+   colour from the poster of whatever is on screen.  Nothing else changes -- the
+   top bar, the tiles, the chart and the metadata list inherit the dark theme
+   untouched -- so every rule below is scoped to that card or to a mark inside
+   it.
+
+   js/cover-tint.js hands the poster over as --cover-gradient, together with
+   the scrim that keeps the text on it readable and the accent its marks take.
+   Without a poster there is nothing to paint and the plain panel shows
+   through.
+--------------------------------------------------------------------------- */
+
+/* Where the poster sits inside the card, as the middle of its own box: the
+   light in the card comes from the artwork rather than from the card's
+   corners, and only the layout knows where that is.  The poster is 104x156
+   with a 16px inset, and shrinks with the viewport on a narrow screen (see
+   .art img in live-panels.css) -- these follow it. */
+:root[data-theme="dark-adaptive"] .hero {
+  --cover-anchor-x: calc(16px + min(52px, 15vw));
+  --cover-anchor-y: calc(16px + min(78px, 22.5vw));
+  --cover-spread-x: 34px;
+  --cover-spread-y: 44px;
+  --cover-fade-angle: 100deg;
+}
+
+/* The card is one box and rounds itself, so it paints the poster on its own
+   background: the scrim over the poster's colours, those over the panel colour
+   underneath.  Stopped at the padding edge rather than run under the border,
+   so the colour cannot spill past the line along the rounded corners. */
+:root[data-theme="dark-adaptive"] .hero {
+  background-image:
+    linear-gradient(var(--cover-scrim), var(--cover-scrim)),
+    var(--cover-gradient, none);
+  background-repeat: no-repeat;
+  background-clip: padding-box;
+}
+
+/* What the card lights up with.  The theme's own accent is one fixed blue,
+   which on a card that has taken a poster's colours reads as a mark from a
+   different theme sitting on top of it -- so the badges, the progress bar and
+   the frame around the poster answer to the film in front of them instead.
+
+   Only the hue comes from the poster; how far it stands off the surface is
+   measured (see accentColor), so a card lights up by the same amount whatever
+   it is showing.  A film with no poster falls back to the slate in base.css,
+   which is the theme's own line colour rather than an accent -- nothing to
+   pick up means nothing to answer with.
+
+   The title, the metadata line and the filename are left alone: they are what
+   is being read, not what is there to be scanned past. */
+:root[data-theme="dark-adaptive"] .hero .badge:not(.alt) {
+  border-color: rgba(var(--cover-accent-rgb), .5);
+  color: rgb(var(--cover-accent-rgb));
+  background: rgba(var(--cover-accent-rgb), .12);
+}
+
+:root[data-theme="dark-adaptive"] .hero .track {
+  background: rgba(var(--cover-accent-rgb), .14);
+}
+:root[data-theme="dark-adaptive"] .hero .track > i {
+  background: linear-gradient(90deg,
+    rgba(var(--cover-accent-rgb), .75), rgb(var(--cover-accent-rgb)));
+}
+
+/* The poster lights the card it sits in, rather than only being lit: a very
+   quiet halo in the film's own colour.  The wrapper opens a stacking context
+   of its own so the halo lands between the card's tint and the picture -- a
+   negative z-index alone would put it behind the tint, which the card paints
+   itself. */
+:root[data-theme="dark-adaptive"] .art {
+  position: relative;
+  z-index: 0;
+}
+:root[data-theme="dark-adaptive"] .art::before {
+  content: "";
+  position: absolute;
+  inset: -4px 6px -4px -4px;
+  z-index: -1;
+  border-radius: 24px;
+  background: radial-gradient(58% 66% at 50% 50%,
+    rgba(var(--cover-accent-rgb), .30) 0%,
+    rgba(var(--cover-accent-rgb), .11) 52%,
+    rgba(var(--cover-accent-rgb), 0) 78%);
+  pointer-events: none;
+}
+:root[data-theme="dark-adaptive"] .art img {
+  border-color: rgba(var(--cover-accent-rgb), .45);
+}
