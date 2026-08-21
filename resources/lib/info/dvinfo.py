@@ -17,6 +17,14 @@ happens only when the raw payload actually changes, and the field dict it
 yields is held for a fraction of a second so one polling pass over the ~20
 getters costs a single parse.
 
+The one part of a parse that is not built by default is the RPU's composer
+data -- the per-component reshaping curves and the NLQ dequantization data,
+which run to hundreds of coefficients and are the only thing here big enough
+to be worth not building for a frame nobody will read them off.  A caller with
+somewhere to put them asks for them (``get_sidedata(mapping=True)``, which the
+metadata view does on each of its own ticks) and the request simply lapses when
+it stops asking.
+
 What the side data describes is the source, not the picture after the player
 has had its way with it: CoreELEC latches the payloads from the demuxer's own
 hints and from the packets before its bitstream conversion runs, and records
@@ -49,6 +57,14 @@ except Exception as exc:  # a missing/broken module must not take the addon down
     _parse_sidedata = None
     _SIDEDATA_IMPORT_ERROR = exc
 
+# ``include_mapping`` arrived in script.module.sidedata 1.6.0, the version
+# addon.xml now requires.  Read off the function rather than assumed, so a box
+# carrying an older module keeps every other field instead of failing the call
+# on an argument it has never heard of: the composer section then simply has
+# nothing to show, exactly as it does for a stream that carries no mapping.
+_MAPPING_KWARG = "include_mapping" in getattr(
+    getattr(_parse_sidedata, "__code__", None), "co_varnames", ())
+
 _ADDON = xbmcaddon.Addon()
 
 _LABEL_NA = 32033
@@ -65,6 +81,15 @@ _HDR_DETAIL_LABEL = "VideoPlayer.HdrDetail"
 # pass sees the current frame's metadata, long enough that the getters of one
 # pass share a single infolabel read and a single parse.
 _SNAPSHOT_TTL = 0.1
+
+# How long a request for the RPU's composer data stays in force.  The mapping
+# is by far the largest thing a parse can build -- the per-component reshaping
+# curves, thousands of coefficients on a dual-layer stream -- and only the
+# metadata view has anywhere to put it, so it is parsed on request rather than
+# for every frame the overlay polls.  A view that wants it asks on each of its
+# own ticks (see ``get_sidedata``) and the lease simply lapses when it closes,
+# which is what keeps the two callers from having to hand a flag back.
+_MAPPING_TTL = 1.0
 
 # Every field a caller can ask for; the getters below name them one at a time.
 _FIELDS = (
@@ -103,6 +128,8 @@ _snapshot_info: dict[str, str] = dict.fromkeys(_FIELDS, "")
 _snapshot_parsed: dict | None  = None
 _snapshot_playing  = False
 _snapshot_until    = 0.0
+
+_mapping_until     = 0.0
 
 _logged_import_error = False
 _logged_derive_error = False
@@ -155,12 +182,18 @@ def _empty_info() -> dict[str, str]:
     return dict.fromkeys(_FIELDS, "")
 
 
-def _parse(raw: str) -> dict:
+def _parse(raw: str, mapping: bool = False) -> dict:
     """Parse the raw side-data JSON, or return an empty result.
 
     ``parse_sidedata`` degrades each section to None rather than raising, so the
     guard here only covers the module being absent and the one failure it
     documents as out of its hands (a libdovi panic on malformed RPU bytes).
+
+    *mapping* asks for the RPU's composer data with it -- the reshaping curves
+    and the NLQ dequantization data, which the module leaves out unless asked
+    because they are the one part of a parse big enough to be worth not
+    building.  Off by default, so the overlay's own polling never pays for a
+    subtree it has nowhere to show.
     """
     global _logged_import_error
 
@@ -178,7 +211,10 @@ def _parse(raw: str) -> dict:
         return _empty_sidedata()
 
     try:
-        parsed = _parse_sidedata(raw)
+        if _MAPPING_KWARG:
+            parsed = _parse_sidedata(raw, include_mapping=mapping)
+        else:
+            parsed = _parse_sidedata(raw)
     except Exception as exc:
         _log(f"DV: side data could not be parsed: {exc}", xbmc.LOGWARNING)
         return _empty_sidedata()
@@ -186,7 +222,7 @@ def _parse(raw: str) -> dict:
     return parsed if isinstance(parsed, dict) else _empty_sidedata()
 
 
-def _derive(key: tuple[str, str, str]) -> tuple[dict | None, dict[str, str]]:
+def _derive(key: tuple[str, str, str, bool]) -> tuple[dict | None, dict[str, str]]:
     """Parse one raw payload and derive the fields, never raising.
 
     Returns the parse result alongside the derived fields, so a caller after
@@ -204,7 +240,7 @@ def _derive(key: tuple[str, str, str]) -> tuple[dict | None, dict[str, str]]:
 
     parsed = None
     try:
-        parsed = _parse(key[0])
+        parsed = _parse(key[0], key[3])
         return parsed, _build_info(parsed, key[1], key[2])
     except Exception as exc:
         if not _logged_derive_error:
@@ -248,6 +284,12 @@ def _snapshot() -> tuple[dict[str, str], bool]:
     The raw payload is re-parsed only when it changes, and the derived dict is
     held for ``_SNAPSHOT_TTL``, so a polling pass costs one parse no matter how
     many fields it asks for.
+
+    A standing request for the composer data (see ``get_sidedata``) is part of
+    the key rather than a flag beside it, so the snapshot is re-parsed the
+    moment the mapping is wanted and again once the last request has lapsed --
+    what is held always carries what was asked of it, and the parse that drops
+    the subtree again is the ordinary one the next changed frame would cost.
     """
     global _snapshot_key, _snapshot_info, _snapshot_parsed
     global _snapshot_playing, _snapshot_until
@@ -272,6 +314,7 @@ def _snapshot() -> tuple[dict[str, str], bool]:
         xbmc.getInfoLabel(_SIDEDATA_LABEL),
         xbmc.getInfoLabel(_HDR_TYPE_LABEL),
         xbmc.getInfoLabel(_HDR_DETAIL_LABEL),
+        now < _mapping_until,
     )
 
     with _lock:
@@ -292,7 +335,7 @@ def _snapshot() -> tuple[dict[str, str], bool]:
     return fields, True
 
 
-def get_sidedata() -> dict | None:
+def get_sidedata(mapping: bool = False) -> dict | None:
     """Return the parse result the current field values were derived from.
 
     The compact fields above name one reading each; this hands out the whole
@@ -300,10 +343,24 @@ def get_sidedata() -> dict | None:
     data carries.  It comes from the same snapshot, so a view polling alongside
     the overlay costs no extra parse.
 
+    *mapping* asks for the RPU's composer data to be in it -- the reshaping
+    curves and the NLQ dequantization data, which are left out of an ordinary
+    parse (see ``_parse``).  The request holds for ``_MAPPING_TTL``, so a view
+    that wants the subtree simply asks again on each of its own ticks and stops
+    asking by closing; there is nothing to release, and two views asking at
+    once still share the one snapshot.  The very first call after a lapse is
+    answered from the parse in hand, which does not have it -- the next tick,
+    a fraction of a second later, does.
+
     ``None`` while no video is playing, and for a payload that did not parse at
     all -- the sections it would have filled are simply absent, exactly as the
     per-section ``None`` a partial parse yields.
     """
+    global _mapping_until
+
+    if mapping:
+        with _lock:
+            _mapping_until = time.monotonic() + _MAPPING_TTL
     _snapshot()
     with _lock:
         return _snapshot_parsed

@@ -3,11 +3,21 @@
 ``dvinfo`` picks the handful of readings the overlay has room for and formats
 each one for its row.  This module does the opposite: it walks the whole parse
 result ``script.module.sidedata`` returns -- flags, structure, the dvcC/dvvC
-configuration record, every RPU block from the header through L255, and the
-static MDCV / CLL SEIs (plus the HDR10+ payload when the stream carries one) --
-and lays it out as ``(kind, name, value)`` rows for ui.dvmetadata to put in a list.
+configuration record, every RPU block from the header through L255, the
+composer's own reshaping curves, and the static MDCV / CLL SEIs (plus the
+HDR10+ payload when the stream carries one) -- and lays it out as
+``(kind, name, value)`` rows for ui.dvmetadata to put in a list.
 Nothing is left out and nothing is interpreted: the metadata view is where you go
 to see what the bitstream actually says.
+
+Two things are asked for rather than found.  The composer subtree is the one
+part of a parse big enough to be worth not building, so it is left out of an
+ordinary one and this module asks for it by the frame (see
+``info.dvinfo.get_sidedata``) -- the overlay's own polling never pays for it.
+And its coefficients are the one reading here that is derived rather than
+printed, because the RPU splits each of them into halves that say nothing apart
+and the arithmetic that puts them back together is the RPU syntax's own (see
+``_coefficient``).
 
 Field names, units and value scalings follow the module's own FIELDS.md, so a
 row here reads the same as the documented field it comes from.  Only readings
@@ -286,11 +296,21 @@ def _rpu_pairs(rpu: dict | None) -> list:
         ("Affected DM metadata ID", _num(rpu.get("affected_dm_metadata_id"))),
         ("Current DM metadata ID", _num(rpu.get("current_dm_metadata_id"))),
         ("Scene refresh", _num(rpu.get("scene_refresh_flag"))),
+        # How many extension blocks the DM data declares for itself, across
+        # both the CM v2.9 and the CM v4.0 group -- which is the count the
+        # levels listed further up were read out of.
+        ("Extension blocks", _num(rpu.get("num_ext_blocks"))),
         ("RPU type", _num(header.get("rpu_type"))),
         ("RPU format", _num(header.get("rpu_format"))),
         ("VDR RPU profile", _num(header.get("vdr_rpu_profile"))),
         ("VDR RPU level", _num(header.get("vdr_rpu_level"))),
         ("VDR RPU normalized IDC", _num(header.get("vdr_rpu_normalized_idc"))),
+        # The two presence flags the header carries for what is under it: the
+        # sequence info is what the three bit depths below come from, and the
+        # DM metadata flag is what the extension blocks and the source range
+        # come from.  Worth reading precisely where those are missing.
+        ("VDR sequence info", _flag(header.get("vdr_seq_info_present_flag"))),
+        ("VDR DM metadata", _flag(header.get("vdr_dm_metadata_present_flag"))),
         ("BL bit depth", _num(header.get("bl_bit_depth"))),
         ("EL bit depth", _num(header.get("el_bit_depth"))),
         ("VDR bit depth", _num(header.get("vdr_bit_depth"))),
@@ -313,6 +333,12 @@ def _rpu_pairs(rpu: dict | None) -> list:
         ("Coefficient log2 denom", _num(header.get("coefficient_log2_denom"))),
         ("Reuses previous VDR RPU", _flag(header.get("use_prev_vdr_rpu_flag"))),
         ("Previous VDR RPU ID", _num(header.get("prev_vdr_rpu_id"))),
+        # Last, the two the header carries that mean nothing in themselves: the
+        # NAL prefix libdovi's own header calls deprecated and not part of the
+        # bitstream, and a reserved field with no defined meaning.  Shown for
+        # the same reason as the rest -- what the RPU holds is what this says.
+        ("RPU NAL prefix", _num(header.get("rpu_nal_prefix"))),
+        ("Reserved (3 bits)", _num(header.get("reserved_zero_3bits"))),
     ]
 
 
@@ -487,8 +513,16 @@ _TRIM_VECTORS = (
 _VECTOR_FIELDS = tuple((index, f"Field {index + 1}") for index in range(6))
 
 # What the name column says on each heading row.
-_LEGEND_RAW = "Legend (raw)"
-_LEGEND_UI  = "Legend (UI)"
+_LEGEND_RAW   = "Legend (raw)"
+_LEGEND_UI    = "Legend (UI)"
+_LEGEND_BLOCK = "Legend (block)"
+
+# The one reading an L8 pass carries that is not a trim: the block's own
+# serialized length, which is what decides how much of the pass is there at all
+# -- mid contrast above 10, clip trim above 12, the secondary vectors above
+# 18 / 24.  A table of its own rather than a column on the raw trims, because
+# it says what the block is rather than what the colourist did.
+_TRIM_BLOCK = (("length", "Length"),)
 
 # The target displays a trim table shows a pass for.  A grade carries a pass
 # per display its CM was run against, which on a full L8 is a dozen rows of
@@ -602,6 +636,8 @@ def _trim_entries(level: str, trims: list | None) -> list:
          lambda trim, key=key: _vector_block(trim, key), _num)
         for key, legend in (_TRIM_VECTORS if level == "l8" else ())
     )
+    if level == "l8":
+        tables.append((_LEGEND_BLOCK, _TRIM_BLOCK, lambda trim: trim, _num))
 
     for legend, controls, block_of, formatter in tables:
         table = _table(legend, controls, trims, block_of, formatter)
@@ -628,6 +664,9 @@ def _l9_pairs(rpu: dict | None) -> list:
             (f"{key.capitalize()} (x | y)", _coords(coords.get(key)))
             for key in ("red", "green", "blue", "white")
         )
+    # The serialized length, which is what decided whether the coordinates
+    # above are here at all: a short block names an index and stops.
+    pairs.append(("Block length", _num(block.get("length"))))
     return pairs
 
 
@@ -645,7 +684,8 @@ def _l10_pairs(targets: list | None) -> list:
         if primary != EMPTY:
             readings.append(primary)
         for label, key in (("max PQ", "target_max_pq"),
-                           ("min PQ", "target_min_pq")):
+                           ("min PQ", "target_min_pq"),
+                           ("length", "length")):
             reading = _num(target.get(key))
             if reading != EMPTY:
                 readings.append(f"{label} {reading}")
@@ -661,6 +701,8 @@ def _l11_pairs(rpu: dict | None) -> list:
         ("Content type", _text(l11.get("content_type_name"))),
         ("Whitepoint", _text(l11.get("whitepoint_name"))),
         ("Reference mode", _flag(l11.get("reference_mode"))),
+        ("Reserved bytes", _joined(_num(l11.get("reserved_byte2")),
+                                   _num(l11.get("reserved_byte3")))),
     ]
 
 
@@ -685,6 +727,250 @@ def _l255_pairs(rpu: dict | None) -> list:
         ("Debug", _joined(*(_num(l255.get(f"dm_debug{index}"))
                             for index in range(4)))),
     ]
+
+
+# --- Composer (RPU data mapping) -------------------------------------------
+
+# The three reshaping curves a mapping carries, in the module's own order: the
+# luma curve first, then the two chroma ones.  Named by the component each one
+# reshapes rather than by its index, which is the reading anyone looking at a
+# curve is after -- and, for the NLQ table further down, the three columns it
+# has one value in each of.
+_CURVE_COMPONENTS = ("Y", "Cb", "Cr")
+
+# How a curve says it is shaped.  A code this does not name reads as itself:
+# the view names what it was told and guesses at nothing.
+_MAPPING_IDC_NAMES = {0: "Polynomial", 1: "MMR"}
+
+# What the name column says on each composer heading row, and what its first
+# columns are.  A polynomial segment names its own shape before its
+# coefficients; an MMR one names its order and the constant term it adds.
+_LEGEND_SEGMENT   = "Segment"
+_LEGEND_TERM      = "Term"
+_LEGEND_COMPONENT = "Component"
+_POLY_HEADINGS    = ("Order", "Linear interp")
+_MMR_HEADINGS     = ("Order", "Constant")
+
+
+def _coefficient(int_part, frac_part, denom) -> str:
+    """Combine a composer coefficient's two halves into the value the decoder
+    works with: ``int_part + frac_part / 2 ** coefficient_log2_denom``.
+
+    The RPU splits every one of them in two and the module publishes both
+    halves raw, as it publishes everything else raw.  This is the one reading
+    in the view that is derived rather than printed, and it is derived because
+    the arithmetic is the RPU syntax's own rather than anyone's interpretation
+    -- a pair of halves read apart says nothing, and there are hundreds of
+    them.  Without the header's denominator there is nothing to put them back
+    together with, and the cell goes empty.
+    """
+    if isinstance(denom, bool) or not isinstance(denom, int) or denom < 0:
+        return EMPTY
+    if isinstance(int_part, bool) or not isinstance(int_part, int):
+        return EMPTY
+    if isinstance(frac_part, bool) or not isinstance(frac_part, int):
+        frac_part = 0
+    return f"{int_part + frac_part / float(1 << denom):.6g}"
+
+
+def _grid(legend: str, headings, rows) -> list:
+    """Lay readings out as a table: a heading row, then a row of cells each.
+
+    *rows* are ``(name, cells)`` pairs with the cells in the order of
+    *headings*; a row shorter than the headings simply leaves its last cells
+    blank, and one with nothing in it at all gets no row.  More headings than a
+    row of the list holds means a second table under the first with the
+    headings repeated, exactly as the trim tables handle it -- the six-cell
+    width belongs to the list, not to what is being laid out in it.
+    """
+    entries: list = []
+    for start in range(0, len(headings), MAX_COLUMNS):
+        stop = start + MAX_COLUMNS
+        body = []
+        for name, cells in rows:
+            part = ["" if cell == EMPTY else cell for cell in cells[start:stop]]
+            if any(part):
+                body.append((COLUMNS, name, part))
+        if not body:
+            continue
+        if entries:
+            entries.append((SPACE, f"space.{legend}.{start}", ""))
+        entries.append((HEADINGS, legend, list(headings[start:stop])))
+        entries.extend(body)
+    return entries
+
+
+def _mapping(rpu: dict | None) -> dict:
+    """The composer half of the RPU, or an empty dict.
+
+    Absent from an ordinary parse: it is asked for only while the metadata
+    view is open (see ``info.dvinfo.get_sidedata``), and a module older than
+    1.6.0 has no such thing to give at all.  Either way every section built
+    from it comes back empty and drops, exactly as a block the stream does not
+    carry does.
+    """
+    return (rpu or {}).get("data_mapping") or {}
+
+
+def _denominator(rpu: dict | None):
+    """The header's ``coefficient_log2_denom``, which every coefficient below
+    is scaled by."""
+    return ((rpu or {}).get("header") or {}).get("coefficient_log2_denom")
+
+
+def _composer_pairs(rpu: dict | None) -> list:
+    """The composer's own scalars: which VDR RPU the mapping belongs to, the
+    colour space and chroma format it maps in, how the picture is tiled, and
+    the NLQ pivot description the dual-layer profiles carry."""
+    mapping = _mapping(rpu)
+    pivots  = mapping.get("nlq_pred_pivot_value") or []
+    return [
+        ("VDR RPU ID", _num(mapping.get("vdr_rpu_id"))),
+        ("Mapping colour space", _num(mapping.get("mapping_color_space"))),
+        ("Mapping chroma format",
+         _num(mapping.get("mapping_chroma_format_idc"))),
+        ("Partitions (x | y)", _joined(_num(mapping.get("num_x_partitions")),
+                                       _num(mapping.get("num_y_partitions")))),
+        ("NLQ method", _num(mapping.get("nlq_method_idc"))),
+        ("NLQ pivots", _num(mapping.get("nlq_num_pivots"))),
+        ("NLQ pivot values", _joined(*(_num(value) for value in pivots))),
+    ]
+
+
+def _polynomial_entries(polynomial: dict | None, denom) -> list:
+    """A piecewise polynomial curve as one table: a segment per row, the order
+    it is fitted at and whether it is forced linear regardless, then its
+    coefficients lowest order term first."""
+    polynomial = polynomial or {}
+    orders     = polynomial.get("poly_order") or []
+    interp     = polynomial.get("linear_interp_flag") or []
+    coef_int   = polynomial.get("poly_coef_int") or []
+    coef_frac  = polynomial.get("poly_coef") or []
+
+    width    = max((len(terms) for terms in coef_int), default=0)
+    headings = list(_POLY_HEADINGS) + [f"c{term}" for term in range(width)]
+    rows     = []
+    for segment in range(max(len(orders), len(coef_int))):
+        ints  = coef_int[segment] if segment < len(coef_int) else []
+        fracs = coef_frac[segment] if segment < len(coef_frac) else []
+        cells = [
+            _num(orders[segment]) if segment < len(orders) else EMPTY,
+            _flag(interp[segment]) if segment < len(interp) else EMPTY,
+        ]
+        cells.extend(
+            _coefficient(value, fracs[term] if term < len(fracs) else 0, denom)
+            for term, value in enumerate(ints)
+        )
+        rows.append((f"Segment {segment + 1}", cells))
+    return _grid(_LEGEND_SEGMENT, headings, rows)
+
+
+def _mmr_entries(mmr: dict | None, denom) -> list:
+    """An MMR curve as two tables: a segment per row with its order and the
+    constant it adds, then the cross-component coefficients under it.
+
+    Those come a row per order level rather than a row per segment, because a
+    level's row grows with it -- MMR adds product terms of the three components
+    as the order goes up.  They are laid out by position and named by the level
+    they belong to: the module publishes the raw arrays and names no meaning
+    for the individual terms, so neither does this.
+    """
+    mmr        = mmr or {}
+    orders     = mmr.get("mmr_order") or []
+    const_int  = mmr.get("mmr_constant_int") or []
+    const_frac = mmr.get("mmr_constant") or []
+    coef_int   = mmr.get("mmr_coef_int") or []
+    coef_frac  = mmr.get("mmr_coef") or []
+
+    segments  = max(len(orders), len(const_int), len(coef_int))
+    head_rows = []
+    coef_rows = []
+    width     = 0
+    for segment in range(segments):
+        head_rows.append((f"Segment {segment + 1}", [
+            _num(orders[segment]) if segment < len(orders) else EMPTY,
+            _coefficient(
+                const_int[segment] if segment < len(const_int) else None,
+                const_frac[segment] if segment < len(const_frac) else 0,
+                denom,
+            ),
+        ]))
+        levels = coef_int[segment] if segment < len(coef_int) else []
+        fracs  = coef_frac[segment] if segment < len(coef_frac) else []
+        for level, ints in enumerate(levels):
+            row   = fracs[level] if level < len(fracs) else []
+            width = max(width, len(ints))
+            # One segment is the ordinary case by far, and naming it in every
+            # row would spend the name column saying the same thing twice.
+            name  = (f"Order {level + 1}" if segments == 1 else
+                     f"Segment {segment + 1} · order {level + 1}")
+            coef_rows.append((name, [
+                _coefficient(value, row[term] if term < len(row) else 0, denom)
+                for term, value in enumerate(ints)
+            ]))
+
+    entries = _grid(_LEGEND_SEGMENT, list(_MMR_HEADINGS), head_rows)
+    terms   = _grid(_LEGEND_TERM,
+                    [str(term + 1) for term in range(width)], coef_rows)
+    if entries and terms:
+        # Air between the two, so each reads as one table.
+        entries.append((SPACE, "space.mmr", ""))
+    entries.extend(terms)
+    return entries
+
+
+def _curve_entries(rpu: dict | None, index: int) -> list:
+    """One component's reshaping curve: how it is shaped, where its segments
+    divide the input range, and the coefficients of each of them."""
+    curves = _mapping(rpu).get("curves") or []
+    curve  = (curves[index] if index < len(curves) else None) or {}
+    if not curve:
+        return []
+
+    idc     = curve.get("mapping_idc")
+    pivots  = curve.get("pivots") or []
+    entries: list = [
+        ("Shape", _text(_MAPPING_IDC_NAMES.get(idc, _num(idc)))),
+        ("Pivots", _num(curve.get("num_pivots"))),
+        ("Pivot codewords", _joined(*(_num(value) for value in pivots))),
+    ]
+
+    denom = _denominator(rpu)
+    table = (_polynomial_entries(curve.get("polynomial"), denom) +
+             _mmr_entries(curve.get("mmr"), denom))
+    if table:
+        entries.append((SPACE, f"space.curve.{index}", ""))
+        entries.extend(table)
+    return entries
+
+
+def _nlq_entries(rpu: dict | None) -> list:
+    """The NLQ dequantization data, a column per component.
+
+    Dual-layer only: it is what reconstructs the enhancement layer's residual,
+    so profiles 4 and 7 carry it and every single-layer stream carries none of
+    it -- which is what drops this section on nearly everything played.
+    """
+    nlq = _mapping(rpu).get("nlq") or {}
+    if not nlq:
+        return []
+
+    denom = _denominator(rpu)
+    rows  = [("Offset", [_num(value) for value in nlq.get("nlq_offset") or []])]
+    for name, int_key, frac_key in (
+        ("VDR in max", "vdr_in_max_int", "vdr_in_max"),
+        ("Deadzone slope",
+         "linear_deadzone_slope_int", "linear_deadzone_slope"),
+        ("Deadzone threshold",
+         "linear_deadzone_threshold_int", "linear_deadzone_threshold"),
+    ):
+        ints  = nlq.get(int_key) or []
+        fracs = nlq.get(frac_key) or []
+        rows.append((name, [
+            _coefficient(value, fracs[at] if at < len(fracs) else 0, denom)
+            for at, value in enumerate(ints)
+        ]))
+    return _grid(_LEGEND_COMPONENT, list(_CURVE_COMPONENTS), rows)
 
 
 def _static_pairs(mdcv: dict | None, cll: dict | None) -> list:
@@ -773,8 +1059,8 @@ def _hdr10plus_pairs(hdr10plus: dict) -> list:
 # a control it leaves out is one this pass disables, not one to fill in from an
 # older pass -- the whole point of the trim tables is what a pass sets.
 _HELD_TOP = ("config", "rpu", "mdcv", "cll", "hdr10plus")
-_HELD_RPU = ("header", "source", "colorimetry", "l1", "l2", "l3", "l4", "l5",
-             "l6", "l8", "l9", "l10", "l11", "l254", "l255")
+_HELD_RPU = ("header", "data_mapping", "source", "colorimetry", "l1", "l2",
+             "l3", "l4", "l5", "l6", "l8", "l9", "l10", "l11", "l254", "l255")
 
 # The blocks last seen, by name, and what was playing when they were: nothing
 # is carried from one title into the next, and stopping playback empties the
@@ -882,7 +1168,9 @@ def build_scene_rows(
     its own data gets its own data, every section of it live.
     """
     live   = parsed is None
-    parsed = get_sidedata() if live else parsed
+    # The composer subtree with it: this is the one caller that has anywhere to
+    # put it, and asking is what makes it parsed at all (see info.dvinfo).
+    parsed = get_sidedata(mapping=True) if live else parsed
     parsed = parsed if isinstance(parsed, dict) else {}
 
     # Which blocks this frame itself brought, named before the held ones are
@@ -976,6 +1264,22 @@ def build_static_rows(parsed: dict, origin: dict, carried: str) -> list[tuple[st
     # beside it, which are the frame's own whenever it has an RPU at all.
     _section(rows, "RPU", _rpu_pairs(rpu),
              _state(origin, "rpu", "rpu.header"))
+
+    # And the other half of it: the composer, which is what the decoder
+    # actually applies to the base layer to get the picture back.  After the
+    # header rather than among the levels, because it is not one -- the levels
+    # describe the grade, these curves reconstruct the image the grade was made
+    # on.  Absent unless the caller asked for it (see info.dvinfo.get_sidedata),
+    # which is what keeps it out of the overlay's own polling.
+    _section(rows, "Composer — Data mapping", _composer_pairs(rpu),
+             _state(origin, "rpu.data_mapping"))
+    for index, component in enumerate(_CURVE_COMPONENTS):
+        _section(rows, f"Composer — {component} curve",
+                 _curve_entries(rpu, index),
+                 _state(origin, "rpu.data_mapping"))
+    _section(rows, "Composer — NLQ", _nlq_entries(rpu),
+             _state(origin, "rpu.data_mapping"))
+
     _section(rows, "Configuration record (dvcC / dvvC)",
              _config_pairs(parsed.get("config")), _state(origin, "config"))
     _section(rows, "Stream", _stream_pairs(parsed, carried))
@@ -986,7 +1290,7 @@ def build_static_rows(parsed: dict, origin: dict, carried: str) -> list[tuple[st
 # The keys build_static_rows judges its headings' Live / Cached state by.
 _STATIC_STATE_KEYS = ("rpu.source", "rpu.colorimetry", "rpu.l6", "rpu.l9",
                       "rpu.l10", "rpu.l11", "rpu.l254", "rpu.l255", "mdcv",
-                      "cll", "rpu", "rpu.header", "config")
+                      "cll", "rpu", "rpu.header", "rpu.data_mapping", "config")
 
 
 def static_signature(parsed: dict, origin: dict, carried: str) -> tuple:
@@ -1001,7 +1305,13 @@ def static_signature(parsed: dict, origin: dict, carried: str) -> tuple:
     nothing moved in costs one tuple comparison and no formatting.
 
     Almost everything build_static_rows reads from its three arguments is in
-    here, the heading states included.  Left out on purpose: the Stream
+    here, the heading states included.  The composer subtree is in it too, and
+    is the one entry that may genuinely move within a title -- the reshaping
+    curves are signalled per RPU, and a stream that re-sends them shot by shot
+    rebuilds this half on the frames it does.  That is the right answer rather
+    than a cost to dodge: the rows have to show the curve being applied now,
+    and the alternative -- reading it on the scene side -- would rebuild on
+    every tick instead of only the ones it moved on.  Left out on purpose: the Stream
     section's own live reads outside them (the Kodi labels and the parser
     module version, see _stream_pairs), and the scalars _rpu_pairs reads
     straight off the RPU -- profile, cm_version, compressed, the two DM
@@ -1022,6 +1332,7 @@ def static_signature(parsed: dict, origin: dict, carried: str) -> tuple:
         parsed.get("mdcv"),
         parsed.get("cll"),
         rpu.get("header"),
+        rpu.get("data_mapping"),
         rpu.get("source"),
         rpu.get("colorimetry"),
         rpu.get("l6"),
