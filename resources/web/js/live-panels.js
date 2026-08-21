@@ -99,10 +99,14 @@
   controlToggle.className = "iconbtn control-toggle hidden";
   controlToggle.setAttribute("aria-expanded", "false");
   controlToggle.setAttribute("aria-controls", "controlDrawer");
-  const controlChevron = document.createElement("img");
+  /* A span, where every other icon on the page is an <img>: this one takes the
+     accent, and an <img> cannot be given a colour -- the file is a white
+     stroke.  It is painted instead, the same drawing masking the colour in
+     rather than being shown as it stands (see .control-chevron in
+     live-panels.css).  The colour has to be worked out at runtime under the
+     adaptive theme, so a second file in the accent is no use here. */
+  const controlChevron = document.createElement("span");
   controlChevron.className = "ui-icon control-chevron";
-  controlChevron.src = "/icons/chevron-down.svg";
-  controlChevron.alt = "";
   controlChevron.setAttribute("aria-hidden", "true");
   controlToggle.append(controlChevron);
   $("nowCard").append(controlToggle);

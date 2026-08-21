@@ -105,7 +105,16 @@
      at the top of it answer to the same thing. */
   border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 }
-.control-toggle .control-chevron { opacity: 1; }
+/* Painted in the accent rather than drawn: js/live-panels.js makes this one a
+   span for it, and the chevron file is the mask the colour comes through.  The
+   badge across the card and the outline around this button are already the
+   film's colour; the mark inside it is the third of the same thing. */
+.control-toggle .control-chevron {
+  opacity: 1;
+  background: var(--accent);
+  -webkit-mask: url("/icons/chevron-down.svg") no-repeat center / contain;
+  mask: url("/icons/chevron-down.svg") no-repeat center / contain;
+}
 .control-toggle:hover {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
