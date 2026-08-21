@@ -74,6 +74,10 @@
   font-size: 12.5px;
   color: var(--muted);
 }
+/* Unfilled like the keys it folds out, and for the same reason: it sits on the
+   card rather than in the top bar, so the card is what should show through it.
+   The .iconbtn fill it would otherwise take belongs to the buttons up there,
+   which stand on the bar's own colour. */
 .control-toggle {
   display: inline-grid;
   place-items: center;
@@ -85,6 +89,7 @@
   min-height: 26px;
   height: 26px;
   padding: 0 7px;
+  background: transparent;
 }
 .control-toggle[aria-expanded="true"] {
   color: var(--text);
