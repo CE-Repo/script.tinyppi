@@ -97,7 +97,7 @@
 
             <!-- Player Process Info -->
             <control type="button" id="1001">
-                <visible>!String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus)</visible>
+                <visible>!String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) + !String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg)</visible>
                 <left>35</left>
                 <top>155</top>
                 <width>400</width>
@@ -112,17 +112,15 @@
                 <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                 <onup condition="String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))">1004</onup>
                 <onup condition="String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10)">1008</onup>
-                <onup condition="String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg)">1011</onup>
                 <onup condition="String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)">1013</onup>
                 <ondown condition="String.IsEmpty(Window(10000).Property(TinyPPI.HdrType))">1002</ondown>
                 <ondown condition="String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10)">1005</ondown>
-                <ondown condition="String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg)">1009</ondown>
                 <ondown condition="String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)">1012</ondown>
             </control>
 
-            <!-- Player Process Info (only) -->
+            <!-- Player Process Info (only): HDR10+ and HLG have no VS10 modes -->
             <control type="button" id="1001">
-                <visible>String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus)</visible>
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg)</visible>
                 <left>35</left>
                 <top>275</top>
                 <width>400</width>
@@ -239,59 +237,6 @@
                     <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                     <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
                     <onup>1006</onup>
-                    <ondown>1001</ondown>
-                </control>
-            </control>
-
-            <!-- HLG -->
-            <control type="group">
-                <visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg)</visible>
-                <control type="button" id="1009">
-                    <left>35</left>
-                    <top>235</top>
-                    <width>400</width>
-                    <height>80</height>
-                    <label>[B]HLG (Original)[/B]</label>
-                    <align>center</align>
-                    <font>font23_narrow</font>
-                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                    <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
-                    <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
-                    <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
-                    <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
-                    <onup>1001</onup>
-                    <ondown>1010</ondown>
-                </control>
-                <control type="button" id="1010">
-                    <left>35</left>
-                    <top>315</top>
-                    <width>400</width>
-                    <height>80</height>
-                    <label>[B]HLG → SDR[/B]</label>
-                    <align>center</align>
-                    <font>font23_narrow</font>
-                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                    <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
-                    <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
-                    <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
-                    <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
-                    <onup>1009</onup>
-                    <ondown>1011</ondown>
-                </control>
-                <control type="button" id="1011">
-                    <left>35</left>
-                    <top>395</top>
-                    <width>400</width>
-                    <height>80</height>
-                    <label>[B]HLG → Dolby Vision[/B]</label>
-                    <align>center</align>
-                    <font>font23_narrow</font>
-                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                    <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
-                    <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
-                    <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
-                    <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
-                    <onup>1010</onup>
                     <ondown>1001</ondown>
                 </control>
             </control>

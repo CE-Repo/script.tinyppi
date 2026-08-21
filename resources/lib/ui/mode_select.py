@@ -258,7 +258,10 @@ def original_hdr() -> None:
 
 def original_hlg() -> None:
     # HLG is not a valid VS10 input, so turn VS10 off to let HLG pass through
-    # the standard HDR path untouched.  Follow-source with enable=N is the state
+    # the standard HDR path untouched.  That is also why neither the dialog nor
+    # the dashboard offers HLG any modes at all; this one is left reachable
+    # through ``run_mode`` for a keymap that wants to clear a VS10 mode an
+    # earlier title left behind.  Follow-source with enable=N is the state
     # Kodi itself leaves the driver in when it releases Dolby Vision; policy 0 is
     # follow-sink, a different thing, and not what "off" means here.
     _write_sequence(
@@ -509,10 +512,6 @@ _ACTIONS = {
     1005: "original_hdr",
     1006: "sdr8",
     1008: "dv",
-    # HLG (Original bypasses VS10 so HLG stays HLG)
-    1009: "original_hlg",
-    1010: "sdr8",
-    1011: "dv",
     # DV
     1012: "original_dv",
     1013: "sdr8",

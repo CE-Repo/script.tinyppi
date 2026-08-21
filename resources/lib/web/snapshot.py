@@ -996,11 +996,6 @@ _VS10_OPTIONS = {
         ("sdr8",         "HDR10 → SDR"),
         ("dv",           "HDR10 → Dolby Vision"),
     ),
-    "hlg": (
-        ("original_hlg", "HLG (Original)"),
-        ("sdr8",         "HLG → SDR"),
-        ("dv",           "HLG → Dolby Vision"),
-    ),
     "dolby vision": (
         ("original_dv",  "Dolby Vision (Original)"),
         ("sdr8",         "Dolby Vision → SDR"),
@@ -1019,16 +1014,25 @@ def _is_hdr10_plus(key: str) -> bool:
     return "hdr10plus" in key or "hdr10+" in key
 
 
+def _has_no_modes(key: str) -> bool:
+    """Whether the lower-cased source token names a format VS10 cannot convert.
+
+    HDR10+ and HLG are the two, and neither is a VS10 input: the driver has no
+    group for either, and the on-screen dialog now draws none for either --
+    both are left with the player-process button alone (see
+    script-tinyppi-dialog.xml).
+    """
+    return _is_hdr10_plus(key) or "hlg" in key
+
+
 def _options_for(source: str, playing: bool = True) -> tuple:
     """The mode buttons that apply to ``source``.
 
-    ``hdr10plus`` gets none.  The driver has no VS10 group for it and the
-    on-screen dialog draws none either -- its HDR10 group is behind
-    ``String.IsEqual(...,hdr10)``, which HDR10+ does not match, and the only
-    control it leaves standing is the player-process button (see
-    script-tinyppi-dialog.xml).  The page follows: with no options the whole
-    VS10 card goes, output line included, rather than offer a conversion that
-    is not on offer anywhere else.
+    ``hdr10plus`` and ``hlg`` get none -- see ``_has_no_modes``: neither is a
+    VS10 input, so the dialog leaves both with the player-process button alone.
+    The page follows: with no options the whole VS10 card goes, output line
+    included, rather than offer a conversion that is not on offer anywhere
+    else.
 
     An **empty** source is SDR, not "unknown": ``publish_hdr_type`` writes a
     token only for the HDR formats, and the dialog's own SDR group is the one
@@ -1038,12 +1042,10 @@ def _options_for(source: str, playing: bool = True) -> tuple:
     if not playing:
         return ()
     key = (source or "").strip().lower()
-    if _is_hdr10_plus(key):
+    if _has_no_modes(key):
         return ()
     if "dolby" in key:
         return _VS10_OPTIONS["dolby vision"]
-    if "hlg" in key:
-        return _VS10_OPTIONS["hlg"]
     if "hdr10" in key:
         return _VS10_OPTIONS["hdr10"]
     return _VS10_OPTIONS["sdr"]
