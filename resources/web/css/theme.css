@@ -110,23 +110,29 @@
 /* ---------------------------------------------------------------------------
    Dark adaptive
 
-   The plain dark theme, with one exception: the now-playing card takes its
-   colour from the poster of whatever is on screen.  Nothing else changes -- the
-   top bar, the tiles, the chart and the metadata list inherit the dark theme
-   untouched -- so every rule below is scoped to that card or to a mark inside
-   it.
+   The plain dark theme, with the page taking its colour from the poster of
+   whatever is on screen.  Two areas carry it and they differ only in how loud
+   they are: the now-playing card, where the poster is standing and the light
+   comes off it, and every other card, which gets the same colours as a quiet
+   wash from its own corners.
 
-   js/cover-tint.js hands the poster over as --cover-gradient, together with
-   the scrim that keeps the text on it readable and the accent its marks take.
-   Without a poster there is nothing to paint and the plain panel shows
-   through.
+   js/cover-tint.js hands them over as --cover-gradient, together with the
+   scrim that keeps the text on each readable and the accent its marks take.
+   The quiet one is set on <main>, so every card inherits it; the now-playing
+   card sets its own on itself and so overrides it.  Without a poster there is
+   nothing to paint and the plain panels show through, with the theme's own
+   accent back on the marks.
+
+   Everything outside main -- the top bar, the status light, the toast and the
+   token dialog -- is the dark theme untouched, deliberately: the page's own
+   chrome does not belong to the film.
 --------------------------------------------------------------------------- */
 
-/* Where the poster sits inside the card, as the middle of its own box: the
-   light in the card comes from the artwork rather than from the card's
-   corners, and only the layout knows where that is.  The poster is 104x156
-   with a 16px inset, and shrinks with the viewport on a narrow screen (see
-   .art img in live-panels.css) -- these follow it. */
+/* Where the poster sits inside the now-playing card, as the middle of its own
+   box: the light in that card comes from the artwork rather than from the
+   card's corners, and only the layout knows where that is.  The poster is
+   104x156 with a 16px inset, and shrinks with the viewport on a narrow screen
+   (see .art img in live-panels.css) -- these follow it. */
 :root[data-theme="dark-adaptive"] .hero {
   --cover-anchor-x: calc(16px + min(52px, 15vw));
   --cover-anchor-y: calc(16px + min(78px, 22.5vw));
@@ -135,11 +141,12 @@
   --cover-fade-angle: 100deg;
 }
 
-/* The card is one box and rounds itself, so it paints the poster on its own
+/* Each card is one box and rounds itself, so it paints the poster on its own
    background: the scrim over the poster's colours, those over the panel colour
    underneath.  Stopped at the padding edge rather than run under the border,
    so the colour cannot spill past the line along the rounded corners. */
-:root[data-theme="dark-adaptive"] .hero {
+:root[data-theme="dark-adaptive"] .card,
+:root[data-theme="dark-adaptive"] .metalink {
   background-image:
     linear-gradient(var(--cover-scrim), var(--cover-scrim)),
     var(--cover-gradient, none);
@@ -147,32 +154,85 @@
   background-clip: padding-box;
 }
 
-/* What the card lights up with.  The theme's own accent is one fixed blue,
-   which on a card that has taken a poster's colours reads as a mark from a
-   different theme sitting on top of it -- so the badges, the progress bar and
-   the frame around the poster answer to the film in front of them instead.
+/* What a card lights up with.  The theme's own accent is one fixed blue, which
+   on a card that has taken a poster's colours reads as a mark from a different
+   theme sitting on top of it -- so inside a card the accent *is* the film's,
+   handed down as one token rather than as a rule per mark.  Every badge,
+   button, picker, chart line and focus ring in there follows without knowing
+   anything about it.
 
    Only the hue comes from the poster; how far it stands off the surface is
-   measured (see accentColor), so a card lights up by the same amount whatever
-   it is showing.  A film with no poster falls back to the slate in base.css,
-   which is the theme's own line colour rather than an accent -- nothing to
-   pick up means nothing to answer with.
+   measured (see accentColor in js/cover-tint.js), so a card lights up by the
+   same amount whatever it is showing.  A film with no poster falls back to the
+   theme's own accent in base.css -- nothing to pick up means the page looks
+   exactly as it does on the plain dark theme.
 
-   The title, the metadata line and the filename are left alone: they are what
-   is being read, not what is there to be scanned past. */
-:root[data-theme="dark-adaptive"] .hero .badge:not(.alt) {
-  border-color: rgba(var(--cover-accent-rgb), .5);
+   --warn and --bad are left alone: a paused badge and a failed switch say what
+   they say in the colour they always say it in. */
+:root[data-theme="dark-adaptive"] .card,
+:root[data-theme="dark-adaptive"] .metalink {
+  --accent:   rgb(var(--cover-accent-rgb));
+  --accent-2: rgb(var(--cover-accent-rgb));
+}
+
+/* The title of what is playing, which is the one piece of text that is the
+   film rather than a reading about it. */
+:root[data-theme="dark-adaptive"] .hero .now h1 {
   color: rgb(var(--cover-accent-rgb));
-  background: rgba(var(--cover-accent-rgb), .12);
 }
 
-:root[data-theme="dark-adaptive"] .hero .track {
-  background: rgba(var(--cover-accent-rgb), .14);
+/* --- Letting the tint through -------------------------------------------
+   The surfaces inside a card that are opaque on the other themes.  Left as
+   they are, each would sit on a tinted card as a cold grey box; a tint of
+   their own would drag the poster's colour back towards the same slate.  So
+   they give up their fill and keep their outline, and where one was a
+   separator rather than a surface it takes the film's colour instead.
+------------------------------------------------------------------------- */
+
+/* The tiles are three panels in a grid whose 1px gaps *are* the rules between
+   them: the grid's own fill is what shows through them, so it is the only
+   thing the tiles can be told apart by.  It therefore keeps a fill, as a
+   hairline in the film's own colour -- and the tiles keep one too, or the
+   grid's would show across the whole block instead of only in the gaps.
+   Theirs is the same plain darkening the other wells use, so a tile reads as a
+   tile whatever the poster is. */
+:root[data-theme="dark-adaptive"] .tilegrid {
+  background: rgba(var(--cover-accent-rgb), .30);
 }
-:root[data-theme="dark-adaptive"] .hero .track > i {
-  background: linear-gradient(90deg,
-    rgba(var(--cover-accent-rgb), .75), rgb(var(--cover-accent-rgb)));
+:root[data-theme="dark-adaptive"] .tile { background: rgba(0, 0, 0, .22); }
+
+/* The chart is drawn on a transparent canvas, so the well behind it is this
+   fill; a plain darkening keeps the plot legible over any tint without
+   choosing a colour of its own. */
+:root[data-theme="dark-adaptive"] #chart { background: rgba(0, 0, 0, .16); }
+
+/* The controls: the VS10 buttons, the transport keys and the track pickers.
+   The same well as the chart, so a row of them reads as a row of controls
+   while the card's colour still carries through. */
+:root[data-theme="dark-adaptive"] :is(.mode, .tbtn, .pick select) {
+  background-color: rgba(0, 0, 0, .16);
 }
+:root[data-theme="dark-adaptive"] .mode:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--accent) 14%, rgba(0, 0, 0, .16));
+}
+:root[data-theme="dark-adaptive"] .metalink:hover {
+  background-color: color-mix(in srgb, var(--accent) 10%, var(--panel));
+}
+
+/* The progress bar, both the plain one and the seekable one -- which draws its
+   own track in a pseudo-element and rings the filled part against it. */
+:root[data-theme="dark-adaptive"] .track,
+:root[data-theme="dark-adaptive"] .track.seekable::before {
+  background: rgba(var(--cover-accent-rgb), .16);
+}
+:root[data-theme="dark-adaptive"] .track.seekable {
+  background: none;
+}
+:root[data-theme="dark-adaptive"] .track.seekable > i {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .35);
+}
+
+/* --- The poster ---------------------------------------------------------- */
 
 /* The poster lights the card it sits in, rather than only being lit: a very
    quiet halo in the film's own colour.  The wrapper opens a stacking context
@@ -197,4 +257,5 @@
 }
 :root[data-theme="dark-adaptive"] .art img {
   border-color: rgba(var(--cover-accent-rgb), .45);
+  background: rgba(0, 0, 0, .2);
 }

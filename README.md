@@ -289,16 +289,20 @@ them; **holding the button down** (or right-clicking it) opens a menu to jump
 straight to one:
 
 - **Dark** — the plain one, and what a first visit gets.
-- **Dark (adaptive)** — the same page, with the now-playing card taking its
-  colour from the poster of whatever is on screen. The five colours are read
-  out of the artwork region by region, so the card keeps the poster's own
-  layout, and how much of the colour survives is worked out per film against
-  the contrast its text needs — a dark poster keeps nearly all of it, a bright
-  one is held down as far as it has to be, and both end up equally readable.
-  The badge, the progress bar and the frame around the poster take the film's
-  own colour with it. A title with no poster simply keeps the plain card.
-  While this theme is on, the menu also carries how strongly it tints:
-  **subtle**, **standard** or **strong**.
+- **Dark (adaptive)** — the same page, with **every card** taking its colour
+  from the poster of whatever is on screen. The five colours are read out of
+  the artwork region by region, so a card keeps the poster's own layout, and
+  how much of the colour survives is worked out per film against the contrast
+  its text needs — a dark poster keeps nearly all of it, a bright one is held
+  down as far as it has to be, and both end up equally readable. The
+  now-playing card is the loud one, with the light coming off the poster
+  standing in it; the cards around it get the same colours as a quiet wash from
+  their own corners, so the page agrees with the film without becoming a
+  coloured page. Inside a card the accent is the film's too, so the title, the
+  badges, the buttons, the tile rules and the luminance chart all answer to it.
+  A title with no poster looks exactly as it does on the plain dark theme —
+  there was nothing to take a colour from. While this theme is on, the menu
+  also carries how strongly it tints: **subtle**, **standard** or **strong**.
 - **Midnight** — deeper and bluer, for a room with nothing else lit in it.
 
 The choice is remembered in the browser, per device, and is applied before the

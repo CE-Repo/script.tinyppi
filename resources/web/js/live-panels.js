@@ -640,7 +640,11 @@
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    const style = getComputedStyle(document.documentElement);
+    /* Read off the canvas rather than off <html>: custom properties inherit,
+       so this is the theme's palette on every theme -- and the film's own
+       accent on the adaptive one, where the card the chart sits in has taken
+       the poster's colour (see css/theme.css). */
+    const style = getComputedStyle(canvas);
     const accent  = style.getPropertyValue("--accent").trim() || "#4fc3f7";
     const line    = style.getPropertyValue("--line").trim() || "#242c36";
     const accent2 = style.getPropertyValue("--accent-2").trim() || "#82b1ff";
@@ -710,6 +714,11 @@
     trace("max", accent, 1.7);
     trace("avg", accent2, 1.5, [4, 3]);
   }
+
+  /* The chart's colours come from the card it is drawn in, which the adaptive
+     theme repaints from the poster.  A canvas cannot notice that on its own,
+     so js/cover-tint.js says when it has happened. */
+  document.addEventListener("tinyppi-tint", () => drawChart());
 
   let resizeTimer = 0;
   window.addEventListener("resize", () => {

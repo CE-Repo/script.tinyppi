@@ -1,8 +1,15 @@
 "use strict";
 
 /* ===========================================================================
-   The colours the poster is made of, as the surface the now-playing card is
-   painted with.
+   The colours the poster is made of, as the surface every card is painted
+   with.
+
+   Two areas take them, and they differ only in how loud they are: the
+   now-playing card, where the poster itself is standing and the gradient is
+   hung off it, and every other card on the page, which gets the same colours
+   as a quiet wash from its own corners.  The hero stays the loudest thing on
+   the page that way, and the rest of it agrees with what is playing without
+   competing.
 
    Only the adaptive theme reads any of this; every other one ignores it and
    the card keeps the plain panel colour.  Three things decide what comes out,
@@ -111,6 +118,15 @@ window.TinyPPICover = (function () {
   const DEFAULT_STRENGTH = 1;
 
   const ADAPTIVE = "dark-adaptive";
+
+  /* What each of the two painted areas is: how its gradient is laid out, and
+     how much colour the strongest point of it actually ends up carrying.  The
+     second is what the contrast is solved against -- the hero paints its
+     middle stop solid, the quieter wash never gets past half. */
+  const VARIANTS = {
+    hero:  { gradient: heroGradient,  peak: 1 },
+    panel: { gradient: panelGradient, peak: 0.5 }
+  };
 
   /* Every property this file may put on the card, so nothing is left behind
      when there is no poster to paint. */
@@ -458,15 +474,15 @@ window.TinyPPICover = (function () {
   }
 
   /* ============================================================
-     The gradient
+     The gradients
      ============================================================ */
 
   const rgbText = (c) => "rgb(" + c[0] + ", " + c[1] + ", " + c[2] + ")";
   const rgbaText = (c, a) => "rgba(" + c[0] + ", " + c[1] + ", " + c[2] + ", " + a + ")";
   const deepen = (rgb, amount) => rgb.map((c) => Math.round(c * amount));
 
-  /* The card's gradient, hung off the poster rather than off the card's own
-     corners.
+  /* The now-playing card's gradient, hung off the poster rather than off the
+     card's own corners.
 
      The card is much wider than the poster standing in it, so pools in its
      corners would put the brightest colour where there is no artwork to
@@ -475,7 +491,7 @@ window.TinyPPICover = (function () {
      over as --cover-anchor-x and --cover-anchor-y -- and their long, quiet
      tails merge into a final directional wash that fades back to the card's
      own colour by the far edge. */
-  function cardGradient(colors) {
+  function heroGradient(colors) {
     const tl = colors[0], tr = colors[1], bl = colors[2];
     const br = colors[3], mid = colors[4] || colors[0];
     const x = "var(--cover-anchor-x)", y = "var(--cover-anchor-y)";
@@ -502,6 +518,41 @@ window.TinyPPICover = (function () {
       "linear-gradient(var(--cover-fade-angle), " +
         rgbaText(mid, 0.22) + " 0%, " + rgbaText(mid, 0.11) + " 42%, " +
         rgbaText(br, 0.04) + " 72%, " + rgbaText(br, 0) + " 100%)"
+    ].join(", ");
+  }
+
+  /* Every other card's gradient.
+
+     There is no poster standing in these, so there is nothing to hang the
+     light off and the card's own corners are the honest place for it: the same
+     five colours, in the same order, each pooling in the corner it came from.
+
+     It is the quiet one deliberately.  The now-playing card is what is being
+     looked at, and if every card carried the same weight of colour the page
+     would read as a coloured page rather than as a page with a film on it --
+     so nothing here gets past half strength, and the wash across the middle is
+     barely there.  What ties them together is that the colours are the same
+     ones, not that they are as loud. */
+  function panelGradient(colors) {
+    const tl = colors[0], tr = colors[1], bl = colors[2];
+    const br = colors[3], mid = colors[4] || colors[0];
+
+    return [
+      "radial-gradient(ellipse 72% 128% at 0% 0%, " +
+        rgbaText(tl, 0.42) + " 0%, " + rgbaText(tl, 0.16) + " 34%, " +
+        rgbaText(deepen(tl, 0.40), 0) + " 76%)",
+      "radial-gradient(ellipse 72% 128% at 100% 0%, " +
+        rgbaText(tr, 0.34) + " 0%, " + rgbaText(tr, 0.13) + " 34%, " +
+        rgbaText(deepen(tr, 0.42), 0) + " 78%)",
+      "radial-gradient(ellipse 72% 128% at 0% 100%, " +
+        rgbaText(bl, 0.30) + " 0%, " + rgbaText(bl, 0.12) + " 34%, " +
+        rgbaText(deepen(bl, 0.45), 0) + " 76%)",
+      "radial-gradient(ellipse 72% 128% at 100% 100%, " +
+        rgbaText(br, 0.26) + " 0%, " + rgbaText(br, 0.10) + " 34%, " +
+        rgbaText(deepen(br, 0.48), 0) + " 78%)",
+      "linear-gradient(120deg, " +
+        rgbaText(mid, 0.18) + " 0%, " + rgbaText(mid, 0.09) + " 50%, " +
+        rgbaText(br, 0.04) + " 100%)"
     ].join(", ");
   }
 
@@ -553,20 +604,21 @@ window.TinyPPICover = (function () {
   }
 
   /* ============================================================
-     Painting the card
+     Painting a card
      ============================================================ */
 
-  /* Everything one poster contributes, as property values.  Worked out once
-     per poster and strength and kept: the answer does not change while both
-     stay what they are, and the theme's own share is dropped along with the
-     token cache when the theme changes. */
+  /* Everything one poster contributes to one of the two areas, as property
+     values.  Worked out once per poster, area and strength and kept: the
+     answer does not change while those stay what they are, and the theme's own
+     share is dropped along with the token cache when the theme changes. */
   const derived = new Map();
 
-  function paintValues(palette, key) {
+  function paintValues(palette, key, variant) {
     const raw = document.documentElement.getAttribute("data-cover-strength");
-    const cacheKey = key && (key + "|" + raw);
+    const cacheKey = key && (key + "|" + variant + "|" + raw);
     if (cacheKey && derived.has(cacheKey)) return derived.get(cacheKey);
 
+    const spec = VARIANTS[variant] || VARIANTS.hero;
     const level = strengthLevel();
     const base = themeColor("--panel", [20, 24, 29]);
     const text = themeColor("--text", [232, 236, 241]);
@@ -576,18 +628,24 @@ window.TinyPPICover = (function () {
       return level.mix < 1 ? composite(tinted, base, level.mix) : tinted;
     });
 
+    /* The lightest point the area actually reaches: its lightest colour, at
+       the strongest any stop of that gradient is painted.  The hero paints one
+       solid, the quieter wash never gets past half, so the same poster needs
+       far less holding down on the cards around it than in the card it is
+       standing in. */
     const brightest = colors.reduce(
       (a, c) => (luminance(c) > luminance(a) ? c : a));
-    const scrim = solveScrim(brightest, text);
-    /* What the text will actually sit on, at the surface's lightest point --
-       which is what everything below is measured against. */
-    const surface = composite(SCRIM_RGB, brightest, scrim);
+    const top = spec.peak >= 1 ? brightest : composite(brightest, base, spec.peak);
+    const scrim = solveScrim(top, text);
+    /* What the text will actually sit on there -- which is what everything
+       below is measured against. */
+    const surface = composite(SCRIM_RGB, top, scrim);
 
     const values = {
-      "--cover-gradient": cardGradient(colors),
+      "--cover-gradient": spec.gradient(colors),
       "--cover-scrim": rgbaText(SCRIM_RGB, scrim.toFixed(3)),
       "--cover-accent-rgb": accentColor(palette, surface).join(", "),
-      /* The two quietest text colours in the card.  The theme picks them
+      /* The two quietest text colours in the area.  The theme picks them
          against one known surface; here they sit on whatever the poster
          happened to be, so they are lifted to the level every other mark is
          held to rather than being given a second fixed value. */
@@ -604,9 +662,10 @@ window.TinyPPICover = (function () {
     for (const property of PAINTED) element.style.removeProperty(property);
   }
 
-  function paint(element, palette, key) {
+  function paint(element, palette, key, variant) {
+    if (!element) return;
     if (!palette) { clear(element); return; }
-    const values = paintValues(palette, key);
+    const values = paintValues(palette, key, variant);
     const painting = adaptive();
     for (const property of PAINTED) {
       if (property in values && (painting || !THEME_BOUND.includes(property))) {
@@ -642,22 +701,38 @@ window.TinyPPICover = (function () {
     });
   }
 
-  /* The card being painted, and the poster it is showing.  There is one of
-     each on a page, but the theme can change long after the film did, so both
-     are kept rather than only passed through. */
-  let current = { element: null, url: "", image: null };
+  /* The poster being painted from, and the card the hero variant goes on.  The
+     theme can change long after the film did, so both are kept rather than
+     only passed through.
+
+     The quiet variant is not given an element: it goes on <main>, and every
+     card inside inherits it (see css/theme.css).  One property per page
+     therefore paints all of them, and the now-playing card overrides the three
+     it cares about on itself. */
+  let current = { hero: null, url: "", image: null };
+
+  const panelHost = () => document.querySelector("main");
+
+  function paintBoth(palette, key) {
+    paint(current.hero, palette, key, "hero");
+    paint(panelHost(), palette, key, "panel");
+    /* Anything drawn rather than styled has to be told: the luminance chart
+       takes its colours from the card it sits in, and a canvas does not
+       repaint itself when a custom property under it changes. */
+    document.dispatchEvent(new CustomEvent("tinyppi-tint"));
+  }
 
   function repaint() {
-    const element = current.element;
-    if (!element) return;
-    if (!current.url) { clear(element); return; }
+    const host = panelHost();
+    if (!current.hero && !host) return;
+    if (!current.url) { paintBoth(null); return; }
 
     /* Already known: paint it now rather than a frame later, so switching back
-       to this theme does not flash the plain card first. */
+       to this theme does not flash the plain cards first. */
     const known = palettes.get(current.url);
-    if (known !== undefined) { paint(element, known, current.url); return; }
+    if (known !== undefined) { paintBoth(known, current.url); return; }
 
-    clear(element);
+    paintBoth(null);
     /* Reading a poster nothing has read yet is left to the theme that actually
        paints it: no other one would show anything for the work. */
     if (!adaptive()) return;
@@ -665,12 +740,12 @@ window.TinyPPICover = (function () {
     const url = current.url;
     readCover(url, current.image).then((palette) => {
       if (current.url !== url) return;
-      paint(element, palette, url);
+      paintBoth(palette, url);
     });
   }
 
   /* How far a poster may be taken is the theme's call and the strength's, so
-     the card is painted again whenever either changes -- and switching *to*
+     the cards are painted again whenever either changes -- and switching *to*
      the adaptive theme is the moment a poster nothing has read yet is read. */
   if (typeof MutationObserver === "function") {
     new MutationObserver(() => {
@@ -684,12 +759,12 @@ window.TinyPPICover = (function () {
   }
 
   return {
-    /* What is playing now, from live-panels.js: the card to paint, the address
-       the poster came from and the <img> already showing it -- reading the
-       picture the page has anyway is the difference between one decode and
+    /* What is playing now, from live-panels.js: the now-playing card, the
+       address the poster came from and the <img> already showing it -- reading
+       the picture the page has anyway is the difference between one decode and
        two.  An empty address is a film with no poster, or none playing. */
     show(element, url, image) {
-      current = { element: element || null, url: url || "", image: image || null };
+      current = { hero: element || null, url: url || "", image: image || null };
       repaint();
     }
   };
