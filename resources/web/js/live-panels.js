@@ -227,8 +227,17 @@
        only for the HDR formats (see publish_hdr_type), which is the same thing
        the VS10 buttons branch on. */
     const badges = [{ text: TinyPPI.prettyHdr(snapshot.hdr_type || "sdr"), alt: false }];
-    if (snapshot.effective && snapshot.effective !== snapshot.hdr_type) {
-      badges.push({ text: "→ " + TinyPPI.prettyHdr(snapshot.effective), alt: true });
+    /* The output, not "effective": that one names the overlay's layout and is
+       built to stay on the source type, so it matched the source through every
+       conversion and this badge never appeared.  Both sides are empty for SDR,
+       so a film neither converted nor converted from compares equal and shows
+       the one badge it should. */
+    if (snapshot.output_type !== undefined
+        && snapshot.output_type !== snapshot.hdr_type) {
+      badges.push({
+        text: "→ " + TinyPPI.prettyHdr(snapshot.output_type || "sdr"),
+        alt: true
+      });
     }
     if (snapshot.paused) badges.push({ icon: "pause", alt: true });
     el.badges.innerHTML = "";

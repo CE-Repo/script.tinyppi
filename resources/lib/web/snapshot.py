@@ -361,6 +361,28 @@ def _output_token(mode: str) -> str:
     return ""
 
 
+def _output_hdr_type(mode: str, source: str) -> str:
+    """The output classified into the tokens the source side is written in, so
+    the page can compare the two and name a conversion.
+
+    Not ``TinyPPI.EffectiveHdrType``: that one answers which overlay layout to
+    draw and is meant to stay on the source unless a setting says otherwise, so
+    it reads the same as the source through every conversion there is.  This
+    reads the output itself.
+
+    An unreadable mode field answers with the source rather than with SDR --
+    nothing read is not the same as nothing being sent, and a missing value
+    must not badge a film that is being passed through untouched.
+    """
+    if not (mode or "").strip():
+        return source
+    token = _output_token(mode)
+    # The logo maps spell it with the plus; the source side spells it
+    # hdr10plus, since Kodi's boolean parser reads + as AND (see
+    # publish_hdr_type).  One vocabulary, or every HDR10+ film badges itself.
+    return "hdr10plus" if token == "hdr10+" else token
+
+
 def _imax_logo(token: str) -> str:
     """The combined IMAX logo for ``token``, or '' when it is not installed."""
     rel_path = IMAX_LOGO_MAP.get(token, "")
@@ -972,6 +994,9 @@ class SnapshotBuilder:
             "filename":  values.get("Filename", "") if allow_filename else "",
             "hdr_type":  source,
             "effective": home.getProperty(PROP_EFFECTIVE_HDR_TYPE),
+            # What is actually going out, for the conversion badge; see
+            # _output_hdr_type for why "effective" cannot answer that.
+            "output_type": _output_hdr_type(vs10.get("output", ""), source),
             "time":      position,
             "duration":  values.get("PlayerDuration", ""),
             "metrics":   metrics,
