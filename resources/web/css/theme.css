@@ -110,18 +110,15 @@
 /* ---------------------------------------------------------------------------
    Dark adaptive
 
-   The plain dark theme, with the page taking its colour from the poster of
-   whatever is on screen.  Two areas carry it, painted differently: the
-   now-playing card, where the poster is standing and the light comes off it,
-   and every other card, which takes one flat colour -- the same accent its own
-   marks take, only at a surface's lightness rather than a mark's.
+   The plain dark theme, with the now-playing card taking its colour from the
+   poster of whatever is on screen.  No other card is painted: the surfaces
+   around the film stay exactly what they are on the plain dark theme, so the
+   page has one coloured thing on it and everything else is the page.
 
-   js/cover-tint.js hands them over as --cover-gradient, together with the
-   scrim that keeps the text on each readable and the accent its marks take.
-   The quiet one is set on <main>, so every card inherits it; the now-playing
-   card sets its own on itself and so overrides it.  Without a poster there is
-   nothing to paint and the plain panels show through, with the theme's own
-   accent back on the marks.
+   What the other cards do take is the film's accent, for their marks alone --
+   a badge, a button, a chart trace.  js/cover-tint.js sets it on <main> and
+   every card inherits it; the now-playing card, which measures its own against
+   the tint it is carrying, sets its own on itself.
 
    Everything outside main -- the top bar, the status light, the toast and the
    token dialog -- is the dark theme untouched, deliberately: the page's own
@@ -141,12 +138,11 @@
   --cover-fade-angle: 100deg;
 }
 
-/* Each card is one box and rounds itself, so it paints the poster on its own
+/* The card is one box and rounds itself, so it paints the poster on its own
    background: the scrim over the poster's colours, those over the panel colour
    underneath.  Stopped at the padding edge rather than run under the border,
    so the colour cannot spill past the line along the rounded corners. */
-:root[data-theme="dark-adaptive"] .card,
-:root[data-theme="dark-adaptive"] .metalink {
+:root[data-theme="dark-adaptive"] .hero {
   background-image:
     linear-gradient(var(--cover-scrim), var(--cover-scrim)),
     var(--cover-gradient, none);
@@ -155,17 +151,19 @@
 }
 
 /* What a card lights up with.  The theme's own accent is one fixed blue, which
-   on a card that has taken a poster's colours reads as a mark from a different
-   theme sitting on top of it -- so inside a card the accent *is* the film's,
-   handed down as one token rather than as a rule per mark.  Every badge,
-   button, picker, chart line and focus ring in there follows without knowing
-   anything about it.
+   next to a card that has taken a poster's colours reads as a mark from a
+   different theme -- so inside a card the accent *is* the film's, handed down
+   as one token rather than as a rule per mark.  Every badge, button, picker,
+   chart trace and focus ring in there follows without knowing anything about
+   it.
 
    Only the hue comes from the poster; how far it stands off the surface is
-   measured (see accentColor in js/cover-tint.js), so a card lights up by the
-   same amount whatever it is showing.  A film with no poster falls back to the
-   theme's own accent in base.css -- nothing to pick up means the page looks
-   exactly as it does on the plain dark theme.
+   measured (see accentColor in js/cover-tint.js), so a mark stands off by the
+   same amount whatever the film is -- and the now-playing card, whose surface
+   is the tinted one, is measured against that rather than against the panel
+   every other card kept.  A film with no poster falls back to the theme's own
+   accent in base.css, so the page then looks exactly as it does on the plain
+   dark theme.
 
    --warn and --bad are left alone: a paused badge and a failed switch say what
    they say in the colour they always say it in. */
@@ -182,57 +180,31 @@
 }
 
 /* --- Letting the tint through -------------------------------------------
-   The surfaces inside a card that are opaque on the other themes.  Left as
-   they are, each would sit on a tinted card as a cold grey box; a tint of
-   their own would drag the poster's colour back towards the same slate.  So
-   they give up their fill and keep their outline, and where one was a
-   separator rather than a surface it takes the film's colour instead.
+   The surfaces inside the now-playing card that are opaque on the other
+   themes: the progress bar and, in the drawer under it, the transport keys and
+   the track pickers.  Left as they are, each would sit on the tinted card as a
+   cold grey box; a tint of their own would drag the poster's colour back
+   towards the same slate.  So they give up their fill for a plain darkening
+   and keep their outline, and the bar -- which is a mark rather than a surface
+   -- takes the film's colour instead.
+
+   Nothing outside this card needs any of it: those cards are not painted.
 ------------------------------------------------------------------------- */
 
-/* The tiles are three panels in a grid whose 1px gaps *are* the rules between
-   them, drawn by the grid's own fill showing through.  That cannot stay: a
-   tile has to let the card's colour through, and anything translucent enough
-   to do that lets the grid's fill through with it -- so the whole block came
-   out a shade louder than every other card rather than three tiles with lines
-   between them.
-
-   So the grid gives up its fill and the tiles draw the lines themselves, as a
-   ring that costs no layout.  Two neighbouring rings meet in the 1px gap and
-   read as the one hairline that was there before, in the film's own colour. */
-:root[data-theme="dark-adaptive"] .tilegrid { background: transparent; }
-:root[data-theme="dark-adaptive"] .tile {
-  background: transparent;
-  box-shadow: 0 0 0 1px rgba(var(--cover-accent-rgb), .22);
-}
-
-/* The chart is drawn on a transparent canvas, so the well behind it is this
-   fill; a plain darkening keeps the plot legible over any tint without
-   choosing a colour of its own. */
-:root[data-theme="dark-adaptive"] #chart { background: rgba(0, 0, 0, .16); }
-
-/* The controls: the VS10 buttons, the transport keys and the track pickers.
-   The same well as the chart, so a row of them reads as a row of controls
-   while the card's colour still carries through. */
-:root[data-theme="dark-adaptive"] :is(.mode, .tbtn, .pick select) {
+:root[data-theme="dark-adaptive"] .hero :is(.tbtn, .pick select) {
   background-color: rgba(0, 0, 0, .16);
-}
-:root[data-theme="dark-adaptive"] .mode:hover:not(:disabled) {
-  background-color: color-mix(in srgb, var(--accent) 14%, rgba(0, 0, 0, .16));
-}
-:root[data-theme="dark-adaptive"] .metalink:hover {
-  background-color: color-mix(in srgb, var(--accent) 10%, var(--panel));
 }
 
 /* The progress bar, both the plain one and the seekable one -- which draws its
    own track in a pseudo-element and rings the filled part against it. */
-:root[data-theme="dark-adaptive"] .track,
-:root[data-theme="dark-adaptive"] .track.seekable::before {
+:root[data-theme="dark-adaptive"] .hero .track,
+:root[data-theme="dark-adaptive"] .hero .track.seekable::before {
   background: rgba(var(--cover-accent-rgb), .16);
 }
-:root[data-theme="dark-adaptive"] .track.seekable {
+:root[data-theme="dark-adaptive"] .hero .track.seekable {
   background: none;
 }
-:root[data-theme="dark-adaptive"] .track.seekable > i {
+:root[data-theme="dark-adaptive"] .hero .track.seekable > i {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .35);
 }
 

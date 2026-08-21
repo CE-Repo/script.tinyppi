@@ -121,30 +121,6 @@ window.TinyPPICover = (function () {
 
   const ADAPTIVE = "dark-adaptive";
 
-  /* What a flat card is painted with, and it is meant to be quiet: such a card
-     should look like the plain dark panel with the film breathed over it, not
-     like a second poster.  The now-playing card is the one carrying the
-     colour; these only have to agree with it.
-
-     The chroma cap is what does most of that work, and it is the reason these
-     are not simply the hero's colours at a lower opacity.  A saturated poster
-     taken down to a surface's lightness has more chroma than the gamut can
-     hold there, so it clips to the pure hue -- and a pure hue over the whole
-     of a card is a red card, however thin it is laid on.  Held to this much
-     instead, the same poster leaves a warm grey that is plainly the film's
-     without being the film's poster.
-
-     The lightness is above the panel's own, so a card is tinted rather than
-     darkened: a fill below it would take the green and blue out and leave the
-     card looking sooty as well as coloured.
-
-     The intensity setting moves the alpha and the cap together, so the three
-     steps are a real range here rather than three shades of the same. */
-  const PANEL_LIGHTNESS = 0.42;
-  const PANEL_CHROMA = 0.07;
-  const PANEL_ALPHA = 0.22;
-  const PANEL_ALPHA_MAX = 0.34;
-
   /* Every property this file may put on the card, so nothing is left behind
      when there is no poster to paint. */
   const PAINTED = ["--cover-gradient", "--cover-scrim", "--cover-accent-rgb",
@@ -547,25 +523,6 @@ window.TinyPPICover = (function () {
     ].join(", ");
   }
 
-  /* Every other card, which is not a gradient at all: one flat colour, the
-     accent's own, laid over the panel.
-
-     There is no poster standing in these cards, so there is nothing for a
-     gradient to be about -- five pools in the corners of a card that is
-     showing a table of readings is decoration, not information.  What the
-     cards around the film are for is saying which film it is, and a single
-     colour says that more plainly than an arrangement of five.
-
-     It is the same colour the marks in that card take, from accentBase, only
-     taken down to a surface's lightness instead of up to a mark's: the card
-     and the badges on it are then one hue at two distances rather than two
-     colours that happen to be close.  The alpha is what keeps it quieter than
-     the now-playing card, which stays the loud one. */
-  function panelFill(colour, alpha) {
-    const flat = rgbaText(colour, alpha.toFixed(3));
-    return "linear-gradient(" + flat + ", " + flat + ")";
-  }
-
   /* ============================================================
      What the theme in force allows
      ============================================================ */
@@ -628,32 +585,11 @@ window.TinyPPICover = (function () {
     const cacheKey = key && (key + "|" + variant + "|" + raw);
     if (cacheKey && derived.has(cacheKey)) return derived.get(cacheKey);
 
-    const level = strengthLevel();
     const base = themeColor("--panel", [20, 24, 29]);
-    const text = themeColor("--text", [232, 236, 241]);
-    const painted = variant === "panel"
-      ? flatPanel(palette, level, base)
-      : posterGradient(palette, level, base);
+    const values = variant === "panel"
+      ? { "--cover-accent-rgb": accentColor(palette, base).join(", ") }
+      : heroValues(palette, base);
 
-    /* What the text will actually sit on there -- which is what everything
-       below is measured against.  A card with nothing painted on it is the
-       plain panel, and needs no scrim to be readable on. */
-    const scrim = painted.top ? solveScrim(painted.top, text) : 0;
-    const surface = painted.top ? composite(SCRIM_RGB, painted.top, scrim) : base;
-
-    const values = {
-      "--cover-gradient": painted.image,
-      "--cover-scrim": rgbaText(SCRIM_RGB, scrim.toFixed(3)),
-      "--cover-accent-rgb": accentColor(palette, surface).join(", "),
-      /* The two quietest text colours in the area.  The theme picks them
-         against one known surface; here they sit on whatever the poster
-         happened to be, so they are lifted to the level every other mark is
-         held to rather than being given a second fixed value. */
-      "--muted": rgbText(liftAgainst(themeColor("--muted", [139, 151, 166]),
-                                     surface, MARK_RATIO)),
-      "--dim": rgbText(liftAgainst(themeColor("--dim", [93, 104, 117]),
-                                   surface, MARK_RATIO))
-    };
     if (cacheKey) derived.set(cacheKey, values);
     return values;
   }
@@ -661,14 +597,36 @@ window.TinyPPICover = (function () {
   /* The now-playing card: the poster's five colours in the places they came
      from, with the middle one painted solid.  That last is where the text has
      to stay readable, so it is what the scrim is solved against. */
-  function posterGradient(palette, level, base) {
+  function heroValues(palette, base) {
+    const level = strengthLevel();
+    const text = themeColor("--text", [232, 236, 241]);
+
     const colors = palette.map((rgb, index) => {
       const tinted = tintColor(rgb, STOP_LIGHTNESS[index] + level.lightness, level.chroma);
       return level.mix < 1 ? composite(tinted, base, level.mix) : tinted;
     });
+
+    const brightest = colors.reduce(
+      (a, c) => (luminance(c) > luminance(a) ? c : a));
+    const scrim = solveScrim(brightest, text);
+    /* What the text will actually sit on -- which is what everything below is
+       measured against. */
+    const surface = composite(SCRIM_RGB, brightest, scrim);
+
     return {
-      image: heroGradient(colors),
-      top: colors.reduce((a, c) => (luminance(c) > luminance(a) ? c : a))
+      "--cover-gradient": heroGradient(colors),
+      "--cover-scrim": rgbaText(SCRIM_RGB, scrim.toFixed(3)),
+      "--cover-accent-rgb": accentColor(palette, surface).join(", "),
+      /* The two quietest text colours in the card.  The theme picks them
+         against one known surface; here they sit on whatever the poster
+         happened to be, so they are lifted to the level every other mark is
+         held to rather than being given a second fixed value.  Only this card
+         needs it: every other one is the plain panel the theme already chose
+         them against. */
+      "--muted": rgbText(liftAgainst(themeColor("--muted", [139, 151, 166]),
+                                     surface, MARK_RATIO)),
+      "--dim": rgbText(liftAgainst(themeColor("--dim", [93, 104, 117]),
+                                   surface, MARK_RATIO))
     };
   }
 
