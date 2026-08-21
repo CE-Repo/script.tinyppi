@@ -182,11 +182,11 @@
    than read.  Both go to the accent; what is between them, the readings
    themselves, stays the plain text colour.
 
-   The headings carry their own disclosure arrow as currentColor, so it follows
-   without a rule of its own. */
+   The disclosure headings are not named here.  They ask for --accent on every
+   theme now (see .panel-toggle in css/live-panels.css), and inside a card that
+   token is already the film's -- naming them again would only be the same
+   colour said twice.  Their arrow follows as currentColor either way. */
 :root[data-theme="dark-adaptive"] .hero .now h1,
-:root[data-theme="dark-adaptive"] .card > .panel-toggle,
-:root[data-theme="dark-adaptive"] .card[open] > .panel-toggle,
 :root[data-theme="dark-adaptive"] .card > h2,
 :root[data-theme="dark-adaptive"] .card > .cardhead > h2 {
   color: rgb(var(--cover-accent-rgb));
