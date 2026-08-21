@@ -12,9 +12,7 @@ import xbmcaddon
 import xbmcgui
 from core.helpers import format_fps, fps_display_texts, normalize_fps
 from core.maps import (
-    AUDIO_BIT_DEPTH_MAP,
     AUDIO_CODEC_MAP,
-    AUDIO_PCM_DEPTH_CODECS,
     CHANNELS_ICON_HEIGHT_MAP,
     CHANNELS_ICON_MAP,
     CHANNELS_INPUT_MAP,
@@ -34,10 +32,6 @@ from core.utils import (
     parse_offsets,
     picture_aspect_ratio,
     set_changed_properties,
-)
-from info.audioinfo import (
-    get_active_audio_bit_depth,
-    get_active_audio_sample_rate,
 )
 from info.imax import is_enhanced_title, is_known_imax_title
 from info.mediasource import get_MediaSourceVar
@@ -477,46 +471,34 @@ def get_ChannelIconVar() -> str:
 
 
 def get_AudioBitDepthVar() -> str:
-    """Return the source audio bit depth for display, e.g. ``24-bit``.
+    """Return the audio bit depth for display, e.g. ``24-bit``.
 
-    Prefers the depth read from the source bitstream itself for the active
-    track (see audioinfo.py).  While detection runs or finds nothing, known
-    bitstream codecs fall back to AUDIO_BIT_DEPTH_MAP, since Kodi's own
-    ``audiobitspersample`` reports the sink format (always ``8`` during
-    passthrough).  Kodi's value is used only for codecs it decodes itself
-    (AUDIO_PCM_DEPTH_CODECS); lossy codecs have no PCM bit depth and return
-    ``''``, so the skin shows only the sample rate.
+    Read from Kodi's own ``Player.Process(AudioBitsPerSample)``.  Kodi reports
+    ``0`` when the active stream carries no PCM bit depth — a lossy codec, or a
+    bitstream handed to the sink untouched during passthrough — and that is
+    shown as nothing at all rather than as a zero.
     """
-    probed = get_active_audio_bit_depth()
-    if probed:
-        return f"{probed}-bit"
-
-    codec = info("VideoPlayer.AudioCodec").lower().strip()
-    depth = AUDIO_BIT_DEPTH_MAP.get(codec)
-    if depth:
-        return f"{depth}-bit"
-
-    if codec in AUDIO_PCM_DEPTH_CODECS and not cond("Player.Passthrough"):
-        bits = clean(info("Player.Process(audiobitspersample)"))
-        if bits:
-            return f"{bits}-bit"
-
-    return ""
+    bits = clean(info("Player.Process(AudioBitsPerSample)")).strip()
+    try:
+        depth = int(float(bits))
+    except (TypeError, ValueError):
+        return ""
+    return f"{depth}-bit" if depth > 0 else ""
 
 
 def get_AudioSampleRateVar() -> str:
-    """Return the source audio sample rate for display, e.g. ``96 kHz``.
+    """Return the audio sample rate for display in kHz, e.g. ``96 kHz``.
 
-    Prefers the rate read from the source bitstream: Kodi reports
-    the DTS compatibility core's rate (48 kHz) even when the extension carries
-    96/192 kHz.  Falls back to Kodi's own value while detection runs.
+    Read from Kodi's own ``Player.Process(AudioSamplerate)``, which reports it
+    in Hz; a rate that is not a whole number of kHz keeps one decimal
+    (``44.1 kHz``).
     """
-    samplerate = get_active_audio_sample_rate()
-    if not samplerate:
-        samplerate = clean(info("Player.Process(audiosamplerate)"))
+    samplerate = clean(info("Player.Process(AudioSamplerate)"))
     try:
         hz = float(samplerate)
     except (TypeError, ValueError):
+        return ""
+    if hz <= 0:
         return ""
     khz = hz / 1000.0
     return f"{int(khz)} kHz" if khz.is_integer() else f"{khz:.1f} kHz"

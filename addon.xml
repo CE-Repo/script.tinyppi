@@ -3,7 +3,6 @@
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.sidedata" version="1.5.0"/>
-        <import addon="script.module.audiodata" version="1.0.0"/>
     </requires>
     <extension point="xbmc.service" library="resources/lib/service/monitor.py" />
     <extension point="xbmc.python.script" library="main.py">

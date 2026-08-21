@@ -13,7 +13,6 @@ _LIB_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _LIB_PATH not in sys.path:
     sys.path.insert(0, _LIB_PATH)
 
-from info.audioinfo import prime_playback_detection, reset_playback_cache
 from ui.theme import apply_theme
 from web.server import WebDashboard
 
@@ -44,8 +43,7 @@ def _notification_media_type(data: str) -> str:
 
 
 class KodiMonitor(xbmc.Monitor):
-    """Listens for Kodi notifications; resets the audio-scan cache on stop and,
-    on playback start, preloads the audio detection and fires the splash.
+    """Listens for Kodi notifications; fires the splash on playback start.
 
     Also owns the web dashboard's lifecycle: it is started and stopped from
     here because this is the one thing that lives for the whole Kodi session.
@@ -56,12 +54,7 @@ class KodiMonitor(xbmc.Monitor):
         self._dashboard = dashboard
 
     def onNotification(self, sender: str, method: str, data: str) -> None:
-        if method == "Player.OnStop":
-            reset_playback_cache()
-            _log("Audio bitstream playback cache cleared")
-
         if method == "Player.OnAVStart":
-            self._prime_detection()
             self._maybe_show_splash()
 
         try:
@@ -94,22 +87,6 @@ class KodiMonitor(xbmc.Monitor):
         except Exception as exc:
             _log(f"Exception applying web dashboard settings: {exc}", xbmc.LOGERROR)
 
-    def _prime_detection(self) -> None:
-        """Start the audio-bitstream scan as soon as a video begins playing, so
-        the result is already cached when the overlay opens instead of falling
-        back to Kodi's own sink-side values.
-
-        The DV/HDR side is read live from ``Player.Process(video.sidedata)`` and
-        needs no priming.
-        """
-        try:
-            if not xbmc.getCondVisibility("Player.HasVideo"):
-                return
-            if prime_playback_detection():
-                _log("Preloading audio bitstream metadata in background")
-        except Exception as exc:
-            _log(f"Exception priming detection: {exc}", xbmc.LOGERROR)
-
     def _maybe_show_splash(self) -> None:
         """Fire the format-logo splash when enabled for this video.
 
@@ -134,8 +111,6 @@ if __name__ == "__main__":
     win       = xbmcgui.Window(_HOME_WINDOW_ID)
     dashboard = WebDashboard()
     monitor   = KodiMonitor(dashboard)
-
-    reset_playback_cache()
 
     # Publish the theme properties at startup so the settings dialog can preview
     # custom HEX colors before the overlay has been opened this session.
