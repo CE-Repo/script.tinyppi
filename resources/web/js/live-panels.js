@@ -329,8 +329,12 @@
     slider.className = "volume";
     slider.id = "volume";
     slider.setAttribute("aria-label", TinyPPI.T.volume);
+    /* Whatever the input already reads, so a slider the add-on has not
+       reported a level for looks exactly as it did before it was drawn here. */
+    setVolume(slider, slider.value);
     slider.addEventListener("input", () => {
       volumeHeld = Date.now();
+      setVolume(slider, Number(slider.value));
       TinyPPI.command("volume", Number(slider.value));
     });
     rest.append(slider, mute);
@@ -354,6 +358,17 @@
       else return;
       event.preventDefault();
     });
+  }
+
+  /* How far the slider has run, on the slider itself.
+
+     The bar is drawn rather than left to the browser (see .volume in
+     live-panels.css), and WebKit has no pseudo-element for the part that has
+     run -- so the value has to reach the stylesheet as well as the input.
+     Firefox fills its own and ignores this. */
+  function setVolume(slider, value) {
+    slider.value = value;
+    slider.style.setProperty("--vol", Number(value) + "%");
   }
 
   function renderTransport(snapshot) {
@@ -384,7 +399,7 @@
     if (slider && controls.volume !== null && controls.volume !== undefined) {
       /* Not while a finger is on it: the snapshot is a fifth of a second
          behind, and writing it back would drag the handle out from under. */
-      if (Date.now() - volumeHeld > 1500) slider.value = controls.volume;
+      if (Date.now() - volumeHeld > 1500) setVolume(slider, controls.volume);
     }
     if (mute) {
       mute.classList.toggle("on", !!controls.muted);

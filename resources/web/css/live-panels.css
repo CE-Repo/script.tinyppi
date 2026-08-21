@@ -53,10 +53,18 @@
   display: grid;
   gap: 6px;
 }
+/* Both bars in this card -- the time and the volume -- are drawn the same way:
+   an outline in the accent with nothing behind it, and the part that has run
+   filled inside it.  The volume slider is a range input, whose track the
+   browser draws for itself, so it is taken over further down rather than left
+   to match by accident. */
 .track {
-  height: 6px;
+  /* Eight rather than six: box-sizing is border-box, so the outline is inside
+     the height and what is left for the fill is the six it always was. */
+  height: 8px;
+  border: 1px solid var(--bar-line);
   border-radius: 999px;
-  background: var(--track);
+  background: transparent;
   overflow: hidden;
 }
 .track > i {
@@ -192,6 +200,16 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
+  /* The outline both bars in this card are drawn with -- the time and the
+     volume.  Neither has a fill any more, so this is the whole of what says
+     where a bar is; it is the accent at the strength the badges use.
+
+     Declared here rather than beside the rest of the palette in base.css, and
+     that is load-bearing: a var() inside a custom property is resolved where
+     the property is declared, not where it is used.  On :root it would have
+     resolved against the theme's own accent and stayed that colour inside a
+     card the adaptive theme had given the film's. */
+  --bar-line: color-mix(in srgb, var(--accent) 45%, transparent);
 }
 /* The bar, the buttons and the pickers span every column: what is left of the
    middle column once a poster stands beside it is no width to lay a remote
@@ -313,32 +331,92 @@
 }
 .tbtn.mute.on { color: var(--warn); border-color: var(--warn); }
 
+/* Drawn here rather than by the browser.  accent-color reaches the filled part
+   of a range input but not its track, which stays a grey of the browser's
+   choosing -- so a slider that is meant to be an outline with nothing behind
+   it has to be taken over outright.  What that costs is the filled part on
+   WebKit, which has no pseudo-element for it: the value travels as --vol
+   instead (see setVolume in js/live-panels.js) and paints the fill as a hard
+   colour stop.  Firefox has ::-moz-range-progress and uses it. */
 .volume {
   flex: 1 1 120px;
   min-width: 100px;
-  accent-color: var(--accent);
   height: var(--tap);
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
 }
+.volume::-webkit-slider-runnable-track {
+  height: 8px;
+  border: 1px solid var(--bar-line);
+  border-radius: 999px;
+  /* Clipped to what is inside the outline, so the fill stops where the time
+     bar's does rather than running under its own line. */
+  background: linear-gradient(90deg, var(--accent) var(--vol, 0%),
+                                     transparent var(--vol, 0%));
+  background-clip: content-box;
+}
+.volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  /* Centred on the track: half the difference between the two heights. */
+  margin-top: -3px;
+}
+.volume::-moz-range-track {
+  height: 8px;
+  border: 1px solid var(--bar-line);
+  border-radius: 999px;
+  background: transparent;
+}
+.volume::-moz-range-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.volume::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+}
+/* The native appearance is gone, and its focus ring with it. */
+.volume:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* A seekable bar is worth a finger's worth of height, and says so. */
+/* A seekable bar is worth a finger's worth of height, and says so.  The bar
+   itself is a pseudo-element inside that padding, so the outline goes there
+   with it and the element keeps none of its own. */
 .track.seekable {
   cursor: pointer;
   padding: 9px 0;
   height: auto;
+  border: 0;
   background: none;
   overflow: visible;
-}
-.track.seekable > i {
-  height: 6px;
-  box-shadow: 0 0 0 1px var(--panel-2);
 }
 .track.seekable::before {
   content: "";
   display: block;
-  height: 6px;
+  /* The reset in base.css is `*`, which does not reach a pseudo-element -- so
+     this one would have added its outline to the eight and come out two taller
+     than the volume slider beside it. */
+  box-sizing: border-box;
+  height: 8px;
+  border: 1px solid var(--bar-line);
   border-radius: 999px;
-  background: var(--track);
-  margin-bottom: -6px;
+  background: transparent;
+  /* One less than its own height, so the fill that follows lands a pixel down
+     -- inside the outline rather than over it. */
+  margin-bottom: -7px;
+}
+.track.seekable > i {
+  height: 6px;
+  box-shadow: none;
 }
 .track:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 

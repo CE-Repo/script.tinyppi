@@ -32,13 +32,6 @@
   --radius:    14px;
   --radius-sm: 10px;
   --tap:       44px;
-  /* The unrun part of a slider.  This one value is what the browser paints
-     behind the volume slider, whose track is the browser's own and which
-     accent-color does not reach -- so the progress bar matches it by taking
-     the same colour rather than the panel it sits on.  It is deliberately not
-     restated per theme: the volume slider's own track is not, so a theme's
-     version of it would only be a mismatch on that theme. */
-  --track:     #3b3b3b;
 }
 
 /* Deeper and bluer than the plain dark one, for a room with nothing else lit
