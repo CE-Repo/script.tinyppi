@@ -32,6 +32,15 @@
   --radius:    14px;
   --radius-sm: 10px;
   --tap:       44px;
+  /* The air between two cards, wherever two cards meet.  Three grids lay cards
+     out -- main, #live and .groups -- and they have to agree, so they read it
+     from here rather than each carrying the number.  A value beats a rule that
+     has to win a cascade: the first attempt at this set #live from a media
+     query that happened to sit above #live's own declaration, and lost. */
+  --gap:       16px;
+}
+@media (max-width: 620px) {
+  :root { --gap: 10px; }
 }
 
 /* Deeper and bluer than the plain dark one, for a room with nothing else lit
@@ -208,7 +217,7 @@ main {
   margin: 0 auto;
   padding: 16px;
   display: grid;
-  gap: 16px;
+  gap: var(--gap);
 }
 /* On a phone the page keeps the same narrow margin all the way round, and the
    top bar keeps it too -- so there is one edge rather than two, and the first
@@ -218,8 +227,7 @@ main {
    what tells one card from the next, and the screen being narrow is no reason
    for less of it. */
 @media (max-width: 620px) {
-  main { padding: 10px; gap: 10px; }
-  #live { gap: 10px; }
+  main { padding: 10px; }
 }
 
 .card {
@@ -244,7 +252,7 @@ main {
 
 /* The mount point a page gives panels.js.  main is a grid and this is one of
    its items, so the air between the three sections is set here. */
-#live { display: grid; gap: 16px; }
+#live { display: grid; gap: var(--gap); }
 
 /* --- Footer, toast, dialog ---------------------------------------------- */
 

@@ -51,18 +51,14 @@
    two then end level rather than one of them standing over a hole. */
 .groups {
   display: grid;
-  gap: 16px;
+  gap: var(--gap);
   grid-template-columns: 1fr;
   align-items: start;
 }
 @media (min-width: 760px) {
   .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-/* The same air the rest of the page keeps on a phone (see main in base.css):
-   these cards are in a grid of their own, so they need telling separately. */
-@media (max-width: 620px) {
-  .groups { gap: 10px; }
-}
+
 /* The static HDR card takes the whole row.  It is two readings long, so as
    half a row it would leave its partner standing over a hole -- and it only
    appears at all on an HDR title that is not Dolby Vision, where it is the
