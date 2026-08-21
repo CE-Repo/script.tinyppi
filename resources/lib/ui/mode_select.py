@@ -16,16 +16,44 @@ from core.utils import clear_overlay_state
 _ADDON      = xbmcaddon.Addon()
 _ADDON_PATH = _ADDON.getAddonInfo("path")
 
-_POLICY = "/sys/module/aml_media/parameters/dolby_vision_policy"
-_ENABLE = "/sys/module/aml_media/parameters/dolby_vision_enable"
-_DVMODE = "/sys/class/amdolby_vision/dv_mode"
+# The Dolby Vision driver, as CoreELEC 22 (kernel 5.15, Amlogic-ne) exposes it.
+# Every value below is the one CoreELEC's own Kodi writes to these nodes in
+# CAMLCodec::OpenDecoder / CloseDecoder, which is what this add-on has to agree
+# with: it drives the same driver, on the same box, mid-playback.
+_POLICY  = "/sys/module/aml_media/parameters/dolby_vision_policy"
+_ENABLE  = "/sys/module/aml_media/parameters/dolby_vision_enable"
+_DVMODE  = "/sys/class/amdolby_vision/dv_mode"
+
+# Whether the driver runs Dolby Vision low latency, i.e. Player-LED: 0 is
+# DOLBY_VISION_LL_DISABLE (TV-LED), 1 is DOLBY_VISION_LL_YUV422 (Player-LED).
+# Kodi only writes it for a stream it turns Dolby Vision on for, so it answers
+# for that playback and not for an HDR10 one -- see ``_player_led_mode``.
+_LL_POLICY = "/sys/module/aml_media/parameters/dolby_vision_ll_policy"
+
+# dolby_vision_policy: AMDV_FOLLOW_SINK, AMDV_FOLLOW_SOURCE and
+# AMDV_FORCE_OUTPUT_MODE.  Forcing is what a VS10 mode is; follow-source is what
+# Kodi leaves behind when it turns Dolby Vision off, and so what a mode that
+# wants no VS10 at all restores.
+_POLICY_FOLLOW_SOURCE = "1"
+_POLICY_FORCE_OUTPUT  = "2"
 
 # The output mode the Dolby Vision driver is actually sending, as opposed to
-# the one just asked for through _DVMODE.  It follows the driver's own enum,
-# where 0 (IPT) and 1 (IPT tunnelled) are the two Dolby Vision outputs and the
-# rest are HDR10, SDR10, SDR8 and bypass.
+# the one just asked for through _DVMODE.  It follows the driver's own
+# AMDV_OUTPUT_MODE enum, where 0 (IPT) and 1 (IPT tunnelled) are the two Dolby
+# Vision outputs and the rest are HDR10, SDR10, SDR8 and bypass.
 _DV_OUTPUT       = "/sys/module/aml_media/parameters/dolby_vision_mode"
 _DV_OUTPUT_MODES = ("0", "1")
+
+# _DVMODE takes that same enum shifted by one -- Kodi writes it as
+# ``(AMDV_OUTPUT_MODE_x + 1) % 6`` -- so bypass lands on 0 and the modes below
+# read one higher than the output mode they select.  Both spellings are live at
+# once: _DVMODE is written shifted, _DV_OUTPUT is read unshifted.
+_MODE_BYPASS     = "0"   # AMDV_OUTPUT_MODE_BYPASS, i.e. the source untouched
+_MODE_DV_IPT     = "1"   # AMDV_OUTPUT_MODE_IPT, Dolby Vision for Player-LED
+_MODE_DV_TUNNEL  = "2"   # AMDV_OUTPUT_MODE_IPT_TUNNEL, DV for TV-LED
+_MODE_HDR10      = "3"
+_MODE_SDR10      = "4"
+_MODE_SDR8       = "5"
 
 # How long the driver gets to pick up a mode change before the switch is taken
 # to have stayed on the same side of the Dolby Vision line.
@@ -124,20 +152,40 @@ def _reset_display_on_dv_change(name: str, dv_before: bool) -> None:
     Asking the display driver to re-apply its output is the missing step; see
     ``core.display`` for how that is done.
 
-    Only a switch that really crossed the line needs one.  A mode that stays on
-    the same side of it -- SDR8 to HDR10, say -- changes nothing about how the
-    output is signalled and returns here at once, without waiting on the driver.
-    The rest wait for the driver to confirm the crossing, because a mode the
-    driver did not take is a mode the display has nothing to re-apply for.
+    Which switch needs one is decided twice over, and neither answer is the
+    user's to give.  The crossing answers for the switch: a mode that stays on
+    the same side of the line -- SDR8 to HDR10, say -- changes nothing about how
+    the output is signalled and returns here at once.  The LED mode answers for
+    the box: Player-LED is where the reset is needed, because the box maps the
+    picture itself and sends it out as an ordinary carrier
+    (``dolby_vision_ll_policy`` on, output IPT), so nothing re-negotiates the
+    HDMI output on its own.  TV-LED tunnels Dolby Vision to the display and gets
+    there without help -- and the reset there does harm rather than nothing: it
+    re-applies the output over a VS10 mode the driver has only just taken, which
+    leaves later switches in the same playback landing on SDR instead of the
+    mode picked (issue #64).
 
-    Not optional: without it such a switch simply lands wrong, so there is no
-    setting to turn it off.  Only playback gates it, since a switch with
-    nothing on screen has no output to re-apply.
+    Only what is left waits for the driver to confirm the crossing, because a
+    mode the driver did not take is a mode the display has nothing to re-apply
+    for.  Playback gates it too, since a switch with nothing on screen has no
+    output to re-apply.
+
+    Only kernel 5.15 (CoreELEC 22) feels any of this: the reset is a DRM
+    property on the HDMI connector, which the older kernels have no equivalent
+    for, so there ``core.display`` finds nothing to drive either way.
     """
     if not _is_playing_video():
         return
 
     if (name in _DV_MODES) == dv_before:
+        return
+
+    if not _player_led_mode():
+        xbmc.log(
+            f"TinyPPI: '{name}' crossed the Dolby Vision line, but this box is "
+            "TV-LED and signals that itself -> no display reset",
+            xbmc.LOGINFO,
+        )
         return
 
     if not _wait_for_dv_output_change(dv_before):
@@ -167,7 +215,7 @@ def _set_passthrough_mode(dv_mode: str, delay_ms: int = 100) -> None:
     """Set the CoreELEC policy and enable Dolby Vision in the requested mode."""
     _write_sequence(
         (
-            (_POLICY, "2"),
+            (_POLICY, _POLICY_FORCE_OUTPUT),
             (_ENABLE, "Y"),
             (_DVMODE, dv_mode),
         ),
@@ -179,8 +227,8 @@ def _set_sdr_conversion_mode(dv_mode: str) -> None:
     """Reset to SDR first, then enable the requested conversion mode."""
     _write_sequence(
         (
-            (_POLICY, "2"),
-            (_DVMODE, "0"),
+            (_POLICY, _POLICY_FORCE_OUTPUT),
+            (_DVMODE, _MODE_BYPASS),
             (_ENABLE, "Y"),
             (_DVMODE, dv_mode),
         )
@@ -188,30 +236,34 @@ def _set_sdr_conversion_mode(dv_mode: str) -> None:
 
 
 def original_sdr() -> None:
-    _set_passthrough_mode("0", delay_ms=0)
+    _set_passthrough_mode(_MODE_BYPASS, delay_ms=0)
 
 
 def hdr10() -> None:
-    _set_sdr_conversion_mode("3")
+    _set_sdr_conversion_mode(_MODE_HDR10)
 
 
 def dv() -> None:
-    if _probe_dv_Player_LED_mode():
-        _set_passthrough_mode("1")
+    # Which of the two Dolby Vision outputs the box wants: Player-LED takes IPT,
+    # TV-LED the tunnelled one, exactly as Kodi picks between them itself.
+    if _player_led_mode():
+        _set_passthrough_mode(_MODE_DV_IPT)
     else:
-        _set_passthrough_mode("2")
+        _set_passthrough_mode(_MODE_DV_TUNNEL)
 
 
 def original_hdr() -> None:
-    _set_passthrough_mode("3")
+    _set_passthrough_mode(_MODE_HDR10)
 
 
 def original_hlg() -> None:
-    # HLG is not a valid VS10 input, so turn VS10 off (policy=follow-source,
-    # enable=N) to let HLG pass through the standard HDR path untouched.
+    # HLG is not a valid VS10 input, so turn VS10 off to let HLG pass through
+    # the standard HDR path untouched.  Follow-source with enable=N is the state
+    # Kodi itself leaves the driver in when it releases Dolby Vision; policy 0 is
+    # follow-sink, a different thing, and not what "off" means here.
     _write_sequence(
         (
-            (_POLICY, "0"),
+            (_POLICY, _POLICY_FOLLOW_SOURCE),
             (_ENABLE, "N"),
         )
     )
@@ -222,11 +274,11 @@ original_dv = dv
 
 
 def sdr8() -> None:
-    _set_sdr_conversion_mode("5")
+    _set_sdr_conversion_mode(_MODE_SDR8)
 
 
 def sdr10() -> None:
-    _set_sdr_conversion_mode("4")
+    _set_sdr_conversion_mode(_MODE_SDR10)
 
 
 _MODES = {
@@ -309,14 +361,20 @@ def _vs10_actions_available() -> bool:
     return _vs10_actions
 
 
-def _probe_dv_Player_LED_mode() -> bool:
-    """Return True if Dolby Vision is being driven player-led.
+def _probe_dv_Player_LED_setting():
+    """Return the configured Dolby Vision LED mode, or None when it cannot be
+    read.
 
-    Unlike ``_probe_vs10_actions``, which asks whether a setting is there at
-    all, this one has to read what it says: ``coreelec.amlogic.dolbyvisionled``
-    exists on every build that can do either end -- 0 is TV-led, 1 player-led
-    -- so its presence alone answers nothing.  Going by presence put a TV-led
-    box on the player-led output, where the picture went out SDR BT.2020nc.
+    ``coreelec.amlogic.dolbyvisionled`` is CoreELEC's own
+    ``AML_DISPLAY_DV_LED``: 0 is TV-LED, 1 Player-LED.  Unlike
+    ``_probe_vs10_actions``, which asks whether a setting is there at all, this
+    one has to read what it says -- the setting exists on every build that can
+    do either end, so its presence alone answers nothing.  Going by presence put
+    a TV-LED box on the Player-LED output, where the picture went out SDR
+    BT.2020nc.
+
+    None, not False, when the value does not arrive: not knowing is not the same
+    as TV-LED, and the caller has somewhere else to ask.
     """
     request = json.dumps(
         {
@@ -330,16 +388,45 @@ def _probe_dv_Player_LED_mode() -> bool:
         response = json.loads(xbmc.executeJSONRPC(request))
     except Exception as e:
         xbmc.log(f"TinyPPI: probe failed: {e}", xbmc.LOGWARNING)
-        return False
+        return None
     if not isinstance(response, dict) or "result" not in response:
-        return False
+        return None
     value = response["result"].get("value")
-    # Read as a number, so a "0" that arrives as text is still false: taking
+    # Read as a number, so a "0" that arrives as text is still TV-LED: taking
     # it as a bare string would repeat the mistake this replaced.
     try:
-        return int(value) != 0
+        return int(value)
     except (TypeError, ValueError):
-        return bool(value)
+        return 1 if value else 0
+
+
+def _player_led_mode() -> bool:
+    """Return True if Dolby Vision is being driven Player-LED on this box.
+
+    Kodi's own setting answers first, because it answers for every source.  The
+    driver's ``dolby_vision_ll_policy`` describes the same choice -- Kodi writes
+    it from that very setting -- but only for a stream it turned Dolby Vision on
+    for; an HDR10 one leaves it holding whatever the last title put there, which
+    is why it stands in only when the setting cannot be read at all rather than
+    being trusted over it.
+
+    TV-LED is the answer when neither can be read: it is CoreELEC's default and
+    the end that needs nothing done for it.
+    """
+    setting = _probe_dv_Player_LED_setting()
+    if setting is not None:
+        return setting != 0
+
+    ll_policy = _read(_LL_POLICY)
+    if ll_policy is not None:
+        xbmc.log(
+            "TinyPPI: Dolby Vision LED mode unreadable from Kodi -> taking the "
+            f"driver's low-latency policy ({ll_policy})",
+            xbmc.LOGINFO,
+        )
+        return ll_policy not in ("", "0")
+
+    return False
 
 
 def set_mode(name: str) -> None:

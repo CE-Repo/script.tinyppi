@@ -432,6 +432,35 @@ RunScript(script.tinyppi,run_mode,original_dv)
 | `sdr8` | Convert to SDR 8-bit output |
 | `sdr10` | Convert to SDR 10-bit output |
 
+#### What a mode writes to the driver
+
+The reference is CoreELEC 22 (kernel 5.15, Amlogic-ne) and the values are the
+ones CoreELEC's own Kodi writes in `CAMLCodec`, so a mode switched here lands
+the driver in a state Kodi would also have produced. `dolby_vision_policy` is
+`2` (`AMDV_FORCE_OUTPUT_MODE`) for every VS10 mode, and `1`
+(`AMDV_FOLLOW_SOURCE`) with `dolby_vision_enable=N` for `original_hlg`, which
+wants no VS10 at all. `/sys/class/amdolby_vision/dv_mode` takes the driver's
+`AMDV_OUTPUT_MODE` enum shifted by one — Kodi writes it as
+`(AMDV_OUTPUT_MODE_x + 1) % 6`:
+
+| `dv_mode` | Output mode | Used by |
+|---|---|---|
+| `0` | `BYPASS` | `original_sdr`, and the reset step of every conversion |
+| `1` | `IPT` | `dv` in Player-LED mode |
+| `2` | `IPT_TUNNEL` | `dv` in TV-LED mode |
+| `3` | `HDR10` | `hdr10`, `original_hdr` |
+| `4` | `SDR10` | `sdr10` |
+| `5` | `SDR8` | `sdr8` |
+
+`/sys/module/aml_media/parameters/dolby_vision_mode`, which TinyPPI reads to see
+what the driver is actually sending, carries the same enum **unshifted** — there
+`0` and `1` are the two Dolby Vision outputs.
+
+Which of the two Dolby Vision outputs `dv` picks follows the box's LED mode,
+read from Kodi's `coreelec.amlogic.dolbyvisionled` (`0` TV-LED, `1` Player-LED)
+and, when that cannot be read, from the driver's own
+`dolby_vision_ll_policy`.
+
 #### Display reset on a Dolby Vision switch
 
 Kodi re-applies the display mode only when the played stream's HDR type
@@ -452,6 +481,14 @@ descriptor is used for it.
 
 A switch that stays on the same side (SDR8 to HDR10, say) never triggers it, and
 on a kernel that does not offer the property nothing happens at all.
+
+Which boxes get one is not a setting: the LED mode already answers it. Only
+Player-LED needs the reset — there the box maps the picture itself and sends it
+out as an ordinary carrier, so nothing re-negotiates the output on its own. A
+TV-LED box tunnels Dolby Vision to the display and gets there without help, and
+resetting it there does harm rather than nothing: the reset re-applies the
+output over the VS10 mode the driver has only just taken, and later switches in
+the same playback then land on SDR instead of the mode picked.
 
 #### Example: keymap shortcut for a direct mode switch
 
