@@ -503,7 +503,10 @@
     }
     el.tiles.classList.remove("hidden");
     const totals = session || {};
-    el.vSwitches.textContent = String(totals.switches || 0);
+    const fetchedTotal = past && past.seq === totals.seq
+      ? historySwitches(past) : null;
+    el.vSwitches.textContent = String(fetchedTotal === null
+      ? (totals.switches || 0) : fetchedTotal);
     el.vWarnings.textContent = String(totals.warnings || 0);
     el.vPlayerCache.textContent = metrics.cache === null || metrics.cache === undefined
       ? "—" : String(Math.round(metrics.cache));
@@ -535,6 +538,18 @@
     temperature: ["temperature", "Temperature"],
     cpu: ["processor", "Processor"]
   };
+  const SWITCH_EVENT_KINDS = new Set(["vs10", "mode", "audio", "subtitle"]);
+
+  function historySwitches(history) {
+    if (!history) return null;
+    const total = Number(history.switches);
+    if (Number.isFinite(total)) return total;
+    /* Compatibility with a backend that was already running during the
+       update: older history responses have no total, but their event rows
+       still let the visible list and its figure agree. */
+    return (history.events || []).filter((entry) =>
+      SWITCH_EVENT_KINDS.has(entry.kind)).length;
+  }
 
   function eventLabel(kind) {
     const label = EVENT_LABEL[kind];
@@ -677,6 +692,7 @@
       pastSeq = data.seq;
       if (!metadataPage) {
         renderEvents(data.events);
+        el.vSwitches.textContent = String(historySwitches(data) || 0);
         el.eventsCard.classList.remove("hidden");
       }
       drawCharts();

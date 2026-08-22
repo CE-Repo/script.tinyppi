@@ -581,6 +581,7 @@ class SessionLog:
     CACHE_CLEAR = 90.0
     TEMP_HIGH   = 75.0
     CPU_FULL    = 100.0
+    SWITCH_KINDS = frozenset(("vs10", "mode", "audio", "subtitle"))
     WARNING_KINDS = frozenset(("cache_low", "temperature", "cpu"))
     #: How long a finished title is kept after the player has stopped.  The
     #: figures are worth most in the minutes right after the credits, which is
@@ -696,11 +697,6 @@ class SessionLog:
             self._watched[name] = value
             if previous is None or previous == value:
                 continue
-            # Every user-visible state change shown in the event list belongs
-            # in the switch total.  This includes track selection and turning
-            # subtitles on or off, not only picture-output changes.
-            if name in ("vs10", "mode", "audio", "subtitle"):
-                self._switches += 1
             self._add_event(now, position, name, {"from": previous, "to": value})
 
     def _watch_levels(self, metrics: dict, now: float, position: str) -> None:
@@ -772,6 +768,10 @@ class SessionLog:
         """Add one event and hand it back, for a caller that keeps following
         what it recorded."""
         self._seq += 1
+        # The counter is updated by the exact operation that creates the row.
+        # A visible track transition therefore cannot go uncounted.
+        if kind in self.SWITCH_KINDS:
+            self._switches += 1
         if kind in self.WARNING_KINDS:
             self._warnings += 1
         event = {
@@ -850,6 +850,7 @@ class SessionLog:
                 "cache":  [sample[4] for sample in self._samples],
                 "events": list(self._events),
                 "seq":    self._seq,
+                "switches": self._switches,
             }
 
 
