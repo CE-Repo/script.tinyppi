@@ -632,13 +632,6 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
    the centring here went with it. */
 main:has(> .idlestack > :not(.hidden)) { align-content: center; }
 
-@media (min-width: 760px) {
-  .idlestack:has(> :not(.hidden)) {
-    max-width: 480px;
-    margin: 0 auto;
-  }
-}
-
 /* A folded card is its heading and nothing else.  Saying so outright, because
    a browser does not: the panel is laid out behind the fold whatever the fold
    says -- a list with a height of its own then stands a strip of itself under
