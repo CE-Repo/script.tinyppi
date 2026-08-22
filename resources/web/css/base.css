@@ -190,7 +190,6 @@ body {
 }
 .brand .ver:empty { display: none; }
 @media (max-width: 620px) {
-  .iconbtn { padding: 0 10px; min-width: 40px; }
   .topbar { gap: 8px; padding-left: 12px; padding-right: 12px; }
   .brandmark { width: 22px; height: 22px; border-radius: 7px; }
 }
@@ -269,6 +268,86 @@ body {
   background: color-mix(in srgb, var(--accent) 10%, var(--panel));
 }
 .iconbtn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+
+/* The three top-bar actions live behind one key.  Their strip is immediately
+   left of that key, so revealing its width makes it unfold towards the brand
+   without moving the status at the far edge. */
+.action-menu {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+.action-menu-items {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  visibility: hidden;
+  transform: translateX(12px);
+  transition: max-width .22s ease, opacity .15s ease, transform .22s ease,
+              visibility 0s linear .22s;
+}
+.action-menu.open .action-menu-items {
+  max-width: 152px;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  transition-delay: 0s;
+}
+/* These keys keep their theme's accent but never gain a filled surface, tap
+   highlight or focus ring when pressed. */
+.action-menu .iconbtn,
+.action-menu .iconbtn:hover,
+.action-menu .iconbtn:active,
+.action-menu .iconbtn[aria-pressed="true"],
+.action-menu .iconbtn[aria-expanded="true"] {
+  background: transparent;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.action-menu .iconbtn:focus,
+.action-menu .iconbtn:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.action-menu .iconbtn:hover {
+  color: color-mix(in srgb, var(--accent) 78%, white);
+  border-color: color-mix(in srgb, var(--accent) 72%, white);
+}
+.action-menu .iconbtn:active {
+  color: color-mix(in srgb, var(--accent) 62%, white);
+  border-color: color-mix(in srgb, var(--accent) 58%, white);
+}
+.hamburger {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 14px;
+  border-top: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+}
+.hamburger::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  border-top: 2px solid currentColor;
+}
+@media (max-width: 620px) {
+  /* Kept after the base .iconbtn rule so the compact mobile size wins the
+     cascade instead of being overwritten by the desktop declaration. */
+  .iconbtn { padding: 0 10px; min-width: 40px; }
+  .action-menu, .action-menu-items { gap: 8px; }
+  .action-menu.open .action-menu-items {
+    max-width: 136px;
+  }
+}
+
 .ui-icon {
   display: block;
   width: 20px;

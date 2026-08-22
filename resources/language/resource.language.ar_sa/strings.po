@@ -1615,3 +1615,7 @@ msgstr "الملخص"
 msgctxt "#32509"
 msgid "Too many connections"
 msgstr "عدد الاتصالات كبير جدًا"
+
+msgctxt "#32510"
+msgid "Menu"
+msgstr "القائمة"

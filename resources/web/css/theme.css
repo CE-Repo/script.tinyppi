@@ -185,7 +185,14 @@
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 }
-
+:root[data-theme="dark-adaptive"] .topbar .action-menu .iconbtn:hover {
+  color: color-mix(in srgb, var(--accent) 78%, white);
+  border-color: color-mix(in srgb, var(--accent) 72%, white);
+}
+:root[data-theme="dark-adaptive"] .topbar .action-menu .iconbtn:active {
+  color: color-mix(in srgb, var(--accent) 62%, white);
+  border-color: color-mix(in srgb, var(--accent) 58%, white);
+}
 /* The title of what is playing: the one piece of text on the page that is the
    film rather than a reading about it.  What is under it -- the readings
    themselves -- stays the plain text colour, and so does every card heading.

@@ -27,12 +27,21 @@
     <img class="brandmark" src="/icon.jpg" alt="">
     <b>TinyPPI</b><span class="ver" id="version"></span>
   </div>
-  <button class="iconbtn hidden" id="copyBtn" type="button">
-    <span class="ui-icon painted" style="--icon: url('/icons/download.svg')"></span>
-  </button>
-  <button class="iconbtn" id="tokenBtn" type="button" title="Token" aria-label="Token">
-    <span class="ui-icon painted" style="--icon: url('/icons/key.svg')"></span>
-  </button>
+  <div class="action-menu" id="actionMenu">
+    <button class="iconbtn action-menu-toggle" id="actionMenuToggle" type="button"
+            title="Menu" aria-label="Menu" aria-controls="actionMenuItems"
+            aria-expanded="false">
+      <span class="hamburger" aria-hidden="true"></span>
+    </button>
+    <div class="action-menu-items" id="actionMenuItems" aria-hidden="true" inert>
+      <button class="iconbtn hidden" id="copyBtn" type="button">
+        <span class="ui-icon painted" style="--icon: url('/icons/download.svg')"></span>
+      </button>
+      <button class="iconbtn" id="tokenBtn" type="button" title="Token" aria-label="Token">
+        <span class="ui-icon painted" style="--icon: url('/icons/key.svg')"></span>
+      </button>
+    </div>
+  </div>
   <div class="status" id="status" data-state="wait" role="status" aria-live="polite">
     <span class="dot"></span><span id="statusText">…</span>
   </div>

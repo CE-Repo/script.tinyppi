@@ -1614,3 +1614,7 @@ msgstr ""
 msgctxt "#32509"
 msgid "Too many connections"
 msgstr ""
+
+msgctxt "#32510"
+msgid "Menu"
+msgstr ""

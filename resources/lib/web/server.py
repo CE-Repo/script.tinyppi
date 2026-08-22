@@ -167,6 +167,7 @@ _UI_STRINGS = {
     "last_played":     32507,
     "summary":         32508,
     "busy":            32509,
+    "menu":            32510,
 }
 
 
