@@ -304,6 +304,21 @@ same language the overlay is. Nothing is loaded from the internet: the page is
 served entirely by the add-on and works on a box with no outside connection.
 On a phone it can be added to the home screen.
 
+### How it is laid out
+
+The page takes the width it is given. On a phone it is one column, read top to
+bottom: what is playing, every reading under it, then the figures, the charts
+and the events. On a laptop or a tablet held sideways it becomes two — what is
+playing down the left, what the playing of it has come to down the right — with
+the readings running the full width beneath both, as many cards to a row as
+fit. Nothing is hidden by the wider layout and nothing is added by the narrow
+one; it is the same page, folded differently, so a phone and a desktop looking
+at the same film show the same things in the same order.
+
+Every panel below the film folds away, and each one remembers whether it was
+open on that device — so a second screen left on a shelf can be trimmed to the
+two or three readings that are being watched for.
+
 ### What it costs to leave open
 
 A second screen is left running for the length of a film, so the page is built

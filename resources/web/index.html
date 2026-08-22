@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#0b0d10">
+<meta name="theme-color" content="#090b0f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="robots" content="noindex, nofollow">
@@ -25,6 +25,7 @@
 
 <header class="topbar">
   <div class="brand">
+    <img class="brandmark" src="/icon.jpg" alt="">
     <b>TinyPPI</b><span class="ver" id="version"></span>
   </div>
   <button class="iconbtn hidden" id="copyBtn" type="button">
@@ -39,12 +40,32 @@
 </header>
 
 <main>
-  <div id="live"></div>
+
+  <!-- What is playing, and the one control that belongs beside it.  On a wide
+       screen this is the left of the two columns; on a narrow one it is simply
+       the top of the page (see .rail in base.css). -->
+  <div class="rail rail-main">
+    <div id="live"></div>
+
+    <details class="card hidden" id="vs10Card">
+      <summary class="panel-toggle"><span id="vs10Title"></span></summary>
+      <div class="vs10">
+        <div class="out"><span id="vs10OutLabel"></span><b id="vs10Out">—</b></div>
+        <div class="modes" id="modes"></div>
+      </div>
+    </details>
+  </div>
+
+  <!-- Every reading the overlay carries, as many cards to a row as fit.  In
+       neither rail: this is the bulk of the page and all one kind of thing, so
+       on a wide screen it runs the whole width under both of them. -->
+  <div class="groups" id="groups"></div>
 
   <!-- The idle page, as one centred column: what is not playing, what was,
        and what happened while it was.  The events card is moved in here for
        as long as nothing plays and back out when something does (see
-       js/dashboard.js). -->
+       js/dashboard.js).  It belongs to neither rail: with nothing playing
+       both of those are empty and gone, and this stands across the page. -->
   <div class="idlestack" id="idleStack">
     <section class="card hidden" id="idleCard">
       <div class="empty">
@@ -65,21 +86,18 @@
     </section>
   </div>
 
-  <details class="card hidden" id="vs10Card">
-    <summary class="panel-toggle"><span id="vs10Title"></span></summary>
-    <div class="vs10">
-      <div class="out"><span id="vs10OutLabel"></span><b id="vs10Out">—</b></div>
-      <div class="modes" id="modes"></div>
-    </div>
-  </details>
+  <!-- What the playing of it has come to: the figures, the chart of them, the
+       events along the way, and the way through to the metadata window.  On a
+       wide screen this is the right of the two columns.  js/dashboard.js moves
+       the first three in here, each of them anchored to the link below --
+       which is why the link is the one thing written out. -->
+  <div class="rail rail-side">
+    <a class="metalink hidden" id="metaLink" href="/metadata" target="tinyppi-metadata"
+       rel="noopener">
+      <span class="dv">DV</span><span id="metaLinkText"></span><span class="arrow">↗</span>
+    </a>
+  </div>
 
-  <div class="groups" id="groups"></div>
-
-
-  <a class="metalink hidden" id="metaLink" href="/metadata" target="tinyppi-metadata"
-     rel="noopener">
-    <span class="dv">DV</span><span id="metaLinkText"></span><span class="arrow">↗</span>
-  </a>
 </main>
 
 <script src="/js/core.js"></script>

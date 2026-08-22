@@ -3,21 +3,34 @@
 
 /* --- VS10 --------------------------------------------------------------- */
 
-.vs10 { padding: 14px 16px 16px; display: grid; gap: 12px; }
+.vs10 { padding: 14px 16px 16px; display: grid; gap: 14px; }
+/* What the box is putting out at the moment, above the keys that change it.
+   Set on a surface of its own rather than run as a line of text: it is the
+   thing the buttons under it act on, and it is worth being able to find
+   without reading. */
 .vs10 .out {
   font-size: 13px;
-  color: var(--muted);
+  color: var(--dim);
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: baseline;
   flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
 }
-.vs10 .out b { color: var(--text); font-weight: 650; }
+.vs10 .out b {
+  color: var(--text);
+  font-weight: 650;
+  font-size: 14px;
+  margin-left: auto;
+}
 
 .modes {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 .mode {
   appearance: none;
@@ -25,7 +38,7 @@
   padding: 11px 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
-  background: var(--panel-2);
+  background: transparent;
   color: var(--text);
   font: inherit;
   font-weight: 600;
@@ -36,28 +49,42 @@
 }
 .mode:hover:not(:disabled) {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, var(--panel-2));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 .mode:active:not(:disabled) { transform: scale(.985); }
 .mode:disabled { opacity: .5; cursor: progress; }
-.mode.busy { border-color: var(--accent); color: var(--accent); }
+.mode.busy {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
 
 /* --- Detail groups ------------------------------------------------------ */
 
-/* Two cards to a row where there is room for two, one under the next where
-   there is not.  A grid row is as tall as the taller of its two cards, so
-   which card sits next to which is what decides whether that shows: the
-   pairing in GROUP_ORDER puts blocks of a like length side by side, and the
-   two then end level rather than one of them standing over a hole. */
+/* As many cards to a row as will fit, and the row decides that for itself
+   rather than being told by the width of the window: this band runs the whole
+   width of a wide screen and the whole width of a phone, and a count fixed in
+   a media query would have had to be right for both.  Four across a desktop,
+   two on a tablet, one on a phone, and nothing in the stylesheet says any of
+   those numbers.
+
+   A grid row is as tall as the tallest card in it, so which card sits next to
+   which is what decides whether that shows: the pairing in GROUP_ORDER puts
+   blocks of a like length beside each other, and a row then ends level rather
+   than one card standing over a hole. */
 .groups {
   display: grid;
   gap: var(--gap);
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
   align-items: start;
+  min-width: 0;
 }
-@media (min-width: 760px) {
-  .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
+
+/* Out of the page's way until there is something in it.  An empty grid item
+   still takes the gap around it, which on the first snapshot of a film -- the
+   groups arrive a beat after the poster does -- was a band of nothing under
+   the now-playing card. */
+.groups:empty { display: none; }
 
 /* The static HDR card takes the whole row.  It is two readings long, so as
    half a row it would leave its partner standing over a hole -- and it only
@@ -70,12 +97,19 @@
 
 .row {
   display: grid;
-  grid-template-columns: minmax(96px, 38%) 1fr;
+  grid-template-columns: minmax(96px, 40%) 1fr;
   gap: 12px;
   align-items: baseline;
-  padding: 7px 16px;
+  padding: 8px 16px;
+  transition: background .12s;
 }
 .row + .row { border-top: 1px solid var(--line-soft); }
+/* A reading under the pointer, picked out from the sixty around it.  A list
+   this dense is read by running a finger or a cursor down it, and the row that
+   lights up is the one being read. */
+@media (hover: hover) {
+  .row:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+}
 /* The same colour as the reading beside it.  A quieter label is the usual way
    round -- a name is scanned past, a value is read -- but these names are half
    of what the row says: which reading this is.  The value keeps the mono face
@@ -104,17 +138,19 @@
   padding: 16px;
   min-height: var(--tap);
   border-radius: var(--radius);
-  border: 1px solid var(--line-soft);
-  background: var(--panel);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line-soft));
+  background: linear-gradient(120deg,
+    color-mix(in srgb, var(--accent) 9%, var(--panel)), var(--panel) 62%);
   box-shadow: var(--shadow);
   color: var(--text);
   text-decoration: none;
-  font-weight: 600;
-  transition: border-color .15s, background .15s;
+  font-weight: 650;
+  transition: border-color .15s, background .15s, box-shadow .15s, transform .12s;
 }
 .metalink:hover {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 8%, var(--panel));
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-1px);
 }
 .metalink:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .metalink .dv {
@@ -124,14 +160,21 @@
   text-transform: uppercase;
   color: var(--accent);
   border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
   border-radius: 999px;
-  padding: 3px 9px;
+  padding: 4px 10px;
   white-space: nowrap;
 }
 /* The accent, the same as the badge across the card from it: the two of them
    are the marks on this link, and a mark takes the film's colour -- under the
    adaptive theme that is the cover's, from the rule on .metalink in theme.css. */
-.metalink .arrow { margin-left: auto; color: var(--accent); font-size: 18px; }
+.metalink .arrow {
+  margin-left: auto;
+  color: var(--accent);
+  font-size: 18px;
+  transition: transform .15s ease;
+}
+.metalink:hover .arrow { transform: translate(2px, -2px); }
 
 /* --- What was playing before ------------------------------------------- */
 
@@ -145,21 +188,19 @@
   background: var(--line-soft);
 }
 .lasthead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 10px;
-  padding: 14px 16px;
+  display: grid;
+  gap: 4px;
+  padding: 16px;
   background: var(--panel);
 }
 .lasthead .k {
   color: var(--accent);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: .12em;
+  letter-spacing: .13em;
   text-transform: uppercase;
 }
-.lasthead b { font-size: 15px; font-weight: 650; }
+.lasthead b { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
 
 /* Two tiles, side by side at every width.  The metrics card's grid is three
    across and hands its last tile the whole row where there is no room for

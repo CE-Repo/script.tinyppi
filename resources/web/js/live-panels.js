@@ -562,11 +562,11 @@
     for (const entry of events.slice().reverse()) {
       const shift = isTransition(entry);
       const row = document.createElement("div");
-      if (entry.kind === "mode") {
-        row.className = "event drops";
-      } else {
-        row.className = "event " + entry.kind + (shift ? " shift" : "");
-      }
+      /* The kind on the row itself, which is what colours the dot in front of
+         it (see .event::before in live-panels.css).  A display mode change is
+         its own kind and says so: it used to be written out as "drops", from
+         a time when the class named nothing and no rule read it. */
+      row.className = "event " + entry.kind + (shift ? " shift" : "");
       const when = document.createElement("span");
       when.className = "at mono";
       when.textContent = entry.pos || "";
