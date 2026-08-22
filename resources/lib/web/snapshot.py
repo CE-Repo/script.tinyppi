@@ -629,6 +629,7 @@ class SessionLog:
         self._cache_dipped = False
         self._temperature_hot = False
         self._cpu_full = False
+        self._fps = None
 
     # -- writing --
 
@@ -724,7 +725,8 @@ class SessionLog:
                             {"from": previous[1], "to": label})
 
     def _watch_levels(self, metrics: dict, now: float, position: str) -> None:
-        """Follow warning levels on the producer's fast clock."""
+        """Follow the warning levels and the frame rate on the producer's
+        fast clock."""
         cache = metrics.get("cache")
         if cache is not None:
             self._watch_cache(cache, now, position)
@@ -734,6 +736,9 @@ class SessionLog:
         cpu = metrics.get("cpu")
         if cpu is not None:
             self._watch_cpu(cpu, now, position)
+        fps = metrics.get("fps_in")
+        if fps is not None:
+            self._watch_fps(fps, now, position)
 
     def _sample(self, metrics: dict, now: float, position: str) -> None:
         """Take one chart sample and fold it into the totals."""
@@ -766,6 +771,37 @@ class SessionLog:
         if full and not self._cpu_full:
             self._add_event(now, position, "cpu", {"value": cpu})
         self._cpu_full = full
+
+    def _watch_fps(self, fps: float, now: float, position: str) -> None:
+        """Follow the frame rate the title is played at, and log a change.
+
+        The rate coming in rather than the one going out: the output rate is
+        the input minus whatever the box has just dropped, so following it
+        would write an event every time a frame goes missing and push
+        everything else off a list that holds sixty.  What is worth an event
+        is the rate itself changing -- a stream that goes from 24 to 60, a
+        title whose next part was encoded differently -- which is rare, and is
+        the moment the display mode changes underneath it.
+
+        Written as a transition like the other switches, so the page can say
+        which way it went (see ``eventTrend`` in js/live-panels.js) instead of
+        only what it is now.  It is deliberately none of the counted kinds:
+        the display mode change beside it is already counted, and counting
+        both would report one switch as two.
+        """
+        try:
+            rate = int(round(float(fps)))
+        except (TypeError, ValueError):
+            return
+        if rate <= 0:
+            # Nothing is being played yet, or the reading has not settled.
+            # A zero is not a rate the title changed to.
+            return
+        previous = self._fps
+        self._fps = rate
+        if previous is None or previous == rate:
+            return
+        self._add_event(now, position, "fps", {"from": previous, "to": rate})
 
     def _add_event(self, now: float, position: str, kind: str,
                    detail: dict) -> dict:

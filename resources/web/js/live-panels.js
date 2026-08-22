@@ -519,7 +519,8 @@
     audio: ["audio_track", "Audio track"],
     subtitle: ["subtitles", "Subtitles"],
     temperature: ["temperature", "Temperature"],
-    cpu: ["processor", "Processor"]
+    cpu: ["processor", "Processor"],
+    fps: ["fps", "FPS"]
   };
   const SWITCH_EVENT_KINDS = new Set(["vs10", "mode", "audio", "subtitle"]);
 
@@ -570,6 +571,26 @@
     return entry.value === null || entry.value === undefined ? "—" : String(entry.value);
   }
 
+  /* Which way a transition went, for the arrow beside its value: 1 up, -1
+     down, 0 for one that has no direction to show.  A frame rate is the event
+     this is for -- 24 to 60 and back is a direction, where "SDR BT.709" to
+     "DV-LL BT.2020nc" is not one at all.
+
+     The kinds whose states really are numbers are named rather than left to
+     Number(): a track named "5.1" giving way to one named "2.0" reads as a
+     number to Number() and as a fall to nobody. */
+  const TREND_KINDS = new Set(["fps"]);
+
+  function eventTrend(entry) {
+    if (!TREND_KINDS.has(entry.kind) || !isTransition(entry)) return 0;
+    const from = Number(entry.from);
+    const to   = Number(entry.to);
+    if (!Number.isFinite(from) || !Number.isFinite(to) || from === to) return 0;
+    return to > from ? 1 : -1;
+  }
+
+  const TREND_ARROW = { "1": "▲", "-1": "▼" };
+
   /* Whether anything is under the last row on screen.  The list is the only
      panel here that scrolls, and on a phone the scrollbar is drawn only while
      a finger is moving -- so the page says so itself, with a shade over the
@@ -617,6 +638,19 @@
       const detail = document.createElement("span");
       detail.className = "detail mono";
       detail.textContent = eventText(entry);
+      /* Right of the value, inside it rather than in a column of its own, so
+         the arrow stays with the figure it is about however the row is laid
+         out.  Hidden from a reader that is being read to: it says the same
+         thing the row above it already says, and "black up-pointing triangle"
+         is not what that reader came for. */
+      const trend = eventTrend(entry);
+      if (trend) {
+        const arrow = document.createElement("span");
+        arrow.className = "trend " + (trend > 0 ? "up" : "down");
+        arrow.textContent = TREND_ARROW[String(trend)];
+        arrow.setAttribute("aria-hidden", "true");
+        detail.append(arrow);
+      }
       row.append(when, what, detail);
       el.events.append(row);
     }
@@ -961,11 +995,16 @@
      the dashboard writes the same entries into plain text (see buildReport in
      js/dashboard.js), and the history they come from is fetched here. */
   function events() {
-    return ((past && past.events) || []).map((entry) => ({
-      pos:   entry.pos || "",
-      label: eventLabel(entry.kind),
-      text:  eventText(entry)
-    }));
+    return ((past && past.events) || []).map((entry) => {
+      const trend = eventTrend(entry);
+      return {
+        pos:   entry.pos || "",
+        label: eventLabel(entry.kind),
+        /* The printed report carries the arrow too: a line reading "FPS  60"
+           is missing the half of the event that says it used to be 24. */
+        text:  eventText(entry) + (trend ? " " + TREND_ARROW[String(trend)] : "")
+      };
+    });
   }
 
   /* The highest L1 peak in the samples the page holds, or null where the

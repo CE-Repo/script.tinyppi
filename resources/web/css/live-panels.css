@@ -738,6 +738,25 @@
   color: var(--text);
 }
 
+/* Which way a figure went, as a small arrow to the right of the figure
+   itself.  It is the second half of a frame-rate event: the row prints the
+   rate the title is on now, and the arrow is what says it went up to it or
+   down to it without spending a column on the rate it left.
+
+   Both directions are drawn in the same dimmed colour on purpose.  A rate
+   going down is not a fault -- a title's next part simply being 24 rather
+   than 60 is the ordinary case -- and warn/accent here would read as one.
+   The shape carries the direction; the colour keeps it out of the way of the
+   value it belongs to. */
+.event .trend {
+  margin-left: 6px;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--dim);
+  /* Never left behind on a line of its own when a long value wraps. */
+  white-space: nowrap;
+}
+
 /* In a narrow card the row above is what breaks: a transition's "detail" (two
    whole VS10 output states, easily wider than the row) claims the auto column
    for itself and squeezes "what" down until overflow-wrap:anywhere splits the
