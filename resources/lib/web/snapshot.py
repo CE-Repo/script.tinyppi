@@ -604,6 +604,16 @@ class SessionLog:
     #: Events worth scrolling back through; the oldest fall off the end.
     MAX_EVENTS = 60
 
+    #: How long a track reading has to hold still before it is believed.
+    #: Its two halves are read from two places -- the index over JSON-RPC, the
+    #: label out of Kodi's own info labels -- and Kodi does not necessarily
+    #: update both in the same tick.  A pass taken in between pairs the track
+    #: that is playing now with the name of the one that was, so a switch is
+    #: written down as the wrong track.  Waiting for the pair to stop moving
+    #: costs the row a beat and makes it right; the moment the switch happened
+    #: is kept from where it was first seen, so the row still says when.
+    TRACK_SETTLE = 1.5
+
     #: Cache level that counts as a dip, and the one that ends it.  Two
     #: figures rather than one, so a level hovering at the line writes one
     #: event instead of a hundred.
@@ -640,6 +650,8 @@ class SessionLog:
         # every real switch detectable, while events can still use the clean
         # card-formatted text instead of Kodi's free-form stream name.
         self._watched: dict[str, tuple[str, str]] = {}
+        # A track reading that has changed but not yet settled; see _settle.
+        self._pending: dict[str, tuple] = {}
         self._cache_dipped = False
         self._temperature_hot = False
         self._cpu_full = False
@@ -722,21 +734,61 @@ class SessionLog:
         pass only records what things are, since everything has "changed" then.
         """
         for name, value in watched.items():
+            at, at_position = now, position
             if isinstance(value, dict):
+                # A reading in two halves, from two sources: it is held back
+                # until they agree (see _settle), and dated from the pass its
+                # first half moved rather than from the one it settled in.
                 identity = str(value.get("id") or "").strip()
                 label = str(value.get("label") or identity).strip()
+                if not identity:
+                    continue
+                settled = self._settle(name, (identity, label), now, position)
+                if settled is None:
+                    continue
+                at, at_position = settled
             else:
                 identity = str(value or "").strip()
                 label = identity
-            if not identity:
-                continue
+                if not identity:
+                    continue
             previous = self._watched.get(name)
-            current = (identity, label)
-            self._watched[name] = current
+            self._watched[name] = (identity, label)
             if previous is None or previous[0] == identity:
                 continue
-            self._add_event(now, position, name,
+            self._add_event(at, at_position, name,
                             {"from": previous[1], "to": label})
+
+    def _settle(self, name: str, current: tuple[str, str], now: float,
+                position: str) -> tuple[float, str] | None:
+        """Hold a two-part reading back until it stops moving.
+
+        Returns when the reading first left the value on record -- the moment
+        the event belongs at, not the one it is written at -- once it has held
+        still for ``TRACK_SETTLE``.  ``None`` while it is still moving, and
+        while it has not changed at all, which is every pass but a handful.
+
+        The committed value is therefore only ever a settled one, which is
+        what makes the ``from`` side of an event right as well: a reading taken
+        mid-switch never becomes the value the next switch is measured against.
+        """
+        if current == self._watched.get(name):
+            self._pending.pop(name, None)
+            return None
+        pending = self._pending.get(name)
+        if pending is None:
+            self._pending[name] = (current, now, now, position)
+            return None
+        reading, since, first, first_position = pending
+        if reading != current:
+            # Moved again, so the wait starts over -- but not the dating of it:
+            # the switch happened when the reading first left its old value.
+            self._pending[name] = (current, now, first, first_position)
+            return None
+        if now - since < self.TRACK_SETTLE:
+            return None
+        del self._pending[name]
+        return first, first_position
 
     def _watch_levels(self, metrics: dict, now: float, position: str) -> None:
         """Follow the warning levels and the frame rate on the producer's
@@ -937,7 +989,6 @@ class SnapshotBuilder:
         self._track_state: dict[str, str] = {
             "audio": "", "audio_id": "", "subtitle": "",
         }
-        self._track_state_at = 0.0
 
     def _refresh(self) -> None:
         """Recompute the readings into the sink, static half on its own timer."""
@@ -945,6 +996,14 @@ class SnapshotBuilder:
         if now - self._static_at >= self.STATIC_INTERVAL:
             self._static_at = now
             publish_static_properties(self._sink, self._published)
+            # Read here rather than on a timer of its own, because a track
+            # event pairs the two: the label comes out of the static half
+            # above, the index that identifies the track comes over JSON-RPC.
+            # On two clocks a second apart the pair is taken at two different
+            # moments, and right after a switch that means the new track's
+            # index beside the old track's label -- the row a viewer reads and
+            # does not recognise.  One clock, one pass, one reading.
+            self._track_state = current_track_state()
         publish_scene_properties(self._sink, self._published)
 
     def _values(self) -> dict[str, str]:
@@ -1096,11 +1155,7 @@ class SnapshotBuilder:
         return self._controls
 
     def _active_tracks(self) -> dict[str, str]:
-        """Active tracks, refreshed at most once per static interval."""
-        now = time.monotonic()
-        if now - self._track_state_at >= self.STATIC_INTERVAL:
-            self._track_state_at = now
-            self._track_state = current_track_state()
+        """The active tracks as of this pass's static refresh (``_refresh``)."""
         return self._track_state
 
     def build(self, addon=None, allow_filename: bool = True,
@@ -1126,7 +1181,6 @@ class SnapshotBuilder:
             self._track_state = {
                 "audio": "", "audio_id": "", "subtitle": "",
             }
-            self._track_state_at = 0.0
             # Closed rather than thrown away: what the title came to is worth
             # more once it has ended than at any point while it ran, and the
             # page has nothing else to show until the next one starts.
