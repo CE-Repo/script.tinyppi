@@ -670,6 +670,7 @@
    puts the class on and takes it off as the list is scrolled, so the shade is
    there exactly while something is under it. */
 .eventswrap { position: relative; }
+#eventsCard > .tilegrid { border-bottom: 1px solid var(--line-soft); }
 .eventswrap::after {
   content: "";
   position: absolute;

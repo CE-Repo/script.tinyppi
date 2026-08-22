@@ -16,18 +16,23 @@ const el = {
   version: $("version"), idleCard: $("idleCard"),
   vs10Card: $("vs10Card"), vs10Out: $("vs10Out"), modes: $("modes"),
   groups: $("groups"),
-  metricsCard: $("tiles"), healthCard: $("healthCard"),
+  metricsCard: $("tiles"), metricsGrid: $("tiles").querySelector(".tilegrid"),
+  healthCard: $("healthCard"),
   eventsCard: $("eventsCard"), metaLink: $("metaLink"), sideRail: $("sideRail"),
   copyBtn: $("copyBtn"), idleStack: $("idleStack"),
   lastCard: $("lastCard"), lastTitle: $("lastTitle"), lastTiles: $("lastTiles")
 };
 
-/* Keep VS10 by the playback card; the optional summary cards belong in the
-   side rail in the order they are read: the figures, what they did over the
-   film, and what happened.  The metadata destination itself is the final,
-   full-width item in main. */
+/* Keep VS10 by the playback card.  The figures are the first thing inside the
+   events card, followed by the event list; its old disclosure shell is no
+   longer needed.  The health chart remains immediately ahead of that card. */
 $("nowCard").after(el.vs10Card);
-el.sideRail.append(el.metricsCard, el.healthCard, el.eventsCard);
+el.eventsCard.querySelector(".eventswrap").before(el.metricsGrid);
+/* Keep the empty shell in the document because the shared localization code
+   still owns its heading node; the hidden attribute cannot be undone by the
+   live module's class toggles. */
+el.metricsCard.hidden = true;
+el.sideRail.append(el.healthCard, el.eventsCard);
 
 let state = null;
 let control = false;
@@ -52,6 +57,10 @@ function render(next) {
   /* The common live module draws what is playing and the summary tiles.  Its
      L1 chart is reserved for the metadata window. */
   TinyPPI.panels.update(next);
+  /* The former metrics card disappeared while idle; preserve that behaviour
+     now that its grid lives inside the event card, which may hold the events
+     of the title that just ended. */
+  el.metricsGrid.classList.toggle("hidden", !next.playing);
 
   if (!next.playing) {
     /* The line saying nothing is playing is for a box that has played nothing:
