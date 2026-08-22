@@ -67,7 +67,8 @@
         '<div class="tile"><span class="k" id="kPlayerCache"></span>' +
           '<span class="vwrap"><span class="v mono" id="vPlayerCache">—</span><span class="u">%</span></span></div>' +
         '<div class="tile"><span class="k" id="kFps"></span>' +
-          '<span class="vwrap"><span class="v mono" id="vFps">—</span><span class="u"></span></span></div>' +
+          '<span class="vwrap"><span class="v mono" id="vFps">—</span><span class="u"></span>' +
+            '<span class="trend" id="tFps" aria-hidden="true"></span></span></div>' +
         '<div class="tile"><span class="k" id="kSwitches"></span>' +
           '<span class="vwrap"><span class="v mono" id="vSwitches">0</span><span class="u"></span></span></div>' +
         '<div class="tile"><span class="k" id="kWarnings"></span>' +
@@ -123,7 +124,7 @@
     controlDrawer: $("controlDrawer"), controlToggle,
     transport: $("transport"), tracks: $("tracks"),
     tiles: $("tiles"), vSwitches: $("vSwitches"), vWarnings: $("vWarnings"),
-    vPlayerCache: $("vPlayerCache"), vFps: $("vFps"),
+    vPlayerCache: $("vPlayerCache"), vFps: $("vFps"), tFps: $("tFps"),
     chartCard: $("chartCard"), chart: $("chart"), ranges: $("ranges"),
     eventsCard: $("eventsCard"), events: $("events"),
     eventsWrap: $("eventsWrap")
@@ -479,6 +480,21 @@
 
   /* --- the four figures ------------------------------------------------- */
 
+  /* Up and down, for the tile below and for the event list further down: both
+     say which way a figure moved and both say it with the same two shapes. */
+  const TREND_ARROW = { "1": "▲", "-1": "▼" };
+
+  /* The frame rate the tile is showing, so the next pass can tell which way it
+     moved.  Forgotten while nothing is playing (see update): the first reading
+     of the next title is not a change from the last reading of the one before
+     it. */
+  let fpsShown = null;
+
+  function setFpsTrend(trend) {
+    el.tFps.textContent = trend ? TREND_ARROW[String(trend)] : "";
+    el.tFps.className = "trend" + (trend > 0 ? " up" : trend < 0 ? " down" : "");
+  }
+
   function renderTiles(metrics, session) {
     if (metadataPage) {
       el.tiles.classList.add("hidden");
@@ -502,8 +518,22 @@
       : (metrics.fps_in !== null && metrics.fps_in !== undefined
           ? Math.max(0, Number(metrics.fps_in) - Number(metrics.fps_drop || 0))
           : null);
-    el.vFps.textContent = fps === null || !Number.isFinite(fps)
-      ? "—" : fps.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "");
+    const known = fps !== null && Number.isFinite(fps);
+    el.vFps.textContent = known
+      ? fps.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "") : "—";
+    /* The arrow stays as it was until the rate moves again, so a glance at the
+       tile says which way the last change went rather than only what the rate
+       is now.  A reading that has gone away takes it with it: there is no
+       direction to show beside a dash. */
+    if (!known) {
+      fpsShown = null;
+      setFpsTrend(0);
+    } else {
+      if (fpsShown !== null && fps !== fpsShown) {
+        setFpsTrend(fps > fpsShown ? 1 : -1);
+      }
+      fpsShown = fps;
+    }
   }
 
   /* A fallback is kept beside every localized key.  The stream deliberately
@@ -588,8 +618,6 @@
     if (!Number.isFinite(from) || !Number.isFinite(to) || from === to) return 0;
     return to > from ? 1 : -1;
   }
-
-  const TREND_ARROW = { "1": "▲", "-1": "▼" };
 
   /* Whether anything is under the last row on screen.  The list is the only
      panel here that scrolls, and on a phone the scrollbar is drawn only while
@@ -958,6 +986,8 @@
       live = [];
       posterTag = "";
       trackKey = "";
+      fpsShown = null;
+      setFpsTrend(0);
       setControlsOpen(false, false);
       /* The title that has just ended keeps its samples and its events for a
          while (see SessionLog.end in web/snapshot.py).  While it does, the

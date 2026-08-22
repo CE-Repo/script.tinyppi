@@ -258,6 +258,14 @@
    rather than holding an empty gap open next to it. */
 .tile .u { font-size: 12px; color: var(--dim); font-weight: 600; }
 .tile .u:empty { display: none; }
+/* Which way the reading last moved, as a small arrow beside the reading
+   itself.  The number alone says what the rate is; the arrow is what says it
+   has just come down to it or gone up to it.  Same dimmed colour both ways,
+   for the reason the event list gives (see .event .trend): a rate falling is
+   the ordinary case, not a fault.  Gone entirely, gap and all, until there is
+   a direction to show -- as with the unit above it. */
+.tile .trend { font-size: 11px; line-height: 1; color: var(--dim); }
+.tile .trend:empty { display: none; }
 
 @media (max-width: 620px) {
   .tilegrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
