@@ -1488,7 +1488,7 @@ msgid "Frame drops"
 msgstr "Bildaussetzer"
 
 msgctxt "#32478"
-msgid "Output switches"
+msgid "Switches"
 msgstr "Umschaltungen"
 
 msgctxt "#32479"
@@ -1547,10 +1547,6 @@ msgctxt "#32492"
 msgid "Cache dip"
 msgstr "Cache-Einbruch"
 
-msgctxt "#32493"
-msgid "FPS lost"
-msgstr "Verlorene FPS"
-
 msgctxt "#32494"
 msgid "Playback controls"
 msgstr "Wiedergabesteuerung"
@@ -1595,14 +1591,6 @@ msgctxt "#32504"
 msgid "Strong"
 msgstr "Kräftig"
 
-msgctxt "#32505"
-msgid "Buffer and frame drops"
-msgstr "Puffer und Bildaussetzer"
-
-msgctxt "#32506"
-msgid "Cache"
-msgstr "Puffer"
-
 msgctxt "#32507"
 msgid "Last played"
 msgstr "Zuletzt gespielt"
@@ -1614,3 +1602,23 @@ msgstr "Zusammenfassung"
 msgctxt "#32509"
 msgid "Too many connections"
 msgstr "Zu viele Verbindungen"
+
+msgctxt "#32510"
+msgid "Menu"
+msgstr "Menü"
+
+msgctxt "#32511"
+msgid "Player cache"
+msgstr "Playercache"
+
+msgctxt "#32512"
+msgid "Player cache below 90%"
+msgstr "Playercache unter 90 %"
+
+msgctxt "#32513"
+msgid "Player cache recovered"
+msgstr "Playercache erholt"
+
+msgctxt "#32514"
+msgid "Warnings"
+msgstr "Warnungen"

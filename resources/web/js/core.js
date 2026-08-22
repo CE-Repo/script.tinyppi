@@ -22,11 +22,16 @@ window.TinyPPI = (function () {
      English here is only what shows in the instant before that answers. */
   const T = {
     connected: "Connected", connecting: "Connecting…", offline: "Disconnected",
+    menu: "Menu",
     metadata: "Dolby Vision metadata view", metadata_section: "Metadata",
     no_metadata: "No Dolby Vision metadata", no_metadata_text: "",
     idle_title: "Nothing is playing", idle_text: "",
     peak: "Peak", average: "Average", aspect: "Aspect ratio", fps: "FPS",
-    drops: "Frame drops", switches: "Output switches", metrics: "Metrics",
+    drops: "Frame drops", switches: "Switches", metrics: "Metrics",
+    player_cache: "Player cache", audio_track: "Audio track",
+    warnings: "Warnings",
+    cache_low: "Player cache below 90%", cache_recovered: "Player cache recovered",
+    temperature: "Temperature", processor: "Processor", subtitles: "Subtitles", off: "Off",
     chart: "Frame luminance", active_area: "Active picture", vs10: "VS10 output",
     output: "Output", copy: "Copy report", copied: "Copied",
     controls: "Playback controls",
@@ -40,8 +45,10 @@ window.TinyPPI = (function () {
     theme_switch: "Switch to {name} (hold for the full list)",
     tint_label: "Intensity", tint_subtle: "Subtle", tint_standard: "Standard",
     tint_strong: "Strong",
-    health: "Buffer and frame drops", cache: "Cache", drops_fps: "FPS lost",
-    last_played: "Last played", summary: "Summary"
+    last_played: "Last played", summary: "Summary",
+    events: "Events", events_empty: "No events yet",
+    ev_mode: "Display mode",
+    range_1m: "1 min", range_10m: "10 min", range_all: "All"
   };
 
   const $ = (id) => document.getElementById(id);
@@ -119,6 +126,41 @@ window.TinyPPI = (function () {
 
     const button = $("tokenBtn");
     if (button) button.addEventListener("click", askToken);
+    bindActionMenu();
+  }
+
+  /* The top bar keeps its less frequent actions behind one compact key.  The
+     theme button is injected later by theme.js, but it lands inside this same
+     inert container and therefore follows the state established here. */
+  function bindActionMenu() {
+    const holder = $("actionMenu");
+    const items = $("actionMenuItems");
+    const toggle = $("actionMenuToggle");
+    if (!holder || !items || !toggle) return;
+    let closeTimer = 0;
+
+    function setOpen(open) {
+      clearTimeout(closeTimer);
+      closeTimer = 0;
+      holder.classList.toggle("open", open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      items.setAttribute("aria-hidden", open ? "false" : "true");
+      items.inert = !open;
+      if (open) closeTimer = setTimeout(() => setOpen(false), 3000);
+    }
+
+    toggle.addEventListener("click", () => {
+      setOpen(toggle.getAttribute("aria-expanded") !== "true");
+    });
+    document.addEventListener("click", (event) => {
+      if (!holder.contains(event.target)) setOpen(false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
   }
 
   function applyChromeStrings() {
@@ -133,6 +175,11 @@ window.TinyPPI = (function () {
     if (tokenButton) {
       tokenButton.title = T.token_title;
       tokenButton.setAttribute("aria-label", T.token_title);
+    }
+    const actionToggle = $("actionMenuToggle");
+    if (actionToggle) {
+      actionToggle.title = T.menu;
+      actionToggle.setAttribute("aria-label", T.menu);
     }
   }
 

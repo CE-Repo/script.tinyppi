@@ -252,29 +252,19 @@ a phone in your hand.
 - **The format logos the overlay draws** — the very files from the add-on's own
   skin, so a Dolby Vision Atmos title wears the same two badges on the phone as
   it does on the TV.
-- **Metrics** — the frame rate with dropped frames called out beneath it, the
-  frames lost across the whole title, and how often the output was switched.
-  Only the add-on sees every frame, so the last two are figures a browser
-  could not work out for itself.
+- **Metrics** — the player cache, current frame rate, warning count and how
+  often the output or a playback track was switched.
 - **A live luminance chart** — the Dolby Vision L1 peak and frame average on a
   logarithmic scale, over the last minute, the last ten, or the whole title:
   the add-on has been sampling since playback started, so a page opened halfway
   through a film gets the part it missed instead of starting from empty.
-- **Buffer and frame drops** — the same three ranges, showing how full the
-  cache ran and how many frames went missing while it did. The two belong on
-  one chart because they are usually the same story, and unlike the luminance
-  chart this one is drawn for **every source**: it is what to look at when a
-  film stutters, whatever it was graded in.
 - **Events** — a list with timestamps of the things worth knowing about: an
   output switched to or from Dolby Vision, a display mode change, the cache
-  dipping, frames going missing. Every stutter is listed, down to a single
-  lost frame and however briefly it lasted, with the worst second it reached;
-  a stutter that goes on is one entry rather than five a second. A long list
-  scrolls inside its own card rather than stretching the page under it.
+  dipping, or the selected audio/subtitle track changing. A long list scrolls
+  inside its own card rather than stretching the page under it.
 - **What the last title came to** — for ten minutes after the credits the page
-  keeps the film that just ended: a card of its own with the frames it lost and
-  how often the output was switched — the two figures only the add-on could
-  have counted — and the events of that film still under it. Those figures are
+  keeps the film that just ended: a card of its own with its switch and warning
+  totals, and the events of that film still under it. Those figures are
   worth most once a film is over, which used to be exactly when they were
   thrown away. The idle page is those two cards centred as one column; the line
   saying nothing is playing is for a box that has played nothing.
@@ -303,6 +293,21 @@ The row labels come from Kodi's own string table, so the dashboard is in the
 same language the overlay is. Nothing is loaded from the internet: the page is
 served entirely by the add-on and works on a box with no outside connection.
 On a phone it can be added to the home screen.
+
+### How it is laid out
+
+The page takes the width it is given. On a phone it is one column, read top to
+bottom: what is playing, every reading under it, then the figures, the charts
+and the events. On a laptop or a tablet held sideways it becomes two — what is
+playing down the left, what the playing of it has come to down the right — with
+the readings running the full width beneath both, as many cards to a row as
+fit. Nothing is hidden by the wider layout and nothing is added by the narrow
+one; it is the same page, folded differently, so a phone and a desktop looking
+at the same film show the same things in the same order.
+
+Every panel below the film folds away, and each one remembers whether it was
+open on that device — so a second screen left on a shelf can be trimmed to the
+two or three readings that are being watched for.
 
 ### What it costs to leave open
 

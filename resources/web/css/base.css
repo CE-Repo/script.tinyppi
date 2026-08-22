@@ -14,12 +14,12 @@
    never a rule -- so a value changed here changes in all three.  js/theme.js
    puts the chosen one on <html> as data-theme before the first paint. */
 :root {
-  --bg:        #0b0d10;
-  --bg-glow:   #12181f;
-  --panel:     #14181d;
-  --panel-2:   #1a1f26;
-  --line:      #242c36;
-  --line-soft: #1d232b;
+  --bg:        #090b0f;
+  --bg-glow:   #131a23;
+  --panel:     #151a21;
+  --panel-2:   #1c222b;
+  --line:      #2a333f;
+  --line-soft: #202730;
   --text:      #e8ecf1;
   --muted:     #d0d5db;
   --dim:       #aeb3ba;
@@ -31,15 +31,26 @@
   /* The one scrollbar the page draws itself (see .events in live-panels.css):
      lighter than a line, darker than a reading. */
   --scroll:    #4b535e;
-  --shadow:    0 1px 0 rgba(255,255,255,.03), 0 8px 24px rgba(0,0,0,.35);
-  --radius:    14px;
-  --radius-sm: 10px;
+  /* The lit edge along the top of a card.  A card here is a surface a little
+     above the page, and this is the one pixel that says so: light catches the
+     top of a raised thing.  It is a colour rather than a lightening of the
+     border, because the border goes all the way round and this does not. */
+  --edge:      rgba(255,255,255,.055);
+  --shadow:    0 1px 0 rgba(255,255,255,.03), 0 10px 28px rgba(0,0,0,.42);
+  /* One step further off the page: what floats over it rather than sitting on
+     it -- the toast, the token dialog, the theme menu -- and what the metadata
+     link lifts to under a pointer.  No card uses it at rest, so the page does
+     not shimmer as a cursor crosses it. */
+  --shadow-lift: 0 1px 0 rgba(255,255,255,.05), 0 14px 34px rgba(0,0,0,.5);
+  --radius:    16px;
+  --radius-sm: 11px;
   --tap:       44px;
-  /* The air between two cards, wherever two cards meet.  Three grids lay cards
-     out -- main, #live and .groups -- and they have to agree, so they read it
-     from here rather than each carrying the number.  A value beats a rule that
-     has to win a cascade: the first attempt at this set #live from a media
-     query that happened to sit above #live's own declaration, and lost. */
+  /* The air between two cards, wherever two cards meet.  Four grids lay cards
+     out -- main, the two rails, #live and .groups -- and they have to agree,
+     so they read it from here rather than each carrying the number.  A value
+     beats a rule that has to win a cascade: the first attempt at this set
+     #live from a media query that happened to sit above #live's own
+     declaration, and lost. */
   --gap:       16px;
 }
 @media (max-width: 620px) {
@@ -49,12 +60,12 @@
 /* Deeper and bluer than the plain dark one, for a room with nothing else lit
    in it.  The same page, further down. */
 :root[data-theme="midnight"] {
-  --bg:        #04060c;
-  --bg-glow:   #0b1120;
-  --panel:     #0d121e;
-  --panel-2:   #131829;
-  --line:      #1e2942;
-  --line-soft: #161f33;
+  --bg:        #03050b;
+  --bg-glow:   #0b1324;
+  --panel:     #0e1420;
+  --panel-2:   #161d2d;
+  --line:      #223050;
+  --line-soft: #19223a;
   --text:      #e4eaf7;
   --muted:     #d0d5db;
   --dim:       #aeb3ba;
@@ -64,7 +75,9 @@
   --warn:      #fbbf24;
   --bad:       #f87171;
   --scroll:    #38455f;
-  --shadow:    0 1px 0 rgba(255,255,255,.02), 0 10px 28px rgba(0,0,0,.5);
+  --edge:      rgba(255,255,255,.045);
+  --shadow:    0 1px 0 rgba(255,255,255,.02), 0 12px 32px rgba(0,0,0,.58);
+  --shadow-lift: 0 1px 0 rgba(255,255,255,.04), 0 16px 40px rgba(0,0,0,.66);
 }
 
 /* The plain dark theme, with one exception: the now-playing card takes its
@@ -104,7 +117,13 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
-  background-image: radial-gradient(120% 60% at 50% -10%, var(--bg-glow) 0%, var(--bg) 60%);
+  /* Two lights rather than one: a wide wash under the top bar, where the page
+     begins, and a narrower one behind the shoulder of the first card.  Both
+     are the same colour at different sizes, which is what keeps the top of the
+     page from reading as a band with an edge to it. */
+  background-image:
+    radial-gradient(140% 52% at 50% -14%, var(--bg-glow) 0%, transparent 62%),
+    radial-gradient(70% 34% at 82% 2%, var(--bg-glow) 0%, transparent 70%);
   background-attachment: fixed;
   padding-bottom: calc(2px + env(safe-area-inset-bottom));
 }
@@ -127,9 +146,9 @@ body {
 .topbar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  padding-top: calc(10px + env(safe-area-inset-top));
+  gap: 10px;
+  padding: 12px 20px;
+  padding-top: calc(12px + env(safe-area-inset-top));
   background: color-mix(in srgb, var(--bg) 86%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -138,18 +157,41 @@ body {
 
 .brand {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 9px;
   font-weight: 650;
   letter-spacing: .2px;
   margin-right: auto;
   min-width: 0;
 }
-.brand b { font-weight: 700; }
-.brand .ver { color: var(--dim); font-size: 11px; font-weight: 500; }
+.brand b { font-weight: 700; font-size: 15.5px; }
+/* The add-on's own icon, at the size of a line of text.  It is already served
+   for the home screen and the tab (see _static_routes in web/server.py), so the
+   page carries no second copy of it. */
+.brandmark {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+}
+/* Set apart from the name rather than trailing it: a version is a fact about
+   the page and not part of what it is called. */
+.brand .ver {
+  color: var(--dim);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: 1px 7px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.brand .ver:empty { display: none; }
 @media (max-width: 620px) {
-  .iconbtn { padding: 0 10px; min-width: 40px; }
-  .topbar { gap: 8px; padding-left: 10px; padding-right: 10px; }
+  .topbar { gap: 8px; padding-left: 12px; padding-right: 12px; }
+  .brandmark { width: 22px; height: 22px; border-radius: 7px; }
 }
 
 .status {
@@ -159,11 +201,12 @@ body {
   gap: 7px;
   min-width: var(--tap);
   min-height: 36px;
-  padding: 0 12px;
+  padding: 0 13px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--panel);
   font-size: 12.5px;
+  font-weight: 600;
   color: var(--muted);
   white-space: nowrap;
 }
@@ -173,12 +216,29 @@ body {
   background: var(--dim);
   flex: none;
 }
+/* A connected page says so in the colour of the light rather than in a word:
+   the pill takes a wash of it, so the state is readable from the far side of a
+   room where the label is not. */
+.status[data-state="live"] {
+  border-color: color-mix(in srgb, var(--ok) 40%, transparent);
+  background: color-mix(in srgb, var(--ok) 10%, var(--panel));
+  color: var(--ok);
+}
 .status[data-state="live"] .dot {
   background: var(--ok);
   box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 70%, transparent);
   animation: pulse 2.4s ease-out infinite;
 }
+.status[data-state="wait"] {
+  border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+  color: var(--warn);
+}
 .status[data-state="wait"] .dot { background: var(--warn); }
+.status[data-state="down"] {
+  border-color: color-mix(in srgb, var(--bad) 45%, transparent);
+  background: color-mix(in srgb, var(--bad) 10%, var(--panel));
+  color: var(--bad);
+}
 .status[data-state="down"] .dot { background: var(--bad); }
 @keyframes pulse {
   0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); }
@@ -188,6 +248,8 @@ body {
 
 .iconbtn {
   appearance: none;
+  display: inline-grid;
+  place-items: center;
   min-width: var(--tap);
   min-height: 36px;
   padding: 0 12px;
@@ -200,8 +262,92 @@ body {
   cursor: pointer;
   transition: color .15s, border-color .15s, background .15s;
 }
-.iconbtn:hover  { color: var(--text); border-color: var(--accent); }
+.iconbtn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+}
 .iconbtn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+
+/* The three top-bar actions live behind one key.  Their strip is immediately
+   left of that key, so revealing its width makes it unfold towards the brand
+   without moving the status at the far edge. */
+.action-menu {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+.action-menu-items {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  visibility: hidden;
+  transform: translateX(12px);
+  transition: max-width .22s ease, opacity .15s ease, transform .22s ease,
+              visibility 0s linear .22s;
+}
+.action-menu.open .action-menu-items {
+  max-width: 152px;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  transition-delay: 0s;
+}
+/* These keys keep their theme's accent but never gain a filled surface, tap
+   highlight or focus ring when pressed. */
+.action-menu .iconbtn,
+.action-menu .iconbtn:hover,
+.action-menu .iconbtn:active,
+.action-menu .iconbtn[aria-pressed="true"],
+.action-menu .iconbtn[aria-expanded="true"] {
+  background: transparent;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.action-menu .iconbtn:focus,
+.action-menu .iconbtn:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.action-menu .iconbtn:hover {
+  color: color-mix(in srgb, var(--accent) 78%, white);
+  border-color: color-mix(in srgb, var(--accent) 72%, white);
+}
+.action-menu .iconbtn:active {
+  color: color-mix(in srgb, var(--accent) 62%, white);
+  border-color: color-mix(in srgb, var(--accent) 58%, white);
+}
+.hamburger {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 14px;
+  border-top: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+}
+.hamburger::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  border-top: 2px solid currentColor;
+}
+@media (max-width: 620px) {
+  /* Kept after the base .iconbtn rule so the compact mobile size wins the
+     cascade instead of being overwritten by the desktop declaration. */
+  .iconbtn { padding: 0 10px; min-width: 40px; }
+  .action-menu, .action-menu-items { gap: 8px; }
+  .action-menu.open .action-menu-items {
+    max-width: 136px;
+  }
+}
+
 .ui-icon {
   display: block;
   width: 20px;
@@ -235,9 +381,9 @@ body {
 /* --- Shell -------------------------------------------------------------- */
 
 main {
-  max-width: 1360px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 20px;
   display: grid;
   gap: var(--gap);
   /* Whatever the bar leaves, so a short page can be centred in it. */
@@ -256,31 +402,82 @@ main {
    what tells one card from the next, and the screen being narrow is no reason
    for less of it. */
 @media (max-width: 620px) {
-  main { padding: 10px; }
+  main { padding: 12px; }
+}
+
+/* --- The shape of the page -----------------------------------------------
+
+   The dashboard reads as one full-width column on every screen: playback and
+   its controls first, then the session figures and events.  Detail groups
+   remain their own responsive grid further down, where several like cards
+   can still share a row.
+
+   Named areas keep that reading order on desktop even though the groups sit
+   earlier in the markup for the narrow layout.
+------------------------------------------------------------------------- */
+
+.rail {
+  display: grid;
+  gap: var(--gap);
+  align-content: start;
+  min-width: 0;
+}
+
+/* A rail with nothing visible in it is no rail.  Said outright, because the
+   rail itself never carries .hidden -- the cards inside it do, and an empty
+   grid item still takes main's gap and leaves a hole where a column was.
+   Every card on the page is a .card; the metadata link is the one thing that
+   is not, so it is named too. */
+.rail:not(:has(.card:not(.hidden), .metalink:not(.hidden))) { display: none; }
+
+/* The dashboard alone.  The metadata window is a list of a hundred readings
+   and splits itself into columns of its own further down the page (see
+   .metarows in css/metadata.css); a second one here would be columns inside
+   columns. */
+@media (min-width: 1080px) {
+  .dashboard-page main {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "playing"
+      "session"
+      "groups"
+      "meta";
+  }
+  .dashboard-page .rail-main { grid-area: playing; }
+  .dashboard-page .rail-side { grid-area: session; }
+  .dashboard-page .groups    { grid-area: groups; }
+  .dashboard-page .metalink  { grid-area: meta; }
+  /* The idle column takes the first row, which is free whenever it is on the
+     page at all: nothing is playing and both rails have hidden themselves. */
+  .dashboard-page .idlestack { grid-area: 1 / 1 / 2 / -1; }
 }
 
 .card {
+  position: relative;
   background: var(--panel);
   border: 1px solid var(--line-soft);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
 }
-
-.card > h2 {
-  margin: 0;
-  padding: 12px 16px 10px;
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--muted);
-  border-bottom: 1px solid var(--line-soft);
+/* The lit top edge, fading out before either corner so it never crosses the
+   border it stops short of.  Above the card's own contents so a panel that
+   paints its own background -- the tile grid, the tinted hero -- does not
+   cover it. */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  z-index: 2;
+  background: linear-gradient(90deg,
+    transparent, var(--edge) 16%, var(--edge) 84%, transparent);
+  pointer-events: none;
 }
 
 /* The mount point a page gives panels.js.  main is a grid and this is one of
    its items, so the air between the three sections is set here. */
-#live { display: grid; gap: var(--gap); }
+#live { display: grid; gap: var(--gap); align-content: start; min-width: 0; }
 
 /* --- Footer, toast, dialog ---------------------------------------------- */
 
@@ -306,10 +503,11 @@ footer {
   background: var(--panel);
   border: 1px solid var(--line);
   color: var(--text);
-  padding: 10px 16px;
+  padding: 11px 18px;
   border-radius: 999px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-lift);
   font-size: 13.5px;
+  font-weight: 600;
   opacity: 0;
   pointer-events: none;
   transition: opacity .2s, transform .2s;
@@ -327,10 +525,10 @@ dialog {
   color: var(--text);
   padding: 0;
   width: min(400px, calc(100vw - 32px));
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-lift);
 }
-dialog::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(3px); }
-dialog form { padding: 18px; display: grid; gap: 12px; }
+dialog::backdrop { background: rgba(0,0,0,.62); backdrop-filter: blur(3px); }
+dialog form { padding: 20px; display: grid; gap: 12px; }
 dialog h3 { margin: 0; font-size: 16px; }
 dialog p { margin: 0; color: var(--muted); font-size: 13px; }
 dialog input {
@@ -338,7 +536,7 @@ dialog input {
   font-size: 18px;
   letter-spacing: .18em;
   text-transform: uppercase;
-  padding: 11px 12px;
+  padding: 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
   background: var(--panel-2);
@@ -368,13 +566,32 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 /* --- Shared empty state ------------------------------------------------- */
 
 .empty {
-  padding: 48px 24px;
+  padding: 54px 26px;
   text-align: center;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   justify-items: center;
 }
-.empty .big { font-size: 17px; font-weight: 600; }
+/* A ring with nothing in it, above the line saying nothing is playing.  The
+   page has no picture to show at this point and no reading to print, so what
+   stands there is the shape of the thing that is missing.
+
+   Only the card that fills a page with it.  The empty event list borrows the
+   same class for its own one line of text (see renderEvents in
+   js/live-panels.js), and that line is a note inside a card that is otherwise
+   full -- it is not the page having nothing to say. */
+.card > .empty::before {
+  content: "";
+  width: 46px;
+  height: 46px;
+  margin-bottom: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(closest-side,
+      color-mix(in srgb, var(--accent) 22%, transparent), transparent);
+}
+.empty .big { font-size: 18px; font-weight: 650; letter-spacing: -.01em; }
 .empty p { margin: 0; color: var(--muted); font-size: 13.5px; }
 
 /* The idle page is the only content worth looking at, so it is centred in
@@ -404,13 +621,6 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
    which is not allowed anywhere in CSS: a browser drops the whole rule, and
    the centring here went with it. */
 main:has(> .idlestack > :not(.hidden)) { align-content: center; }
-
-@media (min-width: 760px) {
-  .idlestack:has(> :not(.hidden)) {
-    max-width: 460px;
-    margin: 0 auto;
-  }
-}
 
 /* A folded card is its heading and nothing else.  Saying so outright, because
    a browser does not: the panel is laid out behind the fold whatever the fold

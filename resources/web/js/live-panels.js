@@ -64,12 +64,15 @@
     '<details class="card hidden" id="tiles">' +
       '<summary class="panel-toggle"><span id="tilesTitle"></span></summary>' +
       '<div class="tilegrid">' +
+        '<div class="tile"><span class="k" id="kPlayerCache"></span>' +
+          '<span class="vwrap"><span class="v mono" id="vPlayerCache">—</span><span class="u">%</span></span></div>' +
         '<div class="tile"><span class="k" id="kFps"></span>' +
-          '<span class="vwrap"><span class="v mono" id="vFps">—</span><span class="u" id="uFps"></span></span></div>' +
-        '<div class="tile"><span class="k" id="kDrops"></span>' +
-          '<span class="vwrap"><span class="v mono" id="vDrops">0</span><span class="u"></span></span></div>' +
+          '<span class="vwrap"><span class="v mono" id="vFps">—</span><span class="u"></span>' +
+            '<span class="trend" id="tFps" aria-hidden="true"></span></span></div>' +
         '<div class="tile"><span class="k" id="kSwitches"></span>' +
           '<span class="vwrap"><span class="v mono" id="vSwitches">0</span><span class="u"></span></span></div>' +
+        '<div class="tile"><span class="k" id="kWarnings"></span>' +
+          '<span class="vwrap"><span class="v mono" id="vWarnings">0</span><span class="u"></span></span></div>' +
       '</div>' +
     '</details>' +
     '<details class="card hidden" id="chartCard">' +
@@ -83,20 +86,6 @@
           '<span><i class="swatch band"></i>Max</span>' +
           '<span><i class="swatch avg"></i>Ø</span>' +
           '<span id="chartScale" style="margin-left:auto"></span>' +
-        '</div>' +
-      '</div>' +
-    '</details>' +
-    '<details class="card hidden" id="healthCard">' +
-      '<summary class="panel-toggle"><span id="healthTitle"></span></summary>' +
-      '<div class="chart-options">' +
-        '<div class="ranges" id="healthRanges"></div>' +
-      '</div>' +
-      '<div class="chartwrap">' +
-        '<canvas id="healthChart" class="chart" role="img"></canvas>' +
-        '<div class="legend">' +
-          '<span><i class="swatch band"></i><span id="cacheLegend"></span></span>' +
-          '<span><i class="swatch drops"></i><span id="dropsLegend"></span></span>' +
-          '<span id="healthScale" style="margin-left:auto"></span>' +
         '</div>' +
       '</div>' +
     '</details>' +
@@ -134,11 +123,9 @@
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"), tTotal: $("tTotal"),
     controlDrawer: $("controlDrawer"), controlToggle,
     transport: $("transport"), tracks: $("tracks"),
-    tiles: $("tiles"), vSwitches: $("vSwitches"), vDrops: $("vDrops"),
-    vFps: $("vFps"), uFps: $("uFps"),
+    tiles: $("tiles"), vSwitches: $("vSwitches"), vWarnings: $("vWarnings"),
+    vPlayerCache: $("vPlayerCache"), vFps: $("vFps"), tFps: $("tFps"),
     chartCard: $("chartCard"), chart: $("chart"), ranges: $("ranges"),
-    healthCard: $("healthCard"), healthChart: $("healthChart"),
-    healthRanges: $("healthRanges"), healthScale: $("healthScale"),
     eventsCard: $("eventsCard"), events: $("events"),
     eventsWrap: $("eventsWrap")
   };
@@ -169,7 +156,6 @@
   setControlsOpen(TinyPPI.disclosureState(controlStateKey, false), false);
   TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
   TinyPPI.bindDisclosure(el.chartCard, pageState + ".l1", false);
-  TinyPPI.bindDisclosure(el.healthCard, pageState + ".health", false);
   TinyPPI.bindDisclosure(el.eventsCard, pageState + ".events", false);
 
   /* --- what is playing -------------------------------------------------- */
@@ -494,6 +480,21 @@
 
   /* --- the four figures ------------------------------------------------- */
 
+  /* Up and down, for the tile below and for the event list further down: both
+     say which way a figure moved and both say it with the same two shapes. */
+  const TREND_ARROW = { "1": "▲", "-1": "▼" };
+
+  /* The frame rate the tile is showing, so the next pass can tell which way it
+     moved.  Forgotten while nothing is playing (see update): the first reading
+     of the next title is not a change from the last reading of the one before
+     it. */
+  let fpsShown = null;
+
+  function setFpsTrend(trend) {
+    el.tFps.textContent = trend ? TREND_ARROW[String(trend)] : "";
+    el.tFps.className = "trend" + (trend > 0 ? " up" : trend < 0 ? " down" : "");
+  }
+
   function renderTiles(metrics, session) {
     if (metadataPage) {
       el.tiles.classList.add("hidden");
@@ -501,23 +502,74 @@
     }
     el.tiles.classList.remove("hidden");
     const totals = session || {};
-    el.vSwitches.textContent = String(totals.switches || 0);
-    el.vDrops.textContent = String(totals.drops || 0);
-    el.vFps.textContent  = metrics.fps_in
-      ? metrics.fps_in.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "") : "—";
-    /* Empty rather than a space, so the line goes away with it -- see
-       .tile .u:empty in live-panels.css. */
-    el.uFps.textContent  = metrics.fps_drop ? "▼ " + metrics.fps_drop : "";
+    const fetchedTotal = past && past.seq === totals.seq
+      ? historySwitches(past) : null;
+    el.vSwitches.textContent = String(fetchedTotal === null
+      ? (totals.switches || 0) : fetchedTotal);
+    el.vWarnings.textContent = String(totals.warnings || 0);
+    el.vPlayerCache.textContent = metrics.cache === null || metrics.cache === undefined
+      ? "—" : String(Math.round(metrics.cache));
+    /* Show the frames that actually made it out, not only the source rate.
+       Kodi already publishes that as fps_out (input FPS minus the current
+       per-second drop).  The subtraction is kept as a fallback for snapshots
+       produced by an older backend during an add-on update. */
+    const fps = metrics.fps_out !== null && metrics.fps_out !== undefined
+      ? Number(metrics.fps_out)
+      : (metrics.fps_in !== null && metrics.fps_in !== undefined
+          ? Math.max(0, Number(metrics.fps_in) - Number(metrics.fps_drop || 0))
+          : null);
+    const known = fps !== null && Number.isFinite(fps);
+    el.vFps.textContent = known
+      ? fps.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "") : "—";
+    /* The arrow stays as it was until the rate moves again, so a glance at the
+       tile says which way the last change went rather than only what the rate
+       is now.  A reading that has gone away takes it with it: there is no
+       direction to show beside a dash. */
+    if (!known) {
+      fpsShown = null;
+      setFpsTrend(0);
+    } else {
+      if (fpsShown !== null && fps !== fpsShown) {
+        setFpsTrend(fps > fpsShown ? 1 : -1);
+      }
+      fpsShown = fps;
+    }
   }
 
+  /* A fallback is kept beside every localized key.  The stream deliberately
+     opens before /api/hello has returned, so the first history can be drawn
+     while some translations are not here yet.  An event must still have a
+     name during that short window instead of leaving a mysterious blank
+     column behind. */
   const EVENT_LABEL = {
-    vs10: () => TinyPPI.T.vs10,
-    mode: () => TinyPPI.T.ev_mode,
-    cache: () => TinyPPI.T.ev_cache,
-    /* The word the tile uses, so a stutter is called the same thing wherever
-       it is read. */
-    drops: () => TinyPPI.T.drops
+    vs10: ["vs10", "VS10 output"],
+    mode: ["ev_mode", "Display mode"],
+    cache_low: ["cache_low", "Player cache below 90%"],
+    cache_recovered: ["cache_recovered", "Player cache recovered"],
+    audio: ["audio_track", "Audio track"],
+    subtitle: ["subtitles", "Subtitles"],
+    temperature: ["temperature", "Temperature"],
+    cpu: ["processor", "Processor"],
+    fps: ["fps", "FPS"]
   };
+  const SWITCH_EVENT_KINDS = new Set(["vs10", "mode", "audio", "subtitle"]);
+
+  function historySwitches(history) {
+    if (!history) return null;
+    const total = Number(history.switches);
+    if (Number.isFinite(total)) return total;
+    /* Compatibility with a backend that was already running during the
+       update: older history responses have no total, but their event rows
+       still let the visible list and its figure agree. */
+    return (history.events || []).filter((entry) =>
+      SWITCH_EVENT_KINDS.has(entry.kind)).length;
+  }
+
+  function eventLabel(kind) {
+    const label = EVENT_LABEL[kind];
+    if (!label) return kind || "Event";
+    return TinyPPI.T[label[0]] || label[1];
+  }
 
   /* A transition names two whole VS10 output states -- "SDR BT.709" to
      "DV-LL BT.2020nc" is a realistic width.  The mobile layout gives every
@@ -527,12 +579,44 @@
   }
 
   function eventText(entry) {
-    if (isTransition(entry)) return entry.from + " → " + entry.to;
-    if (entry.kind === "cache") return Math.round(entry.value) + "%";
-    /* Frames lost in the worst second of the stutter, so the figure carries
-       its unit: it is a rate, not a count of what the whole title lost. */
-    if (entry.kind === "drops") return entry.value + " FPS";
-    return String(entry.value);
+    const stateText = (value) => {
+      if (value === "__off__") return TinyPPI.T.off;
+      if (value === null || value === undefined) return "—";
+      let text = String(value);
+      if (entry.kind === "audio" || entry.kind === "subtitle") {
+        /* Index and ISO language are useful for identifying a track inside
+           the backend, but the event already says Audio track/Subtitles and
+           the track name itself is the useful part for the reader. */
+        text = text
+          .replace(/^#\d+\s*(?:·\s*)?/, "")
+          .replace(/^[A-Z]{2,3}\s*·\s*/i, "");
+      }
+      return text || "—";
+    };
+    if (isTransition(entry)) return stateText(entry.to);
+    if (entry.kind === "temperature") return Math.round(entry.value) + " °C";
+    if (entry.kind === "cpu" || String(entry.kind).startsWith("cache_")) {
+      return Math.round(entry.value) + "%";
+    }
+    return entry.value === null || entry.value === undefined ? "—" : String(entry.value);
+  }
+
+  /* Which way a transition went, for the arrow beside its value: 1 up, -1
+     down, 0 for one that has no direction to show.  A frame rate is the event
+     this is for -- 24 to 60 and back is a direction, where "SDR BT.709" to
+     "DV-LL BT.2020nc" is not one at all.
+
+     The kinds whose states really are numbers are named rather than left to
+     Number(): a track named "5.1" giving way to one named "2.0" reads as a
+     number to Number() and as a fall to nobody. */
+  const TREND_KINDS = new Set(["fps"]);
+
+  function eventTrend(entry) {
+    if (!TREND_KINDS.has(entry.kind) || !isTransition(entry)) return 0;
+    const from = Number(entry.from);
+    const to   = Number(entry.to);
+    if (!Number.isFinite(from) || !Number.isFinite(to) || from === to) return 0;
+    return to > from ? 1 : -1;
   }
 
   /* Whether anything is under the last row on screen.  The list is the only
@@ -562,23 +646,43 @@
     for (const entry of events.slice().reverse()) {
       const shift = isTransition(entry);
       const row = document.createElement("div");
-      if (entry.kind === "mode") {
-        row.className = "event drops";
-      } else {
-        row.className = "event " + entry.kind + (shift ? " shift" : "");
-      }
+      /* The kind on the row itself, which is what colours the dot in front of
+         it (see .event::before in live-panels.css).  A display mode change is
+         its own kind and says so: it used to be written out as "drops", from
+         a time when the class named nothing and no rule read it. */
+      /* All transitions share one DOM/style contract.  The event kind still
+         drives its label and text, but no longer creates visually different
+         VS10/audio/subtitle variants.  Non-transition warnings keep their
+         kind class for the warning/recovery colours below. */
+      row.className = "event" + (shift ? " shift" : " " + entry.kind);
+      row.dataset.kind = entry.kind;
+      row.setAttribute("role", "listitem");
       const when = document.createElement("span");
       when.className = "at mono";
       when.textContent = entry.pos || "";
       const what = document.createElement("span");
       what.className = "what";
-      what.textContent = (EVENT_LABEL[entry.kind] || (() => entry.kind))();
+      what.textContent = eventLabel(entry.kind);
       const detail = document.createElement("span");
       detail.className = "detail mono";
       detail.textContent = eventText(entry);
+      /* Right of the value, inside it rather than in a column of its own, so
+         the arrow stays with the figure it is about however the row is laid
+         out.  Hidden from a reader that is being read to: it says the same
+         thing the row above it already says, and "black up-pointing triangle"
+         is not what that reader came for. */
+      const trend = eventTrend(entry);
+      if (trend) {
+        const arrow = document.createElement("span");
+        arrow.className = "trend " + (trend > 0 ? "up" : "down");
+        arrow.textContent = TREND_ARROW[String(trend)];
+        arrow.setAttribute("aria-hidden", "true");
+        detail.append(arrow);
+      }
       row.append(when, what, detail);
       el.events.append(row);
     }
+    el.events.setAttribute("role", "list");
     markMore();
   }
 
@@ -651,6 +755,7 @@
       pastSeq = data.seq;
       if (!metadataPage) {
         renderEvents(data.events);
+        el.vSwitches.textContent = String(historySwitches(data) || 0);
         el.eventsCard.classList.remove("hidden");
       }
       drawCharts();
@@ -658,11 +763,9 @@
       .finally(() => { fetching = false; });
   }
 
-  /* Both sources reduced to the same shape: how long ago, and what was read.
-     ``required`` is the reading the chart cannot draw without -- a sample with
-     nothing in that field is left out rather than drawn as a zero, which is
-     what keeps an HDR10 title out of the luminance chart and keeps its cache
-     in the playback one. */
+  /* Both luminance sources reduced to the same shape: how long ago, and what
+     was read.  A sample without the required L1 value is left out rather than
+     drawn as zero, which keeps non-Dolby-Vision titles out of this chart. */
   function series(required) {
     const now = Date.now() / 1000;
     const known = (value) => value !== null && value !== undefined;
@@ -671,8 +774,7 @@
       for (const point of live) {
         if (!known(point[required])) continue;
         points.push({
-          age: now - point.t, max: point.max, avg: point.avg,
-          drop: point.drop, cache: point.cache
+          age: now - point.t, max: point.max, avg: point.avg
         });
       }
       return points;
@@ -688,9 +790,7 @@
       points.push({
         age: (past.now - past.t[index]) + drift,
         max: past.max[index],
-        avg: known(past.avg[index]) ? past.avg[index] : past.max[index],
-        drop: past.drop ? past.drop[index] : 0,
-        cache: past.cache ? past.cache[index] : null
+        avg: known(past.avg[index]) ? past.avg[index] : past.max[index]
       });
     }
     return points;
@@ -698,40 +798,31 @@
 
   /* --- what each page charts -------------------------------------------- */
 
-  /* One live sample per snapshot, whatever the page draws from it: the two
-     charts read the same buffer, and the readings a source cannot carry are
-     left as they arrive rather than turned into zeroes here. */
+  /* One live L1 sample per metadata snapshot. */
   function recordSample(metrics) {
     const l1 = metrics.l1 || {};
     live.push({
       t: Date.now() / 1000,
       max: (l1.max === null || l1.max === undefined) ? null : l1.max,
-      avg: (l1.avg === null || l1.avg === undefined) ? l1.max : l1.avg,
-      drop: metrics.fps_drop || 0,
-      cache: (metrics.cache === null || metrics.cache === undefined)
-        ? null : metrics.cache
+      avg: (l1.avg === null || l1.avg === undefined) ? l1.max : l1.avg
     });
     const now = Date.now() / 1000;
     while (live.length && now - live[0].t > HISTORY_SECONDS) live.shift();
   }
 
   function renderCharts(metrics) {
+    if (!metadataPage) return;
     recordSample(metrics);
 
-    const card = metadataPage ? el.chartCard : el.healthCard;
-    const ranges = metadataPage ? el.ranges : el.healthRanges;
-    /* The luminance chart needs an RPU to read; the playback one needs only a
-       player, so it is drawn for every source there is. */
+    /* The luminance chart needs an RPU to read. */
     const l1 = metrics.l1 || {};
-    const has = metadataPage
-      ? (l1.max !== null && l1.max !== undefined)
-      : true;
+    const has = l1.max !== null && l1.max !== undefined;
     if (!has) {
-      card.classList.add("hidden");
+      el.chartCard.classList.add("hidden");
       return;
     }
-    card.classList.remove("hidden");
-    buildRanges(ranges);
+    el.chartCard.classList.remove("hidden");
+    buildRanges(el.ranges);
 
     if (range !== HISTORY_SECONDS) fetchHistory(false);
     drawCharts();
@@ -766,8 +857,7 @@
       accent:  colour("--accent", "#4fc3f7"),
       accent2: colour("--accent-2", "#82b1ff"),
       line:    colour("--line", "#242c36"),
-      dim:     colour("--dim", "#5d6875"),
-      bad:     colour("--bad", "#ff5252")
+      dim:     colour("--dim", "#5d6875")
     };
   }
 
@@ -809,7 +899,6 @@
 
   function drawCharts() {
     if (metadataPage) drawLuminance();
-    else drawHealth();
   }
 
   function drawLuminance() {
@@ -853,67 +942,6 @@
     trace(ctx, points, x, y, "avg", set.accent2, 1.5, [4, 3]);
   }
 
-  /* What every source can say about itself: how full the cache ran and how
-     many frames went missing while it did.  The two belong on one chart
-     because they are usually the same story -- a buffer that empties is what a
-     run of dropped frames comes out of -- and they are the reason to look at a
-     dashboard at all when a film stutters. */
-  function drawHealth() {
-    const set = prepare(el.healthChart);
-    if (!set) return;
-    const { ctx, width, height } = set;
-
-    const points = series("drop");
-    const padLeft = 30, padTop = 8, padBottom = 6;
-    /* Room on the right for the drop scale, and none where nothing was ever
-       dropped and the axis is not drawn. */
-    const worst = points.reduce((most, point) => Math.max(most, point.drop || 0), 0);
-    const padRight = worst ? 30 : 8;
-    const plotW = width - padLeft - padRight;
-    const plotH = height - padTop - padBottom;
-
-    const cacheY = (percent) =>
-      padTop + plotH * (1 - Math.min(100, Math.max(0, percent)) / 100);
-    const top = Math.max(4, worst);
-    const dropY = (count) => padTop + plotH * (1 - Math.min(1, count / top));
-
-    ctx.strokeStyle = set.line;
-    ctx.fillStyle = set.dim;
-    ctx.lineWidth = 1;
-    ctx.font = "10px ui-monospace, monospace";
-    ctx.textBaseline = "middle";
-    for (const tick of [0, 25, 50, 75, 100]) {
-      const ty = Math.round(cacheY(tick)) + 0.5;
-      ctx.beginPath();
-      ctx.moveTo(padLeft, ty);
-      ctx.lineTo(width - padRight, ty);
-      ctx.stroke();
-      ctx.textAlign = "right";
-      if (tick % 50 === 0) ctx.fillText(tick + "%", padLeft - 6, ty);
-    }
-    /* The right-hand axis carries the frames, and only the two figures worth
-       naming: none, and the worst second there was. */
-    if (worst) {
-      ctx.textAlign = "left";
-      ctx.fillStyle = set.bad;
-      ctx.fillText(String(top), width - padRight + 6, Math.round(dropY(top)) + 0.5);
-      ctx.fillStyle = set.dim;
-      ctx.fillText("0", width - padRight + 6, Math.round(dropY(0)) + 0.5);
-    }
-
-    if (points.length < 2) return;
-    const span = windowFor(points);
-    const x = (age) => padLeft + plotW * (1 - Math.min(1, age / span));
-
-    const cached = points.filter(
-      (point) => point.cache !== null && point.cache !== undefined);
-    if (cached.length > 1) {
-      area(ctx, cached, x, cacheY, "cache", set.accent, padTop + plotH, 0.22);
-      trace(ctx, cached, x, cacheY, "cache", set.accent, 1.6);
-    }
-    if (worst) trace(ctx, points, x, dropY, "drop", set.bad, 1.6);
-  }
-
   /* The charts' colours come from the card they are drawn in, which the
      adaptive theme repaints from the poster.  A canvas cannot notice that on
      its own, so js/cover-tint.js says when it has happened. */
@@ -932,20 +960,20 @@
     el.controlToggle.setAttribute("aria-label", T.controls);
     el.controlToggle.title = T.controls;
     $("kSwitches").textContent = T.switches;
-    $("kDrops").textContent = T.drops;
+    $("kWarnings").textContent = T.warnings;
+    $("kPlayerCache").textContent = T.player_cache;
     $("kFps").textContent = T.fps;
     $("chartTitle").textContent = T.chart;
     $("chartScale").textContent = "nits · log";
-    $("healthTitle").textContent = T.health;
-    $("cacheLegend").textContent = T.cache;
-    $("dropsLegend").textContent = T.drops_fps;
-    el.healthScale.textContent = "% · " + T.fps;
     $("eventsTitle").textContent = T.events;
     for (const bar of rangeBars) {
       for (const button of bar.children) {
         button.textContent = T[button.dataset.key] || button.dataset.key;
       }
     }
+    /* History can beat /api/hello on a fresh page.  Redraw it once localized
+       strings arrive so fallbacks used for that first frame do not remain. */
+    if (past && past.events) renderEvents(past.events);
   }
 
   /* Everything the panels show comes out of one snapshot, and a snapshot that
@@ -953,11 +981,13 @@
      last frame of a film that has ended standing there. */
   function update(snapshot) {
     if (!snapshot || !snapshot.playing) {
-      const cards = [el.nowCard, el.tiles, el.chartCard, el.healthCard];
+      const cards = [el.nowCard, el.tiles, el.chartCard];
       for (const node of cards) node.classList.add("hidden");
       live = [];
       posterTag = "";
       trackKey = "";
+      fpsShown = null;
+      setFpsTrend(0);
       setControlsOpen(false, false);
       /* The title that has just ended keeps its samples and its events for a
          while (see SessionLog.end in web/snapshot.py).  While it does, the
@@ -995,11 +1025,16 @@
      the dashboard writes the same entries into plain text (see buildReport in
      js/dashboard.js), and the history they come from is fetched here. */
   function events() {
-    return ((past && past.events) || []).map((entry) => ({
-      pos:   entry.pos || "",
-      label: (EVENT_LABEL[entry.kind] || (() => entry.kind))(),
-      text:  eventText(entry)
-    }));
+    return ((past && past.events) || []).map((entry) => {
+      const trend = eventTrend(entry);
+      return {
+        pos:   entry.pos || "",
+        label: eventLabel(entry.kind),
+        /* The printed report carries the arrow too: a line reading "FPS  60"
+           is missing the half of the event that says it used to be 24. */
+        text:  eventText(entry) + (trend ? " " + TREND_ARROW[String(trend)] : "")
+      };
+    });
   }
 
   /* The highest L1 peak in the samples the page holds, or null where the

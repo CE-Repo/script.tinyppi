@@ -1488,8 +1488,8 @@ msgid "Frame drops"
 msgstr "Kockakiesés"
 
 msgctxt "#32478"
-msgid "Output switches"
-msgstr "Kimenetváltások"
+msgid "Switches"
+msgstr "Váltások"
 
 msgctxt "#32479"
 msgid "Events"
@@ -1547,10 +1547,6 @@ msgctxt "#32492"
 msgid "Cache dip"
 msgstr "Puffer-visszaesés"
 
-msgctxt "#32493"
-msgid "FPS lost"
-msgstr "Elveszett FPS"
-
 msgctxt "#32494"
 msgid "Playback controls"
 msgstr "Lejátszásvezérlők"
@@ -1595,14 +1591,6 @@ msgctxt "#32504"
 msgid "Strong"
 msgstr "Erős"
 
-msgctxt "#32505"
-msgid "Buffer and frame drops"
-msgstr "Puffer és képkockakiesés"
-
-msgctxt "#32506"
-msgid "Cache"
-msgstr "Gyorsítótár"
-
 msgctxt "#32507"
 msgid "Last played"
 msgstr "Legutóbb lejátszva"
@@ -1614,3 +1602,23 @@ msgstr "Összegzés"
 msgctxt "#32509"
 msgid "Too many connections"
 msgstr "Túl sok kapcsolat"
+
+msgctxt "#32510"
+msgid "Menu"
+msgstr "Menü"
+
+msgctxt "#32511"
+msgid "Player cache"
+msgstr "Lejátszó gyorsítótár"
+
+msgctxt "#32512"
+msgid "Player cache below 90%"
+msgstr "Lejátszó gyorsítótár 90% alatt"
+
+msgctxt "#32513"
+msgid "Player cache recovered"
+msgstr "Lejátszó gyorsítótár helyreállt"
+
+msgctxt "#32514"
+msgid "Warnings"
+msgstr "Figyelmeztetések"

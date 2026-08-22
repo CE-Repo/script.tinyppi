@@ -1488,8 +1488,8 @@ msgid "Frame drops"
 msgstr "丢帧"
 
 msgctxt "#32478"
-msgid "Output switches"
-msgstr "输出切换"
+msgid "Switches"
+msgstr "切换"
 
 msgctxt "#32479"
 msgid "Events"
@@ -1547,10 +1547,6 @@ msgctxt "#32492"
 msgid "Cache dip"
 msgstr "缓存下降"
 
-msgctxt "#32493"
-msgid "FPS lost"
-msgstr "丢失的 FPS"
-
 msgctxt "#32494"
 msgid "Playback controls"
 msgstr "播放控制"
@@ -1595,14 +1591,6 @@ msgctxt "#32504"
 msgid "Strong"
 msgstr "强烈"
 
-msgctxt "#32505"
-msgid "Buffer and frame drops"
-msgstr "缓冲与丢帧"
-
-msgctxt "#32506"
-msgid "Cache"
-msgstr "缓存"
-
 msgctxt "#32507"
 msgid "Last played"
 msgstr "最近播放"
@@ -1614,3 +1602,23 @@ msgstr "汇总"
 msgctxt "#32509"
 msgid "Too many connections"
 msgstr "连接数过多"
+
+msgctxt "#32510"
+msgid "Menu"
+msgstr "菜单"
+
+msgctxt "#32511"
+msgid "Player cache"
+msgstr "播放器缓存"
+
+msgctxt "#32512"
+msgid "Player cache below 90%"
+msgstr "播放器缓存低于 90%"
+
+msgctxt "#32513"
+msgid "Player cache recovered"
+msgstr "播放器缓存已恢复"
+
+msgctxt "#32514"
+msgid "Warnings"
+msgstr "警告"

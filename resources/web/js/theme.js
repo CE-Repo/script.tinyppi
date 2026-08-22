@@ -307,6 +307,7 @@ window.TinyPPITheme = (function () {
   function injectChrome() {
     const bar = document.querySelector(".topbar");
     const brand = bar && bar.querySelector(".brand");
+    const actions = bar && bar.querySelector(".action-menu-items");
     if (!bar || !brand) return;
 
     button = document.createElement("button");
@@ -322,7 +323,8 @@ window.TinyPPITheme = (function () {
     icon = document.createElement("span");
     icon.className = "ui-icon painted";
     button.append(icon);
-    brand.after(button);
+    if (actions) actions.prepend(button);
+    else brand.after(button);
 
     menu = document.createElement("ul");
     menu.id = "themeMenu";

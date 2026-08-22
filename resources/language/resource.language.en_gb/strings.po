@@ -1488,7 +1488,7 @@ msgid "Frame drops"
 msgstr ""
 
 msgctxt "#32478"
-msgid "Output switches"
+msgid "Switches"
 msgstr ""
 
 msgctxt "#32479"
@@ -1547,10 +1547,6 @@ msgctxt "#32492"
 msgid "Cache dip"
 msgstr ""
 
-msgctxt "#32493"
-msgid "FPS lost"
-msgstr ""
-
 msgctxt "#32494"
 msgid "Playback controls"
 msgstr ""
@@ -1595,14 +1591,6 @@ msgctxt "#32504"
 msgid "Strong"
 msgstr ""
 
-msgctxt "#32505"
-msgid "Buffer and frame drops"
-msgstr ""
-
-msgctxt "#32506"
-msgid "Cache"
-msgstr ""
-
 msgctxt "#32507"
 msgid "Last played"
 msgstr ""
@@ -1613,4 +1601,24 @@ msgstr ""
 
 msgctxt "#32509"
 msgid "Too many connections"
+msgstr ""
+
+msgctxt "#32510"
+msgid "Menu"
+msgstr ""
+
+msgctxt "#32511"
+msgid "Player cache"
+msgstr ""
+
+msgctxt "#32512"
+msgid "Player cache below 90%"
+msgstr ""
+
+msgctxt "#32513"
+msgid "Player cache recovered"
+msgstr ""
+
+msgctxt "#32514"
+msgid "Warnings"
 msgstr ""

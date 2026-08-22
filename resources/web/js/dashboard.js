@@ -16,19 +16,22 @@ const el = {
   version: $("version"), idleCard: $("idleCard"),
   vs10Card: $("vs10Card"), vs10Out: $("vs10Out"), modes: $("modes"),
   groups: $("groups"),
-  metricsCard: $("tiles"), healthCard: $("healthCard"),
-  eventsCard: $("eventsCard"), metaLink: $("metaLink"),
+  metricsCard: $("tiles"), metricsGrid: $("tiles").querySelector(".tilegrid"),
+  eventsCard: $("eventsCard"), metaLink: $("metaLink"), sideRail: $("sideRail"),
   copyBtn: $("copyBtn"), idleStack: $("idleStack"),
   lastCard: $("lastCard"), lastTitle: $("lastTitle"), lastTiles: $("lastTiles")
 };
 
-/* Keep VS10 by the playback card; the optional summary cards belong at the
-   page end, immediately ahead of the metadata link, in the order they are
-   read: the figures, what they did over the film, and what happened. */
+/* Keep VS10 by the playback card.  The figures are the first thing inside the
+   events card, followed by the event list; its old disclosure shell is no
+   longer needed. */
 $("nowCard").after(el.vs10Card);
-el.metaLink.before(el.eventsCard);
-el.eventsCard.before(el.metricsCard);
-el.eventsCard.before(el.healthCard);
+el.eventsCard.querySelector(".eventswrap").before(el.metricsGrid);
+/* Keep the empty shell in the document because the shared localization code
+   still owns its heading node; the hidden attribute cannot be undone by the
+   live module's class toggles. */
+el.metricsCard.hidden = true;
+el.sideRail.append(el.eventsCard);
 
 let state = null;
 let control = false;
@@ -53,6 +56,10 @@ function render(next) {
   /* The common live module draws what is playing and the summary tiles.  Its
      L1 chart is reserved for the metadata window. */
   TinyPPI.panels.update(next);
+  /* The former metrics card disappeared while idle; preserve that behaviour
+     now that its grid lives inside the event card, which may hold the events
+     of the title that just ended. */
+  el.metricsGrid.classList.toggle("hidden", !next.playing);
 
   if (!next.playing) {
     /* The line saying nothing is playing is for a box that has played nothing:
@@ -85,7 +92,7 @@ function render(next) {
   el.copyBtn.classList.remove("hidden");
   /* Back to the foot of the page, where it belongs while something plays. */
   if (el.eventsCard.parentElement === el.idleStack) {
-    el.metaLink.before(el.eventsCard);
+    el.sideRail.append(el.eventsCard);
   }
 
   renderVs10(next.vs10 || {});
@@ -115,8 +122,8 @@ function renderLast(last) {
      peak the grade reached is in the report rather than here -- it is a
      reading about the film, and these are about the playing of it. */
   const tiles = [
-    [T.drops, String(last.drops || 0)],
-    [T.switches, String(last.switches || 0)]
+    [T.switches, String(last.switches || 0)],
+    [T.warnings, String(last.warnings || 0)]
   ];
 
   el.lastTiles.replaceChildren();
@@ -207,12 +214,10 @@ async function switchMode(mode, button) {
    is enough to change it.  A group not named here keeps its place, after the
    ones that are.
 
-   Read in pairs, because the cards stand two to a row: picture beside sound,
-   what was done to it beside what it declares itself to be, the machine
-   beside the numbers.  Each pair is also two blocks of roughly one length,
-   which is what keeps the rows from ending ragged.  The static HDR card is
-   last because it only appears at all on an HDR title that is not Dolby
-   Vision -- where the two cards after it are absent (see snapshot.py). */
+   Read in rows of three on a desktop: picture, sound and processing first,
+   then the Dolby Vision declaration, the machine and the per-frame numbers.
+   The static HDR card is last because it only appears at all on an HDR title
+   that is not Dolby Vision (see snapshot.py). */
 const GROUP_ORDER =
   ["video", "audio", "processing", "dv", "system", "metadata", "hdr"];
 
@@ -341,8 +346,8 @@ function summaryLines(session, peak) {
   if (peak !== null && peak !== undefined) {
     lines.push(TinyPPI.reportLine(T.peak, TinyPPI.fmtNits(peak) + " nits"));
   }
-  lines.push(TinyPPI.reportLine(T.drops, String((session || {}).drops || 0)));
   lines.push(TinyPPI.reportLine(T.switches, String((session || {}).switches || 0)));
+  lines.push(TinyPPI.reportLine(T.warnings, String((session || {}).warnings || 0)));
   return ["[" + T.summary + "]", ...lines, ""];
 }
 

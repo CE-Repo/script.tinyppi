@@ -11,15 +11,15 @@
 /* --- L5 active picture -------------------------------------------------- */
 
 .framewrap {
-  padding: 14px 16px 16px;
+  padding: 16px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
   justify-items: center;
 }
 .frame {
   position: relative;
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   aspect-ratio: 16 / 9;
   background: #05070a;
   border: 1px solid var(--line);
@@ -46,19 +46,34 @@
 @media (min-width: 1500px) { .metarows { columns: 3; } }
 .mblock { break-inside: avoid; }
 
+/* The name of a block of readings, marked the way a card's own heading is --
+   an accent tick beside it rather than colour in the letters (see
+   .panel-toggle in css/live-panels.css).  There are a dozen of these down a
+   column, so the mark has to be the quiet kind. */
 .msection {
-  margin: 14px 16px 6px;
-  padding-bottom: 5px;
+  margin: 18px 16px 8px;
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--line);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: .1em;
+  letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--text);
   display: flex;
-  gap: 8px;
-  align-items: baseline;
+  gap: 9px;
+  align-items: center;
 }
+.msection::before {
+  content: "";
+  flex: none;
+  width: 3px;
+  height: 13px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+/* The first block in a column starts level with the padding above it rather
+   than a heading's worth further down. */
+.mblock:first-child .msection { margin-top: 8px; }
 .msection .state {
   margin-left: auto;
   font-size: 10px;
@@ -72,8 +87,12 @@
   display: grid;
   grid-template-columns: minmax(110px, 45%) 1fr;
   gap: 10px;
-  padding: 3px 16px;
+  padding: 4px 16px;
   font-size: 12.5px;
+  transition: background .12s;
+}
+@media (hover: hover) {
+  .mrow:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
 }
 /* As on the dashboard's own rows (see .row .k there): the name is half of what
    the row says, so it is not held back from the reading beside it. */
@@ -82,7 +101,7 @@
 .mrow.changed .v { color: var(--accent-2); transition: none; }
 
 .mwide {
-  padding: 3px 16px;
+  padding: 4px 16px;
   font-size: 12.5px;
   overflow-wrap: anywhere;
 }

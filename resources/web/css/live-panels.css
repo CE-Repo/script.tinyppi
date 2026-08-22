@@ -3,12 +3,83 @@
    behaviour in live-panels.js, styling here, because both pages show them.
 ------------------------------------------------------------------------ */
 
+/* --- Card headings ------------------------------------------------------
+
+   Every panel on the page folds, and this is the row it folds from.  Three
+   things across it: an accent tick, the name, and the caret at the far right.
+
+   The tick is what carries the colour now.  A heading set entirely in the
+   accent put five or six lines of bright text down a page whose readings are
+   the point of it -- and under the adaptive theme, where the accent is the
+   film's, it made a wall of the poster's colour out of what is only furniture.
+   One mark each says the same thing at a fraction of the volume, and it is
+   still the token, so the adaptive theme keeps its colour here for free.
+
+   The caret takes margin-left:auto rather than the row taking
+   justify-content:space-between: a group heading is a bare text node with no
+   element around it (see renderGroups in js/dashboard.js), and space-between
+   would have pushed that text into the middle of the row while the cards that
+   do wrap their title kept theirs on the left.
+------------------------------------------------------------------------ */
+
+.panel-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 12px 16px;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: color .15s, background .15s;
+}
+.panel-toggle::-webkit-details-marker { display: none; }
+.panel-toggle::before {
+  content: "";
+  flex: none;
+  width: 3px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.panel-toggle::after {
+  content: "";
+  margin-left: auto;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  color: var(--dim);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform .15s ease, color .15s;
+}
+.panel-toggle:hover { color: var(--text); }
+.panel-toggle:hover::after { color: var(--accent); }
+.card[open] > .panel-toggle {
+  color: var(--text);
+  border-bottom: 1px solid var(--line-soft);
+}
+.card[open] > .panel-toggle::after {
+  transform: rotate(225deg) translate(-2px, -2px);
+}
+.panel-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
 /* --- Now playing -------------------------------------------------------- */
 
 .now {
-  padding: 18px 16px 12px;
+  padding: 18px 18px 14px;
   display: grid;
-  gap: 16px;
+  gap: 14px;
+  align-content: start;
 }
 
 .badges { display: flex; flex-wrap: wrap; gap: 6px; padding-right: 52px; }
@@ -21,7 +92,7 @@
   font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
-  padding: 4px 9px;
+  padding: 5px 10px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
   color: var(--accent);
@@ -37,9 +108,10 @@
 
 .now h1 {
   margin: 0;
-  font-size: clamp(19px, 4.4vw, 26px);
-  line-height: 1.2;
-  font-weight: 650;
+  font-size: clamp(20px, 4.4vw, 28px);
+  line-height: 1.18;
+  font-weight: 680;
+  letter-spacing: -.015em;
   overflow-wrap: anywhere;
 }
 .now .file {
@@ -51,7 +123,7 @@
 
 .progress {
   display: grid;
-  gap: 6px;
+  gap: 7px;
 }
 /* Both bars in this card -- the time and the volume -- are drawn the same way:
    an outline in the accent with nothing behind it, and the part that has run
@@ -59,9 +131,9 @@
    browser draws for itself, so it is taken over further down rather than left
    to match by accident. */
 .track {
-  /* Eight rather than six: box-sizing is border-box, so the outline is inside
-     the height and what is left for the fill is the six it always was. */
-  height: 8px;
+  /* Twelve rather than ten: box-sizing is border-box, so the outline is inside
+     the height and what is left for the fill is the ten it looks like. */
+  height: 12px;
   border: 1px solid var(--bar-line);
   border-radius: 999px;
   background: transparent;
@@ -80,6 +152,7 @@
   justify-content: space-between;
   align-items: center;
   font-size: 12.5px;
+  font-weight: 600;
   color: var(--muted);
 }
 /* Unfilled like the keys it folds out, and for the same reason: it sits on the
@@ -91,11 +164,11 @@
   place-items: center;
   position: absolute;
   top: 18px;
-  right: 16px;
+  right: 18px;
   z-index: 1;
   min-width: 34px;
-  min-height: 26px;
-  height: 26px;
+  min-height: 28px;
+  height: 28px;
   padding: 0 7px;
   background: transparent;
   /* Outlined the way the badge across the card from it is, rather than in
@@ -121,6 +194,7 @@
 }
 .control-toggle[aria-expanded="true"] {
   color: var(--text);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 .control-chevron {
   transition: transform .15s ease;
@@ -138,13 +212,13 @@
 .tilegrid {
   display: grid;
   gap: 1px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   background: var(--line-soft);
 }
 
 .tile {
   background: var(--panel);
-  padding: 14px 15px;
+  padding: 18px 15px 16px;
   display: grid;
   /* The name at the top, the reading -- and its unit, if it has one, beside
      rather than under it -- centred in whatever is left under the name.
@@ -152,7 +226,7 @@
      should sit in the middle of that -- the name is a heading and belongs at
      the top of its tile whatever the tile's height turns out to be. */
   grid-template-rows: auto 1fr;
-  gap: 4px;
+  gap: 8px;
   justify-items: center;
   text-align: center;
 }
@@ -175,37 +249,47 @@
   align-self: center;
 }
 .tile .v {
-  font-size: clamp(20px, 5vw, 27px);
+  font-size: clamp(22px, 5vw, 30px);
   font-weight: 650;
-  line-height: 1.1;
+  line-height: 1.05;
+  letter-spacing: -.02em;
 }
 /* Out of the way entirely when there is no unit to put beside the reading,
    rather than holding an empty gap open next to it. */
-.tile .u { font-size: 12px; color: var(--dim); font-weight: 500; }
+.tile .u { font-size: 12px; color: var(--dim); font-weight: 600; }
 .tile .u:empty { display: none; }
+/* Which way the reading last moved, as a small arrow beside the reading
+   itself.  The number alone says what the rate is; the arrow is what says it
+   has just come down to it or gone up to it.  Same dimmed colour both ways,
+   for the reason the event list gives (see .event .trend): a rate falling is
+   the ordinary case, not a fault.  Gone entirely, gap and all, until there is
+   a direction to show -- as with the unit above it. */
+.tile .trend { font-size: 11px; line-height: 1; color: var(--dim); }
+.tile .trend:empty { display: none; }
 
 @media (max-width: 620px) {
   .tilegrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .tilegrid .tile:last-child { grid-column: 1 / -1; }
+  .tilegrid .tile:last-child { grid-column: auto; }
 }
 
 /* --- Chart -------------------------------------------------------------- */
 
-.chartwrap { padding: 12px 12px 14px; }
+.chartwrap { padding: 12px 14px 14px; }
 .chart {
   display: block;
   width: 100%;
-  height: 190px;
+  height: 200px;
   border-radius: var(--radius-sm);
+  border: 1px solid var(--line-soft);
   background: var(--panel-2);
 }
-@media (max-width: 640px) { .chart { height: 148px; } }
+@media (max-width: 640px) { .chart { height: 152px; } }
 
 .legend {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
-  padding: 10px 4px 0;
+  padding: 12px 4px 0;
   font-size: 12px;
   color: var(--muted);
 }
@@ -217,8 +301,6 @@
   border-top: 2px dashed var(--accent-2);
   height: 0;
 }
-/* The frames that went missing, in the colour the rest of the page warns in. */
-.swatch.drops { background: var(--bad); }
 
 /* --- The hero card ------------------------------------------------------
    Poster and what is playing, side by side where there is room.  The poster
@@ -247,16 +329,16 @@
 .hero .foot {
   grid-column: 1 / -1;
   display: grid;
-  gap: 12px;
-  padding: 4px 16px 16px;
+  gap: 14px;
+  padding: 4px 18px 18px;
 }
 .art {
-  padding: 16px 0 16px 16px;
+  padding: 18px 0 18px 18px;
   line-height: 0;
 }
 .art img {
-  width: 104px;
-  height: 156px;
+  width: 112px;
+  height: 168px;
   aspect-ratio: 2 / 3;
   max-width: 30vw;
   max-height: 45vw;
@@ -266,6 +348,12 @@
   border: 1px solid var(--line);
   background: var(--panel-2);
   display: block;
+}
+/* Room enough for the poster to be looked at rather than merely identified.
+   The column it stands in is fixed, so what it takes is taken from the title
+   beside it -- which on a screen this wide has more than it needs. */
+@media (min-width: 900px) {
+  .art img { width: 136px; height: 204px; }
 }
 
 .now .meta {
@@ -285,12 +373,12 @@
 .logos {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 .logos:empty { display: none; }
 .logo {
-  height: 24px;
+  height: 26px;
   width: auto;
   max-width: 148px;
   object-fit: contain;
@@ -307,7 +395,11 @@
 .control-drawer:not(.open) { display: none; }
 .control-body {
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  /* Set off from the bar above it, so the drawer reads as a thing that opened
+     rather than as more of the card. */
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
 }
 .tkeys {
   display: grid;
@@ -352,11 +444,15 @@
   cursor: pointer;
   transition: border-color .15s, background .15s, transform .08s;
 }
-.tbtn:hover { border-color: var(--accent); }
+.tbtn:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
 .tbtn:active { transform: scale(.96); }
 .tbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tbtn.primary {
   border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
   color: var(--accent);
 }
 .tbtn.mute.on { color: var(--warn); border-color: var(--warn); }
@@ -378,7 +474,7 @@
   cursor: pointer;
 }
 .volume::-webkit-slider-runnable-track {
-  height: 8px;
+  height: 12px;
   border: 1px solid var(--bar-line);
   border-radius: 999px;
   /* Clipped to what is inside the outline, so the fill stops where the time
@@ -389,28 +485,28 @@
 }
 .volume::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border: 0;
   border-radius: 50%;
   background: var(--accent);
   /* Centred on the track: half the difference between the two heights. */
-  margin-top: -3px;
+  margin-top: -2px;
 }
 .volume::-moz-range-track {
-  height: 8px;
+  height: 12px;
   border: 1px solid var(--bar-line);
   border-radius: 999px;
   background: transparent;
 }
 .volume::-moz-range-progress {
-  height: 8px;
+  height: 12px;
   border-radius: 999px;
   background: var(--accent);
 }
 .volume::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border: 0;
   border-radius: 50%;
   background: var(--accent);
@@ -423,7 +519,7 @@
    with it and the element keeps none of its own. */
 .track.seekable {
   cursor: pointer;
-  padding: 9px 0;
+  padding: 8px 0;
   height: auto;
   border: 0;
   background: none;
@@ -433,19 +529,19 @@
   content: "";
   display: block;
   /* The reset in base.css is `*`, which does not reach a pseudo-element -- so
-     this one would have added its outline to the eight and come out two taller
-     than the volume slider beside it. */
+     this one would have added its outline to the twelve and come out two
+     taller than the volume slider beside it. */
   box-sizing: border-box;
-  height: 8px;
+  height: 12px;
   border: 1px solid var(--bar-line);
   border-radius: 999px;
   background: transparent;
   /* One less than its own height, so the fill that follows lands a pixel down
      -- inside the outline rather than over it. */
-  margin-bottom: -7px;
+  margin-bottom: -11px;
 }
 .track.seekable > i {
-  height: 6px;
+  height: 10px;
   box-shadow: none;
 }
 .track:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
@@ -459,9 +555,12 @@
 }
 .pick {
   display: grid;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--muted);
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--dim);
   flex: 1 1 180px;
   min-width: 0;
 }
@@ -476,6 +575,9 @@
   color: var(--text);
   font: inherit;
   font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
   cursor: pointer;
   /* The arrow is drawn rather than fetched: the page loads no image it does
      not already have a route for. */
@@ -486,84 +588,52 @@
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
 }
+.pick select:hover { border-color: var(--accent); }
 .pick select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* --- The range keys ------------------------------------------------------
+
+   How far back a chart draws, as a strip of keys of its own between the
+   heading and the picture.  Ruled off from the chart below it so the strip
+   reads as a control rather than as part of the drawing. */
 .chart-options {
   display: flex;
   justify-content: flex-end;
-  padding-top: 10px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line-soft);
 }
 .ranges {
-  display: flex;
-  gap: 4px;
-  padding: 0 16px 0 12px;
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: var(--panel-2);
 }
 .range {
   appearance: none;
-  padding: 6px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid transparent;
   background: none;
   color: var(--muted);
   font: inherit;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 650;
   cursor: pointer;
   white-space: nowrap;
+  transition: color .12s, background .12s, border-color .12s;
 }
 .range:hover { color: var(--text); }
 .range.on {
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 .range:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* --- Events ------------------------------------------------------------- */
 
-/* The accent on every theme, not only the adaptive one.  A card's heading is
-   the page's own furniture rather than a reading, and the accent is what marks
-   furniture here; held back to --muted it read as a third kind of text between
-   the headings above it and the readings below.  Inside a card the token is
-   the film's under the adaptive theme (see css/theme.css), so that theme keeps
-   what it had without a rule of its own -- and the disclosure arrow follows
-   either way, drawn in currentColor below. */
-.panel-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 40px;
-  padding: 10px 16px;
-  color: var(--accent);
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  cursor: pointer;
-  list-style: none;
-  user-select: none;
-}
-.panel-toggle::-webkit-details-marker { display: none; }
-.panel-toggle::after {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(45deg) translate(-2px, -2px);
-  transition: transform .15s ease;
-}
-.card[open] > .panel-toggle {
-  color: var(--accent);
-  border-bottom: 1px solid var(--line-soft);
-}
-.card[open] > .panel-toggle::after {
-  transform: rotate(225deg) translate(-2px, -2px);
-}
-.panel-toggle:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
 /* The list scrolls inside its own card, whether a film is running or one has
    just ended: it is the one panel with no ceiling on it -- a long title writes
    sixty entries -- and a card that simply grew pushed everything under it off
@@ -579,7 +649,7 @@
    does not carry on into the page behind it. */
 .events {
   padding: 4px 0 6px;
-  max-height: 300px;
+  max-height: 320px;
   overflow-y: auto;
   overscroll-behavior: contain;
   /* A bar the reader can see and take hold of, in the page's own colours
@@ -606,13 +676,14 @@
    puts the class on and takes it off as the list is scrolled, so the shade is
    there exactly while something is under it. */
 .eventswrap { position: relative; }
+#eventsCard > .tilegrid { border-bottom: 1px solid var(--line-soft); }
 .eventswrap::after {
   content: "";
   position: absolute;
   left: 0;
   right: 9px;              /* clear of the scrollbar's own gutter */
   bottom: 0;
-  height: 30px;
+  height: 34px;
   background: linear-gradient(to top, var(--panel), transparent);
   opacity: 0;
   transition: opacity .15s ease;
@@ -620,25 +691,78 @@
 }
 .eventswrap.more::after { opacity: 1; }
 .events.empty {
-  padding: 18px 16px 20px;
+  padding: 20px 16px 22px;
   color: var(--muted);
   font-size: 13.5px;
 }
 .event {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: baseline;
-  padding: 8px 16px;
+  grid-template-columns: 7px 72px minmax(112px, 168px) minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: center;
+  min-height: 50px;
+  padding: 8px 0px 8px 14px;
 }
+/* What kind of thing happened, as a dot before the time it happened at.  The
+   list is read down rather than across -- a run of stutters, a switch in the
+   middle of them -- and a colour is what separates those at a glance, where
+   four labels in the same grey do not.
+
+   The colours are the page's own and mean here what they mean everywhere
+   else: the accent for the output the film is being shown in, the second
+   accent for the display following it, warn for the cache, bad for the frames
+   that went missing. */
+.event::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dim);
+}
+.event.shift::before { background: #42b8d5; }
+.event.cache_low::before,
+.event.temperature::before,
+.event.cpu::before { background: var(--warn); }
+.event.cache_recovered::before { background: var(--accent); }
 .event + .event { border-top: 1px solid var(--line-soft); }
-.event .at { font-size: 12.5px; color: var(--dim); white-space: nowrap; }
-.event .what { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.event .at {
+  font-size: 12.5px;
+  color: var(--dim);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.event .what {
+  min-width: 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.35;
+}
 .event .detail {
+  min-width: 0;
   font-size: 13px;
   text-align: right;
+  line-height: 1.45;
   overflow-wrap: anywhere;
   color: var(--text);
+}
+
+/* Which way a figure went, as a small arrow to the right of the figure
+   itself.  It is the second half of a frame-rate event: the row prints the
+   rate the title is on now, and the arrow is what says it went up to it or
+   down to it without spending a column on the rate it left.
+
+   Both directions are drawn in the same dimmed colour on purpose.  A rate
+   going down is not a fault -- a title's next part simply being 24 rather
+   than 60 is the ordinary case -- and warn/accent here would read as one.
+   The shape carries the direction; the colour keeps it out of the way of the
+   value it belongs to. */
+.event .trend {
+  margin-left: 6px;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--dim);
+  /* Never left behind on a line of its own when a long value wraps. */
+  white-space: nowrap;
 }
 
 /* In a narrow card the row above is what breaks: a transition's "detail" (two
@@ -651,30 +775,38 @@
 #eventsCard { container: eventscard / inline-size; }
 
 @container eventscard (max-width: 620px) {
-  /* Every event uses the same two-row shape: time centred on the left, label
-     above value on the right. */
+  /* On a narrow card the time gets the first line and the event name the one
+     under it, so the label is no longer stranded to the right of the
+     timestamp and the left of the row reads from top to bottom.  The value
+     keeps the right of the row, where there is no width to put it under
+     anything. */
   .event {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas: "at what" "at detail";
-    gap: 4px 12px;
+    grid-template-columns: 7px max-content minmax(0, 1fr);
+    /* Dot and value each hold both lines rather than sitting on one of them:
+       the two on the left are read as a pair -- when it happened, then what
+       -- and a dot pinned to the first of them and a value pinned to the
+       second leave the row looking like two half-rows.  Given the whole
+       height, both centre against the pair instead. */
+    grid-template-areas: "dot at     detail"
+                         "dot what   detail";
+    gap: 4px 10px;
+    align-items: start;
+    min-height: 58px;
+    padding-right: 14px;
   }
+  .event::before { grid-area: dot; align-self: center; }
   .event .at {
     grid-area: at;
-    align-self: center;
   }
   .event .what {
     grid-area: what;
-    text-align: right;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .event .detail {
     grid-area: detail;
-    text-align: right;
-    white-space: nowrap;
-    overflow: visible;
-    overflow-wrap: normal;
-    font-size: clamp(9px, 2.8vw, 12px);
+    align-self: center;
+    font-size: 12px;
   }
 }
