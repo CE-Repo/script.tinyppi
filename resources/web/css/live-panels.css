@@ -767,12 +767,20 @@
 #eventsCard { container: eventscard / inline-size; }
 
 @container eventscard (max-width: 620px) {
-  /* On a narrow card the time gets the first line.  Event name and transition
-     sit below it, so the label is no longer stranded to the right of the
-     timestamp and every row reads naturally from top to bottom. */
+  /* On a narrow card the time gets the first line and the event name the one
+     under it, so the label is no longer stranded to the right of the
+     timestamp and the left of the row reads from top to bottom.  The value
+     keeps the right of the row, where there is no width to put it under
+     anything. */
   .event {
     grid-template-columns: 7px max-content minmax(0, 1fr);
-    grid-template-areas: "dot at at" ". what detail";
+    /* Dot and value each hold both lines rather than sitting on one of them:
+       the two on the left are read as a pair -- when it happened, then what
+       -- and a dot pinned to the first of them and a value pinned to the
+       second leave the row looking like two half-rows.  Given the whole
+       height, both centre against the pair instead. */
+    grid-template-areas: "dot at     detail"
+                         "dot what   detail";
     gap: 4px 10px;
     align-items: start;
     min-height: 58px;
@@ -790,6 +798,7 @@
   }
   .event .detail {
     grid-area: detail;
+    align-self: center;
     font-size: 12px;
   }
 }
