@@ -267,7 +267,9 @@ a phone in your hand.
   film stutters, whatever it was graded in.
 - **Events** — a list with timestamps of the things worth knowing about: an
   output switched to or from Dolby Vision, a display mode change, the cache
-  dipping, frames going missing.
+  dipping, frames going missing. Every stutter is listed, down to a single
+  lost frame and however briefly it lasted, with the worst second it reached;
+  a stutter that goes on is one entry rather than five a second.
 - **What the last title came to** — for ten minutes after the credits the page
   keeps the film that just ended: a card of its own with its peak, the frames
   it lost and how often the output was switched, and the events of that film
