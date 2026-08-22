@@ -28,6 +28,9 @@
   --ok:        #81c784;
   --warn:      #ffb74d;
   --bad:       #ff5252;
+  /* The one scrollbar the page draws itself (see .events in live-panels.css):
+     lighter than a line, darker than a reading. */
+  --scroll:    #4b535e;
   --shadow:    0 1px 0 rgba(255,255,255,.03), 0 8px 24px rgba(0,0,0,.35);
   --radius:    14px;
   --radius-sm: 10px;
@@ -60,6 +63,7 @@
   --ok:        #34d399;
   --warn:      #fbbf24;
   --bad:       #f87171;
+  --scroll:    #38455f;
   --shadow:    0 1px 0 rgba(255,255,255,.02), 0 10px 28px rgba(0,0,0,.5);
 }
 

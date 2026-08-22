@@ -570,18 +570,55 @@
    the page while nothing was playing, and made the page itself several
    screens long while something was.
 
+   A fixed height rather than a share of the screen: a share of a tall phone
+   is a card that still reaches the bottom of it, and the three idle cards
+   together have to fit above that bottom.  Five or six entries, and the rest
+   under the reader's thumb.
+
    The card keeps its own scrolling to itself, so reaching the end of the list
    does not carry on into the page behind it. */
 .events {
   padding: 4px 0 6px;
-  /* The dynamic viewport where a browser reports one: on a phone the address
-     bar is part of what the reader has, and 46vh of a viewport measured
-     without it is a card taller than the screen it is on. */
-  max-height: min(46vh, 400px);
-  max-height: min(46dvh, 400px);
+  max-height: 300px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* A bar the reader can see and take hold of, in the page's own colours
+     rather than the browser's: this is the one panel here that scrolls, so
+     nothing else says that it does.  Drawn through the -webkit- rules below
+     and not through scrollbar-width/-color, which read better but hand a
+     phone back the overlay bar that is only there while a finger is moving --
+     and a bar nobody can see until they have already guessed is no answer to
+     "is there more of this?".  The gutter is held open either way, so the
+     rows do not shift when it appears. */
+  scrollbar-gutter: stable;
 }
+.events::-webkit-scrollbar { width: 9px; }
+.events::-webkit-scrollbar-track { background: transparent; }
+.events::-webkit-scrollbar-thumb {
+  background: var(--scroll);
+  border-radius: 999px;
+}
+.events::-webkit-scrollbar-thumb:hover { background: var(--dim); }
+
+/* And a shade over the last rows while there are rows under them, because a
+   browser that draws its scrollbar only under a moving finger says nothing at
+   all until the reader has already guessed there is more.  js/live-panels.js
+   puts the class on and takes it off as the list is scrolled, so the shade is
+   there exactly while something is under it. */
+.eventswrap { position: relative; }
+.eventswrap::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 9px;              /* clear of the scrollbar's own gutter */
+  bottom: 0;
+  height: 30px;
+  background: linear-gradient(to top, var(--panel), transparent);
+  opacity: 0;
+  transition: opacity .15s ease;
+  pointer-events: none;
+}
+.eventswrap.more::after { opacity: 1; }
 .events.empty {
   padding: 18px 16px 20px;
   color: var(--muted);

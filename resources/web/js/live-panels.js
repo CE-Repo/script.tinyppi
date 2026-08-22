@@ -102,7 +102,9 @@
     '</details>' +
     '<details class="card hidden" id="eventsCard">' +
       '<summary class="panel-toggle"><span id="eventsTitle"></span></summary>' +
-      '<div class="events" id="events"></div>' +
+      '<div class="eventswrap" id="eventsWrap">' +
+        '<div class="events" id="events"></div>' +
+      '</div>' +
     '</details>';
 
   const $ = (id) => document.getElementById(id);
@@ -137,7 +139,8 @@
     chartCard: $("chartCard"), chart: $("chart"), ranges: $("ranges"),
     healthCard: $("healthCard"), healthChart: $("healthChart"),
     healthRanges: $("healthRanges"), healthScale: $("healthScale"),
-    eventsCard: $("eventsCard"), events: $("events")
+    eventsCard: $("eventsCard"), events: $("events"),
+    eventsWrap: $("eventsWrap")
   };
 
   let live = [];        /* {t, max, avg} for the last HISTORY_SECONDS       */
@@ -532,10 +535,25 @@
     return String(entry.value);
   }
 
+  /* Whether anything is under the last row on screen.  The list is the only
+     panel here that scrolls, and on a phone the scrollbar is drawn only while
+     a finger is moving -- so the page says so itself, with a shade over the
+     bottom of the list for exactly as long as there is more of it. */
+  function markMore() {
+    const list = el.events;
+    const more = list.scrollHeight - list.scrollTop - list.clientHeight > 2;
+    el.eventsWrap.classList.toggle("more", more);
+  }
+
+  el.events.addEventListener("scroll", markMore, { passive: true });
+  window.addEventListener("resize", markMore);
+  el.eventsCard.addEventListener("toggle", markMore);
+
   function renderEvents(events) {
     if (!events || !events.length) {
       el.events.className = "events empty";
       el.events.textContent = TinyPPI.T.events_empty;
+      markMore();
       return;
     }
     el.events.className = "events";
@@ -561,6 +579,7 @@
       row.append(when, what, detail);
       el.events.append(row);
     }
+    markMore();
   }
 
   /* --- the charts ------------------------------------------------------- */
