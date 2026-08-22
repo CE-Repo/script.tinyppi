@@ -64,9 +64,9 @@
 /* As many cards to a row as will fit, and the row decides that for itself
    rather than being told by the width of the window: this band runs the whole
    width of a wide screen and the whole width of a phone, and a count fixed in
-   a media query would have had to be right for both.  Four across a desktop,
-   two on a tablet, one on a phone, and nothing in the stylesheet says any of
-   those numbers.
+   a media query would have had to be right for both.  Three across a desktop,
+   two on a tablet and one on a phone emerge from the dashboard's 1440px page
+   width and the cards' 400px minimum below.
 
    A grid row is as tall as the tallest card in it, so which card sits next to
    which is what decides whether that shows: the pairing in GROUP_ORDER puts
@@ -75,7 +75,7 @@
 .groups {
   display: grid;
   gap: var(--gap);
-  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr));
   align-items: start;
   min-width: 0;
 }
@@ -104,6 +104,19 @@
   transition: background .12s;
 }
 .row + .row { border-top: 1px solid var(--line-soft); }
+
+/* Keep the desktop grid level when a group carries only six readings.  The
+   generated line is decorative, so it never enters the DOM or the reading
+   order, and it disappears with the multi-column layout on smaller screens. */
+@media (min-width: 1080px) {
+  .groups .rows:has(> .row:nth-child(6):last-child)::after {
+    content: "";
+    display: block;
+    min-height: 36px;
+    border-top: 1px solid var(--line-soft);
+  }
+}
+
 /* A reading under the pointer, picked out from the sixty around it.  A list
    this dense is read by running a finger or a cursor down it, and the row that
    lights up is the one being read. */
