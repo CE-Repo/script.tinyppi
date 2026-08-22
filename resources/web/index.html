@@ -95,17 +95,16 @@
     </section>
   </div>
 
-  <!-- What the playing of it has come to: the figures, the chart of them, the
-       events along the way, and the way through to the metadata window.  On a
-       wide screen this is the right of the two columns.  js/dashboard.js moves
-       the first three in here, each of them anchored to the link below --
-       which is why the link is the one thing written out. -->
-  <div class="rail rail-side">
-    <a class="metalink hidden" id="metaLink" href="/metadata" target="tinyppi-metadata"
-       rel="noopener">
-      <span class="dv">DV</span><span id="metaLinkText"></span><span class="arrow">↗</span>
-    </a>
-  </div>
+  <!-- What the playing of it has come to: the figures, the chart of them and
+       the events along the way.  On a wide screen this is the right column. -->
+  <div class="rail rail-side" id="sideRail"></div>
+
+  <!-- A destination for the whole dashboard rather than the right rail: on a
+       desktop it is the full-width final row, after every reading and event. -->
+  <a class="metalink hidden" id="metaLink" href="/metadata" target="tinyppi-metadata"
+     rel="noopener">
+    <span class="dv">DV</span><span id="metaLinkText"></span><span class="arrow">↗</span>
+  </a>
 
 </main>
 

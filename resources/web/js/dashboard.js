@@ -17,18 +17,17 @@ const el = {
   vs10Card: $("vs10Card"), vs10Out: $("vs10Out"), modes: $("modes"),
   groups: $("groups"),
   metricsCard: $("tiles"), healthCard: $("healthCard"),
-  eventsCard: $("eventsCard"), metaLink: $("metaLink"),
+  eventsCard: $("eventsCard"), metaLink: $("metaLink"), sideRail: $("sideRail"),
   copyBtn: $("copyBtn"), idleStack: $("idleStack"),
   lastCard: $("lastCard"), lastTitle: $("lastTitle"), lastTiles: $("lastTiles")
 };
 
-/* Keep VS10 by the playback card; the optional summary cards belong at the
-   page end, immediately ahead of the metadata link, in the order they are
-   read: the figures, what they did over the film, and what happened. */
+/* Keep VS10 by the playback card; the optional summary cards belong in the
+   side rail in the order they are read: the figures, what they did over the
+   film, and what happened.  The metadata destination itself is the final,
+   full-width item in main. */
 $("nowCard").after(el.vs10Card);
-el.metaLink.before(el.eventsCard);
-el.eventsCard.before(el.metricsCard);
-el.eventsCard.before(el.healthCard);
+el.sideRail.append(el.metricsCard, el.healthCard, el.eventsCard);
 
 let state = null;
 let control = false;
@@ -85,7 +84,7 @@ function render(next) {
   el.copyBtn.classList.remove("hidden");
   /* Back to the foot of the page, where it belongs while something plays. */
   if (el.eventsCard.parentElement === el.idleStack) {
-    el.metaLink.before(el.eventsCard);
+    el.sideRail.append(el.eventsCard);
   }
 
   renderVs10(next.vs10 || {});

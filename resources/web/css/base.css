@@ -448,11 +448,13 @@ main {
     grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
     grid-template-areas:
       "playing session"
-      "groups  groups";
+      "groups  groups"
+      "meta    meta";
   }
   .dashboard-page .rail-main { grid-area: playing; }
   .dashboard-page .rail-side { grid-area: session; }
   .dashboard-page .groups    { grid-area: groups; }
+  .dashboard-page .metalink  { grid-area: meta; }
   /* The idle column takes the first row across both, which is free whenever
      it is on the page at all: nothing is playing, so the two rails and the
      groups have all hidden themselves and the grid is one row deep.  Sharing
