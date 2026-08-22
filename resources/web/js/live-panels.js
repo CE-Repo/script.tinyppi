@@ -520,16 +520,27 @@
       ? "—" : fps.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "");
   }
 
+  /* A fallback is kept beside every localized key.  The stream deliberately
+     opens before /api/hello has returned, so the first history can be drawn
+     while some translations are not here yet.  An event must still have a
+     name during that short window instead of leaving a mysterious blank
+     column behind. */
   const EVENT_LABEL = {
-    vs10: () => TinyPPI.T.vs10,
-    mode: () => TinyPPI.T.ev_mode,
-    cache_low: () => TinyPPI.T.cache_low,
-    cache_recovered: () => TinyPPI.T.cache_recovered,
-    audio: () => TinyPPI.T.audio_track,
-    subtitle: () => TinyPPI.T.subtitles,
-    temperature: () => TinyPPI.T.temperature,
-    cpu: () => TinyPPI.T.processor
+    vs10: ["vs10", "VS10 output"],
+    mode: ["ev_mode", "Display mode"],
+    cache_low: ["cache_low", "Player cache below 90%"],
+    cache_recovered: ["cache_recovered", "Player cache recovered"],
+    audio: ["audio_track", "Audio track"],
+    subtitle: ["subtitles", "Subtitles"],
+    temperature: ["temperature", "Temperature"],
+    cpu: ["processor", "Processor"]
   };
+
+  function eventLabel(kind) {
+    const label = EVENT_LABEL[kind];
+    if (!label) return kind || "Event";
+    return TinyPPI.T[label[0]] || label[1];
+  }
 
   /* A transition names two whole VS10 output states -- "SDR BT.709" to
      "DV-LL BT.2020nc" is a realistic width.  The mobile layout gives every
@@ -542,10 +553,10 @@
     const stateText = (value) => value === "__off__" ? TinyPPI.T.off : value;
     if (isTransition(entry)) return stateText(entry.from) + " → " + stateText(entry.to);
     if (entry.kind === "temperature") return Math.round(entry.value) + " °C";
-    if (entry.kind === "cpu" || entry.kind.startsWith("cache_")) {
+    if (entry.kind === "cpu" || String(entry.kind).startsWith("cache_")) {
       return Math.round(entry.value) + "%";
     }
-    return String(entry.value);
+    return entry.value === null || entry.value === undefined ? "—" : String(entry.value);
   }
 
   /* Whether anything is under the last row on screen.  The list is the only
@@ -580,18 +591,20 @@
          its own kind and says so: it used to be written out as "drops", from
          a time when the class named nothing and no rule read it. */
       row.className = "event " + entry.kind + (shift ? " shift" : "");
+      row.setAttribute("role", "listitem");
       const when = document.createElement("span");
       when.className = "at mono";
       when.textContent = entry.pos || "";
       const what = document.createElement("span");
       what.className = "what";
-      what.textContent = (EVENT_LABEL[entry.kind] || (() => entry.kind))();
+      what.textContent = eventLabel(entry.kind);
       const detail = document.createElement("span");
       detail.className = "detail mono";
       detail.textContent = eventText(entry);
       row.append(when, what, detail);
       el.events.append(row);
     }
+    el.events.setAttribute("role", "list");
     markMore();
   }
 
@@ -960,6 +973,9 @@
         button.textContent = T[button.dataset.key] || button.dataset.key;
       }
     }
+    /* History can beat /api/hello on a fresh page.  Redraw it once localized
+       strings arrive so fallbacks used for that first frame do not remain. */
+    if (past && past.events) renderEvents(past.events);
   }
 
   /* Everything the panels show comes out of one snapshot, and a snapshot that
@@ -1011,7 +1027,7 @@
   function events() {
     return ((past && past.events) || []).map((entry) => ({
       pos:   entry.pos || "",
-      label: (EVENT_LABEL[entry.kind] || (() => entry.kind))(),
+      label: eventLabel(entry.kind),
       text:  eventText(entry)
     }));
   }

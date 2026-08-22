@@ -1488,7 +1488,7 @@ msgid "Frame drops"
 msgstr "Bildaussetzer"
 
 msgctxt "#32478"
-msgid "Output switches"
+msgid "Switches"
 msgstr "Umschaltungen"
 
 msgctxt "#32479"

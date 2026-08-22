@@ -1488,8 +1488,8 @@ msgid "Frame drops"
 msgstr "Kockakiesés"
 
 msgctxt "#32478"
-msgid "Output switches"
-msgstr "Kimenetváltások"
+msgid "Switches"
+msgstr "Váltások"
 
 msgctxt "#32479"
 msgid "Events"

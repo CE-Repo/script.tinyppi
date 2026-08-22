@@ -1488,8 +1488,8 @@ msgid "Frame drops"
 msgstr "丢帧"
 
 msgctxt "#32478"
-msgid "Output switches"
-msgstr "输出切换"
+msgid "Switches"
+msgstr "切换"
 
 msgctxt "#32479"
 msgid "Events"

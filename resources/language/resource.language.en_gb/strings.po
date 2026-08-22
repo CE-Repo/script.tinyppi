@@ -1488,7 +1488,7 @@ msgid "Frame drops"
 msgstr ""
 
 msgctxt "#32478"
-msgid "Output switches"
+msgid "Switches"
 msgstr ""
 
 msgctxt "#32479"

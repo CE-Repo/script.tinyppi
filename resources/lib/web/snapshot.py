@@ -696,14 +696,17 @@ class SessionLog:
             self._watched[name] = value
             if previous is None or previous == value:
                 continue
-            if name in ("vs10", "mode"):
+            # Every user-visible state change shown in the event list belongs
+            # in the switch total.  This includes track selection and turning
+            # subtitles on or off, not only picture-output changes.
+            if name in ("vs10", "mode", "audio", "subtitle"):
                 self._switches += 1
             self._add_event(now, position, name, {"from": previous, "to": value})
 
     def _watch_levels(self, metrics: dict, now: float, position: str) -> None:
         """Follow the two readings that come and go between chart samples.
 
-        On the fast clock, like the output switches above and for the same
+        On the fast clock, like the tracked switches above and for the same
         reason: dropped frames and an emptying cache are both gone again
         within the second, and watching them from ``_sample`` -- which runs
         once a second where the producer runs five times -- meant most of them

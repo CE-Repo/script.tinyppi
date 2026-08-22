@@ -27,7 +27,7 @@ window.TinyPPI = (function () {
     no_metadata: "No Dolby Vision metadata", no_metadata_text: "",
     idle_title: "Nothing is playing", idle_text: "",
     peak: "Peak", average: "Average", aspect: "Aspect ratio", fps: "FPS",
-    drops: "Frame drops", switches: "Output switches", metrics: "Metrics",
+    drops: "Frame drops", switches: "Switches", metrics: "Metrics",
     player_cache: "Player cache", audio_track: "Audio track",
     warnings: "Warnings",
     cache_low: "Player cache below 90%", cache_recovered: "Player cache recovered",
@@ -46,7 +46,10 @@ window.TinyPPI = (function () {
     tint_label: "Intensity", tint_subtle: "Subtle", tint_standard: "Standard",
     tint_strong: "Strong",
     health: "Buffer and frame drops", cache: "Cache", drops_fps: "FPS lost",
-    last_played: "Last played", summary: "Summary"
+    last_played: "Last played", summary: "Summary",
+    events: "Events", events_empty: "No events yet",
+    ev_mode: "Display mode",
+    range_1m: "1 min", range_10m: "10 min", range_all: "All"
   };
 
   const $ = (id) => document.getElementById(id);

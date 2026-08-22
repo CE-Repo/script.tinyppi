@@ -1489,8 +1489,8 @@ msgid "Frame drops"
 msgstr "تساقط الإطارات"
 
 msgctxt "#32478"
-msgid "Output switches"
-msgstr "تبديلات الإخراج"
+msgid "Switches"
+msgstr "التبديلات"
 
 msgctxt "#32479"
 msgid "Events"
