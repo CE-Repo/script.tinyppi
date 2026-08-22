@@ -53,12 +53,16 @@
     <div class="metarows" id="metaRows"></div>
   </details>
 
-  <section class="card hidden" id="idleCard">
-    <div class="empty">
-      <div class="big" id="idleTitle">—</div>
-      <p id="idleText"></p>
-    </div>
-  </section>
+  <!-- Centred in the viewport when it is the only thing on the page; the
+       dashboard's own idle column is built the same way (see .idlestack). -->
+  <div class="idlestack">
+    <section class="card hidden" id="idleCard">
+      <div class="empty">
+        <div class="big" id="idleTitle">—</div>
+        <p id="idleText"></p>
+      </div>
+    </section>
+  </div>
 </main>
 
 <script src="/js/core.js"></script>

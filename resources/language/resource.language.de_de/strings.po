@@ -1548,8 +1548,8 @@ msgid "Cache dip"
 msgstr "Cache-Einbruch"
 
 msgctxt "#32493"
-msgid "Frames lost"
-msgstr "Verlorene Bilder"
+msgid "FPS lost"
+msgstr "Verlorene FPS"
 
 msgctxt "#32494"
 msgid "Playback controls"
@@ -1594,3 +1594,23 @@ msgstr "Standard"
 msgctxt "#32504"
 msgid "Strong"
 msgstr "Kräftig"
+
+msgctxt "#32505"
+msgid "Buffer and frame drops"
+msgstr "Puffer und Bildaussetzer"
+
+msgctxt "#32506"
+msgid "Cache"
+msgstr "Puffer"
+
+msgctxt "#32507"
+msgid "Last played"
+msgstr "Zuletzt gespielt"
+
+msgctxt "#32508"
+msgid "Summary"
+msgstr "Zusammenfassung"
+
+msgctxt "#32509"
+msgid "Too many connections"
+msgstr "Zu viele Verbindungen"

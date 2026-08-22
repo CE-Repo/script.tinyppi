@@ -548,16 +548,27 @@ class SessionLog:
     #: event instead of a hundred.
     CACHE_LOW   = 10.0
     CACHE_CLEAR = 30.0
-    #: Frames lost in a second before it is worth an event.
-    DROP_FLOOR  = 2
+    #: Frames lost in a second before it is worth an event.  One: a frame that
+    #: never reached the screen is what a viewer saw, and a list that only
+    #: spoke up at two of them was silent about most of what they noticed.
+    DROP_FLOOR  = 1
+
+    #: How long a finished title is kept after the player has stopped.  The
+    #: figures are worth most in the minutes right after the credits, which is
+    #: exactly when the old behaviour -- throwing them away the moment
+    #: playback ended -- had already lost them.
+    RETAIN_SECONDS = 600.0
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self.reset("")
 
-    def reset(self, key: str) -> None:
+    def reset(self, key: str, title: str = "") -> None:
         """Start over for ``key``, the title this session belongs to."""
         self._key       = key
+        self._title     = title
+        self._position  = ""
+        self._ended     = 0.0
         self._started   = time.monotonic()
         self._samples: list[tuple] = []
         self._events:  list[dict]  = []
@@ -567,34 +578,79 @@ class SessionLog:
         self._switches  = 0
         self._watched: dict[str, str] = {}
         self._cache_dipped = False
-        self._dropping  = False
+        #: The event of the stretch of lost frames now running, if one is.
+        self._dropping: dict | None = None
+        #: The worst drop reading seen since the last chart sample.
+        self._drop_peak = 0
 
     # -- writing --
 
-    def clear(self) -> None:
-        """Drop the session, for a player that has stopped.
+    def end(self) -> None:
+        """Close the session, for a player that has stopped.
 
-        Cheap to call on every idle pass: with nothing recorded there is
-        nothing to throw away, and the clock is left where it is rather than
-        restarted five times a second.
+        The readings are kept rather than dropped: the peak the grade reached
+        and the frames it lost are what a viewer looks for once the credits
+        roll, and the page has nothing else to show while nothing is playing.
+        They are let go after ``RETAIN_SECONDS``, and the next title lets them
+        go the moment it starts (see ``observe``).
+
+        Cheap to call on every idle pass: an already-closed session that is
+        still inside its window is left exactly as it is, and an empty one is
+        never held at all.
         """
         with self._lock:
             if not (self._key or self._samples or self._events):
                 return
-            self.reset("")
+            if not self._ended:
+                self._ended = time.monotonic()
+                return
+            if time.monotonic() - self._ended >= self.RETAIN_SECONDS:
+                self.reset("")
 
-    def observe(self, key: str, metrics: dict, watched: dict,
+    def observe(self, title: str, source: str, metrics: dict, watched: dict,
                 position: str) -> None:
-        """Fold one pass into the session, sampling on its own slower clock."""
+        """Fold one pass into the session, sampling on its own slower clock.
+
+        ``source`` is the file being played.  It rather than the title is what
+        tells one session from the next, because a title is not unique -- two
+        episodes of the same name would otherwise share a session -- and it
+        rather than the length, because a length is not steady: a live stream's
+        grows as it is watched, and restarting the session under it would leave
+        every figure on the page reading zero.
+        """
         with self._lock:
-            if key != self._key:
-                self.reset(key)
+            key = f"{title}\n{source}"
+            if self._ended or self._is_another_title(title, source, key):
+                self.reset(key, title)
+            self._position = position
             now = time.monotonic()
             self._note_changes(watched, now, position)
+            self._watch_levels(metrics, now, position)
             if now - self._sampled < self.SAMPLE_INTERVAL:
                 return
             self._sampled = now
             self._sample(metrics, now, position)
+
+    def _is_another_title(self, title: str, source: str, key: str) -> bool:
+        """Whether this pass belongs to a different title than the session.
+
+        A reading has to be whole to be believed.  Kodi keeps saying it has a
+        video for a tick or two after the labels behind it have emptied, and a
+        reading that has lost half of itself is a player winding down rather
+        than another film starting: taking it for one would throw away the
+        figures of the title that has just finished, which are the very ones
+        the page is about to show (see ``last``).
+
+        A source that cannot say what it is playing is a title all the same, so
+        where there is no file to compare, a name that changes is enough.
+        """
+        if not self._key:
+            return True            # nothing is being tracked yet
+        if key == self._key:
+            return False
+        if title and source:
+            return True            # a whole reading, and a different one
+        return bool(title) and title != self._title
 
     def _note_changes(self, watched: dict, now: float, position: str) -> None:
         """Log the readings that changed since the last pass.
@@ -615,22 +671,42 @@ class SessionLog:
                 self._switches += 1
             self._add_event(now, position, name, {"from": previous, "to": value})
 
+    def _watch_levels(self, metrics: dict, now: float, position: str) -> None:
+        """Follow the two readings that come and go between chart samples.
+
+        On the fast clock, like the output switches above and for the same
+        reason: dropped frames and an emptying cache are both gone again
+        within the second, and watching them from ``_sample`` -- which runs
+        once a second where the producer runs five times -- meant most of them
+        happened between two looks and left no trace anywhere.
+        """
+        drop = int(metrics.get("fps_drop") or 0)
+        # Held for the chart sample to take, so a burst that came and went
+        # inside one second is what that second is drawn and counted as.
+        self._drop_peak = max(self._drop_peak, drop)
+        self._watch_drops(drop, now, position)
+
+        cache = metrics.get("cache")
+        if cache is not None:
+            self._watch_cache(cache, now, position)
+
     def _sample(self, metrics: dict, now: float, position: str) -> None:
         """Take one chart sample and fold it into the totals."""
         level = metrics.get("l1") or {}
         peak  = level.get("max")
         mean  = level.get("avg")
-        drop  = metrics.get("fps_drop") or 0
         cache = metrics.get("cache")
 
-        # fps_drop is frames lost per second and this is one second of it.
-        self._drops += int(drop)
-        if cache is not None:
-            self._watch_cache(cache, now, position)
-        self._watch_drops(int(drop), now, position)
+        # The worst second the gauge showed since the last sample, not
+        # whatever it happens to read at this instant: the reading is the
+        # frames lost over the last second, and it is looked at five times as
+        # often as this runs (see _watch_levels).
+        drop = self._drop_peak
+        self._drop_peak = 0
+        self._drops += drop
 
         self._samples.append((
-            round(now - self._started, 1), peak, mean, int(drop), cache,
+            round(now - self._started, 1), peak, mean, drop, cache,
         ))
         if len(self._samples) > self.MAX_SAMPLES:
             del self._samples[:len(self._samples) - self.MAX_SAMPLES]
@@ -643,23 +719,45 @@ class SessionLog:
             self._cache_dipped = False
 
     def _watch_drops(self, drop: int, now: float, position: str) -> None:
-        if not self._dropping and drop >= self.DROP_FLOOR:
-            self._dropping = True
-            self._add_event(now, position, "drops", {"value": drop})
-        elif self._dropping and drop == 0:
-            self._dropping = False
+        """One event per stretch of lost frames, carrying its worst second.
+
+        Every stretch, however short -- that is the point of watching on the
+        fast clock.  But one event for the stretch and not one per look: the
+        gauge reads the last second, so a single stutter shows up in five
+        passes running, and five entries of the same stutter would push
+        everything else off a list sixty long.  While it lasts, its event is
+        kept at the worst the gauge showed; the reading falling back to
+        nothing is what ends it.
+        """
+        if drop < self.DROP_FLOOR:
+            if not drop:
+                self._dropping = None
+            return
+        if self._dropping is None:
+            self._dropping = self._add_event(now, position, "drops",
+                                             {"value": drop})
+        elif drop > self._dropping["value"]:
+            self._dropping["value"] = drop
+            # The page fetches the list again when this moves, and a stretch
+            # that worsens is worth the refetch: without it the entry would go
+            # on reading whatever the first look at it happened to catch.
+            self._seq += 1
 
     def _add_event(self, now: float, position: str, kind: str,
-                   detail: dict) -> None:
+                   detail: dict) -> dict:
+        """Add one event and hand it back, for a caller that keeps following
+        what it recorded (see ``_watch_drops``)."""
         self._seq += 1
-        self._events.append({
+        event = {
             "t": round(now - self._started, 1),
             "pos": position,
             "kind": kind,
             **detail,
-        })
+        }
+        self._events.append(event)
         if len(self._events) > self.MAX_EVENTS:
             del self._events[:len(self._events) - self.MAX_EVENTS]
+        return event
 
     # -- reading --
 
@@ -680,6 +778,30 @@ class SessionLog:
                 "seq":      self._seq,
                 "drops":    self._drops,
                 "switches": self._switches,
+            }
+
+    def last(self) -> dict:
+        """What the title that just finished came to, for the idle page.
+
+        Empty while something is playing and again once the window has run
+        out, so the page has one thing to test: either there is a last title
+        to show or there is not.
+        """
+        with self._lock:
+            if not self._ended or not self._key:
+                return {}
+            ago = time.monotonic() - self._ended
+            if ago >= self.RETAIN_SECONDS:
+                return {}
+            peaks = [sample[1] for sample in self._samples if sample[1] is not None]
+            return {
+                "title":    self._title,
+                "position": self._position,
+                "ago":      int(ago),
+                "drops":    self._drops,
+                "switches": self._switches,
+                "peak":     max(peaks) if peaks else None,
+                "events":   len(self._events),
             }
 
     def history(self) -> dict:
@@ -910,7 +1032,10 @@ class SnapshotBuilder:
             self._meta_static_at = 0.0
             self._controls = {}
             self._controls_at = 0.0
-            self.session.clear()
+            # Closed rather than thrown away: what the title came to is worth
+            # more once it has ended than at any point while it ran, and the
+            # page has nothing else to show until the next one starts.
+            self.session.end()
             return {
                 "seq":      self._sequence,
                 "playing":  False,
@@ -919,6 +1044,7 @@ class SnapshotBuilder:
                 "metadata": [],
                 "vs10":     vs10_state("", playing=False),
                 "session":  self.session.summary(),
+                "last":     self.session.last(),
             }
 
         self._refresh()
@@ -935,11 +1061,13 @@ class SnapshotBuilder:
         position = values.get("PlayerTime", "")
 
         # Folded in before the snapshot is handed over, so the totals the page
-        # is about to print already include the pass it is printing.  The key
-        # is what a new film changes: the title on its own would restart the
-        # session for two episodes of the same name.
+        # is about to print already include the pass it is printing.  The file
+        # name is what tells one session from the next and is never sent with
+        # them: the overlay's own setting governs what leaves the box, and this
+        # is read whether it is on or not.
         self.session.observe(
-            f"{title}\n{values.get('PlayerDuration', '')}",
+            title,
+            values.get("Filename", ""),
             metrics,
             {"vs10": vs10.get("output", ""),
              "mode": values.get("DisplayModeVar", "")},

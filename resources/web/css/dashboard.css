@@ -132,3 +132,38 @@
    are the marks on this link, and a mark takes the film's colour -- under the
    adaptive theme that is the cover's, from the rule on .metalink in theme.css. */
 .metalink .arrow { margin-left: auto; color: var(--accent); font-size: 18px; }
+
+/* --- What was playing before ------------------------------------------- */
+
+/* A card of its own under the idle one: the title that just ended and the
+   three figures it came to.  The tiles are the very ones the metrics card uses
+   while a film runs (.tilegrid in live-panels.css), so the same reading is
+   read in the same place before and after. */
+#lastCard {
+  display: grid;
+  gap: 1px;
+  background: var(--line-soft);
+}
+.lasthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 14px 16px;
+  background: var(--panel);
+}
+.lasthead .k {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.lasthead b { font-size: 15px; font-weight: 650; }
+
+/* Two tiles, side by side at every width.  The metrics card's grid is three
+   across and hands its last tile the whole row where there is no room for
+   three (.tilegrid in live-panels.css); for a pair that would be one tile
+   beside a hole. */
+#lastTiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#lastTiles .tile:last-child { grid-column: auto; }

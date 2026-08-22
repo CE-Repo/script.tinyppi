@@ -260,9 +260,24 @@ a phone in your hand.
   logarithmic scale, over the last minute, the last ten, or the whole title:
   the add-on has been sampling since playback started, so a page opened halfway
   through a film gets the part it missed instead of starting from empty.
+- **Buffer and frame drops** — the same three ranges, showing how full the
+  cache ran and how many frames went missing while it did. The two belong on
+  one chart because they are usually the same story, and unlike the luminance
+  chart this one is drawn for **every source**: it is what to look at when a
+  film stutters, whatever it was graded in.
 - **Events** — a list with timestamps of the things worth knowing about: an
   output switched to or from Dolby Vision, a display mode change, the cache
-  dipping, frames going missing.
+  dipping, frames going missing. Every stutter is listed, down to a single
+  lost frame and however briefly it lasted, with the worst second it reached;
+  a stutter that goes on is one entry rather than five a second. A long list
+  scrolls inside its own card rather than stretching the page under it.
+- **What the last title came to** — for ten minutes after the credits the page
+  keeps the film that just ended: a card of its own with the frames it lost and
+  how often the output was switched — the two figures only the add-on could
+  have counted — and the events of that film still under it. Those figures are
+  worth most once a film is over, which used to be exactly when they were
+  thrown away. The idle page is those two cards centred as one column; the line
+  saying nothing is playing is for a box that has played nothing.
 - **The active picture area** the RPU declares (L5), drawn to scale inside the
   coded frame — the letterbox as the stream describes it, changing with the
   scene on an IMAX Enhanced title. It sits on the metadata window, with the
@@ -273,7 +288,9 @@ a phone in your hand.
 - **A button to the Dolby Vision metadata view**, which opens in a **window of
   its own** (see below).
 - **Copy report** hands the whole set over as plain text, ready to paste into a
-  forum post.
+  forum post — the rows, what the title added up to, and the events along the
+  way. It works on the idle page too, where it writes the report of the title
+  that just finished.
 
 What a source cannot carry is left out rather than shown empty: the peak and
 average tiles, the luminance chart, the active-area box and both metadata
@@ -286,6 +303,29 @@ The row labels come from Kodi's own string table, so the dashboard is in the
 same language the overlay is. Nothing is loaded from the internet: the page is
 served entirely by the add-on and works on a box with no outside connection.
 On a phone it can be added to the home screen.
+
+### What it costs to leave open
+
+A second screen is left running for the length of a film, so the page is built
+not to be felt while it is:
+
+- **It connects as it loads.** The stream is opened in the same breath as the
+  page rather than after the translations have been fetched, so the dashboard
+  is live about as fast as it can draw.
+- **Only what moved is sent.** A browser is given one whole snapshot when it
+  connects and, five times a second after that, only the readings that actually
+  changed — which on a title standing still is a few dozen bytes where the
+  snapshot it replaces is tens of kilobytes.
+- **A page nobody is looking at is not connected.** Lock the phone or switch
+  tabs and the stream is dropped; come back and it is up again immediately.
+  That is the battery on the phone and one of the add-on's six stream slots,
+  neither spent on a page in a pocket.
+- **The page itself is cached.** Its files are sent with a validator and
+  compressed, so opening the dashboard a second time fetches almost nothing,
+  and the poster is fetched once per film however often the page is reopened.
+- **A full server says so.** Open the dashboard on a seventh device and it
+  reports that rather than sitting on "Disconnected"; it takes the first slot
+  that frees.
 
 ### Themes
 

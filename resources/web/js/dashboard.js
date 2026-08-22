@@ -16,15 +16,19 @@ const el = {
   version: $("version"), idleCard: $("idleCard"),
   vs10Card: $("vs10Card"), vs10Out: $("vs10Out"), modes: $("modes"),
   groups: $("groups"),
-  metricsCard: $("tiles"), eventsCard: $("eventsCard"), metaLink: $("metaLink"),
-  copyBtn: $("copyBtn")
+  metricsCard: $("tiles"), healthCard: $("healthCard"),
+  eventsCard: $("eventsCard"), metaLink: $("metaLink"),
+  copyBtn: $("copyBtn"), idleStack: $("idleStack"),
+  lastCard: $("lastCard"), lastTitle: $("lastTitle"), lastTiles: $("lastTiles")
 };
 
-/* Keep VS10 by the playback card; the two optional summary cards belong at
-   the page end, immediately ahead of the metadata link. */
+/* Keep VS10 by the playback card; the optional summary cards belong at the
+   page end, immediately ahead of the metadata link, in the order they are
+   read: the figures, what they did over the film, and what happened. */
 $("nowCard").after(el.vs10Card);
 el.metaLink.before(el.eventsCard);
 el.eventsCard.before(el.metricsCard);
+el.eventsCard.before(el.healthCard);
 
 let state = null;
 let control = false;
@@ -51,27 +55,86 @@ function render(next) {
   TinyPPI.panels.update(next);
 
   if (!next.playing) {
-    el.idleCard.classList.remove("hidden");
-    /* The copy button goes with them: with nothing playing there is no report
-       to write, and a button that answers a press with nothing is worse than
-       one that is not there. */
-    for (const id of ["vs10Card", "metaLink", "copyBtn"]) {
+    /* The line saying nothing is playing is for a box that has played nothing:
+       with the title that just ended on the page under it, it says what the
+       page already shows and takes a card to say it. */
+    el.idleCard.classList.toggle("hidden", !!(next.last && next.last.title));
+    for (const id of ["vs10Card", "metaLink"]) {
       $(id).classList.add("hidden");
     }
     el.groups.innerHTML = "";
     rowNodes.clear();
     groupNodes.clear();
+    renderLast(next.last);
+    /* The events of the title that just ended join the two cards above them,
+       so the idle page is one centred column rather than a card floating in
+       the middle of the viewport with its own events stranded at the top. */
+    if (el.eventsCard.parentElement !== el.idleStack) {
+      el.idleStack.append(el.eventsCard);
+    }
+    /* The button goes with the report: there is one for as long as the title
+       that just ended is still held, and none at all once it is let go -- a
+       button that answers a press with nothing is worse than one that is not
+       there. */
+    el.copyBtn.classList.toggle("hidden", !next.last || !next.last.title);
     return;
   }
 
   el.idleCard.classList.add("hidden");
+  el.lastCard.classList.add("hidden");
   el.copyBtn.classList.remove("hidden");
+  /* Back to the foot of the page, where it belongs while something plays. */
+  if (el.eventsCard.parentElement === el.idleStack) {
+    el.metaLink.before(el.eventsCard);
+  }
 
   renderVs10(next.vs10 || {});
   renderGroups(ordered(next.groups || []));
   /* The metadata list is a window of its own; this page only says whether
      there is one to open. */
   el.metaLink.classList.toggle("hidden", !(next.metadata && next.metadata.length));
+}
+
+/* --- the title that just ended ------------------------------------------ */
+
+/* The add-on holds a finished session for ten minutes (see SessionLog.end in
+   web/snapshot.py), which is the window in which someone walks over to the
+   phone and asks what that film actually did.  What it did is three figures
+   and the events beneath them; the event list is the same card that was there
+   while it played, and stays where it was. */
+function renderLast(last) {
+  if (!last || !last.title) {
+    el.lastCard.classList.add("hidden");
+    return;
+  }
+  el.lastCard.classList.remove("hidden");
+  el.lastTitle.textContent = last.title;
+
+  /* The two figures only the add-on could have counted: it saw every frame of
+     the title and the browser saw whichever ones it was connected for.  The
+     peak the grade reached is in the report rather than here -- it is a
+     reading about the film, and these are about the playing of it. */
+  const tiles = [
+    [T.drops, String(last.drops || 0)],
+    [T.switches, String(last.switches || 0)]
+  ];
+
+  el.lastTiles.replaceChildren();
+  for (const [label, value] of tiles) {
+    const tile = document.createElement("div");
+    tile.className = "tile";
+    const key = document.createElement("span");
+    key.className = "k";
+    key.textContent = label;
+    const wrap = document.createElement("span");
+    wrap.className = "vwrap";
+    const reading = document.createElement("span");
+    reading.className = "v mono";
+    reading.textContent = value;
+    wrap.append(reading);
+    tile.append(key, wrap);
+    el.lastTiles.append(tile);
+  }
 }
 
 /* --- VS10 --------------------------------------------------------------- */
@@ -268,8 +331,46 @@ function reportValue(row) {
   return parts.join(" | ");
 }
 
+/* What the title added up to, and what happened along the way.  Both come
+   from the session the add-on has been keeping since playback started, so a
+   report written a minute in and one written at the credits differ by exactly
+   what happened in between -- and one written after the credits still has all
+   of it (see renderLast). */
+function summaryLines(session, peak) {
+  const lines = [];
+  if (peak !== null && peak !== undefined) {
+    lines.push(TinyPPI.reportLine(T.peak, TinyPPI.fmtNits(peak) + " nits"));
+  }
+  lines.push(TinyPPI.reportLine(T.drops, String((session || {}).drops || 0)));
+  lines.push(TinyPPI.reportLine(T.switches, String((session || {}).switches || 0)));
+  return ["[" + T.summary + "]", ...lines, ""];
+}
+
+function eventLines() {
+  const events = TinyPPI.panels.events();
+  if (!events.length) return [];
+  const lines = ["[" + T.events + "]"];
+  for (const event of events) {
+    lines.push(TinyPPI.reportLine(
+      (event.pos ? event.pos + "  " : "") + event.label, event.text));
+  }
+  lines.push("");
+  return lines;
+}
+
 function buildReport() {
-  if (!state || !state.playing) return "";
+  if (!state) return "";
+  const peak = TinyPPI.panels.peak();
+  if (!state.playing) {
+    /* Nothing is playing, so the report is of the title that was: its heading,
+       its figures and its events, with no rows to print between them. */
+    const last = state.last;
+    if (!last || !last.title) return "";
+    return ["TinyPPI", last.title, "",
+            ...summaryLines(last, last.peak === undefined ? peak : last.peak),
+            ...eventLines()].join("\n");
+  }
+
   const lines = ["TinyPPI"];
   if (state.title) lines.push(state.title);
   if (state.filename) lines.push(state.filename);
@@ -281,6 +382,8 @@ function buildReport() {
     }
     lines.push("");
   }
+  lines.push(...summaryLines(state.session, peak));
+  lines.push(...eventLines());
   return lines.join("\n");
 }
 
@@ -288,7 +391,9 @@ function buildReport() {
    give it the clipboard; both pages hand it over the same way (see
    TinyPPI.copyReport). */
 el.copyBtn.addEventListener("click", () => {
-  TinyPPI.copyReport(buildReport(), (state || {}).title);
+  const title = (state || {}).playing
+    ? state.title : ((state || {}).last || {}).title;
+  TinyPPI.copyReport(buildReport(), title);
 });
 
 /* --- boot --------------------------------------------------------------- */
@@ -296,6 +401,7 @@ el.copyBtn.addEventListener("click", () => {
 function applyStrings(strings, hello) {
   $("idleTitle").textContent = strings.idle_title;
   $("idleText").textContent = strings.idle_text;
+  $("lastLabel").textContent = strings.last_played;
   TinyPPI.panels.strings(strings);
   $("vs10Title").textContent = strings.vs10;
   $("vs10OutLabel").textContent = strings.output;

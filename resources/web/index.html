@@ -41,12 +41,29 @@
 <main>
   <div id="live"></div>
 
-  <section class="card hidden" id="idleCard">
-    <div class="empty">
-      <div class="big" id="idleTitle">—</div>
-      <p id="idleText"></p>
-    </div>
-  </section>
+  <!-- The idle page, as one centred column: what is not playing, what was,
+       and what happened while it was.  The events card is moved in here for
+       as long as nothing plays and back out when something does (see
+       js/dashboard.js). -->
+  <div class="idlestack" id="idleStack">
+    <section class="card hidden" id="idleCard">
+      <div class="empty">
+        <div class="big" id="idleTitle">—</div>
+        <p id="idleText"></p>
+      </div>
+    </section>
+
+    <!-- What the title that has just finished came to.  The add-on keeps a
+         session for a while after the player stops, which is when its figures
+         are worth reading (see SessionLog.end in web/snapshot.py). -->
+    <section class="card hidden" id="lastCard">
+      <div class="lasthead">
+        <span class="k" id="lastLabel"></span>
+        <b id="lastTitle"></b>
+      </div>
+      <div class="tilegrid" id="lastTiles"></div>
+    </section>
+  </div>
 
   <details class="card hidden" id="vs10Card">
     <summary class="panel-toggle"><span id="vs10Title"></span></summary>

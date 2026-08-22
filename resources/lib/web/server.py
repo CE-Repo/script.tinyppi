@@ -11,6 +11,7 @@ everything that changes the player's state needs the token.  The server is off
 until it is switched on in the add-on settings.
 """
 
+import gzip
 import json
 import os
 import secrets
@@ -53,6 +54,28 @@ _MAX_BODY = 4096
 # treated as something other than a poster.
 _ART_KINDS = ("poster", "fanart")
 _MAX_ART   = 8 * 1024 * 1024
+
+# What a browser may keep, and for how long.
+#
+# The static files are the add-on's own and change only when it is updated, so
+# they are sent with a validator rather than an age: the browser asks whether
+# its copy is still good and is answered with an empty 304, which over a
+# kept-alive connection is a few dozen bytes instead of the whole page.  An age
+# would be faster still and would leave a phone holding yesterday's dashboard
+# after an update.
+_STATIC_CACHE = "no-cache"
+
+# Artwork is the exception: its address carries a tag that changes with the
+# picture (see snapshot._art_tags), so the answer to one address can never go
+# out of date and a poster is fetched once per film however often the page is
+# reopened.
+_ART_CACHE   = "private, max-age=604800, immutable"
+
+# Bodies worth compressing, and the size below which it is not worth the CPU.
+# Only text: the icons are already small and the JPEGs are already compressed.
+_COMPRESSIBLE = ("text/", "application/manifest+json", "application/json",
+                 "image/svg+xml")
+_MIN_COMPRESS = 600
 
 # Artwork comes from wherever the library points, so its type is read off the
 # name; anything unrecognised is sent as the JPEG that a poster almost always
@@ -122,7 +145,9 @@ _UI_STRINGS = {
     "stop":          32490,
     "ev_mode":       32491,
     "ev_cache":      32492,
-    "ev_drops":      32493,
+    # A stutter is named in the events the way it is named on the tile, so
+    # #32476 answers for both; #32493 names what the figure beside it is.
+    "drops_fps":     32493,
     "controls":      32494,
     "metrics":       32495,
     # The theme button and the menu behind a long press on it.
@@ -135,6 +160,13 @@ _UI_STRINGS = {
     "tint_subtle":     32502,
     "tint_standard":   32503,
     "tint_strong":     32504,
+    # The playback chart, the title that has just ended, and the one thing a
+    # stream can be refused for that is worth naming.
+    "health":          32505,
+    "cache":           32506,
+    "last_played":     32507,
+    "summary":         32508,
+    "busy":            32509,
 }
 
 
@@ -290,6 +322,150 @@ def _media_routes(root: str) -> dict[str, tuple[str, str]]:
     return routes
 
 
+class _StaticFiles:
+    """The route table's files, read and compressed once.
+
+    A page opening asks for a dozen of them at once, and every one of those
+    reads would otherwise come off the box's own flash while the browser waits.
+    Each file is read on its first request and kept with its compressed twin
+    and a validator; the size and modification time are checked on every
+    request, so a file replaced under a running server is picked up rather than
+    served from yesterday.
+
+    Shared by every request thread, hence the lock -- held only around the
+    dictionary, never around a read.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._files: dict[str, tuple[tuple, tuple]] = {}
+
+    def get(self, path: str, content_type: str) -> tuple | None:
+        """``(body, gzipped_or_None, etag)`` for a file, or None when it is
+        gone."""
+        try:
+            stat = os.stat(path)
+        except OSError:
+            return None
+        stamp = (stat.st_mtime_ns, stat.st_size)
+
+        with self._lock:
+            held = self._files.get(path)
+        if held is not None and held[0] == stamp:
+            return held[1]
+
+        try:
+            with open(path, "rb") as handle:
+                body = handle.read()
+        except OSError:
+            return None
+
+        packed = None
+        if len(body) >= _MIN_COMPRESS and content_type.startswith(_COMPRESSIBLE):
+            packed = gzip.compress(body, 6)
+            # A file that grows under compression is sent as it is.
+            if len(packed) >= len(body):
+                packed = None
+        # The modification time and the size: the files are the add-on's, and
+        # an update rewrites every one of them.
+        entry = (body, packed, f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"')
+
+        with self._lock:
+            self._files[path] = (stamp, entry)
+        return entry
+
+
+# --- Delta frames ----------------------------------------------------------
+
+# The stream sends one whole snapshot when a browser connects and only what
+# moved after that.  Almost nothing does: a title's rows are written once and
+# then stand for two hours, while the clock and a handful of figures move five
+# times a second -- so a delta is a few dozen bytes where the snapshot it
+# replaces is tens of kilobytes, which on a phone is the difference between a
+# background tab that costs nothing and one that costs a battery.
+#
+# The two long lists are diffed by row.  Their *shape* -- which cards exist,
+# which rows they hold and what those are called -- decides how: unchanged, and
+# only the readings that moved are sent; changed at all, and the whole list
+# goes, because a page cannot patch rows into a list it does not have yet.
+# Everything else is compared whole and sent whole, each being small.
+
+_DELTA_LISTS = ("groups", "metadata")
+
+
+def _group_shape(groups: list) -> tuple:
+    """Which cards a snapshot has, and which rows under which names."""
+    return tuple(
+        (group.get("id"), group.get("title"),
+         tuple((row.get("id"), row.get("label")) for row in group.get("rows", ())))
+        for group in groups
+    )
+
+
+def _group_rows_delta(previous: list, current: list) -> list | None:
+    """Changed rows as ``[id, value, detail]``, or None to send the lot."""
+    if _group_shape(previous) != _group_shape(current):
+        return None
+    changed = []
+    for was, now in zip(previous, current):
+        for old_row, new_row in zip(was.get("rows", ()), now.get("rows", ())):
+            if (old_row.get("value") != new_row.get("value")
+                    or old_row.get("detail") != new_row.get("detail")):
+                changed.append([new_row.get("id"), new_row.get("value"),
+                                new_row.get("detail")])
+    return changed
+
+
+def _metadata_shape(rows: list) -> tuple:
+    """The metadata list's shape: what each row is and how wide it is.
+
+    A trim row carries cells and every other row a single value (see
+    ``snapshot._metadata_row``), so the width tells the two apart as well as
+    catching a table that gained a column.
+    """
+    return tuple(
+        (row.get("kind"), row.get("name"),
+         len(row["cells"]) if isinstance(row.get("cells"), list) else -1)
+        for row in rows
+    )
+
+
+def _metadata_delta(previous: list, current: list) -> list | None:
+    """Changed rows as ``[index, value-or-cells]``, or None to send the lot."""
+    if _metadata_shape(previous) != _metadata_shape(current):
+        return None
+    changed = []
+    for index, (was, now) in enumerate(zip(previous, current)):
+        if was.get("value") != now.get("value") or was.get("cells") != now.get("cells"):
+            changed.append([index, now["cells"] if "cells" in now else now.get("value")])
+    return changed
+
+
+def _snapshot_delta(previous: dict, current: dict) -> dict:
+    """One delta frame: what ``current`` has that ``previous`` did not."""
+    frame: dict = {"seq": current.get("seq", 0)}
+
+    moved = {key: value for key, value in current.items()
+             if key != "seq" and key not in _DELTA_LISTS
+             and previous.get(key) != value}
+    gone = [key for key in previous
+            if key not in current and key not in _DELTA_LISTS]
+    if moved:
+        frame["set"] = moved
+    if gone:
+        frame["del"] = gone
+
+    for key, rows_delta in (("groups", _group_rows_delta),
+                            ("metadata", _metadata_delta)):
+        was = previous.get(key) or []
+        now = current.get(key) or []
+        if was == now:
+            continue
+        rows = rows_delta(was, now)
+        frame[key] = now if rows is None else {"rows": rows}
+    return frame
+
+
 # --- Artwork ---------------------------------------------------------------
 
 def _unwrap_image_url(path: str) -> str:
@@ -420,22 +596,46 @@ class _Handler(BaseHTTPRequestHandler):
         _log(fmt % args, xbmc.LOGDEBUG)
 
     def _send(self, status: HTTPStatus, body: bytes, content_type: str,
-              extra: tuple[tuple[str, str], ...] = ()) -> None:
+              extra: tuple[tuple[str, str], ...] = (),
+              cache: str = "no-store") -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
-        # The dashboard is the live state of a player; nothing here may be
-        # replayed from a cache.
-        self.send_header("Cache-Control", "no-store")
+        # The default is the live state of a player, which may never be
+        # replayed from a cache.  The page itself is another matter, and says
+        # so (see _serve_static and _serve_art).
+        self.send_header("Cache-Control", cache)
         self.send_header("X-Content-Type-Options", "nosniff")
         for name, value in extra:
             self.send_header(name, value)
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_unchanged(self, etag: str, cache: str) -> None:
+        """Answer a conditional request with an empty 304."""
+        self.send_response(HTTPStatus.NOT_MODIFIED)
+        self.send_header("ETag", etag)
+        self.send_header("Cache-Control", cache)
+        self.end_headers()
+
+    def _holds(self, etag: str) -> bool:
+        """Whether the request already carries this exact version."""
+        offered = self.headers.get("If-None-Match", "")
+        return bool(etag) and etag in [
+            part.strip().removeprefix("W/") for part in offered.split(",")
+        ]
+
     def _send_json(self, payload: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-        self._send(status, body, "application/json; charset=utf-8")
+        extra: tuple[tuple[str, str], ...] = ()
+        # The chart's history is the one answer here big enough to be worth
+        # compressing -- an hour of samples is five arrays of 3600 numbers --
+        # and it is asked for whenever a page opens or an event lands.
+        if (len(body) >= _MIN_COMPRESS
+                and "gzip" in self.headers.get("Accept-Encoding", "")):
+            body = gzip.compress(body, 6)
+            extra = (("Content-Encoding", "gzip"), ("Vary", "Accept-Encoding"))
+        self._send(status, body, "application/json; charset=utf-8", extra)
 
     def _send_error_json(self, status: HTTPStatus, message: str) -> None:
         self._send_json({"error": message}, status)
@@ -560,6 +760,11 @@ class _Handler(BaseHTTPRequestHandler):
     def _state_payload(self) -> dict:
         payload = dict(self.server.producer.snapshot)
         payload["control"] = self.server.allow_control
+        # Whether a stream would be turned away right now.  A browser whose
+        # EventSource was refused cannot read why -- the failure reaches it as
+        # a bare error -- so it asks here, and this is what tells a full server
+        # apart from one that has gone away (see connect() in js/core.js).
+        payload["streams_full"] = self.server.streams_full
         return payload
 
     def _serve_art(self) -> None:
@@ -569,6 +774,16 @@ class _Handler(BaseHTTPRequestHandler):
         if kind not in _ART_KINDS:
             self._send_error_json(HTTPStatus.NOT_FOUND, "no such artwork")
             return
+        # The page hangs the picture's own tag on the address, so an answer
+        # can be kept for as long as the browser likes: the next film asks a
+        # different address rather than the same one twice.
+        tag  = (query.get("v") or [""])[0]
+        etag = f'"{tag}"' if tag else ""
+        cache = _ART_CACHE if tag else "no-store"
+        if etag and self._holds(etag):
+            self._send_unchanged(etag, cache)
+            return
+
         found = self.server.artwork(kind)
         if found is None:
             # Not every film has a poster, and a library-less file has none at
@@ -576,23 +791,34 @@ class _Handler(BaseHTTPRequestHandler):
             self._send_error_json(HTTPStatus.NOT_FOUND, "no artwork")
             return
         body, content_type = found
-        self._send(HTTPStatus.OK, body, content_type)
+        self._send(HTTPStatus.OK, body, content_type,
+                   (("ETag", etag),) if etag else (), cache=cache)
 
     def _serve_static(self, route: str) -> None:
         path, content_type = self.server.static_routes[route]
-        try:
-            with open(path, "rb") as handle:
-                body = handle.read()
-        except OSError:
+        found = self.server.static_files.get(path, content_type)
+        if found is None:
             self._send_error_json(HTTPStatus.NOT_FOUND, "missing file")
             return
-        self._send(HTTPStatus.OK, body, content_type)
+        body, packed, etag = found
+        if self._holds(etag):
+            self._send_unchanged(etag, _STATIC_CACHE)
+            return
+        extra = (("ETag", etag), ("Vary", "Accept-Encoding"))
+        if packed is not None and "gzip" in self.headers.get("Accept-Encoding", ""):
+            body = packed
+            extra += (("Content-Encoding", "gzip"),)
+        self._send(HTTPStatus.OK, body, content_type, extra, cache=_STATIC_CACHE)
 
     def _serve_stream(self) -> None:
         """Push snapshots as Server-Sent Events until the client leaves or the
         service shuts down."""
         if not self.server.claim_stream():
-            self._send_error_json(HTTPStatus.SERVICE_UNAVAILABLE, "too many streams")
+            # A slot frees the moment a forgotten tab is closed or its phone
+            # locks (see the visibility handling in js/core.js), so the page is
+            # told to come back in a second rather than backing off.
+            self._send_json({"error": "too many streams"},
+                            HTTPStatus.SERVICE_UNAVAILABLE)
             return
         try:
             self.send_response(HTTPStatus.OK)
@@ -613,6 +839,11 @@ class _Handler(BaseHTTPRequestHandler):
         producer = self.server.producer
         stop     = self.server.stop_event
         seen     = -1
+        # The last payload this connection was sent, which every delta after
+        # it is measured against.  Per connection rather than per server: two
+        # browsers can be at different points, and a page that has just
+        # connected must be sent the whole thing whatever the others hold.
+        sent: dict | None = None
         last_beat = time.monotonic()
         # A write to a client that has gone quiet must not hold the thread for
         # good; the timeout turns it into the OSError the caller treats as a
@@ -634,8 +865,13 @@ class _Handler(BaseHTTPRequestHandler):
             last_beat = now
             payload = dict(snapshot)
             payload["control"] = self.server.allow_control
-            data = json.dumps(payload, ensure_ascii=False)
-            self.wfile.write(f"event: state\ndata: {data}\n\n".encode("utf-8"))
+            if sent is None:
+                kind, frame = "state", payload
+            else:
+                kind, frame = "delta", _snapshot_delta(sent, payload)
+            sent = payload
+            data = json.dumps(frame, ensure_ascii=False)
+            self.wfile.write(f"event: {kind}\ndata: {data}\n\n".encode("utf-8"))
             self.wfile.flush()
 
         self.wfile.write(b"event: bye\ndata: {}\n\n")
@@ -655,6 +891,7 @@ class _Server(ThreadingHTTPServer):
         self.stop_event    = stop_event
         self.token         = token
         self.static_routes = _static_routes()
+        self.static_files  = _StaticFiles()
         self.auth_read     = False
         self.allow_control = True
         self._streams      = 0
@@ -699,6 +936,11 @@ class _Server(ThreadingHTTPServer):
         with self._art_lock:
             self._art[kind] = (path, data, content_type)
         return data, content_type
+
+    @property
+    def streams_full(self) -> bool:
+        with self._stream_lock:
+            return self._streams >= _MAX_STREAMS
 
     def claim_stream(self) -> bool:
         with self._stream_lock:

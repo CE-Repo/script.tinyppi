@@ -28,6 +28,9 @@
   --ok:        #81c784;
   --warn:      #ffb74d;
   --bad:       #ff5252;
+  /* The one scrollbar the page draws itself (see .events in live-panels.css):
+     lighter than a line, darker than a reading. */
+  --scroll:    #4b535e;
   --shadow:    0 1px 0 rgba(255,255,255,.03), 0 8px 24px rgba(0,0,0,.35);
   --radius:    14px;
   --radius-sm: 10px;
@@ -60,6 +63,7 @@
   --ok:        #34d399;
   --warn:      #fbbf24;
   --bad:       #f87171;
+  --scroll:    #38455f;
   --shadow:    0 1px 0 rgba(255,255,255,.02), 0 10px 28px rgba(0,0,0,.5);
 }
 
@@ -92,6 +96,11 @@ body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   font-size: 15px;
   line-height: 1.45;
+  /* A column of two: the bar, and everything else.  main taking what is left
+     of the viewport is what lets the idle page centre itself in the space
+     under the bar rather than over it (see .idlestack). */
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
@@ -231,6 +240,13 @@ main {
   padding: 16px;
   display: grid;
   gap: var(--gap);
+  /* Whatever the bar leaves, so a short page can be centred in it. */
+  flex: 1 1 auto;
+  width: 100%;
+  /* Cards keep their own height in that room rather than being handed a share
+     of it: a grid with space to spare stretches its rows, and a page of three
+     cards on a tall screen would draw all three of them tall. */
+  align-content: start;
 }
 /* On a phone the page keeps the same narrow margin all the way round, and the
    top bar keeps it too -- so there is one edge rather than two, and the first
@@ -361,25 +377,46 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 .empty .big { font-size: 17px; font-weight: 600; }
 .empty p { margin: 0; color: var(--muted); font-size: 13.5px; }
 
-/* The idle card is the page's only content worth looking at.  Centre the card
-   itself in the viewport while keeping the same usable width as main. */
-#idleCard:not(.hidden) {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  /* Twice main's own padding taken off, so a card that has left the flow still
-     lines up with the ones that have not. */
-  width: min(calc(100% - 32px), 1328px);
-  transform: translate(-50%, -50%);
-  z-index: 1;
+/* The idle page is the only content worth looking at, so it is centred in
+   what the page has rather than left sitting under an empty top bar.  All of
+   it goes, not the first card alone: what is not playing, what was, and the
+   events of what was stand as one column (js/dashboard.js moves the events
+   card in for as long as nothing plays).
+
+   Centred by main rather than pinned to the viewport, because a column pinned
+   to the viewport is centred over the bar as well as under it -- and on a
+   phone, where three cards are most of a screen, that is the difference
+   between a column that fits and one whose first card slides under the bar
+   while its last runs off the bottom. */
+.idlestack {
+  display: grid;
+  gap: var(--gap);
+  /* Each card its own height and no more.  A grid whose container has room to
+     spare hands that room to its rows, and a card given room it did not ask
+     for is a heading with a hole under it. */
+  align-content: start;
 }
-@media (max-width: 620px) {
-  #idleCard:not(.hidden) { width: min(calc(100% - 20px), 1328px); }
-}
+/* An empty stack is no stack: hidden outright, or main's own gap would leave
+   a hole where it stands while something plays. */
+.idlestack:not(:has(> :not(.hidden))) { display: none; }
+
+/* Written as one relative selector rather than a :has() inside a :has(),
+   which is not allowed anywhere in CSS: a browser drops the whole rule, and
+   the centring here went with it. */
+main:has(> .idlestack > :not(.hidden)) { align-content: center; }
 
 @media (min-width: 760px) {
-  #idleCard:not(.hidden) { max-width: 400px; }
+  .idlestack:has(> :not(.hidden)) {
+    max-width: 460px;
+    margin: 0 auto;
+  }
 }
+
+/* A folded card is its heading and nothing else.  Saying so outright, because
+   a browser does not: the panel is laid out behind the fold whatever the fold
+   says -- a list with a height of its own then stands a strip of itself under
+   the heading of a card that is supposed to be shut. */
+details.card:not([open]) > :not(summary) { display: none; }
 
 .hidden { display: none !important; }
 

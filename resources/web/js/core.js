@@ -32,13 +32,16 @@ window.TinyPPI = (function () {
     controls: "Playback controls",
     token_title: "Access token", token_text: "", save: "Save", cancel: "Cancel",
     yes: "Yes", no: "No",
-    token_bad: "Wrong or missing token", switching: "Switching…",
+    token_bad: "Wrong or missing token", busy: "Too many connections",
+    switching: "Switching…",
     switched: "Switched", switch_failed: "Switching failed",
     theme_dark: "Dark", theme_adaptive: "Dark (adaptive)",
     theme_midnight: "Midnight", theme_menu: "Choose a theme",
     theme_switch: "Switch to {name} (hold for the full list)",
     tint_label: "Intensity", tint_subtle: "Subtle", tint_standard: "Standard",
-    tint_strong: "Strong"
+    tint_strong: "Strong",
+    health: "Buffer and frame drops", cache: "Cache", drops_fps: "FPS lost",
+    last_played: "Last played", summary: "Summary"
   };
 
   const $ = (id) => document.getElementById(id);
@@ -67,6 +70,11 @@ window.TinyPPI = (function () {
   let onState = null;
   let source = null;
   let retryAt = 1000;
+  let retryTimer = 0;
+  /* The last whole snapshot.  Everything after the first frame of a
+     connection arrives as a delta measured against it (see _snapshot_delta in
+     web/server.py), so it is what those are applied to. */
+  let base = null;
   let statusEl = null;
   let statusText = null;
   let toastEl = null;
@@ -96,7 +104,12 @@ window.TinyPPI = (function () {
     tokenInput = $("tokenInput");
 
     dialogEl.addEventListener("close", () => {
-      if (dialogEl.returnValue !== "ok") return;
+      if (dialogEl.returnValue !== "ok") {
+        /* Dismissed rather than answered.  Something has to stay pending, or
+           a page whose token was only asked for by mistake never comes back. */
+        if (!source) scheduleRetry(5000);
+        return;
+      }
       token = tokenInput.value.trim().toUpperCase();
       localStorage.setItem(TOKEN_KEY, token);
       /* The stream carries the token in its URL -- an EventSource cannot send
@@ -198,6 +211,9 @@ window.TinyPPI = (function () {
   }
 
   function askToken() {
+    /* The stream and /api/hello can both find out that a token is wanted, and
+       within a moment of each other; the first one to ask keeps the dialog. */
+    if (!dialogEl || dialogEl.open) return;
     tokenInput.value = token;
     dialogEl.showModal();
     tokenInput.focus();
@@ -206,8 +222,106 @@ window.TinyPPI = (function () {
 
   /* --- stream ----------------------------------------------------------- */
 
-  function connect() {
+  function stopRetry() {
+    clearTimeout(retryTimer);
+    retryTimer = 0;
+  }
+
+  function scheduleRetry(delay) {
+    stopRetry();
+    /* Nothing is retried out of sight; coming back into it reconnects at once
+       (see the visibility handler below). */
+    if (document.hidden) return;
+    retryTimer = setTimeout(connect, delay);
+  }
+
+  function backOff() {
+    setStatus("down", T.offline);
+    scheduleRetry(retryAt);
+    retryAt = Math.min(retryAt * 2, 15000);
+  }
+
+  /* Close the stream and forget the state it was carrying: a fresh connection
+     always opens with a whole snapshot, so nothing may be patched onto what an
+     older one left behind. */
+  function disconnect() {
+    stopRetry();
     if (source) { source.close(); source = null; }
+    base = null;
+  }
+
+  function frame(event) {
+    try { return JSON.parse(event.data); }
+    catch (_) { return null; }   /* skip a bad frame */
+  }
+
+  function deliver(snapshot) {
+    setStatus("live", T.connected);
+    if (!onState) return;
+    try { onState(snapshot); }
+    catch (_) { /* a page that throws must not take the stream with it */ }
+  }
+
+  /* --- delta frames ------------------------------------------------------ */
+
+  /* What the add-on sends after the first frame is only what moved.  The two
+     long lists are patched by row where the list itself still has the same
+     shape, and replaced outright where it does not -- rows cannot be written
+     into a card the page has not been told about yet. */
+  function merge(snapshot, delta) {
+    const next = Object.assign({}, snapshot, delta.set || {});
+    for (const key of delta.del || []) delete next[key];
+    next.seq = delta.seq;
+    next.groups = mergeGroups(snapshot.groups, delta.groups);
+    next.metadata = mergeRows(snapshot.metadata, delta.metadata);
+    return next;
+  }
+
+  function mergeGroups(groups, patch) {
+    if (patch === undefined) return groups;
+    if (Array.isArray(patch)) return patch;
+    const moved = new Map();
+    for (const row of patch.rows || []) moved.set(row[0], row);
+    if (!moved.size) return groups;
+    return (groups || []).map((group) => ({
+      ...group,
+      rows: (group.rows || []).map((row) => {
+        const change = moved.get(row.id);
+        return change ? { ...row, value: change[1], detail: change[2] } : row;
+      })
+    }));
+  }
+
+  /* The metadata list is patched by position rather than by name: its rows
+     have no ids, and the shape check on the other side is what guarantees the
+     positions still mean the same thing. */
+  function mergeRows(rows, patch) {
+    if (patch === undefined) return rows;
+    if (Array.isArray(patch)) return patch;
+    const next = (rows || []).slice();
+    for (const [at, value] of patch.rows || []) {
+      const row = next[at];
+      if (!row) continue;
+      next[at] = Array.isArray(value)
+        ? { ...row, cells: value } : { ...row, value: value };
+    }
+    return next;
+  }
+
+  /* A delta with nothing to apply it to: the connection is asked for a whole
+     snapshot rather than left showing a page that has stopped moving. */
+  function refetch() {
+    getJSON("/api/state").then((snapshot) => {
+      base = snapshot;
+      deliver(snapshot);
+    }).catch(() => { /* the error handler below has the connection */ });
+  }
+
+  /* --- connecting -------------------------------------------------------- */
+
+  function connect() {
+    disconnect();
+    if (document.hidden) return;
     setStatus("wait", T.connecting);
     source = new EventSource(withToken("/api/stream"));
 
@@ -217,36 +331,86 @@ window.TinyPPI = (function () {
     });
 
     source.addEventListener("state", (event) => {
-      setStatus("live", T.connected);
-      try {
-        if (onState) onState(JSON.parse(event.data));
-      } catch (_) { /* skip a bad frame */ }
+      const snapshot = frame(event);
+      if (!snapshot) return;
+      base = snapshot;
+      deliver(snapshot);
+    });
+
+    source.addEventListener("delta", (event) => {
+      const delta = frame(event);
+      if (!delta) return;
+      if (!base) { refetch(); return; }
+      base = merge(base, delta);
+      deliver(base);
     });
 
     source.addEventListener("bye", () => {
       /* The add-on is shutting the server down; stop hammering it. */
-      source.close();
-      source = null;
+      disconnect();
       setStatus("down", T.offline);
-      setTimeout(connect, 5000);
+      scheduleRetry(5000);
     });
 
     source.addEventListener("error", () => {
       setStatus("down", T.offline);
-      /* EventSource retries on its own, but a 401 closes it for good: check
-         whether the server is asking for a token before giving up on it. */
+      /* EventSource retries on its own while the connection is merely down.
+         A closed one is the end of it, and says nothing about why. */
       if (!source || source.readyState !== EventSource.CLOSED) return;
-      source = null;
-      const again = () => {
-        setTimeout(connect, retryAt);
-        retryAt = Math.min(retryAt * 2, 15000);
-      };
-      fetch(withToken("/api/state")).then((response) => {
-        if (response.status === 401) { toast(T.token_bad, true); askToken(); return; }
-        again();
-      }).catch(again);
+      disconnect();
+      probe();
     });
   }
+
+  /* One request answers everything a closed stream leaves open: whether the
+     add-on wants a token, whether it is simply carrying as many streams as it
+     will, and whether it is there at all. */
+  function probe() {
+    fetch(withToken("/api/state")).then((response) => {
+      if (response.status === 401) {
+        setStatus("down", T.token_bad);
+        /* A first visit to a page that wants a token has not got one wrong;
+           it has not been given one yet. */
+        if (token) toast(T.token_bad, true);
+        askToken();
+        return;
+      }
+      return response.json().then((state) => {
+        if (state && state.streams_full) {
+          /* Another tab, or this phone before it was locked.  A slot comes
+             back as soon as one of them lets go, which is worth waiting a
+             moment for rather than backing away from. */
+          setStatus("wait", T.busy);
+          scheduleRetry(1500);
+          return;
+        }
+        backOff();
+      });
+    }).catch(backOff);
+  }
+
+  /* A page in a pocket is a page nobody is reading: it costs a phone five
+     snapshots a second and holds one of the add-on's few stream slots.  So it
+     is dropped when the page goes out of sight and taken up again the moment
+     it comes back -- immediately, rather than on whatever retry was pending,
+     because coming back to a dashboard should not mean waiting for one. */
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      disconnect();
+      setStatus("wait", T.connecting);
+      return;
+    }
+    retryAt = 1000;
+    connect();
+  });
+
+  /* Leaving the page frees its slot at once rather than when the add-on next
+     writes into a socket nobody is listening on.  A page restored from the
+     back/forward cache was never unloaded, so it reconnects here. */
+  window.addEventListener("pagehide", disconnect);
+  window.addEventListener("pageshow", () => {
+    if (!source && !document.hidden) connect();
+  });
 
   /* --- the report ------------------------------------------------------- */
 
@@ -324,15 +488,20 @@ window.TinyPPI = (function () {
     applyChromeStrings();
     if (options.onStrings) options.onStrings(T);
 
+    /* The stream is opened before anything is translated, not after:
+       /api/hello is a round trip of its own, and waiting on it would leave the
+       page blank for as long as it takes.  The chrome carries its English for
+       the moment that lasts, and a page that needs a token is told so by the
+       stream itself (see probe). */
+    connect();
+
     try {
       const hello = await (await fetch("/api/hello")).json();
       Object.assign(T, hello.strings || {});
       applyChromeStrings();
       if (options.onStrings) options.onStrings(T, hello);
-      if (hello.auth_read && !token) { askToken(); return; }
+      if (hello.auth_read && !token) askToken();
     } catch (_) { /* the stream's own retry will report the outage */ }
-
-    connect();
   }
 
   /* --- commands --------------------------------------------------------- */
