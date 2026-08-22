@@ -748,16 +748,18 @@
 #eventsCard { container: eventscard / inline-size; }
 
 @container eventscard (max-width: 620px) {
-  /* On a narrow card, time and label share the first line and the potentially
-     long transition gets the full width below them. */
+  /* On a narrow card the time gets the first line.  Event name and transition
+     sit below it, so the label is no longer stranded to the right of the
+     timestamp and every row reads naturally from top to bottom. */
   .event {
-    grid-template-columns: 7px 72px minmax(0, 1fr);
-    grid-template-areas: "dot at what" ". . detail";
+    grid-template-columns: 7px max-content minmax(0, 1fr);
+    grid-template-areas: "dot at at" ". what detail";
     gap: 4px 10px;
+    align-items: start;
     min-height: 58px;
     padding-right: 14px;
   }
-  .event::before { grid-area: dot; }
+  .event::before { grid-area: dot; align-self: center; }
   .event .at {
     grid-area: at;
   }

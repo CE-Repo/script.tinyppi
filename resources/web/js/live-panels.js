@@ -562,7 +562,7 @@
       }
       return text || "—";
     };
-    if (isTransition(entry)) return stateText(entry.from) + " → " + stateText(entry.to);
+    if (isTransition(entry)) return stateText(entry.to);
     if (entry.kind === "temperature") return Math.round(entry.value) + " °C";
     if (entry.kind === "cpu" || String(entry.kind).startsWith("cache_")) {
       return Math.round(entry.value) + "%";
