@@ -696,7 +696,7 @@ class SessionLog:
             self._watched[name] = value
             if previous is None or previous == value:
                 continue
-            if name == "vs10":
+            if name in ("vs10", "mode"):
                 self._switches += 1
             self._add_event(now, position, name, {"from": previous, "to": value})
 

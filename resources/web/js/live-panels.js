@@ -507,8 +507,17 @@
     el.vWarnings.textContent = String(totals.warnings || 0);
     el.vPlayerCache.textContent = metrics.cache === null || metrics.cache === undefined
       ? "—" : String(Math.round(metrics.cache));
-    el.vFps.textContent  = metrics.fps_in
-      ? metrics.fps_in.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "") : "—";
+    /* Show the frames that actually made it out, not only the source rate.
+       Kodi already publishes that as fps_out (input FPS minus the current
+       per-second drop).  The subtraction is kept as a fallback for snapshots
+       produced by an older backend during an add-on update. */
+    const fps = metrics.fps_out !== null && metrics.fps_out !== undefined
+      ? Number(metrics.fps_out)
+      : (metrics.fps_in !== null && metrics.fps_in !== undefined
+          ? Math.max(0, Number(metrics.fps_in) - Number(metrics.fps_drop || 0))
+          : null);
+    el.vFps.textContent = fps === null || !Number.isFinite(fps)
+      ? "—" : fps.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "");
   }
 
   const EVENT_LABEL = {
