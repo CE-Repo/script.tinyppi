@@ -45,7 +45,6 @@ window.TinyPPI = (function () {
     theme_switch: "Switch to {name} (hold for the full list)",
     tint_label: "Intensity", tint_subtle: "Subtle", tint_standard: "Standard",
     tint_strong: "Strong",
-    health: "Buffer and frame drops", cache: "Cache", drops_fps: "FPS lost",
     last_played: "Last played", summary: "Summary",
     events: "Events", events_empty: "No events yet",
     ev_mode: "Display mode",

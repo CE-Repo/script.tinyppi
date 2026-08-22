@@ -17,7 +17,6 @@ const el = {
   vs10Card: $("vs10Card"), vs10Out: $("vs10Out"), modes: $("modes"),
   groups: $("groups"),
   metricsCard: $("tiles"), metricsGrid: $("tiles").querySelector(".tilegrid"),
-  healthCard: $("healthCard"),
   eventsCard: $("eventsCard"), metaLink: $("metaLink"), sideRail: $("sideRail"),
   copyBtn: $("copyBtn"), idleStack: $("idleStack"),
   lastCard: $("lastCard"), lastTitle: $("lastTitle"), lastTiles: $("lastTiles")
@@ -25,14 +24,14 @@ const el = {
 
 /* Keep VS10 by the playback card.  The figures are the first thing inside the
    events card, followed by the event list; its old disclosure shell is no
-   longer needed.  The health chart remains immediately ahead of that card. */
+   longer needed. */
 $("nowCard").after(el.vs10Card);
 el.eventsCard.querySelector(".eventswrap").before(el.metricsGrid);
 /* Keep the empty shell in the document because the shared localization code
    still owns its heading node; the hidden attribute cannot be undone by the
    live module's class toggles. */
 el.metricsCard.hidden = true;
-el.sideRail.append(el.healthCard, el.eventsCard);
+el.sideRail.append(el.eventsCard);
 
 let state = null;
 let control = false;

@@ -293,8 +293,6 @@
   border-top: 2px dashed var(--accent-2);
   height: 0;
 }
-/* The frames that went missing, in the colour the rest of the page warns in. */
-.swatch.drops { background: var(--bad); }
 
 /* --- The hero card ------------------------------------------------------
    Poster and what is playing, side by side where there is room.  The poster
@@ -695,7 +693,7 @@
   column-gap: 12px;
   align-items: center;
   min-height: 50px;
-  padding: 8px 18px 8px 14px;
+  padding: 8px 0px 8px 14px;
 }
 /* What kind of thing happened, as a dot before the time it happened at.  The
    list is read down rather than across -- a run of stutters, a switch in the
@@ -718,7 +716,6 @@
 .event.temperature::before,
 .event.cpu::before { background: var(--warn); }
 .event.cache_recovered::before { background: var(--accent); }
-.event.drops::before { background: var(--bad); }
 .event + .event { border-top: 1px solid var(--line-soft); }
 .event .at {
   font-size: 12.5px;

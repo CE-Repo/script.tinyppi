@@ -610,8 +610,6 @@ class SessionLog:
         self._cache_dipped = False
         self._temperature_hot = False
         self._cpu_full = False
-        #: The worst drop reading seen since the last chart sample.
-        self._drop_peak = 0
 
     # -- writing --
 
@@ -700,19 +698,7 @@ class SessionLog:
             self._add_event(now, position, name, {"from": previous, "to": value})
 
     def _watch_levels(self, metrics: dict, now: float, position: str) -> None:
-        """Follow the two readings that come and go between chart samples.
-
-        On the fast clock, like the tracked switches above and for the same
-        reason: dropped frames and an emptying cache are both gone again
-        within the second, and watching them from ``_sample`` -- which runs
-        once a second where the producer runs five times -- meant most of them
-        happened between two looks and left no trace anywhere.
-        """
-        drop = int(metrics.get("fps_drop") or 0)
-        # Held for the chart sample to take, so a burst that came and went
-        # inside one second is what that second is drawn and counted as.
-        self._drop_peak = max(self._drop_peak, drop)
-
+        """Follow warning levels on the producer's fast clock."""
         cache = metrics.get("cache")
         if cache is not None:
             self._watch_cache(cache, now, position)
@@ -728,16 +714,8 @@ class SessionLog:
         level = metrics.get("l1") or {}
         peak  = level.get("max")
         mean  = level.get("avg")
-        cache = metrics.get("cache")
-
-        # The worst second the gauge showed since the last sample, not
-        # whatever it happens to read at this instant: the reading is the
-        # frames lost over the last second, and it is looked at five times as
-        # often as this runs (see _watch_levels).
-        drop = self._drop_peak
-        self._drop_peak = 0
         self._samples.append((
-            round(now - self._started, 1), peak, mean, drop, cache,
+            round(now - self._started, 1), peak, mean,
         ))
         if len(self._samples) > self.MAX_SAMPLES:
             del self._samples[:len(self._samples) - self.MAX_SAMPLES]
@@ -846,8 +824,6 @@ class SessionLog:
                 "t":      [sample[0] for sample in self._samples],
                 "max":    [sample[1] for sample in self._samples],
                 "avg":    [sample[2] for sample in self._samples],
-                "drop":   [sample[3] for sample in self._samples],
-                "cache":  [sample[4] for sample in self._samples],
                 "events": list(self._events),
                 "seq":    self._seq,
                 "switches": self._switches,

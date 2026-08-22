@@ -1547,10 +1547,6 @@ msgctxt "#32492"
 msgid "Cache dip"
 msgstr "缓存下降"
 
-msgctxt "#32493"
-msgid "FPS lost"
-msgstr "丢失的 FPS"
-
 msgctxt "#32494"
 msgid "Playback controls"
 msgstr "播放控制"
@@ -1594,14 +1590,6 @@ msgstr "标准"
 msgctxt "#32504"
 msgid "Strong"
 msgstr "强烈"
-
-msgctxt "#32505"
-msgid "Buffer and frame drops"
-msgstr "缓冲与丢帧"
-
-msgctxt "#32506"
-msgid "Cache"
-msgstr "缓存"
 
 msgctxt "#32507"
 msgid "Last played"

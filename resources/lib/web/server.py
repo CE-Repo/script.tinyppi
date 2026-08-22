@@ -147,7 +147,6 @@ _UI_STRINGS = {
     "ev_cache":      32492,
     # A stutter is named in the events the way it is named on the tile, so
     # #32476 answers for both; #32493 names what the figure beside it is.
-    "drops_fps":     32493,
     "controls":      32494,
     "metrics":       32495,
     "player_cache":  32511,
@@ -168,8 +167,6 @@ _UI_STRINGS = {
     "tint_strong":     32504,
     # The playback chart, the title that has just ended, and the one thing a
     # stream can be refused for that is worth naming.
-    "health":          32505,
-    "cache":           32506,
     "last_played":     32507,
     "summary":         32508,
     "busy":            32509,

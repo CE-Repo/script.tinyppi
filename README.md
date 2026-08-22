@@ -252,29 +252,19 @@ a phone in your hand.
 - **The format logos the overlay draws** — the very files from the add-on's own
   skin, so a Dolby Vision Atmos title wears the same two badges on the phone as
   it does on the TV.
-- **Metrics** — the frame rate with dropped frames called out beneath it, the
-  frames lost across the whole title, and how often the output was switched.
-  Only the add-on sees every frame, so the last two are figures a browser
-  could not work out for itself.
+- **Metrics** — the player cache, current frame rate, warning count and how
+  often the output or a playback track was switched.
 - **A live luminance chart** — the Dolby Vision L1 peak and frame average on a
   logarithmic scale, over the last minute, the last ten, or the whole title:
   the add-on has been sampling since playback started, so a page opened halfway
   through a film gets the part it missed instead of starting from empty.
-- **Buffer and frame drops** — the same three ranges, showing how full the
-  cache ran and how many frames went missing while it did. The two belong on
-  one chart because they are usually the same story, and unlike the luminance
-  chart this one is drawn for **every source**: it is what to look at when a
-  film stutters, whatever it was graded in.
 - **Events** — a list with timestamps of the things worth knowing about: an
   output switched to or from Dolby Vision, a display mode change, the cache
-  dipping, frames going missing. Every stutter is listed, down to a single
-  lost frame and however briefly it lasted, with the worst second it reached;
-  a stutter that goes on is one entry rather than five a second. A long list
-  scrolls inside its own card rather than stretching the page under it.
+  dipping, or the selected audio/subtitle track changing. A long list scrolls
+  inside its own card rather than stretching the page under it.
 - **What the last title came to** — for ten minutes after the credits the page
-  keeps the film that just ended: a card of its own with the frames it lost and
-  how often the output was switched — the two figures only the add-on could
-  have counted — and the events of that film still under it. Those figures are
+  keeps the film that just ended: a card of its own with its switch and warning
+  totals, and the events of that film still under it. Those figures are
   worth most once a film is over, which used to be exactly when they were
   thrown away. The idle page is those two cards centred as one column; the line
   saying nothing is playing is for a box that has played nothing.

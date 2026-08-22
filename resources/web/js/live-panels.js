@@ -88,20 +88,6 @@
         '</div>' +
       '</div>' +
     '</details>' +
-    '<details class="card hidden" id="healthCard">' +
-      '<summary class="panel-toggle"><span id="healthTitle"></span></summary>' +
-      '<div class="chart-options">' +
-        '<div class="ranges" id="healthRanges"></div>' +
-      '</div>' +
-      '<div class="chartwrap">' +
-        '<canvas id="healthChart" class="chart" role="img"></canvas>' +
-        '<div class="legend">' +
-          '<span><i class="swatch band"></i><span id="cacheLegend"></span></span>' +
-          '<span><i class="swatch drops"></i><span id="dropsLegend"></span></span>' +
-          '<span id="healthScale" style="margin-left:auto"></span>' +
-        '</div>' +
-      '</div>' +
-    '</details>' +
     '<details class="card hidden" id="eventsCard">' +
       '<summary class="panel-toggle"><span id="eventsTitle"></span></summary>' +
       '<div class="eventswrap" id="eventsWrap">' +
@@ -139,8 +125,6 @@
     tiles: $("tiles"), vSwitches: $("vSwitches"), vWarnings: $("vWarnings"),
     vPlayerCache: $("vPlayerCache"), vFps: $("vFps"),
     chartCard: $("chartCard"), chart: $("chart"), ranges: $("ranges"),
-    healthCard: $("healthCard"), healthChart: $("healthChart"),
-    healthRanges: $("healthRanges"), healthScale: $("healthScale"),
     eventsCard: $("eventsCard"), events: $("events"),
     eventsWrap: $("eventsWrap")
   };
@@ -171,7 +155,6 @@
   setControlsOpen(TinyPPI.disclosureState(controlStateKey, false), false);
   TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
   TinyPPI.bindDisclosure(el.chartCard, pageState + ".l1", false);
-  TinyPPI.bindDisclosure(el.healthCard, pageState + ".health", false);
   TinyPPI.bindDisclosure(el.eventsCard, pageState + ".events", false);
 
   /* --- what is playing -------------------------------------------------- */
@@ -718,11 +701,9 @@
       .finally(() => { fetching = false; });
   }
 
-  /* Both sources reduced to the same shape: how long ago, and what was read.
-     ``required`` is the reading the chart cannot draw without -- a sample with
-     nothing in that field is left out rather than drawn as a zero, which is
-     what keeps an HDR10 title out of the luminance chart and keeps its cache
-     in the playback one. */
+  /* Both luminance sources reduced to the same shape: how long ago, and what
+     was read.  A sample without the required L1 value is left out rather than
+     drawn as zero, which keeps non-Dolby-Vision titles out of this chart. */
   function series(required) {
     const now = Date.now() / 1000;
     const known = (value) => value !== null && value !== undefined;
@@ -731,8 +712,7 @@
       for (const point of live) {
         if (!known(point[required])) continue;
         points.push({
-          age: now - point.t, max: point.max, avg: point.avg,
-          drop: point.drop, cache: point.cache
+          age: now - point.t, max: point.max, avg: point.avg
         });
       }
       return points;
@@ -748,9 +728,7 @@
       points.push({
         age: (past.now - past.t[index]) + drift,
         max: past.max[index],
-        avg: known(past.avg[index]) ? past.avg[index] : past.max[index],
-        drop: past.drop ? past.drop[index] : 0,
-        cache: past.cache ? past.cache[index] : null
+        avg: known(past.avg[index]) ? past.avg[index] : past.max[index]
       });
     }
     return points;
@@ -758,40 +736,31 @@
 
   /* --- what each page charts -------------------------------------------- */
 
-  /* One live sample per snapshot, whatever the page draws from it: the two
-     charts read the same buffer, and the readings a source cannot carry are
-     left as they arrive rather than turned into zeroes here. */
+  /* One live L1 sample per metadata snapshot. */
   function recordSample(metrics) {
     const l1 = metrics.l1 || {};
     live.push({
       t: Date.now() / 1000,
       max: (l1.max === null || l1.max === undefined) ? null : l1.max,
-      avg: (l1.avg === null || l1.avg === undefined) ? l1.max : l1.avg,
-      drop: metrics.fps_drop || 0,
-      cache: (metrics.cache === null || metrics.cache === undefined)
-        ? null : metrics.cache
+      avg: (l1.avg === null || l1.avg === undefined) ? l1.max : l1.avg
     });
     const now = Date.now() / 1000;
     while (live.length && now - live[0].t > HISTORY_SECONDS) live.shift();
   }
 
   function renderCharts(metrics) {
+    if (!metadataPage) return;
     recordSample(metrics);
 
-    const card = metadataPage ? el.chartCard : el.healthCard;
-    const ranges = metadataPage ? el.ranges : el.healthRanges;
-    /* The luminance chart needs an RPU to read; the playback one needs only a
-       player, so it is drawn for every source there is. */
+    /* The luminance chart needs an RPU to read. */
     const l1 = metrics.l1 || {};
-    const has = metadataPage
-      ? (l1.max !== null && l1.max !== undefined)
-      : true;
+    const has = l1.max !== null && l1.max !== undefined;
     if (!has) {
-      card.classList.add("hidden");
+      el.chartCard.classList.add("hidden");
       return;
     }
-    card.classList.remove("hidden");
-    buildRanges(ranges);
+    el.chartCard.classList.remove("hidden");
+    buildRanges(el.ranges);
 
     if (range !== HISTORY_SECONDS) fetchHistory(false);
     drawCharts();
@@ -826,8 +795,7 @@
       accent:  colour("--accent", "#4fc3f7"),
       accent2: colour("--accent-2", "#82b1ff"),
       line:    colour("--line", "#242c36"),
-      dim:     colour("--dim", "#5d6875"),
-      bad:     colour("--bad", "#ff5252")
+      dim:     colour("--dim", "#5d6875")
     };
   }
 
@@ -869,7 +837,6 @@
 
   function drawCharts() {
     if (metadataPage) drawLuminance();
-    else drawHealth();
   }
 
   function drawLuminance() {
@@ -913,67 +880,6 @@
     trace(ctx, points, x, y, "avg", set.accent2, 1.5, [4, 3]);
   }
 
-  /* What every source can say about itself: how full the cache ran and how
-     many frames went missing while it did.  The two belong on one chart
-     because they are usually the same story -- a buffer that empties is what a
-     run of dropped frames comes out of -- and they are the reason to look at a
-     dashboard at all when a film stutters. */
-  function drawHealth() {
-    const set = prepare(el.healthChart);
-    if (!set) return;
-    const { ctx, width, height } = set;
-
-    const points = series("drop");
-    const padLeft = 30, padTop = 8, padBottom = 6;
-    /* Room on the right for the drop scale, and none where nothing was ever
-       dropped and the axis is not drawn. */
-    const worst = points.reduce((most, point) => Math.max(most, point.drop || 0), 0);
-    const padRight = worst ? 30 : 8;
-    const plotW = width - padLeft - padRight;
-    const plotH = height - padTop - padBottom;
-
-    const cacheY = (percent) =>
-      padTop + plotH * (1 - Math.min(100, Math.max(0, percent)) / 100);
-    const top = Math.max(4, worst);
-    const dropY = (count) => padTop + plotH * (1 - Math.min(1, count / top));
-
-    ctx.strokeStyle = set.line;
-    ctx.fillStyle = set.dim;
-    ctx.lineWidth = 1;
-    ctx.font = "10px ui-monospace, monospace";
-    ctx.textBaseline = "middle";
-    for (const tick of [0, 25, 50, 75, 100]) {
-      const ty = Math.round(cacheY(tick)) + 0.5;
-      ctx.beginPath();
-      ctx.moveTo(padLeft, ty);
-      ctx.lineTo(width - padRight, ty);
-      ctx.stroke();
-      ctx.textAlign = "right";
-      if (tick % 50 === 0) ctx.fillText(tick + "%", padLeft - 6, ty);
-    }
-    /* The right-hand axis carries the frames, and only the two figures worth
-       naming: none, and the worst second there was. */
-    if (worst) {
-      ctx.textAlign = "left";
-      ctx.fillStyle = set.bad;
-      ctx.fillText(String(top), width - padRight + 6, Math.round(dropY(top)) + 0.5);
-      ctx.fillStyle = set.dim;
-      ctx.fillText("0", width - padRight + 6, Math.round(dropY(0)) + 0.5);
-    }
-
-    if (points.length < 2) return;
-    const span = windowFor(points);
-    const x = (age) => padLeft + plotW * (1 - Math.min(1, age / span));
-
-    const cached = points.filter(
-      (point) => point.cache !== null && point.cache !== undefined);
-    if (cached.length > 1) {
-      area(ctx, cached, x, cacheY, "cache", set.accent, padTop + plotH, 0.22);
-      trace(ctx, cached, x, cacheY, "cache", set.accent, 1.6);
-    }
-    if (worst) trace(ctx, points, x, dropY, "drop", set.bad, 1.6);
-  }
-
   /* The charts' colours come from the card they are drawn in, which the
      adaptive theme repaints from the poster.  A canvas cannot notice that on
      its own, so js/cover-tint.js says when it has happened. */
@@ -997,10 +903,6 @@
     $("kFps").textContent = T.fps;
     $("chartTitle").textContent = T.chart;
     $("chartScale").textContent = "nits · log";
-    $("healthTitle").textContent = T.health;
-    $("cacheLegend").textContent = T.cache;
-    $("dropsLegend").textContent = T.drops_fps;
-    el.healthScale.textContent = "% · " + T.fps;
     $("eventsTitle").textContent = T.events;
     for (const bar of rangeBars) {
       for (const button of bar.children) {
@@ -1017,7 +919,7 @@
      last frame of a film that has ended standing there. */
   function update(snapshot) {
     if (!snapshot || !snapshot.playing) {
-      const cards = [el.nowCard, el.tiles, el.chartCard, el.healthCard];
+      const cards = [el.nowCard, el.tiles, el.chartCard];
       for (const node of cards) node.classList.add("hidden");
       live = [];
       posterTag = "";
