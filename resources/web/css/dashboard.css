@@ -161,6 +161,9 @@
 }
 .lasthead b { font-size: 15px; font-weight: 650; }
 
-/* The idle line has a whole card to itself again, but it is no longer the only
-   card on the page; it keeps a little less air than it does when it is. */
-.idlestack:has(#lastCard:not(.hidden)) .empty { padding: 34px 24px; }
+/* Two tiles, side by side at every width.  The metrics card's grid is three
+   across and hands its last tile the whole row where there is no room for
+   three (.tilegrid in live-panels.css); for a pair that would be one tile
+   beside a hole. */
+#lastTiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#lastTiles .tile:last-child { grid-column: auto; }

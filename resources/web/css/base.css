@@ -243,6 +243,10 @@ main {
   /* Whatever the bar leaves, so a short page can be centred in it. */
   flex: 1 1 auto;
   width: 100%;
+  /* Cards keep their own height in that room rather than being handed a share
+     of it: a grid with space to spare stretches its rows, and a page of three
+     cards on a tall screen would draw all three of them tall. */
+  align-content: start;
 }
 /* On a phone the page keeps the same narrow margin all the way round, and the
    top bar keeps it too -- so there is one edge rather than two, and the first
@@ -387,12 +391,19 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 .idlestack {
   display: grid;
   gap: var(--gap);
+  /* Each card its own height and no more.  A grid whose container has room to
+     spare hands that room to its rows, and a card given room it did not ask
+     for is a heading with a hole under it. */
+  align-content: start;
 }
 /* An empty stack is no stack: hidden outright, or main's own gap would leave
    a hole where it stands while something plays. */
 .idlestack:not(:has(> :not(.hidden))) { display: none; }
 
-main:has(> .idlestack:has(> :not(.hidden))) { align-content: center; }
+/* Written as one relative selector rather than a :has() inside a :has(),
+   which is not allowed anywhere in CSS: a browser drops the whole rule, and
+   the centring here went with it. */
+main:has(> .idlestack > :not(.hidden)) { align-content: center; }
 
 @media (min-width: 760px) {
   .idlestack:has(> :not(.hidden)) {
@@ -400,6 +411,12 @@ main:has(> .idlestack:has(> :not(.hidden))) { align-content: center; }
     margin: 0 auto;
   }
 }
+
+/* A folded card is its heading and nothing else.  Saying so outright, because
+   a browser does not: the panel is laid out behind the fold whatever the fold
+   says -- a list with a height of its own then stands a strip of itself under
+   the heading of a card that is supposed to be shut. */
+details.card:not([open]) > :not(summary) { display: none; }
 
 .hidden { display: none !important; }
 

@@ -55,7 +55,10 @@ function render(next) {
   TinyPPI.panels.update(next);
 
   if (!next.playing) {
-    el.idleCard.classList.remove("hidden");
+    /* The line saying nothing is playing is for a box that has played nothing:
+       with the title that just ended on the page under it, it says what the
+       page already shows and takes a card to say it. */
+    el.idleCard.classList.toggle("hidden", !!(next.last && next.last.title));
     for (const id of ["vs10Card", "metaLink"]) {
       $(id).classList.add("hidden");
     }
@@ -107,15 +110,17 @@ function renderLast(last) {
   el.lastCard.classList.remove("hidden");
   el.lastTitle.textContent = last.title;
 
-  const tiles = [];
-  if (last.peak !== null && last.peak !== undefined) {
-    tiles.push([T.peak, TinyPPI.fmtNits(last.peak), "nits"]);
-  }
-  tiles.push([T.drops, String(last.drops || 0), ""]);
-  tiles.push([T.switches, String(last.switches || 0), ""]);
+  /* The two figures only the add-on could have counted: it saw every frame of
+     the title and the browser saw whichever ones it was connected for.  The
+     peak the grade reached is in the report rather than here -- it is a
+     reading about the film, and these are about the playing of it. */
+  const tiles = [
+    [T.drops, String(last.drops || 0)],
+    [T.switches, String(last.switches || 0)]
+  ];
 
   el.lastTiles.replaceChildren();
-  for (const [label, value, unit] of tiles) {
+  for (const [label, value] of tiles) {
     const tile = document.createElement("div");
     tile.className = "tile";
     const key = document.createElement("span");
@@ -126,10 +131,7 @@ function renderLast(last) {
     const reading = document.createElement("span");
     reading.className = "v mono";
     reading.textContent = value;
-    const suffix = document.createElement("span");
-    suffix.className = "u";
-    suffix.textContent = unit;
-    wrap.append(reading, suffix);
+    wrap.append(reading);
     tile.append(key, wrap);
     el.lastTiles.append(tile);
   }

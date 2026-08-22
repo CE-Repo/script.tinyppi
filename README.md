@@ -272,11 +272,12 @@ a phone in your hand.
   a stutter that goes on is one entry rather than five a second. A long list
   scrolls inside its own card rather than stretching the page under it.
 - **What the last title came to** — for ten minutes after the credits the page
-  keeps the film that just ended: a card of its own with its peak, the frames
-  it lost and how often the output was switched, and the events of that film
-  still under it. The idle page is those cards centred as one column. Those
-  figures are worth most once a film is over, which used to be exactly when
-  they were thrown away.
+  keeps the film that just ended: a card of its own with the frames it lost and
+  how often the output was switched — the two figures only the add-on could
+  have counted — and the events of that film still under it. Those figures are
+  worth most once a film is over, which used to be exactly when they were
+  thrown away. The idle page is those two cards centred as one column; the line
+  saying nothing is playing is for a box that has played nothing.
 - **The active picture area** the RPU declares (L5), drawn to scale inside the
   coded frame — the letterbox as the stream describes it, changing with the
   scene on an IMAX Enhanced title. It sits on the metadata window, with the
