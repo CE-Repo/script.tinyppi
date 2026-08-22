@@ -247,6 +247,13 @@
       });
     }
     if (snapshot.paused) badges.push({ icon: "pause", alt: true });
+    /* Rebuilt only when they say something else, the same way the logos are:
+       the source format and the conversion behind it hold still for a whole
+       film, and tearing the row down five times a second to put the same two
+       words back costs a phone real work. */
+    const signature = badges.map((badge) => badge.icon || badge.text).join("|");
+    if (el.badges.dataset.signature === signature) return;
+    el.badges.dataset.signature = signature;
     el.badges.innerHTML = "";
     for (const badge of badges) {
       const node = document.createElement("span");
@@ -301,19 +308,23 @@
     if (el.transport.dataset.built) return;
     el.transport.dataset.built = "1";
 
-    const button = (label, title, handler, className) => {
+    const button = (label, handler, className) => {
       const node = document.createElement("button");
       node.type = "button";
       node.className = "tbtn" + (className ? " " + className : "");
       node.textContent = label;
-      node.title = title || label;
-      if (title) node.setAttribute("aria-label", title);
+      node.title = label;
       node.addEventListener("click", handler);
       return node;
     };
 
-    const imageButton = (name, title, handler, className) => {
-      const node = button("", title, handler, className);
+    /* Named by the key rather than by the string behind it, because the row is
+       built the first time a snapshot says the add-on takes orders -- which
+       can be before /api/hello has answered.  The name is put on from the key
+       here and again whenever the strings change (see labelControls). */
+    const imageButton = (name, key, handler, className) => {
+      const node = button("", handler, className);
+      node.dataset.label = key;
       setButtonIcon(node, name);
       return node;
     };
@@ -323,24 +334,23 @@
     const keys = document.createElement("div");
     keys.className = "tkeys";
     keys.append(
-      button("−10m", "", () => TinyPPI.command("seek", -600)),
-      button("−1m", "", () => TinyPPI.command("seek", -60)),
-      button("−10s", "", () => TinyPPI.command("seek", -10)),
+      button("−10m", () => TinyPPI.command("seek", -600)),
+      button("−1m", () => TinyPPI.command("seek", -60)),
+      button("−10s", () => TinyPPI.command("seek", -10)),
       /* The icon says what pressing it does, so it follows the player: pause
          while it plays, play while it is paused. */
-      imageButton("pause", TinyPPI.T.playpause,
+      imageButton("pause", "playpause",
                   () => TinyPPI.command("playpause"), "primary"),
-      button("+10s", "", () => TinyPPI.command("seek", 10)),
-      button("+1m", "", () => TinyPPI.command("seek", 60)),
-      button("+10m", "", () => TinyPPI.command("seek", 600))
+      button("+10s", () => TinyPPI.command("seek", 10)),
+      button("+1m", () => TinyPPI.command("seek", 60)),
+      button("+10m", () => TinyPPI.command("seek", 600))
     );
 
     const rest = document.createElement("div");
     rest.className = "tvol";
-    rest.append(imageButton("stop", TinyPPI.T.stop,
-                            () => TinyPPI.command("stop")));
+    rest.append(imageButton("stop", "stop", () => TinyPPI.command("stop")));
 
-    const mute = imageButton("volume", TinyPPI.T.mute,
+    const mute = imageButton("volume", "mute",
                              () => TinyPPI.command("mute"), "mute");
     const slider = document.createElement("input");
     slider.type = "range";
@@ -348,7 +358,7 @@
     slider.max = 100;
     slider.className = "volume";
     slider.id = "volume";
-    slider.setAttribute("aria-label", TinyPPI.T.volume);
+    slider.dataset.label = "volume";
     /* Whatever the input already reads, so a slider the add-on has not
        reported a level for looks exactly as it did before it was drawn here. */
     setVolume(slider, slider.value);
@@ -359,6 +369,7 @@
     });
     rest.append(slider, mute);
     el.transport.append(keys, rest);
+    labelControls();
 
     /* A tap anywhere on the bar seeks there, and the arrow keys do the same,
        so the bar is not a control only a finger can reach. */
@@ -378,6 +389,21 @@
       else return;
       event.preventDefault();
     });
+  }
+
+  /* Names the controls that have no writing on them: the icon keys and the
+     volume slider.  Called when the row is built and again when the strings
+     arrive, because the two can happen in either order -- the stream opens
+     before /api/hello is asked (see boot in js/core.js), so on a fresh page
+     the first snapshot usually builds this row while the English fallbacks
+     are still all there is. */
+  function labelControls() {
+    for (const node of el.transport.querySelectorAll("[data-label]")) {
+      const name = TinyPPI.T[node.dataset.label];
+      if (!name) continue;
+      node.setAttribute("aria-label", name);
+      if (node.tagName === "BUTTON") node.title = name;
+    }
   }
 
   /* How far the slider has run, on the slider itself.
@@ -974,6 +1000,12 @@
     /* History can beat /api/hello on a fresh page.  Redraw it once localized
        strings arrive so fallbacks used for that first frame do not remain. */
     if (past && past.events) renderEvents(past.events);
+    /* And so can the first snapshot, which is what builds the transport row
+       and the track pickers.  The buttons are renamed in place; the pickers
+       carry their strings inside options and are simply marked stale, so the
+       next snapshot builds them again (see renderTracks). */
+    labelControls();
+    trackKey = "";
   }
 
   /* Everything the panels show comes out of one snapshot, and a snapshot that

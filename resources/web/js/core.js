@@ -26,10 +26,10 @@ window.TinyPPI = (function () {
     metadata: "Dolby Vision metadata view", metadata_section: "Metadata",
     no_metadata: "No Dolby Vision metadata", no_metadata_text: "",
     idle_title: "Nothing is playing", idle_text: "",
-    peak: "Peak", average: "Average", aspect: "Aspect ratio", fps: "FPS",
-    drops: "Frame drops", switches: "Switches", metrics: "Metrics",
+    peak: "Peak", fps: "FPS", switches: "Switches", metrics: "Metrics",
     player_cache: "Player cache", audio_track: "Audio track",
     warnings: "Warnings",
+    playpause: "Play / pause", stop: "Stop", volume: "Volume", mute: "Mute",
     cache_low: "Player cache below 90%", cache_recovered: "Player cache recovered",
     temperature: "Temperature", processor: "Processor", subtitles: "Subtitles", off: "Off",
     chart: "Frame luminance", active_area: "Active picture", vs10: "VS10 output",
@@ -178,7 +178,10 @@ window.TinyPPI = (function () {
       setOpen(toggle.getAttribute("aria-expanded") !== "true");
     });
     document.addEventListener("click", (event) => {
-      if (!holder.contains(event.target)) setOpen(false);
+      /* The same rule the countdown uses: a click in the theme menu is a click
+         in this one, so picking a theme does not shut the button that opened
+         it -- the theme menu deliberately stays up to be looked at. */
+      if (!inside(event.target)) setOpen(false);
     });
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
@@ -226,8 +229,13 @@ window.TinyPPI = (function () {
     toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2600);
   }
 
+  /* Only when it has actually moved.  Every delivered frame says the
+     connection is live -- five times a second -- and rewriting the same three
+     values that often churns the DOM for nothing and closes the tooltip of
+     anyone hovering the light while it does. */
   function setStatus(kind, text) {
     if (!statusEl) return;
+    if (statusEl.dataset.state === kind && statusText.textContent === text) return;
     statusEl.dataset.state = kind;
     statusEl.title = text;
     statusText.textContent = text;

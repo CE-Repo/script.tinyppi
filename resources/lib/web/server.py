@@ -105,8 +105,6 @@ _UI_STRINGS = {
     "idle_title":    32451,
     "idle_text":     32452,
     "peak":          32453,
-    "average":       32454,
-    "aspect":        32024,   # Aspect ratio
     "fps":           32140,   # FPS
     "chart":         32455,
     "active_area":   32030,   # L5 Active Area
@@ -129,7 +127,6 @@ _UI_STRINGS = {
     "switched":      32465,
     "switch_failed": 32466,
     # The summary figures, history chart and transport row.
-    "drops":         32476,
     "switches":      32478,
     "events":        32479,
     "events_empty":  32480,
@@ -144,9 +141,6 @@ _UI_STRINGS = {
     "playpause":     32489,
     "stop":          32490,
     "ev_mode":       32491,
-    "ev_cache":      32492,
-    # A stutter is named in the events the way it is named on the tile, so
-    # #32476 answers for both; #32493 names what the figure beside it is.
     "controls":      32494,
     "metrics":       32495,
     "player_cache":  32511,

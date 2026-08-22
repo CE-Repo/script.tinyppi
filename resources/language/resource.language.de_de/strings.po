@@ -1461,7 +1461,7 @@ msgstr "Umschalten fehlgeschlagen"
 
 msgctxt "#32467"
 msgid "VS10 output"
-msgstr "VS10-Ausgabe"
+msgstr "VS10"
 
 msgctxt "#32468"
 msgid "Show the Dolby Vision metadata view"
