@@ -1548,8 +1548,8 @@ msgid "Cache dip"
 msgstr "Puffer-visszaesés"
 
 msgctxt "#32493"
-msgid "Frames lost"
-msgstr "Elveszett képkockák"
+msgid "FPS lost"
+msgstr "Elveszett FPS"
 
 msgctxt "#32494"
 msgid "Playback controls"

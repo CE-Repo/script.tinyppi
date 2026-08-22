@@ -511,7 +511,9 @@
     vs10: () => TinyPPI.T.vs10,
     mode: () => TinyPPI.T.ev_mode,
     cache: () => TinyPPI.T.ev_cache,
-    drops: () => TinyPPI.T.ev_drops
+    /* The word the tile uses, so a stutter is called the same thing wherever
+       it is read. */
+    drops: () => TinyPPI.T.drops
   };
 
   /* A transition names two whole VS10 output states -- "SDR BT.709" to
@@ -524,6 +526,9 @@
   function eventText(entry) {
     if (isTransition(entry)) return entry.from + " → " + entry.to;
     if (entry.kind === "cache") return Math.round(entry.value) + "%";
+    /* Frames lost in the worst second of the stutter, so the figure carries
+       its unit: it is a rate, not a count of what the whole title lost. */
+    if (entry.kind === "drops") return entry.value + " FPS";
     return String(entry.value);
   }
 
@@ -914,7 +919,7 @@
     $("chartScale").textContent = "nits · log";
     $("healthTitle").textContent = T.health;
     $("cacheLegend").textContent = T.cache;
-    $("dropsLegend").textContent = T.drops;
+    $("dropsLegend").textContent = T.drops_fps;
     el.healthScale.textContent = "% · " + T.fps;
     $("eventsTitle").textContent = T.events;
     for (const bar of rangeBars) {

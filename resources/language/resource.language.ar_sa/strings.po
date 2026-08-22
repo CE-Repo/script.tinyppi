@@ -1549,8 +1549,8 @@ msgid "Cache dip"
 msgstr "انخفاض الكاش"
 
 msgctxt "#32493"
-msgid "Frames lost"
-msgstr "إطارات مفقودة"
+msgid "FPS lost"
+msgstr "إطارات في الثانية مفقودة"
 
 msgctxt "#32494"
 msgid "Playback controls"

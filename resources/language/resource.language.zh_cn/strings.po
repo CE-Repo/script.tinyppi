@@ -1548,8 +1548,8 @@ msgid "Cache dip"
 msgstr "缓存下降"
 
 msgctxt "#32493"
-msgid "Frames lost"
-msgstr "丢失帧数"
+msgid "FPS lost"
+msgstr "丢失的 FPS"
 
 msgctxt "#32494"
 msgid "Playback controls"

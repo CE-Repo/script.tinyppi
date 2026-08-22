@@ -145,7 +145,9 @@ _UI_STRINGS = {
     "stop":          32490,
     "ev_mode":       32491,
     "ev_cache":      32492,
-    "ev_drops":      32493,
+    # A stutter is named in the events the way it is named on the tile, so
+    # #32476 answers for both; #32493 names what the figure beside it is.
+    "drops_fps":     32493,
     "controls":      32494,
     "metrics":       32495,
     # The theme button and the menu behind a long press on it.

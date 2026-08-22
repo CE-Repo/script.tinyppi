@@ -1548,7 +1548,7 @@ msgid "Cache dip"
 msgstr ""
 
 msgctxt "#32493"
-msgid "Frames lost"
+msgid "FPS lost"
 msgstr ""
 
 msgctxt "#32494"

@@ -1548,8 +1548,8 @@ msgid "Cache dip"
 msgstr "Cache-Einbruch"
 
 msgctxt "#32493"
-msgid "Frames lost"
-msgstr "Verlorene Bilder"
+msgid "FPS lost"
+msgstr "Verlorene FPS"
 
 msgctxt "#32494"
 msgid "Playback controls"
