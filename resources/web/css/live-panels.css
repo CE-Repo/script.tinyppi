@@ -564,7 +564,24 @@
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
-.events { padding: 4px 0 6px; }
+/* The list scrolls inside its own card, whether a film is running or one has
+   just ended: it is the one panel with no ceiling on it -- a long title writes
+   sixty entries -- and a card that simply grew pushed everything under it off
+   the page while nothing was playing, and made the page itself several
+   screens long while something was.
+
+   The card keeps its own scrolling to itself, so reaching the end of the list
+   does not carry on into the page behind it. */
+.events {
+  padding: 4px 0 6px;
+  /* The dynamic viewport where a browser reports one: on a phone the address
+     bar is part of what the reader has, and 46vh of a viewport measured
+     without it is a card taller than the screen it is on. */
+  max-height: min(46vh, 400px);
+  max-height: min(46dvh, 400px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
 .events.empty {
   padding: 18px 16px 20px;
   color: var(--muted);

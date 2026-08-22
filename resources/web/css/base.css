@@ -92,6 +92,11 @@ body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   font-size: 15px;
   line-height: 1.45;
+  /* A column of two: the bar, and everything else.  main taking what is left
+     of the viewport is what lets the idle page centre itself in the space
+     under the bar rather than over it (see .idlestack). */
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
@@ -231,6 +236,9 @@ main {
   padding: 16px;
   display: grid;
   gap: var(--gap);
+  /* Whatever the bar leaves, so a short page can be centred in it. */
+  flex: 1 1 auto;
+  width: 100%;
 }
 /* On a phone the page keeps the same narrow margin all the way round, and the
    top bar keeps it too -- so there is one edge rather than two, and the first
@@ -361,11 +369,17 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 .empty .big { font-size: 17px; font-weight: 600; }
 .empty p { margin: 0; color: var(--muted); font-size: 13.5px; }
 
-/* The idle page is the only content worth looking at, so it is centred in the
-   viewport rather than left sitting under an empty top bar.  All of it goes,
-   not the first card alone: what is not playing, what was, and the events of
-   what was stand as one column (js/dashboard.js moves the events card in for
-   as long as nothing plays). */
+/* The idle page is the only content worth looking at, so it is centred in
+   what the page has rather than left sitting under an empty top bar.  All of
+   it goes, not the first card alone: what is not playing, what was, and the
+   events of what was stand as one column (js/dashboard.js moves the events
+   card in for as long as nothing plays).
+
+   Centred by main rather than pinned to the viewport, because a column pinned
+   to the viewport is centred over the bar as well as under it -- and on a
+   phone, where three cards are most of a screen, that is the difference
+   between a column that fits and one whose first card slides under the bar
+   while its last runs off the bottom. */
 .idlestack {
   display: grid;
   gap: var(--gap);
@@ -374,26 +388,13 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
    a hole where it stands while something plays. */
 .idlestack:not(:has(> :not(.hidden))) { display: none; }
 
-.idlestack:has(> :not(.hidden)) {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  /* Twice main's own padding taken off, so a column that has left the flow
-     still lines up with the cards that have not. */
-  width: min(calc(100% - 32px), 1328px);
-  /* Three cards on a short screen would run off both ends of the viewport;
-     the column gets a ceiling and scrolls inside it instead. */
-  max-height: calc(100dvh - 32px);
-  overflow-y: auto;
-  transform: translate(-50%, -50%);
-  z-index: 1;
-}
-@media (max-width: 620px) {
-  .idlestack:has(> :not(.hidden)) { width: min(calc(100% - 20px), 1328px); }
-}
+main:has(> .idlestack:has(> :not(.hidden))) { align-content: center; }
 
 @media (min-width: 760px) {
-  .idlestack:has(> :not(.hidden)) { max-width: 460px; }
+  .idlestack:has(> :not(.hidden)) {
+    max-width: 460px;
+    margin: 0 auto;
+  }
 }
 
 .hidden { display: none !important; }
