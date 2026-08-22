@@ -361,37 +361,39 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 .empty .big { font-size: 17px; font-weight: 600; }
 .empty p { margin: 0; color: var(--muted); font-size: 13.5px; }
 
-/* The idle card is the page's only content worth looking at.  Centre the card
-   itself in the viewport while keeping the same usable width as main. */
-#idleCard:not(.hidden) {
+/* The idle page is the only content worth looking at, so it is centred in the
+   viewport rather than left sitting under an empty top bar.  All of it goes,
+   not the first card alone: what is not playing, what was, and the events of
+   what was stand as one column (js/dashboard.js moves the events card in for
+   as long as nothing plays). */
+.idlestack {
+  display: grid;
+  gap: var(--gap);
+}
+/* An empty stack is no stack: hidden outright, or main's own gap would leave
+   a hole where it stands while something plays. */
+.idlestack:not(:has(> :not(.hidden))) { display: none; }
+
+.idlestack:has(> :not(.hidden)) {
   position: fixed;
   top: 50%;
   left: 50%;
-  /* Twice main's own padding taken off, so a card that has left the flow still
-     lines up with the ones that have not. */
+  /* Twice main's own padding taken off, so a column that has left the flow
+     still lines up with the cards that have not. */
   width: min(calc(100% - 32px), 1328px);
+  /* Three cards on a short screen would run off both ends of the viewport;
+     the column gets a ceiling and scrolls inside it instead. */
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   transform: translate(-50%, -50%);
   z-index: 1;
 }
-
-/* Unless it is carrying the title that just ended.  Then it is not the only
-   thing on the page -- the events of that title are still under it -- and a
-   card centred in the viewport would leave them stranded above it.  It goes
-   back into the flow and they follow it down the page, which is the order they
-   were read in while the film ran. */
-#idleCard:not(.hidden):has(.last:not(.hidden)) {
-  position: static;
-  width: auto;
-  max-width: none;
-  transform: none;
-}
 @media (max-width: 620px) {
-  #idleCard:not(.hidden) { width: min(calc(100% - 20px), 1328px); }
+  .idlestack:has(> :not(.hidden)) { width: min(calc(100% - 20px), 1328px); }
 }
 
 @media (min-width: 760px) {
-  #idleCard:not(.hidden) { max-width: 400px; }
-  #idleCard:not(.hidden):has(.last:not(.hidden)) { max-width: none; }
+  .idlestack:has(> :not(.hidden)) { max-width: 460px; }
 }
 
 .hidden { display: none !important; }

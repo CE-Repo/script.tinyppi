@@ -18,8 +18,8 @@ const el = {
   groups: $("groups"),
   metricsCard: $("tiles"), healthCard: $("healthCard"),
   eventsCard: $("eventsCard"), metaLink: $("metaLink"),
-  copyBtn: $("copyBtn"),
-  lastBox: $("lastBox"), lastTitle: $("lastTitle"), lastTiles: $("lastTiles")
+  copyBtn: $("copyBtn"), idleStack: $("idleStack"),
+  lastCard: $("lastCard"), lastTitle: $("lastTitle"), lastTiles: $("lastTiles")
 };
 
 /* Keep VS10 by the playback card; the optional summary cards belong at the
@@ -63,6 +63,12 @@ function render(next) {
     rowNodes.clear();
     groupNodes.clear();
     renderLast(next.last);
+    /* The events of the title that just ended join the two cards above them,
+       so the idle page is one centred column rather than a card floating in
+       the middle of the viewport with its own events stranded at the top. */
+    if (el.eventsCard.parentElement !== el.idleStack) {
+      el.idleStack.append(el.eventsCard);
+    }
     /* The button goes with the report: there is one for as long as the title
        that just ended is still held, and none at all once it is let go -- a
        button that answers a press with nothing is worse than one that is not
@@ -72,8 +78,12 @@ function render(next) {
   }
 
   el.idleCard.classList.add("hidden");
-  el.lastBox.classList.add("hidden");
+  el.lastCard.classList.add("hidden");
   el.copyBtn.classList.remove("hidden");
+  /* Back to the foot of the page, where it belongs while something plays. */
+  if (el.eventsCard.parentElement === el.idleStack) {
+    el.metaLink.before(el.eventsCard);
+  }
 
   renderVs10(next.vs10 || {});
   renderGroups(ordered(next.groups || []));
@@ -91,10 +101,10 @@ function render(next) {
    while it played, and stays where it was. */
 function renderLast(last) {
   if (!last || !last.title) {
-    el.lastBox.classList.add("hidden");
+    el.lastCard.classList.add("hidden");
     return;
   }
-  el.lastBox.classList.remove("hidden");
+  el.lastCard.classList.remove("hidden");
   el.lastTitle.textContent = last.title;
 
   const tiles = [];

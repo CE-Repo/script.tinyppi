@@ -561,11 +561,10 @@ class SessionLog:
         self._lock = threading.Lock()
         self.reset("")
 
-    def reset(self, key: str, title: str = "", duration: str = "") -> None:
+    def reset(self, key: str, title: str = "") -> None:
         """Start over for ``key``, the title this session belongs to."""
         self._key       = key
         self._title     = title
-        self._duration  = duration
         self._position  = ""
         self._ended     = 0.0
         self._started   = time.monotonic()
@@ -603,16 +602,21 @@ class SessionLog:
             if time.monotonic() - self._ended >= self.RETAIN_SECONDS:
                 self.reset("")
 
-    def observe(self, title: str, duration: str, metrics: dict, watched: dict,
+    def observe(self, title: str, source: str, metrics: dict, watched: dict,
                 position: str) -> None:
-        """Fold one pass into the session, sampling on its own slower clock."""
+        """Fold one pass into the session, sampling on its own slower clock.
+
+        ``source`` is the file being played.  It rather than the title is what
+        tells one session from the next, because a title is not unique -- two
+        episodes of the same name would otherwise share a session -- and it
+        rather than the length, because a length is not steady: a live stream's
+        grows as it is watched, and restarting the session under it would leave
+        every figure on the page reading zero.
+        """
         with self._lock:
-            # The title alone would hold two episodes of the same name to one
-            # session; a session that has already ended starts over whatever
-            # its key says, so replaying a film does not resume its figures.
-            key = f"{title}\n{duration}"
-            if key != self._key or self._ended:
-                self.reset(key, title, duration)
+            key = f"{title}\n{source}"
+            if self._ended or self._is_another_title(title, source, key):
+                self.reset(key, title)
             self._position = position
             now = time.monotonic()
             self._note_changes(watched, now, position)
@@ -620,6 +624,27 @@ class SessionLog:
                 return
             self._sampled = now
             self._sample(metrics, now, position)
+
+    def _is_another_title(self, title: str, source: str, key: str) -> bool:
+        """Whether this pass belongs to a different title than the session.
+
+        A reading has to be whole to be believed.  Kodi keeps saying it has a
+        video for a tick or two after the labels behind it have emptied, and a
+        reading that has lost half of itself is a player winding down rather
+        than another film starting: taking it for one would throw away the
+        figures of the title that has just finished, which are the very ones
+        the page is about to show (see ``last``).
+
+        A source that cannot say what it is playing is a title all the same, so
+        where there is no file to compare, a name that changes is enough.
+        """
+        if not self._key:
+            return True            # nothing is being tracked yet
+        if key == self._key:
+            return False
+        if title and source:
+            return True            # a whole reading, and a different one
+        return bool(title) and title != self._title
 
     def _note_changes(self, watched: dict, now: float, position: str) -> None:
         """Log the readings that changed since the last pass.
@@ -723,7 +748,6 @@ class SessionLog:
             peaks = [sample[1] for sample in self._samples if sample[1] is not None]
             return {
                 "title":    self._title,
-                "duration": self._duration,
                 "position": self._position,
                 "ago":      int(ago),
                 "drops":    self._drops,
@@ -989,10 +1013,13 @@ class SnapshotBuilder:
         position = values.get("PlayerTime", "")
 
         # Folded in before the snapshot is handed over, so the totals the page
-        # is about to print already include the pass it is printing.
+        # is about to print already include the pass it is printing.  The file
+        # name is what tells one session from the next and is never sent with
+        # them: the overlay's own setting governs what leaves the box, and this
+        # is read whether it is on or not.
         self.session.observe(
             title,
-            values.get("PlayerDuration", ""),
+            values.get("Filename", ""),
             metrics,
             {"vs10": vs10.get("output", ""),
              "mode": values.get("DisplayModeVar", "")},

@@ -587,13 +587,16 @@
   color: var(--text);
 }
 
-/* Below desktop width the row above is what breaks: a transition's "detail"
-   (two whole VS10 output states, easily wider than the row) claims the auto
-   column for itself and squeezes "what" down until overflow-wrap:anywhere
-   splits the label mid-word.  There is no such squeeze once the card itself
-   is wide, so this narrows the fix to where the problem exists and leaves the
-   desktop row exactly as it was. */
-@media (max-width: 640px) {
+/* In a narrow card the row above is what breaks: a transition's "detail" (two
+   whole VS10 output states, easily wider than the row) claims the auto column
+   for itself and squeezes "what" down until overflow-wrap:anywhere splits the
+   label mid-word.  There is no such squeeze once the card itself is wide,
+   which is why the card is what is measured rather than the window: the same
+   card is the width of a phone on a phone and the width of the idle column
+   when a film has just ended on a desktop, and it needs this in both. */
+#eventsCard { container: eventscard / inline-size; }
+
+@container eventscard (max-width: 620px) {
   /* Every event uses the same two-row shape: time centred on the left, label
      above value on the right. */
   .event {

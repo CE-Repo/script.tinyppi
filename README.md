@@ -269,9 +269,11 @@ a phone in your hand.
   output switched to or from Dolby Vision, a display mode change, the cache
   dipping, frames going missing.
 - **What the last title came to** — for ten minutes after the credits the page
-  keeps the film that just ended: its peak, the frames it lost, how often the
-  output was switched, and the events underneath. Those figures are worth most
-  once a film is over, which used to be exactly when they were thrown away.
+  keeps the film that just ended: a card of its own with its peak, the frames
+  it lost and how often the output was switched, and the events of that film
+  still under it. The idle page is those cards centred as one column. Those
+  figures are worth most once a film is over, which used to be exactly when
+  they were thrown away.
 - **The active picture area** the RPU declares (L5), drawn to scale inside the
   coded frame — the letterbox as the stream describes it, changing with the
   scene on an IMAX Enhanced title. It sits on the metadata window, with the
