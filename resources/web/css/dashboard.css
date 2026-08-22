@@ -69,8 +69,8 @@
    width and the cards' 400px minimum below.
 
    A grid row is as tall as the tallest card in it, so which card sits next to
-   which is what decides whether that shows: the pairing in GROUP_ORDER puts
-   blocks of a like length beside each other, and a row then ends level rather
+   which is what decides whether that shows: GROUP_ORDER puts blocks of a like
+   length beside each other, and a row then ends level rather
    than one card standing over a hole. */
 .groups {
   display: grid;

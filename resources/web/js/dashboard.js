@@ -207,12 +207,10 @@ async function switchMode(mode, button) {
    is enough to change it.  A group not named here keeps its place, after the
    ones that are.
 
-   Read in pairs, because the cards stand two to a row: picture beside sound,
-   what was done to it beside what it declares itself to be, the machine
-   beside the numbers.  Each pair is also two blocks of roughly one length,
-   which is what keeps the rows from ending ragged.  The static HDR card is
-   last because it only appears at all on an HDR title that is not Dolby
-   Vision -- where the two cards after it are absent (see snapshot.py). */
+   Read in rows of three on a desktop: picture, sound and processing first,
+   then the Dolby Vision declaration, the machine and the per-frame numbers.
+   The static HDR card is last because it only appears at all on an HDR title
+   that is not Dolby Vision (see snapshot.py). */
 const GROUP_ORDER =
   ["video", "audio", "processing", "dv", "system", "metadata", "hdr"];
 
