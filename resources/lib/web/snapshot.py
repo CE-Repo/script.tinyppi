@@ -526,14 +526,14 @@ def current_track_state() -> dict[str, str]:
     """
     player_id = _video_player_id()
     if player_id is None:
-        return {"audio": "", "subtitle": ""}
+        return {"audio": "", "audio_id": "", "subtitle": ""}
     result = _rpc("Player.GetProperties", {
         "playerid": player_id,
         "properties": ["currentaudiostream", "currentsubtitle",
                        "subtitleenabled"],
     }).get("result") or {}
     if not isinstance(result, dict):
-        return {"audio": "", "subtitle": ""}
+        return {"audio": "", "audio_id": "", "subtitle": ""}
 
     def token(stream: dict) -> str:
         if not isinstance(stream, dict) or stream.get("index") is None:
@@ -542,10 +542,26 @@ def current_track_state() -> dict[str, str]:
         label = clean_value(_stream_label(stream, f"#{index + 1}"))
         return f"#{index + 1} · {label}" if label != f"#{index + 1}" else label
 
-    audio = token(result.get("currentaudiostream") or {})
+    audio_stream = result.get("currentaudiostream") or {}
+    audio = token(audio_stream)
+    audio_id = (f"#{int(audio_stream.get('index', -1)) + 1}"
+                if isinstance(audio_stream, dict)
+                and audio_stream.get("index") is not None else "")
     subtitle = (token(result.get("currentsubtitle") or {})
                 if result.get("subtitleenabled") else "__off__")
-    return {"audio": audio, "subtitle": subtitle}
+    return {"audio": audio, "audio_id": audio_id, "subtitle": subtitle}
+
+
+def audio_event_label(values: dict[str, str]) -> str:
+    """Build the active audio label from the same values as the audio card."""
+    language = clean_value(values.get("AudioNameShortVar", "")).strip()
+    format_parts = (
+        clean_value(values.get(key, "")).strip()
+        for key in ("AudioCodecVar", "AudioChannelsVar",
+                    "AudioCodecSpatialVar")
+    )
+    audio_format = " ".join(part for part in format_parts if part)
+    return " | ".join(part for part in (language, audio_format) if part)
 
 
 # --- Snapshot --------------------------------------------------------------
@@ -606,7 +622,10 @@ class SessionLog:
         self._sampled   = 0.0
         self._switches  = 0
         self._warnings  = 0
-        self._watched: dict[str, str] = {}
+        # Identity and display label are kept separately.  Track indices make
+        # every real switch detectable, while events can still use the clean
+        # card-formatted text instead of Kodi's free-form stream name.
+        self._watched: dict[str, tuple[str, str]] = {}
         self._cache_dipped = False
         self._temperature_hot = False
         self._cpu_full = False
@@ -688,14 +707,21 @@ class SessionLog:
         pass only records what things are, since everything has "changed" then.
         """
         for name, value in watched.items():
-            value = (value or "").strip()
-            if not value:
+            if isinstance(value, dict):
+                identity = str(value.get("id") or "").strip()
+                label = str(value.get("label") or identity).strip()
+            else:
+                identity = str(value or "").strip()
+                label = identity
+            if not identity:
                 continue
             previous = self._watched.get(name)
-            self._watched[name] = value
-            if previous is None or previous == value:
+            current = (identity, label)
+            self._watched[name] = current
+            if previous is None or previous[0] == identity:
                 continue
-            self._add_event(now, position, name, {"from": previous, "to": value})
+            self._add_event(now, position, name,
+                            {"from": previous[1], "to": label})
 
     def _watch_levels(self, metrics: dict, now: float, position: str) -> None:
         """Follow warning levels on the producer's fast clock."""
@@ -858,7 +884,9 @@ class SnapshotBuilder:
         # and settle at most once a title.
         self._controls: dict = {}
         self._controls_at = 0.0
-        self._track_state: dict[str, str] = {"audio": "", "subtitle": ""}
+        self._track_state: dict[str, str] = {
+            "audio": "", "audio_id": "", "subtitle": "",
+        }
         self._track_state_at = 0.0
 
     def _refresh(self) -> None:
@@ -1045,7 +1073,9 @@ class SnapshotBuilder:
             self._meta_static_at = 0.0
             self._controls = {}
             self._controls_at = 0.0
-            self._track_state = {"audio": "", "subtitle": ""}
+            self._track_state = {
+                "audio": "", "audio_id": "", "subtitle": "",
+            }
             self._track_state_at = 0.0
             # Closed rather than thrown away: what the title came to is worth
             # more once it has ended than at any point while it ran, and the
@@ -1081,13 +1111,16 @@ class SnapshotBuilder:
         # them: the overlay's own setting governs what leaves the box, and this
         # is read whether it is on or not.
         tracks = self._active_tracks()
+        audio_identity = tracks.get("audio_id", "") or tracks.get("audio", "")
         self.session.observe(
             title,
             values.get("Filename", ""),
             metrics,
             {"vs10": vs10.get("output", ""),
              "mode": values.get("DisplayModeVar", ""),
-             "audio": tracks.get("audio", ""),
+             "audio": {"id": audio_identity,
+                       "label": audio_event_label(values)
+                                or tracks.get("audio", "")},
              "subtitle": tracks.get("subtitle", "")},
             position,
         )
