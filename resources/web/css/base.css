@@ -407,22 +407,13 @@ main {
 
 /* --- The shape of the page -----------------------------------------------
 
-   A screen wide enough for two columns gets two, because the top of the page
-   has two kinds of thing on it: what is playing down the left, and what the
-   playing of it has come to -- the figures, the chart of them, the events --
-   down the right.  Read across rather than scrolled through, which is the
-   whole point of a second screen.
+   The dashboard reads as one full-width column on every screen: playback and
+   its controls first, then the session figures and events.  Detail groups
+   remain their own responsive grid further down, where several like cards
+   can still share a row.
 
-   The detail groups do not go in either.  They are the bulk of the page and
-   they are all one kind of thing, so they run the full width underneath as
-   many cards to a row as will fit, and the two columns above them stay the
-   length of a screen instead of one of them running twice as long as the
-   other.
-
-   Which is why the areas are named rather than left to fall where the markup
-   puts them: the order here is the order a phone reads, top to bottom -- what
-   is playing, its readings, then the session -- and a wide screen rearranges
-   that without the markup having to change.
+   Named areas keep that reading order on desktop even though the groups sit
+   earlier in the markup for the narrow layout.
 ------------------------------------------------------------------------- */
 
 .rail {
@@ -445,22 +436,19 @@ main {
    columns. */
 @media (min-width: 1080px) {
   .dashboard-page main {
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      "playing session"
-      "groups  groups"
-      "meta    meta";
+      "playing"
+      "session"
+      "groups"
+      "meta";
   }
   .dashboard-page .rail-main { grid-area: playing; }
   .dashboard-page .rail-side { grid-area: session; }
   .dashboard-page .groups    { grid-area: groups; }
   .dashboard-page .metalink  { grid-area: meta; }
-  /* The idle column takes the first row across both, which is free whenever
-     it is on the page at all: nothing is playing, so the two rails and the
-     groups have all hidden themselves and the grid is one row deep.  Sharing
-     the row rather than being given a third of its own is what keeps it
-     centred -- an empty track is no height, but the gap after it is still a
-     gap, and two of those would have pushed the column off centre. */
+  /* The idle column takes the first row, which is free whenever it is on the
+     page at all: nothing is playing and both rails have hidden themselves. */
   .dashboard-page .idlestack { grid-area: 1 / 1 / 2 / -1; }
 }
 
