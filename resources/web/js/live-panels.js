@@ -64,12 +64,14 @@
     '<details class="card hidden" id="tiles">' +
       '<summary class="panel-toggle"><span id="tilesTitle"></span></summary>' +
       '<div class="tilegrid">' +
+        '<div class="tile"><span class="k" id="kPlayerCache"></span>' +
+          '<span class="vwrap"><span class="v mono" id="vPlayerCache">—</span><span class="u">%</span></span></div>' +
         '<div class="tile"><span class="k" id="kFps"></span>' +
-          '<span class="vwrap"><span class="v mono" id="vFps">—</span><span class="u" id="uFps"></span></span></div>' +
-        '<div class="tile"><span class="k" id="kDrops"></span>' +
-          '<span class="vwrap"><span class="v mono" id="vDrops">0</span><span class="u"></span></span></div>' +
+          '<span class="vwrap"><span class="v mono" id="vFps">—</span><span class="u"></span></span></div>' +
         '<div class="tile"><span class="k" id="kSwitches"></span>' +
           '<span class="vwrap"><span class="v mono" id="vSwitches">0</span><span class="u"></span></span></div>' +
+        '<div class="tile"><span class="k" id="kWarnings"></span>' +
+          '<span class="vwrap"><span class="v mono" id="vWarnings">0</span><span class="u"></span></span></div>' +
       '</div>' +
     '</details>' +
     '<details class="card hidden" id="chartCard">' +
@@ -134,8 +136,8 @@
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"), tTotal: $("tTotal"),
     controlDrawer: $("controlDrawer"), controlToggle,
     transport: $("transport"), tracks: $("tracks"),
-    tiles: $("tiles"), vSwitches: $("vSwitches"), vDrops: $("vDrops"),
-    vFps: $("vFps"), uFps: $("uFps"),
+    tiles: $("tiles"), vSwitches: $("vSwitches"), vWarnings: $("vWarnings"),
+    vPlayerCache: $("vPlayerCache"), vFps: $("vFps"),
     chartCard: $("chartCard"), chart: $("chart"), ranges: $("ranges"),
     healthCard: $("healthCard"), healthChart: $("healthChart"),
     healthRanges: $("healthRanges"), healthScale: $("healthScale"),
@@ -502,21 +504,22 @@
     el.tiles.classList.remove("hidden");
     const totals = session || {};
     el.vSwitches.textContent = String(totals.switches || 0);
-    el.vDrops.textContent = String(totals.drops || 0);
+    el.vWarnings.textContent = String(totals.warnings || 0);
+    el.vPlayerCache.textContent = metrics.cache === null || metrics.cache === undefined
+      ? "—" : String(Math.round(metrics.cache));
     el.vFps.textContent  = metrics.fps_in
       ? metrics.fps_in.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "") : "—";
-    /* Empty rather than a space, so the line goes away with it -- see
-       .tile .u:empty in live-panels.css. */
-    el.uFps.textContent  = metrics.fps_drop ? "▼ " + metrics.fps_drop : "";
   }
 
   const EVENT_LABEL = {
     vs10: () => TinyPPI.T.vs10,
     mode: () => TinyPPI.T.ev_mode,
-    cache: () => TinyPPI.T.ev_cache,
-    /* The word the tile uses, so a stutter is called the same thing wherever
-       it is read. */
-    drops: () => TinyPPI.T.drops
+    cache_low: () => TinyPPI.T.cache_low,
+    cache_recovered: () => TinyPPI.T.cache_recovered,
+    audio: () => TinyPPI.T.audio_track,
+    subtitle: () => TinyPPI.T.subtitles,
+    temperature: () => TinyPPI.T.temperature,
+    cpu: () => TinyPPI.T.processor
   };
 
   /* A transition names two whole VS10 output states -- "SDR BT.709" to
@@ -527,11 +530,12 @@
   }
 
   function eventText(entry) {
-    if (isTransition(entry)) return entry.from + " → " + entry.to;
-    if (entry.kind === "cache") return Math.round(entry.value) + "%";
-    /* Frames lost in the worst second of the stutter, so the figure carries
-       its unit: it is a rate, not a count of what the whole title lost. */
-    if (entry.kind === "drops") return entry.value + " FPS";
+    const stateText = (value) => value === "__off__" ? TinyPPI.T.off : value;
+    if (isTransition(entry)) return stateText(entry.from) + " → " + stateText(entry.to);
+    if (entry.kind === "temperature") return Math.round(entry.value) + " °C";
+    if (entry.kind === "cpu" || entry.kind.startsWith("cache_")) {
+      return Math.round(entry.value) + "%";
+    }
     return String(entry.value);
   }
 
@@ -932,7 +936,8 @@
     el.controlToggle.setAttribute("aria-label", T.controls);
     el.controlToggle.title = T.controls;
     $("kSwitches").textContent = T.switches;
-    $("kDrops").textContent = T.drops;
+    $("kWarnings").textContent = T.warnings;
+    $("kPlayerCache").textContent = T.player_cache;
     $("kFps").textContent = T.fps;
     $("chartTitle").textContent = T.chart;
     $("chartScale").textContent = "nits · log";

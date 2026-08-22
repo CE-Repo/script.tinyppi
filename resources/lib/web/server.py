@@ -150,6 +150,12 @@ _UI_STRINGS = {
     "drops_fps":     32493,
     "controls":      32494,
     "metrics":       32495,
+    "player_cache":  32511,
+    "cache_low":       32512,
+    "cache_recovered": 32513,
+    "warnings":        32514,
+    "temperature":     32018,
+    "processor":       32014,
     # The theme button and the menu behind a long press on it.
     "theme_dark":      32496,
     "theme_adaptive":  32497,

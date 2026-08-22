@@ -1618,3 +1618,19 @@ msgstr "连接数过多"
 msgctxt "#32510"
 msgid "Menu"
 msgstr "菜单"
+
+msgctxt "#32511"
+msgid "Player cache"
+msgstr "播放器缓存"
+
+msgctxt "#32512"
+msgid "Player cache below 90%"
+msgstr "播放器缓存低于 90%"
+
+msgctxt "#32513"
+msgid "Player cache recovered"
+msgstr "播放器缓存已恢复"
+
+msgctxt "#32514"
+msgid "Warnings"
+msgstr "警告"

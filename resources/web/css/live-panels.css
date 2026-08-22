@@ -212,7 +212,7 @@
 .tilegrid {
   display: grid;
   gap: 1px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   background: var(--line-soft);
 }
 
@@ -261,7 +261,7 @@
 
 @media (max-width: 620px) {
   .tilegrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .tilegrid .tile:last-child { grid-column: 1 / -1; }
+  .tilegrid .tile:last-child { grid-column: auto; }
 }
 
 /* --- Chart -------------------------------------------------------------- */
@@ -715,7 +715,12 @@
 }
 .event.vs10::before  { background: var(--accent); }
 .event.mode::before  { background: var(--accent-2); }
-.event.cache::before { background: var(--warn); }
+.event.audio::before { background: var(--accent); }
+.event.subtitle::before { background: var(--accent-2); }
+.event.cache_low::before,
+.event.temperature::before,
+.event.cpu::before { background: var(--warn); }
+.event.cache_recovered::before { background: var(--accent); }
 .event.drops::before { background: var(--bad); }
 .event + .event { border-top: 1px solid var(--line-soft); }
 .event .at { font-size: 12.5px; color: var(--dim); white-space: nowrap; }

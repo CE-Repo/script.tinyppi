@@ -1618,3 +1618,19 @@ msgstr "Túl sok kapcsolat"
 msgctxt "#32510"
 msgid "Menu"
 msgstr "Menü"
+
+msgctxt "#32511"
+msgid "Player cache"
+msgstr "Lejátszó gyorsítótár"
+
+msgctxt "#32512"
+msgid "Player cache below 90%"
+msgstr "Lejátszó gyorsítótár 90% alatt"
+
+msgctxt "#32513"
+msgid "Player cache recovered"
+msgstr "Lejátszó gyorsítótár helyreállt"
+
+msgctxt "#32514"
+msgid "Warnings"
+msgstr "Figyelmeztetések"

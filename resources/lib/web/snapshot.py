@@ -517,6 +517,37 @@ def player_controls() -> dict:
     return state
 
 
+def current_track_state() -> dict[str, str]:
+    """Return stable tokens for the active audio and subtitle streams.
+
+    Stream indices are kept deliberately: two tracks can carry the same
+    language and name, but changing between them is still a real player event.
+    Kodi exposes the active indices only through JSON-RPC.
+    """
+    player_id = _video_player_id()
+    if player_id is None:
+        return {"audio": "", "subtitle": ""}
+    result = _rpc("Player.GetProperties", {
+        "playerid": player_id,
+        "properties": ["currentaudiostream", "currentsubtitle",
+                       "subtitleenabled"],
+    }).get("result") or {}
+    if not isinstance(result, dict):
+        return {"audio": "", "subtitle": ""}
+
+    def token(stream: dict) -> str:
+        if not isinstance(stream, dict) or stream.get("index") is None:
+            return ""
+        index = int(stream.get("index", -1))
+        label = clean_value(_stream_label(stream, f"#{index + 1}"))
+        return f"#{index + 1} · {label}" if label != f"#{index + 1}" else label
+
+    audio = token(result.get("currentaudiostream") or {})
+    subtitle = (token(result.get("currentsubtitle") or {})
+                if result.get("subtitleenabled") else "__off__")
+    return {"audio": audio, "subtitle": subtitle}
+
+
 # --- Snapshot --------------------------------------------------------------
 
 class SessionLog:
@@ -546,13 +577,11 @@ class SessionLog:
     #: Cache level that counts as a dip, and the one that ends it.  Two
     #: figures rather than one, so a level hovering at the line writes one
     #: event instead of a hundred.
-    CACHE_LOW   = 10.0
-    CACHE_CLEAR = 30.0
-    #: Frames lost in a second before it is worth an event.  One: a frame that
-    #: never reached the screen is what a viewer saw, and a list that only
-    #: spoke up at two of them was silent about most of what they noticed.
-    DROP_FLOOR  = 1
-
+    CACHE_LOW   = 90.0
+    CACHE_CLEAR = 90.0
+    TEMP_HIGH   = 75.0
+    CPU_FULL    = 100.0
+    WARNING_KINDS = frozenset(("cache_low", "temperature", "cpu"))
     #: How long a finished title is kept after the player has stopped.  The
     #: figures are worth most in the minutes right after the credits, which is
     #: exactly when the old behaviour -- throwing them away the moment
@@ -574,12 +603,12 @@ class SessionLog:
         self._events:  list[dict]  = []
         self._seq       = 0
         self._sampled   = 0.0
-        self._drops     = 0
         self._switches  = 0
+        self._warnings  = 0
         self._watched: dict[str, str] = {}
         self._cache_dipped = False
-        #: The event of the stretch of lost frames now running, if one is.
-        self._dropping: dict | None = None
+        self._temperature_hot = False
+        self._cpu_full = False
         #: The worst drop reading seen since the last chart sample.
         self._drop_peak = 0
 
@@ -684,11 +713,16 @@ class SessionLog:
         # Held for the chart sample to take, so a burst that came and went
         # inside one second is what that second is drawn and counted as.
         self._drop_peak = max(self._drop_peak, drop)
-        self._watch_drops(drop, now, position)
 
         cache = metrics.get("cache")
         if cache is not None:
             self._watch_cache(cache, now, position)
+        temperature = metrics.get("cpu_temp")
+        if temperature is not None:
+            self._watch_temperature(temperature, now, position)
+        cpu = metrics.get("cpu")
+        if cpu is not None:
+            self._watch_cpu(cpu, now, position)
 
     def _sample(self, metrics: dict, now: float, position: str) -> None:
         """Take one chart sample and fold it into the totals."""
@@ -703,8 +737,6 @@ class SessionLog:
         # often as this runs (see _watch_levels).
         drop = self._drop_peak
         self._drop_peak = 0
-        self._drops += drop
-
         self._samples.append((
             round(now - self._started, 1), peak, mean, drop, cache,
         ))
@@ -712,42 +744,33 @@ class SessionLog:
             del self._samples[:len(self._samples) - self.MAX_SAMPLES]
 
     def _watch_cache(self, cache: float, now: float, position: str) -> None:
-        if not self._cache_dipped and cache <= self.CACHE_LOW:
+        if not self._cache_dipped and cache < self.CACHE_LOW:
             self._cache_dipped = True
-            self._add_event(now, position, "cache", {"value": cache})
-        elif self._cache_dipped and cache >= self.CACHE_CLEAR:
+            self._add_event(now, position, "cache_low", {"value": cache})
+        elif self._cache_dipped and cache > self.CACHE_CLEAR:
             self._cache_dipped = False
+            self._add_event(now, position, "cache_recovered", {"value": cache})
 
-    def _watch_drops(self, drop: int, now: float, position: str) -> None:
-        """One event per stretch of lost frames, carrying its worst second.
+    def _watch_temperature(self, temperature: float, now: float,
+                           position: str) -> None:
+        hot = temperature >= self.TEMP_HIGH
+        if hot and not self._temperature_hot:
+            self._add_event(now, position, "temperature", {"value": temperature})
+        self._temperature_hot = hot
 
-        Every stretch, however short -- that is the point of watching on the
-        fast clock.  But one event for the stretch and not one per look: the
-        gauge reads the last second, so a single stutter shows up in five
-        passes running, and five entries of the same stutter would push
-        everything else off a list sixty long.  While it lasts, its event is
-        kept at the worst the gauge showed; the reading falling back to
-        nothing is what ends it.
-        """
-        if drop < self.DROP_FLOOR:
-            if not drop:
-                self._dropping = None
-            return
-        if self._dropping is None:
-            self._dropping = self._add_event(now, position, "drops",
-                                             {"value": drop})
-        elif drop > self._dropping["value"]:
-            self._dropping["value"] = drop
-            # The page fetches the list again when this moves, and a stretch
-            # that worsens is worth the refetch: without it the entry would go
-            # on reading whatever the first look at it happened to catch.
-            self._seq += 1
+    def _watch_cpu(self, cpu: float, now: float, position: str) -> None:
+        full = cpu >= self.CPU_FULL
+        if full and not self._cpu_full:
+            self._add_event(now, position, "cpu", {"value": cpu})
+        self._cpu_full = full
 
     def _add_event(self, now: float, position: str, kind: str,
                    detail: dict) -> dict:
         """Add one event and hand it back, for a caller that keeps following
-        what it recorded (see ``_watch_drops``)."""
+        what it recorded."""
         self._seq += 1
+        if kind in self.WARNING_KINDS:
+            self._warnings += 1
         event = {
             "t": round(now - self._started, 1),
             "pos": position,
@@ -776,8 +799,8 @@ class SessionLog:
         with self._lock:
             return {
                 "seq":      self._seq,
-                "drops":    self._drops,
                 "switches": self._switches,
+                "warnings": self._warnings,
             }
 
     def last(self) -> dict:
@@ -798,8 +821,8 @@ class SessionLog:
                 "title":    self._title,
                 "position": self._position,
                 "ago":      int(ago),
-                "drops":    self._drops,
                 "switches": self._switches,
+                "warnings": self._warnings,
                 "peak":     max(peaks) if peaks else None,
                 "events":   len(self._events),
             }
@@ -855,6 +878,8 @@ class SnapshotBuilder:
         # and settle at most once a title.
         self._controls: dict = {}
         self._controls_at = 0.0
+        self._track_state: dict[str, str] = {"audio": "", "subtitle": ""}
+        self._track_state_at = 0.0
 
     def _refresh(self) -> None:
         """Recompute the readings into the sink, static half on its own timer."""
@@ -1012,6 +1037,14 @@ class SnapshotBuilder:
             self._controls = player_controls()
         return self._controls
 
+    def _active_tracks(self) -> dict[str, str]:
+        """Active tracks, refreshed at most once per static interval."""
+        now = time.monotonic()
+        if now - self._track_state_at >= self.STATIC_INTERVAL:
+            self._track_state_at = now
+            self._track_state = current_track_state()
+        return self._track_state
+
     def build(self, addon=None, allow_filename: bool = True,
               metadata: bool = True, control: bool = False) -> dict:
         """One complete snapshot.  Cheap enough for the producer's cadence:
@@ -1032,6 +1065,8 @@ class SnapshotBuilder:
             self._meta_static_at = 0.0
             self._controls = {}
             self._controls_at = 0.0
+            self._track_state = {"audio": "", "subtitle": ""}
+            self._track_state_at = 0.0
             # Closed rather than thrown away: what the title came to is worth
             # more once it has ended than at any point while it ran, and the
             # page has nothing else to show until the next one starts.
@@ -1065,12 +1100,15 @@ class SnapshotBuilder:
         # name is what tells one session from the next and is never sent with
         # them: the overlay's own setting governs what leaves the box, and this
         # is read whether it is on or not.
+        tracks = self._active_tracks()
         self.session.observe(
             title,
             values.get("Filename", ""),
             metrics,
             {"vs10": vs10.get("output", ""),
-             "mode": values.get("DisplayModeVar", "")},
+             "mode": values.get("DisplayModeVar", ""),
+             "audio": tracks.get("audio", ""),
+             "subtitle": tracks.get("subtitle", "")},
             position,
         )
 

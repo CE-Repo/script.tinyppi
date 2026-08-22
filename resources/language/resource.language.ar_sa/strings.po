@@ -1619,3 +1619,19 @@ msgstr "عدد الاتصالات كبير جدًا"
 msgctxt "#32510"
 msgid "Menu"
 msgstr "القائمة"
+
+msgctxt "#32511"
+msgid "Player cache"
+msgstr "ذاكرة التخزين المؤقت للمشغل"
+
+msgctxt "#32512"
+msgid "Player cache below 90%"
+msgstr "ذاكرة المشغل أقل من 90٪"
+
+msgctxt "#32513"
+msgid "Player cache recovered"
+msgstr "تعافت ذاكرة المشغل"
+
+msgctxt "#32514"
+msgid "Warnings"
+msgstr "تحذيرات"

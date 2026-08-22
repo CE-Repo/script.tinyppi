@@ -123,8 +123,8 @@ function renderLast(last) {
      peak the grade reached is in the report rather than here -- it is a
      reading about the film, and these are about the playing of it. */
   const tiles = [
-    [T.drops, String(last.drops || 0)],
-    [T.switches, String(last.switches || 0)]
+    [T.switches, String(last.switches || 0)],
+    [T.warnings, String(last.warnings || 0)]
   ];
 
   el.lastTiles.replaceChildren();
@@ -347,8 +347,8 @@ function summaryLines(session, peak) {
   if (peak !== null && peak !== undefined) {
     lines.push(TinyPPI.reportLine(T.peak, TinyPPI.fmtNits(peak) + " nits"));
   }
-  lines.push(TinyPPI.reportLine(T.drops, String((session || {}).drops || 0)));
   lines.push(TinyPPI.reportLine(T.switches, String((session || {}).switches || 0)));
+  lines.push(TinyPPI.reportLine(T.warnings, String((session || {}).warnings || 0)));
   return ["[" + T.summary + "]", ...lines, ""];
 }
 

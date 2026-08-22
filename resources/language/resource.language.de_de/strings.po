@@ -1618,3 +1618,19 @@ msgstr "Zu viele Verbindungen"
 msgctxt "#32510"
 msgid "Menu"
 msgstr "Menü"
+
+msgctxt "#32511"
+msgid "Player cache"
+msgstr "Playercache"
+
+msgctxt "#32512"
+msgid "Player cache below 90%"
+msgstr "Playercache unter 90 %"
+
+msgctxt "#32513"
+msgid "Player cache recovered"
+msgstr "Playercache erholt"
+
+msgctxt "#32514"
+msgid "Warnings"
+msgstr "Warnungen"
