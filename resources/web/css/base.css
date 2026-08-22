@@ -103,6 +103,11 @@ html, body {
   padding: 0;
   background: var(--bg);
   color: var(--text);
+  /* No grey-blue box over whatever a finger lands on.  The page answers a
+     press itself -- every key here has its own pressed state -- and the
+     browser's own flash arrives late, squares off the round keys and stays
+     lit after the finger has gone. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -262,10 +267,18 @@ body {
   cursor: pointer;
   transition: color .15s, border-color .15s, background .15s;
 }
-.iconbtn:hover {
-  color: var(--text);
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+/* Only where there is a pointer to hover with.  A touch browser reports a tap
+   as a hover and then leaves it on the key until something else is tapped, so
+   on a phone a rule like this is a key that stays lit long after it was let
+   go -- the tinted box that read as a highlight nothing would clear.  Every
+   rule that lights something under a cursor is inside one of these, here and
+   in the other three sheets. */
+@media (hover: hover) {
+  .iconbtn:hover {
+    color: var(--text);
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+  }
 }
 .iconbtn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
 
@@ -314,10 +327,14 @@ body {
   outline: none;
   box-shadow: none;
 }
-.action-menu .iconbtn:hover {
-  color: color-mix(in srgb, var(--accent) 78%, white);
-  border-color: color-mix(in srgb, var(--accent) 72%, white);
+@media (hover: hover) {
+  .action-menu .iconbtn:hover {
+    color: color-mix(in srgb, var(--accent) 78%, white);
+    border-color: color-mix(in srgb, var(--accent) 72%, white);
+  }
 }
+/* A press rather than a hover, so this one is kept on a touch screen: it
+   lasts exactly as long as the finger is down. */
 .action-menu .iconbtn:active {
   color: color-mix(in srgb, var(--accent) 62%, white);
   border-color: color-mix(in srgb, var(--accent) 58%, white);
@@ -367,7 +384,9 @@ body {
   mask: var(--icon) no-repeat center / contain;
 }
 .iconbtn .ui-icon { width: 18px; height: 18px; margin: auto; opacity: .82; }
-.iconbtn:hover .ui-icon { opacity: 1; }
+@media (hover: hover) {
+  .iconbtn:hover .ui-icon { opacity: 1; }
+}
 .presence-icon {
   display: inline-block;
   width: 14px;

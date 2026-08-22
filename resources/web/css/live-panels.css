@@ -59,12 +59,27 @@
   transform: rotate(45deg) translate(-2px, -2px);
   transition: transform .15s ease, color .15s;
 }
-.panel-toggle:hover { color: var(--text); }
-.panel-toggle:hover::after { color: var(--accent); }
+@media (hover: hover) {
+  .panel-toggle:hover { color: var(--text); }
+  .panel-toggle:hover::after { color: var(--accent); }
+}
 .card[open] > .panel-toggle {
-  color: var(--text);
   border-bottom: 1px solid var(--line-soft);
 }
+
+/* Opening or closing a card marks its heading with the accent for a moment
+   and then lets go of it again.  The colour says the fold has just moved,
+   which is the one thing worth colouring: whether it is open or shut is
+   already written in the chevron beside it and in the card under it, so a
+   heading that stayed lit for as long as the card was open was spending the
+   accent on something nothing had to look for.
+
+   Only a `from`, so whatever the heading is at rest is what it settles back
+   to -- the muted grey of the text, the dimmer grey of the mark -- without
+   either colour being named twice. */
+@keyframes toggle-flash { from { color: var(--accent); } }
+.panel-toggle.flash,
+.panel-toggle.flash::after { animation: toggle-flash .6s ease-out; }
 .card[open] > .panel-toggle::after {
   transform: rotate(225deg) translate(-2px, -2px);
 }
@@ -188,9 +203,11 @@
   -webkit-mask: url("/icons/chevron-down.svg") no-repeat center / contain;
   mask: url("/icons/chevron-down.svg") no-repeat center / contain;
 }
-.control-toggle:hover {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+@media (hover: hover) {
+  .control-toggle:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
 }
 .control-toggle[aria-expanded="true"] {
   color: var(--text);
@@ -444,9 +461,11 @@
   cursor: pointer;
   transition: border-color .15s, background .15s, transform .08s;
 }
-.tbtn:hover {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+@media (hover: hover) {
+  .tbtn:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+  }
 }
 .tbtn:active { transform: scale(.96); }
 .tbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -588,7 +607,9 @@
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
 }
-.pick select:hover { border-color: var(--accent); }
+@media (hover: hover) {
+  .pick select:hover { border-color: var(--accent); }
+}
 .pick select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* --- The range keys ------------------------------------------------------
@@ -624,7 +645,9 @@
   white-space: nowrap;
   transition: color .12s, background .12s, border-color .12s;
 }
-.range:hover { color: var(--text); }
+@media (hover: hover) {
+  .range:hover { color: var(--text); }
+}
 .range.on {
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 45%, transparent);

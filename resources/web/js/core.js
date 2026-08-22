@@ -26,7 +26,8 @@ window.TinyPPI = (function () {
     metadata: "Dolby Vision metadata view", metadata_section: "Metadata",
     no_metadata: "No Dolby Vision metadata", no_metadata_text: "",
     idle_title: "Nothing is playing", idle_text: "",
-    peak: "Peak", fps: "FPS", switches: "Switches", metrics: "Metrics",
+    peak: "Peak", average: "Average", fps: "FPS", switches: "Switches",
+    metrics: "Metrics",
     player_cache: "Player cache", audio_track: "Audio track",
     warnings: "Warnings",
     playpause: "Play / pause", stop: "Stop", volume: "Volume", mute: "Mute",
@@ -67,9 +68,38 @@ window.TinyPPI = (function () {
     catch (_) {}
   }
 
+  /* The accent mark a card wears for a moment after it is folded or unfolded
+     (see .panel-toggle.flash in css/live-panels.css).  The heading is looked
+     up here rather than held onto, because a group card is bound before its
+     own heading has been put in it (see renderGroups in js/dashboard.js). */
+  function flashToggle(node) {
+    const heading = node.querySelector(":scope > .panel-toggle");
+    if (!heading) return;
+    if (!heading.dataset.flashbound) {
+      heading.dataset.flashbound = "1";
+      heading.addEventListener("animationend",
+                               () => heading.classList.remove("flash"));
+    }
+    heading.classList.remove("flash");
+    /* Read something back, or a second press inside the first mark's half
+       second sets a class the element already has and nothing plays. */
+    void heading.offsetWidth;
+    heading.classList.add("flash");
+  }
+
   function bindDisclosure(node, key, fallback) {
-    node.open = disclosureState(key, fallback);
-    node.addEventListener("toggle", () => setDisclosureState(key, node.open));
+    const wanted = disclosureState(key, fallback);
+    /* Restoring a card to open fires a toggle of its own, and it is the first
+       one this listener can possibly see -- nothing can be pressed before a
+       task already queued.  Skipped, because the mark belongs to a fold
+       somebody moved rather than to the page arriving with five cards open. */
+    let restoring = node.open !== wanted;
+    node.open = wanted;
+    node.addEventListener("toggle", () => {
+      setDisclosureState(key, node.open);
+      if (restoring) { restoring = false; return; }
+      flashToggle(node);
+    });
     return node;
   }
 

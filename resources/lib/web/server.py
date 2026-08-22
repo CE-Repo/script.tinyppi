@@ -105,6 +105,7 @@ _UI_STRINGS = {
     "idle_title":    32451,
     "idle_text":     32452,
     "peak":          32453,
+    "average":       32454,
     "fps":           32140,   # FPS
     "chart":         32455,
     "active_area":   32030,   # L5 Active Area

@@ -50,7 +50,9 @@
   color: var(--text);
   cursor: pointer;
 }
-.theme-option:hover { background: var(--panel-2); }
+@media (hover: hover) {
+  .theme-option:hover { background: var(--panel-2); }
+}
 .theme-option .ui-icon { width: 18px; height: 18px; opacity: .82; }
 .theme-option.selected {
   background: color-mix(in srgb, var(--accent) 14%, transparent);
@@ -98,7 +100,9 @@
   cursor: pointer;
   transition: color .12s, border-color .12s, background .12s;
 }
-.theme-group-option:hover { color: var(--text); border-color: var(--accent); }
+@media (hover: hover) {
+  .theme-group-option:hover { color: var(--text); border-color: var(--accent); }
+}
 .theme-group-option[aria-pressed="true"] {
   background: color-mix(in srgb, var(--accent) 14%, transparent);
   border-color: color-mix(in srgb, var(--accent) 45%, transparent);
@@ -185,9 +189,11 @@
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 }
-:root[data-theme="dark-adaptive"] .topbar .action-menu .iconbtn:hover {
-  color: color-mix(in srgb, var(--accent) 78%, white);
-  border-color: color-mix(in srgb, var(--accent) 72%, white);
+@media (hover: hover) {
+  :root[data-theme="dark-adaptive"] .topbar .action-menu .iconbtn:hover {
+    color: color-mix(in srgb, var(--accent) 78%, white);
+    border-color: color-mix(in srgb, var(--accent) 72%, white);
+  }
 }
 :root[data-theme="dark-adaptive"] .topbar .action-menu .iconbtn:active {
   color: color-mix(in srgb, var(--accent) 62%, white);

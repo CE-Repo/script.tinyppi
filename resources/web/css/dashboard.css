@@ -10,7 +10,11 @@
    without reading. */
 .vs10 .out {
   font-size: 13px;
-  color: var(--dim);
+  /* The name reads as brightly as the reading beside it.  There are two words
+     on this surface and both of them matter: which output, and what it is --
+     a dimmed name here was the label of a control rather than half of a
+     sentence. */
+  color: var(--text);
   display: flex;
   gap: 10px;
   align-items: baseline;
@@ -47,9 +51,11 @@
   cursor: pointer;
   transition: border-color .15s, background .15s, transform .08s;
 }
-.mode:hover:not(:disabled) {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+@media (hover: hover) {
+  .mode:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+  }
 }
 .mode:active:not(:disabled) { transform: scale(.985); }
 .mode:disabled { opacity: .5; cursor: progress; }
@@ -160,10 +166,12 @@
   font-weight: 650;
   transition: border-color .15s, background .15s, box-shadow .15s, transform .12s;
 }
-.metalink:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-lift);
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .metalink:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-1px);
+  }
 }
 .metalink:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .metalink .dv {
@@ -187,7 +195,9 @@
   font-size: 18px;
   transition: transform .15s ease;
 }
-.metalink:hover .arrow { transform: translate(2px, -2px); }
+@media (hover: hover) {
+  .metalink:hover .arrow { transform: translate(2px, -2px); }
+}
 
 /* --- What was playing before ------------------------------------------- */
 

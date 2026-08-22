@@ -83,8 +83,8 @@
       '<div class="chartwrap">' +
         '<canvas id="chart" class="chart" role="img"></canvas>' +
         '<div class="legend">' +
-          '<span><i class="swatch band"></i>Max</span>' +
-          '<span><i class="swatch avg"></i>Ø</span>' +
+          '<span><i class="swatch band"></i><span id="legendPeak">Max</span></span>' +
+          '<span><i class="swatch avg"></i><span id="legendAvg">Ø</span></span>' +
           '<span id="chartScale" style="margin-left:auto"></span>' +
         '</div>' +
       '</div>' +
@@ -990,6 +990,13 @@
     $("kPlayerCache").textContent = T.player_cache;
     $("kFps").textContent = T.fps;
     $("chartTitle").textContent = T.chart;
+    /* The two traces name themselves in the reader's language.  They were the
+       last words on either page still written in English -- everything else
+       comes out of Kodi's own table -- and the strings for them were already
+       in it, waiting for the legend to ask.  The scale beside them stays as
+       it is: a unit and the shape of an axis are not translated. */
+    $("legendPeak").textContent = T.peak;
+    $("legendAvg").textContent = T.average;
     $("chartScale").textContent = "nits · log";
     $("eventsTitle").textContent = T.events;
     for (const bar of rangeBars) {
