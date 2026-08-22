@@ -1594,3 +1594,23 @@ msgstr "Normál"
 msgctxt "#32504"
 msgid "Strong"
 msgstr "Erős"
+
+msgctxt "#32505"
+msgid "Buffer and frame drops"
+msgstr "Puffer és képkockakiesés"
+
+msgctxt "#32506"
+msgid "Cache"
+msgstr "Gyorsítótár"
+
+msgctxt "#32507"
+msgid "Last played"
+msgstr "Legutóbb lejátszva"
+
+msgctxt "#32508"
+msgid "Summary"
+msgstr "Összegzés"
+
+msgctxt "#32509"
+msgid "Too many connections"
+msgstr "Túl sok kapcsolat"

@@ -373,12 +373,25 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
   transform: translate(-50%, -50%);
   z-index: 1;
 }
+
+/* Unless it is carrying the title that just ended.  Then it is not the only
+   thing on the page -- the events of that title are still under it -- and a
+   card centred in the viewport would leave them stranded above it.  It goes
+   back into the flow and they follow it down the page, which is the order they
+   were read in while the film ran. */
+#idleCard:not(.hidden):has(.last:not(.hidden)) {
+  position: static;
+  width: auto;
+  max-width: none;
+  transform: none;
+}
 @media (max-width: 620px) {
   #idleCard:not(.hidden) { width: min(calc(100% - 20px), 1328px); }
 }
 
 @media (min-width: 760px) {
   #idleCard:not(.hidden) { max-width: 400px; }
+  #idleCard:not(.hidden):has(.last:not(.hidden)) { max-width: none; }
 }
 
 .hidden { display: none !important; }

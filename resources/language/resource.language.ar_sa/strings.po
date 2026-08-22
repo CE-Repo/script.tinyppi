@@ -1595,3 +1595,23 @@ msgstr "قياسي"
 msgctxt "#32504"
 msgid "Strong"
 msgstr "قوي"
+
+msgctxt "#32505"
+msgid "Buffer and frame drops"
+msgstr "المخزن المؤقت والإطارات المفقودة"
+
+msgctxt "#32506"
+msgid "Cache"
+msgstr "ذاكرة التخزين المؤقت"
+
+msgctxt "#32507"
+msgid "Last played"
+msgstr "آخر تشغيل"
+
+msgctxt "#32508"
+msgid "Summary"
+msgstr "الملخص"
+
+msgctxt "#32509"
+msgid "Too many connections"
+msgstr "عدد الاتصالات كبير جدًا"

@@ -1594,3 +1594,23 @@ msgstr ""
 msgctxt "#32504"
 msgid "Strong"
 msgstr ""
+
+msgctxt "#32505"
+msgid "Buffer and frame drops"
+msgstr ""
+
+msgctxt "#32506"
+msgid "Cache"
+msgstr ""
+
+msgctxt "#32507"
+msgid "Last played"
+msgstr ""
+
+msgctxt "#32508"
+msgid "Summary"
+msgstr ""
+
+msgctxt "#32509"
+msgid "Too many connections"
+msgstr ""

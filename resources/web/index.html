@@ -46,6 +46,16 @@
       <div class="big" id="idleTitle">—</div>
       <p id="idleText"></p>
     </div>
+    <!-- What the title that has just finished came to.  The add-on keeps a
+         session for a while after the player stops, which is when its figures
+         are worth reading (see SessionLog.end in web/snapshot.py). -->
+    <div class="last hidden" id="lastBox">
+      <div class="lasthead">
+        <span class="k" id="lastLabel"></span>
+        <b id="lastTitle"></b>
+      </div>
+      <div class="tilegrid" id="lastTiles"></div>
+    </div>
   </section>
 
   <details class="card hidden" id="vs10Card">

@@ -551,13 +551,23 @@ class SessionLog:
     #: Frames lost in a second before it is worth an event.
     DROP_FLOOR  = 2
 
+    #: How long a finished title is kept after the player has stopped.  The
+    #: figures are worth most in the minutes right after the credits, which is
+    #: exactly when the old behaviour -- throwing them away the moment
+    #: playback ended -- had already lost them.
+    RETAIN_SECONDS = 600.0
+
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self.reset("")
 
-    def reset(self, key: str) -> None:
+    def reset(self, key: str, title: str = "", duration: str = "") -> None:
         """Start over for ``key``, the title this session belongs to."""
         self._key       = key
+        self._title     = title
+        self._duration  = duration
+        self._position  = ""
+        self._ended     = 0.0
         self._started   = time.monotonic()
         self._samples: list[tuple] = []
         self._events:  list[dict]  = []
@@ -571,24 +581,39 @@ class SessionLog:
 
     # -- writing --
 
-    def clear(self) -> None:
-        """Drop the session, for a player that has stopped.
+    def end(self) -> None:
+        """Close the session, for a player that has stopped.
 
-        Cheap to call on every idle pass: with nothing recorded there is
-        nothing to throw away, and the clock is left where it is rather than
-        restarted five times a second.
+        The readings are kept rather than dropped: the peak the grade reached
+        and the frames it lost are what a viewer looks for once the credits
+        roll, and the page has nothing else to show while nothing is playing.
+        They are let go after ``RETAIN_SECONDS``, and the next title lets them
+        go the moment it starts (see ``observe``).
+
+        Cheap to call on every idle pass: an already-closed session that is
+        still inside its window is left exactly as it is, and an empty one is
+        never held at all.
         """
         with self._lock:
             if not (self._key or self._samples or self._events):
                 return
-            self.reset("")
+            if not self._ended:
+                self._ended = time.monotonic()
+                return
+            if time.monotonic() - self._ended >= self.RETAIN_SECONDS:
+                self.reset("")
 
-    def observe(self, key: str, metrics: dict, watched: dict,
+    def observe(self, title: str, duration: str, metrics: dict, watched: dict,
                 position: str) -> None:
         """Fold one pass into the session, sampling on its own slower clock."""
         with self._lock:
-            if key != self._key:
-                self.reset(key)
+            # The title alone would hold two episodes of the same name to one
+            # session; a session that has already ended starts over whatever
+            # its key says, so replaying a film does not resume its figures.
+            key = f"{title}\n{duration}"
+            if key != self._key or self._ended:
+                self.reset(key, title, duration)
+            self._position = position
             now = time.monotonic()
             self._note_changes(watched, now, position)
             if now - self._sampled < self.SAMPLE_INTERVAL:
@@ -680,6 +705,31 @@ class SessionLog:
                 "seq":      self._seq,
                 "drops":    self._drops,
                 "switches": self._switches,
+            }
+
+    def last(self) -> dict:
+        """What the title that just finished came to, for the idle page.
+
+        Empty while something is playing and again once the window has run
+        out, so the page has one thing to test: either there is a last title
+        to show or there is not.
+        """
+        with self._lock:
+            if not self._ended or not self._key:
+                return {}
+            ago = time.monotonic() - self._ended
+            if ago >= self.RETAIN_SECONDS:
+                return {}
+            peaks = [sample[1] for sample in self._samples if sample[1] is not None]
+            return {
+                "title":    self._title,
+                "duration": self._duration,
+                "position": self._position,
+                "ago":      int(ago),
+                "drops":    self._drops,
+                "switches": self._switches,
+                "peak":     max(peaks) if peaks else None,
+                "events":   len(self._events),
             }
 
     def history(self) -> dict:
@@ -910,7 +960,10 @@ class SnapshotBuilder:
             self._meta_static_at = 0.0
             self._controls = {}
             self._controls_at = 0.0
-            self.session.clear()
+            # Closed rather than thrown away: what the title came to is worth
+            # more once it has ended than at any point while it ran, and the
+            # page has nothing else to show until the next one starts.
+            self.session.end()
             return {
                 "seq":      self._sequence,
                 "playing":  False,
@@ -919,6 +972,7 @@ class SnapshotBuilder:
                 "metadata": [],
                 "vs10":     vs10_state("", playing=False),
                 "session":  self.session.summary(),
+                "last":     self.session.last(),
             }
 
         self._refresh()
@@ -935,11 +989,10 @@ class SnapshotBuilder:
         position = values.get("PlayerTime", "")
 
         # Folded in before the snapshot is handed over, so the totals the page
-        # is about to print already include the pass it is printing.  The key
-        # is what a new film changes: the title on its own would restart the
-        # session for two episodes of the same name.
+        # is about to print already include the pass it is printing.
         self.session.observe(
-            f"{title}\n{values.get('PlayerDuration', '')}",
+            title,
+            values.get("PlayerDuration", ""),
             metrics,
             {"vs10": vs10.get("output", ""),
              "mode": values.get("DisplayModeVar", "")},

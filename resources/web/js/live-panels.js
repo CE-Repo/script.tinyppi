@@ -78,11 +78,25 @@
         '<div class="ranges" id="ranges"></div>' +
       '</div>' +
       '<div class="chartwrap">' +
-        '<canvas id="chart" role="img"></canvas>' +
+        '<canvas id="chart" class="chart" role="img"></canvas>' +
         '<div class="legend">' +
           '<span><i class="swatch band"></i>Max</span>' +
           '<span><i class="swatch avg"></i>Ø</span>' +
           '<span id="chartScale" style="margin-left:auto"></span>' +
+        '</div>' +
+      '</div>' +
+    '</details>' +
+    '<details class="card hidden" id="healthCard">' +
+      '<summary class="panel-toggle"><span id="healthTitle"></span></summary>' +
+      '<div class="chart-options">' +
+        '<div class="ranges" id="healthRanges"></div>' +
+      '</div>' +
+      '<div class="chartwrap">' +
+        '<canvas id="healthChart" class="chart" role="img"></canvas>' +
+        '<div class="legend">' +
+          '<span><i class="swatch band"></i><span id="cacheLegend"></span></span>' +
+          '<span><i class="swatch drops"></i><span id="dropsLegend"></span></span>' +
+          '<span id="healthScale" style="margin-left:auto"></span>' +
         '</div>' +
       '</div>' +
     '</details>' +
@@ -121,6 +135,8 @@
     tiles: $("tiles"), vSwitches: $("vSwitches"), vDrops: $("vDrops"),
     vFps: $("vFps"), uFps: $("uFps"),
     chartCard: $("chartCard"), chart: $("chart"), ranges: $("ranges"),
+    healthCard: $("healthCard"), healthChart: $("healthChart"),
+    healthRanges: $("healthRanges"), healthScale: $("healthScale"),
     eventsCard: $("eventsCard"), events: $("events")
   };
 
@@ -135,6 +151,7 @@
   let posterTag = "";
   let volumeHeld = 0;   /* while a finger is on the slider, leave it alone  */
   let trackKey = "";
+  let idleFetched = false;  /* the ended title's events, asked for once      */
   const controlStateKey = pageState + ".controls";
 
   function setControlsOpen(open, remember) {
@@ -149,6 +166,7 @@
   setControlsOpen(TinyPPI.disclosureState(controlStateKey, false), false);
   TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
   TinyPPI.bindDisclosure(el.chartCard, pageState + ".l1", false);
+  TinyPPI.bindDisclosure(el.healthCard, pageState + ".health", false);
   TinyPPI.bindDisclosure(el.eventsCard, pageState + ".events", false);
 
   /* --- what is playing -------------------------------------------------- */
@@ -540,7 +558,7 @@
     }
   }
 
-  /* --- the chart -------------------------------------------------------- */
+  /* --- the charts ------------------------------------------------------- */
 
   /* Luminance spans four decades, from a black frame to a specular highlight,
      so the y axis is logarithmic: a linear one would flatten everything below
@@ -553,9 +571,15 @@
            (Math.log10(MAX_NITS) - Math.log10(MIN_NITS));
   };
 
-  function buildRanges() {
-    if (el.ranges.dataset.built) return;
-    el.ranges.dataset.built = "1";
+  /* Every chart on the page reads the same range buttons, because a page only
+     ever shows one chart: the luminance one belongs to the metadata window and
+     the playback one to the dashboard. */
+  const rangeBars = [];
+
+  function buildRanges(container) {
+    if (container.dataset.built) return;
+    container.dataset.built = "1";
+    rangeBars.push(container);
     const spans = [[60, "range_1m"], [600, "range_10m"], [0, "range_all"]];
     for (const [seconds, key] of spans) {
       const button = document.createElement("button");
@@ -568,16 +592,18 @@
         range = seconds;
         markRange();
         if (seconds !== HISTORY_SECONDS) fetchHistory(true);
-        drawChart();
+        drawCharts();
       });
-      el.ranges.append(button);
+      container.append(button);
     }
     markRange();
   }
 
   function markRange() {
-    for (const button of el.ranges.children) {
-      button.classList.toggle("on", Number(button.dataset.range) === range);
+    for (const bar of rangeBars) {
+      for (const button of bar.children) {
+        button.classList.toggle("on", Number(button.dataset.range) === range);
+      }
     }
   }
 
@@ -603,18 +629,29 @@
         renderEvents(data.events);
         el.eventsCard.classList.remove("hidden");
       }
-      drawChart();
+      drawCharts();
     }).catch(() => { /* the stream's own retry reports an outage */ })
       .finally(() => { fetching = false; });
   }
 
-  /* Both sources reduced to the same shape: how long ago, and what it was. */
-  function series() {
+  /* Both sources reduced to the same shape: how long ago, and what was read.
+     ``required`` is the reading the chart cannot draw without -- a sample with
+     nothing in that field is left out rather than drawn as a zero, which is
+     what keeps an HDR10 title out of the luminance chart and keeps its cache
+     in the playback one. */
+  function series(required) {
     const now = Date.now() / 1000;
+    const known = (value) => value !== null && value !== undefined;
     if (range === HISTORY_SECONDS) {
-      return live.map((point) => ({
-        age: now - point.t, max: point.max, avg: point.avg
-      }));
+      const points = [];
+      for (const point of live) {
+        if (!known(point[required])) continue;
+        points.push({
+          age: now - point.t, max: point.max, avg: point.avg,
+          drop: point.drop, cache: point.cache
+        });
+      }
+      return points;
     }
     if (!past || !past.t || !past.t.length) return [];
     /* The add-on counts from the start of the film and the page from the
@@ -622,63 +659,139 @@
     const drift = now - pastAt / 1000;
     const points = [];
     for (let index = 0; index < past.t.length; index++) {
-      if (past.max[index] === null || past.max[index] === undefined) continue;
+      const column = past[required];
+      if (!column || !known(column[index])) continue;
       points.push({
         age: (past.now - past.t[index]) + drift,
         max: past.max[index],
-        avg: past.avg[index] === null || past.avg[index] === undefined
-          ? past.max[index] : past.avg[index]
+        avg: known(past.avg[index]) ? past.avg[index] : past.max[index],
+        drop: past.drop ? past.drop[index] : 0,
+        cache: past.cache ? past.cache[index] : null
       });
     }
     return points;
   }
 
-  function renderChart(metrics) {
-    if (!metadataPage) {
-      el.chartCard.classList.add("hidden");
-      return;
-    }
+  /* --- what each page charts -------------------------------------------- */
+
+  /* One live sample per snapshot, whatever the page draws from it: the two
+     charts read the same buffer, and the readings a source cannot carry are
+     left as they arrive rather than turned into zeroes here. */
+  function recordSample(metrics) {
     const l1 = metrics.l1 || {};
-    if (l1.max === null || l1.max === undefined) {
-      el.chartCard.classList.add("hidden");
-      return;
-    }
-    el.chartCard.classList.remove("hidden");
-    buildRanges();
-
+    live.push({
+      t: Date.now() / 1000,
+      max: (l1.max === null || l1.max === undefined) ? null : l1.max,
+      avg: (l1.avg === null || l1.avg === undefined) ? l1.max : l1.avg,
+      drop: metrics.fps_drop || 0,
+      cache: (metrics.cache === null || metrics.cache === undefined)
+        ? null : metrics.cache
+    });
     const now = Date.now() / 1000;
-    live.push({ t: now, min: l1.min || 0, max: l1.max || 0, avg: l1.avg || 0 });
     while (live.length && now - live[0].t > HISTORY_SECONDS) live.shift();
-
-    if (range !== HISTORY_SECONDS) fetchHistory(false);
-    drawChart();
   }
 
-  function drawChart() {
-    const canvas = el.chart;
+  function renderCharts(metrics) {
+    recordSample(metrics);
+
+    const card = metadataPage ? el.chartCard : el.healthCard;
+    const ranges = metadataPage ? el.ranges : el.healthRanges;
+    /* The luminance chart needs an RPU to read; the playback one needs only a
+       player, so it is drawn for every source there is. */
+    const l1 = metrics.l1 || {};
+    const has = metadataPage
+      ? (l1.max !== null && l1.max !== undefined)
+      : true;
+    if (!has) {
+      card.classList.add("hidden");
+      return;
+    }
+    card.classList.remove("hidden");
+    buildRanges(ranges);
+
+    if (range !== HISTORY_SECONDS) fetchHistory(false);
+    drawCharts();
+  }
+
+  /* --- drawing ----------------------------------------------------------- */
+
+  /* The canvas sized to its box and the theme's palette read off it.  Read off
+     the canvas rather than off <html>: custom properties inherit, so this is
+     the theme's palette on every theme -- and the film's own accent on the
+     adaptive one, where the card the chart sits in has taken the poster's
+     colour (see css/theme.css). */
+  function prepare(canvas) {
     const ratio = window.devicePixelRatio || 1;
     const width = canvas.clientWidth;
     const height = canvas.clientHeight;
-    if (!width || !height) return;
+    if (!width || !height) return null;
     if (canvas.width !== Math.round(width * ratio) ||
         canvas.height !== Math.round(height * ratio)) {
       canvas.width = Math.round(width * ratio);
       canvas.height = Math.round(height * ratio);
     }
-
     const ctx = canvas.getContext("2d");
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    /* Read off the canvas rather than off <html>: custom properties inherit,
-       so this is the theme's palette on every theme -- and the film's own
-       accent on the adaptive one, where the card the chart sits in has taken
-       the poster's colour (see css/theme.css). */
     const style = getComputedStyle(canvas);
-    const accent  = style.getPropertyValue("--accent").trim() || "#4fc3f7";
-    const line    = style.getPropertyValue("--line").trim() || "#242c36";
-    const accent2 = style.getPropertyValue("--accent-2").trim() || "#82b1ff";
-    const dim     = style.getPropertyValue("--dim").trim() || "#5d6875";
+    const colour = (name, fallback) =>
+      style.getPropertyValue(name).trim() || fallback;
+    return {
+      ctx, width, height,
+      accent:  colour("--accent", "#4fc3f7"),
+      accent2: colour("--accent-2", "#82b1ff"),
+      line:    colour("--line", "#242c36"),
+      dim:     colour("--dim", "#5d6875"),
+      bad:     colour("--bad", "#ff5252")
+    };
+  }
+
+  /* How far back the drawing goes: whichever range is on, and for the whole
+     title as far back as the samples themselves. */
+  function windowFor(points) {
+    return range || Math.max(HISTORY_SECONDS, points[0].age);
+  }
+
+  function trace(ctx, points, x, y, key, colour, thickness, dash) {
+    ctx.setLineDash(dash || []);
+    ctx.beginPath();
+    points.forEach((point, index) => {
+      const px = x(point.age), py = y(point[key]);
+      index === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    });
+    ctx.strokeStyle = colour;
+    ctx.lineWidth = thickness;
+    ctx.lineJoin = "round";
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  /* An area under a trace, fading out towards the floor. */
+  function area(ctx, points, x, y, key, colour, floor, alpha) {
+    ctx.beginPath();
+    ctx.moveTo(x(points[0].age), floor);
+    for (const point of points) ctx.lineTo(x(point.age), y(point[key]));
+    ctx.lineTo(x(points[points.length - 1].age), floor);
+    ctx.closePath();
+    const fill = ctx.createLinearGradient(0, y(Infinity), 0, floor);
+    fill.addColorStop(0, colour);
+    fill.addColorStop(1, "transparent");
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawCharts() {
+    if (metadataPage) drawLuminance();
+    else drawHealth();
+  }
+
+  function drawLuminance() {
+    const set = prepare(el.chart);
+    if (!set) return;
+    const { ctx, width, height } = set;
 
     const padLeft = 34, padRight = 6, padTop = 8, padBottom = 6;
     const plotW = width - padLeft - padRight;
@@ -686,8 +799,8 @@
     const y = (nits) => padTop + plotH * (1 - logScale(nits));
 
     /* Gridlines, one per decade. */
-    ctx.strokeStyle = line;
-    ctx.fillStyle = dim;
+    ctx.strokeStyle = set.line;
+    ctx.fillStyle = set.dim;
     ctx.lineWidth = 1;
     ctx.font = "10px ui-monospace, monospace";
     ctx.textAlign = "right";
@@ -701,59 +814,91 @@
       ctx.fillText(tick >= 1000 ? (tick / 1000) + "k" : String(tick), padLeft - 6, ty);
     }
 
-    const points = series();
+    const points = series("max");
     if (points.length < 2) return;
-
-    /* The window is whichever range is on, and for the whole title it is as
-       far back as the samples go. */
-    const span = range || Math.max(HISTORY_SECONDS, points[0].age);
+    const span = windowFor(points);
     const x = (age) => padLeft + plotW * (1 - Math.min(1, age / span));
 
     /* Peak, as an area down to the floor.  The min of an L1 block sits near
        zero on almost every frame, so a min-max band would be full height and
        say nothing; the peak against the average is where the grade shows. */
-    ctx.beginPath();
-    ctx.moveTo(x(points[0].age), padTop + plotH);
-    for (const point of points) ctx.lineTo(x(point.age), y(point.max));
-    ctx.lineTo(x(points[points.length - 1].age), padTop + plotH);
-    ctx.closePath();
-    const fill = ctx.createLinearGradient(0, padTop, 0, padTop + plotH);
-    fill.addColorStop(0, accent);
-    fill.addColorStop(1, "transparent");
-    ctx.globalAlpha = 0.28;
-    ctx.fillStyle = fill;
-    ctx.fill();
-    ctx.globalAlpha = 1;
-
-    const trace = (key, color, thickness, dash) => {
-      ctx.setLineDash(dash || []);
-      ctx.beginPath();
-      points.forEach((point, index) => {
-        const px = x(point.age), py = y(point[key]);
-        index === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-      });
-      ctx.strokeStyle = color;
-      ctx.lineWidth = thickness;
-      ctx.lineJoin = "round";
-      ctx.stroke();
-      ctx.setLineDash([]);
-    };
-
+    area(ctx, points, x, y, "max", set.accent, padTop + plotH, 0.28);
     /* The peak is the solid line the fill belongs to; the average is dashed, so
        the two never read as one band even where they run close together. */
-    trace("max", accent, 1.7);
-    trace("avg", accent2, 1.5, [4, 3]);
+    trace(ctx, points, x, y, "max", set.accent, 1.7);
+    trace(ctx, points, x, y, "avg", set.accent2, 1.5, [4, 3]);
   }
 
-  /* The chart's colours come from the card it is drawn in, which the adaptive
-     theme repaints from the poster.  A canvas cannot notice that on its own,
-     so js/cover-tint.js says when it has happened. */
-  document.addEventListener("tinyppi-tint", () => drawChart());
+  /* What every source can say about itself: how full the cache ran and how
+     many frames went missing while it did.  The two belong on one chart
+     because they are usually the same story -- a buffer that empties is what a
+     run of dropped frames comes out of -- and they are the reason to look at a
+     dashboard at all when a film stutters. */
+  function drawHealth() {
+    const set = prepare(el.healthChart);
+    if (!set) return;
+    const { ctx, width, height } = set;
+
+    const points = series("drop");
+    const padLeft = 30, padTop = 8, padBottom = 6;
+    /* Room on the right for the drop scale, and none where nothing was ever
+       dropped and the axis is not drawn. */
+    const worst = points.reduce((most, point) => Math.max(most, point.drop || 0), 0);
+    const padRight = worst ? 30 : 8;
+    const plotW = width - padLeft - padRight;
+    const plotH = height - padTop - padBottom;
+
+    const cacheY = (percent) =>
+      padTop + plotH * (1 - Math.min(100, Math.max(0, percent)) / 100);
+    const top = Math.max(4, worst);
+    const dropY = (count) => padTop + plotH * (1 - Math.min(1, count / top));
+
+    ctx.strokeStyle = set.line;
+    ctx.fillStyle = set.dim;
+    ctx.lineWidth = 1;
+    ctx.font = "10px ui-monospace, monospace";
+    ctx.textBaseline = "middle";
+    for (const tick of [0, 25, 50, 75, 100]) {
+      const ty = Math.round(cacheY(tick)) + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(padLeft, ty);
+      ctx.lineTo(width - padRight, ty);
+      ctx.stroke();
+      ctx.textAlign = "right";
+      if (tick % 50 === 0) ctx.fillText(tick + "%", padLeft - 6, ty);
+    }
+    /* The right-hand axis carries the frames, and only the two figures worth
+       naming: none, and the worst second there was. */
+    if (worst) {
+      ctx.textAlign = "left";
+      ctx.fillStyle = set.bad;
+      ctx.fillText(String(top), width - padRight + 6, Math.round(dropY(top)) + 0.5);
+      ctx.fillStyle = set.dim;
+      ctx.fillText("0", width - padRight + 6, Math.round(dropY(0)) + 0.5);
+    }
+
+    if (points.length < 2) return;
+    const span = windowFor(points);
+    const x = (age) => padLeft + plotW * (1 - Math.min(1, age / span));
+
+    const cached = points.filter(
+      (point) => point.cache !== null && point.cache !== undefined);
+    if (cached.length > 1) {
+      area(ctx, cached, x, cacheY, "cache", set.accent, padTop + plotH, 0.22);
+      trace(ctx, cached, x, cacheY, "cache", set.accent, 1.6);
+    }
+    if (worst) trace(ctx, points, x, dropY, "drop", set.bad, 1.6);
+  }
+
+  /* The charts' colours come from the card they are drawn in, which the
+     adaptive theme repaints from the poster.  A canvas cannot notice that on
+     its own, so js/cover-tint.js says when it has happened. */
+  document.addEventListener("tinyppi-tint", () => drawCharts());
 
   let resizeTimer = 0;
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(drawChart, 120);
+    resizeTimer = setTimeout(drawCharts, 120);
   });
 
   /* --- what a page calls ------------------------------------------------ */
@@ -767,9 +912,15 @@
     $("kFps").textContent = T.fps;
     $("chartTitle").textContent = T.chart;
     $("chartScale").textContent = "nits · log";
+    $("healthTitle").textContent = T.health;
+    $("cacheLegend").textContent = T.cache;
+    $("dropsLegend").textContent = T.drops;
+    el.healthScale.textContent = "% · " + T.fps;
     $("eventsTitle").textContent = T.events;
-    for (const button of el.ranges.children) {
-      button.textContent = T[button.dataset.key] || button.dataset.key;
+    for (const bar of rangeBars) {
+      for (const button of bar.children) {
+        button.textContent = T[button.dataset.key] || button.dataset.key;
+      }
     }
   }
 
@@ -778,21 +929,36 @@
      last frame of a film that has ended standing there. */
   function update(snapshot) {
     if (!snapshot || !snapshot.playing) {
-      const cards = [el.nowCard, el.tiles, el.chartCard, el.eventsCard];
+      const cards = [el.nowCard, el.tiles, el.chartCard, el.healthCard];
       for (const node of cards) node.classList.add("hidden");
       live = [];
-      past = null;
-      pastSeq = -1;
       posterTag = "";
       trackKey = "";
       setControlsOpen(false, false);
+      /* The title that has just ended keeps its samples and its events for a
+         while (see SessionLog.end in web/snapshot.py).  While it does, the
+         list stays where it was rather than emptying the moment the credits
+         stop -- which is the minute the figures are worth most. */
+      const last = snapshot && snapshot.last;
+      if (!last || !last.events) {
+        el.eventsCard.classList.add("hidden");
+        past = null;
+        pastSeq = -1;
+        idleFetched = false;
+        return;
+      }
+      if (!idleFetched) {
+        idleFetched = true;
+        fetchHistory(true);
+      }
       return;
     }
+    idleFetched = false;
     el.nowCard.classList.remove("hidden");
     renderNow(snapshot);
     renderTransport(snapshot);
     renderTiles(snapshot.metrics || {}, snapshot.session);
-    renderChart(snapshot.metrics || {});
+    renderCharts(snapshot.metrics || {});
 
     /* The event list travels apart from the snapshot -- it would otherwise be
        sent five times a second to say nothing.  The count in the summary is
@@ -801,6 +967,29 @@
     if (session.seq !== undefined && session.seq !== pastSeq) fetchHistory(true);
   }
 
-  window.TinyPPI.panels = { strings, update };
+  /* The event list as something other than a page can print: the report on
+     the dashboard writes the same entries into plain text (see buildReport in
+     js/dashboard.js), and the history they come from is fetched here. */
+  function events() {
+    return ((past && past.events) || []).map((entry) => ({
+      pos:   entry.pos || "",
+      label: (EVENT_LABEL[entry.kind] || (() => entry.kind))(),
+      text:  eventText(entry)
+    }));
+  }
+
+  /* The highest L1 peak in the samples the page holds, or null where the
+     source carried no luminance to sample. */
+  function peak() {
+    const column = (past && past.max) || [];
+    let highest = null;
+    for (const value of column) {
+      if (value === null || value === undefined) continue;
+      if (highest === null || value > highest) highest = value;
+    }
+    return highest;
+  }
+
+  window.TinyPPI.panels = { strings, update, events, peak };
 
 })();
