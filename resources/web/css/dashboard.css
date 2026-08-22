@@ -3,6 +3,7 @@
 
 /* --- VS10 --------------------------------------------------------------- */
 
+.vs10 { padding: 14px 16px 16px; display: grid; gap: 14px; }
 /* What the box is putting out at the moment, above the keys that change it.
    Set on a surface of its own rather than run as a line of text: it is the
    thing the buttons under it act on, and it is worth being able to find

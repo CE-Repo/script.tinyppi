@@ -713,10 +713,7 @@
   border-radius: 50%;
   background: var(--dim);
 }
-.event.vs10::before  { background: #42b8d5; }
-.event.mode::before  { background: #55d6be; }
-.event.audio::before { background: #67a9ff; }
-.event.subtitle::before { background: #a78bfa; }
+.event.shift::before { background: #42b8d5; }
 .event.cache_low::before,
 .event.temperature::before,
 .event.cpu::before { background: var(--warn); }

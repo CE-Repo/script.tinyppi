@@ -565,7 +565,20 @@
   }
 
   function eventText(entry) {
-    const stateText = (value) => value === "__off__" ? TinyPPI.T.off : value;
+    const stateText = (value) => {
+      if (value === "__off__") return TinyPPI.T.off;
+      if (value === null || value === undefined) return "—";
+      let text = String(value);
+      if (entry.kind === "audio" || entry.kind === "subtitle") {
+        /* Index and ISO language are useful for identifying a track inside
+           the backend, but the event already says Audio track/Subtitles and
+           the track name itself is the useful part for the reader. */
+        text = text
+          .replace(/^#\d+\s*(?:·\s*)?/, "")
+          .replace(/^[A-Z]{2,3}\s*·\s*/i, "");
+      }
+      return text || "—";
+    };
     if (isTransition(entry)) return stateText(entry.from) + " → " + stateText(entry.to);
     if (entry.kind === "temperature") return Math.round(entry.value) + " °C";
     if (entry.kind === "cpu" || String(entry.kind).startsWith("cache_")) {
@@ -605,7 +618,12 @@
          it (see .event::before in live-panels.css).  A display mode change is
          its own kind and says so: it used to be written out as "drops", from
          a time when the class named nothing and no rule read it. */
-      row.className = "event " + entry.kind + (shift ? " shift" : "");
+      /* All transitions share one DOM/style contract.  The event kind still
+         drives its label and text, but no longer creates visually different
+         VS10/audio/subtitle variants.  Non-transition warnings keep their
+         kind class for the warning/recovery colours below. */
+      row.className = "event" + (shift ? " shift" : " " + entry.kind);
+      row.dataset.kind = entry.kind;
       row.setAttribute("role", "listitem");
       const when = document.createElement("span");
       when.className = "at mono";
