@@ -564,6 +564,20 @@ def audio_event_label(values: dict[str, str]) -> str:
     return " | ".join(part for part in (language, audio_format) if part)
 
 
+def subtitle_event_label(values: dict[str, str]) -> str:
+    """Build the active subtitle label from the same values as the audio card.
+
+    The row the card prints -- "DEU | Deutsch (PGS)" -- rather than Kodi's own
+    stream name, which is whatever the muxer was told to write and is as often
+    "FORCED" or "Full" as it is a language.
+    """
+    language = clean_value(values.get("SubtitleNameShortVar", "")).strip()
+    name     = clean_value(values.get("SubtitleNameVar", "")).strip()
+    codec    = clean_value(values.get("SubtitleCodecVar", "")).strip()
+    label = " | ".join(part for part in (language, name) if part)
+    return f"{label} ({codec})".strip() if codec else label
+
+
 # --- Snapshot --------------------------------------------------------------
 
 class SessionLog:
@@ -1148,6 +1162,12 @@ class SnapshotBuilder:
         # is read whether it is on or not.
         tracks = self._active_tracks()
         audio_identity = tracks.get("audio_id", "") or tracks.get("audio", "")
+        # Off is its own state and the card values do not describe it: Kodi
+        # keeps reporting the language of the track that was switched off, so
+        # the label is only taken from the card while subtitles are on.
+        subtitle = tracks.get("subtitle", "")
+        subtitle_label = (subtitle if subtitle == "__off__"
+                          else subtitle_event_label(values) or subtitle)
         self.session.observe(
             title,
             values.get("Filename", ""),
@@ -1157,7 +1177,7 @@ class SnapshotBuilder:
              "audio": {"id": audio_identity,
                        "label": audio_event_label(values)
                                 or tracks.get("audio", "")},
-             "subtitle": tracks.get("subtitle", "")},
+             "subtitle": {"id": subtitle, "label": subtitle_label}},
             position,
         )
 

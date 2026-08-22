@@ -139,6 +139,27 @@ window.TinyPPI = (function () {
     if (!holder || !items || !toggle) return;
     let closeTimer = 0;
 
+    /* The menu shuts itself this long after the last thing anyone did to it,
+       rather than this long after it opened: a countdown from opening runs out
+       under a finger that is still choosing.  The same idea, and the same
+       shape, as the theme menu's own idle close (see js/theme.js). */
+    const IDLE_MS = 3000;
+    const ACTIVITY = ["pointermove", "pointerdown", "keydown", "focusin"];
+
+    /* The theme menu counts as part of this one: it is opened from a button in
+       here but hangs off <body> (see js/theme.js), so a pointer inside it is a
+       pointer that has not left this menu. */
+    function inside(node) {
+      return holder.contains(node) ||
+             !!(node && node.closest && node.closest(".theme-menu.open"));
+    }
+
+    function keepOpen(event) {
+      if (event && !inside(event.target)) return;
+      clearTimeout(closeTimer);
+      closeTimer = setTimeout(() => setOpen(false), IDLE_MS);
+    }
+
     function setOpen(open) {
       clearTimeout(closeTimer);
       closeTimer = 0;
@@ -146,7 +167,11 @@ window.TinyPPI = (function () {
       toggle.setAttribute("aria-expanded", open ? "true" : "false");
       items.setAttribute("aria-hidden", open ? "false" : "true");
       items.inert = !open;
-      if (open) closeTimer = setTimeout(() => setOpen(false), 3000);
+      for (const kind of ACTIVITY) {
+        if (open) document.addEventListener(kind, keepOpen, true);
+        else document.removeEventListener(kind, keepOpen, true);
+      }
+      if (open) keepOpen();
     }
 
     toggle.addEventListener("click", () => {

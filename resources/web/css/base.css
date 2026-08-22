@@ -412,8 +412,9 @@ main {
    remain their own responsive grid further down, where several like cards
    can still share a row.
 
-   Named areas keep that reading order on desktop even though the groups sit
-   earlier in the markup for the narrow layout.
+   The markup is in that order already; the desktop below names its areas
+   anyway, so the idle column can be given a row of its own without the rest
+   of the page moving up around it.
 ------------------------------------------------------------------------- */
 
 .rail {
