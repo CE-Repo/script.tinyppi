@@ -127,8 +127,20 @@ if __name__ == "__main__":
     # Block until Kodi shuts down; notifications arrive on their own thread.
     monitor.waitForAbort()
 
-    # The event streams hold threads of their own, so the server is closed
-    # here rather than left to the interpreter tearing down around it.
-    dashboard.stop()
+    # Nothing may be left running past this point.  Kodi does not simply let
+    # the interpreter go: once this script returns, CPythonInvoker spins with
+    # no timeout of its own until every other thread of the interpreter has
+    # ended, so a web server still accepting connections -- each one a fresh
+    # thread -- is a Kodi that never finishes shutting down.  Being daemons
+    # does not help them; Kodi never reaches the teardown that would.
+    #
+    # It is also on a clock: Kodi allows the script five seconds to stop and
+    # then raises SystemExit in it, which is why the shutdown is the first
+    # thing done here and why it cannot be allowed to raise.
+    try:
+        dashboard.stop(final=True)
+    except Exception as exc:  # pragma: no cover - never block the shutdown
+        xbmc.log(f"TinyPPI: stopping the web dashboard failed: {exc}",
+                 xbmc.LOGERROR)
 
     del monitor

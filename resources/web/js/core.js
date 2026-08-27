@@ -456,10 +456,19 @@ window.TinyPPI = (function () {
     });
 
     source.addEventListener("bye", () => {
-      /* The add-on is shutting the server down; stop hammering it. */
+      /* The add-on is shutting the server down -- which on a Kodi that is
+         itself shutting down means the reconnect matters more than the
+         status light: every connection the add-on is still accepting is a
+         thread Kodi waits on before it can exit, so coming back in five
+         seconds keeps it from ever finishing.  The frame says how long to
+         stay away; the delay below is the floor if it says nothing. */
+      const wait = Math.max(frame(event)?.retry_ms || 0, 20000);
       disconnect();
       setStatus("down", T.offline);
-      scheduleRetry(5000);
+      /* A stream that ended this way says nothing about the next one, so the
+         backoff starts over whenever the add-on is there again. */
+      retryAt = 1000;
+      scheduleRetry(wait);
     });
 
     source.addEventListener("error", () => {
