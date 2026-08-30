@@ -95,14 +95,27 @@
   .mrow:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
 }
 /* As on the dashboard's own rows (see .row .k there): the name is half of what
-   the row says, so it is not held back from the reading beside it. */
-.mrow .k { color: var(--text); overflow-wrap: anywhere; }
-.mrow .v { text-align: right; overflow-wrap: anywhere; transition: color .45s ease-out; }
+   the row says, so it is not held back from the reading beside it -- and both
+   wrapping values are given, for the reason .now h1 in css/live-panels.css
+   sets out: the first is what an older browser breaks a long reading with,
+   the second also keeps the column from growing to fit an unbroken one. */
+.mrow .k {
+  color: var(--text);
+  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.mrow .v {
+  text-align: right;
+  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+  transition: color .45s ease-out;
+}
 .mrow.changed .v { color: var(--accent-2); transition: none; }
 
 .mwide {
   padding: 4px 16px;
   font-size: 12.5px;
+  overflow-wrap: break-word;
   overflow-wrap: anywhere;
 }
 
@@ -130,6 +143,7 @@
 }
 .mgrid > span {
   text-align: right;
+  overflow-wrap: break-word;
   overflow-wrap: anywhere;
   transition: color .45s ease-out;
 }

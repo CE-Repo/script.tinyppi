@@ -34,7 +34,10 @@
 .modes {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  /* The 180 is a floor for a key, not for the card: min() lets a column
+     narrower than one key still hold it, the way the group grid below
+     does (see .groups). */
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
 }
 .mode {
   appearance: none;
@@ -132,11 +135,22 @@
 /* The same colour as the reading beside it.  A quieter label is the usual way
    round -- a name is scanned past, a value is read -- but these names are half
    of what the row says: which reading this is.  The value keeps the mono face
-   and its own size, which is what still tells the two apart. */
-.row .k { color: var(--text); font-size: 13px; overflow-wrap: anywhere; }
+   and its own size, which is what still tells the two apart.
+
+   Both wrapping values, in this order: a browser that knows only break-word
+   still breaks a long reading, and one that knows anywhere also keeps the
+   column from growing to fit an unbroken one (see .now h1 in
+   css/live-panels.css). */
+.row .k {
+  color: var(--text);
+  font-size: 13px;
+  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+}
 .row .v {
   font-size: 13.5px;
   text-align: right;
+  overflow-wrap: break-word;
   overflow-wrap: anywhere;
   transition: color .45s ease-out;
 }

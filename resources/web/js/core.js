@@ -167,6 +167,14 @@ window.TinyPPI = (function () {
     const items = $("actionMenuItems");
     const toggle = $("actionMenuToggle");
     if (!holder || !items || !toggle) return;
+    /* The bar is told as well as the menu.  What the unfolded keys take comes
+       out of the name-plate at the other end of it, and on a narrow screen
+       there is only room for one of the two things in that plate (see
+       .topbar.menu-open in css/base.css).  A class rather than a CSS
+       :has() on the menu: this is the one rule on the page whose job is to
+       keep a phone's top bar from overlapping itself, and the phones that
+       need it most are the ones whose browsers are oldest. */
+    const bar = holder.closest(".topbar");
     let closeTimer = 0;
 
     /* The menu shuts itself this long after the last thing anyone did to it,
@@ -194,6 +202,7 @@ window.TinyPPI = (function () {
       clearTimeout(closeTimer);
       closeTimer = 0;
       holder.classList.toggle("open", open);
+      if (bar) bar.classList.toggle("menu-open", open);
       toggle.setAttribute("aria-expanded", open ? "true" : "false");
       items.setAttribute("aria-hidden", open ? "false" : "true");
       items.inert = !open;
@@ -282,11 +291,19 @@ window.TinyPPI = (function () {
 
   /* The add-on publishes these as boolean-parser-safe tokens (hdr10plus for
      HDR10+, dolbyvision for Dolby Vision) and writes none at all for SDR;
-     print them the way they are written everywhere else. */
+     print them the way they are written everywhere else.
+
+     Dolby Vision is the one that is shortened, because it is the only one of
+     the five whose written-out name does not fit what it is printed in: these
+     go on the badges at the top of the playing card (see renderBadges in
+     js/live-panels.js), beside a poster, on a phone -- two words there were
+     wider than the row and stood over the button in the corner.  DV is what
+     the rest of the page already calls it: the key to the metadata window is
+     lettered the same (see .metalink in index.html). */
   function prettyHdr(value) {
     const map = {
       sdr: "SDR", hdr10: "HDR10", hdr10plus: "HDR10+", hlg: "HLG",
-      dolbyvision: "Dolby Vision"
+      dolbyvision: "DV"
     };
     const key = String(value || "sdr").toLowerCase().replace(/[^a-z0-9+]/g, "");
     return map[key] || value;

@@ -93,11 +93,34 @@
 .now {
   padding: 18px 18px 14px;
   display: grid;
+  /* One column, and never wider than the card holds -- said outright, because
+     an implicit grid column is `auto`, and an auto track is at least as wide
+     as the widest thing in it wants to be.  A badge that cannot wrap, a pair
+     of format logos, a file name in a browser that will not split a word:
+     any one of them made the column wider than the poster had left it, and
+     everything in it -- the title, the logos, the badge row -- was then laid
+     out over the edge of the card and off the side of a phone.  minmax(0,1fr)
+     is the whole fix: the column is what the card has, and what does not fit
+     wraps inside it. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   align-content: start;
 }
+/* And the items in it, for the same reason one step down: a grid item's own
+   automatic minimum size is its min-content, so an item can still stand wider
+   than the track it was placed in. */
+.hero > *,
+.now > * { min-width: 0; }
 
-.badges { display: flex; flex-wrap: wrap; gap: 6px; padding-right: 52px; }
+/* Clear of the chevron in the corner and of nothing else: the two numbers it
+   is drawn with are named on .hero, so this reserves exactly what that button
+   takes rather than a figure that has to be kept in step with it by hand. */
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-right: calc(var(--toggle-inset) + var(--toggle-size));
+}
 
 .badge {
   display: inline-flex;
@@ -112,7 +135,18 @@
   border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
-  white-space: nowrap;
+  /* A badge is one short phrase and gets one line wherever there is a line to
+     give it: the row wraps between badges before it wraps inside one, because
+     a flex row breaks on an item that does not fit before it squeezes the
+     items already on it.
+
+     What this leaves out is the old `white-space: nowrap`, and that is the
+     point.  The row is what the poster and the chevron have left of the card,
+     and on a narrow phone "DOLBY VISION" is wider than that -- a badge that
+     could not wrap simply stood over the chevron instead.  It now takes a
+     second line inside its own pill, and only ever when it must. */
+  max-width: 100%;
+  text-align: center;
 }
 .badge.alt {
   border-color: color-mix(in srgb, var(--warn) 45%, transparent);
@@ -121,18 +155,34 @@
 }
 .badge .ui-icon { width: 12px; height: 12px; }
 
+/* A title is often a file name -- forty characters with no space in them --
+   and it has to break somewhere inside itself or run off the card.  Both
+   values are given, in this order, on every line of text here that can be
+   handed one of those:
+
+     break-word  what every browser has understood for years;
+     anywhere    the same break, and the only one of the two that also tells
+                 the layout above it how narrow this text is willing to go.
+
+   A browser that does not know the second keeps the first and still breaks
+   the word.  Written the other way round -- `anywhere` alone -- an older
+   phone browser understood neither, left the name in one piece, and the
+   column it stood in grew to fit it: the title ran off the right of the card
+   and took the format logos under it along. */
 .now h1 {
   margin: 0;
   font-size: clamp(20px, 4.4vw, 28px);
   line-height: 1.18;
   font-weight: 680;
   letter-spacing: -.015em;
+  overflow-wrap: break-word;
   overflow-wrap: anywhere;
 }
 .now .file {
   margin: 0;
   font-size: 12.5px;
   color: var(--dim);
+  overflow-wrap: break-word;
   overflow-wrap: anywhere;
 }
 
@@ -178,10 +228,10 @@
   display: inline-grid;
   place-items: center;
   position: absolute;
-  top: 18px;
-  right: 18px;
+  top: var(--toggle-inset);
+  right: var(--toggle-inset);
   z-index: 1;
-  min-width: 34px;
+  min-width: var(--toggle-size);
   min-height: 28px;
   height: 28px;
   padding: 0 7px;
@@ -339,6 +389,19 @@
      resolved against the theme's own accent and stayed that colour inside a
      card the adaptive theme had given the film's. */
   --bar-line: color-mix(in srgb, var(--accent) 45%, transparent);
+  /* Where the chevron in the corner sits and how wide it is.  Named here
+     because the badge row across the top of the card has to keep clear of it
+     and nothing else, and a figure copied into two rules is a figure that
+     stops matching the first time one of them is changed (see .badges).
+
+     The inset is the card's own 18 px, and it is the same number on both
+     axes on purpose: down the side it lines the button up with the badge
+     beside it, because 18 px is also what .now holds its contents in from
+     the top.  A narrower screen does not change it -- a button drawn higher
+     than the badge it stands next to reads as a mistake, and the 6 px it
+     bought back is nothing the row needs. */
+  --toggle-inset: 18px;
+  --toggle-size: 34px;
 }
 /* The bar, the buttons and the pickers span every column: what is left of the
    middle column once a poster stands beside it is no width to lay a remote
@@ -377,6 +440,7 @@
   margin: 0;
   font-size: 13px;
   color: var(--muted);
+  overflow-wrap: break-word;
   overflow-wrap: anywhere;
 }
 .now .meta:empty { display: none; }
@@ -397,9 +461,28 @@
 .logo {
   height: 26px;
   width: auto;
-  max-width: 148px;
+  /* Never wider than the row it is in, whatever the file's own shape.  The
+     picture keeps its proportions inside whatever that leaves -- object-fit
+     is contain -- so a logo with nowhere to go comes out smaller rather than
+     stretched or over the edge of the card. */
+  max-width: min(148px, 100%);
   object-fit: contain;
   opacity: .92;
+}
+
+/* --- The hero on a phone ------------------------------------------------
+
+   The same card with a good deal less to lay it out in: a poster stands in
+   the left of it, and what is left of a 320 px screen has to hold a badge, a
+   title and a pair of format logos.  Nothing is moved or dropped here -- the
+   marks are simply drawn at the size that column can hold, so the badge keeps
+   its one line and the two logos keep their one row.
+------------------------------------------------------------------------ */
+@media (max-width: 620px) {
+  .badges { gap: 5px; }
+  .badge { font-size: 10.5px; letter-spacing: .05em; padding: 5px 8px; }
+  .logos { gap: 10px; }
+  .logo { height: 22px; }
 }
 
 /* --- Transport ---------------------------------------------------------- */
@@ -765,6 +848,7 @@
   font-size: 13px;
   text-align: right;
   line-height: 1.45;
+  overflow-wrap: break-word;
   overflow-wrap: anywhere;
   color: var(--text);
 }

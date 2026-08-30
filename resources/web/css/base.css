@@ -168,8 +168,25 @@ body {
   letter-spacing: .2px;
   margin-right: auto;
   min-width: 0;
+  /* Nothing in here reaches past the name-plate it is in.  min-width:0 above
+     lets the plate give way to the keys beside it, but what is inside it does
+     not shrink with it -- a name and a version have the widths they have --
+     and on a phone with the menu unfolded they were simply drawn on top of
+     the keys they had made room for. */
+  overflow: hidden;
 }
-.brand b { font-weight: 700; font-size: 15.5px; }
+.brand b {
+  font-weight: 700;
+  font-size: 15.5px;
+  /* What the page is called is the last thing in here to give way -- whatever
+     the bar is short of comes off the version beside it first (below) -- and
+     if it ever does have to give, it gives a letter at a time with a mark to
+     say so rather than being cut through the middle of one. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* The add-on's own icon, at the size of a line of text.  It is already served
    for the home screen and the tab (see _static_routes in web/server.py), so the
    page carries no second copy of it. */
@@ -192,11 +209,40 @@ body {
   border: 1px solid var(--line-soft);
   border-radius: 999px;
   white-space: nowrap;
+  /* The one thing in the plate that gives, and it gives first: the shrink
+     factor is what puts it ahead of the name beside it, which is the reading
+     that matters.  On a phone it is out of the way before this ever applies --
+     the rule further down takes it off the bar entirely while the menu is
+     unfolded -- so what is left here is the guard for every other width. */
+  flex: 0 100 auto;
+  min-width: 0;
+  overflow: hidden;
 }
 .brand .ver:empty { display: none; }
 @media (max-width: 620px) {
   .topbar { gap: 8px; padding-left: 12px; padding-right: 12px; }
   .brandmark { width: 22px; height: 22px; border-radius: 7px; }
+  /* The version steps aside while the menu is unfolded.  On a narrow screen
+     the three keys and the status take most of the bar, and what is left is
+     the width of the name and no more: of the two things in the plate, the
+     one to give up is the one that is a footnote about the page rather than
+     what the page is called.  It is back the moment the menu is folded.
+
+     The class is put on the bar by bindActionMenu in js/core.js, alongside
+     the one it puts on the menu itself. */
+  .topbar.menu-open .brand .ver { display: none; }
+}
+/* And on the narrowest of them, the name goes the same way and the plate is
+   its mark alone.  Three keys unfolded, the status light and the page's own
+   margins are the whole of a 320 px bar; what was left was some six letters
+   of a seven-letter name, and before any of this it was the name drawn on top
+   of the keys (the top half of issue #71).
+
+   Only while they are unfolded, and they fold themselves back after a few
+   idle seconds (see bindActionMenu in js/core.js): the plate is whole again
+   for as long as anyone is actually reading the bar rather than using it. */
+@media (max-width: 360px) {
+  .topbar.menu-open .brand b { display: none; }
 }
 
 .status {
