@@ -11,7 +11,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 from core import display
-from core.utils import clear_overlay_state
+from core.utils import PROP_HDR10PLUS_PRESENT, clear_overlay_state
 
 _ADDON      = xbmcaddon.Addon()
 _ADDON_PATH = _ADDON.getAddonInfo("path")
@@ -432,6 +432,20 @@ def _player_led_mode() -> bool:
     return False
 
 
+def _hybrid_dv_hdr10plus() -> bool:
+    """Return whether the playing stream is a Dolby Vision + HDR10+ hybrid.
+
+    Read off the two properties ``info.properties.publish_hdr_type`` publishes,
+    rather than parsed here: the side data is already being read once a poll
+    for the overlay and the dialog, and this only needs its answer.
+    """
+    home = xbmcgui.Window(10000)
+    return (
+        home.getProperty(PROP_HDR10PLUS_PRESENT) == "1"
+        and "dolby" in home.getProperty("TinyPPI.HdrType").lower()
+    )
+
+
 def set_mode(name: str) -> None:
     """Apply the VS10 mode ``name`` (see ``_MODES``).
 
@@ -439,10 +453,26 @@ def set_mode(name: str) -> None:
     neither path performs on its own -- the display reset a switch to or from
     Dolby Vision needs.  The driver's output mode is sampled before the switch
     so the two sides can be compared afterwards.
+
+    A hybrid Dolby Vision + HDR10+ title is switched like any other and only
+    noted in the log.  Neither the dialog nor the dashboard offers it a mode
+    any more -- the driver does not take one there -- but this is
+    also the entry point a keymap and ``run_mode`` come through, and a mode
+    bound to a button stays bound to it: refusing the write here would replace
+    a switch that does nothing with a shortcut that does nothing, and take the
+    escape hatch away from a box where it turns out to work.
     """
     if name not in _MODES:
         xbmc.log(f"TinyPPI: Unknown mode '{name}'", xbmc.LOGERROR)
         return
+
+    if _hybrid_dv_hdr10plus():
+        xbmc.log(
+            f"TinyPPI: '{name}' is being applied to a Dolby Vision title that "
+            "also carries HDR10+; the driver is not expected to take a VS10 "
+            "mode for a hybrid grade, so the output may not change",
+            xbmc.LOGWARNING,
+        )
 
     dv_before = _dv_output_active()
     _apply_mode(name)

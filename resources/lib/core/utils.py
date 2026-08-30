@@ -27,6 +27,13 @@ PROP_DIALOG_MODE = "TinyPPI.DialogMode"
 # info.properties.publish_hdr_type.
 PROP_EFFECTIVE_HDR_TYPE = "TinyPPI.EffectiveHdrType"
 
+# Whether the playing stream still carries HDR10+ dynamic metadata, published
+# alongside the two above.  What reads it is the VS10 side: a Dolby Vision
+# title with an ST 2094-40 payload beside its RPU is a hybrid grade, and the
+# driver does not take the VS10 modes for one (issue #71), so neither the
+# dialog nor the dashboard offers them.
+PROP_HDR10PLUS_PRESENT = "TinyPPI.Hdr10PlusPresent"
+
 
 def cond(condition: str) -> bool:
     """Return True when the given Kodi condition string is satisfied."""

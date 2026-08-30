@@ -24,6 +24,7 @@ from core.maps import (
     VIDEO_CODEC_MAP,
 )
 from core.utils import (
+    PROP_HDR10PLUS_PRESENT,
     clean,
     cond,
     first_float,
@@ -46,6 +47,7 @@ from info.dvinfo import (
     get_dv_version,
     get_hdr10_max_cll_fall,
     get_hdr10_mdl,
+    get_hdr10plus_present,
     get_hdr_format,
     get_l1_nits,
     get_l1_pq,
@@ -728,6 +730,13 @@ def publish_hdr_type(home=None, published=None) -> None:
     stays HDR / DV -- the mode-select dialog and the ``Converting`` row need it
     to name what is being converted -- while the overlay follows the output.
 
+    ``TinyPPI.Hdr10PlusPresent`` rides along because it answers the same
+    question one step further: a Dolby Vision source reads as ``dolbyvision``
+    above whether or not an ST 2094-40 payload sits beside its RPU, and that
+    hybrid grade is the one Dolby Vision stream the VS10 modes do not take.
+    The dialog and the dashboard both branch on it to leave such
+    a title with no modes, exactly as they do for a plain HDR10+ one.
+
     ``published`` tracks the polling loop's window; pass it from there to
     skip a write when neither value has changed.  Left unset, every call
     writes unconditionally.
@@ -744,6 +753,7 @@ def publish_hdr_type(home=None, published=None) -> None:
         (
             ("TinyPPI.HdrType", hdr_type),
             ("TinyPPI.EffectiveHdrType", _effective_hdr_type(hdr_type)),
+            (PROP_HDR10PLUS_PRESENT, get_hdr10plus_present()),
         ),
     )
 

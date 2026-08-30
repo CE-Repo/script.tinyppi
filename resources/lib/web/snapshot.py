@@ -22,7 +22,12 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
-from core.utils import PROP_EFFECTIVE_HDR_TYPE, cond, info
+from core.utils import (
+    PROP_EFFECTIVE_HDR_TYPE,
+    PROP_HDR10PLUS_PRESENT,
+    cond,
+    info,
+)
 from info.dvinfo import (
     L1_EMPTY,
     L5_EMPTY,
@@ -1205,7 +1210,10 @@ class SnapshotBuilder:
         is_dv      = _is_dv(source_key)
 
         metrics  = self._metrics(values, is_dv)
-        vs10     = vs10_state(source_key)
+        vs10     = vs10_state(
+            source_key,
+            hdr10plus=home.getProperty(PROP_HDR10PLUS_PRESENT) == "1",
+        )
         title    = values.get("Title", "")
         position = values.get("PlayerTime", "")
 
@@ -1303,25 +1311,31 @@ def _is_hdr10_plus(key: str) -> bool:
     return "hdr10plus" in key or "hdr10+" in key
 
 
-def _has_no_modes(key: str) -> bool:
-    """Whether the lower-cased source token names a format VS10 cannot convert.
+def _has_no_modes(key: str, hdr10plus: bool = False) -> bool:
+    """Whether the source has no VS10 modes to offer.
 
-    HDR10+ and HLG are the two, and neither is a VS10 input: the driver has no
-    group for either, and the on-screen dialog now draws none for either --
+    HDR10+ and HLG are the two formats, and neither is a VS10 input: the driver
+    has no group for either, and the on-screen dialog draws none for either --
     both are left with the player-process button alone (see
     script-tinyppi-dialog.xml).
+
+    ``hdr10plus`` is the third case and the one the token cannot state: a
+    Dolby Vision source that carries an ST 2094-40 payload beside its RPU reads
+    as ``dolbyvision`` -- the RPU is what it is -- but the driver does not take
+    the Dolby Vision group's modes for that hybrid grade.  It comes
+    from ``TinyPPI.Hdr10PlusPresent``, published beside the token itself.
     """
-    return _is_hdr10_plus(key) or "hlg" in key
+    return hdr10plus or _is_hdr10_plus(key) or "hlg" in key
 
 
-def _options_for(source: str, playing: bool = True) -> tuple:
+def _options_for(source: str, playing: bool = True,
+                 hdr10plus: bool = False) -> tuple:
     """The mode buttons that apply to ``source``.
 
-    ``hdr10plus`` and ``hlg`` get none -- see ``_has_no_modes``: neither is a
-    VS10 input, so the dialog leaves both with the player-process button alone.
-    The page follows: with no options the whole VS10 card goes, output line
-    included, rather than offer a conversion that is not on offer anywhere
-    else.
+    ``hdr10plus``, ``hlg`` and the hybrid Dolby Vision + HDR10+ grade get none
+    -- see ``_has_no_modes``.  The page follows the dialog: with no options the
+    whole VS10 card goes, output line included, rather than offer a conversion
+    that is not on offer anywhere else.
 
     An **empty** source is SDR, not "unknown": ``publish_hdr_type`` writes a
     token only for the HDR formats, and the dialog's own SDR group is the one
@@ -1331,7 +1345,7 @@ def _options_for(source: str, playing: bool = True) -> tuple:
     if not playing:
         return ()
     key = (source or "").strip().lower()
-    if _has_no_modes(key):
+    if _has_no_modes(key, hdr10plus):
         return ()
     if "dolby" in key:
         return _VS10_OPTIONS["dolby vision"]
@@ -1340,12 +1354,13 @@ def _options_for(source: str, playing: bool = True) -> tuple:
     return _VS10_OPTIONS["sdr"]
 
 
-def vs10_state(source: str, playing: bool = True) -> dict:
+def vs10_state(source: str, playing: bool = True,
+               hdr10plus: bool = False) -> dict:
     """What the dashboard needs to draw its VS10 controls: the buttons that
     apply to the playing source, and the output the driver is in now."""
     return {
         "options": [{"mode": mode, "label": label}
-                    for mode, label in _options_for(source, playing)],
+                    for mode, label in _options_for(source, playing, hdr10plus)],
         "output":  info("Player.Process(amlogic.eoft_gamut)").split(",")[0].strip(),
     }
 

@@ -402,6 +402,14 @@ none — both are left with the player-process button alone. The dashboard
 follows, and hides the whole VS10 card — output line included — for the length
 of an HDR10+ or HLG stream. HDR10 keeps its three.
 
+A **Dolby Vision title with an HDR10+ track** is the third: it reads as Dolby
+Vision, because the RPU is what it is, but the driver does not take the Dolby
+Vision group's modes while the ST 2094-40 payload rides along with it. Both the
+dialog and the dashboard leave that hybrid grade with no modes rather than
+offer a switch that does nothing. A stream whose HDR10+ Kodi has stripped for a
+display that cannot show it keeps its modes: what was removed is no longer in
+what the decoder is fed.
+
 Switching **always** requires the access token, whatever reading is set to.
 
 ### The remote
@@ -455,7 +463,10 @@ RunScript(script.tinyppi,dialog)
 Opens the VS10 mode selection dialog instead of the main TinyPPI overlay.
 It shows the modes that apply to the playing source; on an **HDR10+** or
 an **HLG** stream — neither of which is a VS10 input — it draws no modes at
-all and leaves the player-process button on its own.
+all and leaves the player-process button on its own. A **Dolby Vision title
+that carries HDR10+ alongside its RPU** is drawn the same way: the driver does
+not take a VS10 mode for that hybrid grade, so none is offered. `run_mode`
+still applies one there, and says so in the log.
 
 ### Apply a VS10 output mode directly
 

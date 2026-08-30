@@ -97,7 +97,7 @@
 
             <!-- Player Process Info -->
             <control type="button" id="1001">
-                <visible>!String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) + !String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg)</visible>
+                <visible>!String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) + !String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) + !String.IsEqual(Window(10000).Property(TinyPPI.Hdr10PlusPresent),1)</visible>
                 <left>35</left>
                 <top>155</top>
                 <width>400</width>
@@ -120,7 +120,7 @@
 
             <!-- Player Process Info (only): HDR10+ and HLG have no VS10 modes -->
             <control type="button" id="1001">
-                <visible>String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg)</visible>
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) | String.IsEqual(Window(10000).Property(TinyPPI.Hdr10PlusPresent),1)</visible>
                 <left>35</left>
                 <top>275</top>
                 <width>400</width>
@@ -243,7 +243,7 @@
 
             <!-- Dolby Vision -->
             <control type="group">
-                <visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby)</visible>
+                <visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby) + !String.IsEqual(Window(10000).Property(TinyPPI.Hdr10PlusPresent),1)</visible>
                 <control type="button" id="1012">
                     <left>35</left>
                     <top>275</top>

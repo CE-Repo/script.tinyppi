@@ -112,13 +112,17 @@ _FIELDS = (
     "dv_el_present",
     "dv_el_type",
     "bit_depth",
+    "hdr10plus_present",
 )
 
-# Fields the RPU carries only now and then rather than in every frame; see
+# Fields the stream carries only now and then rather than in every frame; see
 # _hold_static.  The source mastering display is filled only on frames whose DM
 # data is uncompressed, and without the latch the MDL row would fall back to L6
-# -- label and all -- every other frame.
-_STATIC_FIELDS = ("source_mdl",)
+# -- label and all -- every other frame.  HDR10+ is latched for the same reason
+# and one more: what it answers -- whether this title is a hybrid grade -- is a
+# property of the title, and the callers that read it decide what to offer for
+# the whole playback, not for the frame in hand.
+_STATIC_FIELDS = ("source_mdl", "hdr10plus_present")
 
 _latched: dict[str, str] = {}
 
@@ -631,6 +635,17 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
     info["hdr_format"]  = token
     info["output_mode"] = _output_mode(token, profile, el_type, hdr10plus)
 
+    # HDR10+ still in the bitstream the decoder is fed.  On a Dolby Vision
+    # source that makes it a hybrid grade, which is the one case where the VS10
+    # engine has nothing to offer: the modes are drawn from the Dolby Vision
+    # side of the stream, and with the ST 2094-40 payload riding along the
+    # driver does not take them.  Read as "still there" rather than
+    # "was there": a payload Kodi stripped for a display that cannot show it --
+    # noted with the ``hdr10plus-removed`` flag -- is gone from what the decoder
+    # sees, and with it the reason to hold VS10 back.
+    if hdr10plus and "hdr10plus-removed" not in (parsed.get("flags") or []):
+        info["hdr10plus_present"] = "1"
+
     if token == "dolbyvision":
         info["cm_version"]     = _cm_version(rpu)
         info["structure"]      = _structure_abbr(parsed.get("structure"), config, el_type)
@@ -725,6 +740,19 @@ def get_hdr_format() -> str:
     """Return the detected HDR type token (``''`` / ``'hdr10'`` / ``'hdr10+'`` /
     ``'hlg'`` / ``'dolbyvision'``).  No status label."""
     return _raw("hdr_format")
+
+
+def get_hdr10plus_present() -> str:
+    """Return ``'1'`` when the stream still carries HDR10+ dynamic metadata,
+    ``''`` otherwise.  No status label.
+
+    True for a plain HDR10+ stream and for a Dolby Vision one that carries the
+    ST 2094-40 payload alongside its RPU -- the hybrid grade whose VS10 modes
+    do not take.  Latched for the length of the title (see ``_STATIC_FIELDS``),
+    so a frame that happens to carry no T.35 message does not read as a
+    different kind of stream than the one before it.
+    """
+    return _raw("hdr10plus_present")
 
 
 def get_output_mode() -> str:
