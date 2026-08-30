@@ -77,6 +77,13 @@ _SIDEDATA_LABEL   = "Player.Process(video.sidedata)"
 _HDR_TYPE_LABEL   = "VideoPlayer.HdrType"
 _HDR_DETAIL_LABEL = "VideoPlayer.HdrDetail"
 
+# What is playing, which is what the latched fields are kept against: they
+# describe this title's grade and nothing of the next one's (see _hold_static).
+# The same label dvmetadata keeps its own held blocks against (see _hold
+# there), and read for the same reason.  It is compared here and never
+# published: what may leave the box is the overlay's own setting to make.
+_SOURCE_LABEL     = "Player.FilenameAndPath"
+
 # How long a derived field dict stays valid.  Short enough that every polling
 # pass sees the current frame's metadata, long enough that the getters of one
 # pass share a single infolabel read and a single parse.
@@ -125,6 +132,7 @@ _FIELDS = (
 _STATIC_FIELDS = ("source_mdl", "hdr10plus_present")
 
 _latched: dict[str, str] = {}
+_latched_source = ""
 
 _lock              = threading.Lock()
 _snapshot_key      = None
@@ -257,7 +265,7 @@ def _derive(key: tuple[str, str, str, bool]) -> tuple[dict | None, dict[str, str
         return parsed, _empty_info()
 
 
-def _hold_static(fields: dict[str, str]) -> None:
+def _hold_static(fields: dict[str, str], source: str) -> None:
     """Carry the title-level fields across the frames that omit them.
 
     They describe the grade, not the picture, so the bitstream does not repeat
@@ -266,10 +274,27 @@ def _hold_static(fields: dict[str, str]) -> None:
     they are therefore absent most of the time, which would leave their rows
     blinking N/A at a stream that plainly has them.
 
-    So the last reading stands until a new one replaces it.  ``_latched`` is
-    cleared when playback stops, and the overlay closes with it, so nothing is
-    carried from one title into the next.  Call under ``_lock``.
+    So the last reading stands until a new one replaces it -- but only within
+    the title it was read from: ``source`` is what is playing, and a change of
+    it empties the latch.
+
+    Keyed to the title rather than to the end of playback, because the end of
+    playback is not a moment anything here is guaranteed to see.  The clear in
+    ``_snapshot`` runs only when something asks for a field while no video is
+    on, and the dashboard's producer -- the one caller that runs the whole time
+    -- returns before it asks (see ``Snapshots.build`` in web/snapshot.py).  So
+    a title watched to the end left its latch standing, and the next title got
+    it: after a Dolby Vision + HDR10+ hybrid, a plain Dolby Vision one read as a
+    hybrid too and was offered no VS10 modes (issue #71).
+
+    Call under ``_lock``, with ``source`` read outside it.
     """
+    global _latched_source
+
+    if source != _latched_source:
+        _latched.clear()
+        _latched_source = source
+
     for name in _STATIC_FIELDS:
         value = fields.get(name, "")
         if value:
@@ -296,7 +321,7 @@ def _snapshot() -> tuple[dict[str, str], bool]:
     the subtree again is the ordinary one the next changed frame would cost.
     """
     global _snapshot_key, _snapshot_info, _snapshot_parsed
-    global _snapshot_playing, _snapshot_until
+    global _snapshot_playing, _snapshot_until, _latched_source
 
     now = time.monotonic()
     with _lock:
@@ -312,6 +337,7 @@ def _snapshot() -> tuple[dict[str, str], bool]:
             _snapshot_playing = False
             _snapshot_until   = now + _SNAPSHOT_TTL
             _latched.clear()
+            _latched_source = ""
         return empty, False
 
     key = (
@@ -328,9 +354,12 @@ def _snapshot() -> tuple[dict[str, str], bool]:
             return _snapshot_info, True
 
     parsed, fields = _derive(key)
+    # Read out here with the parse rather than inside _hold_static: everything
+    # under the lock below is assignment, and a Kodi call is not that.
+    source = xbmc.getInfoLabel(_SOURCE_LABEL)
 
     with _lock:
-        _hold_static(fields)
+        _hold_static(fields, source)
         _snapshot_key     = key
         _snapshot_info    = fields
         _snapshot_parsed  = parsed
