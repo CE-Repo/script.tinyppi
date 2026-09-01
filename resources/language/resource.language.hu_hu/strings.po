@@ -1630,3 +1630,11 @@ msgstr "Előző fejezet"
 msgctxt "#32516"
 msgid "Next chapter"
 msgstr "Következő fejezet"
+
+msgctxt "#32517"
+msgid "Volume down"
+msgstr "Halkítás"
+
+msgctxt "#32518"
+msgid "Volume up"
+msgstr "Hangosítás"

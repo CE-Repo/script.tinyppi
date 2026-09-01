@@ -139,7 +139,6 @@
   let range = HISTORY_SECONDS;
   let control = false;
   let posterTag = "";
-  let volumeHeld = 0;   /* while a finger is on the slider, leave it alone  */
   let trackKey = "";
   let idleFetched = false;  /* the ended title's events, asked for once      */
   const controlStateKey = pageState + ".controls";
@@ -293,10 +292,15 @@
     return image;
   }
 
+  /* The icon only, and not whatever else the key holds: the mute key carries
+     the volume reading beside its icon, and replacing the key's contents
+     outright would take the reading with it. */
   function setButtonIcon(node, name) {
     if (node.dataset.icon === name) return;
     node.dataset.icon = name;
-    node.replaceChildren(uiIcon(name));
+    const drawn = node.querySelector(".ui-icon");
+    if (drawn) drawn.replaceWith(uiIcon(name));
+    else node.prepend(uiIcon(name));
   }
 
   /* --- the remote ------------------------------------------------------- */
@@ -329,57 +333,68 @@
       return node;
     };
 
-    /* CSS keeps these as two full-width rows: seek and playback first, then
-       the chapter keys around stop, the volume slider and mute. */
+    /* CSS keeps these as two full-width rows: the jumps on their own first,
+       then everything that is not a jump.  Six of one kind and nothing else,
+       three back and three forward, so the row reads as one scale rather than
+       as two halves either side of something bigger. */
     const keys = document.createElement("div");
     keys.className = "tkeys";
     keys.append(
       button("−10m", () => TinyPPI.command("seek", -600)),
       button("−1m", () => TinyPPI.command("seek", -60)),
       button("−10s", () => TinyPPI.command("seek", -10)),
-      /* The icon says what pressing it does, so it follows the player: pause
-         while it plays, play while it is paused. */
-      imageButton("pause", "playpause",
-                  () => TinyPPI.command("playpause"), "primary"),
       button("+10s", () => TinyPPI.command("seek", 10)),
       button("+1m", () => TinyPPI.command("seek", 60)),
       button("+10m", () => TinyPPI.command("seek", 600))
     );
 
-    /* The chapter keys take the two ends of the second row: one chapter back
-       outside stop, one chapter on outside the volume.  The keys above count
-       in seconds and this pair does not -- it steps to marks the film itself
-       put down -- so they are kept off that scale, and the ends of the row are
-       where neither of them is next to the key it could be pressed instead
-       of. */
+    /* Everything that is not a jump, in the order it is used: a chapter back,
+       play, the three volume keys, stop, a chapter on.
+
+       The volume steps rather than slides, and there is a reason it has to.  A
+       slider could only ever have set Kodi's own mixer: a box that passes
+       volume on over CEC leaves that number where it is and sends the
+       amplifier a command instead, and it does that from the input path,
+       which an absolute level never reaches and a step always does.  So these
+       three work a soundbar where a slider could not -- at the cost of the
+       level itself, which CEC has no command for and which is therefore not
+       shown at all.
+
+       Each step carries a speaker beside its sign.  A bare + in a row whose
+       other keys are marked "+10s" is a key that has to be worked out; the
+       speaker says which kind of louder it means before it is read. */
+    const stepButton = (sign, key) => {
+      const node = button("", () => TinyPPI.command(key), "vol");
+      node.dataset.label = key;
+      node.append(uiIcon("volume"));
+      const mark = document.createElement("span");
+      mark.className = "sign";
+      mark.textContent = sign;
+      node.append(mark);
+      return node;
+    };
+
     const rest = document.createElement("div");
     rest.className = "tvol";
     rest.append(
       imageButton("chapter-previous", "chapter_previous",
                   () => TinyPPI.command("chapter_previous"), "chapter"),
-      imageButton("stop", "stop", () => TinyPPI.command("stop"))
-    );
+      /* The icon says what pressing it does, so it follows the player: pause
+         while it plays, play while it is paused.
 
-    const mute = imageButton("volume", "mute",
-                             () => TinyPPI.command("mute"), "mute");
-    const slider = document.createElement("input");
-    slider.type = "range";
-    slider.min = 0;
-    slider.max = 100;
-    slider.className = "volume";
-    slider.id = "volume";
-    slider.dataset.label = "volume";
-    /* Whatever the input already reads, so a slider the add-on has not
-       reported a level for looks exactly as it did before it was drawn here. */
-    setVolume(slider, slider.value);
-    slider.addEventListener("input", () => {
-      volumeHeld = Date.now();
-      setVolume(slider, Number(slider.value));
-      TinyPPI.command("volume", Number(slider.value));
-    });
-    rest.append(slider, mute,
-                imageButton("chapter-next", "chapter_next",
-                            () => TinyPPI.command("chapter_next"), "chapter"));
+         Drawn like every other key in the row and not in the accent.  Picked
+         out, it was the one lit thing on a row of outlines -- which reads as
+         the key that is currently doing something rather than as the key worth
+         reaching for, and what it is doing is already written on it. */
+      imageButton("pause", "playpause",
+                  () => TinyPPI.command("playpause"), "play"),
+      stepButton("−", "volume_down"),
+      imageButton("volume", "mute", () => TinyPPI.command("mute"), "mute"),
+      stepButton("+", "volume_up"),
+      imageButton("stop", "stop", () => TinyPPI.command("stop")),
+      imageButton("chapter-next", "chapter_next",
+                  () => TinyPPI.command("chapter_next"), "chapter")
+    );
     el.transport.append(keys, rest);
     labelControls();
 
@@ -403,8 +418,8 @@
     });
   }
 
-  /* Names the controls that have no writing on them: the icon keys and the
-     volume slider.  Called when the row is built and again when the strings
+  /* Names the controls that have no writing on them, and the two that carry
+     nothing but a sign.  Called when the row is built and again when the strings
      arrive, because the two can happen in either order -- the stream opens
      before /api/hello is asked (see boot in js/core.js), so on a fresh page
      the first snapshot usually builds this row while the English fallbacks
@@ -416,17 +431,6 @@
       node.setAttribute("aria-label", name);
       if (node.tagName === "BUTTON") node.title = name;
     }
-  }
-
-  /* How far the slider has run, on the slider itself.
-
-     The bar is drawn rather than left to the browser (see .volume in
-     live-panels.css), and WebKit has no pseudo-element for the part that has
-     run -- so the value has to reach the stylesheet as well as the input.
-     Firefox fills its own and ignores this. */
-  function setVolume(slider, value) {
-    slider.value = value;
-    slider.style.setProperty("--vol", Number(value) + "%");
   }
 
   function renderTransport(snapshot) {
@@ -449,7 +453,7 @@
     el.transport.classList.remove("hidden");
     el.track.classList.add("seekable");
 
-    const play = el.transport.querySelector(".tbtn.primary");
+    const play = el.transport.querySelector(".tbtn.play");
     if (play) setButtonIcon(play, snapshot.paused ? "play" : "pause");
 
     /* A file with no chapters has nowhere for these to go, and the add-on
@@ -462,13 +466,7 @@
       key.disabled = chapters < 2;
     }
 
-    const slider = $("volume");
     const mute = el.transport.querySelector(".mute");
-    if (slider && controls.volume !== null && controls.volume !== undefined) {
-      /* Not while a finger is on it: the snapshot is a fifth of a second
-         behind, and writing it back would drag the handle out from under. */
-      if (Date.now() - volumeHeld > 1500) setVolume(slider, controls.volume);
-    }
     if (mute) {
       mute.classList.toggle("on", !!controls.muted);
       setButtonIcon(mute, controls.muted ? "volume-muted" : "volume");

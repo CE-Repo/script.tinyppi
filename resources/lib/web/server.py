@@ -156,7 +156,6 @@ _UI_STRINGS = {
     "audio_track":   32484,
     "subtitles":     32485,
     "off":           32486,
-    "volume":        32487,
     "mute":          32488,
     "playpause":     32489,
     "stop":          32490,
@@ -188,6 +187,10 @@ _UI_STRINGS = {
     # The two keys either side of play, on a file that has chapters.
     "chapter_previous": 32515,
     "chapter_next":     32516,
+    # The volume, which steps rather than slides so that a box passing volume
+    # over CEC can send the steps on to an amplifier.
+    "volume_down":      32517,
+    "volume_up":        32518,
 }
 
 

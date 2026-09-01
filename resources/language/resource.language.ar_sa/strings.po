@@ -1631,3 +1631,11 @@ msgstr "الفصل السابق"
 msgctxt "#32516"
 msgid "Next chapter"
 msgstr "الفصل التالي"
+
+msgctxt "#32517"
+msgid "Volume down"
+msgstr "خفض الصوت"
+
+msgctxt "#32518"
+msgid "Volume up"
+msgstr "رفع الصوت"

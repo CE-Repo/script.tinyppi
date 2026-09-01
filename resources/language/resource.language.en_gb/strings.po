@@ -1630,3 +1630,11 @@ msgstr ""
 msgctxt "#32516"
 msgid "Next chapter"
 msgstr ""
+
+msgctxt "#32517"
+msgid "Volume down"
+msgstr ""
+
+msgctxt "#32518"
+msgid "Volume up"
+msgstr ""

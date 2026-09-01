@@ -1630,3 +1630,11 @@ msgstr "上一章节"
 msgctxt "#32516"
 msgid "Next chapter"
 msgstr "下一章节"
+
+msgctxt "#32517"
+msgid "Volume down"
+msgstr "音量减小"
+
+msgctxt "#32518"
+msgid "Volume up"
+msgstr "音量增大"

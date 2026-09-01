@@ -414,18 +414,34 @@ Switching **always** requires the access token, whatever reading is set to.
 
 ### The remote
 
-The same setting turns on the transport row under the progress bar: play and
-pause, ten seconds and a minute either way, stop, the volume and its mute, a
-chapter back and forward at either end of that second row, and a picker each
-for the audio track and the subtitles. Tapping the progress bar itself seeks there, and the
-arrow keys nudge it ten seconds when it has the focus.
+The same setting turns on the transport row under the progress bar, in two
+rows of its own: ten seconds, a minute and ten minutes either way on the first,
+and on the second a chapter back, play and pause, quieter, mute, louder, stop
+and a chapter on. Under them sits a picker each for the audio track and the
+subtitles. Tapping the progress bar itself seeks there, and the arrow keys
+nudge it ten seconds when it has the focus.
+
+The volume steps rather than slides, and that is what lets it reach an
+amplifier. Kodi's own volume is a number inside the Kodi process, and a box
+whose CEC adapter is set to pass volume on leaves that number alone and sends
+the amplifier a CEC command instead — from the input path, which an action
+reaches and an absolute level never does. So the two steps go in as the actions
+a remote sends: a soundbar answers them wherever the remote's own volume keys
+reach it, and Kodi's own mixer answers them everywhere else, with nothing to
+configure here either way.
+
+What that costs is the level itself. CEC carries "up", "down" and "mute" and
+has no command for "set it to forty" — and the level Kodi does report is its
+own mixer's, which on such a box sits still while the room gets louder. So no
+figure is shown at all, and the three keys say what they do rather than where
+they have got to.
 
 Every one of them goes through Kodi's own JSON-RPC into the running player, and
 the page only offers what the player actually reports — a file with one audio
 track shows no audio picker, and on one with no chapters the two chapter keys
-are dimmed rather than left to seek a minute instead. Like the VS10 buttons, they need the access token,
-and with **Allow VS10 switching from the dashboard** off the row is not drawn
-at all.
+are dimmed rather than left to seek a minute instead. Like the VS10 buttons,
+they need the access token, and with **Allow VS10 switching from the
+dashboard** off the row is not drawn at all.
 
 Both the remote and the panels above it are on the metadata window too, so a
 second screen left on either page can still be used to drive playback.

@@ -1412,9 +1412,15 @@ def apply_mode(mode: str) -> bool:
 
 # What the dashboard's transport row may ask for.  A fixed set, checked before
 # anything reaches Kodi: the request names an action, never a JSON-RPC method,
-# so the page can only ever do these ten things.
+# so the page can only ever do these twelve things.
+#
+# "volume" sets an absolute level and no client draws a control for it any
+# more (see volume_up/volume_down below for why).  It stays because a phone
+# that has not been updated yet still sends it, and a command that used to
+# work should not start failing because the box was updated first.
 _COMMANDS = ("playpause", "stop", "seek", "seek_percent", "volume", "mute",
-             "audio", "subtitle", "chapter_previous", "chapter_next")
+             "audio", "subtitle", "chapter_previous", "chapter_next",
+             "volume_up", "volume_down")
 
 # How far a seek button may jump, in seconds.  Bounded so a malformed value
 # cannot ask the player for something absurd.
@@ -1449,8 +1455,34 @@ def apply_command(action: str, value=None) -> bool:
             return False
         return "result" in _rpc("Application.SetVolume",
                                 {"volume": int(level)})
+
+    # Volume and mute go in as the actions a remote sends, not as
+    # Application.SetVolume and Application.SetMute.
+    #
+    # Those two are Kodi's own software mixer: a number inside the Kodi
+    # process, applied on the way to the audio device and never anywhere else.
+    # A box whose CEC adapter is set to pass volume on does not touch that
+    # number at all -- it sends the amplifier a CEC command instead, and it
+    # does so from the input path, where the peripheral gets to see the action
+    # before the application does.  That is the whole of why the volume keys
+    # on the remote reach a soundbar and a JSON-RPC SetVolume never has.
+    #
+    # On a box without CEC the same action moves Kodi's own volume, so this is
+    # what the key does either way and there is nothing to configure here.
+    #
+    # It costs the absolute level: CEC carries "up", "down" and "mute" and has
+    # no command for "set it to 40", which is why the dashboard steps rather
+    # than slides.  It also costs the reading -- Application.GetProperties
+    # goes on reporting Kodi's own level and mute, which on a CEC box is not
+    # the amplifier's -- so the figure the page shows can sit still while the
+    # room gets louder.
+    if action in ("volume_up", "volume_down"):
+        name = "volumeup" if action == "volume_up" else "volumedown"
+        return _rpc("Input.ExecuteAction",
+                    {"action": name}).get("result") == "OK"
     if action == "mute":
-        return "result" in _rpc("Application.SetMute", {"mute": "toggle"})
+        return _rpc("Input.ExecuteAction",
+                    {"action": "mute"}).get("result") == "OK"
 
     player_id = _video_player_id()
     if player_id is None:
