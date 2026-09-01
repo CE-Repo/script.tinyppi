@@ -16,6 +16,9 @@ server such as Plex or Jellyfin serves it over -- takes the file branch like
 any local one, and reads the same three parts off the URL and a VFS stat.
 Where that yields nothing, because the server names the file by an opaque
 id, the protocol itself (HTTP / SMB / NFS / ...) stands in before N/A does.
+The stat is the one part of the row that leaves the box, so it is asked only
+where it can be answered: never for an addon-delivered link, whose size means
+nothing and whose CDN can sit on the request for seconds (see _statable).
 
 Kodi has no container InfoLabel to ask -- there is no ``VideoPlayer.
 Container``, and ``Player.Process`` exposes only decoder and stream readings
@@ -28,7 +31,7 @@ import re
 import xbmc
 import xbmcvfs
 
-from core.utils import cond
+from core.utils import cond, info
 from info.dvinfo import na_label
 from info.imax import playing_path
 
@@ -109,6 +112,25 @@ _PROTOCOL_MAP = {
     "plugin": "Addon",
 }
 
+# Schemes whose path names a file a VFS stat can answer for cheaply.  A plain
+# local path carries no scheme at all, which is what the empty string stands
+# for.  Anything not listed -- an addon's own ``plugin://`` path above all --
+# either is not a file or is not one a stat says anything useful about, and is
+# never stat'd (see _statable).
+_STATABLE_SCHEMES = frozenset({
+    "", "file", "smb", "nfs", "ftp", "ftps", "sftp", "ssh", "dav", "davs",
+    "http", "https",
+})
+
+# Schemes that only reach this addon over the open internet, and so are the
+# only ones an addon's resolved link can arrive under.
+_REMOTE_SCHEMES = ("http", "https")
+
+# Where the item's own path is read from.  For an addon-delivered item that is
+# the ``plugin://`` path the addon was asked for, not the URL it handed back --
+# which is what ``_raw_playing_path`` returns instead.
+_ITEM_PATH_LABEL = "Player.FilenameAndPath"
+
 
 def _tokens(name: str) -> set[str]:
     """Split a release name into lowercase tag tokens on any run of
@@ -180,8 +202,8 @@ def _container(path: str) -> str:
 
 def _size_text(path: str) -> str:
     """Return the played file's size, rounded to whole GB (or MB under
-    1 GB), or '' when the path can't be stat'd -- an addon stream or a
-    disc path most often can't.
+    1 GB), or '' when the path is not one that gets stat'd -- an addon
+    stream or a disc path -- or when the stat finds nothing.
 
     Answered once per path and remembered, including a failure: the row is
     recomputed on every static-properties tick, and a file's size cannot
@@ -201,8 +223,62 @@ def _size_text(path: str) -> str:
     return text
 
 
+def _item_path() -> str:
+    """Return the path of the playing item as the playlist holds it, which is
+    not always the path Kodi plays: an addon's item keeps its ``plugin://``
+    form here while ``_raw_playing_path`` gives back whatever URL the addon
+    resolved it to.  '' when nothing plays or Kodi answers with neither."""
+    label = info(_ITEM_PATH_LABEL)
+    if label:
+        return label
+    try:
+        return xbmc.Player().getPlayingItem().getPath() or ""
+    except Exception:  # nothing playing, or no item to ask
+        return ""
+
+
+def _is_addon_item() -> bool:
+    """Return whether an addon handed the playing item over.
+
+    An addon resolves its ``plugin://`` item to whatever actually plays, which
+    for a video site is a signed, single-use link into a CDN.  Kodi hands that
+    link out as the playing file, so nothing about the path itself still says
+    where it came from -- the item's own path, which keeps the ``plugin://``
+    form, is what does.
+    """
+    return _item_path().lower().startswith("plugin://")
+
+
+def _statable(path: str) -> bool:
+    """Return whether *path* is worth asking the VFS for a size.
+
+    Only a path naming a real file is.  An addon-delivered stream is not:
+    there is no meaningful size to report for it, and asking anyway is not
+    merely useless but slow -- the stat leaves the box, and a CDN that refuses
+    or simply sits on the request blocks the caller for as long as it takes.
+    That stall lands on the thread the overlay is drawn from, which is what
+    put a delay of several seconds in front of every YouTube title.
+
+    So the scheme has to be one that names a file at all, and where it is
+    http(s) -- the only way an addon's resolved link arrives -- the item
+    behind it has to be a file someone put in the playlist themselves rather
+    than a link an addon handed back.  A share or local path is left alone:
+    an addon that resolves to one is pointing at a real file, and a stat on
+    it costs a round trip on the local network at worst.
+    """
+    if not path:
+        return False
+    scheme = path.split("://", 1)[0].lower() if "://" in path else ""
+    if scheme not in _STATABLE_SCHEMES:
+        return False
+    return scheme not in _REMOTE_SCHEMES or not _is_addon_item()
+
+
 def _measure(path: str) -> str:
-    """Stat *path* and render its size; '' when it cannot be stat'd."""
+    """Stat *path* and render its size; '' when it names nothing worth a stat
+    (see _statable) or cannot be stat'd."""
+    if not _statable(path):
+        return ""
     try:
         size = xbmcvfs.Stat(path).st_size()
     except Exception:
