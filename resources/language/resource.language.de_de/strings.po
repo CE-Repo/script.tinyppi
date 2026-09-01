@@ -1622,3 +1622,11 @@ msgstr "Playercache erholt"
 msgctxt "#32514"
 msgid "Warnings"
 msgstr "Warnungen"
+
+msgctxt "#32515"
+msgid "Previous chapter"
+msgstr "Vorheriges Kapitel"
+
+msgctxt "#32516"
+msgid "Next chapter"
+msgstr "Nächstes Kapitel"

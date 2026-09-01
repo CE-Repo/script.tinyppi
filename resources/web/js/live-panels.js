@@ -330,7 +330,7 @@
     };
 
     /* CSS keeps these as two full-width rows: seek and playback first, then
-       stop, the volume slider and mute at the far right. */
+       the chapter keys around stop, the volume slider and mute. */
     const keys = document.createElement("div");
     keys.className = "tkeys";
     keys.append(
@@ -346,9 +346,19 @@
       button("+10m", () => TinyPPI.command("seek", 600))
     );
 
+    /* The chapter keys take the two ends of the second row: one chapter back
+       outside stop, one chapter on outside the volume.  The keys above count
+       in seconds and this pair does not -- it steps to marks the film itself
+       put down -- so they are kept off that scale, and the ends of the row are
+       where neither of them is next to the key it could be pressed instead
+       of. */
     const rest = document.createElement("div");
     rest.className = "tvol";
-    rest.append(imageButton("stop", "stop", () => TinyPPI.command("stop")));
+    rest.append(
+      imageButton("chapter-previous", "chapter_previous",
+                  () => TinyPPI.command("chapter_previous"), "chapter"),
+      imageButton("stop", "stop", () => TinyPPI.command("stop"))
+    );
 
     const mute = imageButton("volume", "mute",
                              () => TinyPPI.command("mute"), "mute");
@@ -367,7 +377,9 @@
       setVolume(slider, Number(slider.value));
       TinyPPI.command("volume", Number(slider.value));
     });
-    rest.append(slider, mute);
+    rest.append(slider, mute,
+                imageButton("chapter-next", "chapter_next",
+                            () => TinyPPI.command("chapter_next"), "chapter"));
     el.transport.append(keys, rest);
     labelControls();
 
@@ -439,6 +451,16 @@
 
     const play = el.transport.querySelector(".tbtn.primary");
     if (play) setButtonIcon(play, snapshot.paused ? "play" : "pause");
+
+    /* A file with no chapters has nowhere for these to go, and the add-on
+       refuses them rather than seeking instead -- so they are turned off here
+       rather than left to fail.  Dimmed and kept in place: a row that loses
+       two keys when the film changes is a row whose buttons move out from
+       under the thumb that was aiming at one. */
+    const chapters = Number(controls.chapters) || 0;
+    for (const key of el.transport.querySelectorAll(".tbtn.chapter")) {
+      key.disabled = chapters < 2;
+    }
 
     const slider = $("volume");
     const mute = el.transport.querySelector(".mute");

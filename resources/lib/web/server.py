@@ -185,6 +185,9 @@ _UI_STRINGS = {
     "summary":         32508,
     "busy":            32509,
     "menu":            32510,
+    # The two keys either side of play, on a file that has chapters.
+    "chapter_previous": 32515,
+    "chapter_next":     32516,
 }
 
 
@@ -304,6 +307,8 @@ def _static_routes() -> dict[str, tuple[str, str]]:
         "/icons/play.svg":        (os.path.join(web, "icons", "play.svg"), "image/svg+xml"),
         "/icons/pause.svg":       (os.path.join(web, "icons", "pause.svg"), "image/svg+xml"),
         "/icons/stop.svg":        (os.path.join(web, "icons", "stop.svg"), "image/svg+xml"),
+        "/icons/chapter-previous.svg": (os.path.join(web, "icons", "chapter-previous.svg"), "image/svg+xml"),
+        "/icons/chapter-next.svg": (os.path.join(web, "icons", "chapter-next.svg"), "image/svg+xml"),
         "/icons/volume.svg":      (os.path.join(web, "icons", "volume.svg"), "image/svg+xml"),
         "/icons/volume-muted.svg": (os.path.join(web, "icons", "volume-muted.svg"), "image/svg+xml"),
         "/icons/yes.svg":         (os.path.join(web, "icons", "yes.svg"), "image/svg+xml"),

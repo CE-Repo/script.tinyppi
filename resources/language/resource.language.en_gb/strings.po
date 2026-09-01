@@ -1622,3 +1622,11 @@ msgstr ""
 msgctxt "#32514"
 msgid "Warnings"
 msgstr ""
+
+msgctxt "#32515"
+msgid "Previous chapter"
+msgstr ""
+
+msgctxt "#32516"
+msgid "Next chapter"
+msgstr ""

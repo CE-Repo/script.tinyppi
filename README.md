@@ -415,14 +415,15 @@ Switching **always** requires the access token, whatever reading is set to.
 ### The remote
 
 The same setting turns on the transport row under the progress bar: play and
-pause, ten seconds and a minute either way, stop, the volume and its mute, and
-a picker each for the audio track and the subtitles. Tapping the progress bar
-itself seeks there, and the arrow keys nudge it ten seconds when it has the
-focus.
+pause, ten seconds and a minute either way, stop, the volume and its mute, a
+chapter back and forward at either end of that second row, and a picker each
+for the audio track and the subtitles. Tapping the progress bar itself seeks there, and the
+arrow keys nudge it ten seconds when it has the focus.
 
 Every one of them goes through Kodi's own JSON-RPC into the running player, and
 the page only offers what the player actually reports — a file with one audio
-track shows no audio picker. Like the VS10 buttons, they need the access token,
+track shows no audio picker, and on one with no chapters the two chapter keys
+are dimmed rather than left to seek a minute instead. Like the VS10 buttons, they need the access token,
 and with **Allow VS10 switching from the dashboard** off the row is not drawn
 at all.
 

@@ -509,13 +509,23 @@
 }
 .tvol {
   display: grid;
-  grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap);
+  grid-template-columns: repeat(2, var(--tap)) minmax(0, 1fr)
+                         repeat(2, var(--tap));
   gap: 8px;
   align-items: center;
   width: 100%;
 }
+/* Four square keys and a slider is more than a phone's width divides kindly.
+   The keys keep their forty-four points -- that is what a thumb needs, and it
+   is the one figure in the row that is not up for negotiation -- so the gaps
+   close and the slider gives up the width it asks for below.  It is the only
+   part of the row that still reads at whatever is left. */
+@media (max-width: 620px) {
+  .tvol { gap: 6px; }
+  .tvol .volume { min-width: 0; }
+}
 /* The keys share the row out between them, so they carry no width of their
-   own; the two square ones keep theirs. */
+   own; the square ones in the row below keep theirs. */
 .tkeys .tbtn {
   min-width: 0;
   padding: 0 2px;
@@ -551,6 +561,16 @@
   }
 }
 .tbtn:active { transform: scale(.96); }
+/* A key with nowhere to go -- the chapter keys on a film that has no chapters.
+   Dimmed rather than taken out, so the row keeps its shape. */
+.tbtn:disabled {
+  opacity: .38;
+  cursor: default;
+  transform: none;
+}
+@media (hover: hover) {
+  .tbtn:disabled:hover { border-color: var(--line); background: transparent; }
+}
 .tbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tbtn.primary {
   border-color: color-mix(in srgb, var(--accent) 55%, transparent);

@@ -31,6 +31,7 @@ window.TinyPPI = (function () {
     player_cache: "Player cache", audio_track: "Audio track",
     warnings: "Warnings",
     playpause: "Play / pause", stop: "Stop", volume: "Volume", mute: "Mute",
+    chapter_previous: "Previous chapter", chapter_next: "Next chapter",
     cache_low: "Player cache below 90%", cache_recovered: "Player cache recovered",
     temperature: "Temperature", processor: "Processor", subtitles: "Subtitles", off: "Off",
     chart: "Frame luminance", active_area: "Active picture", vs10: "VS10 output",

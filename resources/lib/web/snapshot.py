@@ -450,6 +450,19 @@ def _video_player_id() -> int | None:
     return None
 
 
+def _chapter_count() -> int:
+    """How many chapters the playing file has, 0 when it has none.
+
+    An info label rather than a JSON-RPC property: Kodi publishes the count
+    through ``Player.ChapterCount`` alone -- ``Player.GetProperties`` has no
+    name for chapters at all.
+    """
+    try:
+        return int(info("Player.ChapterCount") or 0)
+    except ValueError:
+        return 0
+
+
 def _stream_label(stream: dict, fallback: str) -> str:
     """A track's picker label with a canonical language-code prefix.
 
@@ -472,7 +485,7 @@ def _stream_label(stream: dict, fallback: str) -> str:
 
 
 def player_controls() -> dict:
-    """The switchable side of the player: tracks, volume, mute.
+    """The switchable side of the player: tracks, volume, mute, chapters.
 
     Read over JSON-RPC rather than from info labels, because a picker needs
     the whole list and its indices, not the name of the one in use.  Only
@@ -481,7 +494,7 @@ def player_controls() -> dict:
     """
     state: dict = {"audio": [], "subtitle": [], "audio_current": -1,
                    "subtitle_current": -1, "subtitle_on": False,
-                   "volume": None, "muted": False}
+                   "volume": None, "muted": False, "chapters": 0}
 
     app = _rpc("Application.GetProperties",
                {"properties": ["volume", "muted"]}).get("result") or {}
@@ -492,6 +505,10 @@ def player_controls() -> dict:
     player_id = _video_player_id()
     if player_id is None:
         return state
+
+    # Only so the page knows whether its two chapter keys lead anywhere; the
+    # jump itself is a command, not a reading.
+    state["chapters"] = _chapter_count()
 
     properties = _rpc("Player.GetProperties", {
         "playerid": player_id,
@@ -1395,9 +1412,9 @@ def apply_mode(mode: str) -> bool:
 
 # What the dashboard's transport row may ask for.  A fixed set, checked before
 # anything reaches Kodi: the request names an action, never a JSON-RPC method,
-# so the page can only ever do these seven things.
+# so the page can only ever do these ten things.
 _COMMANDS = ("playpause", "stop", "seek", "seek_percent", "volume", "mute",
-             "audio", "subtitle")
+             "audio", "subtitle", "chapter_previous", "chapter_next")
 
 # How far a seek button may jump, in seconds.  Bounded so a malformed value
 # cannot ask the player for something absurd.
@@ -1455,6 +1472,18 @@ def apply_command(action: str, value=None) -> bool:
             return False
         return "result" in _rpc("Player.Seek", {
             "playerid": player_id, "value": {"percentage": where}})
+    if action in ("chapter_previous", "chapter_next"):
+        # Chapters have no JSON-RPC method of their own.  Kodi moves between
+        # them through the action a keymap would send, and that action falls
+        # back to a big step on a file that has no chapters -- so the count is
+        # checked first: the key either changes chapter or says it cannot, and
+        # never quietly seeks a minute instead.
+        if _chapter_count() < 2:
+            return False
+        name = ("chapterorbigstepforward" if action == "chapter_next"
+                else "chapterorbigstepback")
+        return _rpc("Input.ExecuteAction",
+                    {"action": name}).get("result") == "OK"
     if action == "audio":
         index = _number(value, 0, 64)
         if index is None:

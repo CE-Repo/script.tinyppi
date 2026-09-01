@@ -1622,3 +1622,11 @@ msgstr "播放器缓存已恢复"
 msgctxt "#32514"
 msgid "Warnings"
 msgstr "警告"
+
+msgctxt "#32515"
+msgid "Previous chapter"
+msgstr "上一章节"
+
+msgctxt "#32516"
+msgid "Next chapter"
+msgstr "下一章节"
