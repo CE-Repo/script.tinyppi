@@ -546,3 +546,28 @@ overlay follows the stream frame by frame instead of probing the file. RPU
 parsing is done by quietvoid's [dovi_tool](https://github.com/quietvoid/dovi_tool)
 (libdovi), HDR10+ parsing by FFmpeg's libavutil.
 
+
+---
+
+## License
+
+TinyPPI's **source code** is licensed under the
+[**GNU Affero General Public License v3.0 or later**](LICENSE).
+
+The AGPL was chosen over the plain GPL because TinyPPI serves a web dashboard
+over the network. Section 13 means that anyone who modifies TinyPPI and lets
+others reach it over a network has to offer those users the source of the
+modified version — the same obligation a modified copy handed out as a file
+already carries.
+
+The **name, the logo and the artwork** are not covered by that license; they
+are [all rights reserved, with a limited redistribution license](LICENSE-ASSETS)
+for unmodified releases. Forking the code is expressly welcome — a fork just
+needs its own name and its own artwork, the way a Firefox rebuild needs to be
+called something else. The format logos (Dolby, DTS, IMAX) belong to their
+respective owners and are used only to identify the format a stream carries.
+
+Third-party attributions are collected in [NOTICE](NOTICE).
+
+Versions up to and including **2.7.6** were released under the MIT license and
+remain available under it.

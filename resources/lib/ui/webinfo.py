@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """The dashboard's two settings buttons: show its address, mint a new token.
 
 Both run through ``RunScript`` from the settings dialog, so they happen in

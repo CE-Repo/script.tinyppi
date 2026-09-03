@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Addon entry point: bootstrap the lib path and dispatch the command."""
 
 import os

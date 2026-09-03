@@ -1,0 +1,88 @@
+TinyPPI — Name, Logo and Artwork Licence
+========================================
+
+The source code of TinyPPI is licensed under the GNU Affero General Public
+Licence, version 3 or later; see the file LICENSE.
+
+The AGPL applies to the *code*.  It does not grant any licence to the name,
+the logo or the artwork of this project.  Those are covered by this file
+instead.
+
+
+1. What this file covers
+------------------------
+
+"the Branding" means:
+
+  * the name "TinyPPI" and any name confusingly similar to it,
+  * icon.jpg and fanart.jpg,
+  * the original artwork created for this project under
+    resources/skins/Default/media/, in particular the background gradients,
+    the speaker-layout graphics under media/channels/, the splash corners and
+    the interface elements under media/common/ and media/progress/,
+  * the original artwork under resources/web/icons/.
+
+Except as stated in section 4, the Branding is:
+
+    Copyright (c) 2026 U3knOwn.  All rights reserved.
+
+It is **not** licensed under the AGPL and is **not** placed in the public
+domain.
+
+
+2. What you may do
+------------------
+
+You may copy, host and redistribute the Branding as part of an **unmodified**
+release of TinyPPI as published by the copyright holder — for example, when
+mirroring the add-on in a Kodi repository.
+
+
+3. What you may not do without written permission
+-------------------------------------------------
+
+You may not:
+
+  * use the name "TinyPPI", or a name likely to be confused with it, as the
+    name of a modified version, a fork, a repository or a distribution;
+  * use icon.jpg, fanart.jpg or the original artwork listed in section 1 in a
+    modified version or fork;
+  * use the Branding in a way that suggests the copyright holder endorses,
+    maintains or is otherwise associated with your version.
+
+The AGPL gives you every right you need to fork the code.  Exercising it means
+giving your fork its own name and its own artwork.  This is the same
+arrangement Mozilla applies to Firefox and Canonical to Ubuntu, and it exists
+so that users can tell an official release from someone else's build.
+
+
+4. Third-party material — NOT covered by section 1
+--------------------------------------------------
+
+Some images shipped with TinyPPI are **not** the copyright holder's property
+and are not licensed by this file.  Nothing here grants you any right to them,
+and nothing here claims any right in them:
+
+  * **Format and brand logos** under resources/skins/Default/media/codecs/ and
+    the Dolby Vision marks under resources/skins/Default/media/icons/
+    (dv-logo.png, dv-name.png).  "Dolby", "Dolby Vision", "Dolby Digital",
+    "Dolby Atmos" and "TrueHD" are trademarks of Dolby Laboratories, Inc.;
+    "DTS", "DTS-HD" and "DTS:X" are trademarks of DTS, Inc. / Xperi;
+    "IMAX" and "IMAX Enhanced" are trademarks of IMAX Corporation.  They are
+    used here only to identify the audio and video format a stream carries,
+    which is nominative use; no affiliation with or endorsement by their
+    owners is claimed.
+
+  * Any icon set incorporated into the interface artwork remains under the
+    licence of its own authors, and their attribution requirements continue to
+    apply to you as they do to this project.
+
+If you fork TinyPPI, these files carry the obligations of their own rights
+holders, whatever this file or the AGPL says.
+
+
+5. Contact
+----------
+
+For permission to use the Branding beyond section 2, open an issue at
+https://github.com/CE-Repo/script.tinyppi.

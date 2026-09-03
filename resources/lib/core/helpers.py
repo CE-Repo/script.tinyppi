@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """FPS sampling and formatting helpers, used by properties.py."""
 
 import re

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """PNG scaling with an on-disk cache of display-sized textures.
 
 Kodi does not expose the image resampling filter used by ControlImage, so a

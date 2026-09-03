@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later
+     Copyright (c) 2026 U3knOwn -->
 <settings version="1">
     <section id="script.tinyppi">
         <category id="General" label="32002" help="32003">

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Dolby Vision metadata view: everything the stream's side data carries.
 
 The overlay shows the readings that fit its rows.  This view is the other half

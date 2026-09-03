@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Color theme engine.
 
 Maps the user's color settings onto ARGB hex strings and publishes them as

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Deciding whether a film is IMAX material.
 
 An IMAX sequence is not a ratio: a film shot for IMAX carries two framings and

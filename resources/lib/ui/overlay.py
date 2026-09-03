@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Core logic for the TinyPPI overlay dialog and its entry points.
 
 Imported by main.py, which sets up sys.path first.

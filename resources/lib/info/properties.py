@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Compute and publish Window properties for TinyPPI.
 
 Call ``publish_scene_properties(window)`` on every polling tick and

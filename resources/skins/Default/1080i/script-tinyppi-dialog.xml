@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later
+     Copyright (c) 2026 U3knOwn -->
 <window type="dialog">
     <defaultcontrol always="true">1001</defaultcontrol>
     <onload>Dialog.Close(fullscreenvideo,true)</onload>

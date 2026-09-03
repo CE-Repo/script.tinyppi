@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Compose the ``MediaSourceVar`` line shown in place of the old, redundant
 "Medienquelle" row (see ``script-tinyppi-main.xml``), which used to just
 repeat the Input row in a shorter form.

@@ -1,0 +1,68 @@
+TinyPPI (script.tinyppi)
+Copyright (c) 2026 U3knOwn
+
+This product includes software developed as part of the TinyPPI project.
+
+
+Licensing at a glance
+---------------------
+
+  Source code          GNU Affero General Public Licence v3.0 or later
+                       -> LICENSE
+
+  Name, logo, artwork  All rights reserved; limited redistribution licence
+                       -> LICENSE-ASSETS
+
+Every source file carries an SPDX-License-Identifier header stating this.
+
+
+Why the AGPL
+------------
+
+TinyPPI serves a web dashboard over the network (resources/lib/web/).  Under
+the plain GPL, someone could run a modified TinyPPI as a network service
+without ever publishing their changes.  Section 13 of the AGPL closes that
+gap: if you modify TinyPPI and let anyone interact with it over a network,
+you must offer those users the source of your modified version.
+
+
+If you fork this project
+------------------------
+
+You are welcome to.  The AGPL grants you that right, and these are the
+conditions that come with it:
+
+  1. Keep the copyright notices and the SPDX headers in the files you keep.
+  2. Publish the complete source of your modified version under the AGPL,
+     including to anyone who reaches its web dashboard over a network.
+  3. State prominently that you changed the files, and when.
+  4. Give your fork its own name and its own artwork; see LICENSE-ASSETS.
+  5. Keep this NOTICE file with the third-party attributions below.
+
+
+Third-party components
+----------------------
+
+The following are *not* bundled with TinyPPI.  They are separate works that
+TinyPPI talks to or depends on at runtime, and each remains under its own
+licence and its own copyright:
+
+  script.module.sidedata  -- GPL-2.0-or-later, by matthane
+                             https://github.com/matthane/script.module.sidedata
+                             Declared as an add-on dependency in addon.xml.
+                             Parses the Dolby Vision RPU, the dvcC/dvvC
+                             configuration record, the HDR10+ ST 2094-40
+                             metadata and the static MDCV / CLL SEIs.
+
+  dovi_tool / libdovi     -- by quietvoid
+                             https://github.com/quietvoid/dovi_tool
+                             Performs the RPU parsing used by sidedata.
+
+  FFmpeg (libavutil)      -- Performs the HDR10+ parsing used by sidedata.
+
+  Kodi                    -- GPL-2.0-or-later.  TinyPPI is an add-on for Kodi
+                             and uses its Python API and JSON-RPC interface.
+
+Trademarks of Dolby Laboratories, DTS / Xperi and IMAX appear in the format
+logos shipped under resources/skins/Default/media/.  See section 4 of
+LICENSE-ASSETS.

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """The dashboard's HTTP server: a snapshot producer plus a small read-mostly
 API served off the add-on's own port.
 

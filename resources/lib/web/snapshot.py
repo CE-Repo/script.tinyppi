@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Build the dashboard's data snapshot out of the overlay's own readings.
 
 ``info.properties`` reaches its window through nothing but ``setProperty``

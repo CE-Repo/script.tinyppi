@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """VS10-mode selection dialog.
 
 Open via ``RunScript(script.tinyppi,dialog)`` or ``open_dialog()``.

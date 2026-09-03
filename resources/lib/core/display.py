@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Display reset for Dolby Vision output switches.
 
 Kodi re-applies the display mode whenever the played stream's HDR type changes:

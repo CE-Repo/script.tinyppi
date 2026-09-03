@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Row model for the Dolby Vision metadata view.
 
 ``dvinfo`` picks the handful of readings the overlay has room for and formats

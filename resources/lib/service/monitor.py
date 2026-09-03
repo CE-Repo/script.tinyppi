@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Background service (xbmc.service): keeps a Kodi monitor alive for the session
 so the addon can react to system notifications."""
 

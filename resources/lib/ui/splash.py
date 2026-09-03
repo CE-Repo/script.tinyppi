@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Start-up / OSD format-logo overlay.
 
 On ``Player.OnAVStart`` the service (monitor.py) launches this via

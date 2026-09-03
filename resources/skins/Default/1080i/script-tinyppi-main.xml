@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later
+     Copyright (c) 2026 U3knOwn -->
 <window>
     <onload>Dialog.Close(fullscreenvideo,true)</onload>
     <onload>Dialog.Close(videoosd,true)</onload>

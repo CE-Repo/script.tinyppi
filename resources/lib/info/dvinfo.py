@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Dolby Vision / HDR metadata from CoreELEC's raw side-data infolabel.
 
 ``Player.Process(video.sidedata)`` is the CoreELEC 22 label through which the

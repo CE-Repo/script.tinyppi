@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Register the overlay's font sizes in the active Kodi skin.
 
 The overlay lays out against two specific sizes (21 for the metadata rows, 32

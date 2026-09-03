@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2026 U3knOwn
+
 """Static lookup tables, keyed on the lowercase codec/language id Kodi returns."""
 
 # Video codec map (VideoPlayer.VideoCodec -> display label)
