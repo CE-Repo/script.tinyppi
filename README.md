@@ -1,4 +1,6 @@
-# script.tinyppi
+<p align="center">
+  <img width="1200" alt="script.tinyppi" src="fanart.png" />
+</p>
 
 A CoreELEC addon that displays detailed playback information in a custom overlay window during video playback. It provides real-time data on video, audio, HDR, system resources, and more — with special support for **Amlogic** hardware (e.g. CoreELEC devices).
 
