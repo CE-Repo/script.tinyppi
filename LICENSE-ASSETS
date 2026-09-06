@@ -15,7 +15,7 @@ instead.
 "the Branding" means:
 
   * the name "TinyPPI" and any name confusingly similar to it,
-  * icon.jpg and fanart.jpg,
+  * icon.png and fanart.png,
   * the original artwork created for this project under
     resources/skins/Default/media/, in particular the background gradients,
     the speaker-layout graphics under media/channels/, the splash corners and
@@ -45,7 +45,7 @@ You may not:
 
   * use the name "TinyPPI", or a name likely to be confused with it, as the
     name of a modified version, a fork, a repository or a distribution;
-  * use icon.jpg, fanart.jpg or the original artwork listed in section 1 in a
+  * use icon.png, fanart.png or the original artwork listed in section 1 in a
     modified version or fork;
   * use the Branding in a way that suggests the copyright holder endorses,
     maintains or is otherwise associated with your version.

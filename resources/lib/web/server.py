@@ -323,8 +323,8 @@ def _static_routes() -> dict[str, tuple[str, str]]:
         "/icons/theme-adaptive.svg": (os.path.join(web, "icons", "theme-adaptive.svg"), "image/svg+xml"),
         "/icons/theme-midnight.svg": (os.path.join(web, "icons", "theme-midnight.svg"), "image/svg+xml"),
         "/manifest.webmanifest":  (os.path.join(web, "manifest.webmanifest"), "application/manifest+json"),
-        "/icon.jpg":              (os.path.join(root, "icon.jpg"), "image/jpeg"),
-        "/fanart.jpg":            (os.path.join(root, "fanart.jpg"), "image/jpeg"),
+        "/icon.png":              (os.path.join(root, "icon.png"), "image/png"),
+        "/fanart.png":            (os.path.join(root, "fanart.png"), "image/png"),
         **_media_routes(root),
     }
 
