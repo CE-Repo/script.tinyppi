@@ -132,12 +132,12 @@ AUDIO_CODEC_MAP = {
 AUDIO_LOGO_MAP = {
     # AAC
     "aac":             "codecs/AAC.png",
-    "aac_latm":        "codecs/AAC.png",
-    "aac_lc":          "codecs/AAC.png",
-    "he_aac":          "codecs/AAC.png",
-    "he_aac_v2":       "codecs/AAC.png",
-    "aac_ssr":         "codecs/AAC.png",
-    "aac_ltp":         "codecs/AAC.png",
+    "aac_latm":        "codecs/AAC_LATM.png",
+    "aac_lc":          "codecs/AAC-LC.png",
+    "he_aac":          "codecs/HE-AAC.png",
+    "he_aac_v2":       "codecs/HE_AAC_v2.png",
+    "aac_ssr":         "codecs/AAC_SSR.png",
+    "aac_ltp":         "codecs/AAC_LTP.png",
 
     # Dolby
     "ac3":             "codecs/Dolby_Digital.png",
@@ -171,7 +171,9 @@ AUDIO_LOGO_MAP = {
     "mp2":             "codecs/MP2.png",
     "mp3":             "codecs/MP3.png",
     "mp3float":        "codecs/MP3.png",
+    "ogg":             "codecs/OGG.png",
     "opus":            "codecs/OPUS.png",
+    "vorbis":          "codecs/VORBIS.png",
 }
 
 # HDR type -> splash logo (codecs/*.png).  The empty string maps to the SDR

@@ -109,7 +109,13 @@ separately.
 
 | Logo | Format |
 |------|--------|
-| AAC | AAC (incl. HE-AAC) |
+| AAC | AAC |
+| AAC-LC | AAC Low Complexity |
+| AAC LATM | AAC in LATM/LOAS |
+| AAC-LTP | AAC Long Term Prediction |
+| AAC-SSR | AAC Scalable Sample Rate |
+| HE-AAC | High-Efficiency AAC |
+| HE-AAC v2 | High-Efficiency AAC v2 |
 | Dolby Digital | Dolby Digital (AC-3) |
 | Dolby Digital Plus | Dolby Digital Plus (E-AC-3) |
 | Dolby Digital Plus Atmos | Dolby Digital Plus with Dolby Atmos |
@@ -126,7 +132,9 @@ separately.
 | FLAC | FLAC |
 | PCM | PCM / LPCM |
 | MP3 | MP3 |
+| OGG | Ogg Vorbis |
 | OPUS | Opus |
+| VORBIS | Vorbis |
 
 Formats without a matching logo simply omit the audio image.
 
