@@ -1690,3 +1690,35 @@ msgstr ""
 msgctxt "#32531"
 msgid "Ends at"
 msgstr ""
+
+msgctxt "#32532"
+msgid "Films"
+msgstr ""
+
+msgctxt "#32533"
+msgid "No films in the video library"
+msgstr ""
+
+msgctxt "#32534"
+msgid "Search films"
+msgstr ""
+
+msgctxt "#32535"
+msgid "Starting…"
+msgstr ""
+
+msgctxt "#32536"
+msgid "Playback could not be started"
+msgstr ""
+
+msgctxt "#32537"
+msgid "Resume"
+msgstr ""
+
+msgctxt "#32538"
+msgid "Show the film library"
+msgstr ""
+
+msgctxt "#32539"
+msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
+msgstr ""

@@ -102,6 +102,25 @@
       </div>
       <div class="tilegrid" id="lastTiles"></div>
     </section>
+
+    <!-- What could be playing instead: the films the video database holds, as
+         posters, offered whenever nothing is on -- when the page is opened on
+         a box sitting at its home screen, and again the moment a film ends.
+         A press starts one (see the film library in js/dashboard.js).
+
+         Last in the stack, and the events card is moved in above it rather
+         than after it: the library is the one card here somebody scrolls
+         through, and a card put under it is a card nobody reaches. -->
+    <section class="card hidden" id="filmsCard">
+      <div class="filmshead">
+        <span class="k" id="filmsLabel"></span>
+        <span class="filmscount mono" id="filmsCount"></span>
+        <input class="filmsearch" id="filmSearch" type="search" autocomplete="off"
+               spellcheck="false" aria-labelledby="filmsLabel">
+      </div>
+      <div class="filmgrid" id="filmGrid"></div>
+      <p class="filmsempty hidden" id="filmsEmpty"></p>
+    </section>
   </div>
 
   <!-- A destination for the whole dashboard rather than the right rail: on a

@@ -17,10 +17,23 @@ if _LIB_PATH not in sys.path:
     sys.path.insert(0, _LIB_PATH)
 
 from ui.theme import apply_theme
+from web import library
 from web.server import WebDashboard
 
 _ADDON_ID = "script.tinyppi"
 _HOME_WINDOW_ID = 10000
+
+# The notifications that mean the film list the dashboard offers is no longer
+# what the video database holds.  Kodi says so rather than leaving it to be
+# polled, so the held list is simply dropped here and read again by whichever
+# phone asks next -- a scan finishing while nobody is looking at a dashboard
+# costs nothing at all (see web/library.py).
+_LIBRARY_NOTIFICATIONS = (
+    "VideoLibrary.OnUpdate",
+    "VideoLibrary.OnRemove",
+    "VideoLibrary.OnScanFinished",
+    "VideoLibrary.OnCleanFinished",
+)
 
 
 # Set True locally to promote debug messages to INFO in a non-debug Kodi log.
@@ -59,6 +72,9 @@ class KodiMonitor(xbmc.Monitor):
     def onNotification(self, sender: str, method: str, data: str) -> None:
         if method == "Player.OnAVStart":
             self._maybe_show_splash()
+
+        if method in _LIBRARY_NOTIFICATIONS:
+            library.invalidate()
 
         try:
             mediatype = _notification_media_type(data)

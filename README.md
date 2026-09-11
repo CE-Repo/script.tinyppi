@@ -286,6 +286,9 @@ a phone in your hand.
   worth most once a film is over, which used to be exactly when they were
   thrown away. The idle page is those two cards centred as one column; the line
   saying nothing is playing is for a box that has played nothing.
+- **The film library** — with nothing playing, the page offers the films in
+  Kodi's video database as a wall of posters, and a tap starts one on the box
+  (see below).
 - **The active picture area** the RPU declares (L5), drawn to scale inside the
   coded frame — the letterbox as the stream describes it, changing with the
   scene on an IMAX Enhanced title. It sits on the metadata window, with the
@@ -405,6 +408,32 @@ the window says so rather than sitting empty.
 It can be turned off entirely under **Settings → Dashboard** — it is the
 largest thing the add-on sends, so on a slow network it is the first thing to
 switch off.
+
+### Starting a film from the browser
+
+A box that is playing nothing is the one somebody is standing in front of with
+a phone in their hand, so the idle page ends on the **film library**: every
+film in Kodi's video database, as posters, in the order Kodi files them. A tap
+starts one on the television. The wall appears when the page is opened on an
+idle box and again the moment a film ends — which is when the next one is being
+looked for — and it is gone for as long as something plays.
+
+A film the box left half-watched carries a bar along the bottom of its poster
+and is **resumed** where it was, the same as pressing it in Kodi's own window;
+one already seen is dimmed rather than marked. Above a dozen films the card
+grows a search box, which narrows the wall as it is typed in.
+
+The list is read from the video database once and held until Kodi says it
+changed, so a film added mid-evening appears without anything being restarted,
+and a phone that opens the page twice is answered the second time with a
+validator rather than the whole library. The posters are fetched as they are
+scrolled to, and each one crosses the network once: its address carries the
+picture's own tag, so the browser keeps it.
+
+Starting a film needs the access token and the same **Allow VS10 switching from
+the dashboard** setting the rest of the controls need. The card itself can be
+turned off under **Settings → Dashboard → Show the film library**, which stops
+the list being read and served at all.
 
 ### Switching VS10 from the browser
 

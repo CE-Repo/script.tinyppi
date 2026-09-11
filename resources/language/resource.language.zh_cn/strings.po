@@ -1690,3 +1690,35 @@ msgstr "顶边"
 msgctxt "#32531"
 msgid "Ends at"
 msgstr "结束于"
+
+msgctxt "#32532"
+msgid "Films"
+msgstr "影片"
+
+msgctxt "#32533"
+msgid "No films in the video library"
+msgstr "视频媒体库中没有影片"
+
+msgctxt "#32534"
+msgid "Search films"
+msgstr "搜索影片"
+
+msgctxt "#32535"
+msgid "Starting…"
+msgstr "正在启动…"
+
+msgctxt "#32536"
+msgid "Playback could not be started"
+msgstr "无法开始播放"
+
+msgctxt "#32537"
+msgid "Resume"
+msgstr "继续播放"
+
+msgctxt "#32538"
+msgid "Show the film library"
+msgstr "显示影片库"
+
+msgctxt "#32539"
+msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
+msgstr "在没有播放内容时，于仪表板上提供视频媒体库中的影片。按一下即可在设备上开始播放。"

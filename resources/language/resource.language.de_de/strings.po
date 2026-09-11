@@ -1690,3 +1690,35 @@ msgstr "Obere Kante"
 msgctxt "#32531"
 msgid "Ends at"
 msgstr "Endet um"
+
+msgctxt "#32532"
+msgid "Films"
+msgstr "Filme"
+
+msgctxt "#32533"
+msgid "No films in the video library"
+msgstr "Keine Filme in der Videodatenbank"
+
+msgctxt "#32534"
+msgid "Search films"
+msgstr "Filme suchen"
+
+msgctxt "#32535"
+msgid "Starting…"
+msgstr "Wird gestartet …"
+
+msgctxt "#32536"
+msgid "Playback could not be started"
+msgstr "Wiedergabe konnte nicht gestartet werden"
+
+msgctxt "#32537"
+msgid "Resume"
+msgstr "Fortsetzen"
+
+msgctxt "#32538"
+msgid "Show the film library"
+msgstr "Filmbibliothek anzeigen"
+
+msgctxt "#32539"
+msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
+msgstr "Zeigt im Dashboard die Filme der Videodatenbank an, solange nichts wiedergegeben wird. Ein Druck startet einen davon auf der Box."

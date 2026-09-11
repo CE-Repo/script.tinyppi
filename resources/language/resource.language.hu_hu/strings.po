@@ -1690,3 +1690,35 @@ msgstr "Felső szél"
 msgctxt "#32531"
 msgid "Ends at"
 msgstr "Vége ekkor"
+
+msgctxt "#32532"
+msgid "Films"
+msgstr "Filmek"
+
+msgctxt "#32533"
+msgid "No films in the video library"
+msgstr "Nincs film a videótárban"
+
+msgctxt "#32534"
+msgid "Search films"
+msgstr "Filmek keresése"
+
+msgctxt "#32535"
+msgid "Starting…"
+msgstr "Indítás…"
+
+msgctxt "#32536"
+msgid "Playback could not be started"
+msgstr "A lejátszás nem indítható el"
+
+msgctxt "#32537"
+msgid "Resume"
+msgstr "Folytatás"
+
+msgctxt "#32538"
+msgid "Show the film library"
+msgstr "Filmtár megjelenítése"
+
+msgctxt "#32539"
+msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
+msgstr "A vezérlőpulton felkínálja a videótár filmjeit, amíg semmi nem megy. Egy koppintás elindítja az egyiket a boxon."

@@ -32,6 +32,7 @@ import xbmcaddon
 import xbmcvfs
 
 from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
+from web import library
 from web.snapshot import SnapshotBuilder, apply_command, apply_mode, art_path
 
 _ADDON_ID = "script.tinyppi"
@@ -197,6 +198,13 @@ _UI_STRINGS = {
     # The wall clock under the middle of the progress bar, between how far the
     # title has got and how long it runs for.
     "ends_at":          32531,
+    # The film library the idle page offers instead of an empty screen.
+    "films":            32532,
+    "films_empty":      32533,
+    "films_search":     32534,
+    "films_starting":   32535,
+    "films_failed":     32536,
+    "films_resume":     32537,
 }
 
 
@@ -676,17 +684,19 @@ class _Handler(BaseHTTPRequestHandler):
             part.strip().removeprefix("W/") for part in offered.split(",")
         ]
 
-    def _send_json(self, payload: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
+    def _send_json(self, payload: dict, status: HTTPStatus = HTTPStatus.OK,
+                   etag: str = "", cache: str = "no-store") -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-        extra: tuple[tuple[str, str], ...] = ()
+        extra: tuple[tuple[str, str], ...] = (("ETag", etag),) if etag else ()
         # The chart's history is the one answer here big enough to be worth
         # compressing -- an hour of samples is five arrays of 3600 numbers --
         # and it is asked for whenever a page opens or an event lands.
         if (len(body) >= _MIN_COMPRESS
                 and "gzip" in self.headers.get("Accept-Encoding", "")):
             body = gzip.compress(body, 6)
-            extra = (("Content-Encoding", "gzip"), ("Vary", "Accept-Encoding"))
-        self._send(status, body, "application/json; charset=utf-8", extra)
+            extra += (("Content-Encoding", "gzip"), ("Vary", "Accept-Encoding"))
+        self._send(status, body, "application/json; charset=utf-8", extra,
+                   cache=cache)
 
     def _send_error_json(self, status: HTTPStatus, message: str) -> None:
         self._send_json({"error": message}, status)
@@ -716,12 +726,15 @@ class _Handler(BaseHTTPRequestHandler):
         if route in self.server.static_routes:
             self._serve_static(route)
             return
-        if route in ("/api/state", "/api/stream", "/api/history", "/api/art"):
+        if route in ("/api/state", "/api/stream", "/api/history", "/api/art",
+                     "/api/library"):
             if self.server.auth_read and not self._authorised():
                 self._send_error_json(HTTPStatus.UNAUTHORIZED, "token required")
                 return
             if route == "/api/state":
                 self._send_json(self._state_payload())
+            elif route == "/api/library":
+                self._serve_library()
             elif route == "/api/history":
                 # The chart's whole past and the event list, asked for on
                 # connect and again whenever the snapshot's event count moves.
@@ -740,6 +753,10 @@ class _Handler(BaseHTTPRequestHandler):
                 "version":     addon.getAddonInfo("version"),
                 "auth_read":   self.server.auth_read,
                 "control":     self.server.allow_control,
+                # Whether the idle page has a film library to offer.  Both
+                # halves have to be there: reading the library is this
+                # setting, and starting one of them is the control setting.
+                "library":     self.server.offer_library and self.server.allow_control,
                 "interval_ms": int(_PRODUCE_INTERVAL * 1000),
                 "strings":     ui_strings(addon),
             })
@@ -755,7 +772,7 @@ class _Handler(BaseHTTPRequestHandler):
             return
 
         route = urlparse(self.path).path
-        if route not in ("/api/mode", "/api/command"):
+        if route not in ("/api/mode", "/api/command", "/api/play"):
             self._send_error_json(HTTPStatus.NOT_FOUND, "no such route")
             return
         if not self.server.allow_control:
@@ -764,6 +781,10 @@ class _Handler(BaseHTTPRequestHandler):
         # Writing always needs the token, whatever reading is set to.
         if not self._authorised():
             self._send_error_json(HTTPStatus.UNAUTHORIZED, "token required")
+            return
+
+        if route == "/api/play":
+            self._start_film(payload)
             return
 
         if route == "/api/mode":
@@ -818,13 +839,58 @@ class _Handler(BaseHTTPRequestHandler):
         payload["streams_full"] = self.server.streams_full
         return payload
 
+    def _serve_library(self) -> None:
+        """Send the films the video database holds.
+
+        Answered with a validator rather than the whole list every time: the
+        tag changes only when the library does, so a phone that opens the page
+        twice in an evening is answered the second time with an empty 304 --
+        which matters here more than anywhere else on this server, because this
+        is the one answer whose size grows with somebody's film collection.
+        """
+        if not (self.server.offer_library and self.server.allow_control):
+            # Off in the settings, or a box that will not be told what to play:
+            # either way there is no card, and saying so is better than
+            # answering with a list nothing can be done with.
+            self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
+            return
+        try:
+            payload = library.movies()
+        except Exception as exc:
+            _log(f"reading the video database failed: {exc}", xbmc.LOGWARNING)
+            self._send_error_json(HTTPStatus.SERVICE_UNAVAILABLE,
+                                  "library unavailable")
+            return
+        etag = f'"{payload["tag"]}"'
+        if self._holds(etag):
+            self._send_unchanged(etag, _STATIC_CACHE)
+            return
+        self._send_json(payload, etag=etag, cache=_STATIC_CACHE)
+
+    def _start_film(self, payload: dict) -> None:
+        """Put one of the library's films on the television."""
+        if not self.server.offer_library:
+            self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
+            return
+        movie_id = payload.get("movieid")
+        if not library.play(movie_id):
+            self._send_error_json(HTTPStatus.BAD_REQUEST, "playback failed")
+            return
+        _log(f"film {movie_id} started from {self.client_address[0]}")
+        # Nothing is pushed from here: the producer rebuilds five times a
+        # second and the page learns the film is on from the next snapshot,
+        # the same way it learns about one started from the remote control.
+        self._send_json({"ok": True, "movieid": movie_id})
+
     def _serve_art(self) -> None:
-        """Send the poster or the fanart of what is playing."""
+        """Send the poster or the fanart of what is playing, or of one of the
+        films the library card offers."""
         query = parse_qs(urlparse(self.path).query)
         kind = (query.get("kind") or [""])[0]
         if kind not in _ART_KINDS:
             self._send_error_json(HTTPStatus.NOT_FOUND, "no such artwork")
             return
+        film = (query.get("movieid") or [""])[0]
         # The page hangs the picture's own tag on the address, so an answer
         # can be kept for as long as the browser likes: the next film asks a
         # different address rather than the same one twice.
@@ -835,7 +901,8 @@ class _Handler(BaseHTTPRequestHandler):
             self._send_unchanged(etag, cache)
             return
 
-        found = self.server.artwork(kind)
+        found = (self.server.library_artwork(film, kind) if film
+                 else self.server.artwork(kind))
         if found is None:
             # Not every film has a poster, and a library-less file has none at
             # all; the page hides the frame rather than showing a broken one.
@@ -960,6 +1027,7 @@ class _Server(ThreadingHTTPServer):
         self.static_files  = _StaticFiles()
         self.auth_read     = False
         self.allow_control = True
+        self.offer_library = True
         self._streams      = 0
         self._stream_lock  = threading.Lock()
         # Every thread this server has handed a connection to.  Kodi waits on
@@ -1012,6 +1080,7 @@ class _Server(ThreadingHTTPServer):
         addon = addon or _addon()
         self.auth_read     = addon.getSetting("web_auth_read") == "true"
         self.allow_control = addon.getSetting("web_allow_control") == "true"
+        self.offer_library = addon.getSetting("web_library") == "true"
 
     def artwork(self, kind: str) -> tuple[bytes, str] | None:
         """The artwork bytes and type for ``kind``, or None when there is none.
@@ -1041,6 +1110,35 @@ class _Server(ThreadingHTTPServer):
         with self._art_lock:
             self._art[kind] = (path, data, content_type)
         return data, content_type
+
+    def library_artwork(self, movie_id: str, kind: str) -> tuple[bytes, str] | None:
+        """The poster of one of the library's films, or None.
+
+        Nothing is held here, unlike the playing title's own artwork: a card
+        of a thousand posters is a thousand pictures, and keeping them would
+        cost the add-on more memory than everything else it does put together.
+        The browser is the one that keeps them, and it keeps them well -- the
+        address carries the picture's own tag and is answered with a week and
+        an immutable, so each poster crosses the network once (see
+        _ART_CACHE).  A card only asks for the posters it is showing anyway:
+        the rest are fetched as they are scrolled to.
+        """
+        if not (self.offer_library and self.allow_control):
+            return None
+        try:
+            path = library.art_path(int(movie_id), kind)
+        except (TypeError, ValueError):
+            return None
+        if not path:
+            return None
+
+        source = _unwrap_image_url(path)
+        data = _read_art(source)
+        if data is None and source != path:
+            data = _read_art(path)   # an address only Kodi's VFS understands
+        if data is None:
+            return None
+        return data, _art_type(source)
 
     @property
     def streams_full(self) -> bool:
