@@ -53,6 +53,10 @@ const DEFAULT_OPEN_GROUPS = new Set([
 ]);
 
 TinyPPI.bindDisclosure(el.vs10Card, "dashboard.vs10", false);
+/* Open to begin with: the card is the idle page's reason to be there, and one
+   that arrived folded would be a heading on an empty screen.  Folded is
+   remembered per device all the same, the way every other card here is. */
+TinyPPI.bindDisclosure(el.filmsCard, "dashboard.films", true);
 
 /* --- render ------------------------------------------------------------- */
 

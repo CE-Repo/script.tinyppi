@@ -251,31 +251,36 @@
 
 /* --- The film library --------------------------------------------------- */
 
-/* The card the idle page ends on: every film the box has, as posters.  It is
-   the one card on this page that is a list of things to press rather than a
-   set of readings, so it is built like a shelf -- the heading, what is on it,
-   and a box to narrow it down with. */
-.filmshead {
+/* The card the idle page ends on: every film the box has, as posters.
+
+   It folds away under its own heading like every other card here, and wears
+   that heading's own furniture -- the accent stripe, the grey of a panel
+   name, the chevron -- because a card that is the only one on the page
+   lettered differently reads as something other than a card.
+
+   How many films there are goes up beside the name rather than into the body:
+   folded away, that count is the whole of what the card still has to say. */
+.panel-toggle .filmscount {
+  /* All of the free space, with the number at the right-hand end of it: an
+     auto margin here would have shared that space with the chevron's own,
+     which leaves the count stranded in the middle of the heading. */
+  flex: 1;
+  text-align: right;
+  color: var(--dim);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: none;
+}
+
+/* The shelf itself: what to narrow it down with, and then the wall. */
+.filmsbody {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 6px 10px;
-  align-items: center;
-  padding: 16px 16px 12px;
-  background: var(--panel);
+  gap: 12px;
+  padding: 14px 16px 16px;
 }
-.filmshead .k {
-  color: var(--accent);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: .13em;
-  text-transform: uppercase;
-}
-.filmscount { color: var(--muted); font-size: 12px; }
-/* The search box runs the width of the card under the heading rather than
-   beside it: on a phone a field sharing a row with a heading is a field two
-   words wide. */
+
 .filmsearch {
-  grid-column: 1 / -1;
   appearance: none;
   min-height: var(--tap);
   width: 100%;
@@ -300,7 +305,6 @@
      group cards above do. */
   grid-template-columns: repeat(auto-fill, minmax(min(124px, 44%), 1fr));
   gap: 12px;
-  padding: 4px 16px 16px;
 }
 
 .film {
@@ -417,7 +421,7 @@
 
 .filmsempty {
   margin: 0;
-  padding: 0 16px 20px;
+  padding: 6px 0 10px;
   color: var(--muted);
   font-size: 13.5px;
   text-align: center;
