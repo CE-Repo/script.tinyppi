@@ -1121,24 +1121,24 @@ msgid "FEL indicator"
 msgstr "مؤشر FEL"
 
 msgctxt "#32370"
-msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision FEL."
-msgstr "لون الشريط المعروض أسفل شعار البداية عندما يكون المصدر Dolby Vision FEL."
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision FEL."
+msgstr "لون الشريط المعروض على شعار البداية عندما يكون المصدر Dolby Vision FEL."
 
 msgctxt "#32371"
 msgid "MEL indicator"
 msgstr "مؤشر MEL"
 
 msgctxt "#32372"
-msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision MEL."
-msgstr "لون الشريط المعروض أسفل شعار البداية عندما يكون المصدر Dolby Vision MEL."
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision MEL."
+msgstr "لون الشريط المعروض على شعار البداية عندما يكون المصدر Dolby Vision MEL."
 
 msgctxt "#32373"
 msgid "Other Dolby Vision"
 msgstr "دولبي فيجن آخر"
 
 msgctxt "#32374"
-msgid "Color of the pill shown at the bottom of the splash logo for any other Dolby Vision profile (no enhancement layer)."
-msgstr "لون الشريط المعروض أسفل شعار البداية لأي ملف تعريف آخر من دولبي فيجن (بدون طبقة تحسين)."
+msgid "Color of the pill shown on the splash logo for any other Dolby Vision profile (no enhancement layer)."
+msgstr "لون الشريط المعروض على شعار البداية لأي ملف تعريف آخر من دولبي فيجن (بدون طبقة تحسين)."
 
 msgctxt "#32375"
 msgid "L1 Lum Min/Max/Ø"
@@ -1639,3 +1639,51 @@ msgstr "خفض الصوت"
 msgctxt "#32518"
 msgid "Volume up"
 msgstr "رفع الصوت"
+
+msgctxt "#32519"
+msgid "Show video codec logo"
+msgstr "عرض شعار ترميز الفيديو"
+
+msgctxt "#32520"
+msgid "Includes the HDR/video format logo in the stack. Turn it off to show the audio format logo on its own."
+msgstr "يضيف شعار صيغة HDR/الفيديو إلى المجموعة. أوقفه لعرض شعار صيغة الصوت وحده."
+
+msgctxt "#32521"
+msgid "Show audio codec logo"
+msgstr "عرض شعار ترميز الصوت"
+
+msgctxt "#32522"
+msgid "Includes the audio format logo in the stack. Turn it off to show the HDR/video format logo on its own."
+msgstr "يضيف شعار صيغة الصوت إلى المجموعة. أوقفه لعرض شعار صيغة HDR/الفيديو وحده."
+
+msgctxt "#32523"
+msgid "Logo order"
+msgstr "ترتيب الشعارات"
+
+msgctxt "#32524"
+msgid "Which of the two logos sits on top of the stack."
+msgstr "يحدد أي الشعارين يظهر في الأعلى."
+
+msgctxt "#32525"
+msgid "Video on top, audio below"
+msgstr "الفيديو في الأعلى والصوت في الأسفل"
+
+msgctxt "#32526"
+msgid "Audio on top, video below"
+msgstr "الصوت في الأعلى والفيديو في الأسفل"
+
+msgctxt "#32527"
+msgid "Dolby Vision pill position"
+msgstr "موضع شريط دولبي فيجن"
+
+msgctxt "#32528"
+msgid "Which edge of the logo panel the Dolby Vision layer pill sits on."
+msgstr "الحافة التي يظهر عندها شريط طبقة دولبي فيجن من لوحة الشعارات."
+
+msgctxt "#32529"
+msgid "Bottom edge"
+msgstr "الحافة السفلية"
+
+msgctxt "#32530"
+msgid "Top edge"
+msgstr "الحافة العلوية"

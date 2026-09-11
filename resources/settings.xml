@@ -2918,6 +2918,58 @@
                     </dependencies>
                     <control type="slider" format="integer" />
                 </setting>
+                <setting id="splash_start_show_video" type="boolean" label="32519" help="32520">
+                    <level>0</level>
+                    <default>true</default>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_enabled">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="toggle" />
+                </setting>
+                <setting id="splash_start_show_audio" type="boolean" label="32521" help="32522">
+                    <level>0</level>
+                    <default>true</default>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_enabled">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="toggle" />
+                </setting>
+                <setting id="splash_start_order" type="integer" label="32523" help="32524">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32525">0</option>
+                            <option label="32526">1</option>
+                        </options>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_enabled">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="list" format="string" />
+                </setting>
+                <setting id="splash_start_pill_position" type="integer" label="32527" help="32528">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32529">0</option>
+                            <option label="32530">1</option>
+                        </options>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_enabled">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="list" format="string" />
+                </setting>
                 <setting id="splash_start_offset_x" type="integer" label="32308" help="32309">
                     <level>0</level>
                     <default>0</default>
@@ -3730,6 +3782,58 @@
                     <default>false</default>
                     <control type="toggle" />
                 </setting>
+                <setting id="splash_osd_show_video" type="boolean" label="32519" help="32520">
+                    <level>0</level>
+                    <default>true</default>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_osd">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="toggle" />
+                </setting>
+                <setting id="splash_osd_show_audio" type="boolean" label="32521" help="32522">
+                    <level>0</level>
+                    <default>true</default>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_osd">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="toggle" />
+                </setting>
+                <setting id="splash_osd_order" type="integer" label="32523" help="32524">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32525">0</option>
+                            <option label="32526">1</option>
+                        </options>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_osd">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="list" format="string" />
+                </setting>
+                <setting id="splash_osd_pill_position" type="integer" label="32527" help="32528">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32529">0</option>
+                            <option label="32530">1</option>
+                        </options>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_osd">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="list" format="string" />
+                </setting>
                 <setting id="splash_osd_offset_x" type="integer" label="32308" help="32309">
                     <level>0</level>
                     <default>0</default>
@@ -4541,6 +4645,58 @@
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle" />
+                </setting>
+                <setting id="splash_tinyppi_show_video" type="boolean" label="32519" help="32520">
+                    <level>0</level>
+                    <default>true</default>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="toggle" />
+                </setting>
+                <setting id="splash_tinyppi_show_audio" type="boolean" label="32521" help="32522">
+                    <level>0</level>
+                    <default>true</default>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="toggle" />
+                </setting>
+                <setting id="splash_tinyppi_order" type="integer" label="32523" help="32524">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32525">0</option>
+                            <option label="32526">1</option>
+                        </options>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="list" format="string" />
+                </setting>
+                <setting id="splash_tinyppi_pill_position" type="integer" label="32527" help="32528">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32529">0</option>
+                            <option label="32530">1</option>
+                        </options>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="visible">
+                            <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
+                        </dependency>
+                    </dependencies>
+                    <control type="list" format="string" />
                 </setting>
                 <setting id="splash_tinyppi_offset_x" type="integer" label="32308" help="32309">
                     <level>0</level>

@@ -1120,7 +1120,7 @@ msgid "FEL indicator"
 msgstr ""
 
 msgctxt "#32370"
-msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision FEL."
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision FEL."
 msgstr ""
 
 msgctxt "#32371"
@@ -1128,7 +1128,7 @@ msgid "MEL indicator"
 msgstr ""
 
 msgctxt "#32372"
-msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision MEL."
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision MEL."
 msgstr ""
 
 msgctxt "#32373"
@@ -1136,7 +1136,7 @@ msgid "Other Dolby Vision"
 msgstr ""
 
 msgctxt "#32374"
-msgid "Color of the pill shown at the bottom of the splash logo for any other Dolby Vision profile (no enhancement layer)."
+msgid "Color of the pill shown on the splash logo for any other Dolby Vision profile (no enhancement layer)."
 msgstr ""
 
 msgctxt "#32375"
@@ -1637,4 +1637,52 @@ msgstr ""
 
 msgctxt "#32518"
 msgid "Volume up"
+msgstr ""
+
+msgctxt "#32519"
+msgid "Show video codec logo"
+msgstr ""
+
+msgctxt "#32520"
+msgid "Includes the HDR/video format logo in the stack. Turn it off to show the audio format logo on its own."
+msgstr ""
+
+msgctxt "#32521"
+msgid "Show audio codec logo"
+msgstr ""
+
+msgctxt "#32522"
+msgid "Includes the audio format logo in the stack. Turn it off to show the HDR/video format logo on its own."
+msgstr ""
+
+msgctxt "#32523"
+msgid "Logo order"
+msgstr ""
+
+msgctxt "#32524"
+msgid "Which of the two logos sits on top of the stack."
+msgstr ""
+
+msgctxt "#32525"
+msgid "Video on top, audio below"
+msgstr ""
+
+msgctxt "#32526"
+msgid "Audio on top, video below"
+msgstr ""
+
+msgctxt "#32527"
+msgid "Dolby Vision pill position"
+msgstr ""
+
+msgctxt "#32528"
+msgid "Which edge of the logo panel the Dolby Vision layer pill sits on."
+msgstr ""
+
+msgctxt "#32529"
+msgid "Bottom edge"
+msgstr ""
+
+msgctxt "#32530"
+msgid "Top edge"
 msgstr ""
