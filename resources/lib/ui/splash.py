@@ -4,9 +4,11 @@
 """Start-up / OSD format-logo overlay.
 
 On ``Player.OnAVStart`` the service (monitor.py) launches this via
-``RunScript(script.tinyppi,splash)``.  It stacks two logos in a corner – the
-HDR/video format on top, the audio format below.  Three settings triggers decide
-when they show: ``splash_enabled`` (first ``splash_duration`` seconds),
+``RunScript(script.tinyppi,splash)``.  It stacks the format logos in a corner –
+by default the HDR/video format on top, the audio format below, with each mode's
+``splash_<mode>_order`` able to swap them and ``splash_<mode>_show_video`` /
+``splash_<mode>_show_audio`` able to drop either one.  Three settings triggers
+decide when they show: ``splash_enabled`` (first ``splash_duration`` seconds),
 ``splash_show_on_osd`` (while the video OSD is open) and ``splash_show_on_tinyppi``
 (while the TinyPPI overlay is open).
 
@@ -213,6 +215,26 @@ _SCALE_SETTINGS = {
     "tinyppi": "splash_tinyppi_scale",
 }
 
+# Per-mode logo selection: which of the two logos the stack carries and in which
+# order.  Defaults keep the original block -- both logos, video on top.
+_SHOW_VIDEO_SETTINGS = {
+    "start":   "splash_start_show_video",
+    "osd":     "splash_osd_show_video",
+    "tinyppi": "splash_tinyppi_show_video",
+}
+_SHOW_AUDIO_SETTINGS = {
+    "start":   "splash_start_show_audio",
+    "osd":     "splash_osd_show_audio",
+    "tinyppi": "splash_tinyppi_show_audio",
+}
+_ORDER_SETTINGS = {
+    "start":   "splash_start_order",
+    "osd":     "splash_osd_order",
+    "tinyppi": "splash_tinyppi_order",
+}
+# splash_<mode>_order: 0 keeps video on top, 1 puts audio on top.
+_ORDER_AUDIO_FIRST = 1
+
 # Base layout scale for the logo block; a user scale of 1.0 keeps the original size.
 _BASE_SCALE = 0.95
 
@@ -232,9 +254,13 @@ def _amlogic_hdr_token(gamut: str) -> str:
     return ""
 
 
-def _current_logos(hdr_token: str) -> list[str]:
-    """Return [video, audio] logos to stack, or [] unless both are available.
-    The video logo falls back to SDR, so this effectively gates on the audio codec."""
+def _current_logos(hdr_token: str) -> tuple[str, str]:
+    """Return the ``(video, audio)`` logos for what is currently on screen.
+
+    The video logo falls back to SDR and is therefore always set; the audio one
+    is ``""`` for a codec with no logo.  Which of the two a mode actually stacks
+    is left to ``_mode_logos``.
+    """
     codec = info("VideoPlayer.AudioCodec").lower().strip()
     audio_logo = AUDIO_LOGO_MAP.get(codec, "")
 
@@ -248,9 +274,35 @@ def _current_logos(hdr_token: str) -> list[str]:
     if hdr_token in IMAX_LOGO_MAP and is_known_imax_title():
         video_logo = imax_logo(hdr_token) or video_logo
 
-    if not audio_logo or not video_logo:
-        return []
-    return [video_logo, audio_logo]
+    return video_logo, audio_logo
+
+
+def _mode_logos(addon, mode: str, logos: tuple[str, str]) -> tuple[tuple[str, str], ...]:
+    """Return *mode*'s stack as ``(logo, colour key)`` pairs, top entry first.
+
+    Applies the mode's two visibility toggles and its order setting to the
+    ``(video, audio)`` pair from ``_current_logos``, so the stack can hold two,
+    one or no entries; the colour key travels with each logo because the order
+    is no longer fixed.
+
+    Asking for both keeps the block all-or-nothing as it has always been: a
+    stream whose audio codec has no logo shows nothing rather than a lone video
+    logo.  Only a toggle turned off puts the other logo on screen by itself.
+    """
+    video_logo, audio_logo = logos
+    show_video = addon.getSettingBool(_SHOW_VIDEO_SETTINGS[mode])
+    show_audio = addon.getSettingBool(_SHOW_AUDIO_SETTINGS[mode])
+    if show_video and show_audio and not (video_logo and audio_logo):
+        return ()
+
+    stack = []
+    if show_video and video_logo:
+        stack.append((video_logo, "video"))
+    if show_audio and audio_logo:
+        stack.append((audio_logo, "audio"))
+    if addon.getSettingInt(_ORDER_SETTINGS[mode]) == _ORDER_AUDIO_FIRST:
+        stack.reverse()
+    return tuple(stack)
 
 
 def _make_image(rel_path: str, x: int, y: int, w: int, h: int, color: str) -> xbmcgui.ControlImage:
@@ -302,11 +354,14 @@ def _panel_controls(
 
 
 def _build_controls(
-    logos: list[str], colors: dict[str, str],
+    logos: list[tuple[str, str]], colors: dict[str, str],
     offset_x: int, offset_y: int, screen_w: int, screen_h: int,
     user_scale: float = 1.0, layer_token: str = "",
 ) -> tuple[list[xbmcgui.ControlImage], xbmcgui.ControlImage | None]:
     """Lay out the logos as a vertical stack, sized to the skin.
+
+    *logos* are ``(logo, colour key)`` pairs from ``_mode_logos``, top entry
+    first; a single-entry stack draws the same panel without the divider.
 
     Sizes are fractions of the window's coordinate space so placement holds up
     across 720p / 1080p skins.  ``offset_x``/``offset_y`` (0–100 %) slide the
@@ -363,11 +418,11 @@ def _build_controls(
         div_y = top + box_h + v_gap // 2 - div_h // 2
         controls.append(_solid(block_x, div_y, box_w, div_h, colors["divider"]))
 
-    # Logos, top to bottom: video (HDR) first, then audio.
-    logo_colors = (colors["video"], colors["audio"])
-    for index, logo in enumerate(logos):
+    # Logos, top to bottom, each tinted with its own kind's colour so the video
+    # and audio tints follow their logo when the order is swapped.
+    for index, (logo, kind) in enumerate(logos):
         y = top + index * (box_h + v_gap)
-        controls.append(_make_image(logo, block_x, y, box_w, box_h, logo_colors[index]))
+        controls.append(_make_image(logo, block_x, y, box_w, box_h, colors[kind]))
 
     # Conversion-indicator badge, tucked inside the panel's top-right corner;
     # its own visible condition (set by the caller) ANDs in PROP_CONVERTING.
@@ -582,7 +637,14 @@ def open_splash() -> None:
         return
 
     gamut = info("Player.Process(amlogic.eoft_gamut)")
-    if not _current_logos(_amlogic_hdr_token(gamut)):
+    logos = _current_logos(_amlogic_hdr_token(gamut))
+    enabled_modes = [
+        mode for mode, on in (
+            ("start", show_on_start), ("osd", show_on_osd),
+            ("tinyppi", show_on_tinyppi),
+        ) if on
+    ]
+    if not any(_mode_logos(addon, mode, logos) for mode in enabled_modes):
         return
 
     video_window = xbmcgui.Window(WINDOW_FULLSCREEN_VIDEO)
@@ -631,33 +693,37 @@ def open_splash() -> None:
             colors_by_mode: dict[str, dict[str, str]] = {}
             if in_fullscreen:
                 logos = _current_logos(hdr_token)
-                if logos:
-                    modes = []
-                    if show_on_start and in_start_window:
-                        modes.append("start")
-                    if show_on_osd:
-                        modes.append("osd")
-                    if show_on_tinyppi:
-                        modes.append("tinyppi")
+                modes = []
+                if show_on_start and in_start_window:
+                    modes.append("start")
+                if show_on_osd:
+                    modes.append("osd")
+                if show_on_tinyppi:
+                    modes.append("tinyppi")
 
-                    if modes:
-                        # Publish every themed colour once, then read each
-                        # context's own tints back so they stay independent.
-                        apply_theme(home, addon)
-                        layer_token = _dv_layer_token(hdr_token, hdr_type)
-                        for mode in modes:
-                            colors = _mode_colors(home, mode)
-                            colors_by_mode[mode] = colors
-                            setting_x, setting_y = _OFFSET_SETTINGS[mode]
-                            desired_states[mode] = _ModeState(
-                                logos=tuple(logos),
-                                offset_x=addon.getSettingInt(setting_x),
-                                offset_y=addon.getSettingInt(setting_y),
-                                scale=_mode_scale(addon, mode),
-                                colors=tuple(sorted(colors.items())),
-                                condition=_visible_condition(mode, show_on_osd),
-                                layer_token=layer_token,
-                            )
+                if modes:
+                    # Publish every themed colour once, then read each
+                    # context's own tints back so they stay independent.
+                    apply_theme(home, addon)
+                    layer_token = _dv_layer_token(hdr_token, hdr_type)
+                    for mode in modes:
+                        # Each mode picks and orders its own logos, so a mode
+                        # left with none simply draws nothing this poll.
+                        mode_logos = _mode_logos(addon, mode, logos)
+                        if not mode_logos:
+                            continue
+                        colors = _mode_colors(home, mode)
+                        colors_by_mode[mode] = colors
+                        setting_x, setting_y = _OFFSET_SETTINGS[mode]
+                        desired_states[mode] = _ModeState(
+                            logos=mode_logos,
+                            offset_x=addon.getSettingInt(setting_x),
+                            offset_y=addon.getSettingInt(setting_y),
+                            scale=_mode_scale(addon, mode),
+                            colors=tuple(sorted(colors.items())),
+                            condition=_visible_condition(mode, show_on_osd),
+                            layer_token=layer_token,
+                        )
 
             remove_modes = [
                 mode for mode in tuple(controls_by_mode)

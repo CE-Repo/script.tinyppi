@@ -1638,3 +1638,35 @@ msgstr "Leiser"
 msgctxt "#32518"
 msgid "Volume up"
 msgstr "Lauter"
+
+msgctxt "#32519"
+msgid "Show video codec logo"
+msgstr "Videocodec-Logo anzeigen"
+
+msgctxt "#32520"
+msgid "Includes the HDR/video format logo in the stack. Turn it off to show the audio format logo on its own."
+msgstr "Nimmt das HDR-/Videoformat-Logo in den Stapel auf. Ausschalten, um nur das Audioformat-Logo anzuzeigen."
+
+msgctxt "#32521"
+msgid "Show audio codec logo"
+msgstr "Audiocodec-Logo anzeigen"
+
+msgctxt "#32522"
+msgid "Includes the audio format logo in the stack. Turn it off to show the HDR/video format logo on its own."
+msgstr "Nimmt das Audioformat-Logo in den Stapel auf. Ausschalten, um nur das HDR-/Videoformat-Logo anzuzeigen."
+
+msgctxt "#32523"
+msgid "Logo order"
+msgstr "Logo-Reihenfolge"
+
+msgctxt "#32524"
+msgid "Which of the two logos sits on top of the stack."
+msgstr "Legt fest, welches der beiden Logos oben steht."
+
+msgctxt "#32525"
+msgid "Video on top, audio below"
+msgstr "Video oben, Audio unten"
+
+msgctxt "#32526"
+msgid "Audio on top, video below"
+msgstr "Audio oben, Video unten"

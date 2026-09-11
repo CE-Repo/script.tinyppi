@@ -80,10 +80,10 @@ plugin://script.tinyppi/
 ## Codec Logos
 
 TinyPPI can display the current **video (HDR) and audio format** as stacked logos
-directly on the video window during playback. The video/HDR logo sits on top, the
-audio logo below it, on a rounded panel whose colors and opacity are fully themeable
-in the add-on settings. The logos are re-resolved live, so switching the audio track
-updates the audio logo on the fly.
+directly on the video window during playback. By default the video/HDR logo sits on
+top and the audio logo below it, on a rounded panel whose colors and opacity are
+fully themeable in the add-on settings. The logos are re-resolved live, so switching
+the audio track updates the audio logo on the fly.
 
 You can enable the logos in three independent situations (**Settings → Codec Logos**):
 
@@ -93,7 +93,13 @@ You can enable the logos in three independent situations (**Settings → Codec L
 - **While the TinyPPI overlay is open** — shown alongside the info overlay.
 
 For each situation the horizontal/vertical position and the size can be adjusted
-separately.
+separately, and so can the logo stack itself:
+
+- **Logo order** — *Video on top, audio below* (default) or *Audio on top, video
+  below*.
+- **Show video codec logo** / **Show audio codec logo** — turn either one off to
+  leave just the other logo on the panel. With both on, the panel keeps its
+  all-or-nothing behavior and stays hidden for an audio codec that has no logo.
 
 ### Supported formats
 

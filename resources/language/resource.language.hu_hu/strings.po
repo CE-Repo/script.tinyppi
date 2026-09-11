@@ -1638,3 +1638,35 @@ msgstr "Halkítás"
 msgctxt "#32518"
 msgid "Volume up"
 msgstr "Hangosítás"
+
+msgctxt "#32519"
+msgid "Show video codec logo"
+msgstr "Videó kodek logó megjelenítése"
+
+msgctxt "#32520"
+msgid "Includes the HDR/video format logo in the stack. Turn it off to show the audio format logo on its own."
+msgstr "A HDR/videó formátum logóját is megjeleníti. Kikapcsolva csak az audió formátum logója látszik."
+
+msgctxt "#32521"
+msgid "Show audio codec logo"
+msgstr "Audió kodek logó megjelenítése"
+
+msgctxt "#32522"
+msgid "Includes the audio format logo in the stack. Turn it off to show the HDR/video format logo on its own."
+msgstr "Az audió formátum logóját is megjeleníti. Kikapcsolva csak a HDR/videó formátum logója látszik."
+
+msgctxt "#32523"
+msgid "Logo order"
+msgstr "Logók sorrendje"
+
+msgctxt "#32524"
+msgid "Which of the two logos sits on top of the stack."
+msgstr "Melyik logó legyen a kettő közül felül."
+
+msgctxt "#32525"
+msgid "Video on top, audio below"
+msgstr "Videó felül, audió alul"
+
+msgctxt "#32526"
+msgid "Audio on top, video below"
+msgstr "Audió felül, videó alul"

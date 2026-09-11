@@ -1638,3 +1638,35 @@ msgstr "音量减小"
 msgctxt "#32518"
 msgid "Volume up"
 msgstr "音量增大"
+
+msgctxt "#32519"
+msgid "Show video codec logo"
+msgstr "显示视频编解码器徽标"
+
+msgctxt "#32520"
+msgid "Includes the HDR/video format logo in the stack. Turn it off to show the audio format logo on its own."
+msgstr "在徽标组中包含 HDR/视频格式徽标。关闭后仅显示音频格式徽标。"
+
+msgctxt "#32521"
+msgid "Show audio codec logo"
+msgstr "显示音频编解码器徽标"
+
+msgctxt "#32522"
+msgid "Includes the audio format logo in the stack. Turn it off to show the HDR/video format logo on its own."
+msgstr "在徽标组中包含音频格式徽标。关闭后仅显示 HDR/视频格式徽标。"
+
+msgctxt "#32523"
+msgid "Logo order"
+msgstr "徽标顺序"
+
+msgctxt "#32524"
+msgid "Which of the two logos sits on top of the stack."
+msgstr "两个徽标中哪一个显示在上方。"
+
+msgctxt "#32525"
+msgid "Video on top, audio below"
+msgstr "视频在上，音频在下"
+
+msgctxt "#32526"
+msgid "Audio on top, video below"
+msgstr "音频在上，视频在下"
