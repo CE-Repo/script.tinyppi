@@ -362,10 +362,38 @@
   background: var(--accent);
 }
 
-/* A film already seen is dimmed rather than marked: the wall is read for what
-   to watch next, and the ones that are not it should be the quiet ones. */
-.film.watched .filmposter { opacity: .55; }
-.film.watched .filmtitle { color: var(--muted); }
+/* A film already seen wears a mark in the corner of its poster.
+
+   A mark rather than a dimmed poster, which is what this was: dimming says
+   "not this one" about whatever it touches, and on a shelf where most of the
+   films have been watched that is most of the wall greyed out -- which reads
+   as artwork that failed to load rather than as an answer.  The mark costs
+   one corner of one poster and says the same thing about the smaller group.
+
+   Two layers, because one cannot be both: the disc is the element's own
+   background and the tick is a mask over the colour on top of it.  A single
+   circle-with-a-tick file used as a mask would knock the tick out of the disc
+   and show the poster through it. */
+.filmseen {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  /* Posters are photographs, and a light disc on a light one has nothing to
+     stand on; the shadow is what gives it an edge on every picture. */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .55);
+}
+.filmseen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  -webkit-mask: url('/icons/check.svg') no-repeat center / 62%;
+  mask: url('/icons/check.svg') no-repeat center / 62%;
+}
 
 .filmtitle {
   font-size: 12.5px;

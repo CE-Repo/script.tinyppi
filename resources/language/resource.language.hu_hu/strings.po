@@ -1722,3 +1722,7 @@ msgstr "Filmtár megjelenítése"
 msgctxt "#32539"
 msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
 msgstr "A vezérlőpulton felkínálja a videótár filmjeit, amíg semmi nem megy. Egy koppintás elindítja az egyiket a boxon."
+
+msgctxt "#32540"
+msgid "Watched"
+msgstr "Megtekintve"

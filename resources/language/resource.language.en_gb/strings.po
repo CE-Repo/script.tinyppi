@@ -1722,3 +1722,7 @@ msgstr ""
 msgctxt "#32539"
 msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
 msgstr ""
+
+msgctxt "#32540"
+msgid "Watched"
+msgstr ""

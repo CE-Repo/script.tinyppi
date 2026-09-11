@@ -1723,3 +1723,7 @@ msgstr "إظهار مكتبة الأفلام"
 msgctxt "#32539"
 msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
 msgstr "يعرض أفلام مكتبة الفيديو في لوحة المعلومات عندما لا يكون هناك تشغيل. ضغطة واحدة تبدأ تشغيل أحدها على الجهاز."
+
+msgctxt "#32540"
+msgid "Watched"
+msgstr "تمت مشاهدته"

@@ -420,8 +420,8 @@ looked for — and it is gone for as long as something plays.
 
 A film the box left half-watched carries a bar along the bottom of its poster
 and is **resumed** where it was, the same as pressing it in Kodi's own window;
-one already seen is dimmed rather than marked. Above a dozen films the card
-grows a search box, which narrows the wall as it is typed in.
+one already seen wears a tick in the corner of the picture. Above a dozen films
+the card grows a search box, which narrows the wall as it is typed in.
 
 The list is read from the video database once and held until Kodi says it
 changed, so a film added mid-evening appears without anything being restarted,

@@ -1722,3 +1722,7 @@ msgstr "显示影片库"
 msgctxt "#32539"
 msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
 msgstr "在没有播放内容时，于仪表板上提供视频媒体库中的影片。按一下即可在设备上开始播放。"
+
+msgctxt "#32540"
+msgid "Watched"
+msgstr "已观看"

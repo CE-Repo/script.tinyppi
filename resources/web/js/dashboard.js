@@ -416,7 +416,7 @@ function buildFilms() {
 function filmTile(film) {
   const tile = document.createElement("button");
   tile.type = "button";
-  tile.className = film.watched ? "film watched" : "film";
+  tile.className = "film";
   /* What the search box matches against, lower-cased once here rather than
      once per tile per keystroke. */
   tile.dataset.key = (film.title + " " + (film.year || "")).toLowerCase();
@@ -437,6 +437,18 @@ function filmTile(film) {
        which is the same empty frame a film with no poster at all gets. */
     image.addEventListener("error", () => image.remove());
     frame.append(image);
+  }
+  if (film.watched) {
+    /* The tick a film the box counts as seen wears, in the corner of its
+       poster.  An element of its own rather than a class on the frame: it is
+       a thing on the picture, and the picture is a photograph that has to go
+       on being read around it. */
+    const seen = document.createElement("span");
+    seen.className = "filmseen";
+    seen.setAttribute("role", "img");
+    seen.setAttribute("aria-label", T.films_watched);
+    seen.title = T.films_watched;
+    frame.append(seen);
   }
   if (film.resume && film.duration) {
     const bar = document.createElement("div");

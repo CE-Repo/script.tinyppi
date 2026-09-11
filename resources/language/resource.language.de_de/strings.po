@@ -1722,3 +1722,7 @@ msgstr "Filmbibliothek anzeigen"
 msgctxt "#32539"
 msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
 msgstr "Zeigt im Dashboard die Filme der Videodatenbank an, solange nichts wiedergegeben wird. Ein Druck startet einen davon auf der Box."
+
+msgctxt "#32540"
+msgid "Watched"
+msgstr "Gesehen"

@@ -205,6 +205,7 @@ _UI_STRINGS = {
     "films_starting":   32535,
     "films_failed":     32536,
     "films_resume":     32537,
+    "films_watched":    32540,
 }
 
 
@@ -329,6 +330,7 @@ def _static_routes() -> dict[str, tuple[str, str]]:
         "/icons/volume.svg":      (os.path.join(web, "icons", "volume.svg"), "image/svg+xml"),
         "/icons/volume-muted.svg": (os.path.join(web, "icons", "volume-muted.svg"), "image/svg+xml"),
         "/icons/yes.svg":         (os.path.join(web, "icons", "yes.svg"), "image/svg+xml"),
+        "/icons/check.svg":       (os.path.join(web, "icons", "check.svg"), "image/svg+xml"),
         "/icons/no.svg":          (os.path.join(web, "icons", "no.svg"), "image/svg+xml"),
         "/icons/theme-dark.svg":  (os.path.join(web, "icons", "theme-dark.svg"), "image/svg+xml"),
         "/icons/theme-adaptive.svg": (os.path.join(web, "icons", "theme-adaptive.svg"), "image/svg+xml"),

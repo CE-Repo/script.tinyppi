@@ -55,6 +55,7 @@ window.TinyPPI = (function () {
     films: "Films", films_empty: "No films in the video library",
     films_search: "Search films", films_starting: "Starting…",
     films_failed: "Playback could not be started", films_resume: "Resume",
+    films_watched: "Watched",
     events: "Events", events_empty: "No events yet",
     ev_mode: "Display mode",
     range_1m: "1 min", range_10m: "10 min", range_all: "All"
