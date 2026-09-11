@@ -52,8 +52,18 @@
         '<div class="progress">' +
           '<div class="track" id="track" role="slider" tabindex="0" ' +
             'aria-valuemin="0" aria-valuemax="100"><i id="bar"></i></div>' +
+          /* Three readings under the bar, not two: how far the title has
+             got, when it will be over by the clock on the wall, and how long
+             it runs for.  The middle one is centred on the bar rather than on
+             the gap between the other two, so it stays put as the figures
+             either side of it change width. */
           '<div class="times mono">' +
-            '<span id="tElapsed">--:--</span><span id="tTotal">--:--</span>' +
+            '<span id="tElapsed">--:--</span>' +
+            '<span class="finish hidden" id="tFinish">' +
+              '<span id="tFinishLabel"></span>' +
+              '<span class="mono" id="tFinishTime"></span>' +
+            '</span>' +
+            '<span id="tTotal">--:--</span>' +
           '</div>' +
         '</div>' +
         '<div class="control-drawer" id="controlDrawer">' +
@@ -123,7 +133,9 @@
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), file: $("file"), logos: $("logos"),
     artBox: $("artBox"), poster: $("poster"),
-    track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"), tTotal: $("tTotal"),
+    track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
+    tFinish: $("tFinish"), tFinishLabel: $("tFinishLabel"),
+    tFinishTime: $("tFinishTime"), tTotal: $("tTotal"),
     controlDrawer: $("controlDrawer"), controlToggle,
     transport: $("transport"), tracks: $("tracks"),
     tiles: $("tiles"), vSwitches: $("vSwitches"), vWarnings: $("vWarnings"),
@@ -143,6 +155,8 @@
   let control = false;
   let posterTag = "";
   let trackKey = "";
+  let finishLabel = "";  /* "Ends at", once Kodi's table has been asked      */
+  let lastFinish = "";   /* the clock that label belongs in front of         */
   let idleFetched = false;  /* the ended title's events, asked for once      */
   const controlStateKey = pageState + ".controls";
 
@@ -194,6 +208,28 @@
     el.track.setAttribute("aria-valuenow", Math.round(percent));
     el.tElapsed.textContent = snapshot.time || "--:--";
     el.tTotal.textContent = snapshot.duration || "--:--";
+    renderFinish(snapshot.finish || "");
+  }
+
+  /* When the title will be over, by the clock rather than by the length: the
+     figure that answers "can I still watch this before bed" without anyone
+     having to do the sum.
+
+     The box works it out and writes it in its own regional format (see
+     _EXTRA_INFOLABELS in web/snapshot.py), so it is printed exactly as it
+     arrived.  A live stream has no end and neither has a title Kodi does not
+     yet know the length of; the reading is empty for both, and the middle of
+     the row then simply stays empty rather than showing a clock that would be
+     wrong. */
+  function renderFinish(finish) {
+    lastFinish = finish;
+    /* The words and the figure are kept apart so only the figure is set in
+       the monospaced face the row is otherwise written in: tabular digits are
+       what keeps a clock from shuffling as it counts, and a label set in them
+       reads as part of the reading rather than as the name for it. */
+    el.tFinishLabel.textContent = finish && finishLabel ? finishLabel + " " : "";
+    el.tFinishTime.textContent = finish;
+    el.tFinish.classList.toggle("hidden", !finish);
   }
 
   /* The poster is fetched once per film: the add-on sends a tag that changes
@@ -1005,6 +1041,10 @@
   /* --- what a page calls ------------------------------------------------ */
 
   function strings(T) {
+    finishLabel = T.ends_at || "";
+    /* The bar may already be drawn by the time the words for it arrive; the
+       reading is there either way, and this puts the label in front of it. */
+    renderFinish(lastFinish);
     $("tilesTitle").textContent = T.metrics;
     el.controlToggle.setAttribute("aria-label", T.controls);
     el.controlToggle.title = T.controls;
@@ -1048,6 +1088,7 @@
       live = [];
       posterTag = "";
       trackKey = "";
+      renderFinish("");
       fpsShown = null;
       setFpsTrend(0);
       setControlsOpen(false, false);

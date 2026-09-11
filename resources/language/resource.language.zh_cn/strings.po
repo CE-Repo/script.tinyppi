@@ -1686,3 +1686,7 @@ msgstr "底边"
 msgctxt "#32530"
 msgid "Top edge"
 msgstr "顶边"
+
+msgctxt "#32531"
+msgid "Ends at"
+msgstr "结束于"

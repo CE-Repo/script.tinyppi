@@ -221,6 +221,14 @@ _GROUPS = (
 _EXTRA_INFOLABELS = (
     ("PlayerTime",          "Player.Time"),
     ("PlayerDuration",      "Player.Duration"),
+    # When the title will be over, as a wall clock rather than as a length.
+    # Kodi works it out against its own clock and writes it in the box's own
+    # regional format -- 24-hour or 12-hour with the suffix -- which is why it
+    # is read here rather than worked out from the two readings above: a
+    # remaining time added to a phone's clock would disagree with the
+    # television whenever the two are set differently, and pausing would make
+    # it wrong by however long the pause lasted.
+    ("PlayerFinishTime",    "Player.FinishTime"),
     ("PlayerProgress",      "Player.Progress"),
     ("PlayerCacheLevel",    "Player.CacheLevel"),
     ("VideoQueueLevel",     "Player.Process(VideoQueueLevel)"),
@@ -1278,6 +1286,10 @@ class SnapshotBuilder:
             "output_type": _output_hdr_type(vs10.get("output", ""), source),
             "time":      position,
             "duration":  values.get("PlayerDuration", ""),
+            # Empty for anything Kodi cannot put an end to -- a live stream,
+            # a title whose length it does not know yet -- and the pages then
+            # simply leave the figure out.
+            "finish":    values.get("PlayerFinishTime", ""),
             "metrics":   metrics,
             "groups":    self._groups(values, addon, source_key),
             "metadata":  self._metadata(is_dv, metadata),
