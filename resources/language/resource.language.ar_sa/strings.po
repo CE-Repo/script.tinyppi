@@ -1691,3 +1691,39 @@ msgstr "الحافة العلوية"
 msgctxt "#32531"
 msgid "Ends at"
 msgstr "ينتهي في"
+
+msgctxt "#32532"
+msgid "Films"
+msgstr "الأفلام"
+
+msgctxt "#32533"
+msgid "No films in the video library"
+msgstr "لا توجد أفلام في مكتبة الفيديو"
+
+msgctxt "#32534"
+msgid "Search films"
+msgstr "البحث في الأفلام"
+
+msgctxt "#32535"
+msgid "Starting…"
+msgstr "جارٍ البدء…"
+
+msgctxt "#32536"
+msgid "Playback could not be started"
+msgstr "تعذّر بدء التشغيل"
+
+msgctxt "#32537"
+msgid "Resume"
+msgstr "متابعة"
+
+msgctxt "#32538"
+msgid "Show the film library"
+msgstr "إظهار مكتبة الأفلام"
+
+msgctxt "#32539"
+msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
+msgstr "يعرض أفلام مكتبة الفيديو في لوحة المعلومات عندما لا يكون هناك تشغيل. ضغطة واحدة تبدأ تشغيل أحدها على الجهاز."
+
+msgctxt "#32540"
+msgid "Watched"
+msgstr "تمت مشاهدته"

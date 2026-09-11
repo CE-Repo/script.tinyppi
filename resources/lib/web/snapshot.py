@@ -485,6 +485,12 @@ def _rpc(method: str, params: dict | None = None) -> dict:
     return answer if isinstance(answer, dict) else {}
 
 
+# The same one call, under a name the module next door may import: the film
+# library talks to the same Kodi over the same socket, and a second copy of
+# this would be a second thing to keep right (see web/library.py).
+rpc = _rpc
+
+
 def _video_player_id() -> int | None:
     """The id of the playing video, or None when nothing is playing."""
     result = _rpc("Player.GetActivePlayers").get("result") or []

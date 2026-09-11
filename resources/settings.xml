@@ -6452,6 +6452,14 @@
                     </dependencies>
                     <control type="toggle" />
                 </setting>
+                <setting id="web_library" type="boolean" label="32538" help="32539">
+                    <level>0</level>
+                    <default>true</default>
+                    <dependencies>
+                        <dependency type="enable" setting="web_enabled">true</dependency>
+                    </dependencies>
+                    <control type="toggle" />
+                </setting>
                 <setting id="web_auth_read" type="boolean" label="32440" help="32441">
                     <level>0</level>
                     <default>false</default>
