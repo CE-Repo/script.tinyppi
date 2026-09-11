@@ -337,7 +337,7 @@ def _disc_release_type(path: str) -> str:
     return "BD Disc" if path.lower().startswith("bluray://") else "DVD Disc"
 
 
-def _is_live() -> bool:
+def is_live() -> bool:
     """Return whether the item is a live stream rather than a file being
     served.  ``Player.IsLive`` says so directly but only exists from Kodi 22,
     and this addon runs from Kodi 19, so the test the skin itself uses for
@@ -348,16 +348,27 @@ def _is_live() -> bool:
         "Player.IsInternetStream + String.IsEmpty(Player.Duration)")
 
 
-def _is_pvr() -> bool:
+def is_live_pvr() -> bool:
+    """Return whether a live channel is playing, television or radio.
+
+    Narrower than :func:`is_pvr` on purpose, and the two are not
+    interchangeable: a recording is a finished file with a length and a
+    timeline like any other, while a channel is whatever the tuner is putting
+    out right now.  Anything that has to know whether the thing playing will
+    end wants this one.
+    """
+    return cond("PVR.IsPlayingTV") or cond("PVR.IsPlayingRadio")
+
+
+def is_pvr() -> bool:
     """Return whether a PVR item is playing.  A recording is grouped with the
     live channels rather than with files: it has no release name and cannot be
     stat'd either, so naming its backend says more than an empty row would."""
-    return (cond("PVR.IsPlayingTV") or cond("PVR.IsPlayingRadio")
-            or cond("PVR.IsPlayingRecording"))
+    return is_live_pvr() or cond("PVR.IsPlayingRecording")
 
 
 def _live_segments(raw_path: str, protocol: str) -> list[str]:
-    return [_PVR_LABEL if _is_pvr() else protocol, _container(raw_path)]
+    return [_PVR_LABEL if is_pvr() else protocol, _container(raw_path)]
 
 
 def _file_segments(raw_path: str, path: str) -> list[str]:
@@ -390,7 +401,7 @@ def get_MediaSourceVar() -> str:
 
     protocol = _stream_protocol(path)
     segments = (_live_segments(raw_path, protocol)
-                if _is_pvr() or protocol or _is_live()
+                if is_pvr() or protocol or is_live()
                 else _file_segments(raw_path, path))
 
     text = " · ".join(segment for segment in segments if segment)

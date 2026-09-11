@@ -40,6 +40,7 @@ from info.dvinfo import (
 )
 from info import dvmetadata
 from info.imax import imax_logo, is_known_imax_title
+from info.mediasource import is_live, is_live_pvr
 from info.properties import (
     publish_scene_properties,
     publish_static_properties,
@@ -318,6 +319,35 @@ def _numbers(value: str) -> list[float]:
 def _first_number(value: str) -> float | None:
     numbers = _numbers(value)
     return numbers[0] if numbers else None
+
+
+def _finish_time(values: dict[str, str]) -> str:
+    """When the title will be over by the clock, or "" where nothing ends.
+
+    Kodi answers ``Player.FinishTime`` for a good deal more than it ought to.
+    On a live channel it gives the end of whatever the guide says is on now,
+    which is the end of a programme and not of the thing being watched -- the
+    tuner carries straight on into the next one -- and on a stream with no
+    length at all it can still hand back a clock worked out from a position
+    that never moves.  Neither is a time anybody is waiting for, so the two
+    are tested for here rather than printed.
+
+    A recording is deliberately not among them.  It is a finished file with a
+    length and a timeline like any other, PVR only in where it came from, and
+    it does end -- at the time this names.
+
+    What is left has to have a length worth counting down.  A title Kodi has
+    opened but not yet measured reads ``00:00`` for a moment, and a finish
+    time built on that is the current time, which would sit under the bar
+    looking like an answer for as long as it took the real one to arrive.
+    """
+    if is_live() or is_live_pvr():
+        return ""
+    # Every field of the clock at zero, or no clock at all: `any` catches
+    # both, an empty reading having no numbers in it to be true.
+    if not any(_numbers(values.get("PlayerDuration", ""))):
+        return ""
+    return values.get("PlayerFinishTime", "")
 
 
 def _web_presence_value(value) -> str:
@@ -1286,10 +1316,7 @@ class SnapshotBuilder:
             "output_type": _output_hdr_type(vs10.get("output", ""), source),
             "time":      position,
             "duration":  values.get("PlayerDuration", ""),
-            # Empty for anything Kodi cannot put an end to -- a live stream,
-            # a title whose length it does not know yet -- and the pages then
-            # simply leave the figure out.
-            "finish":    values.get("PlayerFinishTime", ""),
+            "finish":    _finish_time(values),
             "metrics":   metrics,
             "groups":    self._groups(values, addon, source_key),
             "metadata":  self._metadata(is_dv, metadata),
