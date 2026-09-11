@@ -58,8 +58,9 @@ _DIVIDER_COLOR  = "59FFFFFF"
 # _is_converting / PROP_CONVERTING below).
 _DOT_TEXTURE       = os.path.join("common", "dot-circle.png")
 _CONVERT_DOT_COLOR = "FF81C784"  # palette Forest
-# Dolby Vision layer-indicator pill, centred on the panel's bottom edge (see
-# _dv_layer_token below).
+# Dolby Vision layer-indicator pill, centred on the panel's bottom edge, or its
+# top edge where splash_<mode>_pill_position asks for it (see _dv_layer_token
+# below).
 _PILL_TEXTURE = os.path.join("common", "pill.png")
 _CORNER_TEXTURES = {
     "tl": os.path.join("splash", "corner-tl.png"),
@@ -111,6 +112,7 @@ class _ModeState(NamedTuple):
     colors: tuple
     condition: str
     layer_token: str
+    pill_at_top: bool
 
 # Fade in/out.  Kodi only plays "Visible"/"Hidden" animations on runtime-added
 # controls when a *visibility condition* changes value (setVisible() alone does
@@ -235,6 +237,16 @@ _ORDER_SETTINGS = {
 # splash_<mode>_order: 0 keeps video on top, 1 puts audio on top.
 _ORDER_AUDIO_FIRST = 1
 
+# Per-mode edge the Dolby Vision layer pill sits on.
+_PILL_POSITION_SETTINGS = {
+    "start":   "splash_start_pill_position",
+    "osd":     "splash_osd_pill_position",
+    "tinyppi": "splash_tinyppi_pill_position",
+}
+# splash_<mode>_pill_position: 0 keeps the pill on the panel's bottom edge,
+# 1 moves it to the top edge.
+_PILL_TOP = 1
+
 # Base layout scale for the logo block; a user scale of 1.0 keeps the original size.
 _BASE_SCALE = 0.95
 
@@ -356,7 +368,7 @@ def _panel_controls(
 def _build_controls(
     logos: list[tuple[str, str]], colors: dict[str, str],
     offset_x: int, offset_y: int, screen_w: int, screen_h: int,
-    user_scale: float = 1.0, layer_token: str = "",
+    user_scale: float = 1.0, layer_token: str = "", pill_at_top: bool = False,
 ) -> tuple[list[xbmcgui.ControlImage], xbmcgui.ControlImage | None]:
     """Lay out the logos as a vertical stack, sized to the skin.
 
@@ -369,7 +381,8 @@ def _build_controls(
     resizes it.  A rounded panel is drawn behind the logos; ``colors`` supplies
     the ARGB tints (``bg``/``video``/``audio``/``divider``/``convert_dot``/
     ``fel``/``mel``/``other``), and ``layer_token`` selects the Dolby Vision
-    layer-indicator pill's colour, omitting the pill when ``''``.
+    layer-indicator pill's colour, omitting the pill when ``''``;
+    ``pill_at_top`` moves that pill to the panel's top edge.
 
     Returns ``(controls, dot)``, where ``dot`` is the conversion-indicator
     badge (also in ``controls``) so the caller can give it its own stricter
@@ -433,14 +446,18 @@ def _build_controls(
     dot = _make_dot(dot_cx, dot_cy, dot_d, colors["convert_dot"])
     controls.append(dot)
 
-    # Dolby Vision layer-indicator pill, centred on the panel's bottom edge
-    # (FEL / MEL / any other DV profile); omitted for non-DV sources.
+    # Dolby Vision layer-indicator pill, centred on the panel's bottom edge --
+    # or its top edge when the mode asks for it (FEL / MEL / any other DV
+    # profile); omitted for non-DV sources.
     if layer_token in ("fel", "mel", "other"):
         pill_w      = max(1, int(box_w * 0.30))
         pill_h      = max(1, int(box_h * 0.15))
         pill_margin = max(1, int(box_h * 0.10))
         pill_x = panel_x + (panel_w - pill_w) // 2
-        pill_y = panel_y + panel_h - pill_margin - pill_h
+        pill_y = (
+            panel_y + pill_margin if pill_at_top
+            else panel_y + panel_h - pill_margin - pill_h
+        )
         controls.append(
             _make_image(_PILL_TEXTURE, pill_x, pill_y, pill_w, pill_h, colors[layer_token])
         )
@@ -723,6 +740,10 @@ def open_splash() -> None:
                             colors=tuple(sorted(colors.items())),
                             condition=_visible_condition(mode, show_on_osd),
                             layer_token=layer_token,
+                            pill_at_top=(
+                                addon.getSettingInt(_PILL_POSITION_SETTINGS[mode])
+                                == _PILL_TOP
+                            ),
                         )
 
             remove_modes = [
@@ -747,6 +768,7 @@ def open_splash() -> None:
                     list(desired.logos), colors_by_mode[mode],
                     desired.offset_x, desired.offset_y,
                     screen_w, screen_h, desired.scale, desired.layer_token,
+                    desired.pill_at_top,
                 )
                 controls_by_mode[mode] = controls
                 states[mode] = desired

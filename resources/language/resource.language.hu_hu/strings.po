@@ -1120,24 +1120,24 @@ msgid "FEL indicator"
 msgstr "FEL jelző"
 
 msgctxt "#32370"
-msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision FEL."
-msgstr "A splash logó alján megjelenő hasáb színe, ha a forrás Dolby Vision FEL."
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision FEL."
+msgstr "A splash logón megjelenő hasáb színe, ha a forrás Dolby Vision FEL."
 
 msgctxt "#32371"
 msgid "MEL indicator"
 msgstr "MEL jelző"
 
 msgctxt "#32372"
-msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision MEL."
-msgstr "A splash logó alján megjelenő hasáb színe, ha a forrás Dolby Vision MEL."
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision MEL."
+msgstr "A splash logón megjelenő hasáb színe, ha a forrás Dolby Vision MEL."
 
 msgctxt "#32373"
 msgid "Other Dolby Vision"
 msgstr "Egyéb Dolby Vision"
 
 msgctxt "#32374"
-msgid "Color of the pill shown at the bottom of the splash logo for any other Dolby Vision profile (no enhancement layer)."
-msgstr "A splash logó alján megjelenő hasáb színe minden más Dolby Vision profilhoz (enhancement layer nélkül)."
+msgid "Color of the pill shown on the splash logo for any other Dolby Vision profile (no enhancement layer)."
+msgstr "A splash logón megjelenő hasáb színe minden más Dolby Vision profilhoz (enhancement layer nélkül)."
 
 msgctxt "#32375"
 msgid "L1 Lum Min/Max/Ø"
@@ -1670,3 +1670,19 @@ msgstr "Videó felül, audió alul"
 msgctxt "#32526"
 msgid "Audio on top, video below"
 msgstr "Audió felül, videó alul"
+
+msgctxt "#32527"
+msgid "Dolby Vision pill position"
+msgstr "Dolby Vision hasáb helye"
+
+msgctxt "#32528"
+msgid "Which edge of the logo panel the Dolby Vision layer pill sits on."
+msgstr "A logópanel melyik szélén legyen a Dolby Vision réteg hasábja."
+
+msgctxt "#32529"
+msgid "Bottom edge"
+msgstr "Alsó szél"
+
+msgctxt "#32530"
+msgid "Top edge"
+msgstr "Felső szél"

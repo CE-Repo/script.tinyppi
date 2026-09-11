@@ -100,6 +100,8 @@ separately, and so can the logo stack itself:
 - **Show video codec logo** / **Show audio codec logo** — turn either one off to
   leave just the other logo on the panel. With both on, the panel keeps its
   all-or-nothing behavior and stays hidden for an audio codec that has no logo.
+- **Dolby Vision pill position** — the layer pill (FEL / MEL / other DV profile)
+  sits on the panel's *Bottom edge* (default) or its *Top edge*.
 
 ### Supported formats
 

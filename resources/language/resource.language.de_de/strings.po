@@ -1120,24 +1120,24 @@ msgid "FEL indicator"
 msgstr "FEL-Anzeige"
 
 msgctxt "#32370"
-msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision FEL."
-msgstr "Farbe der Pille am unteren Rand des Splash-Logos, wenn die Quelle Dolby Vision FEL ist."
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision FEL."
+msgstr "Farbe der Pille am Splash-Logo, wenn die Quelle Dolby Vision FEL ist."
 
 msgctxt "#32371"
 msgid "MEL indicator"
 msgstr "MEL-Anzeige"
 
 msgctxt "#32372"
-msgid "Color of the pill shown at the bottom of the splash logo when the source is Dolby Vision MEL."
-msgstr "Farbe der Pille am unteren Rand des Splash-Logos, wenn die Quelle Dolby Vision MEL ist."
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision MEL."
+msgstr "Farbe der Pille am Splash-Logo, wenn die Quelle Dolby Vision MEL ist."
 
 msgctxt "#32373"
 msgid "Other Dolby Vision"
 msgstr "Sonstiges Dolby Vision"
 
 msgctxt "#32374"
-msgid "Color of the pill shown at the bottom of the splash logo for any other Dolby Vision profile (no enhancement layer)."
-msgstr "Farbe der Pille am unteren Rand des Splash-Logos für jedes andere Dolby-Vision-Profil (ohne Enhancement Layer)."
+msgid "Color of the pill shown on the splash logo for any other Dolby Vision profile (no enhancement layer)."
+msgstr "Farbe der Pille am Splash-Logo für jedes andere Dolby-Vision-Profil (ohne Enhancement Layer)."
 
 msgctxt "#32375"
 msgid "L1 Lum Min/Max/Ø"
@@ -1670,3 +1670,19 @@ msgstr "Video oben, Audio unten"
 msgctxt "#32526"
 msgid "Audio on top, video below"
 msgstr "Audio oben, Video unten"
+
+msgctxt "#32527"
+msgid "Dolby Vision pill position"
+msgstr "Position der Dolby-Vision-Pille"
+
+msgctxt "#32528"
+msgid "Which edge of the logo panel the Dolby Vision layer pill sits on."
+msgstr "An welcher Kante des Logo-Panels die Dolby-Vision-Pille sitzt."
+
+msgctxt "#32529"
+msgid "Bottom edge"
+msgstr "Untere Kante"
+
+msgctxt "#32530"
+msgid "Top edge"
+msgstr "Obere Kante"
