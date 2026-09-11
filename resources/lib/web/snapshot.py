@@ -40,7 +40,7 @@ from info.dvinfo import (
 )
 from info import dvmetadata
 from info.imax import imax_logo, is_known_imax_title
-from info.mediasource import is_live, is_live_pvr
+from info.mediasource import is_live, is_pvr
 from info.properties import (
     publish_scene_properties,
     publish_static_properties,
@@ -332,16 +332,19 @@ def _finish_time(values: dict[str, str]) -> str:
     that never moves.  Neither is a time anybody is waiting for, so the two
     are tested for here rather than printed.
 
-    A recording is deliberately not among them.  It is a finished file with a
-    length and a timeline like any other, PVR only in where it came from, and
-    it does end -- at the time this names.
+    Everything the tuner brings in is left out, a recording included.  A
+    recording does end at a time this could name, so that is a call about
+    what the row is for rather than about what can be worked out: the figure
+    belongs to watching a film through, and the whole of the PVR side of the
+    player is kept out of it rather than split down the middle into the part
+    that would show one and the part that would not.
 
     What is left has to have a length worth counting down.  A title Kodi has
     opened but not yet measured reads ``00:00`` for a moment, and a finish
     time built on that is the current time, which would sit under the bar
     looking like an answer for as long as it took the real one to arrive.
     """
-    if is_live() or is_live_pvr():
+    if is_live() or is_pvr():
         return ""
     # Every field of the clock at zero, or no clock at all: `any` catches
     # both, an empty reading having no numbers in it to be true.

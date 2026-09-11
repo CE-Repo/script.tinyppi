@@ -348,23 +348,12 @@ def is_live() -> bool:
         "Player.IsInternetStream + String.IsEmpty(Player.Duration)")
 
 
-def is_live_pvr() -> bool:
-    """Return whether a live channel is playing, television or radio.
-
-    Narrower than :func:`is_pvr` on purpose, and the two are not
-    interchangeable: a recording is a finished file with a length and a
-    timeline like any other, while a channel is whatever the tuner is putting
-    out right now.  Anything that has to know whether the thing playing will
-    end wants this one.
-    """
-    return cond("PVR.IsPlayingTV") or cond("PVR.IsPlayingRadio")
-
-
 def is_pvr() -> bool:
     """Return whether a PVR item is playing.  A recording is grouped with the
     live channels rather than with files: it has no release name and cannot be
     stat'd either, so naming its backend says more than an empty row would."""
-    return is_live_pvr() or cond("PVR.IsPlayingRecording")
+    return (cond("PVR.IsPlayingTV") or cond("PVR.IsPlayingRadio")
+            or cond("PVR.IsPlayingRecording"))
 
 
 def _live_segments(raw_path: str, protocol: str) -> list[str]:

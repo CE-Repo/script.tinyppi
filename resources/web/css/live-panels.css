@@ -236,15 +236,10 @@
 .times > span:last-child {
   text-align: right;
 }
-/* When the title will be over.  Lighter than the two clocks it sits between:
-   those are the bar's own scale and this is a note beside it, and a row of
-   three readings all shouting equally is a row nobody reads. */
-/* On a narrow phone the two clocks either side are what the row is for, and
-   the words in the middle are the first thing that can go: the figure stays,
-   and it stays whole rather than ending in an ellipsis. */
-@media (max-width: 380px) {
-  .times > .finish > span:first-child { display: none; }
-}
+/* When the title will be over.  Written in the same colour and the same
+   weight as the two clocks either side of it -- it is the third reading of
+   the row, not an aside about them -- and the only thing that sets it apart
+   is the face: the figures are monospaced and its label is not. */
 .times > .finish {
   flex: 0 1 auto;
   min-width: 0;
@@ -252,8 +247,12 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   font-family: var(--font-ui);
-  font-weight: 500;
-  opacity: .8;
+}
+/* On a narrow phone the two clocks either side are what the row is for, and
+   the words in the middle are the first thing that can go: the figure stays,
+   and it stays whole rather than ending in an ellipsis. */
+@media (max-width: 380px) {
+  .times > .finish > span:first-child { display: none; }
 }
 /* Unfilled like the keys it folds out, and for the same reason: it sits on the
    card rather than in the top bar, so the card is what should show through it.
