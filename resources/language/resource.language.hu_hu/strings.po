@@ -1686,3 +1686,7 @@ msgstr "Alsó szél"
 msgctxt "#32530"
 msgid "Top edge"
 msgstr "Felső szél"
+
+msgctxt "#32531"
+msgid "Ends at"
+msgstr "Vége ekkor"

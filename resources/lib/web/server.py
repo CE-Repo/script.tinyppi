@@ -194,6 +194,9 @@ _UI_STRINGS = {
     # over CEC can send the steps on to an amplifier.
     "volume_down":      32517,
     "volume_up":        32518,
+    # The wall clock under the middle of the progress bar, between how far the
+    # title has got and how long it runs for.
+    "ends_at":          32531,
 }
 
 

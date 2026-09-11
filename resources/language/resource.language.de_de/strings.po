@@ -1686,3 +1686,7 @@ msgstr "Untere Kante"
 msgctxt "#32530"
 msgid "Top edge"
 msgstr "Obere Kante"
+
+msgctxt "#32531"
+msgid "Ends at"
+msgstr "Endet um"

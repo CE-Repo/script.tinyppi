@@ -40,6 +40,7 @@ from info.dvinfo import (
 )
 from info import dvmetadata
 from info.imax import imax_logo, is_known_imax_title
+from info.mediasource import is_live, is_pvr
 from info.properties import (
     publish_scene_properties,
     publish_static_properties,
@@ -221,6 +222,14 @@ _GROUPS = (
 _EXTRA_INFOLABELS = (
     ("PlayerTime",          "Player.Time"),
     ("PlayerDuration",      "Player.Duration"),
+    # When the title will be over, as a wall clock rather than as a length.
+    # Kodi works it out against its own clock and writes it in the box's own
+    # regional format -- 24-hour or 12-hour with the suffix -- which is why it
+    # is read here rather than worked out from the two readings above: a
+    # remaining time added to a phone's clock would disagree with the
+    # television whenever the two are set differently, and pausing would make
+    # it wrong by however long the pause lasted.
+    ("PlayerFinishTime",    "Player.FinishTime"),
     ("PlayerProgress",      "Player.Progress"),
     ("PlayerCacheLevel",    "Player.CacheLevel"),
     ("VideoQueueLevel",     "Player.Process(VideoQueueLevel)"),
@@ -310,6 +319,38 @@ def _numbers(value: str) -> list[float]:
 def _first_number(value: str) -> float | None:
     numbers = _numbers(value)
     return numbers[0] if numbers else None
+
+
+def _finish_time(values: dict[str, str]) -> str:
+    """When the title will be over by the clock, or "" where nothing ends.
+
+    Kodi answers ``Player.FinishTime`` for a good deal more than it ought to.
+    On a live channel it gives the end of whatever the guide says is on now,
+    which is the end of a programme and not of the thing being watched -- the
+    tuner carries straight on into the next one -- and on a stream with no
+    length at all it can still hand back a clock worked out from a position
+    that never moves.  Neither is a time anybody is waiting for, so the two
+    are tested for here rather than printed.
+
+    Everything the tuner brings in is left out, a recording included.  A
+    recording does end at a time this could name, so that is a call about
+    what the row is for rather than about what can be worked out: the figure
+    belongs to watching a film through, and the whole of the PVR side of the
+    player is kept out of it rather than split down the middle into the part
+    that would show one and the part that would not.
+
+    What is left has to have a length worth counting down.  A title Kodi has
+    opened but not yet measured reads ``00:00`` for a moment, and a finish
+    time built on that is the current time, which would sit under the bar
+    looking like an answer for as long as it took the real one to arrive.
+    """
+    if is_live() or is_pvr():
+        return ""
+    # Every field of the clock at zero, or no clock at all: `any` catches
+    # both, an empty reading having no numbers in it to be true.
+    if not any(_numbers(values.get("PlayerDuration", ""))):
+        return ""
+    return values.get("PlayerFinishTime", "")
 
 
 def _web_presence_value(value) -> str:
@@ -1278,6 +1319,7 @@ class SnapshotBuilder:
             "output_type": _output_hdr_type(vs10.get("output", ""), source),
             "time":      position,
             "duration":  values.get("PlayerDuration", ""),
+            "finish":    _finish_time(values),
             "metrics":   metrics,
             "groups":    self._groups(values, addon, source_key),
             "metadata":  self._metadata(is_dv, metadata),

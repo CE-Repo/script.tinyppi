@@ -1687,3 +1687,7 @@ msgstr "الحافة السفلية"
 msgctxt "#32530"
 msgid "Top edge"
 msgstr "الحافة العلوية"
+
+msgctxt "#32531"
+msgid "Ends at"
+msgstr "ينتهي في"
