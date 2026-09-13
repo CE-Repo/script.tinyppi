@@ -384,6 +384,10 @@ function flash(node) {
    would otherwise ask the box for five hundred pictures the moment it was
    drawn, of which a phone shows six. */
 
+/* What a badge calls the house whose rating it is drawing.  Brand names, so
+   they are the same in every language the box speaks. */
+const RATING_NAMES = { imdb: "IMDb", tmdb: "TMDb" };
+
 const FILMS_RETRY_MS = 5000;
 /* How long a pressed tile stays pressed with nothing having happened.  A film
    that starts takes the card off the page long before this; this is for the
@@ -441,6 +445,57 @@ function buildFilms() {
   applyFilmSearch();
 }
 
+/* How long something runs, as a tile writes it: 1 h 38 min for a film, 45 min
+   for an episode.
+
+   The hours split out rather than a hundred and ninety-eight minutes, because
+   what is being asked of a film is how long an evening it is and an hour is
+   the unit an evening is measured in.  Under the hour there is no hour to
+   write, so the minutes stand on their own with their own unit -- a bare
+   number beside a year would be a number nobody can name.
+
+   Whole minutes either way: the seconds are noise at this size.  Empty for a
+   library that does not know how long it is, so nothing is drawn at all. */
+function runtime(seconds) {
+  const minutes = Math.round((seconds || 0) / 60);
+  if (minutes <= 0) return "";
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours <= 0) return T.runtime_m.replace("%s", minutes);
+  /* An hour with nothing left over says so and stops: "1 h 0 min" is a length
+     nobody writes, and a season adding up to a round number of hours is not
+     rare. */
+  if (rest === 0) return T.runtime_h.replace("%s", hours);
+  /* Two holes to fill and one at a time, so the second number cannot land in
+     the hole the first one left. */
+  return T.runtime_hm.replace("%s", hours).replace("%s", rest);
+}
+
+/* The rating in the corner of a poster, or nothing at all.
+
+   The number alone is what it draws -- a poster has room for a number and not
+   for a sentence -- and which house said so is what it answers to a finger
+   held on it, because 8.3 means different things at the two of them. */
+function ratingBadge(entry) {
+  if (!entry.rating) return null;
+  const badge = document.createElement("span");
+  badge.className = "filmrating mono";
+  badge.textContent = entry.rating.toFixed(1);
+  const said = ((RATING_NAMES[entry.rating_from] || "") + " " +
+                badge.textContent).trim();
+  badge.setAttribute("role", "img");
+  badge.setAttribute("aria-label", said);
+  badge.title = said;
+  return badge;
+}
+
+/* The line under a title: when it came out and how long it runs, whichever of
+   the two the library knows. */
+function metaLine(entry) {
+  return [entry.year ? String(entry.year) : "", runtime(entry.duration)]
+    .filter(Boolean).join(" \u00b7 ");
+}
+
 function filmTile(film) {
   const tile = document.createElement("button");
   tile.type = "button";
@@ -466,6 +521,8 @@ function filmTile(film) {
     image.addEventListener("error", () => image.remove());
     frame.append(image);
   }
+  const rated = ratingBadge(film);
+  if (rated) frame.append(rated);
   if (film.watched) {
     /* The tick a film the box counts as seen wears, in the corner of its
        poster.  An element of its own rather than a class on the frame: it is
@@ -493,11 +550,12 @@ function filmTile(film) {
   title.className = "filmtitle";
   title.textContent = film.title;
   tile.append(frame, title);
-  if (film.year) {
-    const year = document.createElement("div");
-    year.className = "filmyear";
-    year.textContent = String(film.year);
-    tile.append(year);
+  const meta = metaLine(film);
+  if (meta) {
+    const line = document.createElement("div");
+    line.className = "filmyear";
+    line.textContent = meta;
+    tile.append(line);
   }
 
   tile.addEventListener("click", () => startFilm(film, tile));
@@ -666,6 +724,8 @@ function showTile(show) {
     image.addEventListener("error", () => image.remove());
     frame.append(image);
   }
+  const rated = ratingBadge(show);
+  if (rated) frame.append(rated);
   if (show.watched) {
     const seen = document.createElement("span");
     seen.className = "filmseen";
@@ -766,6 +826,12 @@ function buildEpisodes(list) {
     many.set(number, (many.get(number) || 0) + 1);
   }
 
+  const runs = new Map();
+  for (const episode of list) {
+    const number = seasonOf(episode);
+    runs.set(number, (runs.get(number) || 0) + (episode.duration || 0));
+  }
+
   let season = null;
   let fold = null;          /* where this season's rows go, or null outside one */
   for (const episode of list) {
@@ -775,7 +841,8 @@ function buildEpisodes(list) {
       /* An episode the library files under no season at all goes under no
          heading, and so into no fold either: there is nothing to call it, and
          a fold with no name on it is a row that hides things. */
-      fold = number >= 0 ? seasonFold(number, many.get(number), rows) : null;
+      fold = number >= 0
+        ? seasonFold(number, many.get(number), runs.get(number), rows) : null;
     }
     (fold || rows).append(episodeRow(episode));
   }
@@ -789,7 +856,7 @@ function seasonOf(episode) {
 
 /* One season's fold, added to the list; what comes back is where its episodes
    go. */
-function seasonFold(number, count, into) {
+function seasonFold(number, count, seconds, into) {
   const fold = document.createElement("details");
   fold.className = "seasonfold";
 
@@ -800,7 +867,11 @@ function seasonFold(number, count, into) {
     ? T.series_specials : T.series_season.replace("%s", number);
   const total = document.createElement("span");
   total.className = "seasoncount mono";
-  total.textContent = String(count);
+  /* How many, and how long that is altogether -- which folded away is the
+     whole of what the season still has to say, and the one thing somebody
+     weighing an evening against a season wants to know. */
+  const runs = runtime(seconds);
+  total.textContent = runs ? count + " \u00b7 " + runs : String(count);
   heading.append(name, total);
 
   const body = document.createElement("div");
@@ -850,10 +921,15 @@ function episodeRow(episode) {
   const meta = document.createElement("div");
   meta.className = "episodemeta";
   const code = episodeCode(episode);
-  if (code) {
+  /* Which episode it is and how long it runs, on the one line: both are what
+     somebody choosing between two of them is weighing, and a row that put
+     them on separate lines would be twice as tall for it. */
+  const numbered = [code, runtime(episode.duration)].filter(Boolean)
+    .join(" \u00b7 ");
+  if (numbered) {
     const number = document.createElement("div");
     number.className = "episodenumber mono";
-    number.textContent = code;
+    number.textContent = numbered;
     meta.append(number);
   }
   const title = document.createElement("div");

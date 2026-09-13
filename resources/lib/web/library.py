@@ -40,13 +40,26 @@ _ADDON_ID = "script.tinyppi"
 # What the card draws, and nothing beyond it: a poster, a title, a year, how
 # long it runs, and whether it has been seen or left half-watched.  The plot
 # and the cast belong to a screen the dashboard does not have.
-_PROPERTIES = ("title", "year", "art", "runtime", "playcount", "resume")
+_PROPERTIES = ("title", "year", "art", "runtime", "playcount", "resume",
+               "ratings")
 
 # Which piece of art stands for a film, best first.  A library entry usually
 # carries a poster; ``thumb`` is what a film scraped from a folder of files
 # tends to have instead.
 _POSTER_KEYS = ("poster", "thumb")
 _FANART_KEYS = ("fanart",)
+
+# Which rating a tile wears, best first.  A library holds one per scraper that
+# ever wrote to it -- Kodi files them under the scraper's own name -- and the
+# two that matter are the two people quote at each other.  IMDb first because
+# it is the one somebody means when they say a film is an eight.
+#
+# ``tmdb`` beside ``themoviedb`` is not the same scraper twice: the name
+# depends on which version of the scraper wrote the entry, and a library that
+# has been carried across a few Kodi releases holds both.
+_RATING_SOURCES = (("imdb", "imdb"),
+                   ("themoviedb", "tmdb"),
+                   ("tmdb", "tmdb"))
 
 # How long a list is held before it is read again.  The library changing is a
 # notification rather than something to poll for (see ``invalidate``), so this
@@ -190,11 +203,13 @@ def _read() -> dict:
         resume = _resume(row.get("resume"))
         if resume:
             film["resume"] = resume
+        _rate(film, row.get("ratings"))
         films.append(film)
 
         signature = zlib.crc32(
             f"{movie_id}\x1f{title}\x1f{film['poster']}\x1f"
-            f"{film.get('resume', 0)}\x1f{film.get('watched', False)}"
+            f"{film.get('resume', 0)}\x1f{film.get('watched', False)}\x1f"
+            f"{film.get('duration', 0)}\x1f{film.get('rating', 0)}"
             .encode("utf-8", "replace"), signature)
 
     _log(f"{len(films)} films read from the video database", xbmc.LOGINFO)
@@ -208,6 +223,37 @@ def _picture(pictures: dict, keys: tuple[str, ...]) -> str:
         if isinstance(path, str) and path.strip():
             return path.strip()
     return ""
+
+
+def _rate(entry: dict, ratings) -> None:
+    """Hang the best rating a library holds on a tile, if it holds one.
+
+    Two fields rather than one: the number is what the badge draws, and where
+    it came from is what the badge says it is.  A number alone in the corner of
+    a poster is a number somebody has to guess the provenance of, and the two
+    houses do not agree closely enough for that to be a safe guess.
+
+    Nothing is written at all where there is no rating worth drawing, so a
+    library that was never scraped -- a folder of files -- carries no badges
+    rather than a wall of noughts.
+    """
+    if not isinstance(ratings, dict):
+        return
+    for source, name in _RATING_SOURCES:
+        held = ratings.get(source)
+        if not isinstance(held, dict):
+            continue
+        try:
+            value = float(held.get("rating") or 0)
+        except (TypeError, ValueError):
+            continue
+        # Out-of-range answers are a scraper having written something odd, not
+        # a film nobody liked: a rating is out of ten.
+        if not 0 < value <= 10:
+            continue
+        entry["rating"] = round(value, 1)
+        entry["rating_from"] = name
+        return
 
 
 def _resume(resume) -> int:
@@ -287,7 +333,8 @@ def _resume_point(movie_id: int) -> int:
 # What a show's tile draws: a poster, a name, a year, and how much of it is
 # still unwatched -- which is the one number that decides whether a shelf of
 # shows is worth opening tonight.
-_SHOW_PROPERTIES = ("title", "year", "art", "episode", "watchedepisodes")
+_SHOW_PROPERTIES = ("title", "year", "art", "episode", "watchedepisodes",
+                    "ratings")
 
 # And what an episode's row draws.  ``firstaired`` is not among them: a row
 # that already says which season and which number it is has said where in the
@@ -441,11 +488,13 @@ def _read_shows() -> dict:
                 show["unseen"] = max(0, total - seen)
                 if show["unseen"] == 0:
                     show["watched"] = True
+        _rate(show, row.get("ratings"))
         series.append(show)
 
         signature = zlib.crc32(
             f"{show_id}\x1f{title}\x1f{show['poster']}\x1f"
-            f"{show.get('unseen', -1)}\x1f{show.get('episodes', 0)}"
+            f"{show.get('unseen', -1)}\x1f{show.get('episodes', 0)}\x1f"
+            f"{show.get('rating', 0)}"
             .encode("utf-8", "replace"), signature)
 
     _log(f"{len(series)} series read from the video database", xbmc.LOGINFO)
@@ -509,7 +558,8 @@ def _read_episodes(show_id: int, title: str) -> dict:
 
         signature = zlib.crc32(
             f"{episode_id}\x1f{entry['title']}\x1f{entry['thumb']}\x1f"
-            f"{entry.get('resume', 0)}\x1f{entry.get('watched', False)}"
+            f"{entry.get('resume', 0)}\x1f{entry.get('watched', False)}\x1f"
+            f"{entry.get('duration', 0)}"
             .encode("utf-8", "replace"), signature)
 
     _log(f"{len(listing)} episodes read for series {show_id}")

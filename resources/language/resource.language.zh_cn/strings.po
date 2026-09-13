@@ -1770,3 +1770,15 @@ msgstr "在没有播放内容时，于仪表板上提供视频媒体库中的剧
 msgctxt "#32551"
 msgid "Clear the search"
 msgstr "清除搜索"
+
+msgctxt "#32552"
+msgid "%s h %s min"
+msgstr "%s 小时 %s 分钟"
+
+msgctxt "#32553"
+msgid "%s min"
+msgstr "%s 分钟"
+
+msgctxt "#32554"
+msgid "%s h"
+msgstr "%s 小时"

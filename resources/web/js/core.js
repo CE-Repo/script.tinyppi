@@ -55,6 +55,7 @@ window.TinyPPI = (function () {
     films: "Films", films_empty: "No films in the video library",
     films_search: "Search films", films_starting: "Starting…",
     search_clear: "Clear the search",
+    runtime_hm: "%s h %s min", runtime_m: "%s min", runtime_h: "%s h",
     films_failed: "Playback could not be started", films_resume: "Resume",
     films_watched: "Watched",
     series: "Series", series_empty: "No series in the video library",

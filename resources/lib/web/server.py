@@ -221,6 +221,11 @@ _UI_STRINGS = {
     "series_failed":    32548,
     # The cross inside either search box.
     "search_clear":     32551,
+    # How long something runs: the two halves of it, and the minutes alone for
+    # anything short of an hour.
+    "runtime_hm":       32552,
+    "runtime_m":        32553,
+    "runtime_h":        32554,
 }
 
 
@@ -346,6 +351,7 @@ def _static_routes() -> dict[str, tuple[str, str]]:
         "/icons/volume-muted.svg": (os.path.join(web, "icons", "volume-muted.svg"), "image/svg+xml"),
         "/icons/yes.svg":         (os.path.join(web, "icons", "yes.svg"), "image/svg+xml"),
         "/icons/check.svg":       (os.path.join(web, "icons", "check.svg"), "image/svg+xml"),
+        "/icons/star.svg":        (os.path.join(web, "icons", "star.svg"), "image/svg+xml"),
         "/icons/no.svg":          (os.path.join(web, "icons", "no.svg"), "image/svg+xml"),
         "/icons/theme-dark.svg":  (os.path.join(web, "icons", "theme-dark.svg"), "image/svg+xml"),
         "/icons/theme-adaptive.svg": (os.path.join(web, "icons", "theme-adaptive.svg"), "image/svg+xml"),

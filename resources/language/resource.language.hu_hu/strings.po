@@ -1770,3 +1770,15 @@ msgstr "A vezérlőpulton felkínálja a videótár sorozatait, amíg semmi nem 
 msgctxt "#32551"
 msgid "Clear the search"
 msgstr "Keresés törlése"
+
+msgctxt "#32552"
+msgid "%s h %s min"
+msgstr "%s ó %s p"
+
+msgctxt "#32553"
+msgid "%s min"
+msgstr "%s p"
+
+msgctxt "#32554"
+msgid "%s h"
+msgstr "%s ó"

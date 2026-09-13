@@ -430,6 +430,55 @@
   background: var(--accent);
 }
 
+/* The two things a poster says in a corner: what the houses made of it, and
+   how many episodes of it are still waiting.
+
+   One pill, worn in either corner, because they are the same kind of remark
+   about the same picture -- a shelf where one of them was a coloured disc and
+   the other a dark tablet read as two unrelated marks that happened to land on
+   the same posters.  What tells them apart is the star, which is the one of
+   the two that is a rating.
+
+   Dark with white on it rather than themed: what they sit on is a photograph,
+   not the page, so they have to read on a poster that is black at that corner
+   and on one that is white there.  That is the same argument the tick's shadow
+   makes, and these wear one too. */
+.filmrating,
+.seriesnew {
+  position: absolute;
+  top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .72);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .5);
+}
+
+/* The rating goes left, because the other corner is taken by whichever of the
+   tick and the count the picture is wearing. */
+.filmrating { left: 6px; }
+.seriesnew  { right: 6px; }
+
+/* The star, which is what says the number beside it is a rating and not a
+   count.  Amber rather than white: it is the colour a rating star is
+   everywhere somebody has ever seen one, and it carries that meaning before
+   the number has been read. */
+.filmrating::before {
+  content: "";
+  flex: none;
+  width: 12px;
+  height: 12px;
+  background: #f4c04f;
+  -webkit-mask: url('/icons/star.svg') no-repeat center / contain;
+  mask: url('/icons/star.svg') no-repeat center / contain;
+}
+
 /* A film already seen wears a mark in the corner of its poster.
 
    A mark rather than a dimmed poster, which is what this was: dimming says
@@ -501,28 +550,9 @@
    shelf.  What is new here is everything the second floor needs -- the way
    back out, the name of the show that is open, and its episodes. */
 
-/* How many episodes are still waiting, in the corner a watched film wears its
-   tick in.  A pill rather than a disc: two digits have to fit, and a circle
-   stretched around them is an oval nobody meant to draw. */
-.seriesnew {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  box-sizing: border-box;
-  border-radius: 11px;
-  background: var(--accent);
-  color: var(--bg);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 22px;
-  text-align: center;
-  /* Posters are photographs, and a light pill on a light one has nothing to
-     stand on; the shadow is what gives it an edge on every picture. */
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .55);
-}
+/* How many episodes are still waiting wears the rating's own pill, in the
+   corner a watched film wears its tick in -- see .filmrating above, where both
+   are drawn. */
 
 /* The way back to the wall.  Quiet, because it is furniture rather than an
    offer: what the card is for is the list under it. */

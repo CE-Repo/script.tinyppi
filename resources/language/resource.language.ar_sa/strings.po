@@ -1771,3 +1771,15 @@ msgstr "يعرض مسلسلات مكتبة الفيديو في لوحة المع
 msgctxt "#32551"
 msgid "Clear the search"
 msgstr "مسح البحث"
+
+msgctxt "#32552"
+msgid "%s h %s min"
+msgstr "%s س %s د"
+
+msgctxt "#32553"
+msgid "%s min"
+msgstr "%s د"
+
+msgctxt "#32554"
+msgid "%s h"
+msgstr "%s س"

@@ -423,7 +423,8 @@ looked for — and it is gone for as long as something plays.
 
 A film the box left half-watched carries a bar along the bottom of its poster
 and is **resumed** where it was, the same as pressing it in Kodi's own window;
-one already seen wears a tick in the corner of the picture. The card carries a
+one already seen wears a tick in the corner of the picture. What **IMDb** made of it — or TMDb where IMDb has nothing to say — sits in the opposite corner of the poster, and is left off entirely where neither house has an opinion. Under the
+title are the year and how long the film runs. The card carries a
 search box, which narrows the wall as it is typed in; the cross inside it empties
 it again and puts the whole shelf back. The card folds away under its own
 heading like every other panel on the page, and how many films there are stays
@@ -453,15 +454,17 @@ a show you have scrolled.
 
 The seasons arrive folded, all of them: a series that has run for nine years is
 several hundred rows, and a list that opened on all of them would open in the
-middle of season one. Folded, a whole show is a dozen lines — which season, and
-how many episodes are in it — and it costs nothing to draw, because a still
-inside a folded season is never fetched.
+middle of season one. Folded, a whole show is a dozen lines — which season, how
+many episodes are in it and how long they run altogether — and it costs
+nothing to draw, because a still inside a folded season is never fetched.
 
 Each poster carries the number of episodes still unwatched in the corner a
 watched film wears its tick in — the one number a shelf of series is scanned
-for — and a show seen right through wears the tick instead. An episode
-half-watched carries the same bar along the bottom of its still and is resumed
-where it was.
+for — and a show seen right through wears the tick instead. What **IMDb** made of it — or TMDb where IMDb has nothing to say — sits in the opposite corner of the poster, and is left off entirely where neither house has an opinion.
+
+An episode half-watched carries the same bar along the bottom of its still and
+is resumed where it was, and each row says how long that episode runs beside
+the number it is.
 
 The episodes of a show are read when that show is opened and not before: a
 house with ninety series in it would otherwise be sent every episode of all of
