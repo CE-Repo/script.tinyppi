@@ -1727,3 +1727,47 @@ msgstr "يعرض أفلام مكتبة الفيديو في لوحة المعلو
 msgctxt "#32540"
 msgid "Watched"
 msgstr "تمت مشاهدته"
+
+msgctxt "#32541"
+msgid "Series"
+msgstr "مسلسلات"
+
+msgctxt "#32542"
+msgid "No series in the video library"
+msgstr "لا توجد مسلسلات في مكتبة الفيديو"
+
+msgctxt "#32543"
+msgid "Search series"
+msgstr "البحث في المسلسلات"
+
+msgctxt "#32544"
+msgid "All series"
+msgstr "كل المسلسلات"
+
+msgctxt "#32545"
+msgid "Unwatched episodes"
+msgstr "حلقات لم تُشاهد"
+
+msgctxt "#32546"
+msgid "Season %s"
+msgstr "الموسم %s"
+
+msgctxt "#32547"
+msgid "Specials"
+msgstr "حلقات خاصة"
+
+msgctxt "#32548"
+msgid "Episodes could not be loaded"
+msgstr "تعذّر تحميل الحلقات"
+
+msgctxt "#32549"
+msgid "Show the series library"
+msgstr "إظهار مكتبة المسلسلات"
+
+msgctxt "#32550"
+msgid "Offers the series in the video library on the dashboard while nothing is playing. A press opens one and starts an episode on the box."
+msgstr "يعرض مسلسلات مكتبة الفيديو في لوحة المعلومات عندما لا يكون هناك تشغيل. ضغطة واحدة تفتح أحدها وتبدأ تشغيل حلقة على الجهاز."
+
+msgctxt "#32551"
+msgid "Clear the search"
+msgstr "مسح البحث"

@@ -1726,3 +1726,47 @@ msgstr "A vezérlőpulton felkínálja a videótár filmjeit, amíg semmi nem me
 msgctxt "#32540"
 msgid "Watched"
 msgstr "Megtekintve"
+
+msgctxt "#32541"
+msgid "Series"
+msgstr "Sorozatok"
+
+msgctxt "#32542"
+msgid "No series in the video library"
+msgstr "Nincs sorozat a videótárban"
+
+msgctxt "#32543"
+msgid "Search series"
+msgstr "Sorozatok keresése"
+
+msgctxt "#32544"
+msgid "All series"
+msgstr "Összes sorozat"
+
+msgctxt "#32545"
+msgid "Unwatched episodes"
+msgstr "Meg nem nézett epizódok"
+
+msgctxt "#32546"
+msgid "Season %s"
+msgstr "%s. évad"
+
+msgctxt "#32547"
+msgid "Specials"
+msgstr "Különkiadások"
+
+msgctxt "#32548"
+msgid "Episodes could not be loaded"
+msgstr "Az epizódokat nem sikerült betölteni"
+
+msgctxt "#32549"
+msgid "Show the series library"
+msgstr "Sorozattár megjelenítése"
+
+msgctxt "#32550"
+msgid "Offers the series in the video library on the dashboard while nothing is playing. A press opens one and starts an episode on the box."
+msgstr "A vezérlőpulton felkínálja a videótár sorozatait, amíg semmi nem megy. Egy koppintás megnyit egyet, és elindít egy epizódot a boxon."
+
+msgctxt "#32551"
+msgid "Clear the search"
+msgstr "Keresés törlése"

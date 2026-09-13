@@ -6460,6 +6460,14 @@
                     </dependencies>
                     <control type="toggle" />
                 </setting>
+                <setting id="web_series" type="boolean" label="32549" help="32550">
+                    <level>0</level>
+                    <default>true</default>
+                    <dependencies>
+                        <dependency type="enable" setting="web_enabled">true</dependency>
+                    </dependencies>
+                    <control type="toggle" />
+                </setting>
                 <setting id="web_auth_read" type="boolean" label="32440" help="32441">
                     <level>0</level>
                     <default>false</default>

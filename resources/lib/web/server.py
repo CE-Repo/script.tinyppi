@@ -75,7 +75,10 @@ _MAX_BODY = 4096
 
 # The artwork kinds the page may ask for, and how big one may be before it is
 # treated as something other than a poster.
-_ART_KINDS = ("poster", "fanart")
+# ``thumb`` is an episode's own still, which no playing title has: the
+# poster of what is on is the show's, and the still belongs to the row in
+# the series card's episode list (see web/library.py).
+_ART_KINDS = ("poster", "fanart", "thumb")
 _MAX_ART   = 8 * 1024 * 1024
 
 # What a browser may keep, and for how long.
@@ -206,6 +209,18 @@ _UI_STRINGS = {
     "films_failed":     32536,
     "films_resume":     32537,
     "films_watched":    32540,
+    # And the series library beside it: the same shelf with one floor more,
+    # so the same strings again plus the few an episode list needs.
+    "series":           32541,
+    "series_empty":     32542,
+    "series_search":    32543,
+    "series_back":      32544,
+    "series_unseen":    32545,
+    "series_season":    32546,
+    "series_specials":  32547,
+    "series_failed":    32548,
+    # The cross inside either search box.
+    "search_clear":     32551,
 }
 
 
@@ -729,7 +744,7 @@ class _Handler(BaseHTTPRequestHandler):
             self._serve_static(route)
             return
         if route in ("/api/state", "/api/stream", "/api/history", "/api/art",
-                     "/api/library"):
+                     "/api/library", "/api/series", "/api/episodes"):
             if self.server.auth_read and not self._authorised():
                 self._send_error_json(HTTPStatus.UNAUTHORIZED, "token required")
                 return
@@ -737,6 +752,10 @@ class _Handler(BaseHTTPRequestHandler):
                 self._send_json(self._state_payload())
             elif route == "/api/library":
                 self._serve_library()
+            elif route == "/api/series":
+                self._serve_series()
+            elif route == "/api/episodes":
+                self._serve_episodes()
             elif route == "/api/history":
                 # The chart's whole past and the event list, asked for on
                 # connect and again whenever the snapshot's event count moves.
@@ -759,6 +778,10 @@ class _Handler(BaseHTTPRequestHandler):
                 # halves have to be there: reading the library is this
                 # setting, and starting one of them is the control setting.
                 "library":     self.server.offer_library and self.server.allow_control,
+                # And whether it has a series library, which is its own
+                # setting: the two shelves are offered separately, so a box can
+                # have the one and not the other.
+                "series":      self.server.offer_series and self.server.allow_control,
                 "interval_ms": int(_PRODUCE_INTERVAL * 1000),
                 "strings":     ui_strings(addon),
             })
@@ -842,14 +865,7 @@ class _Handler(BaseHTTPRequestHandler):
         return payload
 
     def _serve_library(self) -> None:
-        """Send the films the video database holds.
-
-        Answered with a validator rather than the whole list every time: the
-        tag changes only when the library does, so a phone that opens the page
-        twice in an evening is answered the second time with an empty 304 --
-        which matters here more than anywhere else on this server, because this
-        is the one answer whose size grows with somebody's film collection.
-        """
+        """Send the films the video database holds."""
         if not (self.server.offer_library and self.server.allow_control):
             # Off in the settings, or a box that will not be told what to play:
             # either way there is no card, and saying so is better than
@@ -863,14 +879,28 @@ class _Handler(BaseHTTPRequestHandler):
             self._send_error_json(HTTPStatus.SERVICE_UNAVAILABLE,
                                   "library unavailable")
             return
-        etag = f'"{payload["tag"]}"'
-        if self._holds(etag):
-            self._send_unchanged(etag, _STATIC_CACHE)
-            return
-        self._send_json(payload, etag=etag, cache=_STATIC_CACHE)
+        self._send_listing(payload)
 
     def _start_film(self, payload: dict) -> None:
-        """Put one of the library's films on the television."""
+        """Put a film, or one episode of a series, on the television.
+
+        One route for both because it is one act: something in the library is
+        being started.  Which of the two it is, is which id the body carries --
+        a series itself is never named here, because a series is not a thing
+        that can be played.
+        """
+        episode_id = payload.get("episodeid")
+        if episode_id is not None:
+            if not self.server.offer_series:
+                self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
+                return
+            if not library.play_episode(episode_id):
+                self._send_error_json(HTTPStatus.BAD_REQUEST, "playback failed")
+                return
+            _log(f"episode {episode_id} started from {self.client_address[0]}")
+            self._send_json({"ok": True, "episodeid": episode_id})
+            return
+
         if not self.server.offer_library:
             self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
             return
@@ -884,15 +914,74 @@ class _Handler(BaseHTTPRequestHandler):
         # the same way it learns about one started from the remote control.
         self._send_json({"ok": True, "movieid": movie_id})
 
+    def _serve_series(self) -> None:
+        """Send the series the video database holds."""
+        if not (self.server.offer_series and self.server.allow_control):
+            self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
+            return
+        try:
+            payload = library.shows()
+        except Exception as exc:
+            _log(f"reading the video database failed: {exc}", xbmc.LOGWARNING)
+            self._send_error_json(HTTPStatus.SERVICE_UNAVAILABLE,
+                                  "library unavailable")
+            return
+        self._send_listing(payload)
+
+    def _serve_episodes(self) -> None:
+        """Send the episodes of one series.
+
+        Asked for only when somebody opens that series, which is why it is a
+        route of its own rather than part of the shelf: a house with ninety
+        series in it would otherwise be sending every episode of all of them to
+        draw a wall of ninety posters.
+        """
+        if not (self.server.offer_series and self.server.allow_control):
+            self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
+            return
+        show = (parse_qs(urlparse(self.path).query).get("tvshowid") or [""])[0]
+        try:
+            payload = library.episodes(show)
+        except Exception as exc:
+            _log(f"reading the video database failed: {exc}", xbmc.LOGWARNING)
+            self._send_error_json(HTTPStatus.SERVICE_UNAVAILABLE,
+                                  "library unavailable")
+            return
+        if payload is None:
+            # A series that is not on the shelf the page was drawn from: the
+            # library moved under it, and the page reads the shelf again.
+            self._send_error_json(HTTPStatus.NOT_FOUND, "no such series")
+            return
+        self._send_listing(payload)
+
+    def _send_listing(self, payload: dict) -> None:
+        """Send one of the library's lists, under its own tag.
+
+        A validator rather than the whole list every time: the tag changes only
+        when the library does, so a phone that opens the page twice in an
+        evening is answered the second time with an empty 304.  Which matters
+        here more than anywhere else on this server, because these are the
+        answers whose size grows with somebody's collection.
+        """
+        etag = f'"{payload["tag"]}"'
+        if self._holds(etag):
+            self._send_unchanged(etag, _STATIC_CACHE)
+            return
+        self._send_json(payload, etag=etag, cache=_STATIC_CACHE)
+
     def _serve_art(self) -> None:
         """Send the poster or the fanart of what is playing, or of one of the
-        films the library card offers."""
+        films, series or episodes the library cards offer."""
         query = parse_qs(urlparse(self.path).query)
         kind = (query.get("kind") or [""])[0]
         if kind not in _ART_KINDS:
             self._send_error_json(HTTPStatus.NOT_FOUND, "no such artwork")
             return
-        film = (query.get("movieid") or [""])[0]
+        # Which of the three shelves the picture is off, if it is off one at
+        # all: a request naming none of them is asking for what is playing.
+        film    = (query.get("movieid") or [""])[0]
+        show    = (query.get("tvshowid") or [""])[0]
+        episode = (query.get("episodeid") or [""])[0]
         # The page hangs the picture's own tag on the address, so an answer
         # can be kept for as long as the browser likes: the next film asks a
         # different address rather than the same one twice.
@@ -903,8 +992,14 @@ class _Handler(BaseHTTPRequestHandler):
             self._send_unchanged(etag, cache)
             return
 
-        found = (self.server.library_artwork(film, kind) if film
-                 else self.server.artwork(kind))
+        if film:
+            found = self.server.library_artwork(film, kind)
+        elif show:
+            found = self.server.series_artwork(show, kind)
+        elif episode:
+            found = self.server.episode_artwork(episode, kind)
+        else:
+            found = self.server.artwork(kind)
         if found is None:
             # Not every film has a poster, and a library-less file has none at
             # all; the page hides the frame rather than showing a broken one.
@@ -1030,6 +1125,7 @@ class _Server(ThreadingHTTPServer):
         self.auth_read     = False
         self.allow_control = True
         self.offer_library = True
+        self.offer_series  = True
         self._streams      = 0
         self._stream_lock  = threading.Lock()
         # Every thread this server has handed a connection to.  Kodi waits on
@@ -1083,6 +1179,7 @@ class _Server(ThreadingHTTPServer):
         self.auth_read     = addon.getSetting("web_auth_read") == "true"
         self.allow_control = addon.getSetting("web_allow_control") == "true"
         self.offer_library = addon.getSetting("web_library") == "true"
+        self.offer_series  = addon.getSetting("web_series") == "true"
 
     def artwork(self, kind: str) -> tuple[bytes, str] | None:
         """The artwork bytes and type for ``kind``, or None when there is none.
@@ -1131,9 +1228,29 @@ class _Server(ThreadingHTTPServer):
             path = library.art_path(int(movie_id), kind)
         except (TypeError, ValueError):
             return None
+        return self._shelf_art(path)
+
+    def series_artwork(self, show_id: str, kind: str) -> tuple[bytes, str] | None:
+        """The poster of one of the series on the shelf, or None."""
+        if not (self.offer_series and self.allow_control):
+            return None
+        return self._shelf_art(library.show_art_path(show_id, kind))
+
+    def episode_artwork(self, episode_id: str, kind: str) -> tuple[bytes, str] | None:
+        """The still of one episode, or None.
+
+        Only episodes of a series somebody has opened have a still to hand out:
+        the rest have never been read, and an address for one of them cannot
+        have reached a browser (see web/library.py).
+        """
+        if not (self.offer_series and self.allow_control):
+            return None
+        return self._shelf_art(library.episode_art_path(episode_id, kind))
+
+    def _shelf_art(self, path: str) -> tuple[bytes, str] | None:
+        """One picture off one of the library shelves, read and not kept."""
         if not path:
             return None
-
         source = _unwrap_image_url(path)
         data = _read_art(source)
         if data is None and source != path:

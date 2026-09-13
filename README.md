@@ -289,6 +289,9 @@ a phone in your hand.
 - **The film library** — with nothing playing, the page offers the films in
   Kodi's video database as a wall of posters, and a tap starts one on the box
   (see below).
+- **The series library** — the same wall again for what Kodi knows as TV
+  shows, with how many episodes are still unwatched on each poster. A tap opens
+  the show and a tap on one of its episodes starts it (see below).
 - **The active picture area** the RPU declares (L5), drawn to scale inside the
   coded frame — the letterbox as the stream describes it, changing with the
   scene on an IMAX Enhanced title. It sits on the metadata window, with the
@@ -420,10 +423,11 @@ looked for — and it is gone for as long as something plays.
 
 A film the box left half-watched carries a bar along the bottom of its poster
 and is **resumed** where it was, the same as pressing it in Kodi's own window;
-one already seen wears a tick in the corner of the picture. Above a dozen films
-the card grows a search box, which narrows the wall as it is typed in. The card
-folds away under its own heading like every other panel on the page, and how
-many films there are stays beside the heading when it is folded.
+one already seen wears a tick in the corner of the picture. The card carries a
+search box, which narrows the wall as it is typed in; the cross inside it empties
+it again and puts the whole shelf back. The card folds away under its own
+heading like every other panel on the page, and how many films there are stays
+beside the heading when it is folded.
 
 The list is read from the video database once and held until Kodi says it
 changed, so a film added mid-evening appears without anything being restarted,
@@ -436,6 +440,38 @@ Starting a film needs the access token and the same **Allow VS10 switching from
 the dashboard** setting the rest of the controls need. The card itself can be
 turned off under **Settings → Dashboard → Show the film library**, which stops
 the list being read and served at all.
+
+### Starting an episode from the browser
+
+Under the films is the same shelf again for the **series library**, with one
+floor more. A series is not something that can be put on — an episode is — so a
+tap on a poster does not start anything: the wall gives way to that show's
+episodes, in the order they were made and each season folded away under its own
+heading. A tap opens a season, a tap on one of its episodes starts it. The way
+back out sits at the top of the card, where it is one tap away however far down
+a show you have scrolled.
+
+The seasons arrive folded, all of them: a series that has run for nine years is
+several hundred rows, and a list that opened on all of them would open in the
+middle of season one. Folded, a whole show is a dozen lines — which season, and
+how many episodes are in it — and it costs nothing to draw, because a still
+inside a folded season is never fetched.
+
+Each poster carries the number of episodes still unwatched in the corner a
+watched film wears its tick in — the one number a shelf of series is scanned
+for — and a show seen right through wears the tick instead. An episode
+half-watched carries the same bar along the bottom of its still and is resumed
+where it was.
+
+The episodes of a show are read when that show is opened and not before: a
+house with ninety series in it would otherwise be sent every episode of all of
+them to draw a wall of ninety posters. What is read is then held beside the
+shelf and dropped by the same notification, so a freshly scanned episode
+appears without anything being restarted.
+
+The series card has a setting of its own — **Settings → Dashboard → Show the
+series library** — so a box can offer the films and not the series, or the
+other way round.
 
 ### Switching VS10 from the browser
 

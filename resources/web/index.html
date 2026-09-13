@@ -119,10 +119,43 @@
         <span class="filmscount mono" id="filmsCount"></span>
       </summary>
       <div class="filmsbody">
-        <input class="filmsearch" id="filmSearch" type="search" autocomplete="off"
-               spellcheck="false" aria-labelledby="filmsLabel">
+        <div class="searchbox" id="filmSearchBox">
+          <input class="filmsearch" id="filmSearch" type="search" autocomplete="off"
+                 spellcheck="false" aria-labelledby="filmsLabel">
+          <button class="searchclear hidden" id="filmSearchClear" type="button"></button>
+        </div>
         <div class="filmgrid" id="filmGrid"></div>
         <p class="filmsempty hidden" id="filmsEmpty"></p>
+      </div>
+    </details>
+
+    <!-- And the series, on a shelf of their own under the films.  The same
+         wall of posters, except that a series is not a thing that can be
+         played: a press opens the show, the wall gives way to its episodes,
+         and a press on one of those starts it (see the series library in
+         js/dashboard.js).
+
+         The way back out sits at the top of the card rather than under the
+         list: a show with forty episodes in it is forty rows of scrolling
+         away from a button underneath. -->
+    <details class="card hidden" id="seriesCard">
+      <summary class="panel-toggle">
+        <span id="seriesLabel"></span>
+        <span class="filmscount mono" id="seriesCount"></span>
+      </summary>
+      <div class="filmsbody">
+        <button class="seriesback hidden" id="seriesBack" type="button">
+          <span aria-hidden="true">&#8249;</span><span id="seriesBackText"></span>
+        </button>
+        <h3 class="seriesopen hidden" id="seriesOpen"></h3>
+        <div class="searchbox" id="seriesSearchBox">
+          <input class="filmsearch" id="seriesSearch" type="search" autocomplete="off"
+                 spellcheck="false" aria-labelledby="seriesLabel">
+          <button class="searchclear hidden" id="seriesSearchClear" type="button"></button>
+        </div>
+        <div class="filmgrid" id="seriesGrid"></div>
+        <div class="episodes hidden" id="episodeList"></div>
+        <p class="filmsempty hidden" id="seriesEmpty"></p>
       </div>
     </details>
   </div>

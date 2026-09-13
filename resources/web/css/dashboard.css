@@ -295,6 +295,56 @@
 }
 .filmsearch::placeholder { color: var(--muted); }
 .filmsearch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* The cross a browser puts in a search field of its own accord: gone, because
+   the one drawn below it is on every browser rather than on some, sits where
+   the theme puts it, and does not come and go with the focus. */
+.filmsearch::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+
+/* The field and the cross inside it.  The cross sits over the field rather
+   than beside it -- a button in the row would have taken width off a box that
+   is already the width of a phone -- and the field is given room on its right
+   so a long title does not run under it. */
+.searchbox { position: relative; display: grid; }
+.searchbox .filmsearch { padding-right: 40px; }
+
+/* Drawn rather than lettered: a multiplication sign is a different shape and
+   weight in every font a box might have, and this one has to read as a cross
+   at fourteen pixels on all of them.
+
+   Shown only while there is something to clear.  A cross over an empty field
+   is a control that does nothing, and a phone has no room for one. */
+.searchclear {
+  appearance: none;
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.searchclear::before,
+.searchclear::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 13px;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+}
+.searchclear::before { transform: translate(-50%, -50%) rotate(45deg); }
+.searchclear::after  { transform: translate(-50%, -50%) rotate(-45deg); }
+@media (hover: hover) {
+  .searchclear:hover { color: var(--text); }
+}
+.searchclear:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .filmgrid {
   display: grid;
@@ -426,3 +476,233 @@
   font-size: 13.5px;
   text-align: center;
 }
+
+/* --- The series library ------------------------------------------------- */
+
+/* The shelf under the films, and then the one show somebody opened.
+
+   The wall itself is the film wall: the same grid, the same tiles, the same
+   posters at the same ratio, because a shelf of series lettered differently
+   from the shelf above it reads as a different page rather than a second
+   shelf.  What is new here is everything the second floor needs -- the way
+   back out, the name of the show that is open, and its episodes. */
+
+/* How many episodes are still waiting, in the corner a watched film wears its
+   tick in.  A pill rather than a disc: two digits have to fit, and a circle
+   stretched around them is an oval nobody meant to draw. */
+.seriesnew {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border-radius: 11px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 22px;
+  text-align: center;
+  /* Posters are photographs, and a light pill on a light one has nothing to
+     stand on; the shadow is what gives it an edge on every picture. */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .55);
+}
+
+/* The way back to the wall.  Quiet, because it is furniture rather than an
+   offer: what the card is for is the list under it. */
+.seriesback {
+  appearance: none;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--tap);
+  padding: 0 12px 0 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .seriesback:hover { color: var(--text); border-color: var(--accent); }
+}
+.seriesback:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* The name of the show that is open.  It is already in the heading of the
+   card as a count and nowhere as a name, and a list of episodes with no title
+   over it is a list of episodes of nothing. */
+.seriesopen {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* The episodes themselves: rows rather than a wall.  An episode is chosen by
+   its number and its name -- the still is a reminder of which one it was, not
+   what it is recognised by -- and a row is where a number and a name fit. */
+.episodes {
+  display: grid;
+  gap: 8px;
+}
+
+.episode {
+  appearance: none;
+  display: grid;
+  /* The still, and then everything else.  A fixed column rather than a share
+     of the width, so every still down the list is the same size and the names
+     beside them start on one line. */
+  grid-template-columns: 116px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .episode:hover { background: var(--panel-2); border-color: var(--line-soft); }
+}
+.episode:active { transform: scale(.995); }
+.episode:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* A frame at the shape a television picture is, held even for an episode with
+   no still at all: a list whose rows are each as tall as whatever art turned
+   up is a list that cannot be scanned. */
+.episodestill {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-soft);
+  background: var(--panel-2);
+  overflow: hidden;
+}
+.episodestill img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* The tick on a still is the tick on a poster, and a still is a third of the
+   size; at 22px it would be the picture. */
+.episodestill .filmseen {
+  top: 4px;
+  right: 4px;
+  width: 17px;
+  height: 17px;
+}
+
+.episodemeta {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.episodenumber {
+  color: var(--dim);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+}
+.episodetitle {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  /* Two lines and then the ellipsis: an episode with a sentence for a name
+     should not make its row twice the height of the ones above it. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Each season folds away under its own heading, and arrives folded.
+
+   A show that has run for nine years is several hundred rows, and the list
+   that opens on all of them opens in the middle of season one.  Folded, a
+   whole show is a dozen lines: which season, and how many episodes are in it.
+
+   The heading wears the card headings' own furniture -- the same grey, the
+   same chevron on the right -- at the size of a line inside a card rather than
+   of a card's own name.  A rule above rather than a band behind: the list is a
+   column of pictures, and a filled heading between them would be a third thing
+   competing for the eye. */
+.seasonfold { border-top: 1px solid var(--line-soft); }
+.seasonfold:first-child { border-top: 0; }
+
+.season {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--tap);
+  color: var(--dim);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: color .15s;
+}
+.season::-webkit-details-marker { display: none; }
+/* How many episodes are in it, which folded away is the whole of what the
+   season still has to say.  All of the free space with the number at the
+   right-hand end of it, so it lands beside the chevron rather than beside the
+   name -- the same bargain the film count strikes in its card heading. */
+.seasoncount {
+  flex: 1;
+  text-align: right;
+  color: var(--dim);
+  font-size: 11.5px;
+  letter-spacing: .06em;
+  text-transform: none;
+}
+.season::after {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform .15s ease;
+}
+.seasonfold[open] > .season::after {
+  transform: rotate(225deg) translate(-2px, -2px);
+}
+@media (hover: hover) {
+  .season:hover, .season:hover .seasoncount { color: var(--text); }
+}
+.season:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* The rows of one season, under its heading. */
+.seasonepisodes {
+  display: grid;
+  gap: 8px;
+  padding-bottom: 10px;
+}
+/* A shut fold is its heading and nothing else.  Saying so outright, the same
+   way a folded card has to say it (see details.card in css/base.css): the
+   browser hides a shut fold's contents with a display of its own, and the grid
+   above takes that back -- an author's rule outranks the one the browser
+   brought, so without this every season stands open however shut it says it
+   is. */
+.seasonfold:not([open]) > .seasonepisodes { display: none; }
+
+/* The episode a press is waiting on, until the snapshot says it is playing. */
+.episode.busy .episodestill {
+  border-color: var(--accent);
+  opacity: .6;
+}
+.episode:disabled { cursor: progress; }

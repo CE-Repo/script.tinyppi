@@ -1726,3 +1726,47 @@ msgstr "Zeigt im Dashboard die Filme der Videodatenbank an, solange nichts wiede
 msgctxt "#32540"
 msgid "Watched"
 msgstr "Gesehen"
+
+msgctxt "#32541"
+msgid "Series"
+msgstr "Serien"
+
+msgctxt "#32542"
+msgid "No series in the video library"
+msgstr "Keine Serien in der Videodatenbank"
+
+msgctxt "#32543"
+msgid "Search series"
+msgstr "Serien suchen"
+
+msgctxt "#32544"
+msgid "All series"
+msgstr "Alle Serien"
+
+msgctxt "#32545"
+msgid "Unwatched episodes"
+msgstr "Ungesehene Folgen"
+
+msgctxt "#32546"
+msgid "Season %s"
+msgstr "Staffel %s"
+
+msgctxt "#32547"
+msgid "Specials"
+msgstr "Specials"
+
+msgctxt "#32548"
+msgid "Episodes could not be loaded"
+msgstr "Folgen konnten nicht geladen werden"
+
+msgctxt "#32549"
+msgid "Show the series library"
+msgstr "Serienbibliothek anzeigen"
+
+msgctxt "#32550"
+msgid "Offers the series in the video library on the dashboard while nothing is playing. A press opens one and starts an episode on the box."
+msgstr "Zeigt im Dashboard die Serien der Videodatenbank an, solange nichts wiedergegeben wird. Ein Druck öffnet eine davon und startet eine Folge auf der Box."
+
+msgctxt "#32551"
+msgid "Clear the search"
+msgstr "Suche leeren"

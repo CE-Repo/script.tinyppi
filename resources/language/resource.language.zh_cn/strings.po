@@ -1726,3 +1726,47 @@ msgstr "在没有播放内容时，于仪表板上提供视频媒体库中的影
 msgctxt "#32540"
 msgid "Watched"
 msgstr "已观看"
+
+msgctxt "#32541"
+msgid "Series"
+msgstr "剧集"
+
+msgctxt "#32542"
+msgid "No series in the video library"
+msgstr "视频媒体库中没有剧集"
+
+msgctxt "#32543"
+msgid "Search series"
+msgstr "搜索剧集"
+
+msgctxt "#32544"
+msgid "All series"
+msgstr "所有剧集"
+
+msgctxt "#32545"
+msgid "Unwatched episodes"
+msgstr "未观看的分集"
+
+msgctxt "#32546"
+msgid "Season %s"
+msgstr "第 %s 季"
+
+msgctxt "#32547"
+msgid "Specials"
+msgstr "特别篇"
+
+msgctxt "#32548"
+msgid "Episodes could not be loaded"
+msgstr "无法加载分集"
+
+msgctxt "#32549"
+msgid "Show the series library"
+msgstr "显示剧集库"
+
+msgctxt "#32550"
+msgid "Offers the series in the video library on the dashboard while nothing is playing. A press opens one and starts an episode on the box."
+msgstr "在没有播放内容时，于仪表板上提供视频媒体库中的剧集。按一下即可打开一部剧集并在设备上开始播放某一集。"
+
+msgctxt "#32551"
+msgid "Clear the search"
+msgstr "清除搜索"

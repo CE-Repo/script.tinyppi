@@ -1726,3 +1726,47 @@ msgstr ""
 msgctxt "#32540"
 msgid "Watched"
 msgstr ""
+
+msgctxt "#32541"
+msgid "Series"
+msgstr ""
+
+msgctxt "#32542"
+msgid "No series in the video library"
+msgstr ""
+
+msgctxt "#32543"
+msgid "Search series"
+msgstr ""
+
+msgctxt "#32544"
+msgid "All series"
+msgstr ""
+
+msgctxt "#32545"
+msgid "Unwatched episodes"
+msgstr ""
+
+msgctxt "#32546"
+msgid "Season %s"
+msgstr ""
+
+msgctxt "#32547"
+msgid "Specials"
+msgstr ""
+
+msgctxt "#32548"
+msgid "Episodes could not be loaded"
+msgstr ""
+
+msgctxt "#32549"
+msgid "Show the series library"
+msgstr ""
+
+msgctxt "#32550"
+msgid "Offers the series in the video library on the dashboard while nothing is playing. A press opens one and starts an episode on the box."
+msgstr ""
+
+msgctxt "#32551"
+msgid "Clear the search"
+msgstr ""
