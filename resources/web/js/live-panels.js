@@ -158,6 +158,7 @@
   let finishLabel = "";  /* "Ends at", once Kodi's table has been asked      */
   let lastFinish = "";   /* the clock that label belongs in front of         */
   let idleFetched = false;  /* the ended title's events, asked for once      */
+  let idleReset = false;    /* the panels have been put away once already    */
   const controlStateKey = pageState + ".controls";
 
   function setControlsOpen(open, remember) {
@@ -1083,15 +1084,22 @@
      last frame of a film that has ended standing there. */
   function update(snapshot) {
     if (!snapshot || !snapshot.playing) {
-      const cards = [el.nowCard, el.tiles, el.chartCard];
-      for (const node of cards) node.classList.add("hidden");
-      live = [];
-      posterTag = "";
-      trackKey = "";
-      renderFinish("");
-      fpsShown = null;
-      setFpsTrend(0);
-      setControlsOpen(false, false);
+      /* Put away once, when the title ends -- not five times a second for as
+         long as the box sits there.  Every one of these writes marks the
+         document for another style pass, and what is under them on the idle
+         page is a wall of several hundred posters. */
+      if (!idleReset) {
+        idleReset = true;
+        const cards = [el.nowCard, el.tiles, el.chartCard];
+        for (const node of cards) node.classList.add("hidden");
+        live = [];
+        posterTag = "";
+        trackKey = "";
+        renderFinish("");
+        fpsShown = null;
+        setFpsTrend(0);
+        setControlsOpen(false, false);
+      }
       /* The title that has just ended keeps its samples and its events for a
          while (see SessionLog.end in web/snapshot.py).  While it does, the
          list stays where it was rather than emptying the moment the credits
@@ -1111,6 +1119,7 @@
       return;
     }
     idleFetched = false;
+    idleReset = false;
     el.nowCard.classList.remove("hidden");
     renderNow(snapshot);
     renderTransport(snapshot);

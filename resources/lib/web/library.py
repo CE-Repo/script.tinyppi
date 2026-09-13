@@ -229,10 +229,21 @@ def _resume(resume) -> int:
     return int(position)
 
 
+# Bumped whenever an address starts answering with a different picture than
+# it used to.  These are handed out with a week and an immutable on them, so a
+# browser that has already been given the full-size poster would go on drawing
+# it until the week was up -- the tag is the only thing that can tell it
+# otherwise (see _shelf_art in web/server.py).
+_ART_REVISION = "#2"
+
+
 def _tag(path: str) -> str:
     """A short, stable name for a picture, hung on its address so a browser
     fetches one poster once rather than once per visit."""
-    return f"{zlib.crc32(path.encode('utf-8', 'replace')):08x}" if path else ""
+    if not path:
+        return ""
+    named = (path + _ART_REVISION).encode("utf-8", "replace")
+    return f"{zlib.crc32(named):08x}"
 
 
 # --- Starting one ----------------------------------------------------------

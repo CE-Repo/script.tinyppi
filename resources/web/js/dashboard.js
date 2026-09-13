@@ -50,6 +50,7 @@ let rowNodes = new Map();  /* row id -> {element, key, value, last}     */
 let groupNodes = new Map();
 let pending = null;        /* the VS10 mode a button is waiting on      */
 let wasPlaying = null;     /* what the last snapshot said, for the library */
+let lastDrawn = "";        /* what the report card was last drawn from      */
 
 /* Only the two per-frame L1 summaries use the transient change colour. */
 const FLASH_ROWS = new Set(["metadata.32375", "metadata.32376"]);
@@ -86,7 +87,12 @@ function render(next) {
     for (const id of ["vs10Card", "metaLink"]) {
       $(id).classList.add("hidden");
     }
-    el.groups.innerHTML = "";
+    /* Asked for rather than done: the box builds a snapshot five times a
+       second whether or not anything in it moved, so this runs five times a
+       second on a page that is standing still -- and every write to the
+       document is a page laid out again, with a wall of several hundred
+       posters under it. */
+    if (el.groups.firstChild) el.groups.innerHTML = "";
     rowNodes.clear();
     groupNodes.clear();
     renderLast(next.last);
@@ -146,9 +152,21 @@ function render(next) {
 function renderLast(last) {
   if (!last || !last.title) {
     el.lastCard.classList.add("hidden");
+    lastDrawn = "";
     return;
   }
   el.lastCard.classList.remove("hidden");
+
+  /* Drawn again only when it would come out differently.  Two figures and a
+     title is nothing to build -- but it is five node replacements a second on
+     a page that is not moving, and each one costs the browser a fresh layout
+     of everything under it, which on the idle page is the film wall (see
+     content-visibility in css/dashboard.css). */
+  const drawn = last.title + "\x1f" + (last.switches || 0) +
+    "\x1f" + (last.warnings || 0);
+  if (drawn === lastDrawn) return;
+  lastDrawn = drawn;
+
   el.lastTitle.textContent = last.title;
 
   /* The two figures only the add-on could have counted: it saw every frame of

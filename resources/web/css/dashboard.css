@@ -359,6 +359,20 @@
 
 .film {
   appearance: none;
+  /* A tile the browser can see is out of view is skipped entirely -- not laid
+     out, not painted -- and stands in for itself at the size below until it
+     scrolls up.  Without this, a shelf of six hundred films is six hundred
+     tiles laid out again every time anything anywhere on the page moves, and
+     something moves five times a second because that is how often the box
+     builds a snapshot.  That is what a phone feels as a stutter while it is
+     being scrolled.
+
+     ``auto`` in front of the height means the guess is only a guess: once a
+     tile has been drawn, its own height is what the browser remembers it by,
+     so the page is as long as it really is and the scrollbar does not shift
+     under the finger. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 232px;
   display: grid;
   gap: 8px;
   padding: 0;
@@ -555,6 +569,10 @@
 
 .episode {
   appearance: none;
+  /* The same bargain as a poster tile: a season of forty rows is forty stills
+     nobody is looking at (see .film). */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 78px;
   display: grid;
   /* The still, and then everything else.  A fixed column rather than a share
      of the width, so every still down the list is the same size and the names

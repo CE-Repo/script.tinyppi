@@ -25,7 +25,7 @@ import time
 import traceback
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import parse_qs, unquote, urlparse
+from urllib.parse import parse_qs, quote, unquote, urlparse
 
 import xbmc
 import xbmcaddon
@@ -539,8 +539,58 @@ def _unwrap_image_url(path: str) -> str:
     return inner[:-1] if inner.endswith("/") else inner
 
 
+def _art_sources(path: str) -> tuple[str, ...]:
+    """Every address one shelf picture can be read from, smallest first.
+
+    A poster the library scraped is a thousand pixels wide and often two, and
+    the tile it is drawn in on a phone is a hundred and twenty.  Every one of
+    those pixels crosses the network and is then decoded, and a wall of them is
+    what a phone feels as a stutter while it is being scrolled.
+
+    Kodi already keeps smaller copies of everything it has ever drawn -- that
+    is what its texture cache is for -- so the wall is read out of that:
+
+    * ``?size=thumb`` asks the cache for its small variant of a picture, which
+      is what Kodi makes for the thumbnails in its own artwork chooser;
+    * the plain ``image://`` wrapper is the cached texture, which a poster goes
+      into capped at 1280x720 and fanart at 1920x1080;
+    * the unwrapped original is what this used to send, and is still what
+      answers on a box whose cache has just been cleared.
+
+    Each is tried in turn and the first that reads wins, so a box that does not
+    understand one of them simply falls through to the next.
+    """
+    if path.startswith("image://"):
+        # Kodi's own wrapper already: it ends in the slash its options go
+        # after, so this is the address the texture cache is asked by.
+        return (path + "?size=thumb", path, _unwrap_image_url(path))
+    # A file the library points at directly.  Wrapped here so the cache
+    # answers for it too, and the file itself kept as the way back.
+    wrapped = "image://" + quote(path, safe="") + "/"
+    return (wrapped + "?size=thumb", wrapped, path)
+
+
 def _art_type(path: str) -> str:
     return _ART_TYPES.get(os.path.splitext(path)[1].lower(), _ART_FALLBACK_TYPE)
+
+
+def _image_type(data: bytes, fallback: str) -> str:
+    """What the bytes actually are, rather than what the address suggested.
+
+    The address is no longer a promise: what comes back from the texture cache
+    is whatever Kodi chose to store the picture as, which is not always what
+    the library scraped it as -- a PNG with nothing transparent in it is kept
+    as a JPEG.  A browser handed the wrong type draws nothing at all.
+    """
+    if data[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return "image/png"
+    if data[:6] in (b"GIF87a", b"GIF89a"):
+        return "image/gif"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "image/webp"
+    return fallback
 
 
 def _read_art(path: str) -> bytes | None:
@@ -1248,16 +1298,26 @@ class _Server(ThreadingHTTPServer):
         return self._shelf_art(library.episode_art_path(episode_id, kind))
 
     def _shelf_art(self, path: str) -> tuple[bytes, str] | None:
-        """One picture off one of the library shelves, read and not kept."""
+        """One picture off one of the library shelves, read small and not kept.
+
+        Small because of what it is for: these are the tiles on the idle page,
+        drawn a hundred and twenty pixels wide, and the file behind one is the
+        poster the library scraped at full size.  Kodi's own smaller copy is
+        asked for first and the original only last (see ``_art_sources``).
+
+        Nothing is held here, unlike the playing title's own artwork: the
+        browser keeps these far better than this could, and now has a great
+        deal less of each to keep.
+        """
         if not path:
             return None
-        source = _unwrap_image_url(path)
-        data = _read_art(source)
-        if data is None and source != path:
-            data = _read_art(path)   # an address only Kodi's VFS understands
-        if data is None:
-            return None
-        return data, _art_type(source)
+        fallback = _art_type(_unwrap_image_url(path))
+        for source in _art_sources(path):
+            data = _read_art(source)
+            if data is None:
+                continue
+            return data, _image_type(data, fallback)
+        return None
 
     @property
     def streams_full(self) -> bool:
