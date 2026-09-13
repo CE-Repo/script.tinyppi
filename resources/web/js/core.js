@@ -84,6 +84,13 @@ window.TinyPPI = (function () {
     catch (_) {}
   }
 
+  /* Drop a mark a card no longer keeps, so a key that has been retired does
+     not sit in storage for the life of the browser. */
+  function forgetDisclosure(key) {
+    try { localStorage.removeItem(DISCLOSURE_KEY + key); }
+    catch (_) {}
+  }
+
   /* The accent mark a card wears for a moment after it is folded or unfolded
      (see .panel-toggle.flash in css/live-panels.css).  The heading is looked
      up here rather than held onto, because a group card is bound before its
@@ -112,8 +119,13 @@ window.TinyPPI = (function () {
     let restoring = node.open !== wanted;
     node.open = wanted;
     node.addEventListener("toggle", () => {
-      setDisclosureState(key, node.open);
+      /* The restoring toggle is not written back either.  What it would write
+         is the fallback, which is the card's default rather than anything
+         anybody asked for -- and a default written into storage on the first
+         visit is a default that can never be changed again: every device that
+         has ever opened the page would go on being handed the old one. */
       if (restoring) { restoring = false; return; }
+      setDisclosureState(key, node.open);
       flashToggle(node);
     });
     return node;
@@ -687,7 +699,7 @@ window.TinyPPI = (function () {
   return {
     T, $, boot, toast, setStatus, fmtNits, prettyHdr, renderValue, plainValue, askToken,
     copyReport, reportLine, command, getJSON, withToken,
-    disclosureState, setDisclosureState, bindDisclosure,
+    disclosureState, setDisclosureState, forgetDisclosure, bindDisclosure,
     get token() { return token; }
   };
 

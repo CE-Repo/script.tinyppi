@@ -22,6 +22,7 @@ const el = {
   metricsCard: $("tiles"), metricsGrid: $("tiles").querySelector(".tilegrid"),
   eventsCard: $("eventsCard"), metaLink: $("metaLink"), sideRail: $("sideRail"),
   copyBtn: $("copyBtn"), idleStack: $("idleStack"),
+  libraryStack: $("libraryStack"),
   lastCard: $("lastCard"), lastTitle: $("lastTitle"), lastTiles: $("lastTiles"),
   filmsCard: $("filmsCard"), filmGrid: $("filmGrid"),
   filmsCount: $("filmsCount"), filmsEmpty: $("filmsEmpty"),
@@ -59,13 +60,43 @@ const DEFAULT_OPEN_GROUPS = new Set([
 ]);
 
 TinyPPI.bindDisclosure(el.vs10Card, "dashboard.vs10", false);
-/* Open to begin with: the card is the idle page's reason to be there, and one
-   that arrived folded would be a heading on an empty screen.  Folded is
-   remembered per device all the same, the way every other card here is. */
-TinyPPI.bindDisclosure(el.filmsCard, "dashboard.films", true);
-TinyPPI.bindDisclosure(el.seriesCard, "dashboard.series", true);
+/* Both shelves arrive folded, on the idle page as much as under a film that
+   is playing: two walls of several hundred posters opened for somebody who
+   came to read what the box is doing is a page whose readings are a screen
+   and a half up, and the heading of a folded card is one press from the wall
+   for somebody who came for that instead.
+
+   It costs nothing to leave shut, either: a browser lays out nothing inside a
+   fold that is closed (see details.card:not([open]) in css/base.css), so the
+   posters are neither fetched nor drawn until the card is opened.
+
+   Under keys of their own, because the cards were once bound open and a first
+   visit wrote that opening into storage -- every device that has ever had
+   this page in front of it carries a mark saying the shelves are open, and
+   would go on being handed them open for good.  The old marks are dropped
+   rather than left in storage to mean nothing (the writing back of a restored
+   fold is gone too; see bindDisclosure in js/core.js). */
+TinyPPI.forgetDisclosure("dashboard.films");
+TinyPPI.forgetDisclosure("dashboard.series");
+TinyPPI.bindDisclosure(el.filmsCard, "dashboard.filmshelf", false);
+TinyPPI.bindDisclosure(el.seriesCard, "dashboard.seriesshelf", false);
 
 /* --- render ------------------------------------------------------------- */
+
+/* Put the two shelves where the page wants them: up in the idle column while
+   nothing plays, down in the library row under every reading while something
+   does.  Moved rather than copied, so there is one wall of each, one search
+   box narrowing it, and one show open in the series card -- and a fold
+   somebody opened stays open across the film that started under it.
+
+   Asked of every snapshot, and one arrives five times a second, so the test
+   above the move is the point of it: moving a node that is already where it
+   belongs is still a write to the document, and a write is the whole page --
+   two walls of posters included -- laid out again. */
+function shelves(into) {
+  if (el.filmsCard.parentElement === into) return;
+  into.append(el.filmsCard, el.seriesCard);
+}
 
 function render(next) {
   state = next;
@@ -96,6 +127,10 @@ function render(next) {
     rowNodes.clear();
     groupNodes.clear();
     renderLast(next.last);
+    /* The shelves come back up into the idle column, out of the library row
+       they stand in while something plays.  Before the events card is placed,
+       because where that goes is said in terms of the film card. */
+    shelves(el.idleStack);
     /* The events of the title that just ended join the two cards above them,
        so the idle page is one centred column rather than a card floating in
        the middle of the viewport with its own events stranded at the top.
@@ -104,9 +139,9 @@ function render(next) {
     if (el.eventsCard.parentElement !== el.idleStack) {
       el.filmsCard.before(el.eventsCard);
     }
-    /* And what could be playing instead.  Asked for when the page arrives on
-       an idle box and again the moment a film ends -- which is exactly when
-       somebody is looking for the next one. */
+    /* And what could be playing instead.  Read again the moment a film ends,
+       however lately the playing page read it: what the box last played and
+       how far into it, on every tile the two walls carry, has just moved. */
     if (control) requestFilms(wasPlaying !== false);
     else el.filmsCard.classList.add("hidden");
     if (control) requestSeries(wasPlaying !== false);
@@ -122,18 +157,29 @@ function render(next) {
 
   el.idleCard.classList.add("hidden");
   el.lastCard.classList.add("hidden");
-  el.filmsCard.classList.add("hidden");
-  el.seriesCard.classList.add("hidden");
   el.copyBtn.classList.remove("hidden");
   wasPlaying = true;
   /* A film that was pressed is on: whatever tile was waiting on it is done
-     waiting, and the next visit to the idle page starts from a clean wall. */
+     waiting, so the wall it was pressed on can be used again. */
   if (starting || releasing) releaseFilms();
   if (startingEpisode || episodeReleasing) releaseSeries();
   /* Back to the foot of the page, where it belongs while something plays. */
   if (el.eventsCard.parentElement === el.idleStack) {
     el.sideRail.append(el.eventsCard);
   }
+  /* And the shelves down into the row under the readings, where they stay for
+     as long as something is on: what to put on next is a fair thing to want
+     from the page while a film is running, and the way to have it there
+     without a second wall to keep in step is to move the one there is. */
+  shelves(el.libraryStack);
+  /* Asked for here as well, once: the first arrival on a box that is already
+     playing has never read either list.  Nothing is forced -- the lists have
+     not moved since whatever last read them, and a poster wall rebuilt under
+     somebody scrolling it is a wall that jumps. */
+  if (control) requestFilms(false);
+  else el.filmsCard.classList.add("hidden");
+  if (control) requestSeries(false);
+  else el.seriesCard.classList.add("hidden");
 
   renderVs10(next.vs10 || {});
   renderGroups(ordered(next.groups || []));
@@ -371,14 +417,15 @@ function flash(node) {
 
 /* --- the film library ---------------------------------------------------- */
 
-/* What the box could be playing instead of nothing.
+/* What the box could be playing, whether or not anything already is.
 
    The add-on reads its video database once and holds the answer (see
-   web/library.py), so asking again whenever a film ends costs a request and a
-   validator rather than a query per phone in the house.  The wall is built
-   once per list and then left alone: a library of a few thousand films is a
-   few thousand nodes, and a keystroke in the search box is not a reason to
-   make them again -- what does not match is hidden instead.
+   web/library.py), so asking again -- whenever a film ends, and once more on a
+   page that arrives while one is playing -- costs a request and a validator
+   rather than a query per phone in the house.  The wall is built once per list
+   and then left alone: a library of a few thousand films is a few thousand
+   nodes, and a keystroke in the search box is not a reason to make them again
+   -- what does not match is hidden instead.
 
    The posters are fetched as they are scrolled to.  A wall of five hundred
    would otherwise ask the box for five hundred pictures the moment it was
@@ -390,9 +437,9 @@ const RATING_NAMES = { imdb: "IMDb", tmdb: "TMDb" };
 
 const FILMS_RETRY_MS = 5000;
 /* How long a pressed tile stays pressed with nothing having happened.  A film
-   that starts takes the card off the page long before this; this is for the
-   one that does not -- a missing file, a share that has gone away -- so the
-   wall does not stay disabled for the evening. */
+   that starts gives the wall back as soon as the snapshot says it is on (see
+   render); this is for the one that does not -- a missing file, a share that
+   has gone away -- so the wall does not stay disabled for the evening. */
 const FILMS_START_MS = 4000;
 
 let films = [];            /* what the box last said its library holds    */
@@ -601,7 +648,8 @@ async function startFilm(film, tile) {
       TinyPPI.toast(T.films_failed, true);
     } else {
       /* Where the box got to in this film has just changed, and so has what
-         it last played: the next idle page reads the list again. */
+         it last played: the wall is read again rather than left standing on
+         what it said before the press. */
       filmsRead = false;
     }
   } catch (_) {
@@ -613,8 +661,8 @@ async function startFilm(film, tile) {
     releaseFilms();
     return;
   }
-  /* The snapshot takes the card off the page as soon as the film is on (see
-     render); this is only for the film that never starts. */
+  /* The snapshot gives the wall back as soon as the film is on (see render);
+     this is only for the film that never starts. */
   clearTimeout(releasing);
   releasing = setTimeout(releaseFilms, FILMS_START_MS);
 }
@@ -799,7 +847,7 @@ async function openShowView(show) {
   } catch (_) {
     /* A shelf that has moved under the page -- the show scanned away while
        this was open -- reads the same as a box that cannot answer, and the
-       next idle page reads the shelf again either way. */
+       shelf is read again either way. */
     seriesRead = false;
     TinyPPI.toast(T.series_failed, true);
   } finally {
@@ -990,7 +1038,7 @@ async function startEpisode(episode, row) {
       TinyPPI.toast(T.films_failed, true);
     } else {
       /* What has been watched is about to move, on this episode and on the
-         count its show's tile wears: the next idle page reads the shelf. */
+         count its show's tile wears: the shelf is read again. */
       seriesRead = false;
     }
   } catch (_) {

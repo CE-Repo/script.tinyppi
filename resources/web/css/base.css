@@ -515,12 +515,14 @@ main {
       "playing"
       "session"
       "groups"
+      "library"
       "meta";
   }
-  .dashboard-page .rail-main { grid-area: playing; }
-  .dashboard-page .rail-side { grid-area: session; }
-  .dashboard-page .groups    { grid-area: groups; }
-  .dashboard-page .metalink  { grid-area: meta; }
+  .dashboard-page .rail-main    { grid-area: playing; }
+  .dashboard-page .rail-side    { grid-area: session; }
+  .dashboard-page .groups       { grid-area: groups; }
+  .dashboard-page .librarystack { grid-area: library; }
+  .dashboard-page .metalink     { grid-area: meta; }
   /* The idle column takes the first row, which is free whenever it is on the
      page at all: nothing is playing and both rails have hidden themselves. */
   .dashboard-page .idlestack { grid-area: 1 / 1 / 2 / -1; }
@@ -695,6 +697,22 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
    which is not allowed anywhere in CSS: a browser drops the whole rule, and
    the centring here went with it. */
 main:has(> .idlestack > :not(.hidden)) { align-content: center; }
+
+/* The same two shelves once something is playing, in a row of their own under
+   every reading: the cards are moved in here and back out again, so neither
+   the idle column above nor its centring knows about them (see render in
+   js/dashboard.js).
+
+   Empty for the whole of the idle page, where the cards are up in the column
+   above, and empty while something plays on a box that offers no library at
+   all.  Either way it is no row rather than an empty one: main's own gap would
+   otherwise hold a hand's width of nothing open under the last card. */
+.librarystack {
+  display: grid;
+  gap: var(--gap);
+  align-content: start;
+}
+.librarystack:not(:has(> :not(.hidden))) { display: none; }
 
 /* A folded card is its heading and nothing else.  Saying so outright, because
    a browser does not: the panel is laid out behind the fold whatever the fold

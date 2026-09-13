@@ -286,12 +286,14 @@ a phone in your hand.
   worth most once a film is over, which used to be exactly when they were
   thrown away. The idle page is those two cards centred as one column; the line
   saying nothing is playing is for a box that has played nothing.
-- **The film library** — with nothing playing, the page offers the films in
-  Kodi's video database as a wall of posters, and a tap starts one on the box
-  (see below).
+- **The film library** — the films in Kodi's video database as a wall of
+  posters, and a tap starts one on the box (see below). On the page whether or
+  not anything is playing: it is the end of the idle page, and the last card
+  under the readings while something is on.
 - **The series library** — the same wall again for what Kodi knows as TV
   shows, with how many episodes are still unwatched on each poster. A tap opens
-  the show and a tap on one of its episodes starts it (see below).
+  the show and a tap on one of its episodes starts it (see below). It stands
+  wherever the films do, directly under them.
 - **The active picture area** the RPU declares (L5), drawn to scale inside the
   coded frame — the letterbox as the stream describes it, changing with the
   scene on an IMAX Enhanced title. It sits on the metadata window, with the
@@ -417,18 +419,31 @@ switch off.
 A box that is playing nothing is the one somebody is standing in front of with
 a phone in their hand, so the idle page ends on the **film library**: every
 film in Kodi's video database, as posters, in the order Kodi files them. A tap
-starts one on the television. The wall appears when the page is opened on an
-idle box and again the moment a film ends — which is when the next one is being
-looked for — and it is gone for as long as something plays.
+starts one on the television.
+
+The shelf is on the page while something is playing too, as the last card under
+the readings — lining up what comes next is a fair thing to want from the phone
+halfway through a film, and it is the same card moved down rather than a second
+wall to keep in step: a search still being typed, and a show still open on the
+series shelf, survive a film starting under them. It is read when the page is
+opened and again the moment a film ends, which is when what the box last played
+and how far into it has just moved.
 
 A film the box left half-watched carries a bar along the bottom of its poster
 and is **resumed** where it was, the same as pressing it in Kodi's own window;
 one already seen wears a tick in the corner of the picture. What **IMDb** made of it — or TMDb where IMDb has nothing to say — sits in the opposite corner of the poster, and is left off entirely where neither house has an opinion. Under the
 title are the year and how long the film runs. The card carries a
 search box, which narrows the wall as it is typed in; the cross inside it empties
-it again and puts the whole shelf back. The card folds away under its own
-heading like every other panel on the page, and how many films there are stays
-beside the heading when it is folded.
+it again and puts the whole shelf back.
+
+The card **arrives folded**, as its own heading and the number of films beside
+it, and a tap on the heading opens the wall. Folded is the honest default for a
+card that is now on every page the dashboard draws: somebody who opened the
+page to read what the box is doing would otherwise find those readings a
+screen and a half above a wall nobody asked for. It costs nothing to leave
+shut, either — a poster inside a folded card is never fetched. How it was left
+is remembered on each device, so a phone that lives on the film wall opens on
+it.
 
 The list is read from the video database once and held until Kodi says it
 changed, so a film added mid-evening appears without anything being restarted,
@@ -486,9 +501,10 @@ them to draw a wall of ninety posters. What is read is then held beside the
 shelf and dropped by the same notification, so a freshly scanned episode
 appears without anything being restarted.
 
-The series card has a setting of its own — **Settings → Dashboard → Show the
-series library** — so a box can offer the films and not the series, or the
-other way round.
+The series card arrives folded for the same reason the film card does, and
+remembers per device how it was left. It has a setting of its own —
+**Settings → Dashboard → Show the series library** — so a box can offer the
+films and not the series, or the other way round.
 
 ### Switching VS10 from the browser
 

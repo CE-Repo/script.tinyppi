@@ -104,15 +104,22 @@
     </section>
 
     <!-- What could be playing instead: the films the video database holds, as
-         posters, offered whenever nothing is on -- when the page is opened on
-         a box sitting at its home screen, and again the moment a film ends.
-         A press starts one (see the film library in js/dashboard.js).
+         posters.  A press starts one (see the film library in
+         js/dashboard.js).
+
+         On the page whether or not anything is playing: on a box at its home
+         screen the wall is the page, and while something plays it is what
+         somebody who picked up the phone to line up the next thing came for.
+         The card itself moves rather than being drawn twice -- here while
+         nothing plays, and down into the library row under the readings while
+         something does (see render in js/dashboard.js) -- so there is one
+         wall on the page and one search box narrowing it.
 
          Last in the stack, and the events card is moved in above it rather
          than after it: the library is the one card here somebody scrolls
-         through, and a card put under it is a card nobody reaches.  It folds
-         away like every other card on the page, and remembers on each device
-         whether it was folded. -->
+         through, and a card put under it is a card nobody reaches.  It
+         arrives folded and remembers on each device whether it was left that
+         way. -->
     <details class="card hidden" id="filmsCard">
       <summary class="panel-toggle">
         <span id="filmsLabel"></span>
@@ -137,7 +144,9 @@
 
          The way back out sits at the top of the card rather than under the
          list: a show with forty episodes in it is forty rows of scrolling
-         away from a button underneath. -->
+         away from a button underneath.
+
+         It travels with the films, and arrives folded for the same reason. -->
     <details class="card hidden" id="seriesCard">
       <summary class="panel-toggle">
         <span id="seriesLabel"></span>
@@ -159,6 +168,14 @@
       </div>
     </details>
   </div>
+
+  <!-- Where the two shelves stand for as long as something is playing: empty
+       the rest of the time, because the cards themselves are moved in and out
+       of it (see render in js/dashboard.js).
+
+       Under the last of the reading cards: what is on is what the page is for
+       while it is on, and what to put on after it comes after it. -->
+  <div class="librarystack" id="libraryStack"></div>
 
   <!-- A destination for the whole dashboard rather than the right rail: on a
        desktop it is the full-width final row, after every reading and event. -->
