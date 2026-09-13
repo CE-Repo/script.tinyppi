@@ -35,6 +35,14 @@ _LIBRARY_NOTIFICATIONS = (
     "VideoLibrary.OnCleanFinished",
 )
 
+# And the one that means it is about to.  A title being switched off in the
+# middle moves where the box would resume it from, and one watched to the end
+# moves its play count -- both of which every phone in the house is drawing on
+# a tile right now.  Kodi writes them after it has said that playback stopped,
+# and announces only the play count when it does, so the stop is passed on as
+# notice rather than as fact: see ``library.settle``.
+_PLAYBACK_ENDED = "Player.OnStop"
+
 
 # Set True locally to promote debug messages to INFO in a non-debug Kodi log.
 _FORCE_DEBUG_LOG = False
@@ -75,6 +83,8 @@ class KodiMonitor(xbmc.Monitor):
 
         if method in _LIBRARY_NOTIFICATIONS:
             library.invalidate()
+        elif method == _PLAYBACK_ENDED:
+            library.settle()
 
         try:
             mediatype = _notification_media_type(data)
