@@ -15,6 +15,13 @@ not a reason to ask again.  What is held is dropped the moment Kodi says the
 library changed (see ``service/monitor.py``), so a film added this evening is
 on the phone without anyone waiting the hold out.
 
+Dropping it is also announced.  Every screen holds a copy of one of these lists
+for as long as it is open, and a copy is wrong the moment a film is watched to
+the end or switched off in the middle -- so a number that moves with every drop
+rides out with every snapshot (``revision``), and a page or an app that sees it
+move reads its list again.  Without it a dashboard left on a television showed
+yesterday's answer until somebody reloaded the page.
+
 Only the poster addresses are kept here, never the pictures themselves: a
 thousand posters is more memory than the whole add-on has any business taking,
 and the browser holds the handful it drew far better than this could (see
@@ -71,6 +78,32 @@ _lock = threading.Lock()
 _catalogue: dict | None = None
 _read_at = 0.0
 
+# How long after playback stops before the lists are dropped again.
+#
+# What Kodi writes when a title ends -- the point to resume it from, and the
+# play count of one watched to the end -- is written by a background job that
+# outlives the announcement the box makes when playback stops, and only the
+# play-count half of it is announced to add-ons at all.  So the end of a title
+# is taken as notice that the lists are about to be wrong rather than that they
+# already are, and they are dropped once the box has had a moment to write.
+#
+# Two distances rather than one: the first is for a box that writes at once,
+# which is nearly all of them, and the second for one whose video database is
+# on the far end of a network share.  Dropping a list twice costs one query
+# that finds nothing has changed; dropping it too early costs an evening of a
+# phone showing a film as unwatched.
+_SETTLE = (1.5, 5.0)
+
+# Counts up every time the held lists are dropped, and rides out with every
+# snapshot (see ``_Producer.run`` in web/server.py).  It is the whole of how a
+# phone finds out that what it drew is no longer what the box holds: the page
+# and the app each remember the number their lists were read at, and read them
+# again when it moves.  Without it a dashboard shows the film it watched last
+# night as unwatched until somebody reloads the page.
+_revision = 0
+# When deferred drops fall due, soonest first; see ``settle``.
+_settling: list[float] = []
+
 # The same three things again for the shows, and then the episodes of whichever
 # shows have been opened, each held under its show's own id.  Kept apart from
 # the films rather than folded in with them: the two lists are read at
@@ -92,13 +125,16 @@ def _log(message: str, level: int = xbmc.LOGDEBUG) -> None:
 # --- The list --------------------------------------------------------------
 
 def invalidate() -> None:
-    """Forget the held list, so the next reader reads a fresh one.
+    """Forget the held lists, so the next reader reads fresh ones.
 
     Called from the monitor whenever Kodi says the video database moved.  It
     does not read anything itself: a scan finishing while nobody is looking at
     a dashboard should cost nothing at all.
+
+    The revision moves with it, which is what tells the screens already showing
+    a list that theirs is now the old one.
     """
-    global _catalogue, _read_at, _shows, _shows_read_at
+    global _catalogue, _read_at, _shows, _shows_read_at, _revision
     with _lock:
         _catalogue = None
         _read_at = 0.0
@@ -106,6 +142,46 @@ def invalidate() -> None:
         _shows_read_at = 0.0
         _episodes.clear()
         _episode_art.clear()
+        _revision += 1
+
+
+def settle() -> None:
+    """Drop the lists again shortly, a title having just ended.
+
+    Kodi writes where the title got to after it has said that playback stopped,
+    and says nothing at all when what it wrote was only a resume point -- which
+    is the half of it that a title switched off in the middle produces.  So the
+    stop is noted here and the lists are dropped once the writing is done (see
+    ``_SETTLE``), rather than at the moment of the stop, when dropping them
+    would only re-read the same stale rows.
+    """
+    now = time.monotonic()
+    with _lock:
+        _settling[:] = sorted(now + delay for delay in _SETTLE)
+
+
+def revision() -> int:
+    """A number that changes whenever the held lists are dropped.
+
+    Read on the snapshot producer's own cadence, which is also what runs the
+    deferred drops ``settle`` asked for: the add-on has no timer of its own to
+    spare -- a thread parked on one is a thread Kodi waits for on the way out
+    (see the shutdown note in service/monitor.py) -- and the producer is
+    already awake five times a second.
+    """
+    due = False
+    with _lock:
+        now = time.monotonic()
+        while _settling and _settling[0] <= now:
+            _settling.pop(0)
+            due = True
+        held = _revision
+    if not due:
+        return held
+    # Outside the lock: invalidate takes it for itself.
+    invalidate()
+    with _lock:
+        return _revision
 
 
 def catalogue(force: bool = False) -> dict:

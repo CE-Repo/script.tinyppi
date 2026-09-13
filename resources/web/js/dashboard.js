@@ -52,6 +52,7 @@ let groupNodes = new Map();
 let pending = null;        /* the VS10 mode a button is waiting on      */
 let wasPlaying = null;     /* what the last snapshot said, for the library */
 let lastDrawn = "";        /* what the report card was last drawn from      */
+let libraryAt = null;      /* which version of the shelves are on the page  */
 
 /* Only the two per-frame L1 summaries use the transient change colour. */
 const FLASH_ROWS = new Set(["metadata.32375", "metadata.32376"]);
@@ -101,6 +102,9 @@ function shelves(into) {
 function render(next) {
   state = next;
   control = !!next.control;
+  /* Before anything is drawn: what the box says about its own library decides
+     whether the two shelves under this page are still what it holds. */
+  libraryVersion(next.library);
 
   /* The common live module draws what is playing and the summary tiles.  Its
      L1 chart is reserved for the metadata window. */
@@ -186,6 +190,39 @@ function render(next) {
   /* The metadata list is a window of its own; this page only says whether
      there is one to open. */
   el.metaLink.classList.toggle("hidden", !(next.metadata && next.metadata.length));
+}
+
+/* Which version of the box's two shelves this page is holding.
+
+   Every snapshot carries the number the add-on is on (see ``revision`` in
+   web/library.py), and that number moves whenever what the shelves would say
+   moves: a film watched to the end, one switched off in the middle, a scan
+   that added a series.  None of which this page could otherwise hear about --
+   the lists are read once and then left alone -- which is why a dashboard left
+   open on a television for an evening went on showing everything it had
+   watched as unwatched until somebody reloaded it.
+
+   What happens here is only that the lists are marked unread.  Whichever of
+   them this page is actually showing asks for itself further down the same
+   render, and a list nobody has ever opened is not fetched for the sake of a
+   number.  A read that comes back with the tag it had leaves the wall -- and
+   anything the search box is holding -- exactly as it was, so a version that
+   moved without moving these two costs one validator and no redraw. */
+function libraryVersion(version) {
+  /* An add-on older than this sends no number at all, and a page talking to
+     one keeps the behaviour it had: the lists are read when a film ends. */
+  if (typeof version !== "number") return;
+  if (libraryAt === null) {
+    libraryAt = version;
+    return;
+  }
+  if (version === libraryAt) return;
+  libraryAt = version;
+  filmsRead = false;
+  seriesRead = false;
+  /* The show somebody is inside is a list of its own, and the episode they
+     have just watched is a row in it. */
+  refreshEpisodes();
 }
 
 /* --- the title that just ended ------------------------------------------ */
@@ -453,6 +490,11 @@ let releasing = 0;         /* the timer that gives the wall back          */
 
 function requestFilms(force) {
   if (filmsBusy || !filmsOffered) return;
+  /* Not while a tile is waiting on the film it was pressed on: the wall would
+     be built again under it and the press would stop showing.  Nothing is
+     lost by waiting -- the list is still marked unread, and the press is over
+     within seconds either way (see releaseFilms). */
+  if (starting) return;
   if (!force && filmsRead) return;
   if (Date.now() < filmsNextTry) return;
   filmsBusy = true;
@@ -714,6 +756,7 @@ let episodeReleasing = 0;  /* the timer that gives the list back          */
 
 function requestSeries(force) {
   if (seriesBusy || !seriesOffered) return;
+  if (startingEpisode) return;   /* as above, for the episode being waited on */
   if (!force && seriesRead) return;
   if (Date.now() < seriesNextTry) return;
   seriesBusy = true;
@@ -749,8 +792,21 @@ function buildSeries() {
   for (const show of shows) wall.append(showTile(show));
   el.seriesGrid.replaceChildren(wall);
   /* A shelf that has just been read again is a shelf that may no longer hold
-     the show somebody was inside, so the card comes back to the wall. */
-  closeShow();
+     the show somebody was inside, and where it does not the card comes back to
+     the wall.  Where it does, they are left where they were: the shelf is read
+     again every time an episode ends now, and a card that threw whoever was
+     watching a series back out to the wall each time would be a card nobody
+     could watch a series from. */
+  if (!openShow) return;
+  const still = shows.find((show) => show.id === openShow.id);
+  if (!still) {
+    closeShow();
+    return;
+  }
+  /* The tile it was opened from has been built again, so what the card's
+     heading names is the show as the shelf now has it. */
+  openShow = still;
+  el.seriesOpen.textContent = still.title;
 }
 
 function showTile(show) {
@@ -855,6 +911,52 @@ async function openShowView(show) {
   }
 }
 
+/* Read the open show's episodes again, in place.
+
+   What sends the page here is the box saying its library moved while somebody
+   is inside a show, which is what an episode ending looks like from here: the
+   row for it carries a resume bar and a watched tick, and both have just
+   changed.  Without this the row would go on saying the episode was never
+   watched for as long as the card stayed open.
+
+   The folds go back as they were.  A list rebuilt with every season shut under
+   somebody who had just opened one is a list that threw away where they were
+   looking, which over a nine-season show is most of the card. */
+async function refreshEpisodes() {
+  const show = openShow;
+  /* Nothing to read, something already reading, or a press waiting on an
+     episode -- which is a list about to be rebuilt under the row showing the
+     press.  The next version the box announces reads it again. */
+  if (!show || episodesBusy || startingEpisode) return;
+  episodesBusy = true;
+  try {
+    const answer = await TinyPPI.getJSON(
+      "/api/episodes?tvshowid=" + encodeURIComponent(show.id));
+    /* Somebody may have left the show -- or opened another one -- while the
+       box was answering, and what came back is then about a card that is no
+       longer on the screen.  By id and not by identity: a shelf read again in
+       the meantime hands the card a fresh object for the same show. */
+    if (!openShow || openShow.id !== show.id) return;
+    buildEpisodes(Array.isArray(answer.episodes) ? answer.episodes : [],
+                  unfoldedSeasons());
+  } catch (_) {
+    /* The show may have been scanned away under the card.  The shelf is read
+       again either way, and that is what takes the card back to the wall. */
+    seriesRead = false;
+  } finally {
+    episodesBusy = false;
+  }
+}
+
+/* Which seasons are open on the card right now, by number. */
+function unfoldedSeasons() {
+  const open = new Set();
+  for (const fold of el.episodeList.querySelectorAll(".seasonfold[open]")) {
+    open.add(fold.dataset.season);
+  }
+  return open;
+}
+
 /* A show as its seasons, each folded away under its own heading.
 
    Shut to begin with, all of them: a series that has run for nine years is
@@ -866,7 +968,7 @@ async function openShowView(show) {
    It also costs nothing to draw: a still inside a shut fold is never fetched,
    so opening a show asks the box for the pictures of one season rather than of
    nine. */
-function buildEpisodes(list) {
+function buildEpisodes(list, unfolded) {
   const rows = document.createDocumentFragment();
   const many = new Map();
   for (const episode of list) {
@@ -890,7 +992,8 @@ function buildEpisodes(list) {
          heading, and so into no fold either: there is nothing to call it, and
          a fold with no name on it is a row that hides things. */
       fold = number >= 0
-        ? seasonFold(number, many.get(number), runs.get(number), rows) : null;
+        ? seasonFold(number, many.get(number), runs.get(number), rows,
+                     !!unfolded && unfolded.has(String(number))) : null;
     }
     (fold || rows).append(episodeRow(episode));
   }
@@ -904,9 +1007,13 @@ function seasonOf(episode) {
 
 /* One season's fold, added to the list; what comes back is where its episodes
    go. */
-function seasonFold(number, count, seconds, into) {
+function seasonFold(number, count, seconds, into, open) {
   const fold = document.createElement("details");
   fold.className = "seasonfold";
+  /* Which season this is, so a list read again can put back the folds that
+     were open before it (see refreshEpisodes). */
+  fold.dataset.season = String(number);
+  fold.open = !!open;
 
   const heading = document.createElement("summary");
   heading.className = "season";

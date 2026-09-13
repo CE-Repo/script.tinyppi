@@ -636,7 +636,8 @@ class _Producer(threading.Thread):
         self._stopping  = stop_event
         self._builder   = SnapshotBuilder()
         self._condition = threading.Condition()
-        self._snapshot: dict = {"seq": 0, "playing": False, "groups": [], "metrics": {}}
+        self._snapshot: dict = {"seq": 0, "playing": False, "groups": [],
+                                "metrics": {}, "library": 0}
         self._failed    = False
 
     def wake(self) -> None:
@@ -691,6 +692,16 @@ class _Producer(threading.Thread):
                     metadata=addon.getSetting("web_metadata") == "true",
                     control=addon.getSetting("web_allow_control") == "true",
                 )
+                # Which version of the two shelves a client asking now would be
+                # handed.  It rides out with every snapshot because that is the
+                # one thing already going to every screen in the house: a page
+                # that drew a film as unwatched an hour ago has no other way of
+                # hearing that it has since been watched, and reloading the
+                # page is not an answer.  Reading it here also runs whatever
+                # deferred drop the last stop asked for -- this thread is the
+                # clock the add-on does not otherwise have (see
+                # ``library.revision``).
+                snapshot["library"] = library.revision()
                 with self._condition:
                     self._snapshot = snapshot
                     self._condition.notify_all()

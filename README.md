@@ -425,9 +425,16 @@ The shelf is on the page while something is playing too, as the last card under
 the readings — lining up what comes next is a fair thing to want from the phone
 halfway through a film, and it is the same card moved down rather than a second
 wall to keep in step: a search still being typed, and a show still open on the
-series shelf, survive a film starting under them. It is read when the page is
-opened and again the moment a film ends, which is when what the box last played
-and how far into it has just moved.
+series shelf, survive a film starting under them.
+
+It keeps itself up to date without being asked. Every snapshot carries the
+version the box's library is on, and that number moves whenever what the
+shelves would say moves — a film watched to the end, one switched off in the
+middle, a scan that added a series — so a page left open on a shelf all evening
+reads it again at the moment it goes out of date rather than showing this
+afternoon's answer until somebody reloads it. A read that finds nothing has
+actually changed costs a validator and leaves the wall, the search box and the
+open show exactly as they were.
 
 A film the box left half-watched carries a bar along the bottom of its poster
 and is **resumed** where it was, the same as pressing it in Kodi's own window;
@@ -448,7 +455,11 @@ it.
 The list is read from the video database once and held until Kodi says it
 changed, so a film added mid-evening appears without anything being restarted,
 and a phone that opens the page twice is answered the second time with a
-validator rather than the whole library. The posters are fetched as they are
+validator rather than the whole library. A title ending is a moment or two
+behind that: Kodi writes where it got to after it has said that playback
+stopped — and says nothing at all when what it wrote was only a resume point —
+so the held lists are dropped once the box has had its moment to write rather
+than at the stop itself. The posters are fetched as they are
 scrolled to, and each one crosses the network once: its address carries the
 picture's own tag, so the browser keeps it.
 
