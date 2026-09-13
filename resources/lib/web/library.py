@@ -470,10 +470,15 @@ def _read_shows() -> dict:
 
         pictures = row.get("art") if isinstance(row.get("art"), dict) else {}
         poster = _picture(pictures, _POSTER_KEYS)
-        art[show_id] = {"poster": poster,
-                        "fanart": _picture(pictures, _FANART_KEYS)}
+        fanart = _picture(pictures, _FANART_KEYS)
+        art[show_id] = {"poster": poster, "fanart": fanart}
 
-        show = {"id": show_id, "title": title, "poster": _tag(poster)}
+        # The fanart travels with the show, where a film's does not: opening a
+        # series gives its episodes a picture of it to stand under, and the
+        # shape that picture wants is the one a television is -- which is the
+        # fanart's and not the poster's.
+        show = {"id": show_id, "title": title,
+                "poster": _tag(poster), "fanart": _tag(fanart)}
         year = row.get("year")
         if isinstance(year, int) and year > 0:
             show["year"] = year
@@ -492,7 +497,7 @@ def _read_shows() -> dict:
         series.append(show)
 
         signature = zlib.crc32(
-            f"{show_id}\x1f{title}\x1f{show['poster']}\x1f"
+            f"{show_id}\x1f{title}\x1f{show['poster']}\x1f{show['fanart']}\x1f"
             f"{show.get('unseen', -1)}\x1f{show.get('episodes', 0)}\x1f"
             f"{show.get('rating', 0)}"
             .encode("utf-8", "replace"), signature)

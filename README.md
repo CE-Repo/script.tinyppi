@@ -437,6 +437,20 @@ validator rather than the whole library. The posters are fetched as they are
 scrolled to, and each one crosses the network once: its address carries the
 picture's own tag, so the browser keeps it.
 
+They are also fetched small. A tile on a phone is a hundred and twenty pixels
+wide and the poster behind it is what the scraper fetched — often two
+thousand — which a browser has to carry over the network and then decode in
+full before it can draw any of it. Kodi already keeps a smaller copy of
+everything it has ever drawn, so a wall is served out of its texture cache
+rather than out of the original, and falls back to the original only on a box
+whose cache has just been cleared.
+
+Out of the cache as Kodi already holds it, note, rather than asking it for a
+smaller size still: the cache is keyed by the whole address, so a size nobody
+has asked for before is an entry the box has to build — and for scraped
+artwork, building one means fetching the original off the internet again. That
+is a download per tile, which makes for a slower wall rather than a faster one.
+
 Starting a film needs the access token and the same **Allow VS10 switching from
 the dashboard** setting the rest of the controls need. The card itself can be
 turned off under **Settings → Dashboard → Show the film library**, which stops
