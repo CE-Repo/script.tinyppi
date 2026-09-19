@@ -33,6 +33,21 @@ _DVMODE  = "/sys/class/amdolby_vision/dv_mode"
 # for that playback and not for an HDR10 one -- see ``_player_led_mode``.
 _LL_POLICY = "/sys/module/aml_media/parameters/dolby_vision_ll_policy"
 
+# The two values that node takes.  A mode that puts Dolby Vision on the wire
+# has to write the one its own output goes with -- tunnelled IPT is TV-LED and
+# wants the low-latency path off, plain IPT is Player-LED and wants it on --
+# rather than leave the node holding whatever the last title put there: a
+# driver asked for one end while still set up for the other sends the picture
+# out wrong.
+_DOLBY_VISION_LL_DISABLE = "0"
+_DOLBY_VISION_LL_YUV422  = "1"
+
+# Whether the driver is running its Dolby Vision core, as opposed to merely
+# having been asked to.  It clears once the core is actually down, which is the
+# moment the rest of a switch may go on.
+_DV_STATUS     = "/sys/module/aml_media/parameters/dolby_vision_status"
+_DV_STATUS_OFF = "0"
+
 # dolby_vision_policy: AMDV_FOLLOW_SINK, AMDV_FOLLOW_SOURCE and
 # AMDV_FORCE_OUTPUT_MODE.  Forcing is what a VS10 mode is; follow-source is what
 # Kodi leaves behind when it turns Dolby Vision off, and so what a mode that
@@ -46,6 +61,18 @@ _POLICY_FORCE_OUTPUT  = "2"
 # Vision outputs and the rest are HDR10, SDR10, SDR8 and bypass.
 _DV_OUTPUT       = "/sys/module/aml_media/parameters/dolby_vision_mode"
 _DV_OUTPUT_MODES = ("0", "1")
+
+# Which of the three output formats each of those values names.  5 is
+# AMDV_OUTPUT_MODE_BYPASS and is deliberately absent: bypass is the engine
+# standing aside rather than an output it is holding, and a mode engaged from
+# there is a fresh start with nothing to clear -- see ``_needs_sdr_first``.
+_DV_OUTPUT_FORMAT = {
+    "0": "dv",     # AMDV_OUTPUT_MODE_IPT
+    "1": "dv",     # AMDV_OUTPUT_MODE_IPT_TUNNEL
+    "2": "hdr10",  # AMDV_OUTPUT_MODE_HDR10
+    "3": "sdr",    # AMDV_OUTPUT_MODE_SDR10
+    "4": "sdr",    # AMDV_OUTPUT_MODE_SDR8
+}
 
 # _DVMODE takes that same enum shifted by one -- Kodi writes it as
 # ``(AMDV_OUTPUT_MODE_x + 1) % 6`` -- so bypass lands on 0 and the modes below
@@ -120,6 +147,35 @@ def _dv_output_active() -> bool:
     return _read(_DV_OUTPUT) in _DV_OUTPUT_MODES
 
 
+def _dv_status_off() -> bool:
+    """Whether the driver's Dolby Vision core is down.
+
+    A node that cannot be read answers True: a box without it has nothing to
+    wait for, and sitting out the full timeout on every switch there would buy
+    nothing but a slower switch.
+    """
+    status = _read(_DV_STATUS)
+    return status is None or status == _DV_STATUS_OFF
+
+
+def _wait_for_dv_status_off(timeout_ms: int = 500, step_ms: int = 50) -> bool:
+    """Poll the DV driver state, returning True once its core has gone down.
+
+    False when the core is still up at the end, which is the ordinary answer
+    for a switch *to* Dolby Vision: there the core is meant to stay up and the
+    wait is simply the settling time the driver takes.  Either way the caller
+    goes on -- what it needed was for the driver to be done, not for it to be
+    off.
+    """
+    waited = 0
+    while waited < timeout_ms:
+        _delay(step_ms)
+        waited += step_ms
+        if _dv_status_off():
+            return True
+    return False
+
+
 def _wait_for_dv_output_change(
     before: bool,
     timeout_ms: int = _DV_OUTPUT_TIMEOUT_MS,
@@ -155,23 +211,24 @@ def _reset_display_on_dv_change(name: str, dv_before: bool) -> None:
     Asking the display driver to re-apply its output is the missing step; see
     ``core.display`` for how that is done.
 
-    Which switch needs one is decided twice over, and neither answer is the
-    user's to give.  The crossing answers for the switch: a mode that stays on
-    the same side of the line -- SDR8 to HDR10, say -- changes nothing about how
-    the output is signalled and returns here at once.  The LED mode answers for
-    the box: Player-LED is where the reset is needed, because the box maps the
-    picture itself and sends it out as an ordinary carrier
-    (``dolby_vision_ll_policy`` on, output IPT), so nothing re-negotiates the
-    HDMI output on its own.  TV-LED tunnels Dolby Vision to the display and gets
-    there without help -- and the reset there does harm rather than nothing: it
-    re-applies the output over a VS10 mode the driver has only just taken, which
-    leaves later switches in the same playback landing on SDR instead of the
-    mode picked (issue #64).
+    Which switch needs one is the crossing's answer to give, not the user's: a
+    mode that stays on the same side of the line -- SDR8 to HDR10, say --
+    changes nothing about how the output is signalled and returns here at once.
 
-    Only what is left waits for the driver to confirm the crossing, because a
-    mode the driver did not take is a mode the display has nothing to re-apply
-    for.  Playback gates it too, since a switch with nothing on screen has no
-    output to re-apply.
+    Both ends of Dolby Vision need it.  TV-LED was held back from the reset for
+    a while, on the grounds that tunnelled Dolby Vision negotiates the HDMI
+    output itself and that a reset there did harm rather than nothing, leaving
+    later switches in the same playback landing on SDR instead of the mode
+    picked (issue #64).  What actually caused that was the reset going out over
+    a driver that had not finished with the mode before it; now that
+    ``_set_passthrough_mode`` waits for the Dolby Vision core to come down
+    first, the reset lands on a settled driver and SDR to Dolby Vision and back
+    works on both ends.
+
+    The crossing is confirmed against the driver before anything is re-applied,
+    because a mode the driver did not take is a mode the display has nothing to
+    re-apply for.  Playback gates it too, since a switch with nothing on screen
+    has no output to re-apply.
 
     Only kernel 5.15 (CoreELEC 22) feels any of this: the reset is a DRM
     property on the HDMI connector, which the older kernels have no equivalent
@@ -181,14 +238,6 @@ def _reset_display_on_dv_change(name: str, dv_before: bool) -> None:
         return
 
     if (name in _DV_MODES) == dv_before:
-        return
-
-    if not _player_led_mode():
-        xbmc.log(
-            f"TinyPPI: '{name}' crossed the Dolby Vision line, but this box is "
-            "TV-LED and signals that itself -> no display reset",
-            xbmc.LOGINFO,
-        )
         return
 
     if not _wait_for_dv_output_change(dv_before):
@@ -215,24 +264,60 @@ def _write_sequence(
 
 
 def _set_passthrough_mode(dv_mode: str, delay_ms: int = 100) -> None:
-    """Set the CoreELEC policy and enable Dolby Vision in the requested mode."""
-    _write_sequence(
-        (
-            (_POLICY, _POLICY_FORCE_OUTPUT),
-            (_ENABLE, "Y"),
-            (_DVMODE, dv_mode),
-        ),
-        delay_ms=delay_ms,
-    )
+    """Set the CoreELEC policy and enable Dolby Vision in the requested mode.
+
+    The order is as much of the answer as the values are.  Enabling before the
+    policy is forced hands the driver a core it can still bring up its own way;
+    forcing first asks it to hold an output it is not yet running.  Bypass
+    wants neither and is written the other way about: follow-source restores
+    what Kodi leaves behind, and the driver is only switched off once the core
+    it was running has actually come down -- an ``enable=N`` written into a
+    live core is what used to leave the display half-switched.
+
+    A mode that puts Dolby Vision on the wire also states which end is mapping
+    it, tunnelled IPT for TV-LED and plain IPT for Player-LED, rather than
+    trusting the low-latency policy the last title left behind.
+    """
+    steps = []
+
+    if dv_mode == _MODE_BYPASS:
+        steps.append((_POLICY, _POLICY_FOLLOW_SOURCE))
+    else:
+        steps.append((_ENABLE, "Y"))
+        steps.append((_POLICY, _POLICY_FORCE_OUTPUT))
+
+    if dv_mode == _MODE_DV_TUNNEL:
+        steps.append((_LL_POLICY, _DOLBY_VISION_LL_DISABLE))
+    elif dv_mode == _MODE_DV_IPT:
+        steps.append((_LL_POLICY, _DOLBY_VISION_LL_YUV422))
+
+    steps.append((_DVMODE, dv_mode))
+
+    _write_sequence(tuple(steps), delay_ms=delay_ms)
+
+    # Give the driver the moment it needs to be done with the mode before this
+    # one.  The display reset that follows a crossing, and the switch-off just
+    # below, both have to land after that and not into the middle of it.
+    _wait_for_dv_status_off()
+
+    if dv_mode == _MODE_BYPASS:
+        _write_sequence(((_ENABLE, "N"),))
 
 
 def _set_sdr_conversion_mode(dv_mode: str) -> None:
-    """Reset to SDR first, then enable the requested conversion mode."""
+    """Enable the requested conversion mode.
+
+    The trip through bypass that used to open this sequence is gone.  It was
+    there to clear whatever VS10 mode was in place, and what it actually did
+    was ask the driver for two outputs in a row: the second landed on a core
+    still tearing the first one down, which is the state the wrong picture came
+    out of.  Clearing a mode is a switch of its own, and where one is needed
+    ``set_mode`` makes it one -- see ``_staged_switch``.
+    """
     _write_sequence(
         (
-            (_POLICY, _POLICY_FORCE_OUTPUT),
-            (_DVMODE, _MODE_BYPASS),
             (_ENABLE, "Y"),
+            (_POLICY, _POLICY_FORCE_OUTPUT),
             (_DVMODE, dv_mode),
         )
     )
@@ -301,6 +386,63 @@ _MODES = {
 # The modes that leave Dolby Vision on the wire, whether converted to it or
 # passed through: crossing in or out of this set is what needs a display reset.
 _DV_MODES = ("dv", "original_dv")
+
+# What each mode leaves on the wire, in the same three names
+# ``_DV_OUTPUT_FORMAT`` reads back off the driver.  ``original_sdr`` is bypass,
+# i.e. the source untouched, and SDR is what that is: the SDR group is the only
+# menu offering it.  ``original_hlg`` has no entry because it names no output of
+# its own -- it turns VS10 off and lets HLG through as it is.
+_MODE_OUTPUT = {
+    "original_sdr": "sdr",
+    "sdr8":         "sdr",
+    "sdr10":        "sdr",
+    "hdr10":        "hdr10",
+    "original_hdr": "hdr10",
+    "dv":           "dv",
+    "original_dv":  "dv",
+}
+
+# The swap the driver will not make in one go, read as "from this output, not
+# straight to any of these".  HDR10 and Dolby Vision each leave the display set
+# up for themselves, and the parameters of the one do not survive being handed
+# the other; SDR in between is what clears them.
+_NO_DIRECT_SWITCH = {
+    "hdr10": ("dv",),
+    "dv":    ("hdr10",),
+}
+
+# The output SDR is asked for as that step.  Forced SDR10, not bypass: bypass
+# is the source untouched, which for an HDR10 or a Dolby Vision title is the
+# very format being cleared.  It is also the output Kodi's own ``vs10.sdr``
+# names, so the stage looks the same whichever path applies it.
+_SDR_STAGE = "sdr10"
+
+# How long the driver is left to itself between the two stages, on top of
+# waiting for its Dolby Vision core to come down.
+_STAGE_GAP_MS = 250
+
+# How long a staged switch may take before the caller stops waiting on it.
+# Generous: the two stages wait on the driver themselves, and the number is
+# here to bound a switch that goes wrong, not to pace one that does not.
+_STAGE_TIMEOUT_S = 15
+
+
+def _needs_sdr_first(name: str) -> bool:
+    """Whether ``name`` has to go through SDR to be reached from the output
+    now on the wire.
+
+    Only an output the VS10 engine is *holding* needs the step.  Bypass says
+    the engine is standing aside, and engaging a mode from there is a fresh
+    start with no earlier output to clear.  An output that cannot be read needs
+    nothing either: a switch staged for a reason that could not be established
+    is worse than one that lets the driver answer for itself.  Playback gates
+    it too, since a switch with nothing on screen moves no display.
+    """
+    if not _is_playing_video():
+        return False
+
+    output = _DV_OUTPUT_FORMAT.get(_read(_DV_OUTPUT))
+    return _MODE_OUTPUT.get(name) in _NO_DIRECT_SWITCH.get(output, ())
 
 
 # Native VS10 keymap action (SamuriHL/coreelec-xbmc commit 7df0943) that each
@@ -452,10 +594,13 @@ def _hybrid_dv_hdr10plus() -> bool:
 def set_mode(name: str) -> None:
     """Apply the VS10 mode ``name`` (see ``_MODES``).
 
-    The output is switched by ``_apply_mode``; what is left here is the step
-    neither path performs on its own -- the display reset a switch to or from
-    Dolby Vision needs.  The driver's output mode is sampled before the switch
-    so the two sides can be compared afterwards.
+    One press, one mode -- but not always one switch.  Dolby Vision and HDR10
+    cannot be swapped for one another in a single one: the display keeps the
+    parameters of the format it was already showing, and the picture comes out
+    wrong.  SDR in between is what clears them, and it only counts as a step if
+    it is a switch in its own right, so where the crossing needs it the mode is
+    reached in two (see ``_switch_through_sdr``) and the caller is none the
+    wiser.
 
     A hybrid Dolby Vision + HDR10+ title is switched like any other and only
     noted in the log.  Neither the dialog nor the dashboard offers it a mode
@@ -477,9 +622,75 @@ def set_mode(name: str) -> None:
             xbmc.LOGWARNING,
         )
 
+    if _needs_sdr_first(name):
+        _switch_through_sdr(name)
+        return
+
+    _switch(name)
+
+
+def _switch(name: str) -> None:
+    """One switch, whole: the output moved and the display told about it.
+
+    The output is switched by ``_apply_mode``; what is left here is the step
+    neither path performs on its own -- the display reset a switch to or from
+    Dolby Vision needs.  The driver's output mode is sampled before the switch
+    so the two sides can be compared afterwards.
+    """
     dv_before = _dv_output_active()
     _apply_mode(name)
     _reset_display_on_dv_change(name, dv_before)
+
+
+def _staged_switch(name: str) -> None:
+    """Reach ``name`` by way of SDR, as two switches with the driver's own
+    state read in between.
+
+    This is the manual route -- press SDR, then press the mode -- done for the
+    user.  Both stages are whole switches, display reset included, because that
+    is what makes the SDR one clear anything: written into the same pass as the
+    mode after it, it is not a step the driver ever stands on, which is the
+    state the wrong picture came out of.  Between them the Dolby Vision core is
+    waited out and the driver then left alone for a moment longer, so the
+    second stage arrives at a driver that is done rather than one still busy.
+    """
+    xbmc.log(
+        f"TinyPPI: '{name}' cannot be reached from the output now on the wire "
+        "in one switch -> going through SDR first",
+        xbmc.LOGINFO,
+    )
+    _switch(_SDR_STAGE)
+    _wait_for_dv_status_off()
+    _delay(_STAGE_GAP_MS)
+    _switch(name)
+
+
+def _switch_through_sdr(name: str) -> None:
+    """Run the staged switch on a thread of its own, and wait for it there.
+
+    The thread is what keeps the two stages apart: each gets its own call, its
+    own waits and its own display reset, rather than being folded into the one
+    pass the driver will not take.  The wait is what keeps them alive -- a mode
+    switch arrives through ``RunScript`` more often than not, and that
+    interpreter is torn down the moment its script returns, which left to
+    itself would end the switch half way through with the driver on SDR.  So
+    the caller is held for as long as the switch takes and no longer; the
+    timeout only bounds one that has gone wrong.
+    """
+    worker = threading.Thread(
+        target=_staged_switch,
+        args=(name,),
+        name="TinyPPI-vs10-stage",
+        daemon=True,
+    )
+    worker.start()
+    worker.join(_STAGE_TIMEOUT_S)
+    if worker.is_alive():
+        xbmc.log(
+            f"TinyPPI: staged switch to '{name}' is still running after "
+            f"{_STAGE_TIMEOUT_S}s -> leaving it to finish on its own",
+            xbmc.LOGWARNING,
+        )
 
 
 def _apply_mode(name: str) -> None:
