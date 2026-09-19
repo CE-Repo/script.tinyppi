@@ -192,6 +192,28 @@ def _wait_for_dv_output_change(
     return False
 
 
+def _wait_for_dv_output_value_change(
+    before,
+    timeout_ms: int = _DV_OUTPUT_TIMEOUT_MS,
+    step_ms: int = 50,
+) -> bool:
+    """Poll the driver's output mode, returning True once it reads anything
+    other than ``before`` (and False if it never does).
+
+    The same wait as ``_wait_for_dv_output_change``, asked of the raw value
+    rather than of which side of the Dolby Vision line it falls on: SDR8 to
+    HDR10 moves the output without crossing that line, and a switch the sysfs
+    path has to reset the display for is any switch the driver actually took.
+    """
+    waited = 0
+    while waited < timeout_ms:
+        if _read(_DV_OUTPUT) != before:
+            return True
+        _delay(step_ms)
+        waited += step_ms
+    return False
+
+
 def _is_playing_video() -> bool:
     """True when a video is playing, i.e. when native VS10 actions can apply."""
     try:
@@ -200,20 +222,27 @@ def _is_playing_video() -> bool:
         return False
 
 
-def _reset_display_on_dv_change(name: str, dv_before: bool) -> None:
-    """Re-init the HDMI output when a switch crossed the Dolby Vision line.
+def _reset_display_after_switch(name: str, output_before, via_sysfs: bool) -> None:
+    """Re-init the HDMI output the switch it follows has just moved.
 
     Kodi only re-applies the display mode when the played stream's HDR type
     changes, and a VS10 switch made mid-playback never tells it about one.  The
-    driver then starts sending Dolby Vision (or stops) while the HDMI output is
-    still set up for the format before it, so the TV never switches over and the
+    driver then starts sending a different output format while the HDMI output
+    is still set up for the one before it, so the TV never switches over and the
     picture comes out with the wrong colours -- most visibly in Player-LED mode.
     Asking the display driver to re-apply its output is the missing step; see
     ``core.display`` for how that is done.
 
-    Which switch needs one is the crossing's answer to give, not the user's: a
-    mode that stays on the same side of the line -- SDR8 to HDR10, say --
-    changes nothing about how the output is signalled and returns here at once.
+    Which switches need one is the path's answer, not the user's:
+
+    * The built-in sysfs path writes the driver's nodes behind Kodi's back, so
+      *nothing* it does is ever signalled -- every mode it moves the output to
+      leaves the display set up for the one before it, SDR8 to HDR10 as much as
+      SDR to Dolby Vision.  Every switch it takes is reset.
+    * The native ``vs10.*`` actions go through Kodi's own VS10 engine, which
+      handles the output it knows how to handle; only the Dolby Vision line,
+      which no VS10 action re-negotiates the HDMI output for, is left to be
+      reset here.
 
     Both ends of Dolby Vision need it.  TV-LED was held back from the reset for
     a while, on the grounds that tunnelled Dolby Vision negotiates the HDMI
@@ -225,10 +254,12 @@ def _reset_display_on_dv_change(name: str, dv_before: bool) -> None:
     first, the reset lands on a settled driver and SDR to Dolby Vision and back
     works on both ends.
 
-    The crossing is confirmed against the driver before anything is re-applied,
+    The move is confirmed against the driver before anything is re-applied,
     because a mode the driver did not take is a mode the display has nothing to
-    re-apply for.  Playback gates it too, since a switch with nothing on screen
-    has no output to re-apply.
+    re-apply for.  That wait doubles as the settling time a conversion mode
+    takes on its own, since ``_set_sdr_conversion_mode`` waits on nothing.
+    Playback gates it too, since a switch with nothing on screen has no output
+    to re-apply.
 
     Only kernel 5.15 (CoreELEC 22) feels any of this: the reset is a DRM
     property on the HDMI connector, which the older kernels have no equivalent
@@ -237,10 +268,16 @@ def _reset_display_on_dv_change(name: str, dv_before: bool) -> None:
     if not _is_playing_video():
         return
 
-    if (name in _DV_MODES) == dv_before:
-        return
+    dv_before = output_before in _DV_OUTPUT_MODES
 
-    if not _wait_for_dv_output_change(dv_before):
+    if via_sysfs:
+        moved = _wait_for_dv_output_value_change(output_before)
+    else:
+        if (name in _DV_MODES) == dv_before:
+            return
+        moved = _wait_for_dv_output_change(dv_before)
+
+    if not moved:
         xbmc.log(
             f"TinyPPI: '{name}' did not move the driver's output mode "
             "-> no display reset",
@@ -248,8 +285,12 @@ def _reset_display_on_dv_change(name: str, dv_before: bool) -> None:
         )
         return
 
-    direction = "from" if dv_before else "to"
-    display.reset(f"VS10 output switched {direction} Dolby Vision")
+    if (name in _DV_MODES) != dv_before:
+        direction = "from" if dv_before else "to"
+        reason = f"VS10 output switched {direction} Dolby Vision"
+    else:
+        reason = f"VS10 output switched to '{name}'"
+    display.reset(reason)
 
 
 def _write_sequence(
@@ -384,7 +425,9 @@ _MODES = {
 }
 
 # The modes that leave Dolby Vision on the wire, whether converted to it or
-# passed through: crossing in or out of this set is what needs a display reset.
+# passed through.  Crossing in or out of this set is the one move the native
+# VS10 actions still need a display reset for; the sysfs path needs one for
+# every move it makes -- see ``_reset_display_after_switch``.
 _DV_MODES = ("dv", "original_dv")
 
 # What each mode leaves on the wire, in the same three names
@@ -633,13 +676,14 @@ def _switch(name: str) -> None:
     """One switch, whole: the output moved and the display told about it.
 
     The output is switched by ``_apply_mode``; what is left here is the step
-    neither path performs on its own -- the display reset a switch to or from
-    Dolby Vision needs.  The driver's output mode is sampled before the switch
-    so the two sides can be compared afterwards.
+    neither path performs on its own -- the display reset the switch needs.
+    Which one that is depends on the path ``_apply_mode`` took, so it says,
+    and the driver's output mode is sampled before the switch so the two sides
+    can be compared afterwards.
     """
-    dv_before = _dv_output_active()
-    _apply_mode(name)
-    _reset_display_on_dv_change(name, dv_before)
+    output_before = _read(_DV_OUTPUT)
+    via_sysfs = _apply_mode(name)
+    _reset_display_after_switch(name, output_before, via_sysfs)
 
 
 def _staged_switch(name: str) -> None:
@@ -693,13 +737,17 @@ def _switch_through_sdr(name: str) -> None:
         )
 
 
-def _apply_mode(name: str) -> None:
+def _apply_mode(name: str) -> bool:
     """Switch the VS10 output to ``name``, preferring the native actions.
 
     The native ``vs10.*`` actions only do anything during playback and can
     still silently no-op, so we try them only then and verify the DV driver
     state actually moved; either failure falls back to the built-in sysfs
     sequence, which always works.
+
+    Returns whether the switch went out over that sysfs path, which is what
+    decides how much of a display reset it needs -- see
+    ``_reset_display_after_switch``.
     """
     sysfs = _MODES[name]
     action = _VS10_ACTION.get(name)
@@ -713,7 +761,7 @@ def _apply_mode(name: str) -> None:
                     f"Action({action})",
                     xbmc.LOGINFO,
                 )
-                return
+                return False
             xbmc.log(
                 f"TinyPPI: VS10 Action({action}) had no effect on the DV "
                 "driver -> falling back to built-in TinyPPI VS10 (sysfs)",
@@ -740,6 +788,7 @@ def _apply_mode(name: str) -> None:
         f"TinyPPI: mode '{name}' set via built-in TinyPPI VS10 (sysfs)",
         xbmc.LOGINFO,
     )
+    return True
 
 
 __all__ = list(_MODES.keys()) + ["open_dialog", "set_mode"]
