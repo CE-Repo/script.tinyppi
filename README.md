@@ -256,8 +256,8 @@ Pick one under **Settings → VS10 dialog → Layout**:
 
 | Layout | What it looks like |
 | --- | --- |
-| **Compact** | A bar rather than a stack, the choices side by side in a panel low enough to leave most of the picture showing. The default. |
-| **Single button** | One button, and **left** or **right** steps it to the next choice. For a remote that has little more than a direction pad and OK. |
+| **Single button** | One button, and **left** or **right** steps it to the next choice. For a remote that has little more than a direction pad and OK. The default. |
+| **Bar** | The choices side by side rather than stacked, in a panel low enough to leave most of the picture showing. |
 | **Dialog** | The panel the add-on opened with before the layouts existed: the choices stacked. |
 
 Every layout draws the same choices, and how many there are depends on the

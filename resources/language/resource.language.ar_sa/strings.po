@@ -1802,8 +1802,8 @@ msgstr "مربع الحوار"
 
 
 msgctxt "#32560"
-msgid "Compact"
-msgstr "مضغوط"
+msgid "Bar"
+msgstr "شريط"
 
 
 

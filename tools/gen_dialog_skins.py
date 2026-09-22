@@ -265,7 +265,7 @@ def slide_out(dx, dy):
 
 def bar(mode, title, margin, gap, slots, header_font, title_top, icon_size,
         rule_top, button_top, button_height, second_rule_top, single_width):
-    """The compact bar: the choices in a row."""
+    """The bar: the choices in a row."""
     width, height = layout.PANEL_SIZE[mode]
     inner = width - 2 * margin
     size = (inner - (slots - 1) * gap) // slots
@@ -328,10 +328,10 @@ def single(title):
 
 def main():
     files = {
-        layout.MODE_COMPACT: bar(
-            layout.MODE_COMPACT,
-            "The compact bar: the choices in a row rather than stacked, in a"
-            " panel low enough to leave most of the picture showing.",
+        layout.MODE_BAR: bar(
+            layout.MODE_BAR,
+            "The bar: the choices in a row rather than stacked, in a panel"
+            " low enough to leave most of the picture showing.",
             margin=24, gap=18, slots=4, header_font="font23_narrow",
             title_top=14, icon_size=30, rule_top=62, button_top=78,
             button_height=80, second_rule_top=176, single_width=500),

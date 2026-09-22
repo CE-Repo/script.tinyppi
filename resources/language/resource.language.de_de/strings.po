@@ -1801,8 +1801,8 @@ msgstr "Dialog"
 
 
 msgctxt "#32560"
-msgid "Compact"
-msgstr "Kompakt"
+msgid "Bar"
+msgstr "Leiste"
 
 
 

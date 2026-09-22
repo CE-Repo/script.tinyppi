@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated file - do not edit by hand; see tools/gen_dialog_skins.py.
-     The compact bar: the choices in a row rather than stacked, in a panel low enough to leave most of the picture showing. -->
+     The bar: the choices in a row rather than stacked, in a panel low enough to leave most of the picture showing. -->
 <window type="dialog">
     <defaultcontrol always="true">1001</defaultcontrol>
     <onload>Dialog.Close(fullscreenvideo,true)</onload>

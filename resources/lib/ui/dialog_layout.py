@@ -3,8 +3,8 @@
 
 """Geometry and choices of the VS10 dialog's layouts.
 
-One dialog, three ways of drawing it: the compact bar, the single button and
-the panel the add-on has always had. Which window file each is drawn from,
+One dialog, three ways of drawing it: the single button, the bar and the
+panel the add-on has always had. Which window file each is drawn from,
 how large its panel is and therefore how far it may be moved all live here,
 so the skin generator in ``tools/gen_dialog_skins.py`` and the dialog itself
 work from one description rather than from two that drift apart.
@@ -25,19 +25,19 @@ except ImportError:
 # that is the settings file's to say, and a stored value has to keep meaning
 # what it meant.
 MODE_DIALOG = 0
-MODE_COMPACT = 1
+MODE_BAR = 1
 MODE_SINGLE = 2
 
 XML_FILES = {
     MODE_DIALOG: "script-tinyppi-dialog.xml",
-    MODE_COMPACT: "script-tinyppi-dialog-compact.xml",
+    MODE_BAR: "script-tinyppi-dialog-bar.xml",
     MODE_SINGLE: "script-tinyppi-dialog-single.xml",
 }
 
 # The panel of each mode, as the window files draw it.
 PANEL_SIZE = {
     MODE_DIALOG: (471, 546),
-    MODE_COMPACT: (1365, 200),
+    MODE_BAR: (1365, 200),
     MODE_SINGLE: (700, 216),
 }
 
@@ -142,13 +142,13 @@ def _setting_int(name, default):
 
 
 def dialog_mode():
-    """The selected layout, falling back to the compact bar - the default.
+    """The selected layout, falling back to the single button - the default.
 
     An unknown value means a settings file from a newer version than this
     code, so it is treated as the default rather than breaking the dialog.
     """
-    mode = _setting_int("dialog_mode", MODE_COMPACT)
-    return mode if mode in XML_FILES else MODE_COMPACT
+    mode = _setting_int("dialog_mode", MODE_SINGLE)
+    return mode if mode in XML_FILES else MODE_SINGLE
 
 
 def xml_file(mode=None):

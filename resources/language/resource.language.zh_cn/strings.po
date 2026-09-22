@@ -1801,8 +1801,8 @@ msgstr "对话框"
 
 
 msgctxt "#32560"
-msgid "Compact"
-msgstr "紧凑"
+msgid "Bar"
+msgstr "横栏"
 
 
 

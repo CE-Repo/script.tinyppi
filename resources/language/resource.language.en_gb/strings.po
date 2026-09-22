@@ -1801,7 +1801,7 @@ msgstr ""
 
 
 msgctxt "#32560"
-msgid "Compact"
+msgid "Bar"
 msgstr ""
 
 

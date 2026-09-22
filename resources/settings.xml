@@ -5509,11 +5509,11 @@
             <group id="20" label="32555">
                 <setting id="dialog_mode" type="integer" label="32556" help="32557">
                     <level>0</level>
-                    <default>1</default>
+                    <default>2</default>
                     <constraints>
                         <options>
-                            <option label="32560">1</option>
                             <option label="32564">2</option>
+                            <option label="32560">1</option>
                             <option label="32558">0</option>
                         </options>
                     </constraints>
