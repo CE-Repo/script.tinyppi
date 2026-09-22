@@ -1273,6 +1273,10 @@ function continueTile(item) {
     image.addEventListener("error", () => image.remove());
     frame.append(image);
   }
+  /* The same badge the walls wear: a film's own rating, an episode its
+     show's -- the poster it stands on is the show's. */
+  const rated = ratingBadge(item);
+  if (rated) frame.append(rated);
   if (item.resume && item.duration) {
     const bar = document.createElement("div");
     bar.className = "filmresume";

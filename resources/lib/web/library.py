@@ -728,7 +728,7 @@ _CONTINUE_LIMIT = 30
 _IN_PROGRESS = {"field": "inprogress", "operator": "true", "value": ""}
 
 _CONTINUE_FILM_PROPERTIES = ("title", "year", "art", "runtime", "resume",
-                             "lastplayed")
+                             "lastplayed", "ratings")
 _CONTINUE_EPISODE_PROPERTIES = ("title", "showtitle", "tvshowid", "season",
                                 "episode", "art", "runtime", "resume",
                                 "lastplayed")
@@ -794,7 +794,13 @@ def _read_continuing() -> dict:
         year = row.get("year")
         if isinstance(year, int) and year > 0:
             entry["year"] = year
+        _rate(entry, row.get("ratings"))
         listing.append(entry)
+
+    # An episode wears its show's rating, the badge the show's own tile wears:
+    # it stands on the row as that show's poster, and an episode's own rating
+    # is one most libraries never filled in.
+    show_ratings: dict[int, dict] = {}
 
     answer = rpc("VideoLibrary.GetEpisodes", {
         "properties": list(_CONTINUE_EPISODE_PROPERTIES),
@@ -819,6 +825,11 @@ def _read_continuing() -> dict:
         show_id = row.get("tvshowid")
         if isinstance(show_id, int) and show_id > 0:
             entry["tvshowid"] = show_id
+            if not show_ratings:
+                show_ratings = _show_ratings()
+            rated = show_ratings.get(show_id)
+            if rated:
+                entry.update(rated)
         season = row.get("season")
         if isinstance(season, int) and season >= 0:
             entry["season"] = season
@@ -837,12 +848,32 @@ def _read_continuing() -> dict:
         signature = zlib.crc32(
             f"{entry['kind']}\x1f{entry['id']}\x1f{entry['title']}\x1f"
             f"{entry.get('poster', '')}\x1f{entry.get('resume', 0)}\x1f"
-            f"{entry.get('lastplayed', '')}"
+            f"{entry.get('lastplayed', '')}\x1f{entry.get('rating', 0)}"
             .encode("utf-8", "replace"), signature)
 
     _log(f"{len(listing)} titles in progress read from the video database")
     return {"items": listing, "art": art,
             "tag": f"{len(listing):x}-{signature:08x}"}
+
+
+def _show_ratings() -> dict[int, dict]:
+    """Each show's badge, by show id, off the held wall of shows.
+
+    The wall rather than a query of its own: it is held already wherever the
+    series shelf has been looked at, and where it has not, reading it once
+    serves the shelf as well.  Never empty, so the caller asks only once.
+    """
+    rated: dict[int, dict] = {0: {}}
+    try:
+        shows = _show_catalogue()["shows"]
+    except Exception as exc:
+        _log(f"reading the series for their ratings failed: {exc}")
+        return rated
+    for show in shows:
+        if show.get("rating"):
+            rated[show["id"]] = {"rating": show["rating"],
+                                 "rating_from": show.get("rating_from", "")}
+    return rated
 
 
 def _continue_entry(row, kind: str) -> dict | None:

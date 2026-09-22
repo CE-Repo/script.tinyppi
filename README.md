@@ -553,7 +553,8 @@ Above both shelves is a row of the films and episodes left half-watched, the
 last one seen first — the quickest way back into whatever was on. It is one row
 for both, scrolled sideways: an episode stands on it as its show's poster, with
 which episode it is under the name. Every poster carries the same resume bar
-the walls do, and a tap resumes it where it was.
+the walls do and the same rating badge — a film its own, an episode its show's
+— and a tap resumes it where it was.
 
 It is read with Kodi's own "in progress" filter, holds the thirty most recent
 titles, and is dropped and read again on the same occasions the shelves are, so
