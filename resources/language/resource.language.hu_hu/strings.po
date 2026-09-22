@@ -1799,25 +1799,13 @@ msgctxt "#32558"
 msgid "Standard"
 msgstr "Alapértelmezett"
 
-msgctxt "#32559"
-msgid "Full size"
-msgstr "Teljes méret"
 
 msgctxt "#32560"
 msgid "Compact"
 msgstr "Kompakt"
 
-msgctxt "#32561"
-msgid "Sidebar (left)"
-msgstr "Oldalsáv (bal)"
 
-msgctxt "#32562"
-msgid "Sidebar (right)"
-msgstr "Oldalsáv (jobb)"
 
-msgctxt "#32563"
-msgid "Wheel"
-msgstr "Kerék"
 
 msgctxt "#32564"
 msgid "Single button"
@@ -1840,5 +1828,5 @@ msgid "Horizontal position"
 msgstr "Vízszintes helyzet"
 
 msgctxt "#32569"
-msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). Not available for the full size layout and the sidebars: one spans the screen and the others belong to an edge."
-msgstr "Megadja, hol helyezkedjen el a párbeszédpanel a képernyő bal (0%) és jobb széle (100%) között. A teljes méretű elrendezésnél és az oldalsávoknál nem érhető el: az egyik kitölti a képernyőt, a többi pedig egy szélhez tartozik."
+msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
+msgstr "Megadja, hol helyezkedjen el a párbeszédpanel a képernyő bal (0%) és jobb széle (100%) között. 50% esetén középen marad."

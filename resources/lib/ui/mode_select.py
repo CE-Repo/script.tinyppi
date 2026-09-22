@@ -800,7 +800,7 @@ __all__ = list(_MODES.keys()) + ["open_dialog", "set_mode"]
 _ACTIONS = {
     control_id: action
     for branch in dialog_layout.BRANCHES
-    for control_id, _label, _short, action in branch["buttons"]
+    for control_id, _label, action in branch["buttons"]
     if action is not None
 }
 
@@ -903,7 +903,7 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         """
         buttons = self._branch()["buttons"]
         self._step %= len(buttons)
-        _control_id, markup, _short, _action = buttons[self._step]
+        _control_id, markup, _action = buttons[self._step]
         self._set_label(dialog_layout.SINGLE_BUTTON,
                         dialog_layout.plain_label(markup))
         # How far round the ring the button is. One choice needs no counting.

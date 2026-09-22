@@ -5513,12 +5513,8 @@
                     <constraints>
                         <options>
                             <option label="32558">0</option>
-                            <option label="32559">1</option>
-                            <option label="32560">2</option>
-                            <option label="32561">3</option>
-                            <option label="32562">4</option>
-                            <option label="32563">5</option>
-                            <option label="32564">6</option>
+                            <option label="32560">1</option>
+                            <option label="32564">2</option>
                         </options>
                     </constraints>
                     <control type="list" format="string" />
@@ -5543,16 +5539,6 @@
                         <step>1</step>
                         <maximum>100</maximum>
                     </constraints>
-                    <dependencies>
-                        <dependency type="enable">
-                            <or>
-                                <condition operator="is" setting="dialog_mode">0</condition>
-                                <condition operator="is" setting="dialog_mode">2</condition>
-                                <condition operator="is" setting="dialog_mode">5</condition>
-                                <condition operator="is" setting="dialog_mode">6</condition>
-                            </or>
-                        </dependency>
-                    </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
             </group>

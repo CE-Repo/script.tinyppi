@@ -4,11 +4,11 @@
 
 """Write the VS10 dialog's layout window files.
 
-Six of the seven layouts draw the same four branches - what the stream is
+Two of the three layouts draw the same four branches - what the stream is
 decides which choices there are - in a different arrangement, so they are
-generated from one description rather than kept in step by hand. The
-seventh, the panel the add-on has always opened with, is written by hand and
-left alone here.
+generated from one description rather than kept in step by hand. The third,
+the panel the add-on has always opened with, is written by hand and left
+alone here.
 
 The choices themselves, and how large each layout's panel is, come from
 ``resources/lib/ui/dialog_layout.py``, which the dialog reads too.
@@ -87,45 +87,34 @@ def label(left, top, width, height, text, colour, font="font23_narrow",
     return "\n".join(body)
 
 
-def button(control_id, left, top, width, height, text, nav, blank=False):
-    """One choice.
-
-    ``blank`` draws no textures of its own: the wheel paints the segment
-    under the button instead, and a button drawing its own rounded rectangle
-    on top of a wedge would show as a rectangle in a ring.
-    """
+def button(control_id, left, top, width, height, text, nav):
+    """One choice: the same button the hand written panel draws."""
     body = ["<control type=\"button\" id=\"%d\">" % control_id,
             "    <left>%d</left>" % left,
             "    <top>%d</top>" % top,
             "    <width>%d</width>" % width,
             "    <height>%d</height>" % height,
-            "    <label>%s</label>" % ("" if blank else text),
+            "    <label>%s</label>" % text,
             "    <align>center</align>",
-            "    <aligny>center</aligny>",
             "    <font>font23_narrow</font>"]
     for key in ("onup", "ondown", "onleft", "onright"):
         if key in nav:
             body.append("    <%s>%d</%s>" % (key, nav[key], key))
-    if blank:
-        body.append("    <texturefocus></texturefocus>")
-        body.append("    <texturenofocus></texturenofocus>")
-    else:
-        body.extend([
-            "    <textcolor>%s</textcolor>" % (HOME % "DescriptionColor"),
-            "    <selectedcolor>%s</selectedcolor>" % (HOME % "DescriptionColor"),
-            "    <focusedcolor>%s</focusedcolor>"
-            % (HOME % "DialogFocusTextColor"),
-            "    <texturenofocus colordiffuse=\"00FFFFFF\" border=\"40\">"
-            "common/button-white.png</texturenofocus>",
-            "    <texturefocus colordiffuse=\"%s\" border=\"40\">"
-            "common/button-white.png</texturefocus>" % (HOME % "DialogFocusColor"),
-        ])
+    body.extend([
+        "    <textcolor>%s</textcolor>" % (HOME % "DescriptionColor"),
+        "    <selectedcolor>%s</selectedcolor>" % (HOME % "DescriptionColor"),
+        "    <focusedcolor>%s</focusedcolor>" % (HOME % "DialogFocusTextColor"),
+        "    <texturenofocus colordiffuse=\"00FFFFFF\" border=\"40\">"
+        "common/button-white.png</texturenofocus>",
+        "    <texturefocus colordiffuse=\"%s\" border=\"40\">"
+        "common/button-white.png</texturefocus>" % (HOME % "DialogFocusColor"),
+    ])
     body.append("</control>")
     return "\n".join(body)
 
 
 def panel(width, height):
-    """The rounded rectangle every layout but the wheel rests its choices on."""
+    """The rounded rectangle a generated layout rests its choices on."""
     return image(0, 0, width, height, "common/button-white.png",
                  HOME % "DialogBackgroundColor", border=40)
 
@@ -170,7 +159,7 @@ def ring_nav(index, count):
     return {"previous": (index - 1) % count, "next": (index + 1) % count}
 
 
-def stacked_branches(size, place, keys):
+def stacked_branches(place, keys):
     """Every branch's choices, each group hidden unless its stream is playing.
 
     ``place`` is handed the branch's buttons and returns the controls for
@@ -280,7 +269,7 @@ def slide_out(dx, dy):
 
 def bar(mode, title, margin, gap, slots, header_font, title_top, icon_size,
         rule_top, button_top, button_height, second_rule_top, single_width):
-    """The wide bar and the compact one: the choices in a row."""
+    """The compact bar: the choices in a row."""
     width, height = layout.PANEL_SIZE[mode]
     inner = width - 2 * margin
     size = (inner - (slots - 1) * gap) // slots
@@ -296,7 +285,7 @@ def bar(mode, title, margin, gap, slots, header_font, title_top, icon_size,
         return "\n".join(
             button(control_id, lefts[index], button_top, widths[index],
                    button_height, text, nav_for(buttons, index, keys))
-            for index, (control_id, text, _short, _action) in enumerate(buttons))
+            for index, (control_id, text, _action) in enumerate(buttons))
 
     body = "\n".join([
         panel(width, height),
@@ -304,148 +293,11 @@ def bar(mode, title, margin, gap, slots, header_font, title_top, icon_size,
                title_top + (44 - icon_size) // 2, header_font),
         rule(margin, rule_top, inner),
         rule(margin, second_rule_top, inner),
-        stacked_branches(None, place, ("onleft", "onright")),
+        stacked_branches(place, ("onleft", "onright")),
     ])
     left, top = layout.panel_position(mode)
     return window(title, layout.BRANCHES[0]["buttons"][0][0], width, height,
                   left, top, body, slide(0, 120), slide_out(0, 240))
-
-
-# -- the sidebars -----------------------------------------------------------
-
-def sidebar(mode, title):
-    width, height = layout.PANEL_SIZE[mode]
-    margin, gap, slots = 24, 12, 4
-    button_width = width - 2 * margin
-    button_height = 70
-    area_top = 90
-
-    def place(buttons, keys):
-        tops = spread(len(buttons), slots, area_top, button_height, gap)
-        return "\n".join(
-            button(control_id, margin, tops[index], button_width,
-                   button_height, text, nav_for(buttons, index, keys))
-            for index, (control_id, text, _short, _action) in enumerate(buttons))
-
-    body = "\n".join([
-        panel(width, height),
-        header(width, margin, 20, 32, 24, "font32"),
-        rule(margin, 74, button_width),
-        rule(margin, 424, button_width),
-        stacked_branches(None, place, ("onup", "ondown")),
-    ])
-    travel = -(width + layout.SCREEN_MARGIN)
-    if mode == layout.MODE_SIDEBAR_RIGHT:
-        travel = -travel
-    left, top = layout.panel_position(mode)
-    return window(title, layout.BRANCHES[0]["buttons"][0][0], width, height,
-                  left, top, body, slide(travel, 0), slide_out(travel, 0))
-
-
-# -- the wheel --------------------------------------------------------------
-
-WHEEL_RING_INSET = 6
-WHEEL_RING_SIZE = 548
-WHEEL_LABEL_RADIUS = 188
-WHEEL_LABEL_WIDTH = 160
-WHEEL_HIT_WIDTH = 150
-WHEEL_HIT_HEIGHT = 120
-
-
-def wheel_nav(buttons, index):
-    """Which segment each direction leads to on the ring.
-
-    A wheel of four has a segment in each direction, so the direction pad
-    points straight at them: up is the segment at the top whichever one the
-    remote is on. Three or one has no such answer, so there the directions
-    walk the ring instead, as they do on the bars.
-    """
-    count = len(buttons)
-    if count == 4:
-        return {"onup": buttons[0][0], "onright": buttons[1][0],
-                "ondown": buttons[2][0], "onleft": buttons[3][0]}
-    previous = buttons[(index - 1) % count][0]
-    following = buttons[(index + 1) % count][0]
-    return {"onup": previous, "onleft": previous,
-            "ondown": following, "onright": following}
-
-
-def wheel_point(index, count, size):
-    """The middle of a segment's outer band, where its name goes."""
-    centre = size / 2.0
-    angle = math.radians(index * 360.0 / count)
-    return (centre + WHEEL_LABEL_RADIUS * math.sin(angle),
-            centre - WHEEL_LABEL_RADIUS * math.cos(angle))
-
-
-def wheel(title):
-    mode = layout.MODE_WHEEL
-    width, height = layout.PANEL_SIZE[mode]
-    inset = WHEEL_RING_INSET
-    hub_top = height // 2 - 44
-
-    def place(buttons, keys):
-        count = len(buttons)
-        out = []
-        for index, (control_id, _text, text, _action) in enumerate(buttons):
-            segment = "dialog/wheel%d-segment%d.png" % (count, index + 1)
-            out.append(image(inset, inset, WHEEL_RING_SIZE, WHEEL_RING_SIZE,
-                             segment, HOME % "DialogLineColor",
-                             visible="!Control.HasFocus(%d)" % control_id,
-                             aspect="keep"))
-            out.append(image(inset, inset, WHEEL_RING_SIZE, WHEEL_RING_SIZE,
-                             segment, HOME % "DialogFocusColor",
-                             visible="Control.HasFocus(%d)" % control_id,
-                             aspect="keep"))
-        for index, (control_id, _text, text, _action) in enumerate(buttons):
-            x, y = wheel_point(index, count, width)
-            left = int(x - WHEEL_LABEL_WIDTH / 2.0)
-            top = int(y - 15)
-            # A wedge wants smaller writing than the bars do, and the skin the
-            # window is drawn with supplies the fonts, so the name is zoomed
-            # rather than set in a font of a size this file cannot count on.
-            out.append(label(left, top, WHEEL_LABEL_WIDTH, 30, text,
-                             HOME % "DescriptionColor",
-                             visible="!Control.HasFocus(%d)" % control_id,
-                             zoom=84))
-            out.append(label(left, top, WHEEL_LABEL_WIDTH, 30, text,
-                             HOME % "DialogFocusTextColor",
-                             visible="Control.HasFocus(%d)" % control_id,
-                             zoom=84))
-            out.append(button(control_id,
-                              int(x - WHEEL_HIT_WIDTH / 2.0),
-                              int(y - WHEEL_HIT_HEIGHT / 2.0),
-                              WHEEL_HIT_WIDTH, WHEEL_HIT_HEIGHT, text,
-                              wheel_nav(buttons, index), blank=True))
-        return "\n".join(out)
-
-    body = "\n".join([
-        image(0, 0, width, height, "dialog/wheel-disc.png",
-              HOME % "DialogBackgroundColor", aspect="keep"),
-        # The directions are worked out from the ring itself, so the pair
-        # the bars are handed is not used here.
-        stacked_branches(None, place, ("onleft", "onright")),
-        # The hub: a circle has no corner to hang a heading off, and the
-        # middle of a wheel is where the eye lands anyway.
-        image(width // 2 - 20, hub_top, 40, 40, "icons/vs10.png",
-              HOME % "DialogHeaderIconColor",
-              visible=SHOW % "ShowHeaderIcon", aspect="keep"),
-        label(width // 2 - 100, hub_top + 50, 200, 44, "[B]VS10[/B]",
-              HOME % "DialogHeaderColor", font="font32",
-              visible=SHOW % "ShowHeaderTitle"),
-    ])
-    zoom_in = SLIDE_IN + (
-        "<animation effect=\"zoom\" start=\"60\" end=\"100\" center=\"%d,%d\""
-        " time=\"200\" tween=\"quadratic\" easing=\"out\">Visible</animation>\n"
-        % (width // 2, height // 2))
-    zoom_out = (
-        "<animation effect=\"zoom\" start=\"100\" end=\"60\" center=\"%d,%d\""
-        " time=\"150\" tween=\"quadratic\" easing=\"in\">WindowClose</animation>\n"
-        "<animation effect=\"fade\" start=\"100\" end=\"0\" time=\"150\">"
-        "WindowClose</animation>" % (width // 2, height // 2))
-    left, top = layout.panel_position(mode)
-    return window(title, layout.BRANCHES[0]["buttons"][0][0], width, height,
-                  left, top, body, zoom_in, zoom_out)
 
 
 # -- the single button ------------------------------------------------------
@@ -481,28 +333,13 @@ def single(title):
 
 def main():
     files = {
-        layout.MODE_FULL: bar(
-            layout.MODE_FULL,
-            "The wide bar: the choices in a row across the screen.",
-            margin=30, gap=25, slots=4, header_font="font32", title_top=18,
-            icon_size=36, rule_top=80, button_top=100, button_height=80,
-            second_rule_top=198, single_width=600),
         layout.MODE_COMPACT: bar(
             layout.MODE_COMPACT,
-            "The compact bar: the wide one at about three quarters the size,"
-            " and free to be moved sideways.",
+            "The compact bar: the choices in a row rather than stacked, in a"
+            " panel low enough to leave most of the picture showing.",
             margin=24, gap=18, slots=4, header_font="font23_narrow",
-            title_top=12, icon_size=28, rule_top=56, button_top=72,
-            button_height=60, second_rule_top=150, single_width=500),
-        layout.MODE_SIDEBAR_LEFT: sidebar(
-            layout.MODE_SIDEBAR_LEFT,
-            "The left sidebar: the choices stacked against the left edge."),
-        layout.MODE_SIDEBAR_RIGHT: sidebar(
-            layout.MODE_SIDEBAR_RIGHT,
-            "The right sidebar: the left one against the other edge."),
-        layout.MODE_WHEEL: wheel(
-            "The wheel: the choices in the segments of a ring, the way a"
-            " game's weapon wheel arranges its own."),
+            title_top=14, icon_size=30, rule_top=62, button_top=78,
+            button_height=80, second_rule_top=176, single_width=500),
         layout.MODE_SINGLE: single(
             "The single button: one button, and left or right steps it to the"
             " next choice rather than moving to another button."),

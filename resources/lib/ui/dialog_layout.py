@@ -3,12 +3,11 @@
 
 """Geometry and choices of the VS10 dialog's layouts.
 
-One dialog, seven ways of drawing it: the panel the add-on has always had,
-the wide bar, the compact bar, a sidebar against either edge, the wheel and
-the single button. Which window file each is drawn from, how large its panel
-is and therefore how far it may be moved all live here, so the skin
-generator in ``tools/gen_dialog_skins.py`` and the dialog itself work from
-one description rather than from two that drift apart.
+One dialog, three ways of drawing it: the panel the add-on has always had,
+the compact bar and the single button. Which window file each is drawn from,
+how large its panel is and therefore how far it may be moved all live here,
+so the skin generator in ``tools/gen_dialog_skins.py`` and the dialog itself
+work from one description rather than from two that drift apart.
 
 Imported by the generator outside Kodi as well, so everything Kodi supplies
 is optional here.
@@ -23,40 +22,19 @@ except ImportError:
 
 # The layouts, and the window file each is drawn from.
 MODE_STANDARD = 0
-MODE_FULL = 1
-MODE_COMPACT = 2
-MODE_SIDEBAR_LEFT = 3
-MODE_SIDEBAR_RIGHT = 4
-MODE_WHEEL = 5
-MODE_SINGLE = 6
+MODE_COMPACT = 1
+MODE_SINGLE = 2
 
 XML_FILES = {
     MODE_STANDARD: "script-tinyppi-dialog.xml",
-    MODE_FULL: "script-tinyppi-dialog-full.xml",
     MODE_COMPACT: "script-tinyppi-dialog-compact.xml",
-    MODE_SIDEBAR_LEFT: "script-tinyppi-dialog-sidebar-left.xml",
-    MODE_SIDEBAR_RIGHT: "script-tinyppi-dialog-sidebar-right.xml",
-    MODE_WHEEL: "script-tinyppi-dialog-wheel.xml",
     MODE_SINGLE: "script-tinyppi-dialog-single.xml",
 }
-
-# Both bars are the same stack of buttons; they differ only in which edge
-# they rest against and travel from.
-SIDEBAR_MODES = (MODE_SIDEBAR_LEFT, MODE_SIDEBAR_RIGHT)
-
-# The layouts narrow enough to be moved sideways as well as up and down. The
-# wide bar spans the screen and a sidebar belongs to an edge, so for those the
-# horizontal setting has nothing to offer and is greyed out in the settings.
-MOVABLE_MODES = (MODE_STANDARD, MODE_COMPACT, MODE_WHEEL, MODE_SINGLE)
 
 # The panel of each mode, as the window files draw it.
 PANEL_SIZE = {
     MODE_STANDARD: (471, 546),
-    MODE_FULL: (1820, 226),
-    MODE_COMPACT: (1365, 180),
-    MODE_SIDEBAR_LEFT: (400, 452),
-    MODE_SIDEBAR_RIGHT: (400, 452),
-    MODE_WHEEL: (560, 560),
+    MODE_COMPACT: (1365, 200),
     MODE_SINGLE: (700, 232),
 }
 
@@ -104,27 +82,22 @@ _HAS_VS10_CONDITION = (
 # layouts put it in a different place depending on how many choices follow
 # it, and a control can only be in one place.
 PPI_LABEL = "[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]"
-# What the same button is called where there is no room to spell it out: the
-# add-on's own name, which is what the button opens.
-PPI_SHORT = "[B]TinyPPI[/B]"
 PPI_BUTTONS = (1001, 1101, 1201, 1301)
 
 # Every branch, in the order the buttons are laid out: the Player Process
-# Info button first, then the VS10 modes. Each is its control id, the name
-# the layouts with a button to write it across use, the short name for the
-# wheel - a wedge is not a bar, and a name that has to be cut off names
-# nothing - and what ui.mode_select runs for it. The action is None for the
-# Player Process Info button, which opens the overlay instead.
+# Info button first, then the VS10 modes. Each is its control id, its name
+# and what ui.mode_select runs for it - None for the Player Process Info
+# button, which opens the overlay instead.
 BRANCHES = (
     {
         "key": "sdr",
         "visible": "String.IsEmpty(%s(TinyPPI.HdrType)) + %s"
                    % (_HOME, _HAS_VS10_CONDITION),
         "buttons": (
-            (1001, PPI_LABEL, PPI_SHORT, None),
-            (1002, "[B]Original[/B]", "[B]Original[/B]", "original_sdr"),
-            (1003, "[B]SDR → HDR10[/B]", "[B]SDR → HDR10[/B]", "hdr10"),
-            (1004, "[B]SDR → Dolby Vision[/B]", "[B]SDR → DV[/B]", "dv"),
+            (1001, PPI_LABEL, None),
+            (1002, "[B]Original[/B]", "original_sdr"),
+            (1003, "[B]SDR → HDR10[/B]", "hdr10"),
+            (1004, "[B]SDR → Dolby Vision[/B]", "dv"),
         ),
     },
     {
@@ -132,10 +105,10 @@ BRANCHES = (
         "visible": "String.IsEqual(%s(TinyPPI.HdrType),hdr10) + %s"
                    % (_HOME, _HAS_VS10_CONDITION),
         "buttons": (
-            (1101, PPI_LABEL, PPI_SHORT, None),
-            (1005, "[B]HDR10 (Original)[/B]", "[B]Original[/B]", "original_hdr"),
-            (1006, "[B]HDR10 → SDR[/B]", "[B]HDR10 → SDR[/B]", "sdr8"),
-            (1008, "[B]HDR10 → Dolby Vision[/B]", "[B]HDR10 → DV[/B]", "dv"),
+            (1101, PPI_LABEL, None),
+            (1005, "[B]HDR10 (Original)[/B]", "original_hdr"),
+            (1006, "[B]HDR10 → SDR[/B]", "sdr8"),
+            (1008, "[B]HDR10 → Dolby Vision[/B]", "dv"),
         ),
     },
     {
@@ -143,24 +116,19 @@ BRANCHES = (
         "visible": "String.Contains(%s(TinyPPI.HdrType),dolby) + %s"
                    % (_HOME, _HAS_VS10_CONDITION),
         "buttons": (
-            (1201, PPI_LABEL, PPI_SHORT, None),
-            (1012, "[B]Dolby Vision (Original)[/B]", "[B]Original[/B]",
-             "original_dv"),
-            (1013, "[B]Dolby Vision → SDR[/B]", "[B]DV → SDR[/B]", "sdr8"),
+            (1201, PPI_LABEL, None),
+            (1012, "[B]Dolby Vision (Original)[/B]", "original_dv"),
+            (1013, "[B]Dolby Vision → SDR[/B]", "sdr8"),
         ),
     },
     {
         "key": "plain",
         "visible": _PLAIN_CONDITION,
         "buttons": (
-            (1301, PPI_LABEL, PPI_SHORT, None),
+            (1301, PPI_LABEL, None),
         ),
     },
 )
-
-# The segment counts the wheel is drawn for, one set of textures each. Every
-# branch has to be one of them.
-WHEEL_COUNTS = tuple(sorted({len(branch["buttons"]) for branch in BRANCHES}))
 
 
 def _setting_int(name, default):
@@ -215,25 +183,12 @@ def panel_position(mode):
     bottom one; horizontally 0% and 100% are the left and right margins. The
     default of 50% each leaves the panel in the middle of the screen, which is
     where the dialog has always drawn it.
-
-    Only the panels narrower than the screen can move sideways: the wide bar
-    spans it, and a sidebar that has left its edge is no longer a sidebar.
     """
-    width = PANEL_SIZE[mode][0]
     ceiling, floor = top_range(mode)
-    top = _across(_setting_int("dialog_position_y", 50), ceiling, floor)
-
-    if mode in MOVABLE_MODES:
-        leftmost, rightmost = left_range(mode)
-        left = _across(_setting_int("dialog_position_x", 50),
-                       leftmost, rightmost)
-    elif mode == MODE_SIDEBAR_RIGHT:
-        left = SCREEN_WIDTH - width - SCREEN_MARGIN
-    elif mode == MODE_SIDEBAR_LEFT:
-        left = SCREEN_MARGIN
-    else:
-        left = (SCREEN_WIDTH - width) // 2
-    return left, top
+    leftmost, rightmost = left_range(mode)
+    return (_across(_setting_int("dialog_position_x", 50),
+                    leftmost, rightmost),
+            _across(_setting_int("dialog_position_y", 50), ceiling, floor))
 
 
 def branch_for(hdr_type, hdr10plus_present):

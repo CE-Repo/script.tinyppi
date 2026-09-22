@@ -1799,25 +1799,13 @@ msgctxt "#32558"
 msgid "Standard"
 msgstr ""
 
-msgctxt "#32559"
-msgid "Full size"
-msgstr ""
 
 msgctxt "#32560"
 msgid "Compact"
 msgstr ""
 
-msgctxt "#32561"
-msgid "Sidebar (left)"
-msgstr ""
 
-msgctxt "#32562"
-msgid "Sidebar (right)"
-msgstr ""
 
-msgctxt "#32563"
-msgid "Wheel"
-msgstr ""
 
 msgctxt "#32564"
 msgid "Single button"
@@ -1840,5 +1828,5 @@ msgid "Horizontal position"
 msgstr ""
 
 msgctxt "#32569"
-msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). Not available for the full size layout and the sidebars: one spans the screen and the others belong to an edge."
+msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
 msgstr ""

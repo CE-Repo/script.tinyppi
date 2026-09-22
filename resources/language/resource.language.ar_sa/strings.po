@@ -1800,25 +1800,13 @@ msgctxt "#32558"
 msgid "Standard"
 msgstr "قياسي"
 
-msgctxt "#32559"
-msgid "Full size"
-msgstr "الحجم الكامل"
 
 msgctxt "#32560"
 msgid "Compact"
 msgstr "مضغوط"
 
-msgctxt "#32561"
-msgid "Sidebar (left)"
-msgstr "الشريط الجانبي (يسار)"
 
-msgctxt "#32562"
-msgid "Sidebar (right)"
-msgstr "الشريط الجانبي (يمين)"
 
-msgctxt "#32563"
-msgid "Wheel"
-msgstr "العجلة"
 
 msgctxt "#32564"
 msgid "Single button"
@@ -1841,5 +1829,5 @@ msgid "Horizontal position"
 msgstr "الموضع الأفقي"
 
 msgctxt "#32569"
-msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). Not available for the full size layout and the sidebars: one spans the screen and the others belong to an edge."
-msgstr "يحدد موضع مربع الحوار بين الحافة اليسرى للشاشة (0%) والحافة اليمنى (100%). غير متاح لتخطيط الحجم الكامل وللأشرطة الجانبية: الأول يمتد عبر الشاشة والبقية تنتمي إلى إحدى الحواف."
+msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
+msgstr "يحدد موضع مربع الحوار بين الحافة اليسرى للشاشة (0%) والحافة اليمنى (100%). تبقيه النسبة 50% في المنتصف."

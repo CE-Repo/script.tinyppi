@@ -1799,25 +1799,13 @@ msgctxt "#32558"
 msgid "Standard"
 msgstr "标准"
 
-msgctxt "#32559"
-msgid "Full size"
-msgstr "全尺寸"
 
 msgctxt "#32560"
 msgid "Compact"
 msgstr "紧凑"
 
-msgctxt "#32561"
-msgid "Sidebar (left)"
-msgstr "侧边栏（左）"
 
-msgctxt "#32562"
-msgid "Sidebar (right)"
-msgstr "侧边栏（右）"
 
-msgctxt "#32563"
-msgid "Wheel"
-msgstr "轮盘"
 
 msgctxt "#32564"
 msgid "Single button"
@@ -1840,5 +1828,5 @@ msgid "Horizontal position"
 msgstr "水平位置"
 
 msgctxt "#32569"
-msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). Not available for the full size layout and the sidebars: one spans the screen and the others belong to an edge."
-msgstr "设定对话框在屏幕左边缘（0%）与右边缘（100%）之间的位置。全尺寸布局和侧边栏不适用：前者横跨整个屏幕，后者固定在某一边。"
+msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
+msgstr "设定对话框在屏幕左边缘（0%）与右边缘（100%）之间的位置。50% 时保持在中间。"

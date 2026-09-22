@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated file - do not edit by hand; see tools/gen_dialog_skins.py.
-     The compact bar: the wide one at about three quarters the size, and free to be moved sideways. -->
+     The compact bar: the choices in a row rather than stacked, in a panel low enough to leave most of the picture showing. -->
 <window type="dialog">
     <defaultcontrol always="true">1001</defaultcontrol>
     <onload>Dialog.Close(fullscreenvideo,true)</onload>
@@ -28,16 +28,16 @@
              itself out again when the window closes. -->
         <control type="group" id="2">
             <left>278</left>
-            <top>450</top>
+            <top>440</top>
             <width>1365</width>
-            <height>180</height>
+            <height>200</height>
             <animation effect="slide" start="0,0" end="0,240" time="200" tween="quadratic" easing="in">WindowClose</animation>
             <animation effect="fade" start="100" end="0" time="150">WindowClose</animation>
             <control type="group">
                 <left>0</left>
                 <top>0</top>
                 <width>1365</width>
-                <height>180</height>
+                <height>200</height>
                 <visible>String.IsEqual(Window(10000).Property(TinyPPI.DialogPlaced),1)</visible>
                 <animation effect="fade" start="0" end="100" time="200">Visible</animation>
                 <animation effect="fade" start="100" end="0" time="150">Hidden</animation>
@@ -46,12 +46,12 @@
                     <left>0</left>
                     <top>0</top>
                     <width>1365</width>
-                    <height>180</height>
+                    <height>200</height>
                     <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogBackgroundColor)]" border="40">common/button-white.png</texture>
                 </control>
                 <control type="label">
                     <left>24</left>
-                    <top>12</top>
+                    <top>14</top>
                     <width>1317</width>
                     <height>44</height>
                     <font>font23_narrow</font>
@@ -62,17 +62,17 @@
                     <label>[B]VS10[/B]</label>
                 </control>
                 <control type="image">
-                    <left>1313</left>
-                    <top>20</top>
-                    <width>28</width>
-                    <height>28</height>
+                    <left>1311</left>
+                    <top>21</top>
+                    <width>30</width>
+                    <height>30</height>
                     <aspectratio>keep</aspectratio>
                     <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderIcon),1)</visible>
                     <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogHeaderIconColor)]">icons/vs10.png</texture>
                 </control>
                 <control type="image">
                     <left>24</left>
-                    <top>56</top>
+                    <top>62</top>
                     <width>1317</width>
                     <height>1</height>
                     <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
@@ -80,7 +80,7 @@
                 </control>
                 <control type="image">
                     <left>24</left>
-                    <top>150</top>
+                    <top>176</top>
                     <width>1317</width>
                     <height>1</height>
                     <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
@@ -90,12 +90,11 @@
                     <visible>String.IsEmpty(Window(10000).Property(TinyPPI.HdrType)) + !String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) + !String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) + !String.IsEqual(Window(10000).Property(TinyPPI.Hdr10PlusPresent),1)</visible>
                     <control type="button" id="1001">
                         <left>24</left>
-                        <top>72</top>
+                        <top>78</top>
                         <width>315</width>
-                        <height>60</height>
+                        <height>80</height>
                         <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
                         <align>center</align>
-                        <aligny>center</aligny>
                         <font>font23_narrow</font>
                         <onup>1001</onup>
                         <ondown>1001</ondown>
@@ -109,12 +108,11 @@
                     </control>
                     <control type="button" id="1002">
                         <left>357</left>
-                        <top>72</top>
+                        <top>78</top>
                         <width>315</width>
-                        <height>60</height>
+                        <height>80</height>
                         <label>[B]Original[/B]</label>
                         <align>center</align>
-                        <aligny>center</aligny>
                         <font>font23_narrow</font>
                         <onup>1002</onup>
                         <ondown>1002</ondown>
@@ -128,12 +126,11 @@
                     </control>
                     <control type="button" id="1003">
                         <left>690</left>
-                        <top>72</top>
+                        <top>78</top>
                         <width>315</width>
-                        <height>60</height>
+                        <height>80</height>
                         <label>[B]SDR → HDR10[/B]</label>
                         <align>center</align>
-                        <aligny>center</aligny>
                         <font>font23_narrow</font>
                         <onup>1003</onup>
                         <ondown>1003</ondown>
@@ -147,12 +144,11 @@
                     </control>
                     <control type="button" id="1004">
                         <left>1023</left>
-                        <top>72</top>
+                        <top>78</top>
                         <width>315</width>
-                        <height>60</height>
+                        <height>80</height>
                         <label>[B]SDR → Dolby Vision[/B]</label>
                         <align>center</align>
-                        <aligny>center</aligny>
                         <font>font23_narrow</font>
                         <onup>1004</onup>
                         <ondown>1004</ondown>
@@ -169,12 +165,11 @@
                     <visible>String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) + !String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) + !String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) + !String.IsEqual(Window(10000).Property(TinyPPI.Hdr10PlusPresent),1)</visible>
                     <control type="button" id="1101">
                         <left>24</left>
-                        <top>72</top>
+                        <top>78</top>
                         <width>315</width>
-                        <height>60</height>
+                        <height>80</height>
                         <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
                         <align>center</align>
-                        <aligny>center</aligny>
                         <font>font23_narrow</font>
                         <onup>1101</onup>
                         <ondown>1101</ondown>
@@ -188,12 +183,11 @@
                     </control>
                     <control type="button" id="1005">
                         <left>357</left>
-                        <top>72</top>
+                        <top>78</top>
                         <width>315</width>
-                        <height>60</height>
+                        <height>80</height>
                         <label>[B]HDR10 (Original)[/B]</label>
                         <align>center</align>
-                        <aligny>center</aligny>
                         <font>font23_narrow</font>
                         <onup>1005</onup>
                         <ondown>1005</ondown>
@@ -207,12 +201,11 @@
                     </control>
                     <control type="button" id="1006">
                         <left>690</left>
-                        <top>72</top>
+                        <top>78</top>
                         <width>315</width>
-                        <height>60</height>
+                        <height>80</height>
                         <label>[B]HDR10 → SDR[/B]</label>
                         <align>center</align>
-                        <aligny>center</aligny>
                         <font>font23_narrow</font>
                         <onup>1006</onup>
                         <ondown>1006</ondown>
@@ -226,12 +219,11 @@
                     </control>
                     <control type="button" id="1008">
                         <left>1023</left>
-                        <top>72</top>
+                        <top>78</top>
                         <width>315</width>
-                        <height>60</height>
+                        <height>80</height>
                         <label>[B]HDR10 → Dolby Vision[/B]</label>
                         <align>center</align>
-                        <aligny>center</aligny>
                         <font>font23_narrow</font>
                         <onup>1008</onup>
                         <ondown>1008</ondown>
@@ -248,12 +240,11 @@
                     <visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby) + !String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) + !String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) + !String.IsEqual(Window(10000).Property(TinyPPI.Hdr10PlusPresent),1)</visible>
                     <control type="button" id="1201">
                         <left>24</left>
-                        <top>72</top>
+                        <top>78</top>
                         <width>315</width>
-                        <height>60</height>
+                        <height>80</height>
                         <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
                         <align>center</align>
-                        <aligny>center</aligny>
                         <font>font23_narrow</font>
                         <onup>1201</onup>
                         <ondown>1201</ondown>
@@ -267,12 +258,11 @@
                     </control>
                     <control type="button" id="1012">
                         <left>524</left>
-                        <top>72</top>
+                        <top>78</top>
                         <width>315</width>
-                        <height>60</height>
+                        <height>80</height>
                         <label>[B]Dolby Vision (Original)[/B]</label>
                         <align>center</align>
-                        <aligny>center</aligny>
                         <font>font23_narrow</font>
                         <onup>1012</onup>
                         <ondown>1012</ondown>
@@ -286,12 +276,11 @@
                     </control>
                     <control type="button" id="1013">
                         <left>1023</left>
-                        <top>72</top>
+                        <top>78</top>
                         <width>315</width>
-                        <height>60</height>
+                        <height>80</height>
                         <label>[B]Dolby Vision → SDR[/B]</label>
                         <align>center</align>
-                        <aligny>center</aligny>
                         <font>font23_narrow</font>
                         <onup>1013</onup>
                         <ondown>1013</ondown>
@@ -308,12 +297,11 @@
                     <visible>String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) | String.IsEqual(Window(10000).Property(TinyPPI.Hdr10PlusPresent),1)</visible>
                     <control type="button" id="1301">
                         <left>432</left>
-                        <top>72</top>
+                        <top>78</top>
                         <width>500</width>
-                        <height>60</height>
+                        <height>80</height>
                         <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
                         <align>center</align>
-                        <aligny>center</aligny>
                         <font>font23_narrow</font>
                         <onup>1301</onup>
                         <ondown>1301</ondown>
