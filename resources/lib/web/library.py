@@ -116,6 +116,10 @@ _episodes: dict[int, dict] = {}
 # address the browser asks for names an episode and not its show, and walking
 # every held show to find out whose it is would be a search per picture.
 _episode_art: dict[int, dict[str, str]] = {}
+# The films and episodes somebody stopped in the middle of, newest first; see
+# ``continuing``.  Held and dropped with the rest.
+_continuing: dict | None = None
+_continuing_read_at = 0.0
 
 
 def _log(message: str, level: int = xbmc.LOGDEBUG) -> None:
@@ -135,11 +139,14 @@ def invalidate() -> None:
     a list that theirs is now the old one.
     """
     global _catalogue, _read_at, _shows, _shows_read_at, _revision
+    global _continuing, _continuing_read_at
     with _lock:
         _catalogue = None
         _read_at = 0.0
         _shows = None
         _shows_read_at = 0.0
+        _continuing = None
+        _continuing_read_at = 0.0
         _episodes.clear()
         _episode_art.clear()
         _revision += 1
@@ -483,16 +490,25 @@ def show_art_path(show_id, kind: str) -> str:
 def episode_art_path(episode_id, kind: str) -> str:
     """The raw path Kodi holds for one episode's still, or ''.
 
-    Only episodes whose show has been opened are here, which is the only way an
-    address for one can have reached a browser in the first place.
+    Only episodes whose show has been opened, or which stand on the row of
+    things left half-watched, are here -- which are the only ways an address
+    for one can have reached a browser in the first place.
     """
     try:
         wanted = int(episode_id)
     except (TypeError, ValueError):
         return ""
     with _lock:
-        entry = _episode_art.get(wanted) or {}
-    return entry.get(kind, "")
+        entry = _episode_art.get(wanted)
+        dropped = _continuing is None
+    if entry is None and dropped:
+        # The lists were dropped since the address was handed out, and the row
+        # of things half-watched is the one list that hands out episodes whose
+        # show nobody opened: reading it again files their pictures again.
+        continuing()
+        with _lock:
+            entry = _episode_art.get(wanted)
+    return (entry or {}).get(kind, "")
 
 
 def _show_catalogue(force: bool = False) -> dict:
@@ -678,8 +694,183 @@ def play_episode(episode_id) -> bool:
 def _episode_resume_point(episode_id: int) -> int:
     with _lock:
         held = list(_episodes.values())
+        started = _continuing
     for show in held:
         for episode in show["episodes"]:
             if episode["id"] == episode_id:
                 return int(episode.get("resume") or 0)
-    return 0
+    # An episode pressed on the row of things left half-watched may belong to a
+    # show nobody has opened, and that row holds its resume point as well.
+    if started is not None:
+        for entry in started["items"]:
+            if entry["kind"] == "episode" and entry["id"] == episode_id:
+                return int(entry.get("resume") or 0)
+        return 0
+    # The lists were dropped between the row being drawn and the press, which
+    # is what a title ending just before it looks like: asked of Kodi instead,
+    # rather than starting the episode from the beginning.
+    answer = rpc("VideoLibrary.GetEpisodeDetails",
+                 {"episodeid": episode_id, "properties": ["resume"]})
+    result = answer.get("result")
+    details = result.get("episodedetails") if isinstance(result, dict) else None
+    return _resume((details or {}).get("resume"))
+
+
+# --- Continue watching -----------------------------------------------------
+
+# How many titles the row holds.  It is the way back into what was being
+# watched, not a history: a phone shows four of them, and the thirtieth thing
+# somebody stopped in the middle of is not what they came back for.
+_CONTINUE_LIMIT = 30
+
+# Only what somebody would actually resume: Kodi's own "in progress" filter,
+# which is a resume point on a title not yet watched to the end.
+_IN_PROGRESS = {"field": "inprogress", "operator": "true", "value": ""}
+
+_CONTINUE_FILM_PROPERTIES = ("title", "year", "art", "runtime", "resume",
+                             "lastplayed")
+_CONTINUE_EPISODE_PROPERTIES = ("title", "showtitle", "tvshowid", "season",
+                                "episode", "art", "runtime", "resume",
+                                "lastplayed")
+
+# An episode stands on the row as its show: the show's poster is what the row
+# is scanned for, and a still from the middle of season three is not.
+_EPISODE_POSTER_KEYS = ("tvshow.poster", "season.poster", "poster")
+
+
+def continuing(films: bool = True, series: bool = True) -> dict:
+    """The films and episodes left half-watched, the last one seen first.
+
+    One list of both, as ``{"items": [...], "count": int, "tag": str}``: the
+    row is the quickest way back into whatever was on, and whether that was a
+    film or an episode is not what somebody reaching for it is thinking about.
+    Each entry says which of the two it is under ``kind``.
+
+    ``films`` and ``series`` leave out the half a box does not offer, so a box
+    whose series shelf is switched off does not put episodes on the row.
+    """
+    global _continuing, _continuing_read_at
+    with _lock:
+        held = _continuing
+        fresh = (held is not None
+                 and time.monotonic() - _continuing_read_at < _TTL)
+    if held is None or not fresh:
+        held = _read_continuing()
+        with _lock:
+            _continuing = held
+            _continuing_read_at = time.monotonic()
+            # The row hands out addresses for episodes whose show may never
+            # have been opened; the pictures behind them are filed with the
+            # rest (see ``episode_art_path``).
+            _episode_art.update(held["art"])
+
+    items = [entry for entry in held["items"]
+             if (films and entry["kind"] == "movie")
+             or (series and entry["kind"] == "episode")]
+    return {"items": items, "count": len(items),
+            "tag": f"{int(films)}{int(series)}-{held['tag']}"}
+
+
+def _read_continuing() -> dict:
+    listing: list[dict] = []
+    art: dict[int, dict[str, str]] = {}
+    sort = {"method": "lastplayed", "order": "descending"}
+    limits = {"start": 0, "end": _CONTINUE_LIMIT}
+
+    answer = rpc("VideoLibrary.GetMovies", {
+        "properties": list(_CONTINUE_FILM_PROPERTIES),
+        "filter": _IN_PROGRESS, "sort": sort, "limits": limits,
+    })
+    if answer.get("error"):
+        _log(f"VideoLibrary.GetMovies (in progress) failed: {answer['error']}")
+    result = answer.get("result")
+    for row in (result.get("movies") or []) if isinstance(result, dict) else []:
+        entry = _continue_entry(row, "movie")
+        # A film has no season and number to be called by instead.
+        if entry is None or not entry["title"]:
+            continue
+        pictures = row.get("art") if isinstance(row.get("art"), dict) else {}
+        entry["poster"] = _tag(_picture(pictures, _POSTER_KEYS))
+        year = row.get("year")
+        if isinstance(year, int) and year > 0:
+            entry["year"] = year
+        listing.append(entry)
+
+    answer = rpc("VideoLibrary.GetEpisodes", {
+        "properties": list(_CONTINUE_EPISODE_PROPERTIES),
+        "filter": _IN_PROGRESS, "sort": sort, "limits": limits,
+    })
+    if answer.get("error"):
+        _log(f"VideoLibrary.GetEpisodes (in progress) failed: {answer['error']}")
+    result = answer.get("result")
+    for row in (result.get("episodes") or []) if isinstance(result, dict) else []:
+        entry = _continue_entry(row, "episode")
+        if entry is None:
+            continue
+        pictures = row.get("art") if isinstance(row.get("art"), dict) else {}
+        poster = _picture(pictures, _EPISODE_POSTER_KEYS)
+        still = _picture(pictures, _EPISODE_PICTURE_KEYS)
+        art[entry["id"]] = {"poster": poster, "thumb": still}
+        entry["poster"] = _tag(poster)
+        entry["thumb"] = _tag(still)
+        show = clean_value(str(row.get("showtitle") or ""))
+        if show:
+            entry["show"] = show
+        show_id = row.get("tvshowid")
+        if isinstance(show_id, int) and show_id > 0:
+            entry["tvshowid"] = show_id
+        season = row.get("season")
+        if isinstance(season, int) and season >= 0:
+            entry["season"] = season
+        number = row.get("episode")
+        if isinstance(number, int) and number >= 0:
+            entry["episode"] = number
+        listing.append(entry)
+
+    # Kodi writes the time as "2026-09-22 20:15:00", which sorts as text in the
+    # order it happened -- so the two lists are one list without a date parser.
+    listing.sort(key=lambda entry: entry.get("lastplayed", ""), reverse=True)
+    del listing[_CONTINUE_LIMIT:]
+
+    signature = zlib.crc32(b"")
+    for entry in listing:
+        signature = zlib.crc32(
+            f"{entry['kind']}\x1f{entry['id']}\x1f{entry['title']}\x1f"
+            f"{entry.get('poster', '')}\x1f{entry.get('resume', 0)}\x1f"
+            f"{entry.get('lastplayed', '')}"
+            .encode("utf-8", "replace"), signature)
+
+    _log(f"{len(listing)} titles in progress read from the video database")
+    return {"items": listing, "art": art,
+            "tag": f"{len(listing):x}-{signature:08x}"}
+
+
+def _continue_entry(row, kind: str) -> dict | None:
+    """What a film and an episode on the row have in common, or None for a row
+    that is not one: no id, or a resume point too small to be worth one."""
+    if not isinstance(row, dict):
+        return None
+    wanted = row.get("movieid" if kind == "movie" else "episodeid")
+    if not isinstance(wanted, int):
+        return None
+    resume = _resume(row.get("resume"))
+    if not resume:
+        return None
+    entry = {"kind": kind, "id": wanted, "resume": resume,
+             "title": clean_value(str(row.get("title") or row.get("label") or ""))}
+    runtime = row.get("runtime")
+    if isinstance(runtime, int) and runtime > 0:
+        entry["duration"] = runtime
+    else:
+        # A file the scraper never timed still knows how long it is from the
+        # resume point Kodi wrote, and the bar needs a length to be drawn.
+        try:
+            total = int(float((row.get("resume") or {}).get("total") or 0))
+        except (TypeError, ValueError, AttributeError):
+            total = 0
+        if total > 0:
+            entry["duration"] = total
+    played = row.get("lastplayed")
+    if isinstance(played, str) and played.strip():
+        entry["lastplayed"] = played.strip()
+    return entry
