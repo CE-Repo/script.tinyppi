@@ -217,11 +217,14 @@ def plain_label(markup):
 
     Bold and the rest of Kodi's text markup survive being set from code; a
     ``$LOCALIZE`` does not - a window file is parsed for those and a label set
-    at runtime is not - so it is looked up here.
+    at runtime is not - so it is looked up here. Kodi gives the name already
+    written the way it wants to be read, and it goes on the button that way:
+    the capitalising the other layouts ask for belongs to a row of names
+    where one alone would read as an odd one out.
     """
     if "$LOCALIZE[10116]" in markup:
         localized = (xbmc.getLocalizedString(10116) if xbmc is not None
                      else "Player process info")
         markup = markup.replace("[CAPITALIZE]", "").replace("[/CAPITALIZE]", "")
-        markup = markup.replace("$LOCALIZE[10116]", localized.upper())
+        markup = markup.replace("$LOCALIZE[10116]", localized)
     return markup
