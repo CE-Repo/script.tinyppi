@@ -79,7 +79,7 @@ _HAS_VS10_CONDITION = (
 # control of its own per branch rather than one shared between them: the
 # layouts put it in a different place depending on how many choices follow
 # it, and a control can only be in one place.
-PPI_LABEL = "[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]"
+PPI_LABEL = "[B]$LOCALIZE[10116][/B]"
 PPI_BUTTONS = (1001, 1101, 1201, 1301)
 
 # Every branch, in the order the buttons are laid out: the Player Process
@@ -217,14 +217,15 @@ def plain_label(markup):
 
     Bold and the rest of Kodi's text markup survive being set from code; a
     ``$LOCALIZE`` does not - a window file is parsed for those and a label set
-    at runtime is not - so it is looked up here. Kodi gives the name already
-    written the way it wants to be read, and it goes on the button that way:
-    the capitalising the other layouts ask for belongs to a row of names
-    where one alone would read as an odd one out.
+    at runtime is not - so it is looked up here, and the one capital it is
+    written with put on it. The window files leave the name as Kodi gives it,
+    which is written that way already; this is the one place it is set from
+    code, and the one where a translation that came back lower case would
+    show as such.
     """
     if "$LOCALIZE[10116]" in markup:
         localized = (xbmc.getLocalizedString(10116) if xbmc is not None
                      else "Player process info")
-        markup = markup.replace("[CAPITALIZE]", "").replace("[/CAPITALIZE]", "")
+        localized = localized[:1].upper() + localized[1:]
         markup = markup.replace("$LOCALIZE[10116]", localized)
     return markup

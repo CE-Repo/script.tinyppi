@@ -125,7 +125,7 @@
                         <top>155</top>
                         <width>400</width>
                         <height>80</height>
-                        <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
+                        <label>[B]$LOCALIZE[10116][/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
@@ -194,7 +194,7 @@
                         <top>155</top>
                         <width>400</width>
                         <height>80</height>
-                        <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
+                        <label>[B]$LOCALIZE[10116][/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
@@ -263,7 +263,7 @@
                         <top>155</top>
                         <width>400</width>
                         <height>80</height>
-                        <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
+                        <label>[B]$LOCALIZE[10116][/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
@@ -316,7 +316,7 @@
                         <top>275</top>
                         <width>400</width>
                         <height>80</height>
-                        <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
+                        <label>[B]$LOCALIZE[10116][/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
