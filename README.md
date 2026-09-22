@@ -256,8 +256,8 @@ Pick one under **Settings → VS10 dialog → Layout**:
 
 | Layout | What it looks like |
 | --- | --- |
-| **Standard** | The panel the add-on has always opened with: the choices stacked in the middle of the screen. The default. |
-| **Compact** | A bar rather than a stack, the choices side by side in a panel low enough to leave most of the picture showing. |
+| **Standard** | The panel the add-on opened with before the layouts existed: the choices stacked. |
+| **Compact** | A bar rather than a stack, the choices side by side in a panel low enough to leave most of the picture showing. The default. |
 | **Single button** | One button, and **left** or **right** steps it to the next choice. For a remote that has little more than a direction pad and OK. |
 
 Every layout draws the same choices, and how many there are depends on the
@@ -275,11 +275,9 @@ All three layouts are narrower than the screen, so both directions apply to
 each of them:
 
 - **Vertical position** — 0% is a margin below the top edge of the screen,
-  100% rests the panel on the bottom one.
+  100% rests the panel on the bottom one. Defaults to 50%.
 - **Horizontal position** — 0% is the left margin and 100% the right one.
-
-Both default to 50%, which leaves the panel in the middle of the screen —
-where the dialog has always been drawn.
+  Defaults to 100%.
 
 The colours of every layout come from the **VS10 dialog** colour settings,
 which now include **Button text** — the colour of the buttons the remote is

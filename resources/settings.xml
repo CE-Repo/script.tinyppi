@@ -5509,7 +5509,7 @@
             <group id="20" label="32555">
                 <setting id="dialog_mode" type="integer" label="32556" help="32557">
                     <level>0</level>
-                    <default>0</default>
+                    <default>1</default>
                     <constraints>
                         <options>
                             <option label="32558">0</option>
@@ -5533,7 +5533,7 @@
                 </setting>
                 <setting id="dialog_position_x" type="integer" label="32568" help="32569">
                     <level>0</level>
-                    <default>50</default>
+                    <default>100</default>
                     <constraints>
                         <minimum>0</minimum>
                         <step>1</step>

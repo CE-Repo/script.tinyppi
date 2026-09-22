@@ -139,13 +139,13 @@ def _setting_int(name, default):
 
 
 def dialog_mode():
-    """The selected layout, falling back to the panel the add-on opened with.
+    """The selected layout, falling back to the compact bar - the default.
 
     An unknown value means a settings file from a newer version than this
     code, so it is treated as the default rather than breaking the dialog.
     """
-    mode = _setting_int("dialog_mode", MODE_STANDARD)
-    return mode if mode in XML_FILES else MODE_STANDARD
+    mode = _setting_int("dialog_mode", MODE_COMPACT)
+    return mode if mode in XML_FILES else MODE_COMPACT
 
 
 def xml_file(mode=None):
@@ -179,12 +179,12 @@ def panel_position(mode):
 
     Vertically 0% is a margin below the top edge and 100% rests it on the
     bottom one; horizontally 0% and 100% are the left and right margins. The
-    default of 50% each leaves the panel in the middle of the screen, which is
-    where the dialog has always drawn it.
+    defaults - 100% across and 50% down - rest the panel against the right
+    margin, halfway down the screen.
     """
     ceiling, floor = top_range(mode)
     leftmost, rightmost = left_range(mode)
-    return (_across(_setting_int("dialog_position_x", 50),
+    return (_across(_setting_int("dialog_position_x", 100),
                     leftmost, rightmost),
             _across(_setting_int("dialog_position_y", 50), ceiling, floor))
 

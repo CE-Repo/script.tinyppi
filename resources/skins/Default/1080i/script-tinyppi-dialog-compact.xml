@@ -27,7 +27,7 @@
              because a control held back by a condition does not play
              itself out again when the window closes. -->
         <control type="group" id="2">
-            <left>278</left>
+            <left>505</left>
             <top>440</top>
             <width>1365</width>
             <height>200</height>
