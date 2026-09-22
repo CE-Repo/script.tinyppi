@@ -1796,8 +1796,8 @@ msgid "Which of the designs the VS10 dialog is drawn as."
 msgstr "Meghatározza, melyik kivitelben jelenik meg a VS10 párbeszédpanel."
 
 msgctxt "#32558"
-msgid "Standard"
-msgstr "Alapértelmezett"
+msgid "Dialog"
+msgstr "Párbeszédpanel"
 
 
 msgctxt "#32560"

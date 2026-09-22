@@ -3,8 +3,8 @@
 
 """Geometry and choices of the VS10 dialog's layouts.
 
-One dialog, three ways of drawing it: the panel the add-on has always had,
-the compact bar and the single button. Which window file each is drawn from,
+One dialog, three ways of drawing it: the compact bar, the single button and
+the panel the add-on has always had. Which window file each is drawn from,
 how large its panel is and therefore how far it may be moved all live here,
 so the skin generator in ``tools/gen_dialog_skins.py`` and the dialog itself
 work from one description rather than from two that drift apart.
@@ -20,20 +20,23 @@ except ImportError:
     xbmc = None
     xbmcaddon = None
 
-# The layouts, and the window file each is drawn from.
-MODE_STANDARD = 0
+# The layouts, and the window file each is drawn from. The numbering is the
+# order they were written in, not the order the settings list offers them:
+# that is the settings file's to say, and a stored value has to keep meaning
+# what it meant.
+MODE_DIALOG = 0
 MODE_COMPACT = 1
 MODE_SINGLE = 2
 
 XML_FILES = {
-    MODE_STANDARD: "script-tinyppi-dialog.xml",
+    MODE_DIALOG: "script-tinyppi-dialog.xml",
     MODE_COMPACT: "script-tinyppi-dialog-compact.xml",
     MODE_SINGLE: "script-tinyppi-dialog-single.xml",
 }
 
 # The panel of each mode, as the window files draw it.
 PANEL_SIZE = {
-    MODE_STANDARD: (471, 546),
+    MODE_DIALOG: (471, 546),
     MODE_COMPACT: (1365, 200),
     MODE_SINGLE: (700, 216),
 }

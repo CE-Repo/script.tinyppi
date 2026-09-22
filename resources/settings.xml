@@ -5512,9 +5512,9 @@
                     <default>1</default>
                     <constraints>
                         <options>
-                            <option label="32558">0</option>
                             <option label="32560">1</option>
                             <option label="32564">2</option>
+                            <option label="32558">0</option>
                         </options>
                     </constraints>
                     <control type="list" format="string" />

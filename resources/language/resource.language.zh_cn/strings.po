@@ -1796,8 +1796,8 @@ msgid "Which of the designs the VS10 dialog is drawn as."
 msgstr "决定 VS10 对话框采用哪一种设计。"
 
 msgctxt "#32558"
-msgid "Standard"
-msgstr "标准"
+msgid "Dialog"
+msgstr "对话框"
 
 
 msgctxt "#32560"

@@ -1796,8 +1796,8 @@ msgid "Which of the designs the VS10 dialog is drawn as."
 msgstr "Legt fest, in welchem Design der VS10-Dialog gezeichnet wird."
 
 msgctxt "#32558"
-msgid "Standard"
-msgstr "Standard"
+msgid "Dialog"
+msgstr "Dialog"
 
 
 msgctxt "#32560"
