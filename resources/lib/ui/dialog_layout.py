@@ -37,7 +37,7 @@ XML_FILES = {
 # The panel of each mode, as the window files draw it.
 PANEL_SIZE = {
     MODE_DIALOG: (471, 546),
-    MODE_BAR: (1365, 200),
+    MODE_BAR: (1702, 200),
     MODE_SINGLE: (700, 216),
 }
 

@@ -133,21 +133,6 @@ def rule(left, top, width):
                  HOME % "DialogLineColor", visible=SHOW % "ShowLine")
 
 
-def spread(count, slots, start, size, gap):
-    """Where ``count`` items go in the room kept for ``slots`` of them.
-
-    The layouts reserve the same space whatever the stream is, so that the
-    panel is one size and the position settings mean one thing; a branch with
-    fewer choices than the widest one spreads them over that space rather than
-    bunching them at one end.
-    """
-    room = slots * size + (slots - 1) * gap
-    if count <= 1:
-        return [start + (room - size) // 2]
-    step = (room - size) / float(count - 1)
-    return [start + int(index * step + 0.5) for index in range(count)]
-
-
 def ring_nav(index, count):
     """Left and right, and up and down, walk the choices round in a ring."""
     if count == 1:
@@ -263,23 +248,28 @@ def slide_out(dx, dy):
 
 # -- the bars ---------------------------------------------------------------
 
-def bar(mode, title, margin, gap, slots, header_font, title_top, icon_size,
+def bar(mode, title, margin, gap, header_font, title_top, icon_size,
         rule_top, button_top, button_height, second_rule_top, single_width):
-    """The bar: the choices in a row."""
+    """The bar: the choices in a row.
+
+    Each branch fills the row with the choices it has rather than leaving the
+    gaps a branch with more would want: three names over four buttons' worth
+    of room is what cut "Dolby Vision (Original)" short. The panel stays one
+    size whatever is playing, so the position settings still mean one thing.
+    """
     width, height = layout.PANEL_SIZE[mode]
     inner = width - 2 * margin
-    size = (inner - (slots - 1) * gap) // slots
 
     def place(buttons, keys):
         count = len(buttons)
         if count == 1:
             lefts = [margin + (inner - single_width) // 2]
-            widths = [single_width]
+            size = single_width
         else:
-            lefts = spread(count, slots, margin, size, gap)
-            widths = [size] * count
+            size = (inner - (count - 1) * gap) // count
+            lefts = [margin + index * (size + gap) for index in range(count)]
         return "\n".join(
-            button(control_id, lefts[index], button_top, widths[index],
+            button(control_id, lefts[index], button_top, size,
                    button_height, text, nav_for(buttons, index, keys))
             for index, (control_id, text, _action) in enumerate(buttons))
 
@@ -332,7 +322,7 @@ def main():
             layout.MODE_BAR,
             "The bar: the choices in a row rather than stacked, in a panel"
             " low enough to leave most of the picture showing.",
-            margin=24, gap=18, slots=4, header_font="font23_narrow",
+            margin=24, gap=18, header_font="font23_narrow",
             title_top=14, icon_size=30, rule_top=62, button_top=78,
             button_height=80, second_rule_top=176, single_width=500),
         layout.MODE_SINGLE: single(
