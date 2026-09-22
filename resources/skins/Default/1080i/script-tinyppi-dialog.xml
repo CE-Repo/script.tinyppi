@@ -128,8 +128,8 @@
                         <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
+                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</selectedcolor>
                         <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                         <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                         <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
@@ -144,8 +144,8 @@
                         <label>[B]Original[/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
+                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</selectedcolor>
                         <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                         <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                         <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
@@ -160,8 +160,8 @@
                         <label>[B]SDR → HDR10[/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
+                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</selectedcolor>
                         <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                         <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                         <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
@@ -176,8 +176,8 @@
                         <label>[B]SDR → Dolby Vision[/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
+                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</selectedcolor>
                         <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                         <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                         <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
@@ -197,8 +197,8 @@
                         <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
+                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</selectedcolor>
                         <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                         <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                         <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
@@ -213,8 +213,8 @@
                         <label>[B]HDR10 (Original)[/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
+                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</selectedcolor>
                         <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                         <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                         <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
@@ -229,8 +229,8 @@
                         <label>[B]HDR10 → SDR[/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
+                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</selectedcolor>
                         <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                         <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                         <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
@@ -245,8 +245,8 @@
                         <label>[B]HDR10 → Dolby Vision[/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
+                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</selectedcolor>
                         <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                         <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                         <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
@@ -266,8 +266,8 @@
                         <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
+                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</selectedcolor>
                         <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                         <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                         <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
@@ -282,8 +282,8 @@
                         <label>[B]Dolby Vision (Original)[/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
+                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</selectedcolor>
                         <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                         <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                         <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
@@ -298,8 +298,8 @@
                         <label>[B]Dolby Vision → SDR[/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
+                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</selectedcolor>
                         <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                         <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                         <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
@@ -319,8 +319,8 @@
                         <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
-                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
-                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</textcolor>
+                        <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]</selectedcolor>
                         <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
                         <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
                         <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>

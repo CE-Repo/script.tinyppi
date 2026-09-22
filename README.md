@@ -281,8 +281,10 @@ each of them:
 Both default to 50%, which leaves the panel in the middle of the screen —
 where the dialog has always been drawn.
 
-The colours of every layout come from the same **VS10 dialog** colour settings
-as before.
+The colours of every layout come from the **VS10 dialog** colour settings,
+which now include **Button text** — the colour of the buttons the remote is
+not sitting on, which the dialog used to take from the overlay's description
+colour and so could not be set on its own.
 
 ## Web Dashboard
 

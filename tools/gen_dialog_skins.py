@@ -64,7 +64,7 @@ def image(left, top, width, height, texture, colour, border=None,
 
 
 def label(left, top, width, height, text, colour, font="font23_narrow",
-          align="center", visible=None, control_id=None, zoom=None):
+          align="center", visible=None, control_id=None):
     opening = ("<control type=\"label\" id=\"%d\">" % control_id
                if control_id else "<control type=\"label\">")
     body = [opening,
@@ -78,10 +78,6 @@ def label(left, top, width, height, text, colour, font="font23_narrow",
             "    <aligny>center</aligny>"]
     if visible:
         body.append("    <visible>%s</visible>" % visible)
-    if zoom:
-        body.append("    <animation effect=\"zoom\" start=\"100\" end=\"%d\" "
-                    "center=\"auto\" time=\"0\" condition=\"true\">"
-                    "Conditional</animation>" % zoom)
     body.append("    <label>%s</label>" % text)
     body.append("</control>")
     return "\n".join(body)
@@ -101,8 +97,8 @@ def button(control_id, left, top, width, height, text, nav):
         if key in nav:
             body.append("    <%s>%d</%s>" % (key, nav[key], key))
     body.extend([
-        "    <textcolor>%s</textcolor>" % (HOME % "DescriptionColor"),
-        "    <selectedcolor>%s</selectedcolor>" % (HOME % "DescriptionColor"),
+        "    <textcolor>%s</textcolor>" % (HOME % "DialogTextColor"),
+        "    <selectedcolor>%s</selectedcolor>" % (HOME % "DialogTextColor"),
         "    <focusedcolor>%s</focusedcolor>" % (HOME % "DialogFocusTextColor"),
         "    <texturenofocus colordiffuse=\"00FFFFFF\" border=\"40\">"
         "common/button-white.png</texturenofocus>",
@@ -309,22 +305,29 @@ def single(title):
     inner = width - 2 * margin
     nav = {key: layout.SINGLE_BUTTON
            for key in ("onup", "ondown", "onleft", "onright")}
+    arrows = []
+    # What left and right do. Not buttons: there is nowhere for focus to go
+    # but the one button there is - which is why they are drawn twice, in the
+    # focused and the unfocused text colour. An arrow left in the unfocused
+    # colour beside a button that is always focused reads as a different
+    # colour from the name between them.
+    for name, left in (("arrow-left.png", margin + 4),
+                       ("arrow-right.png", width - margin - 36)):
+        arrows.append(image(left, 122, 32, 32, "dialog/" + name,
+                            HOME % "DialogTextColor", aspect="keep",
+                            visible="!Control.HasFocus(%d)"
+                                    % layout.SINGLE_BUTTON))
+        arrows.append(image(left, 122, 32, 32, "dialog/" + name,
+                            HOME % "DialogFocusTextColor", aspect="keep",
+                            visible="Control.HasFocus(%d)"
+                                    % layout.SINGLE_BUTTON))
     body = "\n".join([
         panel(width, height),
         header(width, margin, 18, 36, 22, "font32"),
         rule(margin, 80, inner),
-        # What left and right do. Not buttons: there is nowhere for focus to
-        # go but the one button there is.
-        image(margin + 4, 122, 32, 32, "dialog/arrow-left.png",
-              HOME % "DescriptionColor", aspect="keep"),
-        image(width - margin - 36, 122, 32, 32, "dialog/arrow-right.png",
-              HOME % "DescriptionColor", aspect="keep"),
+    ] + arrows + [
         button(layout.SINGLE_BUTTON, 90, 98, width - 180, 80, "", nav),
         rule(margin, 196, inner),
-        # Which choice of how many the button is on, written by the dialog:
-        # one button gives no other sign of how far round the ring it is.
-        label(margin, 200, inner, 28, "", HOME % "DescriptionColor",
-              control_id=layout.SINGLE_STEP_LABEL),
     ])
     left, top = layout.panel_position(mode)
     return window(title, layout.SINGLE_BUTTON, width, height, left, top,

@@ -906,11 +906,6 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         _control_id, markup, _action = buttons[self._step]
         self._set_label(dialog_layout.SINGLE_BUTTON,
                         dialog_layout.plain_label(markup))
-        # How far round the ring the button is. One choice needs no counting.
-        self._set_label(
-            dialog_layout.SINGLE_STEP_LABEL,
-            "" if len(buttons) < 2 else f"{self._step + 1} / {len(buttons)}",
-        )
 
     # -- lifecycle --------------------------------------------------------
 

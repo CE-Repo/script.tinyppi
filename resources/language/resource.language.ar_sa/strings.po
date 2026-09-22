@@ -1831,3 +1831,11 @@ msgstr "الموضع الأفقي"
 msgctxt "#32569"
 msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
 msgstr "يحدد موضع مربع الحوار بين الحافة اليسرى للشاشة (0%) والحافة اليمنى (100%). تبقيه النسبة 50% في المنتصف."
+
+msgctxt "#32570"
+msgid "Button text"
+msgstr "نص الزر"
+
+msgctxt "#32571"
+msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
+msgstr "لون نص الأزرار غير المحددة في مربع حوار VS10."

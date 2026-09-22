@@ -35,7 +35,7 @@ XML_FILES = {
 PANEL_SIZE = {
     MODE_STANDARD: (471, 546),
     MODE_COMPACT: (1365, 200),
-    MODE_SINGLE: (700, 232),
+    MODE_SINGLE: (700, 216),
 }
 
 SCREEN_WIDTH = 1920
@@ -48,11 +48,9 @@ SCREEN_MARGIN = 50
 GROUP_PANEL = 2
 PROP_PLACED = "TinyPPI.DialogPlaced"
 
-# The single button layout's one button, and where it writes which choice the
-# step is on - the window file reads it back for the "3 / 4" line under the
-# button.
+# The single button layout's one button, which stands for whichever choice
+# its step is on.
 SINGLE_BUTTON = 1500
-SINGLE_STEP_LABEL = 1400
 
 # Kodi's left and right. Every other layout moves focus from button to button
 # with them; the single button layout has only the one, so they step it.

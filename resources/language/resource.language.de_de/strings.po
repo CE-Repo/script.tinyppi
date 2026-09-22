@@ -1830,3 +1830,11 @@ msgstr "Horizontale Position"
 msgctxt "#32569"
 msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
 msgstr "Legt fest, wo der Dialog zwischen dem linken (0 %) und dem rechten Bildschirmrand (100 %) sitzt. 50 % belässt ihn in der Mitte."
+
+msgctxt "#32570"
+msgid "Button text"
+msgstr "Tastentext"
+
+msgctxt "#32571"
+msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
+msgstr "Textfarbe der Tasten im VS10-Dialog, auf denen die Fernbedienung nicht steht."

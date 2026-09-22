@@ -1830,3 +1830,11 @@ msgstr "水平位置"
 msgctxt "#32569"
 msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
 msgstr "设定对话框在屏幕左边缘（0%）与右边缘（100%）之间的位置。50% 时保持在中间。"
+
+msgctxt "#32570"
+msgid "Button text"
+msgstr "按钮文字"
+
+msgctxt "#32571"
+msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
+msgstr "VS10 对话框中未获得焦点的按钮的文字颜色。"
