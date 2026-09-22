@@ -248,6 +248,42 @@ while this view is open and the overlay's own polling never pays for it.
 
 ---
 
+## VS10 Dialog Layouts
+
+The VS10 dialog — the menu that offers the player-process overlay and whatever
+VS10 output modes the playing source has — is drawn in one of three designs.
+Pick one under **Settings → VS10 dialog → Layout**:
+
+| Layout | What it looks like |
+| --- | --- |
+| **Single button** | One button, and **left** or **right** steps it to the next choice. For a remote that has little more than a direction pad and OK. The default. |
+| **Bar** | The choices side by side rather than stacked, in a panel low enough to leave most of the picture showing. |
+| **Dialog** | The panel the add-on opened with before the layouts existed: the choices stacked. |
+
+Every layout draws the same choices, and how many there are depends on the
+source: four on SDR and HDR10, three on Dolby Vision, and the
+player-process button on its own where there are no VS10 modes to offer —
+HDR10+, HLG, and a Dolby Vision grade carrying HDR10+ alongside its RPU.
+A layout keeps the same panel whichever of those is playing and spreads the
+choices over it, so the dialog does not change size under you when the
+detection finishes.
+
+### Position
+
+Under **Settings → VS10 dialog → Dialog position** the panel can be moved.
+All three layouts are narrower than the screen, so both directions apply to
+each of them:
+
+- **Vertical position** — 0% is a margin below the top edge of the screen,
+  100% rests the panel on the bottom one. Defaults to 100%.
+- **Horizontal position** — 0% is the left margin and 100% the right one.
+  Defaults to 50%.
+
+The colours of every layout come from the **VS10 dialog** colour settings,
+which now include **Button text** — the colour of the buttons the remote is
+not sitting on, which the dialog used to take from the overlay's description
+colour and so could not be set on its own.
+
 ## Web Dashboard
 
 TinyPPI can serve everything the overlay shows to a browser on your phone or

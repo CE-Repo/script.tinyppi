@@ -1782,3 +1782,59 @@ msgstr ""
 msgctxt "#32554"
 msgid "%s h"
 msgstr ""
+
+msgctxt "#32555"
+msgid "Layout"
+msgstr ""
+
+msgctxt "#32556"
+msgid "Dialog layout"
+msgstr ""
+
+msgctxt "#32557"
+msgid "Which of the designs the VS10 dialog is drawn as."
+msgstr ""
+
+msgctxt "#32558"
+msgid "Dialog"
+msgstr ""
+
+
+msgctxt "#32560"
+msgid "Bar"
+msgstr ""
+
+
+
+
+msgctxt "#32564"
+msgid "Single button"
+msgstr ""
+
+msgctxt "#32565"
+msgid "Dialog position"
+msgstr ""
+
+msgctxt "#32566"
+msgid "Vertical position"
+msgstr ""
+
+msgctxt "#32567"
+msgid "Where the dialog sits between the top edge of the screen (0%) and the bottom one (100%). 50% leaves it in the middle, where it has always been."
+msgstr ""
+
+msgctxt "#32568"
+msgid "Horizontal position"
+msgstr ""
+
+msgctxt "#32569"
+msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
+msgstr ""
+
+msgctxt "#32570"
+msgid "Button text"
+msgstr ""
+
+msgctxt "#32571"
+msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
+msgstr ""

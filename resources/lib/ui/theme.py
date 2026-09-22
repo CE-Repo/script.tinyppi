@@ -440,6 +440,10 @@ _THEME_PROPERTIES = (
     ("TinyPPI.DialogHeaderColor",     _TEXT_COLORS, "dialog_header_color"),
     ("TinyPPI.DialogHeaderIconColor", _TEXT_COLORS, "dialog_header_icon_color"),
     ("TinyPPI.DialogLineColor",       _LINE_COLORS, "dialog_line_color"),
+    # The dialog's buttons carry their own unfocused text colour rather than
+    # borrowing the overlay's description colour, so the one can be set
+    # without moving the other.
+    ("TinyPPI.DialogTextColor",       _TEXT_COLORS, "dialog_text_color"),
     ("TinyPPI.DialogFocusColor",      _DIALOG_FOCUS_COLORS, "dialog_focus_color"),
     (
         "TinyPPI.DialogFocusTextColor",

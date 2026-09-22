@@ -15,6 +15,7 @@ import xbmcaddon
 import xbmcgui
 from core import display
 from core.utils import PROP_HDR10PLUS_PRESENT, clear_overlay_state
+from ui import dialog_layout
 
 _ADDON      = xbmcaddon.Addon()
 _ADDON_PATH = _ADDON.getAddonInfo("path")
@@ -97,8 +98,6 @@ _VS10_PROBE_SETTING = "coreelec.amlogic.dolbyvision.vs10.dv"
 
 # Cached result of the one-time capability probe (None = not yet probed).
 _vs10_actions = None
-
-_BTN_TINYPPI = 1001
 
 
 def _w(path: str, value: str) -> None:
@@ -794,34 +793,139 @@ def _apply_mode(name: str) -> bool:
 __all__ = list(_MODES.keys()) + ["open_dialog", "set_mode"]
 
 
-# Dialog button id -> mode name (routed through ``set_mode`` so the dialog also
-# prefers the native VS10 Actions when they are available).
+# Dialog button id -> mode name, taken from the same description of the
+# choices the window files are generated from, so a button the skin draws and
+# the mode it runs cannot drift apart. Routed through ``set_mode`` so the
+# dialog also prefers the native VS10 Actions when they are available.
 _ACTIONS = {
-    # SDR
-    1002: "original_sdr",
-    1003: "hdr10",
-    1004: "dv",
-    # HDR10
-    1005: "original_hdr",
-    1006: "sdr8",
-    1008: "dv",
-    # DV
-    1012: "original_dv",
-    1013: "sdr8",
+    control_id: action
+    for branch in dialog_layout.BRANCHES
+    for control_id, _label, action in branch["buttons"]
+    if action is not None
 }
 
 
 class SettingsDialog(xbmcgui.WindowXMLDialog):
     """Menu dialog to pick a VS10 output mode or launch the TinyPPI overlay."""
 
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        # Which of the window files this instance was built from. The panel
+        # geometry differs per layout, so _place has to know, and the single
+        # button layout reads left and right as a step rather than as a move.
+        self._layout = dialog_layout.dialog_mode()
+        # Which choice the single button layout is on. The others show them
+        # all at once and leave it alone.
+        self._step = 0
+        self._branch_key = None
+        self._running = False
+        self._pending_mode = None
+        self._monitor = None
+
     def onInit(self) -> None:
         # The SDR / HDR10 / DV groups branch on TinyPPI.HdrType, derived from
         # the stream's side data; refresh it so the right group appears as soon
-        # as the player publishes it.
+        # as the player publishes it -- and before the panel is placed, since
+        # which button the remote opens on depends on which group that is.
         self._running = True
         self._pending_mode = None
         self._monitor = xbmc.Monitor()
+        self._publish_hdr_type(logged=False)
+        self._place()
         threading.Thread(target=self._hdr_type_loop, daemon=True).start()
+
+    # -- layout -----------------------------------------------------------
+
+    def _place(self) -> None:
+        """Move the panel where the position settings ask for, then show it.
+
+        Only now may anything be drawn: the window file knows one position,
+        and every other one would show there for a frame and then jump. The
+        window files hold their panel back until this says otherwise.
+        """
+        left, top = dialog_layout.panel_position(self._layout)
+        try:
+            self.getControl(dialog_layout.GROUP_PANEL).setPosition(left, top)
+        except Exception as e:
+            xbmc.log(f"TinyPPI: could not place the dialog panel: {e}",
+                     xbmc.LOGWARNING)
+        xbmcgui.Window(10000).setProperty(dialog_layout.PROP_PLACED, "1")
+        # The panel was hidden while the window handed out its default focus,
+        # so that focus went nowhere; it has to be given again - and to a
+        # button the branch on screen actually has, since each branch carries
+        # its own copy of the Player Process Info button.
+        self._sync_branch(force=True)
+
+    def _branch(self) -> dict:
+        home = xbmcgui.Window(10000)
+        return dialog_layout.branch_for(
+            home.getProperty("TinyPPI.HdrType"),
+            home.getProperty(PROP_HDR10PLUS_PRESENT),
+        )
+
+    def _sync_branch(self, force: bool = False) -> None:
+        """Follow the stream's branch: focus its first button, and step it.
+
+        The branch can change while the dialog is up - detection finishes, or
+        the viewer switches the output from under it - and the single button
+        layout offers whatever the branch does, so its step has to come back
+        into range with it.
+        """
+        branch = self._branch()
+        if not force and branch["key"] == self._branch_key:
+            return
+        self._branch_key = branch["key"]
+        if self._layout == dialog_layout.MODE_SINGLE:
+            self._show_step()
+            focus = dialog_layout.SINGLE_BUTTON
+        else:
+            focus = branch["buttons"][0][0]
+        try:
+            self.setFocusId(focus)
+        except Exception as e:
+            xbmc.log(f"TinyPPI: could not focus dialog button {focus}: {e}",
+                     xbmc.LOGDEBUG)
+
+    def _set_label(self, control_id: int, text: str) -> None:
+        try:
+            self.getControl(control_id).setLabel(text)
+        except Exception as e:
+            if self._running:
+                xbmc.log(f"TinyPPI: could not set label {control_id}: {e}",
+                         xbmc.LOGWARNING)
+
+    def _show_step(self) -> None:
+        """Put the choice the single button stands for on it.
+
+        The step wraps: the choices in a ring is what makes one button enough,
+        and a step that stopped at either end would leave the viewer pressing
+        against nothing.
+        """
+        buttons = self._branch()["buttons"]
+        self._step %= len(buttons)
+        _control_id, markup, _action = buttons[self._step]
+        self._set_label(dialog_layout.SINGLE_BUTTON,
+                        dialog_layout.plain_label(markup))
+
+    # -- lifecycle --------------------------------------------------------
+
+    def _publish_hdr_type(self, logged: bool = True) -> bool:
+        """Republish the HDR type. False when the read failed.
+
+        ``logged`` says whether a failure has already been reported, so a
+        stream the read keeps failing on does not fill the log with the same
+        line twice a second.
+        """
+        from info.properties import publish_hdr_type
+
+        try:
+            publish_hdr_type(xbmcgui.Window(10000))
+            return True
+        except Exception as e:
+            if not logged:
+                xbmc.log(f"TinyPPI: HDR type refresh failed: {e}",
+                         xbmc.LOGWARNING)
+            return False
 
     def _hdr_type_loop(self) -> None:
         """Republish the HDR type until the dialog closes.
@@ -829,18 +933,13 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         A failed read only costs this cycle: the dialog would otherwise keep
         showing whichever SDR / HDR10 / DV group was up when the thread died.
         """
-        from info.properties import publish_hdr_type
-
-        home = xbmcgui.Window(10000)
         logged = False
         while self._running and not self._monitor.abortRequested():
-            try:
-                publish_hdr_type(home)
-            except Exception as e:
-                if not logged:
-                    logged = True
-                    xbmc.log(f"TinyPPI: HDR type refresh failed: {e}",
-                             xbmc.LOGWARNING)
+            if self._publish_hdr_type(logged):
+                if self._running:
+                    self._sync_branch()
+            else:
+                logged = True
             if self._monitor.waitForAbort(0.5):
                 break
 
@@ -849,7 +948,12 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         super().close()
 
     def onClick(self, control_id: int) -> None:
-        if control_id == _BTN_TINYPPI:
+        if control_id == dialog_layout.SINGLE_BUTTON:
+            # One button standing for whichever choice its step is on.
+            buttons = self._branch()["buttons"]
+            control_id = buttons[self._step % len(buttons)][0]
+
+        if control_id in dialog_layout.PPI_BUTTONS:
             self.close()
             clear_overlay_state(xbmcgui.Window(10000))
             from ui.overlay import open_tinyppi
@@ -873,12 +977,29 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
             xbmcgui.ACTION_STOP,
         ):
             self.close()
+            return
+        if self._layout != dialog_layout.MODE_SINGLE:
+            return
+        # One button, so left and right have no neighbour to move to; they
+        # step it through the choices instead. The button's own navigation
+        # leads back to itself, so focus never leaves it and the action
+        # arrives here.
+        if action.getId() == dialog_layout.ACTION_MOVE_LEFT:
+            self._step -= 1
+            self._show_step()
+        elif action.getId() == dialog_layout.ACTION_MOVE_RIGHT:
+            self._step += 1
+            self._show_step()
 
 
 def open_dialog() -> None:
     """Create and display the mode-selection dialog modally."""
+    home = xbmcgui.Window(10000)
+    # False for as long as it takes the dialog to move the panel where the
+    # settings want it; the window files draw nothing until then.
+    home.clearProperty(dialog_layout.PROP_PLACED)
     win = SettingsDialog(
-        "script-tinyppi-dialog.xml",
+        dialog_layout.xml_file(),
         _ADDON_PATH,
         "Default",
         "1080i",

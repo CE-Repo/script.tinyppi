@@ -1782,3 +1782,59 @@ msgstr "%s min"
 msgctxt "#32554"
 msgid "%s h"
 msgstr "%s h"
+
+msgctxt "#32555"
+msgid "Layout"
+msgstr "Layout"
+
+msgctxt "#32556"
+msgid "Dialog layout"
+msgstr "Dialog-Layout"
+
+msgctxt "#32557"
+msgid "Which of the designs the VS10 dialog is drawn as."
+msgstr "Legt fest, in welchem Design der VS10-Dialog gezeichnet wird."
+
+msgctxt "#32558"
+msgid "Dialog"
+msgstr "Dialog"
+
+
+msgctxt "#32560"
+msgid "Bar"
+msgstr "Leiste"
+
+
+
+
+msgctxt "#32564"
+msgid "Single button"
+msgstr "Einzelne Taste"
+
+msgctxt "#32565"
+msgid "Dialog position"
+msgstr "Dialog-Position"
+
+msgctxt "#32566"
+msgid "Vertical position"
+msgstr "Vertikale Position"
+
+msgctxt "#32567"
+msgid "Where the dialog sits between the top edge of the screen (0%) and the bottom one (100%). 50% leaves it in the middle, where it has always been."
+msgstr "Legt fest, wo der Dialog zwischen dem oberen (0 %) und dem unteren Bildschirmrand (100 %) sitzt. 50 % belässt ihn in der Mitte, wo er bisher war."
+
+msgctxt "#32568"
+msgid "Horizontal position"
+msgstr "Horizontale Position"
+
+msgctxt "#32569"
+msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
+msgstr "Legt fest, wo der Dialog zwischen dem linken (0 %) und dem rechten Bildschirmrand (100 %) sitzt. 50 % belässt ihn in der Mitte."
+
+msgctxt "#32570"
+msgid "Button text"
+msgstr "Tastentext"
+
+msgctxt "#32571"
+msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
+msgstr "Textfarbe der Tasten im VS10-Dialog, auf denen die Fernbedienung nicht steht."

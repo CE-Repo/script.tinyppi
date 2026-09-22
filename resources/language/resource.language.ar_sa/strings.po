@@ -1783,3 +1783,59 @@ msgstr "%s د"
 msgctxt "#32554"
 msgid "%s h"
 msgstr "%s س"
+
+msgctxt "#32555"
+msgid "Layout"
+msgstr "التخطيط"
+
+msgctxt "#32556"
+msgid "Dialog layout"
+msgstr "تخطيط مربع الحوار"
+
+msgctxt "#32557"
+msgid "Which of the designs the VS10 dialog is drawn as."
+msgstr "يحدد التصميم الذي يُرسم به مربع حوار VS10."
+
+msgctxt "#32558"
+msgid "Dialog"
+msgstr "مربع الحوار"
+
+
+msgctxt "#32560"
+msgid "Bar"
+msgstr "شريط"
+
+
+
+
+msgctxt "#32564"
+msgid "Single button"
+msgstr "زر واحد"
+
+msgctxt "#32565"
+msgid "Dialog position"
+msgstr "موضع مربع الحوار"
+
+msgctxt "#32566"
+msgid "Vertical position"
+msgstr "الموضع الرأسي"
+
+msgctxt "#32567"
+msgid "Where the dialog sits between the top edge of the screen (0%) and the bottom one (100%). 50% leaves it in the middle, where it has always been."
+msgstr "يحدد موضع مربع الحوار بين الحافة العلوية للشاشة (0%) والحافة السفلية (100%). تبقيه النسبة 50% في المنتصف، حيث كان دائمًا."
+
+msgctxt "#32568"
+msgid "Horizontal position"
+msgstr "الموضع الأفقي"
+
+msgctxt "#32569"
+msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
+msgstr "يحدد موضع مربع الحوار بين الحافة اليسرى للشاشة (0%) والحافة اليمنى (100%). تبقيه النسبة 50% في المنتصف."
+
+msgctxt "#32570"
+msgid "Button text"
+msgstr "نص الزر"
+
+msgctxt "#32571"
+msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
+msgstr "لون نص الأزرار غير المحددة في مربع حوار VS10."

@@ -1782,3 +1782,59 @@ msgstr "%s p"
 msgctxt "#32554"
 msgid "%s h"
 msgstr "%s ó"
+
+msgctxt "#32555"
+msgid "Layout"
+msgstr "Elrendezés"
+
+msgctxt "#32556"
+msgid "Dialog layout"
+msgstr "Párbeszédpanel elrendezése"
+
+msgctxt "#32557"
+msgid "Which of the designs the VS10 dialog is drawn as."
+msgstr "Meghatározza, melyik kivitelben jelenik meg a VS10 párbeszédpanel."
+
+msgctxt "#32558"
+msgid "Dialog"
+msgstr "Párbeszédpanel"
+
+
+msgctxt "#32560"
+msgid "Bar"
+msgstr "Sáv"
+
+
+
+
+msgctxt "#32564"
+msgid "Single button"
+msgstr "Egyetlen gomb"
+
+msgctxt "#32565"
+msgid "Dialog position"
+msgstr "Párbeszédpanel helyzete"
+
+msgctxt "#32566"
+msgid "Vertical position"
+msgstr "Függőleges helyzet"
+
+msgctxt "#32567"
+msgid "Where the dialog sits between the top edge of the screen (0%) and the bottom one (100%). 50% leaves it in the middle, where it has always been."
+msgstr "Megadja, hol helyezkedjen el a párbeszédpanel a képernyő teteje (0%) és alja (100%) között. 50% esetén középen marad, ahol eddig is volt."
+
+msgctxt "#32568"
+msgid "Horizontal position"
+msgstr "Vízszintes helyzet"
+
+msgctxt "#32569"
+msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
+msgstr "Megadja, hol helyezkedjen el a párbeszédpanel a képernyő bal (0%) és jobb széle (100%) között. 50% esetén középen marad."
+
+msgctxt "#32570"
+msgid "Button text"
+msgstr "Gombfelirat"
+
+msgctxt "#32571"
+msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
+msgstr "A VS10 párbeszédpanel azon gombjainak szövegszíne, amelyeken nem áll a távirányító."
