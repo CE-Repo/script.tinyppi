@@ -5523,7 +5523,7 @@
             <group id="21" label="32565">
                 <setting id="dialog_position_y" type="integer" label="32566" help="32567">
                     <level>0</level>
-                    <default>50</default>
+                    <default>100</default>
                     <constraints>
                         <minimum>0</minimum>
                         <step>1</step>
@@ -5533,7 +5533,7 @@
                 </setting>
                 <setting id="dialog_position_x" type="integer" label="32568" help="32569">
                     <level>0</level>
-                    <default>100</default>
+                    <default>50</default>
                     <constraints>
                         <minimum>0</minimum>
                         <step>1</step>

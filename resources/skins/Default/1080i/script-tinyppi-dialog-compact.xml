@@ -27,8 +27,8 @@
              because a control held back by a condition does not play
              itself out again when the window closes. -->
         <control type="group" id="2">
-            <left>505</left>
-            <top>440</top>
+            <left>278</left>
+            <top>830</top>
             <width>1365</width>
             <height>200</height>
             <animation effect="slide" start="0,0" end="0,240" time="200" tween="quadratic" easing="in">WindowClose</animation>

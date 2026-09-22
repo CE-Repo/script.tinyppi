@@ -179,14 +179,14 @@ def panel_position(mode):
 
     Vertically 0% is a margin below the top edge and 100% rests it on the
     bottom one; horizontally 0% and 100% are the left and right margins. The
-    defaults - 100% across and 50% down - rest the panel against the right
-    margin, halfway down the screen.
+    defaults - 50% across and 100% down - rest the panel on the bottom
+    margin, in the middle of the screen.
     """
     ceiling, floor = top_range(mode)
     leftmost, rightmost = left_range(mode)
-    return (_across(_setting_int("dialog_position_x", 100),
+    return (_across(_setting_int("dialog_position_x", 50),
                     leftmost, rightmost),
-            _across(_setting_int("dialog_position_y", 50), ceiling, floor))
+            _across(_setting_int("dialog_position_y", 100), ceiling, floor))
 
 
 def branch_for(hdr_type, hdr10plus_present):

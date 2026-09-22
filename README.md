@@ -275,9 +275,9 @@ All three layouts are narrower than the screen, so both directions apply to
 each of them:
 
 - **Vertical position** — 0% is a margin below the top edge of the screen,
-  100% rests the panel on the bottom one. Defaults to 50%.
+  100% rests the panel on the bottom one. Defaults to 100%.
 - **Horizontal position** — 0% is the left margin and 100% the right one.
-  Defaults to 100%.
+  Defaults to 50%.
 
 The colours of every layout come from the **VS10 dialog** colour settings,
 which now include **Button text** — the colour of the buttons the remote is
