@@ -93,7 +93,7 @@
                         <top>78</top>
                         <width>315</width>
                         <height>80</height>
-                        <label>[B]$LOCALIZE[10116][/B]</label>
+                        <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
                         <onup>1001</onup>
@@ -168,7 +168,7 @@
                         <top>78</top>
                         <width>315</width>
                         <height>80</height>
-                        <label>[B]$LOCALIZE[10116][/B]</label>
+                        <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
                         <onup>1101</onup>
@@ -243,7 +243,7 @@
                         <top>78</top>
                         <width>315</width>
                         <height>80</height>
-                        <label>[B]$LOCALIZE[10116][/B]</label>
+                        <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
                         <onup>1201</onup>
@@ -300,7 +300,7 @@
                         <top>78</top>
                         <width>500</width>
                         <height>80</height>
-                        <label>[B]$LOCALIZE[10116][/B]</label>
+                        <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
                         <align>center</align>
                         <font>font23_narrow</font>
                         <onup>1301</onup>
