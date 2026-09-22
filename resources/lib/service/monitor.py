@@ -45,6 +45,17 @@ _OPEN_METHODS = {
     "Other.open_dialog":  "dialog",
 }
 
+# What Kodi announces whenever a skin finishes loading: a skin switched by
+# hand, a skin updated under a running Kodi, and the reload the font install
+# triggers itself.  It is the one signal there is for "the Font.xml the overlay
+# relies on may not be the one we checked" -- the Python Monitor has no
+# onSkinChanged callback, and there is no announcement for an addon update.
+_SKIN_LOADED = "GUI.OnSkinLoaded"
+
+# How long the font check holds off after a skin load, letting Kodi finish
+# settling into the new skin before anything is written under it.
+_SKIN_SETTLE = 1.0
+
 # How long after startup the warm-up runs.  It registers the overlay's font
 # entries in the skin and imports the view modules, so the first launch of the
 # session finds both done; held off briefly so none of it lands in the middle
@@ -110,6 +121,9 @@ class KodiMonitor(xbmc.Monitor):
             self._open_view(_OPEN_METHODS[method])
             return
 
+        if method == _SKIN_LOADED:
+            self._check_fonts()
+
         if method == "Player.OnAVStart":
             self._maybe_show_splash()
 
@@ -147,6 +161,30 @@ class KodiMonitor(xbmc.Monitor):
             self._dashboard.apply_settings()
         except Exception as exc:
             _log(f"Exception applying web dashboard settings: {exc}", xbmc.LOGERROR)
+
+    def _check_fonts(self) -> None:
+        """Register the overlay's font entries in the skin that just loaded.
+
+        A skin brings its own Font.xml, so a switch or an update of the one in
+        use leaves the entries behind in a file nothing reads any more.  This
+        is what puts them back, and it is also what the mark ensure_fonts()
+        reads is re-taken by.
+
+        Off the announcement thread: the check walks the skin directory and may
+        write to it, and Kodi is handing out its announcements one at a time.
+        The check no-ops when the entries are already there, which is what the
+        reload it triggers itself comes back to.
+        """
+        threading.Thread(target=self._install_fonts, daemon=True).start()
+
+    def _install_fonts(self) -> None:
+        """Wait for the skin to settle, then register the font entries."""
+        if self.waitForAbort(_SKIN_SETTLE):
+            return
+        try:
+            fonts.ensure_fonts()
+        except Exception as exc:
+            _log(f"Exception registering the fonts: {exc}", xbmc.LOGERROR)
 
     def _open_view(self, view: str) -> None:
         """Open the overlay or the VS10 dialog in this process.
@@ -224,7 +262,9 @@ def _warm_up(monitor: xbmc.Monitor) -> None:
         return
 
     try:
-        fonts.install_fonts()
+        # The skin-load announcement may already have covered this while Kodi
+        # was starting; ensure_fonts() is what makes that a no-op.
+        fonts.ensure_fonts()
     except Exception as exc:  # pragma: no cover - never block the service
         xbmc.log(f"TinyPPI: registering the fonts failed: {exc}", xbmc.LOGWARNING)
 
@@ -243,9 +283,6 @@ if __name__ == "__main__":
     win       = xbmcgui.Window(_HOME_WINDOW_ID)
     dashboard = WebDashboard()
     monitor   = KodiMonitor(dashboard)
-    # Kept in a name of its own: it is the only reference to the monitor, and
-    # without one the instance is collected and stops listening.
-    font_monitor = fonts.FontInstallMonitor()
 
     # Publish the theme properties at startup so the settings dialog can preview
     # custom HEX colors before the overlay has been opened this session.

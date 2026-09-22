@@ -9,16 +9,21 @@ names.  Both name ``arial.ttf``, which Kodi distributes itself -- nothing is
 copied into the skin, so there is no font file that can go missing or drift out
 of sync with the entry that names it.
 
-Nothing runs on import.  The service installs the entries once at Kodi start
-and FontInstallMonitor re-runs it on skin change or Kodi update, so by the time
-anyone presses the button the work is long done; ``ensure_fonts()`` is what the
-overlay calls on its way up, and on the ordinary launch that is a single
-window-property read (see PROP_FONTS_READY) rather than a walk of the skin
-directory and a parse of its Font.xml.
+Nothing runs on import.  The service installs the entries at Kodi start and
+again whenever a skin is loaded -- a skin switch, a skin update, or the reload
+this triggers itself -- so by the time anyone presses the button the work is
+long done.  ``ensure_fonts()`` is what the overlay calls on its way up, and it
+answers out of the mark the install leaves behind (see PROP_FONTS_READY): one
+window-property read and one stat of the Font.xml already known, rather than a
+walk of the skin directory and a parse of the file.  That mark names the file
+it was taken from, so a Font.xml replaced under a running Kodi -- by an update
+that never announced itself, or by anything else -- is caught by the next
+launch rather than waiting for a restart.
 """
 
 import os
 import re
+import threading
 import traceback
 
 import xbmc
@@ -47,14 +52,25 @@ _REQUIRED_FONTS = (
     {"name": "font32",        "filename": _FONT_FILE, "size": "32"},
 )
 
-# Home-window (10000) property naming the skin whose Font.xml has been checked
-# and found complete this Kodi session.  Verifying that costs a walk of the skin
-# directory for its Font.xml plus a parse of the file, which is far too much to
-# put in front of a window the viewer is waiting for -- so it is done once, by
-# the service at startup, and every later launch reads this instead.  Kodi drops
-# Home-window properties when it exits, so a session always checks once; a skin
-# change clears it (see FontInstallMonitor).
+# Home-window (10000) property describing the Font.xml that has been checked and
+# found complete: the skin it belongs to, the version of this addon that checked
+# it (a TinyPPI update may want fonts the last one did not), the file itself and
+# what it looked like on disk.  Verifying all that from scratch costs a walk of
+# the skin directory plus a parse of the file, which is far too much to put in
+# front of a window the viewer is waiting for; against this mark it costs one
+# stat of a file whose path is already known.
+#
+# Kodi drops Home-window properties when it exits, so a session always checks at
+# least once.
 PROP_FONTS_READY = "TinyPPI.FontsReady"
+
+# Held apart by a character no path or version carries.
+_MARK_SEPARATOR = "\n"
+
+# One install at a time.  Both callers are in the service now -- the warm-up at
+# startup and the skin-load handler -- and they can land at the same moment
+# when Kodi is still settling; two of these writing one Font.xml would not be.
+_install_lock = threading.Lock()
 
 
 
@@ -285,15 +301,20 @@ def _install_xml(skin_path: str, font_xml_path: str = "") -> bool:
 
 
 def install_fonts() -> None:
-    """Register the missing font entries in the active skin, reloading it if
-    anything changed.  No-op when they are already there.
+    """Check the active skin's Font.xml in full and fill in what it is missing.
 
-    Marks the skin as checked (PROP_FONTS_READY) once the entries are known to
-    be in place, which is what lets ensure_fonts() skip all of this on every
-    later launch.  A check that could not be completed -- no skin path, no
-    Font.xml, an unreadable or unwritable file -- leaves the mark off, so the
-    next launch tries again instead of trusting a check that never happened.
+    Marks the file as checked (PROP_FONTS_READY) once the entries are known to
+    be in place, which is what lets ensure_fonts() skip all of this. A check
+    that could not be completed -- no skin path, no Font.xml, an unreadable or
+    unwritable file -- leaves the mark off, so the next caller tries again
+    instead of trusting a check that never happened.
     """
+    with _install_lock:
+        _install_fonts()
+
+
+def _install_fonts() -> None:
+    """install_fonts() with the lock already held."""
     home     = xbmcgui.Window(10000)
     skin_dir = xbmc.getSkinDir()
     home.clearProperty(PROP_FONTS_READY)
@@ -313,7 +334,7 @@ def install_fonts() -> None:
 
     if fonts_already_installed(skin_path, font_xml_path):
         _log("All fonts already registered – skipping")
-        home.setProperty(PROP_FONTS_READY, skin_dir)
+        _remember(home, skin_dir, font_xml_path)
         return
 
     try:
@@ -326,38 +347,82 @@ def install_fonts() -> None:
     if not modified:
         return
 
-    home.setProperty(PROP_FONTS_READY, skin_dir)
+    # Marked from the file as it now stands, after the write.
+    _remember(home, skin_dir, font_xml_path)
     try:
         xbmc.executebuiltin("ReloadSkin(reload)")
     except Exception:
         pass
 
 
+def _remember(home, skin_dir: str, font_xml_path: str) -> None:
+    """Record that this Font.xml carries the entries, for ensure_fonts()."""
+    try:
+        home.setProperty(PROP_FONTS_READY, _mark(skin_dir, font_xml_path))
+    except OSError as exc:
+        # Nothing to mark it by; the next launch checks again in full.
+        _log(f"cannot stat Font.xml: {exc}", xbmc.LOGWARNING)
+
+
+def _mark(skin_dir: str, font_xml_path: str) -> str:
+    """Describe the Font.xml as it is right now, for PROP_FONTS_READY.
+
+    Raises OSError when the file it names is not there any more, which is one
+    of the ways a mark stops matching.
+    """
+    stat = os.stat(font_xml_path)
+    return _MARK_SEPARATOR.join((
+        skin_dir,
+        _ADDON.getAddonInfo("version"),
+        font_xml_path,
+        repr(stat.st_mtime),
+        str(stat.st_size),
+    ))
+
+
+def _mark_holds() -> bool:
+    """Whether the registered fonts still answer for the skin in force.
+
+    The mark names the file it was taken from, so this is one stat of a known
+    path -- no walk, no parse.  It stops holding when the skin changed, when
+    this addon was updated, or when the Font.xml itself moved, grew or was
+    rewritten, which is what a skin update does to it.
+    """
+    mark = xbmcgui.Window(10000).getProperty(PROP_FONTS_READY)
+    parts = mark.split(_MARK_SEPARATOR)
+    if len(parts) != 5 or parts[0] != xbmc.getSkinDir():
+        return False
+    try:
+        return _mark(parts[0], parts[2]) == mark
+    except OSError:
+        return False
+
+
 def ensure_fonts() -> None:
     """Make sure the overlay's font entries are registered, cheaply.
 
     What the overlay calls on its way up.  The service has normally installed
-    them at Kodi start, so the ordinary launch answers out of a single
-    window-property read and touches no disk at all; only a session where that
-    has not happened -- the service disabled, or a skin changed since -- pays
-    for the walk and the parse, and pays for it once.
+    them already, so the ordinary launch answers out of one window-property
+    read and one stat; only a session where that has not happened -- the
+    service disabled, a skin loaded without our entries reaching it -- pays for
+    the walk and the parse, and pays for it once.
     """
-    if xbmcgui.Window(10000).getProperty(PROP_FONTS_READY) == xbmc.getSkinDir():
+    if _mark_holds():
         return
-    install_fonts()
+    with _install_lock:
+        # Taken again behind the lock: the other caller may have been doing
+        # exactly this while we waited for it.
+        if _mark_holds():
+            return
+        _install_fonts()
 
 
-class FontInstallMonitor(xbmc.Monitor):
-    """Re-run font installation when the active skin or Kodi changes."""
-
-    def onSkinChanged(self) -> None:
-        _log("Skin changed – checking fonts")
-        xbmc.sleep(500)
-        install_fonts()
-
-    def onNotification(self, sender: str, method: str, data: str) -> None:
-        if method == "System.OnUpdated":
-            _log("System.OnUpdated – checking fonts")
-            install_fonts()
+# There is no monitor class here any more.  The one that used to live here
+# listened for ``onSkinChanged`` and a ``System.OnUpdated`` notification, and
+# Kodi makes neither call: its Python Monitor has no onSkinChanged callback at
+# all, and it announces no System.OnUpdated.  What it does announce is
+# ``GUI.OnSkinLoaded``, on every skin load -- a switch, an update of the skin in
+# use, and the reload above -- and the service listens for that one instead
+# (see service/monitor.py).
 
 
