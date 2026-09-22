@@ -1782,3 +1782,63 @@ msgstr "%s min"
 msgctxt "#32554"
 msgid "%s h"
 msgstr "%s h"
+
+msgctxt "#32555"
+msgid "Layout"
+msgstr "Layout"
+
+msgctxt "#32556"
+msgid "Dialog layout"
+msgstr "Dialog-Layout"
+
+msgctxt "#32557"
+msgid "Which of the designs the VS10 dialog is drawn as."
+msgstr "Legt fest, in welchem Design der VS10-Dialog gezeichnet wird."
+
+msgctxt "#32558"
+msgid "Standard"
+msgstr "Standard"
+
+msgctxt "#32559"
+msgid "Full size"
+msgstr "Vollbreite"
+
+msgctxt "#32560"
+msgid "Compact"
+msgstr "Kompakt"
+
+msgctxt "#32561"
+msgid "Sidebar (left)"
+msgstr "Seitenleiste (links)"
+
+msgctxt "#32562"
+msgid "Sidebar (right)"
+msgstr "Seitenleiste (rechts)"
+
+msgctxt "#32563"
+msgid "Wheel"
+msgstr "Rad"
+
+msgctxt "#32564"
+msgid "Single button"
+msgstr "Einzelne Taste"
+
+msgctxt "#32565"
+msgid "Dialog position"
+msgstr "Dialog-Position"
+
+msgctxt "#32566"
+msgid "Vertical position"
+msgstr "Vertikale Position"
+
+msgctxt "#32567"
+msgid "Where the dialog sits between the top edge of the screen (0%) and the bottom one (100%). 50% leaves it in the middle, where it has always been."
+msgstr "Legt fest, wo der Dialog zwischen dem oberen (0 %) und dem unteren Bildschirmrand (100 %) sitzt. 50 % belässt ihn in der Mitte, wo er bisher war."
+
+msgctxt "#32568"
+msgid "Horizontal position"
+msgstr "Horizontale Position"
+
+msgctxt "#32569"
+msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). Not available for the full size layout and the sidebars: one spans the screen and the others belong to an edge."
+msgstr "Legt fest, wo der Dialog zwischen dem linken (0 %) und dem rechten Bildschirmrand (100 %) sitzt. Für die Vollbreite und die Seitenleisten nicht verfügbar: die eine füllt den Bildschirm, die anderen gehören an einen Rand."

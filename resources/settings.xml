@@ -5506,6 +5506,56 @@
             </group>
         </category>
         <category id="Dialog" label="32095" help="32101">
+            <group id="20" label="32555">
+                <setting id="dialog_mode" type="integer" label="32556" help="32557">
+                    <level>0</level>
+                    <default>0</default>
+                    <constraints>
+                        <options>
+                            <option label="32558">0</option>
+                            <option label="32559">1</option>
+                            <option label="32560">2</option>
+                            <option label="32561">3</option>
+                            <option label="32562">4</option>
+                            <option label="32563">5</option>
+                            <option label="32564">6</option>
+                        </options>
+                    </constraints>
+                    <control type="list" format="string" />
+                </setting>
+            </group>
+            <group id="21" label="32565">
+                <setting id="dialog_position_y" type="integer" label="32566" help="32567">
+                    <level>0</level>
+                    <default>50</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <control type="slider" format="percentage" />
+                </setting>
+                <setting id="dialog_position_x" type="integer" label="32568" help="32569">
+                    <level>0</level>
+                    <default>50</default>
+                    <constraints>
+                        <minimum>0</minimum>
+                        <step>1</step>
+                        <maximum>100</maximum>
+                    </constraints>
+                    <dependencies>
+                        <dependency type="enable">
+                            <or>
+                                <condition operator="is" setting="dialog_mode">0</condition>
+                                <condition operator="is" setting="dialog_mode">2</condition>
+                                <condition operator="is" setting="dialog_mode">5</condition>
+                                <condition operator="is" setting="dialog_mode">6</condition>
+                            </or>
+                        </dependency>
+                    </dependencies>
+                    <control type="slider" format="percentage" />
+                </setting>
+            </group>
             <group id="7" label="32269">
                 <setting id="dialog_global_background_color" type="integer" label="32269" help="32271">
                     <level>0</level>

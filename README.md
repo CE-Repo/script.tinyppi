@@ -248,6 +248,45 @@ while this view is open and the overlay's own polling never pays for it.
 
 ---
 
+## VS10 Dialog Layouts
+
+The VS10 dialog — the menu that offers the player-process overlay and whatever
+VS10 output modes the playing source has — is drawn in one of seven designs.
+Pick one under **Settings → VS10 dialog → Layout**:
+
+| Layout | What it looks like |
+| --- | --- |
+| **Standard** | The panel the add-on has always opened with: the choices stacked in the middle of the screen. The default. |
+| **Full size** | A bar the width of the screen, the choices side by side across it. |
+| **Compact** | The same bar at about three quarters the size, and free to be moved sideways. |
+| **Sidebar (left)** | The choices stacked against the left edge. |
+| **Sidebar (right)** | The same against the right edge. |
+| **Wheel** | The choices in the segments of a ring, the way a game's weapon wheel arranges its own; the heading sits in the hub. |
+| **Single button** | One button, and **left** or **right** steps it to the next choice. For a remote that has little more than a direction pad and OK. |
+
+Every layout draws the same choices, and how many there are depends on the
+source: four on SDR and HDR10, three on Dolby Vision, and the
+player-process button on its own where there are no VS10 modes to offer —
+HDR10+, HLG, and a Dolby Vision grade carrying HDR10+ alongside its RPU.
+A layout keeps the same panel whichever of those is playing and spreads the
+choices over it, so the dialog does not change size under you when the
+detection finishes.
+
+### Position
+
+Under **Settings → VS10 dialog → Dialog position** the panel can be moved:
+
+- **Vertical position** — 0% is a margin below the top edge of the screen,
+  100% rests the panel on the bottom one. 50%, the default, leaves it in the
+  middle, which is where the dialog has always been drawn.
+- **Horizontal position** — 0% is the left margin and 100% the right one.
+  Available for **Standard**, **Compact**, **Wheel** and **Single button**
+  only: the full size bar spans the screen, and a sidebar that has left its
+  edge is no longer a sidebar, so the setting is greyed out for those three.
+
+The colours of every layout come from the same **VS10 dialog** colour settings
+as before.
+
 ## Web Dashboard
 
 TinyPPI can serve everything the overlay shows to a browser on your phone or

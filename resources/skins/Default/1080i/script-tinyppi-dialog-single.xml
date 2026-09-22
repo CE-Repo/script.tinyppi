@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated file - do not edit by hand; see tools/gen_dialog_skins.py.
+     The single button: one button, and left or right steps it to the next choice rather than moving to another button. -->
+<window type="dialog">
+    <defaultcontrol always="true">1500</defaultcontrol>
+    <onload>Dialog.Close(fullscreenvideo,true)</onload>
+    <onload>Dialog.Close(videoosd,true)</onload>
+    <onload>Dialog.Close(seekbar,true)</onload>
+    <onload>Dialog.Close(1159,true)</onload>
+    <animation effect="fade" start="0" end="100" time="200" tween="cubic" easing="inout">WindowOpen</animation>
+    <animation effect="fade" end="0" start="100" time="150">WindowClose</animation>
+    <controls>
+        <control type="image">
+            <left>0</left>
+            <top>0</top>
+            <width>1920</width>
+            <height>1080</height>
+            <visible>String.IsEqual(Window(10000).Property(TinyPPI.DialogPlaced),1)</visible>
+            <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogGlobalBackgroundColor)]">common/dot-1x1.png</texture>
+        </control>
+
+        <!-- Moved into place by ui.mode_select before anything is
+             drawn: the window file can only name one position, and
+             the panel would otherwise show at that one for a frame
+             and then jump to the one the settings ask for. The
+             group that is moved carries the closing animation,
+             because a control held back by a condition does not play
+             itself out again when the window closes. -->
+        <control type="group" id="2">
+            <left>610</left>
+            <top>424</top>
+            <width>700</width>
+            <height>232</height>
+            <animation effect="slide" start="0,0" end="0,240" time="200" tween="quadratic" easing="in">WindowClose</animation>
+            <animation effect="fade" start="100" end="0" time="150">WindowClose</animation>
+            <control type="group">
+                <left>0</left>
+                <top>0</top>
+                <width>700</width>
+                <height>232</height>
+                <visible>String.IsEqual(Window(10000).Property(TinyPPI.DialogPlaced),1)</visible>
+                <animation effect="fade" start="0" end="100" time="200">Visible</animation>
+                <animation effect="fade" start="100" end="0" time="150">Hidden</animation>
+                <animation effect="slide" start="0,120" end="0,0" time="200" tween="quadratic" easing="out">Visible</animation>
+                <control type="image">
+                    <left>0</left>
+                    <top>0</top>
+                    <width>700</width>
+                    <height>232</height>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogBackgroundColor)]" border="40">common/button-white.png</texture>
+                </control>
+                <control type="label">
+                    <left>30</left>
+                    <top>18</top>
+                    <width>640</width>
+                    <height>44</height>
+                    <font>font32</font>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogHeaderColor)]</textcolor>
+                    <align>left</align>
+                    <aligny>center</aligny>
+                    <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderTitle),1)</visible>
+                    <label>[B]VS10[/B]</label>
+                </control>
+                <control type="image">
+                    <left>634</left>
+                    <top>22</top>
+                    <width>36</width>
+                    <height>36</height>
+                    <aspectratio>keep</aspectratio>
+                    <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderIcon),1)</visible>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogHeaderIconColor)]">icons/vs10.png</texture>
+                </control>
+                <control type="image">
+                    <left>30</left>
+                    <top>80</top>
+                    <width>640</width>
+                    <height>1</height>
+                    <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogLineColor)]">common/dot-1x1.png</texture>
+                </control>
+                <control type="image">
+                    <left>34</left>
+                    <top>122</top>
+                    <width>32</width>
+                    <height>32</height>
+                    <aspectratio>keep</aspectratio>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]">dialog/arrow-left.png</texture>
+                </control>
+                <control type="image">
+                    <left>634</left>
+                    <top>122</top>
+                    <width>32</width>
+                    <height>32</height>
+                    <aspectratio>keep</aspectratio>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]">dialog/arrow-right.png</texture>
+                </control>
+                <control type="button" id="1500">
+                    <left>90</left>
+                    <top>98</top>
+                    <width>520</width>
+                    <height>80</height>
+                    <label></label>
+                    <align>center</align>
+                    <aligny>center</aligny>
+                    <font>font23_narrow</font>
+                    <onup>1500</onup>
+                    <ondown>1500</ondown>
+                    <onleft>1500</onleft>
+                    <onright>1500</onright>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                    <selectedcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</selectedcolor>
+                    <focusedcolor>$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]</focusedcolor>
+                    <texturenofocus colordiffuse="00FFFFFF" border="40">common/button-white.png</texturenofocus>
+                    <texturefocus colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]" border="40">common/button-white.png</texturefocus>
+                </control>
+                <control type="image">
+                    <left>30</left>
+                    <top>196</top>
+                    <width>640</width>
+                    <height>1</height>
+                    <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogLineColor)]">common/dot-1x1.png</texture>
+                </control>
+                <control type="label" id="1400">
+                    <left>30</left>
+                    <top>200</top>
+                    <width>640</width>
+                    <height>28</height>
+                    <font>font23_narrow</font>
+                    <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
+                    <align>center</align>
+                    <aligny>center</aligny>
+                    <label></label>
+                </control>
+            </control>
+        </control>
+    </controls>
+</window>
