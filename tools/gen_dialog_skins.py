@@ -322,9 +322,9 @@ def main():
             layout.MODE_BAR,
             "The bar: the choices in a row rather than stacked, in a panel"
             " low enough to leave most of the picture showing.",
-            margin=24, gap=18, header_font="font23_narrow",
-            title_top=14, icon_size=30, rule_top=62, button_top=78,
-            button_height=80, second_rule_top=176, single_width=500),
+            margin=24, gap=18, header_font="font32",
+            title_top=12, icon_size=36, rule_top=66, button_top=82,
+            button_height=80, second_rule_top=180, single_width=500),
         layout.MODE_SINGLE: single(
             "The single button: one button, and left or right steps it to the"
             " next choice rather than moving to another button."),

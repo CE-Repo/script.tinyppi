@@ -28,16 +28,16 @@
              itself out again when the window closes. -->
         <control type="group" id="2">
             <left>109</left>
-            <top>830</top>
+            <top>824</top>
             <width>1702</width>
-            <height>200</height>
+            <height>206</height>
             <animation effect="slide" start="0,0" end="0,240" time="200" tween="quadratic" easing="in">WindowClose</animation>
             <animation effect="fade" start="100" end="0" time="150">WindowClose</animation>
             <control type="group">
                 <left>0</left>
                 <top>0</top>
                 <width>1702</width>
-                <height>200</height>
+                <height>206</height>
                 <visible>String.IsEqual(Window(10000).Property(TinyPPI.DialogPlaced),1)</visible>
                 <animation effect="fade" start="0" end="100" time="200">Visible</animation>
                 <animation effect="fade" start="100" end="0" time="150">Hidden</animation>
@@ -46,15 +46,15 @@
                     <left>0</left>
                     <top>0</top>
                     <width>1702</width>
-                    <height>200</height>
+                    <height>206</height>
                     <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogBackgroundColor)]" border="40">common/button-white.png</texture>
                 </control>
                 <control type="label">
                     <left>24</left>
-                    <top>14</top>
+                    <top>12</top>
                     <width>1654</width>
                     <height>44</height>
-                    <font>font23_narrow</font>
+                    <font>font32</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.DialogHeaderColor)]</textcolor>
                     <align>left</align>
                     <aligny>center</aligny>
@@ -62,17 +62,17 @@
                     <label>[B]VS10[/B]</label>
                 </control>
                 <control type="image">
-                    <left>1648</left>
-                    <top>21</top>
-                    <width>30</width>
-                    <height>30</height>
+                    <left>1642</left>
+                    <top>16</top>
+                    <width>36</width>
+                    <height>36</height>
                     <aspectratio>keep</aspectratio>
                     <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowHeaderIcon),1)</visible>
                     <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogHeaderIconColor)]">icons/vs10.png</texture>
                 </control>
                 <control type="image">
                     <left>24</left>
-                    <top>62</top>
+                    <top>66</top>
                     <width>1654</width>
                     <height>1</height>
                     <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
@@ -80,7 +80,7 @@
                 </control>
                 <control type="image">
                     <left>24</left>
-                    <top>176</top>
+                    <top>180</top>
                     <width>1654</width>
                     <height>1</height>
                     <visible>String.IsEqual(Window(10000).Property(TinyPPI.ShowLine),1)</visible>
@@ -90,7 +90,7 @@
                     <visible>String.IsEmpty(Window(10000).Property(TinyPPI.HdrType)) + !String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) + !String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) + !String.IsEqual(Window(10000).Property(TinyPPI.Hdr10PlusPresent),1)</visible>
                     <control type="button" id="1001">
                         <left>24</left>
-                        <top>78</top>
+                        <top>82</top>
                         <width>400</width>
                         <height>80</height>
                         <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
@@ -108,7 +108,7 @@
                     </control>
                     <control type="button" id="1002">
                         <left>442</left>
-                        <top>78</top>
+                        <top>82</top>
                         <width>400</width>
                         <height>80</height>
                         <label>[B]Original[/B]</label>
@@ -126,7 +126,7 @@
                     </control>
                     <control type="button" id="1003">
                         <left>860</left>
-                        <top>78</top>
+                        <top>82</top>
                         <width>400</width>
                         <height>80</height>
                         <label>[B]SDR → HDR10[/B]</label>
@@ -144,7 +144,7 @@
                     </control>
                     <control type="button" id="1004">
                         <left>1278</left>
-                        <top>78</top>
+                        <top>82</top>
                         <width>400</width>
                         <height>80</height>
                         <label>[B]SDR → Dolby Vision[/B]</label>
@@ -165,7 +165,7 @@
                     <visible>String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) + !String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) + !String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) + !String.IsEqual(Window(10000).Property(TinyPPI.Hdr10PlusPresent),1)</visible>
                     <control type="button" id="1101">
                         <left>24</left>
-                        <top>78</top>
+                        <top>82</top>
                         <width>400</width>
                         <height>80</height>
                         <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
@@ -183,7 +183,7 @@
                     </control>
                     <control type="button" id="1005">
                         <left>442</left>
-                        <top>78</top>
+                        <top>82</top>
                         <width>400</width>
                         <height>80</height>
                         <label>[B]HDR10 (Original)[/B]</label>
@@ -201,7 +201,7 @@
                     </control>
                     <control type="button" id="1006">
                         <left>860</left>
-                        <top>78</top>
+                        <top>82</top>
                         <width>400</width>
                         <height>80</height>
                         <label>[B]HDR10 → SDR[/B]</label>
@@ -219,7 +219,7 @@
                     </control>
                     <control type="button" id="1008">
                         <left>1278</left>
-                        <top>78</top>
+                        <top>82</top>
                         <width>400</width>
                         <height>80</height>
                         <label>[B]HDR10 → Dolby Vision[/B]</label>
@@ -240,7 +240,7 @@
                     <visible>String.Contains(Window(10000).Property(TinyPPI.HdrType),dolby) + !String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) + !String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) + !String.IsEqual(Window(10000).Property(TinyPPI.Hdr10PlusPresent),1)</visible>
                     <control type="button" id="1201">
                         <left>24</left>
-                        <top>78</top>
+                        <top>82</top>
                         <width>539</width>
                         <height>80</height>
                         <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
@@ -258,7 +258,7 @@
                     </control>
                     <control type="button" id="1012">
                         <left>581</left>
-                        <top>78</top>
+                        <top>82</top>
                         <width>539</width>
                         <height>80</height>
                         <label>[B]Dolby Vision (Original)[/B]</label>
@@ -276,7 +276,7 @@
                     </control>
                     <control type="button" id="1013">
                         <left>1138</left>
-                        <top>78</top>
+                        <top>82</top>
                         <width>539</width>
                         <height>80</height>
                         <label>[B]Dolby Vision → SDR[/B]</label>
@@ -297,7 +297,7 @@
                     <visible>String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) | String.IsEqual(Window(10000).Property(TinyPPI.Hdr10PlusPresent),1)</visible>
                     <control type="button" id="1301">
                         <left>601</left>
-                        <top>78</top>
+                        <top>82</top>
                         <width>500</width>
                         <height>80</height>
                         <label>[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]</label>
