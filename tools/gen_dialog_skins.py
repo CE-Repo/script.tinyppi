@@ -305,22 +305,14 @@ def single(title):
     inner = width - 2 * margin
     nav = {key: layout.SINGLE_BUTTON
            for key in ("onup", "ondown", "onleft", "onright")}
-    arrows = []
     # What left and right do. Not buttons: there is nowhere for focus to go
-    # but the one button there is - which is why they are drawn twice, in the
-    # focused and the unfocused text colour. An arrow left in the unfocused
-    # colour beside a button that is always focused reads as a different
-    # colour from the name between them.
-    for name, left in (("arrow-left.png", margin + 4),
-                       ("arrow-right.png", width - margin - 36)):
-        arrows.append(image(left, 122, 32, 32, "dialog/" + name,
-                            HOME % "DialogTextColor", aspect="keep",
-                            visible="!Control.HasFocus(%d)"
-                                    % layout.SINGLE_BUTTON))
-        arrows.append(image(left, 122, 32, 32, "dialog/" + name,
-                            HOME % "DialogFocusTextColor", aspect="keep",
-                            visible="Control.HasFocus(%d)"
-                                    % layout.SINGLE_BUTTON))
+    # but the one button there is, which is also why they take the colour the
+    # button is drawn in rather than the one its name is written in - the
+    # three read as one piece that way.
+    arrows = [image(left, 122, 32, 32, "dialog/" + name,
+                    HOME % "DialogFocusColor", aspect="keep")
+              for name, left in (("arrow-left.png", margin + 4),
+                                 ("arrow-right.png", width - margin - 36))]
     body = "\n".join([
         panel(width, height),
         header(width, margin, 18, 36, 22, "font32"),

@@ -84,17 +84,7 @@
                     <width>32</width>
                     <height>32</height>
                     <aspectratio>keep</aspectratio>
-                    <visible>!Control.HasFocus(1500)</visible>
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]">dialog/arrow-left.png</texture>
-                </control>
-                <control type="image">
-                    <left>34</left>
-                    <top>122</top>
-                    <width>32</width>
-                    <height>32</height>
-                    <aspectratio>keep</aspectratio>
-                    <visible>Control.HasFocus(1500)</visible>
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]">dialog/arrow-left.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]">dialog/arrow-left.png</texture>
                 </control>
                 <control type="image">
                     <left>634</left>
@@ -102,17 +92,7 @@
                     <width>32</width>
                     <height>32</height>
                     <aspectratio>keep</aspectratio>
-                    <visible>!Control.HasFocus(1500)</visible>
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogTextColor)]">dialog/arrow-right.png</texture>
-                </control>
-                <control type="image">
-                    <left>634</left>
-                    <top>122</top>
-                    <width>32</width>
-                    <height>32</height>
-                    <aspectratio>keep</aspectratio>
-                    <visible>Control.HasFocus(1500)</visible>
-                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusTextColor)]">dialog/arrow-right.png</texture>
+                    <texture colordiffuse="$INFO[Window(10000).Property(TinyPPI.DialogFocusColor)]">dialog/arrow-right.png</texture>
                 </control>
                 <control type="button" id="1500">
                     <left>90</left>
