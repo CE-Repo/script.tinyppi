@@ -35,6 +35,7 @@ from core.utils import (
     is_effective_dv,
     parse_offsets,
     picture_aspect_ratio,
+    read_pass,
     set_changed_properties,
 )
 from info.imax import is_enhanced_title, is_known_imax_title
@@ -787,14 +788,15 @@ def update_static_properties(window, published=None) -> None:
     """
     if published is None:
         published = {}
-    publish_static_properties(window, published)
-    _set_progress(
-        window,
-        published,
-        (
-            (9100, get_CpuTemperatureProgressVar()),
-        ),
-    )
+    with read_pass():
+        publish_static_properties(window, published)
+        _set_progress(
+            window,
+            published,
+            (
+                (9100, get_CpuTemperatureProgressVar()),
+            ),
+        )
 
 
 def publish_scene_properties(window, published=None) -> None:
@@ -812,6 +814,12 @@ def publish_scene_properties(window, published=None) -> None:
     """
     if published is None:
         published = {}
+    with read_pass():
+        _publish_scene_properties(window, published)
+
+
+def _publish_scene_properties(window, published: dict) -> None:
+    """The pass itself, inside the caller's ``read_pass``."""
     unit, pq_unit = _metadata_units()
 
     # The active-area offsets the RPU declares for the frame on screen, and
@@ -891,6 +899,12 @@ def publish_static_properties(window, published=None) -> None:
     """
     if published is None:
         published = {}
+    with read_pass():
+        _publish_static_properties(window, published)
+
+
+def _publish_static_properties(window, published: dict) -> None:
+    """The pass itself, inside the caller's ``read_pass``."""
     publish_hdr_type(published=published)
     # Depends on the type just published, and gates the channel graphics below.
     publish_channel_visibility(published=published)
@@ -965,5 +979,8 @@ def publish_properties(window, published=None) -> None:
     """
     if published is None:
         published = {}
-    publish_scene_properties(window, published)
-    publish_static_properties(window, published)
+    # One pass around both halves: they read the same player, and the window
+    # this fills has a viewer waiting on it, so nothing is read twice.
+    with read_pass():
+        _publish_scene_properties(window, published)
+        _publish_static_properties(window, published)

@@ -28,13 +28,16 @@ from core.utils import (
     set_window_properties,
 )
 from info import properties
-from ui import fonts  # noqa: F401  imported for its install-fonts-on-import side effect
+from ui.fonts import ensure_fonts
 from ui.theme import apply_theme
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
+# Only ever asked for the things that cannot change while Kodi runs -- where
+# the addon lives, and its localized strings.  Settings are read through
+# _settings() instead; see there.
 _ADDON      = xbmcaddon.Addon()
 _ADDON_PATH = _ADDON.getAddonInfo("path")
 
@@ -112,6 +115,20 @@ _DV_CHANGED_HOLD = "output_changed_duration"
 # they do not need the loop's own 100ms cadence the way the Dolby Vision /
 # HDR10 readings in publish_scene_properties do.
 _STATIC_POLL_INTERVAL = 1.0
+
+
+def _settings() -> xbmcaddon.Addon:
+    """Return a handle whose settings are the ones in force right now.
+
+    A handle holds the settings as they read when it was made, which used to
+    be a distinction without a difference: each launch was its own script, so
+    a handle made in a module global was made moments before it was read.  The
+    overlay now opens inside the service, which is loaded once and stays
+    loaded for the session, so a handle kept in a global would answer with the
+    settings as they were when Kodi started -- every colour, offset and toggle
+    frozen at boot.  Made per opening instead, and read from there.
+    """
+    return xbmcaddon.Addon()
 
 
 def _is_coreelec() -> bool:
@@ -216,10 +233,10 @@ def _nudge_enabled() -> bool:
     return xbmcaddon.Addon().getSettingBool("nudge_position")
 
 
-def _elements_visible() -> str:
+def _elements_visible(addon) -> str:
     """Return the "1"/"0" flag for the header title, header icon and separator
     lines: they follow the background and hide only when it is fully transparent."""
-    return "0" if _ADDON.getSettingInt("background_opacity") == 0 else "1"
+    return "0" if addon.getSettingInt("background_opacity") == 0 else "1"
 
 
 def _release_overlay(home) -> None:
@@ -250,6 +267,9 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._auto_hide = 0
         self._nudge     = (0, 0)
         self._nudge_on  = False
+        # The position sliders, read once in onInit.
+        self._offset_pct    = (0, 0)
+        self._dv_offset_pct = 100
         self._thread    = None
         self._dv_channel_offset = None
         self._refresh_failed    = False
@@ -271,10 +291,21 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
     def onInit(self) -> None:
         self._running   = True
         self._opened_at = time.time()
+        addon = _settings()
         # Auto-hide timeout in seconds (0 = off). Applies to the TinyPPI
         # overlay only, not the VS10 selection dialog.
-        self._auto_hide = _ADDON.getSettingInt("auto_hide")
+        self._auto_hide = addon.getSettingInt("auto_hide")
         self._nudge_on  = _nudge_enabled()
+        # The configured position, read here rather than per tick: the offsets
+        # are re-applied on every cycle because the HDR type and the channel
+        # icon move the box around underneath them, not because the sliders do
+        # -- those are where the viewer left them for as long as this overlay
+        # is up.
+        self._offset_pct    = (
+            addon.getSettingInt("offset_x"),
+            addon.getSettingInt("offset_y"),
+        )
+        self._dv_offset_pct = addon.getSettingInt("offset_x_dv")
 
         # Everything the first frame needs was published before doModal(), so
         # there is nothing to fetch here: place the overlay against the HDR type
@@ -360,8 +391,9 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         """
         max_x = 0.309
         max_y = 0.281
-        offset_x = round(1920 * max_x * _ADDON.getSettingInt("offset_x") / 100)
-        offset_y = -round(1080 * max_y * _ADDON.getSettingInt("offset_y") / 100)
+        pct_x, pct_y = self._offset_pct
+        offset_x = round(1920 * max_x * pct_x / 100)
+        offset_y = -round(1080 * max_y * pct_y / 100)
         if self._is_hdr() or self._has_channels():
             offset_x = 0
         offset_y = max(offset_y, -self._offset_up_limit())
@@ -446,7 +478,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         inset.  Only the panel moves; the main box below it stays put.
         """
         travel = _CHANNEL_PANEL_DV_LEFT - _CONTENT_LEFT
-        pct    = min(max(_ADDON.getSettingInt("offset_x_dv"), 0), 100)
+        pct    = min(max(self._dv_offset_pct, 0), 100)
         offset = (-round(travel * (100 - pct) / 100), 0)
         if offset == self._dv_channel_offset:
             return
@@ -623,15 +655,20 @@ def open_tinyppi() -> None:
     if not _preflight(home, player, "TinyPPI: Toggle close"):
         return
 
-    elements_visible = _elements_visible()
+    # Normally a single window-property read: the service registered the font
+    # entries at Kodi start, so nothing here goes near the skin directory.
+    ensure_fonts()
+
+    addon            = _settings()
+    elements_visible = _elements_visible(addon)
     _set_overlay_state(home)
     set_window_properties(
         home,
         (
-            ("TinyPPI.Filename", _ADDON.getSetting("filename")),
+            ("TinyPPI.Filename", addon.getSetting("filename")),
             (
                 "TinyPPI.ShowL5Icon",
-                "0" if _ADDON.getSetting("show_l5_icon") == "false" else "1",
+                "0" if addon.getSetting("show_l5_icon") == "false" else "1",
             ),
             ("TinyPPI.ShowLine", elements_visible),
             ("TinyPPI.ShowHeaderTitle", elements_visible),
@@ -641,7 +678,7 @@ def open_tinyppi() -> None:
     # From the HDR type known so far, so the right variant is up before the first
     # frame; the update loop re-publishes it once detection finishes.
     properties.publish_channel_visibility(home)
-    apply_theme(home, _ADDON)
+    apply_theme(home, addon)
 
     try:
         while _show_overlay(home) == _VIEW_DV_METADATA:
@@ -662,7 +699,10 @@ def open_dialog_mode() -> None:
     if not _preflight(home, player, "TinyPPI: Toggle close (dialog mode)"):
         return
 
-    elements_visible = _elements_visible()
+    ensure_fonts()
+
+    addon            = _settings()
+    elements_visible = _elements_visible(addon)
     _set_overlay_state(home, dialog_mode=True)
     set_window_properties(
         home,
@@ -672,7 +712,7 @@ def open_dialog_mode() -> None:
             ("TinyPPI.ShowHeaderIcon", elements_visible),
         ),
     )
-    apply_theme(home, _ADDON)
+    apply_theme(home, addon)
 
     try:
         from ui.mode_select import open_dialog
