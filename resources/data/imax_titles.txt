@@ -3,7 +3,8 @@
 # One title per line; anything after a # is a comment.  Matching ignores case,
 # punctuation and accents, reads "&" as "and" and roman numerals and number
 # words as figures, so "The Wandering Earth II" also matches a file named
-# "The.Wandering.Earth.2".
+# "The.Wandering.Earth.2".  German umlauts count as spelled out, so
+# "Drachenzähmen" matches "Drachenzaehmen".
 #
 # The name is looked for in the playing file and its folder, and in the title,
 # original title and year Kodi holds for the item — a film streamed through an
@@ -50,7 +51,7 @@ The Dark Knight Rises
 Dunkirk
 First Man
 Ghostbusters 2016
-Guardians of the Galaxy Vol 3                # VAR home version; not IMAX-exclusive
+Guardians of the Galaxy Vol 3 @enhanced      # VAR home version; Disney+ IMAX Enhanced
 Him 2025                                     # Expanded opening sequence
 How to Train Your Dragon 2025
 The Hunger Games Catching Fire               # US Blu-ray; UHD and some regional BDs are fixed
@@ -95,12 +96,38 @@ Transformers Revenge of the Fallen           # Walmart Big Screen Edition Blu-ra
 
 The Aeronauts                                # Amazon Prime expanded version
 Ant Man and the Wasp Quantumania @enhanced   # Disney+ IMAX Enhanced only
+Avengers Endgame @enhanced                   # Disney+ IMAX Enhanced only
+Avengers Infinity War @enhanced              # Disney+ IMAX Enhanced only
 Black Panther Wakanda Forever @enhanced      # Disney+ IMAX Enhanced only
 Captain America Brave New World @enhanced    # Disney+ IMAX Enhanced only
+Deadpool and Wolverine @enhanced             # Disney+ IMAX Enhanced only
+Doctor Strange in the Multiverse of Madness @enhanced  # Disney+ IMAX Enhanced only
 Eternals @enhanced                           # Disney+ IMAX Enhanced only
+The Fantastic Four First Steps @enhanced     # Disney+ IMAX Enhanced only
 Iron Man 2008 @enhanced                      # Disney+ IMAX Enhanced only
 Lightyear @enhanced                          # Disney+ IMAX Enhanced only
 The Marvels @enhanced                        # Disney+ IMAX Enhanced only
+Shang Chi and the Legend of the Ten Rings @enhanced  # Disney+ IMAX Enhanced only
 Spider Man Far from Home @enhanced           # Sony Pictures Core IMAX Enhanced
 Thor Love and Thunder @enhanced              # Disney+ IMAX Enhanced only
+Thunderbolts 2025 @enhanced                  # Disney+ IMAX Enhanced only
 Tron Ares @enhanced                          # Disney+ IMAX Enhanced only
+
+
+# ---------------------------------------------------------------------------
+# German release titles
+# ---------------------------------------------------------------------------
+# The same films as above, under the name a German release goes by where it
+# does not end in the English title.  Only needed for a file played without a
+# library entry; with one, Kodi's original title already names the film.
+# Keep the @enhanced tag in step with the entry it stands for.
+
+Aufbruch zum Mond                            # First Man
+Conjuring 4 Das letzte Kapitel               # The Conjuring Last Rites
+Die Fantastischen Vier Erste Schritte @enhanced  # The Fantastic Four First Steps
+Die Tribute von Panem Catching Fire          # The Hunger Games Catching Fire
+Drachenzähmen leicht gemacht 2025            # How to Train Your Dragon (2025)
+The First Avenger Civil War @enhanced        # Captain America Civil War
+Thor Tag der Entscheidung @enhanced          # Thor Ragnarok
+Transformers Ära des Untergangs              # Transformers Age of Extinction
+Transformers Die Rache                       # Transformers Revenge of the Fallen

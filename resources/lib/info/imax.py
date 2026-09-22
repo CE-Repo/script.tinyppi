@@ -75,7 +75,8 @@ _TAGS = frozenset("""
     spanish japanese korean hindi truefrench vostfr ita eng ger fre spa jpn
     subbed dubbed extended unrated uncut uncensored directors director cut
     remastered restored edition theatrical open matte oar repack proper limited
-    internal complete disc sample retail hybrid criterion anniversary
+    internal complete disc sample retail hybrid criterion anniversary ultimate
+    collector collectors kinofassung
     season episode
 """.split())
 
@@ -95,6 +96,14 @@ _ALIASES = {
     "six": "6", "seven": "7", "eight": "8", "nine": "9", "ten": "10",
     "volume": "vol", "pt": "part", "chapter": "part",
 }
+
+# German letters that release names spell out rather than drop: the scene
+# writes "Drachenzaehmen", and a name folded the way accents are would come out
+# "drachenzahmen" on one side and "drachenzaehmen" on the other.  ß has no base
+# letter at all and would otherwise split the word it sits in.
+_SPELLED_OUT = str.maketrans({
+    "ä": "ae", "ö": "oe", "ü": "ue", "Ä": "Ae", "Ö": "Oe", "Ü": "Ue", "ß": "ss",
+})
 
 # Folders that are part of a disc layout rather than a name; the film is named
 # by whatever holds them.
@@ -151,11 +160,16 @@ def _tokens(text: str) -> list[str]:
     """Reduce a name to its bare words, so names differing only in spelling
     compare equal.
 
-    Accents are folded onto their base letter (``Folie a Deux`` matches ``Folie
-    à Deux``), ``&`` is spelled out, an article parked at the end by a library
-    naming scheme is put back in front, punctuation becomes word breaks and the
-    spellings in ``_ALIASES`` are settled.
+    German umlauts and ß are spelled out the way a release name writes them
+    (``Drachenzähmen`` matches ``Drachenzaehmen``), other accents are folded
+    onto their base letter (``Folie a Deux`` matches ``Folie à Deux``), ``&`` is
+    spelled out, an article parked at the end by a library naming scheme is put
+    back in front, punctuation becomes word breaks and the spellings in
+    ``_ALIASES`` are settled.
     """
+    # Composed first, so an umlaut stored as a + combining mark (as a macOS
+    # share hands out filenames) is spelled out like any other.
+    text = unicodedata.normalize("NFC", text).translate(_SPELLED_OUT)
     text = unicodedata.normalize("NFKD", text)
     text = "".join(c for c in text if not unicodedata.combining(c))
     text = _unshuffle_article(text.replace("&", " and "))
