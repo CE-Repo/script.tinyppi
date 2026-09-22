@@ -6,6 +6,7 @@ utils.py – Generic Kodi API wrappers and shared window-state helpers.
 """
 
 import re
+import threading
 import time
 
 import xbmc
@@ -38,9 +39,54 @@ PROP_EFFECTIVE_HDR_TYPE = "TinyPPI.EffectiveHdrType"
 PROP_HDR10PLUS_PRESENT = "TinyPPI.Hdr10PlusPresent"
 
 
+# Per-pass read caches, one set per thread (the overlay refreshes from its own
+# polling thread while the metadata view refreshes from another).  ``None``
+# outside a pass, which is when every read goes straight to Kodi.
+_reads = threading.local()
+
+
+class read_pass:
+    """Read each InfoLabel and condition Kodi is asked for at most once.
+
+    One refresh works out around sixty readings off some forty InfoLabels, and
+    the same handful -- the Amlogic pixel format, the output gamut, the audio
+    codec, the CPU load -- are wanted by several of them.  Each read crosses
+    into Kodi's info manager and takes its lock, which is a poor way to spend a
+    tick on a set-top box that is decoding 4K at the same time, and the readings
+    inside one pass are meant to describe one moment anyway.
+
+    Nests: an inner pass shares the outer one's cache rather than starting a
+    second, so a caller that wraps two passes of its own gets one set of reads
+    for both.  Nothing is kept once the outermost pass ends -- the next tick
+    reads the player afresh.
+    """
+
+    __slots__ = ("_outer",)
+
+    def __enter__(self):
+        self._outer = getattr(_reads, "info", None)
+        if self._outer is None:
+            _reads.info = {}
+            _reads.cond = {}
+        return self
+
+    def __exit__(self, *_exc) -> bool:
+        if self._outer is None:
+            _reads.info = None
+            _reads.cond = None
+        return False
+
+
 def cond(condition: str) -> bool:
     """Return True when the given Kodi condition string is satisfied."""
-    return xbmc.getCondVisibility(condition)
+    cache = getattr(_reads, "cond", None)
+    if cache is None:
+        return xbmc.getCondVisibility(condition)
+    try:
+        return cache[condition]
+    except KeyError:
+        value = cache[condition] = xbmc.getCondVisibility(condition)
+        return value
 
 
 def effective_hdr_type() -> str:
@@ -63,8 +109,18 @@ def is_effective_dv() -> bool:
 
 
 def info(label: str) -> str:
-    """Return the current value of a Kodi InfoLabel (never None)."""
-    return xbmc.getInfoLabel(label)
+    """Return the current value of a Kodi InfoLabel (never None).
+
+    Answered out of the current ``read_pass`` when one is open; see there.
+    """
+    cache = getattr(_reads, "info", None)
+    if cache is None:
+        return xbmc.getInfoLabel(label)
+    try:
+        return cache[label]
+    except KeyError:
+        value = cache[label] = xbmc.getInfoLabel(label)
+        return value
 
 
 def clean(val) -> str:

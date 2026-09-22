@@ -9,8 +9,12 @@ names.  Both name ``arial.ttf``, which Kodi distributes itself -- nothing is
 copied into the skin, so there is no font file that can go missing or drift out
 of sync with the entry that names it.
 
-Runs install_fonts() on import so the entries are in place before the overlay
-opens; FontInstallMonitor re-runs it on skin change or Kodi update.
+Nothing runs on import.  The service installs the entries once at Kodi start
+and FontInstallMonitor re-runs it on skin change or Kodi update, so by the time
+anyone presses the button the work is long done; ``ensure_fonts()`` is what the
+overlay calls on its way up, and on the ordinary launch that is a single
+window-property read (see PROP_FONTS_READY) rather than a walk of the skin
+directory and a parse of its Font.xml.
 """
 
 import os
@@ -19,6 +23,7 @@ import traceback
 
 import xbmc
 import xbmcaddon
+import xbmcgui
 
 _ADDON     = xbmcaddon.Addon()
 _ADDON_DIR = _ADDON.getAddonInfo("path")
@@ -41,6 +46,15 @@ _REQUIRED_FONTS = (
     {"name": "font23_narrow", "filename": _FONT_FILE, "size": "21"},
     {"name": "font32",        "filename": _FONT_FILE, "size": "32"},
 )
+
+# Home-window (10000) property naming the skin whose Font.xml has been checked
+# and found complete this Kodi session.  Verifying that costs a walk of the skin
+# directory for its Font.xml plus a parse of the file, which is far too much to
+# put in front of a window the viewer is waiting for -- so it is done once, by
+# the service at startup, and every later launch reads this instead.  Kodi drops
+# Home-window properties when it exits, so a session always checks once; a skin
+# change clears it (see FontInstallMonitor).
+PROP_FONTS_READY = "TinyPPI.FontsReady"
 
 
 
@@ -114,16 +128,26 @@ def _block_entry(block: str) -> tuple[str, str, str] | None:
     return tuple(values)
 
 
-def _fontset_has(inner: str, spec: dict) -> bool:
-    """True if *inner* (a fontset body) already declares this exact font.
+def _fontset_entries(inner: str) -> set:
+    """The ``(name, filename, size)`` triples *inner* (a fontset body) declares.
 
-    Name, file and size have to meet inside one <font> block.  Matching them
-    anywhere in the fontset would pair this addon's font name with an unrelated
-    entry's font file -- names like ``font32`` are common in skins -- and skip
-    an insert the overlay needs.
+    Name, file and size have to meet inside one <font> block, which is why the
+    blocks are read as triples rather than searched for the three values
+    separately: matching them anywhere in the fontset would pair this addon's
+    font name with an unrelated entry's font file -- names like ``font32`` are
+    common in skins -- and skip an insert the overlay needs.
+
+    Built once per fontset and asked about each required font in turn.  A skin
+    Font.xml runs to a few hundred blocks across its fontsets, and the regex
+    pass over them is the bulk of what checking costs, so it is not worth
+    repeating per font.
     """
-    target = _spec_entry(spec)
-    return any(_block_entry(block) == target for block in _FONT_RE.findall(inner))
+    entries = set()
+    for block in _FONT_RE.findall(inner):
+        entry = _block_entry(block)
+        if entry is not None:
+            entries.add(entry)
+    return entries
 
 
 def _read_font_xml(font_xml_path: str) -> str | None:
@@ -142,7 +166,7 @@ def _fontset_id(open_tag: str) -> str:
     return match.group(1) if match else "?"
 
 
-def fonts_already_installed(skin_path: str) -> bool:
+def fonts_already_installed(skin_path: str, font_xml_path: str = "") -> bool:
     """Return True only when every required font is registered in Font.xml.
 
     Nothing is checked on disk: the file named is Kodi's own ``arial.ttf``,
@@ -153,10 +177,14 @@ def fonts_already_installed(skin_path: str) -> bool:
     ``arial.ttf`` and a name like ``font32`` are common enough in skins that a
     match on those two alone would report a font as present at a size the
     overlay never asked for, and its rows would be laid out against the wrong
-    metrics.  That is _fontset_has's rule, which is also the one _install_xml
-    picks its inserts by.
+    metrics.  That is _fontset_entries' rule, which is also the one
+    _install_xml picks its inserts by.
+
+    Pass *font_xml_path* when the caller has already located the file: finding
+    it means walking the skin directory, and install_fonts() does that once for
+    the check and the insert together rather than once for each.
     """
-    font_xml_path = _find_font_xml(skin_path)
+    font_xml_path = font_xml_path or _find_font_xml(skin_path)
     if not font_xml_path:
         return False
 
@@ -170,11 +198,11 @@ def fonts_already_installed(skin_path: str) -> bool:
         return False
 
     for open_tag, inner, _close_tag in fontsets:
-        fset_id = _fontset_id(open_tag)
+        entries = _fontset_entries(inner)
         for font_spec in _REQUIRED_FONTS:
-            if not _fontset_has(inner, font_spec):
+            if _spec_entry(font_spec) not in entries:
                 _log(f'XML entry missing: {font_spec["name"]} '
-                     f'in fontset "{fset_id}"')
+                     f'in fontset "{_fontset_id(open_tag)}"')
                 return False
 
     return True
@@ -191,14 +219,14 @@ def _font_block(spec: dict, indent: str, nl: str) -> str:
     )
 
 
-def _install_xml(skin_path: str) -> bool:
+def _install_xml(skin_path: str, font_xml_path: str = "") -> bool:
     """Insert missing font entries into every <fontset>; True if any written.
 
     Nothing already in the file is edited or removed -- the entries go in ahead
     of it, where Kodi reads them first.  Works purely on the file text so
     nothing outside the inserted <font> blocks is altered.
     """
-    font_xml_path = _find_font_xml(skin_path)
+    font_xml_path = font_xml_path or _find_font_xml(skin_path)
     if not font_xml_path:
         _log("installxml: Font.xml not found", xbmc.LOGERROR)
         return False
@@ -215,7 +243,8 @@ def _install_xml(skin_path: str) -> bool:
         open_tag, inner, close_tag = match.group(1), match.group(2), match.group(3)
         fset_id = _fontset_id(open_tag)
 
-        missing = [s for s in _REQUIRED_FONTS if not _fontset_has(inner, s)]
+        entries = _fontset_entries(inner)
+        missing = [s for s in _REQUIRED_FONTS if _spec_entry(s) not in entries]
         if not missing:
             return match.group(0)
 
@@ -257,7 +286,18 @@ def _install_xml(skin_path: str) -> bool:
 
 def install_fonts() -> None:
     """Register the missing font entries in the active skin, reloading it if
-    anything changed.  No-op when they are already there."""
+    anything changed.  No-op when they are already there.
+
+    Marks the skin as checked (PROP_FONTS_READY) once the entries are known to
+    be in place, which is what lets ensure_fonts() skip all of this on every
+    later launch.  A check that could not be completed -- no skin path, no
+    Font.xml, an unreadable or unwritable file -- leaves the mark off, so the
+    next launch tries again instead of trusting a check that never happened.
+    """
+    home     = xbmcgui.Window(10000)
+    skin_dir = xbmc.getSkinDir()
+    home.clearProperty(PROP_FONTS_READY)
+
     skin_path = _get_skin_path()
     if not skin_path:
         _log("Skin path not found", xbmc.LOGWARNING)
@@ -265,22 +305,46 @@ def install_fonts() -> None:
 
     _log(f"Skin path: {skin_path}")
 
-    if fonts_already_installed(skin_path):
+    # Located once and handed to both steps below: the walk that finds it is
+    # the most expensive part of the whole check.
+    font_xml_path = _find_font_xml(skin_path)
+    if not font_xml_path:
+        return
+
+    if fonts_already_installed(skin_path, font_xml_path):
         _log("All fonts already registered – skipping")
+        home.setProperty(PROP_FONTS_READY, skin_dir)
         return
 
     try:
-        modified = _install_xml(skin_path)
+        modified = _install_xml(skin_path, font_xml_path)
     except Exception as exc:
         _log(f"Installation error: {exc}", xbmc.LOGERROR)
         _log(traceback.format_exc(), xbmc.LOGERROR)
         return
 
-    if modified:
-        try:
-            xbmc.executebuiltin("ReloadSkin(reload)")
-        except Exception:
-            pass
+    if not modified:
+        return
+
+    home.setProperty(PROP_FONTS_READY, skin_dir)
+    try:
+        xbmc.executebuiltin("ReloadSkin(reload)")
+    except Exception:
+        pass
+
+
+def ensure_fonts() -> None:
+    """Make sure the overlay's font entries are registered, cheaply.
+
+    What the overlay calls on its way up.  The service has normally installed
+    them at Kodi start, so the ordinary launch answers out of a single
+    window-property read and touches no disk at all; only a session where that
+    has not happened -- the service disabled, or a skin changed since -- pays
+    for the walk and the parse, and pays for it once.
+    """
+    if xbmcgui.Window(10000).getProperty(PROP_FONTS_READY) == xbmc.getSkinDir():
+        return
+    install_fonts()
 
 
 class FontInstallMonitor(xbmc.Monitor):
@@ -297,7 +361,3 @@ class FontInstallMonitor(xbmc.Monitor):
             install_fonts()
 
 
-# Kept in a module global rather than discarded: the name is the only reference
-# to the monitor, and without it the instance is collected and stops listening.
-_monitor = FontInstallMonitor()
-install_fonts()

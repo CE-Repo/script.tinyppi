@@ -45,10 +45,14 @@ _TITLE_FILE = "imax_titles.txt"
 # before any comment:  ``Eternals @enhanced   # Disney+ only``
 _ENHANCED_TAG = "@enhanced"
 
-# Title -> [(year or None, is IMAX Enhanced)]; parsed once per instance.  A
-# title can appear more than once when two films share it, which is why the
-# years hang off the title rather than the other way round.
+# Title -> [(year or None, is IMAX Enhanced)], and the (mtime, size) of the two
+# files it was parsed from.  A title can appear more than once when two films
+# share it, which is why the years hang off the title rather than the other way
+# round.  The stamp is what keeps an edit to the personal list from waiting for
+# the next Kodi start: the overlay now runs inside the service, which is loaded
+# once and stays loaded, so a list parsed "once" is parsed once a session.
 _titles: dict[str, tuple[tuple[int | None, bool], ...]] | None = None
+_titles_stamp: tuple | None = None
 
 # Last answer, kept per playing file so a badge asked for on every polling tick
 # is only worked out once.  (path, names it was worked out from, IMAX,
@@ -218,19 +222,47 @@ def _read_titles(path: str) -> dict[str, list[tuple[int | None, bool]]]:
     return entries
 
 
+def _title_files() -> tuple[str, str]:
+    """The bundled list and the viewer's own copy, in that order."""
+    return (
+        os.path.join(
+            _ADDON.getAddonInfo("path"), "resources", "data", _TITLE_FILE),
+        os.path.join(
+            xbmcvfs.translatePath(_ADDON.getAddonInfo("profile")), _TITLE_FILE),
+    )
+
+
+def _title_stamp(paths: tuple[str, str]) -> tuple:
+    """What the two lists look like on disk right now.
+
+    Two stats, and only when the playing file has changed (see _current), which
+    is where re-parsing a list that has been edited is worth that much: the
+    alternative is a viewer adding a title and not seeing it until Kodi is
+    restarted.
+    """
+    stamp = []
+    for path in paths:
+        try:
+            listing = os.stat(path)
+            stamp.append((listing.st_mtime, listing.st_size))
+        except OSError:
+            stamp.append(None)
+    return tuple(stamp)
+
+
 def _title_index() -> dict[str, tuple[tuple[int | None, bool], ...]]:
     """Return every known title, bundled list plus the user's own."""
-    global _titles
+    global _titles, _titles_stamp
 
-    if _titles is None:
-        bundled = os.path.join(
-            _ADDON.getAddonInfo("path"), "resources", "data", _TITLE_FILE)
-        personal = os.path.join(
-            xbmcvfs.translatePath(_ADDON.getAddonInfo("profile")), _TITLE_FILE)
+    paths = _title_files()
+    stamp = _title_stamp(paths)
+    if _titles is None or stamp != _titles_stamp:
+        bundled, personal = paths
         merged = _read_titles(bundled)
         for title, listed in _read_titles(personal).items():
             merged.setdefault(title, []).extend(listed)
         _titles = {title: tuple(listed) for title, listed in merged.items()}
+        _titles_stamp = stamp
         enhanced = sum(1 for listed in _titles.values()
                        for _, is_enhanced in listed if is_enhanced)
         _log(f"IMAX: {len(_titles)} titles known, {enhanced} of them IMAX Enhanced")

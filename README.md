@@ -75,6 +75,32 @@ xbmc.executebuiltin('RunScript(script.tinyppi)')
 plugin://script.tinyppi/
 ```
 
+### The fastest shortcut there is
+
+Every launch above starts a Python script, and Kodi builds a fresh interpreter
+for one each time. TinyPPI's background service is already running with
+everything loaded, so it opens the overlay itself and the launch is only there
+to ask it to — which it does within a few milliseconds.
+
+A keymap can ask it directly instead, skipping the script entirely:
+
+```xml
+<keymap>
+  <global>
+    <keyboard>
+      <xxxxx>NotifyAll(script.tinyppi,open_overlay)</xxxxx>
+    </keyboard>
+  </global>
+</keymap>
+```
+
+Use `open_dialog` in place of `open_overlay` for the VS10 mode dialog. The key
+toggles the same way `RunAddon` does — pressed again while TinyPPI is up, it
+closes it. This needs TinyPPI's service to be running, which it is unless the
+addon has been disabled; `RunAddon(script.tinyppi)` keeps working either way and
+falls back to opening the overlay in its own script if the service does not
+answer.
+
 ---
 
 ## Codec Logos
