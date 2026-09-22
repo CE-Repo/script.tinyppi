@@ -13,8 +13,9 @@
 # inside the mounted disc.  Each name is cut where
 # it stops naming the film and starts describing the file (year, 2160p, UHD,
 # BluRay, x265, German ...), and the entry has to sit at the end of what
-# remains: "The Dark Knight" matches "The.Dark.Knight.2008.2160p.UHD" but
-# "Aquaman" does not match "Aquaman.and.the.Lost.Kingdom.2023".
+# remains: "The Dark Knight" matches "The.Dark.Knight.2008.2160p.UHD" but the
+# entry "Aquaman" does not match "Aquaman.and.the.Lost.Kingdom.2023" -- the
+# sequel is identified by an entry of its own.
 #
 # Keep entries as short as they can be while staying unambiguous.  A year is
 # only worth adding to separate a remake from its original — once written, it
@@ -44,6 +45,7 @@
 # ---------------------------------------------------------------------------
 
 Aquaman                                      # Not present on the 3D Blu-ray
+Aquaman and the Lost Kingdom                 # Full-frame 1.78:1 for the entire runtime, every release
 Batman v Superman Dawn of Justice            # 2021 remastered Ultimate Edition UHD only
 The Conjuring Last Rites
 The Dark Knight
@@ -57,6 +59,7 @@ How to Train Your Dragon 2025
 The Hunger Games Catching Fire               # US Blu-ray; UHD and some regional BDs are fixed
 Interstellar
 Joker Folie a Deux
+The Lion King 2019                           # Full-frame 1.78:1 for the entire runtime
 Mission Impossible Fallout
 Mission Impossible The Final Reckoning
 Mojin The Lost Legend
@@ -65,6 +68,7 @@ Oppenheimer
 Project Hail Mary                            # UHD uses 2.39:1 and 1.78:1
 Sinners 2025
 Star Trek Into Darkness                      # UHD and Compendium Blu-ray; standard BD is fixed
+Superman 2025                                # 1.90:1 for the entire runtime on UHD, BD and digital
 Tenet
 Top Gun Maverick                             # Netflix version is fixed at 2.39:1
 Transformers The Last Knight                 # VAR presentation; not exclusive to IMAX
@@ -100,7 +104,6 @@ Avengers Endgame @enhanced                   # Disney+ IMAX Enhanced only
 Avengers Infinity War @enhanced              # Disney+ IMAX Enhanced only
 Black Panther Wakanda Forever @enhanced      # Disney+ IMAX Enhanced only
 Captain America Brave New World @enhanced    # Disney+ IMAX Enhanced only
-Deadpool and Wolverine @enhanced             # Disney+ IMAX Enhanced only
 Doctor Strange in the Multiverse of Madness @enhanced  # Disney+ IMAX Enhanced only
 Eternals @enhanced                           # Disney+ IMAX Enhanced only
 The Fantastic Four First Steps @enhanced     # Disney+ IMAX Enhanced only
@@ -109,9 +112,11 @@ Lightyear @enhanced                          # Disney+ IMAX Enhanced only
 The Marvels @enhanced                        # Disney+ IMAX Enhanced only
 Shang Chi and the Legend of the Ten Rings @enhanced  # Disney+ IMAX Enhanced only
 Spider Man Far from Home @enhanced           # Sony Pictures Core IMAX Enhanced
+Spider Man No Way Home @enhanced             # Sony Pictures Core IMAX Enhanced
 Thor Love and Thunder @enhanced              # Disney+ IMAX Enhanced only
-Thunderbolts 2025 @enhanced                  # Disney+ IMAX Enhanced only
 Tron Ares @enhanced                          # Disney+ IMAX Enhanced only
+Uncharted @enhanced                          # Sony Pictures Core IMAX Enhanced
+Venom The Last Dance @enhanced               # Sony Pictures Core IMAX Enhanced
 
 
 # ---------------------------------------------------------------------------
@@ -122,8 +127,10 @@ Tron Ares @enhanced                          # Disney+ IMAX Enhanced only
 # library entry; with one, Kodi's original title already names the film.
 # Keep the @enhanced tag in step with the entry it stands for.
 
+Aquaman Lost Kingdom                         # Aquaman and the Lost Kingdom
 Aufbruch zum Mond                            # First Man
 Conjuring 4 Das letzte Kapitel               # The Conjuring Last Rites
+Der König der Löwen 2019                     # The Lion King (2019)
 Die Fantastischen Vier Erste Schritte @enhanced  # The Fantastic Four First Steps
 Die Tribute von Panem Catching Fire          # The Hunger Games Catching Fire
 Drachenzähmen leicht gemacht 2025            # How to Train Your Dragon (2025)
