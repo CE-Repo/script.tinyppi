@@ -790,3 +790,43 @@
   opacity: .6;
 }
 .episode:disabled { cursor: progress; }
+
+/* --- Seen and unseen ------------------------------------------------------ */
+
+/* A finger held on a poster or an episode asks whether the box should count
+   it as seen (see marking in js/dashboard.js).  What a phone would otherwise
+   do with the same hold -- select the title's text, or offer to save the
+   poster -- is switched off here so the question is the only answer. */
+.film,
+.episode {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.film img,
+.episode img { -webkit-user-drag: none; }
+
+/* The two answers, one above the other at the dialog's full width: they are
+   the whole of what it asks, and a pair side by side would cut both names
+   short on a phone. */
+.markoptions { display: grid; gap: 8px; }
+.markoptions button {
+  appearance: none;
+  min-height: var(--tap);
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .markoptions button:hover { border-color: var(--accent); }
+}
+.markoptions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+#markTitle {
+  overflow-wrap: anywhere;
+}

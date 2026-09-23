@@ -33,7 +33,14 @@ const el = {
   seriesCount: $("seriesCount"), seriesEmpty: $("seriesEmpty"),
   seriesSearch: $("seriesSearch"), seriesSearchClear: $("seriesSearchClear"),
   seriesBox: $("seriesSearchBox"), seriesBack: $("seriesBack"),
-  seriesOpen: $("seriesOpen"), episodeList: $("episodeList")
+  seriesOpen: $("seriesOpen"), episodeList: $("episodeList"),
+  unseenFilmsCard: $("unseenFilmsCard"), unseenFilmGrid: $("unseenFilmGrid"),
+  unseenFilmsCount: $("unseenFilmsCount"),
+  unseenSeriesCard: $("unseenSeriesCard"), unseenSeriesGrid: $("unseenSeriesGrid"),
+  unseenSeriesCount: $("unseenSeriesCount"),
+  markDialog: $("markDialog"), markTitle: $("markTitle"),
+  markWatched: $("markWatched"), markUnwatched: $("markUnwatched"),
+  markCancel: $("markCancel")
 };
 
 /* Keep VS10 by the playback card.  The figures are the first thing inside the
@@ -83,6 +90,10 @@ TinyPPI.forgetDisclosure("dashboard.films");
 TinyPPI.forgetDisclosure("dashboard.series");
 TinyPPI.bindDisclosure(el.filmsCard, "dashboard.filmshelf", false);
 TinyPPI.bindDisclosure(el.seriesCard, "dashboard.seriesshelf", false);
+/* The walls of what is still unwatched fold the way the walls they are cut
+   from do, and for the same reason. */
+TinyPPI.bindDisclosure(el.unseenFilmsCard, "dashboard.unseenfilms", false);
+TinyPPI.bindDisclosure(el.unseenSeriesCard, "dashboard.unseenseries", false);
 /* The row of things left half-watched is the exception: a handful of posters
    rather than a wall, and the one card here somebody opens the page for. */
 TinyPPI.bindDisclosure(el.continueCard, "dashboard.continue", true);
@@ -101,7 +112,8 @@ TinyPPI.bindDisclosure(el.continueCard, "dashboard.continue", true);
    two walls of posters included -- laid out again. */
 function shelves(into) {
   if (el.filmsCard.parentElement === into) return;
-  into.append(el.continueCard, el.filmsCard, el.seriesCard);
+  into.append(el.continueCard, el.filmsCard, el.unseenFilmsCard,
+              el.seriesCard, el.unseenSeriesCard);
 }
 
 function render(next) {
@@ -152,9 +164,9 @@ function render(next) {
        however lately the playing page read it: what the box last played and
        how far into it, on every tile the two walls carry, has just moved. */
     if (control) requestFilms(wasPlaying !== false);
-    else el.filmsCard.classList.add("hidden");
+    else hideFilms();
     if (control) requestSeries(wasPlaying !== false);
-    else el.seriesCard.classList.add("hidden");
+    else hideSeries();
     if (control) requestContinue(wasPlaying !== false);
     else el.continueCard.classList.add("hidden");
     wasPlaying = false;
@@ -189,9 +201,9 @@ function render(next) {
      not moved since whatever last read them, and a poster wall rebuilt under
      somebody scrolling it is a wall that jumps. */
   if (control) requestFilms(false);
-  else el.filmsCard.classList.add("hidden");
+  else hideFilms();
   if (control) requestSeries(false);
-  else el.seriesCard.classList.add("hidden");
+  else hideSeries();
   if (control) requestContinue(false);
   else el.continueCard.classList.add("hidden");
 
@@ -527,6 +539,8 @@ async function loadFilms() {
       buildFilms();
     }
     el.filmsCard.classList.remove("hidden");
+    el.unseenFilmsCard.classList.toggle("hidden",
+                                        !el.unseenFilmGrid.children.length);
   } catch (error) {
     filmsNextTry = Date.now() + FILMS_RETRY_MS;
     /* 403: there is no library on offer -- switched off in the add-on's
@@ -534,15 +548,39 @@ async function loadFilms() {
        every time a film ends would be asking to be told the same thing all
        evening. */
     if (String((error || {}).message) === "403") filmsOffered = false;
-    if (!filmsRead) el.filmsCard.classList.add("hidden");
+    if (!filmsRead) hideFilms();
   }
 }
 
 function buildFilms() {
   const wall = document.createDocumentFragment();
-  for (const film of films) wall.append(filmTile(film));
+  const unseen = document.createDocumentFragment();
+  let waiting = 0;
+  for (const film of films) {
+    wall.append(filmTile(film));
+    /* A tile of its own on the second wall rather than the same one moved:
+       a node stands in one place, and the film is on both. */
+    if (!film.watched) {
+      unseen.append(filmTile(film));
+      waiting += 1;
+    }
+  }
   el.filmGrid.replaceChildren(wall);
+  el.unseenFilmGrid.replaceChildren(unseen);
+  el.unseenFilmsCount.textContent = waiting ? String(waiting) : "";
   applyFilmSearch();
+}
+
+/* Both film walls off the page, for a box with no library to offer. */
+function hideFilms() {
+  el.filmsCard.classList.add("hidden");
+  el.unseenFilmsCard.classList.add("hidden");
+}
+
+/* Every film tile on the page, on either wall: a press on one waits for its
+   film on both. */
+function filmTiles() {
+  return [...el.filmGrid.children, ...el.unseenFilmGrid.children];
 }
 
 /* How long something runs, as a tile writes it: 1 h 38 min for a film, 45 min
@@ -658,6 +696,7 @@ function filmTile(film) {
     tile.append(line);
   }
 
+  holdable(tile, () => askMark(film.title, { movieid: film.id }));
   tile.addEventListener("click", () => startFilm(film, tile));
   return tile;
 }
@@ -682,7 +721,7 @@ async function startFilm(film, tile) {
   if (starting) return;
   starting = film.id;
   tile.classList.add("busy");
-  for (const node of el.filmGrid.children) node.disabled = true;
+  for (const node of filmTiles()) node.disabled = true;
   TinyPPI.toast(T.films_starting);
 
   let failed = false;
@@ -725,7 +764,7 @@ function releaseFilms() {
   clearTimeout(releasing);
   releasing = 0;
   starting = 0;
-  for (const tile of el.filmGrid.children) {
+  for (const tile of filmTiles()) {
     tile.disabled = false;
     tile.classList.remove("busy");
   }
@@ -787,6 +826,8 @@ async function loadSeries() {
       buildSeries();
     }
     el.seriesCard.classList.remove("hidden");
+    el.unseenSeriesCard.classList.toggle("hidden",
+                                         !el.unseenSeriesGrid.children.length);
     /* Away only inside a show, where there is no wall to narrow. */
     el.seriesBox.classList.toggle("hidden", openShow !== null);
   } catch (error) {
@@ -795,14 +836,26 @@ async function loadSeries() {
        box that will not be told what to play.  A settled answer rather than a
        failure, so it is not asked again. */
     if (String((error || {}).message) === "403") seriesOffered = false;
-    if (!seriesRead) el.seriesCard.classList.add("hidden");
+    if (!seriesRead) hideSeries();
   }
 }
 
 function buildSeries() {
   const wall = document.createDocumentFragment();
-  for (const show of shows) wall.append(showTile(show));
+  const unseen = document.createDocumentFragment();
+  let waiting = 0;
+  for (const show of shows) {
+    wall.append(showTile(show, openShowView));
+    /* A show with an episode still waiting.  One the library has no episode
+       count for is left off: nothing says there is anything in it to see. */
+    if (!show.watched && show.unseen) {
+      unseen.append(showTile(show, openFromUnseen));
+      waiting += 1;
+    }
+  }
   el.seriesGrid.replaceChildren(wall);
+  el.unseenSeriesGrid.replaceChildren(unseen);
+  el.unseenSeriesCount.textContent = waiting ? String(waiting) : "";
   /* A shelf that has just been read again is a shelf that may no longer hold
      the show somebody was inside, and where it does not the card comes back to
      the wall.  Where it does, they are left where they were: the shelf is read
@@ -821,7 +874,24 @@ function buildSeries() {
   el.seriesOpen.textContent = still.title;
 }
 
-function showTile(show) {
+/* Both series walls off the page, for a box with no series to offer. */
+function hideSeries() {
+  el.seriesCard.classList.add("hidden");
+  el.unseenSeriesCard.classList.add("hidden");
+}
+
+/* A show pressed on the wall of unwatched ones opens in the card above, where
+   its episodes are listed -- one list of episodes on the page, and one way
+   back out of it -- and that card is unfolded and brought into view, because
+   the press happened a card further down. */
+async function openFromUnseen(show) {
+  await openShowView(show);
+  if (!openShow || openShow.id !== show.id) return;
+  el.seriesCard.open = true;
+  el.seriesCard.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function showTile(show, onOpen) {
   const tile = document.createElement("button");
   tile.type = "button";
   tile.className = "film";
@@ -873,7 +943,8 @@ function showTile(show) {
     tile.append(year);
   }
 
-  tile.addEventListener("click", () => openShowView(show));
+  holdable(tile, () => askMark(show.title, { tvshowid: show.id }));
+  tile.addEventListener("click", () => onOpen(show));
   return tile;
 }
 
@@ -1107,6 +1178,8 @@ function episodeRow(episode) {
   meta.append(title);
 
   row.append(frame, meta);
+  holdable(row, () => askMark(
+    [code, episode.title].filter(Boolean).join(" \u00b7 "), { episodeid: episode.id }));
   row.addEventListener("click", () => startEpisode(episode, row));
   return row;
 }
@@ -1307,6 +1380,9 @@ function continueTile(item) {
     tile.append(line);
   }
 
+  holdable(tile, () => askMark(
+    episode ? [item.show, episodeCode(item)].filter(Boolean).join(" \u00b7 ") : item.title,
+    episode ? { episodeid: item.id } : { movieid: item.id }));
   tile.addEventListener("click", () => startContinue(item, tile));
   return tile;
 }
@@ -1362,6 +1438,120 @@ function releaseContinue() {
     tile.disabled = false;
     tile.classList.remove("busy");
   }
+}
+
+/* --- seen and unseen ----------------------------------------------------- */
+
+/* A finger held on a film, a series or an episode -- or a right click, which
+   is what the same wish looks like with a mouse -- asks whether the box should
+   count it as seen or as unseen, and the answer is written into Kodi's own
+   library (see ``set_watched`` in web/library.py).  A series marked either way
+   is every episode of it.
+
+   Written and then read back rather than drawn here: the box drops what it
+   holds the moment it has written, and the walls, the row and the open show
+   are read again, so what they show is what the library now says. */
+
+/* How long a finger has to stay down before it is a hold rather than a press,
+   and how far it may wander in that time before it is a scroll instead. */
+const HOLD_MS = 500;
+const HOLD_SLOP = 10;
+/* How long after a hold the press it ends in is swallowed. */
+const HOLD_GRACE_MS = 800;
+
+let heldAt = 0;            /* when a hold last opened the question         */
+let marking = null;        /* what the open question is about              */
+
+function holdable(node, onHold) {
+  let timer = 0;
+  let x = 0;
+  let y = 0;
+  const cancel = () => { clearTimeout(timer); timer = 0; };
+  const held = () => {
+    cancel();
+    /* A phone that fires its own long-press as well as the timer here would
+       otherwise ask twice. */
+    if (Date.now() - heldAt < HOLD_GRACE_MS) return;
+    heldAt = Date.now();
+    if (node.disabled) return;
+    if (navigator.vibrate) {
+      try { navigator.vibrate(12); } catch (_) { /* not allowed: no matter */ }
+    }
+    onHold();
+  };
+  node.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "mouse") return;   /* a mouse has its right button */
+    x = event.clientX;
+    y = event.clientY;
+    cancel();
+    timer = setTimeout(held, HOLD_MS);
+  });
+  node.addEventListener("pointermove", (event) => {
+    if (timer && Math.hypot(event.clientX - x, event.clientY - y) > HOLD_SLOP) cancel();
+  });
+  for (const type of ["pointerup", "pointercancel", "pointerleave"]) {
+    node.addEventListener(type, cancel);
+  }
+  node.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+    held();
+  });
+  /* The press a hold ends in is not a press: it must not also start the film
+     the question was asked about.  Registered before the tile's own click. */
+  node.addEventListener("click", (event) => {
+    if (Date.now() - heldAt < HOLD_GRACE_MS) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+}
+
+function askMark(title, body) {
+  if (!control || el.markDialog.open) return;
+  marking = body;
+  el.markTitle.textContent = title;
+  el.markDialog.returnValue = "";
+  el.markDialog.showModal();
+}
+
+el.markDialog.addEventListener("close", () => {
+  const answer = el.markDialog.returnValue;
+  const body = marking;
+  marking = null;
+  if (!body || (answer !== "watched" && answer !== "unwatched")) return;
+  setWatched(body, answer === "watched");
+});
+
+async function setWatched(body, watched) {
+  try {
+    const response = await fetch("/api/watched", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-TinyPPI-Token": TinyPPI.token },
+      body: JSON.stringify(Object.assign({ watched }, body))
+    });
+    if (response.status === 401) {
+      TinyPPI.toast(T.token_bad, true);
+      TinyPPI.askToken();
+      return;
+    }
+    if (!response.ok) {
+      TinyPPI.toast(T.mark_failed, true);
+      return;
+    }
+  } catch (_) {
+    TinyPPI.toast(T.mark_failed, true);
+    return;
+  }
+  /* Read again at once rather than on the next version the snapshot carries:
+     the box has already dropped what it held, and the tick somebody just
+     asked for should not wait on the producer's cadence to appear. */
+  filmsRead = false;
+  seriesRead = false;
+  continueRead = false;
+  requestFilms(true);
+  requestSeries(true);
+  requestContinue(true);
+  refreshEpisodes();
 }
 
 /* --- report ------------------------------------------------------------- */
@@ -1464,6 +1654,11 @@ function applyStrings(strings, hello) {
     cross.title = strings.search_clear;
   }
   $("seriesLabel").textContent = strings.series;
+  $("unseenFilmsLabel").textContent = strings.films_unseen;
+  $("unseenSeriesLabel").textContent = strings.series_unseen_shows;
+  el.markWatched.textContent = strings.mark_watched;
+  el.markUnwatched.textContent = strings.mark_unwatched;
+  el.markCancel.textContent = strings.cancel;
   $("seriesBackText").textContent = strings.series_back;
   el.seriesBack.setAttribute("aria-label", strings.series_back);
   el.seriesEmpty.textContent = strings.series_empty;

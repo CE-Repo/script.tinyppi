@@ -563,6 +563,22 @@ has written where it got to. A row with nothing on it is no card at all. Films
 are on it only where the film library is offered and episodes only where the
 series library is.
 
+### Watched and unwatched
+
+Hold a finger on a film, a series or an episode — or right-click it with a
+mouse — and a dialog asks whether the box should count it as **watched** or
+**unwatched**. The answer is written into Kodi's own library, the way its
+context menu does it: a title marked watched gets a play count and loses its
+resume point, one marked unwatched loses its play count. A series marked
+either way is every episode of it. Continue-watching tiles answer the same
+hold.
+
+Under the film wall and the series wall is a second card of each holding only
+what is still **unwatched**: the films without a tick, and the series with an
+episode still waiting. A press on an unwatched film starts it; a press on an
+unwatched series opens it in the series card above. A card with nothing on it
+is not shown.
+
 ### Starting an episode from the browser
 
 Under the films is the same shelf again for the **series library**, with one

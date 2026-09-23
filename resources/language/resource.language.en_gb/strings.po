@@ -1842,3 +1842,23 @@ msgstr ""
 msgctxt "#32572"
 msgid "Continue watching"
 msgstr ""
+
+msgctxt "#32573"
+msgid "Unwatched films"
+msgstr ""
+
+msgctxt "#32574"
+msgid "Unwatched series"
+msgstr ""
+
+msgctxt "#32575"
+msgid "Mark as watched"
+msgstr ""
+
+msgctxt "#32576"
+msgid "Mark as unwatched"
+msgstr ""
+
+msgctxt "#32577"
+msgid "The library could not be updated"
+msgstr ""

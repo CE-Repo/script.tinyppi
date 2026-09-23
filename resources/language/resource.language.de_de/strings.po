@@ -1842,3 +1842,23 @@ msgstr "Textfarbe der Tasten im VS10-Dialog, auf denen die Fernbedienung nicht s
 msgctxt "#32572"
 msgid "Continue watching"
 msgstr "Weiterschauen"
+
+msgctxt "#32573"
+msgid "Unwatched films"
+msgstr "Ungesehene Filme"
+
+msgctxt "#32574"
+msgid "Unwatched series"
+msgstr "Ungesehene Serien"
+
+msgctxt "#32575"
+msgid "Mark as watched"
+msgstr "Als gesehen markieren"
+
+msgctxt "#32576"
+msgid "Mark as unwatched"
+msgstr "Als ungesehen markieren"
+
+msgctxt "#32577"
+msgid "The library could not be updated"
+msgstr "Die Bibliothek konnte nicht aktualisiert werden"

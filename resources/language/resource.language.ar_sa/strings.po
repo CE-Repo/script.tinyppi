@@ -1843,3 +1843,23 @@ msgstr "لون نص الأزرار غير المحددة في مربع حوار 
 msgctxt "#32572"
 msgid "Continue watching"
 msgstr "متابعة المشاهدة"
+
+msgctxt "#32573"
+msgid "Unwatched films"
+msgstr "أفلام لم تُشاهد"
+
+msgctxt "#32574"
+msgid "Unwatched series"
+msgstr "مسلسلات لم تُشاهد"
+
+msgctxt "#32575"
+msgid "Mark as watched"
+msgstr "وضع علامة كمُشاهَد"
+
+msgctxt "#32576"
+msgid "Mark as unwatched"
+msgstr "وضع علامة كغير مُشاهَد"
+
+msgctxt "#32577"
+msgid "The library could not be updated"
+msgstr "تعذّر تحديث المكتبة"

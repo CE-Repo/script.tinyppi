@@ -1842,3 +1842,23 @@ msgstr "VS10 对话框中未获得焦点的按钮的文字颜色。"
 msgctxt "#32572"
 msgid "Continue watching"
 msgstr "继续观看"
+
+msgctxt "#32573"
+msgid "Unwatched films"
+msgstr "未观看的电影"
+
+msgctxt "#32574"
+msgid "Unwatched series"
+msgstr "未观看的剧集"
+
+msgctxt "#32575"
+msgid "Mark as watched"
+msgstr "标记为已观看"
+
+msgctxt "#32576"
+msgid "Mark as unwatched"
+msgstr "标记为未观看"
+
+msgctxt "#32577"
+msgid "The library could not be updated"
+msgstr "无法更新媒体库"
