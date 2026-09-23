@@ -347,7 +347,9 @@ and the metadata tab only while a Dolby Vision title is playing. Live, history
 and settings stand centred between the two bars; the shelves and the metadata
 list start at the top.
 The bar shows icons only; each key names its tab under a pointer and to a
-screen reader. The top bar carries just the name, the version and the
+screen reader. Like the app's, it steps away after three seconds with
+nothing happening, handing its room at the foot of the page back to the last
+card, and comes back with the next touch, scroll, key or pointer movement. The top bar carries just the name, the version and the
 connection light.
 
 - **Now playing** — the poster, title, year and genre, the file name (when

@@ -224,6 +224,54 @@ window.addEventListener("hashchange", () => {
   if (name) selectTab(name);
 });
 
+/* --- the bar's comings and goings -------------------------------------- */
+
+/* The bar keeps out of the way unless somebody is doing something, the way
+   the app's does: a finger on the screen, a scroll, a wheel, a key or a
+   moving pointer brings it back, and once nothing has happened for
+   BAR_HIDE_MS it steps away, so a page of readings is left to be read on its
+   own and its last card can come all the way down the screen.  It does not
+   leave from under a finger that is still down, a pointer resting on it or a
+   key that has the focus, nor while a dialog is open. */
+const BAR_HIDE_MS = 3000;
+let barTimer = 0;
+let barHeld = false;       /* a finger or a button is down                  */
+let barLeftAt = 0;         /* when it last stepped away                     */
+
+function barMayLeave() {
+  return !barHeld && !el.tabBar.matches(":hover, :focus-within") &&
+         !document.querySelector("dialog[open]");
+}
+
+function wakeBar() {
+  document.documentElement.classList.remove("bar-away");
+  clearTimeout(barTimer);
+  barTimer = setTimeout(function hide() {
+    if (barMayLeave()) {
+      document.documentElement.classList.add("bar-away");
+      barLeftAt = Date.now();
+    } else barTimer = setTimeout(hide, BAR_HIDE_MS);
+  }, BAR_HIDE_MS);
+}
+
+document.addEventListener("pointerdown", () => { barHeld = true; wakeBar(); },
+                          { capture: true, passive: true });
+for (const kind of ["pointerup", "pointercancel"]) {
+  document.addEventListener(kind, () => { barHeld = false; wakeBar(); },
+                            { capture: true, passive: true });
+}
+for (const kind of ["pointermove", "wheel", "keydown", "touchmove"]) {
+  document.addEventListener(kind, wakeBar, { capture: true, passive: true });
+}
+/* A page scrolled to its foot is scrolled by the browser itself as the room
+   at the bottom shrinks behind the leaving bar; that is not somebody
+   scrolling, and taken for one it would call the bar straight back, for
+   good. */
+window.addEventListener("scroll", () => {
+  if (Date.now() - barLeftAt > 600) wakeBar();
+}, { passive: true });
+wakeBar();
+
 /* --- settings ----------------------------------------------------------- */
 
 /* The two reports on the settings tab: the readings and the events, and the

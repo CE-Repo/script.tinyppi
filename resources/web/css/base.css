@@ -56,7 +56,7 @@
   --gap:       16px;
   /* What the foot of the page leaves for the floating tab bar: the bar's own
      height, the air under it and the air between it and the last card. */
-  --tabbar-room: 104px;
+  --tabbar-room: 88px;
   /* The page's own face, named so a reading set in the monospaced one can put
      its label back into it without repeating the stack (see .times > .finish
      in live-panels.css). */
@@ -403,6 +403,12 @@ main {
 }
 .tabpanel:not(.active) { display: none; }
 
+/* While the tab bar is away the page keeps only a margin at its foot, so the
+   last card comes down to the bottom of the screen; the room comes back with
+   the bar (see the bar's comings and goings in js/dashboard.js). */
+:root.bar-away { --tabbar-room: 20px; }
+main { transition: padding-bottom .3s ease; }
+
 /* Live, history and settings stand in the middle of the room between the top
    bar and the tab bar rather than hanging from the top of it; a tab taller
    than that room simply starts at the top and scrolls, since the panel grows
@@ -458,6 +464,13 @@ main {
   backdrop-filter: blur(18px) saturate(1.3);
   -webkit-backdrop-filter: blur(18px) saturate(1.3);
   box-shadow: var(--shadow-lift);
+  transition: transform .3s ease, opacity .3s ease;
+}
+/* Away: slid off the foot of the screen and faded, and nothing to press. */
+:root.bar-away .tabbar {
+  transform: translate(-50%, calc(100% + 14px + env(safe-area-inset-bottom)));
+  opacity: 0;
+  pointer-events: none;
 }
 .tab {
   appearance: none;
