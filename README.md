@@ -343,9 +343,9 @@ settings:
 The address remembers the tab (`/#films`, `/#history`, …), so a bookmark or a
 reload comes back to it, and each device reopens the tab it was left on. The
 film and series tabs are only in the bar when the box offers those libraries,
-and the metadata tab only while a Dolby Vision title is playing. Live, history
-and settings stand centred between the two bars; the shelves and the metadata
-list start at the top.
+and the metadata tab only while a Dolby Vision title is playing. Live,
+metadata, history and settings stand centred between the two bars; the two
+shelves start at the top.
 The bar shows icons only; each key names its tab under a pointer and to a
 screen reader. Like the app's, it steps away after three seconds with
 nothing happening, handing its room at the foot of the page back to the last

@@ -409,12 +409,13 @@ main {
 :root.bar-away { --tabbar-room: 20px; }
 main { transition: padding-bottom .3s ease; }
 
-/* Live, history and settings stand in the middle of the room between the top
-   bar and the tab bar rather than hanging from the top of it; a tab taller
-   than that room simply starts at the top and scrolls, since the panel grows
-   with what is in it.  The two shelves and the metadata list stay at the top:
-   they are long lists that are read from their first line. */
+/* Live, metadata, history and settings stand in the middle of the room
+   between the top bar and the tab bar rather than hanging from the top of it;
+   a tab taller than that room simply starts at the top and scrolls, since the
+   panel grows with what is in it.  The two shelves stay at the top: they are
+   long walls that are read from their first row. */
 .tabpanel[data-tab="live"],
+.tabpanel[data-tab="metadata"],
 .tabpanel[data-tab="history"],
 .tabpanel[data-tab="settings"] { align-content: center; }
 
