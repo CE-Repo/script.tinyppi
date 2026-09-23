@@ -327,8 +327,9 @@ a phone in your hand.
 
 ### What it shows
 
-The page is split into five tabs, switched from a floating bar at the foot of
-the screen — the same five, in the same order, as the TinyPPI app:
+The page is split into six tabs, switched from a floating bar of icons at the
+foot of the screen — the five of the TinyPPI app, in the same order, and the
+settings:
 
 | Tab | What is on it |
 |---|---|
@@ -337,10 +338,14 @@ the screen — the same five, in the same order, as the TinyPPI app:
 | **Films** | Continue watching (films), the unwatched films and the whole film library |
 | **Series** | Continue watching (episodes), the series with unwatched episodes and the whole series library |
 | **History** | The metrics and the events of the title that is playing — or, for ten minutes after the credits, of the one that just ended |
+| **Settings** | The theme, the access token and the two reports |
 
 The address remembers the tab (`/#films`, `/#history`, …), so a bookmark or a
 reload comes back to it, and each device reopens the tab it was left on. The
 film and series tabs are only in the bar when the box offers those libraries.
+The bar shows icons only; each key names its tab under a pointer and to a
+screen reader. The top bar carries just the name, the version and the
+connection light.
 
 - **Now playing** — the poster, title, year and genre, the file name (when
   *Show file name* is on), elapsed time and progress.
@@ -381,11 +386,13 @@ film and series tabs are only in the bar when the box offers those libraries.
   Audio, HDR static metadata, Dolby Vision metadata and System. A reading that
   just moved is highlighted the same way the overlay highlights it.
 - **The Dolby Vision metadata view**, on a tab of its own (see below).
-- **Copy report** hands the whole set over as plain text, ready to paste into a
-  forum post — the rows, what the title added up to, and the events along the
-  way. It works with nothing playing too, where it writes the report of the
-  title that just finished. On the metadata tab it copies the metadata list
-  instead.
+- **Copy report**, on the settings tab, hands the whole set over as plain
+  text, ready to paste into a forum post — the rows, what the title added up
+  to, and the events along the way. It works with nothing playing too, where it
+  writes the report of the title that just finished. The second key beside it
+  copies the metadata list. A key with nothing to copy is dimmed.
+- **The access token** this device holds, all but its last two characters
+  hidden, and a key to enter a new one — also on the settings tab.
 
 What a source cannot carry is left out rather than shown empty: the peak and
 average tiles, the luminance chart, the active-area box and both metadata
@@ -439,11 +446,9 @@ not to be felt while it is:
 
 ### Themes
 
-The button beside the TinyPPI name in the top bar switches the page between
-three themes, and every one of them is dark — this is watched in the room the
-projector is in, so there is nothing here for a lit one. A press walks through
-them; **holding the button down** (or right-clicking it) opens a menu to jump
-straight to one:
+The settings tab switches the page between three themes, and every one of
+them is dark — this is watched in the room the projector is in, so there is
+nothing here for a lit one:
 
 - **Dark** — the plain one, and what a first visit gets.
 - **Dark (adaptive)** — the same page, with the **now-playing card** taking
@@ -463,13 +468,13 @@ straight to one:
   chart's own traces — while the readings themselves keep the plain text
   colour. A title with no poster looks exactly as it does on the plain dark
   theme; there was nothing to take a colour from. While this theme is on, the
-  menu also carries how strongly it tints: **subtle**, **standard** or
+  settings tab also offers how strongly it tints: **subtle**, **standard** or
   **strong**.
 - **Midnight** — deeper and bluer, for a room with nothing else lit in it.
 
 The choice is remembered in the browser, per device, and is applied before the
 page is first drawn, so reopening the dashboard never flashes the wrong theme.
-Both windows share it, and the phone's own status bar follows it. Nothing is
+The phone's own status bar follows it. Nothing is
 sent to the add-on: the theme is the browser's business, not the box's.
 
 ### The Dolby Vision metadata tab
@@ -482,8 +487,8 @@ same list the on-screen view shows,
 built from the same rows, and it stays live: the per-frame blocks move with the
 picture and a reading that just changed is highlighted, exactly as in the
 overlay. On a wide screen it flows into two or three columns, never breaking a
-section across them, and **Copy report** hands the whole list over as plain
-text.
+section across them, and the metadata key under **Copy report** on the
+settings tab hands the whole list over as plain text.
 
 On any other source the tab says so rather than sitting empty.
 

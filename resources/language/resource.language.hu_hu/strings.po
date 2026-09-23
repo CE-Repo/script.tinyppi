@@ -1882,3 +1882,15 @@ msgstr "Metaadat"
 msgctxt "#32584"
 msgid "History"
 msgstr "Előzmény"
+
+msgctxt "#32585"
+msgid "Settings"
+msgstr "Beállítások"
+
+msgctxt "#32586"
+msgid "Enter token"
+msgstr "Token megadása"
+
+msgctxt "#32587"
+msgid "Readings and events"
+msgstr "Értékek és események"

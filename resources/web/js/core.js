@@ -25,8 +25,9 @@ window.TinyPPI = (function () {
      English here is only what shows in the instant before that answers. */
   const T = {
     connected: "Connected", connecting: "Connecting…", offline: "Disconnected",
-    menu: "Menu",
     tab_live: "Live", tab_metadata: "Metadata", tab_history: "History",
+    tab_settings: "Settings", token_enter: "Enter token",
+    report_live: "Readings and events",
     metadata: "Dolby Vision metadata view", metadata_section: "Metadata",
     no_metadata: "No Dolby Vision metadata", no_metadata_text: "",
     idle_title: "Nothing is playing", idle_text: "",
@@ -48,7 +49,6 @@ window.TinyPPI = (function () {
     switched: "Switched", switch_failed: "Switching failed",
     theme_dark: "Dark", theme_adaptive: "Dark (adaptive)",
     theme_midnight: "Midnight", theme_menu: "Choose a theme",
-    theme_switch: "Switch to {name} (hold for the full list)",
     tint_label: "Intensity", tint_subtle: "Subtle", tint_standard: "Standard",
     tint_strong: "Strong",
     last_played: "Last played", summary: "Summary",
@@ -177,105 +177,26 @@ window.TinyPPI = (function () {
       }
       token = tokenInput.value.trim().toUpperCase();
       localStorage.setItem(TOKEN_KEY, token);
+      /* The settings tab shows which token this device holds. */
+      document.dispatchEvent(new CustomEvent("tinyppi-token"));
       /* The stream carries the token in its URL -- an EventSource cannot send
          a header -- so a new token means a new connection. */
       connect();
     });
 
+    /* The key that asks for it again lives on the settings tab. */
     const button = $("tokenBtn");
     if (button) button.addEventListener("click", askToken);
-    bindActionMenu();
-  }
-
-  /* The top bar keeps its less frequent actions behind one compact key.  The
-     theme button is injected later by theme.js, but it lands inside this same
-     inert container and therefore follows the state established here. */
-  function bindActionMenu() {
-    const holder = $("actionMenu");
-    const items = $("actionMenuItems");
-    const toggle = $("actionMenuToggle");
-    if (!holder || !items || !toggle) return;
-    /* The bar is told as well as the menu.  What the unfolded keys take comes
-       out of the name-plate at the other end of it, and on a narrow screen
-       there is only room for one of the two things in that plate (see
-       .topbar.menu-open in css/base.css).  A class rather than a CSS
-       :has() on the menu: this is the one rule on the page whose job is to
-       keep a phone's top bar from overlapping itself, and the phones that
-       need it most are the ones whose browsers are oldest. */
-    const bar = holder.closest(".topbar");
-    let closeTimer = 0;
-
-    /* The menu shuts itself this long after the last thing anyone did to it,
-       rather than this long after it opened: a countdown from opening runs out
-       under a finger that is still choosing.  The same idea, and the same
-       shape, as the theme menu's own idle close (see js/theme.js). */
-    const IDLE_MS = 3000;
-    const ACTIVITY = ["pointermove", "pointerdown", "keydown", "focusin"];
-
-    /* The theme menu counts as part of this one: it is opened from a button in
-       here but hangs off <body> (see js/theme.js), so a pointer inside it is a
-       pointer that has not left this menu. */
-    function inside(node) {
-      return holder.contains(node) ||
-             !!(node && node.closest && node.closest(".theme-menu.open"));
-    }
-
-    function keepOpen(event) {
-      if (event && !inside(event.target)) return;
-      clearTimeout(closeTimer);
-      closeTimer = setTimeout(() => setOpen(false), IDLE_MS);
-    }
-
-    function setOpen(open) {
-      clearTimeout(closeTimer);
-      closeTimer = 0;
-      holder.classList.toggle("open", open);
-      if (bar) bar.classList.toggle("menu-open", open);
-      toggle.setAttribute("aria-expanded", open ? "true" : "false");
-      items.setAttribute("aria-hidden", open ? "false" : "true");
-      items.inert = !open;
-      for (const kind of ACTIVITY) {
-        if (open) document.addEventListener(kind, keepOpen, true);
-        else document.removeEventListener(kind, keepOpen, true);
-      }
-      if (open) keepOpen();
-    }
-
-    toggle.addEventListener("click", () => {
-      setOpen(toggle.getAttribute("aria-expanded") !== "true");
-    });
-    document.addEventListener("click", (event) => {
-      /* The same rule the countdown uses: a click in the theme menu is a click
-         in this one, so picking a theme does not shut the button that opened
-         it -- the theme menu deliberately stays up to be looked at. */
-      if (!inside(event.target)) setOpen(false);
-    });
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
-        setOpen(false);
-        toggle.focus();
-      }
-    });
   }
 
   function applyChromeStrings() {
-    /* The theme button and its menu are built before this file runs and carry
-       their own English until the localized set arrives; see js/theme.js. */
+    /* The theme choices are built before this file runs and carry their own
+       English until the localized set arrives; see js/theme.js. */
     if (window.TinyPPITheme) TinyPPITheme.strings(T);
     $("dlgTitle").textContent  = T.token_title;
     $("dlgText").textContent   = T.token_text;
     $("dlgOk").textContent     = T.save;
     $("dlgCancel").textContent = T.cancel;
-    const tokenButton = $("tokenBtn");
-    if (tokenButton) {
-      tokenButton.title = T.token_title;
-      tokenButton.setAttribute("aria-label", T.token_title);
-    }
-    const actionToggle = $("actionMenuToggle");
-    if (actionToggle) {
-      actionToggle.title = T.menu;
-      actionToggle.setAttribute("aria-label", T.menu);
-    }
   }
 
   /* --- helpers ---------------------------------------------------------- */

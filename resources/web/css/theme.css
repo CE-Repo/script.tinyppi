@@ -2,7 +2,7 @@
    Copyright (c) 2026 U3knOwn */
 
 /* ---------------------------------------------------------------------------
-   The theme button, its menu, and what the adaptive theme paints.
+   The theme choice on the settings tab, and what the adaptive theme paints.
 
    The palettes themselves are in base.css, which is where a theme is a list of
    tokens and nothing else.  This file is the two things that could not go
@@ -13,69 +13,54 @@
    word on the cards they touch.
 --------------------------------------------------------------------------- */
 
-/* --- The menu ------------------------------------------------------------ */
+/* --- The choice --------------------------------------------------------- */
 
-/* It lives in <body> rather than beside the button, so the top bar cannot clip
-   it; js/theme.js places it against the button's own rect. */
-.theme-menu {
-  position: fixed;
-  z-index: 30;
-  display: none;
-  margin: 0;
-  padding: 6px;
-  width: max-content;
-  min-width: 172px;
-  max-height: min(70vh, 520px);
-  overflow-y: auto;
-  list-style: none;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-lift);
+/* The three themes as a row of keys on the settings tab, and under them how
+   strongly the adaptive one tints (js/theme.js builds both). */
+.theme-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+  gap: 8px;
 }
-.theme-menu.open {
-  display: block;
-  animation: menuIn .15s ease;
-}
-@keyframes menuIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
 .theme-option {
+  appearance: none;
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 38px;
-  padding: 8px 10px;
+  min-height: var(--tap);
+  padding: 8px 12px;
+  border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  background: var(--panel-2);
   color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
   cursor: pointer;
+  transition: color .12s, border-color .12s, background .12s;
 }
 @media (hover: hover) {
-  .theme-option:hover { background: var(--panel-2); }
+  .theme-option:hover { border-color: var(--accent); }
 }
 .theme-option .ui-icon { width: 18px; height: 18px; opacity: .82; }
 .theme-option.selected {
   background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
   color: var(--accent);
+  font-weight: 600;
 }
 .theme-option.selected .ui-icon { opacity: 1; }
 
-/* How strongly the adaptive theme tints, as a labelled row under the themes.
-   Only that theme has it, so js/theme.js hides the row while any other one is
-   in force. */
+/* How strongly the adaptive theme tints.  Only that theme has it, so
+   js/theme.js hides the row while any other one is in force. */
 .theme-group {
-  list-style: none;
-  margin: 6px 2px 0;
-  padding: 8px 4px 2px;
+  padding-top: 12px;
   border-top: 1px solid var(--line-soft);
 }
 .theme-group[hidden] { display: none; }
 .theme-group-label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: .12em;
@@ -84,21 +69,19 @@
 }
 .theme-group-options {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
-/* Three options leave a hole in a two-column grid, so the odd one out takes
-   the whole row rather than half of it. */
-.theme-group-option:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .theme-group-option {
   appearance: none;
+  min-height: 38px;
   padding: 7px 8px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--muted);
   font: inherit;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: color .12s, border-color .12s, background .12s;
@@ -159,50 +142,21 @@
    dark theme.
 
    --warn and --bad are left alone: a paused badge and a failed switch say what
-   they say in the colour they always say it in.
-
-   The theme menu is handed the same token for the same reason.  It is not a
-   card, but it is opened from a key that now wears the film's colour, and a
-   menu answering in the theme's blue instead read as belonging to some other
-   page.  Its chosen row, its strength keys and its focus rings all ask for
-   --accent already, so one token turns the lot. */
-:root[data-theme="dark-adaptive"] .card,
-:root[data-theme="dark-adaptive"] .theme-menu {
+   they say in the colour they always say it in. */
+:root[data-theme="dark-adaptive"] .card {
   --accent:   rgb(var(--cover-accent-rgb));
   --accent-2: rgb(var(--cover-accent-rgb));
 }
 
-/* The keys in the top bar are marks the same way a badge on a card is, so they
-   answer to the film too.  The bar is a sibling of <main> and inherits none of
-   its tint, so js/cover-tint.js paints the accent onto it as its own host.
-
-   Handed over as the token rather than as a colour per property, the way the
-   cards are given theirs above: a key has an outline, a fill under the pointer
-   and an icon painted in currentColor, and naming each of those separately
-   left the fill answering to the theme's blue while the other two had gone to
-   the film.  Nothing else in the bar asks for --accent -- the status light is
-   the ok/warn/bad set and the rest is a line colour -- so the one declaration
-   reaches the keys and stops there. */
-/* And the tab bar at the foot of the page, for the same reason: the tab in
-   front is marked in the accent, and it is a sibling of <main> too. */
+/* The tab bar at the foot of the page is a mark the same way a badge on a
+   card is -- the tab in front wears the accent -- so it answers to the film
+   too.  It is a sibling of <main> and inherits none of its tint, so
+   js/cover-tint.js paints the accent onto it as its own host, as it does for
+   the top bar. */
 :root[data-theme="dark-adaptive"] .topbar,
 :root[data-theme="dark-adaptive"] .tabbar {
   --accent:   rgb(var(--cover-accent-rgb));
   --accent-2: rgb(var(--cover-accent-rgb));
-}
-:root[data-theme="dark-adaptive"] .topbar .iconbtn {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-}
-@media (hover: hover) {
-  :root[data-theme="dark-adaptive"] .topbar .action-menu .iconbtn:hover {
-    color: color-mix(in srgb, var(--accent) 78%, white);
-    border-color: color-mix(in srgb, var(--accent) 72%, white);
-  }
-}
-:root[data-theme="dark-adaptive"] .topbar .action-menu .iconbtn:active {
-  color: color-mix(in srgb, var(--accent) 62%, white);
-  border-color: color-mix(in srgb, var(--accent) 58%, white);
 }
 /* The title of what is playing: the one piece of text on the page that is the
    film rather than a reading about it.  What is under it -- the readings

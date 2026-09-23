@@ -41,8 +41,7 @@
   --edge:      rgba(255,255,255,.055);
   --shadow:    0 1px 0 rgba(255,255,255,.03), 0 10px 28px rgba(0,0,0,.42);
   /* One step further off the page: what floats over it rather than sitting on
-     it -- the toast, the token dialog, the theme menu -- and what the metadata
-     link lifts to under a pointer.  No card uses it at rest, so the page does
+     it -- the toast, the token dialog, the tab bar.  No card uses it at rest, so the page does
      not shimmer as a cursor crosses it. */
   --shadow-lift: 0 1px 0 rgba(255,255,255,.05), 0 14px 34px rgba(0,0,0,.5);
   --radius:    16px;
@@ -180,10 +179,9 @@ body {
   margin-right: auto;
   min-width: 0;
   /* Nothing in here reaches past the name-plate it is in.  min-width:0 above
-     lets the plate give way to the keys beside it, but what is inside it does
-     not shrink with it -- a name and a version have the widths they have --
-     and on a phone with the menu unfolded they were simply drawn on top of
-     the keys they had made room for. */
+     lets the plate give way to the status beside it, but what is inside it
+     does not shrink with it -- a name and a version have the widths they
+     have. */
   overflow: hidden;
 }
 .brand b {
@@ -222,9 +220,7 @@ body {
   white-space: nowrap;
   /* The one thing in the plate that gives, and it gives first: the shrink
      factor is what puts it ahead of the name beside it, which is the reading
-     that matters.  On a phone it is out of the way before this ever applies --
-     the rule further down takes it off the bar entirely while the menu is
-     unfolded -- so what is left here is the guard for every other width. */
+     that matters. */
   flex: 0 100 auto;
   min-width: 0;
   overflow: hidden;
@@ -233,29 +229,7 @@ body {
 @media (max-width: 620px) {
   .topbar { gap: 8px; padding-left: 12px; padding-right: 12px; }
   .brandmark { width: 22px; height: 22px; border-radius: 7px; }
-  /* The version steps aside while the menu is unfolded.  On a narrow screen
-     the three keys and the status take most of the bar, and what is left is
-     the width of the name and no more: of the two things in the plate, the
-     one to give up is the one that is a footnote about the page rather than
-     what the page is called.  It is back the moment the menu is folded.
-
-     The class is put on the bar by bindActionMenu in js/core.js, alongside
-     the one it puts on the menu itself. */
-  .topbar.menu-open .brand .ver { display: none; }
 }
-/* And on the narrowest of them, the name goes the same way and the plate is
-   its mark alone.  Three keys unfolded, the status light and the page's own
-   margins are the whole of a 320 px bar; what was left was some six letters
-   of a seven-letter name, and before any of this it was the name drawn on top
-   of the keys (the top half of issue #71).
-
-   Only while they are unfolded, and they fold themselves back after a few
-   idle seconds (see bindActionMenu in js/core.js): the plate is whole again
-   for as long as anyone is actually reading the bar rather than using it. */
-@media (max-width: 360px) {
-  .topbar.menu-open .brand b { display: none; }
-}
-
 .status {
   display: inline-flex;
   align-items: center;
@@ -339,87 +313,10 @@ body {
 }
 .iconbtn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
 
-/* The three top-bar actions live behind one key.  Their strip is immediately
-   left of that key, so revealing its width makes it unfold towards the brand
-   without moving the status at the far edge. */
-.action-menu {
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: center;
-  gap: 10px;
-  flex: none;
-}
-.action-menu-items {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  max-width: 0;
-  opacity: 0;
-  overflow: hidden;
-  visibility: hidden;
-  transform: translateX(12px);
-  transition: max-width .22s ease, opacity .15s ease, transform .22s ease,
-              visibility 0s linear .22s;
-}
-.action-menu.open .action-menu-items {
-  max-width: 152px;
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(0);
-  transition-delay: 0s;
-}
-/* These keys keep their theme's accent but never gain a filled surface, tap
-   highlight or focus ring when pressed. */
-.action-menu .iconbtn,
-.action-menu .iconbtn:hover,
-.action-menu .iconbtn:active,
-.action-menu .iconbtn[aria-pressed="true"],
-.action-menu .iconbtn[aria-expanded="true"] {
-  background: transparent;
-  box-shadow: none;
-  -webkit-tap-highlight-color: transparent;
-}
-.action-menu .iconbtn:focus,
-.action-menu .iconbtn:focus-visible {
-  outline: none;
-  box-shadow: none;
-}
-@media (hover: hover) {
-  .action-menu .iconbtn:hover {
-    color: color-mix(in srgb, var(--accent) 78%, white);
-    border-color: color-mix(in srgb, var(--accent) 72%, white);
-  }
-}
-/* A press rather than a hover, so this one is kept on a touch screen: it
-   lasts exactly as long as the finger is down. */
-.action-menu .iconbtn:active {
-  color: color-mix(in srgb, var(--accent) 62%, white);
-  border-color: color-mix(in srgb, var(--accent) 58%, white);
-}
-.hamburger {
-  position: relative;
-  display: block;
-  width: 18px;
-  height: 14px;
-  border-top: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-}
-.hamburger::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 4px;
-  border-top: 2px solid currentColor;
-}
 @media (max-width: 620px) {
   /* Kept after the base .iconbtn rule so the compact mobile size wins the
      cascade instead of being overwritten by the desktop declaration. */
   .iconbtn { padding: 0 10px; min-width: 40px; }
-  .action-menu, .action-menu-items { gap: 8px; }
-  .action-menu.open .action-menu-items {
-    max-width: 136px;
-  }
 }
 
 .ui-icon {
@@ -530,11 +427,12 @@ main {
 
 /* --- Tab bar ------------------------------------------------------------ */
 
-/* The five tabs, in a bar that floats over the foot of the page the way the
-   app's does: a pill of frosted panel, the tab in front marked by a pill of
-   the accent behind its icon.  Fixed rather than at the end of the page, so
-   another tab is one press away however far down a wall of posters somebody
-   has scrolled. */
+/* The six tabs, in a bar that floats over the foot of the page the way the
+   app's does: a pill of frosted panel with a key per tab, icons alone, and
+   the tab in front marked by a pill of the accent behind its icon.  Each key
+   names itself to a screen reader and under a pointer.  Fixed rather than at
+   the end of the page, so another tab is one press away however far down a
+   wall of posters somebody has scrolled. */
 .tabbar {
   position: fixed;
   left: 50%;
@@ -542,8 +440,9 @@ main {
   transform: translateX(-50%);
   z-index: 30;
   display: flex;
-  width: min(500px, calc(100vw - 24px));
-  padding: 6px 4px;
+  gap: 4px;
+  max-width: calc(100vw - 24px);
+  padding: 6px;
   border-radius: 999px;
   border: 1px solid var(--line);
   background: color-mix(in srgb, var(--panel) 80%, transparent);
@@ -553,14 +452,13 @@ main {
 }
 .tab {
   appearance: none;
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-width: 0;
   display: grid;
-  justify-items: center;
-  gap: 3px;
-  padding: 5px 0 4px;
+  place-items: center;
+  padding: 0;
   border: 0;
-  border-radius: 22px;
+  border-radius: 999px;
   background: none;
   color: var(--muted);
   font: inherit;
@@ -570,24 +468,15 @@ main {
 .tabicon {
   display: grid;
   place-items: center;
-  width: 54px;
+  width: 58px;
   max-width: 100%;
-  height: 28px;
+  height: 44px;
   border-radius: 999px;
   transition: background .2s, color .2s;
 }
-.tabicon .ui-icon { width: 20px; height: 20px; }
-.tablabel {
-  max-width: 100%;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.tab.on { color: var(--text); }
+.tabicon .ui-icon { width: 22px; height: 22px; }
+.tab.on { color: var(--accent); }
 .tab.on .tabicon {
-  color: var(--accent);
   background: color-mix(in srgb, var(--accent) 20%, transparent);
 }
 @media (hover: hover) {
@@ -597,17 +486,84 @@ main {
   }
 }
 .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-@media (max-width: 400px) {
-  .tabicon { width: 46px; }
-  .tablabel { font-size: 10.5px; }
+/* Six keys and the bar's own edge across a phone: each gives up a little of
+   its width before the bar would have to. */
+@media (max-width: 420px) {
+  .tabbar { gap: 2px; padding: 5px; }
+  .tabicon { width: 50px; height: 42px; }
 }
-/* The narrowest phones: "Metadaten" is the longest of the five names, and at
-   320 px it only fits a size smaller. */
 @media (max-width: 340px) {
-  .tabbar { padding: 5px 2px; }
-  .tabicon { width: 42px; }
-  .tablabel { font-size: 9.5px; }
+  .tabicon { width: 44px; }
 }
+
+/* --- Settings ------------------------------------------------------------ */
+
+/* What used to hide behind the key in the top bar, one card per thing: the
+   theme, the access token and the reports.  At most a readable column wide,
+   so a desktop does not stretch three buttons across the screen. */
+#tab-settings { width: 100%; max-width: 640px; margin: 0 auto; }
+.sethead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  min-height: 46px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+/* The accent tick the folding headings carry (see .panel-toggle). */
+.sethead::before {
+  content: "";
+  flex: none;
+  width: 3px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.setbody { display: grid; gap: 12px; padding: 16px; }
+.setnote { margin: 0; color: var(--muted); font-size: 13.5px; }
+.setnote:empty { display: none; }
+.setrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tokenshown { color: var(--text); font-size: 15px; letter-spacing: .12em; }
+.setbtns { grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
+.setbtn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: var(--tap);
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.setbtn .ui-icon { width: 18px; height: 18px; color: var(--accent); }
+@media (hover: hover) {
+  .setbtn:not(:disabled):hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, var(--panel-2));
+  }
+}
+.setbtn:disabled { opacity: .45; cursor: default; }
+.setbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .card {
   position: relative;

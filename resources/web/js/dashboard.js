@@ -10,9 +10,9 @@
    labels come translated with it, out of Kodi's own string table.  The
    connection itself lives in core.js.
 
-   One page in five tabs -- live, Dolby Vision metadata, films, series and
-   history -- the same five, in the same order, as the floating bar of the
-   TinyPPI app.  Every tab is fed from the one stream whichever is in front;
+   One page in six tabs -- live, Dolby Vision metadata, films, series and
+   history, the same five in the same order as the floating bar of the
+   TinyPPI app, and the settings.  Every tab is fed from the one stream whichever is in front;
    the metadata tab draws itself (js/metadata.js) and this file hands it the
    snapshot.
 =========================================================================== */
@@ -26,6 +26,7 @@ const el = {
   groups: $("groups"),
   metricsCard: $("tiles"), metricsGrid: $("tiles").querySelector(".tilegrid"),
   eventsCard: $("eventsCard"), copyBtn: $("copyBtn"),
+  copyMetaBtn: $("copyMetaBtn"), tokenShown: $("tokenShown"),
   historyIdleCard: $("historyIdleCard"),
   tabBar: $("tabBar"),
   continueFilmsCard: $("continueFilmsCard"), continueFilmsRow: $("continueFilmsRow"),
@@ -107,8 +108,8 @@ TinyPPI.bindDisclosure(el.continueSeriesCard, "dashboard.continueseries", true);
 
 /* --- tabs --------------------------------------------------------------- */
 
-/* The five places the bar switches between, in its order. */
-const TABS = ["live", "metadata", "films", "series", "history"];
+/* The places the bar switches between, in its order. */
+const TABS = ["live", "metadata", "films", "series", "history", "settings"];
 const TAB_KEY = "tinyppi.tab";
 
 let tab = null;            /* the tab in front                               */
@@ -177,7 +178,6 @@ function selectTab(name, fromUser) {
   /* The chart and the event list are measured, and a tab that was away was
      measured at no size at all. */
   requestAnimationFrame(() => TinyPPI.panels.draw());
-  updateCopy();
 }
 
 /* The tab bar itself: which of the five are on offer.  A tab that has just
@@ -213,15 +213,28 @@ window.addEventListener("hashchange", () => {
   if (name) selectTab(name);
 });
 
-/* The report key in the top bar copies whatever the tab in front is about:
-   the metadata list on the metadata tab, the readings and the events
-   everywhere else. */
+/* --- settings ----------------------------------------------------------- */
+
+/* The two reports on the settings tab: the readings and the events, and the
+   metadata list.  A key with nothing to copy is dimmed rather than taken
+   away, so the card keeps its shape. */
 function updateCopy() {
-  const has = tab === "metadata"
-    ? TinyPPI.metadata.listed()
-    : !!state && (!!state.playing || !!(state.last && state.last.title));
-  el.copyBtn.classList.toggle("hidden", !has);
+  el.copyBtn.disabled =
+    !state || !(state.playing || (state.last && state.last.title));
+  el.copyMetaBtn.disabled = !TinyPPI.metadata.listed();
 }
+
+/* Which token this device holds, all but its last two characters hidden: it
+   says whether there is one and which, without putting it on a screen that
+   may be the one on the wall. */
+function renderToken() {
+  const token = TinyPPI.token || "";
+  el.tokenShown.textContent = token
+    ? "\u2022".repeat(Math.max(0, token.length - 2)) + token.slice(-2)
+    : "\u2014";
+}
+document.addEventListener("tinyppi-token", renderToken);
+renderToken();
 
 /* --- render ------------------------------------------------------------- */
 
@@ -1737,13 +1750,10 @@ function buildReport() {
 }
 
 /* The clipboard, or a file named after the film where the browser will not
-   give it the clipboard; the metadata tab hands its list over the same way
-   (see TinyPPI.copyReport). */
+   give it the clipboard; the metadata list is handed over the same way (see
+   TinyPPI.copyReport). */
+el.copyMetaBtn.addEventListener("click", () => TinyPPI.metadata.copy());
 el.copyBtn.addEventListener("click", () => {
-  if (tab === "metadata") {
-    TinyPPI.metadata.copy();
-    return;
-  }
   const title = (state || {}).playing
     ? state.title : ((state || {}).last || {}).title;
   TinyPPI.copyReport(buildReport(), title);
@@ -1761,11 +1771,25 @@ function applyStrings(strings, hello) {
   $("historyIdleText").textContent = strings.idle_text;
   $("continueFilmsLabel").textContent = strings.continue;
   $("continueSeriesLabel").textContent = strings.continue;
-  $("tabLiveLabel").textContent = strings.tab_live;
-  $("tabMetadataLabel").textContent = strings.tab_metadata;
-  $("tabFilmsLabel").textContent = strings.films;
-  $("tabSeriesLabel").textContent = strings.series;
-  $("tabHistoryLabel").textContent = strings.tab_history;
+  /* The bar is icons alone; each key says what it is to a screen reader and
+     under a pointer. */
+  const names = {
+    live: strings.tab_live, metadata: strings.tab_metadata,
+    films: strings.films, series: strings.series,
+    history: strings.tab_history, settings: strings.tab_settings
+  };
+  for (const button of el.tabBar.querySelectorAll(".tab")) {
+    const name = names[button.dataset.tab] || "";
+    button.setAttribute("aria-label", name);
+    button.title = name;
+  }
+  $("themeHead").textContent = strings.theme_menu;
+  $("tokenHead").textContent = strings.token_title;
+  $("tokenNote").textContent = strings.token_text;
+  $("tokenBtnText").textContent = strings.token_enter;
+  $("reportHead").textContent = strings.copy;
+  $("copyBtnText").textContent = strings.report_live;
+  $("copyMetaBtnText").textContent = strings.tab_metadata;
   $("filmsLabel").textContent = strings.films;
   el.filmsEmpty.textContent = strings.films_empty;
   el.filmSearch.placeholder = strings.films_search;
@@ -1791,8 +1815,6 @@ function applyStrings(strings, hello) {
   TinyPPI.metadata.strings(strings);
   $("vs10Title").textContent = strings.vs10;
   $("vs10OutLabel").textContent = strings.output;
-  el.copyBtn.setAttribute("aria-label", strings.copy);
-  el.copyBtn.title = strings.copy;
   if (hello) {
     el.version.textContent = "v" + hello.version;
     /* Which shelves the box offers.  An add-on older than the flags says

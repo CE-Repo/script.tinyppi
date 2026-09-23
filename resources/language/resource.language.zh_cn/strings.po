@@ -1882,3 +1882,15 @@ msgstr "元数据"
 msgctxt "#32584"
 msgid "History"
 msgstr "历史"
+
+msgctxt "#32585"
+msgid "Settings"
+msgstr "设置"
+
+msgctxt "#32586"
+msgid "Enter token"
+msgstr "输入令牌"
+
+msgctxt "#32587"
+msgid "Readings and events"
+msgstr "数值与事件"

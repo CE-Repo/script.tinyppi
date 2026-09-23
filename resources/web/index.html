@@ -31,21 +31,6 @@
     <img class="brandmark" src="/icon.png" alt="">
     <b>TinyPPI</b><span class="ver" id="version"></span>
   </div>
-  <div class="action-menu" id="actionMenu">
-    <button class="iconbtn" id="actionMenuToggle" type="button"
-            title="Menu" aria-label="Menu" aria-controls="actionMenuItems"
-            aria-expanded="false">
-      <span class="hamburger" aria-hidden="true"></span>
-    </button>
-    <div class="action-menu-items" id="actionMenuItems" aria-hidden="true" inert>
-      <button class="iconbtn hidden" id="copyBtn" type="button">
-        <span class="ui-icon painted" style="--icon: url('/icons/download.svg')"></span>
-      </button>
-      <button class="iconbtn" id="tokenBtn" type="button" title="Token" aria-label="Token">
-        <span class="ui-icon painted" style="--icon: url('/icons/key.svg')"></span>
-      </button>
-    </div>
-  </div>
   <div class="status" id="status" data-state="wait" role="status" aria-live="polite">
     <span class="dot"></span><span id="statusText">…</span>
   </div>
@@ -53,9 +38,9 @@
 
 <main>
 
-  <!-- One page, five tabs, the same five the TinyPPI app puts in its floating
-       bar: what is playing, the Dolby Vision metadata, the two shelves and
-       the history.  Each tab is a panel of its own and only the chosen one is
+  <!-- One page in six tabs: the five the TinyPPI app puts in its floating
+       bar -- what is playing, the Dolby Vision metadata, the two shelves and
+       the history -- and the settings.  Each tab is a panel of its own and only the chosen one is
        laid out (see the tabs in js/dashboard.js); the connection underneath
        is the one stream whichever of them is in front. -->
 
@@ -225,36 +210,76 @@
     </section>
   </section>
 
+  <!-- What used to hide behind the key in the top bar: the theme, the access
+       token and the reports, each a card of its own (see js/theme.js and the
+       settings in js/dashboard.js). -->
+  <section class="tabpanel" id="tab-settings" data-tab="settings" role="tabpanel"
+           aria-labelledby="tabbtn-settings">
+    <section class="card setcard">
+      <h2 class="sethead" id="themeHead"></h2>
+      <div class="setbody" id="themeSettings"></div>
+    </section>
+
+    <section class="card setcard">
+      <h2 class="sethead" id="tokenHead"></h2>
+      <div class="setbody">
+        <p class="setnote" id="tokenNote"></p>
+        <div class="setrow">
+          <span class="tokenshown mono" id="tokenShown">—</span>
+          <button class="setbtn" id="tokenBtn" type="button">
+            <span class="ui-icon painted" style="--icon: url('/icons/key.svg')"></span>
+            <span id="tokenBtnText"></span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card setcard">
+      <h2 class="sethead" id="reportHead"></h2>
+      <div class="setbody setbtns">
+        <button class="setbtn" id="copyBtn" type="button" disabled>
+          <span class="ui-icon painted" style="--icon: url('/icons/download.svg')"></span>
+          <span id="copyBtnText"></span>
+        </button>
+        <button class="setbtn" id="copyMetaBtn" type="button" disabled>
+          <span class="ui-icon painted" style="--icon: url('/icons/download.svg')"></span>
+          <span id="copyMetaBtnText"></span>
+        </button>
+      </div>
+    </section>
+  </section>
+
 </main>
 
-<!-- The floating bar the tabs are switched with, the same five places in the
-     same order as the app's.  Over the page rather than under it: the panels
+<!-- The floating bar the tabs are switched with: the five places of the
+     app's bar, in its order, and the settings.  Icons only; each key says
+     what it is to a screen reader and under a pointer (see applyStrings in
+     js/dashboard.js).  Over the page rather than under it: the panels
      leave room at their foot for it (see .tabbar in css/base.css). -->
 <nav class="tabbar" id="tabBar" role="tablist" aria-label="TinyPPI">
   <button class="tab" id="tabbtn-live" type="button" role="tab" data-tab="live"
           aria-controls="tab-live">
     <span class="tabicon"><span class="ui-icon painted" style="--icon: url('/icons/tab-live.svg')"></span></span>
-    <span class="tablabel" id="tabLiveLabel">Live</span>
   </button>
   <button class="tab" id="tabbtn-metadata" type="button" role="tab" data-tab="metadata"
           aria-controls="tab-metadata">
     <span class="tabicon"><span class="ui-icon painted" style="--icon: url('/icons/tab-metadata.svg')"></span></span>
-    <span class="tablabel" id="tabMetadataLabel">Metadata</span>
   </button>
   <button class="tab" id="tabbtn-films" type="button" role="tab" data-tab="films"
           aria-controls="tab-films">
     <span class="tabicon"><span class="ui-icon painted" style="--icon: url('/icons/tab-films.svg')"></span></span>
-    <span class="tablabel" id="tabFilmsLabel">Films</span>
   </button>
   <button class="tab" id="tabbtn-series" type="button" role="tab" data-tab="series"
           aria-controls="tab-series">
     <span class="tabicon"><span class="ui-icon painted" style="--icon: url('/icons/tab-series.svg')"></span></span>
-    <span class="tablabel" id="tabSeriesLabel">Series</span>
   </button>
   <button class="tab" id="tabbtn-history" type="button" role="tab" data-tab="history"
           aria-controls="tab-history">
     <span class="tabicon"><span class="ui-icon painted" style="--icon: url('/icons/tab-history.svg')"></span></span>
-    <span class="tablabel" id="tabHistoryLabel">History</span>
+  </button>
+  <button class="tab" id="tabbtn-settings" type="button" role="tab" data-tab="settings"
+          aria-controls="tab-settings">
+    <span class="tabicon"><span class="ui-icon painted" style="--icon: url('/icons/tab-settings.svg')"></span></span>
   </button>
 </nav>
 

@@ -1883,3 +1883,15 @@ msgstr "البيانات الوصفية"
 msgctxt "#32584"
 msgid "History"
 msgstr "السجل"
+
+msgctxt "#32585"
+msgid "Settings"
+msgstr "الإعدادات"
+
+msgctxt "#32586"
+msgid "Enter token"
+msgstr "إدخال الرمز"
+
+msgctxt "#32587"
+msgid "Readings and events"
+msgstr "القيم والأحداث"

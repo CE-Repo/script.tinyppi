@@ -105,7 +105,7 @@ window.TinyPPICover = (function () {
   const MIN_ACCENT_CHROMA = 0.035;
   const ACCENT_FAMILY_SPAN = 36;
 
-  /* How strong the tint is, as picked in the theme menu.  Even the loudest
+  /* How strong the tint is, as picked on the settings tab.  Even the loudest
      keeps most of the card's plain surface: the poster is a quiet cue for what
      is playing, not a coloured wash behind it. */
   const STRENGTH_LEVELS = [
@@ -729,19 +729,13 @@ window.TinyPPICover = (function () {
   const panelHost = () => document.querySelector("main");
 
   /* The chrome that sits outside <main> and so inherits nothing painted there:
-     the bar across the top, the tab bar at the foot, and the theme menu, which
-     hangs from <body> so the bar cannot clip it.  Both take the quiet variant, which carries the accent
-     alone -- the lifted text colours belong to the tinted card and are not
-     wanted out here, where the theme's own surface is what they would sit on
-     (see paintValues).
-
-     Read again on each paint rather than kept: the menu is built by
-     js/theme.js after this file has loaded.  Both survive being rebuilt --
-     buildMenu replaces the menu's children, never the menu itself. */
+     the bar across the top and the tab bar at the foot.  Both take the quiet
+     variant, which carries the accent alone -- the lifted text colours belong
+     to the tinted card and are not wanted out here, where the theme's own
+     surface is what they would sit on (see paintValues). */
   const chromeHosts = () => [
     document.querySelector(".topbar"),
-    document.querySelector(".tabbar"),
-    document.getElementById("themeMenu")
+    document.querySelector(".tabbar")
   ];
 
   function paintBoth(palette, key) {

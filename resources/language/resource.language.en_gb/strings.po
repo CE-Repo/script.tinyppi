@@ -1882,3 +1882,15 @@ msgstr ""
 msgctxt "#32584"
 msgid "History"
 msgstr ""
+
+msgctxt "#32585"
+msgid "Settings"
+msgstr ""
+
+msgctxt "#32586"
+msgid "Enter token"
+msgstr ""
+
+msgctxt "#32587"
+msgid "Readings and events"
+msgstr ""
