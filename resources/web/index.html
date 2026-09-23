@@ -121,6 +121,35 @@
       </div>
     </details>
 
+    <!-- The films the box has not counted as seen, straight under the row of
+         things left half-watched: what is still waiting to be watched, without
+         the hundreds of the full wall further down.  The same tiles as that
+         wall, and a press asks the same question.  Read out of the same list
+         rather than asked for again, and not on the page at all while there
+         is nothing on it. -->
+    <details class="card hidden" id="unseenFilmsCard">
+      <summary class="panel-toggle">
+        <span id="unseenFilmsLabel"></span>
+        <span class="filmscount mono" id="unseenFilmsCount"></span>
+      </summary>
+      <div class="filmsbody">
+        <div class="filmgrid" id="unseenFilmGrid"></div>
+      </div>
+    </details>
+
+    <!-- And the series with an episode still waiting.  Opening one opens it
+         in the series card further down, which is where its episodes are
+         listed, and brings that card into view. -->
+    <details class="card hidden" id="unseenSeriesCard">
+      <summary class="panel-toggle">
+        <span id="unseenSeriesLabel"></span>
+        <span class="filmscount mono" id="unseenSeriesCount"></span>
+      </summary>
+      <div class="filmsbody">
+        <div class="filmgrid" id="unseenSeriesGrid"></div>
+      </div>
+    </details>
+
     <!-- What could be playing instead: the films the video database holds, as
          posters.  A press starts one (see the film library in
          js/dashboard.js).
@@ -154,22 +183,6 @@
       </div>
     </details>
 
-    <!-- The films on that wall the box has not counted as seen, on a wall of
-         their own under it: what is still waiting to be watched, without the
-         hundreds that have been scrolled past on the way to it.  The same
-         tiles as the wall above, and a press starts one the same way.  Read
-         out of the same list rather than asked for again, and not on the page
-         at all while there is nothing on it. -->
-    <details class="card hidden" id="unseenFilmsCard">
-      <summary class="panel-toggle">
-        <span id="unseenFilmsLabel"></span>
-        <span class="filmscount mono" id="unseenFilmsCount"></span>
-      </summary>
-      <div class="filmsbody">
-        <div class="filmgrid" id="unseenFilmGrid"></div>
-      </div>
-    </details>
-
     <!-- And the series, on a shelf of their own under the films.  The same
          wall of posters, except that a series is not a thing that can be
          played: a press opens the show, the wall gives way to its episodes,
@@ -199,19 +212,6 @@
         <div class="filmgrid" id="seriesGrid"></div>
         <div class="episodes hidden" id="episodeList"></div>
         <p class="filmsempty hidden" id="seriesEmpty"></p>
-      </div>
-    </details>
-
-    <!-- And the series with an episode still waiting, under the wall of all
-         of them.  A press opens the show in the card above, which is where its
-         episodes are listed, and brings that card into view. -->
-    <details class="card hidden" id="unseenSeriesCard">
-      <summary class="panel-toggle">
-        <span id="unseenSeriesLabel"></span>
-        <span class="filmscount mono" id="unseenSeriesCount"></span>
-      </summary>
-      <div class="filmsbody">
-        <div class="filmgrid" id="unseenSeriesGrid"></div>
       </div>
     </details>
   </div>

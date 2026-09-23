@@ -113,8 +113,10 @@ TinyPPI.bindDisclosure(el.continueCard, "dashboard.continue", true);
    two walls of posters included -- laid out again. */
 function shelves(into) {
   if (el.filmsCard.parentElement === into) return;
-  into.append(el.continueCard, el.filmsCard, el.unseenFilmsCard,
-              el.seriesCard, el.unseenSeriesCard);
+  /* What is still waiting to be watched straight under what was left
+     half-watched, and the walls of everything after both. */
+  into.append(el.continueCard, el.unseenFilmsCard, el.unseenSeriesCard,
+              el.filmsCard, el.seriesCard);
 }
 
 function render(next) {
@@ -886,10 +888,10 @@ function hideSeries() {
   el.unseenSeriesCard.classList.add("hidden");
 }
 
-/* A show pressed on the wall of unwatched ones opens in the card above, where
-   its episodes are listed -- one list of episodes on the page, and one way
-   back out of it -- and that card is unfolded and brought into view, because
-   the press happened a card further down. */
+/* A show opened from the wall of unwatched ones opens in the series card
+   further down, where its episodes are listed -- one list of episodes on the
+   page, and one way back out of it -- and that card is unfolded and brought
+   into view, because the press happened somewhere else. */
 async function openFromUnseen(show) {
   await openShowView(show);
   if (!openShow || openShow.id !== show.id) return;

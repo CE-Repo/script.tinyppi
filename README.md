@@ -580,11 +580,11 @@ question on the television, and **Clear resume point**, which forgets where it
 got to — taking it off the continue-watching row — while leaving it watched or
 unwatched as it was.
 
-Under the film wall and the series wall is a second card of each holding only
-what is still **unwatched**: the films without a tick, and the series with an
-episode still waiting. A press on an unwatched film starts it; a press on an
-unwatched series opens it in the series card above. A card with nothing on it
-is not shown.
+Straight under **Continue watching** are two cards holding only what is still
+**unwatched**: the films without a tick, and the series with an episode still
+waiting; the walls of all films and all series follow them. The tiles ask the
+same question as on the full walls, and opening an unwatched series opens it
+in the series card further down. A card with nothing on it is not shown.
 
 ### Starting an episode from the browser
 
