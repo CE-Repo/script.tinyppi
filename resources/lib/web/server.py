@@ -177,7 +177,6 @@ _UI_STRINGS = {
     "theme_dark":      32496,
     "theme_adaptive":  32497,
     "theme_midnight":  32498,
-    "theme_switch":    32499,
     "theme_menu":      32500,
     "tint_label":      32501,
     "tint_subtle":     32502,
@@ -188,7 +187,15 @@ _UI_STRINGS = {
     "last_played":     32507,
     "summary":         32508,
     "busy":            32509,
-    "menu":            32510,
+    # The tab bar.  The two shelves are named by "films" and "series".
+    "tab_live":        32582,
+    "tab_metadata":    32583,
+    "tab_history":     32584,
+    # The settings tab: the theme, the token and the reports that used to sit
+    # behind the key in the top bar.
+    "tab_settings":    32585,
+    "token_enter":     32586,
+    "report_live":     32587,
     # The two keys either side of play, on a file that has chapters.
     "chapter_previous": 32515,
     "chapter_next":     32516,
@@ -336,10 +343,12 @@ def _static_routes() -> dict[str, tuple[str, str]]:
     return {
         "/":                      (os.path.join(web, "index.html"), html),
         "/index.html":            (os.path.join(web, "index.html"), html),
-        # The Dolby Vision metadata list, opened in a window of its own from
-        # the dashboard.  Both spellings answer, so a bookmark of either works.
-        "/metadata":              (os.path.join(web, "metadata.html"), html),
-        "/metadata.html":         (os.path.join(web, "metadata.html"), html),
+        # The Dolby Vision metadata list, once a window of its own and now a
+        # tab of the dashboard.  The old address is the same page, which
+        # opens on that tab (see tabFromAddress in js/dashboard.js), so a
+        # bookmark of either spelling still lands on the list.
+        "/metadata":              (os.path.join(web, "index.html"), html),
+        "/metadata.html":         (os.path.join(web, "index.html"), html),
         "/css/base.css":          (os.path.join(web, "css", "base.css"), "text/css; charset=utf-8"),
         "/css/live-panels.css":   (os.path.join(web, "css", "live-panels.css"), "text/css; charset=utf-8"),
         "/css/dashboard.css":     (os.path.join(web, "css", "dashboard.css"), "text/css; charset=utf-8"),
@@ -368,6 +377,13 @@ def _static_routes() -> dict[str, tuple[str, str]]:
         "/icons/theme-dark.svg":  (os.path.join(web, "icons", "theme-dark.svg"), "image/svg+xml"),
         "/icons/theme-adaptive.svg": (os.path.join(web, "icons", "theme-adaptive.svg"), "image/svg+xml"),
         "/icons/theme-midnight.svg": (os.path.join(web, "icons", "theme-midnight.svg"), "image/svg+xml"),
+        # The six keys of the tab bar.
+        "/icons/tab-live.svg":    (os.path.join(web, "icons", "tab-live.svg"), "image/svg+xml"),
+        "/icons/tab-metadata.svg": (os.path.join(web, "icons", "tab-metadata.svg"), "image/svg+xml"),
+        "/icons/tab-films.svg":   (os.path.join(web, "icons", "tab-films.svg"), "image/svg+xml"),
+        "/icons/tab-series.svg":  (os.path.join(web, "icons", "tab-series.svg"), "image/svg+xml"),
+        "/icons/tab-history.svg": (os.path.join(web, "icons", "tab-history.svg"), "image/svg+xml"),
+        "/icons/tab-settings.svg": (os.path.join(web, "icons", "tab-settings.svg"), "image/svg+xml"),
         "/manifest.webmanifest":  (os.path.join(web, "manifest.webmanifest"), "application/manifest+json"),
         "/icon.png":              (os.path.join(root, "icon.png"), "image/png"),
         "/fanart.png":            (os.path.join(root, "fanart.png"), "image/png"),

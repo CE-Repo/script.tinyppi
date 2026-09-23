@@ -327,6 +327,31 @@ a phone in your hand.
 
 ### What it shows
 
+The page is split into six tabs, switched from a floating bar of icons at the
+foot of the screen — the five of the TinyPPI app, in the same order, and the
+settings:
+
+| Tab | What is on it |
+|---|---|
+| **Live** | What is playing, the transport row, the VS10 output and every reading of the overlay |
+| **Metadata** | The Dolby Vision metadata: the active picture area, the luminance chart and the full list (see below) |
+| **Films** | Continue watching (films), the unwatched films and the whole film library |
+| **Series** | Continue watching (episodes), the series with unwatched episodes and the whole series library |
+| **History** | The metrics and the events of the title that is playing — or, for ten minutes after the credits, of the one that just ended |
+| **Settings** | The theme, the access token and the two reports |
+
+The address remembers the tab (`/#films`, `/#history`, …), so a bookmark or a
+reload comes back to it, and each device reopens the tab it was left on. The
+film and series tabs are only in the bar when the box offers those libraries,
+and the metadata tab only while a Dolby Vision title is playing. Live,
+metadata, history and settings stand centred between the two bars; the two
+shelves start at the top.
+The bar shows icons only; each key names its tab under a pointer and to a
+screen reader. Like the app's, it steps away after three seconds with
+nothing happening, handing its room at the foot of the page back to the last
+card, and comes back with the next touch, scroll, key or pointer movement. The top bar carries just the name, the version and the
+connection light.
+
 - **Now playing** — the poster, title, year and genre, the file name (when
   *Show file name* is on), elapsed time and progress.
 - **The format logos the overlay draws** — the very files from the add-on's own
@@ -347,32 +372,32 @@ a phone in your hand.
   keeps the film that just ended: a card of its own with its switch and warning
   totals, and the events of that film still under it. Those figures are
   worth most once a film is over, which used to be exactly when they were
-  thrown away. The idle page is those two cards centred as one column; the line
-  saying nothing is playing is for a box that has played nothing.
+  thrown away. Both are on the history tab.
 - **Continue watching** — the films and episodes the box was stopped in the
-  middle of, on one row above both shelves, the last one seen first. Each
-  poster carries how far it got, and a tap resumes it where it was (see below).
+  middle of, the last one seen first: the films at the top of the films tab,
+  the episodes at the top of the series tab. Each poster carries how far it
+  got, and a tap resumes it where it was (see below).
 - **The film library** — the films in Kodi's video database as a wall of
-  posters, and a tap starts one on the box (see below). On the page whether or
-  not anything is playing: it is the end of the idle page, and the last card
-  under the readings while something is on.
+  posters, and a tap starts one on the box (see below). Its tab is there
+  whether or not anything is playing.
 - **The series library** — the same wall again for what Kodi knows as TV
   shows, with how many episodes are still unwatched on each poster. A tap opens
-  the show and a tap on one of its episodes starts it (see below). It stands
-  wherever the films do, directly under them.
+  the show and a tap on one of its episodes starts it (see below).
 - **The active picture area** the RPU declares (L5), drawn to scale inside the
   coded frame — the letterbox as the stream describes it, changing with the
-  scene on an IMAX Enhanced title. It sits on the metadata window, with the
+  scene on an IMAX Enhanced title. It sits on the metadata tab, with the
   blocks it is read from.
 - **Every row of the overlay**, grouped as it is on screen: Video, Processing,
   Audio, HDR static metadata, Dolby Vision metadata and System. A reading that
   just moved is highlighted the same way the overlay highlights it.
-- **A button to the Dolby Vision metadata view**, which opens in a **window of
-  its own** (see below).
-- **Copy report** hands the whole set over as plain text, ready to paste into a
-  forum post — the rows, what the title added up to, and the events along the
-  way. It works on the idle page too, where it writes the report of the title
-  that just finished.
+- **The Dolby Vision metadata view**, on a tab of its own (see below).
+- **Copy report**, on the settings tab, hands the whole set over as plain
+  text, ready to paste into a forum post — the rows, what the title added up
+  to, and the events along the way. It works with nothing playing too, where it
+  writes the report of the title that just finished. The second key beside it
+  copies the metadata list. A key with nothing to copy is dimmed.
+- **The access token** this device holds, all but its last two characters
+  hidden, and a key to enter a new one — also on the settings tab.
 
 What a source cannot carry is left out rather than shown empty: the peak and
 average tiles, the luminance chart, the active-area box and both metadata
@@ -426,11 +451,9 @@ not to be felt while it is:
 
 ### Themes
 
-The button beside the TinyPPI name in the top bar switches the page between
-three themes, and every one of them is dark — this is watched in the room the
-projector is in, so there is nothing here for a lit one. A press walks through
-them; **holding the button down** (or right-clicking it) opens a menu to jump
-straight to one:
+The settings tab switches the page between three themes, and every one of
+them is dark — this is watched in the room the projector is in, so there is
+nothing here for a lit one:
 
 - **Dark** — the plain one, and what a first visit gets.
 - **Dark (adaptive)** — the same page, with the **now-playing card** taking
@@ -450,31 +473,30 @@ straight to one:
   chart's own traces — while the readings themselves keep the plain text
   colour. A title with no poster looks exactly as it does on the plain dark
   theme; there was nothing to take a colour from. While this theme is on, the
-  menu also carries how strongly it tints: **subtle**, **standard** or
+  settings tab also offers how strongly it tints: **subtle**, **standard** or
   **strong**.
 - **Midnight** — deeper and bluer, for a room with nothing else lit in it.
 
 The choice is remembered in the browser, per device, and is applied before the
 page is first drawn, so reopening the dashboard never flashes the wrong theme.
-Both windows share it, and the phone's own status bar follows it. Nothing is
+The phone's own status bar follows it. Nothing is
 sent to the add-on: the theme is the browser's business, not the box's.
 
-### The Dolby Vision metadata window
+### The Dolby Vision metadata tab
 
-On a Dolby Vision title the dashboard shows a **Dolby Vision metadata view**
-button. It opens a second window — `http://<box-ip>:8099/metadata`, which can
-also be bookmarked on its own — listing every block the stream's side data
-carries: the configuration record, the RPU from its header through L255, the
+The **Metadata** tab — also reachable as `http://<box-ip>:8099/metadata`, the
+address the view had when it was a window of its own, so an old bookmark still
+lands on it — lists every block the stream's side data carries: the configuration record, the RPU from its header through L255, the
 composer's reshaping curves, the trim passes and the static SEIs. It is the
 same list the on-screen view shows,
 built from the same rows, and it stays live: the per-frame blocks move with the
 picture and a reading that just changed is highlighted, exactly as in the
 overlay. On a wide screen it flows into two or three columns, never breaking a
-section across them, and **Copy report** hands the whole list over as plain
-text.
+section across them, and the metadata key under **Copy report** on the
+settings tab hands the whole list over as plain text.
 
-The button appears only where there is something to open. On any other source
-the window says so rather than sitting empty.
+On any other source, and with nothing playing, the tab is not in the bar at
+all; a page that is on it when the title ends goes back to the live tab.
 
 It can be turned off entirely under **Settings → Dashboard** — it is the
 largest thing the add-on sends, so on a slow network it is the first thing to
@@ -482,16 +504,14 @@ switch off.
 
 ### Starting a film from the browser
 
-A box that is playing nothing is the one somebody is standing in front of with
-a phone in their hand, so the idle page ends on the **film library**: every
-film in Kodi's video database, as posters, in the order Kodi files them. A tap
-starts one on the television.
+The **Films** tab is the **film library**: every film in Kodi's video
+database, as posters, in the order Kodi files them. A tap starts one on the
+television.
 
-The shelf is on the page while something is playing too, as the last card under
-the readings — lining up what comes next is a fair thing to want from the phone
-halfway through a film, and it is the same card moved down rather than a second
-wall to keep in step: a search still being typed, and a show still open on the
-series shelf, survive a film starting under them.
+The tab is there whether or not anything is playing — lining up what comes
+next is a fair thing to want from the phone halfway through a film — and a
+search still being typed, or a show still open on the series tab, survives a
+film starting under it.
 
 It keeps itself up to date without being asked. Every snapshot carries the
 version the box's library is on, and that number moves whenever what the
@@ -509,14 +529,9 @@ title are the year and how long the film runs. The card carries a
 search box, which narrows the wall as it is typed in; the cross inside it empties
 it again and puts the whole shelf back.
 
-The card **arrives folded**, as its own heading and the number of films beside
-it, and a tap on the heading opens the wall. Folded is the honest default for a
-card that is now on every page the dashboard draws: somebody who opened the
-page to read what the box is doing would otherwise find those readings a
-screen and a half above a wall nobody asked for. It costs nothing to leave
-shut, either — a poster inside a folded card is never fetched. How it was left
-is remembered on each device, so a phone that lives on the film wall opens on
-it.
+The cards **arrive open** — the tab is there for the films — and each folds
+away under its own heading with the number of titles beside it. How it was
+left is remembered on each device.
 
 The list is read from the video database once and held until Kodi says it
 changed, so a film added mid-evening appears without anything being restarted,
@@ -550,10 +565,10 @@ the list being read and served at all.
 
 ### Continue watching
 
-Above both shelves is a row of the films and episodes left half-watched, the
-last one seen first — the quickest way back into whatever was on. It is one row
-for both, scrolled sideways: an episode stands on it as its show's poster, with
-which episode it is under the name. Every poster carries the same resume bar
+At the top of the films tab and of the series tab is a row of the films —
+respectively the episodes — left half-watched, the last one seen first: the
+quickest way back into whatever was on. It scrolls sideways; an episode stands
+on it as its show's poster, with which episode it is under the name. Every poster carries the same resume bar
 the walls do and the same rating badge — a film its own, an episode its show's
 — and a tap resumes it where it was.
 
@@ -589,8 +604,8 @@ in the series card further down. A card with nothing on it is not shown.
 
 ### Starting an episode from the browser
 
-Under the films is the same shelf again for the **series library**, with one
-floor more. A series is not something that can be put on — an episode is — so a
+The **Series** tab is the same shelf again for the **series library**, with
+one floor more. A series is not something that can be put on — an episode is — so a
 tap on a poster does not start anything: the wall gives way to that show's
 episodes, in the order they were made and each season folded away under its own
 heading. A tap opens a season, a tap on one of its episodes starts it. The way
@@ -677,8 +692,8 @@ are dimmed rather than left to seek a minute instead. Like the VS10 buttons,
 they need the access token, and with **Allow VS10 switching from the
 dashboard** off the row is not drawn at all.
 
-Both the remote and the panels above it are on the metadata window too, so a
-second screen left on either page can still be used to drive playback.
+The remote sits on the live tab, one press away from every other tab in the
+bar.
 
 ### Security
 

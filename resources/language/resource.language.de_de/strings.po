@@ -1870,3 +1870,27 @@ msgstr "Von vorne abspielen"
 msgctxt "#32581"
 msgid "Clear resume point"
 msgstr "Fortsetzungspunkt entfernen"
+
+msgctxt "#32582"
+msgid "Live"
+msgstr "Live"
+
+msgctxt "#32583"
+msgid "Metadata"
+msgstr "Metadaten"
+
+msgctxt "#32584"
+msgid "History"
+msgstr "Verlauf"
+
+msgctxt "#32585"
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgctxt "#32586"
+msgid "Enter token"
+msgstr "Token eingeben"
+
+msgctxt "#32587"
+msgid "Readings and events"
+msgstr "Werte und Ereignisse"

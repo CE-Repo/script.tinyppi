@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="/css/base.css">
 <link rel="stylesheet" href="/css/live-panels.css">
 <link rel="stylesheet" href="/css/dashboard.css">
+<link rel="stylesheet" href="/css/metadata.css">
 <link rel="stylesheet" href="/css/theme.css">
 </head>
 
@@ -30,21 +31,6 @@
     <img class="brandmark" src="/icon.png" alt="">
     <b>TinyPPI</b><span class="ver" id="version"></span>
   </div>
-  <div class="action-menu" id="actionMenu">
-    <button class="iconbtn" id="actionMenuToggle" type="button"
-            title="Menu" aria-label="Menu" aria-controls="actionMenuItems"
-            aria-expanded="false">
-      <span class="hamburger" aria-hidden="true"></span>
-    </button>
-    <div class="action-menu-items" id="actionMenuItems" aria-hidden="true" inert>
-      <button class="iconbtn hidden" id="copyBtn" type="button">
-        <span class="ui-icon painted" style="--icon: url('/icons/download.svg')"></span>
-      </button>
-      <button class="iconbtn" id="tokenBtn" type="button" title="Token" aria-label="Token">
-        <span class="ui-icon painted" style="--icon: url('/icons/key.svg')"></span>
-      </button>
-    </div>
-  </div>
   <div class="status" id="status" data-state="wait" role="status" aria-live="polite">
     <span class="dot"></span><span id="statusText">…</span>
   </div>
@@ -52,81 +38,80 @@
 
 <main>
 
-  <!-- What is playing, and the one control that belongs beside it.  On a wide
-       screen this is the left of the two columns; on a narrow one it is simply
-       the top of the page (see .rail in base.css). -->
-  <div class="rail rail-main">
-    <div id="live"></div>
+  <!-- One page in six tabs: the five the TinyPPI app puts in its floating
+       bar -- what is playing, the Dolby Vision metadata, the two shelves and
+       the history -- and the settings.  Each tab is a panel of its own and only the chosen one is
+       laid out (see the tabs in js/dashboard.js); the connection underneath
+       is the one stream whichever of them is in front. -->
 
-    <details class="card hidden" id="vs10Card">
-      <summary class="panel-toggle"><span id="vs10Title"></span></summary>
-      <div class="vs10">
-        <div class="out"><span id="vs10OutLabel"></span><b id="vs10Out">—</b></div>
-        <div class="modes" id="modes"></div>
-      </div>
-    </details>
-  </div>
+  <!-- What is playing, what can be done to it, and every reading the overlay
+       carries. -->
+  <section class="tabpanel" id="tab-live" data-tab="live" role="tabpanel"
+           aria-labelledby="tabbtn-live">
+    <div class="rail rail-main">
+      <div id="live"></div>
 
-  <!-- What the playing of it has come to: the figures, the chart of them and
-       the events along the way.  Ahead of the detail groups in the markup, so
-       a narrow screen reads it straight after the playback card and the VS10
-       output above it rather than below every group on the page; the desktop
-       layout names its own areas and is unaffected (see base.css). -->
-  <div class="rail rail-side" id="sideRail"></div>
+      <details class="card hidden" id="vs10Card">
+        <summary class="panel-toggle"><span id="vs10Title"></span></summary>
+        <div class="vs10">
+          <div class="out"><span id="vs10OutLabel"></span><b id="vs10Out">—</b></div>
+          <div class="modes" id="modes"></div>
+        </div>
+      </details>
+    </div>
 
-  <!-- Every reading the overlay carries, as many cards to a row as fit.  In
-       neither rail: this is the bulk of the page and all one kind of thing, so
-       on a wide screen it runs the whole width under both of them. -->
-  <div class="groups" id="groups"></div>
+    <!-- Every reading the overlay carries, as many cards to a row as fit. -->
+    <div class="groups" id="groups"></div>
 
-  <!-- The idle page, as one centred column: what is not playing, what was,
-       and what happened while it was.  The events card is moved in here for
-       as long as nothing plays and back out when something does (see
-       js/dashboard.js).  It belongs to neither rail: with nothing playing
-       both of those are empty and gone, and this stands across the page. -->
-  <div class="idlestack" id="idleStack">
-    <section class="card hidden" id="idleCard">
+    <section class="card idlecard hidden" id="idleCard">
       <div class="empty">
         <div class="big" id="idleTitle">—</div>
         <p id="idleText"></p>
       </div>
     </section>
+  </section>
 
-    <!-- What the title that has just finished came to.  The add-on keeps a
-         session for a while after the player stops, which is when its figures
-         are worth reading (see SessionLog.end in web/snapshot.py). -->
-    <section class="card hidden" id="lastCard">
-      <div class="lasthead">
-        <span class="k" id="lastLabel"></span>
-        <b id="lastTitle"></b>
-      </div>
-      <div class="tilegrid" id="lastTiles"></div>
-    </section>
-
-    <!-- The quickest way back into what was on: the films and episodes the box
-         was stopped in the middle of, the last one seen first, on one row that
-         scrolls sideways (see continue watching in js/dashboard.js).
-
-         Above both shelves and travelling with them, and open to begin with
-         where they arrive folded: it is a row of a handful of posters rather
-         than a wall of hundreds, and it is only on the page at all when there
-         is something on it. -->
-    <details class="card hidden" id="continueCard">
-      <summary class="panel-toggle">
-        <span id="continueLabel"></span>
-        <span class="filmscount mono" id="continueCount"></span>
-      </summary>
-      <div class="filmsbody">
-        <div class="continuerow" id="continueRow"></div>
+  <!-- The Dolby Vision metadata: the active picture, the L1 luminance chart
+       (moved in here from #live by js/dashboard.js) and the whole list. -->
+  <section class="tabpanel" id="tab-metadata" data-tab="metadata" role="tabpanel"
+           aria-labelledby="tabbtn-metadata">
+    <details class="card hidden" id="frameCard">
+      <summary class="panel-toggle"><span id="frameTitle"></span></summary>
+      <div class="framewrap">
+        <div class="frame"><i id="frameActive"></i></div>
+        <div class="framenote mono" id="frameNote"></div>
       </div>
     </details>
 
-    <!-- The films the box has not counted as seen, straight under the row of
-         things left half-watched: what is still waiting to be watched, without
-         the hundreds of the full wall further down.  The same tiles as that
-         wall, and a press asks the same question.  Read out of the same list
-         rather than asked for again, and not on the page at all while there
-         is nothing on it. -->
+    <details class="card hidden" id="listCard">
+      <summary class="panel-toggle"><span id="metadataTitle"></span></summary>
+      <div class="metarows" id="metaRows"></div>
+    </details>
+
+    <section class="card idlecard hidden" id="metaIdleCard">
+      <div class="empty">
+        <div class="big" id="metaIdleTitle">—</div>
+        <p id="metaIdleText"></p>
+      </div>
+    </section>
+  </section>
+
+  <!-- The films the video database holds: what was left half-watched, what
+       has not been seen yet, and the wall of all of them.  A press on a
+       poster asks what is wanted of it (see "what a press asks" in
+       js/dashboard.js). -->
+  <section class="tabpanel" id="tab-films" data-tab="films" role="tabpanel"
+           aria-labelledby="tabbtn-films">
+    <details class="card hidden" id="continueFilmsCard">
+      <summary class="panel-toggle">
+        <span id="continueFilmsLabel"></span>
+        <span class="filmscount mono" id="continueFilmsCount"></span>
+      </summary>
+      <div class="filmsbody">
+        <div class="continuerow" id="continueFilmsRow"></div>
+      </div>
+    </details>
+
     <details class="card hidden" id="unseenFilmsCard">
       <summary class="panel-toggle">
         <span id="unseenFilmsLabel"></span>
@@ -137,36 +122,6 @@
       </div>
     </details>
 
-    <!-- And the series with an episode still waiting.  Opening one opens it
-         in the series card further down, which is where its episodes are
-         listed, and brings that card into view. -->
-    <details class="card hidden" id="unseenSeriesCard">
-      <summary class="panel-toggle">
-        <span id="unseenSeriesLabel"></span>
-        <span class="filmscount mono" id="unseenSeriesCount"></span>
-      </summary>
-      <div class="filmsbody">
-        <div class="filmgrid" id="unseenSeriesGrid"></div>
-      </div>
-    </details>
-
-    <!-- What could be playing instead: the films the video database holds, as
-         posters.  A press starts one (see the film library in
-         js/dashboard.js).
-
-         On the page whether or not anything is playing: on a box at its home
-         screen the wall is the page, and while something plays it is what
-         somebody who picked up the phone to line up the next thing came for.
-         The card itself moves rather than being drawn twice -- here while
-         nothing plays, and down into the library row under the readings while
-         something does (see render in js/dashboard.js) -- so there is one
-         wall on the page and one search box narrowing it.
-
-         Last in the stack, and the events card is moved in above it rather
-         than after it: the library is the one card here somebody scrolls
-         through, and a card put under it is a card nobody reaches.  It
-         arrives folded and remembers on each device whether it was left that
-         way. -->
     <details class="card hidden" id="filmsCard">
       <summary class="panel-toggle">
         <span id="filmsLabel"></span>
@@ -182,18 +137,33 @@
         <p class="filmsempty hidden" id="filmsEmpty"></p>
       </div>
     </details>
+  </section>
 
-    <!-- And the series, on a shelf of their own under the films.  The same
-         wall of posters, except that a series is not a thing that can be
-         played: a press opens the show, the wall gives way to its episodes,
-         and a press on one of those starts it (see the series library in
-         js/dashboard.js).
+  <!-- And the series: the same three cards, except that a series is not a
+       thing that can be played -- a press opens the show, the wall gives way
+       to its episodes, and a press on one of those starts it. -->
+  <section class="tabpanel" id="tab-series" data-tab="series" role="tabpanel"
+           aria-labelledby="tabbtn-series">
+    <details class="card hidden" id="continueSeriesCard">
+      <summary class="panel-toggle">
+        <span id="continueSeriesLabel"></span>
+        <span class="filmscount mono" id="continueSeriesCount"></span>
+      </summary>
+      <div class="filmsbody">
+        <div class="continuerow" id="continueSeriesRow"></div>
+      </div>
+    </details>
 
-         The way back out sits at the top of the card rather than under the
-         list: a show with forty episodes in it is forty rows of scrolling
-         away from a button underneath.
+    <details class="card hidden" id="unseenSeriesCard">
+      <summary class="panel-toggle">
+        <span id="unseenSeriesLabel"></span>
+        <span class="filmscount mono" id="unseenSeriesCount"></span>
+      </summary>
+      <div class="filmsbody">
+        <div class="filmgrid" id="unseenSeriesGrid"></div>
+      </div>
+    </details>
 
-         It travels with the films, and arrives folded for the same reason. -->
     <details class="card hidden" id="seriesCard">
       <summary class="panel-toggle">
         <span id="seriesLabel"></span>
@@ -214,24 +184,104 @@
         <p class="filmsempty hidden" id="seriesEmpty"></p>
       </div>
     </details>
-  </div>
+  </section>
 
-  <!-- Where the two shelves stand for as long as something is playing: empty
-       the rest of the time, because the cards themselves are moved in and out
-       of it (see render in js/dashboard.js).
+  <!-- What the playing of it has come to: the figures and the events along
+       the way (the events card is moved in here from #live), and -- once it
+       has ended -- what the title that just finished added up to. -->
+  <section class="tabpanel" id="tab-history" data-tab="history" role="tabpanel"
+           aria-labelledby="tabbtn-history">
+    <!-- The add-on keeps a session for a while after the player stops, which
+         is when its figures are worth reading (see SessionLog.end in
+         web/snapshot.py). -->
+    <section class="card hidden" id="lastCard">
+      <div class="lasthead">
+        <span class="k" id="lastLabel"></span>
+        <b id="lastTitle"></b>
+      </div>
+      <div class="tilegrid" id="lastTiles"></div>
+    </section>
 
-       Under the last of the reading cards: what is on is what the page is for
-       while it is on, and what to put on after it comes after it. -->
-  <div class="librarystack" id="libraryStack"></div>
+    <section class="card idlecard hidden" id="historyIdleCard">
+      <div class="empty">
+        <div class="big" id="historyIdleTitle">—</div>
+        <p id="historyIdleText"></p>
+      </div>
+    </section>
+  </section>
 
-  <!-- A destination for the whole dashboard rather than the right rail: on a
-       desktop it is the full-width final row, after every reading and event. -->
-  <a class="metalink hidden" id="metaLink" href="/metadata" target="tinyppi-metadata"
-     rel="noopener">
-    <span class="dv">DV</span><span id="metaLinkText"></span><span class="arrow">↗</span>
-  </a>
+  <!-- What used to hide behind the key in the top bar: the theme, the access
+       token and the reports, each a card of its own (see js/theme.js and the
+       settings in js/dashboard.js). -->
+  <section class="tabpanel" id="tab-settings" data-tab="settings" role="tabpanel"
+           aria-labelledby="tabbtn-settings">
+    <section class="card setcard">
+      <h2 class="sethead" id="themeHead"></h2>
+      <div class="setbody" id="themeSettings"></div>
+    </section>
+
+    <section class="card setcard">
+      <h2 class="sethead" id="tokenHead"></h2>
+      <div class="setbody">
+        <p class="setnote" id="tokenNote"></p>
+        <div class="setrow">
+          <span class="tokenshown mono" id="tokenShown">—</span>
+          <button class="setbtn" id="tokenBtn" type="button">
+            <span class="ui-icon painted" style="--icon: url('/icons/key.svg')"></span>
+            <span id="tokenBtnText"></span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card setcard">
+      <h2 class="sethead" id="reportHead"></h2>
+      <div class="setbody setbtns">
+        <button class="setbtn" id="copyBtn" type="button" disabled>
+          <span class="ui-icon painted" style="--icon: url('/icons/download.svg')"></span>
+          <span id="copyBtnText"></span>
+        </button>
+        <button class="setbtn" id="copyMetaBtn" type="button" disabled>
+          <span class="ui-icon painted" style="--icon: url('/icons/download.svg')"></span>
+          <span id="copyMetaBtnText"></span>
+        </button>
+      </div>
+    </section>
+  </section>
 
 </main>
+
+<!-- The floating bar the tabs are switched with: the five places of the
+     app's bar, in its order, and the settings.  Icons only; each key says
+     what it is to a screen reader and under a pointer (see applyStrings in
+     js/dashboard.js).  Over the page rather than under it: the panels
+     leave room at their foot for it (see .tabbar in css/base.css). -->
+<nav class="tabbar" id="tabBar" role="tablist" aria-label="TinyPPI">
+  <button class="tab" id="tabbtn-live" type="button" role="tab" data-tab="live"
+          aria-controls="tab-live">
+    <span class="tabicon"><span class="ui-icon painted" style="--icon: url('/icons/tab-live.svg')"></span></span>
+  </button>
+  <button class="tab" id="tabbtn-metadata" type="button" role="tab" data-tab="metadata"
+          aria-controls="tab-metadata">
+    <span class="tabicon"><span class="ui-icon painted" style="--icon: url('/icons/tab-metadata.svg')"></span></span>
+  </button>
+  <button class="tab" id="tabbtn-films" type="button" role="tab" data-tab="films"
+          aria-controls="tab-films">
+    <span class="tabicon"><span class="ui-icon painted" style="--icon: url('/icons/tab-films.svg')"></span></span>
+  </button>
+  <button class="tab" id="tabbtn-series" type="button" role="tab" data-tab="series"
+          aria-controls="tab-series">
+    <span class="tabicon"><span class="ui-icon painted" style="--icon: url('/icons/tab-series.svg')"></span></span>
+  </button>
+  <button class="tab" id="tabbtn-history" type="button" role="tab" data-tab="history"
+          aria-controls="tab-history">
+    <span class="tabicon"><span class="ui-icon painted" style="--icon: url('/icons/tab-history.svg')"></span></span>
+  </button>
+  <button class="tab" id="tabbtn-settings" type="button" role="tab" data-tab="settings"
+          aria-controls="tab-settings">
+    <span class="tabicon"><span class="ui-icon painted" style="--icon: url('/icons/tab-settings.svg')"></span></span>
+  </button>
+</nav>
 
 <!-- What a press on a poster or an episode asks: play it (open it, for a
      series), or have the box count it as seen or as unseen (see "what a press
@@ -251,6 +301,7 @@
 <script src="/js/core.js"></script>
 <script src="/js/cover-tint.js"></script>
 <script src="/js/live-panels.js"></script>
+<script src="/js/metadata.js"></script>
 <script src="/js/dashboard.js"></script>
 </body>
 </html>

@@ -41,8 +41,7 @@
   --edge:      rgba(255,255,255,.055);
   --shadow:    0 1px 0 rgba(255,255,255,.03), 0 10px 28px rgba(0,0,0,.42);
   /* One step further off the page: what floats over it rather than sitting on
-     it -- the toast, the token dialog, the theme menu -- and what the metadata
-     link lifts to under a pointer.  No card uses it at rest, so the page does
+     it -- the toast, the token dialog, the tab bar.  No card uses it at rest, so the page does
      not shimmer as a cursor crosses it. */
   --shadow-lift: 0 1px 0 rgba(255,255,255,.05), 0 14px 34px rgba(0,0,0,.5);
   --radius:    16px;
@@ -55,6 +54,9 @@
      #live from a media query that happened to sit above #live's own
      declaration, and lost. */
   --gap:       16px;
+  /* What the foot of the page leaves for the floating tab bar: the bar's own
+     height, the air under it and the air between it and the last card. */
+  --tabbar-room: 88px;
   /* The page's own face, named so a reading set in the monospaced one can put
      its label back into it without repeating the stack (see .times > .finish
      in live-panels.css). */
@@ -123,8 +125,8 @@ body {
   font-size: 15px;
   line-height: 1.45;
   /* A column of two: the bar, and everything else.  main taking what is left
-     of the viewport is what lets the idle page centre itself in the space
-     under the bar rather than over it (see .idlestack). */
+     of the viewport is what lets an idle tab centre itself in the space
+     under the bar rather than over it (see .tabpanel). */
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -138,7 +140,8 @@ body {
     radial-gradient(140% 52% at 50% -14%, var(--bg-glow) 0%, transparent 62%),
     radial-gradient(70% 34% at 82% 2%, var(--bg-glow) 0%, transparent 70%);
   background-attachment: fixed;
-  padding-bottom: calc(2px + env(safe-area-inset-bottom));
+  /* Nothing at the foot: main keeps the room the system's own gesture bar
+     needs itself, together with the tab bar's (see main). */
 }
 
 .mono {
@@ -177,10 +180,9 @@ body {
   margin-right: auto;
   min-width: 0;
   /* Nothing in here reaches past the name-plate it is in.  min-width:0 above
-     lets the plate give way to the keys beside it, but what is inside it does
-     not shrink with it -- a name and a version have the widths they have --
-     and on a phone with the menu unfolded they were simply drawn on top of
-     the keys they had made room for. */
+     lets the plate give way to the status beside it, but what is inside it
+     does not shrink with it -- a name and a version have the widths they
+     have. */
   overflow: hidden;
 }
 .brand b {
@@ -219,9 +221,7 @@ body {
   white-space: nowrap;
   /* The one thing in the plate that gives, and it gives first: the shrink
      factor is what puts it ahead of the name beside it, which is the reading
-     that matters.  On a phone it is out of the way before this ever applies --
-     the rule further down takes it off the bar entirely while the menu is
-     unfolded -- so what is left here is the guard for every other width. */
+     that matters. */
   flex: 0 100 auto;
   min-width: 0;
   overflow: hidden;
@@ -230,29 +230,7 @@ body {
 @media (max-width: 620px) {
   .topbar { gap: 8px; padding-left: 12px; padding-right: 12px; }
   .brandmark { width: 22px; height: 22px; border-radius: 7px; }
-  /* The version steps aside while the menu is unfolded.  On a narrow screen
-     the three keys and the status take most of the bar, and what is left is
-     the width of the name and no more: of the two things in the plate, the
-     one to give up is the one that is a footnote about the page rather than
-     what the page is called.  It is back the moment the menu is folded.
-
-     The class is put on the bar by bindActionMenu in js/core.js, alongside
-     the one it puts on the menu itself. */
-  .topbar.menu-open .brand .ver { display: none; }
 }
-/* And on the narrowest of them, the name goes the same way and the plate is
-   its mark alone.  Three keys unfolded, the status light and the page's own
-   margins are the whole of a 320 px bar; what was left was some six letters
-   of a seven-letter name, and before any of this it was the name drawn on top
-   of the keys (the top half of issue #71).
-
-   Only while they are unfolded, and they fold themselves back after a few
-   idle seconds (see bindActionMenu in js/core.js): the plate is whole again
-   for as long as anyone is actually reading the bar rather than using it. */
-@media (max-width: 360px) {
-  .topbar.menu-open .brand b { display: none; }
-}
-
 .status {
   display: inline-flex;
   align-items: center;
@@ -336,87 +314,10 @@ body {
 }
 .iconbtn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
 
-/* The three top-bar actions live behind one key.  Their strip is immediately
-   left of that key, so revealing its width makes it unfold towards the brand
-   without moving the status at the far edge. */
-.action-menu {
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: center;
-  gap: 10px;
-  flex: none;
-}
-.action-menu-items {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  max-width: 0;
-  opacity: 0;
-  overflow: hidden;
-  visibility: hidden;
-  transform: translateX(12px);
-  transition: max-width .22s ease, opacity .15s ease, transform .22s ease,
-              visibility 0s linear .22s;
-}
-.action-menu.open .action-menu-items {
-  max-width: 152px;
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(0);
-  transition-delay: 0s;
-}
-/* These keys keep their theme's accent but never gain a filled surface, tap
-   highlight or focus ring when pressed. */
-.action-menu .iconbtn,
-.action-menu .iconbtn:hover,
-.action-menu .iconbtn:active,
-.action-menu .iconbtn[aria-pressed="true"],
-.action-menu .iconbtn[aria-expanded="true"] {
-  background: transparent;
-  box-shadow: none;
-  -webkit-tap-highlight-color: transparent;
-}
-.action-menu .iconbtn:focus,
-.action-menu .iconbtn:focus-visible {
-  outline: none;
-  box-shadow: none;
-}
-@media (hover: hover) {
-  .action-menu .iconbtn:hover {
-    color: color-mix(in srgb, var(--accent) 78%, white);
-    border-color: color-mix(in srgb, var(--accent) 72%, white);
-  }
-}
-/* A press rather than a hover, so this one is kept on a touch screen: it
-   lasts exactly as long as the finger is down. */
-.action-menu .iconbtn:active {
-  color: color-mix(in srgb, var(--accent) 62%, white);
-  border-color: color-mix(in srgb, var(--accent) 58%, white);
-}
-.hamburger {
-  position: relative;
-  display: block;
-  width: 18px;
-  height: 14px;
-  border-top: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-}
-.hamburger::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 4px;
-  border-top: 2px solid currentColor;
-}
 @media (max-width: 620px) {
   /* Kept after the base .iconbtn rule so the compact mobile size wins the
      cascade instead of being overwritten by the desktop declaration. */
   .iconbtn { padding: 0 10px; min-width: 40px; }
-  .action-menu, .action-menu-items { gap: 8px; }
-  .action-menu.open .action-menu-items {
-    max-width: 136px;
-  }
 }
 
 .ui-icon {
@@ -457,15 +358,16 @@ main {
   max-width: 1440px;
   margin: 0 auto;
   padding: 20px;
-  display: grid;
-  gap: var(--gap);
-  /* Whatever the bar leaves, so a short page can be centred in it. */
+  /* The floating tab bar stands over the foot of the page, so the page leaves
+     it that much room after its last card -- or the last card could never be
+     scrolled out from under the bar. */
+  padding-bottom: calc(var(--tabbar-room) + env(safe-area-inset-bottom));
+  /* One tab at a time, taking whatever the top bar leaves, so a short tab can
+     be centred in it. */
+  display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
   width: 100%;
-  /* Cards keep their own height in that room rather than being handed a share
-     of it: a grid with space to spare stretches its rows, and a page of three
-     cards on a tall screen would draw all three of them tall. */
-  align-content: start;
 }
 /* On a phone the page keeps the same narrow margin all the way round, and the
    top bar keeps it too -- so there is one edge rather than two, and the first
@@ -475,20 +377,59 @@ main {
    what tells one card from the next, and the screen being narrow is no reason
    for less of it. */
 @media (max-width: 620px) {
-  main { padding: 12px; }
+  main {
+    padding: 12px;
+    padding-bottom: calc(var(--tabbar-room) + env(safe-area-inset-bottom));
+  }
 }
 
 /* --- The shape of the page -----------------------------------------------
 
-   The dashboard reads as one full-width column on every screen: playback and
-   its controls first, then the session figures and events.  Detail groups
-   remain their own responsive grid further down, where several like cards
-   can still share a row.
-
-   The markup is in that order already; the desktop below names its areas
-   anyway, so the idle column can be given a row of its own without the rest
-   of the page moving up around it.
+   Five tabs, one in front at a time, each a single column of cards: the
+   panels are all in the markup and only the chosen one is displayed (see the
+   tabs in js/dashboard.js).  The detail groups on the live tab and the
+   metadata list are their own responsive grids inside that column, where
+   several like cards can still share a row.
 ------------------------------------------------------------------------- */
+
+.tabpanel {
+  display: grid;
+  gap: var(--gap);
+  /* Cards keep their own height rather than being handed a share of the
+     room: a grid with space to spare stretches its rows, and a tab of three
+     cards on a tall screen would draw all three of them tall. */
+  align-content: start;
+  flex: 1 0 auto;
+  min-width: 0;
+}
+.tabpanel:not(.active) { display: none; }
+
+/* While the tab bar is away the page keeps only the margin it keeps at its
+   sides, so the last card comes down to the bottom of the screen; the room
+   comes back with the bar (see the bar's comings and goings in
+   js/dashboard.js). */
+:root.bar-away { --tabbar-room: 12px; }
+main { transition: padding-bottom .3s ease; }
+
+/* Live, metadata, history and settings stand in the middle of the room
+   between the top bar and the tab bar rather than hanging from the top of it;
+   a tab taller than that room simply starts at the top and scrolls, since the
+   panel grows with what is in it.  The two shelves stay at the top: they are
+   long walls that are read from their first row. */
+.tabpanel[data-tab="live"],
+.tabpanel[data-tab="metadata"],
+.tabpanel[data-tab="history"],
+.tabpanel[data-tab="settings"] { align-content: center; }
+
+/* A tab with nothing to show but its idle card has that card centred in what
+   the page has, rather than left sitting under an empty top bar.  Centred by
+   the panel rather than pinned to the viewport, because a card pinned to the
+   viewport is centred over the bar as well as under it.  The metrics card
+   left behind in #live carries the hidden attribute rather than the class
+   (see js/dashboard.js), so both are named. */
+.tabpanel:not(:has(.card:not(.hidden):not([hidden]):not(.idlecard))) {
+  align-content: center;
+}
 
 .rail {
   display: grid;
@@ -499,34 +440,155 @@ main {
 
 /* A rail with nothing visible in it is no rail.  Said outright, because the
    rail itself never carries .hidden -- the cards inside it do, and an empty
-   grid item still takes main's gap and leaves a hole where a column was.
-   Every card on the page is a .card; the metadata link is the one thing that
-   is not, so it is named too. */
-.rail:not(:has(.card:not(.hidden), .metalink:not(.hidden))) { display: none; }
+   grid item still takes the panel's gap and leaves a hole where it stood. */
+.rail:not(:has(.card:not(.hidden))) { display: none; }
 
-/* The dashboard alone.  The metadata window is a list of a hundred readings
-   and splits itself into columns of its own further down the page (see
-   .metarows in css/metadata.css); a second one here would be columns inside
-   columns. */
-@media (min-width: 1080px) {
-  .dashboard-page main {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "playing"
-      "session"
-      "groups"
-      "library"
-      "meta";
-  }
-  .dashboard-page .rail-main    { grid-area: playing; }
-  .dashboard-page .rail-side    { grid-area: session; }
-  .dashboard-page .groups       { grid-area: groups; }
-  .dashboard-page .librarystack { grid-area: library; }
-  .dashboard-page .metalink     { grid-area: meta; }
-  /* The idle column takes the first row, which is free whenever it is on the
-     page at all: nothing is playing and both rails have hidden themselves. */
-  .dashboard-page .idlestack { grid-area: 1 / 1 / 2 / -1; }
+/* --- Tab bar ------------------------------------------------------------ */
+
+/* The six tabs, in a bar that floats over the foot of the page the way the
+   app's does: a pill of frosted panel with a key per tab, icons alone, and
+   the tab in front marked by a pill of the accent behind its icon.  Each key
+   names itself to a screen reader and under a pointer.  Fixed rather than at
+   the end of the page, so another tab is one press away however far down a
+   wall of posters somebody has scrolled. */
+.tabbar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  gap: 4px;
+  max-width: calc(100vw - 24px);
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 80%, transparent);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  box-shadow: var(--shadow-lift);
+  transition: transform .3s ease, opacity .3s ease;
 }
+/* Away: slid off the foot of the screen and faded, and nothing to press. */
+:root.bar-away .tabbar {
+  transform: translate(-50%, calc(100% + 14px + env(safe-area-inset-bottom)));
+  opacity: 0;
+  pointer-events: none;
+}
+.tab {
+  appearance: none;
+  flex: 0 1 auto;
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+  transition: color .2s;
+}
+.tabicon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  max-width: 100%;
+  height: 44px;
+  border-radius: 999px;
+  transition: background .2s, color .2s;
+}
+.tabicon .ui-icon { width: 22px; height: 22px; }
+.tab.on { color: var(--accent); }
+.tab.on .tabicon {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+@media (hover: hover) {
+  .tab:not(.on):hover { color: var(--text); }
+  .tab:not(.on):hover .tabicon {
+    background: color-mix(in srgb, var(--text) 8%, transparent);
+  }
+}
+.tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* Six keys and the bar's own edge across a phone: each gives up a little of
+   its width before the bar would have to. */
+@media (max-width: 420px) {
+  .tabbar { gap: 2px; padding: 5px; }
+  .tabicon { width: 50px; height: 42px; }
+}
+@media (max-width: 340px) {
+  .tabicon { width: 44px; }
+}
+
+/* --- Settings ------------------------------------------------------------ */
+
+/* What used to hide behind the key in the top bar, one card per thing: the
+   theme, the access token and the reports.  At most a readable column wide,
+   so a desktop does not stretch three buttons across the screen. */
+#tab-settings { width: 100%; max-width: 640px; margin: 0 auto; }
+.sethead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  min-height: 46px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+/* The accent tick the folding headings carry (see .panel-toggle). */
+.sethead::before {
+  content: "";
+  flex: none;
+  width: 3px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.setbody { display: grid; gap: 12px; padding: 16px; }
+.setnote { margin: 0; color: var(--muted); font-size: 13.5px; }
+.setnote:empty { display: none; }
+.setrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tokenshown { color: var(--text); font-size: 15px; letter-spacing: .12em; }
+.setbtns { grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
+.setbtn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: var(--tap);
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.setbtn .ui-icon { width: 18px; height: 18px; color: var(--accent); }
+@media (hover: hover) {
+  .setbtn:not(:disabled):hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, var(--panel-2));
+  }
+}
+.setbtn:disabled { opacity: .45; cursor: default; }
+.setbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .card {
   position: relative;
@@ -551,8 +613,8 @@ main {
   pointer-events: none;
 }
 
-/* The mount point a page gives panels.js.  main is a grid and this is one of
-   its items, so the air between the three sections is set here. */
+/* The mount point the live tab gives live-panels.js.  The air between the
+   cards it holds is set here. */
 #live { display: grid; gap: var(--gap); align-content: start; min-width: 0; }
 
 /* --- Footer, toast, dialog ---------------------------------------------- */
@@ -567,14 +629,12 @@ footer {
   font-size: 12px;
   padding: 4px 2px;
 }
-@media (max-width: 480px) {
-  .status #statusText { display: none; }
-}
 
 #toast {
   position: fixed;
   left: 50%;
-  bottom: calc(20px + env(safe-area-inset-bottom));
+  /* Over the tab bar rather than under it. */
+  bottom: calc(max(var(--tabbar-room) - 12px, 20px) + env(safe-area-inset-bottom));
   transform: translate(-50%, 16px);
   background: var(--panel);
   border: 1px solid var(--line);
@@ -669,50 +729,6 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 }
 .empty .big { font-size: 18px; font-weight: 650; letter-spacing: -.01em; }
 .empty p { margin: 0; color: var(--muted); font-size: 13.5px; }
-
-/* The idle page is the only content worth looking at, so it is centred in
-   what the page has rather than left sitting under an empty top bar.  All of
-   it goes, not the first card alone: what is not playing, what was, and the
-   events of what was stand as one column (js/dashboard.js moves the events
-   card in for as long as nothing plays).
-
-   Centred by main rather than pinned to the viewport, because a column pinned
-   to the viewport is centred over the bar as well as under it -- and on a
-   phone, where three cards are most of a screen, that is the difference
-   between a column that fits and one whose first card slides under the bar
-   while its last runs off the bottom. */
-.idlestack {
-  display: grid;
-  gap: var(--gap);
-  /* Each card its own height and no more.  A grid whose container has room to
-     spare hands that room to its rows, and a card given room it did not ask
-     for is a heading with a hole under it. */
-  align-content: start;
-}
-/* An empty stack is no stack: hidden outright, or main's own gap would leave
-   a hole where it stands while something plays. */
-.idlestack:not(:has(> :not(.hidden))) { display: none; }
-
-/* Written as one relative selector rather than a :has() inside a :has(),
-   which is not allowed anywhere in CSS: a browser drops the whole rule, and
-   the centring here went with it. */
-main:has(> .idlestack > :not(.hidden)) { align-content: center; }
-
-/* The same two shelves once something is playing, in a row of their own under
-   every reading: the cards are moved in here and back out again, so neither
-   the idle column above nor its centring knows about them (see render in
-   js/dashboard.js).
-
-   Empty for the whole of the idle page, where the cards are up in the column
-   above, and empty while something plays on a box that offers no library at
-   all.  Either way it is no row rather than an empty one: main's own gap would
-   otherwise hold a hand's width of nothing open under the last card. */
-.librarystack {
-  display: grid;
-  gap: var(--gap);
-  align-content: start;
-}
-.librarystack:not(:has(> :not(.hidden))) { display: none; }
 
 /* A folded card is its heading and nothing else.  Saying so outright, because
    a browser does not: the panel is laid out behind the fold whatever the fold

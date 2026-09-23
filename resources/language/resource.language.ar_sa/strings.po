@@ -1871,3 +1871,27 @@ msgstr "التشغيل من البداية"
 msgctxt "#32581"
 msgid "Clear resume point"
 msgstr "إزالة نقطة الاستئناف"
+
+msgctxt "#32582"
+msgid "Live"
+msgstr "مباشر"
+
+msgctxt "#32583"
+msgid "Metadata"
+msgstr "البيانات الوصفية"
+
+msgctxt "#32584"
+msgid "History"
+msgstr "السجل"
+
+msgctxt "#32585"
+msgid "Settings"
+msgstr "الإعدادات"
+
+msgctxt "#32586"
+msgid "Enter token"
+msgstr "إدخال الرمز"
+
+msgctxt "#32587"
+msgid "Readings and events"
+msgstr "القيم والأحداث"

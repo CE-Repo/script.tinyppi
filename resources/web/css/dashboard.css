@@ -162,60 +162,6 @@
 
 .empty p { max-width: 42ch; }
 
-/* --- Link to the metadata window ---------------------------------------- */
-
-/* Its own window rather than a section here: the list is long enough to bury
-   everything under it, and on a second screen it is worth a screen of its own.
-   A real link, so it can be opened in a tab, a window or not at all. */
-.metalink {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  min-height: var(--tap);
-  border-radius: var(--radius);
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line-soft));
-  background: linear-gradient(120deg,
-    color-mix(in srgb, var(--accent) 9%, var(--panel)), var(--panel) 62%);
-  box-shadow: var(--shadow);
-  color: var(--text);
-  text-decoration: none;
-  font-weight: 650;
-  transition: border-color .15s, background .15s, box-shadow .15s, transform .12s;
-}
-@media (hover: hover) {
-  .metalink:hover {
-    border-color: var(--accent);
-    box-shadow: var(--shadow-lift);
-    transform: translateY(-1px);
-  }
-}
-.metalink:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.metalink .dv {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--accent);
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  border-radius: 999px;
-  padding: 4px 10px;
-  white-space: nowrap;
-}
-/* The accent, the same as the badge across the card from it: the two of them
-   are the marks on this link, and a mark takes the film's colour -- under the
-   adaptive theme that is the cover's, from the rule on .metalink in theme.css. */
-.metalink .arrow {
-  margin-left: auto;
-  color: var(--accent);
-  font-size: 18px;
-  transition: transform .15s ease;
-}
-@media (hover: hover) {
-  .metalink:hover .arrow { transform: translate(2px, -2px); }
-}
-
 /* --- What was playing before ------------------------------------------- */
 
 /* A card of its own under the idle one: the title that just ended and the
