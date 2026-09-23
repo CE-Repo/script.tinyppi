@@ -140,7 +140,8 @@ body {
     radial-gradient(140% 52% at 50% -14%, var(--bg-glow) 0%, transparent 62%),
     radial-gradient(70% 34% at 82% 2%, var(--bg-glow) 0%, transparent 70%);
   background-attachment: fixed;
-  padding-bottom: calc(2px + env(safe-area-inset-bottom));
+  /* Nothing at the foot: main keeps the room the system's own gesture bar
+     needs itself, together with the tab bar's (see main). */
 }
 
 .mono {
@@ -403,10 +404,11 @@ main {
 }
 .tabpanel:not(.active) { display: none; }
 
-/* While the tab bar is away the page keeps only a margin at its foot, so the
-   last card comes down to the bottom of the screen; the room comes back with
-   the bar (see the bar's comings and goings in js/dashboard.js). */
-:root.bar-away { --tabbar-room: 20px; }
+/* While the tab bar is away the page keeps only the margin it keeps at its
+   sides, so the last card comes down to the bottom of the screen; the room
+   comes back with the bar (see the bar's comings and goings in
+   js/dashboard.js). */
+:root.bar-away { --tabbar-room: 12px; }
 main { transition: padding-bottom .3s ease; }
 
 /* Live, metadata, history and settings stand in the middle of the room
@@ -635,7 +637,7 @@ footer {
   position: fixed;
   left: 50%;
   /* Over the tab bar rather than under it. */
-  bottom: calc(var(--tabbar-room) - 12px + env(safe-area-inset-bottom));
+  bottom: calc(max(var(--tabbar-room) - 12px, 20px) + env(safe-area-inset-bottom));
   transform: translate(-50%, 16px);
   background: var(--panel);
   border: 1px solid var(--line);
