@@ -170,8 +170,6 @@ _UI_STRINGS = {
     "controls":      32494,
     "metrics":       32495,
     "player_cache":  32511,
-    "cache_low":       32512,
-    "cache_recovered": 32513,
     "warnings":        32514,
     "temperature":     32018,
     "processor":       32014,

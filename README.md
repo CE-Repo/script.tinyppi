@@ -339,8 +339,9 @@ a phone in your hand.
   the add-on has been sampling since playback started, so a page opened halfway
   through a film gets the part it missed instead of starting from empty.
 - **Events** — a list with timestamps of the things worth knowing about: an
-  output switched to or from Dolby Vision, a display mode change, the cache
-  dipping, or the selected audio/subtitle track changing. A long list scrolls
+  output switched to or from Dolby Vision, a display mode change, the box
+  running hot or its processor at full load, or the selected audio/subtitle
+  track changing. A long list scrolls
   inside its own card rather than stretching the page under it.
 - **What the last title came to** — for ten minutes after the credits the page
   keeps the film that just ended: a card of its own with its switch and warning

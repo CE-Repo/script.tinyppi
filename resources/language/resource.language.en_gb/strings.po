@@ -1611,14 +1611,6 @@ msgctxt "#32511"
 msgid "Player cache"
 msgstr ""
 
-msgctxt "#32512"
-msgid "Player cache below 90%"
-msgstr ""
-
-msgctxt "#32513"
-msgid "Player cache recovered"
-msgstr ""
-
 msgctxt "#32514"
 msgid "Warnings"
 msgstr ""
