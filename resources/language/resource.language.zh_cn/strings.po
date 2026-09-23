@@ -1838,3 +1838,7 @@ msgstr "按钮文字"
 msgctxt "#32571"
 msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
 msgstr "VS10 对话框中未获得焦点的按钮的文字颜色。"
+
+msgctxt "#32572"
+msgid "Continue watching"
+msgstr "继续观看"

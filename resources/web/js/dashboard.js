@@ -23,6 +23,8 @@ const el = {
   eventsCard: $("eventsCard"), metaLink: $("metaLink"), sideRail: $("sideRail"),
   copyBtn: $("copyBtn"), idleStack: $("idleStack"),
   libraryStack: $("libraryStack"),
+  continueCard: $("continueCard"), continueRow: $("continueRow"),
+  continueCount: $("continueCount"),
   lastCard: $("lastCard"), lastTitle: $("lastTitle"), lastTiles: $("lastTiles"),
   filmsCard: $("filmsCard"), filmGrid: $("filmGrid"),
   filmsCount: $("filmsCount"), filmsEmpty: $("filmsEmpty"),
@@ -81,6 +83,9 @@ TinyPPI.forgetDisclosure("dashboard.films");
 TinyPPI.forgetDisclosure("dashboard.series");
 TinyPPI.bindDisclosure(el.filmsCard, "dashboard.filmshelf", false);
 TinyPPI.bindDisclosure(el.seriesCard, "dashboard.seriesshelf", false);
+/* The row of things left half-watched is the exception: a handful of posters
+   rather than a wall, and the one card here somebody opens the page for. */
+TinyPPI.bindDisclosure(el.continueCard, "dashboard.continue", true);
 
 /* --- render ------------------------------------------------------------- */
 
@@ -96,7 +101,7 @@ TinyPPI.bindDisclosure(el.seriesCard, "dashboard.seriesshelf", false);
    two walls of posters included -- laid out again. */
 function shelves(into) {
   if (el.filmsCard.parentElement === into) return;
-  into.append(el.filmsCard, el.seriesCard);
+  into.append(el.continueCard, el.filmsCard, el.seriesCard);
 }
 
 function render(next) {
@@ -141,7 +146,7 @@ function render(next) {
        Above the film library rather than below it: that card is a shelf
        somebody scrolls, and a card under a shelf is a card nobody reaches. */
     if (el.eventsCard.parentElement !== el.idleStack) {
-      el.filmsCard.before(el.eventsCard);
+      el.continueCard.before(el.eventsCard);
     }
     /* And what could be playing instead.  Read again the moment a film ends,
        however lately the playing page read it: what the box last played and
@@ -150,6 +155,8 @@ function render(next) {
     else el.filmsCard.classList.add("hidden");
     if (control) requestSeries(wasPlaying !== false);
     else el.seriesCard.classList.add("hidden");
+    if (control) requestContinue(wasPlaying !== false);
+    else el.continueCard.classList.add("hidden");
     wasPlaying = false;
     /* The button goes with the report: there is one for as long as the title
        that just ended is still held, and none at all once it is let go -- a
@@ -167,6 +174,7 @@ function render(next) {
      waiting, so the wall it was pressed on can be used again. */
   if (starting || releasing) releaseFilms();
   if (startingEpisode || episodeReleasing) releaseSeries();
+  if (resuming || resumeReleasing) releaseContinue();
   /* Back to the foot of the page, where it belongs while something plays. */
   if (el.eventsCard.parentElement === el.idleStack) {
     el.sideRail.append(el.eventsCard);
@@ -184,6 +192,8 @@ function render(next) {
   else el.filmsCard.classList.add("hidden");
   if (control) requestSeries(false);
   else el.seriesCard.classList.add("hidden");
+  if (control) requestContinue(false);
+  else el.continueCard.classList.add("hidden");
 
   renderVs10(next.vs10 || {});
   renderGroups(ordered(next.groups || []));
@@ -220,6 +230,7 @@ function libraryVersion(version) {
   libraryAt = version;
   filmsRead = false;
   seriesRead = false;
+  continueRead = false;
   /* The show somebody is inside is a list of its own, and the episode they
      have just watched is a row in it. */
   refreshEpisodes();
@@ -693,6 +704,7 @@ async function startFilm(film, tile) {
          it last played: the wall is read again rather than left standing on
          what it said before the press. */
       filmsRead = false;
+      continueRead = false;
     }
   } catch (_) {
     failed = true;
@@ -1147,6 +1159,7 @@ async function startEpisode(episode, row) {
       /* What has been watched is about to move, on this episode and on the
          count its show's tile wears: the shelf is read again. */
       seriesRead = false;
+      continueRead = false;
     }
   } catch (_) {
     failed = true;
@@ -1178,6 +1191,178 @@ el.seriesSearchClear.addEventListener("click", () => {
   el.seriesSearch.focus();
 });
 el.seriesBack.addEventListener("click", closeShow);
+
+/* --- continue watching ------------------------------------------------- */
+
+/* The films and episodes the box was stopped in the middle of, the last one
+   seen first: the quickest way back into whatever was on.
+
+   One row for both, because whether it was a film or an episode is not what
+   somebody reaching for it is thinking about.  The box reads it with Kodi's
+   own "in progress" filter and holds it with the shelves (see ``continuing``
+   in web/library.py), so it is read again on the same occasions they are: a
+   title ending, and the library's number moving.  A row with nothing on it is
+   no card at all. */
+
+let continueTag = "";      /* the row's own tag, unchanged rows skipped    */
+let continueBusy = false;  /* a request for the row is in flight           */
+let continueRead = false;  /* the row has been read since it last moved    */
+let continueOffered = true; /* until the box says it offers no shelves     */
+let continueNextTry = 0;   /* not before this, after a failure             */
+let continueCount = 0;     /* how many titles the row holds                */
+let resuming = 0;          /* the tile a press is waiting on               */
+let resumeReleasing = 0;   /* the timer that gives the row back            */
+
+function requestContinue(force) {
+  if (continueBusy || !continueOffered) return;
+  if (resuming) return;    /* as with the walls: not under a pressed tile */
+  if (!force && continueRead) return;
+  if (Date.now() < continueNextTry) return;
+  continueBusy = true;
+  loadContinue().finally(() => { continueBusy = false; });
+}
+
+async function loadContinue() {
+  try {
+    const answer = await TinyPPI.getJSON("/api/continue");
+    continueRead = true;
+    continueNextTry = 0;
+    const list = Array.isArray(answer.items) ? answer.items : [];
+    if ((answer.tag || "") !== continueTag || !el.continueRow.children.length) {
+      continueTag = answer.tag || "";
+      continueCount = list.length;
+      buildContinue(list);
+    }
+    el.continueCard.classList.toggle("hidden", continueCount === 0);
+  } catch (error) {
+    continueNextTry = Date.now() + FILMS_RETRY_MS;
+    /* 403: neither shelf on offer.  404: an add-on older than the row. */
+    const code = String((error || {}).message);
+    if (code === "403" || code === "404") continueOffered = false;
+    if (!continueRead) el.continueCard.classList.add("hidden");
+  }
+}
+
+function buildContinue(list) {
+  const row = document.createDocumentFragment();
+  for (const item of list) row.append(continueTile(item));
+  el.continueRow.replaceChildren(row);
+  /* Back to the newest title, which is the one the row was read again for. */
+  el.continueRow.scrollLeft = 0;
+  el.continueCount.textContent = list.length ? String(list.length) : "";
+}
+
+function continueTile(item) {
+  const episode = item.kind === "episode";
+  const tile = document.createElement("button");
+  tile.type = "button";
+  tile.className = "film";
+
+  const frame = document.createElement("div");
+  frame.className = "filmposter";
+  if (item.poster) {
+    const image = document.createElement("img");
+    image.loading = "lazy";
+    image.decoding = "async";
+    image.alt = "";
+    /* An episode stands on the row as its show's poster, which the box files
+       under the episode's own id (see ``_read_continuing``). */
+    image.src = TinyPPI.withToken(
+      "/api/art?kind=poster&" + (episode ? "episodeid=" : "movieid=") +
+      encodeURIComponent(item.id) + "&v=" + encodeURIComponent(item.poster));
+    image.addEventListener("error", () => image.remove());
+    frame.append(image);
+  }
+  /* The same badge the walls wear: a film's own rating, an episode its
+     show's -- the poster it stands on is the show's. */
+  const rated = ratingBadge(item);
+  if (rated) frame.append(rated);
+  if (item.resume && item.duration) {
+    const bar = document.createElement("div");
+    bar.className = "filmresume";
+    bar.title = T.films_resume;
+    const done = document.createElement("span");
+    const at = Math.min(100, Math.max(2, (item.resume / item.duration) * 100));
+    done.style.width = at.toFixed(1) + "%";
+    bar.append(done);
+    frame.append(bar);
+  }
+
+  const title = document.createElement("div");
+  title.className = "filmtitle";
+  /* An episode is called by its show, which is what somebody scanning the row
+     is looking for; which episode it is goes on the line under it. */
+  title.textContent = episode ? (item.show || item.title) : item.title;
+  tile.append(frame, title);
+
+  const meta = episode
+    ? [episodeCode(item), item.show ? item.title : ""].filter(Boolean).join(" · ")
+    : metaLine(item);
+  if (meta) {
+    const line = document.createElement("div");
+    line.className = "filmyear";
+    line.textContent = meta;
+    /* Cut to one line on the row (see .continuerow in css/dashboard.css). */
+    line.title = meta;
+    tile.append(line);
+  }
+
+  tile.addEventListener("click", () => startContinue(item, tile));
+  return tile;
+}
+
+async function startContinue(item, tile) {
+  if (resuming) return;
+  resuming = item.id;
+  tile.classList.add("busy");
+  for (const node of el.continueRow.children) node.disabled = true;
+  TinyPPI.toast(T.films_starting);
+
+  const body = item.kind === "episode"
+    ? { episodeid: item.id } : { movieid: item.id };
+  let failed = false;
+  try {
+    const response = await fetch("/api/play", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-TinyPPI-Token": TinyPPI.token },
+      body: JSON.stringify(body)
+    });
+    if (response.status === 401) {
+      failed = true;
+      TinyPPI.toast(T.token_bad, true);
+      TinyPPI.askToken();
+    } else if (!response.ok) {
+      failed = true;
+      TinyPPI.toast(T.films_failed, true);
+    } else {
+      /* What was last played has just changed, on the row and on the shelf
+         the title came off. */
+      continueRead = false;
+      if (item.kind === "episode") seriesRead = false;
+      else filmsRead = false;
+    }
+  } catch (_) {
+    failed = true;
+    TinyPPI.toast(T.films_failed, true);
+  }
+
+  if (failed) {
+    releaseContinue();
+    return;
+  }
+  clearTimeout(resumeReleasing);
+  resumeReleasing = setTimeout(releaseContinue, FILMS_START_MS);
+}
+
+function releaseContinue() {
+  clearTimeout(resumeReleasing);
+  resumeReleasing = 0;
+  resuming = 0;
+  for (const tile of el.continueRow.children) {
+    tile.disabled = false;
+    tile.classList.remove("busy");
+  }
+}
 
 /* --- report ------------------------------------------------------------- */
 
@@ -1269,6 +1454,7 @@ function applyStrings(strings, hello) {
   $("idleTitle").textContent = strings.idle_title;
   $("idleText").textContent = strings.idle_text;
   $("lastLabel").textContent = strings.last_played;
+  $("continueLabel").textContent = strings.continue;
   $("filmsLabel").textContent = strings.films;
   el.filmsEmpty.textContent = strings.films_empty;
   el.filmSearch.placeholder = strings.films_search;

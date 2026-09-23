@@ -209,6 +209,8 @@ _UI_STRINGS = {
     "films_failed":     32536,
     "films_resume":     32537,
     "films_watched":    32540,
+    # The row of films and episodes left half-watched, above both shelves.
+    "continue":         32572,
     # And the series library beside it: the same shelf with one floor more,
     # so the same strings again plus the few an episode list needs.
     "series":           32541,
@@ -812,7 +814,8 @@ class _Handler(BaseHTTPRequestHandler):
             self._serve_static(route)
             return
         if route in ("/api/state", "/api/stream", "/api/history", "/api/art",
-                     "/api/library", "/api/series", "/api/episodes"):
+                     "/api/library", "/api/series", "/api/episodes",
+                     "/api/continue"):
             if self.server.auth_read and not self._authorised():
                 self._send_error_json(HTTPStatus.UNAUTHORIZED, "token required")
                 return
@@ -824,6 +827,8 @@ class _Handler(BaseHTTPRequestHandler):
                 self._serve_series()
             elif route == "/api/episodes":
                 self._serve_episodes()
+            elif route == "/api/continue":
+                self._serve_continue()
             elif route == "/api/history":
                 # The chart's whole past and the event list, asked for on
                 # connect and again whenever the snapshot's event count moves.
@@ -1019,6 +1024,27 @@ class _Handler(BaseHTTPRequestHandler):
             # A series that is not on the shelf the page was drawn from: the
             # library moved under it, and the page reads the shelf again.
             self._send_error_json(HTTPStatus.NOT_FOUND, "no such series")
+            return
+        self._send_listing(payload)
+
+    def _serve_continue(self) -> None:
+        """Send the films and episodes left half-watched, newest first.
+
+        Whichever halves the box offers: a film is on the row only where the
+        film shelf is, and an episode only where the series shelf is, because
+        a press on one starts it and starting it needs that shelf's setting.
+        """
+        films = self.server.offer_library
+        series = self.server.offer_series
+        if not ((films or series) and self.server.allow_control):
+            self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
+            return
+        try:
+            payload = library.continuing(films=films, series=series)
+        except Exception as exc:
+            _log(f"reading the video database failed: {exc}", xbmc.LOGWARNING)
+            self._send_error_json(HTTPStatus.SERVICE_UNAVAILABLE,
+                                  "library unavailable")
             return
         self._send_listing(payload)
 

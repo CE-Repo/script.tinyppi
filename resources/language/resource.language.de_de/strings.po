@@ -1838,3 +1838,7 @@ msgstr "Tastentext"
 msgctxt "#32571"
 msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
 msgstr "Textfarbe der Tasten im VS10-Dialog, auf denen die Fernbedienung nicht steht."
+
+msgctxt "#32572"
+msgid "Continue watching"
+msgstr "Weiterschauen"

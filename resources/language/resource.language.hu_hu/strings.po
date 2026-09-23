@@ -1838,3 +1838,7 @@ msgstr "Gombfelirat"
 msgctxt "#32571"
 msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
 msgstr "A VS10 párbeszédpanel azon gombjainak szövegszíne, amelyeken nem áll a távirányító."
+
+msgctxt "#32572"
+msgid "Continue watching"
+msgstr "Megtekintés folytatása"

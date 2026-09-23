@@ -348,6 +348,9 @@ a phone in your hand.
   worth most once a film is over, which used to be exactly when they were
   thrown away. The idle page is those two cards centred as one column; the line
   saying nothing is playing is for a box that has played nothing.
+- **Continue watching** — the films and episodes the box was stopped in the
+  middle of, on one row above both shelves, the last one seen first. Each
+  poster carries how far it got, and a tap resumes it where it was (see below).
 - **The film library** — the films in Kodi's video database as a wall of
   posters, and a tap starts one on the box (see below). On the page whether or
   not anything is playing: it is the end of the idle page, and the last card
@@ -543,6 +546,22 @@ Starting a film needs the access token and the same **Allow VS10 switching from
 the dashboard** setting the rest of the controls need. The card itself can be
 turned off under **Settings → Dashboard → Show the film library**, which stops
 the list being read and served at all.
+
+### Continue watching
+
+Above both shelves is a row of the films and episodes left half-watched, the
+last one seen first — the quickest way back into whatever was on. It is one row
+for both, scrolled sideways: an episode stands on it as its show's poster, with
+which episode it is under the name. Every poster carries the same resume bar
+the walls do and the same rating badge — a film its own, an episode its show's
+— and a tap resumes it where it was.
+
+It is read with Kodi's own "in progress" filter, holds the thirty most recent
+titles, and is dropped and read again on the same occasions the shelves are, so
+a film switched off in the middle is at the front of the row as soon as the box
+has written where it got to. A row with nothing on it is no card at all. Films
+are on it only where the film library is offered and episodes only where the
+series library is.
 
 ### Starting an episode from the browser
 

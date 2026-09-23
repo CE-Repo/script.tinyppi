@@ -1838,3 +1838,7 @@ msgstr ""
 msgctxt "#32571"
 msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
 msgstr ""
+
+msgctxt "#32572"
+msgid "Continue watching"
+msgstr ""

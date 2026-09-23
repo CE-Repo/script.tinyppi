@@ -540,6 +540,42 @@
   text-align: center;
 }
 
+/* --- Continue watching -------------------------------------------------- */
+
+/* The films and episodes left half-watched, as one row that scrolls sideways
+   rather than a wall: it is a handful of titles, newest first, and the one
+   somebody is after is nearly always the first.  The tiles are the film
+   wall's own, at the width a wall column settles on. */
+.continuerow {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 124px;
+  gap: 12px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  /* Room for the focus ring and the pressed tile's border, which the scroll
+     box would otherwise clip. */
+  padding: 3px 3px 6px;
+  margin: -3px -3px -6px;
+}
+.continuerow .film {
+  scroll-snap-align: start;
+  /* A row of a few dozen tiles gains nothing from being skipped, and a tile
+     skipped in a sideways scroller is one whose width the row has to guess. */
+  content-visibility: visible;
+  /* Every tile as tall as the tallest on the row, with the spare height under
+     the type rather than shared out between the lines of it. */
+  align-content: start;
+}
+/* Which episode, and its name, on the one line: a tile a line taller than its
+   neighbours is a row with a step in it. */
+.continuerow .filmyear {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* --- The series library ------------------------------------------------- */
 
 /* The shelf under the films, and then the one show somebody opened.

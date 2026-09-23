@@ -103,6 +103,24 @@
       <div class="tilegrid" id="lastTiles"></div>
     </section>
 
+    <!-- The quickest way back into what was on: the films and episodes the box
+         was stopped in the middle of, the last one seen first, on one row that
+         scrolls sideways (see continue watching in js/dashboard.js).
+
+         Above both shelves and travelling with them, and open to begin with
+         where they arrive folded: it is a row of a handful of posters rather
+         than a wall of hundreds, and it is only on the page at all when there
+         is something on it. -->
+    <details class="card hidden" id="continueCard">
+      <summary class="panel-toggle">
+        <span id="continueLabel"></span>
+        <span class="filmscount mono" id="continueCount"></span>
+      </summary>
+      <div class="filmsbody">
+        <div class="continuerow" id="continueRow"></div>
+      </div>
+    </details>
+
     <!-- What could be playing instead: the films the video database holds, as
          posters.  A press starts one (see the film library in
          js/dashboard.js).
