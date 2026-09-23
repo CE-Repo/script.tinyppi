@@ -864,6 +864,10 @@ function buildSeries() {
   el.seriesGrid.replaceChildren(wall);
   el.unseenSeriesGrid.replaceChildren(unseen);
   el.unseenSeriesCount.textContent = waiting ? String(waiting) : "";
+  /* The count in the heading, and whatever the search box is narrowing it
+     to, the way the film wall does after it is built.  Inside a show the
+     heading counts that show's episodes instead, and is left alone. */
+  applySeriesSearch();
   /* A shelf that has just been read again is a shelf that may no longer hold
      the show somebody was inside, and where it does not the card comes back to
      the wall.  Where it does, they are left where they were: the shelf is read
