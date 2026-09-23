@@ -4,7 +4,7 @@
 "use strict";
 
 /* ===========================================================================
-   The live connection both dashboard pages sit on.
+   The live connection the dashboard sits on.
 
    One EventSource carries the snapshot the add-on's producer builds, so a page
    never polls.  Everything to do with reaching the add-on lives here -- the
@@ -26,6 +26,7 @@ window.TinyPPI = (function () {
   const T = {
     connected: "Connected", connecting: "Connecting…", offline: "Disconnected",
     menu: "Menu",
+    tab_live: "Live", tab_metadata: "Metadata", tab_history: "History",
     metadata: "Dolby Vision metadata view", metadata_section: "Metadata",
     no_metadata: "No Dolby Vision metadata", no_metadata_text: "",
     idle_title: "Nothing is playing", idle_text: "",
@@ -325,8 +326,7 @@ window.TinyPPI = (function () {
      go on the badges at the top of the playing card (see renderBadges in
      js/live-panels.js), beside a poster, on a phone -- two words there were
      wider than the row and stood over the button in the corner.  DV is what
-     the rest of the page already calls it: the key to the metadata window is
-     lettered the same (see .metalink in index.html). */
+     the rest of the page already calls it. */
   function prettyHdr(value) {
     const map = {
       sdr: "SDR", hdr10: "HDR10", hdr10plus: "HDR10+", hlg: "HLG",

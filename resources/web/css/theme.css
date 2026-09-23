@@ -167,7 +167,6 @@
    page.  Its chosen row, its strength keys and its focus rings all ask for
    --accent already, so one token turns the lot. */
 :root[data-theme="dark-adaptive"] .card,
-:root[data-theme="dark-adaptive"] .metalink,
 :root[data-theme="dark-adaptive"] .theme-menu {
   --accent:   rgb(var(--cover-accent-rgb));
   --accent-2: rgb(var(--cover-accent-rgb));
@@ -184,7 +183,10 @@
    the film.  Nothing else in the bar asks for --accent -- the status light is
    the ok/warn/bad set and the rest is a line colour -- so the one declaration
    reaches the keys and stops there. */
-:root[data-theme="dark-adaptive"] .topbar {
+/* And the tab bar at the foot of the page, for the same reason: the tab in
+   front is marked in the accent, and it is a sibling of <main> too. */
+:root[data-theme="dark-adaptive"] .topbar,
+:root[data-theme="dark-adaptive"] .tabbar {
   --accent:   rgb(var(--cover-accent-rgb));
   --accent-2: rgb(var(--cover-accent-rgb));
 }

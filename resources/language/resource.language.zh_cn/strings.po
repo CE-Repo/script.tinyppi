@@ -1870,3 +1870,15 @@ msgstr "从头播放"
 msgctxt "#32581"
 msgid "Clear resume point"
 msgstr "清除续播位置"
+
+msgctxt "#32582"
+msgid "Live"
+msgstr "实时"
+
+msgctxt "#32583"
+msgid "Metadata"
+msgstr "元数据"
+
+msgctxt "#32584"
+msgid "History"
+msgstr "历史"

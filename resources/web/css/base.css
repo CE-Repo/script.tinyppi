@@ -55,6 +55,9 @@
      #live from a media query that happened to sit above #live's own
      declaration, and lost. */
   --gap:       16px;
+  /* What the foot of the page leaves for the floating tab bar: the bar's own
+     height, the air under it and the air between it and the last card. */
+  --tabbar-room: 104px;
   /* The page's own face, named so a reading set in the monospaced one can put
      its label back into it without repeating the stack (see .times > .finish
      in live-panels.css). */
@@ -123,8 +126,8 @@ body {
   font-size: 15px;
   line-height: 1.45;
   /* A column of two: the bar, and everything else.  main taking what is left
-     of the viewport is what lets the idle page centre itself in the space
-     under the bar rather than over it (see .idlestack). */
+     of the viewport is what lets an idle tab centre itself in the space
+     under the bar rather than over it (see .tabpanel). */
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -457,15 +460,16 @@ main {
   max-width: 1440px;
   margin: 0 auto;
   padding: 20px;
-  display: grid;
-  gap: var(--gap);
-  /* Whatever the bar leaves, so a short page can be centred in it. */
+  /* The floating tab bar stands over the foot of the page, so the page leaves
+     it that much room after its last card -- or the last card could never be
+     scrolled out from under the bar. */
+  padding-bottom: calc(var(--tabbar-room) + env(safe-area-inset-bottom));
+  /* One tab at a time, taking whatever the top bar leaves, so a short tab can
+     be centred in it. */
+  display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
   width: 100%;
-  /* Cards keep their own height in that room rather than being handed a share
-     of it: a grid with space to spare stretches its rows, and a page of three
-     cards on a tall screen would draw all three of them tall. */
-  align-content: start;
 }
 /* On a phone the page keeps the same narrow margin all the way round, and the
    top bar keeps it too -- so there is one edge rather than two, and the first
@@ -475,20 +479,42 @@ main {
    what tells one card from the next, and the screen being narrow is no reason
    for less of it. */
 @media (max-width: 620px) {
-  main { padding: 12px; }
+  main {
+    padding: 12px;
+    padding-bottom: calc(var(--tabbar-room) + env(safe-area-inset-bottom));
+  }
 }
 
 /* --- The shape of the page -----------------------------------------------
 
-   The dashboard reads as one full-width column on every screen: playback and
-   its controls first, then the session figures and events.  Detail groups
-   remain their own responsive grid further down, where several like cards
-   can still share a row.
-
-   The markup is in that order already; the desktop below names its areas
-   anyway, so the idle column can be given a row of its own without the rest
-   of the page moving up around it.
+   Five tabs, one in front at a time, each a single column of cards: the
+   panels are all in the markup and only the chosen one is displayed (see the
+   tabs in js/dashboard.js).  The detail groups on the live tab and the
+   metadata list are their own responsive grids inside that column, where
+   several like cards can still share a row.
 ------------------------------------------------------------------------- */
+
+.tabpanel {
+  display: grid;
+  gap: var(--gap);
+  /* Cards keep their own height rather than being handed a share of the
+     room: a grid with space to spare stretches its rows, and a tab of three
+     cards on a tall screen would draw all three of them tall. */
+  align-content: start;
+  flex: 1 0 auto;
+  min-width: 0;
+}
+.tabpanel:not(.active) { display: none; }
+
+/* A tab with nothing to show but its idle card has that card centred in what
+   the page has, rather than left sitting under an empty top bar.  Centred by
+   the panel rather than pinned to the viewport, because a card pinned to the
+   viewport is centred over the bar as well as under it.  The metrics card
+   left behind in #live carries the hidden attribute rather than the class
+   (see js/dashboard.js), so both are named. */
+.tabpanel:not(:has(.card:not(.hidden):not([hidden]):not(.idlecard))) {
+  align-content: center;
+}
 
 .rail {
   display: grid;
@@ -499,33 +525,88 @@ main {
 
 /* A rail with nothing visible in it is no rail.  Said outright, because the
    rail itself never carries .hidden -- the cards inside it do, and an empty
-   grid item still takes main's gap and leaves a hole where a column was.
-   Every card on the page is a .card; the metadata link is the one thing that
-   is not, so it is named too. */
-.rail:not(:has(.card:not(.hidden), .metalink:not(.hidden))) { display: none; }
+   grid item still takes the panel's gap and leaves a hole where it stood. */
+.rail:not(:has(.card:not(.hidden))) { display: none; }
 
-/* The dashboard alone.  The metadata window is a list of a hundred readings
-   and splits itself into columns of its own further down the page (see
-   .metarows in css/metadata.css); a second one here would be columns inside
-   columns. */
-@media (min-width: 1080px) {
-  .dashboard-page main {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "playing"
-      "session"
-      "groups"
-      "library"
-      "meta";
+/* --- Tab bar ------------------------------------------------------------ */
+
+/* The five tabs, in a bar that floats over the foot of the page the way the
+   app's does: a pill of frosted panel, the tab in front marked by a pill of
+   the accent behind its icon.  Fixed rather than at the end of the page, so
+   another tab is one press away however far down a wall of posters somebody
+   has scrolled. */
+.tabbar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  width: min(500px, calc(100vw - 24px));
+  padding: 6px 4px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 80%, transparent);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  box-shadow: var(--shadow-lift);
+}
+.tab {
+  appearance: none;
+  flex: 1 1 0;
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 5px 0 4px;
+  border: 0;
+  border-radius: 22px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+  transition: color .2s;
+}
+.tabicon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  max-width: 100%;
+  height: 28px;
+  border-radius: 999px;
+  transition: background .2s, color .2s;
+}
+.tabicon .ui-icon { width: 20px; height: 20px; }
+.tablabel {
+  max-width: 100%;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tab.on { color: var(--text); }
+.tab.on .tabicon {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+@media (hover: hover) {
+  .tab:not(.on):hover { color: var(--text); }
+  .tab:not(.on):hover .tabicon {
+    background: color-mix(in srgb, var(--text) 8%, transparent);
   }
-  .dashboard-page .rail-main    { grid-area: playing; }
-  .dashboard-page .rail-side    { grid-area: session; }
-  .dashboard-page .groups       { grid-area: groups; }
-  .dashboard-page .librarystack { grid-area: library; }
-  .dashboard-page .metalink     { grid-area: meta; }
-  /* The idle column takes the first row, which is free whenever it is on the
-     page at all: nothing is playing and both rails have hidden themselves. */
-  .dashboard-page .idlestack { grid-area: 1 / 1 / 2 / -1; }
+}
+.tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+@media (max-width: 400px) {
+  .tabicon { width: 46px; }
+  .tablabel { font-size: 10.5px; }
+}
+/* The narrowest phones: "Metadaten" is the longest of the five names, and at
+   320 px it only fits a size smaller. */
+@media (max-width: 340px) {
+  .tabbar { padding: 5px 2px; }
+  .tabicon { width: 42px; }
+  .tablabel { font-size: 9.5px; }
 }
 
 .card {
@@ -551,8 +632,8 @@ main {
   pointer-events: none;
 }
 
-/* The mount point a page gives panels.js.  main is a grid and this is one of
-   its items, so the air between the three sections is set here. */
+/* The mount point the live tab gives live-panels.js.  The air between the
+   cards it holds is set here. */
 #live { display: grid; gap: var(--gap); align-content: start; min-width: 0; }
 
 /* --- Footer, toast, dialog ---------------------------------------------- */
@@ -574,7 +655,8 @@ footer {
 #toast {
   position: fixed;
   left: 50%;
-  bottom: calc(20px + env(safe-area-inset-bottom));
+  /* Over the tab bar rather than under it. */
+  bottom: calc(var(--tabbar-room) - 12px + env(safe-area-inset-bottom));
   transform: translate(-50%, 16px);
   background: var(--panel);
   border: 1px solid var(--line);
@@ -669,50 +751,6 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 }
 .empty .big { font-size: 18px; font-weight: 650; letter-spacing: -.01em; }
 .empty p { margin: 0; color: var(--muted); font-size: 13.5px; }
-
-/* The idle page is the only content worth looking at, so it is centred in
-   what the page has rather than left sitting under an empty top bar.  All of
-   it goes, not the first card alone: what is not playing, what was, and the
-   events of what was stand as one column (js/dashboard.js moves the events
-   card in for as long as nothing plays).
-
-   Centred by main rather than pinned to the viewport, because a column pinned
-   to the viewport is centred over the bar as well as under it -- and on a
-   phone, where three cards are most of a screen, that is the difference
-   between a column that fits and one whose first card slides under the bar
-   while its last runs off the bottom. */
-.idlestack {
-  display: grid;
-  gap: var(--gap);
-  /* Each card its own height and no more.  A grid whose container has room to
-     spare hands that room to its rows, and a card given room it did not ask
-     for is a heading with a hole under it. */
-  align-content: start;
-}
-/* An empty stack is no stack: hidden outright, or main's own gap would leave
-   a hole where it stands while something plays. */
-.idlestack:not(:has(> :not(.hidden))) { display: none; }
-
-/* Written as one relative selector rather than a :has() inside a :has(),
-   which is not allowed anywhere in CSS: a browser drops the whole rule, and
-   the centring here went with it. */
-main:has(> .idlestack > :not(.hidden)) { align-content: center; }
-
-/* The same two shelves once something is playing, in a row of their own under
-   every reading: the cards are moved in here and back out again, so neither
-   the idle column above nor its centring knows about them (see render in
-   js/dashboard.js).
-
-   Empty for the whole of the idle page, where the cards are up in the column
-   above, and empty while something plays on a box that offers no library at
-   all.  Either way it is no row rather than an empty one: main's own gap would
-   otherwise hold a hand's width of nothing open under the last card. */
-.librarystack {
-  display: grid;
-  gap: var(--gap);
-  align-content: start;
-}
-.librarystack:not(:has(> :not(.hidden))) { display: none; }
 
 /* A folded card is its heading and nothing else.  Saying so outright, because
    a browser does not: the panel is laid out behind the fold whatever the fold

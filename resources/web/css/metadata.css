@@ -2,10 +2,10 @@
    Copyright (c) 2026 U3knOwn */
 
 /* ---------------------------------------------------------------------------
-   The Dolby Vision metadata window.
+   The Dolby Vision metadata tab.
 
-   A window of its own rather than a section of the dashboard: the list runs to
-   a hundred readings and more, and on a second screen it is worth the whole
+   A tab of its own rather than a section of the live one: the list runs to a
+   hundred readings and more, and on a second screen it is worth the whole
    screen.  Nothing here is picked out or interpreted -- the rows arrive as
    info.dvmetadata builds them for the on-screen view, so what is listed is
    what the bitstream said.

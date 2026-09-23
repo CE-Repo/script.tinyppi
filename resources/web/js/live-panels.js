@@ -8,11 +8,11 @@
 
    What is playing -- with its poster and the format logos -- the four figures
    worth a glance, the luminance chart, what the whole title has done so far,
-   and the transport row.  The dashboard opens on them and the metadata window
-   shows the same, so a second screen left on either page says what the film is
-   doing.
+   and the transport row.  The dashboard hands them out to its tabs: the
+   now-playing card stays on the live tab, the luminance chart goes to the
+   metadata tab and the events to the history tab (see js/dashboard.js).
 
-   This component is shared by both pages and loaded after core.js.
+   Loaded after core.js.
 
    A page opts in by putting <div id="live"></div> where the panels belong;
    the markup and the drawing are here, the styling is in live-panels.css.  It
@@ -24,8 +24,10 @@
 
   const host = document.getElementById("live");
   if (!host) return;
-  const metadataPage = document.body.classList.contains("metadata-page");
-  const pageState = metadataPage ? "metadata" : "dashboard";
+  /* What the folds are remembered by.  The chart keeps the key it had when
+     it was a card of the metadata window, so a device that had it open still
+     has it open on the metadata tab. */
+  const pageState = "dashboard";
 
   /* How much of the past the live buffer holds, in seconds.  It is what the
      one-minute range draws; the longer ones come from the add-on, which has
@@ -172,8 +174,11 @@
   });
   setControlsOpen(TinyPPI.disclosureState(controlStateKey, false), false);
   TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
-  TinyPPI.bindDisclosure(el.chartCard, pageState + ".l1", false);
-  TinyPPI.bindDisclosure(el.eventsCard, pageState + ".events", false);
+  /* The chart and the events arrive open: each is what a tab of its own is
+     for now (the metadata tab and the history tab), and a tab that opens on a
+     folded heading is a tab that has to be pressed twice. */
+  TinyPPI.bindDisclosure(el.chartCard, "metadata.l1", true);
+  TinyPPI.bindDisclosure(el.eventsCard, pageState + ".events", true);
 
   /* --- what is playing -------------------------------------------------- */
 
@@ -582,10 +587,6 @@
   }
 
   function renderTiles(metrics, session) {
-    if (metadataPage) {
-      el.tiles.classList.add("hidden");
-      return;
-    }
     el.tiles.classList.remove("hidden");
     const totals = session || {};
     const fetchedTotal = past && past.seq === totals.seq
@@ -783,9 +784,8 @@
            (Math.log10(MAX_NITS) - Math.log10(MIN_NITS));
   };
 
-  /* Every chart on the page reads the same range buttons, because a page only
-     ever shows one chart: the luminance one belongs to the metadata window and
-     the playback one to the dashboard. */
+  /* Every chart on the page reads the same range buttons.  There is one
+     chart, the luminance one on the metadata tab. */
   const rangeBars = [];
 
   function buildRanges(container) {
@@ -837,11 +837,9 @@
       past = data;
       pastAt = Date.now();
       pastSeq = data.seq;
-      if (!metadataPage) {
-        renderEvents(data.events);
-        el.vSwitches.textContent = String(historySwitches(data) || 0);
-        el.eventsCard.classList.remove("hidden");
-      }
+      renderEvents(data.events);
+      el.vSwitches.textContent = String(historySwitches(data) || 0);
+      el.eventsCard.classList.remove("hidden");
       drawCharts();
     }).catch(() => { /* the stream's own retry reports an outage */ })
       .finally(() => { fetching = false; });
@@ -895,7 +893,6 @@
   }
 
   function renderCharts(metrics) {
-    if (!metadataPage) return;
     recordSample(metrics);
 
     /* The luminance chart needs an RPU to read. */
@@ -981,8 +978,10 @@
     ctx.globalAlpha = 1;
   }
 
+  /* A chart on a tab that is not in front has no size, and prepare() leaves
+     it alone; the tab draws it again when it comes forward (see draw). */
   function drawCharts() {
-    if (metadataPage) drawLuminance();
+    drawLuminance();
   }
 
   function drawLuminance() {
@@ -1159,6 +1158,15 @@
     return highest;
   }
 
-  window.TinyPPI.panels = { strings, update, events, peak };
+  /* Everything here that is measured rather than styled, measured again: a
+     tab that has just come forward was laid out at no size at all while it
+     was away, so its chart was never drawn and its event list never knew
+     whether there was more of it (see the tabs in js/dashboard.js). */
+  function draw() {
+    drawCharts();
+    markMore();
+  }
+
+  window.TinyPPI.panels = { strings, update, events, peak, draw };
 
 })();

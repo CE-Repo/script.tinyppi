@@ -1870,3 +1870,15 @@ msgstr "Lejátszás az elejéről"
 msgctxt "#32581"
 msgid "Clear resume point"
 msgstr "Folytatási pont törlése"
+
+msgctxt "#32582"
+msgid "Live"
+msgstr "Élő"
+
+msgctxt "#32583"
+msgid "Metadata"
+msgstr "Metaadat"
+
+msgctxt "#32584"
+msgid "History"
+msgstr "Előzmény"

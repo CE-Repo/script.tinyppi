@@ -1870,3 +1870,15 @@ msgstr ""
 msgctxt "#32581"
 msgid "Clear resume point"
 msgstr ""
+
+msgctxt "#32582"
+msgid "Live"
+msgstr ""
+
+msgctxt "#32583"
+msgid "Metadata"
+msgstr ""
+
+msgctxt "#32584"
+msgid "History"
+msgstr ""

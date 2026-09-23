@@ -729,8 +729,8 @@ window.TinyPPICover = (function () {
   const panelHost = () => document.querySelector("main");
 
   /* The chrome that sits outside <main> and so inherits nothing painted there:
-     the bar across the top, and the theme menu, which hangs from <body> so the
-     bar cannot clip it.  Both take the quiet variant, which carries the accent
+     the bar across the top, the tab bar at the foot, and the theme menu, which
+     hangs from <body> so the bar cannot clip it.  Both take the quiet variant, which carries the accent
      alone -- the lifted text colours belong to the tinted card and are not
      wanted out here, where the theme's own surface is what they would sit on
      (see paintValues).
@@ -740,6 +740,7 @@ window.TinyPPICover = (function () {
      buildMenu replaces the menu's children, never the menu itself. */
   const chromeHosts = () => [
     document.querySelector(".topbar"),
+    document.querySelector(".tabbar"),
     document.getElementById("themeMenu")
   ];
 

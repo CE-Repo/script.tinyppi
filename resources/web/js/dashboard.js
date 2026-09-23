@@ -8,8 +8,13 @@
 
    Everything printed here comes from the snapshot TinyPPI.boot delivers; the
    labels come translated with it, out of Kodi's own string table.  The
-   connection itself lives in core.js, which this page shares with the
-   metadata window.
+   connection itself lives in core.js.
+
+   One page in five tabs -- live, Dolby Vision metadata, films, series and
+   history -- the same five, in the same order, as the floating bar of the
+   TinyPPI app.  Every tab is fed from the one stream whichever is in front;
+   the metadata tab draws itself (js/metadata.js) and this file hands it the
+   snapshot.
 =========================================================================== */
 
 const $ = TinyPPI.$;
@@ -20,11 +25,13 @@ const el = {
   vs10Card: $("vs10Card"), vs10Out: $("vs10Out"), modes: $("modes"),
   groups: $("groups"),
   metricsCard: $("tiles"), metricsGrid: $("tiles").querySelector(".tilegrid"),
-  eventsCard: $("eventsCard"), metaLink: $("metaLink"), sideRail: $("sideRail"),
-  copyBtn: $("copyBtn"), idleStack: $("idleStack"),
-  libraryStack: $("libraryStack"),
-  continueCard: $("continueCard"), continueRow: $("continueRow"),
-  continueCount: $("continueCount"),
+  eventsCard: $("eventsCard"), copyBtn: $("copyBtn"),
+  historyIdleCard: $("historyIdleCard"),
+  tabBar: $("tabBar"),
+  continueFilmsCard: $("continueFilmsCard"), continueFilmsRow: $("continueFilmsRow"),
+  continueFilmsCount: $("continueFilmsCount"),
+  continueSeriesCard: $("continueSeriesCard"), continueSeriesRow: $("continueSeriesRow"),
+  continueSeriesCount: $("continueSeriesCount"),
   lastCard: $("lastCard"), lastTitle: $("lastTitle"), lastTiles: $("lastTiles"),
   filmsCard: $("filmsCard"), filmGrid: $("filmGrid"),
   filmsCount: $("filmsCount"), filmsEmpty: $("filmsEmpty"),
@@ -53,7 +60,10 @@ el.eventsCard.querySelector(".eventswrap").before(el.metricsGrid);
    still owns its heading node; the hidden attribute cannot be undone by the
    live module's class toggles. */
 el.metricsCard.hidden = true;
-el.sideRail.append(el.eventsCard);
+/* The events are the history tab's, under what the title that has just ended
+   came to.  (The luminance chart is moved to the metadata tab by
+   js/metadata.js.) */
+el.lastCard.after(el.eventsCard);
 
 let state = null;
 let control = false;
@@ -71,150 +81,216 @@ const DEFAULT_OPEN_GROUPS = new Set([
 ]);
 
 TinyPPI.bindDisclosure(el.vs10Card, "dashboard.vs10", false);
-/* Both shelves arrive folded, on the idle page as much as under a film that
-   is playing: two walls of several hundred posters opened for somebody who
-   came to read what the box is doing is a page whose readings are a screen
-   and a half up, and the heading of a folded card is one press from the wall
-   for somebody who came for that instead.
+/* The shelves arrive open, as they do in the app: each has a tab of its own
+   now, and somebody who pressed "Films" came for the films.  They used to
+   arrive folded, when they stood under the readings on the one page and two
+   walls of posters opened there pushed everything else a screen and a half
+   down.  A fold somebody shut stays shut.
 
-   It costs nothing to leave shut, either: a browser lays out nothing inside a
-   fold that is closed (see details.card:not([open]) in css/base.css), so the
-   posters are neither fetched nor drawn until the card is opened.
+   It costs nothing while the tab is not in front: a browser lays out nothing
+   in a panel that is not displayed, so the posters are neither fetched nor
+   drawn until the tab is opened.
 
-   Under keys of their own, because the cards were once bound open and a first
-   visit wrote that opening into storage -- every device that has ever had
-   this page in front of it carries a mark saying the shelves are open, and
-   would go on being handed them open for good.  The old marks are dropped
-   rather than left in storage to mean nothing (the writing back of a restored
-   fold is gone too; see bindDisclosure in js/core.js). */
+   The first marks these cards ever wrote are dropped rather than left in
+   storage to mean nothing (see bindDisclosure in js/core.js). */
 TinyPPI.forgetDisclosure("dashboard.films");
 TinyPPI.forgetDisclosure("dashboard.series");
-TinyPPI.bindDisclosure(el.filmsCard, "dashboard.filmshelf", false);
-TinyPPI.bindDisclosure(el.seriesCard, "dashboard.seriesshelf", false);
-/* The walls of what is still unwatched fold the way the walls they are cut
-   from do, and for the same reason. */
-TinyPPI.bindDisclosure(el.unseenFilmsCard, "dashboard.unseenfilms", false);
-TinyPPI.bindDisclosure(el.unseenSeriesCard, "dashboard.unseenseries", false);
-/* The row of things left half-watched is the exception: a handful of posters
-   rather than a wall, and the one card here somebody opens the page for. */
-TinyPPI.bindDisclosure(el.continueCard, "dashboard.continue", true);
+TinyPPI.forgetDisclosure("dashboard.continue");
+TinyPPI.bindDisclosure(el.filmsCard, "dashboard.filmshelf", true);
+TinyPPI.bindDisclosure(el.seriesCard, "dashboard.seriesshelf", true);
+TinyPPI.bindDisclosure(el.unseenFilmsCard, "dashboard.unseenfilms", true);
+TinyPPI.bindDisclosure(el.unseenSeriesCard, "dashboard.unseenseries", true);
+/* The row of things left half-watched, one on either shelf: the films on the
+   films tab and the episodes on the series tab, as the app splits them. */
+TinyPPI.bindDisclosure(el.continueFilmsCard, "dashboard.continuefilms", true);
+TinyPPI.bindDisclosure(el.continueSeriesCard, "dashboard.continueseries", true);
+
+/* --- tabs --------------------------------------------------------------- */
+
+/* The five places the bar switches between, in its order. */
+const TABS = ["live", "metadata", "films", "series", "history"];
+const TAB_KEY = "tinyppi.tab";
+
+let tab = null;            /* the tab in front                               */
+const scrolls = new Map(); /* how far down each tab was left                 */
+/* Whether the box offers either shelf at all, from /api/hello.  Until it has
+   answered both are taken to be there, so a tab asked for by its address is
+   not thrown back to the live one in the moment before the answer. */
+let offered = { films: true, series: true };
+
+/* Whether a tab has anything to show.  The shelves are tabs only on a box
+   that will say what it holds and be told what to play; everything else is
+   always there, with an idle card of its own for when nothing is playing. */
+function tabAvailable(name) {
+  if (name === "films") {
+    return offered.films && filmsOffered && (state === null || control);
+  }
+  if (name === "series") {
+    return offered.series && seriesOffered && (state === null || control);
+  }
+  return TABS.includes(name);
+}
+
+/* The tab the address asks for: #films, or /metadata -- the address the
+   metadata window used to have, so a bookmark of it still lands there. */
+function tabFromAddress() {
+  const hash = location.hash.replace(/^#/, "");
+  if (TABS.includes(hash)) return hash;
+  if (/^\/metadata(\.html)?$/.test(location.pathname)) return "metadata";
+  return "";
+}
+
+function storedTab() {
+  try { return localStorage.getItem(TAB_KEY) || ""; } catch (_) { return ""; }
+}
+
+function selectTab(name, fromUser) {
+  if (!tabAvailable(name)) name = "live";
+  if (name === tab) {
+    /* A press on the tab already in front goes back to its top, as a press on
+       the app's bar does. */
+    if (fromUser) window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+  if (tab) scrolls.set(tab, window.scrollY);
+  tab = name;
+
+  for (const panel of document.querySelectorAll(".tabpanel")) {
+    panel.classList.toggle("active", panel.dataset.tab === name);
+  }
+  for (const button of el.tabBar.querySelectorAll(".tab")) {
+    const on = button.dataset.tab === name;
+    button.classList.toggle("on", on);
+    button.setAttribute("aria-selected", on ? "true" : "false");
+    button.tabIndex = on ? 0 : -1;
+  }
+
+  /* Written into the address rather than pushed onto the history: back leaves
+     the page, as it did before there were tabs, and a reload or a bookmark
+     still comes back to the tab it was on. */
+  if (location.hash !== "#" + name) {
+    try { history.replaceState(null, "", "#" + name); } catch (_) {}
+  }
+  try { localStorage.setItem(TAB_KEY, name); } catch (_) {}
+
+  window.scrollTo(0, scrolls.get(name) || 0);
+  /* The chart and the event list are measured, and a tab that was away was
+     measured at no size at all. */
+  requestAnimationFrame(() => TinyPPI.panels.draw());
+  updateCopy();
+}
+
+/* The tab bar itself: which of the five are on offer.  A tab that has just
+   gone away takes the page back to the live one. */
+function renderTabs() {
+  for (const button of el.tabBar.querySelectorAll(".tab")) {
+    button.classList.toggle("hidden", !tabAvailable(button.dataset.tab));
+  }
+  if (tab && !tabAvailable(tab)) selectTab("live");
+}
+
+el.tabBar.addEventListener("click", (event) => {
+  const button = event.target.closest(".tab");
+  if (button) selectTab(button.dataset.tab, true);
+});
+
+/* Left and right step along the bar, the way a tab list is walked with the
+   keyboard; the tabs that are not on offer are stepped over. */
+el.tabBar.addEventListener("keydown", (event) => {
+  if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+  const shown = [...el.tabBar.querySelectorAll(".tab:not(.hidden)")];
+  const at = shown.findIndex((button) => button.dataset.tab === tab);
+  if (at === -1) return;
+  const step = event.key === "ArrowRight" ? 1 : -1;
+  const next = shown[(at + step + shown.length) % shown.length];
+  selectTab(next.dataset.tab, true);
+  next.focus();
+  event.preventDefault();
+});
+
+window.addEventListener("hashchange", () => {
+  const name = tabFromAddress();
+  if (name) selectTab(name);
+});
+
+/* The report key in the top bar copies whatever the tab in front is about:
+   the metadata list on the metadata tab, the readings and the events
+   everywhere else. */
+function updateCopy() {
+  const has = tab === "metadata"
+    ? TinyPPI.metadata.listed()
+    : !!state && (!!state.playing || !!(state.last && state.last.title));
+  el.copyBtn.classList.toggle("hidden", !has);
+}
 
 /* --- render ------------------------------------------------------------- */
-
-/* Put the two shelves where the page wants them: up in the idle column while
-   nothing plays, down in the library row under every reading while something
-   does.  Moved rather than copied, so there is one wall of each, one search
-   box narrowing it, and one show open in the series card -- and a fold
-   somebody opened stays open across the film that started under it.
-
-   Asked of every snapshot, and one arrives five times a second, so the test
-   above the move is the point of it: moving a node that is already where it
-   belongs is still a write to the document, and a write is the whole page --
-   two walls of posters included -- laid out again. */
-function shelves(into) {
-  if (el.filmsCard.parentElement === into) return;
-  /* What is still waiting to be watched straight under what was left
-     half-watched, and the walls of everything after both. */
-  into.append(el.continueCard, el.unseenFilmsCard, el.unseenSeriesCard,
-              el.filmsCard, el.seriesCard);
-}
 
 function render(next) {
   state = next;
   control = !!next.control;
   /* Before anything is drawn: what the box says about its own library decides
-     whether the two shelves under this page are still what it holds. */
+     whether the two shelves are still what it holds. */
   libraryVersion(next.library);
 
-  /* The common live module draws what is playing and the summary tiles.  Its
-     L1 chart is reserved for the metadata window. */
+  /* The common live module draws what is playing, the summary tiles, the
+     luminance chart on the metadata tab and the events on the history tab. */
   TinyPPI.panels.update(next);
+  TinyPPI.metadata.render(next);
   /* The former metrics card disappeared while idle; preserve that behaviour
      now that its grid lives inside the event card, which may hold the events
      of the title that just ended. */
   el.metricsGrid.classList.toggle("hidden", !next.playing);
+  renderTabs();
+
+  /* What could be playing, on the two shelf tabs, whether or not anything
+     already is.  Read again the moment a film ends, however lately the
+     playing page read it: what the box last played and how far into it, on
+     every tile the walls carry, has just moved.  While something plays it is
+     asked for once -- the first arrival on a box that is already playing has
+     never read either list -- and nothing is forced: a poster wall rebuilt
+     under somebody scrolling it is a wall that jumps. */
+  const ended = !next.playing && wasPlaying !== false;
+  if (control) requestFilms(ended);
+  else hideFilms();
+  if (control) requestSeries(ended);
+  else hideSeries();
+  if (control) requestContinue(ended);
+  else hideContinue();
 
   if (!next.playing) {
-    /* The line saying nothing is playing is for a box that has played nothing:
-       with the title that just ended on the page under it, it says what the
-       page already shows and takes a card to say it. */
-    el.idleCard.classList.toggle("hidden", !!(next.last && next.last.title));
-    for (const id of ["vs10Card", "metaLink"]) {
-      $(id).classList.add("hidden");
-    }
+    el.idleCard.classList.remove("hidden");
+    el.vs10Card.classList.add("hidden");
     /* Asked for rather than done: the box builds a snapshot five times a
        second whether or not anything in it moved, so this runs five times a
        second on a page that is standing still -- and every write to the
-       document is a page laid out again, with a wall of several hundred
-       posters under it. */
+       document is a page laid out again. */
     if (el.groups.firstChild) el.groups.innerHTML = "";
     rowNodes.clear();
     groupNodes.clear();
     renderLast(next.last);
-    /* The shelves come back up into the idle column, out of the library row
-       they stand in while something plays.  Before the events card is placed,
-       because where that goes is said in terms of the film card. */
-    shelves(el.idleStack);
-    /* The events of the title that just ended join the two cards above them,
-       so the idle page is one centred column rather than a card floating in
-       the middle of the viewport with its own events stranded at the top.
-       Above the film library rather than below it: that card is a shelf
-       somebody scrolls, and a card under a shelf is a card nobody reaches. */
-    if (el.eventsCard.parentElement !== el.idleStack) {
-      el.continueCard.before(el.eventsCard);
-    }
-    /* And what could be playing instead.  Read again the moment a film ends,
-       however lately the playing page read it: what the box last played and
-       how far into it, on every tile the two walls carry, has just moved. */
-    if (control) requestFilms(wasPlaying !== false);
-    else hideFilms();
-    if (control) requestSeries(wasPlaying !== false);
-    else hideSeries();
-    if (control) requestContinue(wasPlaying !== false);
-    else el.continueCard.classList.add("hidden");
+    /* The line saying there is no history is for a box that has played
+       nothing: the title that just ended is the history tab's while the
+       add-on still holds it. */
+    el.historyIdleCard.classList.toggle("hidden", !!(next.last && next.last.title));
     wasPlaying = false;
-    /* The button goes with the report: there is one for as long as the title
-       that just ended is still held, and none at all once it is let go -- a
-       button that answers a press with nothing is worse than one that is not
-       there. */
-    el.copyBtn.classList.toggle("hidden", !next.last || !next.last.title);
+    updateCopy();
     return;
   }
 
   el.idleCard.classList.add("hidden");
+  el.historyIdleCard.classList.add("hidden");
   el.lastCard.classList.add("hidden");
-  el.copyBtn.classList.remove("hidden");
+  lastDrawn = "";
   wasPlaying = true;
   /* A film that was pressed is on: whatever tile was waiting on it is done
      waiting, so the wall it was pressed on can be used again. */
   if (starting || releasing) releaseFilms();
   if (startingEpisode || episodeReleasing) releaseSeries();
   if (resuming || resumeReleasing) releaseContinue();
-  /* Back to the foot of the page, where it belongs while something plays. */
-  if (el.eventsCard.parentElement === el.idleStack) {
-    el.sideRail.append(el.eventsCard);
-  }
-  /* And the shelves down into the row under the readings, where they stay for
-     as long as something is on: what to put on next is a fair thing to want
-     from the page while a film is running, and the way to have it there
-     without a second wall to keep in step is to move the one there is. */
-  shelves(el.libraryStack);
-  /* Asked for here as well, once: the first arrival on a box that is already
-     playing has never read either list.  Nothing is forced -- the lists have
-     not moved since whatever last read them, and a poster wall rebuilt under
-     somebody scrolling it is a wall that jumps. */
-  if (control) requestFilms(false);
-  else hideFilms();
-  if (control) requestSeries(false);
-  else hideSeries();
-  if (control) requestContinue(false);
-  else el.continueCard.classList.add("hidden");
 
   renderVs10(next.vs10 || {});
   renderGroups(ordered(next.groups || []));
-  /* The metadata list is a window of its own; this page only says whether
-     there is one to open. */
-  el.metaLink.classList.toggle("hidden", !(next.metadata && next.metadata.length));
+  updateCopy();
 }
 
 /* Which version of the box's two shelves this page is holding.
@@ -893,9 +969,10 @@ function hideSeries() {
 }
 
 /* A show opened from the wall of unwatched ones opens in the series card
-   further down, where its episodes are listed -- one list of episodes on the
-   page, and one way back out of it -- and that card is unfolded and brought
-   into view, because the press happened somewhere else. */
+   further down the same tab, where its episodes are listed -- one list of
+   episodes on the page, and one way back out of it -- and that card is
+   unfolded and brought into view, because the press happened somewhere
+   else. */
 async function openFromUnseen(show) {
   await openShowView(show);
   if (!openShow || openShow.id !== show.id) return;
@@ -1291,19 +1368,20 @@ el.seriesBack.addEventListener("click", closeShow);
 /* The films and episodes the box was stopped in the middle of, the last one
    seen first: the quickest way back into whatever was on.
 
-   One row for both, because whether it was a film or an episode is not what
-   somebody reaching for it is thinking about.  The box reads it with Kodi's
-   own "in progress" filter and holds it with the shelves (see ``continuing``
-   in web/library.py), so it is read again on the same occasions they are: a
-   title ending, and the library's number moving.  A row with nothing on it is
-   no card at all. */
+   One list from the box, drawn as two rows: the films at the head of the
+   films tab and the episodes at the head of the series tab, as the app draws
+   them.  The box reads it with Kodi's own "in progress" filter and holds it
+   with the shelves (see ``continuing`` in web/library.py), so it is read
+   again on the same occasions they are: a title ending, and the library's
+   number moving.  A row with nothing on it is no card at all. */
 
 let continueTag = "";      /* the row's own tag, unchanged rows skipped    */
 let continueBusy = false;  /* a request for the row is in flight           */
 let continueRead = false;  /* the row has been read since it last moved    */
 let continueOffered = true; /* until the box says it offers no shelves     */
 let continueNextTry = 0;   /* not before this, after a failure             */
-let continueCount = 0;     /* how many titles the row holds                */
+let continueFilms = 0;     /* how many films the films row holds           */
+let continueEpisodes = 0;  /* how many episodes the series row holds       */
 let resuming = 0;          /* the tile a press is waiting on               */
 let resumeReleasing = 0;   /* the timer that gives the row back            */
 
@@ -1322,28 +1400,56 @@ async function loadContinue() {
     continueRead = true;
     continueNextTry = 0;
     const list = Array.isArray(answer.items) ? answer.items : [];
-    if ((answer.tag || "") !== continueTag || !el.continueRow.children.length) {
+    if ((answer.tag || "") !== continueTag ||
+        !(el.continueFilmsRow.children.length ||
+          el.continueSeriesRow.children.length)) {
       continueTag = answer.tag || "";
-      continueCount = list.length;
       buildContinue(list);
     }
-    el.continueCard.classList.toggle("hidden", continueCount === 0);
+    el.continueFilmsCard.classList.toggle("hidden", continueFilms === 0);
+    el.continueSeriesCard.classList.toggle("hidden", continueEpisodes === 0);
   } catch (error) {
     continueNextTry = Date.now() + FILMS_RETRY_MS;
     /* 403: neither shelf on offer.  404: an add-on older than the row. */
     const code = String((error || {}).message);
     if (code === "403" || code === "404") continueOffered = false;
-    if (!continueRead) el.continueCard.classList.add("hidden");
+    if (!continueRead) hideContinue();
   }
 }
 
 function buildContinue(list) {
-  const row = document.createDocumentFragment();
-  for (const item of list) row.append(continueTile(item));
-  el.continueRow.replaceChildren(row);
+  const films = document.createDocumentFragment();
+  const episodes = document.createDocumentFragment();
+  continueFilms = 0;
+  continueEpisodes = 0;
+  for (const item of list) {
+    if (item.kind === "episode") {
+      episodes.append(continueTile(item));
+      continueEpisodes += 1;
+    } else {
+      films.append(continueTile(item));
+      continueFilms += 1;
+    }
+  }
+  el.continueFilmsRow.replaceChildren(films);
+  el.continueSeriesRow.replaceChildren(episodes);
   /* Back to the newest title, which is the one the row was read again for. */
-  el.continueRow.scrollLeft = 0;
-  el.continueCount.textContent = list.length ? String(list.length) : "";
+  el.continueFilmsRow.scrollLeft = 0;
+  el.continueSeriesRow.scrollLeft = 0;
+  el.continueFilmsCount.textContent = continueFilms ? String(continueFilms) : "";
+  el.continueSeriesCount.textContent =
+    continueEpisodes ? String(continueEpisodes) : "";
+}
+
+/* Both rows off the page, for a box with no shelves to offer. */
+function hideContinue() {
+  el.continueFilmsCard.classList.add("hidden");
+  el.continueSeriesCard.classList.add("hidden");
+}
+
+/* Every tile on either row: a press on one waits for its title on both. */
+function continueTiles() {
+  return [...el.continueFilmsRow.children, ...el.continueSeriesRow.children];
 }
 
 function continueTile(item) {
@@ -1416,7 +1522,7 @@ async function startContinue(item, tile, fromStart) {
   if (resuming) return;
   resuming = item.id;
   tile.classList.add("busy");
-  for (const node of el.continueRow.children) node.disabled = true;
+  for (const node of continueTiles()) node.disabled = true;
   TinyPPI.toast(T.films_starting);
 
   const body = item.kind === "episode"
@@ -1460,7 +1566,7 @@ function releaseContinue() {
   clearTimeout(resumeReleasing);
   resumeReleasing = 0;
   resuming = 0;
-  for (const tile of el.continueRow.children) {
+  for (const tile of continueTiles()) {
     tile.disabled = false;
     tile.classList.remove("busy");
   }
@@ -1631,9 +1737,13 @@ function buildReport() {
 }
 
 /* The clipboard, or a file named after the film where the browser will not
-   give it the clipboard; both pages hand it over the same way (see
-   TinyPPI.copyReport). */
+   give it the clipboard; the metadata tab hands its list over the same way
+   (see TinyPPI.copyReport). */
 el.copyBtn.addEventListener("click", () => {
+  if (tab === "metadata") {
+    TinyPPI.metadata.copy();
+    return;
+  }
   const title = (state || {}).playing
     ? state.title : ((state || {}).last || {}).title;
   TinyPPI.copyReport(buildReport(), title);
@@ -1645,7 +1755,17 @@ function applyStrings(strings, hello) {
   $("idleTitle").textContent = strings.idle_title;
   $("idleText").textContent = strings.idle_text;
   $("lastLabel").textContent = strings.last_played;
-  $("continueLabel").textContent = strings.continue;
+  /* The same words as the idle card on the live tab: the history is empty for
+     exactly as long as nothing has played. */
+  $("historyIdleTitle").textContent = strings.events_empty;
+  $("historyIdleText").textContent = strings.idle_text;
+  $("continueFilmsLabel").textContent = strings.continue;
+  $("continueSeriesLabel").textContent = strings.continue;
+  $("tabLiveLabel").textContent = strings.tab_live;
+  $("tabMetadataLabel").textContent = strings.tab_metadata;
+  $("tabFilmsLabel").textContent = strings.films;
+  $("tabSeriesLabel").textContent = strings.series;
+  $("tabHistoryLabel").textContent = strings.tab_history;
   $("filmsLabel").textContent = strings.films;
   el.filmsEmpty.textContent = strings.films_empty;
   el.filmSearch.placeholder = strings.films_search;
@@ -1668,14 +1788,24 @@ function applyStrings(strings, hello) {
   el.seriesSearch.placeholder = strings.series_search;
   el.seriesSearch.setAttribute("aria-label", strings.series_search);
   TinyPPI.panels.strings(strings);
+  TinyPPI.metadata.strings(strings);
   $("vs10Title").textContent = strings.vs10;
   $("vs10OutLabel").textContent = strings.output;
-  $("metaLinkText").textContent = strings.metadata;
   el.copyBtn.setAttribute("aria-label", strings.copy);
   el.copyBtn.title = strings.copy;
   if (hello) {
     el.version.textContent = "v" + hello.version;
+    /* Which shelves the box offers.  An add-on older than the flags says
+       nothing about them, and its shelves are taken to be there. */
+    offered = {
+      films: hello.library !== false,
+      series: hello.series !== false
+    };
+    renderTabs();
   }
 }
 
+/* The tab to open on: the one the address names, else the one this device
+   was last left on, else what is playing. */
+selectTab(tabFromAddress() || storedTab() || "live");
 TinyPPI.boot({ onState: render, onStrings: applyStrings });
