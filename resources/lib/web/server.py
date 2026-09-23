@@ -212,12 +212,14 @@ _UI_STRINGS = {
     # The row of films and episodes left half-watched, above both shelves.
     "continue":         32572,
     # The walls of what is still unwatched, under the walls of everything, and
-    # the question a finger held on a title asks.
+    # the question a press on a title asks.
     "films_unseen":     32573,
     "series_unseen_shows": 32574,
     "mark_watched":     32575,
     "mark_unwatched":   32576,
     "mark_failed":      32577,
+    "films_play":       32578,
+    "series_open":      32579,
     # And the series library beside it: the same shelf with one floor more,
     # so the same strings again plus the few an episode list needs.
     "series":           32541,

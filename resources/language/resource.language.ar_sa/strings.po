@@ -1863,3 +1863,11 @@ msgstr "وضع علامة كغير مُشاهَد"
 msgctxt "#32577"
 msgid "The library could not be updated"
 msgstr "تعذّر تحديث المكتبة"
+
+msgctxt "#32578"
+msgid "Play"
+msgstr "تشغيل"
+
+msgctxt "#32579"
+msgid "Open"
+msgstr "فتح"

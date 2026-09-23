@@ -1862,3 +1862,11 @@ msgstr "标记为未观看"
 msgctxt "#32577"
 msgid "The library could not be updated"
 msgstr "无法更新媒体库"
+
+msgctxt "#32578"
+msgid "Play"
+msgstr "播放"
+
+msgctxt "#32579"
+msgid "Open"
+msgstr "打开"

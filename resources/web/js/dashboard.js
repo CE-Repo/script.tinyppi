@@ -38,7 +38,7 @@ const el = {
   unseenFilmsCount: $("unseenFilmsCount"),
   unseenSeriesCard: $("unseenSeriesCard"), unseenSeriesGrid: $("unseenSeriesGrid"),
   unseenSeriesCount: $("unseenSeriesCount"),
-  markDialog: $("markDialog"), markTitle: $("markTitle"),
+  markDialog: $("markDialog"), markTitle: $("markTitle"), markPlay: $("markPlay"),
   markWatched: $("markWatched"), markUnwatched: $("markUnwatched"),
   markCancel: $("markCancel")
 };
@@ -696,8 +696,11 @@ function filmTile(film) {
     tile.append(line);
   }
 
-  holdable(tile, () => askMark(film.title, { movieid: film.id }));
-  tile.addEventListener("click", () => startFilm(film, tile));
+  tile.addEventListener("click", () => ask({
+    title: film.title, body: { movieid: film.id },
+    play: film.resume ? T.films_resume : T.films_play,
+    onPlay: () => startFilm(film, tile)
+  }));
   return tile;
 }
 
@@ -943,8 +946,12 @@ function showTile(show, onOpen) {
     tile.append(year);
   }
 
-  holdable(tile, () => askMark(show.title, { tvshowid: show.id }));
-  tile.addEventListener("click", () => onOpen(show));
+  /* A series is not a thing that can be played, so the first answer opens it
+     instead: its episodes are what can be. */
+  tile.addEventListener("click", () => ask({
+    title: show.title, body: { tvshowid: show.id },
+    play: T.series_open, onPlay: () => onOpen(show)
+  }));
   return tile;
 }
 
@@ -1178,9 +1185,12 @@ function episodeRow(episode) {
   meta.append(title);
 
   row.append(frame, meta);
-  holdable(row, () => askMark(
-    [code, episode.title].filter(Boolean).join(" \u00b7 "), { episodeid: episode.id }));
-  row.addEventListener("click", () => startEpisode(episode, row));
+  row.addEventListener("click", () => ask({
+    title: [code, episode.title].filter(Boolean).join(" \u00b7 "),
+    body: { episodeid: episode.id },
+    play: episode.resume ? T.films_resume : T.films_play,
+    onPlay: () => startEpisode(episode, row)
+  }));
   return row;
 }
 
@@ -1380,10 +1390,13 @@ function continueTile(item) {
     tile.append(line);
   }
 
-  holdable(tile, () => askMark(
-    episode ? [item.show, episodeCode(item)].filter(Boolean).join(" \u00b7 ") : item.title,
-    episode ? { episodeid: item.id } : { movieid: item.id }));
-  tile.addEventListener("click", () => startContinue(item, tile));
+  tile.addEventListener("click", () => ask({
+    title: episode ? [item.show, episodeCode(item)].filter(Boolean).join(" \u00b7 ")
+                   : item.title,
+    body: episode ? { episodeid: item.id } : { movieid: item.id },
+    play: T.films_resume,
+    onPlay: () => startContinue(item, tile)
+  }));
   return tile;
 }
 
@@ -1440,86 +1453,38 @@ function releaseContinue() {
   }
 }
 
-/* --- seen and unseen ----------------------------------------------------- */
+/* --- what a press asks ---------------------------------------------------- */
 
-/* A finger held on a film, a series or an episode -- or a right click, which
-   is what the same wish looks like with a mouse -- asks whether the box should
-   count it as seen or as unseen, and the answer is written into Kodi's own
-   library (see ``set_watched`` in web/library.py).  A series marked either way
-   is every episode of it.
+/* A press on a film, a series or an episode asks what is wanted of it: to
+   play it (or, for a series, to open it -- a series is not a thing that can
+   be played), or to have the box count it as seen or as unseen.  The last two
+   are written into Kodi's own library (see ``set_watched`` in
+   web/library.py); a series marked either way is every episode of it.
 
    Written and then read back rather than drawn here: the box drops what it
    holds the moment it has written, and the walls, the row and the open show
    are read again, so what they show is what the library now says. */
 
-/* How long a finger has to stay down before it is a hold rather than a press,
-   and how far it may wander in that time before it is a scroll instead. */
-const HOLD_MS = 500;
-const HOLD_SLOP = 10;
-/* How long after a hold the press it ends in is swallowed. */
-const HOLD_GRACE_MS = 800;
+let asking = null;         /* what the open question is about              */
 
-let heldAt = 0;            /* when a hold last opened the question         */
-let marking = null;        /* what the open question is about              */
-
-function holdable(node, onHold) {
-  let timer = 0;
-  let x = 0;
-  let y = 0;
-  const cancel = () => { clearTimeout(timer); timer = 0; };
-  const held = () => {
-    cancel();
-    /* A phone that fires its own long-press as well as the timer here would
-       otherwise ask twice. */
-    if (Date.now() - heldAt < HOLD_GRACE_MS) return;
-    heldAt = Date.now();
-    if (node.disabled) return;
-    if (navigator.vibrate) {
-      try { navigator.vibrate(12); } catch (_) { /* not allowed: no matter */ }
-    }
-    onHold();
-  };
-  node.addEventListener("pointerdown", (event) => {
-    if (event.pointerType === "mouse") return;   /* a mouse has its right button */
-    x = event.clientX;
-    y = event.clientY;
-    cancel();
-    timer = setTimeout(held, HOLD_MS);
-  });
-  node.addEventListener("pointermove", (event) => {
-    if (timer && Math.hypot(event.clientX - x, event.clientY - y) > HOLD_SLOP) cancel();
-  });
-  for (const type of ["pointerup", "pointercancel", "pointerleave"]) {
-    node.addEventListener(type, cancel);
-  }
-  node.addEventListener("contextmenu", (event) => {
-    event.preventDefault();
-    held();
-  });
-  /* The press a hold ends in is not a press: it must not also start the film
-     the question was asked about.  Registered before the tile's own click. */
-  node.addEventListener("click", (event) => {
-    if (Date.now() - heldAt < HOLD_GRACE_MS) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    }
-  }, true);
-}
-
-function askMark(title, body) {
+function ask(question) {
   if (!control || el.markDialog.open) return;
-  marking = body;
-  el.markTitle.textContent = title;
+  asking = question;
+  el.markTitle.textContent = question.title;
+  el.markPlay.textContent = question.play;
   el.markDialog.returnValue = "";
   el.markDialog.showModal();
 }
 
 el.markDialog.addEventListener("close", () => {
   const answer = el.markDialog.returnValue;
-  const body = marking;
-  marking = null;
-  if (!body || (answer !== "watched" && answer !== "unwatched")) return;
-  setWatched(body, answer === "watched");
+  const question = asking;
+  asking = null;
+  if (!question) return;
+  if (answer === "play") question.onPlay();
+  else if (answer === "watched" || answer === "unwatched") {
+    setWatched(question.body, answer === "watched");
+  }
 });
 
 async function setWatched(body, watched) {

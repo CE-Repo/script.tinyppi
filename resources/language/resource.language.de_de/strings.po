@@ -1862,3 +1862,11 @@ msgstr "Als ungesehen markieren"
 msgctxt "#32577"
 msgid "The library could not be updated"
 msgstr "Die Bibliothek konnte nicht aktualisiert werden"
+
+msgctxt "#32578"
+msgid "Play"
+msgstr "Abspielen"
+
+msgctxt "#32579"
+msgid "Open"
+msgstr "Öffnen"

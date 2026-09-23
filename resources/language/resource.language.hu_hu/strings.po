@@ -1862,3 +1862,11 @@ msgstr "Megjelölés nem látottként"
 msgctxt "#32577"
 msgid "The library could not be updated"
 msgstr "A könyvtárat nem sikerült frissíteni"
+
+msgctxt "#32578"
+msgid "Play"
+msgstr "Lejátszás"
+
+msgctxt "#32579"
+msgid "Open"
+msgstr "Megnyitás"

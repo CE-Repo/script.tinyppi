@@ -233,11 +233,13 @@
 
 </main>
 
-<!-- What a finger held on a poster or an episode asks: whether the box should
-     count it as seen or as unseen (see marking in js/dashboard.js). -->
+<!-- What a press on a poster or an episode asks: play it (open it, for a
+     series), or have the box count it as seen or as unseen (see "what a press
+     asks" in js/dashboard.js). -->
 <dialog id="markDialog"><form method="dialog">
   <h3 id="markTitle"></h3>
   <div class="markoptions">
+    <button value="play" id="markPlay" type="submit"></button>
     <button value="watched" id="markWatched" type="submit"></button>
     <button value="unwatched" id="markUnwatched" type="submit"></button>
   </div>

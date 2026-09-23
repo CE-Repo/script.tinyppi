@@ -565,13 +565,14 @@ series library is.
 
 ### Watched and unwatched
 
-Hold a finger on a film, a series or an episode — or right-click it with a
-mouse — and a dialog asks whether the box should count it as **watched** or
-**unwatched**. The answer is written into Kodi's own library, the way its
-context menu does it: a title marked watched gets a play count and loses its
-resume point, one marked unwatched loses its play count. A series marked
-either way is every episode of it. Continue-watching tiles answer the same
-hold.
+A tap on a film, a series or an episode opens a dialog with three options:
+**Play** (or **Resume**, where the box has a point to resume from),
+**Mark as watched** and **Mark as unwatched**. For a series the first option is
+**Open**, since a series cannot be played; its episodes can. Marking is written
+into Kodi's own library, the way its context menu does it: a title marked
+watched gets a play count and loses its resume point, one marked unwatched
+loses its play count. A series marked either way is every episode of it.
+Continue-watching tiles open the same dialog.
 
 Under the film wall and the series wall is a second card of each holding only
 what is still **unwatched**: the films without a tick, and the series with an
