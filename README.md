@@ -342,7 +342,10 @@ settings:
 
 The address remembers the tab (`/#films`, `/#history`, …), so a bookmark or a
 reload comes back to it, and each device reopens the tab it was left on. The
-film and series tabs are only in the bar when the box offers those libraries.
+film and series tabs are only in the bar when the box offers those libraries,
+and the metadata tab only while a Dolby Vision title is playing. Live, history
+and settings stand centred between the two bars; the shelves and the metadata
+list start at the top.
 The bar shows icons only; each key names its tab under a pointer and to a
 screen reader. The top bar carries just the name, the version and the
 connection light.
@@ -490,7 +493,8 @@ overlay. On a wide screen it flows into two or three columns, never breaking a
 section across them, and the metadata key under **Copy report** on the
 settings tab hands the whole list over as plain text.
 
-On any other source the tab says so rather than sitting empty.
+On any other source, and with nothing playing, the tab is not in the bar at
+all; a page that is on it when the title ends goes back to the live tab.
 
 It can be turned off entirely under **Settings → Dashboard** — it is the
 largest thing the add-on sends, so on a slow network it is the first thing to

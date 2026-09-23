@@ -120,9 +120,13 @@ const scrolls = new Map(); /* how far down each tab was left                 */
 let offered = { films: true, series: true };
 
 /* Whether a tab has anything to show.  The shelves are tabs only on a box
-   that will say what it holds and be told what to play; everything else is
-   always there, with an idle card of its own for when nothing is playing. */
+   that will say what it holds and be told what to play, and the metadata tab
+   only while a Dolby Vision title is playing -- there is no RPU to read on
+   any other source, and with nothing playing there is nothing at all.
+   Everything else is always there, with an idle card of its own for when
+   nothing is playing. */
 function tabAvailable(name) {
+  if (name === "metadata") return state === null || dolbyVision(state);
   if (name === "films") {
     return offered.films && filmsOffered && (state === null || control);
   }
@@ -130,6 +134,13 @@ function tabAvailable(name) {
     return offered.series && seriesOffered && (state === null || control);
   }
   return TABS.includes(name);
+}
+
+/* A Dolby Vision title is playing: the source says so, or the add-on is
+   already sending its metadata list. */
+function dolbyVision(snapshot) {
+  return !!snapshot.playing && (snapshot.hdr_type === "dolbyvision" ||
+                                (snapshot.metadata || []).length > 0);
 }
 
 /* The tab the address asks for: #films, or /metadata -- the address the

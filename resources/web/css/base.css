@@ -403,6 +403,15 @@ main {
 }
 .tabpanel:not(.active) { display: none; }
 
+/* Live, history and settings stand in the middle of the room between the top
+   bar and the tab bar rather than hanging from the top of it; a tab taller
+   than that room simply starts at the top and scrolls, since the panel grows
+   with what is in it.  The two shelves and the metadata list stay at the top:
+   they are long lists that are read from their first line. */
+.tabpanel[data-tab="live"],
+.tabpanel[data-tab="history"],
+.tabpanel[data-tab="settings"] { align-content: center; }
+
 /* A tab with nothing to show but its idle card has that card centred in what
    the page has, rather than left sitting under an empty top bar.  Centred by
    the panel rather than pinned to the viewport, because a card pinned to the
