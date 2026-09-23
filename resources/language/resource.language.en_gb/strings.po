@@ -1611,14 +1611,6 @@ msgctxt "#32511"
 msgid "Player cache"
 msgstr ""
 
-msgctxt "#32512"
-msgid "Player cache below 90%"
-msgstr ""
-
-msgctxt "#32513"
-msgid "Player cache recovered"
-msgstr ""
-
 msgctxt "#32514"
 msgid "Warnings"
 msgstr ""
@@ -1841,4 +1833,40 @@ msgstr ""
 
 msgctxt "#32572"
 msgid "Continue watching"
+msgstr ""
+
+msgctxt "#32573"
+msgid "Unwatched films"
+msgstr ""
+
+msgctxt "#32574"
+msgid "Unwatched series"
+msgstr ""
+
+msgctxt "#32575"
+msgid "Mark as watched"
+msgstr ""
+
+msgctxt "#32576"
+msgid "Mark as unwatched"
+msgstr ""
+
+msgctxt "#32577"
+msgid "The library could not be updated"
+msgstr ""
+
+msgctxt "#32578"
+msgid "Play"
+msgstr ""
+
+msgctxt "#32579"
+msgid "Open"
+msgstr ""
+
+msgctxt "#32580"
+msgid "Play from the beginning"
+msgstr ""
+
+msgctxt "#32581"
+msgid "Clear resume point"
 msgstr ""

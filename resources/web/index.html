@@ -121,6 +121,35 @@
       </div>
     </details>
 
+    <!-- The films the box has not counted as seen, straight under the row of
+         things left half-watched: what is still waiting to be watched, without
+         the hundreds of the full wall further down.  The same tiles as that
+         wall, and a press asks the same question.  Read out of the same list
+         rather than asked for again, and not on the page at all while there
+         is nothing on it. -->
+    <details class="card hidden" id="unseenFilmsCard">
+      <summary class="panel-toggle">
+        <span id="unseenFilmsLabel"></span>
+        <span class="filmscount mono" id="unseenFilmsCount"></span>
+      </summary>
+      <div class="filmsbody">
+        <div class="filmgrid" id="unseenFilmGrid"></div>
+      </div>
+    </details>
+
+    <!-- And the series with an episode still waiting.  Opening one opens it
+         in the series card further down, which is where its episodes are
+         listed, and brings that card into view. -->
+    <details class="card hidden" id="unseenSeriesCard">
+      <summary class="panel-toggle">
+        <span id="unseenSeriesLabel"></span>
+        <span class="filmscount mono" id="unseenSeriesCount"></span>
+      </summary>
+      <div class="filmsbody">
+        <div class="filmgrid" id="unseenSeriesGrid"></div>
+      </div>
+    </details>
+
     <!-- What could be playing instead: the films the video database holds, as
          posters.  A press starts one (see the film library in
          js/dashboard.js).
@@ -203,6 +232,21 @@
   </a>
 
 </main>
+
+<!-- What a press on a poster or an episode asks: play it (open it, for a
+     series), or have the box count it as seen or as unseen (see "what a press
+     asks" in js/dashboard.js). -->
+<dialog id="markDialog"><form method="dialog">
+  <h3 id="markTitle"></h3>
+  <div class="markoptions">
+    <button value="play" id="markPlay" type="submit"></button>
+    <button value="restart" id="markRestart" type="submit" hidden></button>
+    <button value="watched" id="markWatched" type="submit"></button>
+    <button value="unwatched" id="markUnwatched" type="submit"></button>
+    <button value="clear" id="markClear" type="submit" hidden></button>
+  </div>
+  <div class="dlgrow"><button value="cancel" id="markCancel" type="submit"></button></div>
+</form></dialog>
 
 <script src="/js/core.js"></script>
 <script src="/js/cover-tint.js"></script>

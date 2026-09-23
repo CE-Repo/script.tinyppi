@@ -630,8 +630,6 @@
   const EVENT_LABEL = {
     vs10: ["vs10", "VS10 output"],
     mode: ["ev_mode", "Display mode"],
-    cache_low: ["cache_low", "Player cache below 90%"],
-    cache_recovered: ["cache_recovered", "Player cache recovered"],
     audio: ["audio_track", "Audio track"],
     subtitle: ["subtitles", "Subtitles"],
     temperature: ["temperature", "Temperature"],

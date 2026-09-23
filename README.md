@@ -339,8 +339,9 @@ a phone in your hand.
   the add-on has been sampling since playback started, so a page opened halfway
   through a film gets the part it missed instead of starting from empty.
 - **Events** — a list with timestamps of the things worth knowing about: an
-  output switched to or from Dolby Vision, a display mode change, the cache
-  dipping, or the selected audio/subtitle track changing. A long list scrolls
+  output switched to or from Dolby Vision, a display mode change, the box
+  running hot or its processor at full load, or the selected audio/subtitle
+  track changing. A long list scrolls
   inside its own card rather than stretching the page under it.
 - **What the last title came to** — for ten minutes after the credits the page
   keeps the film that just ended: a card of its own with its switch and warning
@@ -562,6 +563,29 @@ a film switched off in the middle is at the front of the row as soon as the box
 has written where it got to. A row with nothing on it is no card at all. Films
 are on it only where the film library is offered and episodes only where the
 series library is.
+
+### Watched and unwatched
+
+A tap on a film, a series or an episode opens a dialog with three options:
+**Play** (or **Resume**, where the box has a point to resume from),
+**Mark as watched** and **Mark as unwatched**. For a series the first option is
+**Open**, since a series cannot be played; its episodes can. Marking is written
+into Kodi's own library, the way its context menu does it: a title marked
+watched gets a play count and loses its resume point, one marked unwatched
+loses its play count. A series marked either way is every episode of it.
+Continue-watching tiles open the same dialog.
+
+A film or an episode that was stopped part-way through gets two more options:
+**Play from the beginning**, which starts it from the top without the resume
+question on the television, and **Clear resume point**, which forgets where it
+got to — taking it off the continue-watching row — while leaving it watched or
+unwatched as it was.
+
+Straight under **Continue watching** are two cards holding only what is still
+**unwatched**: the films without a tick, and the series with an episode still
+waiting; the walls of all films and all series follow them. The tiles ask the
+same question as on the full walls, and opening an unwatched series opens it
+in the series card further down. A card with nothing on it is not shown.
 
 ### Starting an episode from the browser
 

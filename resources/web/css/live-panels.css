@@ -830,10 +830,8 @@
   background: var(--dim);
 }
 .event.shift::before { background: #42b8d5; }
-.event.cache_low::before,
 .event.temperature::before,
 .event.cpu::before { background: var(--warn); }
-.event.cache_recovered::before { background: var(--accent); }
 .event + .event { border-top: 1px solid var(--line-soft); }
 .event .at {
   font-size: 12.5px;

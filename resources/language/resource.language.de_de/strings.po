@@ -1611,14 +1611,6 @@ msgctxt "#32511"
 msgid "Player cache"
 msgstr "Playercache"
 
-msgctxt "#32512"
-msgid "Player cache below 90%"
-msgstr "Playercache unter 90 %"
-
-msgctxt "#32513"
-msgid "Player cache recovered"
-msgstr "Playercache erholt"
-
 msgctxt "#32514"
 msgid "Warnings"
 msgstr "Warnungen"
@@ -1842,3 +1834,39 @@ msgstr "Textfarbe der Tasten im VS10-Dialog, auf denen die Fernbedienung nicht s
 msgctxt "#32572"
 msgid "Continue watching"
 msgstr "Weiterschauen"
+
+msgctxt "#32573"
+msgid "Unwatched films"
+msgstr "Ungesehene Filme"
+
+msgctxt "#32574"
+msgid "Unwatched series"
+msgstr "Ungesehene Serien"
+
+msgctxt "#32575"
+msgid "Mark as watched"
+msgstr "Als gesehen markieren"
+
+msgctxt "#32576"
+msgid "Mark as unwatched"
+msgstr "Als ungesehen markieren"
+
+msgctxt "#32577"
+msgid "The library could not be updated"
+msgstr "Die Bibliothek konnte nicht aktualisiert werden"
+
+msgctxt "#32578"
+msgid "Play"
+msgstr "Abspielen"
+
+msgctxt "#32579"
+msgid "Open"
+msgstr "Öffnen"
+
+msgctxt "#32580"
+msgid "Play from the beginning"
+msgstr "Von vorne abspielen"
+
+msgctxt "#32581"
+msgid "Clear resume point"
+msgstr "Fortsetzungspunkt entfernen"

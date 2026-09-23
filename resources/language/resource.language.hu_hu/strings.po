@@ -1611,14 +1611,6 @@ msgctxt "#32511"
 msgid "Player cache"
 msgstr "Lejátszó gyorsítótár"
 
-msgctxt "#32512"
-msgid "Player cache below 90%"
-msgstr "Lejátszó gyorsítótár 90% alatt"
-
-msgctxt "#32513"
-msgid "Player cache recovered"
-msgstr "Lejátszó gyorsítótár helyreállt"
-
 msgctxt "#32514"
 msgid "Warnings"
 msgstr "Figyelmeztetések"
@@ -1842,3 +1834,39 @@ msgstr "A VS10 párbeszédpanel azon gombjainak szövegszíne, amelyeken nem ál
 msgctxt "#32572"
 msgid "Continue watching"
 msgstr "Megtekintés folytatása"
+
+msgctxt "#32573"
+msgid "Unwatched films"
+msgstr "Nem látott filmek"
+
+msgctxt "#32574"
+msgid "Unwatched series"
+msgstr "Nem látott sorozatok"
+
+msgctxt "#32575"
+msgid "Mark as watched"
+msgstr "Megjelölés látottként"
+
+msgctxt "#32576"
+msgid "Mark as unwatched"
+msgstr "Megjelölés nem látottként"
+
+msgctxt "#32577"
+msgid "The library could not be updated"
+msgstr "A könyvtárat nem sikerült frissíteni"
+
+msgctxt "#32578"
+msgid "Play"
+msgstr "Lejátszás"
+
+msgctxt "#32579"
+msgid "Open"
+msgstr "Megnyitás"
+
+msgctxt "#32580"
+msgid "Play from the beginning"
+msgstr "Lejátszás az elejéről"
+
+msgctxt "#32581"
+msgid "Clear resume point"
+msgstr "Folytatási pont törlése"

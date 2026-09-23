@@ -790,3 +790,37 @@
   opacity: .6;
 }
 .episode:disabled { cursor: progress; }
+
+/* --- What a press asks ------------------------------------------------------ */
+
+/* The three answers a press on a title is given, one above the other at the
+   dialog's full width: they are the whole of what it asks, and three side by
+   side would cut every name short on a phone.  Playing it comes first and in
+   the accent, being what a press on a poster has always been for. */
+.markoptions { display: grid; gap: 8px; }
+.markoptions button[hidden] { display: none; }
+.markoptions button {
+  appearance: none;
+  min-height: var(--tap);
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.markoptions button[value="play"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #05131c;
+}
+@media (hover: hover) {
+  .markoptions button:hover { border-color: var(--accent); }
+}
+.markoptions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+#markTitle {
+  overflow-wrap: anywhere;
+}

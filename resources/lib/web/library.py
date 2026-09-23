@@ -377,11 +377,14 @@ def _tag(path: str) -> str:
 
 # --- Starting one ----------------------------------------------------------
 
-def play(movie_id) -> bool:
+def play(movie_id, resume: bool = True) -> bool:
     """Put a film on the television, returning whether Kodi took it.
 
     Resumed where the library holds a point to resume from, which is what
-    pressing the film in Kodi's own window does.  ``Player.Open`` rather than
+    pressing the film in Kodi's own window does -- unless ``resume`` is False,
+    which is somebody asking for it from the beginning.  Said to Kodi in so
+    many words rather than left out, so it starts from the top without asking
+    on the television whether to resume.  ``Player.Open`` rather than
     a builtin for the reason every other command here uses JSON-RPC: the page
     has to be able to say whether the thing happened.
     """
@@ -393,7 +396,9 @@ def play(movie_id) -> bool:
         return False
 
     params: dict = {"item": {"movieid": wanted}}
-    if _resume_point(wanted):
+    if not resume:
+        params["options"] = {"resume": False}
+    elif _resume_point(wanted):
         params["options"] = {"resume": True}
     if rpc("Player.Open", params).get("result") != "OK":
         return False
@@ -664,10 +669,11 @@ def _read_episodes(show_id: int, title: str) -> dict:
             "tag": f"{show_id:x}-{len(listing):x}-{signature:08x}"}
 
 
-def play_episode(episode_id) -> bool:
+def play_episode(episode_id, resume: bool = True) -> bool:
     """Put one episode on the television, returning whether Kodi took it.
 
-    Resumed where the library holds a point to resume from, the same as a film.
+    Resumed where the library holds a point to resume from, the same as a film,
+    and from the beginning where ``resume`` says so.
     The episode has to have come off a list this module read -- which is the
     only place an id for one can have come from -- so the point is already held
     and nothing is asked of Kodi to find it.
@@ -680,7 +686,9 @@ def play_episode(episode_id) -> bool:
         return False
 
     params: dict = {"item": {"episodeid": wanted}}
-    if _episode_resume_point(wanted):
+    if not resume:
+        params["options"] = {"resume": False}
+    elif _episode_resume_point(wanted):
         params["options"] = {"resume": True}
     if rpc("Player.Open", params).get("result") != "OK":
         return False
@@ -714,6 +722,114 @@ def _episode_resume_point(episode_id: int) -> int:
     result = answer.get("result")
     details = result.get("episodedetails") if isinstance(result, dict) else None
     return _resume((details or {}).get("resume"))
+
+
+# --- Seen and unseen -------------------------------------------------------
+
+# What each kind of title is called in the library's own calls: the id it is
+# named by, and the call that writes its details.  A show has no call of its
+# own for this -- Kodi counts a show as seen when every episode of it is -- so
+# marking one is marking its episodes.
+_MARKABLE = {
+    "movie":   ("movieid", "VideoLibrary.SetMovieDetails"),
+    "episode": ("episodeid", "VideoLibrary.SetEpisodeDetails"),
+}
+
+
+def set_watched(kind: str, item_id, watched: bool) -> bool:
+    """Mark a film, an episode or a whole show as seen or unseen.
+
+    What Kodi's own "mark as watched" does, and no more: a title marked seen
+    gets a play count and loses its resume point, because a film somebody says
+    they have finished is not one to be offered back to them half-way through;
+    one marked unseen loses its play count and keeps where it got to, which is
+    what the context menu in Kodi's own window leaves behind as well.
+
+    Returns whether the library took it.  Every held list is dropped whatever
+    the answer, so the next reader sees what the database actually holds --
+    a show half-marked before a write failed is half-marked there too.
+    """
+    try:
+        wanted = int(item_id)
+    except (TypeError, ValueError):
+        return False
+    if wanted <= 0:
+        return False
+
+    if kind == "tvshow":
+        done = _mark_show(wanted, watched)
+    elif kind in _MARKABLE:
+        done = _mark_one(kind, wanted, watched)
+    else:
+        return False
+    # Kodi announces the write as well (see ``service/monitor.py``), but only
+    # once it has got round to it; dropping the lists here is what makes the
+    # read the page does straight after its press see the change.
+    invalidate()
+    if done:
+        _log(f"{kind} {wanted} marked {'seen' if watched else 'unseen'} "
+             "from the dashboard", xbmc.LOGINFO)
+    return done
+
+
+def clear_resume(kind: str, item_id) -> bool:
+    """Forget where a film or an episode got to, and nothing else.
+
+    Its play count is left as it is: this is somebody saying they will not be
+    coming back to the middle of it, which takes it off the row of things left
+    half-watched without claiming it was ever seen to the end.
+    """
+    if kind not in _MARKABLE:
+        return False
+    try:
+        wanted = int(item_id)
+    except (TypeError, ValueError):
+        return False
+    if wanted <= 0:
+        return False
+    key, method = _MARKABLE[kind]
+    done = rpc(method, {key: wanted,
+                        "resume": {"position": 0, "total": 0}}).get("result") == "OK"
+    invalidate()
+    if done:
+        _log(f"{kind} {wanted}: resume point cleared from the dashboard",
+             xbmc.LOGINFO)
+    return done
+
+
+def _mark_one(kind: str, wanted: int, watched: bool) -> bool:
+    key, method = _MARKABLE[kind]
+    params: dict = {key: wanted, "playcount": 1 if watched else 0}
+    if watched:
+        params["resume"] = {"position": 0, "total": 0}
+        params["lastplayed"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    return rpc(method, params).get("result") == "OK"
+
+
+def _mark_show(show_id: int, watched: bool) -> bool:
+    """Every episode of one show, one write each -- but only those that are
+    not already what they are being marked as, so a show with one episode
+    left is one write and not a season's worth."""
+    answer = rpc("VideoLibrary.GetEpisodes", {
+        "tvshowid": show_id, "properties": ["playcount", "resume"],
+    })
+    if answer.get("error"):
+        _log(f"VideoLibrary.GetEpisodes failed for {show_id}: {answer['error']}")
+        return False
+    result = answer.get("result")
+    rows = (result.get("episodes") or []) if isinstance(result, dict) else []
+
+    done = True
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get("episodeid"), int):
+            continue
+        played = isinstance(row.get("playcount"), int) and row["playcount"] > 0
+        started = _resume(row.get("resume")) > 0
+        if played == watched and not (watched and started):
+            continue
+        if not _mark_one("episode", row["episodeid"], watched):
+            done = False
+    return done
 
 
 # --- Continue watching -----------------------------------------------------

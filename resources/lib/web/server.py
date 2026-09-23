@@ -170,8 +170,6 @@ _UI_STRINGS = {
     "controls":      32494,
     "metrics":       32495,
     "player_cache":  32511,
-    "cache_low":       32512,
-    "cache_recovered": 32513,
     "warnings":        32514,
     "temperature":     32018,
     "processor":       32014,
@@ -211,6 +209,17 @@ _UI_STRINGS = {
     "films_watched":    32540,
     # The row of films and episodes left half-watched, above both shelves.
     "continue":         32572,
+    # The walls of what is still unwatched, under the walls of everything, and
+    # the question a press on a title asks.
+    "films_unseen":     32573,
+    "series_unseen_shows": 32574,
+    "mark_watched":     32575,
+    "mark_unwatched":   32576,
+    "mark_failed":      32577,
+    "films_play":       32578,
+    "series_open":      32579,
+    "play_from_start":  32580,
+    "resume_clear":     32581,
     # And the series library beside it: the same shelf with one floor more,
     # so the same strings again plus the few an episode list needs.
     "series":           32541,
@@ -241,6 +250,7 @@ def ui_strings(addon=None) -> dict[str, str]:
     # would erase the report values when the hello response reaches the page.
     strings["yes"] = xbmc.getLocalizedString(107) or "Yes"
     strings["no"] = xbmc.getLocalizedString(106) or "No"
+    strings["cancel"] = xbmc.getLocalizedString(222) or "Cancel"
     return strings
 
 
@@ -870,7 +880,8 @@ class _Handler(BaseHTTPRequestHandler):
             return
 
         route = urlparse(self.path).path
-        if route not in ("/api/mode", "/api/command", "/api/play"):
+        if route not in ("/api/mode", "/api/command", "/api/play",
+                         "/api/watched", "/api/resume"):
             self._send_error_json(HTTPStatus.NOT_FOUND, "no such route")
             return
         if not self.server.allow_control:
@@ -883,6 +894,14 @@ class _Handler(BaseHTTPRequestHandler):
 
         if route == "/api/play":
             self._start_film(payload)
+            return
+
+        if route == "/api/watched":
+            self._mark_watched(payload)
+            return
+
+        if route == "/api/resume":
+            self._clear_resume(payload)
             return
 
         if route == "/api/mode":
@@ -962,12 +981,15 @@ class _Handler(BaseHTTPRequestHandler):
         a series itself is never named here, because a series is not a thing
         that can be played.
         """
+        # False asks for the title from the beginning, past any point the
+        # library holds to resume it from; anything else resumes as before.
+        resume = payload.get("resume") is not False
         episode_id = payload.get("episodeid")
         if episode_id is not None:
             if not self.server.offer_series:
                 self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
                 return
-            if not library.play_episode(episode_id):
+            if not library.play_episode(episode_id, resume):
                 self._send_error_json(HTTPStatus.BAD_REQUEST, "playback failed")
                 return
             _log(f"episode {episode_id} started from {self.client_address[0]}")
@@ -978,7 +1000,7 @@ class _Handler(BaseHTTPRequestHandler):
             self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
             return
         movie_id = payload.get("movieid")
-        if not library.play(movie_id):
+        if not library.play(movie_id, resume):
             self._send_error_json(HTTPStatus.BAD_REQUEST, "playback failed")
             return
         _log(f"film {movie_id} started from {self.client_address[0]}")
@@ -986,6 +1008,54 @@ class _Handler(BaseHTTPRequestHandler):
         # second and the page learns the film is on from the next snapshot,
         # the same way it learns about one started from the remote control.
         self._send_json({"ok": True, "movieid": movie_id})
+
+    def _mark_watched(self, payload: dict) -> None:
+        """Mark a film, a series or one episode of one as seen or unseen.
+
+        Which of the three it is, is which id the body carries, the same as
+        ``/api/play``; ``watched`` says which way.  Behind the same settings as
+        the shelf the title came off: a box that offers no series has handed
+        out no series to be marked.
+        """
+        watched = payload.get("watched")
+        if not isinstance(watched, bool):
+            self._send_error_json(HTTPStatus.BAD_REQUEST, "watched required")
+            return
+        for key, kind, offered in (
+                ("movieid", "movie", self.server.offer_library),
+                ("tvshowid", "tvshow", self.server.offer_series),
+                ("episodeid", "episode", self.server.offer_series)):
+            item_id = payload.get(key)
+            if item_id is None:
+                continue
+            if not offered:
+                self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
+                return
+            if not library.set_watched(kind, item_id, watched):
+                self._send_error_json(HTTPStatus.BAD_REQUEST, "update failed")
+                return
+            self._send_json({"ok": True, key: item_id, "watched": watched})
+            return
+        self._send_error_json(HTTPStatus.BAD_REQUEST, "no title named")
+
+    def _clear_resume(self, payload: dict) -> None:
+        """Forget where a film or one episode got to, leaving it unwatched or
+        watched as it was.  A series has no resume point of its own."""
+        for key, kind, offered in (
+                ("movieid", "movie", self.server.offer_library),
+                ("episodeid", "episode", self.server.offer_series)):
+            item_id = payload.get(key)
+            if item_id is None:
+                continue
+            if not offered:
+                self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
+                return
+            if not library.clear_resume(kind, item_id):
+                self._send_error_json(HTTPStatus.BAD_REQUEST, "update failed")
+                return
+            self._send_json({"ok": True, key: item_id})
+            return
+        self._send_error_json(HTTPStatus.BAD_REQUEST, "no title named")
 
     def _serve_series(self) -> None:
         """Send the series the video database holds."""

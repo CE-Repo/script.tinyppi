@@ -686,15 +686,10 @@ class SessionLog:
     #: is kept from where it was first seen, so the row still says when.
     TRACK_SETTLE = 1.5
 
-    #: Cache level that counts as a dip, and the one that ends it.  Two
-    #: figures rather than one, so a level hovering at the line writes one
-    #: event instead of a hundred.
-    CACHE_LOW   = 90.0
-    CACHE_CLEAR = 90.0
     TEMP_HIGH   = 75.0
     CPU_FULL    = 100.0
     SWITCH_KINDS = frozenset(("vs10", "mode", "audio", "subtitle"))
-    WARNING_KINDS = frozenset(("cache_low", "temperature", "cpu"))
+    WARNING_KINDS = frozenset(("temperature", "cpu"))
     #: How long a finished title is kept after the player has stopped.  The
     #: figures are worth most in the minutes right after the credits, which is
     #: exactly when the old behaviour -- throwing them away the moment
@@ -724,7 +719,6 @@ class SessionLog:
         self._watched: dict[str, tuple[str, str]] = {}
         # A track reading that has changed but not yet settled; see _settle.
         self._pending: dict[str, tuple] = {}
-        self._cache_dipped = False
         self._temperature_hot = False
         self._cpu_full = False
         self._fps = None
@@ -865,9 +859,6 @@ class SessionLog:
     def _watch_levels(self, metrics: dict, now: float, position: str) -> None:
         """Follow the warning levels and the frame rate on the producer's
         fast clock."""
-        cache = metrics.get("cache")
-        if cache is not None:
-            self._watch_cache(cache, now, position)
         temperature = metrics.get("cpu_temp")
         if temperature is not None:
             self._watch_temperature(temperature, now, position)
@@ -888,14 +879,6 @@ class SessionLog:
         ))
         if len(self._samples) > self.MAX_SAMPLES:
             del self._samples[:len(self._samples) - self.MAX_SAMPLES]
-
-    def _watch_cache(self, cache: float, now: float, position: str) -> None:
-        if not self._cache_dipped and cache < self.CACHE_LOW:
-            self._cache_dipped = True
-            self._add_event(now, position, "cache_low", {"value": cache})
-        elif self._cache_dipped and cache > self.CACHE_CLEAR:
-            self._cache_dipped = False
-            self._add_event(now, position, "cache_recovered", {"value": cache})
 
     def _watch_temperature(self, temperature: float, now: float,
                            position: str) -> None:
