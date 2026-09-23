@@ -629,9 +629,6 @@ footer {
   font-size: 12px;
   padding: 4px 2px;
 }
-@media (max-width: 480px) {
-  .status #statusText { display: none; }
-}
 
 #toast {
   position: fixed;
