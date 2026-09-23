@@ -522,7 +522,6 @@ The cards **arrive open** — the tab is there for the films — and each folds
 away under its own heading with the number of titles beside it. How it was
 left is remembered on each device.
 
-
 The list is read from the video database once and held until Kodi says it
 changed, so a film added mid-evening appears without anything being restarted,
 and a phone that opens the page twice is answered the second time with a
