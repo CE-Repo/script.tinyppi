@@ -39,6 +39,7 @@ const el = {
   unseenSeriesCard: $("unseenSeriesCard"), unseenSeriesGrid: $("unseenSeriesGrid"),
   unseenSeriesCount: $("unseenSeriesCount"),
   markDialog: $("markDialog"), markTitle: $("markTitle"), markPlay: $("markPlay"),
+  markRestart: $("markRestart"), markClear: $("markClear"),
   markWatched: $("markWatched"), markUnwatched: $("markUnwatched"),
   markCancel: $("markCancel")
 };
@@ -699,7 +700,8 @@ function filmTile(film) {
   tile.addEventListener("click", () => ask({
     title: film.title, body: { movieid: film.id },
     play: film.resume ? T.films_resume : T.films_play,
-    onPlay: () => startFilm(film, tile)
+    resumable: !!film.resume,
+    onPlay: (fromStart) => startFilm(film, tile, fromStart)
   }));
   return tile;
 }
@@ -720,7 +722,7 @@ function applyFilmSearch() {
   el.filmsEmpty.classList.toggle("hidden", shown > 0);
 }
 
-async function startFilm(film, tile) {
+async function startFilm(film, tile, fromStart) {
   if (starting) return;
   starting = film.id;
   tile.classList.add("busy");
@@ -732,7 +734,8 @@ async function startFilm(film, tile) {
     const response = await fetch("/api/play", {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-TinyPPI-Token": TinyPPI.token },
-      body: JSON.stringify({ movieid: film.id })
+      body: JSON.stringify(fromStart ? { movieid: film.id, resume: false }
+                                     : { movieid: film.id })
     });
     if (response.status === 401) {
       failed = true;
@@ -1189,7 +1192,8 @@ function episodeRow(episode) {
     title: [code, episode.title].filter(Boolean).join(" \u00b7 "),
     body: { episodeid: episode.id },
     play: episode.resume ? T.films_resume : T.films_play,
-    onPlay: () => startEpisode(episode, row)
+    resumable: !!episode.resume,
+    onPlay: (fromStart) => startEpisode(episode, row, fromStart)
   }));
   return row;
 }
@@ -1215,7 +1219,7 @@ function closeShow() {
   applySeriesSearch();
 }
 
-async function startEpisode(episode, row) {
+async function startEpisode(episode, row, fromStart) {
   if (startingEpisode) return;
   startingEpisode = episode.id;
   row.classList.add("busy");
@@ -1229,7 +1233,8 @@ async function startEpisode(episode, row) {
     const response = await fetch("/api/play", {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-TinyPPI-Token": TinyPPI.token },
-      body: JSON.stringify({ episodeid: episode.id })
+      body: JSON.stringify(fromStart ? { episodeid: episode.id, resume: false }
+                                     : { episodeid: episode.id })
     });
     if (response.status === 401) {
       failed = true;
@@ -1395,12 +1400,13 @@ function continueTile(item) {
                    : item.title,
     body: episode ? { episodeid: item.id } : { movieid: item.id },
     play: T.films_resume,
-    onPlay: () => startContinue(item, tile)
+    resumable: true,
+    onPlay: (fromStart) => startContinue(item, tile, fromStart)
   }));
   return tile;
 }
 
-async function startContinue(item, tile) {
+async function startContinue(item, tile, fromStart) {
   if (resuming) return;
   resuming = item.id;
   tile.classList.add("busy");
@@ -1409,6 +1415,7 @@ async function startContinue(item, tile) {
 
   const body = item.kind === "episode"
     ? { episodeid: item.id } : { movieid: item.id };
+  if (fromStart) body.resume = false;
   let failed = false;
   try {
     const response = await fetch("/api/play", {
@@ -1472,6 +1479,10 @@ function ask(question) {
   asking = question;
   el.markTitle.textContent = question.title;
   el.markPlay.textContent = question.play;
+  /* From the beginning, and forgetting where it got to, are answers only for
+     a title that has got somewhere. */
+  el.markRestart.hidden = !question.resumable;
+  el.markClear.hidden = !question.resumable;
   el.markDialog.returnValue = "";
   el.markDialog.showModal();
 }
@@ -1481,35 +1492,54 @@ el.markDialog.addEventListener("close", () => {
   const question = asking;
   asking = null;
   if (!question) return;
-  if (answer === "play") question.onPlay();
+  if (answer === "play") question.onPlay(false);
+  else if (answer === "restart") question.onPlay(true);
+  else if (answer === "clear") clearResume(question.body);
   else if (answer === "watched" || answer === "unwatched") {
     setWatched(question.body, answer === "watched");
   }
 });
 
-async function setWatched(body, watched) {
+/* Forget where a film or an episode got to, leaving it seen or unseen as it
+   was: it leaves the row of things half-watched, and its bar leaves the wall. */
+async function clearResume(body) {
+  if (await post("/api/resume", body)) reread();
+}
+
+/* One of the library writes, answering whether the box took it and saying so
+   where it did not. */
+async function post(route, body) {
   try {
-    const response = await fetch("/api/watched", {
+    const response = await fetch(route, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-TinyPPI-Token": TinyPPI.token },
-      body: JSON.stringify(Object.assign({ watched }, body))
+      body: JSON.stringify(body)
     });
     if (response.status === 401) {
       TinyPPI.toast(T.token_bad, true);
       TinyPPI.askToken();
-      return;
+      return false;
     }
     if (!response.ok) {
       TinyPPI.toast(T.mark_failed, true);
-      return;
+      return false;
     }
+    return true;
   } catch (_) {
     TinyPPI.toast(T.mark_failed, true);
-    return;
+    return false;
   }
-  /* Read again at once rather than on the next version the snapshot carries:
-     the box has already dropped what it held, and the tick somebody just
-     asked for should not wait on the producer's cadence to appear. */
+}
+
+async function setWatched(body, watched) {
+  if (await post("/api/watched", Object.assign({ watched }, body))) reread();
+}
+
+/* Read everything the write may have moved, at once rather than on the next
+   version the snapshot carries: the box has already dropped what it held, and
+   the answer somebody just asked for should not wait on the producer's
+   cadence to appear. */
+function reread() {
   filmsRead = false;
   seriesRead = false;
   continueRead = false;
@@ -1621,6 +1651,8 @@ function applyStrings(strings, hello) {
   $("seriesLabel").textContent = strings.series;
   $("unseenFilmsLabel").textContent = strings.films_unseen;
   $("unseenSeriesLabel").textContent = strings.series_unseen_shows;
+  el.markRestart.textContent = strings.play_from_start;
+  el.markClear.textContent = strings.resume_clear;
   el.markWatched.textContent = strings.mark_watched;
   el.markUnwatched.textContent = strings.mark_unwatched;
   el.markCancel.textContent = strings.cancel;

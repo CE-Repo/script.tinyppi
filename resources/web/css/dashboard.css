@@ -798,6 +798,7 @@
    side would cut every name short on a phone.  Playing it comes first and in
    the accent, being what a press on a poster has always been for. */
 .markoptions { display: grid; gap: 8px; }
+.markoptions button[hidden] { display: none; }
 .markoptions button {
   appearance: none;
   min-height: var(--tap);

@@ -574,6 +574,12 @@ watched gets a play count and loses its resume point, one marked unwatched
 loses its play count. A series marked either way is every episode of it.
 Continue-watching tiles open the same dialog.
 
+A film or an episode that was stopped part-way through gets two more options:
+**Play from the beginning**, which starts it from the top without the resume
+question on the television, and **Clear resume point**, which forgets where it
+got to — taking it off the continue-watching row — while leaving it watched or
+unwatched as it was.
+
 Under the film wall and the series wall is a second card of each holding only
 what is still **unwatched**: the films without a tick, and the series with an
 episode still waiting. A press on an unwatched film starts it; a press on an

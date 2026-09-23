@@ -1871,3 +1871,11 @@ msgstr "تشغيل"
 msgctxt "#32579"
 msgid "Open"
 msgstr "فتح"
+
+msgctxt "#32580"
+msgid "Play from the beginning"
+msgstr "التشغيل من البداية"
+
+msgctxt "#32581"
+msgid "Clear resume point"
+msgstr "إزالة نقطة الاستئناف"

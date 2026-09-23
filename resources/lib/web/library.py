@@ -377,11 +377,14 @@ def _tag(path: str) -> str:
 
 # --- Starting one ----------------------------------------------------------
 
-def play(movie_id) -> bool:
+def play(movie_id, resume: bool = True) -> bool:
     """Put a film on the television, returning whether Kodi took it.
 
     Resumed where the library holds a point to resume from, which is what
-    pressing the film in Kodi's own window does.  ``Player.Open`` rather than
+    pressing the film in Kodi's own window does -- unless ``resume`` is False,
+    which is somebody asking for it from the beginning.  Said to Kodi in so
+    many words rather than left out, so it starts from the top without asking
+    on the television whether to resume.  ``Player.Open`` rather than
     a builtin for the reason every other command here uses JSON-RPC: the page
     has to be able to say whether the thing happened.
     """
@@ -393,7 +396,9 @@ def play(movie_id) -> bool:
         return False
 
     params: dict = {"item": {"movieid": wanted}}
-    if _resume_point(wanted):
+    if not resume:
+        params["options"] = {"resume": False}
+    elif _resume_point(wanted):
         params["options"] = {"resume": True}
     if rpc("Player.Open", params).get("result") != "OK":
         return False
@@ -664,10 +669,11 @@ def _read_episodes(show_id: int, title: str) -> dict:
             "tag": f"{show_id:x}-{len(listing):x}-{signature:08x}"}
 
 
-def play_episode(episode_id) -> bool:
+def play_episode(episode_id, resume: bool = True) -> bool:
     """Put one episode on the television, returning whether Kodi took it.
 
-    Resumed where the library holds a point to resume from, the same as a film.
+    Resumed where the library holds a point to resume from, the same as a film,
+    and from the beginning where ``resume`` says so.
     The episode has to have come off a list this module read -- which is the
     only place an id for one can have come from -- so the point is already held
     and nothing is asked of Kodi to find it.
@@ -680,7 +686,9 @@ def play_episode(episode_id) -> bool:
         return False
 
     params: dict = {"item": {"episodeid": wanted}}
-    if _episode_resume_point(wanted):
+    if not resume:
+        params["options"] = {"resume": False}
+    elif _episode_resume_point(wanted):
         params["options"] = {"resume": True}
     if rpc("Player.Open", params).get("result") != "OK":
         return False
@@ -761,6 +769,31 @@ def set_watched(kind: str, item_id, watched: bool) -> bool:
     if done:
         _log(f"{kind} {wanted} marked {'seen' if watched else 'unseen'} "
              "from the dashboard", xbmc.LOGINFO)
+    return done
+
+
+def clear_resume(kind: str, item_id) -> bool:
+    """Forget where a film or an episode got to, and nothing else.
+
+    Its play count is left as it is: this is somebody saying they will not be
+    coming back to the middle of it, which takes it off the row of things left
+    half-watched without claiming it was ever seen to the end.
+    """
+    if kind not in _MARKABLE:
+        return False
+    try:
+        wanted = int(item_id)
+    except (TypeError, ValueError):
+        return False
+    if wanted <= 0:
+        return False
+    key, method = _MARKABLE[kind]
+    done = rpc(method, {key: wanted,
+                        "resume": {"position": 0, "total": 0}}).get("result") == "OK"
+    invalidate()
+    if done:
+        _log(f"{kind} {wanted}: resume point cleared from the dashboard",
+             xbmc.LOGINFO)
     return done
 
 

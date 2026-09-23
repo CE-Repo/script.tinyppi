@@ -1870,3 +1870,11 @@ msgstr ""
 msgctxt "#32579"
 msgid "Open"
 msgstr ""
+
+msgctxt "#32580"
+msgid "Play from the beginning"
+msgstr ""
+
+msgctxt "#32581"
+msgid "Clear resume point"
+msgstr ""

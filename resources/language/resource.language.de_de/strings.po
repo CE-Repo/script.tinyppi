@@ -1870,3 +1870,11 @@ msgstr "Abspielen"
 msgctxt "#32579"
 msgid "Open"
 msgstr "Öffnen"
+
+msgctxt "#32580"
+msgid "Play from the beginning"
+msgstr "Von vorne abspielen"
+
+msgctxt "#32581"
+msgid "Clear resume point"
+msgstr "Fortsetzungspunkt entfernen"

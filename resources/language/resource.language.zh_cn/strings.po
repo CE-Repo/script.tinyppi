@@ -1870,3 +1870,11 @@ msgstr "播放"
 msgctxt "#32579"
 msgid "Open"
 msgstr "打开"
+
+msgctxt "#32580"
+msgid "Play from the beginning"
+msgstr "从头播放"
+
+msgctxt "#32581"
+msgid "Clear resume point"
+msgstr "清除续播位置"

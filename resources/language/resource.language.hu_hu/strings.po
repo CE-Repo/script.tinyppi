@@ -1870,3 +1870,11 @@ msgstr "Lejátszás"
 msgctxt "#32579"
 msgid "Open"
 msgstr "Megnyitás"
+
+msgctxt "#32580"
+msgid "Play from the beginning"
+msgstr "Lejátszás az elejéről"
+
+msgctxt "#32581"
+msgid "Clear resume point"
+msgstr "Folytatási pont törlése"
