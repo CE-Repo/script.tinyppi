@@ -216,6 +216,8 @@ _UI_STRINGS = {
     "films_watched":    32540,
     # The row of films and episodes left half-watched, above both shelves.
     "continue":         32572,
+    # The row of what arrived in the library last, under it.
+    "recent":           32588,
     # The walls of what is still unwatched, under the walls of everything, and
     # the question a press on a title asks.
     "films_unseen":     32573,

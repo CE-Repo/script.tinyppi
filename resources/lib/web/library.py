@@ -47,8 +47,12 @@ _ADDON_ID = "script.tinyppi"
 # What the card draws, and nothing beyond it: a poster, a title, a year, how
 # long it runs, and whether it has been seen or left half-watched.  The plot
 # and the cast belong to a screen the dashboard does not have.
+#
+# ``dateadded`` is not drawn on the tile but decides which films stand on the
+# row of what arrived last (see ``_added``); reading it here rather than in a
+# query of its own keeps that row in step with the wall it is taken from.
 _PROPERTIES = ("title", "year", "art", "runtime", "playcount", "resume",
-               "ratings")
+               "ratings", "dateadded")
 
 # Which piece of art stands for a film, best first.  A library entry usually
 # carries a poster; ``thumb`` is what a film scraped from a folder of files
@@ -287,12 +291,16 @@ def _read() -> dict:
         if resume:
             film["resume"] = resume
         _rate(film, row.get("ratings"))
+        added = _added(row.get("dateadded"))
+        if added:
+            film["added"] = added
         films.append(film)
 
         signature = zlib.crc32(
             f"{movie_id}\x1f{title}\x1f{film['poster']}\x1f"
             f"{film.get('resume', 0)}\x1f{film.get('watched', False)}\x1f"
-            f"{film.get('duration', 0)}\x1f{film.get('rating', 0)}"
+            f"{film.get('duration', 0)}\x1f{film.get('rating', 0)}\x1f"
+            f"{added}"
             .encode("utf-8", "replace"), signature)
 
     _log(f"{len(films)} films read from the video database", xbmc.LOGINFO)
@@ -366,6 +374,21 @@ def _resume(resume) -> int:
 _ART_REVISION = "#2"
 
 
+def _added(value) -> str:
+    """When a title arrived in the library, as Kodi writes it, or ''.
+
+    Handed on as the text Kodi keeps -- "2026-09-22 20:15:00" -- because that
+    text sorts in the order it happened, which is all a client does with it.
+    An empty date and Kodi's own placeholder for one both come back as ''.
+    """
+    if not isinstance(value, str):
+        return ""
+    value = value.strip()
+    if not value or value.startswith("0000"):
+        return ""
+    return value
+
+
 def _tag(path: str) -> str:
     """A short, stable name for a picture, hung on its address so a browser
     fetches one poster once rather than once per visit."""
@@ -421,8 +444,11 @@ def _resume_point(movie_id: int) -> int:
 # What a show's tile draws: a poster, a name, a year, and how much of it is
 # still unwatched -- which is the one number that decides whether a shelf of
 # shows is worth opening tonight.
+# ``dateadded`` of a show is the newest of its episodes' -- Kodi counts it that
+# way -- so a show that gained an episode last night is a show added last night,
+# which is what the row of what arrived last wants of it.
 _SHOW_PROPERTIES = ("title", "year", "art", "episode", "watchedepisodes",
-                    "ratings")
+                    "ratings", "dateadded")
 
 # And what an episode's row draws.  ``firstaired`` is not among them: a row
 # that already says which season and which number it is has said where in the
@@ -591,12 +617,15 @@ def _read_shows() -> dict:
                 if show["unseen"] == 0:
                     show["watched"] = True
         _rate(show, row.get("ratings"))
+        added = _added(row.get("dateadded"))
+        if added:
+            show["added"] = added
         series.append(show)
 
         signature = zlib.crc32(
             f"{show_id}\x1f{title}\x1f{show['poster']}\x1f{show['fanart']}\x1f"
             f"{show.get('unseen', -1)}\x1f{show.get('episodes', 0)}\x1f"
-            f"{show.get('rating', 0)}"
+            f"{show.get('rating', 0)}\x1f{added}"
             .encode("utf-8", "replace"), signature)
 
     _log(f"{len(series)} series read from the video database", xbmc.LOGINFO)

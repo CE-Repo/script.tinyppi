@@ -1875,3 +1875,7 @@ msgstr "إدخال الرمز"
 msgctxt "#32587"
 msgid "Readings and events"
 msgstr "القيم والأحداث"
+
+msgctxt "#32588"
+msgid "Recently added"
+msgstr "أضيفت مؤخرًا"
