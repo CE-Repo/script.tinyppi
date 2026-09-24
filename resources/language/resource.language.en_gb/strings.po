@@ -1483,10 +1483,6 @@ msgctxt "#32472"
 msgid "Dolby Vision"
 msgstr ""
 
-msgctxt "#32476"
-msgid "Frame drops"
-msgstr ""
-
 msgctxt "#32478"
 msgid "Switches"
 msgstr ""
@@ -1523,10 +1519,6 @@ msgctxt "#32486"
 msgid "Off"
 msgstr ""
 
-msgctxt "#32487"
-msgid "Volume"
-msgstr ""
-
 msgctxt "#32488"
 msgid "Mute"
 msgstr ""
@@ -1541,10 +1533,6 @@ msgstr ""
 
 msgctxt "#32491"
 msgid "Display mode"
-msgstr ""
-
-msgctxt "#32492"
-msgid "Cache dip"
 msgstr ""
 
 msgctxt "#32494"
@@ -1565,10 +1553,6 @@ msgstr ""
 
 msgctxt "#32498"
 msgid "Midnight"
-msgstr ""
-
-msgctxt "#32499"
-msgid "Switch to {name} (hold for the full list)"
 msgstr ""
 
 msgctxt "#32500"
@@ -1601,10 +1585,6 @@ msgstr ""
 
 msgctxt "#32509"
 msgid "Too many connections"
-msgstr ""
-
-msgctxt "#32510"
-msgid "Menu"
 msgstr ""
 
 msgctxt "#32511"
