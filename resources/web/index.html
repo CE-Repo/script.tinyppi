@@ -97,7 +97,7 @@
   </section>
 
   <!-- The films the video database holds: what was left half-watched, what
-       has not been seen yet, and the wall of all of them.  A press on a
+       arrived last, what has not been seen yet, and the wall of all of them.  A press on a
        poster asks what is wanted of it (see "what a press asks" in
        js/dashboard.js). -->
   <section class="tabpanel" id="tab-films" data-tab="films" role="tabpanel"
@@ -109,6 +109,15 @@
       </summary>
       <div class="filmsbody">
         <div class="continuerow" id="continueFilmsRow"></div>
+      </div>
+    </details>
+
+    <details class="card hidden" id="recentFilmsCard">
+      <summary class="panel-toggle">
+        <span id="recentFilmsLabel"></span>
+      </summary>
+      <div class="filmsbody">
+        <div class="continuerow" id="recentFilmsRow"></div>
       </div>
     </details>
 
@@ -139,7 +148,7 @@
     </details>
   </section>
 
-  <!-- And the series: the same three cards, except that a series is not a
+  <!-- And the series: the same four cards, except that a series is not a
        thing that can be played -- a press opens the show, the wall gives way
        to its episodes, and a press on one of those starts it. -->
   <section class="tabpanel" id="tab-series" data-tab="series" role="tabpanel"
@@ -151,6 +160,15 @@
       </summary>
       <div class="filmsbody">
         <div class="continuerow" id="continueSeriesRow"></div>
+      </div>
+    </details>
+
+    <details class="card hidden" id="recentSeriesCard">
+      <summary class="panel-toggle">
+        <span id="recentSeriesLabel"></span>
+      </summary>
+      <div class="filmsbody">
+        <div class="continuerow" id="recentSeriesRow"></div>
       </div>
     </details>
 

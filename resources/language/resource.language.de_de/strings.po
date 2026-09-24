@@ -1874,3 +1874,7 @@ msgstr "Token eingeben"
 msgctxt "#32587"
 msgid "Readings and events"
 msgstr "Werte und Ereignisse"
+
+msgctxt "#32588"
+msgid "Recently added"
+msgstr "Zuletzt hinzugefügt"

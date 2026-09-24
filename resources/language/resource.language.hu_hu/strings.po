@@ -1874,3 +1874,7 @@ msgstr "Token megadása"
 msgctxt "#32587"
 msgid "Readings and events"
 msgstr "Értékek és események"
+
+msgctxt "#32588"
+msgid "Recently added"
+msgstr "Nemrég hozzáadott"

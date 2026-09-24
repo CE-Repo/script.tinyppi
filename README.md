@@ -335,8 +335,8 @@ settings:
 |---|---|
 | **Live** | What is playing, the transport row, the VS10 output and every reading of the overlay |
 | **Metadata** | The Dolby Vision metadata: the active picture area, the luminance chart and the full list (see below) |
-| **Films** | Continue watching (films), the unwatched films and the whole film library |
-| **Series** | Continue watching (episodes), the series with unwatched episodes and the whole series library |
+| **Films** | Continue watching (films), recently added films, the unwatched films and the whole film library |
+| **Series** | Continue watching (episodes), recently updated series, the series with unwatched episodes and the whole series library |
 | **History** | The metrics and the events of the title that is playing — or, for ten minutes after the credits, of the one that just ended |
 | **Settings** | The theme, the access token and the two reports |
 
@@ -377,6 +377,8 @@ connection light.
   middle of, the last one seen first: the films at the top of the films tab,
   the episodes at the top of the series tab. Each poster carries how far it
   got, and a tap resumes it where it was (see below).
+- **Recently added** — the ten films, and the ten series, that arrived in the
+  library last, newest first (see below).
 - **The film library** — the films in Kodi's video database as a wall of
   posters, and a tap starts one on the box (see below). Its tab is there
   whether or not anything is playing.
@@ -579,6 +581,16 @@ has written where it got to. A row with nothing on it is no card at all. Films
 are on it only where the film library is offered and episodes only where the
 series library is.
 
+### Recently added
+
+Under **Continue watching** is a second row of the same kind: the ten films
+that arrived in the library last, and on the series tab the ten series that
+gained an episode last, newest first. Kodi dates a series by its newest
+episode, so a show that got a new episode last night is at the front. The
+tiles are the ones on the walls — a tap on a film asks what to do with it, a
+tap on a series opens it in the series card further down — and the row is
+built from the lists the walls are, so it moves with them.
+
 ### Watched and unwatched
 
 A tap on a film, a series or an episode opens a dialog with three options:
@@ -596,7 +608,7 @@ question on the television, and **Clear resume point**, which forgets where it
 got to — taking it off the continue-watching row — while leaving it watched or
 unwatched as it was.
 
-Straight under **Continue watching** are two cards holding only what is still
+Under **Continue watching** and **Recently added** are two cards holding only what is still
 **unwatched**: the films without a tick, and the series with an episode still
 waiting; the walls of all films and all series follow them. The tiles ask the
 same question as on the full walls, and opening an unwatched series opens it

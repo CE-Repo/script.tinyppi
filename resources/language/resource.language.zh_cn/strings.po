@@ -1874,3 +1874,7 @@ msgstr "输入令牌"
 msgctxt "#32587"
 msgid "Readings and events"
 msgstr "数值与事件"
+
+msgctxt "#32588"
+msgid "Recently added"
+msgstr "最近添加"

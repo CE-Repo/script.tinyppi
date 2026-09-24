@@ -42,6 +42,8 @@ const el = {
   seriesSearch: $("seriesSearch"), seriesSearchClear: $("seriesSearchClear"),
   seriesBox: $("seriesSearchBox"), seriesBack: $("seriesBack"),
   seriesOpen: $("seriesOpen"), episodeList: $("episodeList"),
+  recentFilmsCard: $("recentFilmsCard"), recentFilmsRow: $("recentFilmsRow"),
+  recentSeriesCard: $("recentSeriesCard"), recentSeriesRow: $("recentSeriesRow"),
   unseenFilmsCard: $("unseenFilmsCard"), unseenFilmGrid: $("unseenFilmGrid"),
   unseenFilmsCount: $("unseenFilmsCount"),
   unseenSeriesCard: $("unseenSeriesCard"), unseenSeriesGrid: $("unseenSeriesGrid"),
@@ -105,6 +107,9 @@ TinyPPI.bindDisclosure(el.unseenSeriesCard, "dashboard.unseenseries", true);
    films tab and the episodes on the series tab, as the app splits them. */
 TinyPPI.bindDisclosure(el.continueFilmsCard, "dashboard.continuefilms", true);
 TinyPPI.bindDisclosure(el.continueSeriesCard, "dashboard.continueseries", true);
+/* And what arrived last, under them. */
+TinyPPI.bindDisclosure(el.recentFilmsCard, "dashboard.recentfilms", true);
+TinyPPI.bindDisclosure(el.recentSeriesCard, "dashboard.recentseries", true);
 
 /* --- tabs --------------------------------------------------------------- */
 
@@ -690,6 +695,8 @@ async function loadFilms() {
       buildFilms();
     }
     el.filmsCard.classList.remove("hidden");
+    el.recentFilmsCard.classList.toggle("hidden",
+                                        !el.recentFilmsRow.children.length);
     el.unseenFilmsCard.classList.toggle("hidden",
                                         !el.unseenFilmGrid.children.length);
   } catch (error) {
@@ -718,6 +725,10 @@ function buildFilms() {
   }
   el.filmGrid.replaceChildren(wall);
   el.unseenFilmGrid.replaceChildren(unseen);
+  const recent = document.createDocumentFragment();
+  for (const film of newest(films)) recent.append(filmTile(film));
+  el.recentFilmsRow.replaceChildren(recent);
+  el.recentFilmsRow.scrollLeft = 0;
   el.unseenFilmsCount.textContent = waiting ? String(waiting) : "";
   applyFilmSearch();
 }
@@ -725,13 +736,33 @@ function buildFilms() {
 /* Both film walls off the page, for a box with no library to offer. */
 function hideFilms() {
   el.filmsCard.classList.add("hidden");
+  el.recentFilmsCard.classList.add("hidden");
   el.unseenFilmsCard.classList.add("hidden");
 }
 
 /* Every film tile on the page, on either wall: a press on one waits for its
    film on both. */
 function filmTiles() {
-  return [...el.filmGrid.children, ...el.unseenFilmGrid.children];
+  return [...el.filmGrid.children, ...el.unseenFilmGrid.children,
+          ...el.recentFilmsRow.children];
+}
+
+/* How many titles the row of what arrived last holds.  A phone shows three or
+   four of them at once, so ten is two or three flicks along: enough for last
+   week's films, and not so many that the row becomes a second wall. */
+const RECENT_LIMIT = 10;
+
+/* The films or the shows that arrived last, newest first, off the list the
+   wall was built from.  Kodi writes the date as "2026-09-22 20:15:00", which
+   sorts as text in the order it happened; a batch scanned in the same second
+   falls back on the id, which Kodi hands out in the order it added them.  An
+   add-on older than the date sends none, and the row is left empty. */
+function newest(list) {
+  return list
+    .filter((entry) => entry.added)
+    .sort((first, second) =>
+      second.added.localeCompare(first.added) || second.id - first.id)
+    .slice(0, RECENT_LIMIT);
 }
 
 /* How long something runs, as a tile writes it: 1 h 38 min for a film, 45 min
@@ -982,6 +1013,8 @@ async function loadSeries() {
       buildSeries();
     }
     el.seriesCard.classList.remove("hidden");
+    el.recentSeriesCard.classList.toggle("hidden",
+                                         !el.recentSeriesRow.children.length);
     el.unseenSeriesCard.classList.toggle("hidden",
                                          !el.unseenSeriesGrid.children.length);
     /* Away only inside a show, where there is no wall to narrow. */
@@ -1011,6 +1044,13 @@ function buildSeries() {
   }
   el.seriesGrid.replaceChildren(wall);
   el.unseenSeriesGrid.replaceChildren(unseen);
+  /* A show on this row is one that gained an episode lately (a show's date is
+     its newest episode's, see _SHOW_PROPERTIES in web/library.py); it opens
+     in the series card, the way one on the unwatched wall does. */
+  const recent = document.createDocumentFragment();
+  for (const show of newest(shows)) recent.append(showTile(show, openFromUnseen));
+  el.recentSeriesRow.replaceChildren(recent);
+  el.recentSeriesRow.scrollLeft = 0;
   el.unseenSeriesCount.textContent = waiting ? String(waiting) : "";
   /* The count in the heading, and whatever the search box is narrowing it
      to, the way the film wall does after it is built.  Inside a show the
@@ -1037,6 +1077,7 @@ function buildSeries() {
 /* Both series walls off the page, for a box with no series to offer. */
 function hideSeries() {
   el.seriesCard.classList.add("hidden");
+  el.recentSeriesCard.classList.add("hidden");
   el.unseenSeriesCard.classList.add("hidden");
 }
 
@@ -1859,6 +1900,8 @@ function applyStrings(strings, hello) {
   }
   $("seriesLabel").textContent = strings.series;
   $("unseenFilmsLabel").textContent = strings.films_unseen;
+  $("recentFilmsLabel").textContent = strings.recent;
+  $("recentSeriesLabel").textContent = strings.recent;
   $("unseenSeriesLabel").textContent = strings.series_unseen_shows;
   el.markRestart.textContent = strings.play_from_start;
   el.markClear.textContent = strings.resume_clear;
