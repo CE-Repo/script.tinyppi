@@ -610,7 +610,8 @@ unwatched as it was.
 
 Under **Continue watching** and **Recently added** are two cards holding only what is still
 **unwatched**: the films without a tick, and the series with an episode still
-waiting; the walls of all films and all series follow them. The tiles ask the
+waiting, each on a row that scrolls sideways like the two above them; the walls
+of all films and all series follow them. The tiles ask the
 same question as on the full walls, and opening an unwatched series opens it
 in the series card further down. A card with nothing on it is not shown.
 

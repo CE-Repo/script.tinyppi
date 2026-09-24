@@ -725,6 +725,10 @@ function buildFilms() {
   }
   el.filmGrid.replaceChildren(wall);
   el.unseenFilmGrid.replaceChildren(unseen);
+  /* A row that scrolls sideways, like the two above it, rather than a second
+     wall: the wall of everything is the card under it.  Back to its start
+     whenever it is built again. */
+  el.unseenFilmGrid.scrollLeft = 0;
   const recent = document.createDocumentFragment();
   for (const film of newest(films)) recent.append(filmTile(film));
   el.recentFilmsRow.replaceChildren(recent);
@@ -1044,6 +1048,7 @@ function buildSeries() {
   }
   el.seriesGrid.replaceChildren(wall);
   el.unseenSeriesGrid.replaceChildren(unseen);
+  el.unseenSeriesGrid.scrollLeft = 0;
   /* A show on this row is one that gained an episode lately (a show's date is
      its newest episode's, see _SHOW_PROPERTIES in web/library.py); it opens
      in the series card, the way one on the unwatched wall does. */
