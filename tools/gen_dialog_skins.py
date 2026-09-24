@@ -18,7 +18,6 @@ Run from the repository root:
     python3 tools/gen_dialog_skins.py
 """
 
-import math
 import os
 import sys
 
