@@ -521,7 +521,7 @@
   padding: 5px 10px;
   border-radius: 999px;
   color: var(--muted);
-  background: color-mix(in srgb, var(--accent) 16%, var(--panel-2));
+  background: color-mix(in srgb, var(--accent) 21%, var(--panel-2));
   max-width: 100%;
   overflow-wrap: anywhere;
 }
