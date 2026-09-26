@@ -322,29 +322,76 @@ def _first_number(value: str) -> float | None:
     return numbers[0] if numbers else None
 
 
+def _is_live_tv() -> bool:
+    """A PVR channel, TV or radio, is playing -- not a recording."""
+    return cond("PVR.IsPlayingTV") or cond("PVR.IsPlayingRadio")
+
+
+def _seconds(clock: str) -> int | None:
+    """``hh:mm:ss`` or ``mm:ss`` as seconds, None when it is not a clock."""
+    try:
+        parts = [int(part) for part in clock.strip().split(":")]
+    except ValueError:
+        return None
+    if not 2 <= len(parts) <= 3:
+        return None
+    total = 0
+    for part in parts:
+        total = total * 60 + part
+    return total
+
+
+def _broadcast_times() -> dict[str, str]:
+    """The position, length and progress of the broadcast on a live channel.
+
+    The player only knows the timeshift buffer there: ``Player.Time`` counts
+    from when the channel was tuned and ``Player.Duration`` is however much of
+    it has been kept.  The broadcast's own length and position come from the
+    EPG, which is what the overlay's time row reads as well.  A channel the
+    guide has nothing for keeps the player's readings.
+    """
+    if not _is_live_tv():
+        return {}
+    duration = info("PVR.EpgEventDuration(hh:mm:ss)")
+    if not any(_numbers(duration)):
+        return {}
+    elapsed = info("PVR.EpgEventElapsedTime(hh:mm:ss)")
+    # Worked out here rather than read: PVR.EpgEventProgress is one of Kodi's
+    # integer infos, and as a label it comes back empty.
+    length, position = _seconds(duration), _seconds(elapsed)
+    progress = (f"{min(100.0, max(0.0, position * 100 / length)):.1f}"
+                if length and position is not None else "")
+    return {
+        "PlayerTime":       elapsed,
+        "PlayerDuration":   duration,
+        "PlayerProgress":   progress,
+        "PlayerFinishTime": info("VideoPlayer.EndTime"),
+        "BroadcastTimes":   "1",
+    }
+
+
 def _finish_time(values: dict[str, str]) -> str:
     """When the title will be over by the clock, or "" where nothing ends.
 
-    Kodi answers ``Player.FinishTime`` for a good deal more than it ought to.
-    On a live channel it gives the end of whatever the guide says is on now,
-    which is the end of a programme and not of the thing being watched -- the
-    tuner carries straight on into the next one -- and on a stream with no
-    length at all it can still hand back a clock worked out from a position
-    that never moves.  Neither is a time anybody is waiting for, so the two
-    are tested for here rather than printed.
+    On a live channel it is when the broadcast on now ends, by the guide (see
+    ``_broadcast_times``), and nothing where the guide has no entry.  On a
+    stream with no length at all Kodi can still hand back a clock worked out
+    from a position that never moves, which is no time anybody is waiting
+    for, so that is tested for here rather than printed.
 
-    Everything the tuner brings in is left out, a recording included.  A
-    recording does end at a time this could name, so that is a call about
-    what the row is for rather than about what can be worked out: the figure
-    belongs to watching a film through, and the whole of the PVR side of the
-    player is kept out of it rather than split down the middle into the part
-    that would show one and the part that would not.
+    A recording is left out.  It does end at a time this could name, so that
+    is a call about what the row is for rather than about what can be worked
+    out: the figure belongs to watching a film through.
 
     What is left has to have a length worth counting down.  A title Kodi has
     opened but not yet measured reads ``00:00`` for a moment, and a finish
     time built on that is the current time, which would sit under the bar
     looking like an answer for as long as it took the real one to arrive.
     """
+    if _is_live_tv():
+        if not values.get("BroadcastTimes"):
+            return ""
+        return values.get("PlayerFinishTime", "")
     if is_live() or is_pvr():
         return ""
     # Every field of the clock at zero, or no clock at all: `any` catches
@@ -1067,6 +1114,7 @@ class SnapshotBuilder:
         values = dict(self._sink.values)
         for key, label in _EXTRA_INFOLABELS:
             values[key] = info(label)
+        values.update(_broadcast_times())
         for flag_key, source_key in _PRESENCE_FLAGS:
             values[flag_key] = _PRESENCE_GLYPH.get(values.get(source_key, ""), "")
         return values
@@ -1539,6 +1587,18 @@ def apply_command(action: str, value=None) -> bool:
         where = _number(value, 0, 100)
         if where is None:
             return False
+        # On a live channel the bar is the broadcast's (see _broadcast_times),
+        # while Kodi's percentage is one of the timeshift buffer: the target
+        # goes over as a step from where the broadcast is now instead.
+        broadcast = _broadcast_times()
+        if broadcast:
+            length = _seconds(broadcast["PlayerDuration"])
+            now = _seconds(broadcast["PlayerTime"])
+            if length is None or now is None:
+                return False
+            return "result" in _rpc("Player.Seek", {
+                "playerid": player_id,
+                "value": {"seconds": int(round(length * where / 100 - now))}})
         return "result" in _rpc("Player.Seek", {
             "playerid": player_id, "value": {"percentage": where}})
     if action in ("chapter_previous", "chapter_next"):

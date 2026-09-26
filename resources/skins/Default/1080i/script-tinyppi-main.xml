@@ -687,7 +687,7 @@
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
 						<visible>!String.IsEmpty(Player.Duration)</visible>
-						<visible>!PVR.IsPlayingTV</visible>
+						<visible>![PVR.IsPlayingTV | PVR.IsPlayingRadio]</visible>
 						<aligny>top</aligny>
 					</control>
 					<!-- Live TV -->
@@ -698,7 +698,7 @@
 						<label>$INFO[PVR.EpgEventElapsedTime(hh:mm:ss)] $INFO[PVR.EpgEventDuration(hh:mm:ss),/ ,] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[PVR.EpgEventProgress,(,%)][/COLOR]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<visible>PVR.IsPlayingTV + ![String.IsEmpty(PVR.EpgEventDuration) | String.IsEqual(PVR.EpgEventDuration,00:00) | String.IsEqual(PVR.EpgEventDuration,00:00:00)]</visible>
+						<visible>[PVR.IsPlayingTV | PVR.IsPlayingRadio] + ![String.IsEmpty(PVR.EpgEventDuration) | String.IsEqual(PVR.EpgEventDuration,00:00) | String.IsEqual(PVR.EpgEventDuration,00:00:00)]</visible>
 						<aligny>top</aligny>
 					</control>
 					<control type="label">
@@ -708,7 +708,7 @@
 						<label>$ADDON[script.tinyppi 32362]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<visible>PVR.IsPlayingTV + [String.IsEmpty(PVR.EpgEventDuration) | String.IsEqual(PVR.EpgEventDuration,00:00) | String.IsEqual(PVR.EpgEventDuration,00:00:00)]</visible>
+						<visible>[PVR.IsPlayingTV | PVR.IsPlayingRadio] + [String.IsEmpty(PVR.EpgEventDuration) | String.IsEqual(PVR.EpgEventDuration,00:00) | String.IsEqual(PVR.EpgEventDuration,00:00:00)]</visible>
 						<aligny>top</aligny>
 					</control>
 					<!-- Livestream -->
@@ -719,7 +719,7 @@
 						<label>$ADDON[script.tinyppi 32363]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<visible>String.IsEmpty(Player.Duration) + Player.IsInternetStream + !PVR.IsPlayingTV</visible>
+						<visible>String.IsEmpty(Player.Duration) + Player.IsInternetStream + ![PVR.IsPlayingTV | PVR.IsPlayingRadio]</visible>
 						<aligny>top</aligny>
 					</control>
 					<!-- N/A -->
@@ -730,7 +730,7 @@
 						<label>$ADDON[script.tinyppi 32033]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-						<visible>String.IsEmpty(Player.Duration) + !PVR.IsPlayingTV + !Player.IsInternetStream</visible>
+						<visible>String.IsEmpty(Player.Duration) + ![PVR.IsPlayingTV | PVR.IsPlayingRadio] + !Player.IsInternetStream</visible>
 						<aligny>top</aligny>
 					</control>
 				</control>
