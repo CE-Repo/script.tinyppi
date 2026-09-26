@@ -107,10 +107,11 @@ _PROCESSING = (
     (32051, (S("DoviProfileVar"),), ()),
     (32070, (S("ModeVar"),), ()),
     (32015, (S("GamutVar"),), ()),
-    (32047, (S("VideoLiveBitrateVar"),), (S("VideoBitrateMBVar", "(Ø ", ")"),)),
+    (32047, (S("VideoBitrateRow"),), (S("VideoBitrateDetail"),)),
     (32288, (S("MediaSourceVar"),), ()),
-    (32013, (S("PlayerTime"), S("PlayerDuration", " / ", "")),
-             (S("PlayerProgress", "(", "%)"),)),
+    (32013, (S("PlaybackStateRow"), S("PlaybackTimeRow"),
+             S("PlaybackDurationRow", " / ", "")),
+            (S("PlaybackProgressRow", "(", "%)"),)),
 )
 
 _AUDIO = (
@@ -118,13 +119,14 @@ _AUDIO = (
     # parentheses and all, so this is the one detail that adds none.
     (32045, (S("AudioCodecVar"), S("AudioChannelsVar", " ", "")),
              (S("AudioCodecSpatialVar"),)),
-    (32069, (S("AudioBitDepthVar", "", " | "), S("AudioSampleRateVar")), ()),
+    (32069, (S("AudioBitDepthVar", "", " / "), S("AudioSampleRateVar")), ()),
     (32429, (S("AudioChannelsInputVar"),), ()),
-    (32055, (S("AudioChannelsSink"),), ()),
-    (32047, (S("AudioLiveBitrateVar"),), (S("AudioBitrateKBVar", "(Ø ", ")"),)),
+    (32055, (S("AudioOutputRow"),), ()),
+    (32047, (S("AudioBitrateRow"),), (S("AudioBitrateDetail"),)),
     (32052, (S("AudioNameShortVar"), S("AudioNameVar", " | ", "")), ()),
-    (32053, (S("SubtitleNameShortVar"), S("SubtitleNameVar", " | ", "")),
-             (S("SubtitleCodecVar", "(", ")"),)),
+    (32053, (S("SubtitleStateRow"), S("SubtitleShortRow"),
+             S("SubtitleNameRow", " | ", "")),
+            (S("SubtitleCodecRow", "(", ")"),)),
 )
 
 _SYSTEM = (
@@ -368,6 +370,66 @@ def _broadcast_times() -> dict[str, str]:
         "PlayerFinishTime": info("VideoPlayer.EndTime"),
         "BroadcastTimes":   "1",
     }
+
+
+def _label(string_id: int) -> str:
+    return xbmcaddon.Addon().getLocalizedString(string_id)
+
+
+def _bitrate_row(live: str, average: str) -> tuple[str, str]:
+    """A bitrate row as the overlay prints it: ``live -`` with the average
+    beside it as ``(Ø …)``, or whichever of the two there is on its own."""
+    if live and average:
+        return f"{live} -", f"(Ø {average})"
+    return live or average, ""
+
+
+def _overlay_rows(values: dict[str, str]) -> dict[str, str]:
+    """The rows whose text the overlay picks between several labels for.
+
+    The skin draws these as a stack of labels with a visible condition each
+    (see script-tinyppi-main.xml): Passthrough rather than a channel list,
+    Disabled rather than a subtitle language, Live TV rather than a timeshift
+    buffer.  The same choices are made here, so the page and the app read
+    exactly what the television does.
+    """
+    rows: dict[str, str] = {}
+
+    # Output: Passthrough, the sink's channels, or Decoding.
+    if cond("Player.Passthrough"):
+        rows["AudioOutputRow"] = _label(32035)
+    else:
+        rows["AudioOutputRow"] = (values.get("AudioChannelsSink", "")
+                                  or _label(32087))
+
+    rows["VideoBitrateRow"], rows["VideoBitrateDetail"] = _bitrate_row(
+        values.get("VideoLiveBitrateVar", ""), values.get("VideoBitrateMBVar", ""))
+    rows["AudioBitrateRow"], rows["AudioBitrateDetail"] = _bitrate_row(
+        values.get("AudioLiveBitrateVar", ""), values.get("AudioBitrateKBVar", ""))
+
+    # Subtitles: the track while they are on, Disabled while the file has
+    # some that are off, nothing (so N/A) where it has none.
+    if cond("VideoPlayer.HasSubtitles") and cond("VideoPlayer.SubtitlesEnabled"):
+        rows["SubtitleShortRow"] = values.get("SubtitleNameShortVar", "")
+        rows["SubtitleNameRow"] = values.get("SubtitleNameVar", "")
+        rows["SubtitleCodecRow"] = values.get("SubtitleCodecVar", "")
+    elif cond("VideoPlayer.HasSubtitles"):
+        rows["SubtitleStateRow"] = _label(32091)
+
+    # Playback time: a live channel the guide has nothing for is Live TV and
+    # an internet stream with no length is Livestream, rather than whatever
+    # the timeshift buffer or a position that never moves happens to read.
+    if _is_live_tv() and not values.get("BroadcastTimes"):
+        rows["PlaybackStateRow"] = _label(32362)
+    elif (not values.get("PlayerDuration")
+          and cond("Player.IsInternetStream") and not _is_live_tv()):
+        rows["PlaybackStateRow"] = _label(32363)
+    elif values.get("PlayerDuration"):
+        rows["PlaybackTimeRow"] = values.get("PlayerTime", "")
+        rows["PlaybackDurationRow"] = values.get("PlayerDuration", "")
+        rows["PlaybackProgressRow"] = values.get("PlayerProgress", "")
+
+    return rows
 
 
 def _finish_time(values: dict[str, str]) -> str:
@@ -1115,6 +1177,7 @@ class SnapshotBuilder:
         for key, label in _EXTRA_INFOLABELS:
             values[key] = info(label)
         values.update(_broadcast_times())
+        values.update(_overlay_rows(values))
         for flag_key, source_key in _PRESENCE_FLAGS:
             values[flag_key] = _PRESENCE_GLYPH.get(values.get(source_key, ""), "")
         return values
