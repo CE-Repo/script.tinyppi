@@ -94,20 +94,23 @@
 /* --- Now playing -------------------------------------------------------- */
 
 .now {
-  padding: 18px 18px 14px;
-  display: grid;
-  /* One column, and never wider than the card holds -- said outright, because
-     an implicit grid column is `auto`, and an auto track is at least as wide
-     as the widest thing in it wants to be.  A badge that cannot wrap, a pair
-     of format logos, a file name in a browser that will not split a word:
-     any one of them made the column wider than the poster had left it, and
-     everything in it -- the title, the logos, the badge row -- was then laid
-     out over the edge of the card and off the side of a phone.  minmax(0,1fr)
-     is the whole fix: the column is what the card has, and what does not fit
-     wraps inside it. */
-  grid-template-columns: minmax(0, 1fr);
+  /* The poster's own 18 px at the foot as well as at the head, so the last
+     row of format badges and the bottom edge of the poster finish on one
+     line (see .formats). */
+  padding: 18px;
+  /* A column, and never wider than the card holds.  It was a grid once, with
+     its one track said outright as minmax(0,1fr): an implicit grid column is
+     `auto`, at least as wide as the widest thing in it wants to be, and a
+     badge that could not wrap or a file name a browser would not split made
+     the column wider than the poster had left it.  A flex column has no track
+     of its own to grow -- its items are the width it is, and .now itself is
+     held to its share of the card by .hero's minmax(0,1fr) -- and it is what
+     lets the badges be pushed to the foot of it. */
+  display: flex;
+  flex-direction: column;
   gap: 14px;
-  align-content: start;
+  /* As tall as the poster beside it, not as tall as what it holds. */
+  align-self: stretch;
 }
 /* And the items in it, for the same reason one step down: a grid item's own
    automatic minimum size is its min-content, so an item can still stand wider
@@ -157,6 +160,14 @@
   background: color-mix(in srgb, var(--warn) 12%, transparent);
 }
 .badge .ui-icon { width: 12px; height: 12px; }
+/* The row holds only the paused badge now (see renderBadges), so most of the
+   time it is empty -- and then the title is what stands beside the chevron
+   and has to keep clear of it instead. */
+.badges:empty { display: none; }
+.badges:empty + h1 {
+  /* .now already holds its contents 18 px in, the chevron's own inset. */
+  padding-right: calc(var(--toggle-size) + 6px);
+}
 
 /* A title is often a file name -- forty characters with no space in them --
    and it has to break somewhere inside itself or run off the card.  Both
@@ -479,44 +490,54 @@
 }
 .now .meta:empty { display: none; }
 
-/* --- Format logos -------------------------------------------------------
-   The very files the overlay draws (see web/server.py _media_routes).  They
-   are white on transparent, tinted by the skin at draw time; every theme here
-   is a dark one, so they are taken as they are.
+/* --- Format badges ------------------------------------------------------
+   What the picture is and what the sound is, a row each, drawn the way the
+   mobile app draws them: a quiet pill tinted from the card's accent -- the
+   film's, on the adaptive theme -- with the words in the muted grey the year
+   and genre are set in.  These say what a film is rather than what it is
+   called, and a row of them at full strength would read as more titles.
 ------------------------------------------------------------------------ */
 
-.logos {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+.formats {
+  display: grid;
+  gap: 6px;
+  /* All of the slack above the badges, which lands them on the bottom edge
+     of the poster beside the column, as the mobile app does.  Without a
+     poster the column is only as tall as its contents and this is nothing. */
+  margin-top: auto;
 }
-.logos:empty { display: none; }
-.logo {
-  height: 26px;
-  width: auto;
-  /* Never wider than the row it is in, whatever the file's own shape.  The
-     picture keeps its proportions inside whatever that leaves -- object-fit
-     is contain -- so a logo with nowhere to go comes out smaller rather than
-     stretched or over the edge of the card. */
-  max-width: min(148px, 100%);
-  object-fit: contain;
-  opacity: .92;
+.format-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.format-row:empty { display: none; }
+.format {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--accent) 16%, var(--panel-2));
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 /* --- The hero on a phone ------------------------------------------------
 
    The same card with a good deal less to lay it out in: a poster stands in
-   the left of it, and what is left of a 320 px screen has to hold a badge, a
-   title and a pair of format logos.  Nothing is moved or dropped here -- the
-   marks are simply drawn at the size that column can hold, so the badge keeps
-   its one line and the two logos keep their one row.
+   the left of it, and what is left of a 320 px screen has to hold a title
+   and two rows of format badges.  Nothing is moved or dropped here -- the
+   marks are simply drawn at the size that column can hold.
 ------------------------------------------------------------------------ */
 @media (max-width: 620px) {
   .badges { gap: 5px; }
   .badge { font-size: 10.5px; letter-spacing: .05em; padding: 5px 8px; }
-  .logos { gap: 10px; }
-  .logo { height: 22px; }
+  .formats, .format-row { gap: 5px; }
+  .format { font-size: 10.5px; padding: 4px 8px; }
 }
 
 /* --- Transport ---------------------------------------------------------- */

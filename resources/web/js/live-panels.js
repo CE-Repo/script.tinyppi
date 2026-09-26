@@ -6,7 +6,7 @@
 /* ===========================================================================
    The live panels, for whichever page asks for them.
 
-   What is playing -- with its poster and the format logos -- the four figures
+   What is playing -- with its poster and its format badges -- the four figures
    worth a glance, the luminance chart, what the whole title has done so far,
    and the transport row.  The dashboard hands them out to its tabs: the
    now-playing card stays on the live tab, the luminance chart goes to the
@@ -45,7 +45,12 @@
         '<h1 id="title">—</h1>' +
         '<p class="meta" id="meta"></p>' +
         '<p class="file mono hidden" id="file"></p>' +
-        '<div class="logos" id="logos"></div>' +
+        /* What the picture is and what the sound is, a row each -- the same
+           badges the mobile app draws under its title. */
+        '<div class="formats" id="formats">' +
+          '<div class="format-row" id="pictureBadges"></div>' +
+          '<div class="format-row" id="soundBadges"></div>' +
+        '</div>' +
       '</div>' +
       /* The bar and the buttons take a row of their own under both, so
          they have the whole card to lay out in however narrow the poster
@@ -133,7 +138,8 @@
 
   const el = {
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
-    meta: $("meta"), file: $("file"), logos: $("logos"),
+    meta: $("meta"), file: $("file"),
+    pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
     tFinish: $("tFinish"), tFinishLabel: $("tFinishLabel"),
@@ -206,7 +212,7 @@
 
     renderArt(snapshot.art || {});
     renderBadges(snapshot);
-    renderLogos(snapshot.logos || {});
+    renderFormats(snapshot);
 
     const progress = (snapshot.metrics || {}).progress;
     const percent = (progress === null || progress === undefined) ? 0 : progress;
@@ -273,59 +279,186 @@
     tint("");
   });
 
+  /* The row across the top of the card says only whether playback is held:
+     what the source is and what it is converted to are format badges now,
+     under the title with the rest of them (see renderFormats). */
   function renderBadges(snapshot) {
-    /* An empty source type is SDR, not "unknown": the add-on publishes a token
-       only for the HDR formats (see publish_hdr_type), which is the same thing
-       the VS10 buttons branch on. */
-    const badges = [{ text: TinyPPI.prettyHdr(snapshot.hdr_type || "sdr"), alt: false }];
-    /* The output, not "effective": that one names the overlay's layout and is
-       built to stay on the source type, so it matched the source through every
-       conversion and this badge never appeared.  Both sides are empty for SDR,
-       so a film neither converted nor converted from compares equal and shows
-       the one badge it should. */
-    if (snapshot.output_type !== undefined
-        && snapshot.output_type !== snapshot.hdr_type) {
-      badges.push({
-        text: "→ " + TinyPPI.prettyHdr(snapshot.output_type || "sdr"),
-        alt: true
-      });
-    }
-    if (snapshot.paused) badges.push({ icon: "pause", alt: true });
-    /* Rebuilt only when they say something else, the same way the logos are:
-       the source format and the conversion behind it hold still for a whole
-       film, and tearing the row down five times a second to put the same two
-       words back costs a phone real work. */
-    const signature = badges.map((badge) => badge.icon || badge.text).join("|");
-    if (el.badges.dataset.signature === signature) return;
-    el.badges.dataset.signature = signature;
+    const paused = Boolean(snapshot.paused);
+    if (el.badges.dataset.paused === String(paused)) return;
+    el.badges.dataset.paused = String(paused);
     el.badges.innerHTML = "";
-    for (const badge of badges) {
-      const node = document.createElement("span");
-      node.className = badge.alt ? "badge alt" : "badge";
-      if (badge.icon) node.appendChild(uiIcon(badge.icon));
-      else node.textContent = badge.text;
-      el.badges.appendChild(node);
+    if (!paused) return;
+    const node = document.createElement("span");
+    node.className = "badge alt";
+    node.appendChild(uiIcon("pause"));
+    el.badges.appendChild(node);
+  }
+
+  /* --- Format badges ----------------------------------------------------
+     The same badges, read the same way, as the mobile app's now-playing card
+     (util/SourceLabel.kt there): the picture -- how big the coded frame is,
+     how it is graded and what it is converted to, and IMAX -- and the sound --
+     the codec, what rides on it and how wide it is.
+
+     Read out of the printed rows rather than off fields of their own, since
+     the snapshot has none: the audio codec arrives as the row the overlay
+     prints, and a Dolby Vision profile as a reading among the others.  Rows
+     are found by id, not by label, because the labels are translated. */
+
+  const AUDIO_GROUP = "audio";
+  const AUDIO_CODEC_ROW = "audio.32045";
+  const CHANNEL_LAYOUT = /^\d+\.\d+$/;
+
+  /* Longest first, so "IMAX Enhanced" is found whole rather than as an IMAX
+     with a spare word after it.  Brand names, which are not translated. */
+  const MARKS = ["IMAX Enhanced", "IMAX", "Dolby Atmos", "Atmos",
+                 "DTS:X", "DTS-X", "DTSX"];
+  const SPELLINGS = { "DTSX": "DTS:X", "DTS-X": "DTS:X", "DOLBY ATMOS": "Atmos" };
+
+  /* The standard widths themselves, widest first: a release is authored at
+     one of these, and a coded width names the format where a height, which
+     changes with the aspect ratio, would not. */
+  const RESOLUTIONS = [[7680, "8K"], [4096, "DCI 4K"], [3840, "UHD"],
+                       [2560, "QHD"], [1920, "FHD"], [1280, "HD"]];
+
+  function grade(token) {
+    const key = String(token || "").trim().toLowerCase();
+    if (!key || key === "sdr") return "SDR";
+    if (key.includes("dolby") || key.includes("dv")) return "Dolby Vision";
+    if (key.includes("hdr10plus") || key.includes("hdr10+")) return "HDR10+";
+    if (key.includes("hlg")) return "HLG";
+    if (key.includes("hdr")) return "HDR10";
+    return "SDR";
+  }
+
+  function marksIn(group) {
+    let rest = (group.rows || [])
+      .map((row) => (row.value || "") + " " + (row.detail || "")).join(" ");
+    const found = [];
+    for (const mark of MARKS) {
+      const pattern = new RegExp(mark.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+      if (!rest.match(pattern)) continue;
+      found.push(SPELLINGS[mark.toUpperCase()] || mark);
+      /* Taken out of the running text, so a longer name already found does
+         not hand its own words to a shorter one after it. */
+      rest = rest.replace(pattern, " ");
+    }
+    return found;
+  }
+
+  function resolutionBadge(frame) {
+    const width = frame && frame.w > 0 && frame.h > 0 ? frame.w : 0;
+    if (!width) return null;
+    const hit = RESOLUTIONS.find(([from]) => width >= from);
+    return hit ? hit[1] : "SD";
+  }
+
+  /* "P7.6 FEL", "P8.1" -- or null where nothing says. */
+  function dolbyVisionSuffix(snapshot) {
+    const readings = [];
+    for (const group of snapshot.groups || []) {
+      for (const row of group.rows || []) readings.push([row.label || "", row.value || ""]);
+    }
+    for (const row of snapshot.metadata || []) readings.push([row.name || "", row.value || ""]);
+
+    let profile = null;
+    for (const [name, value] of readings) {
+      if (!/profile/i.test(name)) continue;
+      const number = /\d+(\.\d+)?/.exec(value);
+      if (number) { profile = number[0]; break; }
+    }
+
+    let layer = null;
+    for (const [name, value] of readings) {
+      const hit = /\b[FM]EL\b/i.exec(name + " " + value);
+      if (hit) { layer = hit[0].toUpperCase(); break; }
+    }
+    if (!layer) {
+      const affirmative = ["yes", "true", "1", "present", "ja", "on"];
+      const enhanced = readings.some(([name, value]) => {
+        if (value.replace(/ /g, "").toUpperCase().includes("+EL")) return true;
+        const asks = /enhancement/i.test(name)
+          || name.split(/[ .()]/).some((word) => word.toLowerCase() === "el");
+        return asks && affirmative.includes(value.trim().toLowerCase());
+      }) || (profile !== null && "47".includes(profile.charAt(0)));
+      if (enhanced) layer = "EL";
+    }
+
+    if (profile && layer) return "P" + profile + " " + layer;
+    if (profile) return "P" + profile;
+    return layer;
+  }
+
+  function sourceBadge(snapshot) {
+    const label = grade(snapshot.hdr_type);
+    if (label !== "Dolby Vision") return label;
+    const detail = dolbyVisionSuffix(snapshot);
+    return detail ? "DV " + detail : "DV";
+  }
+
+  /* What the picture leaves as, where that is not what it came in as.  The
+     VS10 output is read as well, for a backend whose output_type lags. */
+  function conversionTarget(snapshot) {
+    const source = String(snapshot.hdr_type || "sdr").toLowerCase();
+    const output = String(snapshot.output_type || "");
+    if (output && output.toLowerCase() !== source) return grade(output);
+    const vs10 = String((snapshot.vs10 || {}).output || "").trim().toLowerCase();
+    let target = null;
+    if (vs10.includes("sdr")) target = "SDR";
+    else if (vs10.includes("hdr10+") || vs10.includes("hdr10plus")) target = "HDR10+";
+    else if (vs10.includes("hdr10")) target = "HDR10";
+    else if (vs10.includes("hlg")) target = "HLG";
+    return target && target !== grade(source) ? target : null;
+  }
+
+  function pictureBadges(snapshot) {
+    const badges = [];
+    const resolution = resolutionBadge((snapshot.metrics || {}).frame);
+    if (resolution) badges.push(resolution);
+    const target = conversionTarget(snapshot);
+    badges.push(target ? sourceBadge(snapshot) + " → " + target : sourceBadge(snapshot));
+    for (const group of snapshot.groups || []) {
+      if (group.id !== AUDIO_GROUP) badges.push(...marksIn(group));
+    }
+    return [...new Set(badges)];
+  }
+
+  function soundBadges(snapshot) {
+    const audio = (snapshot.groups || []).find((group) => group.id === AUDIO_GROUP);
+    if (!audio || !(audio.rows || []).length) return [];
+    const row = audio.rows.find((entry) => entry.id === AUDIO_CODEC_ROW) || audio.rows[0];
+    /* A codec Kodi could not name is no badge. */
+    const value = (row.value || "").trim();
+    const words = value && value !== TinyPPI.T.na ? value.split(/\s+/) : [];
+    const last = words[words.length - 1];
+    const layout = last && CHANNEL_LAYOUT.test(last) ? last : null;
+    const codec = (layout ? words.slice(0, -1) : words).join(" ");
+    const badges = [];
+    if (codec) badges.push(codec);
+    badges.push(...marksIn(audio));
+    if (layout) badges.push(layout);
+    return [...new Set(badges)];
+  }
+
+  /* Rebuilt only when they say something else: they hold still for a whole
+     film, and tearing a row down five times a second to put the same words
+     back costs a phone real work. */
+  function fillRow(node, badges) {
+    const signature = badges.join("|");
+    if (node.dataset.signature === signature) return;
+    node.dataset.signature = signature;
+    node.innerHTML = "";
+    for (const text of badges) {
+      const badge = document.createElement("span");
+      badge.className = "format";
+      badge.textContent = text;
+      node.appendChild(badge);
     }
   }
 
-  /* The very files the overlay draws, served from the add-on's own skin (see
-     web/server.py _media_routes).  They are white on transparent and tinted
-     on the TV, so the page inverts them for a light theme rather than shipping
-     a second set. */
-  function renderLogos(logos) {
-    const wanted = [logos.video, logos.audio].filter(Boolean);
-    if (el.logos.dataset.signature !== wanted.join("|")) {
-      el.logos.dataset.signature = wanted.join("|");
-      el.logos.innerHTML = "";
-      for (const name of wanted) {
-        const image = document.createElement("img");
-        image.className = "logo";
-        image.src = "/media/" + name;
-        image.alt = "";
-        image.addEventListener("error", () => image.remove());
-        el.logos.appendChild(image);
-      }
-    }
+  function renderFormats(snapshot) {
+    fillRow(el.pictureBadges, pictureBadges(snapshot));
+    fillRow(el.soundBadges, soundBadges(snapshot));
   }
 
   function uiIcon(name) {
