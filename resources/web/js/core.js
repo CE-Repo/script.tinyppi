@@ -43,7 +43,7 @@ window.TinyPPI = (function () {
     output: "Output", copy: "Copy report", copied: "Copied",
     controls: "Playback controls",
     token_title: "Access token", token_text: "", save: "Save", cancel: "Cancel",
-    yes: "Yes", no: "No",
+    yes: "Yes", no: "No", na: "N/A",
     token_bad: "Wrong or missing token", busy: "Too many connections",
     switching: "Switching…",
     switched: "Switched", switch_failed: "Switching failed",
@@ -230,7 +230,7 @@ window.TinyPPI = (function () {
   }
 
   function fmtNits(value) {
-    if (value === null || value === undefined) return "—";
+    if (value === null || value === undefined) return T.na;
     if (value >= 1000) return Math.round(value).toLocaleString();
     if (value >= 100)  return value.toFixed(0);
     if (value >= 10)   return value.toFixed(1);

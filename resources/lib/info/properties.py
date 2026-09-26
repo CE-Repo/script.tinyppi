@@ -62,6 +62,7 @@ from info.dvinfo import (
     get_rpu_mdl_from_source,
     get_structure,
     is_status_label,
+    na_label,
 )
 
 # Channel graphics ship pre-scaled to the exact box the skin draws them in
@@ -408,7 +409,7 @@ def get_AudioCodecVar() -> str:
     """Return the mapped display name for the current audio codec."""
     codec = info("VideoPlayer.AudioCodec")
     if not codec:
-        return xbmc.getLocalizedString(13205)
+        return na_label()
     return AUDIO_CODEC_MAP.get(codec, codec)
 
 
@@ -435,9 +436,9 @@ def get_AudioChannelsInputVar() -> str:
     """Return the full speaker-label string for the current channel count."""
     try:
         ch = int(info("VideoPlayer.AudioChannels"))
-        return CHANNELS_INPUT_MAP.get(ch, xbmc.getLocalizedString(13205))
+        return CHANNELS_INPUT_MAP.get(ch, na_label())
     except (ValueError, TypeError):
-        return xbmc.getLocalizedString(13205)
+        return na_label()
 
 
 def _channel_layout() -> str:

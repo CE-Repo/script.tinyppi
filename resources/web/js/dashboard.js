@@ -295,7 +295,7 @@ function renderToken() {
   const token = TinyPPI.token || "";
   el.tokenShown.textContent = token
     ? "\u2022".repeat(Math.max(0, token.length - 2)) + token.slice(-2)
-    : "\u2014";
+    : T.na;
 }
 document.addEventListener("tinyppi-token", renderToken);
 renderToken();
@@ -467,7 +467,7 @@ function renderVs10(vs10) {
     return;
   }
   el.vs10Card.classList.remove("hidden");
-  el.vs10Out.textContent = vs10.output || "—";
+  el.vs10Out.textContent = vs10.output || T.na;
 
   const signature = options.map((option) => option.mode).join("|");
   if (el.modes.dataset.signature !== signature) {

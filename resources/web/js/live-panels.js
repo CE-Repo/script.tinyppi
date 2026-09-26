@@ -80,9 +80,9 @@
       '<summary class="panel-toggle"><span id="tilesTitle"></span></summary>' +
       '<div class="tilegrid">' +
         '<div class="tile"><span class="k" id="kPlayerCache"></span>' +
-          '<span class="vwrap"><span class="v mono" id="vPlayerCache">—</span><span class="u">%</span></span></div>' +
+          '<span class="vwrap"><span class="v mono" id="vPlayerCache">N/A</span><span class="u"></span></span></div>' +
         '<div class="tile"><span class="k" id="kFps"></span>' +
-          '<span class="vwrap"><span class="v mono" id="vFps">—</span><span class="u"></span>' +
+          '<span class="vwrap"><span class="v mono" id="vFps">N/A</span><span class="u"></span>' +
             '<span class="trend" id="tFps" aria-hidden="true"></span></span></div>' +
         '<div class="tile"><span class="k" id="kSwitches"></span>' +
           '<span class="vwrap"><span class="v mono" id="vSwitches">0</span><span class="u"></span></span></div>' +
@@ -594,8 +594,12 @@
     el.vSwitches.textContent = String(fetchedTotal === null
       ? (totals.switches || 0) : fetchedTotal);
     el.vWarnings.textContent = String(totals.warnings || 0);
-    el.vPlayerCache.textContent = metrics.cache === null || metrics.cache === undefined
-      ? "—" : String(Math.round(metrics.cache));
+    const cacheKnown = metrics.cache !== null && metrics.cache !== undefined;
+    el.vPlayerCache.textContent = cacheKnown
+      ? String(Math.round(metrics.cache)) : TinyPPI.T.na;
+    /* "N/A %" would read as a percentage of nothing: the unit goes with the
+       figure. */
+    el.vPlayerCache.nextElementSibling.textContent = cacheKnown ? "%" : "";
     /* Show the frames that actually made it out, not only the source rate.
        Kodi already publishes that as fps_out (input FPS minus the current
        per-second drop).  The subtraction is kept as a fallback for snapshots
@@ -607,7 +611,7 @@
           : null);
     const known = fps !== null && Number.isFinite(fps);
     el.vFps.textContent = known
-      ? fps.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "") : "—";
+      ? fps.toFixed(3).replace(/0+$/, "").replace(/[.]$/, "") : TinyPPI.T.na;
     /* The arrow stays as it was until the rate moves again, so a glance at the
        tile says which way the last change went rather than only what the rate
        is now.  A reading that has gone away takes it with it: there is no
@@ -666,7 +670,7 @@
   function eventText(entry) {
     const stateText = (value) => {
       if (value === "__off__") return TinyPPI.T.off;
-      if (value === null || value === undefined) return "—";
+      if (value === null || value === undefined) return TinyPPI.T.na;
       let text = String(value);
       if (entry.kind === "audio" || entry.kind === "subtitle") {
         /* Index and ISO language are useful for identifying a track inside
@@ -676,14 +680,15 @@
           .replace(/^#\d+\s*(?:·\s*)?/, "")
           .replace(/^[A-Z]{2,3}\s*·\s*/i, "");
       }
-      return text || "—";
+      return text || TinyPPI.T.na;
     };
     if (isTransition(entry)) return stateText(entry.to);
     if (entry.kind === "temperature") return Math.round(entry.value) + " °C";
     if (entry.kind === "cpu" || String(entry.kind).startsWith("cache_")) {
       return Math.round(entry.value) + "%";
     }
-    return entry.value === null || entry.value === undefined ? "—" : String(entry.value);
+    return entry.value === null || entry.value === undefined
+      ? TinyPPI.T.na : String(entry.value);
   }
 
   /* Which way a transition went, for the arrow beside its value: 1 up, -1

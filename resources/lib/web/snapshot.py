@@ -37,6 +37,7 @@ from info.dvinfo import (
     get_l1_nits,
     get_l5_offsets,
     is_status_label,
+    na_label,
 )
 from info import dvmetadata
 from info.imax import imax_logo, is_known_imax_title
@@ -1150,10 +1151,11 @@ class SnapshotBuilder:
     def _groups(self, values: dict[str, str], addon, source: str) -> list[dict]:
         """The printed rows, grouped and titled the way the overlay is.
 
-        A row whose value renders empty is left out entirely rather than shown
-        blank: the panels a stream does not carry then simply do not appear,
-        which is what makes the page readable on a phone.  A whole group whose
-        source cannot carry it goes the same way (see ``_GROUPS``).
+        A row whose value renders empty reads N/A, the way the overlay's own
+        fallback labels do.  A group none of whose rows has a value is left
+        out entirely, and so is a whole group whose source cannot carry it
+        (see ``_GROUPS``): the panels a stream does not carry then simply do
+        not appear, which is what makes the page readable on a phone.
 
         Several entries may name the same card, and then its rows are those
         of each entry that applies, in the order the entries are listed --
@@ -1169,16 +1171,17 @@ class SnapshotBuilder:
             rendered = []
             for label_id, segments, detail in rows:
                 value = _render(segments, values)
-                if not value:
-                    continue
                 rendered.append({
                     "id":     f"{group_id}.{label_id}",
                     "label":  addon.getLocalizedString(label_id),
                     "value":  value,
-                    "detail": _render(detail, values),
+                    "detail": _render(detail, values) if value else "",
                 })
-            if not rendered:
+            if not any(row["value"] for row in rendered):
                 continue
+            for row in rendered:
+                if not row["value"]:
+                    row["value"] = na_label()
             group = by_id.get(group_id)
             if group is None:
                 group = {

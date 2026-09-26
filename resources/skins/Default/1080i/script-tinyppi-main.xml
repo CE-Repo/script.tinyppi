@@ -791,6 +791,18 @@
 						<label>$INFO[Window().Property(AudioBitDepthVar),, / ]$INFO[Window().Property(AudioSampleRateVar)]</label>
 						<font>font23_narrow</font>
 						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<visible>!String.IsEmpty(Window().Property(AudioBitDepthVar)) | !String.IsEmpty(Window().Property(AudioSampleRateVar))</visible>
+						<aligny>top</aligny>
+					</control>
+					<!-- N/A -->
+					<control type="label">
+						<left>240</left>
+						<top>60</top>
+						<width>400</width>
+						<label>$ADDON[script.tinyppi 32033]</label>
+						<font>font23_narrow</font>
+						<textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+						<visible>String.IsEmpty(Window().Property(AudioBitDepthVar)) + String.IsEmpty(Window().Property(AudioSampleRateVar))</visible>
 						<aligny>top</aligny>
 					</control>
 					

@@ -170,6 +170,8 @@ _UI_STRINGS = {
     "controls":      32494,
     "metrics":       32495,
     "player_cache":  32511,
+    # What a reading with no value shows, as the overlay's own rows do.
+    "na":            32033,
     "warnings":        32514,
     "temperature":     32018,
     "processor":       32014,
