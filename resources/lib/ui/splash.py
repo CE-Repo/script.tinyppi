@@ -103,6 +103,18 @@ _POLL_INTERVAL = 0.25
 # the controller loop.
 _FORMAT_INTERVAL = 1.0
 
+# The output at playback start.  The controller starts the moment playback
+# does, and at that moment the display is often still switching: a Dolby
+# Vision or HDR film reads as going out in SDR until the switch has gone
+# through, and logos drawn then claim a conversion to SDR that is not
+# happening.  So nothing is drawn until the output reading has held still for
+# _SETTLE_SECONDS, and an HDR or Dolby Vision source read as going out in SDR
+# -- which is what a switch in progress looks like -- is given up to
+# _SETTLE_SDR_LIMIT to change before it is believed.  A real conversion to SDR
+# is drawn once that limit has passed.
+_SETTLE_SECONDS   = 1.0
+_SETTLE_SDR_LIMIT = 3.0
+
 
 class _ModeState(NamedTuple):
     """Everything one mode's controls are built from.
@@ -745,8 +757,13 @@ def open_splash() -> None:
     format_gamut = None
     format_due = 0.0
     converting = None
+    # When the logos were first drawn, which is where the start window begins;
+    # None while the output is still settling (see _SETTLE_SECONDS).
+    started = None
+    waiting_since = time.monotonic()
+    settle_gamut = None
+    settle_since = waiting_since
     try:
-        started = time.monotonic()
         while not monitor.abortRequested():
             if not player.isPlayingVideo():
                 break
@@ -769,7 +786,8 @@ def open_splash() -> None:
 
             now = time.monotonic()
             in_fullscreen = xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)")
-            in_start_window = show_on_start and (now - started < duration)
+            in_start_window = show_on_start and (
+                started is None or now - started < duration)
 
             # The gamut and the detected format drive the badge, the pill and
             # the logos alike, so read each once here rather than in all three.
@@ -792,6 +810,21 @@ def open_splash() -> None:
             if now_converting != converting:
                 converting = now_converting
                 home.setProperty(PROP_CONVERTING, converting)
+
+            if started is None:
+                # Nothing drawn yet: hold off while the output is settling.
+                if gamut != settle_gamut:
+                    settle_gamut, settle_since = gamut, now
+                switching = bool(hdr_type) and not hdr_token
+                if (now - settle_since < _SETTLE_SECONDS
+                        or (switching and now - waiting_since < _SETTLE_SDR_LIMIT)):
+                    if monitor.waitForAbort(_POLL_INTERVAL):
+                        break
+                    continue
+                started = now
+                xbmc.log(f"TinyPPI splash: output settled after "
+                         f"{now - waiting_since:.1f}s at {gamut!r}, source "
+                         f"{hdr_type or 'sdr'!r}", xbmc.LOGDEBUG)
 
             desired_states: dict[str, _ModeState] = {}
             if in_fullscreen:
@@ -852,6 +885,9 @@ def open_splash() -> None:
                 if states.get(mode) == desired:
                     continue
                 if mode in controls_by_mode:
+                    xbmc.log(f"TinyPPI splash: {mode} redrawn for output "
+                             f"{gamut!r}, source {hdr_type or 'sdr'!r}",
+                             xbmc.LOGDEBUG)
                     _fade_out(video_window, home, monitor, mode, controls_by_mode[mode])
                 controls, dot = _build_controls(
                     list(desired.logos), colors_by_mode[mode],
