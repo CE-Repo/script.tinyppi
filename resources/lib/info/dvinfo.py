@@ -50,8 +50,7 @@ import threading
 import time
 
 import xbmc
-import xbmcaddon
-import xbmcgui
+from core.utils import home_window, localized
 
 try:
     from sidedata import parse_sidedata as _parse_sidedata
@@ -67,8 +66,6 @@ except Exception as exc:  # a missing/broken module must not take the addon down
 # nothing to show, exactly as it does for a stream that carries no mapping.
 _MAPPING_KWARG = "include_mapping" in getattr(
     getattr(_parse_sidedata, "__code__", None), "co_varnames", ())
-
-_ADDON = xbmcaddon.Addon()
 
 _LABEL_NA = 32033
 
@@ -156,8 +153,7 @@ def _log(msg: str, level: int = xbmc.LOGINFO) -> None:
 
 def _localized(label_id: int, fallback: str) -> str:
     """Return an addon-localized label, falling back when Kodi has no string."""
-    text = _ADDON.getLocalizedString(label_id)
-    return text or fallback
+    return localized(label_id) or fallback
 
 
 def _na_label() -> str:
@@ -470,7 +466,7 @@ def _colourise_el_tag(text: str) -> str:
     palette default); any other value is returned unchanged."""
     for tag in _EL_COLOURS:
         if text == tag or text.endswith(" " + tag):
-            colour = xbmcgui.Window(10000).getProperty(
+            colour = home_window().getProperty(
                 _EL_COLOUR_PROPERTIES[tag]
             ).strip() or _EL_COLOUR_DEFAULTS[tag]
             head = text[: len(text) - len(tag)]

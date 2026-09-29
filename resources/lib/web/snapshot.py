@@ -22,13 +22,14 @@ import time
 import zlib
 
 import xbmc
-import xbmcgui
-from core import settings
 from core.utils import (
     PROP_EFFECTIVE_HDR_TYPE,
     PROP_HDR10PLUS_PRESENT,
     cond,
+    home_window,
     info,
+    localized,
+    read_pass,
 )
 from info.dvinfo import (
     L1_EMPTY,
@@ -44,8 +45,6 @@ from info.properties import (
     publish_scene_properties,
     publish_static_properties,
 )
-
-_HOME_WINDOW_ID = 10000
 
 # Home-window property publish_hdr_type writes the source type to.
 _PROP_HDR_TYPE = "TinyPPI.HdrType"
@@ -372,7 +371,7 @@ def _broadcast_times() -> dict[str, str]:
 
 
 def _label(string_id: int) -> str:
-    return settings.addon().getLocalizedString(string_id)
+    return localized(string_id)
 
 
 def _bitrate_row(live: str, average: str) -> tuple[str, str]:
@@ -1245,7 +1244,7 @@ class SnapshotBuilder:
         rows = dvmetadata.join_rows(scene, self._meta_static)
         return [_metadata_row(kind, name, value) for kind, name, value in rows]
 
-    def _groups(self, values: dict[str, str], addon, source: str) -> list[dict]:
+    def _groups(self, values: dict[str, str], source: str) -> list[dict]:
         """The printed rows, grouped and titled the way the overlay is.
 
         A row whose value renders empty reads N/A, the way the overlay's own
@@ -1270,7 +1269,7 @@ class SnapshotBuilder:
                 value = _render(segments, values)
                 rendered.append({
                     "id":     f"{group_id}.{label_id}",
-                    "label":  addon.getLocalizedString(label_id),
+                    "label":  localized(label_id),
                     "value":  value,
                     "detail": _render(detail, values) if value else "",
                 })
@@ -1283,7 +1282,7 @@ class SnapshotBuilder:
             if group is None:
                 group = {
                     "id":    group_id,
-                    "title": addon.getLocalizedString(title_id),
+                    "title": localized(title_id),
                     "rows":  rendered,
                 }
                 by_id[group_id] = group
@@ -1313,12 +1312,15 @@ class SnapshotBuilder:
         """The active tracks as of this pass's static refresh (``_refresh``)."""
         return self._track_state
 
-    def build(self, addon=None, allow_filename: bool = True,
-              metadata: bool = True, control: bool = False,
-              detail: bool = True) -> dict | None:
+    def build(self, allow_filename: bool = True, metadata: bool = True,
+              control: bool = False, detail: bool = True) -> dict | None:
         """One complete snapshot.  Cheap enough for the producer's cadence:
         the whole pass shares a single side-data parse (see ``info.dvinfo``)
         and writes nothing to any window Kodi draws.
+
+        One read pass around all of it, too: the two halves of the readings
+        and the rows printed from them ask Kodi for many of the same
+        InfoLabels, and they describe one moment (see ``read_pass``).
 
         Without *detail* the pass only keeps the session going -- the readings
         its chart and events are taken from, folded in -- and returns None
@@ -1326,7 +1328,12 @@ class SnapshotBuilder:
         is watching, and it leaves out everything only a page would draw (the
         rows, the metadata list and its composer parse, the track lists).
         """
-        addon = addon or settings.addon()
+        with read_pass():
+            return self._build(allow_filename, metadata, control, detail)
+
+    def _build(self, allow_filename: bool, metadata: bool, control: bool,
+               detail: bool) -> dict | None:
+        """``build`` inside its read pass."""
         playing = cond("Player.HasVideo")
         self._sequence += 1
 
@@ -1361,7 +1368,7 @@ class SnapshotBuilder:
 
         self._refresh()
         values = self._values()
-        home   = xbmcgui.Window(_HOME_WINDOW_ID)
+        home   = home_window()
         source = home.getProperty(_PROP_HDR_TYPE)
         # Lower-cased once: every branch below asks the same question of it.
         source_key = source.strip().lower()
@@ -1420,7 +1427,7 @@ class SnapshotBuilder:
             "duration":  values.get("PlayerDuration", ""),
             "finish":    _finish_time(values),
             "metrics":   metrics,
-            "groups":    self._groups(values, addon, source_key),
+            "groups":    self._groups(values, source_key),
             "metadata":  self._metadata(is_dv, metadata),
             "vs10":      vs10,
             "art":       _art_tags(),

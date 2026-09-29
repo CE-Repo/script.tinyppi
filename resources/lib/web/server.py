@@ -760,7 +760,7 @@ class _Producer(threading.Thread):
                 if wanted:
                     self._publish()
                 else:
-                    self._builder.build(_addon(), detail=False)
+                    self._builder.build(detail=False)
                     # The deferred drops still fall due while nobody watches.
                     library.revision()
             except Exception as exc:  # never let one bad pass end the stream
@@ -773,7 +773,6 @@ class _Producer(threading.Thread):
         """Build a full snapshot and hand it to every stream waiting on one."""
         addon = _addon()
         snapshot = self._builder.build(
-            addon,
             allow_filename=addon.getSetting("filename") == "true",
             metadata=addon.getSetting("web_metadata") == "true",
             control=addon.getSetting("web_allow_control") == "true",

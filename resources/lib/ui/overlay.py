@@ -23,9 +23,11 @@ from core.utils import (
     clear_overlay_state,
     effective_hdr_type,
     highlight_hold,
+    home_window,
     is_effective_dv,
     join_refresh_thread,
     log_refresh_failure,
+    read_pass,
     set_window_properties,
 )
 from info import properties
@@ -339,7 +341,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
     def _dv_changed_color(self) -> str:
         """Return the themed DV-change color, with its light-blue fallback."""
-        color = xbmcgui.Window(10000).getProperty(_DV_CHANGED_COLOR)
+        color = home_window().getProperty(_DV_CHANGED_COLOR)
         if color:
             return color
         if not self._color_missing:
@@ -427,7 +429,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         lock, and the placement runs on every tick of the refresh loop.
         """
         channels = (
-            xbmcgui.Window(10000).getProperty("TinyPPI.ShowChannelIcon") == "1"
+            home_window().getProperty("TinyPPI.ShowChannelIcon") == "1"
             and bool(self.getProperty("ChannelIconVar"))
         )
         return bool(effective_hdr_type()), is_effective_dv(), channels
@@ -563,19 +565,24 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
                     break
 
                 try:
-                    properties.publish_scene_properties(self, self.published)
-                    self._highlight_dv_changes()
-                    self._apply_position_offset()
+                    # One read pass for the whole tick, so its two halves and
+                    # the placement share their Kodi reads (see read_pass).
+                    with read_pass():
+                        properties.publish_scene_properties(self, self.published)
+                        self._highlight_dv_changes()
+                        self._apply_position_offset()
 
-                    now = time.time()
-                    if now >= next_static_publish:
-                        # Advance the deadline before the call, not after: a
-                        # failure below still counts this as tried, so it
-                        # retries in another _STATIC_POLL_INTERVAL rather than
-                        # every tick until it happens to succeed.
-                        next_static_publish = now + _STATIC_POLL_INTERVAL
-                        properties.update_static_properties(self, self.published)
-                        self._changed_color = self._dv_changed_color()
+                        now = time.time()
+                        if now >= next_static_publish:
+                            # Advance the deadline before the call, not after:
+                            # a failure below still counts this as tried, so
+                            # it retries in another _STATIC_POLL_INTERVAL
+                            # rather than every tick until it happens to
+                            # succeed.
+                            next_static_publish = now + _STATIC_POLL_INTERVAL
+                            properties.update_static_properties(
+                                self, self.published)
+                            self._changed_color = self._dv_changed_color()
                 except Exception as exc:
                     self._log_refresh_failure(exc)
 

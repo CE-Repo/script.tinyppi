@@ -10,7 +10,6 @@ Call ``publish_scene_properties(window)`` on every polling tick and
 
 import re
 
-import xbmcgui
 from core import settings
 from core.helpers import format_fps, fps_display_texts, normalize_fps
 from core.maps import (
@@ -30,6 +29,7 @@ from core.utils import (
     clean,
     cond,
     first_float,
+    home_window,
     info,
     is_effective_dv,
     parse_offsets,
@@ -79,7 +79,7 @@ def _channel_dir() -> str:
 
 def _channels_shown() -> bool:
     """Return whether the channel graphics are switched on."""
-    return xbmcgui.Window(10000).getProperty("TinyPPI.ShowChannelIcon") == "1"
+    return home_window().getProperty("TinyPPI.ShowChannelIcon") == "1"
 
 
 # --- Video properties ------------------------------------------------------
@@ -660,7 +660,7 @@ def publish_channel_visibility(home=None, published=None) -> None:
     skip the write when the setting hasn't changed.  Left unset, every call
     writes unconditionally.
     """
-    home = home or xbmcgui.Window(10000)
+    home = home or home_window()
     setting = _channel_setting_for(home.getProperty("TinyPPI.EffectiveHdrType"))
     enabled = settings.addon().getSetting(setting) == "true"
     if published is None:
@@ -714,7 +714,7 @@ def _hdr10_panel_stands_in_for_dv() -> bool:
     rows a profile 5 stream has no static SEI for.  Reads the properties
     ``publish_hdr_type`` refreshed at the top of this pass.
     """
-    home = xbmcgui.Window(10000)
+    home = home_window()
     return (
         "dolby" in home.getProperty("TinyPPI.HdrType").lower()
         and home.getProperty("TinyPPI.EffectiveHdrType") == "hdr10"
@@ -747,7 +747,7 @@ def publish_hdr_type(home=None, published=None) -> None:
     hdr_type = get_hdr_format()
     if hdr_type == "hdr10+":
         hdr_type = "hdr10plus"
-    home = home or xbmcgui.Window(10000)
+    home = home or home_window()
     if published is None:
         published = {}
     set_changed_properties(
