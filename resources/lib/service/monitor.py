@@ -15,7 +15,7 @@ _LIB_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _LIB_PATH not in sys.path:
     sys.path.insert(0, _LIB_PATH)
 
-from core import settings
+from core import images, settings
 from ui import fonts
 from ui.theme import apply_theme
 from web import library
@@ -267,6 +267,9 @@ def _warm_up(monitor: xbmc.Monitor) -> None:
     kilobytes of Python to import.  Both used to happen inside the launch the
     viewer was waiting on; done here they happen once, while nobody is
     waiting, and every launch of the session finds them done.
+
+    The splash's texture cache is tidied here too, which is also the first
+    thing that runs after an add-on update restarts the service.
     """
     if monitor.waitForAbort(_WARMUP_DELAY):
         return
@@ -286,6 +289,17 @@ def _warm_up(monitor: xbmc.Monitor) -> None:
         import ui.overlay      # noqa: F401
     except Exception as exc:  # pragma: no cover - never block the service
         xbmc.log(f"TinyPPI: pre-loading the views failed: {exc}", xbmc.LOGWARNING)
+
+    # Cached logo textures whose logo has changed or gone (see core.images).
+    try:
+        media = os.path.join(settings.addon().getAddonInfo("path"),
+                             "resources", "skins", "Default", "media")
+        removed = images.prune_cache(media)
+        if removed:
+            _log(f"removed {removed} outdated cached logo texture(s)", xbmc.LOGINFO)
+    except Exception as exc:  # pragma: no cover - never block the service
+        xbmc.log(f"TinyPPI: tidying the texture cache failed: {exc}",
+                 xbmc.LOGWARNING)
 
 
 if __name__ == "__main__":

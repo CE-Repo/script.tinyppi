@@ -9,11 +9,19 @@ premultiplied alpha) and the result cached under the add-on's profile
 directory.  Source images are never modified.
 
 Used for the codec logos (ui/splash.py).
+
+A cached texture is named after what it was made from -- the logo's own
+content and the size it was scaled to -- so it is reused for as long as both
+still hold, across Kodi restarts and add-on updates alike, and a new one is
+made only when the logo or the size it is wanted at changes.  prune_cache()
+clears out the copies nothing can ask for any more.
 """
 
 import binascii
+import hashlib
 import math
 import os
+import re
 import struct
 import threading
 import time
@@ -22,9 +30,30 @@ import zlib
 import xbmc
 import xbmcvfs
 
-# Cache of display-sized textures, keyed by source name, size and mtime.
+# Cache of display-sized textures, keyed by source name, size and content.
 _CACHE_DIR = "special://profile/addon_data/script.tinyppi/scaled_images"
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+# Part of every content key.  Raise it whenever the scaler's output changes,
+# so the textures an older one made are no longer taken for current ones (and
+# prune_cache clears them out).
+_SCALER_VERSION = b"1"
+
+# ``<source name>_<width>x<height>_<content key>.png`` -- anything else in the
+# cache directory was left there by an older version or an interrupted build.
+_CACHE_NAME = re.compile(
+    r"^(?P<stem>.+)_(?P<w>\d+)x(?P<h>\d+)_(?P<key>[0-9a-f]{16})\.png$"
+)
+
+# How old a temporary file must be before prune_cache takes it for one a build
+# abandoned rather than one being written right now.
+_STALE_TMP_SECONDS = 600.0
+
+# Content keys already worked out, per source path, with the (mtime, size) they
+# were taken at: a source is read and hashed again only once it has changed on
+# disk, and an add-on update that rewrites a logo unchanged costs one hash and
+# no scaling.
+_content_keys: dict[str, tuple[tuple[int, int], str]] = {}
 
 # Only ever scale one image at a time (the playback-start prewarm and an overlay
 # poll can both reach display_texture): several CPU-bound threads would fight
@@ -396,14 +425,31 @@ def _cache_target(path: str, box_w: int, box_h: int):
     if not dst_w or (src_w <= dst_w and src_h <= dst_h):
         return None
 
-    stat = os.stat(path)
     cache_dir = _translate_path(_CACHE_DIR)
     name = os.path.splitext(os.path.basename(path))[0]
-    cache_name = (
-        f"{name}_{src_w}x{src_h}_{dst_w}x{dst_h}_"
-        f"{int(stat.st_mtime)}_{stat.st_size}.png"
-    )
+    cache_name = f"{name}_{dst_w}x{dst_h}_{_content_key(path)}.png"
     return (os.path.join(cache_dir, cache_name), dst_w, dst_h)
+
+
+def _content_key(path: str) -> str:
+    """Return the key the cached copies of ``path`` are filed under.
+
+    A digest of the file's content rather than its modification time: an
+    add-on update rewrites every file it ships whether its picture changed or
+    not, and a key that moved with that would scale every logo again after
+    each update and strand the copies made before it.
+    """
+    stat = os.stat(path)
+    stamp = (stat.st_mtime_ns, stat.st_size)
+    held = _content_keys.get(path)
+    if held is not None and held[0] == stamp:
+        return held[1]
+    with open(path, "rb") as handle:
+        key = hashlib.blake2b(
+            _SCALER_VERSION + handle.read(), digest_size=8
+        ).hexdigest()
+    _content_keys[path] = (stamp, key)
+    return key
 
 
 def display_texture(path: str, box_w: int, box_h: int) -> str:
@@ -429,3 +475,66 @@ def display_texture(path: str, box_w: int, box_h: int) -> str:
     except Exception as exc:
         _log_debug(f"scaled texture failed for {os.path.basename(path)}: {exc}")
         return path
+
+
+def prune_cache(media_root: str) -> int:
+    """Delete the cached textures nothing can ask for any more; return how many.
+
+    A copy stays for as long as the logo it was scaled from still has the
+    content it had then, whatever size it was scaled to: a size the settings no
+    longer ask for is kept, so moving a size slider back finds its copy
+    waiting.  What goes is a copy of a logo whose picture has changed since or
+    that *media_root* no longer holds, a file named the way an older version
+    named them, and a temporary file an interrupted build left behind.
+
+    Holds the build gate throughout, so it never races a build in this process;
+    a temporary file is only taken for abandoned once it has sat untouched for
+    ``_STALE_TMP_SECONDS``, which covers a build running in another one.
+    """
+    cache_dir = _translate_path(_CACHE_DIR)
+    try:
+        entries = os.listdir(cache_dir)
+    except OSError:
+        return 0  # nothing cached yet
+
+    sources: dict[str, list[str]] = {}
+    for folder, _dirs, files in os.walk(media_root):
+        for file_name in files:
+            stem, extension = os.path.splitext(file_name)
+            if extension.lower() == ".png":
+                sources.setdefault(stem, []).append(os.path.join(folder, file_name))
+
+    removed = 0
+    now = time.time()
+    with _build_gate:
+        current: dict[str, set[str]] = {}
+        for entry in entries:
+            path = os.path.join(cache_dir, entry)
+            try:
+                if entry.endswith(".tmp"):
+                    stale = now - os.stat(path).st_mtime > _STALE_TMP_SECONDS
+                else:
+                    match = _CACHE_NAME.match(entry)
+                    stale = match is None or match["key"] not in _current_keys(
+                        match["stem"], sources, current)
+                if stale:
+                    os.remove(path)
+                    removed += 1
+            except OSError as exc:
+                _log_debug(f"could not prune {entry}: {exc}")
+    return removed
+
+
+def _current_keys(stem: str, sources: dict, current: dict) -> set[str]:
+    """The content keys of the source images named *stem*, worked out once
+    per prune."""
+    keys = current.get(stem)
+    if keys is None:
+        keys = set()
+        for path in sources.get(stem, ()):
+            try:
+                keys.add(_content_key(path))
+            except OSError:
+                pass
+        current[stem] = keys
+    return keys
