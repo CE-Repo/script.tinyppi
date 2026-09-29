@@ -3,9 +3,10 @@
 
 """Start-up / OSD format-logo overlay.
 
-On ``Player.OnAVStart`` the service (monitor.py) launches this via
-``RunScript(script.tinyppi,splash)``.  It stacks the format logos in a corner –
-by default the HDR/video format on top, the audio format below, with each mode's
+On ``Player.OnAVStart`` the service (monitor.py) runs this on a thread of its
+own (``RunScript(script.tinyppi,splash)`` still works too).  It stacks the
+format logos in a corner – by default the HDR/video format on top, the audio
+format below, with each mode's
 ``splash_<mode>_order`` able to swap them and ``splash_<mode>_show_video`` /
 ``splash_<mode>_show_audio`` able to drop either one.  Three settings triggers
 decide when they show: ``splash_enabled`` (first ``splash_duration`` seconds),
@@ -26,6 +27,7 @@ from typing import NamedTuple
 import xbmc
 import xbmcaddon
 import xbmcgui
+from core import settings
 from core.images import display_texture
 from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
@@ -43,7 +45,8 @@ WINDOW_FULLSCREEN_VIDEO = 12005
 _HOME_WINDOW_ID         = 10000
 
 # Re-entry guard so overlapping playback starts cannot stack two controllers;
-# on the Home window because each RunScript call is a separate process.
+# on the Home window because a RunScript call is a separate process from the
+# service's own controller thread.
 PROP_SPLASH_ACTIVE = "TinyPPI.SplashActive"
 
 # ControlImage aspect-ratio modes: keep for the logos, stretch for the panel.
@@ -96,6 +99,10 @@ _COLOR_PROP_SUFFIX = {
 # Controller poll interval (seconds).
 _POLL_INTERVAL = 0.25
 
+# How often the source format is read again once it is known (seconds); see
+# the controller loop.
+_FORMAT_INTERVAL = 1.0
+
 
 class _ModeState(NamedTuple):
     """Everything one mode's controls are built from.
@@ -113,6 +120,34 @@ class _ModeState(NamedTuple):
     condition: str
     layer_token: str
     pill_at_top: bool
+
+
+class _ModeSettings(NamedTuple):
+    """One mode's own settings, read once per settings change (_read_settings)."""
+
+    show_video: bool
+    show_audio: bool
+    audio_first: bool
+    offset_x: int
+    offset_y: int
+    scale: float
+    pill_at_top: bool
+
+
+class _Settings(NamedTuple):
+    """Everything the controller reads from the settings.
+
+    Read in one go whenever ``core.settings`` hands out a new handle -- which
+    is exactly when a setting changed -- instead of setting by setting on
+    every poll: the loop runs four times a second for the whole film, and
+    asks for some two dozen of them each time.
+    """
+
+    show_on_start: bool
+    show_on_osd: bool
+    show_on_tinyppi: bool
+    duration: int
+    modes: dict
 
 
 # Fade in/out.  Kodi only plays "Visible"/"Hidden" animations on runtime-added
@@ -181,20 +216,21 @@ _LAYER_COLOR_FALLBACK = {
 }
 
 
-def _dv_layer_token(hdr_token: str, hdr_type: str) -> str:
+def _dv_layer_token(hdr_token: str, hdr_type: str, el_type: str) -> str:
     """Classify what is actually on screen into a layer-indicator pill token.
 
     Driven by the real Amlogic output (*hdr_token*), not the source
-    (*hdr_type*): ``'fel'``/``'mel'`` for a DV source with that layer,
-    ``'other'`` for any other DV profile and for a non-DV source converted up
-    to DV, ``''`` when the output isn't DV at all (including a DV source
-    converted away) — the pill only claims what's genuinely on screen.
+    (*hdr_type*, with its enhancement layer *el_type*): ``'fel'``/``'mel'``
+    for a DV source with that layer, ``'other'`` for any other DV profile and
+    for a non-DV source converted up to DV, ``''`` when the output isn't DV at
+    all (including a DV source converted away) — the pill only claims what's
+    genuinely on screen.
     """
     if hdr_token != "dolbyvision":
         return ""
     if "dolby" not in hdr_type:
         return "other"
-    el_type = get_dv_el_type_raw().upper()
+    el_type = el_type.upper()
     if el_type == "FEL":
         return "fel"
     if el_type == "MEL":
@@ -291,8 +327,10 @@ def _current_logos(hdr_token: str) -> tuple[str, str]:
     return video_logo, audio_logo
 
 
-def _mode_logos(addon, mode: str, logos: tuple[str, str]) -> tuple[tuple[str, str], ...]:
-    """Return *mode*'s stack as ``(logo, colour key)`` pairs, top entry first.
+def _mode_logos(
+    mode_settings: _ModeSettings, logos: tuple[str, str],
+) -> tuple[tuple[str, str], ...]:
+    """Return a mode's stack as ``(logo, colour key)`` pairs, top entry first.
 
     Applies the mode's two visibility toggles and its order setting to the
     ``(video, audio)`` pair from ``_current_logos``, so the stack can hold two,
@@ -304,8 +342,8 @@ def _mode_logos(addon, mode: str, logos: tuple[str, str]) -> tuple[tuple[str, st
     logo.  Only a toggle turned off puts the other logo on screen by itself.
     """
     video_logo, audio_logo = logos
-    show_video = addon.getSettingBool(_SHOW_VIDEO_SETTINGS[mode])
-    show_audio = addon.getSettingBool(_SHOW_AUDIO_SETTINGS[mode])
+    show_video = mode_settings.show_video
+    show_audio = mode_settings.show_audio
     if show_video and show_audio and not (video_logo and audio_logo):
         return ()
 
@@ -314,7 +352,7 @@ def _mode_logos(addon, mode: str, logos: tuple[str, str]) -> tuple[tuple[str, st
         stack.append((video_logo, "video"))
     if show_audio and audio_logo:
         stack.append((audio_logo, "audio"))
-    if addon.getSettingInt(_ORDER_SETTINGS[mode]) == _ORDER_AUDIO_FIRST:
+    if mode_settings.audio_first:
         stack.reverse()
     return tuple(stack)
 
@@ -483,12 +521,30 @@ def _window_dims(window) -> tuple[int, int]:
     return xbmcgui.getScreenWidth(), xbmcgui.getScreenHeight()
 
 
-def _read_triggers(addon) -> tuple[bool, bool, bool]:
-    """Return the ``(start, osd, tinyppi)`` trigger toggles from the settings."""
-    return (
-        addon.getSettingBool("splash_enabled"),
-        addon.getSettingBool("splash_show_on_osd"),
-        addon.getSettingBool("splash_show_on_tinyppi"),
+def _read_settings(addon) -> _Settings:
+    """Read every setting the controller follows, once (see ``_Settings``)."""
+    modes = {}
+    for mode in _MODE_PROP_PREFIX:
+        setting_x, setting_y = _OFFSET_SETTINGS[mode]
+        modes[mode] = _ModeSettings(
+            show_video=addon.getSettingBool(_SHOW_VIDEO_SETTINGS[mode]),
+            show_audio=addon.getSettingBool(_SHOW_AUDIO_SETTINGS[mode]),
+            audio_first=(
+                addon.getSettingInt(_ORDER_SETTINGS[mode]) == _ORDER_AUDIO_FIRST
+            ),
+            offset_x=addon.getSettingInt(setting_x),
+            offset_y=addon.getSettingInt(setting_y),
+            scale=_mode_scale(addon, mode),
+            pill_at_top=(
+                addon.getSettingInt(_PILL_POSITION_SETTINGS[mode]) == _PILL_TOP
+            ),
+        )
+    return _Settings(
+        show_on_start=addon.getSettingBool("splash_enabled"),
+        show_on_osd=addon.getSettingBool("splash_show_on_osd"),
+        show_on_tinyppi=addon.getSettingBool("splash_show_on_tinyppi"),
+        duration=addon.getSettingInt("splash_duration"),
+        modes=modes,
     )
 
 
@@ -615,16 +671,18 @@ def _fade_out(video_window, home, monitor, mode: str, controls) -> None:
 
 
 def _safe_addon():
-    """Return a fresh Addon whose settings can be read, or None.
+    """Return the settings handle in force right now, or None.
 
-    Updating the addon during playback briefly deletes and re-registers
+    ``core.settings`` renews the handle whenever a setting changes, so live
+    edits apply without restarting playback while an ordinary poll costs one
+    stat.  Updating the addon during playback briefly deletes and re-registers
     ``script.tinyppi``: an ``Addon()`` built then can raise ``RuntimeError``, or
     load with its settings definition not ready (``TypeError`` on any read).
     Construction alone doesn't prove it's usable — one read does — so the
     long-lived splash loop must tolerate both and exit quietly.
     """
     try:
-        addon = xbmcaddon.Addon()
+        addon = settings.addon()
         addon.getSettingBool("splash_enabled")
         return addon
     except (RuntimeError, TypeError):
@@ -643,8 +701,8 @@ def open_splash() -> None:
     addon = _safe_addon()
     if addon is None:
         return
-    show_on_start, show_on_osd, show_on_tinyppi = _read_triggers(addon)
-    if not show_on_start and not show_on_osd and not show_on_tinyppi:
+    config = _read_settings(addon)
+    if not (config.show_on_start or config.show_on_osd or config.show_on_tinyppi):
         return
 
     player = xbmc.Player()
@@ -659,11 +717,11 @@ def open_splash() -> None:
     logos = _current_logos(_amlogic_hdr_token(gamut))
     enabled_modes = [
         mode for mode, on in (
-            ("start", show_on_start), ("osd", show_on_osd),
-            ("tinyppi", show_on_tinyppi),
+            ("start", config.show_on_start), ("osd", config.show_on_osd),
+            ("tinyppi", config.show_on_tinyppi),
         ) if on
     ]
-    if not any(_mode_logos(addon, mode, logos) for mode in enabled_modes):
+    if not any(_mode_logos(config.modes[mode], logos) for mode in enabled_modes):
         return
 
     video_window = xbmcgui.Window(WINDOW_FULLSCREEN_VIDEO)
@@ -675,21 +733,39 @@ def open_splash() -> None:
     _clear_mode_visibility(home)
     controls_by_mode: dict[str, list[xbmcgui.ControlImage]] = {}
     states: dict[str, _ModeState] = {}
+    # The handle ``config`` was read from, and whether the theme has been
+    # published -- and each mode's tints read back -- since it was.
+    read_from = addon
+    themed = False
+    colors_by_mode: dict[str, dict[str, str]] = {}
+    # The source format and its enhancement layer, with the output they were
+    # read against and when they are due again (see the loop), and the
+    # conversion badge's state as last published.
+    hdr_type = el_type = ""
+    format_gamut = None
+    format_due = 0.0
+    converting = None
     try:
         started = time.monotonic()
         while not monitor.abortRequested():
             if not player.isPlayingVideo():
                 break
 
-            # Read settings from a fresh Addon() each poll: an Addon caches its
-            # settings at construction, so a new instance is needed to pick up
-            # live edits without restarting playback.  While the addon is being
-            # updated Kodi unregisters our id, so bail out cleanly if it's gone.
+            # The same handle every poll until a setting changes, so live
+            # edits still apply without restarting playback while an ordinary
+            # poll reads nothing.  While the addon is being updated Kodi
+            # unregisters our id, so bail out cleanly if it's gone.
             addon = _safe_addon()
             if addon is None:
                 break
-            show_on_start, show_on_osd, show_on_tinyppi = _read_triggers(addon)
-            duration = addon.getSettingInt("splash_duration")
+            if addon is not read_from:
+                read_from = addon
+                config = _read_settings(addon)
+                themed = False
+            show_on_start = config.show_on_start
+            show_on_osd = config.show_on_osd
+            show_on_tinyppi = config.show_on_tinyppi
+            duration = config.duration
 
             now = time.monotonic()
             in_fullscreen = xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)")
@@ -699,17 +775,25 @@ def open_splash() -> None:
             # the logos alike, so read each once here rather than in all three.
             gamut = info("Player.Process(amlogic.eoft_gamut)")
             hdr_token = _amlogic_hdr_token(gamut)
-            hdr_type = get_hdr_format()
+            # The source format and its layer describe the title, but reading
+            # them parses the frame's side data, which for Dolby Vision is new
+            # with every frame.  So they are read again once a second, at once
+            # when the output changes, and on every poll while no format has
+            # been found yet -- the side data can take a moment to arrive.
+            if not hdr_type or gamut != format_gamut or now >= format_due:
+                hdr_type = get_hdr_format()
+                el_type = get_dv_el_type_raw() if "dolby" in hdr_type else ""
+                format_gamut = gamut
+                format_due = now + _FORMAT_INTERVAL
 
-            # Live-updated every poll so the dot's own visibleCondition can pop
+            # Kept current every poll so the dot's own visibleCondition can pop
             # it in/out without a control rebuild (see _is_converting).
-            home.setProperty(
-                PROP_CONVERTING,
-                "true" if _is_converting(hdr_type, gamut) else "false",
-            )
+            now_converting = "true" if _is_converting(hdr_type, gamut) else "false"
+            if now_converting != converting:
+                converting = now_converting
+                home.setProperty(PROP_CONVERTING, converting)
 
             desired_states: dict[str, _ModeState] = {}
-            colors_by_mode: dict[str, dict[str, str]] = {}
             if in_fullscreen:
                 logos = _current_logos(hdr_token)
                 modes = []
@@ -721,31 +805,34 @@ def open_splash() -> None:
                     modes.append("tinyppi")
 
                 if modes:
-                    # Publish every themed colour once, then read each
-                    # context's own tints back so they stay independent.
-                    apply_theme(home, addon)
-                    layer_token = _dv_layer_token(hdr_token, hdr_type)
+                    # Publish every themed colour once per settings change,
+                    # then read each context's own tints back so they stay
+                    # independent.
+                    if not themed:
+                        apply_theme(home, addon)
+                        colors_by_mode = {
+                            mode: _mode_colors(home, mode)
+                            for mode in _MODE_PROP_PREFIX
+                        }
+                        themed = True
+                    layer_token = _dv_layer_token(hdr_token, hdr_type, el_type)
                     for mode in modes:
                         # Each mode picks and orders its own logos, so a mode
                         # left with none simply draws nothing this poll.
-                        mode_logos = _mode_logos(addon, mode, logos)
+                        mode_settings = config.modes[mode]
+                        mode_logos = _mode_logos(mode_settings, logos)
                         if not mode_logos:
                             continue
-                        colors = _mode_colors(home, mode)
-                        colors_by_mode[mode] = colors
-                        setting_x, setting_y = _OFFSET_SETTINGS[mode]
+                        colors = colors_by_mode[mode]
                         desired_states[mode] = _ModeState(
                             logos=mode_logos,
-                            offset_x=addon.getSettingInt(setting_x),
-                            offset_y=addon.getSettingInt(setting_y),
-                            scale=_mode_scale(addon, mode),
+                            offset_x=mode_settings.offset_x,
+                            offset_y=mode_settings.offset_y,
+                            scale=mode_settings.scale,
                             colors=tuple(sorted(colors.items())),
                             condition=_visible_condition(mode, show_on_osd),
                             layer_token=layer_token,
-                            pill_at_top=(
-                                addon.getSettingInt(_PILL_POSITION_SETTINGS[mode])
-                                == _PILL_TOP
-                            ),
+                            pill_at_top=mode_settings.pill_at_top,
                         )
 
             remove_modes = [
