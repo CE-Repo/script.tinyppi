@@ -16,6 +16,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcvfs
+from core import settings
 
 # Palette for text-based elements; index matches the settings.xml <option> order.
 _TEXT_COLORS = (
@@ -458,7 +459,7 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
 
     Call before opening the overlay so the skin can resolve every color.
     """
-    addon = addon or xbmcaddon.Addon()
+    addon = addon or settings.addon()
     custom = _load_custom() if custom is None else custom
 
     for property_name, palette, setting_id in _THEME_PROPERTIES:

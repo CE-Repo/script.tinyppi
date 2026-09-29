@@ -10,8 +10,8 @@ Call ``publish_scene_properties(window)`` on every polling tick and
 
 import re
 
-import xbmcaddon
 import xbmcgui
+from core import settings
 from core.helpers import format_fps, fps_display_texts, normalize_fps
 from core.maps import (
     AUDIO_CODEC_MAP,
@@ -653,8 +653,8 @@ def publish_channel_visibility(home=None, published=None) -> None:
 
     Re-read every poll rather than once at open: the HDR type is detected
     asynchronously, so a stream that turns out to be DV must switch to the DV
-    setting while the overlay is up.  A fresh ``Addon()`` avoids its cached
-    settings, so toggling one applies without reopening.
+    setting while the overlay is up.  Read through ``core.settings``, so
+    toggling one applies without reopening.
 
     ``published`` tracks the polling loop's window; pass it from there to
     skip the write when the setting hasn't changed.  Left unset, every call
@@ -662,7 +662,7 @@ def publish_channel_visibility(home=None, published=None) -> None:
     """
     home = home or xbmcgui.Window(10000)
     setting = _channel_setting_for(home.getProperty("TinyPPI.EffectiveHdrType"))
-    enabled = xbmcaddon.Addon().getSetting(setting) == "true"
+    enabled = settings.addon().getSetting(setting) == "true"
     if published is None:
         published = {}
     set_changed_properties(
@@ -687,8 +687,8 @@ def _effective_hdr_type(hdr_type: str) -> str:
       static-metadata panel takes over from the Dolby Vision one.
 
     Both settings default to keeping the source's area, so the layout only
-    changes for someone who asked for it.  A fresh ``Addon()`` avoids the cached
-    settings, so a toggle applies without reopening the overlay.
+    changes for someone who asked for it.  Read through ``core.settings``, so
+    a toggle applies without reopening the overlay.
 
     The output side is the mode field of ``amlogic.eoft_gamut``, the same signal
     the skin's ``-> SDR`` / ``-> HDR10`` conversion rows branch on.  Anything
@@ -697,7 +697,7 @@ def _effective_hdr_type(hdr_type: str) -> str:
     collapses the layout on its own.
     """
     mode = get_ModeVar().upper()
-    addon = xbmcaddon.Addon()
+    addon = settings.addon()
     if mode.startswith("SDR"):
         return hdr_type if addon.getSetting("keep_area_on_sdr") == "true" else ""
     if mode.startswith("HDR") and "dolby" in hdr_type.lower():

@@ -10,8 +10,8 @@ import threading
 import time
 
 import xbmc
-import xbmcaddon
 import xbmcgui
+from core import settings
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
 
@@ -279,7 +279,7 @@ def highlight_hold(setting_id: str) -> float:
     """Seconds a changed reading stays lit, from the milliseconds *setting_id*
     is set to.
 
-    Read through a fresh ``Addon()`` so a duration changed mid-session applies
+    Read through ``core.settings`` so a duration changed mid-session applies
     to the next view opened rather than to the next Kodi start.  Anything the
     setting cannot answer with -- a profile written before it existed, a value
     the slider could not have produced -- reads as DEFAULT_HIGHLIGHT_HOLD: a
@@ -287,7 +287,7 @@ def highlight_hold(setting_id: str) -> float:
     highlighting itself.
     """
     try:
-        milliseconds = xbmcaddon.Addon().getSettingInt(setting_id)
+        milliseconds = settings.addon().getSettingInt(setting_id)
     except Exception:
         milliseconds = 0
     return milliseconds / 1000.0 if milliseconds > 0 else DEFAULT_HIGHLIGHT_HOLD

@@ -182,13 +182,26 @@ def _coords(pair) -> str:
     return _joined(_num(x), _num(y))
 
 
+_module_version_read: str | None = None
+
+
 def _module_version() -> str:
     """Return the installed script.module.sidedata version, or EMPTY when the
-    module is not there -- which is also why every parsed row would be empty."""
-    try:
-        return xbmcaddon.Addon(_SIDEDATA_ID).getAddonInfo("version") or EMPTY
-    except Exception:
-        return EMPTY
+    module is not there -- which is also why every parsed row would be empty.
+
+    Read once per interpreter: the parser this process imported stays the one
+    it runs until the process ends, whatever an update installs meanwhile, so
+    the first answer is also the right one for every later frame.
+    """
+    global _module_version_read
+
+    if _module_version_read is None:
+        try:
+            version = xbmcaddon.Addon(_SIDEDATA_ID).getAddonInfo("version")
+        except Exception:
+            version = ""
+        _module_version_read = version or EMPTY
+    return _module_version_read
 
 
 # --- Sections --------------------------------------------------------------
