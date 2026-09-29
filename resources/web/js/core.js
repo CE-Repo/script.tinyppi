@@ -401,7 +401,7 @@ window.TinyPPI = (function () {
       deliver(base);
     });
 
-    source.addEventListener("bye", () => {
+    source.addEventListener("bye", (event) => {
       /* The add-on is shutting the server down -- which on a Kodi that is
          itself shutting down means the reconnect matters more than the
          status light: every connection the add-on is still accepting is a
