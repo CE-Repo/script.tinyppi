@@ -22,8 +22,8 @@ import time
 import zlib
 
 import xbmc
-import xbmcaddon
 import xbmcgui
+from core import settings
 from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
 from core.utils import (
     PROP_EFFECTIVE_HDR_TYPE,
@@ -374,7 +374,7 @@ def _broadcast_times() -> dict[str, str]:
 
 
 def _label(string_id: int) -> str:
-    return xbmcaddon.Addon().getLocalizedString(string_id)
+    return settings.addon().getLocalizedString(string_id)
 
 
 def _bitrate_row(live: str, average: str) -> tuple[str, str]:
@@ -906,9 +906,13 @@ class SessionLog:
     def _note_changes(self, watched: dict, now: float, position: str) -> None:
         """Log the readings that changed since the last pass.
 
-        Off the fast clock, not the sample one: an output switch is over in
-        less than a second and would otherwise be missed entirely.  The first
-        pass only records what things are, since everything has "changed" then.
+        Off the producer's clock, not the sample one: an output switch is over
+        in less than a second and would otherwise be missed entirely.  That
+        clock runs five times a second while a page watches and once a second
+        while none does -- which costs nothing the static readings behind most
+        of these could have shown, since they refresh once a second either
+        way.  The first pass only records what things are, since everything
+        has "changed" then.
         """
         for name, value in watched.items():
             at, at_position = now, position
@@ -1329,11 +1333,19 @@ class SnapshotBuilder:
         return self._track_state
 
     def build(self, addon=None, allow_filename: bool = True,
-              metadata: bool = True, control: bool = False) -> dict:
+              metadata: bool = True, control: bool = False,
+              detail: bool = True) -> dict | None:
         """One complete snapshot.  Cheap enough for the producer's cadence:
         the whole pass shares a single side-data parse (see ``info.dvinfo``)
-        and writes nothing to any window Kodi draws."""
-        addon = addon or xbmcaddon.Addon()
+        and writes nothing to any window Kodi draws.
+
+        Without *detail* the pass only keeps the session going -- the readings
+        its chart and events are taken from, folded in -- and returns None
+        while something plays: that is all the producer needs while no page
+        is watching, and it leaves out everything only a page would draw (the
+        rows, the metadata list and its composer parse, the track lists).
+        """
+        addon = addon or settings.addon()
         playing = cond("Player.HasVideo")
         self._sequence += 1
 
@@ -1407,6 +1419,8 @@ class SnapshotBuilder:
              "subtitle": {"id": subtitle, "label": subtitle_label}},
             position,
         )
+        if not detail:
+            return None
 
         return {
             "seq":       self._sequence,
