@@ -17,6 +17,7 @@ until it is switched on in the add-on settings.
 import gzip
 import json
 import os
+import re
 import secrets
 import socket
 import sys
@@ -126,6 +127,13 @@ _ART_FALLBACK_TYPE = "image/jpeg"
 
 # Ambiguity-free alphabet: a token is read off a TV and typed on a phone.
 _TOKEN_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+# The token in a request line.  It travels in the query string of everything a
+# browser cannot put a header on -- the stream, the pictures (see withToken in
+# js/core.js) -- and a request line logged as it came would put it in Kodi's
+# debug log, which is the file people post to a forum when something goes
+# wrong.
+_TOKEN_IN_QUERY = re.compile(r"(token=)[^&\s\"']*", re.IGNORECASE)
 _TOKEN_LENGTH   = 8
 
 _MIN_PORT, _MAX_PORT = 1024, 65535
@@ -809,7 +817,7 @@ class _Handler(BaseHTTPRequestHandler):
     # -- plumbing --
 
     def log_message(self, fmt: str, *args) -> None:  # noqa: A003 - base API
-        _log(fmt % args, xbmc.LOGDEBUG)
+        _log(_TOKEN_IN_QUERY.sub(r"\1***", fmt % args), xbmc.LOGDEBUG)
 
     def _send(self, status: HTTPStatus, body: bytes, content_type: str,
               extra: tuple[tuple[str, str], ...] = (),
