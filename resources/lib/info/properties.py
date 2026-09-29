@@ -10,7 +10,6 @@ Call ``publish_scene_properties(window)`` on every polling tick and
 
 import re
 
-import xbmc
 import xbmcaddon
 import xbmcgui
 from core.helpers import format_fps, fps_display_texts, normalize_fps
@@ -164,7 +163,6 @@ _STANDARD_ARS = (
     1.33, 1.37, 1.43, 1.66, 1.78, 1.85, 1.90, 2.00, 2.20, 2.35, 2.39, 2.55, 2.76,
 )
 _AR_SNAP_TOLERANCE = 0.02           # relative to the standard ratio
-
 
 
 def _snapped_ar(ratio: float) -> str:

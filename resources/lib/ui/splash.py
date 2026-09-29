@@ -114,6 +114,7 @@ class _ModeState(NamedTuple):
     layer_token: str
     pill_at_top: bool
 
+
 # Fade in/out.  Kodi only plays "Visible"/"Hidden" animations on runtime-added
 # controls when a *visibility condition* changes value (setVisible() alone does
 # not), so the controls watch a global guard plus a per-mode Home-window
@@ -249,6 +250,7 @@ _PILL_TOP = 1
 
 # Base layout scale for the logo block; a user scale of 1.0 keeps the original size.
 _BASE_SCALE = 0.95
+
 
 def _amlogic_hdr_token(gamut: str) -> str:
     """Classify the Amlogic output mode (``amlogic.eoft_gamut``) into an

@@ -8,8 +8,7 @@ texture much larger than its on-screen box is rescaled here (box filter, in
 premultiplied alpha) and the result cached under the add-on's profile
 directory.  Source images are never modified.
 
-Used for the codec logos (ui/splash.py) and the channel layout graphics
-(info/properties.py).
+Used for the codec logos (ui/splash.py).
 """
 
 import binascii
@@ -26,11 +25,6 @@ import xbmcvfs
 # Cache of display-sized textures, keyed by source name, size and mtime.
 _CACHE_DIR = "special://profile/addon_data/script.tinyppi/scaled_images"
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
-
-# Builds currently running via ensure_texture(), so a caller polling once a
-# second does not start the same scale over and over.
-_builds: set = set()
-_builds_lock = threading.Lock()
 
 # Only ever scale one image at a time (the playback-start prewarm and an overlay
 # poll can both reach display_texture): several CPU-bound threads would fight
@@ -53,6 +47,7 @@ def _breathe(row: int) -> None:
     """Give other threads the interpreter lock every ``_YIELD_ROWS`` rows."""
     if row % _YIELD_ROWS == _YIELD_ROWS - 1:
         time.sleep(_YIELD_SECONDS)
+
 
 def _translate_path(path: str) -> str:
     try:
@@ -415,9 +410,8 @@ def display_texture(path: str, box_w: int, box_h: int) -> str:
     """Return ``path`` scaled to fit ``box_w`` x ``box_h`` and cached, building
     the cache entry now if missing.
 
-    Scaling is slow, so only call this off the UI thread (``ready_texture`` is
-    the non-blocking counterpart).  Falls back to the source path unchanged if
-    no scaling is needed or the cache can't be built.
+    Scaling is slow, so only call this off the UI thread.  Falls back to the
+    source path unchanged if no scaling is needed or the cache can't be built.
     """
     try:
         target = _cache_target(path, box_w, box_h)
@@ -435,49 +429,3 @@ def display_texture(path: str, box_w: int, box_h: int) -> str:
     except Exception as exc:
         _log_debug(f"scaled texture failed for {os.path.basename(path)}: {exc}")
         return path
-
-
-def ready_texture(path: str, box_w: int, box_h: int) -> str:
-    """Return the scaled texture only if it is already cached, else ``""``.
-
-    Never scales, so it is safe on the UI thread: callers show the unscaled
-    source until a build (see ``ensure_texture``) has finished.
-    """
-    try:
-        target = _cache_target(path, box_w, box_h)
-        if target is None:
-            return path
-        cache_path = target[0]
-        return cache_path if os.path.exists(cache_path) else ""
-    except Exception as exc:
-        _log_debug(f"cache lookup failed for {os.path.basename(path)}: {exc}")
-        return path
-
-
-def ensure_texture(path: str, box_w: int, box_h: int) -> None:
-    """Build the scaled texture in the background unless it is cached or already
-    being built.  Returns immediately."""
-    try:
-        target = _cache_target(path, box_w, box_h)
-        if target is None or os.path.exists(target[0]):
-            return
-    except Exception:
-        return
-
-    key = (path, box_w, box_h)
-    with _builds_lock:
-        if key in _builds:
-            return
-        _builds.add(key)
-
-    threading.Thread(
-        target=_build_worker, args=(key,), name="TinyPPI-scale", daemon=True,
-    ).start()
-
-
-def _build_worker(key: tuple) -> None:
-    try:
-        display_texture(*key)
-    finally:
-        with _builds_lock:
-            _builds.discard(key)

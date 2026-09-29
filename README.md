@@ -354,9 +354,10 @@ connection light.
 
 - **Now playing** — the poster, title, year and genre, the file name (when
   *Show file name* is on), elapsed time and progress.
-- **The format logos the overlay draws** — the very files from the add-on's own
-  skin, so a Dolby Vision Atmos title wears the same two badges on the phone as
-  it does on the TV.
+- **Format badges** — a row for the picture (resolution, HDR format with the
+  Dolby Vision profile and layer, a conversion as `DV → HDR10`, IMAX) and a
+  row for the sound (codec, Atmos or DTS:X, channel layout), the same badges
+  the TinyPPI app draws under its title.
 - **Metrics** — the player cache, current frame rate, warning count and how
   often the output or a playback track was switched.
 - **A live luminance chart** — the Dolby Vision L1 peak and frame average on a

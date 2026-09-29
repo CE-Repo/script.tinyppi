@@ -167,6 +167,7 @@ _DV_METADATA = (
     (32030, (S("DoviLevel5OffsetsVar"),), ()),
 )
 
+
 def _always(source: str) -> bool:
     return True
 
@@ -879,7 +880,7 @@ class SessionLog:
             if now - self._sampled < self.SAMPLE_INTERVAL:
                 return
             self._sampled = now
-            self._sample(metrics, now, position)
+            self._sample(metrics, now)
 
     def _is_another_title(self, title: str, source: str, key: str) -> bool:
         """Whether this pass belongs to a different title than the session.
@@ -979,7 +980,7 @@ class SessionLog:
         if fps is not None:
             self._watch_fps(fps, now, position)
 
-    def _sample(self, metrics: dict, now: float, position: str) -> None:
+    def _sample(self, metrics: dict, now: float) -> None:
         """Take one chart sample and fold it into the totals."""
         level = metrics.get("l1") or {}
         peak  = level.get("max")
