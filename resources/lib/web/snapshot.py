@@ -22,14 +22,14 @@ import time
 import zlib
 
 import xbmc
-import xbmcaddon
-import xbmcgui
-from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
 from core.utils import (
     PROP_EFFECTIVE_HDR_TYPE,
     PROP_HDR10PLUS_PRESENT,
     cond,
+    home_window,
     info,
+    localized,
+    read_pass,
 )
 from info.dvinfo import (
     L1_EMPTY,
@@ -40,14 +40,11 @@ from info.dvinfo import (
     na_label,
 )
 from info import dvmetadata
-from info.imax import imax_logo, is_known_imax_title
 from info.mediasource import is_live, is_pvr
 from info.properties import (
     publish_scene_properties,
     publish_static_properties,
 )
-
-_HOME_WINDOW_ID = 10000
 
 # Home-window property publish_hdr_type writes the source type to.
 _PROP_HDR_TYPE = "TinyPPI.HdrType"
@@ -166,6 +163,7 @@ _DV_METADATA = (
     (32376, (S("DoviLevel1PqVar"),), ()),
     (32030, (S("DoviLevel5OffsetsVar"),), ()),
 )
+
 
 def _always(source: str) -> bool:
     return True
@@ -373,7 +371,7 @@ def _broadcast_times() -> dict[str, str]:
 
 
 def _label(string_id: int) -> str:
-    return xbmcaddon.Addon().getLocalizedString(string_id)
+    return localized(string_id)
 
 
 def _bitrate_row(live: str, average: str) -> tuple[str, str]:
@@ -483,15 +481,15 @@ def _metadata_row(kind: str, name: str, value) -> dict:
             "value": _web_presence_value(value)}
 
 
-# --- Logos -----------------------------------------------------------------
+# --- Output ----------------------------------------------------------------
 
 
 def _output_token(mode: str) -> str:
-    """Classify the Amlogic output mode into an ``HDR_LOGO_MAP`` key.
+    """Classify the Amlogic output mode into an HDR token (``''`` for SDR).
 
-    The output, not the source: a stream VS10 converts to Dolby Vision wears
-    the Dolby Vision logo, which is the same thing the splash does with it
-    (see ``ui.splash._amlogic_hdr_token``, whose reading this follows).
+    The output, not the source: a stream VS10 converts to Dolby Vision reads
+    as Dolby Vision, which is the same thing the splash does with it (see
+    ``ui.splash._amlogic_hdr_token``, whose reading this follows).
     """
     mode = (mode or "").upper()
     if "DV" in mode or "DOLBY" in mode:
@@ -521,28 +519,11 @@ def _output_hdr_type(mode: str, source: str) -> str:
     if not (mode or "").strip():
         return source
     token = _output_token(mode)
-    # The logo maps spell it with the plus; the source side spells it
-    # hdr10plus, since Kodi's boolean parser reads + as AND (see
-    # publish_hdr_type).  One vocabulary, or every HDR10+ film badges itself.
+    # _output_token spells it with the plus, as the splash's logo map does;
+    # the source side spells it hdr10plus, since Kodi's boolean parser reads +
+    # as AND (see publish_hdr_type).  One vocabulary, or every HDR10+ film
+    # badges itself.
     return "hdr10plus" if token == "hdr10+" else token
-
-
-def _logos(values: dict[str, str]) -> dict:
-    """The graphics for what is playing, as paths under the media route.
-
-    Each is left empty rather than guessed at: an unknown audio codec has no
-    logo, and the page simply prints the name it already has.
-    """
-    token = _output_token(values.get("ModeVar", ""))
-    video = HDR_LOGO_MAP.get(token, HDR_LOGO_MAP[""])
-    if token in IMAX_LOGO_MAP and is_known_imax_title():
-        video = imax_logo(token) or video
-
-    codec = info("VideoPlayer.AudioCodec").lower().strip()
-    return {
-        "video": video,
-        "audio": AUDIO_LOGO_MAP.get(codec, ""),
-    }
 
 
 # --- Artwork ---------------------------------------------------------------
@@ -879,7 +860,7 @@ class SessionLog:
             if now - self._sampled < self.SAMPLE_INTERVAL:
                 return
             self._sampled = now
-            self._sample(metrics, now, position)
+            self._sample(metrics, now)
 
     def _is_another_title(self, title: str, source: str, key: str) -> bool:
         """Whether this pass belongs to a different title than the session.
@@ -905,9 +886,13 @@ class SessionLog:
     def _note_changes(self, watched: dict, now: float, position: str) -> None:
         """Log the readings that changed since the last pass.
 
-        Off the fast clock, not the sample one: an output switch is over in
-        less than a second and would otherwise be missed entirely.  The first
-        pass only records what things are, since everything has "changed" then.
+        Off the producer's clock, not the sample one: an output switch is over
+        in less than a second and would otherwise be missed entirely.  That
+        clock runs five times a second while a page watches and once a second
+        while none does -- which costs nothing the static readings behind most
+        of these could have shown, since they refresh once a second either
+        way.  The first pass only records what things are, since everything
+        has "changed" then.
         """
         for name, value in watched.items():
             at, at_position = now, position
@@ -979,7 +964,7 @@ class SessionLog:
         if fps is not None:
             self._watch_fps(fps, now, position)
 
-    def _sample(self, metrics: dict, now: float, position: str) -> None:
+    def _sample(self, metrics: dict, now: float) -> None:
         """Take one chart sample and fold it into the totals."""
         level = metrics.get("l1") or {}
         peak  = level.get("max")
@@ -1259,7 +1244,7 @@ class SnapshotBuilder:
         rows = dvmetadata.join_rows(scene, self._meta_static)
         return [_metadata_row(kind, name, value) for kind, name, value in rows]
 
-    def _groups(self, values: dict[str, str], addon, source: str) -> list[dict]:
+    def _groups(self, values: dict[str, str], source: str) -> list[dict]:
         """The printed rows, grouped and titled the way the overlay is.
 
         A row whose value renders empty reads N/A, the way the overlay's own
@@ -1284,7 +1269,7 @@ class SnapshotBuilder:
                 value = _render(segments, values)
                 rendered.append({
                     "id":     f"{group_id}.{label_id}",
-                    "label":  addon.getLocalizedString(label_id),
+                    "label":  localized(label_id),
                     "value":  value,
                     "detail": _render(detail, values) if value else "",
                 })
@@ -1297,7 +1282,7 @@ class SnapshotBuilder:
             if group is None:
                 group = {
                     "id":    group_id,
-                    "title": addon.getLocalizedString(title_id),
+                    "title": localized(title_id),
                     "rows":  rendered,
                 }
                 by_id[group_id] = group
@@ -1327,12 +1312,28 @@ class SnapshotBuilder:
         """The active tracks as of this pass's static refresh (``_refresh``)."""
         return self._track_state
 
-    def build(self, addon=None, allow_filename: bool = True,
-              metadata: bool = True, control: bool = False) -> dict:
+    def build(self, allow_filename: bool = True, metadata: bool = True,
+              control: bool = False, detail: bool = True) -> dict | None:
         """One complete snapshot.  Cheap enough for the producer's cadence:
         the whole pass shares a single side-data parse (see ``info.dvinfo``)
-        and writes nothing to any window Kodi draws."""
-        addon = addon or xbmcaddon.Addon()
+        and writes nothing to any window Kodi draws.
+
+        One read pass around all of it, too: the two halves of the readings
+        and the rows printed from them ask Kodi for many of the same
+        InfoLabels, and they describe one moment (see ``read_pass``).
+
+        Without *detail* the pass only keeps the session going -- the readings
+        its chart and events are taken from, folded in -- and returns None
+        while something plays: that is all the producer needs while no page
+        is watching, and it leaves out everything only a page would draw (the
+        rows, the metadata list and its composer parse, the track lists).
+        """
+        with read_pass():
+            return self._build(allow_filename, metadata, control, detail)
+
+    def _build(self, allow_filename: bool, metadata: bool, control: bool,
+               detail: bool) -> dict | None:
+        """``build`` inside its read pass."""
         playing = cond("Player.HasVideo")
         self._sequence += 1
 
@@ -1367,7 +1368,7 @@ class SnapshotBuilder:
 
         self._refresh()
         values = self._values()
-        home   = xbmcgui.Window(_HOME_WINDOW_ID)
+        home   = home_window()
         source = home.getProperty(_PROP_HDR_TYPE)
         # Lower-cased once: every branch below asks the same question of it.
         source_key = source.strip().lower()
@@ -1406,6 +1407,8 @@ class SnapshotBuilder:
              "subtitle": {"id": subtitle, "label": subtitle_label}},
             position,
         )
+        if not detail:
+            return None
 
         return {
             "seq":       self._sequence,
@@ -1424,11 +1427,9 @@ class SnapshotBuilder:
             "duration":  values.get("PlayerDuration", ""),
             "finish":    _finish_time(values),
             "metrics":   metrics,
-            "groups":    self._groups(values, addon, source_key),
+            "groups":    self._groups(values, source_key),
             "metadata":  self._metadata(is_dv, metadata),
             "vs10":      vs10,
-            # What the overlay draws for this format, for the page to draw too.
-            "logos":     _logos(values),
             "art":       _art_tags(),
             "media":     {
                 "year":    values.get("Year", ""),

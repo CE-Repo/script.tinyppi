@@ -38,9 +38,9 @@ would come and go every second or two; instead the last block that arrived
 stands until a new one replaces it (see _hold).
 
 Formatting only, apart from the stream labels and the parser version the first
-section names, and the held blocks the live path fills in: hand ``build_rows``
-a parse result of your own and it yields the same rows anywhere, holding
-nothing.
+section names, and the held blocks the live path fills in: hand
+``build_scene_rows`` a parse result of your own and it yields the same rows
+anywhere, holding nothing.
 """
 
 import xbmc
@@ -182,13 +182,26 @@ def _coords(pair) -> str:
     return _joined(_num(x), _num(y))
 
 
+_module_version_read: str | None = None
+
+
 def _module_version() -> str:
     """Return the installed script.module.sidedata version, or EMPTY when the
-    module is not there -- which is also why every parsed row would be empty."""
-    try:
-        return xbmcaddon.Addon(_SIDEDATA_ID).getAddonInfo("version") or EMPTY
-    except Exception:
-        return EMPTY
+    module is not there -- which is also why every parsed row would be empty.
+
+    Read once per interpreter: the parser this process imported stays the one
+    it runs until the process ends, whatever an update installs meanwhile, so
+    the first answer is also the right one for every later frame.
+    """
+    global _module_version_read
+
+    if _module_version_read is None:
+        try:
+            version = xbmcaddon.Addon(_SIDEDATA_ID).getAddonInfo("version")
+        except Exception:
+            version = ""
+        _module_version_read = version or EMPTY
+    return _module_version_read
 
 
 # --- Sections --------------------------------------------------------------
@@ -1376,32 +1389,3 @@ def join_rows(
     if scene_rows and static_rows:
         static_rows = [(SPACE, f"space.{static_rows[0][1]}", "")] + static_rows
     return scene_rows + static_rows
-
-
-def build_rows(parsed: dict | None = None) -> list[tuple[str, str, str]]:
-    """Return the metadata view's rows for the frame on screen, scene and
-    static sections together in one call.
-
-    Every section is laid out in the same order every time, but only the
-    readings the stream carries survive it: a block this stream has no data
-    for takes no room, so what is on screen is what the bitstream said and
-    the sections that are there can be read without hunting between empty
-    ones.
-
-    A caller polling on its own timer -- ui.dvmetadata's dialogs, which need
-    build_scene_rows fresh on every tick and build_static_rows only on a
-    slower one -- should call the two halves and join_rows directly instead
-    of this; this single-call form is for a caller with no such split (a
-    one-shot dump, a caller passing its own parse result rather than reading
-    the side data live) that just wants every row at once.
-    """
-    scene_rows, parsed, origin, carried = build_scene_rows(parsed)
-    rows = join_rows(scene_rows, build_static_rows(parsed, origin, carried))
-
-    if not rows:
-        # Nothing was parsed at all -- no module, no side data, a frame that
-        # arrived empty.  An empty window would read as a broken view rather
-        # than as an answer, so say which it is.
-        rows.append((SECTION, "No metadata in this frame", ""))
-
-    return rows

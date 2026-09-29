@@ -178,7 +178,8 @@ def revision() -> int:
     deferred drops ``settle`` asked for: the add-on has no timer of its own to
     spare -- a thread parked on one is a thread Kodi waits for on the way out
     (see the shutdown note in service/monitor.py) -- and the producer is
-    already awake five times a second.
+    already awake: five times a second while a page watches, once a second
+    while none does.
     """
     due = False
     with _lock:

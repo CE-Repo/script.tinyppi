@@ -320,8 +320,8 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
 
     # --- List ---------------------------------------------------------------
 
-    @classmethod
-    def _paint(cls, item: xbmcgui.ListItem, row: tuple, label) -> None:
+    @staticmethod
+    def _paint(item: xbmcgui.ListItem, row: tuple, label) -> None:
         """Make *item* show *row*, with *label* as its value.
 
         The skin draws every row through the same layout, because that is all
@@ -771,8 +771,8 @@ class DVSectionDialog(DVMetadataDialog):
         the section is live: a trim pass the frame adds belongs in here too.
         A stream that stops carrying the block entirely leaves the heading, so
         the window says what it is standing on rather than going blank.
-        Slicing from self._merged_rows() rather than a fresh
-        dvmetadata.build_rows() call means a section on the static side
+        Slicing from self._merged_rows() rather than rebuilding both halves
+        on every tick means a section on the static side
         (L9, the RPU header, and the rest -- see dvmetadata.build_static_rows)
         re-renders the tick its own blocks change and on that half's fallback
         cadence otherwise, same as it would be in the full list; only a scene

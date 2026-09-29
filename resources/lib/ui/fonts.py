@@ -73,7 +73,6 @@ _MARK_SEPARATOR = "\n"
 _install_lock = threading.Lock()
 
 
-
 def _log(msg: str, level: int = xbmc.LOGINFO) -> None:
     xbmc.log(f"TinyPPI: {msg}", level)
 
@@ -197,7 +196,7 @@ def fonts_already_installed(skin_path: str, font_xml_path: str = "") -> bool:
     _install_xml picks its inserts by.
 
     Pass *font_xml_path* when the caller has already located the file: finding
-    it means walking the skin directory, and install_fonts() does that once for
+    it means walking the skin directory, and _install_fonts() does that once for
     the check and the insert together rather than once for each.
     """
     font_xml_path = font_xml_path or _find_font_xml(skin_path)
@@ -300,7 +299,7 @@ def _install_xml(skin_path: str, font_xml_path: str = "") -> bool:
     return modified
 
 
-def install_fonts() -> None:
+def _install_fonts() -> None:
     """Check the active skin's Font.xml in full and fill in what it is missing.
 
     Marks the file as checked (PROP_FONTS_READY) once the entries are known to
@@ -308,13 +307,9 @@ def install_fonts() -> None:
     that could not be completed -- no skin path, no Font.xml, an unreadable or
     unwritable file -- leaves the mark off, so the next caller tries again
     instead of trusting a check that never happened.
+
+    Called with _install_lock held.
     """
-    with _install_lock:
-        _install_fonts()
-
-
-def _install_fonts() -> None:
-    """install_fonts() with the lock already held."""
     home     = xbmcgui.Window(10000)
     skin_dir = xbmc.getSkinDir()
     home.clearProperty(PROP_FONTS_READY)
@@ -424,5 +419,3 @@ def ensure_fonts() -> None:
 # ``GUI.OnSkinLoaded``, on every skin load -- a switch, an update of the skin in
 # use, and the reload above -- and the service listens for that one instead
 # (see service/monitor.py).
-
-

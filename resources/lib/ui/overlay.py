@@ -14,6 +14,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcvfs
+from core import settings
 from core.utils import (
     PROP_ACTIVE,
     PROP_DIALOG_MODE,
@@ -22,9 +23,11 @@ from core.utils import (
     clear_overlay_state,
     effective_hdr_type,
     highlight_hold,
+    home_window,
     is_effective_dv,
     join_refresh_thread,
     log_refresh_failure,
+    read_pass,
     set_window_properties,
 )
 from info import properties
@@ -126,9 +129,9 @@ def _settings() -> xbmcaddon.Addon:
     overlay now opens inside the service, which is loaded once and stays
     loaded for the session, so a handle kept in a global would answer with the
     settings as they were when Kodi started -- every colour, offset and toggle
-    frozen at boot.  Made per opening instead, and read from there.
+    frozen at boot.  ``core.settings`` renews it whenever they change.
     """
-    return xbmcaddon.Addon()
+    return settings.addon()
 
 
 def _is_coreelec() -> bool:
@@ -215,10 +218,10 @@ def _dv_metadata_enabled() -> bool:
 
     Off out of the box: OK does nothing on the overlay until someone turns the
     view on under Metadata, so the key keeps behaving as it always has for anyone
-    who has no use for the metadata.  A fresh ``Addon()`` avoids the cached
-    settings, so the toggle applies to a session already under way.
+    who has no use for the metadata.  Read through ``_settings()``, so the
+    toggle applies to a session already under way.
     """
-    return xbmcaddon.Addon().getSettingBool("dv_metadata_view")
+    return _settings().getSettingBool("dv_metadata_view")
 
 
 def _nudge_enabled() -> bool:
@@ -230,7 +233,7 @@ def _nudge_enabled() -> bool:
     Read once when the overlay opens rather than per key press, which is where
     a held-down arrow key would land it.
     """
-    return xbmcaddon.Addon().getSettingBool("nudge_position")
+    return _settings().getSettingBool("nudge_position")
 
 
 def _elements_visible(addon) -> str:
@@ -285,6 +288,9 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         # returns.
         self.published: dict    = {}
         self._color_missing     = False
+        # The highlight color, read on the slow cadence (see _update_loop):
+        # it only moves with the theme.
+        self._changed_color     = ""
         # Read by open_tinyppi() once doModal() returns; see _open_dv_metadata.
         self.next_view  = None
 
@@ -326,6 +332,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         so self._shown starts out saying so.
         """
         self._highlighter = ChangeHighlighter(highlight_hold(_DV_CHANGED_HOLD))
+        self._changed_color = self._dv_changed_color()
         self._shown = {
             name: self.getProperty(name) for name in _DV_VALUE_PROPERTIES
         }
@@ -334,7 +341,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
     def _dv_changed_color(self) -> str:
         """Return the themed DV-change color, with its light-blue fallback."""
-        color = xbmcgui.Window(10000).getProperty(_DV_CHANGED_COLOR)
+        color = home_window().getProperty(_DV_CHANGED_COLOR)
         if color:
             return color
         if not self._color_missing:
@@ -373,7 +380,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
             name: self.published.get(name, "") for name in _DV_VALUE_PROPERTIES
         }
         hdr_type = self.published.get("TinyPPI.HdrType", "").lower()
-        color = self._dv_changed_color() if "dolby" in hdr_type else ""
+        color = self._changed_color if "dolby" in hdr_type else ""
         now   = time.monotonic()
         for name, value in current.items():
             highlighted = self._highlighter.mark(name, value, color, now)
@@ -381,34 +388,23 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
                 self.setProperty(name, highlighted)
                 self._shown[name] = highlighted
 
-    def _base_offset(self) -> tuple:
+    def _base_offset(self, wide: bool, up_limit: int) -> tuple:
         """Return the (x, y) offset configured in the settings.
 
         100 % is the max on-screen travel (30.9 % / 28.1 % of the screen);
         horizontal only applies to SDR without channels (HDR and SDR with
-        channels stay left-aligned), and vertical stops short of the top edge
-        in DV with channels.
+        channels stay left-aligned, which is what *wide* says), and vertical
+        stops *up_limit* pixels up, short of the top edge in DV with channels.
         """
         max_x = 0.309
         max_y = 0.281
         pct_x, pct_y = self._offset_pct
         offset_x = round(1920 * max_x * pct_x / 100)
         offset_y = -round(1080 * max_y * pct_y / 100)
-        if self._is_hdr() or self._has_channels():
+        if wide:
             offset_x = 0
-        offset_y = max(offset_y, -self._offset_up_limit())
+        offset_y = max(offset_y, -up_limit)
         return offset_x, offset_y
-
-    # Both read the effective type, not the source: a stream VS10 converts to
-    # SDR is drawn in the SDR layout, so the box these clamp against is the
-    # narrow one.
-    @staticmethod
-    def _is_hdr() -> bool:
-        return bool(effective_hdr_type())
-
-    @staticmethod
-    def _is_dv() -> bool:
-        return is_effective_dv()
 
     @staticmethod
     def _is_dv_source() -> bool:
@@ -421,27 +417,22 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         """
         return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.HdrType").lower()
 
-    def _has_channels(self) -> bool:
-        """Mirror the skin's visibility condition for the channel variant."""
-        return (
-            xbmcgui.Window(10000).getProperty("TinyPPI.ShowChannelIcon") == "1"
+    def _layout(self) -> tuple[bool, bool, bool]:
+        """Return ``(hdr, dv, channels)`` for the layout on screen.
+
+        Both types are the effective one, not the source: a stream VS10
+        converts to SDR is drawn in the SDR layout, so the box the placement
+        clamps against is the narrow one.  *channels* mirrors the skin's
+        visibility condition for the channel variant.
+
+        Read once per placement: every one of these reads takes Kodi's GUI
+        lock, and the placement runs on every tick of the refresh loop.
+        """
+        channels = (
+            home_window().getProperty("TinyPPI.ShowChannelIcon") == "1"
             and bool(self.getProperty("ChannelIconVar"))
         )
-
-    def _content_top(self) -> int:
-        """Top edge of the content: DV puts the channel panel above the main box."""
-        return _CONTENT_TOP_DV if self._is_dv() and self._has_channels() else _CONTENT_TOP
-
-    def _offset_up_limit(self) -> int:
-        """Pixels the configured offset may move the content up.
-
-        The nudge is free to go all the way to the screen edge; the offset keeps
-        the DV channel panel 35 px clear of it, which leaves it 2 px there.
-        """
-        top = self._content_top()
-        if self._is_dv() and self._has_channels():
-            return top - _MARGIN_TOP_DV
-        return top
+        return bool(effective_hdr_type()), is_effective_dv(), channels
 
     def _apply_position_offset(self) -> None:
         """Move group 5000 to the configured offset plus the current nudge.
@@ -451,13 +442,20 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         back on screen, while keeping the first press in the opposite
         direction effective.  Re-applied each cycle since HDR type is detected
         asynchronously; cached so the unchanged case is skipped.
-        """
-        base_x, base_y = self._base_offset()
-        nudge_x, nudge_y = self._nudge
-        wide = self._is_hdr() or self._has_channels()
-        right = _CONTENT_RIGHT_WIDE if wide else _CONTENT_RIGHT_NARROW
 
-        top = self._content_top()
+        DV with channels puts the channel panel above the main box, which
+        moves the content's top edge up.  The nudge is free to go all the way
+        to the screen edge from there; the configured offset keeps the panel
+        35 px clear of it, which leaves it 2 px there.
+        """
+        hdr, dv, channels = self._layout()
+        wide = hdr or channels
+        top = _CONTENT_TOP_DV if dv and channels else _CONTENT_TOP
+        up_limit = top - _MARGIN_TOP_DV if dv and channels else top
+
+        base_x, base_y = self._base_offset(wide, up_limit)
+        nudge_x, nudge_y = self._nudge
+        right = _CONTENT_RIGHT_WIDE if wide else _CONTENT_RIGHT_NARROW
 
         nudge_x = min(max(nudge_x, -_CONTENT_LEFT - base_x), 1920 - right - base_x)
         nudge_y = min(max(nudge_y, -top - base_y), 1080 - _CONTENT_BOTTOM - base_y)
@@ -567,18 +565,24 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
                     break
 
                 try:
-                    properties.publish_scene_properties(self, self.published)
-                    self._highlight_dv_changes()
-                    self._apply_position_offset()
+                    # One read pass for the whole tick, so its two halves and
+                    # the placement share their Kodi reads (see read_pass).
+                    with read_pass():
+                        properties.publish_scene_properties(self, self.published)
+                        self._highlight_dv_changes()
+                        self._apply_position_offset()
 
-                    now = time.time()
-                    if now >= next_static_publish:
-                        # Advance the deadline before the call, not after: a
-                        # failure below still counts this as tried, so it
-                        # retries in another _STATIC_POLL_INTERVAL rather than
-                        # every tick until it happens to succeed.
-                        next_static_publish = now + _STATIC_POLL_INTERVAL
-                        properties.update_static_properties(self, self.published)
+                        now = time.time()
+                        if now >= next_static_publish:
+                            # Advance the deadline before the call, not after:
+                            # a failure below still counts this as tried, so
+                            # it retries in another _STATIC_POLL_INTERVAL
+                            # rather than every tick until it happens to
+                            # succeed.
+                            next_static_publish = now + _STATIC_POLL_INTERVAL
+                            properties.update_static_properties(
+                                self, self.published)
+                            self._changed_color = self._dv_changed_color()
                 except Exception as exc:
                     self._log_refresh_failure(exc)
 

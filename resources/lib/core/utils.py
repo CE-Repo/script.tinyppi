@@ -10,8 +10,8 @@ import threading
 import time
 
 import xbmc
-import xbmcaddon
 import xbmcgui
+from core import settings
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
 
@@ -55,6 +55,9 @@ class read_pass:
     tick on a set-top box that is decoding 4K at the same time, and the readings
     inside one pass are meant to describe one moment anyway.
 
+    The pass also holds one handle on the Home window for everything in it
+    that reads or writes a property there (see ``home_window``).
+
     Nests: an inner pass shares the outer one's cache rather than starting a
     second, so a caller that wraps two passes of its own gets one set of reads
     for both.  Nothing is kept once the outermost pass ends -- the next tick
@@ -68,13 +71,32 @@ class read_pass:
         if self._outer is None:
             _reads.info = {}
             _reads.cond = {}
+            _reads.home = None
         return self
 
     def __exit__(self, *_exc) -> bool:
         if self._outer is None:
             _reads.info = None
             _reads.cond = None
+            _reads.home = None
         return False
+
+
+def home_window() -> xbmcgui.Window:
+    """Return the Home window (10000), where TinyPPI publishes its state.
+
+    Looking a window up takes Kodi's GUI lock, and one refresh asks for this
+    one again and again, so inside a ``read_pass`` the whole pass shares one
+    handle.  Outside a pass every call looks it up afresh.  Never kept past the
+    pass: Kodi builds its windows anew when the skin is reloaded, and a handle
+    held across that would point at a window that is gone.
+    """
+    if getattr(_reads, "info", None) is None:
+        return xbmcgui.Window(10000)
+    home = getattr(_reads, "home", None)
+    if home is None:
+        home = _reads.home = xbmcgui.Window(10000)
+    return home
 
 
 def cond(condition: str) -> bool:
@@ -95,7 +117,7 @@ def effective_hdr_type() -> str:
     The effective type, not the source: a stream VS10 converts to SDR is drawn
     in the SDR layout, so this is what the boxes and panels are sized against.
     """
-    return xbmcgui.Window(10000).getProperty(PROP_EFFECTIVE_HDR_TYPE)
+    return home_window().getProperty(PROP_EFFECTIVE_HDR_TYPE)
 
 
 def is_effective_dv() -> bool:
@@ -121,6 +143,40 @@ def info(label: str) -> str:
     except KeyError:
         value = cache[label] = xbmc.getInfoLabel(label)
         return value
+
+
+# How often ``localized`` asks Kodi which language it is in (seconds).
+_LANGUAGE_RECHECK = 1.0
+
+# This add-on's strings as read, the language they were read in, and when
+# that was last checked.
+_strings: dict[int, str] = {}
+_strings_language: str | None = None
+_language_checked = float("-inf")
+
+
+def localized(string_id: int) -> str:
+    """Return this add-on's string *string_id* in Kodi's language.
+
+    Each string is asked of Kodi once and then held: the dashboard labels
+    every row it sends, five times a second, and the N/A check behind many
+    readings asks for the same string on every tick.  The held strings are
+    dropped when Kodi's language changes, which is checked at most once a
+    second, so a switch shows within a second rather than after a restart.
+    """
+    global _strings_language, _language_checked
+
+    now = time.monotonic()
+    if now - _language_checked >= _LANGUAGE_RECHECK:
+        _language_checked = now
+        language = xbmc.getLanguage()
+        if language != _strings_language:
+            _strings.clear()
+            _strings_language = language
+    text = _strings.get(string_id)
+    if text is None:
+        text = _strings[string_id] = settings.addon().getLocalizedString(string_id)
+    return text
 
 
 def clean(val) -> str:
@@ -279,7 +335,7 @@ def highlight_hold(setting_id: str) -> float:
     """Seconds a changed reading stays lit, from the milliseconds *setting_id*
     is set to.
 
-    Read through a fresh ``Addon()`` so a duration changed mid-session applies
+    Read through ``core.settings`` so a duration changed mid-session applies
     to the next view opened rather than to the next Kodi start.  Anything the
     setting cannot answer with -- a profile written before it existed, a value
     the slider could not have produced -- reads as DEFAULT_HIGHLIGHT_HOLD: a
@@ -287,7 +343,7 @@ def highlight_hold(setting_id: str) -> float:
     highlighting itself.
     """
     try:
-        milliseconds = xbmcaddon.Addon().getSettingInt(setting_id)
+        milliseconds = settings.addon().getSettingInt(setting_id)
     except Exception:
         milliseconds = 0
     return milliseconds / 1000.0 if milliseconds > 0 else DEFAULT_HIGHLIGHT_HOLD

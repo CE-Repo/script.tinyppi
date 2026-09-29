@@ -238,25 +238,6 @@ window.TinyPPI = (function () {
     return value.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
   }
 
-  /* The add-on publishes these as boolean-parser-safe tokens (hdr10plus for
-     HDR10+, dolbyvision for Dolby Vision) and writes none at all for SDR;
-     print them the way they are written everywhere else.
-
-     Dolby Vision is the one that is shortened, because it is the only one of
-     the five whose written-out name does not fit what it is printed in: these
-     go on the badges at the top of the playing card (see renderBadges in
-     js/live-panels.js), beside a poster, on a phone -- two words there were
-     wider than the row and stood over the button in the corner.  DV is what
-     the rest of the page already calls it. */
-  function prettyHdr(value) {
-    const map = {
-      sdr: "SDR", hdr10: "HDR10", hdr10plus: "HDR10+", hlg: "HLG",
-      dolbyvision: "DV"
-    };
-    const key = String(value || "sdr").toLowerCase().replace(/[^a-z0-9+]/g, "");
-    return map[key] || value;
-  }
-
   /* Presence readings use neutral markers on the wire.  On screen they become
      local SVG images; reports get localized words so copied text remains
      meaningful outside the dashboard. */
@@ -420,7 +401,7 @@ window.TinyPPI = (function () {
       deliver(base);
     });
 
-    source.addEventListener("bye", () => {
+    source.addEventListener("bye", (event) => {
       /* The add-on is shutting the server down -- which on a Kodi that is
          itself shutting down means the reconnect matters more than the
          status light: every connection the add-on is still accepting is a
@@ -617,7 +598,7 @@ window.TinyPPI = (function () {
   }
 
   return {
-    T, $, boot, toast, setStatus, fmtNits, prettyHdr, renderValue, plainValue, askToken,
+    T, $, boot, toast, setStatus, fmtNits, renderValue, plainValue, askToken,
     copyReport, reportLine, command, getJSON, withToken,
     disclosureState, setDisclosureState, forgetDisclosure, bindDisclosure,
     get token() { return token; }

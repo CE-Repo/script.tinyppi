@@ -354,9 +354,10 @@ connection light.
 
 - **Now playing** — the poster, title, year and genre, the file name (when
   *Show file name* is on), elapsed time and progress.
-- **The format logos the overlay draws** — the very files from the add-on's own
-  skin, so a Dolby Vision Atmos title wears the same two badges on the phone as
-  it does on the TV.
+- **Format badges** — a row for the picture (resolution, HDR format with the
+  Dolby Vision profile and layer, a conversion as `DV → HDR10`, IMAX) and a
+  row for the sound (codec, Atmos or DTS:X, channel layout), the same badges
+  the TinyPPI app draws under its title.
 - **Metrics** — the player cache, current frame rate, warning count and how
   often the output or a playback track was switched.
 - **A live luminance chart** — the Dolby Vision L1 peak and frame average on a
@@ -444,6 +445,10 @@ not to be felt while it is:
   tabs and the stream is dropped; come back and it is up again immediately.
   That is the battery on the phone and one of the add-on's six stream slots,
   neither spent on a page in a pocket.
+- **Nothing is built for nobody.** With no page connected the box builds no
+  snapshot at all: once a second it only notes what the history needs — the
+  luminance sample and the events — so a dashboard that is switched on but not
+  open costs the box next to nothing.
 - **The page itself is cached.** Its files are sent with a validator and
   compressed, so opening the dashboard a second time fetches almost nothing,
   and the poster is fetched once per film however often the page is reopened.

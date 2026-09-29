@@ -4,19 +4,18 @@
 """Background service (xbmc.service): keeps a Kodi monitor alive for the session
 so the addon can react to system notifications."""
 
-import json
 import os
 import sys
 import threading
 
 import xbmc
-import xbmcaddon
 import xbmcgui
 
 _LIB_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _LIB_PATH not in sys.path:
     sys.path.insert(0, _LIB_PATH)
 
+from core import images, settings
 from ui import fonts
 from ui.theme import apply_theme
 from web import library
@@ -93,18 +92,6 @@ def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
     xbmc.log(f"{_ADDON_ID} --> {msg}", level=level)
 
 
-def _notification_media_type(data: str) -> str:
-    """Extract the media type field from a Kodi JSON notification payload."""
-    payload = json.loads(data)
-    if not isinstance(payload, dict):
-        return ""
-
-    item = payload.get("item") or {}
-    if isinstance(item, dict):
-        return item.get("type", "") or payload.get("type", "")
-    return payload.get("type", "")
-
-
 class KodiMonitor(xbmc.Monitor):
     """Listens for Kodi notifications; fires the splash on playback start.
 
@@ -115,6 +102,8 @@ class KodiMonitor(xbmc.Monitor):
     def __init__(self, dashboard: WebDashboard | None = None) -> None:
         super().__init__()
         self._dashboard = dashboard
+        # Held for as long as a splash controller runs on its thread.
+        self._splash_lock = threading.Lock()
 
     def onNotification(self, sender: str, method: str, data: str) -> None:
         if sender == _ADDON_ID and method in _OPEN_METHODS:
@@ -132,11 +121,10 @@ class KodiMonitor(xbmc.Monitor):
         elif method == _PLAYBACK_ENDED:
             library.settle()
 
-        try:
-            mediatype = _notification_media_type(data)
-            _log(f"sender={sender}  method={method}  type={mediatype!r}")
-        except Exception as exc:
-            _log(f"Exception in KodiMonitor.onNotification: {exc}", xbmc.LOGERROR)
+        # Every notification Kodi sends arrives here -- a library scan sends
+        # one per item -- so the payload goes into the line as it came rather
+        # than parsed for it.
+        _log(f"sender={sender}  method={method}  data={data[:200]}")
 
     def onSettingsChanged(self) -> None:
         """(Re)launch the splash when settings change, and bring the web
@@ -233,20 +221,42 @@ class KodiMonitor(xbmc.Monitor):
     def _maybe_show_splash(self) -> None:
         """Fire the format-logo splash when enabled for this video.
 
-        Runs in its own script interpreter; cheap guards run here first, the
-        splash script re-checks everything before showing.
+        Runs on a thread of this process rather than in a script interpreter
+        of its own: ``RunScript`` started a whole interpreter and imported the
+        splash into it on every playback start and on every settings change
+        while something played, only for most of them to find a controller
+        already running and leave.  Cheap guards run here first; the splash
+        re-checks everything before showing.
         """
         try:
-            addon = xbmcaddon.Addon()
+            addon = settings.addon()
             if not (addon.getSettingBool("splash_enabled")
                     or addon.getSettingBool("splash_show_on_osd")
                     or addon.getSettingBool("splash_show_on_tinyppi")):
                 return
             if not xbmc.getCondVisibility("Player.HasVideo"):
                 return
-            xbmc.executebuiltin(f"RunScript({_ADDON_ID},splash)")
         except Exception as exc:
             _log(f"Exception starting splash: {exc}", xbmc.LOGERROR)
+            return
+
+        # One controller at a time in here; the splash's own Home-window guard
+        # still keeps one started through main.py from stacking on this one.
+        if not self._splash_lock.acquire(blocking=False):
+            return
+        threading.Thread(
+            target=self._run_splash, name="TinyPPI-splash", daemon=True,
+        ).start()
+
+    def _run_splash(self) -> None:
+        """Run the splash controller until its video ends."""
+        try:
+            from ui.splash import open_splash
+            open_splash()
+        except Exception as exc:
+            _log(f"Exception in the splash: {exc}", xbmc.LOGERROR)
+        finally:
+            self._splash_lock.release()
 
 
 def _warm_up(monitor: xbmc.Monitor) -> None:
@@ -257,6 +267,9 @@ def _warm_up(monitor: xbmc.Monitor) -> None:
     kilobytes of Python to import.  Both used to happen inside the launch the
     viewer was waiting on; done here they happen once, while nobody is
     waiting, and every launch of the session finds them done.
+
+    The splash's texture cache is tidied here too, which is also the first
+    thing that runs after an add-on update restarts the service.
     """
     if monitor.waitForAbort(_WARMUP_DELAY):
         return
@@ -277,9 +290,20 @@ def _warm_up(monitor: xbmc.Monitor) -> None:
     except Exception as exc:  # pragma: no cover - never block the service
         xbmc.log(f"TinyPPI: pre-loading the views failed: {exc}", xbmc.LOGWARNING)
 
+    # Cached logo textures whose logo has changed or gone (see core.images).
+    try:
+        media = os.path.join(settings.addon().getAddonInfo("path"),
+                             "resources", "skins", "Default", "media")
+        removed = images.prune_cache(media)
+        if removed:
+            _log(f"removed {removed} outdated cached logo texture(s)", xbmc.LOGINFO)
+    except Exception as exc:  # pragma: no cover - never block the service
+        xbmc.log(f"TinyPPI: tidying the texture cache failed: {exc}",
+                 xbmc.LOGWARNING)
+
 
 if __name__ == "__main__":
-    addon     = xbmcaddon.Addon()
+    addon     = settings.addon()
     win       = xbmcgui.Window(_HOME_WINDOW_ID)
     dashboard = WebDashboard()
     monitor   = KodiMonitor(dashboard)

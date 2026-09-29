@@ -17,6 +17,7 @@ until it is switched on in the add-on settings.
 import gzip
 import json
 import os
+import re
 import secrets
 import socket
 import sys
@@ -31,7 +32,7 @@ import xbmc
 import xbmcaddon
 import xbmcvfs
 
-from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
+from core import settings
 from web import library
 from web.snapshot import SnapshotBuilder, apply_command, apply_mode, art_path
 
@@ -41,6 +42,18 @@ _ADDON_ID = "script.tinyppi"
 # what a browser can paint and keeps the L1 luminance chart moving with the
 # picture; the overlay's own 100ms cadence would only spend it on the wire.
 _PRODUCE_INTERVAL = 0.2
+
+# How often it runs while no page is watching.  Nothing is built for anyone
+# then; the pass only keeps the playing title's history (see SessionLog, whose
+# chart samples once a second and whose watched readings mostly move on the
+# same one-second clock) and notices playback ending.  The dashboard used to
+# rebuild the whole snapshot five times a second around the clock instead,
+# with or without a phone to send it to.
+_IDLE_INTERVAL = 1.0
+
+# How long an /api/state request waits for a snapshot built for it, when no
+# stream has kept one current.
+_FRESH_TIMEOUT = 1.0
 
 # Seconds between heartbeat comments on an idle stream.  Without them a
 # connection dropped by a router in between looks alive until the next change.
@@ -114,6 +127,13 @@ _ART_FALLBACK_TYPE = "image/jpeg"
 
 # Ambiguity-free alphabet: a token is read off a TV and typed on a phone.
 _TOKEN_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+# The token in a request line.  It travels in the query string of everything a
+# browser cannot put a header on -- the stream, the pictures (see withToken in
+# js/core.js) -- and a request line logged as it came would put it in Kodi's
+# debug log, which is the file people post to a forum when something goes
+# wrong.
+_TOKEN_IN_QUERY = re.compile(r"(token=)[^&\s\"']*", re.IGNORECASE)
 _TOKEN_LENGTH   = 8
 
 _MIN_PORT, _MAX_PORT = 1024, 65535
@@ -272,8 +292,9 @@ def _log(message: str, level: int = xbmc.LOGINFO) -> None:
 # --- Settings --------------------------------------------------------------
 
 def _addon() -> xbmcaddon.Addon:
-    """A fresh Addon, so a setting changed while the service runs is seen."""
-    return xbmcaddon.Addon()
+    """The settings in force right now, so a setting changed while the service
+    runs is seen (see ``core.settings``)."""
+    return settings.addon()
 
 
 def ensure_token(addon=None) -> str:
@@ -391,30 +412,7 @@ def _static_routes() -> dict[str, tuple[str, str]]:
         "/manifest.webmanifest":  (os.path.join(web, "manifest.webmanifest"), "application/manifest+json"),
         "/icon.png":              (os.path.join(root, "icon.png"), "image/png"),
         "/fanart.png":            (os.path.join(root, "fanart.png"), "image/png"),
-        **_media_routes(root),
     }
-
-
-def _media_routes(root: str) -> dict[str, tuple[str, str]]:
-    """The skin graphics the dashboard draws, as routes under ``/media/``.
-
-    Built from the very maps the overlay picks its logos out of, so a format
-    wears the same face on the TV and on the phone.  Naming them here keeps the
-    route table what it was: an allowlist of files the add-on itself would
-    draw, never a path that came in with a request.  A logo that is not
-    installed -- the IMAX ones ship separately -- is simply not a route.
-    """
-    media = os.path.join(root, "resources", "skins", "Default", "media")
-    names = set(HDR_LOGO_MAP.values())
-    names |= set(AUDIO_LOGO_MAP.values())
-    names |= set(IMAX_LOGO_MAP.values())
-
-    routes = {}
-    for name in sorted(names):
-        path = os.path.join(media, name.replace("/", os.sep))
-        if name and os.path.exists(path):
-            routes[f"/media/{name}"] = (path, "image/png")
-    return routes
 
 
 class _StaticFiles:
@@ -657,8 +655,8 @@ def _read_art(path: str) -> bytes | None:
 # --- The server ------------------------------------------------------------
 
 class _Producer(threading.Thread):
-    """Builds the snapshot on a fixed cadence and wakes the streams waiting
-    on it."""
+    """Builds the snapshot while a page is watching and wakes the streams
+    waiting on it; keeps only the session going while none is."""
 
     def __init__(self, stop_event: threading.Event) -> None:
         super().__init__(name="TinyPPI-web-producer", daemon=True)
@@ -671,11 +669,50 @@ class _Producer(threading.Thread):
         self._snapshot: dict = {"seq": 0, "playing": False, "groups": [],
                                 "metrics": {}, "library": 0}
         self._failed    = False
+        # Open streams, and whether a request asked for a snapshot of its own
+        # (see fresh); either one is what makes a pass build one.
+        self._watchers  = 0
+        self._requested = False
+        # Cuts the wait between passes short: a page arriving should not sit
+        # out the rest of an idle second, nor a shutdown.
+        self._nudge     = threading.Event()
 
     def wake(self) -> None:
         """Release every waiting stream at once, used on shutdown."""
+        self._nudge.set()
         with self._condition:
             self._condition.notify_all()
+
+    def watch(self) -> int:
+        """Register a stream, and return the sequence number it should wait
+        past: the first frame it sends is built after it arrived, at full
+        detail, rather than whatever an idle second left behind."""
+        with self._condition:
+            self._watchers += 1
+            seen = self._snapshot.get("seq", 0)
+        self._nudge.set()
+        return seen
+
+    def unwatch(self) -> None:
+        """Unregister a stream that has ended."""
+        with self._condition:
+            self._watchers = max(0, self._watchers - 1)
+
+    def fresh(self) -> dict:
+        """The snapshot as it is now, for a request outside any stream.
+
+        While a stream is open the held one is at most a pass old.  With none
+        open nothing has been built for a while, so one is asked for and
+        waited on -- briefly: a producer that cannot deliver in time still
+        answers with the last one it built.
+        """
+        with self._condition:
+            if self._watchers:
+                return self._snapshot
+            seen = self._snapshot.get("seq", 0)
+            self._requested = True
+        self._nudge.set()
+        return self.wait_for(seen, _FRESH_TIMEOUT) or self.snapshot
 
     @property
     def snapshot(self) -> dict:
@@ -716,32 +753,42 @@ class _Producer(threading.Thread):
     def run(self) -> None:
         monitor = xbmc.Monitor()
         while not self._stopping.is_set() and not monitor.abortRequested():
+            self._nudge.clear()
+            with self._condition:
+                wanted = bool(self._watchers or self._requested)
             try:
-                addon = _addon()
-                snapshot = self._builder.build(
-                    addon,
-                    allow_filename=addon.getSetting("filename") == "true",
-                    metadata=addon.getSetting("web_metadata") == "true",
-                    control=addon.getSetting("web_allow_control") == "true",
-                )
-                # Which version of the two shelves a client asking now would be
-                # handed.  It rides out with every snapshot because that is the
-                # one thing already going to every screen in the house: a page
-                # that drew a film as unwatched an hour ago has no other way of
-                # hearing that it has since been watched, and reloading the
-                # page is not an answer.  Reading it here also runs whatever
-                # deferred drop the last stop asked for -- this thread is the
-                # clock the add-on does not otherwise have (see
-                # ``library.revision``).
-                snapshot["library"] = library.revision()
-                with self._condition:
-                    self._snapshot = snapshot
-                    self._condition.notify_all()
+                if wanted:
+                    self._publish()
+                else:
+                    self._builder.build(detail=False)
+                    # The deferred drops still fall due while nobody watches.
+                    library.revision()
             except Exception as exc:  # never let one bad pass end the stream
                 self._log_failure(exc)
-            if monitor.waitForAbort(_PRODUCE_INTERVAL):
-                break
+            self._nudge.wait(_PRODUCE_INTERVAL if wanted else _IDLE_INTERVAL)
         with self._condition:
+            self._condition.notify_all()
+
+    def _publish(self) -> None:
+        """Build a full snapshot and hand it to every stream waiting on one."""
+        addon = _addon()
+        snapshot = self._builder.build(
+            allow_filename=addon.getSetting("filename") == "true",
+            metadata=addon.getSetting("web_metadata") == "true",
+            control=addon.getSetting("web_allow_control") == "true",
+        )
+        # Which version of the two shelves a client asking now would be handed.
+        # It rides out with every snapshot because that is the one thing
+        # already going to every screen in the house: a page that drew a film
+        # as unwatched an hour ago has no other way of hearing that it has
+        # since been watched, and reloading the page is not an answer.  Reading
+        # it here also runs whatever deferred drop the last stop asked for --
+        # this thread is the clock the add-on does not otherwise have (see
+        # ``library.revision``).
+        snapshot["library"] = library.revision()
+        with self._condition:
+            self._snapshot  = snapshot
+            self._requested = False
             self._condition.notify_all()
 
     def _log_failure(self, exc: Exception) -> None:
@@ -769,7 +816,7 @@ class _Handler(BaseHTTPRequestHandler):
     # -- plumbing --
 
     def log_message(self, fmt: str, *args) -> None:  # noqa: A003 - base API
-        _log(fmt % args, xbmc.LOGDEBUG)
+        _log(_TOKEN_IN_QUERY.sub(r"\1***", fmt % args), xbmc.LOGDEBUG)
 
     def _send(self, status: HTTPStatus, body: bytes, content_type: str,
               extra: tuple[tuple[str, str], ...] = (),
@@ -967,7 +1014,7 @@ class _Handler(BaseHTTPRequestHandler):
     # -- responses --
 
     def _state_payload(self) -> dict:
-        payload = dict(self.server.producer.snapshot)
+        payload = dict(self.server.producer.fresh())
         payload["control"] = self.server.allow_control
         # Whether a stream would be turned away right now.  A browser whose
         # EventSource was refused cannot read why -- the failure reaches it as
@@ -1245,8 +1292,14 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _stream_loop(self) -> None:
         producer = self.server.producer
+        seen = producer.watch()
+        try:
+            self._stream_frames(producer, seen)
+        finally:
+            producer.unwatch()
+
+    def _stream_frames(self, producer: _Producer, seen: int) -> None:
         stop     = self.server.stop_event
-        seen     = -1
         # The last payload this connection was sent, which every delta after
         # it is measured against.  Per connection rather than per server: two
         # browsers can be at different points, and a page that has just

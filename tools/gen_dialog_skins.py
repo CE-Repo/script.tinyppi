@@ -132,13 +132,6 @@ def rule(left, top, width):
                  HOME % "DialogLineColor", visible=SHOW % "ShowLine")
 
 
-def ring_nav(index, count):
-    """Left and right, and up and down, walk the choices round in a ring."""
-    if count == 1:
-        return {"onleft": None, "onright": None}
-    return {"previous": (index - 1) % count, "next": (index + 1) % count}
-
-
 def stacked_branches(place, keys):
     """Every branch's choices, each group hidden unless its stream is playing.
 

@@ -15,10 +15,10 @@ is optional here.
 
 try:  # pragma: no cover - absent when the skin generator runs this
     import xbmc
-    import xbmcaddon
+    from core import settings
 except ImportError:
     xbmc = None
-    xbmcaddon = None
+    settings = None
 
 # The layouts, and the window file each is drawn from. The numbering is the
 # order they were written in, not the order the settings list offers them:
@@ -133,10 +133,10 @@ BRANCHES = (
 
 
 def _setting_int(name, default):
-    if xbmcaddon is None:
+    if settings is None:
         return default
     try:
-        return int(xbmcaddon.Addon().getSettingInt(name))
+        return int(settings.addon().getSettingInt(name))
     except (TypeError, ValueError, RuntimeError):
         return default
 
