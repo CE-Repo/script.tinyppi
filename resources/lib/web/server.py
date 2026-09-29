@@ -32,7 +32,6 @@ import xbmcaddon
 import xbmcvfs
 
 from core import settings
-from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
 from web import library
 from web.snapshot import SnapshotBuilder, apply_command, apply_mode, art_path
 
@@ -405,30 +404,7 @@ def _static_routes() -> dict[str, tuple[str, str]]:
         "/manifest.webmanifest":  (os.path.join(web, "manifest.webmanifest"), "application/manifest+json"),
         "/icon.png":              (os.path.join(root, "icon.png"), "image/png"),
         "/fanart.png":            (os.path.join(root, "fanart.png"), "image/png"),
-        **_media_routes(root),
     }
-
-
-def _media_routes(root: str) -> dict[str, tuple[str, str]]:
-    """The skin graphics the dashboard draws, as routes under ``/media/``.
-
-    Built from the very maps the overlay picks its logos out of, so a format
-    wears the same face on the TV and on the phone.  Naming them here keeps the
-    route table what it was: an allowlist of files the add-on itself would
-    draw, never a path that came in with a request.  A logo that is not
-    installed -- the IMAX ones ship separately -- is simply not a route.
-    """
-    media = os.path.join(root, "resources", "skins", "Default", "media")
-    names = set(HDR_LOGO_MAP.values())
-    names |= set(AUDIO_LOGO_MAP.values())
-    names |= set(IMAX_LOGO_MAP.values())
-
-    routes = {}
-    for name in sorted(names):
-        path = os.path.join(media, name.replace("/", os.sep))
-        if name and os.path.exists(path):
-            routes[f"/media/{name}"] = (path, "image/png")
-    return routes
 
 
 class _StaticFiles:

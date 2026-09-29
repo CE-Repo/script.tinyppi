@@ -24,7 +24,6 @@ import zlib
 import xbmc
 import xbmcgui
 from core import settings
-from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
 from core.utils import (
     PROP_EFFECTIVE_HDR_TYPE,
     PROP_HDR10PLUS_PRESENT,
@@ -40,7 +39,6 @@ from info.dvinfo import (
     na_label,
 )
 from info import dvmetadata
-from info.imax import imax_logo, is_known_imax_title
 from info.mediasource import is_live, is_pvr
 from info.properties import (
     publish_scene_properties,
@@ -484,15 +482,15 @@ def _metadata_row(kind: str, name: str, value) -> dict:
             "value": _web_presence_value(value)}
 
 
-# --- Logos -----------------------------------------------------------------
+# --- Output ----------------------------------------------------------------
 
 
 def _output_token(mode: str) -> str:
-    """Classify the Amlogic output mode into an ``HDR_LOGO_MAP`` key.
+    """Classify the Amlogic output mode into an HDR token (``''`` for SDR).
 
-    The output, not the source: a stream VS10 converts to Dolby Vision wears
-    the Dolby Vision logo, which is the same thing the splash does with it
-    (see ``ui.splash._amlogic_hdr_token``, whose reading this follows).
+    The output, not the source: a stream VS10 converts to Dolby Vision reads
+    as Dolby Vision, which is the same thing the splash does with it (see
+    ``ui.splash._amlogic_hdr_token``, whose reading this follows).
     """
     mode = (mode or "").upper()
     if "DV" in mode or "DOLBY" in mode:
@@ -522,28 +520,11 @@ def _output_hdr_type(mode: str, source: str) -> str:
     if not (mode or "").strip():
         return source
     token = _output_token(mode)
-    # The logo maps spell it with the plus; the source side spells it
-    # hdr10plus, since Kodi's boolean parser reads + as AND (see
-    # publish_hdr_type).  One vocabulary, or every HDR10+ film badges itself.
+    # _output_token spells it with the plus, as the splash's logo map does;
+    # the source side spells it hdr10plus, since Kodi's boolean parser reads +
+    # as AND (see publish_hdr_type).  One vocabulary, or every HDR10+ film
+    # badges itself.
     return "hdr10plus" if token == "hdr10+" else token
-
-
-def _logos(values: dict[str, str]) -> dict:
-    """The graphics for what is playing, as paths under the media route.
-
-    Each is left empty rather than guessed at: an unknown audio codec has no
-    logo, and the page simply prints the name it already has.
-    """
-    token = _output_token(values.get("ModeVar", ""))
-    video = HDR_LOGO_MAP.get(token, HDR_LOGO_MAP[""])
-    if token in IMAX_LOGO_MAP and is_known_imax_title():
-        video = imax_logo(token) or video
-
-    codec = info("VideoPlayer.AudioCodec").lower().strip()
-    return {
-        "video": video,
-        "audio": AUDIO_LOGO_MAP.get(codec, ""),
-    }
 
 
 # --- Artwork ---------------------------------------------------------------
@@ -1442,8 +1423,6 @@ class SnapshotBuilder:
             "groups":    self._groups(values, addon, source_key),
             "metadata":  self._metadata(is_dv, metadata),
             "vs10":      vs10,
-            # What the overlay draws for this format, for the page to draw too.
-            "logos":     _logos(values),
             "art":       _art_tags(),
             "media":     {
                 "year":    values.get("Year", ""),

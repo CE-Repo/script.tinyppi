@@ -463,9 +463,7 @@ def is_enhanced_title(name: str = "") -> bool:
 
 # --- The combined IMAX logo ------------------------------------------------
 
-# Where the skin keeps the graphics both the splash and the dashboard draw
-# (the dashboard serves the very same files -- see web/server.py
-# _media_routes), so a format wears one face on the TV and on the phone.
+# Where the skin keeps the graphics the splash draws.
 _MEDIA_PATH = os.path.join(
     _ADDON.getAddonInfo("path"), "resources", "skins", "Default", "media"
 )
@@ -478,8 +476,8 @@ def imax_logo(hdr_token: str) -> str:
     """Return the combined IMAX logo for *hdr_token*, or '' when there is none.
 
     The files are optional and ship separately from the code, so a missing one
-    means the plain logo for that format rather than a splash -- or a dashboard
-    -- with a hole in it.
+    means the plain logo for that format rather than a splash with a hole in
+    it.
     """
     rel_path = IMAX_LOGO_MAP.get(hdr_token, "")
     if not rel_path:
