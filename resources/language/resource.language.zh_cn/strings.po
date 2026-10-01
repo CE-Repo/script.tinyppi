@@ -1842,3 +1842,7 @@ msgstr "数值与事件"
 msgctxt "#32588"
 msgid "Recently added"
 msgstr "最近添加"
+
+msgctxt "#32589"
+msgid "(Default)"
+msgstr "(默认)"

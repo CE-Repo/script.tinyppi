@@ -1842,3 +1842,7 @@ msgstr "Értékek és események"
 msgctxt "#32588"
 msgid "Recently added"
 msgstr "Nemrég hozzáadott"
+
+msgctxt "#32589"
+msgid "(Default)"
+msgstr "(Alap)"

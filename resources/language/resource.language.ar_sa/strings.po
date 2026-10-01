@@ -1842,3 +1842,7 @@ msgstr "القيم والأحداث"
 msgctxt "#32588"
 msgid "Recently added"
 msgstr "أضيفت مؤخرًا"
+
+msgctxt "#32589"
+msgid "(Default)"
+msgstr "(افتراضي)"

@@ -1842,3 +1842,7 @@ msgstr ""
 msgctxt "#32588"
 msgid "Recently added"
 msgstr ""
+
+msgctxt "#32589"
+msgid "(Default)"
+msgstr ""

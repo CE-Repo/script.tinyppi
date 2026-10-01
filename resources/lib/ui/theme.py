@@ -218,16 +218,17 @@ _DEFAULT_COLOR_INDEX = {
 #     [COLOR=FF82B1FF]●[/COLOR] $ADDON[script.tinyppi 32127]
 #     [COLOR=FF5733AA]●[/COLOR] #5733AA
 #
-# The default says so in Kodi's own word for it, translated the same way
-# ($LOCALIZE[571], "Default"), so no color needs a second string for it.  The
-# row says which color is set without the settings carrying fifty options per
-# color, which is what used to make settings.xml some 360 KB, parsed in full by
-# every ``xbmcaddon.Addon()`` (see core.settings).
-_STORED_RE    = re.compile(r"^\[COLOR=[0-9A-Fa-f]{8}\]●\[/COLOR\] (.*)$")
-_NAME_REF     = "$ADDON[" + ADDON_ID + " {}]"
-_NAME_REF_RE  = re.compile(r"\$ADDON\[" + re.escape(ADDON_ID) + r" (\d+)\]")
-_DEFAULT_MARK = " ($LOCALIZE[571])"
-_DEFAULT_WORD = 571
+# The setting's own default -- and only that color -- carries "(Default)"
+# after its name, a string of its own referenced the same way, so no color
+# needs a second string for it.  The row says which color is set without the
+# settings carrying fifty options per color, which is what used to make
+# settings.xml some 360 KB, parsed in full by every ``xbmcaddon.Addon()`` (see
+# core.settings).
+_STORED_RE     = re.compile(r"^\[COLOR=[0-9A-Fa-f]{8}\]●\[/COLOR\] (.*)$")
+_NAME_REF      = "$ADDON[" + ADDON_ID + " {}]"
+_NAME_REF_RE   = re.compile(r"\$ADDON\[" + re.escape(ADDON_ID) + r" (\d+)\]")
+_DEFAULT_LABEL = 32589  # (Default)
+_DEFAULT_MARK  = " " + _NAME_REF.format(_DEFAULT_LABEL)
 
 # How the settings stored a color before the picker: the palette index, or 999
 # for a HEX color whose ARGB was kept in a JSON file beside them.  Read only to
@@ -379,8 +380,8 @@ def _decode(spec: _ColorSetting, value: str, legacy_hex: str = "") -> tuple[int,
         if text.startswith("#") and _HEX6_RE.match(text[1:]):
             return -1, text[1:].upper()
 
-    # Read by the string it names alone: the swatch in front of it is only
-    # there to be seen.
+    # Read by the first string it names, the color's own: the swatch in front
+    # of it and the "(Default)" after it are only there to be seen.
     match = _NAME_REF_RE.search(value)
     if match:
         index = spec.index_of.get(int(match.group(1)))
@@ -592,12 +593,12 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
                   if value == _LEGACY_CUSTOM else "")
     index, rgb = _decode(spec, value, legacy_hex)
 
-    default_word = xbmc.getLocalizedString(_DEFAULT_WORD)
+    default_mark = addon.getLocalizedString(_DEFAULT_LABEL)
     tiles = []
     for position, label_id in enumerate(spec.labels):
         name = addon.getLocalizedString(label_id)
         if position == spec.default:
-            name = f"{name} ({default_word})"
+            name = f"{name} {default_mark}"
         tiles.append(xbmcgui.ListItem(name, spec.swatches[position],
                                       offscreen=True))
     hex_tile = ("ff" + rgb.lower()) if rgb else _HEX_TILE_EMPTY
