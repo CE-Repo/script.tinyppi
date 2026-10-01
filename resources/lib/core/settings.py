@@ -5,7 +5,7 @@
 
 Kodi gives every ``xbmcaddon.Addon()`` a copy of the settings of its own, and
 loads it on the first read: the whole ``resources/settings.xml`` definition --
-some 360 KB of XML, every setting with its control, constraints and
+some 100 KB of XML, every setting with its control, constraints and
 dependencies -- is parsed and built up, and the stored values are read over
 it.  Code that had to see a change made in the settings dialog mid-session
 used to build a fresh ``Addon()`` for every read to get it, and so paid that

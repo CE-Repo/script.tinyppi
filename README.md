@@ -103,6 +103,18 @@ answer.
 
 ---
 
+## Colors
+
+Every color in the settings is chosen in Kodi's own color picker: select the
+setting and pick a tile. The picker offers TinyPPI's own palette, every tile
+named, and the setting's row shows the color in force.
+
+The last tile in the picker is **HEX color**. It opens the keyboard on the
+current color's 6-digit HEX code, to be changed to any color at all. The opacity
+of each element stays a slider of its own beside its color.
+
+---
+
 ## Codec Logos
 
 TinyPPI can display the current **video (HDR) and audio format** as stacked logos

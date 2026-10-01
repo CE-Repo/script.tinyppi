@@ -256,83 +256,83 @@ msgid "Color of the cd/m² brightness unit."
 msgstr ""
 
 msgctxt "#32120"
-msgid "[COLOR=FFEDEDED]●[/COLOR] White (Default)"
+msgid "White"
 msgstr ""
 
 msgctxt "#32121"
-msgid "[COLOR=FFE0E0E0]●[/COLOR] Light gray"
+msgid "Light gray"
 msgstr ""
 
 msgctxt "#32122"
-msgid "[COLOR=FFFF8A80]●[/COLOR] Light red"
+msgid "Light red"
 msgstr ""
 
 msgctxt "#32123"
-msgid "[COLOR=FFFFCC80]●[/COLOR] Light orange"
+msgid "Light orange"
 msgstr ""
 
 msgctxt "#32124"
-msgid "[COLOR=FFFFFF8D]●[/COLOR] Light yellow"
+msgid "Light yellow"
 msgstr ""
 
 msgctxt "#32125"
-msgid "[COLOR=FFB9F6CA]●[/COLOR] Light green"
+msgid "Light green"
 msgstr ""
 
 msgctxt "#32126"
-msgid "[COLOR=FF84FFFF]●[/COLOR] Light cyan"
+msgid "Light cyan"
 msgstr ""
 
 msgctxt "#32127"
-msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue"
+msgid "Light blue"
 msgstr ""
 
 msgctxt "#32128"
-msgid "[COLOR=FFE1BEE7]●[/COLOR] Light purple"
+msgid "Light purple"
 msgstr ""
 
 msgctxt "#32129"
-msgid "[COLOR=FFFF80AB]●[/COLOR] Light pink"
+msgid "Light pink"
 msgstr ""
 
 msgctxt "#32130"
-msgid "[COLOR=FF2A2E33]●[/COLOR] Charcoal (Default)"
+msgid "Charcoal"
 msgstr ""
 
 msgctxt "#32131"
-msgid "[COLOR=FF000000]●[/COLOR] Black"
+msgid "Black"
 msgstr ""
 
 msgctxt "#32132"
-msgid "[COLOR=FF3A1414]●[/COLOR] Dark red"
+msgid "Dark red"
 msgstr ""
 
 msgctxt "#32133"
-msgid "[COLOR=FF3A2A12]●[/COLOR] Dark orange"
+msgid "Dark orange"
 msgstr ""
 
 msgctxt "#32134"
-msgid "[COLOR=FF3A360F]●[/COLOR] Dark yellow"
+msgid "Dark yellow"
 msgstr ""
 
 msgctxt "#32135"
-msgid "[COLOR=FF123A12]●[/COLOR] Dark green"
+msgid "Dark green"
 msgstr ""
 
 msgctxt "#32136"
-msgid "[COLOR=FF0F3A3A]●[/COLOR] Dark cyan"
+msgid "Dark cyan"
 msgstr ""
 
 msgctxt "#32137"
-msgid "[COLOR=FF12203A]●[/COLOR] Dark blue"
+msgid "Dark blue"
 msgstr ""
 
 msgctxt "#32138"
-msgid "[COLOR=FF26123A]●[/COLOR] Dark purple"
+msgid "Dark purple"
 msgstr ""
 
 msgctxt "#32139"
-msgid "[COLOR=FF444444]●[/COLOR] Dark gray"
+msgid "Dark gray"
 msgstr ""
 
 msgctxt "#32140"
@@ -356,163 +356,163 @@ msgid "Color of the chart icon (Modern)."
 msgstr ""
 
 msgctxt "#32150"
-msgid "[COLOR=FFFF8A65]●[/COLOR] Coral"
+msgid "Coral"
 msgstr ""
 
 msgctxt "#32151"
-msgid "[COLOR=FFFFAB91]●[/COLOR] Salmon"
+msgid "Salmon"
 msgstr ""
 
 msgctxt "#32152"
-msgid "[COLOR=FFFFD54F]●[/COLOR] Amber"
+msgid "Amber"
 msgstr ""
 
 msgctxt "#32153"
-msgid "[COLOR=FFFFE082]●[/COLOR] Gold"
+msgid "Gold"
 msgstr ""
 
 msgctxt "#32154"
-msgid "[COLOR=FFCCFF90]●[/COLOR] Lime"
+msgid "Lime"
 msgstr ""
 
 msgctxt "#32155"
-msgid "[COLOR=FFA7FFEB]●[/COLOR] Mint"
+msgid "Mint"
 msgstr ""
 
 msgctxt "#32156"
-msgid "[COLOR=FF80CBC4]●[/COLOR] Teal"
+msgid "Teal"
 msgstr ""
 
 msgctxt "#32157"
-msgid "[COLOR=FF80D8FF]●[/COLOR] Sky blue"
+msgid "Sky blue"
 msgstr ""
 
 msgctxt "#32158"
-msgid "[COLOR=FF40C4FF]●[/COLOR] Azure"
+msgid "Azure"
 msgstr ""
 
 msgctxt "#32159"
-msgid "[COLOR=FF8C9EFF]●[/COLOR] Indigo"
+msgid "Indigo"
 msgstr ""
 
 msgctxt "#32160"
-msgid "[COLOR=FFB388FF]●[/COLOR] Violet"
+msgid "Violet"
 msgstr ""
 
 msgctxt "#32161"
-msgid "[COLOR=FFD1C4E9]●[/COLOR] Lavender"
+msgid "Lavender"
 msgstr ""
 
 msgctxt "#32162"
-msgid "[COLOR=FFEA80FC]●[/COLOR] Magenta"
+msgid "Magenta"
 msgstr ""
 
 msgctxt "#32163"
-msgid "[COLOR=FFF48FB1]●[/COLOR] Fuchsia"
+msgid "Fuchsia"
 msgstr ""
 
 msgctxt "#32164"
-msgid "[COLOR=FFF06292]●[/COLOR] Rose"
+msgid "Rose"
 msgstr ""
 
 msgctxt "#32165"
-msgid "[COLOR=FFFF5252]●[/COLOR] Crimson"
+msgid "Crimson"
 msgstr ""
 
 msgctxt "#32166"
-msgid "[COLOR=FFBCAAA4]●[/COLOR] Brown"
+msgid "Brown"
 msgstr ""
 
 msgctxt "#32167"
-msgid "[COLOR=FFDCE775]●[/COLOR] Olive"
+msgid "Olive"
 msgstr ""
 
 msgctxt "#32168"
-msgid "[COLOR=FFB0BEC5]●[/COLOR] Slate"
+msgid "Slate"
 msgstr ""
 
 msgctxt "#32169"
-msgid "[COLOR=FFCFD8DC]●[/COLOR] Silver"
+msgid "Silver"
 msgstr ""
 
 msgctxt "#32170"
-msgid "[COLOR=FF0F3A36]●[/COLOR] Dark teal"
+msgid "Dark teal"
 msgstr ""
 
 msgctxt "#32171"
-msgid "[COLOR=FF0F2A3A]●[/COLOR] Dark sky"
+msgid "Dark sky"
 msgstr ""
 
 msgctxt "#32172"
-msgid "[COLOR=FF1E2240]●[/COLOR] Dark indigo"
+msgid "Dark indigo"
 msgstr ""
 
 msgctxt "#32173"
-msgid "[COLOR=FF2E1E40]●[/COLOR] Dark violet"
+msgid "Dark violet"
 msgstr ""
 
 msgctxt "#32174"
-msgid "[COLOR=FF3A1E3A]●[/COLOR] Dark magenta"
+msgid "Dark magenta"
 msgstr ""
 
 msgctxt "#32175"
-msgid "[COLOR=FF3A1E2C]●[/COLOR] Dark pink"
+msgid "Dark pink"
 msgstr ""
 
 msgctxt "#32176"
-msgid "[COLOR=FF3A1E24]●[/COLOR] Dark rose"
+msgid "Dark rose"
 msgstr ""
 
 msgctxt "#32177"
-msgid "[COLOR=FF3A2A1E]●[/COLOR] Dark brown"
+msgid "Dark brown"
 msgstr ""
 
 msgctxt "#32178"
-msgid "[COLOR=FF2A2E12]●[/COLOR] Dark olive"
+msgid "Dark olive"
 msgstr ""
 
 msgctxt "#32179"
-msgid "[COLOR=FF223A12]●[/COLOR] Dark lime"
+msgid "Dark lime"
 msgstr ""
 
 msgctxt "#32180"
-msgid "[COLOR=FF123A28]●[/COLOR] Dark mint"
+msgid "Dark mint"
 msgstr ""
 
 msgctxt "#32181"
-msgid "[COLOR=FF12303A]●[/COLOR] Dark azure"
+msgid "Dark azure"
 msgstr ""
 
 msgctxt "#32182"
-msgid "[COLOR=FF222E33]●[/COLOR] Dark slate"
+msgid "Dark slate"
 msgstr ""
 
 msgctxt "#32183"
-msgid "[COLOR=FF12182E]●[/COLOR] Dark navy"
+msgid "Dark navy"
 msgstr ""
 
 msgctxt "#32184"
-msgid "[COLOR=FF3A1212]●[/COLOR] Dark maroon"
+msgid "Dark maroon"
 msgstr ""
 
 msgctxt "#32185"
-msgid "[COLOR=FF1A1A2A]●[/COLOR] Midnight"
+msgid "Midnight"
 msgstr ""
 
 msgctxt "#32186"
-msgid "[COLOR=FF2E2418]●[/COLOR] Espresso"
+msgid "Espresso"
 msgstr ""
 
 msgctxt "#32187"
-msgid "[COLOR=FF1E1E1E]●[/COLOR] Onyx"
+msgid "Onyx"
 msgstr ""
 
 msgctxt "#32188"
-msgid "[COLOR=FF2C2C30]●[/COLOR] Graphite"
+msgid "Graphite"
 msgstr ""
 
 msgctxt "#32189"
-msgid "[COLOR=FF2E343A]●[/COLOR] Steel"
+msgid "Steel"
 msgstr ""
 
 msgctxt "#32190"
@@ -552,171 +552,167 @@ msgid "Color of the playing file name."
 msgstr ""
 
 msgctxt "#32200"
-msgid "[COLOR=FFFFCCBC]●[/COLOR] Peach"
+msgid "Peach"
 msgstr ""
 
 msgctxt "#32201"
-msgid "[COLOR=FFFFB74D]●[/COLOR] Tangerine"
+msgid "Tangerine"
 msgstr ""
 
 msgctxt "#32202"
-msgid "[COLOR=FFE4C441]●[/COLOR] Mustard"
+msgid "Mustard"
 msgstr ""
 
 msgctxt "#32203"
-msgid "[COLOR=FFE6EE9C]●[/COLOR] Chartreuse"
+msgid "Chartreuse"
 msgstr ""
 
 msgctxt "#32204"
-msgid "[COLOR=FF81C784]●[/COLOR] Forest"
+msgid "Forest"
 msgstr ""
 
 msgctxt "#32205"
-msgid "[COLOR=FF69F0AE]●[/COLOR] Emerald"
+msgid "Emerald"
 msgstr ""
 
 msgctxt "#32206"
-msgid "[COLOR=FFB2FF59]●[/COLOR] Spring"
+msgid "Spring"
 msgstr ""
 
 msgctxt "#32207"
-msgid "[COLOR=FF18FFFF]●[/COLOR] Aqua"
+msgid "Aqua"
 msgstr ""
 
 msgctxt "#32208"
-msgid "[COLOR=FF64FFDA]●[/COLOR] Turquoise"
+msgid "Turquoise"
 msgstr ""
 
 msgctxt "#32209"
-msgid "[COLOR=FF4FC3F7]●[/COLOR] Cerulean"
+msgid "Cerulean"
 msgstr ""
 
 msgctxt "#32210"
-msgid "[COLOR=FF536DFE]●[/COLOR] Cobalt"
+msgid "Cobalt"
 msgstr ""
 
 msgctxt "#32211"
-msgid "[COLOR=FFB39DDB]●[/COLOR] Periwinkle"
+msgid "Periwinkle"
 msgstr ""
 
 msgctxt "#32212"
-msgid "[COLOR=FFCE93D8]●[/COLOR] Plum"
+msgid "Plum"
 msgstr ""
 
 msgctxt "#32213"
-msgid "[COLOR=FFBA68C8]●[/COLOR] Orchid"
+msgid "Orchid"
 msgstr ""
 
 msgctxt "#32214"
-msgid "[COLOR=FFFF4081]●[/COLOR] Raspberry"
+msgid "Raspberry"
 msgstr ""
 
 msgctxt "#32215"
-msgid "[COLOR=FFFF5C8D]●[/COLOR] Watermelon"
+msgid "Watermelon"
 msgstr ""
 
 msgctxt "#32216"
-msgid "[COLOR=FFFF6E40]●[/COLOR] Scarlet"
+msgid "Scarlet"
 msgstr ""
 
 msgctxt "#32217"
-msgid "[COLOR=FFD7CCC8]●[/COLOR] Sand"
+msgid "Sand"
 msgstr ""
 
 msgctxt "#32218"
-msgid "[COLOR=FFC5E1A5]●[/COLOR] Pistachio"
+msgid "Pistachio"
 msgstr ""
 
 msgctxt "#32219"
-msgid "[COLOR=FF90A4AE]●[/COLOR] Cadet"
+msgid "Cadet"
 msgstr ""
 
 msgctxt "#32220"
-msgid "[COLOR=FF3E2820]●[/COLOR] Dark peach"
+msgid "Dark peach"
 msgstr ""
 
 msgctxt "#32221"
-msgid "[COLOR=FF3E2C10]●[/COLOR] Dark tangerine"
+msgid "Dark tangerine"
 msgstr ""
 
 msgctxt "#32222"
-msgid "[COLOR=FF383010]●[/COLOR] Dark mustard"
+msgid "Dark mustard"
 msgstr ""
 
 msgctxt "#32223"
-msgid "[COLOR=FF303814]●[/COLOR] Dark chartreuse"
+msgid "Dark chartreuse"
 msgstr ""
 
 msgctxt "#32224"
-msgid "[COLOR=FF1C3420]●[/COLOR] Dark forest"
+msgid "Dark forest"
 msgstr ""
 
 msgctxt "#32225"
-msgid "[COLOR=FF143424]●[/COLOR] Dark emerald"
+msgid "Dark emerald"
 msgstr ""
 
 msgctxt "#32226"
-msgid "[COLOR=FF203814]●[/COLOR] Dark spring"
+msgid "Dark spring"
 msgstr ""
 
 msgctxt "#32227"
-msgid "[COLOR=FF143838]●[/COLOR] Dark aqua"
+msgid "Dark aqua"
 msgstr ""
 
 msgctxt "#32228"
-msgid "[COLOR=FF143830]●[/COLOR] Dark turquoise"
+msgid "Dark turquoise"
 msgstr ""
 
 msgctxt "#32229"
-msgid "[COLOR=FF142C3E]●[/COLOR] Dark cerulean"
+msgid "Dark cerulean"
 msgstr ""
 
 msgctxt "#32230"
-msgid "[COLOR=FF1C2040]●[/COLOR] Dark cobalt"
+msgid "Dark cobalt"
 msgstr ""
 
 msgctxt "#32231"
-msgid "[COLOR=FF2A2040]●[/COLOR] Dark periwinkle"
+msgid "Dark periwinkle"
 msgstr ""
 
 msgctxt "#32232"
-msgid "[COLOR=FF341E38]●[/COLOR] Dark plum"
+msgid "Dark plum"
 msgstr ""
 
 msgctxt "#32233"
-msgid "[COLOR=FF301C34]●[/COLOR] Dark orchid"
+msgid "Dark orchid"
 msgstr ""
 
 msgctxt "#32234"
-msgid "[COLOR=FF3E1428]●[/COLOR] Dark raspberry"
+msgid "Dark raspberry"
 msgstr ""
 
 msgctxt "#32235"
-msgid "[COLOR=FF3E1424]●[/COLOR] Dark watermelon"
+msgid "Dark watermelon"
 msgstr ""
 
 msgctxt "#32236"
-msgid "[COLOR=FF3E1C14]●[/COLOR] Dark scarlet"
+msgid "Dark scarlet"
 msgstr ""
 
 msgctxt "#32237"
-msgid "[COLOR=FF342E28]●[/COLOR] Dark sand"
+msgid "Dark sand"
 msgstr ""
 
 msgctxt "#32238"
-msgid "[COLOR=FF28341C]●[/COLOR] Dark pistachio"
+msgid "Dark pistachio"
 msgstr ""
 
 msgctxt "#32239"
-msgid "[COLOR=FF242E34]●[/COLOR] Dark cadet"
+msgid "Dark cadet"
 msgstr ""
 
 msgctxt "#32241"
 msgid "HEX color"
-msgstr ""
-
-msgctxt "#32242"
-msgid "Enter your own 6-digit HEX color using the keyboard."
 msgstr ""
 
 msgctxt "#32243"
@@ -729,10 +725,6 @@ msgstr ""
 
 msgctxt "#32245"
 msgid "Custom color applied"
-msgstr ""
-
-msgctxt "#32250"
-msgid "Custom"
 msgstr ""
 
 msgctxt "#32251"
@@ -757,14 +749,6 @@ msgstr ""
 
 msgctxt "#32256"
 msgid "Text color of the focused button in the VS10 dialog."
-msgstr ""
-
-msgctxt "#32257"
-msgid "[COLOR=FF000000]●[/COLOR] Black (Default)"
-msgstr ""
-
-msgctxt "#32258"
-msgid "[COLOR=FFFFFFFF]●[/COLOR] White"
 msgstr ""
 
 msgctxt "#32260"
@@ -841,22 +825,6 @@ msgstr ""
 
 msgctxt "#32282"
 msgid "Color of the MEL enhancement-layer tag in the input."
-msgstr ""
-
-msgctxt "#32283"
-msgid "[COLOR=FFEDEDED]●[/COLOR] White"
-msgstr ""
-
-msgctxt "#32284"
-msgid "[COLOR=FF81C784]●[/COLOR] Forest (Default)"
-msgstr ""
-
-msgctxt "#32285"
-msgid "[COLOR=FFFF5252]●[/COLOR] Crimson (Default)"
-msgstr ""
-
-msgctxt "#32286"
-msgid "[COLOR=FFFFB74D]●[/COLOR] Tangerine (Default)"
 msgstr ""
 
 msgctxt "#32287"
@@ -1217,10 +1185,6 @@ msgstr ""
 
 msgctxt "#32396"
 msgid "Color for the readings that just changed. A value that moved is written in this color until the highlight duration below runs out, so the live readings can be told from the ones that do not move."
-msgstr ""
-
-msgctxt "#32397"
-msgid "[COLOR=FF82B1FF]●[/COLOR] Light blue (Default)"
 msgstr ""
 
 msgctxt "#32398"
@@ -1877,4 +1841,8 @@ msgstr ""
 
 msgctxt "#32588"
 msgid "Recently added"
+msgstr ""
+
+msgctxt "#32589"
+msgid "(Default)"
 msgstr ""

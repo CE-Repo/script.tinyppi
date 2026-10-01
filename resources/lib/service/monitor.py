@@ -26,7 +26,7 @@ from core.constants import (
 from core.log import channel
 from core.utils import home_window
 from ui import fonts
-from ui.theme import apply_theme
+from ui.theme import apply_theme, migrate_legacy_colors
 from web import library
 from web.server import WebDashboard
 
@@ -292,8 +292,19 @@ if __name__ == "__main__":
     dashboard = WebDashboard()
     monitor   = KodiMonitor(dashboard)
 
-    # Publish the theme properties at startup so the settings dialog can preview
-    # custom HEX colors before the overlay has been opened this session.
+    # Colors chosen before the color picker are still stored as a palette index
+    # (or 999 for a HEX color), which the settings would show as the bare
+    # number.  Rewritten once; a no-op from then on.
+    try:
+        moved = migrate_legacy_colors(addon)
+        if moved:
+            _log(f"carried {moved} color setting(s) over to the color picker",
+                 xbmc.LOGINFO)
+    except Exception as exc:  # pragma: no cover - never block the service
+        _log(f"carrying the color settings over failed: {exc}", xbmc.LOGWARNING)
+
+    # Publish the theme properties at startup, so the skin has every color
+    # before the overlay has been opened this session.
     try:
         apply_theme(win, addon)
     except Exception as exc:  # pragma: no cover - never block the service
