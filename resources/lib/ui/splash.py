@@ -28,6 +28,8 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 from core import settings
+from core.constants import HOME_WINDOW_ID
+from core.log import channel
 from core.images import display_texture
 from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
@@ -40,9 +42,10 @@ _MEDIA_PATH = os.path.join(
     _ADDON.getAddonInfo("path"), "resources", "skins", "Default", "media"
 )
 
-# Kodi window ids / Home-window guard property.
+_log = channel("splash")
+
+# Kodi window id of the fullscreen video window.
 WINDOW_FULLSCREEN_VIDEO = 12005
-_HOME_WINDOW_ID         = 10000
 
 # Re-entry guard so overlapping playback starts cannot stack two controllers;
 # on the Home window because a RunScript call is a separate process from the
@@ -169,7 +172,7 @@ class _Settings(NamedTuple):
 # fades immediately once the controls have been preloaded.
 PROP_SPLASH_VISIBLE = "TinyPPI.SplashVisible"
 _VISIBLE_CONDITION  = (
-    f"String.IsEqual(Window({_HOME_WINDOW_ID}).Property({PROP_SPLASH_VISIBLE}),true)"
+    f"String.IsEqual(Window({HOME_WINDOW_ID}).Property({PROP_SPLASH_VISIBLE}),true)"
 )
 _MODE_VISIBLE_PROPS = {
     "start":   "TinyPPI.SplashStartVisible",
@@ -594,7 +597,7 @@ def _mode_scale(addon, mode: str) -> float:
 
 def _home_prop_condition(prop: str, expected: bool = True) -> str:
     """Return a Kodi visibility fragment for a true/false Home property."""
-    condition = f"String.IsEqual(Window({_HOME_WINDOW_ID}).Property({prop}),true)"
+    condition = f"String.IsEqual(Window({HOME_WINDOW_ID}).Property({prop}),true)"
     return condition if expected else f"!{condition}"
 
 
@@ -721,7 +724,7 @@ def open_splash() -> None:
     if not player.isPlayingVideo():
         return
 
-    home = xbmcgui.Window(_HOME_WINDOW_ID)
+    home = xbmcgui.Window(HOME_WINDOW_ID)
     if home.getProperty(PROP_SPLASH_ACTIVE) == "true":
         return
 
@@ -822,9 +825,8 @@ def open_splash() -> None:
                         break
                     continue
                 started = now
-                xbmc.log(f"TinyPPI splash: output settled after "
-                         f"{now - waiting_since:.1f}s at {gamut!r}, source "
-                         f"{hdr_type or 'sdr'!r}", xbmc.LOGDEBUG)
+                _log(f"output settled after {now - waiting_since:.1f}s at "
+                     f"{gamut!r}, source {hdr_type or 'sdr'!r}")
 
             desired_states: dict[str, _ModeState] = {}
             if in_fullscreen:
@@ -885,9 +887,8 @@ def open_splash() -> None:
                 if states.get(mode) == desired:
                     continue
                 if mode in controls_by_mode:
-                    xbmc.log(f"TinyPPI splash: {mode} redrawn for output "
-                             f"{gamut!r}, source {hdr_type or 'sdr'!r}",
-                             xbmc.LOGDEBUG)
+                    _log(f"{mode} redrawn for output {gamut!r}, source "
+                         f"{hdr_type or 'sdr'!r}")
                     _fade_out(video_window, home, monitor, mode, controls_by_mode[mode])
                 controls, dot = _build_controls(
                     list(desired.logos), colors_by_mode[mode],

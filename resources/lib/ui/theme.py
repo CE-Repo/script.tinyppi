@@ -17,6 +17,9 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 from core import settings
+from core.constants import PROFILE_DIR
+from core.files import atomic_write
+from core.utils import home_window
 
 # Palette for text-based elements; index matches the settings.xml <option> order.
 _TEXT_COLORS = (
@@ -183,7 +186,7 @@ _DEFAULT_COLOR_INDEX = {
 
 # Custom HEX colors (8-digit ARGB), keyed by setting id, persisted as JSON in
 # the add-on profile directory.
-_CUSTOM_FILE = "special://profile/addon_data/script.tinyppi/custom_colors.json"
+_CUSTOM_FILE = f"{PROFILE_DIR}/custom_colors.json"
 
 # Alpha prepended to a 6-digit custom HEX, keyed by setting id (default FF).
 _CUSTOM_ALPHA = {
@@ -264,13 +267,13 @@ def _load_custom() -> dict:
 
 
 def _save_custom(data: dict) -> None:
-    """Persist the custom colors mapping to the profile directory."""
+    """Persist the custom colors mapping to the profile directory, whole or not
+    at all (see ``core.files``)."""
     path = xbmcvfs.translatePath(_CUSTOM_FILE)
     directory = os.path.dirname(path)
     if not os.path.isdir(directory):
         os.makedirs(directory, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as handle:
-        json.dump(data, handle)
+    atomic_write(path, json.dumps(data).encode("utf-8"))
 
 
 def _pick(palette: tuple, value: str) -> str:
@@ -533,7 +536,7 @@ def custom_color(setting_id, addon=None) -> None:
     # Re-publish properties so an already-open overlay updates too.
     try:
         apply_theme(
-            xbmcgui.Window(10000),
+            home_window(),
             addon,
             overrides={setting_id: setting_value},
             custom=custom,

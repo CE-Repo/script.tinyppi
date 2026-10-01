@@ -30,8 +30,12 @@ import zlib
 import xbmc
 import xbmcvfs
 
+from core.constants import PROFILE_DIR
+from core.files import atomic_write
+from core.log import channel
+
 # Cache of display-sized textures, keyed by source name, size and content.
-_CACHE_DIR = "special://profile/addon_data/script.tinyppi/scaled_images"
+_CACHE_DIR = f"{PROFILE_DIR}/scaled_images"
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 # Part of every content key.  Raise it whenever the scaler's output changes,
@@ -85,9 +89,12 @@ def _translate_path(path: str) -> str:
         return xbmc.translatePath(path)
 
 
+_log = channel("images")
+
+
 def _log_debug(message: str) -> None:
     try:
-        xbmc.log(f"TinyPPI images: {message}", xbmc.LOGDEBUG)
+        _log(message)
     except Exception:
         pass
 
@@ -386,23 +393,14 @@ def _write_png_rgba(path: str, width: int, height: int, rgba: bytes) -> None:
         + _png_chunk(b"IDAT", zlib.compress(bytes(rows), 9))
         + _png_chunk(b"IEND", b"")
     )
-    with open(path, "wb") as handle:
-        handle.write(png)
+    atomic_write(path, png)
 
 
 def _scale_png_to_cache(src_path: str, dst_path: str, dst_w: int, dst_h: int) -> None:
-    """Scale ``src_path`` into ``dst_path`` via a temp file + rename, so a
-    concurrent builder never observes a half-written PNG."""
-    tmp_path = f"{dst_path}.{os.getpid()}-{threading.get_ident()}.tmp"
-    _scale_png_for_display(src_path, tmp_path, dst_w, dst_h)
-    try:
-        os.replace(tmp_path, dst_path)
-    except OSError:
-        try:
-            os.remove(tmp_path)
-        except OSError:
-            pass
-        raise
+    """Scale ``src_path`` into ``dst_path``.  Written whole or not at all (see
+    ``core.files``), so a concurrent builder never observes a half-written
+    PNG and a power cut never leaves one behind."""
+    _scale_png_for_display(src_path, dst_path, dst_w, dst_h)
 
 
 def _scale_png_for_display(src_path: str, dst_path: str, dst_w: int, dst_h: int) -> None:

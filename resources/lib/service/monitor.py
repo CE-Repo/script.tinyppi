@@ -9,40 +9,32 @@ import sys
 import threading
 
 import xbmc
-import xbmcgui
 
 _LIB_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _LIB_PATH not in sys.path:
     sys.path.insert(0, _LIB_PATH)
 
 from core import images, settings
+from core.constants import (
+    ADDON_ID,
+    OPEN_MESSAGES,
+    OPEN_WITHDRAWN,
+    PROP_OPEN_ACK,
+    PROP_OPEN_REQUEST,
+    PROP_SERVICE,
+)
+from core.log import channel
+from core.utils import home_window
 from ui import fonts
 from ui.theme import apply_theme
 from web import library
 from web.server import WebDashboard
 
-_ADDON_ID = "script.tinyppi"
-_HOME_WINDOW_ID = 10000
-
-# Published while this service runs, and read by main.py: a launch that finds
-# it hands its view over here (see _open_view) instead of importing the whole
-# overlay into a throwaway interpreter of its own.
-_PROP_SERVICE = "TinyPPI.Service"
-
-# The request a launch leaves behind for us, and the acknowledgement it waits
-# for.  ``_WITHDRAWN`` is what it writes when it gave up waiting and is opening
-# the view itself, which is the one case where this must not open a second one.
-_PROP_OPEN_REQUEST = "TinyPPI.OpenRequest"
-_PROP_OPEN_ACK     = "TinyPPI.OpenAck"
-_WITHDRAWN         = "-"
-
-# Notification messages that open a view, and the view each one opens.  A
+# Notification methods that open a view, and the view each one opens.  A
 # keymap can send one straight to us -- NotifyAll(script.tinyppi,open_overlay)
 # -- which is the fastest way in there is: no script is started at all.
-_OPEN_METHODS = {
-    "Other.open_overlay": "overlay",
-    "Other.open_dialog":  "dialog",
-}
+_OPEN_METHODS = {f"Other.{message}": view
+                 for view, message in OPEN_MESSAGES.items()}
 
 # What Kodi announces whenever a skin finishes loading: a skin switched by
 # hand, a skin updated under a running Kodi, and the reload the font install
@@ -82,14 +74,7 @@ _LIBRARY_NOTIFICATIONS = (
 _PLAYBACK_ENDED = "Player.OnStop"
 
 
-# Set True locally to promote debug messages to INFO in a non-debug Kodi log.
-_FORCE_DEBUG_LOG = False
-
-
-def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
-    if level == xbmc.LOGDEBUG and _FORCE_DEBUG_LOG:
-        level = xbmc.LOGINFO
-    xbmc.log(f"{_ADDON_ID} --> {msg}", level=level)
+_log = channel("service")
 
 
 class KodiMonitor(xbmc.Monitor):
@@ -106,7 +91,7 @@ class KodiMonitor(xbmc.Monitor):
         self._splash_lock = threading.Lock()
 
     def onNotification(self, sender: str, method: str, data: str) -> None:
-        if sender == _ADDON_ID and method in _OPEN_METHODS:
+        if sender == ADDON_ID and method in _OPEN_METHODS:
             self._open_view(_OPEN_METHODS[method])
             return
 
@@ -184,12 +169,12 @@ class KodiMonitor(xbmc.Monitor):
         thread of its own because it is modal -- run here it would block Kodi's
         announcement thread for as long as the overlay stayed up.
         """
-        home  = xbmcgui.Window(_HOME_WINDOW_ID)
-        token = home.getProperty(_PROP_OPEN_REQUEST)
-        home.setProperty(_PROP_OPEN_ACK, token)
+        home  = home_window()
+        token = home.getProperty(PROP_OPEN_REQUEST)
+        home.setProperty(PROP_OPEN_ACK, token)
 
-        home.clearProperty(_PROP_OPEN_REQUEST)
-        if token == _WITHDRAWN:
+        home.clearProperty(PROP_OPEN_REQUEST)
+        if token == OPEN_WITHDRAWN:
             # The launch stopped waiting and is opening the view itself.  The
             # request is dropped along with it, so the next one -- a keymap
             # that notifies us directly leaves none of its own -- is not read
@@ -279,7 +264,7 @@ def _warm_up(monitor: xbmc.Monitor) -> None:
         # was starting; ensure_fonts() is what makes that a no-op.
         fonts.ensure_fonts()
     except Exception as exc:  # pragma: no cover - never block the service
-        xbmc.log(f"TinyPPI: registering the fonts failed: {exc}", xbmc.LOGWARNING)
+        _log(f"registering the fonts failed: {exc}", xbmc.LOGWARNING)
 
     # Both views, since either one can be what the button is set to open.  The
     # Dolby Vision metadata view is left out on purpose: it is off out of the
@@ -288,7 +273,7 @@ def _warm_up(monitor: xbmc.Monitor) -> None:
         import ui.mode_select  # noqa: F401  imported to have it loaded, not used
         import ui.overlay      # noqa: F401
     except Exception as exc:  # pragma: no cover - never block the service
-        xbmc.log(f"TinyPPI: pre-loading the views failed: {exc}", xbmc.LOGWARNING)
+        _log(f"pre-loading the views failed: {exc}", xbmc.LOGWARNING)
 
     # Cached logo textures whose logo has changed or gone (see core.images).
     try:
@@ -298,13 +283,12 @@ def _warm_up(monitor: xbmc.Monitor) -> None:
         if removed:
             _log(f"removed {removed} outdated cached logo texture(s)", xbmc.LOGINFO)
     except Exception as exc:  # pragma: no cover - never block the service
-        xbmc.log(f"TinyPPI: tidying the texture cache failed: {exc}",
-                 xbmc.LOGWARNING)
+        _log(f"tidying the texture cache failed: {exc}", xbmc.LOGWARNING)
 
 
 if __name__ == "__main__":
     addon     = settings.addon()
-    win       = xbmcgui.Window(_HOME_WINDOW_ID)
+    win       = home_window()
     dashboard = WebDashboard()
     monitor   = KodiMonitor(dashboard)
 
@@ -313,7 +297,7 @@ if __name__ == "__main__":
     try:
         apply_theme(win, addon)
     except Exception as exc:  # pragma: no cover - never block the service
-        xbmc.log(f"TinyPPI: apply_theme at startup failed: {exc}", xbmc.LOGWARNING)
+        _log(f"apply_theme at startup failed: {exc}", xbmc.LOGWARNING)
 
     # Off unless the user switched it on; this is what starts it at boot.
     monitor.apply_dashboard_settings()
@@ -322,17 +306,17 @@ if __name__ == "__main__":
     # script interpreter of its own.  Set before the warm-up rather than after
     # it: the handover works either way, and a launch in the first few seconds
     # of a session then still skips the import pass.
-    win.setProperty(_PROP_SERVICE, "1")
+    win.setProperty(PROP_SERVICE, "1")
 
     threading.Thread(target=_warm_up, args=(monitor,), daemon=True).start()
 
-    xbmc.log("TinyPPI: KodiMonitor started", xbmc.LOGINFO)
+    _log("KodiMonitor started", xbmc.LOGINFO)
 
     # Block until Kodi shuts down; notifications arrive on their own thread.
     monitor.waitForAbort()
 
     # Nothing may be handed over once this is on its way out.
-    win.clearProperty(_PROP_SERVICE)
+    win.clearProperty(PROP_SERVICE)
 
     # Nothing may be left running past this point.  Kodi does not simply let
     # the interpreter go: once this script returns, CPythonInvoker spins with
@@ -347,7 +331,6 @@ if __name__ == "__main__":
     try:
         dashboard.stop(final=True)
     except Exception as exc:  # pragma: no cover - never block the shutdown
-        xbmc.log(f"TinyPPI: stopping the web dashboard failed: {exc}",
-                 xbmc.LOGERROR)
+        _log(f"stopping the web dashboard failed: {exc}", xbmc.LOGERROR)
 
     del monitor

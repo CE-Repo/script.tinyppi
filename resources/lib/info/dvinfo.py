@@ -50,6 +50,7 @@ import threading
 import time
 
 import xbmc
+from core.log import channel
 from core.utils import home_window, localized
 
 try:
@@ -147,8 +148,7 @@ _logged_import_error = False
 _logged_derive_error = False
 
 
-def _log(msg: str, level: int = xbmc.LOGINFO) -> None:
-    xbmc.log(f"TinyPPI: {msg}", level)
+_log = channel("dv", xbmc.LOGINFO)
 
 
 def _localized(label_id: int, fallback: str) -> str:

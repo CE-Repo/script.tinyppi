@@ -15,6 +15,7 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 from core import settings
+from core.log import log
 from core.utils import (
     PROP_ACTIVE,
     PROP_DIALOG_MODE,
@@ -45,6 +46,14 @@ _ADDON      = xbmcaddon.Addon()
 _ADDON_PATH = _ADDON.getAddonInfo("path")
 
 _dialog_lock = False
+
+# Held from the guards in _preflight to the moment TinyPPI is marked as open.
+# The service runs every open request on a thread of its own, and a second
+# press arriving while the first is still between those two points would pass
+# the same guards and stack a second view on top of the first.  It is dropped
+# instead, as the duplicate it is; once TinyPPI is marked as open, a press
+# toggles it closed as before.
+_opening = threading.Lock()
 
 # Raise to True to allow launching on non-CoreELEC platforms (e.g. for testing).
 _ALLOW_NON_COREELEC = False
@@ -196,7 +205,7 @@ def _preflight(home, player, toggle_log: str) -> bool:
     skin_path = xbmcvfs.translatePath("special://skin/")
     if os.path.exists(os.path.join(skin_path, "720p")):
         _notify_error(32012)
-        xbmc.log("TinyPPI: 720p skin detected – unsupported", xbmc.LOGWARNING)
+        log("720p skin detected – unsupported", xbmc.LOGWARNING)
         return False
 
     if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
@@ -206,7 +215,7 @@ def _preflight(home, player, toggle_log: str) -> bool:
         return False
 
     if home.getProperty(PROP_RUNNING) == "true":
-        xbmc.log(toggle_log, xbmc.LOGINFO)
+        log(toggle_log, xbmc.LOGINFO)
         xbmc.executebuiltin("Action(Back)")
         return False
 
@@ -346,8 +355,8 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
             return color
         if not self._color_missing:
             self._color_missing = True
-            xbmc.log(
-                f"TinyPPI: {_DV_CHANGED_COLOR} is not published, highlighting "
+            log(
+                f"{_DV_CHANGED_COLOR} is not published, highlighting "
                 f"changed overlay values in {_DV_CHANGED_FALLBACK} instead",
                 xbmc.LOGWARNING,
             )
@@ -415,7 +424,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         converting the picture to SDR or HDR10, but the side data still
         describes the Dolby Vision stream being decoded.
         """
-        return "dolby" in xbmcgui.Window(10000).getProperty("TinyPPI.HdrType").lower()
+        return "dolby" in home_window().getProperty("TinyPPI.HdrType").lower()
 
     def _layout(self) -> tuple[bool, bool, bool]:
         """Return ``(hdr, dv, channels)`` for the layout on screen.
@@ -601,7 +610,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
     def close_dialog(self) -> None:
         self._running = False
-        xbmcgui.Window(10000).clearProperty(PROP_ACTIVE)
+        home_window().clearProperty(PROP_ACTIVE)
         try:
             self.close()
         except Exception:
@@ -653,38 +662,47 @@ def open_tinyppi() -> None:
     a 720p skin, no fullscreen video, or nothing playing; toggle-closes when the
     overlay is already open.
     """
-    home   = xbmcgui.Window(10000)
+    home   = home_window()
     player = xbmc.Player()
 
-    if not _preflight(home, player, "TinyPPI: Toggle close"):
+    if not _opening.acquire(blocking=False):
+        log("open request dropped: TinyPPI is already opening")
         return
+    try:
+        if not _preflight(home, player, "Toggle close"):
+            return
 
-    # Normally a single window-property read: the service registered the font
-    # entries at Kodi start, so nothing here goes near the skin directory.
-    ensure_fonts()
+        # Normally a single window-property read: the service registered the
+        # font entries at Kodi start, so nothing here goes near the skin
+        # directory.
+        ensure_fonts()
 
-    addon            = _settings()
-    elements_visible = _elements_visible(addon)
-    _set_overlay_state(home)
-    set_window_properties(
-        home,
-        (
-            ("TinyPPI.Filename", addon.getSetting("filename")),
-            (
-                "TinyPPI.ShowL5Icon",
-                "0" if addon.getSetting("show_l5_icon") == "false" else "1",
-            ),
-            ("TinyPPI.ShowLine", elements_visible),
-            ("TinyPPI.ShowHeaderTitle", elements_visible),
-            ("TinyPPI.ShowHeaderIcon", elements_visible),
-        ),
-    )
-    # From the HDR type known so far, so the right variant is up before the first
-    # frame; the update loop re-publishes it once detection finishes.
-    properties.publish_channel_visibility(home)
-    apply_theme(home, addon)
+        addon            = _settings()
+        elements_visible = _elements_visible(addon)
+        _set_overlay_state(home)
+    finally:
+        _opening.release()
 
     try:
+        set_window_properties(
+            home,
+            (
+                ("TinyPPI.Filename", addon.getSetting("filename")),
+                (
+                    "TinyPPI.ShowL5Icon",
+                    "0" if addon.getSetting("show_l5_icon") == "false" else "1",
+                ),
+                ("TinyPPI.ShowLine", elements_visible),
+                ("TinyPPI.ShowHeaderTitle", elements_visible),
+                ("TinyPPI.ShowHeaderIcon", elements_visible),
+            ),
+        )
+        # From the HDR type known so far, so the right variant is up before
+        # the first frame; the update loop re-publishes it once detection
+        # finishes.
+        properties.publish_channel_visibility(home)
+        apply_theme(home, addon)
+
         while _show_overlay(home) == _VIEW_DV_METADATA:
             # Loaded on the first hand-over, so a session that never opens the
             # metadata view never pays for it.
@@ -697,28 +715,36 @@ def open_tinyppi() -> None:
 
 def open_dialog_mode() -> None:
     """Open the VS10-mode selection dialog."""
-    home   = xbmcgui.Window(10000)
+    home   = home_window()
     player = xbmc.Player()
 
-    if not _preflight(home, player, "TinyPPI: Toggle close (dialog mode)"):
+    # The same guard as open_tinyppi's: see _opening.
+    if not _opening.acquire(blocking=False):
+        log("open request dropped: TinyPPI is already opening")
         return
+    try:
+        if not _preflight(home, player, "Toggle close (dialog mode)"):
+            return
 
-    ensure_fonts()
+        ensure_fonts()
 
-    addon            = _settings()
-    elements_visible = _elements_visible(addon)
-    _set_overlay_state(home, dialog_mode=True)
-    set_window_properties(
-        home,
-        (
-            ("TinyPPI.ShowLine", elements_visible),
-            ("TinyPPI.ShowHeaderTitle", elements_visible),
-            ("TinyPPI.ShowHeaderIcon", elements_visible),
-        ),
-    )
-    apply_theme(home, addon)
+        addon            = _settings()
+        elements_visible = _elements_visible(addon)
+        _set_overlay_state(home, dialog_mode=True)
+    finally:
+        _opening.release()
 
     try:
+        set_window_properties(
+            home,
+            (
+                ("TinyPPI.ShowLine", elements_visible),
+                ("TinyPPI.ShowHeaderTitle", elements_visible),
+                ("TinyPPI.ShowHeaderIcon", elements_visible),
+            ),
+        )
+        apply_theme(home, addon)
+
         from ui.mode_select import open_dialog
         open_dialog()
     finally:

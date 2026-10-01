@@ -40,9 +40,8 @@ import zlib
 
 import xbmc
 
+from core.log import channel
 from web.snapshot import clean_value, rpc
-
-_ADDON_ID = "script.tinyppi"
 
 # What the card draws, and nothing beyond it: a poster, a title, a year, how
 # long it runs, and whether it has been seen or left half-watched.  The plot
@@ -126,8 +125,7 @@ _continuing: dict | None = None
 _continuing_read_at = 0.0
 
 
-def _log(message: str, level: int = xbmc.LOGDEBUG) -> None:
-    xbmc.log(f"{_ADDON_ID} --> library: {message}", level=level)
+_log = channel("library")
 
 
 # --- The list --------------------------------------------------------------
