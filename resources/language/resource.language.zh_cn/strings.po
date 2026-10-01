@@ -715,10 +715,6 @@ msgctxt "#32241"
 msgid "HEX color"
 msgstr "HEX 颜色"
 
-msgctxt "#32242"
-msgid "Enter your own 6-digit HEX color using the keyboard."
-msgstr "使用键盘输入自定义的 6 位 HEX 颜色。"
-
 msgctxt "#32243"
 msgid "Enter a 6-digit HEX color (e.g. FF5733)"
 msgstr "输入 6 位 HEX 颜色（例如 FF5733）"
@@ -730,10 +726,6 @@ msgstr "无效的 HEX 颜色 – 使用默认颜色"
 msgctxt "#32245"
 msgid "Custom color applied"
 msgstr "已应用自定义颜色"
-
-msgctxt "#32250"
-msgid "Custom"
-msgstr "自定义"
 
 msgctxt "#32251"
 msgid "Separator line"

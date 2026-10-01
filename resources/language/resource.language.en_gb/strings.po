@@ -715,10 +715,6 @@ msgctxt "#32241"
 msgid "HEX color"
 msgstr ""
 
-msgctxt "#32242"
-msgid "Enter your own 6-digit HEX color using the keyboard."
-msgstr ""
-
 msgctxt "#32243"
 msgid "Enter a 6-digit HEX color (e.g. FF5733)"
 msgstr ""
@@ -729,10 +725,6 @@ msgstr ""
 
 msgctxt "#32245"
 msgid "Custom color applied"
-msgstr ""
-
-msgctxt "#32250"
-msgid "Custom"
 msgstr ""
 
 msgctxt "#32251"

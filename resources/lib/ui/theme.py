@@ -6,22 +6,25 @@
 Maps the user's color settings onto ARGB hex strings and publishes them as
 Home-window (10000) properties, consumed by the skin via
 ``$INFO[Window(10000).Property(TinyPPI.<Name>Color)]``.
+
+Each color is chosen in Kodi's own color picker, opened on the add-on's palette
+from the setting's row (see ``pick_color``).
 """
 
 import json
 import os
 import re
+from typing import NamedTuple
 
 import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcvfs
 from core import settings
-from core.constants import PROFILE_DIR
-from core.files import atomic_write
+from core.constants import ADDON_ID, PROFILE_DIR
 from core.utils import home_window
 
-# Palette for text-based elements; index matches the settings.xml <option> order.
+# Palette for text-based elements; index matches _TEXT_LABELS.
 _TEXT_COLORS = (
     "FFEDEDED",  # 0  White
     "FFE0E0E0",  # 1  Light gray
@@ -151,6 +154,31 @@ _BACKGROUND_COLORS = (
     "FA12171A",  # 49 Dark cadet
 )
 
+# The strings naming each palette's colors, index for index.  Every one of
+# them carries its own swatch -- "[COLOR=FF82B1FF]●[/COLOR] Light blue" --
+# which is what the settings list shows for a color and what the picker draws
+# it as.  A background's swatch is a brighter stand-in for the shade it names:
+# the shades themselves are all but black, and a picker full of black tiles
+# would offer nothing to choose between.
+_TEXT_LABELS = (
+    *range(32120, 32130), *range(32150, 32170), *range(32200, 32220),
+)
+_BACKGROUND_LABELS = (
+    *range(32130, 32140), *range(32170, 32190), *range(32220, 32240),
+)
+# Black (default) and white lead, as in _DIALOG_FOCUS_TEXT_COLORS.
+_DIALOG_FOCUS_TEXT_LABELS = (32257, 32258) + _TEXT_LABELS[1:]
+
+# A text color that starts out on something other than white names its own
+# default as the default, and white as plain white.
+_PLAIN_WHITE_LABEL = 32283
+_DEFAULT_LABELS = {
+    7:  32397,  # Light blue (Default)
+    25: 32285,  # Crimson (Default)
+    31: 32286,  # Tangerine (Default)
+    34: 32284,  # Forest (Default)
+}
+
 
 # Brightness unit labels for the L6 metadata values ("" = hidden).
 _UNIT_LABELS = (
@@ -160,66 +188,71 @@ _UNIT_LABELS = (
 )
 
 
-# Setting option marking a color as a custom HEX value; the actual 8-digit ARGB
-# hex is stored in the JSON file below (Kodi rejects control-less storage settings).
-_CUSTOM_INDEX = "999"
-
-# Palette index each color setting falls back to when its custom HEX is cleared
-# or invalid.  Mirrors <default> in settings.xml; unlisted settings default to 0.
+# Palette index each color setting starts out on.  Mirrors <default> in
+# settings.xml; unlisted settings start on 0.
 _DEFAULT_COLOR_INDEX = {
-    "convert_yes_color": "34",  # Forest
-    "convert_no_color":  "25",  # Crimson
-    "fel_color":         "34",  # Forest
-    "mel_color":         "31",  # Tangerine
-    "output_changed_color": "7",  # Light blue
-    "metadata_changed_color": "7",  # Light blue
-    "splash_start_convert_dot_color":   "34",  # Forest
-    "splash_osd_convert_dot_color":     "34",  # Forest
-    "splash_tinyppi_convert_dot_color": "34",  # Forest
-    "splash_start_fel_color":   "34",  # Forest
-    "splash_osd_fel_color":     "34",  # Forest
-    "splash_tinyppi_fel_color": "34",  # Forest
-    "splash_start_mel_color":   "31",  # Tangerine
-    "splash_osd_mel_color":     "31",  # Tangerine
-    "splash_tinyppi_mel_color": "31",  # Tangerine
+    "convert_yes_color": 34,  # Forest
+    "convert_no_color":  25,  # Crimson
+    "fel_color":         34,  # Forest
+    "mel_color":         31,  # Tangerine
+    "output_changed_color": 7,  # Light blue
+    "metadata_changed_color": 7,  # Light blue
+    "splash_start_convert_dot_color":   34,  # Forest
+    "splash_osd_convert_dot_color":     34,  # Forest
+    "splash_tinyppi_convert_dot_color": 34,  # Forest
+    "splash_start_fel_color":   34,  # Forest
+    "splash_osd_fel_color":     34,  # Forest
+    "splash_tinyppi_fel_color": 34,  # Forest
+    "splash_start_mel_color":   31,  # Tangerine
+    "splash_osd_mel_color":     31,  # Tangerine
+    "splash_tinyppi_mel_color": 31,  # Tangerine
 }
 
-# Custom HEX colors (8-digit ARGB), keyed by setting id, persisted as JSON in
-# the add-on profile directory.
-_CUSTOM_FILE = f"{PROFILE_DIR}/custom_colors.json"
+# How a color setting stores its choice.  The value is also what the settings
+# list shows on the setting's row, so it is written to read as one:
+#
+# * a palette color is a reference to the string naming it, which the list
+#   resolves -- swatch and all -- in whatever language Kodi is set to;
+# * a HEX color is its own swatch and code, "[COLOR=FF5733AA]●[/COLOR] #5733AA".
+#
+# Either way the row says which color is set without the settings carrying
+# fifty options per color -- which is what used to make settings.xml some
+# 360 KB, parsed in full by every ``xbmcaddon.Addon()`` (see core.settings).
+_PALETTE_VALUE    = "$ADDON[" + ADDON_ID + " {}]"
+_PALETTE_VALUE_RE = re.compile(r"^\$ADDON\[" + re.escape(ADDON_ID) + r" (\d+)\]$")
+_HEX_VALUE_RE     = re.compile(r"\[COLOR=[0-9A-Fa-f]{2}([0-9A-Fa-f]{6})\]")
 
-# Alpha prepended to a 6-digit custom HEX, keyed by setting id (default FF).
-_CUSTOM_ALPHA = {
-    "background_color":        "FA",  # Modern background shades
-    "dialog_background_color": "FA",  # VS10 dialog panel background shades
-    "dialog_global_background_color": "FA",  # VS10 dialog full-screen background shades
-    "global_background_color": "FA",  # full-screen global background shades
-    "channel_background_color": "FA",  # DV channel panel background shades
-    "channel_layout_color":     "54",  # speaker layout graphic (~33%)
-    "accent_color":            "B3",  # dimmed detail accents (~70%)
-    "line_color":              "26",  # faint separator lines (~15%)
-    "dialog_line_color":       "26",  # faint VS10 dialog separator lines (~15%)
-    # The metadata view's own shades, matching the elements they stand in for.
-    "metadata_global_background_color": "FA",
-    "metadata_background_color":        "FA",
-    "metadata_line_color":              "26",
-    "metadata_focus_color":             "26",
-}
-_DEFAULT_ALPHA = "FF"
+# A palette string as it reads: its swatch, then the name.
+_LABEL_RE = re.compile(r"^\[COLOR=([0-9A-Fa-f]{8})\]●\[/COLOR\]\s*(.*)$")
+
+# How the settings stored a color before the picker: the palette index, or 999
+# for a HEX color whose ARGB was kept in a JSON file beside them.  Read only to
+# carry a profile over (see migrate_legacy_colors) and until that has run.
+_LEGACY_CUSTOM      = "999"
+_LEGACY_CUSTOM_FILE = f"{PROFILE_DIR}/custom_colors.json"
+
+# The picker's last tile, which asks for a HEX color instead of being one.
+#
+# The picker hands back the second label of the tile that was pressed, exactly
+# as it was given, so the tile is told apart from the palette by that label
+# alone: in lower case, where every palette tile's is in upper case.  It shows
+# the HEX color in force, or nothing at all -- fully transparent -- while the
+# setting is on a palette color.
+_HEX_TILE_LABEL = 32241  # HEX color
+_HEX_TILE_EMPTY = "00000000"
 
 _HEX6_RE = re.compile(r"^[0-9A-Fa-f]{6}$")
 _HEX8_RE = re.compile(r"^[0-9A-Fa-f]{8}$")
 
-# Suffix of the per-color "HEX color" action button.  Its value (a ● swatch +
-# HEX) is rendered as the row's label2 so the settings dialog can preview the
-# chosen color without the Home-window properties (live only while the overlay
-# is open).
-_CUSTOM_BTN_SUFFIX = "_custom_btn"
+
+def _palette_value(label_id: int) -> str:
+    """Return the stored value choosing the palette color ``label_id`` names."""
+    return _PALETTE_VALUE.format(label_id)
 
 
-def _custom_btn_label(raw6: str) -> str:
-    """Return the ``label2`` markup previewing a 6-digit HEX color."""
-    return f"[COLOR=FF{raw6}]●[/COLOR] #{raw6}"
+def _hex_value(rgb: str) -> str:
+    """Return the stored value choosing the 6-digit HEX color ``rgb``."""
+    return f"[COLOR=FF{rgb}]●[/COLOR] #{rgb}"
 
 
 def _notify(addon, message_id: int, icon: str, duration: int) -> None:
@@ -232,48 +265,16 @@ def _notify(addon, message_id: int, icon: str, duration: int) -> None:
     )
 
 
-# Last (mtime, size) read and the mapping it yielded.  apply_theme() runs on
-# the splash controller's four-times-a-second poll, so without this every one
-# of those re-read and re-parsed the JSON off disk; keying on the stamp keeps a
-# colour written by custom_color() picked up on the very next call.
-_custom_cache: tuple[tuple, dict] | None = None
-
-
-def _load_custom() -> dict:
-    """Return the stored custom colors mapping, or an empty dict."""
-    global _custom_cache
-
+def _load_legacy_custom() -> dict:
+    """Return the HEX colors the settings kept before the picker, keyed by
+    setting id, or an empty dict when there are none."""
     try:
-        stat = os.stat(xbmcvfs.translatePath(_CUSTOM_FILE))
-    except OSError:  # no file yet -> no custom colors
-        _custom_cache = None
-        return {}
-
-    stamp = (stat.st_mtime, stat.st_size)
-    if _custom_cache is not None and _custom_cache[0] == stamp:
-        # Copied out: callers (custom_color) mutate what they get back.
-        return dict(_custom_cache[1])
-
-    try:
-        with open(xbmcvfs.translatePath(_CUSTOM_FILE), encoding="utf-8") as handle:
+        with open(xbmcvfs.translatePath(_LEGACY_CUSTOM_FILE),
+                  encoding="utf-8") as handle:
             data = json.load(handle)
-    except Exception:  # corrupt/unreadable file -> ignore
+    except (OSError, ValueError):  # no file, or none worth reading
         return {}
-    if not isinstance(data, dict):
-        return {}
-
-    _custom_cache = (stamp, data)
-    return dict(data)
-
-
-def _save_custom(data: dict) -> None:
-    """Persist the custom colors mapping to the profile directory, whole or not
-    at all (see ``core.files``)."""
-    path = xbmcvfs.translatePath(_CUSTOM_FILE)
-    directory = os.path.dirname(path)
-    if not os.path.isdir(directory):
-        os.makedirs(directory, exist_ok=True)
-    atomic_write(path, json.dumps(data).encode("utf-8"))
+    return data if isinstance(data, dict) else {}
 
 
 def _pick(palette: tuple, value: str) -> str:
@@ -348,25 +349,48 @@ def _setting_value(addon, setting_id: str, overrides) -> str:
     return addon.getSetting(setting_id)
 
 
-def _resolve(palette: tuple, addon, setting_id: str, custom: dict, overrides=None) -> str:
-    """Resolve a color setting to an ARGB hex string.
+class _ColorSetting(NamedTuple):
+    """What one color setting can be set to."""
 
-    The custom marker (999) uses the stored 8-digit hex from ``custom``, falling
-    back to the palette default when it is invalid or missing.
+    palette: tuple   # the ARGB each palette choice publishes
+    labels: tuple    # the string naming each choice, index for index
+    index_of: dict   # label id -> index, for reading a stored choice back
+    default: int     # the index the setting starts out on
+
+
+def _decode(spec: _ColorSetting, value: str, legacy_hex: str = "") -> tuple[int, str]:
+    """Return what a stored value chooses: ``(index, "")`` for a palette color,
+    ``(-1, "RRGGBB")`` for a HEX one.
+
+    Anything that cannot be read is the setting's default rather than palette
+    index 0, which for a text color is white: an unset highlight would come out
+    the same color as the values it has to stand out from.  ``legacy_hex`` is
+    what the old JSON file holds for the setting, needed only while its value
+    still reads 999.
     """
-    value = _setting_value(addon, setting_id, overrides)
-    if value == _CUSTOM_INDEX:
-        stored = str(custom.get(setting_id, "")).strip().upper()
+    match = _PALETTE_VALUE_RE.match(value)
+    if match:
+        index = spec.index_of.get(int(match.group(1)))
+        return (spec.default if index is None else index), ""
+
+    match = _HEX_VALUE_RE.search(value)
+    if match:
+        return -1, match.group(1).upper()
+
+    if value == _LEGACY_CUSTOM:
+        stored = str(legacy_hex).strip().upper()
         if _HEX8_RE.match(stored):
-            return stored
-        return _pick(palette, _DEFAULT_COLOR_INDEX.get(setting_id, "0"))
-    if not value:
-        # Unset -- a setting newer than the profile that stores it.  Reads as
-        # the default settings.xml gives it rather than as palette index 0,
-        # which for a text color is white: the metadata view's highlight would
-        # come out the same color as the values it has to stand out from.
-        value = _DEFAULT_COLOR_INDEX.get(setting_id, "0")
-    return _pick(palette, value)
+            return -1, stored[2:]
+        return spec.default, ""
+    if value.isdigit() and int(value) < len(spec.palette):
+        return int(value), ""
+    return spec.default, ""
+
+
+def _resolve(spec: _ColorSetting, value: str, legacy_hex: str = "") -> str:
+    """Resolve a stored color value to an ARGB hex string."""
+    index, rgb = _decode(spec, value, legacy_hex)
+    return spec.palette[index] if index >= 0 else "FF" + rgb
 
 
 _THEME_PROPERTIES = (
@@ -457,25 +481,62 @@ _THEME_PROPERTIES = (
 )
 
 
-def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
+def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
+    """Describe one color setting: its palette, the strings naming it, and
+    where it starts out."""
+    default = _DEFAULT_COLOR_INDEX.get(setting_id, 0)
+    if palette is _BACKGROUND_COLORS:
+        labels = _BACKGROUND_LABELS
+    elif palette is _DIALOG_FOCUS_TEXT_COLORS:
+        labels = _DIALOG_FOCUS_TEXT_LABELS
+    elif default:
+        labels = list(_TEXT_LABELS)
+        labels[0] = _PLAIN_WHITE_LABEL
+        labels[default] = _DEFAULT_LABELS[default]
+        labels = tuple(labels)
+    else:
+        labels = _TEXT_LABELS
+    index_of = {label: index for index, label in enumerate(labels)}
+    return _ColorSetting(palette, labels, index_of, default)
+
+
+# Every color setting by id, built once from the table above.
+_COLOR_SETTINGS = {
+    setting_id: _color_setting(palette, setting_id)
+    for _property, palette, setting_id in _THEME_PROPERTIES
+}
+
+
+def apply_theme(home, addon=None, overrides=None) -> None:
     """Read the color settings and publish them as Home-window properties.
 
     Call before opening the overlay so the skin can resolve every color.
     """
     addon = addon or settings.addon()
-    custom = _load_custom() if custom is None else custom
 
-    for property_name, palette, setting_id in _THEME_PROPERTIES:
-        value = _resolve(palette, addon, setting_id, custom, overrides)
-        # The per-element opacity slider overrides the palette/custom alpha, so
-        # the chosen HEX only supplies the RGB channels.
+    values = [
+        (property_name, setting_id, _setting_value(addon, setting_id, overrides))
+        for property_name, _palette, setting_id in _THEME_PROPERTIES
+    ]
+    # Only a profile the migration has not reached yet still points into the
+    # old JSON file, so it is read only then rather than on every pass -- this
+    # runs on the splash controller's four-times-a-second poll.
+    legacy = (_load_legacy_custom()
+              if any(value == _LEGACY_CUSTOM for _name, _id, value in values)
+              else {})
+
+    for property_name, setting_id, value in values:
+        color = _resolve(_COLOR_SETTINGS[setting_id], value,
+                         legacy.get(setting_id, ""))
+        # The per-element opacity slider overrides the palette alpha, so the
+        # chosen color only supplies the RGB channels.
         alpha = _opacity_alpha(
             addon,
             _opacity_setting(setting_id),
             _DEFAULT_OPACITIES.get(setting_id, _DEFAULT_OPACITY),
             overrides,
         )
-        home.setProperty(property_name, alpha + value[2:])
+        home.setProperty(property_name, alpha + color[2:])
 
     home.setProperty(
         "TinyPPI.UnitLabel",
@@ -483,63 +544,129 @@ def apply_theme(home, addon=None, overrides=None, custom=None) -> None:
     )
 
 
-def custom_color(setting_id, addon=None) -> None:
-    """Prompt for a custom 6-digit HEX color and store it for ``setting_id``.
+def _swatch_and_name(label: str, fallback: str) -> tuple[str, str]:
+    """Split a palette string into its swatch's ARGB and the name after it.
 
-    Valid input gets the per-setting alpha prepended, is saved to the JSON file,
-    and switches the setting to the custom marker (999).  Invalid input notifies
-    and falls back to the default.  Cancelling leaves the selection untouched.
-    Invoked via ``RunScript(script.tinyppi,custom_color,<id>)``.
+    A translation that lost the swatch markup still names its color; the tile
+    is then drawn in the color itself (``fallback``).
     """
-    addon = addon or xbmcaddon.Addon()
+    match = _LABEL_RE.match(label)
+    if match:
+        return match.group(1).upper(), match.group(2)
+    return fallback, label
 
-    if not setting_id:
-        return
 
-    keyboard = xbmc.Keyboard("", addon.getLocalizedString(32243))
+def _ask_hex(addon, spec: _ColorSetting, current_rgb: str) -> str | None:
+    """Ask for a 6-digit HEX color and return the value storing it.
+
+    Starts from the color in force, so a shade can be nudged rather than typed
+    out again.  None when the keyboard is cancelled; an invalid entry falls back
+    to the setting's default, and says so.
+    """
+    keyboard = xbmc.Keyboard(current_rgb, addon.getLocalizedString(32243))
     keyboard.doModal()
     if not keyboard.isConfirmed():
-        return
+        return None
 
     raw = keyboard.getText().strip().lstrip("#").upper()
-
-    custom = _load_custom()
-
     if not _HEX6_RE.match(raw):
-        # Invalid -> notify and fall back to this element's default color.
-        fallback = _DEFAULT_COLOR_INDEX.get(setting_id, "0")
-        custom.pop(setting_id, None)
-        _save_custom(custom)
-        addon.setSetting(setting_id, fallback)
-        addon.setSetting(setting_id + _CUSTOM_BTN_SUFFIX, "")
-        setting_value = fallback
-        _notify(
-            addon,
-            32244,
-            xbmcgui.NOTIFICATION_ERROR,
-            4000,
-        )
-    else:
-        alpha = _CUSTOM_ALPHA.get(setting_id, _DEFAULT_ALPHA)
-        custom[setting_id] = alpha + raw
-        _save_custom(custom)
-        addon.setSetting(setting_id, _CUSTOM_INDEX)
-        addon.setSetting(setting_id + _CUSTOM_BTN_SUFFIX, _custom_btn_label(raw))
-        setting_value = _CUSTOM_INDEX
-        _notify(
-            addon,
-            32245,
-            xbmcgui.NOTIFICATION_INFO,
-            3000,
-        )
+        _notify(addon, 32244, xbmcgui.NOTIFICATION_ERROR, 4000)
+        return _palette_value(spec.labels[spec.default])
 
-    # Re-publish properties so an already-open overlay updates too.
+    _notify(addon, 32245, xbmcgui.NOTIFICATION_INFO, 3000)
+    return _hex_value(raw)
+
+
+def pick_color(setting_id: str, heading_id: str = "") -> None:
+    """Offer a color setting's palette in Kodi's color picker and store the pick.
+
+    Invoked from the setting's own row, via
+    ``RunScript(script.tinyppi,pick_color,<setting id>,<label id>)``, the label
+    being the setting's own to head the picker with.
+
+    The picker draws the palette with the names and swatches the setting's row
+    shows, plus a last tile that asks for a HEX color instead.  Cancelling it,
+    or the keyboard behind that tile, leaves the setting as it was.
+    """
+    spec = _COLOR_SETTINGS.get(setting_id)
+    if spec is None:
+        return
+    addon = xbmcaddon.Addon()
+
+    value = addon.getSetting(setting_id)
+    legacy_hex = (_load_legacy_custom().get(setting_id, "")
+                  if value == _LEGACY_CUSTOM else "")
+    index, rgb = _decode(spec, value, legacy_hex)
+
+    tiles = []
+    swatches = []
+    for position, label_id in enumerate(spec.labels):
+        swatch, name = _swatch_and_name(addon.getLocalizedString(label_id),
+                                        spec.palette[position])
+        tiles.append(xbmcgui.ListItem(name, swatch, offscreen=True))
+        swatches.append(swatch)
+    hex_tile = ("ff" + rgb.lower()) if rgb else _HEX_TILE_EMPTY
+    tiles.append(xbmcgui.ListItem(addon.getLocalizedString(_HEX_TILE_LABEL),
+                                  hex_tile, offscreen=True))
+
+    heading = (addon.getLocalizedString(int(heading_id))
+               if heading_id.isdigit() else "")
+    chosen = xbmcgui.Dialog().colorpicker(
+        heading, hex_tile if rgb else swatches[index], colorlist=tiles,
+    )
+    if not chosen:
+        return
+
+    if chosen == hex_tile:
+        current = rgb or spec.palette[index][2:]
+        new_value = _ask_hex(addon, spec, current)
+        if new_value is None:
+            return
+    elif chosen in swatches:
+        new_value = _palette_value(spec.labels[swatches.index(chosen)])
+    else:
+        return
+
+    addon.setSetting(setting_id, new_value)
+
+    # Re-publish so an already-open overlay updates too.  The settings dialog
+    # keeps the new value to itself until it is closed, so it is handed over
+    # rather than read back.
     try:
-        apply_theme(
-            home_window(),
-            addon,
-            overrides={setting_id: setting_value},
-            custom=custom,
-        )
+        apply_theme(home_window(), addon, overrides={setting_id: new_value})
     except Exception:  # best effort, never block the change
         pass
+
+
+def migrate_legacy_colors(addon=None) -> int:
+    """Carry color settings stored the old way over to the picker's values.
+
+    Kodi moves a value saved as the default over to the new default by itself,
+    so only colors somebody chose are still left holding a palette index or the
+    999 that pointed into the JSON file -- and both would show on the setting's
+    row as the bare number.  Each is rewritten once, here, and the JSON file is
+    removed once nothing reads it any more.
+
+    Returns how many settings were rewritten.
+    """
+    addon = addon or settings.addon()
+
+    legacy = None
+    moved = 0
+    for setting_id, spec in _COLOR_SETTINGS.items():
+        value = addon.getSetting(setting_id)
+        if not value.isdigit():
+            continue
+        if legacy is None:
+            legacy = _load_legacy_custom()
+        index, rgb = _decode(spec, value, legacy.get(setting_id, ""))
+        addon.setSetting(setting_id, _hex_value(rgb) if rgb
+                         else _palette_value(spec.labels[index]))
+        moved += 1
+
+    # Reached only once every setting above has been written.
+    try:
+        os.remove(xbmcvfs.translatePath(_LEGACY_CUSTOM_FILE))
+    except OSError:
+        pass  # none left, or there never was one
+    return moved

@@ -122,9 +122,9 @@ def main() -> None:
     elif command == "run_mode" and len(args) > 1:
         from ui.mode_select import set_mode
         set_mode(args[1])
-    elif command == "custom_color" and len(args) > 1:
-        from ui.theme import custom_color
-        custom_color(args[1])
+    elif command == "pick_color" and len(args) > 1:
+        from ui.theme import pick_color
+        pick_color(args[1], args[2] if len(args) > 2 else "")
     elif command == "web_info":
         from ui.webinfo import show_web_info
         show_web_info()

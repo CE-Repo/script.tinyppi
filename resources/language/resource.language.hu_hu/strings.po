@@ -715,10 +715,6 @@ msgctxt "#32241"
 msgid "HEX color"
 msgstr ""
 
-msgctxt "#32242"
-msgid "Enter your own 6-digit HEX color using the keyboard."
-msgstr "Írd be a saját 6 jegyű HEX színedet a billentyűzet segítségével."
-
 msgctxt "#32243"
 msgid "Enter a 6-digit HEX color (e.g. FF5733)"
 msgstr "Írd be a saját 6 jegyű HEX színedet (pl.FF5733)."
@@ -730,10 +726,6 @@ msgstr "Érvénytelen HEX szín – az alapértelmezett színt használjuk"
 msgctxt "#32245"
 msgid "Custom color applied"
 msgstr "Saját szín alkalmazása"
-
-msgctxt "#32250"
-msgid "Custom"
-msgstr "Saját"
 
 msgctxt "#32251"
 msgid "Separator line"

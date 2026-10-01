@@ -715,10 +715,6 @@ msgctxt "#32241"
 msgid "HEX color"
 msgstr "HEX-Farbe"
 
-msgctxt "#32242"
-msgid "Enter your own 6-digit HEX color using the keyboard."
-msgstr "Gib über die Tastatur eine eigene 6-stellige HEX-Farbe ein."
-
 msgctxt "#32243"
 msgid "Enter a 6-digit HEX color (e.g. FF5733)"
 msgstr "6-stelligen HEX-Farbwert eingeben (z. B. FF5733)"
@@ -730,10 +726,6 @@ msgstr "Ungültige HEX-Farbe – Standardfarbe wird verwendet"
 msgctxt "#32245"
 msgid "Custom color applied"
 msgstr "Benutzerdefinierte Farbe übernommen"
-
-msgctxt "#32250"
-msgid "Custom"
-msgstr "Benutzerdefiniert"
 
 msgctxt "#32251"
 msgid "Separator line"

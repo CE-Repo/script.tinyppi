@@ -715,10 +715,6 @@ msgctxt "#32241"
 msgid "HEX color"
 msgstr "لون HEX"
 
-msgctxt "#32242"
-msgid "Enter your own 6-digit HEX color using the keyboard."
-msgstr "أدخل لون HEX خاصًا بك من 6 خانات باستخدام لوحة المفاتيح."
-
 msgctxt "#32243"
 msgid "Enter a 6-digit HEX color (e.g. FF5733)"
 msgstr "أدخل لون HEX من 6 خانات (مثال FF5733)"
@@ -730,10 +726,6 @@ msgstr "لون HEX غير صالح – سيُستخدم اللون الافتر�
 msgctxt "#32245"
 msgid "Custom color applied"
 msgstr "تم تطبيق اللون المخصّص"
-
-msgctxt "#32250"
-msgid "Custom"
-msgstr "مخصّص"
 
 msgctxt "#32251"
 msgid "Separator line"
