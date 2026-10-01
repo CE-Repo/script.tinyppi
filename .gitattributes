@@ -1,4 +1,0 @@
-# Development files stay out of the archives git builds of the add-on.
-/.github        export-ignore
-/pyproject.toml export-ignore
-/.gitattributes export-ignore

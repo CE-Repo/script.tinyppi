@@ -5,7 +5,3 @@
 
 # Python cache folder
 __pycache__/
-
-# Lint caches
-.ruff_cache/
-kodi-addon-checker.log
