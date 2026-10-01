@@ -5,3 +5,8 @@
 
 # Python cache folder
 __pycache__/
+
+# Test and lint caches
+.pytest_cache/
+.ruff_cache/
+kodi-addon-checker.log
