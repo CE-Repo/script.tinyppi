@@ -107,7 +107,8 @@ answer.
 
 Every color in the settings is chosen in Kodi's own color picker: select the
 setting and pick a tile. The picker offers TinyPPI's own palette, every tile
-named, and the setting's row shows the color in force.
+named, and the setting's row shows the color in force. The names are English in
+every language, as in Kodi's own color list.
 
 The last tile in the picker is **HEX color**. It opens the keyboard on the
 current color's 6-digit HEX code, to be changed to any color at all. The opacity
