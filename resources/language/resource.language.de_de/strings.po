@@ -255,6 +255,86 @@ msgctxt "#32118"
 msgid "Color of the cd/m² brightness unit."
 msgstr "Farbe der Helligkeitseinheit cd/m²."
 
+msgctxt "#32120"
+msgid "White"
+msgstr "Weiß"
+
+msgctxt "#32121"
+msgid "Light gray"
+msgstr "Hellgrau"
+
+msgctxt "#32122"
+msgid "Light red"
+msgstr "Hellrot"
+
+msgctxt "#32123"
+msgid "Light orange"
+msgstr "Hellorange"
+
+msgctxt "#32124"
+msgid "Light yellow"
+msgstr "Hellgelb"
+
+msgctxt "#32125"
+msgid "Light green"
+msgstr "Hellgrün"
+
+msgctxt "#32126"
+msgid "Light cyan"
+msgstr "Hellcyan"
+
+msgctxt "#32127"
+msgid "Light blue"
+msgstr "Hellblau"
+
+msgctxt "#32128"
+msgid "Light purple"
+msgstr "Helllila"
+
+msgctxt "#32129"
+msgid "Light pink"
+msgstr "Hellrosa"
+
+msgctxt "#32130"
+msgid "Charcoal"
+msgstr "Anthrazit"
+
+msgctxt "#32131"
+msgid "Black"
+msgstr "Schwarz"
+
+msgctxt "#32132"
+msgid "Dark red"
+msgstr "Dunkelrot"
+
+msgctxt "#32133"
+msgid "Dark orange"
+msgstr "Dunkelorange"
+
+msgctxt "#32134"
+msgid "Dark yellow"
+msgstr "Dunkelgelb"
+
+msgctxt "#32135"
+msgid "Dark green"
+msgstr "Dunkelgrün"
+
+msgctxt "#32136"
+msgid "Dark cyan"
+msgstr "Dunkelcyan"
+
+msgctxt "#32137"
+msgid "Dark blue"
+msgstr "Dunkelblau"
+
+msgctxt "#32138"
+msgid "Dark purple"
+msgstr "Dunkellila"
+
+msgctxt "#32139"
+msgid "Dark gray"
+msgstr "Dunkelgrau"
+
 msgctxt "#32140"
 msgid "FPS"
 msgstr "FPS"
@@ -274,6 +354,166 @@ msgstr "Kopfzeilensymbol"
 msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
 msgstr "Farbe des Diagrammsymbols (Modern)."
+
+msgctxt "#32150"
+msgid "Coral"
+msgstr "Koralle"
+
+msgctxt "#32151"
+msgid "Salmon"
+msgstr "Lachs"
+
+msgctxt "#32152"
+msgid "Amber"
+msgstr "Bernstein"
+
+msgctxt "#32153"
+msgid "Gold"
+msgstr "Gold"
+
+msgctxt "#32154"
+msgid "Lime"
+msgstr "Limette"
+
+msgctxt "#32155"
+msgid "Mint"
+msgstr "Minze"
+
+msgctxt "#32156"
+msgid "Teal"
+msgstr "Petrol"
+
+msgctxt "#32157"
+msgid "Sky blue"
+msgstr "Himmelblau"
+
+msgctxt "#32158"
+msgid "Azure"
+msgstr "Azurblau"
+
+msgctxt "#32159"
+msgid "Indigo"
+msgstr "Indigo"
+
+msgctxt "#32160"
+msgid "Violet"
+msgstr "Violett"
+
+msgctxt "#32161"
+msgid "Lavender"
+msgstr "Lavendel"
+
+msgctxt "#32162"
+msgid "Magenta"
+msgstr "Magenta"
+
+msgctxt "#32163"
+msgid "Fuchsia"
+msgstr "Fuchsia"
+
+msgctxt "#32164"
+msgid "Rose"
+msgstr "Rosé"
+
+msgctxt "#32165"
+msgid "Crimson"
+msgstr "Karminrot"
+
+msgctxt "#32166"
+msgid "Brown"
+msgstr "Braun"
+
+msgctxt "#32167"
+msgid "Olive"
+msgstr "Oliv"
+
+msgctxt "#32168"
+msgid "Slate"
+msgstr "Schiefer"
+
+msgctxt "#32169"
+msgid "Silver"
+msgstr "Silber"
+
+msgctxt "#32170"
+msgid "Dark teal"
+msgstr "Dunkles Petrol"
+
+msgctxt "#32171"
+msgid "Dark sky"
+msgstr "Dunkles Himmelblau"
+
+msgctxt "#32172"
+msgid "Dark indigo"
+msgstr "Dunkles Indigo"
+
+msgctxt "#32173"
+msgid "Dark violet"
+msgstr "Dunkelviolett"
+
+msgctxt "#32174"
+msgid "Dark magenta"
+msgstr "Dunkles Magenta"
+
+msgctxt "#32175"
+msgid "Dark pink"
+msgstr "Dunkles Pink"
+
+msgctxt "#32176"
+msgid "Dark rose"
+msgstr "Dunkles Rosé"
+
+msgctxt "#32177"
+msgid "Dark brown"
+msgstr "Dunkelbraun"
+
+msgctxt "#32178"
+msgid "Dark olive"
+msgstr "Dunkles Oliv"
+
+msgctxt "#32179"
+msgid "Dark lime"
+msgstr "Dunkle Limette"
+
+msgctxt "#32180"
+msgid "Dark mint"
+msgstr "Dunkle Minze"
+
+msgctxt "#32181"
+msgid "Dark azure"
+msgstr "Dunkles Azurblau"
+
+msgctxt "#32182"
+msgid "Dark slate"
+msgstr "Dunkler Schiefer"
+
+msgctxt "#32183"
+msgid "Dark navy"
+msgstr "Dunkles Marineblau"
+
+msgctxt "#32184"
+msgid "Dark maroon"
+msgstr "Dunkles Kastanienbraun"
+
+msgctxt "#32185"
+msgid "Midnight"
+msgstr "Mitternacht"
+
+msgctxt "#32186"
+msgid "Espresso"
+msgstr "Espresso"
+
+msgctxt "#32187"
+msgid "Onyx"
+msgstr "Onyx"
+
+msgctxt "#32188"
+msgid "Graphite"
+msgstr "Graphit"
+
+msgctxt "#32189"
+msgid "Steel"
+msgstr "Stahl"
 
 msgctxt "#32190"
 msgid "Brightness unit"
@@ -310,6 +550,166 @@ msgstr "Dateiname"
 msgctxt "#32198"
 msgid "Color of the playing file name."
 msgstr "Farbe des abgespielten Dateinamens."
+
+msgctxt "#32200"
+msgid "Peach"
+msgstr "Pfirsich"
+
+msgctxt "#32201"
+msgid "Tangerine"
+msgstr "Mandarine"
+
+msgctxt "#32202"
+msgid "Mustard"
+msgstr "Senf"
+
+msgctxt "#32203"
+msgid "Chartreuse"
+msgstr "Chartreuse"
+
+msgctxt "#32204"
+msgid "Forest"
+msgstr "Waldgrün"
+
+msgctxt "#32205"
+msgid "Emerald"
+msgstr "Smaragd"
+
+msgctxt "#32206"
+msgid "Spring"
+msgstr "Frühlingsgrün"
+
+msgctxt "#32207"
+msgid "Aqua"
+msgstr "Aqua"
+
+msgctxt "#32208"
+msgid "Turquoise"
+msgstr "Türkis"
+
+msgctxt "#32209"
+msgid "Cerulean"
+msgstr "Cerulean"
+
+msgctxt "#32210"
+msgid "Cobalt"
+msgstr "Kobalt"
+
+msgctxt "#32211"
+msgid "Periwinkle"
+msgstr "Pervenche"
+
+msgctxt "#32212"
+msgid "Plum"
+msgstr "Pflaume"
+
+msgctxt "#32213"
+msgid "Orchid"
+msgstr "Orchidee"
+
+msgctxt "#32214"
+msgid "Raspberry"
+msgstr "Himbeere"
+
+msgctxt "#32215"
+msgid "Watermelon"
+msgstr "Wassermelone"
+
+msgctxt "#32216"
+msgid "Scarlet"
+msgstr "Scharlach"
+
+msgctxt "#32217"
+msgid "Sand"
+msgstr "Sand"
+
+msgctxt "#32218"
+msgid "Pistachio"
+msgstr "Pistazie"
+
+msgctxt "#32219"
+msgid "Cadet"
+msgstr "Kadettblau"
+
+msgctxt "#32220"
+msgid "Dark peach"
+msgstr "Dunkelpfirsich"
+
+msgctxt "#32221"
+msgid "Dark tangerine"
+msgstr "Dunkelmandarine"
+
+msgctxt "#32222"
+msgid "Dark mustard"
+msgstr "Dunkelsenf"
+
+msgctxt "#32223"
+msgid "Dark chartreuse"
+msgstr "Dunkelchartreuse"
+
+msgctxt "#32224"
+msgid "Dark forest"
+msgstr "Dunkelwaldgrün"
+
+msgctxt "#32225"
+msgid "Dark emerald"
+msgstr "Dunkelsmaragd"
+
+msgctxt "#32226"
+msgid "Dark spring"
+msgstr "Dunkelfrühling"
+
+msgctxt "#32227"
+msgid "Dark aqua"
+msgstr "Dunkelaqua"
+
+msgctxt "#32228"
+msgid "Dark turquoise"
+msgstr "Dunkeltürkis"
+
+msgctxt "#32229"
+msgid "Dark cerulean"
+msgstr "Dunkelcerulean"
+
+msgctxt "#32230"
+msgid "Dark cobalt"
+msgstr "Dunkelkobalt"
+
+msgctxt "#32231"
+msgid "Dark periwinkle"
+msgstr "Dunkelpervenche"
+
+msgctxt "#32232"
+msgid "Dark plum"
+msgstr "Dunkelpflaume"
+
+msgctxt "#32233"
+msgid "Dark orchid"
+msgstr "Dunkelorchidee"
+
+msgctxt "#32234"
+msgid "Dark raspberry"
+msgstr "Dunkelhimbeere"
+
+msgctxt "#32235"
+msgid "Dark watermelon"
+msgstr "Dunkelwassermelone"
+
+msgctxt "#32236"
+msgid "Dark scarlet"
+msgstr "Dunkelscharlach"
+
+msgctxt "#32237"
+msgid "Dark sand"
+msgstr "Dunkelsand"
+
+msgctxt "#32238"
+msgid "Dark pistachio"
+msgstr "Dunkelpistazie"
+
+msgctxt "#32239"
+msgid "Dark cadet"
+msgstr "Dunkelkadett"
 
 msgctxt "#32241"
 msgid "HEX color"

@@ -21,10 +21,10 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 from core import settings
-from core.constants import PROFILE_DIR
+from core.constants import ADDON_ID, PROFILE_DIR
 from core.utils import home_window
 
-# Palette for text-based elements; index matches _TEXT_NAMES.
+# Palette for text-based elements; index matches _TEXT_LABELS.
 _TEXT_COLORS = (
     "FFEDEDED",  # 0  White
     "FFE0E0E0",  # 1  Light gray
@@ -154,39 +154,16 @@ _BACKGROUND_COLORS = (
     "FA12171A",  # 49 Dark cadet
 )
 
-# The names of each palette's colors, index for index.
-#
-# English in every language, the way Kodi's own color list is
-# (system/dialogcolors.xml): a name only labels a swatch the viewer can see,
-# and a hundred of them in every language were the better part of the add-on's
-# string table.  A stored choice is matched by its name (see _decode), so
-# renaming a color sends every setting that chose it back to its default.
-_TEXT_NAMES = (
-    "White", "Light gray", "Light red", "Light orange", "Light yellow",
-    "Light green", "Light cyan", "Light blue", "Light purple", "Light pink",
-    "Coral", "Salmon", "Amber", "Gold", "Lime",
-    "Mint", "Teal", "Sky blue", "Azure", "Indigo",
-    "Violet", "Lavender", "Magenta", "Fuchsia", "Rose",
-    "Crimson", "Brown", "Olive", "Slate", "Silver",
-    "Peach", "Tangerine", "Mustard", "Chartreuse", "Forest",
-    "Emerald", "Spring", "Aqua", "Turquoise", "Cerulean",
-    "Cobalt", "Periwinkle", "Plum", "Orchid", "Raspberry",
-    "Watermelon", "Scarlet", "Sand", "Pistachio", "Cadet",
+# The strings naming each palette's colors, index for index.
+_TEXT_LABELS = (
+    *range(32120, 32130), *range(32150, 32170), *range(32200, 32220),
 )
-_BACKGROUND_NAMES = (
-    "Charcoal", "Black", "Dark red", "Dark orange", "Dark yellow",
-    "Dark green", "Dark cyan", "Dark blue", "Dark purple", "Dark gray",
-    "Dark teal", "Dark sky", "Dark indigo", "Dark violet", "Dark magenta",
-    "Dark pink", "Dark rose", "Dark brown", "Dark olive", "Dark lime",
-    "Dark mint", "Dark azure", "Dark slate", "Dark navy", "Dark maroon",
-    "Midnight", "Espresso", "Onyx", "Graphite", "Steel",
-    "Dark peach", "Dark tangerine", "Dark mustard", "Dark chartreuse", "Dark forest",
-    "Dark emerald", "Dark spring", "Dark aqua", "Dark turquoise", "Dark cerulean",
-    "Dark cobalt", "Dark periwinkle", "Dark plum", "Dark orchid", "Dark raspberry",
-    "Dark watermelon", "Dark scarlet", "Dark sand", "Dark pistachio", "Dark cadet",
+_BACKGROUND_LABELS = (
+    *range(32130, 32140), *range(32170, 32190), *range(32220, 32240),
 )
-# Black (default) and white lead, as in _DIALOG_FOCUS_TEXT_COLORS.
-_DIALOG_FOCUS_TEXT_NAMES = ("Black", "White") + _TEXT_NAMES[1:]
+# Black (default) and white lead, as in _DIALOG_FOCUS_TEXT_COLORS: the
+# background palette's black and the text palette's white, by name.
+_DIALOG_FOCUS_TEXT_LABELS = (32131, 32120) + _TEXT_LABELS[1:]
 
 # What the picker draws a background as, and the dot its row shows: a brighter
 # stand-in for each shade, index for index.  The shades themselves are all but
@@ -235,17 +212,20 @@ _DEFAULT_COLOR_INDEX = {
 
 # How a color setting stores its choice.  The value is also what the settings
 # list shows on the setting's row, so it is written to read as one: a swatch,
-# then the palette color's name or the HEX color's code --
+# then a reference to the string naming the palette color -- which the list
+# resolves in whatever language Kodi is set to -- or the HEX color's code:
 #
-#     [COLOR=FF82B1FF]●[/COLOR] Light blue
+#     [COLOR=FF82B1FF]●[/COLOR] $ADDON[script.tinyppi 32127]
 #     [COLOR=FF5733AA]●[/COLOR] #5733AA
 #
-# -- and the default says so in Kodi's own word for it, which the list
-# translates ($LOCALIZE[571], "Default").  The row says which color is set
-# without the settings carrying fifty options per color, which is what used to
-# make settings.xml some 360 KB, parsed in full by every ``xbmcaddon.Addon()``
-# (see core.settings).
+# The default says so in Kodi's own word for it, translated the same way
+# ($LOCALIZE[571], "Default"), so no color needs a second string for it.  The
+# row says which color is set without the settings carrying fifty options per
+# color, which is what used to make settings.xml some 360 KB, parsed in full by
+# every ``xbmcaddon.Addon()`` (see core.settings).
 _STORED_RE    = re.compile(r"^\[COLOR=[0-9A-Fa-f]{8}\]●\[/COLOR\] (.*)$")
+_NAME_REF     = "$ADDON[" + ADDON_ID + " {}]"
+_NAME_REF_RE  = re.compile(r"\$ADDON\[" + re.escape(ADDON_ID) + r" (\d+)\]")
 _DEFAULT_MARK = " ($LOCALIZE[571])"
 _DEFAULT_WORD = 571
 
@@ -367,9 +347,9 @@ class _ColorSetting(NamedTuple):
     """What one color setting can be set to."""
 
     palette: tuple   # the ARGB each palette choice publishes
-    names: tuple     # the name of each choice, index for index
+    labels: tuple    # the string naming each choice, index for index
     swatches: tuple  # the ARGB each choice is drawn as, index for index
-    index_of: dict   # name -> index, for reading a stored choice back
+    index_of: dict   # label id -> index, for reading a stored choice back
     default: int     # the index the setting starts out on
 
 
@@ -378,8 +358,9 @@ def _encode(spec: _ColorSetting, index: int, rgb: str = "") -> str:
     HEX color ``rgb`` when one is given."""
     if rgb:
         return f"[COLOR=FF{rgb}]●[/COLOR] #{rgb}"
+    name = _NAME_REF.format(spec.labels[index])
     mark = _DEFAULT_MARK if index == spec.default else ""
-    return f"[COLOR={spec.swatches[index]}]●[/COLOR] {spec.names[index]}{mark}"
+    return f"[COLOR={spec.swatches[index]}]●[/COLOR] {name}{mark}"
 
 
 def _decode(spec: _ColorSetting, value: str, legacy_hex: str = "") -> tuple[int, str]:
@@ -397,7 +378,12 @@ def _decode(spec: _ColorSetting, value: str, legacy_hex: str = "") -> tuple[int,
         text = match.group(1)
         if text.startswith("#") and _HEX6_RE.match(text[1:]):
             return -1, text[1:].upper()
-        index = spec.index_of.get(text.removesuffix(_DEFAULT_MARK))
+
+    # Read by the string it names alone: the swatch in front of it is only
+    # there to be seen.
+    match = _NAME_REF_RE.search(value)
+    if match:
+        index = spec.index_of.get(int(match.group(1)))
         return (spec.default if index is None else index), ""
 
     if value == _LEGACY_CUSTOM:
@@ -508,15 +494,15 @@ def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
     """Describe one color setting: its palette, the names and swatches it is
     offered with, and where it starts out."""
     if palette is _BACKGROUND_COLORS:
-        names, swatches = _BACKGROUND_NAMES, _BACKGROUND_SWATCHES
+        labels, swatches = _BACKGROUND_LABELS, _BACKGROUND_SWATCHES
     elif palette is _DIALOG_FOCUS_TEXT_COLORS:
-        names, swatches = _DIALOG_FOCUS_TEXT_NAMES, _DIALOG_FOCUS_TEXT_COLORS
+        labels, swatches = _DIALOG_FOCUS_TEXT_LABELS, _DIALOG_FOCUS_TEXT_COLORS
     else:
         # Every other palette is a text color's hues under another alpha, or
         # with a lead of its own that is still offered as the white it is.
-        names, swatches = _TEXT_NAMES, _TEXT_COLORS
-    index_of = {name: index for index, name in enumerate(names)}
-    return _ColorSetting(palette, names, swatches, index_of,
+        labels, swatches = _TEXT_LABELS, _TEXT_COLORS
+    index_of = {label: index for index, label in enumerate(labels)}
+    return _ColorSetting(palette, labels, swatches, index_of,
                          _DEFAULT_COLOR_INDEX.get(setting_id, 0))
 
 
@@ -607,14 +593,13 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
     index, rgb = _decode(spec, value, legacy_hex)
 
     default_word = xbmc.getLocalizedString(_DEFAULT_WORD)
-    tiles = [
-        xbmcgui.ListItem(
-            f"{name} ({default_word})" if position == spec.default else name,
-            spec.swatches[position],
-            offscreen=True,
-        )
-        for position, name in enumerate(spec.names)
-    ]
+    tiles = []
+    for position, label_id in enumerate(spec.labels):
+        name = addon.getLocalizedString(label_id)
+        if position == spec.default:
+            name = f"{name} ({default_word})"
+        tiles.append(xbmcgui.ListItem(name, spec.swatches[position],
+                                      offscreen=True))
     hex_tile = ("ff" + rgb.lower()) if rgb else _HEX_TILE_EMPTY
     tiles.append(xbmcgui.ListItem(addon.getLocalizedString(_HEX_TILE_LABEL),
                                   hex_tile, offscreen=True))

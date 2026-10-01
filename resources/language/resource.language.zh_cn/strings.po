@@ -255,6 +255,86 @@ msgctxt "#32118"
 msgid "Color of the cd/m² brightness unit."
 msgstr "cd/m² 亮度单位的颜色。"
 
+msgctxt "#32120"
+msgid "White"
+msgstr "白色"
+
+msgctxt "#32121"
+msgid "Light gray"
+msgstr "浅灰色"
+
+msgctxt "#32122"
+msgid "Light red"
+msgstr "浅红色"
+
+msgctxt "#32123"
+msgid "Light orange"
+msgstr "浅橙色"
+
+msgctxt "#32124"
+msgid "Light yellow"
+msgstr "浅黄色"
+
+msgctxt "#32125"
+msgid "Light green"
+msgstr "浅绿色"
+
+msgctxt "#32126"
+msgid "Light cyan"
+msgstr "浅青色"
+
+msgctxt "#32127"
+msgid "Light blue"
+msgstr "浅蓝色"
+
+msgctxt "#32128"
+msgid "Light purple"
+msgstr "浅紫色"
+
+msgctxt "#32129"
+msgid "Light pink"
+msgstr "浅粉色"
+
+msgctxt "#32130"
+msgid "Charcoal"
+msgstr "炭黑色"
+
+msgctxt "#32131"
+msgid "Black"
+msgstr "黑色"
+
+msgctxt "#32132"
+msgid "Dark red"
+msgstr "深红色"
+
+msgctxt "#32133"
+msgid "Dark orange"
+msgstr "深橙色"
+
+msgctxt "#32134"
+msgid "Dark yellow"
+msgstr "深黄色"
+
+msgctxt "#32135"
+msgid "Dark green"
+msgstr "深绿色"
+
+msgctxt "#32136"
+msgid "Dark cyan"
+msgstr "深青色"
+
+msgctxt "#32137"
+msgid "Dark blue"
+msgstr "深蓝色"
+
+msgctxt "#32138"
+msgid "Dark purple"
+msgstr "深紫色"
+
+msgctxt "#32139"
+msgid "Dark gray"
+msgstr "深灰色"
+
 msgctxt "#32140"
 msgid "FPS"
 msgstr "FPS"
@@ -274,6 +354,166 @@ msgstr "标题图标"
 msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
 msgstr "图表图标的颜色 (Modern)。"
+
+msgctxt "#32150"
+msgid "Coral"
+msgstr "珊瑚色"
+
+msgctxt "#32151"
+msgid "Salmon"
+msgstr "鲑鱼色"
+
+msgctxt "#32152"
+msgid "Amber"
+msgstr "琥珀色"
+
+msgctxt "#32153"
+msgid "Gold"
+msgstr "金色"
+
+msgctxt "#32154"
+msgid "Lime"
+msgstr "青柠色"
+
+msgctxt "#32155"
+msgid "Mint"
+msgstr "薄荷色"
+
+msgctxt "#32156"
+msgid "Teal"
+msgstr "蓝绿色"
+
+msgctxt "#32157"
+msgid "Sky blue"
+msgstr "天蓝色"
+
+msgctxt "#32158"
+msgid "Azure"
+msgstr "蔚蓝色"
+
+msgctxt "#32159"
+msgid "Indigo"
+msgstr "靛蓝色"
+
+msgctxt "#32160"
+msgid "Violet"
+msgstr "紫罗兰色"
+
+msgctxt "#32161"
+msgid "Lavender"
+msgstr "薰衣草色"
+
+msgctxt "#32162"
+msgid "Magenta"
+msgstr "品红色"
+
+msgctxt "#32163"
+msgid "Fuchsia"
+msgstr "紫红色"
+
+msgctxt "#32164"
+msgid "Rose"
+msgstr "玫瑰色"
+
+msgctxt "#32165"
+msgid "Crimson"
+msgstr "猩红色"
+
+msgctxt "#32166"
+msgid "Brown"
+msgstr "棕色"
+
+msgctxt "#32167"
+msgid "Olive"
+msgstr "橄榄色"
+
+msgctxt "#32168"
+msgid "Slate"
+msgstr "石板色"
+
+msgctxt "#32169"
+msgid "Silver"
+msgstr "银色"
+
+msgctxt "#32170"
+msgid "Dark teal"
+msgstr "暗蓝绿色"
+
+msgctxt "#32171"
+msgid "Dark sky"
+msgstr "暗天蓝色"
+
+msgctxt "#32172"
+msgid "Dark indigo"
+msgstr "暗靛蓝色"
+
+msgctxt "#32173"
+msgid "Dark violet"
+msgstr "暗紫罗兰色"
+
+msgctxt "#32174"
+msgid "Dark magenta"
+msgstr "暗品红色"
+
+msgctxt "#32175"
+msgid "Dark pink"
+msgstr "暗粉色"
+
+msgctxt "#32176"
+msgid "Dark rose"
+msgstr "暗玫瑰色"
+
+msgctxt "#32177"
+msgid "Dark brown"
+msgstr "暗棕色"
+
+msgctxt "#32178"
+msgid "Dark olive"
+msgstr "暗橄榄色"
+
+msgctxt "#32179"
+msgid "Dark lime"
+msgstr "暗青柠色"
+
+msgctxt "#32180"
+msgid "Dark mint"
+msgstr "暗薄荷色"
+
+msgctxt "#32181"
+msgid "Dark azure"
+msgstr "暗蔚蓝色"
+
+msgctxt "#32182"
+msgid "Dark slate"
+msgstr "暗石板色"
+
+msgctxt "#32183"
+msgid "Dark navy"
+msgstr "暗海军蓝"
+
+msgctxt "#32184"
+msgid "Dark maroon"
+msgstr "暗栗色"
+
+msgctxt "#32185"
+msgid "Midnight"
+msgstr "午夜色"
+
+msgctxt "#32186"
+msgid "Espresso"
+msgstr "浓咖啡色"
+
+msgctxt "#32187"
+msgid "Onyx"
+msgstr "缟玛瑙色"
+
+msgctxt "#32188"
+msgid "Graphite"
+msgstr "石墨色"
+
+msgctxt "#32189"
+msgid "Steel"
+msgstr "钢青色"
 
 msgctxt "#32190"
 msgid "Brightness unit"
@@ -310,6 +550,166 @@ msgstr "文件名"
 msgctxt "#32198"
 msgid "Color of the playing file name."
 msgstr "正在播放的文件名的颜色。"
+
+msgctxt "#32200"
+msgid "Peach"
+msgstr "桃色"
+
+msgctxt "#32201"
+msgid "Tangerine"
+msgstr "橘色"
+
+msgctxt "#32202"
+msgid "Mustard"
+msgstr "芥末色"
+
+msgctxt "#32203"
+msgid "Chartreuse"
+msgstr "黄绿色"
+
+msgctxt "#32204"
+msgid "Forest"
+msgstr "森林绿"
+
+msgctxt "#32205"
+msgid "Emerald"
+msgstr "翡翠绿"
+
+msgctxt "#32206"
+msgid "Spring"
+msgstr "春绿色"
+
+msgctxt "#32207"
+msgid "Aqua"
+msgstr "水绿色"
+
+msgctxt "#32208"
+msgid "Turquoise"
+msgstr "青绿色"
+
+msgctxt "#32209"
+msgid "Cerulean"
+msgstr "蔚蓝色"
+
+msgctxt "#32210"
+msgid "Cobalt"
+msgstr "钴蓝色"
+
+msgctxt "#32211"
+msgid "Periwinkle"
+msgstr "长春花色"
+
+msgctxt "#32212"
+msgid "Plum"
+msgstr "梅紫色"
+
+msgctxt "#32213"
+msgid "Orchid"
+msgstr "兰花紫"
+
+msgctxt "#32214"
+msgid "Raspberry"
+msgstr "树莓红"
+
+msgctxt "#32215"
+msgid "Watermelon"
+msgstr "西瓜红"
+
+msgctxt "#32216"
+msgid "Scarlet"
+msgstr "猩红色"
+
+msgctxt "#32217"
+msgid "Sand"
+msgstr "沙色"
+
+msgctxt "#32218"
+msgid "Pistachio"
+msgstr "开心果绿"
+
+msgctxt "#32219"
+msgid "Cadet"
+msgstr "军服蓝"
+
+msgctxt "#32220"
+msgid "Dark peach"
+msgstr "深桃色"
+
+msgctxt "#32221"
+msgid "Dark tangerine"
+msgstr "深橘色"
+
+msgctxt "#32222"
+msgid "Dark mustard"
+msgstr "深芥末色"
+
+msgctxt "#32223"
+msgid "Dark chartreuse"
+msgstr "深黄绿色"
+
+msgctxt "#32224"
+msgid "Dark forest"
+msgstr "深森林绿"
+
+msgctxt "#32225"
+msgid "Dark emerald"
+msgstr "深翡翠绿"
+
+msgctxt "#32226"
+msgid "Dark spring"
+msgstr "深春绿色"
+
+msgctxt "#32227"
+msgid "Dark aqua"
+msgstr "深水绿色"
+
+msgctxt "#32228"
+msgid "Dark turquoise"
+msgstr "深青绿色"
+
+msgctxt "#32229"
+msgid "Dark cerulean"
+msgstr "深蔚蓝色"
+
+msgctxt "#32230"
+msgid "Dark cobalt"
+msgstr "深钴蓝色"
+
+msgctxt "#32231"
+msgid "Dark periwinkle"
+msgstr "深长春花色"
+
+msgctxt "#32232"
+msgid "Dark plum"
+msgstr "深梅紫色"
+
+msgctxt "#32233"
+msgid "Dark orchid"
+msgstr "深兰花紫"
+
+msgctxt "#32234"
+msgid "Dark raspberry"
+msgstr "深树莓红"
+
+msgctxt "#32235"
+msgid "Dark watermelon"
+msgstr "深西瓜红"
+
+msgctxt "#32236"
+msgid "Dark scarlet"
+msgstr "深猩红色"
+
+msgctxt "#32237"
+msgid "Dark sand"
+msgstr "深沙色"
+
+msgctxt "#32238"
+msgid "Dark pistachio"
+msgstr "深开心果绿"
+
+msgctxt "#32239"
+msgid "Dark cadet"
+msgstr "深军服蓝"
 
 msgctxt "#32241"
 msgid "HEX color"
