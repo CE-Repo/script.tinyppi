@@ -12,6 +12,8 @@ import time
 import xbmc
 import xbmcgui
 from core import settings
+from core.constants import HOME_WINDOW_ID
+from core.log import log
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
 
@@ -92,10 +94,10 @@ def home_window() -> xbmcgui.Window:
     held across that would point at a window that is gone.
     """
     if getattr(_reads, "info", None) is None:
-        return xbmcgui.Window(10000)
+        return xbmcgui.Window(HOME_WINDOW_ID)
     home = getattr(_reads, "home", None)
     if home is None:
-        home = _reads.home = xbmcgui.Window(10000)
+        home = _reads.home = xbmcgui.Window(HOME_WINDOW_ID)
     return home
 
 
@@ -460,8 +462,8 @@ def join_refresh_thread(thread) -> None:
 
     thread.join(_JOIN_TIMEOUT)
     if thread.is_alive():
-        xbmc.log(
-            f"TinyPPI: refresh thread still running after "
+        log(
+            f"refresh thread still running after "
             f"{_JOIN_TIMEOUT}s, handing over anyway",
             xbmc.LOGWARNING,
         )
@@ -473,8 +475,8 @@ def log_refresh_failure(view: str, exc: Exception) -> None:
     The caller keeps the once-per-view flag that gates this: a persistent
     fault should leave a trace without writing to the log every tick.
     """
-    xbmc.log(
-        f"TinyPPI: {view} refresh failed, continuing with the last "
+    log(
+        f"{view} refresh failed, continuing with the last "
         f"values: {exc}",
         xbmc.LOGWARNING,
     )

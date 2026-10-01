@@ -11,29 +11,23 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
-_ADDON_ID = "script.tinyppi"
+# resources/lib on the import path, read off this file rather than asked of
+# Kodi: the constants below are needed before anything else is.
+_LIB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "resources", "lib")
+if _LIB_PATH not in sys.path:
+    sys.path.insert(0, _LIB_PATH)
 
-_HOME_WINDOW_ID = 10000
-
-# Home-window property the service publishes while it is running, and the
-# request / acknowledgement pair a launch hands a view over with.  See
-# _hand_to_service.
-_PROP_SERVICE      = "TinyPPI.Service"
-_PROP_OPEN_REQUEST = "TinyPPI.OpenRequest"
-_PROP_OPEN_ACK     = "TinyPPI.OpenAck"
-
-# Written into the request when a launch gives up waiting and opens the view
-# itself, so a service that answers very late leaves it alone rather than
-# opening a second one on top of it.
-_WITHDRAWN = "-"
-
-# The notification messages the service opens a view on, keyed by view.  A
-# keymap can send one of these itself -- NotifyAll(script.tinyppi,open_overlay)
-# -- which opens the overlay without starting a script at all.
-_OPEN_MESSAGES = {
-    "overlay": "open_overlay",
-    "dialog":  "open_dialog",
-}
+from core.constants import (  # noqa: E402  needs the path above
+    ADDON_ID,
+    HOME_WINDOW_ID,
+    OPEN_MESSAGES,
+    OPEN_WITHDRAWN,
+    PROP_OPEN_ACK,
+    PROP_OPEN_REQUEST,
+    PROP_SERVICE,
+)
+from core.log import log  # noqa: E402
 
 # How long a launch waits for the service to take the view off its hands before
 # opening it here instead, and how often it looks.  The service acknowledges as
@@ -41,13 +35,6 @@ _OPEN_MESSAGES = {
 # the timeout only covers a service that is marked as running but is not.
 _ACK_TIMEOUT_MS = 750
 _ACK_STEP_MS    = 10
-
-
-def _bootstrap_lib_path(addon: xbmcaddon.Addon) -> None:
-    """Add resources/lib to the import path once."""
-    lib_path = os.path.join(addon.getAddonInfo("path"), "resources", "lib")
-    if lib_path not in sys.path:
-        sys.path.insert(0, lib_path)
 
 
 def _split_args(raw_args: list[str]) -> list[str]:
@@ -69,37 +56,35 @@ def _hand_to_service(view: str) -> bool:
     wait between the button and the first frame.
 
     Nothing is assumed about the service being alive: it publishes
-    ``_PROP_SERVICE`` while it runs and acknowledges this request before it
+    ``PROP_SERVICE`` while it runs and acknowledges this request before it
     does anything else, so a launch that gets no answer simply opens the view
     itself (below) rather than doing nothing at all.
     """
-    message = _OPEN_MESSAGES.get(view)
+    message = OPEN_MESSAGES.get(view)
     if not message:
         return False
 
-    home = xbmcgui.Window(_HOME_WINDOW_ID)
-    if home.getProperty(_PROP_SERVICE) != "1":
+    home = xbmcgui.Window(HOME_WINDOW_ID)
+    if home.getProperty(PROP_SERVICE) != "1":
         return False
 
     token = f"{view}:{os.getpid()}:{time.time():.3f}"
-    home.setProperty(_PROP_OPEN_ACK, "")
-    home.setProperty(_PROP_OPEN_REQUEST, token)
-    xbmc.executebuiltin(f"NotifyAll({_ADDON_ID},{message})")
+    home.setProperty(PROP_OPEN_ACK, "")
+    home.setProperty(PROP_OPEN_REQUEST, token)
+    xbmc.executebuiltin(f"NotifyAll({ADDON_ID},{message})")
 
     waited = 0
     while waited < _ACK_TIMEOUT_MS:
-        if home.getProperty(_PROP_OPEN_ACK) == token:
+        if home.getProperty(PROP_OPEN_ACK) == token:
             return True
         xbmc.sleep(_ACK_STEP_MS)
         waited += _ACK_STEP_MS
 
     # Withdraw the request before opening the view here, so a service that is
     # only very late does not open a second one on top of it.
-    home.setProperty(_PROP_OPEN_REQUEST, _WITHDRAWN)
-    xbmc.log(
-        "TinyPPI: the service did not answer – opening in this script instead",
-        xbmc.LOGWARNING,
-    )
+    home.setProperty(PROP_OPEN_REQUEST, OPEN_WITHDRAWN)
+    log("the service did not answer – opening in this script instead",
+        xbmc.LOGWARNING)
     return False
 
 
@@ -122,7 +107,6 @@ def _open_view(view: str) -> None:
 def main() -> None:
     """Dispatch TinyPPI's script entry point."""
     addon = xbmcaddon.Addon()
-    _bootstrap_lib_path(addon)
 
     args = _split_args(sys.argv[1:])
     command = args[0] if args else ""

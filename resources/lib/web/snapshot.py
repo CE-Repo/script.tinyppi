@@ -22,6 +22,7 @@ import time
 import zlib
 
 import xbmc
+from core.log import channel
 from core.utils import (
     PROP_EFFECTIVE_HDR_TYPE,
     PROP_HDR10PLUS_PRESENT,
@@ -1540,21 +1541,46 @@ _KNOWN_MODES = frozenset(
 )
 
 
+_log = channel("web")
+
+# One switch at a time.  Two phones -- or two quick taps on one -- asking at
+# once would otherwise write the driver's nodes from two threads in between
+# each other's settling delays; the second waits for the first instead.
+_switching = threading.Lock()
+
+
 def apply_mode(mode: str) -> bool:
     """Apply a VS10 mode by name, returning False for one the dashboard does
     not offer.
 
-    Goes through the documented ``RunScript`` entry point rather than calling
-    ``ui.mode_select`` here: that runs the switch in its own interpreter, the
-    same way a keymap shortcut does, so a native VS10 action is fired from the
-    context it is fired from everywhere else, this request thread is not held
-    for the driver's settling delays, and ``set_mode`` still validates the
-    name itself on the far side.
+    The switch runs on a thread of the service, which the dashboard is part
+    of, rather than through ``RunScript``: that started a whole interpreter and
+    imported the dialog module into it for every tap, where the service has
+    had it loaded since the warm-up -- and it is where the on-screen dialog
+    runs its own switches when the service opens it.  The request thread is
+    not held for the driver's settling delays, and ``set_mode`` still
+    validates the name itself.
     """
     if mode not in _KNOWN_MODES:
         return False
-    xbmc.executebuiltin(f"RunScript(script.tinyppi,run_mode,{mode})")
+    threading.Thread(target=_run_mode, args=(mode,), name="TinyPPI-vs10",
+                     daemon=True).start()
     return True
+
+
+def _run_mode(mode: str) -> None:
+    """Carry out one switch, after any still running."""
+    with _switching:
+        # Kodi waits for every thread of the service before it can finish
+        # shutting down, and a staged switch takes seconds: none is started
+        # once it has begun.
+        if xbmc.Monitor().abortRequested():
+            return
+        try:
+            from ui.mode_select import set_mode
+            set_mode(mode)
+        except Exception as exc:  # never let a switch take the service down
+            _log(f"VS10 mode '{mode}' failed: {exc}", xbmc.LOGERROR)
 
 
 # --- Player commands -------------------------------------------------------

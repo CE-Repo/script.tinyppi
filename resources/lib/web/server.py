@@ -33,10 +33,9 @@ import xbmcaddon
 import xbmcvfs
 
 from core import settings
+from core.log import channel
 from web import library
 from web.snapshot import SnapshotBuilder, apply_command, apply_mode, art_path
-
-_ADDON_ID = "script.tinyppi"
 
 # How often the producer rebuilds the snapshot.  Five a second is well inside
 # what a browser can paint and keeps the L1 luminance chart moving with the
@@ -77,10 +76,12 @@ _MAX_STREAMS = 6
 _REQUEST_TIMEOUT      = 15.0
 _STREAM_WRITE_TIMEOUT = 4.0
 
-# How long stop() waits for the threads it asked to finish.  Past this the
-# add-on has done what it can and holding the service script open any longer
-# only makes the shutdown worse.
-_JOIN_TIMEOUT = 2.0
+# How long stop() waits, in all, for the threads it asked to finish.  One
+# deadline for the accept loop, the producer and the request threads together:
+# a timeout of their own each added up to more than the five seconds Kodi
+# allows the whole script.  Past this the add-on has done what it can and
+# holding the service script open any longer only makes the shutdown worse.
+_JOIN_TIMEOUT = 3.0
 
 # Longest request body accepted (only the two POSTs have one, and both are
 # tiny).
@@ -135,6 +136,11 @@ _TOKEN_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 # wrong.
 _TOKEN_IN_QUERY = re.compile(r"(token=)[^&\s\"']*", re.IGNORECASE)
 _TOKEN_LENGTH   = 8
+
+# The user name and password in a source address -- smb://user:secret@nas/ --
+# which a library on a share often carries in every path it holds, and which
+# has no more business in that same debug log than the token has.
+_USERINFO_IN_URL = re.compile(r"(://)[^/@\s]*@")
 
 _MIN_PORT, _MAX_PORT = 1024, 65535
 _DEFAULT_PORT = 8099
@@ -285,8 +291,7 @@ def ui_strings(addon=None) -> dict[str, str]:
     return strings
 
 
-def _log(message: str, level: int = xbmc.LOGINFO) -> None:
-    xbmc.log(f"{_ADDON_ID} --> web: {message}", level=level)
+_log = channel("web", xbmc.LOGINFO)
 
 
 # --- Settings --------------------------------------------------------------
@@ -607,6 +612,11 @@ def _art_sources(path: str) -> tuple[str, ...]:
     return ("image://" + quote(path, safe="") + "/", path)
 
 
+def _redacted(path: str) -> str:
+    """``path`` with any user name and password taken out, for the log."""
+    return _USERINFO_IN_URL.sub(r"\1***@", path)
+
+
 def _art_type(path: str) -> str:
     return _ART_TYPES.get(os.path.splitext(path)[1].lower(), _ART_FALLBACK_TYPE)
 
@@ -765,6 +775,8 @@ class _Producer(threading.Thread):
                     library.revision()
             except Exception as exc:  # never let one bad pass end the stream
                 self._log_failure(exc)
+            else:
+                self._log_recovery()
             self._nudge.wait(_PRODUCE_INTERVAL if wanted else _IDLE_INTERVAL)
         with self._condition:
             self._condition.notify_all()
@@ -799,6 +811,16 @@ class _Producer(threading.Thread):
         self._failed = True
         _log(f"snapshot failed, continuing with the last one: {exc}",
              xbmc.LOGWARNING)
+
+    def _log_recovery(self) -> None:
+        """Note the first good pass after a failed one, and arm the failure
+        line again: a fault that clears and comes back later -- or a
+        different one -- is worth a line of its own, not silence for the rest
+        of the session."""
+        if not self._failed:
+            return
+        self._failed = False
+        _log("snapshot recovered")
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -1509,7 +1531,8 @@ class _Server(ThreadingHTTPServer):
                 # in a debug log is what says a box is serving a wall the slow
                 # way -- a cache that has just been cleared, or artwork Kodi
                 # has never drawn.
-                _log(f"no cached texture for {source}, sending the original")
+                _log(f"no cached texture for {_redacted(source)}, sending "
+                     "the original", xbmc.LOGDEBUG)
             return data, _image_type(data, fallback)
         return None
 
@@ -1677,17 +1700,23 @@ class WebDashboard:
             # Then wait for the threads themselves.  Kodi's own wait for them
             # has no timeout, so a thread left running here is a Kodi that
             # never finishes shutting down; ours is bounded because by then
-            # there is nothing further the add-on can do about it.
+            # there is nothing further the add-on can do about it -- and
+            # bounded once, for all three, so the waits cannot add up.
+            deadline = time.monotonic() + _JOIN_TIMEOUT
+
+            def remaining() -> float:
+                return max(0.0, deadline - time.monotonic())
+
             if thread is not None:
-                thread.join(timeout=_JOIN_TIMEOUT)
+                thread.join(timeout=remaining())
                 if thread.is_alive():
                     _log("web server thread did not stop", xbmc.LOGWARNING)
             if producer is not None:
-                producer.join(timeout=_JOIN_TIMEOUT)
+                producer.join(timeout=remaining())
                 if producer.is_alive():
                     _log("snapshot producer did not stop", xbmc.LOGWARNING)
             if server is not None:
-                left = server.join_workers(_JOIN_TIMEOUT)
+                left = server.join_workers(remaining())
                 if left:
                     _log(f"{left} request thread(s) still running",
                          xbmc.LOGWARNING)

@@ -32,9 +32,11 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
+from core.log import log
 from core.utils import (
     ChangeHighlighter,
     highlight_hold,
+    home_window,
     join_refresh_thread,
     log_refresh_failure,
 )
@@ -71,9 +73,6 @@ _PANEL_GAP = 100
 # Rows that fit before the panel stops growing, which is the height the skin
 # itself is laid out at: 750 px of list.
 _MAX_ROWS = 25
-
-# Home window, where ui.theme publishes the colors the skin resolves.
-_HOME = 10000
 
 # Set while a single section is on screen rather than the whole list.  The two
 # views share one window definition and differ in what the keys do, so this is
@@ -388,13 +387,13 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         default when it did not -- and a line in the log saying so, since a
         view that quietly stops highlighting looks like one that has nothing
         to highlight."""
-        color = xbmcgui.Window(_HOME).getProperty(_CHANGED_COLOR)
+        color = home_window().getProperty(_CHANGED_COLOR)
         if color:
             return color
         if not self._color_missing:
             self._color_missing = True
-            xbmc.log(
-                f"TinyPPI: {_CHANGED_COLOR} is not published, highlighting "
+            log(
+                f"{_CHANGED_COLOR} is not published, highlighting "
                 f"changed values in {_CHANGED_FALLBACK} instead",
                 xbmc.LOGWARNING,
             )
@@ -569,8 +568,8 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             # height it had before any of this.
             if not self._resize_failed:
                 self._resize_failed = True
-                xbmc.log(
-                    f"TinyPPI: DV metadata window cannot be resized to its "
+                log(
+                    f"DV metadata window cannot be resized to its "
                     f"rows, leaving it at full height: {exc}",
                     xbmc.LOGWARNING,
                 )
@@ -824,7 +823,7 @@ def _show_section(title: str) -> bool:
     The property is what tells the skin which of the two key hints to draw --
     the window is the same one either way, and the keys it answers to are not.
     """
-    home = xbmcgui.Window(_HOME)
+    home = home_window()
     home.setProperty(_SECTION_VIEW, "1")
     try:
         dialog = _dialog(DVSectionDialog)

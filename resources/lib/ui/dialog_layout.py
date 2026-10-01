@@ -13,6 +13,8 @@ Imported by the generator outside Kodi as well, so everything Kodi supplies
 is optional here.
 """
 
+from core.constants import HOME_WINDOW_ID
+
 try:  # pragma: no cover - absent when the skin generator runs this
     import xbmc
     from core import settings
@@ -66,7 +68,7 @@ ACTION_MOVE_RIGHT = 2
 # take the VS10 modes for either. The other three exclude it, so exactly one
 # branch is ever on screen: a layout that laid two of them out at once would
 # put two panels in the same place.
-_HOME = "Window(10000).Property"
+_HOME = f"Window({HOME_WINDOW_ID}).Property"
 _PLAIN_CONDITION = (
     "String.IsEqual(%s(TinyPPI.HdrType),hdr10plus)"
     " | String.Contains(%s(TinyPPI.HdrType),hlg)"

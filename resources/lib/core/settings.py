@@ -27,8 +27,10 @@ import threading
 import xbmcaddon
 import xbmcvfs
 
+from core.constants import PROFILE_DIR
+
 # Where Kodi keeps the values this add-on's settings are set to.
-_VALUES_FILE = "special://profile/addon_data/script.tinyppi/settings.xml"
+_VALUES_FILE = f"{PROFILE_DIR}/settings.xml"
 
 _lock   = threading.Lock()
 _path   = ""

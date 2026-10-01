@@ -34,6 +34,7 @@ import xbmc
 import xbmcaddon
 import xbmcvfs
 
+from core.log import channel
 from core.maps import IMAX_LOGO_MAP
 
 _ADDON = xbmcaddon.Addon()
@@ -128,8 +129,7 @@ _FILE_TYPES = _IMAGE_TYPES | frozenset("""
 _STREAM_PREFIXES = ("pvr://", "upnp://")
 
 
-def _log(msg: str, level: int = xbmc.LOGDEBUG) -> None:
-    xbmc.log(f"TinyPPI: {msg}", level)
+_log = channel("imax")
 
 
 def _is_tag(token: str) -> bool:

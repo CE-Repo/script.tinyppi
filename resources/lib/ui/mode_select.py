@@ -14,7 +14,12 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 from core import display
-from core.utils import PROP_HDR10PLUS_PRESENT, clear_overlay_state
+from core.log import log
+from core.utils import (
+    PROP_HDR10PLUS_PRESENT,
+    clear_overlay_state,
+    home_window,
+)
 from ui import dialog_layout
 
 _ADDON      = xbmcaddon.Addon()
@@ -104,9 +109,9 @@ def _w(path: str, value: str) -> None:
     try:
         with open(path, "w", encoding="utf-8") as f:
             f.write(value)
-        xbmc.log(f"TinyPPI: {path} = {value}", xbmc.LOGINFO)
+        log(f"{path} = {value}", xbmc.LOGINFO)
     except OSError as e:
-        xbmc.log(f"TinyPPI: FAILED {path}: {e}", xbmc.LOGERROR)
+        log(f"FAILED {path}: {e}", xbmc.LOGERROR)
 
 
 def _delay(ms: int) -> None:
@@ -277,8 +282,8 @@ def _reset_display_after_switch(name: str, output_before, via_sysfs: bool) -> No
         moved = _wait_for_dv_output_change(dv_before)
 
     if not moved:
-        xbmc.log(
-            f"TinyPPI: '{name}' did not move the driver's output mode "
+        log(
+            f"'{name}' did not move the driver's output mode "
             "-> no display reset",
             xbmc.LOGWARNING,
         )
@@ -526,7 +531,7 @@ def _probe_vs10_actions() -> bool:
     try:
         response = json.loads(xbmc.executeJSONRPC(request))
     except Exception as e:
-        xbmc.log(f"TinyPPI: VS10 Actions probe failed: {e}", xbmc.LOGWARNING)
+        log(f"VS10 Actions probe failed: {e}", xbmc.LOGWARNING)
         return False
     return isinstance(response, dict) and "result" in response
 
@@ -537,14 +542,14 @@ def _vs10_actions_available() -> bool:
     if _vs10_actions is None:
         _vs10_actions = _probe_vs10_actions()
         if _vs10_actions:
-            xbmc.log(
-                "TinyPPI: native VS10 Actions available -> preferred during "
+            log(
+                "native VS10 Actions available -> preferred during "
                 "playback, with sysfs fallback if they don't take effect",
                 xbmc.LOGINFO,
             )
         else:
-            xbmc.log(
-                "TinyPPI: native VS10 Actions not available -> using the "
+            log(
+                "native VS10 Actions not available -> using the "
                 "built-in TinyPPI VS10 (sysfs) path",
                 xbmc.LOGINFO,
             )
@@ -577,7 +582,7 @@ def _probe_dv_Player_LED_setting():
     try:
         response = json.loads(xbmc.executeJSONRPC(request))
     except Exception as e:
-        xbmc.log(f"TinyPPI: probe failed: {e}", xbmc.LOGWARNING)
+        log(f"probe failed: {e}", xbmc.LOGWARNING)
         return None
     if not isinstance(response, dict) or "result" not in response:
         return None
@@ -609,8 +614,8 @@ def _player_led_mode() -> bool:
 
     ll_policy = _read(_LL_POLICY)
     if ll_policy is not None:
-        xbmc.log(
-            "TinyPPI: Dolby Vision LED mode unreadable from Kodi -> taking the "
+        log(
+            "Dolby Vision LED mode unreadable from Kodi -> taking the "
             f"driver's low-latency policy ({ll_policy})",
             xbmc.LOGINFO,
         )
@@ -626,7 +631,7 @@ def _hybrid_dv_hdr10plus() -> bool:
     rather than parsed here: the side data is already being read once a poll
     for the overlay and the dialog, and this only needs its answer.
     """
-    home = xbmcgui.Window(10000)
+    home = home_window()
     return (
         home.getProperty(PROP_HDR10PLUS_PRESENT) == "1"
         and "dolby" in home.getProperty("TinyPPI.HdrType").lower()
@@ -653,12 +658,12 @@ def set_mode(name: str) -> None:
     escape hatch away from a box where it turns out to work.
     """
     if name not in _MODES:
-        xbmc.log(f"TinyPPI: Unknown mode '{name}'", xbmc.LOGERROR)
+        log(f"Unknown mode '{name}'", xbmc.LOGERROR)
         return
 
     if _hybrid_dv_hdr10plus():
-        xbmc.log(
-            f"TinyPPI: '{name}' is being applied to a Dolby Vision title that "
+        log(
+            f"'{name}' is being applied to a Dolby Vision title that "
             "also carries HDR10+; the driver is not expected to take a VS10 "
             "mode for a hybrid grade, so the output may not change",
             xbmc.LOGWARNING,
@@ -697,8 +702,8 @@ def _staged_switch(name: str) -> None:
     waited out and the driver then left alone for a moment longer, so the
     second stage arrives at a driver that is done rather than one still busy.
     """
-    xbmc.log(
-        f"TinyPPI: '{name}' cannot be reached from the output now on the wire "
+    log(
+        f"'{name}' cannot be reached from the output now on the wire "
         "in one switch -> going through SDR first",
         xbmc.LOGINFO,
     )
@@ -729,8 +734,8 @@ def _switch_through_sdr(name: str) -> None:
     worker.start()
     worker.join(_STAGE_TIMEOUT_S)
     if worker.is_alive():
-        xbmc.log(
-            f"TinyPPI: staged switch to '{name}' is still running after "
+        log(
+            f"staged switch to '{name}' is still running after "
             f"{_STAGE_TIMEOUT_S}s -> leaving it to finish on its own",
             xbmc.LOGWARNING,
         )
@@ -755,20 +760,20 @@ def _apply_mode(name: str) -> bool:
             before = _dv_state()
             xbmc.executebuiltin(f"Action({action})")
             if _wait_for_dv_change(before):
-                xbmc.log(
-                    f"TinyPPI: mode '{name}' set via VS10 Actions -> "
+                log(
+                    f"mode '{name}' set via VS10 Actions -> "
                     f"Action({action})",
                     xbmc.LOGINFO,
                 )
                 return False
-            xbmc.log(
-                f"TinyPPI: VS10 Action({action}) had no effect on the DV "
+            log(
+                f"VS10 Action({action}) had no effect on the DV "
                 "driver -> falling back to built-in TinyPPI VS10 (sysfs)",
                 xbmc.LOGWARNING,
             )
         else:
-            xbmc.log(
-                f"TinyPPI: no video playing -> VS10 Action({action}) cannot "
+            log(
+                f"no video playing -> VS10 Action({action}) cannot "
                 f"apply; using built-in TinyPPI VS10 (sysfs) for '{name}'",
                 xbmc.LOGINFO,
             )
@@ -776,15 +781,15 @@ def _apply_mode(name: str) -> bool:
         # Native engine is present but this mode has no native action (e.g.
         # 'sdr8' -- the actions only expose SDR10, not SDR8). Use sysfs so the
         # real 8-bit vs 10-bit SDR distinction is preserved.
-        xbmc.log(
-            f"TinyPPI: '{name}' has no native VS10 action -> using built-in "
+        log(
+            f"'{name}' has no native VS10 action -> using built-in "
             "TinyPPI VS10 (sysfs) to keep the exact output",
             xbmc.LOGINFO,
         )
 
     sysfs()
-    xbmc.log(
-        f"TinyPPI: mode '{name}' set via built-in TinyPPI VS10 (sysfs)",
+    log(
+        f"mode '{name}' set via built-in TinyPPI VS10 (sysfs)",
         xbmc.LOGINFO,
     )
     return True
@@ -847,9 +852,8 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         try:
             self.getControl(dialog_layout.GROUP_PANEL).setPosition(left, top)
         except Exception as e:
-            xbmc.log(f"TinyPPI: could not place the dialog panel: {e}",
-                     xbmc.LOGWARNING)
-        xbmcgui.Window(10000).setProperty(dialog_layout.PROP_PLACED, "1")
+            log(f"could not place the dialog panel: {e}", xbmc.LOGWARNING)
+        home_window().setProperty(dialog_layout.PROP_PLACED, "1")
         # The panel was hidden while the window handed out its default focus,
         # so that focus went nowhere; it has to be given again - and to a
         # button the branch on screen actually has, since each branch carries
@@ -857,7 +861,7 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         self._sync_branch(force=True)
 
     def _branch(self) -> dict:
-        home = xbmcgui.Window(10000)
+        home = home_window()
         return dialog_layout.branch_for(
             home.getProperty("TinyPPI.HdrType"),
             home.getProperty(PROP_HDR10PLUS_PRESENT),
@@ -883,16 +887,14 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         try:
             self.setFocusId(focus)
         except Exception as e:
-            xbmc.log(f"TinyPPI: could not focus dialog button {focus}: {e}",
-                     xbmc.LOGDEBUG)
+            log(f"could not focus dialog button {focus}: {e}", xbmc.LOGDEBUG)
 
     def _set_label(self, control_id: int, text: str) -> None:
         try:
             self.getControl(control_id).setLabel(text)
         except Exception as e:
             if self._running:
-                xbmc.log(f"TinyPPI: could not set label {control_id}: {e}",
-                         xbmc.LOGWARNING)
+                log(f"could not set label {control_id}: {e}", xbmc.LOGWARNING)
 
     def _show_step(self) -> None:
         """Put the choice the single button stands for on it.
@@ -919,12 +921,11 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         from info.properties import publish_hdr_type
 
         try:
-            publish_hdr_type(xbmcgui.Window(10000))
+            publish_hdr_type(home_window())
             return True
         except Exception as e:
             if not logged:
-                xbmc.log(f"TinyPPI: HDR type refresh failed: {e}",
-                         xbmc.LOGWARNING)
+                log(f"HDR type refresh failed: {e}", xbmc.LOGWARNING)
             return False
 
     def _hdr_type_loop(self) -> None:
@@ -955,7 +956,7 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
 
         if control_id in dialog_layout.PPI_BUTTONS:
             self.close()
-            clear_overlay_state(xbmcgui.Window(10000))
+            clear_overlay_state(home_window())
             from ui.overlay import open_tinyppi
             open_tinyppi()
             return
@@ -994,7 +995,7 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
 
 def open_dialog() -> None:
     """Create and display the mode-selection dialog modally."""
-    home = xbmcgui.Window(10000)
+    home = home_window()
     # False for as long as it takes the dialog to move the panel where the
     # settings want it; the window files draw nothing until then.
     home.clearProperty(dialog_layout.PROP_PLACED)

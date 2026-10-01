@@ -35,6 +35,8 @@ import os
 
 import xbmc
 
+from core.log import log
+
 try:
     import fcntl
 except ImportError:  # Not Linux (a dev box); every call below then no-ops.
@@ -309,15 +311,15 @@ def reset(reason: str = "") -> bool:
             # Only a descriptor that is the DRM master gets this far, so cache
             # the ids now: they are what the next reset needs.
             _target = target
-            xbmc.log(f"TinyPPI: display reset{note}", xbmc.LOGINFO)
+            log(f"display reset{note}", xbmc.LOGINFO)
             return True
 
         # Not the master (Kodi may hold more than one descriptor) -- try the
         # next one rather than giving up on the whole device.
 
     _target = False
-    xbmc.log(
-        f"TinyPPI: display reset{note} not available -- no DRM connector with "
+    log(
+        f"display reset{note} not available -- no DRM connector with "
         "an UPDATE property could be driven from this process",
         xbmc.LOGWARNING,
     )

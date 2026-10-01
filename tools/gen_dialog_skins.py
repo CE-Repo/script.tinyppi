@@ -24,13 +24,15 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "resources", "lib"))
 
+from core.constants import HOME_WINDOW_ID  # noqa: E402
 from ui import dialog_layout as layout  # noqa: E402
 
 SKIN = os.path.join(ROOT, "resources", "skins", "Default", "1080i")
 
-HOME = "$INFO[Window(10000).Property(TinyPPI.%s)]"
-SHOW = "String.IsEqual(Window(10000).Property(TinyPPI.%s),1)"
-PLACED = "String.IsEqual(Window(10000).Property(%s),1)" % layout.PROP_PLACED
+_WINDOW = f"Window({HOME_WINDOW_ID})"
+HOME = "$INFO[" + _WINDOW + ".Property(TinyPPI.%s)]"
+SHOW = "String.IsEqual(" + _WINDOW + ".Property(TinyPPI.%s),1)"
+PLACED = "String.IsEqual(%s.Property(%s),1)" % (_WINDOW, layout.PROP_PLACED)
 
 HEADER = """<?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated file - do not edit by hand; see tools/gen_dialog_skins.py.

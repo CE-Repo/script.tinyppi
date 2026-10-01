@@ -11,6 +11,7 @@ Call ``publish_scene_properties(window)`` on every polling tick and
 import re
 
 from core import settings
+from core.constants import HOME_WINDOW_ID
 from core.helpers import format_fps, fps_display_texts, normalize_fps
 from core.maps import (
     AUDIO_CODEC_MAP,
@@ -621,8 +622,8 @@ def _metadata_units() -> tuple[str, str]:
     label, and the PQ unit goes with it, so the metadata rows either all wear a
     unit or none of them do.
     """
-    unit_color = info("Window(10000).Property(TinyPPI.UnitColor)")
-    unit_label = info("Window(10000).Property(TinyPPI.UnitLabel)")
+    unit_color = info(f"Window({HOME_WINDOW_ID}).Property(TinyPPI.UnitColor)")
+    unit_label = info(f"Window({HOME_WINDOW_ID}).Property(TinyPPI.UnitLabel)")
 
     if not unit_label:
         return "", ""

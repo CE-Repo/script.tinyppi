@@ -28,12 +28,12 @@ import traceback
 
 import xbmc
 import xbmcaddon
-import xbmcgui
+import xbmcvfs
+from core.files import atomic_write
+from core.log import channel
+from core.utils import home_window
 
-_ADDON     = xbmcaddon.Addon()
-_ADDON_DIR = _ADDON.getAddonInfo("path")
-
-_ADDONS_ROOT = os.path.dirname(os.path.dirname(_ADDON_DIR))
+_ADDON = xbmcaddon.Addon()
 
 # Kodi's own copy, named by its full path rather than as a bare "arial.ttf".
 # A bare name is looked up in the skin's font directory first, and skins that
@@ -64,6 +64,14 @@ _REQUIRED_FONTS = (
 # least once.
 PROP_FONTS_READY = "TinyPPI.FontsReady"
 
+# The same description of a Font.xml the entries could not be put into: a skin
+# installed read-only (the system skins on CoreELEC are), a file with no
+# fontset in it, or no Font.xml at all.  Trying again cannot help until the skin
+# or the file changes, and every try is the full walk and parse plus an error in
+# the log, on every launch -- so a failure is remembered as a success is, and
+# lapses on the same terms.
+PROP_FONTS_FAILED = "TinyPPI.FontsFailed"
+
 # Held apart by a character no path or version carries.
 _MARK_SEPARATOR = "\n"
 
@@ -73,8 +81,7 @@ _MARK_SEPARATOR = "\n"
 _install_lock = threading.Lock()
 
 
-def _log(msg: str, level: int = xbmc.LOGINFO) -> None:
-    xbmc.log(f"TinyPPI: {msg}", level)
+_log = channel("fonts", xbmc.LOGINFO)
 
 
 def _find_font_xml(skin_path: str) -> str | None:
@@ -90,19 +97,15 @@ def _find_font_xml(skin_path: str) -> str | None:
 
 
 def _get_skin_path() -> str | None:
-    """Return the active Kodi skin path (user addons dir first, then system)."""
-    skin_dir   = xbmc.getSkinDir()
-    local_path = os.path.normpath(os.path.join(_ADDONS_ROOT, skin_dir))
-    sys_path   = os.path.normpath(os.path.join(os.getcwd(), "addons", skin_dir))
+    """Return the directory of the skin in force, or None.
 
-    _log(f"Skin local: {local_path}")
-    _log(f"Skin sys:   {sys_path}")
-
-    if os.path.exists(local_path):
-        return local_path
-    if os.path.exists(sys_path):
-        return sys_path
-    return None
+    Asked of Kodi rather than worked out: ``special://skin/`` is wherever the
+    skin was loaded from -- the user's add-on directory or the system one --
+    where piecing the system path together out of the working directory only
+    found it on a Kodi that happened to be started from its own.
+    """
+    path = os.path.normpath(xbmcvfs.translatePath("special://skin/"))
+    return path if os.path.isdir(path) else None
 
 
 def _spec_entry(spec: dict) -> tuple[str, str, str]:
@@ -288,9 +291,10 @@ def _install_xml(skin_path: str, font_xml_path: str = "") -> bool:
     updated = _FONTSET_RE.sub(_process, original)
 
     if modified:
+        # Whole or not at all: a Font.xml cut short by a power cut is a skin
+        # that no longer loads (see core.files).
         try:
-            with open(font_xml_path, "wb") as fh:
-                fh.write(updated.encode("utf-8"))
+            atomic_write(font_xml_path, updated.encode("utf-8"))
         except OSError as exc:
             _log(f"installxml: cannot write Font.xml: {exc}", xbmc.LOGERROR)
             return False
@@ -303,17 +307,20 @@ def _install_fonts() -> None:
     """Check the active skin's Font.xml in full and fill in what it is missing.
 
     Marks the file as checked (PROP_FONTS_READY) once the entries are known to
-    be in place, which is what lets ensure_fonts() skip all of this. A check
-    that could not be completed -- no skin path, no Font.xml, an unreadable or
-    unwritable file -- leaves the mark off, so the next caller tries again
-    instead of trusting a check that never happened.
+    be in place, which is what lets ensure_fonts() skip all of this.  A check
+    that found no Font.xml, or one it could not read or write, marks it as
+    failed instead (PROP_FONTS_FAILED), which ensure_fonts() skips just the
+    same until the skin or the file changes.
 
     Called with _install_lock held.
     """
-    home     = xbmcgui.Window(10000)
+    home     = home_window()
     skin_dir = xbmc.getSkinDir()
     home.clearProperty(PROP_FONTS_READY)
+    home.clearProperty(PROP_FONTS_FAILED)
 
+    # Not remembered as a failure: finding the skin costs next to nothing, and
+    # a skin that cannot be found now may simply not have finished loading.
     skin_path = _get_skin_path()
     if not skin_path:
         _log("Skin path not found", xbmc.LOGWARNING)
@@ -325,6 +332,7 @@ def _install_fonts() -> None:
     # the most expensive part of the whole check.
     font_xml_path = _find_font_xml(skin_path)
     if not font_xml_path:
+        _remember(home, skin_dir, "", PROP_FONTS_FAILED)
         return
 
     if fonts_already_installed(skin_path, font_xml_path):
@@ -337,9 +345,13 @@ def _install_fonts() -> None:
     except Exception as exc:
         _log(f"Installation error: {exc}", xbmc.LOGERROR)
         _log(traceback.format_exc(), xbmc.LOGERROR)
-        return
+        modified = False
 
     if not modified:
+        _log(f"the font entries could not be registered in {font_xml_path}; "
+             "not trying again until the skin or its Font.xml changes",
+             xbmc.LOGWARNING)
+        _remember(home, skin_dir, font_xml_path, PROP_FONTS_FAILED)
         return
 
     # Marked from the file as it now stands, after the write.
@@ -350,40 +362,47 @@ def _install_fonts() -> None:
         pass
 
 
-def _remember(home, skin_dir: str, font_xml_path: str) -> None:
-    """Record that this Font.xml carries the entries, for ensure_fonts()."""
+def _remember(home, skin_dir: str, font_xml_path: str,
+              prop: str = PROP_FONTS_READY) -> None:
+    """Record what the check found for this Font.xml, for ensure_fonts():
+    the entries in place (PROP_FONTS_READY) or out of reach
+    (PROP_FONTS_FAILED)."""
     try:
-        home.setProperty(PROP_FONTS_READY, _mark(skin_dir, font_xml_path))
+        home.setProperty(prop, _mark(skin_dir, font_xml_path))
     except OSError as exc:
         # Nothing to mark it by; the next launch checks again in full.
         _log(f"cannot stat Font.xml: {exc}", xbmc.LOGWARNING)
 
 
 def _mark(skin_dir: str, font_xml_path: str) -> str:
-    """Describe the Font.xml as it is right now, for PROP_FONTS_READY.
+    """Describe the Font.xml as it is right now, for either mark.
 
-    Raises OSError when the file it names is not there any more, which is one
-    of the ways a mark stops matching.
+    An empty path stands for a skin that has no Font.xml to describe.  Raises
+    OSError when the file it names is not there any more, which is one of the
+    ways a mark stops matching.
     """
-    stat = os.stat(font_xml_path)
+    if font_xml_path:
+        stat = os.stat(font_xml_path)
+        stamp = (repr(stat.st_mtime), str(stat.st_size))
+    else:
+        stamp = ("", "")
     return _MARK_SEPARATOR.join((
         skin_dir,
         _ADDON.getAddonInfo("version"),
         font_xml_path,
-        repr(stat.st_mtime),
-        str(stat.st_size),
+        *stamp,
     ))
 
 
-def _mark_holds() -> bool:
-    """Whether the registered fonts still answer for the skin in force.
+def _mark_holds(prop: str = PROP_FONTS_READY) -> bool:
+    """Whether a mark still answers for the skin in force.
 
     The mark names the file it was taken from, so this is one stat of a known
     path -- no walk, no parse.  It stops holding when the skin changed, when
     this addon was updated, or when the Font.xml itself moved, grew or was
     rewritten, which is what a skin update does to it.
     """
-    mark = xbmcgui.Window(10000).getProperty(PROP_FONTS_READY)
+    mark = home_window().getProperty(prop)
     parts = mark.split(_MARK_SEPARATOR)
     if len(parts) != 5 or parts[0] != xbmc.getSkinDir():
         return False
@@ -393,6 +412,11 @@ def _mark_holds() -> bool:
         return False
 
 
+def _settled() -> bool:
+    """Whether the last check still answers, whichever way it went."""
+    return _mark_holds(PROP_FONTS_READY) or _mark_holds(PROP_FONTS_FAILED)
+
+
 def ensure_fonts() -> None:
     """Make sure the overlay's font entries are registered, cheaply.
 
@@ -400,14 +424,15 @@ def ensure_fonts() -> None:
     them already, so the ordinary launch answers out of one window-property
     read and one stat; only a session where that has not happened -- the
     service disabled, a skin loaded without our entries reaching it -- pays for
-    the walk and the parse, and pays for it once.
+    the walk and the parse, and pays for it once.  So does a skin the entries
+    cannot be written into: it is checked once and then left alone.
     """
-    if _mark_holds():
+    if _settled():
         return
     with _install_lock:
         # Taken again behind the lock: the other caller may have been doing
         # exactly this while we waited for it.
-        if _mark_holds():
+        if _settled():
             return
         _install_fonts()
 
