@@ -6,7 +6,6 @@
 # Python cache folder
 __pycache__/
 
-# Test and lint caches
-.pytest_cache/
+# Lint caches
 .ruff_cache/
 kodi-addon-checker.log

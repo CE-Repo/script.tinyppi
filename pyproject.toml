@@ -12,6 +12,3 @@ ignore = [
     # length by construction, or wants the shorter one on purpose.
     "B905",
 ]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
