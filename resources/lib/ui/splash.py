@@ -342,8 +342,26 @@ def _current_logos(hdr_token: str) -> tuple[str, str]:
     return video_logo, audio_logo
 
 
+def _has_audio(player: xbmc.Player) -> bool:
+    """Return whether the playing video carries an audio track at all.
+
+    Asked of the player rather than read off the codec alone: an empty codec is
+    also what a track reads as before Kodi has named it, and a track that is
+    there but not named yet must not be taken for no track.
+    """
+    if info("VideoPlayer.AudioCodec").strip():
+        return True
+    try:
+        return bool(player.getAvailableAudioStreams())
+    except RuntimeError:
+        # Playback ended under us; the loop notices on its next poll.  True
+        # keeps the stack as it would have been.
+        return True
+
+
 def _mode_logos(
     mode_settings: _ModeSettings, logos: tuple[str, str],
+    has_audio: bool = True,
 ) -> tuple[tuple[str, str], ...]:
     """Return a mode's stack as ``(logo, colour key)`` pairs, top entry first.
 
@@ -354,11 +372,13 @@ def _mode_logos(
 
     Asking for both keeps the block all-or-nothing as it has always been: a
     stream whose audio codec has no logo shows nothing rather than a lone video
-    logo.  Only a toggle turned off puts the other logo on screen by itself.
+    logo.  Only a toggle turned off puts the other logo on screen by itself --
+    or a video with no audio track at all (``has_audio`` False), which has no
+    audio logo to be missing and shows its video logo alone.
     """
     video_logo, audio_logo = logos
     show_video = mode_settings.show_video
-    show_audio = mode_settings.show_audio
+    show_audio = mode_settings.show_audio and has_audio
     if show_video and show_audio and not (video_logo and audio_logo):
         return ()
 
@@ -730,13 +750,15 @@ def open_splash() -> None:
 
     gamut = info("Player.Process(amlogic.eoft_gamut)")
     logos = _current_logos(_amlogic_hdr_token(gamut))
+    has_audio = _has_audio(player)
     enabled_modes = [
         mode for mode, on in (
             ("start", config.show_on_start), ("osd", config.show_on_osd),
             ("tinyppi", config.show_on_tinyppi),
         ) if on
     ]
-    if not any(_mode_logos(config.modes[mode], logos) for mode in enabled_modes):
+    if not any(_mode_logos(config.modes[mode], logos, has_audio)
+               for mode in enabled_modes):
         return
 
     video_window = xbmcgui.Window(WINDOW_FULLSCREEN_VIDEO)
@@ -801,9 +823,12 @@ def open_splash() -> None:
             # with every frame.  So they are read again once a second, at once
             # when the output changes, and on every poll while no format has
             # been found yet -- the side data can take a moment to arrive.
+            # Whether there is an audio track at all rides on the same clock:
+            # it describes the title too, and asking takes the player's lock.
             if not hdr_type or gamut != format_gamut or now >= format_due:
                 hdr_type = get_hdr_format()
                 el_type = get_dv_el_type_raw() if "dolby" in hdr_type else ""
+                has_audio = _has_audio(player)
                 format_gamut = gamut
                 format_due = now + _FORMAT_INTERVAL
 
@@ -855,7 +880,7 @@ def open_splash() -> None:
                         # Each mode picks and orders its own logos, so a mode
                         # left with none simply draws nothing this poll.
                         mode_settings = config.modes[mode]
-                        mode_logos = _mode_logos(mode_settings, logos)
+                        mode_logos = _mode_logos(mode_settings, logos, has_audio)
                         if not mode_logos:
                             continue
                         colors = colors_by_mode[mode]
