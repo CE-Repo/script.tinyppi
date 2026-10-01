@@ -737,6 +737,18 @@ The dashboard is reachable by anything on the same network while it is on, so:
   then asks for the token before it shows anything at all.
 - **Generate a new token** replaces it and logs out every browser still holding
   the old one.
+- A device that presents **ten different wrong tokens** within ten minutes is
+  turned away for ten minutes, the right token included. A page still holding
+  a token that has since been replaced does not count against it: that is the
+  same wrong token again, and the page simply asks for the new one.
+- Opened under the box's address or a name of the home network (`coreelec`,
+  `coreelec.local`, `coreelec.fritz.box`, `….lan`, `….home` and the like), the
+  readings need no token unless the setting above asks for one. Opened under
+  any other name — a dynamic DNS name, say — the page asks for the token before
+  it shows anything. That is also what stops a web page elsewhere from reading
+  the dashboard through the browser of somebody at home (DNS rebinding).
+- The page may not be shown inside another site's frame, and it loads and runs
+  nothing but its own files (Content Security Policy).
 - The file name obeys the overlay's own *Show file name* setting: with it off,
   the path is not sent to the browser either.
 - Only a fixed set of routes is served — no path is ever resolved against the

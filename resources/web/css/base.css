@@ -198,7 +198,7 @@ body {
   white-space: nowrap;
 }
 /* The add-on's own icon, at the size of a line of text.  It is already served
-   for the home screen and the tab (see _static_routes in web/server.py), so the
+   for the home screen and the tab (see routes in web/static.py), so the
    page carries no second copy of it. */
 .brandmark {
   width: 26px;
@@ -338,6 +338,17 @@ body {
   -webkit-mask: var(--icon) no-repeat center / contain;
   mask: var(--icon) no-repeat center / contain;
 }
+/* Which file a painted icon in the markup is drawn from.  Classes rather than
+   a style="" on each one: the page's Content-Security-Policy allows no inline
+   styles (see _serve_static in web/routes.py). */
+.icon-download        { --icon: url('/icons/download.svg'); }
+.icon-key             { --icon: url('/icons/key.svg'); }
+.icon-tab-films       { --icon: url('/icons/tab-films.svg'); }
+.icon-tab-history     { --icon: url('/icons/tab-history.svg'); }
+.icon-tab-live        { --icon: url('/icons/tab-live.svg'); }
+.icon-tab-metadata    { --icon: url('/icons/tab-metadata.svg'); }
+.icon-tab-series      { --icon: url('/icons/tab-series.svg'); }
+.icon-tab-settings    { --icon: url('/icons/tab-settings.svg'); }
 .iconbtn .ui-icon { width: 18px; height: 18px; margin: auto; opacity: .82; }
 @media (hover: hover) {
   .iconbtn:hover .ui-icon { opacity: 1; }

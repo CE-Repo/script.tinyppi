@@ -29,9 +29,9 @@ import threading
 import time
 
 import xbmc
-import xbmcaddon
 import xbmcgui
 
+from core import settings
 from core.log import log
 from core.utils import (
     ChangeHighlighter,
@@ -42,8 +42,9 @@ from core.utils import (
 )
 from info import dvmetadata
 
-_ADDON      = xbmcaddon.Addon()
-_ADDON_PATH = _ADDON.getAddonInfo("path")
+# The add-on's own directory, from the one settings handle every module shares
+# (see core.settings) rather than a handle of this module's own.
+_ADDON_PATH = settings.addon().getAddonInfo("path")
 
 # The list holding the metadata rows (see script-tinyppi-dv-metadata.xml).
 _LIST = 6000

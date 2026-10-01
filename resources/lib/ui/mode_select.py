@@ -11,9 +11,8 @@ import threading
 import time
 
 import xbmc
-import xbmcaddon
 import xbmcgui
-from core import display
+from core import display, settings
 from core.log import log
 from core.utils import (
     PROP_HDR10PLUS_PRESENT,
@@ -22,8 +21,9 @@ from core.utils import (
 )
 from ui import dialog_layout
 
-_ADDON      = xbmcaddon.Addon()
-_ADDON_PATH = _ADDON.getAddonInfo("path")
+# The add-on's own directory, from the one settings handle every module shares
+# (see core.settings) rather than a handle of this module's own.
+_ADDON_PATH = settings.addon().getAddonInfo("path")
 
 # The Dolby Vision driver, as CoreELEC 22 (kernel 5.15, Amlogic-ne) exposes it.
 # Every value below is the one CoreELEC's own Kodi writes to these nodes in

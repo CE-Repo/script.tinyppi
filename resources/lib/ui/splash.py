@@ -25,7 +25,6 @@ import time
 from typing import NamedTuple
 
 import xbmc
-import xbmcaddon
 import xbmcgui
 from core import settings
 from core.constants import HOME_WINDOW_ID
@@ -37,9 +36,8 @@ from info.dvinfo import get_dv_el_type_raw, get_hdr_format
 from info.imax import imax_logo, is_known_imax_title
 from ui.theme import apply_theme
 
-_ADDON      = xbmcaddon.Addon()
 _MEDIA_PATH = os.path.join(
-    _ADDON.getAddonInfo("path"), "resources", "skins", "Default", "media"
+    settings.addon().getAddonInfo("path"), "resources", "skins", "Default", "media"
 )
 
 _log = channel("splash")

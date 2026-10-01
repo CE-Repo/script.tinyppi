@@ -105,7 +105,7 @@
         '<div class="legend">' +
           '<span><i class="swatch band"></i><span id="legendPeak">Max</span></span>' +
           '<span><i class="swatch avg"></i><span id="legendAvg">Ø</span></span>' +
-          '<span id="chartScale" style="margin-left:auto"></span>' +
+          '<span id="chartScale"></span>' +
         '</div>' +
       '</div>' +
     '</details>' +

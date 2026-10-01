@@ -25,7 +25,7 @@ yesterday's answer until somebody reloaded the page.
 Only the poster addresses are kept here, never the pictures themselves: a
 thousand posters is more memory than the whole add-on has any business taking,
 and the browser holds the handful it drew far better than this could (see
-``_ART_CACHE`` in ``web/server.py``).
+``CACHE`` in ``web/artwork.py``).
 
 Series are the same shelf with one floor more.  A show is not something that
 can be put on -- an episode is -- so the wall of shows is read and held the way
@@ -98,7 +98,7 @@ _read_at = 0.0
 _SETTLE = (1.5, 5.0)
 
 # Counts up every time the held lists are dropped, and rides out with every
-# snapshot (see ``_Producer.run`` in web/server.py).  It is the whole of how a
+# snapshot (see ``Producer.run`` in web/producer.py).  It is the whole of how a
 # phone finds out that what it drew is no longer what the box holds: the page
 # and the app each remember the number their lists were read at, and read them
 # again when it moves.  Without it a dashboard shows the film it watched last
@@ -369,7 +369,7 @@ def _resume(resume) -> int:
 # it used to.  These are handed out with a week and an immutable on them, so a
 # browser that has already been given the full-size poster would go on drawing
 # it until the week was up -- the tag is the only thing that can tell it
-# otherwise (see _shelf_art in web/server.py).
+# otherwise (see shelf_picture in web/artwork.py).
 _ART_REVISION = "#2"
 
 

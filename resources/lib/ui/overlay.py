@@ -27,6 +27,7 @@ from core.utils import (
     home_window,
     is_effective_dv,
     join_refresh_thread,
+    localized,
     log_refresh_failure,
     read_pass,
     set_window_properties,
@@ -39,11 +40,11 @@ from ui.theme import apply_theme
 # Constants
 # ---------------------------------------------------------------------------
 
-# Only ever asked for the things that cannot change while Kodi runs -- where
-# the addon lives, and its localized strings.  Settings are read through
-# _settings() instead; see there.
-_ADDON      = xbmcaddon.Addon()
-_ADDON_PATH = _ADDON.getAddonInfo("path")
+# Where the addon lives, which cannot change while Kodi runs: read once, off
+# the one settings handle every module shares (see core.settings).  Settings
+# are read through _settings() and strings through localized(), so a change
+# made while the service runs is seen.
+_ADDON_PATH = settings.addon().getAddonInfo("path")
 
 _dialog_lock = False
 
@@ -158,7 +159,7 @@ def _notify_error(message_id: int) -> None:
     """Show a Kodi error notification using a localised string ID."""
     xbmcgui.Dialog().notification(
         "TinyPPI",
-        _ADDON.getLocalizedString(message_id),
+        localized(message_id),
         xbmcgui.NOTIFICATION_ERROR,
         4000,
     )

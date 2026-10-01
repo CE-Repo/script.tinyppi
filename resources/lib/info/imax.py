@@ -31,13 +31,12 @@ import unicodedata
 from urllib.parse import unquote
 
 import xbmc
-import xbmcaddon
 import xbmcvfs
 
+from core import settings
 from core.log import channel
 from core.maps import IMAX_LOGO_MAP
 
-_ADDON = xbmcaddon.Addon()
 
 _TITLE_FILE = "imax_titles.txt"
 
@@ -238,11 +237,12 @@ def _read_titles(path: str) -> dict[str, list[tuple[int | None, bool]]]:
 
 def _title_files() -> tuple[str, str]:
     """The bundled list and the viewer's own copy, in that order."""
+    addon = settings.addon()
     return (
         os.path.join(
-            _ADDON.getAddonInfo("path"), "resources", "data", _TITLE_FILE),
+            addon.getAddonInfo("path"), "resources", "data", _TITLE_FILE),
         os.path.join(
-            xbmcvfs.translatePath(_ADDON.getAddonInfo("profile")), _TITLE_FILE),
+            xbmcvfs.translatePath(addon.getAddonInfo("profile")), _TITLE_FILE),
     )
 
 
@@ -465,7 +465,7 @@ def is_enhanced_title(name: str = "") -> bool:
 
 # Where the skin keeps the graphics the splash draws.
 _MEDIA_PATH = os.path.join(
-    _ADDON.getAddonInfo("path"), "resources", "skins", "Default", "media"
+    settings.addon().getAddonInfo("path"), "resources", "skins", "Default", "media"
 )
 
 # Which combined logos are installed, by relative path; each is looked up once.

@@ -8,7 +8,6 @@ import sys
 import time
 
 import xbmc
-import xbmcaddon
 import xbmcgui
 
 # resources/lib on the import path, read off this file rather than asked of
@@ -106,13 +105,16 @@ def _open_view(view: str) -> None:
 
 def main() -> None:
     """Dispatch TinyPPI's script entry point."""
-    addon = xbmcaddon.Addon()
-
     args = _split_args(sys.argv[1:])
     command = args[0] if args else ""
 
+    # The settings are read only when the launch names no view of its own.
+    # Making the handle parses the add-on's whole settings definition, which
+    # a keymap or a button that names its view never needs.
     if not command:
-        command = "dialog" if addon.getSetting("launch_mode") == "1" else "overlay"
+        from core import settings
+        launch_mode = settings.addon().getSetting("launch_mode")
+        command = "dialog" if launch_mode == "1" else "overlay"
 
     if command in ("overlay", "dialog"):
         _open_view(command)

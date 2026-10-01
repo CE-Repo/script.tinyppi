@@ -17,7 +17,6 @@ import re
 from typing import NamedTuple
 
 import xbmc
-import xbmcaddon
 import xbmcgui
 import xbmcvfs
 from core import settings
@@ -586,7 +585,7 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
     spec = _COLOR_SETTINGS.get(setting_id)
     if spec is None:
         return
-    addon = xbmcaddon.Addon()
+    addon = settings.addon()
 
     value = addon.getSetting(setting_id)
     legacy_hex = (_load_legacy_custom().get(setting_id, "")

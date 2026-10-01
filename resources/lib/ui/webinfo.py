@@ -8,12 +8,11 @@ their own interpreter and never hold the settings UI while sysfs or a socket
 answers.
 """
 
-import xbmcaddon
 import xbmcgui
 
+from core import settings
+from core.utils import localized
 from web.server import ensure_token, generate_token, local_address
-
-_ADDON = xbmcaddon.Addon()
 
 _HEADING       = 32446   # Web dashboard
 _ADDRESS_INTRO = 32447   # Open this address in a browser on the same network:
@@ -25,15 +24,13 @@ def show_web_info() -> None:
     """Show the URL and token together, which is what someone standing in
     front of the TV with a phone actually needs."""
     address = local_address()
-    token   = ensure_token(_ADDON)
+    token   = ensure_token(settings.addon())
     body = (
-        f"{_ADDON.getLocalizedString(_ADDRESS_INTRO)}\n\n"
+        f"{localized(_ADDRESS_INTRO)}\n\n"
         f"[B]{address}[/B]\n\n"
-        f"{_ADDON.getLocalizedString(_TOKEN_LABEL)}:  [B]{token}[/B]"
+        f"{localized(_TOKEN_LABEL)}:  [B]{token}[/B]"
     )
-    xbmcgui.Dialog().textviewer(
-        _ADDON.getLocalizedString(_HEADING), body, usemono=True
-    )
+    xbmcgui.Dialog().textviewer(localized(_HEADING), body, usemono=True)
 
 
 def new_web_token() -> None:
@@ -43,8 +40,8 @@ def new_web_token() -> None:
     Every browser holding the old token is logged out by this; that is the
     point of the button.
     """
-    token = generate_token(_ADDON)
+    token = generate_token(settings.addon())
     xbmcgui.Dialog().ok(
-        _ADDON.getLocalizedString(_TOKEN_NEW),
-        f"{_ADDON.getLocalizedString(_TOKEN_LABEL)}:  [B]{token}[/B]",
+        localized(_TOKEN_NEW),
+        f"{localized(_TOKEN_LABEL)}:  [B]{token}[/B]",
     )
