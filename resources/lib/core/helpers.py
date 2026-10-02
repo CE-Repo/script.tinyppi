@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""FPS sampling and formatting helpers, used by properties.py."""
+"""FPS sampling and formatting helpers for info.properties."""
 
 import re
 
@@ -18,8 +18,10 @@ _FORMAT_FPS_TARGETS = (
 
 
 def normalize_fps(fps_value) -> str:
-    """Snap a raw FPS to the nearest broadcast standard (within ±0.5 Hz),
-    else return it as a trimmed decimal."""
+    """Snap a raw FPS to the nearest broadcast standard within 0.5 Hz.
+
+    Rates further from any standard are returned as a trimmed decimal.
+    """
     try:
         fps = float(fps_value)
     except (TypeError, ValueError):
@@ -37,8 +39,11 @@ def normalize_fps(fps_value) -> str:
 
 
 def format_fps(fps_value) -> str:
-    """Format a raw FPS for the VideoResolution string: snap known fractional
-    rates (23.976, 29.97, 59.94, 60.0) to canonical form, else trim to 3 dp."""
+    """Format a raw FPS for the video resolution string.
+
+    Known rates (23.976, 29.97, 59.94, 60) are snapped to their canonical
+    form; anything else is trimmed to three decimals.
+    """
     try:
         fps = float(fps_value)
     except (TypeError, ValueError):
@@ -71,8 +76,7 @@ def _read_fps_sysfs() -> tuple[int, int] | None:
 
 
 def get_fps_drop() -> int:
-    """Return the dropped frames per second from the sysfs node (the gap
-    between its input and output rate), or 0 when it can't be read."""
+    """Return dropped frames per second from sysfs, or 0 when unreadable."""
     result = _read_fps_sysfs()
     if not result:
         return 0
@@ -82,11 +86,12 @@ def get_fps_drop() -> int:
 
 
 def fps_display_texts(video_fps) -> tuple[str, str]:
-    """Return (info_text, output_fps_text) for the FPS row; info_text is
-    'NNN - DDD' (input - drop).
+    """Return (info_text, output_fps_text) for the FPS row.
 
-    The input rate is the played video's FPS rounded to a whole frame, only
-    the drop comes from sysfs, and the output rate is what remains."""
+    *info_text* reads ``NNN - DDD`` (input - drop).  The input rate is the
+    video's FPS rounded to a whole frame, the drop comes from sysfs, and the
+    output rate is the difference.
+    """
     try:
         in_fps = round(float(video_fps))
     except (TypeError, ValueError):

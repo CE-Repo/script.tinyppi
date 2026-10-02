@@ -1,48 +1,33 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Dolby Vision / HDR metadata from CoreELEC's raw side-data infolabel.
+"""Dolby Vision / HDR metadata from CoreELEC's raw side-data InfoLabel.
 
-``Player.Process(video.sidedata)`` is the CoreELEC 22 label through which the
-Amlogic video codec publishes the raw payloads of the stream it is decoding --
-the Dolby Vision RPU, the dvcC/dvvC configuration record, the HDR10+ ST 2094-40
-T.35 message and the static MDCV / CLL SEIs -- base64-encoded in a JSON object.
-Kodi itself parses none of it; script.module.sidedata does (libdovi and
-libavutil through ctypes), and this module maps its result onto the compact
-fields properties.py publishes.
+``Player.Process(video.sidedata)`` (CoreELEC 22) publishes the raw payloads
+of the stream being decoded as base64 in JSON: the Dolby Vision RPU, the
+dvcC/dvvC configuration record, the HDR10+ ST 2094-40 message and the static
+MDCV / CLL SEIs.  script.module.sidedata parses them (libdovi and libavutil
+via ctypes); this module maps the result onto the fields properties.py
+publishes.
 
-Everything here is live.  The label is re-published per presentation timestamp,
-so the per-frame blocks -- L1 (frame luminance, the FLL / PQ rows) and L5 (the
-active area the aspect-ratio row is computed from) -- follow the picture rather
-than describing a single probed moment of the file.  There is no detection
-step, no background worker and nothing to cache across a playback: a parse
-happens only when the raw payload actually changes, and the field dict it
-yields is held for a fraction of a second so one polling pass over the ~20
-getters costs a single parse.
+The label updates per frame, so L1 (frame luminance) and L5 (active area)
+follow the picture.  A payload is parsed only when it changes, and the field
+dict is held for a fraction of a second, so one polling pass over the ~20
+getters costs one parse.  The RPU's composer data (reshaping curves, NLQ) is
+large and only built on request (``get_sidedata(mapping=True)``, asked by
+the metadata view on each tick).
 
-The one part of a parse that is not built by default is the RPU's composer
-data -- the per-component reshaping curves and the NLQ dequantization data,
-which run to hundreds of coefficients and are the only thing here big enough
-to be worth not building for a frame nobody will read them off.  A caller with
-somewhere to put them asks for them (``get_sidedata(mapping=True)``, which the
-metadata view does on each of its own ticks) and the request simply lapses when
-it stops asking.
+The side data describes the source: CoreELEC captures it before its own
+bitstream conversion and records what it did in ``flags`` (``converted`` for
+profile 4/7 -> 8, ``rpu-removed`` / ``hdr10plus-removed``).  So profile,
+enhancement layer and structure read as the file carries them.
 
-What the side data describes is the source, not the picture after the player
-has had its way with it: CoreELEC latches the payloads from the demuxer's own
-hints and from the packets before its bitstream conversion runs, and records
-what it then did in the ``flags`` key (``converted`` for a profile 4/7 -> 8
-rewrite, ``rpu-removed`` / ``hdr10plus-removed`` for metadata stripped for a
-display that cannot take it).  So the Dolby Vision profile, its enhancement
-layer and the layer structure all still read as the file carries them.
-
-Kodi's own ``VideoPlayer.HdrType`` / ``VideoPlayer.HdrDetail`` are read
-alongside: the type classifies HLG, which carries no side-data payload of its
-own, and the detail stands in for a Dolby Vision profile that arrives without a
+``VideoPlayer.HdrType`` identifies HLG (which has no payload), and
+``VideoPlayer.HdrDetail`` supplies the DV profile when there is no
 configuration record.
 
-CoreELEC 22 on Amlogic only; on anything else the label stays empty and every
-field degrades to its N/A label, exactly as an absent metadata block does.
+CoreELEC 22 on Amlogic only; elsewhere the label is empty and every field
+falls back to N/A.
 """
 
 import re
@@ -56,15 +41,13 @@ from core.utils import home_window, localized
 try:
     from sidedata import parse_sidedata as _parse_sidedata
     _SIDEDATA_IMPORT_ERROR = None
-except Exception as exc:  # a missing/broken module must not take the addon down
+except Exception as exc:  # a broken module must not break the add-on
     _parse_sidedata = None
     _SIDEDATA_IMPORT_ERROR = exc
 
-# ``include_mapping`` arrived in script.module.sidedata 1.6.0, the version
-# addon.xml now requires.  Read off the function rather than assumed, so a box
-# carrying an older module keeps every other field instead of failing the call
-# on an argument it has never heard of: the composer section then simply has
-# nothing to show, exactly as it does for a stream that carries no mapping.
+# ``include_mapping`` arrived in script.module.sidedata 1.6.0 (required by
+# addon.xml).  Detected rather than assumed, so an older module still serves
+# every other field; the composer section is then simply empty.
 _MAPPING_KWARG = "include_mapping" in getattr(
     getattr(_parse_sidedata, "__code__", None), "co_varnames", ())
 
@@ -78,28 +61,20 @@ _SIDEDATA_LABEL   = "Player.Process(video.sidedata)"
 _HDR_TYPE_LABEL   = "VideoPlayer.HdrType"
 _HDR_DETAIL_LABEL = "VideoPlayer.HdrDetail"
 
-# What is playing, which is what the latched fields are kept against: they
-# describe this title's grade and nothing of the next one's (see _hold_static).
-# The same label dvmetadata keeps its own held blocks against (see _hold
-# there), and read for the same reason.  It is compared here and never
-# published: what may leave the box is the overlay's own setting to make.
+# The playing item; latched fields belong to it (see _hold_static), as do
+# dvmetadata's held blocks.  Only compared, never published.
 _SOURCE_LABEL     = "Player.FilenameAndPath"
 
-# How long a derived field dict stays valid.  Short enough that every polling
-# pass sees the current frame's metadata, long enough that the getters of one
-# pass share a single infolabel read and a single parse.
+# Lifetime of a derived field dict: short enough for every pass to see the
+# current frame, long enough for one pass to share one read and parse.
 _SNAPSHOT_TTL = 0.1
 
-# How long a request for the RPU's composer data stays in force.  The mapping
-# is by far the largest thing a parse can build -- the per-component reshaping
-# curves, thousands of coefficients on a dual-layer stream -- and only the
-# metadata view has anywhere to put it, so it is parsed on request rather than
-# for every frame the overlay polls.  A view that wants it asks on each of its
-# own ticks (see ``get_sidedata``) and the lease simply lapses when it closes,
-# which is what keeps the two callers from having to hand a flag back.
+# How long a request for the RPU's composer data lasts.  The mapping can be
+# thousands of coefficients and only the metadata view shows it, so the view
+# asks on each tick (see ``get_sidedata``) and the request lapses on close.
 _MAPPING_TTL = 1.0
 
-# Every field a caller can ask for; the getters below name them one at a time.
+# All fields; the getters below expose them one by one.
 _FIELDS = (
     "hdr_format",
     "output_mode",
@@ -123,13 +98,10 @@ _FIELDS = (
     "hdr10plus_present",
 )
 
-# Fields the stream carries only now and then rather than in every frame; see
-# _hold_static.  The source mastering display is filled only on frames whose DM
-# data is uncompressed, and without the latch the MDL row would fall back to L6
-# -- label and all -- every other frame.  HDR10+ is latched for the same reason
-# and one more: what it answers -- whether this title is a hybrid grade -- is a
-# property of the title, and the callers that read it decide what to offer for
-# the whole playback, not for the frame in hand.
+# Fields not present in every frame (see _hold_static).  The source mastering
+# display is only in frames with uncompressed DM data; without the latch the
+# MDL row would flip to L6 every other frame.  HDR10+ presence is a property
+# of the title (hybrid grade or not), so it is latched too.
 _STATIC_FIELDS = ("source_mdl", "hdr10plus_present")
 
 _latched: dict[str, str] = {}
@@ -152,24 +124,22 @@ _log = channel("dv", xbmc.LOGINFO)
 
 
 def _localized(label_id: int, fallback: str) -> str:
-    """Return an addon-localized label, falling back when Kodi has no string."""
+    """Return a localized label, or *fallback* when Kodi has none."""
     return localized(label_id) or fallback
 
 
 def _na_label() -> str:
-    """Return the localized label shown when DV metadata is not available."""
+    """Return the localized N/A label."""
     return _localized(_LABEL_NA, "N/A")
 
 
 def na_label() -> str:
-    """Return the localized ``N/A`` label, for callers outside this module
-    that need the same fallback text (see ``info.mediasource``)."""
+    """Return the localized N/A label for other modules."""
     return _na_label()
 
 
 def is_status_label(value: str) -> bool:
-    """Return True when a value is the localized N/A status label rather than a
-    reading, so callers can substitute their own fallback for it."""
+    """Return whether *value* is the N/A label rather than a reading."""
     return value == _na_label()
 
 
@@ -196,15 +166,10 @@ def _empty_info() -> dict[str, str]:
 def _parse(raw: str, mapping: bool = False) -> dict:
     """Parse the raw side-data JSON, or return an empty result.
 
-    ``parse_sidedata`` degrades each section to None rather than raising, so the
-    guard here only covers the module being absent and the one failure it
-    documents as out of its hands (a libdovi panic on malformed RPU bytes).
-
-    *mapping* asks for the RPU's composer data with it -- the reshaping curves
-    and the NLQ dequantization data, which the module leaves out unless asked
-    because they are the one part of a parse big enough to be worth not
-    building.  Off by default, so the overlay's own polling never pays for a
-    subtree it has nowhere to show.
+    ``parse_sidedata`` returns None per section instead of raising; the guard
+    covers a missing module and libdovi panics on malformed RPU bytes.
+    *mapping* also builds the RPU's composer data, which the overlay never
+    needs.
     """
     global _logged_import_error
 
@@ -234,18 +199,12 @@ def _parse(raw: str, mapping: bool = False) -> dict:
 
 
 def _derive(key: tuple[str, str, str, bool]) -> tuple[dict | None, dict[str, str]]:
-    """Parse one raw payload and derive the fields, never raising.
+    """Parse a raw payload and derive the fields; never raises.
 
-    Returns the parse result alongside the derived fields, so a caller after
-    the whole structure (the Dolby Vision metadata view prints every block of it)
-    shares this one parse instead of running libdovi a second time.
-
-    ``parse_sidedata`` degrades rather than raising and ``_build_info`` only
-    reads with ``.get``, so nothing here is expected to throw -- but the whole
-    chain now runs inside polling loops that would lose their thread if it did,
-    and it crosses into a third-party module and a native library on the way.
-    So the derivation is contained here: an unexpected failure costs the frame's
-    metadata, logged once, and nothing else.
+    Returns ``(parsed, fields)``, so the metadata view can reuse the parse.
+    Nothing here should throw, but it runs in polling threads and crosses
+    into a native library, so a failure only costs the frame's metadata and
+    is logged once.
     """
     global _logged_derive_error
 
@@ -265,28 +224,19 @@ def _derive(key: tuple[str, str, str, bool]) -> tuple[dict | None, dict[str, str
 
 
 def _hold_static(fields: dict[str, str], source: str) -> None:
-    """Carry the title-level fields across the frames that omit them.
+    """Carry title-level fields across frames that omit them.
 
-    They describe the grade, not the picture, so the bitstream does not repeat
-    them in every RPU -- under DM metadata compression a frame refers back to an
-    earlier one's metadata instead of carrying its own.  Read frame by frame
-    they are therefore absent most of the time, which would leave their rows
-    blinking N/A at a stream that plainly has them.
+    With DM metadata compression most frames refer back to earlier metadata,
+    so these fields are usually absent and their rows would blink N/A.  The
+    last reading therefore stands until replaced, within the same title:
+    a change of *source* clears the latch.
 
-    So the last reading stands until a new one replaces it -- but only within
-    the title it was read from: ``source`` is what is playing, and a change of
-    it empties the latch.
+    Keyed to the title, not to the end of playback, which this module may
+    never see (the dashboard producer stops asking when playback ends, see
+    ``Snapshots.build`` in web/snapshot.py).  Otherwise a plain DV title after
+    a DV + HDR10+ hybrid read as hybrid and got no VS10 modes (issue #71).
 
-    Keyed to the title rather than to the end of playback, because the end of
-    playback is not a moment anything here is guaranteed to see.  The clear in
-    ``_snapshot`` runs only when something asks for a field while no video is
-    on, and the dashboard's producer -- the one caller that runs the whole time
-    -- returns before it asks (see ``Snapshots.build`` in web/snapshot.py).  So
-    a title watched to the end left its latch standing, and the next title got
-    it: after a Dolby Vision + HDR10+ hybrid, a plain Dolby Vision one read as a
-    hybrid too and was offered no VS10 modes (issue #71).
-
-    Call under ``_lock``, with ``source`` read outside it.
+    Call under ``_lock``, with *source* read outside it.
     """
     global _latched_source
 
@@ -303,21 +253,15 @@ def _hold_static(fields: dict[str, str], source: str) -> None:
 
 
 def _snapshot() -> tuple[dict[str, str], bool]:
-    """Return ``(fields, playing)`` for the frame on screen.
+    """Return ``(fields, playing)`` for the current frame.
 
-    ``playing`` separates "nothing to say" from "nothing there": with no video
-    every field reads empty, while a playing stream that simply carries no such
-    metadata block reads as N/A or as the row's own placeholder.
+    *playing* tells "no video" (all fields empty) from "no such metadata"
+    (N/A or the row's placeholder).  The payload is re-parsed only when it
+    changes, and the result is held for ``_SNAPSHOT_TTL``.
 
-    The raw payload is re-parsed only when it changes, and the derived dict is
-    held for ``_SNAPSHOT_TTL``, so a polling pass costs one parse no matter how
-    many fields it asks for.
-
-    A standing request for the composer data (see ``get_sidedata``) is part of
-    the key rather than a flag beside it, so the snapshot is re-parsed the
-    moment the mapping is wanted and again once the last request has lapsed --
-    what is held always carries what was asked of it, and the parse that drops
-    the subtree again is the ordinary one the next changed frame would cost.
+    A pending composer-data request (see ``get_sidedata``) is part of the
+    key, so the snapshot is re-parsed when the mapping is first wanted and
+    again after the request lapses.
     """
     global _snapshot_key, _snapshot_info, _snapshot_parsed
     global _snapshot_playing, _snapshot_until, _latched_source
@@ -353,8 +297,7 @@ def _snapshot() -> tuple[dict[str, str], bool]:
             return _snapshot_info, True
 
     parsed, fields = _derive(key)
-    # Read out here with the parse rather than inside _hold_static: everything
-    # under the lock below is assignment, and a Kodi call is not that.
+    # Read outside the lock: only assignments happen under it.
     source = xbmc.getInfoLabel(_SOURCE_LABEL)
 
     with _lock:
@@ -368,25 +311,14 @@ def _snapshot() -> tuple[dict[str, str], bool]:
 
 
 def get_sidedata(mapping: bool = False) -> dict | None:
-    """Return the parse result the current field values were derived from.
+    """Return the full parse result behind the current fields.
 
-    The compact fields above name one reading each; this hands out the whole
-    structure behind them, for the metadata view that prints every block the side
-    data carries.  It comes from the same snapshot, so a view polling alongside
-    the overlay costs no extra parse.
+    For the metadata view, which prints every block; it shares the overlay's
+    snapshot, so no extra parse.  *mapping* requests the RPU's composer data
+    for ``_MAPPING_TTL``; the view asks on each tick, and the first call
+    after a lapse is answered without it (the next tick has it).
 
-    *mapping* asks for the RPU's composer data to be in it -- the reshaping
-    curves and the NLQ dequantization data, which are left out of an ordinary
-    parse (see ``_parse``).  The request holds for ``_MAPPING_TTL``, so a view
-    that wants the subtree simply asks again on each of its own ticks and stops
-    asking by closing; there is nothing to release, and two views asking at
-    once still share the one snapshot.  The very first call after a lapse is
-    answered from the parse in hand, which does not have it -- the next tick,
-    a fraction of a second later, does.
-
-    ``None`` while no video is playing, and for a payload that did not parse at
-    all -- the sections it would have filled are simply absent, exactly as the
-    per-section ``None`` a partial parse yields.
+    None while no video plays or when the payload did not parse.
     """
     global _mapping_until
 
@@ -401,8 +333,7 @@ def get_sidedata(mapping: bool = False) -> dict | None:
 # --- Value formatting ------------------------------------------------------
 
 def _fmt_num(value) -> str:
-    """Format a plain number, dropping a redundant ``.0`` tail (``1000.0`` ->
-    ``"1000"``).  Non-numeric values yield ``''``."""
+    """Format a number without a redundant ``.0``; '' for non-numbers."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return ""
     if isinstance(value, float) and value.is_integer():
@@ -413,10 +344,8 @@ def _fmt_num(value) -> str:
 def _fmt_lum(value) -> str:
     """Format a luminance in nits.
 
-    Whole numbers at or above 1 cd/m², four decimals below it (a mastering
-    display's minimum is of the order of 0.0001), with the trailing-zero tail
-    trimmed so ``0.0050`` reads as ``0.005``.  Mirrors the reference
-    diagnostic's number formatting.
+    Whole numbers from 1 cd/m² up, otherwise up to four decimals with
+    trailing zeros trimmed (``0.005``), like the reference diagnostic.
     """
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return ""
@@ -426,22 +355,23 @@ def _fmt_lum(value) -> str:
 
 
 def _joined(values: list[str]) -> str:
-    """Join the parts of a multi-value row, or ``''`` when one is missing."""
+    """Join the parts of a multi-value row, or '' when one is missing."""
     return " | ".join(values) if all(values) else ""
 
 
 def _present_flag(value) -> str:
-    """Return ``true`` / ``false`` for a presence flag (rendered as an icon via
-    ``String.IsEqual``), or ``''`` when unknown so neither icon shows."""
+    """Return ``true``/``false`` for a presence flag, or '' when unknown.
+
+    The skin shows an icon via ``String.IsEqual``; '' shows neither.
+    """
     if value is None:
         return ""
     return "true" if value else "false"
 
 
-# Enhancement-layer tags whose colour is user-themeable (FEL forest, MEL
-# tangerine by default).  The ARGB hex is published by theme.apply_theme; the
-# tag is coloured only when read (see _colourise_el_tag) so a colour change
-# takes effect live.
+# Enhancement-layer tags with themeable colours (FEL forest, MEL tangerine by
+# default).  theme.apply_theme publishes the ARGB value; tags are coloured
+# when read, so a colour change applies immediately.
 _EL_COLOURS = ("FEL", "MEL")
 _EL_COLOUR_PROPERTIES = {
     "FEL": "TinyPPI.FelColor",
@@ -454,16 +384,14 @@ _EL_COLOUR_DEFAULTS = {
 
 
 def _format_el_tag(profile: str, el_type: str) -> str:
-    """Return the profile string with a single (uncoloured) FEL/MEL tag
-    appended; ``_colourise_el_tag`` colours it at read time."""
+    """Return *profile* with an uncoloured FEL/MEL tag appended."""
     if el_type in _EL_COLOURS:
         return f"{profile} {el_type}".strip()
     return profile
 
 
 def _colourise_el_tag(text: str) -> str:
-    """Wrap a trailing FEL/MEL tag in its themed colour (falling back to the
-    palette default); any other value is returned unchanged."""
+    """Colour a trailing FEL/MEL tag with its themed colour."""
     for tag in _EL_COLOURS:
         if text == tag or text.endswith(" " + tag):
             colour = home_window().getProperty(
@@ -476,20 +404,16 @@ def _colourise_el_tag(text: str) -> str:
 
 # --- Field derivation ------------------------------------------------------
 
-# A bare Dolby Vision profile as VideoPlayer.HdrDetail reports it, e.g. ``8.1``.
+# A bare DV profile as reported by VideoPlayer.HdrDetail, e.g. ``8.1``.
 _PROFILE_RE = re.compile(r"^\d{1,2}(?:\.\d{1,2})?$")
 
 
 def _hdr_token(label: str, parsed: dict) -> str:
-    """Classify the source into a ``VideoPlayer.HdrType``-style token: ``''``
-    (SDR), ``'hdr10'`` / ``'hdr10+'``, ``'hlg'`` or ``'dolbyvision'``.
+    """Return the source HDR token: '', hdr10, hdr10+, hlg or dolbyvision.
 
-    Kodi's label reads the container and is the only source for HLG, which
-    carries no payload of its own.  The side data is the bitstream itself, so
-    it settles what the container does not signal -- Dolby Vision announced
-    through a Blu-ray playlist rather than the PMT, or HDR10+ the demuxer did
-    not flag.  Both describe the source, so a stream the player converts or
-    strips downstream still reads as the format it actually is.
+    Kodi's label (from the container) is the only source for HLG.  The side
+    data (from the bitstream) catches what the container does not signal,
+    e.g. DV announced only in a Blu-ray playlist, or unflagged HDR10+.
     """
     low = (label or "").strip().lower()
     if "dolby" in low or "dovi" in low:
@@ -517,17 +441,10 @@ def _hdr_token(label: str, parsed: dict) -> str:
 def _dv_profile(hdr_detail: str, config: dict | None, rpu: dict | None) -> str:
     """Return the Dolby Vision ``<profile>.<compatibility>`` string.
 
-    The dvcC/dvvC configuration record is container-level truth and the same
-    thing the old probe read, so it answers first.  CoreELEC latches it from the
-    demuxer's own hints rather than the rewritten ones, so it still names the
-    source profile after the profile 4/7 -> 8 conversion the player applies
-    before the decoder (which the side data notes with a ``converted`` flag).
-
-    Without a configuration record, ``VideoPlayer.HdrDetail`` is asked next --
-    only when it holds a bare profile number, so an unrelated value cannot leak
-    into the line -- and the RPU's own guess is the last resort.  That guess
-    carries no compatibility digit: a profile 10 stream has a profile 8-shaped
-    RPU, so it is reported plain rather than invented.
+    The dvcC/dvvC record comes first; it names the source profile even after
+    a 4/7 -> 8 conversion.  Next ``VideoPlayer.HdrDetail``, if it is a bare
+    profile number, and last the RPU's own guess, without a compatibility
+    digit (a profile 10 stream has a profile 8-shaped RPU).
     """
     profile = (config or {}).get("profile")
     compat  = (config or {}).get("compat_id")
@@ -543,7 +460,7 @@ def _dv_profile(hdr_detail: str, config: dict | None, rpu: dict | None) -> str:
 
 
 def _hdr10plus_profile_label(hdr10plus: dict | None) -> str:
-    """Return the HDR10+ profile, e.g. ``'Profile B'``, or ``''`` when absent."""
+    """Return the HDR10+ profile, e.g. ``Profile B``, or ''."""
     profile = str((hdr10plus or {}).get("profile") or "").strip()
     return f"Profile {profile.upper()}" if profile else ""
 
@@ -553,14 +470,9 @@ def _output_mode(
 ) -> str:
     """Build the overlay's output-mode string.
 
-    Dolby Vision reads as ``Dolby Vision Profile <p>`` plus its FEL/MEL tag,
-    HDR10+ appends ``Profile A``/``B``; SDR yields ``''`` so the caller can
-    fall back to a plain label from Kodi's own HDR type.
-
-    A Dolby Vision stream whose profile is not known at all -- Kodi says so but
-    no side data reached us, e.g. on a build without the label -- reads as the
-    bare format name.  Naming a profile there would be a guess, and this line
-    is the one the overlay is read for.
+    ``Dolby Vision Profile <p>`` plus its FEL/MEL tag, or plain
+    ``Dolby Vision`` when the profile is unknown; HDR10+ appends its
+    profile.  SDR yields '' so the caller can fall back to Kodi's HDR type.
     """
     if token == "dolbyvision":
         if not profile:
@@ -576,17 +488,17 @@ def _output_mode(
 
 
 def _cm_version(rpu: dict | None) -> str:
-    """Return the DV Content-Mapping version as ``CMv4.0`` / ``CMv2.9``, or
-    ``''`` when the RPU carries no display-management block."""
+    """Return the CM version (``CMv4.0`` / ``CMv2.9``), or '' without DM data."""
     version = (rpu or {}).get("cm_version")
     return f"CMv{version}" if version else ""
 
 
 def _structure_abbr(structure, config: dict | None, el_type: str) -> str:
-    """Return the layer structure as a compact ``<track>-<layer>`` tag:
-    ``ST-DL`` / ``DT-DL`` / ``ST-SL`` (Single/Dual Track, Single/Dual Layer).
-    The side data names a structure only for dual-layer streams, so a
-    single-layer profile (5 / 8) falls through to ``ST-SL``."""
+    """Return the layer structure: ``ST-DL``, ``DT-DL`` or ``ST-SL``.
+
+    Single/dual track, single/dual layer.  The side data names a structure
+    only for dual-layer streams; profiles 5 and 8 fall back to ``ST-SL``.
+    """
     if isinstance(structure, str) and structure.strip():
         track = "DT" if structure.strip().lower().startswith("dt") else "ST"
         return f"{track}-DL"
@@ -595,11 +507,9 @@ def _structure_abbr(structure, config: dict | None, el_type: str) -> str:
 
 
 def _dv_record_version(config: dict | None) -> str:
-    """Return the dvcC/dvvC record version as ``<major>.<minor>`` (e.g. ``1.0``),
-    or ``''`` without a configuration record.
+    """Return the dvcC/dvvC record version, e.g. ``1.0``, or ''.
 
-    This is the version of the configuration record itself, not the Dolby Vision
-    level (``config['level']``) the same record also carries.
+    The record's own version, not the DV level (``config['level']``).
     """
     major = _fmt_num((config or {}).get("version_major"))
     minor = _fmt_num((config or {}).get("version_minor"))
@@ -609,11 +519,10 @@ def _dv_record_version(config: dict | None) -> str:
 def _presence(
     config: dict | None, rpu: dict | None, el_type: str
 ) -> tuple[str, str, str]:
-    """Return the ``(rpu, base layer, enhancement layer)`` presence flags.
+    """Return the (RPU, base layer, enhancement layer) presence flags.
 
-    The configuration record states all three.  Without one, an RPU that parsed
-    proves itself and its base layer, and its header's FEL/MEL type stands in
-    for the enhancement layer.
+    Taken from the configuration record; without one, a parsed RPU implies
+    RPU and base layer, and its FEL/MEL type implies the enhancement layer.
     """
     if config:
         return (
@@ -627,25 +536,21 @@ def _presence(
 
 
 def _bit_depth(el_type: str) -> str:
-    """Return the source bit depth, which only a full enhancement layer can
-    raise: base layer plus FEL reconstruct to 12-bit.
+    """Return ``12`` for a full enhancement layer, else ''.
 
-    Everything else -- MEL, single-layer Dolby Vision, HDR10, HDR10+, HLG -- is
-    a 10-bit stream, and SDR an 8-bit one, so ``''`` is returned there and the
-    caller derives the depth from the HDR type (see
-    properties.get_VideoBitDepthVar).
+    Other depths follow from the HDR type (see
+    ``properties.get_VideoBitDepthVar``).
     """
     return "12" if el_type == "FEL" else ""
 
 
 def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]:
-    """Turn one parsed side-data result into the separate overlay fields.
+    """Turn one parse result into the overlay fields.
 
-    Dolby Vision fills the RPU-backed rows (L1, L5, L6, CM version, layer
-    descriptors); the static MDCV / CLL SEIs fill the HDR10 rows for every
-    format that carries them, Dolby Vision included -- there they are its HDR10
-    fallback layer, shown distinctly from the RPU's own L6 values.  A format
-    that carries neither leaves those rows empty (shown as N/A).
+    Dolby Vision fills the RPU rows (L1, L5, L6, CM version, layers).  The
+    static MDCV / CLL SEIs fill the HDR10 rows for any format, Dolby Vision
+    included (its HDR10 fallback, shown apart from L6).  Missing blocks
+    leave their rows empty (N/A).
     """
     info = _empty_info()
 
@@ -663,14 +568,9 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
     info["hdr_format"]  = token
     info["output_mode"] = _output_mode(token, profile, el_type, hdr10plus)
 
-    # HDR10+ still in the bitstream the decoder is fed.  On a Dolby Vision
-    # source that makes it a hybrid grade, which is the one case where the VS10
-    # engine has nothing to offer: the modes are drawn from the Dolby Vision
-    # side of the stream, and with the ST 2094-40 payload riding along the
-    # driver does not take them.  Read as "still there" rather than
-    # "was there": a payload Kodi stripped for a display that cannot show it --
-    # noted with the ``hdr10plus-removed`` flag -- is gone from what the decoder
-    # sees, and with it the reason to hold VS10 back.
+    # HDR10+ still reaching the decoder.  On a DV source this is a hybrid
+    # grade the driver cannot convert with VS10.  A payload Kodi stripped
+    # (``hdr10plus-removed``) no longer counts.
     if hdr10plus and "hdr10plus-removed" not in (parsed.get("flags") or []):
         info["hdr10plus_present"] = "1"
 
@@ -679,8 +579,8 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
         info["structure"]      = _structure_abbr(parsed.get("structure"), config, el_type)
         info["dv_version"]     = _dv_record_version(config)
         info["dv_profile"]     = profile
-        # FEL/MEL type; profiles without an EL (e.g. 8.1) fall back to the
-        # profile number.  Stored uncoloured, themed at read time.
+        # FEL/MEL, or the profile number without an EL (e.g. 8.1).  Stored
+        # uncoloured; themed when read.
         info["dv_el_type"]     = el_type or profile
         info["bit_depth"]      = _bit_depth(el_type)
         (
@@ -689,8 +589,7 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
             info["dv_el_present"],
         ) = _presence(config, rpu, el_type)
 
-    # Per-frame RPU blocks: the active area the aspect-ratio row is computed
-    # from, and the frame's luminance in nits (FLL) and raw PQ codes.
+    # Per-frame RPU blocks: L5 active area, L1 luminance in nits and PQ.
     l5 = (rpu or {}).get("l5")
     if l5:
         info["l5_offsets"] = _joined([
@@ -706,8 +605,7 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
             _fmt_num(l1.get(key)) for key in ("min_pq", "max_pq", "avg_pq")
         ])
 
-    # L6 carries the mastering display and content light the RPU itself
-    # declares; the static SEIs carry the stream's own.
+    # L6: mastering display and content light declared in the RPU.
     l6 = (rpu or {}).get("l6")
     if l6:
         info["l6_mdl"] = _joined([
@@ -717,10 +615,8 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
             _fmt_num(l6.get("max_cll")), _fmt_num(l6.get("max_fall")),
         ])
 
-    # The PQ range of the master the grade was made from, read as luminance:
-    # the mastering display the RPU itself describes, which the panel's MDL row
-    # prefers over L6.  Only frames whose DM data is uncompressed carry it,
-    # hence _STATIC_FIELDS.
+    # The source master's PQ range as luminance; the MDL row prefers it over
+    # L6.  Only in frames with uncompressed DM data (see _STATIC_FIELDS).
     source = (rpu or {}).get("source")
     if source:
         info["source_mdl"] = _joined([
@@ -743,14 +639,13 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
 # --- Field getters ---------------------------------------------------------
 
 def _raw(key: str) -> str:
-    """Return one field verbatim, ``''`` when it has no value.  No status label,
-    for the fields whose absence the skin itself branches on."""
+    """Return field *key* verbatim, or '' (no N/A label)."""
     fields, _playing = _snapshot()
     return fields.get(key, "")
 
 
 def _value(key: str) -> str:
-    """Return one field, or the localized N/A label while a video is playing."""
+    """Return field *key*, or N/A while a video plays."""
     fields, playing = _snapshot()
     value = fields.get(key, "")
     if value:
@@ -759,98 +654,80 @@ def _value(key: str) -> str:
 
 
 def _value_or(key: str, fallback: str) -> str:
-    """Return one field, showing ``fallback`` (e.g. ``0 | 0``) instead of the
-    N/A label when it is absent."""
+    """Return field *key*, or *fallback* (e.g. ``0 | 0``) when absent."""
     return _raw(key) or fallback
 
 
 def get_hdr_format() -> str:
-    """Return the detected HDR type token (``''`` / ``'hdr10'`` / ``'hdr10+'`` /
-    ``'hlg'`` / ``'dolbyvision'``).  No status label."""
+    """Return the HDR token ('', hdr10, hdr10+, hlg, dolbyvision)."""
     return _raw("hdr_format")
 
 
 def get_hdr10plus_present() -> str:
-    """Return ``'1'`` when the stream still carries HDR10+ dynamic metadata,
-    ``''`` otherwise.  No status label.
+    """Return '1' when the stream carries HDR10+ metadata, else ''.
 
-    True for a plain HDR10+ stream and for a Dolby Vision one that carries the
-    ST 2094-40 payload alongside its RPU -- the hybrid grade whose VS10 modes
-    do not take.  Latched for the length of the title (see ``_STATIC_FIELDS``),
-    so a frame that happens to carry no T.35 message does not read as a
-    different kind of stream than the one before it.
+    Also set for a DV + HDR10+ hybrid, which VS10 cannot convert.  Latched
+    per title (see ``_STATIC_FIELDS``).
     """
     return _raw("hdr10plus_present")
 
 
 def get_output_mode() -> str:
-    """Return the output-mode line (format + DV profile), with the ``N/A`` label
-    and the FEL/MEL tag coloured at read time."""
+    """Return the output-mode line (format and DV profile), or N/A."""
     return _colourise_el_tag(_value("output_mode"))
 
 
 def get_cm_version() -> str:
-    """Return the DV Content-Mapping version, or '' when unknown.  No status label."""
+    """Return the CM version, or ''."""
     return _raw("cm_version")
 
 
 def get_structure() -> str:
-    """Return the layer-structure tag (``ST-DL`` / ``DT-DL`` / ``ST-SL``), or
-    '' when unknown.  No status label."""
+    """Return the layer structure (``ST-DL`` / ``DT-DL`` / ``ST-SL``), or ''."""
     return _raw("structure")
 
 
 def get_l5_offsets() -> str:
-    """Return the Dolby Vision Level 5 active-area offsets of the current frame,
-    falling back to ``0 | 0 | 0 | 0`` (left | right | top | bottom)."""
+    """Return the L5 offsets (left | right | top | bottom), or zeros."""
     return _value_or("l5_offsets", L5_EMPTY)
 
 
 def get_l1_nits() -> str:
-    """Return the Level 1 frame luminance in nits (``min | max | avg``) for the
-    current frame, falling back to ``0 | 0 | 0``."""
+    """Return the L1 luminance in nits (min | max | avg), or zeros."""
     return _value_or("l1_nits", L1_EMPTY)
 
 
 def get_l1_pq() -> str:
-    """Return the Level 1 frame luminance as raw PQ codes (``min | max | avg``,
-    0-4095) for the current frame, falling back to ``0 | 0 | 0``."""
+    """Return the L1 luminance as PQ codes 0-4095 (min | max | avg), or zeros."""
     return _value_or("l1_pq", L1_EMPTY)
 
 
 def get_rpu_mdl() -> str:
-    """Return the mastering-display luminance the RPU declares (``max | min``),
-    falling back to ``0 | 0``.
+    """Return the RPU mastering-display luminance (max | min), or zeros.
 
-    The source PQ range answers first: it is the master the grade was actually
-    made against, read straight off the RPU's DM data.  L6 stands in for the
-    frames that carry no source range at all -- a stream whose DM data is
-    compressed throughout never fills it -- and ``get_rpu_mdl_from_source``
-    says which of the two the reading came from, so the panel can name it.
+    Prefers the source PQ range from the DM data; falls back to L6 (streams
+    with fully compressed DM data never carry the source range).
+    ``get_rpu_mdl_from_source`` tells which one was used.
     """
     return _raw("source_mdl") or _value_or("l6_mdl", "0 | 0")
 
 
 def get_rpu_mdl_from_source() -> str:
-    """Return ``true`` when ``get_rpu_mdl`` reads the source range rather than
-    the L6 block, else ''.  The metadata panel labels its RPU rows by it."""
+    """Return ``true`` when ``get_rpu_mdl`` uses the source range, else ''."""
     return "true" if _raw("source_mdl") else ""
 
 
 def get_l6_rpu_max_cll_fall() -> str:
-    """Return Dolby Vision Level 6 RPU MaxCLL/MaxFALL."""
+    """Return the L6 MaxCLL / MaxFALL, or zeros."""
     return _value_or("l6_max_cll_fall", "0 | 0")
 
 
 def get_hdr10_mdl(l6_fallback: bool = False) -> str:
-    """Return the HDR10 static mastering-display luminance (``max | min``).
+    """Return the HDR10 static mastering-display luminance (max | min).
 
-    ``l6_fallback`` borrows the RPU's L6 block when the stream carries no MDCV
-    SEI: a profile 5 stream carries no static SEIs at all -- it is Dolby Vision
-    the whole way down -- so its mastering display is only ever declared in L6,
-    and the HDR panel would otherwise read ``0 | 0``.  Off by default, because
-    the Dolby Vision metadata panel prints L6 and the static SEIs as separate
-    rows and must not show the same numbers in both.
+    *l6_fallback* uses L6 when there is no MDCV SEI (profile 5 has none).
+    Off by default, because the DV panel shows L6 and the static SEIs as
+    separate rows.
     """
     value = _raw("hdr10_mdl")
     if not value and l6_fallback:
@@ -859,8 +736,7 @@ def get_hdr10_mdl(l6_fallback: bool = False) -> str:
 
 
 def get_hdr10_max_cll_fall(l6_fallback: bool = False) -> str:
-    """Return the HDR10 static MaxCLL/MaxFALL (``cll | fall``), optionally
-    borrowing the RPU's L6 block -- see ``get_hdr10_mdl``."""
+    """Return the HDR10 static MaxCLL / MaxFALL (see ``get_hdr10_mdl``)."""
     value = _raw("hdr10_max_cll_fall")
     if not value and l6_fallback:
         value = _raw("l6_max_cll_fall")
@@ -868,53 +744,49 @@ def get_hdr10_max_cll_fall(l6_fallback: bool = False) -> str:
 
 
 def get_dv_version() -> str:
-    """Return the dvcC/dvvC record version (e.g. ``1.0``), or '' when unknown.
-    No status label."""
+    """Return the dvcC/dvvC record version (e.g. ``1.0``), or ''."""
     return _raw("dv_version")
 
 
 def get_dv_profile() -> str:
-    """Return the Dolby Vision profile as ``<profile>.<compatibility>`` (e.g.
-    ``7.6``, ``8.1``), the bare profile number when no compatibility digit is
-    known, or '' when the stream names no profile at all.  No status label: the
-    skin branches on the empty value itself."""
+    """Return the DV profile (e.g. ``8.1``, or ``8`` without compatibility).
+
+    '' when unknown; the skin branches on the empty value.
+    """
     return _raw("dv_profile")
 
 
 def get_dv_rpu_present() -> str:
-    """Return ``true`` / ``false`` for RPU presence, or '' when unknown."""
+    """Return RPU presence (``true``/``false``), or ''."""
     return _raw("dv_rpu_present")
 
 
 def get_dv_bl_present() -> str:
-    """Return ``true`` / ``false`` for base-layer presence, or '' when unknown."""
+    """Return base-layer presence (``true``/``false``), or ''."""
     return _raw("dv_bl_present")
 
 
 def get_dv_el_present() -> str:
-    """Return ``true`` / ``false`` for enhancement-layer presence, or '' when
-    unknown."""
+    """Return enhancement-layer presence (``true``/``false``), or ''."""
     return _raw("dv_el_present")
 
 
 def get_dv_el_type() -> str:
-    """Return the enhancement-layer type (``FEL`` / ``MEL``, themed), or the
-    plain profile number when there is no EL, or '' when unknown."""
+    """Return the themed EL type (``FEL``/``MEL``) or profile number, or ''."""
     return _colourise_el_tag(get_dv_el_type_raw())
 
 
 def get_dv_el_type_raw() -> str:
-    """Return the enhancement-layer type (``FEL`` / ``MEL``), or the plain
-    profile number when there is no EL, uncoloured; '' when unknown.
+    """Return the EL type or profile number without colour markup, or ''.
 
-    Unlike ``get_dv_el_type``, this carries no ``[COLOR]`` wrapper, for callers
-    that theme it themselves (e.g. the splash's Dolby Vision layer-indicator
-    pill, one colour per FEL / MEL / other-profile bucket)."""
+    For callers that colour it themselves, such as the splash's layer pill.
+    """
     return _raw("dv_el_type")
 
 
 def get_bit_depth() -> str:
-    """Return the source bit depth as a bare number string (e.g. ``12``); a full
-    enhancement layer reports the reconstructed VDR depth, every other stream
-    its base-layer depth."""
+    """Return ``12`` for a full enhancement layer, else N/A while playing.
+
+    The caller derives other depths from the HDR type.
+    """
     return _value("bit_depth")

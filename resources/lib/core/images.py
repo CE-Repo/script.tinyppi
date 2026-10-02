@@ -3,18 +3,14 @@
 
 """PNG scaling with an on-disk cache of display-sized textures.
 
-Kodi does not expose the image resampling filter used by ControlImage, so a
-texture much larger than its on-screen box is rescaled here (box filter, in
-premultiplied alpha) and the result cached under the add-on's profile
-directory.  Source images are never modified.
+Kodi does not let add-ons choose ControlImage's resampling filter, so a
+texture much larger than its on-screen box is scaled here (box filter in
+premultiplied alpha) and cached in the add-on's profile.  Source images are
+never modified.  Used for the codec logos (ui/splash.py).
 
-Used for the codec logos (ui/splash.py).
-
-A cached texture is named after what it was made from -- the logo's own
-content and the size it was scaled to -- so it is reused for as long as both
-still hold, across Kodi restarts and add-on updates alike, and a new one is
-made only when the logo or the size it is wanted at changes.  prune_cache()
-clears out the copies nothing can ask for any more.
+A cached texture is named after the logo's content and the target size, so
+it survives Kodi restarts and add-on updates and is rebuilt only when either
+changes.  ``prune_cache`` removes copies that can no longer be requested.
 """
 
 import binascii
@@ -34,45 +30,41 @@ from core.constants import PROFILE_DIR
 from core.files import atomic_write
 from core.log import channel
 
-# Cache of display-sized textures, keyed by source name, size and content.
+# Display-sized textures, keyed by source name, size and content.
 _CACHE_DIR = f"{PROFILE_DIR}/scaled_images"
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 # Part of every content key.  Raise it whenever the scaler's output changes,
-# so the textures an older one made are no longer taken for current ones (and
-# prune_cache clears them out).
+# so older textures stop matching (and prune_cache removes them).
 _SCALER_VERSION = b"1"
 
-# ``<source name>_<width>x<height>_<content key>.png`` -- anything else in the
-# cache directory was left there by an older version or an interrupted build.
+# ``<source name>_<width>x<height>_<content key>.png``; anything else in the
+# cache was left by an older version or an interrupted build.
 _CACHE_NAME = re.compile(
     r"^(?P<stem>.+)_(?P<w>\d+)x(?P<h>\d+)_(?P<key>[0-9a-f]{16})\.png$"
 )
 
-# How old a temporary file must be before prune_cache takes it for one a build
-# abandoned rather than one being written right now.
+# Age after which prune_cache treats a temporary file as abandoned rather
+# than still being written.
 _STALE_TMP_SECONDS = 600.0
 
-# Content keys already worked out, per source path, with the (mtime, size) they
-# were taken at: a source is read and hashed again only once it has changed on
-# disk, and an add-on update that rewrites a logo unchanged costs one hash and
-# no scaling.
+# Content keys per source path, with the (mtime, size) they were computed
+# at: a source is hashed again only when it changed on disk, and an update
+# that rewrites an unchanged logo costs one hash but no scaling.
 _content_keys: dict[str, tuple[tuple[int, int], str]] = {}
 
-# Only ever scale one image at a time (the playback-start prewarm and an overlay
-# poll can both reach display_texture): several CPU-bound threads would fight
-# each other and Kodi for the interpreter, for no gain.
+# Scale one image at a time (the playback-start prewarm and an overlay poll
+# can both reach display_texture); parallel CPU-bound builds only compete for
+# the interpreter.
 _build_gate = threading.Lock()
 
-# Scaling is pure Python and CPU-bound, and CPython hands the interpreter lock
-# to such a thread again and again — a background build would leave Kodi's UI
-# and polling threads waiting seconds for their turn.  Pausing briefly every few
-# rows hands the lock over; it costs the build a little and keeps TinyPPI
-# responsive while it runs.
+# Scaling is CPU-bound pure Python and would starve Kodi's UI and polling
+# threads of the interpreter lock for seconds.  A short pause every few rows
+# hands the lock over and keeps TinyPPI responsive.
 _YIELD_ROWS    = 16
 _YIELD_SECONDS = 0.002
 
-# Same idea for the flat per-pixel passes: roughly one pause per 16 source rows.
+# The same for the flat per-pixel passes: about one pause per 16 rows.
 _YIELD_PIXELS = 16 * 1024
 
 
@@ -295,8 +287,11 @@ def _premultiply_rgba(
 
 
 def _box_taps(src_len: int, dst_len: int) -> list[tuple[int, list[float]]]:
-    """Return one ``(first source index, normalised weights)`` box-filter tap per
-    output pixel, computed once per axis and reused for every row/column."""
+    """Return one box-filter tap per output pixel.
+
+    Each tap is ``(first source index, normalised weights)``; computed once
+    per axis and reused for every row or column.
+    """
     scale = src_len / float(dst_len)
     taps = []
     for i in range(dst_len):
@@ -397,9 +392,11 @@ def _write_png_rgba(path: str, width: int, height: int, rgba: bytes) -> None:
 
 
 def _scale_png_to_cache(src_path: str, dst_path: str, dst_w: int, dst_h: int) -> None:
-    """Scale ``src_path`` into ``dst_path``.  Written whole or not at all (see
-    ``core.files``), so a concurrent builder never observes a half-written
-    PNG and a power cut never leaves one behind."""
+    """Scale *src_path* into *dst_path*.
+
+    The file is written atomically (see ``core.files``), so neither a
+    concurrent builder nor a power cut can leave a half-written PNG.
+    """
     _scale_png_for_display(src_path, dst_path, dst_w, dst_h)
 
 
@@ -412,9 +409,11 @@ def _scale_png_for_display(src_path: str, dst_path: str, dst_w: int, dst_h: int)
 
 
 def _cache_target(path: str, box_w: int, box_h: int):
-    """Return ``(cache_path, dst_w, dst_h)`` for a texture worth scaling, or
-    ``None`` when the source can be used as-is (not a PNG, unreadable, or
-    already at/below display size — this never upscales)."""
+    """Return ``(cache_path, dst_w, dst_h)`` for a texture worth scaling.
+
+    None when the source can be used as is: not a PNG, unreadable, or already
+    at or below display size (this never upscales).
+    """
     if not path.lower().endswith(".png"):
         return None
 
@@ -430,12 +429,11 @@ def _cache_target(path: str, box_w: int, box_h: int):
 
 
 def _content_key(path: str) -> str:
-    """Return the key the cached copies of ``path`` are filed under.
+    """Return the key the cached copies of *path* are filed under.
 
-    A digest of the file's content rather than its modification time: an
-    add-on update rewrites every file it ships whether its picture changed or
-    not, and a key that moved with that would scale every logo again after
-    each update and strand the copies made before it.
+    A content digest rather than the modification time: an add-on update
+    rewrites every file, and a time-based key would rescale every logo after
+    each update.
     """
     stat = os.stat(path)
     stamp = (stat.st_mtime_ns, stat.st_size)
@@ -451,11 +449,11 @@ def _content_key(path: str) -> str:
 
 
 def display_texture(path: str, box_w: int, box_h: int) -> str:
-    """Return ``path`` scaled to fit ``box_w`` x ``box_h`` and cached, building
-    the cache entry now if missing.
+    """Return *path* scaled to fit *box_w* x *box_h*, building the cache entry
+    if missing.
 
-    Scaling is slow, so only call this off the UI thread.  Falls back to the
-    source path unchanged if no scaling is needed or the cache can't be built.
+    Scaling is slow: call this off the UI thread.  Returns *path* unchanged
+    when no scaling is needed or the cache cannot be built.
     """
     try:
         target = _cache_target(path, box_w, box_h)
@@ -463,8 +461,8 @@ def display_texture(path: str, box_w: int, box_h: int) -> str:
             return path
         cache_path, dst_w, dst_h = target
         if not os.path.exists(cache_path):
-            # One build at a time, and re-check inside the gate: whoever waited
-            # here may have been waiting for this very file.
+            # Re-check inside the gate: the previous holder may have built
+            # this very file.
             with _build_gate:
                 if not os.path.exists(cache_path):
                     os.makedirs(os.path.dirname(cache_path), exist_ok=True)
@@ -476,18 +474,16 @@ def display_texture(path: str, box_w: int, box_h: int) -> str:
 
 
 def prune_cache(media_root: str) -> int:
-    """Delete the cached textures nothing can ask for any more; return how many.
+    """Delete cached textures that can no longer be requested; return the count.
 
-    A copy stays for as long as the logo it was scaled from still has the
-    content it had then, whatever size it was scaled to: a size the settings no
-    longer ask for is kept, so moving a size slider back finds its copy
-    waiting.  What goes is a copy of a logo whose picture has changed since or
-    that *media_root* no longer holds, a file named the way an older version
-    named them, and a temporary file an interrupted build left behind.
+    Copies of an unchanged logo are kept at every size, so moving a size
+    slider back finds its copy.  Removed are copies of logos that changed or
+    are no longer in *media_root*, files named by an older scheme, and
+    abandoned temporary files.
 
-    Holds the build gate throughout, so it never races a build in this process;
-    a temporary file is only taken for abandoned once it has sat untouched for
-    ``_STALE_TMP_SECONDS``, which covers a build running in another one.
+    Holds the build gate, so it never races a build in this process; a
+    temporary file counts as abandoned only after ``_STALE_TMP_SECONDS``,
+    which covers builds in other processes.
     """
     cache_dir = _translate_path(_CACHE_DIR)
     try:
@@ -524,8 +520,7 @@ def prune_cache(media_root: str) -> int:
 
 
 def _current_keys(stem: str, sources: dict, current: dict) -> set[str]:
-    """The content keys of the source images named *stem*, worked out once
-    per prune."""
+    """Return the content keys of the sources named *stem*, once per prune."""
     keys = current.get(stem)
     if keys is None:
         keys = set()

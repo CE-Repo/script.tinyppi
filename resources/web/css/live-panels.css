@@ -406,6 +406,8 @@
   color: var(--muted);
 }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
+/* The scale's name, pushed to the far end of the legend. */
+#chartScale { margin-left: auto; }
 .swatch { width: 12px; height: 3px; border-radius: 2px; background: var(--accent); }
 .swatch.band { height: 10px; border-radius: 3px; opacity: .4; }
 .swatch.avg {

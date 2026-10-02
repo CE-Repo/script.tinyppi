@@ -69,7 +69,7 @@ msgstr "Mutasd az aktuálisan lejátszott fájl nevét."
 
 msgctxt "#32022"
 msgid "Video queue / data"
-msgstr ""
+msgstr "Videó sor / adatok"
 
 msgctxt "#32023"
 msgid "Pixel format"
@@ -81,7 +81,7 @@ msgstr "Képarány"
 
 msgctxt "#32025"
 msgid "Audio queue / data"
-msgstr ""
+msgstr "Hang sor / adatok"
 
 msgctxt "#32028"
 msgid "Converting"
@@ -97,7 +97,7 @@ msgstr "Lejátszó puffer"
 
 msgctxt "#32033"
 msgid "N/A"
-msgstr ""
+msgstr "N/A"
 
 msgctxt "#32034"
 msgid "Memory usage"
@@ -177,7 +177,7 @@ msgstr "Válaszd ki, hogy mi nyíljon meg a kiegészítő indításakor."
 
 msgctxt "#32094"
 msgid "TinyPPI"
-msgstr ""
+msgstr "TinyPPI"
 
 msgctxt "#32095"
 msgid "VS10 dialog"
@@ -225,7 +225,7 @@ msgstr "A kimenetek színe"
 
 msgctxt "#32111"
 msgid "Progress bar"
-msgstr ""
+msgstr "Folyamatjelző sáv"
 
 msgctxt "#32112"
 msgid "Color of the progress bars."
@@ -261,43 +261,43 @@ msgstr "Fehér"
 
 msgctxt "#32121"
 msgid "Light gray"
-msgstr ""
+msgstr "Világosszürke"
 
 msgctxt "#32122"
 msgid "Light red"
-msgstr ""
+msgstr "Világospiros"
 
 msgctxt "#32123"
 msgid "Light orange"
-msgstr ""
+msgstr "Világosnarancs"
 
 msgctxt "#32124"
 msgid "Light yellow"
-msgstr ""
+msgstr "Világossárga"
 
 msgctxt "#32125"
 msgid "Light green"
-msgstr ""
+msgstr "Világoszöld"
 
 msgctxt "#32126"
 msgid "Light cyan"
-msgstr ""
+msgstr "Világoscián"
 
 msgctxt "#32127"
 msgid "Light blue"
-msgstr ""
+msgstr "Világoskék"
 
 msgctxt "#32128"
 msgid "Light purple"
-msgstr ""
+msgstr "Világoslila"
 
 msgctxt "#32129"
 msgid "Light pink"
-msgstr ""
+msgstr "Világos rózsaszín"
 
 msgctxt "#32130"
 msgid "Charcoal"
-msgstr ""
+msgstr "Antracit"
 
 msgctxt "#32131"
 msgid "Black"
@@ -305,39 +305,39 @@ msgstr "Fekete"
 
 msgctxt "#32132"
 msgid "Dark red"
-msgstr ""
+msgstr "Sötétpiros"
 
 msgctxt "#32133"
 msgid "Dark orange"
-msgstr ""
+msgstr "Sötétnarancs"
 
 msgctxt "#32134"
 msgid "Dark yellow"
-msgstr ""
+msgstr "Sötétsárga"
 
 msgctxt "#32135"
 msgid "Dark green"
-msgstr ""
+msgstr "Sötétzöld"
 
 msgctxt "#32136"
 msgid "Dark cyan"
-msgstr ""
+msgstr "Sötétcián"
 
 msgctxt "#32137"
 msgid "Dark blue"
-msgstr ""
+msgstr "Sötétkék"
 
 msgctxt "#32138"
 msgid "Dark purple"
-msgstr ""
+msgstr "Sötétlila"
 
 msgctxt "#32139"
 msgid "Dark gray"
-msgstr ""
+msgstr "Sötétszürke"
 
 msgctxt "#32140"
 msgid "FPS"
-msgstr ""
+msgstr "FPS"
 
 msgctxt "#32141"
 msgid "Color of the In / drop / out FPS values."
@@ -357,163 +357,163 @@ msgstr "A diagram ikonjának színe (Modern)."
 
 msgctxt "#32150"
 msgid "Coral"
-msgstr ""
+msgstr "Korall"
 
 msgctxt "#32151"
 msgid "Salmon"
-msgstr ""
+msgstr "Lazac"
 
 msgctxt "#32152"
 msgid "Amber"
-msgstr ""
+msgstr "Borostyán"
 
 msgctxt "#32153"
 msgid "Gold"
-msgstr ""
+msgstr "Arany"
 
 msgctxt "#32154"
 msgid "Lime"
-msgstr ""
+msgstr "Limezöld"
 
 msgctxt "#32155"
 msgid "Mint"
-msgstr ""
+msgstr "Menta"
 
 msgctxt "#32156"
 msgid "Teal"
-msgstr ""
+msgstr "Kékeszöld"
 
 msgctxt "#32157"
 msgid "Sky blue"
-msgstr ""
+msgstr "Égszínkék"
 
 msgctxt "#32158"
 msgid "Azure"
-msgstr ""
+msgstr "Azúrkék"
 
 msgctxt "#32159"
 msgid "Indigo"
-msgstr ""
+msgstr "Indigó"
 
 msgctxt "#32160"
 msgid "Violet"
-msgstr ""
+msgstr "Ibolya"
 
 msgctxt "#32161"
 msgid "Lavender"
-msgstr ""
+msgstr "Levendula"
 
 msgctxt "#32162"
 msgid "Magenta"
-msgstr ""
+msgstr "Magenta"
 
 msgctxt "#32163"
 msgid "Fuchsia"
-msgstr ""
+msgstr "Fukszia"
 
 msgctxt "#32164"
 msgid "Rose"
-msgstr ""
+msgstr "Rózsa"
 
 msgctxt "#32165"
 msgid "Crimson"
-msgstr ""
+msgstr "Karmazsinvörös"
 
 msgctxt "#32166"
 msgid "Brown"
-msgstr ""
+msgstr "Barna"
 
 msgctxt "#32167"
 msgid "Olive"
-msgstr ""
+msgstr "Olajzöld"
 
 msgctxt "#32168"
 msgid "Slate"
-msgstr ""
+msgstr "Palaszürke"
 
 msgctxt "#32169"
 msgid "Silver"
-msgstr ""
+msgstr "Ezüst"
 
 msgctxt "#32170"
 msgid "Dark teal"
-msgstr ""
+msgstr "Sötét kékeszöld"
 
 msgctxt "#32171"
 msgid "Dark sky"
-msgstr ""
+msgstr "Sötét égszínkék"
 
 msgctxt "#32172"
 msgid "Dark indigo"
-msgstr ""
+msgstr "Sötét indigó"
 
 msgctxt "#32173"
 msgid "Dark violet"
-msgstr ""
+msgstr "Sötét ibolya"
 
 msgctxt "#32174"
 msgid "Dark magenta"
-msgstr ""
+msgstr "Sötét magenta"
 
 msgctxt "#32175"
 msgid "Dark pink"
-msgstr ""
+msgstr "Sötét rózsaszín"
 
 msgctxt "#32176"
 msgid "Dark rose"
-msgstr ""
+msgstr "Sötét rózsa"
 
 msgctxt "#32177"
 msgid "Dark brown"
-msgstr ""
+msgstr "Sötétbarna"
 
 msgctxt "#32178"
 msgid "Dark olive"
-msgstr ""
+msgstr "Sötét olajzöld"
 
 msgctxt "#32179"
 msgid "Dark lime"
-msgstr ""
+msgstr "Sötét limezöld"
 
 msgctxt "#32180"
 msgid "Dark mint"
-msgstr ""
+msgstr "Sötét menta"
 
 msgctxt "#32181"
 msgid "Dark azure"
-msgstr ""
+msgstr "Sötét azúrkék"
 
 msgctxt "#32182"
 msgid "Dark slate"
-msgstr ""
+msgstr "Sötét palaszürke"
 
 msgctxt "#32183"
 msgid "Dark navy"
-msgstr ""
+msgstr "Sötét tengerészkék"
 
 msgctxt "#32184"
 msgid "Dark maroon"
-msgstr ""
+msgstr "Sötét gesztenyebarna"
 
 msgctxt "#32185"
 msgid "Midnight"
-msgstr ""
+msgstr "Éjkék"
 
 msgctxt "#32186"
 msgid "Espresso"
-msgstr ""
+msgstr "Eszpresszó"
 
 msgctxt "#32187"
 msgid "Onyx"
-msgstr ""
+msgstr "Ónix"
 
 msgctxt "#32188"
 msgid "Graphite"
-msgstr ""
+msgstr "Grafit"
 
 msgctxt "#32189"
 msgid "Steel"
-msgstr ""
+msgstr "Acél"
 
 msgctxt "#32190"
 msgid "Brightness unit"
@@ -525,11 +525,11 @@ msgstr "Válaszd ki az L6 fényerőértékeihez megjelenített mértékegységet
 
 msgctxt "#32192"
 msgid "cd/m²"
-msgstr ""
+msgstr "cd/m²"
 
 msgctxt "#32193"
 msgid "nits"
-msgstr ""
+msgstr "nit"
 
 msgctxt "#32194"
 msgid "Hidden"
@@ -553,167 +553,167 @@ msgstr "A lejátszott fájl nevének a színe."
 
 msgctxt "#32200"
 msgid "Peach"
-msgstr ""
+msgstr "Barack"
 
 msgctxt "#32201"
 msgid "Tangerine"
-msgstr ""
+msgstr "Mandarin"
 
 msgctxt "#32202"
 msgid "Mustard"
-msgstr ""
+msgstr "Mustár"
 
 msgctxt "#32203"
 msgid "Chartreuse"
-msgstr ""
+msgstr "Chartreuse"
 
 msgctxt "#32204"
 msgid "Forest"
-msgstr ""
+msgstr "Erdőzöld"
 
 msgctxt "#32205"
 msgid "Emerald"
-msgstr ""
+msgstr "Smaragd"
 
 msgctxt "#32206"
 msgid "Spring"
-msgstr ""
+msgstr "Tavaszi zöld"
 
 msgctxt "#32207"
 msgid "Aqua"
-msgstr ""
+msgstr "Aqua"
 
 msgctxt "#32208"
 msgid "Turquoise"
-msgstr ""
+msgstr "Türkiz"
 
 msgctxt "#32209"
 msgid "Cerulean"
-msgstr ""
+msgstr "Ceruleánkék"
 
 msgctxt "#32210"
 msgid "Cobalt"
-msgstr ""
+msgstr "Kobalt"
 
 msgctxt "#32211"
 msgid "Periwinkle"
-msgstr ""
+msgstr "Meténgkék"
 
 msgctxt "#32212"
 msgid "Plum"
-msgstr ""
+msgstr "Szilva"
 
 msgctxt "#32213"
 msgid "Orchid"
-msgstr ""
+msgstr "Orchidea"
 
 msgctxt "#32214"
 msgid "Raspberry"
-msgstr ""
+msgstr "Málna"
 
 msgctxt "#32215"
 msgid "Watermelon"
-msgstr ""
+msgstr "Görögdinnye"
 
 msgctxt "#32216"
 msgid "Scarlet"
-msgstr ""
+msgstr "Skarlát"
 
 msgctxt "#32217"
 msgid "Sand"
-msgstr ""
+msgstr "Homok"
 
 msgctxt "#32218"
 msgid "Pistachio"
-msgstr ""
+msgstr "Pisztácia"
 
 msgctxt "#32219"
 msgid "Cadet"
-msgstr ""
+msgstr "Kadétkék"
 
 msgctxt "#32220"
 msgid "Dark peach"
-msgstr ""
+msgstr "Sötét barack"
 
 msgctxt "#32221"
 msgid "Dark tangerine"
-msgstr ""
+msgstr "Sötét mandarin"
 
 msgctxt "#32222"
 msgid "Dark mustard"
-msgstr ""
+msgstr "Sötét mustár"
 
 msgctxt "#32223"
 msgid "Dark chartreuse"
-msgstr ""
+msgstr "Sötét chartreuse"
 
 msgctxt "#32224"
 msgid "Dark forest"
-msgstr ""
+msgstr "Sötét erdőzöld"
 
 msgctxt "#32225"
 msgid "Dark emerald"
-msgstr ""
+msgstr "Sötét smaragd"
 
 msgctxt "#32226"
 msgid "Dark spring"
-msgstr ""
+msgstr "Sötét tavaszi zöld"
 
 msgctxt "#32227"
 msgid "Dark aqua"
-msgstr ""
+msgstr "Sötét aqua"
 
 msgctxt "#32228"
 msgid "Dark turquoise"
-msgstr ""
+msgstr "Sötét türkiz"
 
 msgctxt "#32229"
 msgid "Dark cerulean"
-msgstr ""
+msgstr "Sötét ceruleánkék"
 
 msgctxt "#32230"
 msgid "Dark cobalt"
-msgstr ""
+msgstr "Sötét kobalt"
 
 msgctxt "#32231"
 msgid "Dark periwinkle"
-msgstr ""
+msgstr "Sötét meténgkék"
 
 msgctxt "#32232"
 msgid "Dark plum"
-msgstr ""
+msgstr "Sötét szilva"
 
 msgctxt "#32233"
 msgid "Dark orchid"
-msgstr ""
+msgstr "Sötét orchidea"
 
 msgctxt "#32234"
 msgid "Dark raspberry"
-msgstr ""
+msgstr "Sötét málna"
 
 msgctxt "#32235"
 msgid "Dark watermelon"
-msgstr ""
+msgstr "Sötét görögdinnye"
 
 msgctxt "#32236"
 msgid "Dark scarlet"
-msgstr ""
+msgstr "Sötét skarlát"
 
 msgctxt "#32237"
 msgid "Dark sand"
-msgstr ""
+msgstr "Sötét homok"
 
 msgctxt "#32238"
 msgid "Dark pistachio"
-msgstr ""
+msgstr "Sötét pisztácia"
 
 msgctxt "#32239"
 msgid "Dark cadet"
-msgstr ""
+msgstr "Sötét kadétkék"
 
 msgctxt "#32241"
 msgid "HEX color"
-msgstr ""
+msgstr "HEX szín"
 
 msgctxt "#32243"
 msgid "Enter a 6-digit HEX color (e.g. FF5733)"
@@ -849,19 +849,19 @@ msgstr "Verzió"
 
 msgctxt "#32296"
 msgid "HDR10 MDL"
-msgstr ""
+msgstr "HDR10 MDL"
 
 msgctxt "#32297"
 msgid "HDR10 CLL/FALL"
-msgstr ""
+msgstr "HDR10 CLL/FALL"
 
 msgctxt "#32298"
 msgid "L6 MDL"
-msgstr ""
+msgstr "L6 MDL"
 
 msgctxt "#32299"
 msgid "L6 MaxCLL/FALL"
-msgstr ""
+msgstr "L6 MaxCLL/FALL"
 
 msgctxt "#32300"
 msgid "HDR Static Metadata"
@@ -1109,11 +1109,11 @@ msgstr "A splash logón megjelenő hasáb színe minden más Dolby Vision profil
 
 msgctxt "#32375"
 msgid "L1 Lum Min/Max/Ø"
-msgstr ""
+msgstr "L1 Lum Min/Max/Ø"
 
 msgctxt "#32376"
 msgid "L1 PQ Min/Max/Ø"
-msgstr ""
+msgstr "L1 PQ Min/Max/Ø"
 
 msgctxt "#32379"
 msgid "CM Version"
@@ -1261,11 +1261,11 @@ msgstr "Vissza: metaadatlista"
 
 msgctxt "#32425"
 msgid "RPU MDL"
-msgstr ""
+msgstr "RPU MDL"
 
 msgctxt "#32426"
 msgid "RPU MaxCLL/FALL"
-msgstr ""
+msgstr "RPU MaxCLL/FALL"
 
 msgctxt "#32427"
 msgid "Highlight duration"

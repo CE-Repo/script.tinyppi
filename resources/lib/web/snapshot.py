@@ -1,18 +1,14 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Build the dashboard's data snapshot out of the overlay's own readings.
+"""Build the dashboard snapshot from the overlay's own readings.
 
-``info.properties`` reaches its window through nothing but ``setProperty``
-(see ``core.utils.set_changed_properties``), so handing it a collector instead
-of an ``xbmcgui.Window`` yields exactly the values the overlay draws -- same
-formatting, same units, same N/A labels -- without a second copy of the
-computation.  Every row the overlay gains is therefore in the dashboard the
-moment it is published.
+``info.properties`` only calls ``setProperty`` on its window, so passing a
+collector instead of an ``xbmcgui.Window`` yields exactly the overlay's
+values (formatting, units, N/A labels) without duplicating the logic.
 
-The layout below mirrors ``script-tinyppi-main.xml`` section for section and
-reuses its own string IDs, so the dashboard is translated wherever the overlay
-is, and a renamed label moves in both at once.
+The row layout mirrors ``script-tinyppi-main.xml`` and reuses its string
+ids, so translations and label changes apply to both.
 """
 
 import json
@@ -47,17 +43,14 @@ from info.properties import (
     publish_static_properties,
 )
 
-# Home-window property publish_hdr_type writes the source type to.
+# Home property with the source HDR type (from publish_hdr_type).
 _PROP_HDR_TYPE = "TinyPPI.HdrType"
 
 
 class PropertySink:
-    """A stand-in for ``xbmcgui.Window`` that keeps the values instead of
-    drawing them.
+    """Stand-in for ``xbmcgui.Window`` that collects property values.
 
-    Only the three property methods exist, which is all ``info.properties``
-    ever calls on the window it publishes to -- the progress controls live in
-    ``update_static_properties``, which the dashboard does not use.
+    Only the property methods ``info.properties`` uses are provided.
     """
 
     __slots__ = ("values",)
@@ -78,18 +71,15 @@ class PropertySink:
 # --- Row definitions -------------------------------------------------------
 
 def S(key: str, prefix: str = "", suffix: str = "") -> tuple[str, str, str]:
-    """One segment of a row's value: ``prefix + value + suffix``, or nothing at
-    all when the value is empty.
+    """Return a value segment: ``prefix + value + suffix``, or '' if empty.
 
-    The same shape as the skin's own ``$INFO[key,prefix,suffix]``, so a row
-    here reads like the label it was lifted from.
+    Same shape as the skin's ``$INFO[key,prefix,suffix]``.
     """
     return (key, prefix, suffix)
 
 
-# (label string ID, value segments, detail segments).  The detail is what the
-# overlay writes in its accent color -- the parenthesised extras -- and the
-# dashboard dims the same way.
+# Rows: (label string id, value segments, detail segments).  The detail is
+# what the overlay shows in its accent color.
 _VIDEO = (
     (32000, (S("DisplayModeVar"),), ()),
     (32001, (S("VideoResolutionVar"),), ()),
@@ -113,8 +103,7 @@ _PROCESSING = (
 )
 
 _AUDIO = (
-    # ``AudioCodecSpatialVar`` is stored as "(Atmos)" / "(IMAX Enhanced)",
-    # parentheses and all, so this is the one detail that adds none.
+    # AudioCodecSpatialVar already includes its parentheses.
     (32045, (S("AudioCodecVar"), S("AudioChannelsVar", " ", "")),
              (S("AudioCodecSpatialVar"),)),
     (32069, (S("AudioBitDepthVar", "", " / "), S("AudioSampleRateVar")), ()),
@@ -142,8 +131,7 @@ _HDR_STATIC = (
     (32297, (S("Hdr10MaxCllFallVar"),), ()),
 )
 
-# What the stream declares itself to be: the profile, the version behind it,
-# and which layers it carries.  Settled before the film was ever played.
+# Dolby Vision stream facts: profile, versions and layers.
 _DOLBY_VISION = (
     (32290, (S("DoviProfileNumberVar"),), ()),
     (32291, (S("DoviVersionVar"),), ()),
@@ -153,10 +141,8 @@ _DOLBY_VISION = (
     (32382, (S("DoviElPresentFlag"),), (S("DoviElTypeVar", "(", ")"),)),
 )
 
-# And what the RPU says about the picture -- the mastering display it was
-# graded on, how bright the frame is, what part of it is picture.  These share
-# a card with the static readings above, under the overlay's own Metadata
-# heading (#32289), which is where the same two sets sit there.
+# RPU readings (mastering display, frame luminance, active area); shown in
+# one "Metadata" card (#32289) with the static readings, as in the overlay.
 _DV_METADATA = (
     (32425, (S("DoviRpuMdlVar"),), ()),
     (32426, (S("DoviLevel6RpuMaxCllFallVar"),), ()),
@@ -171,39 +157,28 @@ def _always(source: str) -> bool:
 
 
 def _is_dv(source: str) -> bool:
-    """Dolby Vision, the only source with an RPU behind these rows."""
+    """Return whether *source* is Dolby Vision (the only one with an RPU)."""
     return "dolby" in source
 
 
 def _is_hdr(source: str) -> bool:
-    """Any HDR source.  ``publish_hdr_type`` leaves the property empty for
-    SDR, which is what the skin's own ``String.IsEmpty`` branch tests."""
+    """Return whether *source* is HDR (empty means SDR, as in the skin)."""
     return bool(source)
 
 
 def _is_plain_hdr(source: str) -> bool:
-    """HDR that is not Dolby Vision, where the static metadata is all there
-    is and stands under its own heading -- as the overlay draws it.  A Dolby
-    Vision title carries the same two readings, but there they are the first
-    two lines of the Metadata section, above what the RPU says (see
-    ``_GROUPS``)."""
+    """Return whether *source* is non-DV HDR.
+
+    Then the static metadata gets its own card; for Dolby Vision it opens
+    the Metadata card instead (see ``_GROUPS``).
+    """
     return _is_hdr(source) and not _is_dv(source)
 
 
-# (group id, title string ID, rows, applies-to).  The ids travel to the browser
-# so the page can style a group without matching on a translated title.
-#
-# The order is the order the page stacks them in, one card under the next: the
-# four blocks every title has first -- picture, processing, sound, machine --
-# and then the HDR blocks, which only some titles bring and which are the ones
-# a viewer scrolls to on purpose.
-#
-# The applies-to is what keeps the page honest about a source: the RPU-backed
-# getters pad an absent block out to zeroes rather than leaving it empty (see
-# dvinfo._value_or), so on an SDR title every Dolby Vision row would render a
-# row of noughts and every HDR10 row a mastering display nothing declared.
-# The overlay solves this by not drawing those panels at all; the groups here
-# are left out for the same reason.
+# Cards: (group id, title string id, rows, applies-to), in page order.  The
+# id lets the page style a card without matching translated titles.
+# applies-to hides HDR / DV cards for other sources, since their getters pad
+# missing blocks with zeros (see dvinfo._value_or), like the overlay does.
 _GROUPS = (
     ("video",      32054, _VIDEO,       _always),
     ("processing", 32007, _PROCESSING,  _always),
@@ -211,26 +186,17 @@ _GROUPS = (
     ("system",     32088, _SYSTEM,      _always),
     ("hdr",        32300, _HDR_STATIC,  _is_plain_hdr),
     ("dv",         32472, _DOLBY_VISION, _is_dv),
-    # One card out of two entries: what the file declares statically and what
-    # the RPU says, in that order, which is the order the overlay's own
-    # Metadata section reads in.  Entries sharing an id are one card (see
-    # _groups).
+    # Two entries with the same id form one card (see _groups).
     ("metadata",   32289, _HDR_STATIC,   _is_dv),
     ("metadata",   32289, _DV_METADATA,  _is_dv),
 )
 
-# Extra readings the overlay takes straight from Kodi rather than through
-# info.properties.  Collected under the synthetic keys the rows above name.
+# Readings taken directly from Kodi, under the keys the rows use.
 _EXTRA_INFOLABELS = (
     ("PlayerTime",          "Player.Time"),
     ("PlayerDuration",      "Player.Duration"),
-    # When the title will be over, as a wall clock rather than as a length.
-    # Kodi works it out against its own clock and writes it in the box's own
-    # regional format -- 24-hour or 12-hour with the suffix -- which is why it
-    # is read here rather than worked out from the two readings above: a
-    # remaining time added to a phone's clock would disagree with the
-    # television whenever the two are set differently, and pausing would make
-    # it wrong by however long the pause lasted.
+    # End time from Kodi's clock in the box's regional format; computing it
+    # on the phone could disagree with the TV.
     ("PlayerFinishTime",    "Player.FinishTime"),
     ("PlayerProgress",      "Player.Progress"),
     ("PlayerCacheLevel",    "Player.CacheLevel"),
@@ -243,9 +209,7 @@ _EXTRA_INFOLABELS = (
     ("MemoryUsed",          "System.Memory(used.percent)"),
     ("Title",               "VideoPlayer.Title"),
     ("Filename",            "Player.Filename"),
-    # What the dashboard's now-playing card prints under the title; each is
-    # empty for a file the library knows nothing about, and the card then
-    # simply leaves the line out.
+    # Details for the now-playing card; empty for non-library files.
     ("Year",                "VideoPlayer.Year"),
     ("Genre",               "VideoPlayer.Genre"),
     ("Show",                "VideoPlayer.TVShowTitle"),
@@ -253,9 +217,8 @@ _EXTRA_INFOLABELS = (
     ("Episode",             "VideoPlayer.Episode"),
 )
 
-# The presence flags arrive as ``true`` / ``false`` / '' (unknown).  These
-# markers are converted to image icons by the browser and to localized words
-# in copied reports.
+# Presence flags (true / false / '') as markers; the browser shows icons,
+# copied reports use localized words.
 _PRESENCE_GLYPH = {"true": "✔", "false": "✘"}
 _PRESENCE_WORD = {
     xbmc.getLocalizedString(107): _PRESENCE_GLYPH["true"],
@@ -270,38 +233,29 @@ _PRESENCE_FLAGS = (
 
 _NUMBER_RE = re.compile(r"-?\d+(?:\.\d+)?")
 
-# Kodi's own text markup, which several readings carry: the FEL / MEL tag is
-# stored uncoloured and themed at read time (see dvinfo._colourise_el_tag), so
-# a value can arrive wrapped in [COLOR ...] tags.  A browser would print those
-# literally, and turning them into markup of its own would mean sending HTML
-# built out of file names -- so they are stripped and the reading kept plain.
+# Kodi text markup (e.g. the themed FEL/MEL tag) is stripped rather than
+# turned into HTML, which would mean building HTML from file names.
 _MARKUP_RE = re.compile(r"\[/?(?:COLOR|B|I|UPPERCASE|LOWERCASE|CAPITALIZE|LIGHT|CR)[^\]]*\]",
                         re.IGNORECASE)
 
 
-# properties.py swaps the pipe between a composite value's readings for a
-# lowercase ``l``, because that glyph reads more clearly in the overlay's
-# narrow font (_DISPLAY_SEPARATOR).  In a browser it reads as a typo, so the
-# pipe the metadata view uses is put back.
+# The overlay's "l" separator (see properties._DISPLAY_SEPARATOR) is turned
+# back into a pipe for the browser.
 _SEPARATOR_RE = re.compile(r" l ")
 
 
 def clean_value(value: str) -> str:
-    """Return a reading fit for a browser: markup removed, the overlay's
-    display separator swapped back for the pipe."""
+    """Return *value* without markup and with pipe separators."""
     if not value:
         return value
     return _SEPARATOR_RE.sub(" | ", _MARKUP_RE.sub("", value)).strip()
 
 
 def _render(segments, values: dict[str, str]) -> str:
-    """Join the segments whose value is non-empty, dropping the glue of the
-    ones that are: a row with nothing to say renders empty rather than as a
-    string of stray separators.
+    """Concatenate the non-empty segments with their prefixes and suffixes.
 
-    The segments carry their own spacing, the way the skin's ``$INFO`` prefixes
-    do, so they are concatenated rather than joined -- ``Decoder`` really does
-    print its two readings without a gap.
+    Empty segments drop their separators too; spacing comes from the
+    prefixes, like the skin's ``$INFO``.
     """
     out = []
     for key, prefix, suffix in segments:
@@ -312,7 +266,7 @@ def _render(segments, values: dict[str, str]) -> str:
 
 
 def _numbers(value: str) -> list[float]:
-    """Every number in a composite reading, in order."""
+    """Return every number in a composite reading."""
     if not value or is_status_label(value):
         return []
     return [float(match) for match in _NUMBER_RE.findall(value)]
@@ -324,12 +278,12 @@ def _first_number(value: str) -> float | None:
 
 
 def _is_live_tv() -> bool:
-    """A PVR channel, TV or radio, is playing -- not a recording."""
+    """Return whether a live PVR channel (TV or radio) is playing."""
     return cond("PVR.IsPlayingTV") or cond("PVR.IsPlayingRadio")
 
 
 def _seconds(clock: str) -> int | None:
-    """``hh:mm:ss`` or ``mm:ss`` as seconds, None when it is not a clock."""
+    """Return ``hh:mm:ss`` or ``mm:ss`` as seconds, or None."""
     try:
         parts = [int(part) for part in clock.strip().split(":")]
     except ValueError:
@@ -343,13 +297,10 @@ def _seconds(clock: str) -> int | None:
 
 
 def _broadcast_times() -> dict[str, str]:
-    """The position, length and progress of the broadcast on a live channel.
+    """Return position, length and progress of a live broadcast from the EPG.
 
-    The player only knows the timeshift buffer there: ``Player.Time`` counts
-    from when the channel was tuned and ``Player.Duration`` is however much of
-    it has been kept.  The broadcast's own length and position come from the
-    EPG, which is what the overlay's time row reads as well.  A channel the
-    guide has nothing for keeps the player's readings.
+    On live TV the player only knows the timeshift buffer.  Without EPG data
+    the player's readings stay.
     """
     if not _is_live_tv():
         return {}
@@ -357,8 +308,7 @@ def _broadcast_times() -> dict[str, str]:
     if not any(_numbers(duration)):
         return {}
     elapsed = info("PVR.EpgEventElapsedTime(hh:mm:ss)")
-    # Worked out here rather than read: PVR.EpgEventProgress is one of Kodi's
-    # integer infos, and as a label it comes back empty.
+    # Computed: PVR.EpgEventProgress is empty as a label.
     length, position = _seconds(duration), _seconds(elapsed)
     progress = (f"{min(100.0, max(0.0, position * 100 / length)):.1f}"
                 if length and position is not None else "")
@@ -376,21 +326,17 @@ def _label(string_id: int) -> str:
 
 
 def _bitrate_row(live: str, average: str) -> tuple[str, str]:
-    """A bitrate row as the overlay prints it: ``live -`` with the average
-    beside it as ``(Ø …)``, or whichever of the two there is on its own."""
+    """Return a bitrate row as the overlay shows it: ``live -`` ``(Ø avg)``."""
     if live and average:
         return f"{live} -", f"(Ø {average})"
     return live or average, ""
 
 
 def _overlay_rows(values: dict[str, str]) -> dict[str, str]:
-    """The rows whose text the overlay picks between several labels for.
+    """Return the rows the skin chooses between labels for.
 
-    The skin draws these as a stack of labels with a visible condition each
-    (see script-tinyppi-main.xml): Passthrough rather than a channel list,
-    Disabled rather than a subtitle language, Live TV rather than a timeshift
-    buffer.  The same choices are made here, so the page and the app read
-    exactly what the television does.
+    Mirrors the skin's conditional labels (Passthrough, Disabled, Live TV,
+    ...), so the page shows what the TV shows.
     """
     rows: dict[str, str] = {}
 
@@ -406,8 +352,7 @@ def _overlay_rows(values: dict[str, str]) -> dict[str, str]:
     rows["AudioBitrateRow"], rows["AudioBitrateDetail"] = _bitrate_row(
         values.get("AudioLiveBitrateVar", ""), values.get("AudioBitrateKBVar", ""))
 
-    # Subtitles: the track while they are on, Disabled while the file has
-    # some that are off, nothing (so N/A) where it has none.
+    # Subtitles: the track when on, Disabled when off, N/A without any.
     if cond("VideoPlayer.HasSubtitles") and cond("VideoPlayer.SubtitlesEnabled"):
         rows["SubtitleShortRow"] = values.get("SubtitleNameShortVar", "")
         rows["SubtitleNameRow"] = values.get("SubtitleNameVar", "")
@@ -415,9 +360,8 @@ def _overlay_rows(values: dict[str, str]) -> dict[str, str]:
     elif cond("VideoPlayer.HasSubtitles"):
         rows["SubtitleStateRow"] = _label(32091)
 
-    # Playback time: a live channel the guide has nothing for is Live TV and
-    # an internet stream with no length is Livestream, rather than whatever
-    # the timeshift buffer or a position that never moves happens to read.
+    # Live TV without EPG and streams without a length get a label instead
+    # of meaningless times.
     if _is_live_tv() and not values.get("BroadcastTimes"):
         rows["PlaybackStateRow"] = _label(32362)
     elif (not values.get("PlayerDuration")
@@ -432,22 +376,11 @@ def _overlay_rows(values: dict[str, str]) -> dict[str, str]:
 
 
 def _finish_time(values: dict[str, str]) -> str:
-    """When the title will be over by the clock, or "" where nothing ends.
+    """Return the end time by the clock, or ''.
 
-    On a live channel it is when the broadcast on now ends, by the guide (see
-    ``_broadcast_times``), and nothing where the guide has no entry.  On a
-    stream with no length at all Kodi can still hand back a clock worked out
-    from a position that never moves, which is no time anybody is waiting
-    for, so that is tested for here rather than printed.
-
-    A recording is left out.  It does end at a time this could name, so that
-    is a call about what the row is for rather than about what can be worked
-    out: the figure belongs to watching a film through.
-
-    What is left has to have a length worth counting down.  A title Kodi has
-    opened but not yet measured reads ``00:00`` for a moment, and a finish
-    time built on that is the current time, which would sit under the bar
-    looking like an answer for as long as it took the real one to arrive.
+    Live TV: the broadcast's end from the EPG.  Streams without a length,
+    other live items and recordings: ''.  Also '' while the duration is
+    still 00:00, which would just show the current time.
     """
     if _is_live_tv():
         if not values.get("BroadcastTimes"):
@@ -455,26 +388,20 @@ def _finish_time(values: dict[str, str]) -> str:
         return values.get("PlayerFinishTime", "")
     if is_live() or is_pvr():
         return ""
-    # Every field of the clock at zero, or no clock at all: `any` catches
-    # both, an empty reading having no numbers in it to be true.
+    # Covers both an all-zero and an empty duration.
     if not any(_numbers(values.get("PlayerDuration", ""))):
         return ""
     return values.get("PlayerFinishTime", "")
 
 
 def _web_presence_value(value) -> str:
-    """Replace standalone localized Yes/No fields with browser icon markers."""
+    """Replace standalone Yes/No parts with icon markers."""
     parts = clean_value(str(value)).split(" | ")
     return " | ".join(_PRESENCE_WORD.get(part, part) for part in parts)
 
 
 def _metadata_row(kind: str, name: str, value) -> dict:
-    """One ``info.dvmetadata`` row as the page consumes it.
-
-    A trim-table row carries its cells as a list rather than as one string
-    (the on-screen view draws each in a fixed slot of its own), so the value
-    is passed on as a list where it arrives as one and as text otherwise.
-    """
+    """Convert an ``info.dvmetadata`` row for the page (cells stay a list)."""
     if isinstance(value, (list, tuple)):
         return {"kind": kind, "name": clean_value(name),
                 "cells": [_web_presence_value(cell) for cell in value]}
@@ -486,11 +413,9 @@ def _metadata_row(kind: str, name: str, value) -> dict:
 
 
 def _output_token(mode: str) -> str:
-    """Classify the Amlogic output mode into an HDR token (``''`` for SDR).
+    """Map the Amlogic output mode to an HDR token ('' for SDR).
 
-    The output, not the source: a stream VS10 converts to Dolby Vision reads
-    as Dolby Vision, which is the same thing the splash does with it (see
-    ``ui.splash._amlogic_hdr_token``, whose reading this follows).
+    Follows ``ui.splash._amlogic_hdr_token``.
     """
     mode = (mode or "").upper()
     if "DV" in mode or "DOLBY" in mode:
@@ -505,33 +430,23 @@ def _output_token(mode: str) -> str:
 
 
 def _output_hdr_type(mode: str, source: str) -> str:
-    """The output classified into the tokens the source side is written in, so
-    the page can compare the two and name a conversion.
+    """Return the output as a source-style token, to detect conversions.
 
-    Not ``TinyPPI.EffectiveHdrType``: that one answers which overlay layout to
-    draw and is meant to stay on the source unless a setting says otherwise, so
-    it reads the same as the source through every conversion there is.  This
-    reads the output itself.
-
-    An unreadable mode field answers with the source rather than with SDR --
-    nothing read is not the same as nothing being sent, and a missing value
-    must not badge a film that is being passed through untouched.
+    Unlike ``TinyPPI.EffectiveHdrType`` (a layout choice) this is the real
+    output.  An unreadable mode returns *source*, so passthrough is never
+    reported as a conversion.
     """
     if not (mode or "").strip():
         return source
     token = _output_token(mode)
-    # _output_token spells it with the plus, as the splash's logo map does;
-    # the source side spells it hdr10plus, since Kodi's boolean parser reads +
-    # as AND (see publish_hdr_type).  One vocabulary, or every HDR10+ film
-    # badges itself.
+    # The source side spells it hdr10plus (see publish_hdr_type).
     return "hdr10plus" if token == "hdr10+" else token
 
 
 # --- Artwork ---------------------------------------------------------------
 
-# Kind -> the info labels to try, best first.  Kodi answers with whichever art
-# the item actually has, so an episode falls back to its show's and a file with
-# no library entry to the thumbnail Kodi made for it.
+# InfoLabels per artwork kind, best first (episode -> show art, file ->
+# Kodi's thumbnail).
 _ART_LABELS = {
     "poster": ("Player.Art(poster)", "Player.Art(tvshow.poster)",
                "Player.Art(thumb)", "VideoPlayer.Cover"),
@@ -540,21 +455,28 @@ _ART_LABELS = {
 }
 
 
+def _is_skin_texture(path: str) -> bool:
+    """Return whether *path* is a skin texture name rather than artwork.
+
+    Kodi answers ``VideoPlayer.Cover`` with ``DefaultVideoCover.png`` for
+    files without art; real artwork is always a path or URL.
+    """
+    return "/" not in path and "\\" not in path
+
+
 def art_path(kind: str) -> str:
-    """The raw path Kodi holds for a kind of artwork, or ''."""
+    """Return the raw path of the playing title's artwork *kind*, or ''."""
     for label in _ART_LABELS.get(kind, ()):
         path = info(label).strip()
-        if path:
+        if path and not _is_skin_texture(path):
             return path
     return ""
 
 
 def _art_tags() -> dict:
-    """A short tag per artwork kind, changing only when the picture does.
+    """Return a short tag per artwork kind that changes with the picture.
 
-    The page hangs it on the image's address, so the browser fetches a poster
-    once per film rather than once per snapshot -- and swaps it the moment the
-    next film brings another.
+    Used in the image URL, so a poster is fetched once per film.
     """
     tags = {}
     for kind in _ART_LABELS:
@@ -566,7 +488,7 @@ def _art_tags() -> dict:
 # --- The player ------------------------------------------------------------
 
 def _rpc(method: str, params: dict | None = None) -> dict:
-    """One JSON-RPC call into the running Kodi, as a dict (empty on failure)."""
+    """Call Kodi's JSON-RPC and return the answer as a dict ({} on failure)."""
     request = {"jsonrpc": "2.0", "id": 1, "method": method}
     if params:
         request["params"] = params
@@ -577,14 +499,12 @@ def _rpc(method: str, params: dict | None = None) -> dict:
     return answer if isinstance(answer, dict) else {}
 
 
-# The same one call, under a name the module next door may import: the film
-# library talks to the same Kodi over the same socket, and a second copy of
-# this would be a second thing to keep right (see web/library.py).
+# Public alias for web/library.py.
 rpc = _rpc
 
 
 def _video_player_id() -> int | None:
-    """The id of the playing video, or None when nothing is playing."""
+    """Return the video player id, or None when nothing plays."""
     result = _rpc("Player.GetActivePlayers").get("result") or []
     for player in result:
         if isinstance(player, dict) and player.get("type") == "video":
@@ -593,12 +513,7 @@ def _video_player_id() -> int | None:
 
 
 def _chapter_count() -> int:
-    """How many chapters the playing file has, 0 when it has none.
-
-    An info label rather than a JSON-RPC property: Kodi publishes the count
-    through ``Player.ChapterCount`` alone -- ``Player.GetProperties`` has no
-    name for chapters at all.
-    """
+    """Return the chapter count (only available as an InfoLabel)."""
     try:
         return int(info("Player.ChapterCount") or 0)
     except ValueError:
@@ -606,12 +521,10 @@ def _chapter_count() -> int:
 
 
 def _stream_label(stream: dict, fallback: str) -> str:
-    """A track's picker label with a canonical language-code prefix.
+    """Return a track label prefixed with its upper-cased language code.
 
-    Kodi supplies ISO codes such as ``ger`` and ``eng`` separately from the
-    track name.  A substring check cannot tell ``eng`` from the beginning of
-    ``English``, so only an already separate leading token suppresses the
-    prefix.
+    Only a separate leading token counts as an existing prefix (``eng`` vs.
+    the start of ``English``).
     """
     name = (stream.get("name") or "").strip()
     language = (stream.get("language") or "").strip()
@@ -627,12 +540,10 @@ def _stream_label(stream: dict, fallback: str) -> str:
 
 
 def player_controls() -> dict:
-    """The switchable side of the player: tracks, volume, mute, chapters.
+    """Return the controllable player state: tracks, volume, mute, chapters.
 
-    Read over JSON-RPC rather than from info labels, because a picker needs
-    the whole list and its indices, not the name of the one in use.  Only
-    gathered when the dashboard is allowed to switch anything, since that is
-    the only thing it is for.
+    Via JSON-RPC, since pickers need full lists with indices.  Only used
+    when control is enabled.
     """
     state: dict = {"audio": [], "subtitle": [], "audio_current": -1,
                    "subtitle_current": -1, "subtitle_on": False,
@@ -648,8 +559,7 @@ def player_controls() -> dict:
     if player_id is None:
         return state
 
-    # Only so the page knows whether its two chapter keys lead anywhere; the
-    # jump itself is a command, not a reading.
+    # Tells the page whether to show the chapter keys.
     state["chapters"] = _chapter_count()
 
     properties = _rpc("Player.GetProperties", {
@@ -682,11 +592,10 @@ def player_controls() -> dict:
 
 
 def current_track_state() -> dict[str, str]:
-    """Return stable tokens for the active audio and subtitle streams.
+    """Return identifying tokens for the active audio and subtitle streams.
 
-    Stream indices are kept deliberately: two tracks can carry the same
-    language and name, but changing between them is still a real player event.
-    Kodi exposes the active indices only through JSON-RPC.
+    Includes the index (via JSON-RPC), since tracks may share language and
+    name.
     """
     player_id = _video_player_id()
     if player_id is None:
@@ -717,7 +626,7 @@ def current_track_state() -> dict[str, str]:
 
 
 def audio_event_label(values: dict[str, str]) -> str:
-    """Build the active audio label from the same values as the audio card."""
+    """Return the active audio label, as in the audio card."""
     language = clean_value(values.get("AudioNameShortVar", "")).strip()
     format_parts = (
         clean_value(values.get(key, "")).strip()
@@ -729,11 +638,9 @@ def audio_event_label(values: dict[str, str]) -> str:
 
 
 def subtitle_event_label(values: dict[str, str]) -> str:
-    """Build the active subtitle label from the same values as the audio card.
+    """Return the active subtitle label as the card prints it.
 
-    The row the card prints -- "DEU | Deutsch (PGS)" -- rather than Kodi's own
-    stream name, which is whatever the muxer was told to write and is as often
-    "FORCED" or "Full" as it is a language.
+    E.g. "DEU | Deutsch (PGS)"; Kodi's stream names are often just "FORCED".
     """
     language = clean_value(values.get("SubtitleNameShortVar", "")).strip()
     name     = clean_value(values.get("SubtitleNameVar", "")).strip()
@@ -745,47 +652,30 @@ def subtitle_event_label(values: dict[str, str]) -> str:
 # --- Snapshot --------------------------------------------------------------
 
 class SessionLog:
-    """What the playing title has done so far.
+    """History of the playing title: chart samples, events and counters.
 
-    The producer sees every tick and the browser only the ones it was connected
-    for, so the readings that are worth keeping are kept here: the peak the
-    grade ever reached, the frames that were lost, the moment an output changed.
-    A page that opens halfway through a film still gets the whole picture, and
-    the chart is full the second it arrives rather than a minute later.
-
-    Reset by the title changing or by playback ending, since none of it means
-    anything about the next film.  Written by the producer thread and read by
-    whichever request thread asks for the history, so everything goes through
-    the lock.
+    Kept by the producer, so a page opened mid-film gets the full chart.
+    Reset for a new title.  Written by the producer and read by request
+    threads, so all access goes through the lock.
     """
 
-    #: Seconds between chart samples.  The stream runs five times faster; the
-    #: history is what is kept for an hour, and a second's resolution is all
-    #: an hour-wide chart can show.
+    #: Seconds between chart samples (enough for an hour-wide chart).
     SAMPLE_INTERVAL = 1.0
-    #: An hour of samples.  A longer film keeps its last hour and its totals.
+    #: One hour of samples; longer films keep the last hour.
     MAX_SAMPLES = 3600
-    #: Events worth scrolling back through; the oldest fall off the end.
+    #: Maximum events kept; the oldest are dropped.
     MAX_EVENTS = 60
 
-    #: How long a track reading has to hold still before it is believed.
-    #: Its two halves are read from two places -- the index over JSON-RPC, the
-    #: label out of Kodi's own info labels -- and Kodi does not necessarily
-    #: update both in the same tick.  A pass taken in between pairs the track
-    #: that is playing now with the name of the one that was, so a switch is
-    #: written down as the wrong track.  Waiting for the pair to stop moving
-    #: costs the row a beat and makes it right; the moment the switch happened
-    #: is kept from where it was first seen, so the row still says when.
+    #: How long a track reading must be stable before it counts.  Index
+    #: (JSON-RPC) and label (InfoLabels) may update in different ticks; the
+    #: event keeps the time the change was first seen.
     TRACK_SETTLE = 1.5
 
     TEMP_HIGH   = 75.0
     CPU_FULL    = 100.0
     SWITCH_KINDS = frozenset(("vs10", "mode", "audio", "subtitle"))
     WARNING_KINDS = frozenset(("temperature", "cpu"))
-    #: How long a finished title is kept after the player has stopped.  The
-    #: figures are worth most in the minutes right after the credits, which is
-    #: exactly when the old behaviour -- throwing them away the moment
-    #: playback ended -- had already lost them.
+    #: How long a finished title's figures are kept after playback stops.
     RETAIN_SECONDS = 600.0
 
     def __init__(self) -> None:
@@ -793,7 +683,7 @@ class SessionLog:
         self.reset("")
 
     def reset(self, key: str, title: str = "") -> None:
-        """Start over for ``key``, the title this session belongs to."""
+        """Start a new session for *key* (title and source)."""
         self._key       = key
         self._title     = title
         self._position  = ""
@@ -805,30 +695,21 @@ class SessionLog:
         self._sampled   = 0.0
         self._switches  = 0
         self._warnings  = 0
-        # Identity and display label are kept separately.  Track indices make
-        # every real switch detectable, while events can still use the clean
-        # card-formatted text instead of Kodi's free-form stream name.
+        # (identity, display label) per watched reading.
         self._watched: dict[str, tuple[str, str]] = {}
-        # A track reading that has changed but not yet settled; see _settle.
+        # Changed but not yet settled readings (see _settle).
         self._pending: dict[str, tuple] = {}
         self._temperature_hot = False
         self._cpu_full = False
         self._fps = None
 
-    # -- writing --
+    # --- Writing -----------------------------------------------------------
 
     def end(self) -> None:
-        """Close the session, for a player that has stopped.
+        """Mark the session as ended after playback stopped.
 
-        The readings are kept rather than dropped: the peak the grade reached
-        and the frames it lost are what a viewer looks for once the credits
-        roll, and the page has nothing else to show while nothing is playing.
-        They are let go after ``RETAIN_SECONDS``, and the next title lets them
-        go the moment it starts (see ``observe``).
-
-        Cheap to call on every idle pass: an already-closed session that is
-        still inside its window is left exactly as it is, and an empty one is
-        never held at all.
+        The figures stay for ``RETAIN_SECONDS`` (or until the next title)
+        for the idle page.  Cheap to call on every idle pass.
         """
         with self._lock:
             if not (self._key or self._samples or self._events):
@@ -841,14 +722,10 @@ class SessionLog:
 
     def observe(self, title: str, source: str, metrics: dict, watched: dict,
                 position: str) -> None:
-        """Fold one pass into the session, sampling on its own slower clock.
+        """Add one pass to the session; chart samples use their own interval.
 
-        ``source`` is the file being played.  It rather than the title is what
-        tells one session from the next, because a title is not unique -- two
-        episodes of the same name would otherwise share a session -- and it
-        rather than the length, because a length is not steady: a live stream's
-        grows as it is watched, and restarting the session under it would leave
-        every figure on the page reading zero.
+        Sessions are told apart by title and *source* (the file), since titles
+        repeat and lengths of live streams grow.
         """
         with self._lock:
             key = f"{title}\n{source}"
@@ -864,17 +741,11 @@ class SessionLog:
             self._sample(metrics, now)
 
     def _is_another_title(self, title: str, source: str, key: str) -> bool:
-        """Whether this pass belongs to a different title than the session.
+        """Return whether this pass belongs to a different title.
 
-        A reading has to be whole to be believed.  Kodi keeps saying it has a
-        video for a tick or two after the labels behind it have emptied, and a
-        reading that has lost half of itself is a player winding down rather
-        than another film starting: taking it for one would throw away the
-        figures of the title that has just finished, which are the very ones
-        the page is about to show (see ``last``).
-
-        A source that cannot say what it is playing is a title all the same, so
-        where there is no file to compare, a name that changes is enough.
+        A half-empty reading is a player winding down, not a new title, so
+        the finished title's figures are kept (see ``last``).  Without a
+        source, a changed title is enough.
         """
         if not self._key:
             return True            # nothing is being tracked yet
@@ -885,22 +756,16 @@ class SessionLog:
         return bool(title) and title != self._title
 
     def _note_changes(self, watched: dict, now: float, position: str) -> None:
-        """Log the readings that changed since the last pass.
+        """Record events for readings that changed since the last pass.
 
-        Off the producer's clock, not the sample one: an output switch is over
-        in less than a second and would otherwise be missed entirely.  That
-        clock runs five times a second while a page watches and once a second
-        while none does -- which costs nothing the static readings behind most
-        of these could have shown, since they refresh once a second either
-        way.  The first pass only records what things are, since everything
-        has "changed" then.
+        Runs on every producer pass (short switches would be missed on the
+        sample clock).  The first pass only records the initial values.
         """
         for name, value in watched.items():
             at, at_position = now, position
             if isinstance(value, dict):
-                # A reading in two halves, from two sources: it is held back
-                # until they agree (see _settle), and dated from the pass its
-                # first half moved rather than from the one it settled in.
+                # Two-part reading: wait until settled (see _settle), dated
+                # from the first change.
                 identity = str(value.get("id") or "").strip()
                 label = str(value.get("label") or identity).strip()
                 if not identity:
@@ -923,16 +788,10 @@ class SessionLog:
 
     def _settle(self, name: str, current: tuple[str, str], now: float,
                 position: str) -> tuple[float, str] | None:
-        """Hold a two-part reading back until it stops moving.
+        """Hold a two-part reading back until stable for ``TRACK_SETTLE``.
 
-        Returns when the reading first left the value on record -- the moment
-        the event belongs at, not the one it is written at -- once it has held
-        still for ``TRACK_SETTLE``.  ``None`` while it is still moving, and
-        while it has not changed at all, which is every pass but a handful.
-
-        The committed value is therefore only ever a settled one, which is
-        what makes the ``from`` side of an event right as well: a reading taken
-        mid-switch never becomes the value the next switch is measured against.
+        Returns the time and position of the first change once settled, else
+        None.  Only settled values are committed, so ``from`` is always right.
         """
         if current == self._watched.get(name):
             self._pending.pop(name, None)
@@ -943,8 +802,7 @@ class SessionLog:
             return None
         reading, since, first, first_position = pending
         if reading != current:
-            # Moved again, so the wait starts over -- but not the dating of it:
-            # the switch happened when the reading first left its old value.
+            # Changed again: restart the wait, keep the first change time.
             self._pending[name] = (current, now, first, first_position)
             return None
         if now - since < self.TRACK_SETTLE:
@@ -953,8 +811,7 @@ class SessionLog:
         return first, first_position
 
     def _watch_levels(self, metrics: dict, now: float, position: str) -> None:
-        """Follow the warning levels and the frame rate on the producer's
-        fast clock."""
+        """Track warning levels and the frame rate on every pass."""
         temperature = metrics.get("cpu_temp")
         if temperature is not None:
             self._watch_temperature(temperature, now, position)
@@ -966,7 +823,7 @@ class SessionLog:
             self._watch_fps(fps, now, position)
 
     def _sample(self, metrics: dict, now: float) -> None:
-        """Take one chart sample and fold it into the totals."""
+        """Add one chart sample."""
         level = metrics.get("l1") or {}
         peak  = level.get("max")
         mean  = level.get("avg")
@@ -990,29 +847,19 @@ class SessionLog:
         self._cpu_full = full
 
     def _watch_fps(self, fps: float, now: float, position: str) -> None:
-        """Follow the frame rate the title is played at, and log a change.
+        """Record an event when the input frame rate changes.
 
-        The rate coming in rather than the one going out: the output rate is
-        the input minus whatever the box has just dropped, so following it
-        would write an event every time a frame goes missing and push
-        everything else off a list that holds sixty.  What is worth an event
-        is the rate itself changing -- a stream that goes from 24 to 60, a
-        title whose next part was encoded differently -- which is rare, and is
-        the moment the display mode changes underneath it.
-
-        Written as a transition like the other switches, so the page can say
-        which way it went (see ``eventTrend`` in js/live-panels.js) instead of
-        only what it is now.  It is deliberately none of the counted kinds:
-        the display mode change beside it is already counted, and counting
-        both would report one switch as two.
+        The input rate, not the output (which drops with every lost frame).
+        Recorded as a transition (see ``eventTrend`` in js/live-panels.js)
+        but not counted as a switch: the display mode change is already
+        counted.
         """
         try:
             rate = int(round(float(fps)))
         except (TypeError, ValueError):
             return
         if rate <= 0:
-            # Nothing is being played yet, or the reading has not settled.
-            # A zero is not a rate the title changed to.
+            # Not a real rate (not playing yet, or unsettled).
             return
         previous = self._fps
         self._fps = rate
@@ -1022,11 +869,9 @@ class SessionLog:
 
     def _add_event(self, now: float, position: str, kind: str,
                    detail: dict) -> dict:
-        """Add one event and hand it back, for a caller that keeps following
-        what it recorded."""
+        """Add an event, update the counters, and return the event."""
         self._seq += 1
-        # The counter is updated by the exact operation that creates the row.
-        # A visible track transition therefore cannot go uncounted.
+        # Counters change only here, so every event is counted.
         if kind in self.SWITCH_KINDS:
             self._switches += 1
         if kind in self.WARNING_KINDS:
@@ -1042,19 +887,12 @@ class SessionLog:
             del self._events[:len(self._events) - self.MAX_EVENTS]
         return event
 
-    # -- reading --
+    # --- Reading -----------------------------------------------------------
 
     def summary(self) -> dict:
-        """The figures small enough to travel with every snapshot: the two
-        tiles counting up over the title, and the sequence number.
+        """Return the small per-snapshot summary: counters and event ``seq``.
 
-        ``seq`` is what tells the page there is something new to fetch: it
-        counts events, so a page holding an older number knows to ask for the
-        history again instead of being sent one five times a second.
-
-        Everything else the title adds up to is in the samples themselves, and
-        travels with the history the chart asks for rather than five times a
-        second with this.
+        A changed ``seq`` tells the page to fetch the history again.
         """
         with self._lock:
             return {
@@ -1064,12 +902,7 @@ class SessionLog:
             }
 
     def last(self) -> dict:
-        """What the title that just finished came to, for the idle page.
-
-        Empty while something is playing and again once the window has run
-        out, so the page has one thing to test: either there is a last title
-        to show or there is not.
-        """
+        """Return the finished title's summary for the idle page, or {}."""
         with self._lock:
             if not self._ended or not self._key:
                 return {}
@@ -1088,13 +921,10 @@ class SessionLog:
             }
 
     def history(self) -> dict:
-        """The whole chart and the whole event list, for a page that asks.
+        """Return the full chart and event list.
 
-        Sent as one array per reading rather than an object per sample: an
-        hour of samples is 3600 of them, and the names would be most of the
-        bytes.  ``now`` is the session's age as the answer leaves, so the page
-        can place each sample against the present without either clock
-        agreeing with the other.
+        One array per series (compact for 3600 samples); ``now`` is the
+        session age, so the page needs no synchronised clock.
         """
         with self._lock:
             return {
@@ -1110,14 +940,10 @@ class SessionLog:
 
 
 class SnapshotBuilder:
-    """Produces one dashboard snapshot per call, reusing the overlay's own
-    publishers.
+    """Build one dashboard snapshot per call with the overlay's publishers.
 
-    Holds the ``published`` dict those publishers use to skip unchanged
-    writes, exactly as the overlay's poll loop does, so an idle frame costs a
-    recompute and no more.  The static half is refreshed on its own slower
-    cadence for the same reason it is in the overlay: those readings settle at
-    most once a title.
+    Keeps a ``published`` dict like the overlay's loop, and refreshes the
+    per-title readings on a slower interval.
     """
 
     #: Seconds between refreshes of the static (per-title) readings.
@@ -1130,11 +956,9 @@ class SnapshotBuilder:
         self._sequence  = 0
         self._meta_static: list = []
         self._meta_static_at = 0.0
-        #: The running title's history and totals; read by /api/history.
+        #: The playing title's history; served by /api/history.
         self.session    = SessionLog()
-        # The switchable side of the player, refreshed on the static clock:
-        # a picker needs whole track lists, which cost a JSON-RPC round trip
-        # and settle at most once a title.
+        # Player controls, refreshed on the static interval (JSON-RPC).
         self._controls: dict = {}
         self._controls_at = 0.0
         self._track_state: dict[str, str] = {
@@ -1142,23 +966,18 @@ class SnapshotBuilder:
         }
 
     def _refresh(self) -> None:
-        """Recompute the readings into the sink, static half on its own timer."""
+        """Recompute the readings into the sink."""
         now = time.monotonic()
         if now - self._static_at >= self.STATIC_INTERVAL:
             self._static_at = now
             publish_static_properties(self._sink, self._published)
-            # Read here rather than on a timer of its own, because a track
-            # event pairs the two: the label comes out of the static half
-            # above, the index that identifies the track comes over JSON-RPC.
-            # On two clocks a second apart the pair is taken at two different
-            # moments, and right after a switch that means the new track's
-            # index beside the old track's label -- the row a viewer reads and
-            # does not recognise.  One clock, one pass, one reading.
+            # Read together with the static half, so track index and label
+            # come from the same moment.
             self._track_state = current_track_state()
         publish_scene_properties(self._sink, self._published)
 
     def _values(self) -> dict[str, str]:
-        """The sink's readings plus the ones taken straight from Kodi."""
+        """Return the sink's values plus the direct Kodi readings."""
         values = dict(self._sink.values)
         for key, label in _EXTRA_INFOLABELS:
             values[key] = info(label)
@@ -1170,7 +989,7 @@ class SnapshotBuilder:
 
     @staticmethod
     def _frame() -> dict | None:
-        """The coded frame size, which the L5 offsets are measured against."""
+        """Return the coded frame size (the L5 offsets' reference)."""
         width  = _first_number(info("Player.Process(videowidth)").replace(",", ""))
         height = _first_number(info("Player.Process(videoheight)").replace(",", ""))
         if not width or not height:
@@ -1178,23 +997,17 @@ class SnapshotBuilder:
         return {"w": int(width), "h": int(height)}
 
     def _metrics(self, values: dict[str, str], is_dv: bool) -> dict:
-        """The numeric side of the snapshot: what the page charts rather than
-        prints.  Read from the raw getters, not the formatted rows, so the
-        page never has to parse a localized unit back off a string.
+        """Return the numeric readings the page charts.
 
-        L1 and L5 live in the Dolby Vision RPU and nowhere else, and both
-        getters pad an absent block out to zeroes rather than leave it empty
-        (see ``_value_or``).  Charting those zeroes would draw a black film
-        for every HDR10 title, so they are only passed on for a source that
-        can actually carry them, and only when they read as something other
-        than that padding.
+        From the raw getters, so no localized units need parsing.  L1 and L5
+        exist only in DV and are padded with zeros otherwise (see
+        ``_value_or``), so they are only passed for DV and when not padding.
         """
         raw_nits = get_l1_nits()
         raw_bars = get_l5_offsets()
         nits = _numbers(raw_nits) if is_dv and raw_nits != L1_EMPTY else []
         bars = _numbers(raw_bars) if is_dv and raw_bars != L5_EMPTY else []
-        # ``FpsInfoVar`` is the "input - drop" pair; ``FpsDropVar`` is what is
-        # left over, i.e. the output rate (see core.helpers.fps_display_texts).
+        # FpsInfoVar is "input - drop" (see core.helpers.fps_display_texts).
         fps  = _numbers(values.get("FpsInfoVar", ""))
         return {
             "l1": {
@@ -1202,9 +1015,8 @@ class SnapshotBuilder:
                 "max": nits[1] if len(nits) > 1 else None,
                 "avg": nits[2] if len(nits) > 2 else None,
             },
-            # left | right | top | bottom, in coded pixels, alongside the
-            # coded frame they are offsets into: together they are enough for
-            # the page to draw the letterbox the RPU declares.
+            # L5 bars (left | right | top | bottom) and the coded frame, so
+            # the page can draw the letterbox.
             "bars": bars if len(bars) == 4 else None,
             "frame": self._frame(),
             "aspect":   _first_number(values.get("AspectRatioVar", "")),
@@ -1219,17 +1031,10 @@ class SnapshotBuilder:
         }
 
     def _metadata(self, is_dv: bool, enabled: bool) -> list[dict]:
-        """The Dolby Vision metadata view's rows, the same list the on-screen
-        view is built from.
+        """Return the DV metadata rows, the same list as the on-screen view.
 
-        Split across the two cadences exactly as ``ui.dvmetadata`` splits it:
-        the per-frame blocks (L1, L2, L4, L5, L8, HDR10+) are rebuilt every tick,
-        the title-level ones on the slower timer, and ``join_rows`` decides the
-        separator between them against whichever scene rows are current -- so
-        the halves cannot disagree about the shape of the joined list.
-
-        Only a Dolby Vision source has an RPU to walk, so anything else gets an
-        empty list and the page leaves the section out.
+        Scene rows every tick, static rows on the slower interval, as in
+        ``ui.dvmetadata``.  Empty for non-DV sources or when disabled.
         """
         if not (is_dv and enabled):
             self._meta_static = []
@@ -1246,19 +1051,11 @@ class SnapshotBuilder:
         return [_metadata_row(kind, name, value) for kind, name, value in rows]
 
     def _groups(self, values: dict[str, str], source: str) -> list[dict]:
-        """The printed rows, grouped and titled the way the overlay is.
+        """Return the cards with their rows, grouped like the overlay.
 
-        A row whose value renders empty reads N/A, the way the overlay's own
-        fallback labels do.  A group none of whose rows has a value is left
-        out entirely, and so is a whole group whose source cannot carry it
-        (see ``_GROUPS``): the panels a stream does not carry then simply do
-        not appear, which is what makes the page readable on a phone.
-
-        Several entries may name the same card, and then its rows are those
-        of each entry that applies, in the order the entries are listed --
-        which is how the Metadata card holds the static readings of a source
-        that carries them and the RPU's own of a source that has an RPU,
-        without either set having to know about the other.
+        Empty values read N/A.  Cards without any value, or not applying to
+        the source (see ``_GROUPS``), are left out.  Entries sharing an id
+        are merged into one card in list order.
         """
         groups: list[dict] = []
         by_id: dict[str, dict] = {}
@@ -1293,12 +1090,7 @@ class SnapshotBuilder:
         return groups
 
     def _player_controls(self, control: bool) -> dict:
-        """The track lists and volume, on the static clock.
-
-        Only while the dashboard may switch something: the lists exist to be
-        picked from, and a read-only page would pay two JSON-RPC calls a
-        second for a picker it never draws.
-        """
+        """Return tracks and volume on the static interval, if control is on."""
         if not control:
             self._controls = {}
             self._controls_at = 0.0
@@ -1310,38 +1102,28 @@ class SnapshotBuilder:
         return self._controls
 
     def _active_tracks(self) -> dict[str, str]:
-        """The active tracks as of this pass's static refresh (``_refresh``)."""
+        """Return the active tracks from the last static refresh."""
         return self._track_state
 
     def build(self, allow_filename: bool = True, metadata: bool = True,
               control: bool = False, detail: bool = True) -> dict | None:
-        """One complete snapshot.  Cheap enough for the producer's cadence:
-        the whole pass shares a single side-data parse (see ``info.dvinfo``)
-        and writes nothing to any window Kodi draws.
+        """Build one snapshot inside a single read pass.
 
-        One read pass around all of it, too: the two halves of the readings
-        and the rows printed from them ask Kodi for many of the same
-        InfoLabels, and they describe one moment (see ``read_pass``).
-
-        Without *detail* the pass only keeps the session going -- the readings
-        its chart and events are taken from, folded in -- and returns None
-        while something plays: that is all the producer needs while no page
-        is watching, and it leaves out everything only a page would draw (the
-        rows, the metadata list and its composer parse, the track lists).
+        One side-data parse per pass (see ``info.dvinfo``).  Without *detail*
+        only the session is updated and None is returned while playing (the
+        producer's idle mode).
         """
         with read_pass():
             return self._build(allow_filename, metadata, control, detail)
 
     def _build(self, allow_filename: bool, metadata: bool, control: bool,
                detail: bool) -> dict | None:
-        """``build`` inside its read pass."""
+        """Build the snapshot inside ``build``'s read pass."""
         playing = cond("Player.HasVideo")
         self._sequence += 1
 
         if not playing:
-            # Nothing to read; the sink keeps the last title's values, so drop
-            # them rather than let the page show a film that has ended.  The
-            # session goes with them: none of what it holds is about the next.
+            # Drop the last title's values.
             self._sink   = PropertySink()
             self._published = {}
             self._static_at = 0.0
@@ -1352,9 +1134,7 @@ class SnapshotBuilder:
             self._track_state = {
                 "audio": "", "audio_id": "", "subtitle": "",
             }
-            # Closed rather than thrown away: what the title came to is worth
-            # more once it has ended than at any point while it ran, and the
-            # page has nothing else to show until the next one starts.
+            # End the session but keep its figures for the idle page.
             self.session.end()
             return {
                 "seq":      self._sequence,
@@ -1371,7 +1151,7 @@ class SnapshotBuilder:
         values = self._values()
         home   = home_window()
         source = home.getProperty(_PROP_HDR_TYPE)
-        # Lower-cased once: every branch below asks the same question of it.
+        # Lower-cased once for the checks below.
         source_key = source.strip().lower()
         is_dv      = _is_dv(source_key)
 
@@ -1383,16 +1163,12 @@ class SnapshotBuilder:
         title    = values.get("Title", "")
         position = values.get("PlayerTime", "")
 
-        # Folded in before the snapshot is handed over, so the totals the page
-        # is about to print already include the pass it is printing.  The file
-        # name is what tells one session from the next and is never sent with
-        # them: the overlay's own setting governs what leaves the box, and this
-        # is read whether it is on or not.
+        # Update the session first, so the totals include this pass.  The
+        # file name identifies the session; it is only sent if allowed.
         tracks = self._active_tracks()
         audio_identity = tracks.get("audio_id", "") or tracks.get("audio", "")
-        # Off is its own state and the card values do not describe it: Kodi
-        # keeps reporting the language of the track that was switched off, so
-        # the label is only taken from the card while subtitles are on.
+        # When off, Kodi still reports the old language, so the card label
+        # is only used while subtitles are on.
         subtitle = tracks.get("subtitle", "")
         subtitle_label = (subtitle if subtitle == "__off__"
                           else subtitle_event_label(values) or subtitle)
@@ -1416,13 +1192,12 @@ class SnapshotBuilder:
             "playing":   True,
             "paused":    cond("Player.Paused"),
             "title":     title,
-            # The overlay's own file-name setting governs this too: turning it
-            # off must not leave the path leaking over the network instead.
+            # Respects the overlay's file-name setting.
             "filename":  values.get("Filename", "") if allow_filename else "",
             "hdr_type":  source,
             "effective": home.getProperty(PROP_EFFECTIVE_HDR_TYPE),
-            # What is actually going out, for the conversion badge; see
-            # _output_hdr_type for why "effective" cannot answer that.
+            # The real output, for the conversion badge (see
+            # _output_hdr_type).
             "output_type": _output_hdr_type(vs10.get("output", ""), source),
             "time":      position,
             "duration":  values.get("PlayerDuration", ""),
@@ -1446,9 +1221,8 @@ class SnapshotBuilder:
 
 # --- VS10 ------------------------------------------------------------------
 
-# The modes offered per source type, mirroring the groups the on-screen
-# dialog shows (see ``_ACTIONS`` in ui.mode_select).  The labels name formats
-# rather than words, so they are left untranslated exactly as the dialog's are.
+# Modes per source type, as in the on-screen dialog (see ui.dialog_layout).
+# Format names are not translated, like in the dialog.
 _VS10_OPTIONS = {
     "sdr": (
         ("original_sdr", "Original"),
@@ -1468,46 +1242,25 @@ _VS10_OPTIONS = {
 
 
 def _is_hdr10_plus(key: str) -> bool:
-    """Whether the lower-cased source token names HDR10+.
-
-    Both spellings are read: the Home window carries ``hdr10plus`` (see
-    ``info.properties.publish_hdr_type``, which avoids the ``+`` Kodi's boolean
-    parser would take for an AND), while ``get_hdr_format`` names the format
-    itself ``hdr10+``.
-    """
+    """Return whether the source token is HDR10+ (either spelling)."""
     return "hdr10plus" in key or "hdr10+" in key
 
 
 def _has_no_modes(key: str, hdr10plus: bool = False) -> bool:
-    """Whether the source has no VS10 modes to offer.
+    """Return whether the source has no VS10 modes.
 
-    HDR10+ and HLG are the two formats, and neither is a VS10 input: the driver
-    has no group for either, and the on-screen dialog draws none for either --
-    both are left with the player-process button alone (see
-    script-tinyppi-dialog.xml).
-
-    ``hdr10plus`` is the third case and the one the token cannot state: a
-    Dolby Vision source that carries an ST 2094-40 payload beside its RPU reads
-    as ``dolbyvision`` -- the RPU is what it is -- but the driver does not take
-    the Dolby Vision group's modes for that hybrid grade.  It comes
-    from ``TinyPPI.Hdr10PlusPresent``, published beside the token itself.
+    HDR10+ and HLG are no VS10 inputs; *hdr10plus* covers DV + HDR10+
+    hybrids (from ``TinyPPI.Hdr10PlusPresent``), which read as DV.
     """
     return hdr10plus or _is_hdr10_plus(key) or "hlg" in key
 
 
 def _options_for(source: str, playing: bool = True,
                  hdr10plus: bool = False) -> tuple:
-    """The mode buttons that apply to ``source``.
+    """Return the mode buttons for *source*.
 
-    ``hdr10plus``, ``hlg`` and the hybrid Dolby Vision + HDR10+ grade get none
-    -- see ``_has_no_modes``.  The page follows the dialog: with no options the
-    whole VS10 card goes, output line included, rather than offer a conversion
-    that is not on offer anywhere else.
-
-    An **empty** source is SDR, not "unknown": ``publish_hdr_type`` writes a
-    token only for the HDR formats, and the dialog's own SDR group is the one
-    behind ``String.IsEmpty``.  So the buttons otherwise only fall away when
-    nothing is playing at all and there is no source to convert.
+    None for sources without modes (see ``_has_no_modes``) or when nothing
+    plays; the page then hides the VS10 card.  An empty source is SDR.
     """
     if not playing:
         return ()
@@ -1523,8 +1276,7 @@ def _options_for(source: str, playing: bool = True,
 
 def vs10_state(source: str, playing: bool = True,
                hdr10plus: bool = False) -> dict:
-    """What the dashboard needs to draw its VS10 controls: the buttons that
-    apply to the playing source, and the output the driver is in now."""
+    """Return the VS10 buttons for the source and the current output."""
     return {
         "options": [{"mode": mode, "label": label}
                     for mode, label in _options_for(source, playing, hdr10plus)],
@@ -1532,10 +1284,7 @@ def vs10_state(source: str, playing: bool = True,
     }
 
 
-# Every mode the dashboard will act on: the union of the buttons above, which
-# is the same set the on-screen dialog offers.  Checked here so a request can
-# only ever ask for a mode the page itself presents, and so the request thread
-# never has to import the dialog module to find out what is valid.
+# Modes the dashboard accepts: exactly the buttons above.
 _KNOWN_MODES = frozenset(
     mode for options in _VS10_OPTIONS.values() for mode, _ in options
 )
@@ -1543,23 +1292,15 @@ _KNOWN_MODES = frozenset(
 
 _log = channel("web")
 
-# One switch at a time.  Two phones -- or two quick taps on one -- asking at
-# once would otherwise write the driver's nodes from two threads in between
-# each other's settling delays; the second waits for the first instead.
+# One switch at a time; concurrent requests wait.
 _switching = threading.Lock()
 
 
 def apply_mode(mode: str) -> bool:
-    """Apply a VS10 mode by name, returning False for one the dashboard does
-    not offer.
+    """Start switching to VS10 *mode*; False for modes not offered.
 
-    The switch runs on a thread of the service, which the dashboard is part
-    of, rather than through ``RunScript``: that started a whole interpreter and
-    imported the dialog module into it for every tap, where the service has
-    had it loaded since the warm-up -- and it is where the on-screen dialog
-    runs its own switches when the service opens it.  The request thread is
-    not held for the driver's settling delays, and ``set_mode`` still
-    validates the name itself.
+    Runs on a service thread (no ``RunScript``), so the request is not held
+    during the driver's settling delays.
     """
     if mode not in _KNOWN_MODES:
         return False
@@ -1569,41 +1310,33 @@ def apply_mode(mode: str) -> bool:
 
 
 def _run_mode(mode: str) -> None:
-    """Carry out one switch, after any still running."""
+    """Run one switch after any running one."""
     with _switching:
-        # Kodi waits for every thread of the service before it can finish
-        # shutting down, and a staged switch takes seconds: none is started
-        # once it has begun.
+        # No new switch during shutdown (it would delay Kodi).
         if xbmc.Monitor().abortRequested():
             return
         try:
             from ui.mode_select import set_mode
             set_mode(mode)
-        except Exception as exc:  # never let a switch take the service down
+        except Exception as exc:  # a switch must not break the service
             _log(f"VS10 mode '{mode}' failed: {exc}", xbmc.LOGERROR)
 
 
 # --- Player commands -------------------------------------------------------
 
-# What the dashboard's transport row may ask for.  A fixed set, checked before
-# anything reaches Kodi: the request names an action, never a JSON-RPC method,
-# so the page can only ever do these twelve things.
-#
-# "volume" sets an absolute level and no client draws a control for it any
-# more (see volume_up/volume_down below for why).  It stays because a phone
-# that has not been updated yet still sends it, and a command that used to
-# work should not start failing because the box was updated first.
+# Allowed transport commands; requests name an action, never a JSON-RPC
+# method.  "volume" (absolute) is no longer used by the page but kept for
+# older clients.
 _COMMANDS = ("playpause", "stop", "seek", "seek_percent", "volume", "mute",
              "audio", "subtitle", "chapter_previous", "chapter_next",
              "volume_up", "volume_down")
 
-# How far a seek button may jump, in seconds.  Bounded so a malformed value
-# cannot ask the player for something absurd.
+# Maximum relative seek in seconds.
 _SEEK_LIMIT = 3600
 
 
 def _number(value, low: float, high: float) -> float | None:
-    """``value`` as a number inside ``[low, high]``, or None."""
+    """Return *value* as a number within [*low*, *high*], or None."""
     try:
         number = float(value)
     except (TypeError, ValueError):
@@ -1614,12 +1347,10 @@ def _number(value, low: float, high: float) -> float | None:
 
 
 def apply_command(action: str, value=None) -> bool:
-    """Act on one transport command, returning whether it was carried out.
+    """Run a transport command and return whether it succeeded.
 
-    Everything goes through JSON-RPC into the running player rather than
-    through a builtin: the page needs to know whether the thing happened, and
-    a builtin is fire-and-forget.  A command that names no playing video is
-    False rather than a silent no-op, so the page can say so.
+    JSON-RPC (not builtins) so success can be reported; False without a
+    playing video.
     """
     if action not in _COMMANDS:
         return False
@@ -1631,26 +1362,11 @@ def apply_command(action: str, value=None) -> bool:
         return "result" in _rpc("Application.SetVolume",
                                 {"volume": int(level)})
 
-    # Volume and mute go in as the actions a remote sends, not as
-    # Application.SetVolume and Application.SetMute.
-    #
-    # Those two are Kodi's own software mixer: a number inside the Kodi
-    # process, applied on the way to the audio device and never anywhere else.
-    # A box whose CEC adapter is set to pass volume on does not touch that
-    # number at all -- it sends the amplifier a CEC command instead, and it
-    # does so from the input path, where the peripheral gets to see the action
-    # before the application does.  That is the whole of why the volume keys
-    # on the remote reach a soundbar and a JSON-RPC SetVolume never has.
-    #
-    # On a box without CEC the same action moves Kodi's own volume, so this is
-    # what the key does either way and there is nothing to configure here.
-    #
-    # It costs the absolute level: CEC carries "up", "down" and "mute" and has
-    # no command for "set it to 40", which is why the dashboard steps rather
-    # than slides.  It also costs the reading -- Application.GetProperties
-    # goes on reporting Kodi's own level and mute, which on a CEC box is not
-    # the amplifier's -- so the figure the page shows can sit still while the
-    # room gets louder.
+    # Volume and mute are sent as input actions, like a remote, not via
+    # Application.SetVolume/SetMute (Kodi's software mixer).  Only the input
+    # path lets a CEC adapter forward them to an amplifier; without CEC they
+    # change Kodi's volume.  CEC has no absolute level, hence the steps, and
+    # the volume Kodi reports may then not match the amplifier's.
     if action in ("volume_up", "volume_down"):
         name = "volumeup" if action == "volume_up" else "volumedown"
         return _rpc("Input.ExecuteAction",
@@ -1677,9 +1393,8 @@ def apply_command(action: str, value=None) -> bool:
         where = _number(value, 0, 100)
         if where is None:
             return False
-        # On a live channel the bar is the broadcast's (see _broadcast_times),
-        # while Kodi's percentage is one of the timeshift buffer: the target
-        # goes over as a step from where the broadcast is now instead.
+        # Live TV: the bar is the broadcast (see _broadcast_times) but Kodi's
+        # percentage is the timeshift buffer's, so seek relatively.
         broadcast = _broadcast_times()
         if broadcast:
             length = _seconds(broadcast["PlayerDuration"])
@@ -1692,11 +1407,8 @@ def apply_command(action: str, value=None) -> bool:
         return "result" in _rpc("Player.Seek", {
             "playerid": player_id, "value": {"percentage": where}})
     if action in ("chapter_previous", "chapter_next"):
-        # Chapters have no JSON-RPC method of their own.  Kodi moves between
-        # them through the action a keymap would send, and that action falls
-        # back to a big step on a file that has no chapters -- so the count is
-        # checked first: the key either changes chapter or says it cannot, and
-        # never quietly seeks a minute instead.
+        # No JSON-RPC method for chapters; the input action falls back to a
+        # big step without chapters, so the count is checked first.
         if _chapter_count() < 2:
             return False
         name = ("chapterorbigstepforward" if action == "chapter_next"
@@ -1710,8 +1422,7 @@ def apply_command(action: str, value=None) -> bool:
         return "result" in _rpc("Player.SetAudioStream", {
             "playerid": player_id, "stream": int(index)})
 
-    # subtitle: -1 turns them off, anything else picks that track and turns
-    # them on -- one control on the page, so one command here.
+    # subtitle: -1 turns them off, any other index selects and enables.
     index = _number(value, -1, 64)
     if index is None:
         return False

@@ -123,7 +123,7 @@ top and the audio logo below it, on a rounded panel whose colors and opacity are
 fully themeable in the add-on settings. The logos are re-resolved live, so switching
 the audio track updates the audio logo on the fly.
 
-You can enable the logos in three independent situations (**Settings → Codec Logos**):
+You can enable the logos in three independent situations (**Settings → Codec logos**):
 
 - **On playback start** — shown for the first few seconds after a video starts
   (duration configurable).
@@ -231,22 +231,30 @@ simply omit the image.
 
 ## Dolby Vision Metadata View
 
-Enable **Settings → Debug → Dolby Vision metadata view** first; it is off out of
-the box, and while it is off **OK** on the overlay does nothing, exactly as
-before.
+The view is switched by **Settings → DV metadata → Dolby Vision metadata
+view**, which is on out of the box; with it off, **OK** on the overlay does
+nothing.
 
 With it on, pressing **OK** on the open TinyPPI overlay during a **Dolby
 Vision** source switches to a debug view listing everything the stream's side
-data carries — far more than the overlay itself has room for. Pressing **OK**
-again switches back to the normal TinyPPI view; **Back** closes TinyPPI
-altogether. Up/Down scroll through the list, which refreshes ten times a second,
-so the per-frame blocks follow the picture. A reading that just moved is written
-in the highlight colour and stays in it for **Settings → DV metadata → Changed
-values → Highlight duration** (750 ms out of the box), so a change is readable
-without slowing the refresh down; the overlay's own Dolby Vision readings have
-the same pair of settings under **Settings → TinyPPI overlay → Changed values**.
-On any other source **OK** keeps doing nothing: there is no Dolby Vision side
-data to show.
+data carries — far more than the overlay itself has room for. The list
+refreshes ten times a second, so the per-frame blocks follow the picture.
+
+| Key | In the list | In a section opened on its own |
+|-----|-------------|--------------------------------|
+| **Up / Down** | Jump to the previous / next section | Scroll through the section |
+| **OK** | Open the section under the cursor on its own | — |
+| **Back** | Return to the TinyPPI overlay | Return to the list, on the same section |
+| **Stop** | Close TinyPPI | Close TinyPPI |
+
+**Back** on the overlay itself closes TinyPPI, as it always does.
+
+A reading that just moved is written in the highlight colour and stays in it for
+**Settings → DV metadata → Changed values → Highlight duration** (750 ms out of
+the box), so a change is readable without slowing the refresh down; the
+overlay's own Dolby Vision readings have the same pair of settings under
+**Settings → TinyPPI overlay → Changed values**. On any other source **OK**
+keeps doing nothing: there is no Dolby Vision side data to show.
 
 The view is grouped by metadata block:
 
@@ -737,6 +745,18 @@ The dashboard is reachable by anything on the same network while it is on, so:
   then asks for the token before it shows anything at all.
 - **Generate a new token** replaces it and logs out every browser still holding
   the old one.
+- A device that presents **ten different wrong tokens** within ten minutes is
+  turned away for ten minutes, the right token included. A page still holding
+  a token that has since been replaced does not count against it: that is the
+  same wrong token again, and the page simply asks for the new one.
+- Opened under the box's address or a name of the home network (`coreelec`,
+  `coreelec.local`, `coreelec.fritz.box`, `….lan`, `….home` and the like), the
+  readings need no token unless the setting above asks for one. Opened under
+  any other name — a dynamic DNS name, say — the page asks for the token before
+  it shows anything. That is also what stops a web page elsewhere from reading
+  the dashboard through the browser of somebody at home (DNS rebinding).
+- The page may not be shown inside another site's frame, and it loads and runs
+  nothing but its own files (Content Security Policy).
 - The file name obeys the overlay's own *Show file name* setting: with it off,
   the path is not sent to the browser either.
 - Only a fixed set of routes is served — no path is ever resolved against the

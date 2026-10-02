@@ -1,8 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Background service (xbmc.service): keeps a Kodi monitor alive for the session
-so the addon can react to system notifications."""
+"""Background service (xbmc.service).
+
+Keeps a Kodi monitor alive for the session to react to notifications, opens
+views handed over by main.py, runs the splash and owns the web dashboard.
+"""
 
 import os
 import sys
@@ -30,34 +33,26 @@ from ui.theme import apply_theme, migrate_legacy_colors
 from web import library
 from web.server import WebDashboard
 
-# Notification methods that open a view, and the view each one opens.  A
-# keymap can send one straight to us -- NotifyAll(script.tinyppi,open_overlay)
-# -- which is the fastest way in there is: no script is started at all.
+# Notification methods that open a view.  A keymap can send one directly
+# (NotifyAll(script.tinyppi,open_overlay)), the fastest way in: no script
+# is started.
 _OPEN_METHODS = {f"Other.{message}": view
                  for view, message in OPEN_MESSAGES.items()}
 
-# What Kodi announces whenever a skin finishes loading: a skin switched by
-# hand, a skin updated under a running Kodi, and the reload the font install
-# triggers itself.  It is the one signal there is for "the Font.xml the overlay
-# relies on may not be the one we checked" -- the Python Monitor has no
-# onSkinChanged callback, and there is no announcement for an addon update.
+# Sent whenever a skin finishes loading (switch, update, or the reload the
+# font install triggers).  The only signal that Font.xml may have changed:
+# Monitor has no onSkinChanged callback.
 _SKIN_LOADED = "GUI.OnSkinLoaded"
 
-# How long the font check holds off after a skin load, letting Kodi finish
-# settling into the new skin before anything is written under it.
+# Delay after a skin load before the font check writes to the skin.
 _SKIN_SETTLE = 1.0
 
-# How long after startup the warm-up runs.  It registers the overlay's font
-# entries in the skin and imports the view modules, so the first launch of the
-# session finds both done; held off briefly so none of it lands in the middle
-# of Kodi still starting up.
+# Delay before the startup warm-up (font entries, view imports), so it does
+# not compete with Kodi's own startup.
 _WARMUP_DELAY = 5.0
 
-# The notifications that mean the film list the dashboard offers is no longer
-# what the video database holds.  Kodi says so rather than leaving it to be
-# polled, so the held list is simply dropped here and read again by whichever
-# phone asks next -- a scan finishing while nobody is looking at a dashboard
-# costs nothing at all (see web/library.py).
+# Notifications that make the dashboard's cached film list stale.  The list
+# is dropped and re-read on the next request (see web/library.py).
 _LIBRARY_NOTIFICATIONS = (
     "VideoLibrary.OnUpdate",
     "VideoLibrary.OnRemove",
@@ -65,12 +60,9 @@ _LIBRARY_NOTIFICATIONS = (
     "VideoLibrary.OnCleanFinished",
 )
 
-# And the one that means it is about to.  A title being switched off in the
-# middle moves where the box would resume it from, and one watched to the end
-# moves its play count -- both of which every phone in the house is drawing on
-# a tile right now.  Kodi writes them after it has said that playback stopped,
-# and announces only the play count when it does, so the stop is passed on as
-# notice rather than as fact: see ``library.settle``.
+# Playback stop: resume point or play count are about to change.  Kodi
+# writes them after this notification and announces only the play count, so
+# the library is told to expect a change (see ``library.settle``).
 _PLAYBACK_ENDED = "Player.OnStop"
 
 
@@ -78,16 +70,15 @@ _log = channel("service")
 
 
 class KodiMonitor(xbmc.Monitor):
-    """Listens for Kodi notifications; fires the splash on playback start.
+    """Handle Kodi notifications and own the web dashboard's lifecycle.
 
-    Also owns the web dashboard's lifecycle: it is started and stopped from
-    here because this is the one thing that lives for the whole Kodi session.
+    The monitor is the only object that lives for the whole Kodi session.
     """
 
     def __init__(self, dashboard: WebDashboard | None = None) -> None:
         super().__init__()
         self._dashboard = dashboard
-        # Held for as long as a splash controller runs on its thread.
+        # Held while a splash controller runs.
         self._splash_lock = threading.Lock()
 
     def onNotification(self, sender: str, method: str, data: str) -> None:
@@ -106,18 +97,15 @@ class KodiMonitor(xbmc.Monitor):
         elif method == _PLAYBACK_ENDED:
             library.settle()
 
-        # Every notification Kodi sends arrives here -- a library scan sends
-        # one per item -- so the payload goes into the line as it came rather
-        # than parsed for it.
+        # Every notification arrives here (a library scan sends one per
+        # item), so the payload is logged unparsed.
         _log(f"sender={sender}  method={method}  data={data[:200]}")
 
     def onSettingsChanged(self) -> None:
-        """(Re)launch the splash when settings change, and bring the web
-        dashboard in line with them.
+        """Start the splash if needed and apply the dashboard settings.
 
-        A running controller picks up edits on its own (its guard makes this a
-        no-op); this covers the case where all triggers were off at playback
-        start, so enabling one here starts it without restarting playback.
+        A running splash picks up changes itself; this covers enabling a
+        trigger during playback when all were off at start.
         """
         self._maybe_show_splash()
         self.apply_dashboard_settings()
@@ -125,8 +113,7 @@ class KodiMonitor(xbmc.Monitor):
     def apply_dashboard_settings(self) -> None:
         """Start, stop or reconfigure the dashboard to match the settings.
 
-        A failure here must not take the monitor with it: the dashboard is an
-        extra, and Kodi still needs its notifications handled.
+        Failures are logged; they must not take the monitor down.
         """
         if self._dashboard is None:
             return
@@ -138,15 +125,10 @@ class KodiMonitor(xbmc.Monitor):
     def _check_fonts(self) -> None:
         """Register the overlay's font entries in the skin that just loaded.
 
-        A skin brings its own Font.xml, so a switch or an update of the one in
-        use leaves the entries behind in a file nothing reads any more.  This
-        is what puts them back, and it is also what the mark ensure_fonts()
-        reads is re-taken by.
-
-        Off the announcement thread: the check walks the skin directory and may
-        write to it, and Kodi is handing out its announcements one at a time.
-        The check no-ops when the entries are already there, which is what the
-        reload it triggers itself comes back to.
+        Each skin has its own Font.xml, so a switch or update loses the
+        entries.  Runs on its own thread: it walks and may write the skin
+        folder, and Kodi delivers notifications one at a time.  A no-op when
+        the entries exist (as after the reload it triggers itself).
         """
         threading.Thread(target=self._install_fonts, daemon=True).start()
 
@@ -162,12 +144,9 @@ class KodiMonitor(xbmc.Monitor):
     def _open_view(self, view: str) -> None:
         """Open the overlay or the VS10 dialog in this process.
 
-        Acknowledging is the first thing done, and it is done here rather than
-        in the thread below: the launch that asked is sitting in a poll loop
-        waiting for it, and every millisecond of that is a millisecond of the
-        delay this whole path exists to remove.  The view itself goes to a
-        thread of its own because it is modal -- run here it would block Kodi's
-        announcement thread for as long as the overlay stayed up.
+        Acknowledges first, since the requesting launch is polling for it.
+        The modal view runs on its own thread so it does not block Kodi's
+        notification thread.
         """
         home  = home_window()
         token = home.getProperty(PROP_OPEN_REQUEST)
@@ -175,10 +154,9 @@ class KodiMonitor(xbmc.Monitor):
 
         home.clearProperty(PROP_OPEN_REQUEST)
         if token == OPEN_WITHDRAWN:
-            # The launch stopped waiting and is opening the view itself.  The
-            # request is dropped along with it, so the next one -- a keymap
-            # that notifies us directly leaves none of its own -- is not read
-            # as withdrawn too.
+            # The launch gave up and opens the view itself.  The request is
+            # cleared so the next one (a keymap leaves none) is not read as
+            # withdrawn.
             return
 
         threading.Thread(
@@ -187,12 +165,10 @@ class KodiMonitor(xbmc.Monitor):
 
     @staticmethod
     def _run_view(view: str) -> None:
-        """Run a view's entry point, which returns when the viewer closes it.
+        """Run a view's entry point until the viewer closes it.
 
-        The entry points carry every guard themselves -- the platform checks,
-        "is something playing", and the toggle-close when TinyPPI is already
-        up -- so this hands over to them exactly as main.py does, and a failure
-        in one of them must not take the service with it.
+        The entry points do their own checks (platform, playback, toggle),
+        as with main.py.  Failures are logged, not raised.
         """
         try:
             from ui.overlay import open_dialog_mode, open_tinyppi
@@ -204,14 +180,11 @@ class KodiMonitor(xbmc.Monitor):
             _log(f"Exception opening the {view} view: {exc}", xbmc.LOGERROR)
 
     def _maybe_show_splash(self) -> None:
-        """Fire the format-logo splash when enabled for this video.
+        """Start the codec-logo splash when enabled for this video.
 
-        Runs on a thread of this process rather than in a script interpreter
-        of its own: ``RunScript`` started a whole interpreter and imported the
-        splash into it on every playback start and on every settings change
-        while something played, only for most of them to find a controller
-        already running and leave.  Cheap guards run here first; the splash
-        re-checks everything before showing.
+        Runs on a thread here instead of a new interpreter via ``RunScript``,
+        which cost a full import on every playback start and settings change.
+        Cheap checks run here; the splash re-checks before showing.
         """
         try:
             addon = settings.addon()
@@ -225,8 +198,8 @@ class KodiMonitor(xbmc.Monitor):
             _log(f"Exception starting splash: {exc}", xbmc.LOGERROR)
             return
 
-        # One controller at a time in here; the splash's own Home-window guard
-        # still keeps one started through main.py from stacking on this one.
+        # One controller at a time here; the splash's Home-window guard also
+        # stops one started via main.py from stacking.
         if not self._splash_lock.acquire(blocking=False):
             return
         threading.Thread(
@@ -245,30 +218,23 @@ class KodiMonitor(xbmc.Monitor):
 
 
 def _warm_up(monitor: xbmc.Monitor) -> None:
-    """Get the work a launch used to pay for out of the way, off to one side.
+    """Do the slow first-launch work in the background once per session.
 
-    Registering the font entries means walking the skin directory for its
-    Font.xml and parsing it, and the view modules are a few hundred
-    kilobytes of Python to import.  Both used to happen inside the launch the
-    viewer was waiting on; done here they happen once, while nobody is
-    waiting, and every launch of the session finds them done.
-
-    The splash's texture cache is tidied here too, which is also the first
-    thing that runs after an add-on update restarts the service.
+    Registers the font entries (walks and parses the skin's Font.xml),
+    imports the view modules (a few hundred KB of Python) and prunes the
+    splash texture cache, which also runs after an add-on update.
     """
     if monitor.waitForAbort(_WARMUP_DELAY):
         return
 
     try:
-        # The skin-load announcement may already have covered this while Kodi
-        # was starting; ensure_fonts() is what makes that a no-op.
+        # A no-op if the skin-load notification already did this.
         fonts.ensure_fonts()
     except Exception as exc:  # pragma: no cover - never block the service
         _log(f"registering the fonts failed: {exc}", xbmc.LOGWARNING)
 
-    # Both views, since either one can be what the button is set to open.  The
-    # Dolby Vision metadata view is left out on purpose: it is off out of the
-    # box and is the largest of them, so it stays loaded on first use.
+    # Both views, as the button may open either.  The DV metadata view is the
+    # largest and only reached from the overlay, so it loads on first use.
     try:
         import ui.mode_select  # noqa: F401  imported to have it loaded, not used
         import ui.overlay      # noqa: F401
@@ -292,9 +258,8 @@ if __name__ == "__main__":
     dashboard = WebDashboard()
     monitor   = KodiMonitor(dashboard)
 
-    # Colors chosen before the color picker are still stored as a palette index
-    # (or 999 for a HEX color), which the settings would show as the bare
-    # number.  Rewritten once; a no-op from then on.
+    # Colors from before the color picker are stored as a palette index (or
+    # 999 for HEX) and would show as bare numbers.  Rewritten once.
     try:
         moved = migrate_legacy_colors(addon)
         if moved:
@@ -303,20 +268,17 @@ if __name__ == "__main__":
     except Exception as exc:  # pragma: no cover - never block the service
         _log(f"carrying the color settings over failed: {exc}", xbmc.LOGWARNING)
 
-    # Publish the theme properties at startup, so the skin has every color
-    # before the overlay has been opened this session.
+    # Publish the theme so the skin has every color before the first view.
     try:
         apply_theme(win, addon)
     except Exception as exc:  # pragma: no cover - never block the service
         _log(f"apply_theme at startup failed: {exc}", xbmc.LOGWARNING)
 
-    # Off unless the user switched it on; this is what starts it at boot.
+    # Starts the dashboard at boot if it is enabled.
     monitor.apply_dashboard_settings()
 
-    # Tells main.py it may hand a view over here rather than opening it in a
-    # script interpreter of its own.  Set before the warm-up rather than after
-    # it: the handover works either way, and a launch in the first few seconds
-    # of a session then still skips the import pass.
+    # Lets main.py hand views over to this process.  Set before the warm-up:
+    # the handover works either way and saves early launches the imports.
     win.setProperty(PROP_SERVICE, "1")
 
     threading.Thread(target=_warm_up, args=(monitor,), daemon=True).start()
@@ -326,19 +288,13 @@ if __name__ == "__main__":
     # Block until Kodi shuts down; notifications arrive on their own thread.
     monitor.waitForAbort()
 
-    # Nothing may be handed over once this is on its way out.
+    # No handovers during shutdown.
     win.clearProperty(PROP_SERVICE)
 
-    # Nothing may be left running past this point.  Kodi does not simply let
-    # the interpreter go: once this script returns, CPythonInvoker spins with
-    # no timeout of its own until every other thread of the interpreter has
-    # ended, so a web server still accepting connections -- each one a fresh
-    # thread -- is a Kodi that never finishes shutting down.  Being daemons
-    # does not help them; Kodi never reaches the teardown that would.
-    #
-    # It is also on a clock: Kodi allows the script five seconds to stop and
-    # then raises SystemExit in it, which is why the shutdown is the first
-    # thing done here and why it cannot be allowed to raise.
+    # No thread may outlive this script: after it returns, CPythonInvoker
+    # waits without timeout for every interpreter thread, daemons included,
+    # so a running web server would stall Kodi's shutdown.  Kodi also raises
+    # SystemExit after five seconds, so this comes first and must not raise.
     try:
         dashboard.stop(final=True)
     except Exception as exc:  # pragma: no cover - never block the shutdown

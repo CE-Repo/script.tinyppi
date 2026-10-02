@@ -1,23 +1,19 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Start-up / OSD format-logo overlay.
+"""Codec-logo splash for playback start, the video OSD and the overlay.
 
-On ``Player.OnAVStart`` the service (monitor.py) runs this on a thread of its
-own (``RunScript(script.tinyppi,splash)`` still works too).  It stacks the
-format logos in a corner – by default the HDR/video format on top, the audio
-format below, with each mode's
-``splash_<mode>_order`` able to swap them and ``splash_<mode>_show_video`` /
-``splash_<mode>_show_audio`` able to drop either one.  Three settings triggers
-decide when they show: ``splash_enabled`` (first ``splash_duration`` seconds),
-``splash_show_on_osd`` (while the video OSD is open) and ``splash_show_on_tinyppi``
-(while the TinyPPI overlay is open).
+The service runs this on its own thread on ``Player.OnAVStart`` (or via
+``RunScript(script.tinyppi,splash)``).  It stacks the video and audio format
+logos in a panel; per mode, ``splash_<mode>_order`` swaps them and
+``splash_<mode>_show_video`` / ``_show_audio`` hide either.  Modes:
+``splash_enabled`` (first ``splash_duration`` seconds), ``splash_show_on_osd``
+and ``splash_show_on_tinyppi``.
 
-Logos are added as ``ControlImage`` controls directly onto the fullscreen video
-window (12005) and toggled via a visibility condition (see ``_fade_in`` /
-``_fade_out``); drawing straight onto the video window keeps playback controls
-usable, unlike a modeless dialog.  Logos are re-resolved every poll, so an
-audio-track change follows live.
+The logos are ``ControlImage`` controls added to the fullscreen video window
+(12005), shown and hidden by visibility conditions (see ``_fade_in`` /
+``_fade_out``); unlike a modeless dialog this keeps playback controls usable.
+Logos are re-resolved every poll, so audio track changes show live.
 """
 
 import os
@@ -25,7 +21,6 @@ import time
 from typing import NamedTuple
 
 import xbmc
-import xbmcaddon
 import xbmcgui
 from core import settings
 from core.constants import HOME_WINDOW_ID
@@ -37,9 +32,8 @@ from info.dvinfo import get_dv_el_type_raw, get_hdr_format
 from info.imax import imax_logo, is_known_imax_title
 from ui.theme import apply_theme
 
-_ADDON      = xbmcaddon.Addon()
 _MEDIA_PATH = os.path.join(
-    _ADDON.getAddonInfo("path"), "resources", "skins", "Default", "media"
+    settings.addon().getAddonInfo("path"), "resources", "skins", "Default", "media"
 )
 
 _log = channel("splash")
@@ -47,26 +41,22 @@ _log = channel("splash")
 # Kodi window id of the fullscreen video window.
 WINDOW_FULLSCREEN_VIDEO = 12005
 
-# Re-entry guard so overlapping playback starts cannot stack two controllers;
-# on the Home window because a RunScript call is a separate process from the
-# service's own controller thread.
+# Re-entry guard against stacked controllers; a Home property because a
+# RunScript call runs in another interpreter than the service's thread.
 PROP_SPLASH_ACTIVE = "TinyPPI.SplashActive"
 
 # ControlImage aspect-ratio modes: keep for the logos, stretch for the panel.
 _ASPECT_KEEP    = 2
 _ASPECT_STRETCH = 0
 
-# Background panel: a rounded rectangle assembled 9-slice from a 1x1 fill and
-# four rounded-corner masks, all tinted the same ARGB colour.
+# Background panel: 9-slice rounded rectangle from a 1x1 fill and four corner
+# masks, tinted with one ARGB colour.
 _BG_TEXTURE     = os.path.join("common", "dot-1x1.png")
 _DIVIDER_COLOR  = "59FFFFFF"
-# Conversion-indicator badge, straddling the panel's top-right corner (see
-# _is_converting / PROP_CONVERTING below).
+# Conversion badge in the panel's top-right corner (see _is_converting).
 _DOT_TEXTURE       = os.path.join("common", "dot-circle.png")
 _CONVERT_DOT_COLOR = "FF81C784"  # palette Forest
-# Dolby Vision layer-indicator pill, centred on the panel's bottom edge, or its
-# top edge where splash_<mode>_pill_position asks for it (see _dv_layer_token
-# below).
+# DV layer pill on the panel's bottom (or top) edge (see _dv_layer_token).
 _PILL_TEXTURE = os.path.join("common", "pill.png")
 _CORNER_TEXTURES = {
     "tl": os.path.join("splash", "corner-tl.png"),
@@ -75,14 +65,12 @@ _CORNER_TEXTURES = {
     "br": os.path.join("splash", "corner-br.png"),
 }
 
-# Fallback ARGB colours used only before theme.apply_theme has published the
-# themed Home-window properties.
+# Fallback colours until theme.apply_theme has published the themed ones.
 _BG_COLOR   = "FA15181A"  # Charcoal panel (matches the overlay background)
 _LOGO_COLOR = "FFEDEDED"  # near-white (leaves white logos unchanged)
 
-# Home-window properties published by theme.apply_theme for the splash colours.
-# Each context (start / osd / tinyppi) has its own bg / video / audio / divider
-# tint, so a colour change in one context does not touch the others.
+# Home properties of the splash colours (from theme.apply_theme), separate
+# per context (start / osd / tinyppi).
 _MODE_PROP_PREFIX = {
     "start":   "TinyPPI.SplashStart",
     "osd":     "TinyPPI.SplashOsd",
@@ -102,19 +90,13 @@ _COLOR_PROP_SUFFIX = {
 # Controller poll interval (seconds).
 _POLL_INTERVAL = 0.25
 
-# How often the source format is read again once it is known (seconds); see
-# the controller loop.
+# Re-read interval of the source format once known (seconds).
 _FORMAT_INTERVAL = 1.0
 
-# The output at playback start.  The controller starts the moment playback
-# does, and at that moment the display is often still switching: a Dolby
-# Vision or HDR film reads as going out in SDR until the switch has gone
-# through, and logos drawn then claim a conversion to SDR that is not
-# happening.  So nothing is drawn until the output reading has held still for
-# _SETTLE_SECONDS, and an HDR or Dolby Vision source read as going out in SDR
-# -- which is what a switch in progress looks like -- is given up to
-# _SETTLE_SDR_LIMIT to change before it is believed.  A real conversion to SDR
-# is drawn once that limit has passed.
+# At playback start the display is often still switching, so an HDR or DV
+# film briefly reads as SDR output.  Nothing is drawn until the output has
+# been stable for _SETTLE_SECONDS; HDR/DV shown as SDR output gets up to
+# _SETTLE_SDR_LIMIT to change before it is believed.
 _SETTLE_SECONDS   = 1.0
 _SETTLE_SDR_LIMIT = 3.0
 
@@ -122,9 +104,8 @@ _SETTLE_SDR_LIMIT = 3.0
 class _ModeState(NamedTuple):
     """Everything one mode's controls are built from.
 
-    Compared as a whole against the previous poll's value, so any change to a
-    field rebuilds that mode's controls -- which is why ``colors`` is carried
-    as a sorted tuple rather than the dict it comes from.
+    Compared with the previous poll's value; any change rebuilds the mode's
+    controls (hence ``colors`` as a sorted tuple).
     """
 
     logos: tuple
@@ -138,7 +119,7 @@ class _ModeState(NamedTuple):
 
 
 class _ModeSettings(NamedTuple):
-    """One mode's own settings, read once per settings change (_read_settings)."""
+    """One mode's settings, read once per settings change."""
 
     show_video: bool
     show_audio: bool
@@ -150,12 +131,10 @@ class _ModeSettings(NamedTuple):
 
 
 class _Settings(NamedTuple):
-    """Everything the controller reads from the settings.
+    """All settings the controller uses.
 
-    Read in one go whenever ``core.settings`` hands out a new handle -- which
-    is exactly when a setting changed -- instead of setting by setting on
-    every poll: the loop runs four times a second for the whole film, and
-    asks for some two dozen of them each time.
+    Read in one go when ``core.settings`` returns a new handle (i.e. after a
+    change), not on every poll.
     """
 
     show_on_start: bool
@@ -165,15 +144,17 @@ class _Settings(NamedTuple):
     modes: dict
 
 
-# Fade in/out.  Kodi only plays "Visible"/"Hidden" animations on runtime-added
-# controls when a *visibility condition* changes value (setVisible() alone does
-# not), so the controls watch a global guard plus a per-mode Home-window
-# property.  External conditions (VideoOSD / TinyPPI state) can then start the
-# fades immediately once the controls have been preloaded.
+# Kodi plays Visible/Hidden animations on runtime-added controls only when a
+# visibility condition changes (not on setVisible()), so the controls watch a
+# global and a per-mode Home property.  OSD and overlay conditions can then
+# start the fades at once.
 PROP_SPLASH_VISIBLE = "TinyPPI.SplashVisible"
 _VISIBLE_CONDITION  = (
     f"String.IsEqual(Window({HOME_WINDOW_ID}).Property({PROP_SPLASH_VISIBLE}),true)"
 )
+# Token of the current controller run, part of every control's condition, so
+# controls a run had to leave behind stay hidden (see open_splash's cleanup).
+PROP_SPLASH_RUN = "TinyPPI.SplashRun"
 _MODE_VISIBLE_PROPS = {
     "start":   "TinyPPI.SplashStartVisible",
     "osd":     "TinyPPI.SplashOsdVisible",
@@ -181,29 +162,24 @@ _MODE_VISIBLE_PROPS = {
 }
 _FADE_IN_MS       = 350
 _FADE_OUT_MS      = 150
-_FADE_OUT_SECONDS = (_FADE_OUT_MS + 60) / 1000.0  # wait a touch past the fade
-_RENDER_TICK      = 0.05  # one render frame, so Kodi settles a state change
+_FADE_OUT_SECONDS = (_FADE_OUT_MS + 60) / 1000.0  # slightly past the fade
+_RENDER_TICK      = 0.05  # one render frame for Kodi to apply a change
 _ANIM_IN  = ("Visible",
              f"effect=fade start=0 end=100 time={_FADE_IN_MS} tween=cubic easing=inout")
 _ANIM_OUT = ("Hidden",
              f"effect=fade start=100 end=0 time={_FADE_OUT_MS}")
 
-# Conversion-indicator badge: true while an HDR<->Dolby Vision conversion is
-# active, mirroring script-tinyppi-main.xml's check-circle condition (updated
-# every poll below; the dot's own visibleCondition ANDs this in, so Kodi shows
-# or hides it live without a control rebuild).
+# "true" while a conversion is active (see _is_converting); part of the
+# badge's condition, so it toggles without a rebuild.
 PROP_CONVERTING = "TinyPPI.SplashConverting"
 
 
 def _is_converting(hdr_type: str, gamut: str) -> bool:
-    """Mirror script-tinyppi-main.xml's converting check-circle condition.
+    """Return whether the output *gamut* shows a conversion.
 
-    True when the Amlogic output *gamut* shows a real HDR<->Dolby Vision
-    conversion (non-DV source now DV, DV/HDR source falling back to SDR, or
-    SDR/DV tone-mapped to HDR10).  *hdr_type* is the source format detected from
-    the stream's side data rather than the overlay's Home-window property, so
-    this works before the overlay is ever opened.  Both are read once per poll
-    by the caller.
+    Mirrors the check-circle condition in script-tinyppi-main.xml: non-DV
+    source output as DV, HDR/DV output as SDR, or SDR/DV output as HDR10.
+    *hdr_type* comes from the side data, so this works without the overlay.
     """
     gamut = gamut.upper()
     parts = gamut.split()
@@ -220,10 +196,7 @@ def _is_converting(hdr_type: str, gamut: str) -> bool:
     return bool(sdr_or_dv_source and mode == "HDR10")
 
 
-# Dolby Vision layer-indicator pill: which enhancement-layer bucket the current
-# source falls into, themed independently per context (FEL forest, MEL
-# tangerine, any other DV profile white by default -- see theme.py / the
-# "fel" / "mel" / "other" keys _mode_colors adds to every mode's colour dict).
+# Fallback DV pill colours per layer (FEL forest, MEL tangerine, other white).
 _LAYER_COLOR_FALLBACK = {
     "fel":   "FF81C784",  # palette Forest
     "mel":   "FFFFB74D",  # palette Tangerine
@@ -232,14 +205,11 @@ _LAYER_COLOR_FALLBACK = {
 
 
 def _dv_layer_token(hdr_token: str, hdr_type: str, el_type: str) -> str:
-    """Classify what is actually on screen into a layer-indicator pill token.
+    """Return the DV pill token for the output: fel, mel, other or ''.
 
-    Driven by the real Amlogic output (*hdr_token*), not the source
-    (*hdr_type*, with its enhancement layer *el_type*): ``'fel'``/``'mel'``
-    for a DV source with that layer, ``'other'`` for any other DV profile and
-    for a non-DV source converted up to DV, ``''`` when the output isn't DV at
-    all (including a DV source converted away) — the pill only claims what's
-    genuinely on screen.
+    Based on the actual output (*hdr_token*): '' when it is not DV, 'other'
+    for non-DV sources converted to DV and other profiles, else the source's
+    enhancement layer (*el_type*).
     """
     if hdr_token != "dolbyvision":
         return ""
@@ -253,24 +223,21 @@ def _dv_layer_token(hdr_token: str, hdr_type: str, el_type: str) -> str:
     return "other"
 
 
-# Per-mode horizontal / vertical offset settings (priority when several are
-# active: TinyPPI overlay > OSD > start-up window).
+# Per-mode offset settings (x, y).
 _OFFSET_SETTINGS = {
     "start":   ("splash_start_offset_x",   "splash_start_offset_y"),
     "osd":     ("splash_osd_offset_x",     "splash_osd_offset_y"),
     "tinyppi": ("splash_tinyppi_offset_x", "splash_tinyppi_offset_y"),
 }
 
-# Per-mode size multiplier (stored 80–130 %, default 100 %); multiplies the base
-# layout scale below.
+# Per-mode size setting (80-130 %, default 100 %), times _BASE_SCALE.
 _SCALE_SETTINGS = {
     "start":   "splash_start_scale",
     "osd":     "splash_osd_scale",
     "tinyppi": "splash_tinyppi_scale",
 }
 
-# Per-mode logo selection: which of the two logos the stack carries and in which
-# order.  Defaults keep the original block -- both logos, video on top.
+# Per-mode logo selection and order (default: both, video on top).
 _SHOW_VIDEO_SETTINGS = {
     "start":   "splash_start_show_video",
     "osd":     "splash_osd_show_video",
@@ -289,23 +256,21 @@ _ORDER_SETTINGS = {
 # splash_<mode>_order: 0 keeps video on top, 1 puts audio on top.
 _ORDER_AUDIO_FIRST = 1
 
-# Per-mode edge the Dolby Vision layer pill sits on.
+# Per-mode edge of the DV layer pill.
 _PILL_POSITION_SETTINGS = {
     "start":   "splash_start_pill_position",
     "osd":     "splash_osd_pill_position",
     "tinyppi": "splash_tinyppi_pill_position",
 }
-# splash_<mode>_pill_position: 0 keeps the pill on the panel's bottom edge,
-# 1 moves it to the top edge.
+# splash_<mode>_pill_position: 0 bottom edge, 1 top edge.
 _PILL_TOP = 1
 
-# Base layout scale for the logo block; a user scale of 1.0 keeps the original size.
+# Base scale of the logo block (at a user scale of 100 %).
 _BASE_SCALE = 0.95
 
 
 def _amlogic_hdr_token(gamut: str) -> str:
-    """Classify the Amlogic output mode (``amlogic.eoft_gamut``) into an
-    ``HDR_LOGO_MAP`` key (``''`` for SDR / unknown)."""
+    """Map the Amlogic output mode to an ``HDR_LOGO_MAP`` key ('' for SDR)."""
     parts = gamut.split()
     mode = parts[0].upper() if parts else ""
     if "DV" in mode or "DOLBY" in mode:
@@ -320,22 +285,17 @@ def _amlogic_hdr_token(gamut: str) -> str:
 
 
 def _current_logos(hdr_token: str) -> tuple[str, str]:
-    """Return the ``(video, audio)`` logos for what is currently on screen.
+    """Return the ``(video, audio)`` logos for the current output.
 
-    The video logo falls back to SDR and is therefore always set; the audio one
-    is ``""`` for a codec with no logo.  Which of the two a mode actually stacks
-    is left to ``_mode_logos``.
+    The video logo is always set (SDR fallback); the audio logo is '' for a
+    codec without one.  ``_mode_logos`` decides what a mode shows.
     """
     codec = info("VideoPlayer.AudioCodec").lower().strip()
     audio_logo = AUDIO_LOGO_MAP.get(codec, "")
 
     video_logo = HDR_LOGO_MAP.get(hdr_token, HDR_LOGO_MAP[""])
-    # An IMAX film gets the combined logo for the format it is shown in.
-    # *hdr_token* is the Amlogic output, so this follows what is genuinely on
-    # screen -- a source converted to another format takes that format's logo.
-    # The film is identified for the whole runtime (see info.imax), not per
-    # frame, and the map lookup comes first so only a candidate format pays for
-    # the title match.
+    # IMAX films get the combined logo of the output format.  The map lookup
+    # comes first, so only candidate formats pay for the title match.
     if hdr_token in IMAX_LOGO_MAP and is_known_imax_title():
         video_logo = imax_logo(hdr_token) or video_logo
 
@@ -343,19 +303,17 @@ def _current_logos(hdr_token: str) -> tuple[str, str]:
 
 
 def _has_audio(player: xbmc.Player) -> bool:
-    """Return whether the playing video carries an audio track at all.
+    """Return whether the video has an audio track.
 
-    Asked of the player rather than read off the codec alone: an empty codec is
-    also what a track reads as before Kodi has named it, and a track that is
-    there but not named yet must not be taken for no track.
+    Asks the player as well: the codec is also empty before Kodi has named
+    it.
     """
     if info("VideoPlayer.AudioCodec").strip():
         return True
     try:
         return bool(player.getAvailableAudioStreams())
     except RuntimeError:
-        # Playback ended under us; the loop notices on its next poll.  True
-        # keeps the stack as it would have been.
+        # Playback ended; the loop notices.  True keeps the stack unchanged.
         return True
 
 
@@ -363,18 +321,12 @@ def _mode_logos(
     mode_settings: _ModeSettings, logos: tuple[str, str],
     has_audio: bool = True,
 ) -> tuple[tuple[str, str], ...]:
-    """Return a mode's stack as ``(logo, colour key)`` pairs, top entry first.
+    """Return a mode's stack as ``(logo, colour key)`` pairs, top first.
 
-    Applies the mode's two visibility toggles and its order setting to the
-    ``(video, audio)`` pair from ``_current_logos``, so the stack can hold two,
-    one or no entries; the colour key travels with each logo because the order
-    is no longer fixed.
-
-    Asking for both keeps the block all-or-nothing as it has always been: a
-    stream whose audio codec has no logo shows nothing rather than a lone video
-    logo.  Only a toggle turned off puts the other logo on screen by itself --
-    or a video with no audio track at all (``has_audio`` False), which has no
-    audio logo to be missing and shows its video logo alone.
+    Applies the mode's show and order settings.  With both logos enabled the
+    stack is all or nothing (an audio codec without a logo shows nothing),
+    except for videos without audio (*has_audio* False), which show the
+    video logo alone.
     """
     video_logo, audio_logo = logos
     show_video = mode_settings.show_video
@@ -393,7 +345,7 @@ def _mode_logos(
 
 
 def _make_image(rel_path: str, x: int, y: int, w: int, h: int, color: str) -> xbmcgui.ControlImage:
-    """Build a keep-aspect, tinted ``ControlImage`` from a media-relative path."""
+    """Build a tinted, aspect-keeping image from a media-relative path."""
     full_path = os.path.join(_MEDIA_PATH, rel_path.replace("/", os.sep))
     texture = display_texture(full_path, w, h)
     return xbmcgui.ControlImage(
@@ -402,7 +354,7 @@ def _make_image(rel_path: str, x: int, y: int, w: int, h: int, color: str) -> xb
 
 
 def _make_dot(cx: int, cy: int, diameter: int, color: str) -> xbmcgui.ControlImage:
-    """Build a filled circle centred on ``(cx, cy)``, e.g. straddling a corner."""
+    """Build a filled circle centred on (*cx*, *cy*)."""
     return _make_image(
         _DOT_TEXTURE,
         cx - diameter // 2, cy - diameter // 2, diameter, diameter, color,
@@ -410,7 +362,7 @@ def _make_dot(cx: int, cy: int, diameter: int, color: str) -> xbmcgui.ControlIma
 
 
 def _solid(x: int, y: int, w: int, h: int, color: str) -> xbmcgui.ControlImage:
-    """Return a stretched, solid-colour fill built from the 1x1 texture."""
+    """Return a solid-colour rectangle from the 1x1 texture."""
     texture = os.path.join(_MEDIA_PATH, _BG_TEXTURE)
     return xbmcgui.ControlImage(
         x, y, max(1, w), max(1, h), texture,
@@ -421,7 +373,7 @@ def _solid(x: int, y: int, w: int, h: int, color: str) -> xbmcgui.ControlImage:
 def _panel_controls(
     x: int, y: int, w: int, h: int, radius: int, color: str
 ) -> list[xbmcgui.ControlImage]:
-    """Assemble a rounded rectangle from a centre fill, four edges and corners."""
+    """Build a rounded rectangle from a centre, four edges and four corners."""
     c = max(1, min(radius, w // 2, h // 2))
     corner = lambda key, cx, cy: xbmcgui.ControlImage(  # noqa: E731
         cx, cy, c, c, os.path.join(_MEDIA_PATH, _CORNER_TEXTURES[key]),
@@ -445,28 +397,22 @@ def _build_controls(
     offset_x: int, offset_y: int, screen_w: int, screen_h: int,
     user_scale: float = 1.0, layer_token: str = "", pill_at_top: bool = False,
 ) -> tuple[list[xbmcgui.ControlImage], xbmcgui.ControlImage | None]:
-    """Lay out the logos as a vertical stack, sized to the skin.
+    """Lay out the logos as a vertical stack on a rounded panel.
 
-    *logos* are ``(logo, colour key)`` pairs from ``_mode_logos``, top entry
-    first; a single-entry stack draws the same panel without the divider.
+    *logos* are ``(logo, colour key)`` pairs, top first; a single logo has
+    no divider.  Sizes are fractions of the window's coordinate space.
+    *offset_x* / *offset_y* (0-100 %) move the panel from the top-left inset
+    to the bottom-right; *user_scale* resizes it.  *colors* holds the tints
+    by key; *layer_token* picks the DV pill colour ('' for no pill), and
+    *pill_at_top* moves the pill to the top edge.
 
-    Sizes are fractions of the window's coordinate space so placement holds up
-    across 720p / 1080p skins.  ``offset_x``/``offset_y`` (0–100 %) slide the
-    block from a top-left inset to the bottom-right corner; ``user_scale``
-    resizes it.  A rounded panel is drawn behind the logos; ``colors`` supplies
-    the ARGB tints (``bg``/``video``/``audio``/``divider``/``convert_dot``/
-    ``fel``/``mel``/``other``), and ``layer_token`` selects the Dolby Vision
-    layer-indicator pill's colour, omitting the pill when ``''``;
-    ``pill_at_top`` moves that pill to the panel's top edge.
-
-    Returns ``(controls, dot)``, where ``dot`` is the conversion-indicator
-    badge (also in ``controls``) so the caller can give it its own stricter
-    visible condition; ``None`` when there are no logos to show.
+    Returns ``(controls, dot)``; *dot* is the conversion badge (also in
+    *controls*) for its own condition, None when there are no logos.
     """
     if not logos:
         return [], None
 
-    # Overall size multiplier: base layout scale times the per-mode user scale.
+    # Base scale times the mode's own scale.
     scale = _BASE_SCALE * user_scale
 
     box_w    = int(screen_w * 0.09 * scale)
@@ -481,8 +427,7 @@ def _build_controls(
     panel_w = box_w + 2 * pad_x
     panel_h = stack_h + 2 * pad_y
 
-    # Slide the panel across the screen, keeping a corner inset at 0 % and a
-    # smaller gap at 100 % so it never sits perfectly flush.
+    # Position: an inset at 0 %, a smaller gap at 100 %, never flush.
     inset = int(screen_h * 0.0325)
     edge  = 35
     offset_x = min(100, max(0, offset_x))
@@ -494,8 +439,7 @@ def _build_controls(
 
     controls: list[xbmcgui.ControlImage] = []
 
-    # Rounded background panel (behind the logos) plus a divider between them;
-    # both are always present and hidden via their themed opacity.
+    # Panel and divider; always present, hidden by their themed opacity.
     controls.extend(_panel_controls(
         block_x - pad_x, top - pad_y,
         box_w + 2 * pad_x, panel_h,
@@ -506,14 +450,12 @@ def _build_controls(
         div_y = top + box_h + v_gap // 2 - div_h // 2
         controls.append(_solid(block_x, div_y, box_w, div_h, colors["divider"]))
 
-    # Logos, top to bottom, each tinted with its own kind's colour so the video
-    # and audio tints follow their logo when the order is swapped.
+    # Logos top to bottom, each tinted by its kind (follows the order).
     for index, (logo, kind) in enumerate(logos):
         y = top + index * (box_h + v_gap)
         controls.append(_make_image(logo, block_x, y, box_w, box_h, colors[kind]))
 
-    # Conversion-indicator badge, tucked inside the panel's top-right corner;
-    # its own visible condition (set by the caller) ANDs in PROP_CONVERTING.
+    # Conversion badge in the top-right corner (condition set by the caller).
     dot_d   = max(1, int(box_h * 0.20))
     dot_pad = max(1, int(box_h * 0.20))
     dot_cx  = panel_x + panel_w - dot_pad - dot_d // 2
@@ -521,9 +463,7 @@ def _build_controls(
     dot = _make_dot(dot_cx, dot_cy, dot_d, colors["convert_dot"])
     controls.append(dot)
 
-    # Dolby Vision layer-indicator pill, centred on the panel's bottom edge --
-    # or its top edge when the mode asks for it (FEL / MEL / any other DV
-    # profile); omitted for non-DV sources.
+    # DV layer pill, centred on the bottom or top edge; none for non-DV.
     if layer_token in ("fel", "mel", "other"):
         pill_w      = max(1, int(box_w * 0.30))
         pill_h      = max(1, int(box_h * 0.15))
@@ -541,11 +481,10 @@ def _build_controls(
 
 
 def _window_dims(window) -> tuple[int, int]:
-    """Return the coordinate-space size ``addControl`` uses on *window*.
+    """Return the coordinate space ``addControl`` uses on *window*.
 
-    Uses ``Window.getWidth()`` / ``getHeight()`` (the system added controls are
-    positioned in), which can differ from the global screen size; falls back to
-    the screen size when the window reports no usable values.
+    The window's own size, which may differ from the screen size; falls
+    back to the screen size when the window reports none.
     """
     try:
         width, height = window.getWidth(), window.getHeight()
@@ -557,7 +496,7 @@ def _window_dims(window) -> tuple[int, int]:
 
 
 def _read_settings(addon) -> _Settings:
-    """Read every setting the controller follows, once (see ``_Settings``)."""
+    """Read all controller settings (see ``_Settings``)."""
     modes = {}
     for mode in _MODE_PROP_PREFIX:
         setting_x, setting_y = _OFFSET_SETTINGS[mode]
@@ -584,11 +523,9 @@ def _read_settings(addon) -> _Settings:
 
 
 def _mode_colors(home, mode: str) -> dict[str, str]:
-    """Read *mode*'s bg / video / audio / divider / convert_dot / fel / mel /
-    other tints off *home*.
+    """Return *mode*'s tints from the Home properties, with fallbacks.
 
-    Call after ``apply_theme`` has published the themed properties; falls back to
-    the pre-theme defaults if a property is somehow missing.
+    Call after ``apply_theme``.
     """
     prefix = _MODE_PROP_PREFIX[mode]
     fallback = {
@@ -606,8 +543,7 @@ def _mode_colors(home, mode: str) -> dict[str, str]:
 
 
 def _mode_scale(addon, mode: str) -> float:
-    """Return the size multiplier for *mode* (setting stored as 80–130 %),
-    clamped to 0.8–1.3."""
+    """Return *mode*'s size multiplier, clamped to 0.8-1.3."""
     try:
         percent = addon.getSettingInt(_SCALE_SETTINGS[mode])
     except Exception:
@@ -616,17 +552,25 @@ def _mode_scale(addon, mode: str) -> float:
 
 
 def _home_prop_condition(prop: str, expected: bool = True) -> str:
-    """Return a Kodi visibility fragment for a true/false Home property."""
+    """Return a condition testing Home property *prop* for true (or not)."""
     condition = f"String.IsEqual(Window({HOME_WINDOW_ID}).Property({prop}),true)"
     return condition if expected else f"!{condition}"
 
 
-def _visible_condition(mode: str, suppress_start_for_osd: bool = False) -> str:
-    """Return the Kodi visibility condition used by controls for *mode*."""
+def _visible_condition(mode: str, suppress_start_for_osd: bool = False,
+                       run: str = "") -> str:
+    """Return the visibility condition of *mode*'s controls.
+
+    Tied to the controller *run* (see ``PROP_SPLASH_RUN``).
+    """
     parts = [
         _VISIBLE_CONDITION,
         _home_prop_condition(_MODE_VISIBLE_PROPS[mode]),
     ]
+    if run:
+        parts.append(
+            f"String.IsEqual(Window({HOME_WINDOW_ID}).Property({PROP_SPLASH_RUN}),{run})"
+        )
     if mode == "start":
         parts.extend((
             _home_prop_condition(PROP_RUNNING, False),
@@ -649,7 +593,7 @@ def _visible_condition(mode: str, suppress_start_for_osd: bool = False) -> str:
 
 
 def _clear_mode_visibility(home, mode: str | None = None) -> None:
-    """Clear one mode visibility property, or all mode properties."""
+    """Clear *mode*'s visibility property, or all of them."""
     props = (_MODE_VISIBLE_PROPS[mode],) if mode else _MODE_VISIBLE_PROPS.values()
     for prop in props:
         home.clearProperty(prop)
@@ -661,14 +605,10 @@ def _fade_in(
 ) -> None:
     """Add *controls* to the video window and fade them in.
 
-    Every control gets *condition*, except the conversion-indicator *dot*,
-    which additionally requires PROP_CONVERTING so Kodi can pop it in and out
-    without a control rebuild.
-
-    Ordering is load-bearing (deviating makes the logos pop or flash):
-    force-hide before adding, bind the visibility condition before arming any
-    animation, settle a render tick, arm animations and lift the force-hide,
-    then flip the property to play the "Visible" fade.
+    All controls get *condition*; the badge *dot* also requires
+    ``PROP_CONVERTING``.  The order matters (otherwise the logos pop or
+    flash): hide, add, bind conditions, wait a render tick, arm animations
+    and unhide, then set the property that plays the fade.
     """
     dot_condition = condition + " + " + _home_prop_condition(PROP_CONVERTING)
     home.clearProperty(_MODE_VISIBLE_PROPS[mode])
@@ -690,31 +630,31 @@ def _fade_in(
 
 
 def _remove_controls(video_window, controls) -> None:
-    """Remove controls from the video window, ignoring already-closed windows."""
+    """Remove *controls* from the video window, ignoring failures."""
     try:
         video_window.removeControls(controls)
     except Exception:
-        # The video window may already be gone; a failed removal is harmless.
+        # The window may already be gone.
         pass
 
 
 def _fade_out(video_window, home, monitor, mode: str, controls) -> None:
-    """Fade *controls* out (condition true→false), await it, remove them."""
+    """Fade *controls* out, wait, and remove them.
+
+    Not removed while Kodi stops the service: removal waits on the GUI
+    thread, which no longer answers then (see open_splash's cleanup).
+    """
     home.clearProperty(_MODE_VISIBLE_PROPS[mode])
-    monitor.waitForAbort(_FADE_OUT_SECONDS)
+    if monitor.waitForAbort(_FADE_OUT_SECONDS):
+        return
     _remove_controls(video_window, controls)
 
 
 def _safe_addon():
-    """Return the settings handle in force right now, or None.
+    """Return the current settings handle, or None while unavailable.
 
-    ``core.settings`` renews the handle whenever a setting changes, so live
-    edits apply without restarting playback while an ordinary poll costs one
-    stat.  Updating the addon during playback briefly deletes and re-registers
-    ``script.tinyppi``: an ``Addon()`` built then can raise ``RuntimeError``, or
-    load with its settings definition not ready (``TypeError`` on any read).
-    Construction alone doesn't prove it's usable — one read does — so the
-    long-lived splash loop must tolerate both and exit quietly.
+    During an add-on update ``Addon()`` may raise ``RuntimeError`` or load
+    without settings (``TypeError`` on read), so one read verifies it.
     """
     try:
         addon = settings.addon()
@@ -725,13 +665,12 @@ def _safe_addon():
 
 
 def open_splash() -> None:
-    """Run the logo overlay controller for the current video's lifetime.
+    """Run the splash controller for the current video.
 
-    Each poll prepares the enabled modes (start-up, VideoOSD, TinyPPI overlay)
-    and lets Kodi's visibility conditions start the actual fades immediately.
-    Rebuilds still happen on offset / scale / colour / format changes.  Skips
-    silently when all triggers are off, no video plays, or another controller is
-    running.
+    Each poll prepares the enabled modes; Kodi's visibility conditions start
+    the fades.  Controls are rebuilt on offset, scale, colour or format
+    changes.  Returns at once when all modes are off, no video plays, or
+    another controller runs.
     """
     addon = _safe_addon()
     if addon is None:
@@ -766,24 +705,24 @@ def open_splash() -> None:
     monitor = xbmc.Monitor()
 
     home.setProperty(PROP_SPLASH_ACTIVE, "true")
+    run = f"{os.getpid()}-{time.monotonic_ns()}"
+    home.setProperty(PROP_SPLASH_RUN, run)
     home.clearProperty(PROP_SPLASH_VISIBLE)
     _clear_mode_visibility(home)
     controls_by_mode: dict[str, list[xbmcgui.ControlImage]] = {}
     states: dict[str, _ModeState] = {}
-    # The handle ``config`` was read from, and whether the theme has been
-    # published -- and each mode's tints read back -- since it was.
+    # Handle ``config`` came from, and whether the theme was published since.
     read_from = addon
     themed = False
     colors_by_mode: dict[str, dict[str, str]] = {}
-    # The source format and its enhancement layer, with the output they were
-    # read against and when they are due again (see the loop), and the
-    # conversion badge's state as last published.
+    # Source format and layer, the output they were read for, the next
+    # re-read, and the published badge state.
     hdr_type = el_type = ""
     format_gamut = None
     format_due = 0.0
     converting = None
-    # When the logos were first drawn, which is where the start window begins;
-    # None while the output is still settling (see _SETTLE_SECONDS).
+    # When the logos were first drawn (start of the start window); None
+    # while the output settles.
     started = None
     waiting_since = time.monotonic()
     settle_gamut = None
@@ -793,10 +732,7 @@ def open_splash() -> None:
             if not player.isPlayingVideo():
                 break
 
-            # The same handle every poll until a setting changes, so live
-            # edits still apply without restarting playback while an ordinary
-            # poll reads nothing.  While the addon is being updated Kodi
-            # unregisters our id, so bail out cleanly if it's gone.
+            # A new handle means changed settings; None during an update.
             addon = _safe_addon()
             if addon is None:
                 break
@@ -814,17 +750,12 @@ def open_splash() -> None:
             in_start_window = show_on_start and (
                 started is None or now - started < duration)
 
-            # The gamut and the detected format drive the badge, the pill and
-            # the logos alike, so read each once here rather than in all three.
+            # Read once for badge, pill and logos.
             gamut = info("Player.Process(amlogic.eoft_gamut)")
             hdr_token = _amlogic_hdr_token(gamut)
-            # The source format and its layer describe the title, but reading
-            # them parses the frame's side data, which for Dolby Vision is new
-            # with every frame.  So they are read again once a second, at once
-            # when the output changes, and on every poll while no format has
-            # been found yet -- the side data can take a moment to arrive.
-            # Whether there is an audio track at all rides on the same clock:
-            # it describes the title too, and asking takes the player's lock.
+            # Reading the format parses side data, so it is re-read once a
+            # second, when the output changes, or every poll until known.  The
+            # audio-track check (player lock) uses the same schedule.
             if not hdr_type or gamut != format_gamut or now >= format_due:
                 hdr_type = get_hdr_format()
                 el_type = get_dv_el_type_raw() if "dolby" in hdr_type else ""
@@ -832,15 +763,14 @@ def open_splash() -> None:
                 format_gamut = gamut
                 format_due = now + _FORMAT_INTERVAL
 
-            # Kept current every poll so the dot's own visibleCondition can pop
-            # it in/out without a control rebuild (see _is_converting).
+            # Updated every poll; the badge's condition follows it.
             now_converting = "true" if _is_converting(hdr_type, gamut) else "false"
             if now_converting != converting:
                 converting = now_converting
                 home.setProperty(PROP_CONVERTING, converting)
 
             if started is None:
-                # Nothing drawn yet: hold off while the output is settling.
+                # Wait for the output to settle before drawing.
                 if gamut != settle_gamut:
                     settle_gamut, settle_since = gamut, now
                 switching = bool(hdr_type) and not hdr_token
@@ -865,9 +795,8 @@ def open_splash() -> None:
                     modes.append("tinyppi")
 
                 if modes:
-                    # Publish every themed colour once per settings change,
-                    # then read each context's own tints back so they stay
-                    # independent.
+                    # Publish the theme once per settings change, then read
+                    # each context's tints back.
                     if not themed:
                         apply_theme(home, addon)
                         colors_by_mode = {
@@ -877,8 +806,7 @@ def open_splash() -> None:
                         themed = True
                     layer_token = _dv_layer_token(hdr_token, hdr_type, el_type)
                     for mode in modes:
-                        # Each mode picks and orders its own logos, so a mode
-                        # left with none simply draws nothing this poll.
+                        # A mode without logos draws nothing this poll.
                         mode_settings = config.modes[mode]
                         mode_logos = _mode_logos(mode_settings, logos, has_audio)
                         if not mode_logos:
@@ -890,7 +818,7 @@ def open_splash() -> None:
                             offset_y=mode_settings.offset_y,
                             scale=mode_settings.scale,
                             colors=tuple(sorted(colors.items())),
-                            condition=_visible_condition(mode, show_on_osd),
+                            condition=_visible_condition(mode, show_on_osd, run),
                             layer_token=layer_token,
                             pill_at_top=mode_settings.pill_at_top,
                         )
@@ -902,19 +830,26 @@ def open_splash() -> None:
             if remove_modes:
                 for mode in remove_modes:
                     home.clearProperty(_MODE_VISIBLE_PROPS[mode])
-                monitor.waitForAbort(_FADE_OUT_SECONDS)
+                if monitor.waitForAbort(_FADE_OUT_SECONDS):
+                    break
                 for mode in remove_modes:
                     _remove_controls(video_window, controls_by_mode[mode])
                     controls_by_mode.pop(mode, None)
                     states.pop(mode, None)
 
             for mode, desired in desired_states.items():
+                # Adding controls waits on the GUI thread, so nothing is
+                # drawn while Kodi stops the service.
+                if monitor.abortRequested():
+                    break
                 if states.get(mode) == desired:
                     continue
                 if mode in controls_by_mode:
                     _log(f"{mode} redrawn for output {gamut!r}, source "
                          f"{hdr_type or 'sdr'!r}")
                     _fade_out(video_window, home, monitor, mode, controls_by_mode[mode])
+                    if monitor.abortRequested():
+                        break
                 controls, dot = _build_controls(
                     list(desired.logos), colors_by_mode[mode],
                     desired.offset_x, desired.offset_y,
@@ -940,14 +875,19 @@ def open_splash() -> None:
             if monitor.waitForAbort(wait_time):
                 break
     except TypeError:
-        # The settings went away mid-poll, between _safe_addon() proving them
-        # readable and a later read here.  Same update window, same answer:
-        # leave quietly, the finally below still tidies up.
+        # Settings vanished mid-poll (add-on update); clean up and leave.
         pass
     finally:
-        for controls in controls_by_mode.values():
-            _remove_controls(video_window, controls)
+        # Properties first: they hide the logos and free the guard without
+        # waiting on the GUI thread.  Removing controls waits on it, and while
+        # Kodi stops the service (update, add-on disabled) that wait ends in
+        # SystemExit, which used to leave the guard set until a restart.  On
+        # abort the controls stay, hidden for good by the run token.
         home.clearProperty(PROP_SPLASH_VISIBLE)
         _clear_mode_visibility(home)
         home.clearProperty(PROP_CONVERTING)
+        home.clearProperty(PROP_SPLASH_RUN)
         home.clearProperty(PROP_SPLASH_ACTIVE)
+        if not monitor.abortRequested():
+            for controls in controls_by_mode.values():
+                _remove_controls(video_window, controls)

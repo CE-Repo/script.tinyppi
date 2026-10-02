@@ -131,14 +131,29 @@ window.TinyPPI = (function () {
     return node;
   }
 
-  let token = localStorage.getItem(TOKEN_KEY) || "";
+  /* Guarded like every other read of storage here: a browser that blocks it
+     (Safari with every cookie blocked, some in-app web views) throws on the
+     first touch, and an exception out here would take the whole module -- and
+     with it the page -- down before it had drawn anything.  Without storage
+     the token simply lasts as long as the tab. */
+  function storedToken() {
+    try { return localStorage.getItem(TOKEN_KEY) || ""; }
+    catch (_) { return ""; }
+  }
+
+  function storeToken(value) {
+    try { localStorage.setItem(TOKEN_KEY, value); }
+    catch (_) { /* kept for this tab only */ }
+  }
+
+  let token = storedToken();
   let onState = null;
   let source = null;
   let retryAt = 1000;
   let retryTimer = 0;
   /* The last whole snapshot.  Everything after the first frame of a
-     connection arrives as a delta measured against it (see _snapshot_delta in
-     web/server.py), so it is what those are applied to. */
+     connection arrives as a delta measured against it (see snapshot_delta in
+     web/delta.py), so it is what those are applied to. */
   let base = null;
   let statusEl = null;
   let statusText = null;
@@ -176,7 +191,7 @@ window.TinyPPI = (function () {
         return;
       }
       token = tokenInput.value.trim().toUpperCase();
-      localStorage.setItem(TOKEN_KEY, token);
+      storeToken(token);
       /* The settings tab shows which token this device holds. */
       document.dispatchEvent(new CustomEvent("tinyppi-token"));
       /* The stream carries the token in its URL -- an EventSource cannot send
@@ -439,6 +454,16 @@ window.TinyPPI = (function () {
         if (token) toast(T.token_bad, true);
         askToken();
         return;
+      }
+      if (response.status === 429) {
+        /* Too many wrong tokens from this device: the add-on will not look at
+           another for a while and says how long, so the page waits that out
+           rather than spending it on attempts that are turned away unread. */
+        setStatus("down", T.token_bad);
+        toast(T.token_bad, true);
+        return response.json().then(
+          (answer) => scheduleRetry(Math.max((answer && answer.retry_ms) || 0, 5000)),
+          () => scheduleRetry(60000));
       }
       return response.json().then((state) => {
         if (state && state.streams_full) {

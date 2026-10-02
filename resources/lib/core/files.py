@@ -1,15 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Writing a file so that nobody ever reads half of it.
+"""Atomic file writes.
 
-A set-top box is switched off at the wall as often as it is shut down, and a
-file being rewritten when that happens is left truncated.  For most of what
-the add-on writes that only costs a cache entry; for the skin's Font.xml it
-costs the whole skin, which then no longer loads at all.  So nothing is
-rewritten in place: the new content goes into a file of its own beside the
-target, is flushed to the storage, and only then takes the target's name --
-a rename the file system carries out whole or not at all.
+Set-top boxes are often switched off at the wall, which leaves a file that
+was being rewritten truncated.  For a cache entry that is harmless; for the
+skin's Font.xml it breaks the whole skin.  So nothing is rewritten in place:
+the new content goes to a temporary file next to the target, is flushed to
+storage, and then renamed over the target in one step.
 """
 
 import os
@@ -18,18 +16,19 @@ import threading
 
 
 def temp_path(path: str) -> str:
-    """The name a new version of ``path`` is written under before it replaces
-    it: unique per process and thread, so two writers never share one, and
-    ending in ``.tmp`` so a leftover one is recognisable as such."""
+    """Return the temporary name a new version of *path* is written under.
+
+    Unique per process and thread, and ending in ``.tmp`` so a leftover file
+    is recognisable.
+    """
     return f"{path}.{os.getpid()}-{threading.get_ident()}.tmp"
 
 
 def atomic_write(path: str, data: bytes) -> None:
-    """Replace ``path`` with ``data`` in one step.
+    """Replace *path* with *data* in one step.
 
-    A file that already exists keeps its permission bits; a new one is created
-    the way ``open`` would create it.  Raises ``OSError`` when the write fails,
-    leaving ``path`` exactly as it was and no temporary file behind.
+    An existing file keeps its permission bits.  Raises ``OSError`` on
+    failure, leaving *path* unchanged and no temporary file behind.
     """
     tmp = temp_path(path)
     try:
@@ -40,7 +39,7 @@ def atomic_write(path: str, data: bytes) -> None:
         try:
             os.chmod(tmp, stat.S_IMODE(os.stat(path).st_mode))
         except OSError:
-            pass  # no file to take them from, or none that may be changed
+            pass  # no existing file, or its mode cannot be copied
         os.replace(tmp, path)
     except BaseException:
         try:

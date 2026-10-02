@@ -1,19 +1,17 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""The dashboard's two settings buttons: show its address, mint a new token.
+"""The dashboard's two settings actions: show the address, create a token.
 
-Both run through ``RunScript`` from the settings dialog, so they happen in
-their own interpreter and never hold the settings UI while sysfs or a socket
-answers.
+Both run via ``RunScript`` from the settings dialog, in their own
+interpreter, so they never block the settings UI.
 """
 
-import xbmcaddon
 import xbmcgui
 
+from core import settings
+from core.utils import localized
 from web.server import ensure_token, generate_token, local_address
-
-_ADDON = xbmcaddon.Addon()
 
 _HEADING       = 32446   # Web dashboard
 _ADDRESS_INTRO = 32447   # Open this address in a browser on the same network:
@@ -22,29 +20,21 @@ _TOKEN_NEW     = 32438   # Generate a new token
 
 
 def show_web_info() -> None:
-    """Show the URL and token together, which is what someone standing in
-    front of the TV with a phone actually needs."""
+    """Show the dashboard URL and token together."""
     address = local_address()
-    token   = ensure_token(_ADDON)
+    token   = ensure_token(settings.addon())
     body = (
-        f"{_ADDON.getLocalizedString(_ADDRESS_INTRO)}\n\n"
+        f"{localized(_ADDRESS_INTRO)}\n\n"
         f"[B]{address}[/B]\n\n"
-        f"{_ADDON.getLocalizedString(_TOKEN_LABEL)}:  [B]{token}[/B]"
+        f"{localized(_TOKEN_LABEL)}:  [B]{token}[/B]"
     )
-    xbmcgui.Dialog().textviewer(
-        _ADDON.getLocalizedString(_HEADING), body, usemono=True
-    )
+    xbmcgui.Dialog().textviewer(localized(_HEADING), body, usemono=True)
 
 
 def new_web_token() -> None:
-    """Mint a new token and show it, so the one just invalidated is replaced
-    by one the user can read straight away.
-
-    Every browser holding the old token is logged out by this; that is the
-    point of the button.
-    """
-    token = generate_token(_ADDON)
+    """Create and show a new token, logging out every browser using the old one."""
+    token = generate_token(settings.addon())
     xbmcgui.Dialog().ok(
-        _ADDON.getLocalizedString(_TOKEN_NEW),
-        f"{_ADDON.getLocalizedString(_TOKEN_LABEL)}:  [B]{token}[/B]",
+        localized(_TOKEN_NEW),
+        f"{localized(_TOKEN_LABEL)}:  [B]{token}[/B]",
     )

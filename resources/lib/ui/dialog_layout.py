@@ -1,16 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Geometry and choices of the VS10 dialog's layouts.
+"""Geometry and choices of the VS10 dialog's three layouts.
 
-One dialog, three ways of drawing it: the single button, the bar and the
-panel the add-on has always had. Which window file each is drawn from,
-how large its panel is and therefore how far it may be moved all live here,
-so the skin generator in ``tools/gen_dialog_skins.py`` and the dialog itself
-work from one description rather than from two that drift apart.
-
-Imported by the generator outside Kodi as well, so everything Kodi supplies
-is optional here.
+Single button, bar and panel.  Window files, panel sizes and movement ranges
+live here so ``tools/gen_dialog_skins.py`` and the dialog share one
+description.  The generator imports this outside Kodi, so Kodi modules are
+optional.
 """
 
 from core.constants import HOME_WINDOW_ID
@@ -22,10 +18,8 @@ except ImportError:
     xbmc = None
     settings = None
 
-# The layouts, and the window file each is drawn from. The numbering is the
-# order they were written in, not the order the settings list offers them:
-# that is the settings file's to say, and a stored value has to keep meaning
-# what it meant.
+# Layout ids and their window files.  The numbers are stored in settings and
+# must keep their meaning; the settings list orders them independently.
 MODE_DIALOG = 0
 MODE_BAR = 1
 MODE_SINGLE = 2
@@ -36,7 +30,7 @@ XML_FILES = {
     MODE_SINGLE: "script-tinyppi-dialog-single.xml",
 }
 
-# The panel of each mode, as the window files draw it.
+# Panel size per layout, as drawn by the window files.
 PANEL_SIZE = {
     MODE_DIALOG: (471, 546),
     MODE_BAR: (1702, 206),
@@ -45,29 +39,24 @@ PANEL_SIZE = {
 
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
-# The margin every mode keeps to the screen edge.
+# Margin every layout keeps to the screen edge.
 SCREEN_MARGIN = 50
 
-# The group the window files wrap their panel in, which the dialog moves, and
-# the property it holds off drawing itself on until that move has happened.
+# The panel group the dialog moves, and the property that keeps it hidden
+# until it has been placed.
 GROUP_PANEL = 2
 PROP_PLACED = "TinyPPI.DialogPlaced"
 
-# The single button layout's one button, which stands for whichever choice
-# its step is on.
+# The single-button layout's button; it shows the current choice.
 SINGLE_BUTTON = 1500
 
-# Kodi's left and right. Every other layout moves focus from button to button
-# with them; the single button layout has only the one, so they step it.
+# Kodi's left and right actions; they step the single-button layout.
 ACTION_MOVE_LEFT = 1
 ACTION_MOVE_RIGHT = 2
 
-# What the stream is, as the skin branches on it. The first is the one that
-# has no VS10 modes to offer at all - HDR10+ and HLG, and a Dolby Vision
-# grade with an ST 2094-40 payload beside its RPU, which the driver does not
-# take the VS10 modes for either. The other three exclude it, so exactly one
-# branch is ever on screen: a layout that laid two of them out at once would
-# put two panels in the same place.
+# Skin conditions per stream type.  The plain branch has no VS10 modes
+# (HDR10+, HLG, and DV with an ST 2094-40 payload); the others exclude it,
+# so exactly one branch is ever visible.
 _HOME = f"Window({HOME_WINDOW_ID}).Property"
 _PLAIN_CONDITION = (
     "String.IsEqual(%s(TinyPPI.HdrType),hdr10plus)"
@@ -80,17 +69,14 @@ _HAS_VS10_CONDITION = (
     " + !String.IsEqual(%s(TinyPPI.Hdr10PlusPresent),1)" % (_HOME, _HOME, _HOME)
 )
 
-# The Player Process Info button, which every branch opens with. It is a
-# control of its own per branch rather than one shared between them: the
-# layouts put it in a different place depending on how many choices follow
-# it, and a control can only be in one place.
+# The Player Process Info button that starts every branch; one control per
+# branch, since its position depends on the number of choices.
 PPI_LABEL = "[B][CAPITALIZE]$LOCALIZE[10116][/CAPITALIZE][/B]"
 PPI_BUTTONS = (1001, 1101, 1201, 1301)
 
-# Every branch, in the order the buttons are laid out: the Player Process
-# Info button first, then the VS10 modes. Each is its control id, its name
-# and what ui.mode_select runs for it - None for the Player Process Info
-# button, which opens the overlay instead.
+# Every branch with its buttons in layout order: (control id, label, mode
+# for ui.mode_select).  The mode is None for the Player Process Info button,
+# which opens the overlay.
 BRANCHES = (
     {
         "key": "sdr",
@@ -144,48 +130,45 @@ def _setting_int(name, default):
 
 
 def dialog_mode():
-    """The selected layout, falling back to the single button - the default.
+    """Return the selected layout, or the single button (the default).
 
-    An unknown value means a settings file from a newer version than this
-    code, so it is treated as the default rather than breaking the dialog.
+    Unknown values (from a newer version) fall back to the default.
     """
     mode = _setting_int("dialog_mode", MODE_SINGLE)
     return mode if mode in XML_FILES else MODE_SINGLE
 
 
 def xml_file(mode=None):
-    """The window file matching a layout."""
+    """Return the window file for *mode* (default: the selected layout)."""
     return XML_FILES[dialog_mode() if mode is None else mode]
 
 
 def _across(value, low, high):
-    """``value`` percent of the way from ``low`` to ``high``, rounded up at .5.
+    """Return *value* percent of the way from *low* to *high*.
 
-    Rounded half up rather than to even so the middle of a panel with an odd
-    number of pixels left over lands where the hand written layout puts it.
+    Rounded half up (not to even) so a centred panel lands where the
+    hand-written layout puts it.
     """
     return low + int((high - low) * max(0, min(100, value)) / 100.0 + 0.5)
 
 
 def left_range(mode):
-    """How far a movable panel may travel sideways, margin to margin."""
+    """Return the horizontal range of the panel's left edge."""
     width = PANEL_SIZE[mode][0]
     return SCREEN_MARGIN, SCREEN_WIDTH - width - SCREEN_MARGIN
 
 
 def top_range(mode):
-    """How far a panel may travel up and down, margin to margin."""
+    """Return the vertical range of the panel's top edge."""
     height = PANEL_SIZE[mode][1]
     return SCREEN_MARGIN, SCREEN_HEIGHT - height - SCREEN_MARGIN
 
 
 def panel_position(mode):
-    """Where the panel goes, from the two position settings.
+    """Return the panel position from the two position settings.
 
-    Vertically 0% is a margin below the top edge and 100% rests it on the
-    bottom one; horizontally 0% and 100% are the left and right margins. The
-    defaults - 50% across and 100% down - rest the panel on the bottom
-    margin, in the middle of the screen.
+    0% and 100% are the margins on each axis; the defaults (50% across,
+    100% down) centre the panel at the bottom.
     """
     ceiling, floor = top_range(mode)
     leftmost, rightmost = left_range(mode)
@@ -195,11 +178,10 @@ def panel_position(mode):
 
 
 def branch_for(hdr_type, hdr10plus_present):
-    """The branch the dialog is showing, from the two published properties.
+    """Return the branch for the published HDR type and HDR10+ flag.
 
-    Mirrors the conditions the window files branch on, so the single button
-    layout - which has no branch of its own to read and steps through the
-    choices from here - offers exactly what the others draw.
+    Mirrors the window files' conditions, so the single-button layout
+    (which steps through the choices from here) offers the same options.
     """
     hdr_type = (hdr_type or "").lower()
     if (hdr_type == "hdr10plus" or "hlg" in hdr_type
@@ -218,14 +200,11 @@ def branch_for(hdr_type, hdr10plus_present):
 
 
 def plain_label(markup):
-    """A button's label with everything the skin resolves already resolved.
+    """Return *markup* with ``$LOCALIZE`` resolved, for a label set in code.
 
-    Bold and the rest of Kodi's text markup survive being set from code; a
-    ``$LOCALIZE`` does not - a window file is parsed for those and a label set
-    at runtime is not - so it is looked up here. Kodi gives the name already
-    written the way it wants to be read, and it goes on the button that way:
-    the capitalising the other layouts ask for belongs to a row of names
-    where one alone would read as an odd one out.
+    Text markup survives ``setLabel``, but ``$LOCALIZE`` is only resolved in
+    window files.  The capitalisation used in the button rows is dropped,
+    since a single button reads better with Kodi's own spelling.
     """
     if "$LOCALIZE[10116]" in markup:
         localized = (xbmc.getLocalizedString(10116) if xbmc is not None
