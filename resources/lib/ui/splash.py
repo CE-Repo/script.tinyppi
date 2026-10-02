@@ -172,6 +172,11 @@ PROP_SPLASH_VISIBLE = "TinyPPI.SplashVisible"
 _VISIBLE_CONDITION  = (
     f"String.IsEqual(Window({HOME_WINDOW_ID}).Property({PROP_SPLASH_VISIBLE}),true)"
 )
+# Which controller run the logos on screen belong to.  Every run writes a token
+# of its own here and every control it adds asks for it, so controls a run had
+# to leave behind on the video window stay hidden for good once the next one
+# starts -- see the cleanup at the end of open_splash for when that happens.
+PROP_SPLASH_RUN = "TinyPPI.SplashRun"
 _MODE_VISIBLE_PROPS = {
     "start":   "TinyPPI.SplashStartVisible",
     "osd":     "TinyPPI.SplashOsdVisible",
@@ -619,12 +624,18 @@ def _home_prop_condition(prop: str, expected: bool = True) -> str:
     return condition if expected else f"!{condition}"
 
 
-def _visible_condition(mode: str, suppress_start_for_osd: bool = False) -> str:
-    """Return the Kodi visibility condition used by controls for *mode*."""
+def _visible_condition(mode: str, suppress_start_for_osd: bool = False,
+                       run: str = "") -> str:
+    """Return the Kodi visibility condition used by controls for *mode*,
+    tied to the controller *run* that adds them (see PROP_SPLASH_RUN)."""
     parts = [
         _VISIBLE_CONDITION,
         _home_prop_condition(_MODE_VISIBLE_PROPS[mode]),
     ]
+    if run:
+        parts.append(
+            f"String.IsEqual(Window({HOME_WINDOW_ID}).Property({PROP_SPLASH_RUN}),{run})"
+        )
     if mode == "start":
         parts.extend((
             _home_prop_condition(PROP_RUNNING, False),
@@ -697,9 +708,14 @@ def _remove_controls(video_window, controls) -> None:
 
 
 def _fade_out(video_window, home, monitor, mode: str, controls) -> None:
-    """Fade *controls* out (condition true→false), await it, remove them."""
+    """Fade *controls* out (condition true→false), await it, remove them.
+
+    Not removed once Kodi is stopping the service: the removal waits on the GUI
+    thread, which by then does not answer (see the cleanup in open_splash).
+    """
     home.clearProperty(_MODE_VISIBLE_PROPS[mode])
-    monitor.waitForAbort(_FADE_OUT_SECONDS)
+    if monitor.waitForAbort(_FADE_OUT_SECONDS):
+        return
     _remove_controls(video_window, controls)
 
 
@@ -764,6 +780,8 @@ def open_splash() -> None:
     monitor = xbmc.Monitor()
 
     home.setProperty(PROP_SPLASH_ACTIVE, "true")
+    run = f"{os.getpid()}-{time.monotonic_ns()}"
+    home.setProperty(PROP_SPLASH_RUN, run)
     home.clearProperty(PROP_SPLASH_VISIBLE)
     _clear_mode_visibility(home)
     controls_by_mode: dict[str, list[xbmcgui.ControlImage]] = {}
@@ -888,7 +906,7 @@ def open_splash() -> None:
                             offset_y=mode_settings.offset_y,
                             scale=mode_settings.scale,
                             colors=tuple(sorted(colors.items())),
-                            condition=_visible_condition(mode, show_on_osd),
+                            condition=_visible_condition(mode, show_on_osd, run),
                             layer_token=layer_token,
                             pill_at_top=mode_settings.pill_at_top,
                         )
@@ -900,19 +918,27 @@ def open_splash() -> None:
             if remove_modes:
                 for mode in remove_modes:
                     home.clearProperty(_MODE_VISIBLE_PROPS[mode])
-                monitor.waitForAbort(_FADE_OUT_SECONDS)
+                if monitor.waitForAbort(_FADE_OUT_SECONDS):
+                    break
                 for mode in remove_modes:
                     _remove_controls(video_window, controls_by_mode[mode])
                     controls_by_mode.pop(mode, None)
                     states.pop(mode, None)
 
             for mode, desired in desired_states.items():
+                # Adding a control waits on the GUI thread as removing one
+                # does, so nothing is drawn once Kodi is stopping the service;
+                # the wait at the foot of the loop then ends it.
+                if monitor.abortRequested():
+                    break
                 if states.get(mode) == desired:
                     continue
                 if mode in controls_by_mode:
                     _log(f"{mode} redrawn for output {gamut!r}, source "
                          f"{hdr_type or 'sdr'!r}")
                     _fade_out(video_window, home, monitor, mode, controls_by_mode[mode])
+                    if monitor.abortRequested():
+                        break
                 controls, dot = _build_controls(
                     list(desired.logos), colors_by_mode[mode],
                     desired.offset_x, desired.offset_y,
@@ -943,9 +969,21 @@ def open_splash() -> None:
         # leave quietly, the finally below still tidies up.
         pass
     finally:
-        for controls in controls_by_mode.values():
-            _remove_controls(video_window, controls)
+        # The Home-window properties first: they are what hides the logos and
+        # what lets the next controller start, and clearing one never waits on
+        # Kodi's GUI thread.  Removing a control does -- the removal is handed
+        # to the GUI thread and waited for -- and while Kodi is stopping the
+        # service (an add-on update, the add-on switched off mid-film) that wait
+        # does not end before Kodi gives up on the thread and raises SystemExit
+        # in it.  That used to leave PROP_SPLASH_ACTIVE set for the rest of the
+        # session, and with it no logos at all until Kodi was restarted.  So on
+        # abort the controls stay where they are, hidden for good by the run
+        # token in their condition.
         home.clearProperty(PROP_SPLASH_VISIBLE)
         _clear_mode_visibility(home)
         home.clearProperty(PROP_CONVERTING)
+        home.clearProperty(PROP_SPLASH_RUN)
         home.clearProperty(PROP_SPLASH_ACTIVE)
+        if not monitor.abortRequested():
+            for controls in controls_by_mode.values():
+                _remove_controls(video_window, controls)

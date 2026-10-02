@@ -540,11 +540,23 @@ _ART_LABELS = {
 }
 
 
+def _is_skin_texture(path: str) -> bool:
+    """Whether *path* names one of the skin's own textures rather than artwork.
+
+    Kodi answers ``VideoPlayer.Cover`` with ``DefaultVideoCover.png`` for a
+    file that has no artwork of its own: a placeholder the skin draws by name,
+    not a file anybody can read.  Taken for a poster it gave the page a tag to
+    ask for and an answer of 404 every time the page was opened.  Artwork is
+    always a path, a URL or an ``image://`` address; a bare name is the skin's.
+    """
+    return "/" not in path and "\\" not in path
+
+
 def art_path(kind: str) -> str:
     """The raw path Kodi holds for a kind of artwork, or ''."""
     for label in _ART_LABELS.get(kind, ()):
         path = info(label).strip()
-        if path:
+        if path and not _is_skin_texture(path):
             return path
     return ""
 

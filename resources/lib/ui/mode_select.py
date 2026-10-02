@@ -104,6 +104,16 @@ _VS10_PROBE_SETTING = "coreelec.amlogic.dolbyvision.vs10.dv"
 # Cached result of the one-time capability probe (None = not yet probed).
 _vs10_actions = None
 
+# How many sysfs writes have failed on this thread, so a switch can tell
+# whether the sequence it ran actually reached the driver (see _apply_mode).
+# Per thread because a staged switch runs on one of its own, and the dashboard
+# and the dialog can each be switching at once.
+_writes = threading.local()
+
+
+def _failed_writes() -> int:
+    return getattr(_writes, "failed", 0)
+
 
 def _w(path: str, value: str) -> None:
     try:
@@ -111,6 +121,7 @@ def _w(path: str, value: str) -> None:
             f.write(value)
         log(f"{path} = {value}", xbmc.LOGINFO)
     except OSError as e:
+        _writes.failed = _failed_writes() + 1
         log(f"FAILED {path}: {e}", xbmc.LOGERROR)
 
 
@@ -787,11 +798,22 @@ def _apply_mode(name: str) -> bool:
             xbmc.LOGINFO,
         )
 
+    failed_before = _failed_writes()
     sysfs()
-    log(
-        f"mode '{name}' set via built-in TinyPPI VS10 (sysfs)",
-        xbmc.LOGINFO,
-    )
+    failed = _failed_writes() - failed_before
+    if failed:
+        # Said as it is: a log reading "set" over a sequence the driver never
+        # saw sends whoever reads it after the wrong cause.
+        log(
+            f"mode '{name}' NOT set via built-in TinyPPI VS10 (sysfs): "
+            f"{failed} write(s) failed, see the lines above",
+            xbmc.LOGERROR,
+        )
+    else:
+        log(
+            f"mode '{name}' set via built-in TinyPPI VS10 (sysfs)",
+            xbmc.LOGINFO,
+        )
     return True
 
 

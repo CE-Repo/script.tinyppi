@@ -123,7 +123,7 @@ top and the audio logo below it, on a rounded panel whose colors and opacity are
 fully themeable in the add-on settings. The logos are re-resolved live, so switching
 the audio track updates the audio logo on the fly.
 
-You can enable the logos in three independent situations (**Settings → Codec Logos**):
+You can enable the logos in three independent situations (**Settings → Codec logos**):
 
 - **On playback start** — shown for the first few seconds after a video starts
   (duration configurable).
@@ -231,22 +231,30 @@ simply omit the image.
 
 ## Dolby Vision Metadata View
 
-Enable **Settings → Debug → Dolby Vision metadata view** first; it is off out of
-the box, and while it is off **OK** on the overlay does nothing, exactly as
-before.
+The view is switched by **Settings → DV metadata → Dolby Vision metadata
+view**, which is on out of the box; with it off, **OK** on the overlay does
+nothing.
 
 With it on, pressing **OK** on the open TinyPPI overlay during a **Dolby
 Vision** source switches to a debug view listing everything the stream's side
-data carries — far more than the overlay itself has room for. Pressing **OK**
-again switches back to the normal TinyPPI view; **Back** closes TinyPPI
-altogether. Up/Down scroll through the list, which refreshes ten times a second,
-so the per-frame blocks follow the picture. A reading that just moved is written
-in the highlight colour and stays in it for **Settings → DV metadata → Changed
-values → Highlight duration** (750 ms out of the box), so a change is readable
-without slowing the refresh down; the overlay's own Dolby Vision readings have
-the same pair of settings under **Settings → TinyPPI overlay → Changed values**.
-On any other source **OK** keeps doing nothing: there is no Dolby Vision side
-data to show.
+data carries — far more than the overlay itself has room for. The list
+refreshes ten times a second, so the per-frame blocks follow the picture.
+
+| Key | In the list | In a section opened on its own |
+|-----|-------------|--------------------------------|
+| **Up / Down** | Jump to the previous / next section | Scroll through the section |
+| **OK** | Open the section under the cursor on its own | — |
+| **Back** | Return to the TinyPPI overlay | Return to the list, on the same section |
+| **Stop** | Close TinyPPI | Close TinyPPI |
+
+**Back** on the overlay itself closes TinyPPI, as it always does.
+
+A reading that just moved is written in the highlight colour and stays in it for
+**Settings → DV metadata → Changed values → Highlight duration** (750 ms out of
+the box), so a change is readable without slowing the refresh down; the
+overlay's own Dolby Vision readings have the same pair of settings under
+**Settings → TinyPPI overlay → Changed values**. On any other source **OK**
+keeps doing nothing: there is no Dolby Vision side data to show.
 
 The view is grouped by metadata block:
 
