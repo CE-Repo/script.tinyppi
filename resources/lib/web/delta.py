@@ -1,31 +1,24 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Delta frames: what a stream sends after the first snapshot.
+"""Delta frames: what the event stream sends after the first snapshot.
 
-``snapshot_delta`` is what the stream loop in web/routes.py measures every
-frame after the first with, and js/core.js is what patches them back
-together.
+A browser gets one full snapshot on connect, then only changes.  Most rows
+stay fixed for a whole title while the clock and a few figures move five
+times a second, so a delta is a few dozen bytes instead of tens of KB, which
+matters for a phone's battery.  ``snapshot_delta`` is used by the stream
+loop in web/routes.py; js/core.js applies the frames.
+
+The two long lists are diffed by row while their shape (cards, row ids and
+labels) is unchanged; otherwise the whole list is sent.  Other keys are
+compared and sent whole.
 """
-
-# The stream sends one whole snapshot when a browser connects and only what
-# moved after that.  Almost nothing does: a title's rows are written once and
-# then stand for two hours, while the clock and a handful of figures move five
-# times a second -- so a delta is a few dozen bytes where the snapshot it
-# replaces is tens of kilobytes, which on a phone is the difference between a
-# background tab that costs nothing and one that costs a battery.
-#
-# The two long lists are diffed by row.  Their *shape* -- which cards exist,
-# which rows they hold and what those are called -- decides how: unchanged, and
-# only the readings that moved are sent; changed at all, and the whole list
-# goes, because a page cannot patch rows into a list it does not have yet.
-# Everything else is compared whole and sent whole, each being small.
 
 _DELTA_LISTS = ("groups", "metadata")
 
 
 def _group_shape(groups: list) -> tuple:
-    """Which cards a snapshot has, and which rows under which names."""
+    """Return the cards and their rows' ids and labels."""
     return tuple(
         (group.get("id"), group.get("title"),
          tuple((row.get("id"), row.get("label")) for row in group.get("rows", ())))
@@ -34,7 +27,7 @@ def _group_shape(groups: list) -> tuple:
 
 
 def _group_rows_delta(previous: list, current: list) -> list | None:
-    """Changed rows as ``[id, value, detail]``, or None to send the lot."""
+    """Return changed rows as ``[id, value, detail]``, or None for all."""
     if _group_shape(previous) != _group_shape(current):
         return None
     changed = []
@@ -48,11 +41,10 @@ def _group_rows_delta(previous: list, current: list) -> list | None:
 
 
 def _metadata_shape(rows: list) -> tuple:
-    """The metadata list's shape: what each row is and how wide it is.
+    """Return each metadata row's kind, name and cell count (-1 for a value).
 
-    A trim row carries cells and every other row a single value (see
-    ``snapshot._metadata_row``), so the width tells the two apart as well as
-    catching a table that gained a column.
+    The cell count also catches a table that gained a column (see
+    ``snapshot._metadata_row``).
     """
     return tuple(
         (row.get("kind"), row.get("name"),
@@ -62,7 +54,7 @@ def _metadata_shape(rows: list) -> tuple:
 
 
 def _metadata_delta(previous: list, current: list) -> list | None:
-    """Changed rows as ``[index, value-or-cells]``, or None to send the lot."""
+    """Return changed rows as ``[index, value-or-cells]``, or None for all."""
     if _metadata_shape(previous) != _metadata_shape(current):
         return None
     changed = []
@@ -73,7 +65,7 @@ def _metadata_delta(previous: list, current: list) -> list | None:
 
 
 def snapshot_delta(previous: dict, current: dict) -> dict:
-    """One delta frame: what ``current`` has that ``previous`` did not."""
+    """Return the delta frame from *previous* to *current*."""
     frame: dict = {"seq": current.get("seq", 0)}
 
     moved = {key: value for key, value in current.items()

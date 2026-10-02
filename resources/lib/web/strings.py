@@ -1,17 +1,14 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""The dashboard's own chrome, in whatever language Kodi is set to."""
+"""The dashboard's UI strings in Kodi's current language."""
 
 import xbmc
 
 from core import settings
 
-# The page's own chrome, keyed the way its script names them.  Sent with
-# /api/hello so the dashboard speaks whatever language Kodi is set to, the
-# same as the row labels that travel with each snapshot.  Four of them are
-# the overlay's own strings rather than new ones, so the two always agree on
-# what a reading is called.
+# UI string ids keyed as the page's script names them, sent with /api/hello.
+# Some reuse the overlay's strings, so both name readings the same.
 _UI_STRINGS = {
     "connected":     32448,
     "connecting":    32449,
@@ -28,8 +25,7 @@ _UI_STRINGS = {
     "metadata_section": 32289,  # Metadata
     "no_metadata":      32470,
     "no_metadata_text": 32471,
-    # The VS10 output the picture leaves on, not the audio row's sink,
-    # which keeps #32055: one string cannot be translated for both.
+    # The picture's VS10 output, not the audio sink (#32055).
     "output":        32057,   # Output (picture)
     "copy":          32456,
     "copied":        32457,
@@ -41,7 +37,7 @@ _UI_STRINGS = {
     "switching":     32464,
     "switched":      32465,
     "switch_failed": 32466,
-    # The summary figures, history chart and transport row.
+    # Summary figures, history chart and transport row.
     "switches":      32478,
     "events":        32479,
     "events_empty":  32480,
@@ -58,12 +54,12 @@ _UI_STRINGS = {
     "controls":      32494,
     "metrics":       32495,
     "player_cache":  32511,
-    # What a reading with no value shows, as the overlay's own rows do.
+    # Shown for readings without a value, as in the overlay.
     "na":            32033,
     "warnings":        32514,
     "temperature":     32018,
     "processor":       32014,
-    # The theme button and the menu behind a long press on it.
+    # Theme button and its long-press menu.
     "theme_dark":      32496,
     "theme_adaptive":  32497,
     "theme_midnight":  32498,
@@ -72,31 +68,27 @@ _UI_STRINGS = {
     "tint_subtle":     32502,
     "tint_standard":   32503,
     "tint_strong":     32504,
-    # The playback chart, the title that has just ended, and the one thing a
-    # stream can be refused for that is worth naming.
+    # Playback chart, the last title, and the "too many streams" reason.
     "last_played":     32507,
     "summary":         32508,
     "busy":            32509,
-    # The tab bar.  The two shelves are named by "films" and "series".
+    # Tab bar (the shelves use "films" and "series").
     "tab_live":        32582,
     "tab_metadata":    32583,
     "tab_history":     32584,
-    # The settings tab: the theme, the token and the reports that used to sit
-    # behind the key in the top bar.
+    # Settings tab: theme, token and reports.
     "tab_settings":    32585,
     "token_enter":     32586,
     "report_live":     32587,
-    # The two keys either side of play, on a file that has chapters.
+    # Chapter keys next to play.
     "chapter_previous": 32515,
     "chapter_next":     32516,
-    # The volume, which steps rather than slides so that a box passing volume
-    # over CEC can send the steps on to an amplifier.
+    # Volume steps (not a slider, so CEC can pass them to an amplifier).
     "volume_down":      32517,
     "volume_up":        32518,
-    # The wall clock under the middle of the progress bar, between how far the
-    # title has got and how long it runs for.
+    # End time under the progress bar.
     "ends_at":          32531,
-    # The film library the idle page offers instead of an empty screen.
+    # Film library shown when idle.
     "films":            32532,
     "films_empty":      32533,
     "films_search":     32534,
@@ -104,12 +96,11 @@ _UI_STRINGS = {
     "films_failed":     32536,
     "films_resume":     32537,
     "films_watched":    32540,
-    # The row of films and episodes left half-watched, above both shelves.
+    # Row of partly watched films and episodes.
     "continue":         32572,
-    # The row of what arrived in the library last, under it.
+    # Row of recently added items.
     "recent":           32588,
-    # The walls of what is still unwatched, under the walls of everything, and
-    # the question a press on a title asks.
+    # Unwatched walls and the per-title actions.
     "films_unseen":     32573,
     "series_unseen_shows": 32574,
     "mark_watched":     32575,
@@ -119,8 +110,7 @@ _UI_STRINGS = {
     "series_open":      32579,
     "play_from_start":  32580,
     "resume_clear":     32581,
-    # And the series library beside it: the same shelf with one floor more,
-    # so the same strings again plus the few an episode list needs.
+    # Series library, plus the episode list strings.
     "series":           32541,
     "series_empty":     32542,
     "series_search":    32543,
@@ -129,10 +119,9 @@ _UI_STRINGS = {
     "series_season":    32546,
     "series_specials":  32547,
     "series_failed":    32548,
-    # The cross inside either search box.
+    # Clear button in the search boxes.
     "search_clear":     32551,
-    # How long something runs: the two halves of it, and the minutes alone for
-    # anything short of an hour.
+    # Runtime formats.
     "runtime_hm":       32552,
     "runtime_m":        32553,
     "runtime_h":        32554,
@@ -140,13 +129,12 @@ _UI_STRINGS = {
 
 
 def ui_strings(addon=None) -> dict[str, str]:
-    """The page's chrome, localized through Kodi's own string table."""
+    """Return the UI strings localized through Kodi."""
     addon = addon or settings.addon()
     strings = {key: addon.getLocalizedString(string_id)
                for key, string_id in _UI_STRINGS.items()}
-    # Yes and No are Kodi core strings, not entries in this add-on's table.
-    # Asking Addon.getLocalizedString for 106/107 returns an empty string and
-    # would erase the report values when the hello response reaches the page.
+    # Yes, No and Cancel are Kodi core strings; the add-on's table would
+    # return '' for them.
     strings["yes"] = xbmc.getLocalizedString(107) or "Yes"
     strings["no"] = xbmc.getLocalizedString(106) or "No"
     strings["cancel"] = xbmc.getLocalizedString(222) or "Cancel"

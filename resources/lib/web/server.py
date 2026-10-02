@@ -1,18 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""The dashboard's HTTP server: a snapshot producer plus a small read-mostly
-API served off the add-on's own port.
+"""The dashboard's HTTP server and its lifecycle.
 
-One producer thread builds a snapshot on a fixed cadence and every connected
-browser is pushed the same one over Server-Sent Events (see web/producer.py).
-The routes are in web/routes.py, the delta frames in web/delta.py, the artwork
-in web/artwork.py and the page's own files in web/static.py; this module owns
-the server's lifecycle and the settings it is started from.
-
-Routes are a fixed table, never a path resolved against the filesystem, and
-everything that changes the player's state needs the token.  The server is off
-until it is switched on in the add-on settings.
+A producer thread builds snapshots that are pushed to every browser via
+Server-Sent Events (web/producer.py).  Routes live in web/routes.py, delta
+frames in web/delta.py, artwork in web/artwork.py and the page's files in
+web/static.py.  Routes are a fixed table, never a filesystem lookup; every
+state change needs the token.  The server is off unless enabled.
 """
 
 import secrets
@@ -32,19 +27,16 @@ from web import access, artwork, library, static
 from web.producer import Producer
 from web.routes import Handler
 
-# Concurrent event streams.  Each holds a thread for as long as its tab is
-# open, so the cap is what stops a forgotten phone from accumulating them.
+# Maximum concurrent event streams (each holds a thread while its tab is
+# open).
 _MAX_STREAMS = 6
 
-# How long stop() waits, in all, for the threads it asked to finish.  One
-# deadline for the accept loop, the producer and the request threads together:
-# a timeout of their own each added up to more than the five seconds Kodi
-# allows the whole script.  Past this the add-on has done what it can and
-# holding the service script open any longer only makes the shutdown worse.
+# Total time stop() waits for all threads, as one deadline: separate
+# timeouts added up to more than Kodi's five seconds per script.
 _JOIN_TIMEOUT = 3.0
 
-# How long, of that, the request threads get to finish an answer or a stream's
-# parting frame before their connections are cut off outright.
+# Part of that for request threads to finish an answer or a stream's
+# parting frame before their connections are cut off.
 _HANGUP_GRACE = 0.5
 
 # Ambiguity-free alphabet: a token is read off a TV and typed on a phone.
@@ -61,14 +53,12 @@ _log = channel("web", xbmc.LOGINFO)
 # --- Settings --------------------------------------------------------------
 
 def _addon() -> xbmcaddon.Addon:
-    """The settings in force right now, so a setting changed while the service
-    runs is seen (see ``core.settings``)."""
+    """Return the current settings handle (see ``core.settings``)."""
     return settings.addon()
 
 
 def ensure_token(addon=None) -> str:
-    """The dashboard's access token, generating one the first time it is
-    needed so a freshly enabled server is never left unprotected."""
+    """Return the access token, generating one when none exists yet."""
     addon = addon or _addon()
     token = (addon.getSetting("web_token") or "").strip()
     if not token:
@@ -77,8 +67,7 @@ def ensure_token(addon=None) -> str:
 
 
 def generate_token(addon=None) -> str:
-    """Mint and store a new token, invalidating whatever was handed out
-    before."""
+    """Generate and store a new token, invalidating the old one."""
     addon = addon or _addon()
     token = "".join(secrets.choice(_TOKEN_ALPHABET) for _ in range(_TOKEN_LENGTH))
     addon.setSetting("web_token", token)
@@ -86,8 +75,7 @@ def generate_token(addon=None) -> str:
 
 
 def configured_port(addon=None) -> int:
-    """The configured port, falling back to the default for anything outside
-    the range a non-root process may bind."""
+    """Return the configured port, or the default outside 1024-65535."""
     addon = addon or _addon()
     try:
         port = int(addon.getSetting("web_port") or _DEFAULT_PORT)
@@ -97,10 +85,9 @@ def configured_port(addon=None) -> int:
 
 
 def local_address(port: int | None = None) -> str:
-    """The URL to reach the dashboard on, as far as this box can tell.
+    """Return the dashboard URL as far as this box can tell.
 
-    The route lookup opens no connection -- a UDP socket sends nothing on
-    ``connect`` -- so it answers on a box with no internet just as well.
+    The UDP route lookup sends nothing, so it works without internet.
     """
     port = port or configured_port()
     host = ""
@@ -134,7 +121,7 @@ class _Server(ThreadingHTTPServer):
         self.token         = token
         self.static_routes = static.routes()
         self.static_files  = static.StaticFiles()
-        # Who has been presenting wrong tokens, and who is shut out for it.
+        # Wrong-token tracking and lockouts.
         self.guesses       = access.Guesses()
         self.auth_read     = False
         self.allow_control = True
@@ -142,52 +129,44 @@ class _Server(ThreadingHTTPServer):
         self.offer_series  = True
         self._streams      = 0
         self._stream_lock  = threading.Lock()
-        # Every thread this server has handed a connection to.  Kodi waits on
-        # thread states, not on the daemon flag, so these have to be joined
-        # before the service script returns rather than left to the
-        # interpreter that Kodi never gets round to tearing down.
+        # Request threads, joined in stop(): Kodi waits for every thread of
+        # the interpreter, daemon or not.
         self._workers      = set()
         self._worker_lock  = threading.Lock()
-        # Every connection a request thread is holding, so stop() can hang up
-        # on them instead of waiting out a browser's idle keep-alive.
+        # Open connections, so stop() can hang up on idle keep-alives.
         self._connections  = set()
-        # The playing title's poster and fanart, kept between requests.
+        # Cached poster and fanart of the playing title.
         self._art = artwork.PlayingArtwork()
 
     def verify_request(self, request, client_address) -> bool:
-        """Turn away a connection once the shutdown has begun.
+        """Refuse connections once shutdown has begun.
 
-        Checked before the request is handed to a thread, so a page that
-        reconnects while Kodi is stopping costs a closed socket rather than a
-        new thread -- and Kodi's wait for the interpreter's threads can
-        actually finish.
+        Checked before a thread is started, so reconnecting pages cannot
+        delay Kodi's shutdown.
         """
         return not self.stop_event.is_set()
 
     def process_request(self, request, client_address) -> None:
-        # Registered here, on the accept loop, rather than in the thread: once
-        # shutdown() has returned the set is complete, and close_connections()
-        # cannot miss a thread that had not got round to adding itself.
+        # Registered on the accept loop, so the set is complete once
+        # shutdown() has returned.
         with self._worker_lock:
             self._connections.add(request)
         super().process_request(request, client_address)
 
     def shutdown_request(self, request) -> None:
-        # Out of the set before the socket is closed, under the lock
-        # close_connections() holds, so it never acts on a closed socket.
+        # Removed under the lock before closing, so close_connections()
+        # never touches a closed socket.
         with self._worker_lock:
             self._connections.discard(request)
         super().shutdown_request(request)
 
     def close_connections(self, how: int = socket.SHUT_RD) -> int:
-        """Hang up on every connection still open, and report how many.
+        """Shut down all open connections and return their count.
 
-        A browser keeps its connection open between requests, and the thread
-        holding it sits in a read until _REQUEST_TIMEOUT -- three times what
-        Kodi allows the whole script to stop in.  Shutting the socket down for
-        reading ends that read at once while an answer, or a stream's parting
-        frame, still goes out; ``SHUT_RDWR`` also cuts off a write into a
-        browser that has stopped reading.
+        An idle keep-alive thread waits in a read for up to
+        _REQUEST_TIMEOUT, longer than Kodi allows.  ``SHUT_RD`` ends the read
+        while answers and a stream's parting frame still go out;
+        ``SHUT_RDWR`` also cuts off a write to a browser that stopped reading.
         """
         with self._worker_lock:
             connections = list(self._connections)
@@ -209,8 +188,7 @@ class _Server(ThreadingHTTPServer):
                 self._workers.discard(worker)
 
     def join_workers(self, timeout: float) -> int:
-        """Wait for the request threads to finish, and report how many are
-        still running when the time is up."""
+        """Wait for the request threads; return how many are still running."""
         deadline = time.monotonic() + timeout
         with self._worker_lock:
             workers = list(self._workers)
@@ -222,8 +200,7 @@ class _Server(ThreadingHTTPServer):
         return sum(1 for worker in workers if worker.is_alive())
 
     def refresh_settings(self, addon=None) -> None:
-        """Re-read the settings a request consults, so toggling one applies
-        without restarting the server."""
+        """Re-read the request-related settings without a restart."""
         addon = addon or _addon()
         self.auth_read     = addon.getSetting("web_auth_read") == "true"
         self.allow_control = addon.getSetting("web_allow_control") == "true"
@@ -231,21 +208,14 @@ class _Server(ThreadingHTTPServer):
         self.offer_series  = addon.getSetting("web_series") == "true"
 
     def artwork(self, kind: str) -> tuple[bytes, str] | None:
-        """The poster or fanart of what is playing, or None (see
-        ``artwork.PlayingArtwork``)."""
+        """Return the playing title's poster or fanart, or None."""
         return self._art.get(kind)
 
     def library_artwork(self, movie_id: str, kind: str) -> tuple[bytes, str] | None:
-        """The poster of one of the library's films, or None.
+        """Return a library film's poster, or None.
 
-        Nothing is held here, unlike the playing title's own artwork: a card
-        of a thousand posters is a thousand pictures, and keeping them would
-        cost the add-on more memory than everything else it does put together.
-        The browser is the one that keeps them, and it keeps them well -- the
-        address carries the picture's own tag and is answered with a week and
-        an immutable, so each poster crosses the network once (see
-        artwork.CACHE).  A card only asks for the posters it is showing anyway:
-        the rest are fetched as they are scrolled to.
+        Not cached here (a library has thousands); the browser caches them
+        as immutable (see artwork.CACHE) and loads them as they scroll in.
         """
         if not (self.offer_library and self.allow_control):
             return None
@@ -256,17 +226,15 @@ class _Server(ThreadingHTTPServer):
         return artwork.shelf_picture(path)
 
     def series_artwork(self, show_id: str, kind: str) -> tuple[bytes, str] | None:
-        """The poster of one of the series on the shelf, or None."""
+        """Return a series poster, or None."""
         if not (self.offer_series and self.allow_control):
             return None
         return artwork.shelf_picture(library.show_art_path(show_id, kind))
 
     def episode_artwork(self, episode_id: str, kind: str) -> tuple[bytes, str] | None:
-        """The still of one episode, or None.
+        """Return an episode still, or None.
 
-        Only episodes of a series somebody has opened have a still to hand out:
-        the rest have never been read, and an address for one of them cannot
-        have reached a browser (see web/library.py).
+        Only episodes of opened series are known (see web/library.py).
         """
         if not (self.offer_series and self.allow_control):
             return None
@@ -289,9 +257,7 @@ class _Server(ThreadingHTTPServer):
             self._streams = max(0, self._streams - 1)
 
     def handle_error(self, request, client_address) -> None:
-        """A client that hangs up mid-response is routine and stays at debug;
-        anything else is a real fault and is logged with its traceback, since
-        a swallowed one here would show up only as a dead connection."""
+        """Log request errors: hang-ups at debug, real faults with traceback."""
         exc = sys.exc_info()[1]
         if isinstance(exc, (BrokenPipeError, ConnectionResetError, TimeoutError)):
             _log(f"connection from {client_address[0]} ended early", xbmc.LOGDEBUG)
@@ -301,8 +267,7 @@ class _Server(ThreadingHTTPServer):
 
 
 class WebDashboard:
-    """Owns the server's lifecycle: start it, restart it when its settings
-    change, stop it when Kodi shuts down."""
+    """Start, restart and stop the dashboard server."""
 
     def __init__(self) -> None:
         self._server: _Server | None = None
@@ -311,10 +276,8 @@ class WebDashboard:
         self._stop: threading.Event | None = None
         self._port  = 0
         self._token = ""
-        # Kodi saves its settings on the way out, and the settings callback
-        # arrives on a thread of its own: without this lock a change landing
-        # while the service is stopping could start the server back up behind
-        # the shutdown and leave a listening socket nobody owns.
+        # Settings callbacks arrive on another thread (also during shutdown);
+        # the lock keeps them from restarting a server being stopped.
         self._lock  = threading.RLock()
         self._done  = False
 
@@ -327,10 +290,10 @@ class WebDashboard:
             self._apply_settings()
 
     def _apply_settings(self) -> None:
-        """Bring the server in line with the settings: start, stop, or restart
-        it on a port or token change, and pick up the rest in place."""
+        """Apply the settings: start, stop, restart on port or token change,
+        or update the rest in place."""
         if self._done:
-            # Stopped for good; a late settings callback must not undo that.
+            # Stopped for good; ignore late settings callbacks.
             return
 
         addon   = _addon()
@@ -372,8 +335,7 @@ class WebDashboard:
         self._producer.start()
         self._thread = threading.Thread(
             target=server.serve_forever,
-            # Polled often enough that shutdown() returns promptly: this wait
-            # is spent inside the five seconds Kodi gives the script to stop.
+            # Short poll, so shutdown() returns quickly.
             kwargs={"poll_interval": 0.1},
             name="TinyPPI-web-server",
             daemon=True,
@@ -382,16 +344,12 @@ class WebDashboard:
         _log(f"dashboard listening on {local_address(port)}")
 
     def stop(self, final: bool = False) -> None:
-        """Close the server down and leave no thread of it running.
+        """Stop the server and leave no thread running.
 
-        Every step is guarded, and the ones that matter most come first: Kodi
-        allows a service script five seconds to stop and then raises
-        SystemExit in it, so anything skipped here is skipped for good.  What
-        must not be skipped is closing the listening socket -- a socket still
-        accepting is a browser reconnecting, and every reconnect is another
-        thread for Kodi to wait on before it can finish shutting down -- and
-        then the connections already open, whose threads would otherwise wait
-        for a browser that has nothing more to ask.
+        Kodi raises SystemExit five seconds into a script's shutdown, so every
+        step is guarded and the important ones come first: close the
+        listening socket (reconnects would create new threads), then hang up
+        on open connections.
         """
         with self._lock:
             if final:
@@ -413,18 +371,14 @@ class WebDashboard:
                 return
             _log("stopping dashboard")
 
-            # First, and before anything that can block: the streams read this
-            # between snapshots and unwind on their own, and the server reads
-            # it in verify_request and stops taking connections.
+            # First: streams and verify_request react to this flag.
             if stop is not None:
                 stop.set()
             if producer is not None:
                 producer.wake()
 
             if server is not None:
-                # shutdown() ends the accept loop; server_close() drops the
-                # listening socket.  The close is what stops new threads
-                # appearing, so it runs even if the first call goes wrong.
+                # End the accept loop, then always close the listening socket.
                 try:
                     server.shutdown()
                 except Exception as exc:
@@ -434,20 +388,14 @@ class WebDashboard:
                         server.server_close()
                     except Exception as exc:
                         _log(f"server close failed: {exc}", xbmc.LOGWARNING)
-                    # With the accept loop gone no connection can be added,
-                    # so this reaches every one: the request threads then end
-                    # now rather than at their read timeout.
+                    # No new connections now; end the idle reads at once.
                     try:
                         server.close_connections()
                     except Exception as exc:
                         _log(f"closing connections failed: {exc}",
                              xbmc.LOGWARNING)
 
-            # Then wait for the threads themselves.  Kodi's own wait for them
-            # has no timeout, so a thread left running here is a Kodi that
-            # never finishes shutting down; ours is bounded because by then
-            # there is nothing further the add-on can do about it -- and
-            # bounded once, for all three, so the waits cannot add up.
+            # Then wait for the threads, with one shared deadline.
             deadline = time.monotonic() + _JOIN_TIMEOUT
 
             def remaining() -> float:
@@ -462,8 +410,8 @@ class WebDashboard:
                 if producer.is_alive():
                     _log("snapshot producer did not stop", xbmc.LOGWARNING)
             if server is not None:
-                # The connections were shut for reading above; a thread still
-                # running a moment later is stuck writing, and is cut off.
+                # A thread still running after the grace period is stuck
+                # writing; cut its connection off.
                 left = server.join_workers(min(remaining(), _HANGUP_GRACE))
                 if left:
                     try:

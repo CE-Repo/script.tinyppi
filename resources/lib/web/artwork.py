@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Artwork for the dashboard: the playing title's poster and fanart, and the
-pictures on the library shelves, read through Kodi's own VFS."""
+"""Dashboard artwork: the playing title's poster and fanart, and the shelf
+pictures, read through Kodi's VFS."""
 
 import os
 import re
@@ -15,44 +15,33 @@ import xbmcvfs
 from core.log import channel
 from web.snapshot import art_path
 
-# The artwork kinds the page may ask for, and how big one may be before it is
-# treated as something other than a poster.
-# ``thumb`` is an episode's own still, which no playing title has: the
-# poster of what is on is the show's, and the still belongs to the row in
-# the series card's episode list (see web/library.py).
+# Artwork kinds the page may request, and the maximum size.  ``thumb`` is an
+# episode still, used by the series episode list (see web/library.py).
 KINDS = ("poster", "fanart", "thumb")
 _MAX_ART = 8 * 1024 * 1024
 
-# Artwork is the exception: its address carries a tag that changes with the
-# picture (see snapshot._art_tags), so the answer to one address can never go
-# out of date and a poster is fetched once per film however often the page is
-# reopened.
+# Artwork URLs carry a tag that changes with the picture (see
+# snapshot._art_tags), so responses can be cached as immutable.
 CACHE = "private, max-age=604800, immutable"
 
-# Artwork comes from wherever the library points, so its type is read off the
-# name; anything unrecognised is sent as the JPEG that a poster almost always
-# is, and the browser corrects itself from the bytes.
+# Content type by extension; unknown types are sent as JPEG.
 _ART_TYPES = {
     ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
     ".webp": "image/webp", ".gif": "image/gif", ".bmp": "image/bmp",
 }
 _ART_FALLBACK_TYPE = "image/jpeg"
 
-# The user name and password in a source address -- smb://user:secret@nas/ --
-# which a library on a share often carries in every path it holds, and which
-# has no more business in that same debug log than the token has.
+# Credentials in a source URL (smb://user:secret@nas/), removed from logs.
 _USERINFO_IN_URL = re.compile(r"(://)[^/@\s]*@")
 
 _log = channel("web", xbmc.LOGINFO)
 
 
 def unwrap_image_url(path: str) -> str:
-    """The real file behind a Kodi ``image://`` address.
+    """Return the source behind a Kodi ``image://`` texture URL.
 
-    Kodi wraps art in a texture URL -- ``image://`` plus the source, percent
-    encoded, plus a trailing slash.  The wrapper is a name for its own texture
-    cache and not something the file system knows, so it is unwrapped back to
-    the path or URL the library actually points at.
+    The wrapper is ``image://`` plus the percent-encoded source and a
+    trailing slash.
     """
     if not path.startswith("image://"):
         return path
@@ -61,39 +50,25 @@ def unwrap_image_url(path: str) -> str:
 
 
 def art_sources(path: str) -> tuple[str, ...]:
-    """Every address one shelf picture can be read from, smallest first.
+    """Return the addresses a shelf picture can be read from, smallest first.
 
-    A poster the library scraped is a thousand pixels wide and often two, and
-    the tile it is drawn in on a phone is a hundred and twenty.  Every one of
-    those pixels crosses the network and is then decoded, and a wall of them is
-    what a phone feels as a stutter while it is being scrolled.
+    Scraped posters are far larger than a phone tile, so Kodi's texture
+    cache copy (the plain ``image://`` URL, capped at 1280x720 for posters)
+    comes first and the original second (e.g. after a cache clear).
 
-    Kodi already keeps a smaller copy of everything it has ever drawn -- that
-    is what its texture cache is for -- so the wall is read out of that: the
-    plain ``image://`` wrapper, which a poster goes into capped at 1280x720 and
-    fanart at 1920x1080.  The unwrapped original is kept as the way back, and
-    is what answers on a box whose cache has just been cleared.
-
-    Not ``?size=thumb``, which this asked for first until it turned out to be
-    the reason a wall took so long to fill.  The cache is keyed by the whole
-    address, options and all, so that is a different entry from the plain one
-    -- and one that has never existed, where the plain one was made the first
-    time Kodi drew the poster in its own window.  Asking for it made the box
-    build a second thumbnail cache for the entire collection a poster at a
-    time, and for a library whose art is scraped rather than local, building
-    one means fetching the original off the internet again.  A third of the
-    pixels is not worth a download per tile.
+    Not ``?size=thumb``: the cache is keyed by the full URL, so that entry
+    usually does not exist and Kodi would build (and for scraped art,
+    re-download) a second cache for the whole library.
     """
     if path.startswith("image://"):
-        # Kodi's own wrapper already: the address its texture cache is under.
+        # Already a texture URL.
         return (path, unwrap_image_url(path))
-    # A file the library points at directly.  Wrapped here so the cache
-    # answers for it too, and the file itself kept as the way back.
+    # A plain file: wrap it for the cache, keep the file as fallback.
     return ("image://" + quote(path, safe="") + "/", path)
 
 
 def redacted(path: str) -> str:
-    """``path`` with any user name and password taken out, for the log."""
+    """Return *path* with credentials removed, for logging."""
     return _USERINFO_IN_URL.sub(r"\1***@", path)
 
 
@@ -102,12 +77,10 @@ def art_type(path: str) -> str:
 
 
 def image_type(data: bytes, fallback: str) -> str:
-    """What the bytes actually are, rather than what the address suggested.
+    """Return the image type from the bytes, else *fallback*.
 
-    The address is no longer a promise: what comes back from the texture cache
-    is whatever Kodi chose to store the picture as, which is not always what
-    the library scraped it as -- a PNG with nothing transparent in it is kept
-    as a JPEG.  A browser handed the wrong type draws nothing at all.
+    The texture cache may store a picture in another format (an opaque PNG
+    becomes a JPEG), and a wrong type makes the browser draw nothing.
     """
     if data[:3] == b"\xff\xd8\xff":
         return "image/jpeg"
@@ -121,11 +94,9 @@ def image_type(data: bytes, fallback: str) -> str:
 
 
 def read_art(path: str) -> bytes | None:
-    """Read an artwork file through Kodi's own VFS, or None.
+    """Return an artwork file's bytes via Kodi's VFS, or None.
 
-    Kodi's VFS rather than ``open``: art lives wherever the library put it,
-    which is as often a share or a URL as it is a local file, and only Kodi
-    knows how to reach all three.
+    The VFS reaches local files, shares and URLs alike.
     """
     handle = None
     try:
@@ -143,21 +114,20 @@ def read_art(path: str) -> bytes | None:
 
 
 class PlayingArtwork:
-    """The poster and the fanart of what is playing, kept between requests:
-    every open tab asks for the same poster, and it can be a megabyte off a
-    share."""
+    """Cache of the playing title's poster and fanart.
+
+    Every open tab requests the same pictures, which may be large.
+    """
 
     def __init__(self) -> None:
         self._art: dict[str, tuple[str, bytes, str]] = {}
         self._lock = threading.Lock()
 
     def get(self, kind: str) -> tuple[bytes, str] | None:
-        """The artwork bytes and type for ``kind``, or None when there is none.
+        """Return the bytes and type of artwork *kind*, or None.
 
-        Read once per picture rather than once per request: the film only
-        changes with the film.  The read happens outside the lock, so a poster
-        coming off a slow share holds nothing else up -- two requests racing
-        for the same new picture read it twice and agree on the answer.
+        Read once per picture, outside the lock, so a slow share blocks
+        nothing else (racing requests just read it twice).
         """
         path = art_path(kind)
         if not path:
@@ -171,7 +141,7 @@ class PlayingArtwork:
         source = unwrap_image_url(path)
         data = read_art(source)
         if data is None and source != path:
-            data = read_art(path)   # an address only Kodi's VFS understands
+            data = read_art(path)   # the texture URL itself
         if data is None:
             return None
 
@@ -182,16 +152,9 @@ class PlayingArtwork:
 
 
 def shelf_picture(path: str) -> tuple[bytes, str] | None:
-    """One picture off one of the library shelves, read small and not kept.
+    """Return one shelf picture (bytes, type), preferring Kodi's cached copy.
 
-    Small because of what it is for: these are the tiles on the idle page,
-    drawn a hundred and twenty pixels wide, and the file behind one is the
-    poster the library scraped at full size.  Kodi's own smaller copy is
-    asked for first and the original only last (see ``art_sources``).
-
-    Nothing is held here, unlike the playing title's own artwork: the
-    browser keeps these far better than this could, and now has a great
-    deal less of each to keep.
+    Not cached here; the browser caches them (see ``art_sources``).
     """
     if not path:
         return None
@@ -201,11 +164,8 @@ def shelf_picture(path: str) -> tuple[bytes, str] | None:
         if data is None:
             continue
         if attempt:
-            # The cache had nothing, so this is the original going out at
-            # whatever size the scraper fetched it.  One line per picture
-            # in a debug log is what says a box is serving a wall the slow
-            # way -- a cache that has just been cleared, or artwork Kodi
-            # has never drawn.
+            # No cached copy, so the full-size original goes out; logged
+            # to diagnose slow walls.
             _log(f"no cached texture for {redacted(source)}, sending "
                  "the original", xbmc.LOGDEBUG)
         return data, image_type(data, fallback)

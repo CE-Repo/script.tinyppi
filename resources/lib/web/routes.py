@@ -1,11 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""The dashboard's routes: one request handler, its dispatch tables and the
-event stream.
+"""The dashboard's request handler, dispatch tables and event stream.
 
-Routes are a fixed table, never a path resolved against the filesystem, and
-everything that changes the player's state needs the token.
+Routes are a fixed table, never a filesystem lookup; every state change
+needs the token.
 """
 
 import gzip
@@ -29,53 +28,39 @@ from web.snapshot import apply_command, apply_mode
 from web.static import MIN_COMPRESS, STATIC_CACHE
 from web.strings import ui_strings
 
-# Seconds between heartbeat comments on an idle stream.  Without them a
-# connection dropped by a router in between looks alive until the next change.
+# Heartbeat interval on an idle stream, so dropped connections are noticed.
 _HEARTBEAT_INTERVAL = 15.0
 
-# How long a socket may hold a request thread.
+# Socket timeouts.  After the service script returns, Kodi waits without
+# timeout for every interpreter thread (daemons included), so no wait here
+# may be unbounded.
 #
-# Kodi does not care that these threads are daemons: when the service script
-# returns, CPythonInvoker spins -- with no timeout of its own -- until every
-# other thread of the interpreter is gone.  So a thread parked on a socket is
-# a Kodi that will not shut down, and every wait here has to end on its own.
-#
-# _REQUEST_TIMEOUT bounds a kept-alive connection that has gone quiet between
-# requests while the server runs; it is longer than the five seconds Kodi
-# allows a script to stop in (PYTHON_SCRIPT_TIMEOUT), so stopping does not wait
-# for it but hangs up on every open connection (_Server.close_connections in
-# web/server.py).  _STREAM_WRITE_TIMEOUT bounds a write into a stream whose
-# reader stopped reading.
+# _REQUEST_TIMEOUT bounds an idle keep-alive connection while the server
+# runs; it exceeds Kodi's five-second stop limit, so stop() hangs up instead
+# of waiting (_Server.close_connections in web/server.py).
+# _STREAM_WRITE_TIMEOUT bounds a write to a stream that stopped reading.
 _REQUEST_TIMEOUT      = 15.0
 _STREAM_WRITE_TIMEOUT = 4.0
 
-# Longest request body accepted (only the two POSTs have one, and both are
-# tiny).
+# Maximum request body size (POST bodies are tiny).
 _MAX_BODY = 4096
 
-# The token in a request line.  It travels in the query string of everything a
-# browser cannot put a header on -- the stream, the pictures (see withToken in
-# js/core.js) -- and a request line logged as it came would put it in Kodi's
-# debug log, which is the file people post to a forum when something goes
-# wrong.
+# The token in a request line (stream and image URLs carry it in the query,
+# see withToken in js/core.js); masked before logging, since debug logs get
+# posted to forums.
 _TOKEN_IN_QUERY = re.compile(r"(token=)[^&\s\"']*", re.IGNORECASE)
 
-# Headers every answer carries.  The page is never to be framed by another one:
-# it holds the token and its buttons stop films, which is exactly what a page
-# laid invisibly over somebody else's site would be after (clickjacking).  And
-# none of its addresses -- the stream and the pictures carry the token in
-# theirs -- is passed on anywhere as a referrer.
+# Headers on every response: no framing (clickjacking) and no referrer
+# (some URLs carry the token).
 _SECURITY_HEADERS = (
     ("X-Content-Type-Options", "nosniff"),
     ("X-Frame-Options", "DENY"),
     ("Referrer-Policy", "no-referrer"),
 )
 
-# What the page itself may load and run: its own files and its own API, and
-# nothing else -- no script written into the page, no inline style, no other
-# origin.  Nothing is loaded from the internet in the first place (see the
-# README), so this costs the page nothing and leaves a script that somehow got
-# into a title or a file name with nowhere to run.
+# Content Security Policy of the page: only its own files and API, no inline
+# script or style, no other origin.  Nothing loads from the internet anyway,
+# so an injected script (e.g. in a title) has nowhere to run.
 _PAGE_POLICY = "; ".join((
     "default-src 'self'",
     "script-src 'self'",
@@ -93,15 +78,13 @@ _log = channel("web", xbmc.LOGINFO)
 
 
 class Handler(BaseHTTPRequestHandler):
-    """The route table.  ``server`` carries the producer, the token and the
-    static-file map."""
+    """The request handler; ``server`` holds the producer, token and files."""
 
     protocol_version = "HTTP/1.1"
     server_version   = "TinyPPI"
     sys_version      = ""
-    # Applied to the socket before the first request line is read, so a
-    # connection that is opened and then says nothing cannot hold a thread --
-    # and with it Kodi's shutdown -- for good.
+    # Applied before the first request line, so a silent connection cannot
+    # hold a thread forever.
     timeout          = _REQUEST_TIMEOUT
 
     # -- plumbing --
@@ -115,9 +98,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
-        # The default is the live state of a player, which may never be
-        # replayed from a cache.  The page itself is another matter, and says
-        # so (see _serve_static and _serve_art).
+        # Live player state must never be cached; static files and art set
+        # their own policy.
         self.send_header("Cache-Control", cache)
         for name, value in _SECURITY_HEADERS + extra:
             self.send_header(name, value)
@@ -125,14 +107,14 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _send_unchanged(self, etag: str, cache: str) -> None:
-        """Answer a conditional request with an empty 304."""
+        """Send an empty 304 for a conditional request."""
         self.send_response(HTTPStatus.NOT_MODIFIED)
         self.send_header("ETag", etag)
         self.send_header("Cache-Control", cache)
         self.end_headers()
 
     def _holds(self, etag: str) -> bool:
-        """Whether the request already carries this exact version."""
+        """Return whether the request's If-None-Match matches *etag*."""
         offered = self.headers.get("If-None-Match", "")
         return bool(etag) and etag in [
             part.strip().removeprefix("W/") for part in offered.split(",")
@@ -144,9 +126,7 @@ class Handler(BaseHTTPRequestHandler):
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         if etag:
             extra += (("ETag", etag),)
-        # The chart's history is the one answer here big enough to be worth
-        # compressing -- an hour of samples is five arrays of 3600 numbers --
-        # and it is asked for whenever a page opens or an event lands.
+        # Large JSON (mainly the chart history) is gzipped.
         if (len(body) >= MIN_COMPRESS
                 and "gzip" in self.headers.get("Accept-Encoding", "")):
             body = gzip.compress(body, 6)
@@ -167,10 +147,10 @@ class Handler(BaseHTTPRequestHandler):
         return (query.get("token") or [""])[0].strip()
 
     def _token_holder(self) -> bool:
-        """Whether the request carries the token.  When it does not, it has
-        been answered: a 401, so the page asks for the token -- or a 429 for an
-        address that has been guessing it (see ``access.Guesses``), which is
-        not even looked at until its lock-out is over.
+        """Return whether the request carries the token.
+
+        Otherwise it has been answered with 401, or 429 for a locked-out
+        address (see ``access.Guesses``).
         """
         address = self.client_address[0]
         wait = self.server.guesses.locked_for(address)
@@ -182,9 +162,7 @@ class Handler(BaseHTTPRequestHandler):
             return False
 
         presented = self._presented_token()
-        # Compared as bytes: compare_digest refuses a str with anything but
-        # ASCII in it, and a header can carry anything at all.  A wrong length
-        # is a mismatch either way.
+        # Compare bytes: compare_digest rejects non-ASCII str.
         expected = self.server.token.encode("utf-8")
         offered  = presented.encode("utf-8", "replace")
         if len(offered) == len(expected) and secrets.compare_digest(offered, expected):
@@ -194,11 +172,9 @@ class Handler(BaseHTTPRequestHandler):
         return False
 
     def _token_to_read(self) -> bool:
-        """Whether reading needs the token on this request.
+        """Return whether reading needs the token for this request.
 
-        Always when the setting says so.  Otherwise only when the request came
-        in under a host name no home network would use -- which is what a web
-        page reading the box through somebody's browser has to send (see
+        When the setting says so, or for an untrusted host name (see
         ``access.trusted_host``).
         """
         return (self.server.auth_read
@@ -223,9 +199,8 @@ class Handler(BaseHTTPRequestHandler):
         self._send_error_json(HTTPStatus.NOT_FOUND, "no such route")
 
     def do_POST(self) -> None:  # noqa: N802 - base API
-        # The body is read first, whatever the request turns out to be: on a
-        # kept-alive HTTP/1.1 connection an unread body is parsed as the next
-        # request line, so a rejected POST would corrupt the one after it.
+        # Always read the body first: on a keep-alive connection an unread
+        # body would be parsed as the next request.
         payload = self._read_json_body()
         if payload is None:
             return
@@ -237,45 +212,38 @@ class Handler(BaseHTTPRequestHandler):
         if not self.server.allow_control:
             self._send_error_json(HTTPStatus.FORBIDDEN, "control disabled")
             return
-        # Writing always needs the token, whatever reading is set to.
+        # Writing always needs the token.
         if not self._token_holder():
             return
         writer(self, payload)
 
     def _serve_hello(self) -> None:
-        """What the page needs to know before it can ask for anything else.
+        """Send the page's start-up information.
 
-        Deliberately unauthenticated: it carries no player state, only the
-        version, the settings that decide which cards the page draws, and its
-        chrome in Kodi's language.
+        Unauthenticated on purpose: no player state, only version, feature
+        flags and UI strings.
         """
         addon = settings.addon()
         self._send_json({
             "name":        "TinyPPI",
             "version":     addon.getAddonInfo("version"),
-            # Read off this request rather than the setting alone, so a page
-            # reached under a name that needs the token asks for it at once.
+            # Per request, so an untrusted host name asks for the token.
             "auth_read":   self._token_to_read(),
             "control":     self.server.allow_control,
-            # Whether the idle page has a film library to offer.  Both
-            # halves have to be there: reading the library is this
-            # setting, and starting one of them is the control setting.
+            # The film shelf needs both the library and the control setting.
             "library":     self.server.offer_library and self.server.allow_control,
-            # And whether it has a series library, which is its own
-            # setting: the two shelves are offered separately, so a box can
-            # have the one and not the other.
+            # The series shelf has its own setting.
             "series":      self.server.offer_series and self.server.allow_control,
             "interval_ms": int(PRODUCE_INTERVAL * 1000),
             "strings":     ui_strings(addon),
         })
 
     def _serve_state(self) -> None:
-        """The snapshot as it is now, for a page outside any stream."""
+        """Send the current snapshot to a page without a stream."""
         self._send_json(self._state_payload())
 
     def _serve_history(self) -> None:
-        """The chart's whole past and the event list, asked for on connect and
-        again whenever the snapshot's event count moves."""
+        """Send the chart history and events (on connect and new events)."""
         self._send_json(self.server.producer.history())
 
     def _set_mode(self, payload: dict) -> None:
@@ -288,21 +256,19 @@ class Handler(BaseHTTPRequestHandler):
         self._send_json({"ok": True, "mode": mode})
 
     def _run_command(self, payload: dict) -> None:
-        """Carry out one transport command: play/pause, a seek, the volume."""
+        """Run a transport command (play/pause, seek, volume, ...)."""
         action = str(payload.get("action", "")).strip()
         if not apply_command(action, payload.get("value")):
             self._send_error_json(HTTPStatus.BAD_REQUEST, "command failed")
             return
-        # A seek or a volume nudge arrives by the dozen while a finger is on
-        # the slider; only the ones that change what the player is doing are
-        # worth a line at the level a normal log keeps.
+        # Seek and volume arrive in bursts, so they log at debug level.
         _log(f"'{action}' requested from {self.client_address[0]}",
              xbmc.LOGDEBUG if action in ("seek", "seek_percent", "volume")
              else xbmc.LOGINFO)
         self._send_json({"ok": True, "action": action})
 
     def _read_json_body(self) -> dict | None:
-        """The request body as a dict, or None once an error has been sent."""
+        """Return the JSON body as a dict, or None after sending an error."""
         try:
             length = int(self.headers.get("Content-Length", "0"))
         except ValueError:
@@ -325,19 +291,15 @@ class Handler(BaseHTTPRequestHandler):
     def _state_payload(self) -> dict:
         payload = dict(self.server.producer.fresh())
         payload["control"] = self.server.allow_control
-        # Whether a stream would be turned away right now.  A browser whose
-        # EventSource was refused cannot read why -- the failure reaches it as
-        # a bare error -- so it asks here, and this is what tells a full server
-        # apart from one that has gone away (see connect() in js/core.js).
+        # Whether a stream would be refused now: an EventSource cannot read
+        # the 503, so the page asks here (see connect() in js/core.js).
         payload["streams_full"] = self.server.streams_full
         return payload
 
     def _serve_library(self) -> None:
-        """Send the films the video database holds."""
+        """Send the film library."""
         if not (self.server.offer_library and self.server.allow_control):
-            # Off in the settings, or a box that will not be told what to play:
-            # either way there is no card, and saying so is better than
-            # answering with a list nothing can be done with.
+            # Disabled, or control is off (nothing could be played).
             self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
             return
         try:
@@ -350,15 +312,8 @@ class Handler(BaseHTTPRequestHandler):
         self._send_listing(payload)
 
     def _start_film(self, payload: dict) -> None:
-        """Put a film, or one episode of a series, on the television.
-
-        One route for both because it is one act: something in the library is
-        being started.  Which of the two it is, is which id the body carries --
-        a series itself is never named here, because a series is not a thing
-        that can be played.
-        """
-        # False asks for the title from the beginning, past any point the
-        # library holds to resume it from; anything else resumes as before.
+        """Start a film or an episode, depending on the id in *payload*."""
+        # resume=False starts from the beginning; anything else resumes.
         resume = payload.get("resume") is not False
         episode_id = payload.get("episodeid")
         if episode_id is not None:
@@ -380,18 +335,13 @@ class Handler(BaseHTTPRequestHandler):
             self._send_error_json(HTTPStatus.BAD_REQUEST, "playback failed")
             return
         _log(f"film {movie_id} started from {self.client_address[0]}")
-        # Nothing is pushed from here: the producer rebuilds five times a
-        # second and the page learns the film is on from the next snapshot,
-        # the same way it learns about one started from the remote control.
+        # The page learns about the playback from the next snapshot.
         self._send_json({"ok": True, "movieid": movie_id})
 
     def _mark_watched(self, payload: dict) -> None:
-        """Mark a film, a series or one episode of one as seen or unseen.
+        """Mark a film, series or episode as watched or unwatched.
 
-        Which of the three it is, is which id the body carries, the same as
-        ``/api/play``; ``watched`` says which way.  Behind the same settings as
-        the shelf the title came off: a box that offers no series has handed
-        out no series to be marked.
+        The id in *payload* selects the kind; each needs its shelf's setting.
         """
         watched = payload.get("watched")
         if not isinstance(watched, bool):
@@ -415,8 +365,7 @@ class Handler(BaseHTTPRequestHandler):
         self._send_error_json(HTTPStatus.BAD_REQUEST, "no title named")
 
     def _clear_resume(self, payload: dict) -> None:
-        """Forget where a film or one episode got to, leaving it unwatched or
-        watched as it was.  A series has no resume point of its own."""
+        """Clear the resume point of a film or episode."""
         for key, kind, offered in (
                 ("movieid", "movie", self.server.offer_library),
                 ("episodeid", "episode", self.server.offer_series)):
@@ -434,7 +383,7 @@ class Handler(BaseHTTPRequestHandler):
         self._send_error_json(HTTPStatus.BAD_REQUEST, "no title named")
 
     def _serve_series(self) -> None:
-        """Send the series the video database holds."""
+        """Send the series library."""
         if not (self.server.offer_series and self.server.allow_control):
             self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
             return
@@ -448,13 +397,7 @@ class Handler(BaseHTTPRequestHandler):
         self._send_listing(payload)
 
     def _serve_episodes(self) -> None:
-        """Send the episodes of one series.
-
-        Asked for only when somebody opens that series, which is why it is a
-        route of its own rather than part of the shelf: a house with ninety
-        series in it would otherwise be sending every episode of all of them to
-        draw a wall of ninety posters.
-        """
+        """Send the episodes of one series (requested when it is opened)."""
         if not (self.server.offer_series and self.server.allow_control):
             self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
             return
@@ -467,18 +410,15 @@ class Handler(BaseHTTPRequestHandler):
                                   "library unavailable")
             return
         if payload is None:
-            # A series that is not on the shelf the page was drawn from: the
-            # library moved under it, and the page reads the shelf again.
+            # Unknown series: the library changed; the page reloads the shelf.
             self._send_error_json(HTTPStatus.NOT_FOUND, "no such series")
             return
         self._send_listing(payload)
 
     def _serve_continue(self) -> None:
-        """Send the films and episodes left half-watched, newest first.
+        """Send partly watched films and episodes, newest first.
 
-        Whichever halves the box offers: a film is on the row only where the
-        film shelf is, and an episode only where the series shelf is, because
-        a press on one starts it and starting it needs that shelf's setting.
+        Each kind only when its shelf is enabled.
         """
         films = self.server.offer_library
         series = self.server.offer_series
@@ -495,14 +435,7 @@ class Handler(BaseHTTPRequestHandler):
         self._send_listing(payload)
 
     def _send_listing(self, payload: dict) -> None:
-        """Send one of the library's lists, under its own tag.
-
-        A validator rather than the whole list every time: the tag changes only
-        when the library does, so a phone that opens the page twice in an
-        evening is answered the second time with an empty 304.  Which matters
-        here more than anywhere else on this server, because these are the
-        answers whose size grows with somebody's collection.
-        """
+        """Send a library list with its tag as ETag (304 when unchanged)."""
         etag = f'"{payload["tag"]}"'
         if self._holds(etag):
             self._send_unchanged(etag, STATIC_CACHE)
@@ -510,21 +443,17 @@ class Handler(BaseHTTPRequestHandler):
         self._send_json(payload, etag=etag, cache=STATIC_CACHE)
 
     def _serve_art(self) -> None:
-        """Send the poster or the fanart of what is playing, or of one of the
-        films, series or episodes the library cards offer."""
+        """Send artwork of the playing title or a library item."""
         query = parse_qs(urlparse(self.path).query)
         kind = (query.get("kind") or [""])[0]
         if kind not in artwork.KINDS:
             self._send_error_json(HTTPStatus.NOT_FOUND, "no such artwork")
             return
-        # Which of the three shelves the picture is off, if it is off one at
-        # all: a request naming none of them is asking for what is playing.
+        # No library id means the playing title.
         film    = (query.get("movieid") or [""])[0]
         show    = (query.get("tvshowid") or [""])[0]
         episode = (query.get("episodeid") or [""])[0]
-        # The page hangs the picture's own tag on the address, so an answer
-        # can be kept for as long as the browser likes: the next film asks a
-        # different address rather than the same one twice.
+        # The URL carries the picture's tag, so the answer is immutable.
         tag  = (query.get("v") or [""])[0]
         etag = f'"{tag}"' if tag else ""
         cache = artwork.CACHE if tag else "no-store"
@@ -541,8 +470,7 @@ class Handler(BaseHTTPRequestHandler):
         else:
             found = self.server.artwork(kind)
         if found is None:
-            # Not every film has a poster, and a library-less file has none at
-            # all; the page hides the frame rather than showing a broken one.
+            # No artwork: the page hides the frame.
             self._send_error_json(HTTPStatus.NOT_FOUND, "no artwork")
             return
         body, content_type = found
@@ -568,20 +496,18 @@ class Handler(BaseHTTPRequestHandler):
         self._send(HTTPStatus.OK, body, content_type, extra, cache=STATIC_CACHE)
 
     def _serve_stream(self) -> None:
-        """Push snapshots as Server-Sent Events until the client leaves or the
-        service shuts down."""
+        """Push snapshots as Server-Sent Events until the client leaves or
+        the server stops."""
         if self.server.stop_event.is_set():
-            # Shutting down: a stream opened now would be one more thread for
-            # Kodi to wait on, and the page is told not to come straight back
-            # for another (see the bye handler in js/core.js).
+            # Shutting down: refuse, and tell the page to wait before
+            # retrying (see the bye handler in js/core.js).
             self._send_json({"error": "shutting down", "retry_ms": 20000},
                             HTTPStatus.SERVICE_UNAVAILABLE)
             self.close_connection = True
             return
         if not self.server.claim_stream():
-            # A slot frees the moment a forgotten tab is closed or its phone
-            # locks (see the visibility handling in js/core.js), so the page is
-            # told to come back in a second rather than backing off.
+            # Slots free up quickly (hidden tabs disconnect, see js/core.js),
+            # so the page retries soon.
             self._send_json({"error": "too many streams"},
                             HTTPStatus.SERVICE_UNAVAILABLE)
             return
@@ -590,13 +516,12 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/event-stream; charset=utf-8")
             self.send_header("Cache-Control", "no-store")
             self.send_header("Connection", "close")
-            # Nothing between here and the browser may buffer a stream whose
-            # point is that it arrives as it happens.
+            # No proxy buffering.
             self.send_header("X-Accel-Buffering", "no")
             self.end_headers()
             self._stream_loop()
         except (OSError, ValueError):
-            pass  # the client went away; nothing to report
+            pass  # the client went away
         finally:
             self.server.release_stream()
             self.close_connection = True
@@ -611,17 +536,11 @@ class Handler(BaseHTTPRequestHandler):
 
     def _stream_frames(self, producer: Producer, seen: int) -> None:
         stop     = self.server.stop_event
-        # The last payload this connection was sent, which every delta after
-        # it is measured against.  Per connection rather than per server: two
-        # browsers can be at different points, and a page that has just
-        # connected must be sent the whole thing whatever the others hold.
+        # Last payload sent on this connection, the base of the next delta.
         sent: dict | None = None
         last_beat = time.monotonic()
-        # A write to a client that has gone quiet must not hold the thread for
-        # good; the timeout turns it into the OSError the caller treats as a
-        # closed connection.  It is deliberately shorter than the heartbeat:
-        # what is being bounded is the write, not the wait between them, and a
-        # thread still writing when Kodi stops is a Kodi that hangs.
+        # Bound writes to a client that stopped reading (OSError ends the
+        # stream); shorter than the heartbeat interval.
         self.connection.settimeout(_STREAM_WRITE_TIMEOUT)
 
         while not stop.is_set():
@@ -648,16 +567,13 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(f"event: {kind}\ndata: {data}\n\n".encode("utf-8"))
             self.wfile.flush()
 
-        # A parting frame so the page can say it is offline rather than
-        # showing a dead connection.  It carries how long to stay away: the
-        # server is going down with Kodi, and a reconnect landing in the
-        # middle of that is a fresh thread for Kodi to wait on.
+        # Parting frame: the page shows "offline" and waits before
+        # reconnecting, so it does not hit a server that is going down.
         self.wfile.write(b'event: bye\ndata: {"retry_ms": 20000}\n\n')
         self.wfile.flush()
 
 
-# The routes that read the player or the library, and what answers each.  Open
-# to anyone while reading needs no token, and to a token holder always.
+# Read routes; they need the token only when reading does.
 _READERS = {
     "/api/state":    Handler._serve_state,
     "/api/stream":   Handler._serve_stream,
@@ -669,9 +585,7 @@ _READERS = {
     "/api/continue": Handler._serve_continue,
 }
 
-# The routes that change something, and what carries each out.  Each takes the
-# request's JSON body, and every one of them needs the token and the control
-# setting.
+# Write routes (JSON body); they always need the token and control enabled.
 _WRITERS = {
     "/api/mode":    Handler._set_mode,
     "/api/command": Handler._run_command,

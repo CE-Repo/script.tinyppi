@@ -1,24 +1,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Who may use the dashboard, beyond holding the token.
+"""Dashboard access checks beyond the token itself.
 
-Two things the token alone does not cover:
-
-- **Guessing it.**  A token is eight characters out of thirty-two, which is a
-  great many guesses -- but a request is cheap, and nothing used to stop one
-  machine on the network from making them all night.  An address that keeps
-  presenting tokens that are wrong is shut out for a while (``Guesses``).
-
-- **A web page reading it through somebody's browser.**  With *Require the
-  token for reading too* off, which is how the add-on ships, the readings and
-  the library answer anyone who asks.  A page on the internet cannot ask
-  directly -- the browser keeps it to its own origin -- but it can point its own
-  host name at the box's address once the page has loaded (DNS rebinding) and
-  then ask as if it were the box.  The one thing that gives it away is the
-  name it asked for, which it cannot leave out: the ``Host`` header carries
-  the attacker's own domain.  So a read that comes in under a name no home
-  network would use is treated as if reading needed the token (``trusted_host``).
+- **Guessing:** an address presenting too many different wrong tokens is
+  locked out for a while (``Guesses``).
+- **DNS rebinding:** with *Require the token for reading too* off (the
+  default), a web page could point its own host name at the box and read
+  through the visitor's browser.  Its ``Host`` header still carries the
+  attacker's domain, so reads under a name no home network uses require the
+  token (``trusted_host``).
 """
 
 import hashlib
@@ -31,32 +22,20 @@ import xbmc
 
 from core.log import channel
 
-# How many different wrong tokens one address may present inside the window
-# before it is shut out, and for how long it then is.
-#
-# Different ones, because a page holding a token that has since been replaced
-# presents the same wrong one again and again -- with every poster on a wall
-# of them -- and that is somebody to ask for the new token, not somebody to
-# lock out.  Somebody guessing presents a new one every time.  Ten to a window
-# leaves plenty of room for a token mistyped on a phone, and is nowhere near
-# what working through 32 ** 8 of them would take.
+# Different wrong tokens allowed per address and window, and the lockout.
+# Only distinct tokens count: a page with an outdated token repeats the same
+# one on every request and should be asked for the new one, not locked out.
+# Ten allows for typos while making 32 ** 8 guesses hopeless.
 _GUESS_LIMIT  = 10
 _GUESS_WINDOW = 600.0
 _LOCKOUT      = 600.0
 
-# How many addresses are remembered at once.  A home network has a handful;
-# the cap only keeps something sending from a great many from growing this
-# without end.
+# Cap on tracked addresses, so many senders cannot grow the table forever.
 _MAX_TRACKED = 256
 
-# Host names a home network gives its own machines, and which no public DNS
-# answers for -- so no page on the internet can have its own name end in one.
-# A single label (``coreelec``, ``localhost``) and an address typed as it is
-# are just as safe; see ``trusted_host``.
-#
-# ``fritz.box`` and ``speedport.ip`` are the names the two most common routers
-# here hand out: the first is the vendor's own domain, the second sits under a
-# top-level name that does not exist.
+# Home-network suffixes no public DNS answers for, so no internet page can
+# use them (see trusted_host).  ``fritz.box`` and ``speedport.ip`` are what
+# the most common German routers hand out.
 _PRIVATE_SUFFIXES = (
     ".local", ".localhost", ".localdomain", ".lan", ".home", ".home.arpa",
     ".internal", ".intranet", ".corp", ".private",
@@ -68,22 +47,20 @@ _log = channel("web", xbmc.LOGINFO)
 
 
 class Guesses:
-    """Remembers wrong tokens per address, and shuts out the one guessing.
+    """Track wrong tokens per address and lock out guessers.
 
-    Shared by every request thread, hence the lock.  Nothing here is ever
-    written to disk: a restart forgets every lock-out, which costs a guesser a
-    restart of somebody else's Kodi to get round.
+    Shared by all request threads (hence the lock); kept in memory only.
     """
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        # address -> (start of its window, the wrong tokens seen in it)
+        # address -> (window start, wrong token digests in it)
         self._wrong: dict[str, tuple[float, set[bytes]]] = {}
-        # address -> when its lock-out ends
+        # address -> lockout end
         self._locked: dict[str, float] = {}
 
     def locked_for(self, address: str) -> float:
-        """Seconds until *address* may try again, 0 when it may now."""
+        """Return the seconds until *address* may try again (0 if now)."""
         now = time.monotonic()
         with self._lock:
             until = self._locked.get(address, 0.0)
@@ -93,15 +70,13 @@ class Guesses:
             return until - now
 
     def wrong(self, address: str, presented: str) -> None:
-        """Note that *address* presented *presented* and it was not the token.
+        """Record that *address* presented the wrong token *presented*.
 
-        No token at all is not a guess: it is a page that has not been given
-        one yet, which is asked for it rather than counted against.
+        An empty token is not a guess (the page simply has none yet).
         """
         if not presented:
             return
-        # Kept as a digest rather than as typed: this is a list of near-misses
-        # for a secret, and it has no need to hold any of them.
+        # Store a digest only; near-misses of a secret are not kept.
         digest = hashlib.sha256(presented.encode("utf-8", "replace")).digest()[:8]
         now = time.monotonic()
         with self._lock:
@@ -119,8 +94,7 @@ class Guesses:
              f"for {int(_LOCKOUT // 60)} minutes", xbmc.LOGWARNING)
 
     def _forget_expired(self, now: float) -> None:
-        """Drop what no longer counts, and the oldest if there is still too
-        much.  Called with the lock held."""
+        """Drop expired entries and, over the cap, the oldest (lock held)."""
         for address in [a for a, (start, _) in self._wrong.items()
                         if now - start > _GUESS_WINDOW]:
             del self._wrong[address]
@@ -132,7 +106,7 @@ class Guesses:
 
 
 def _own_names() -> frozenset[str]:
-    """The names this box goes by itself, lower-cased."""
+    """Return this box's own host names, lower-cased."""
     names = set()
     for lookup in (socket.gethostname, socket.getfqdn):
         try:
@@ -148,22 +122,18 @@ _OWN_NAMES: frozenset[str] | None = None
 
 
 def trusted_host(header: str) -> bool:
-    """Whether a request's ``Host`` header names the box the way only somebody
-    on its own network would.
+    """Return whether the ``Host`` header can only come from the home network.
 
-    Trusted: no header at all (no browser leaves it out), an address typed as
-    it is, a name of a single label, one of the box's own names, and any name
-    under a suffix no public DNS answers for (``_PRIVATE_SUFFIXES``).  Anything
-    else may well be the box reached through a name somebody gave it -- a
-    dynamic DNS name, say -- and still works, only with the token, the same as
-    with *Require the token for reading too* switched on.
+    Trusted: no header (browsers always send one), an IP address, a single
+    label, the box's own names, or a ``_PRIVATE_SUFFIXES`` name.  Other
+    names (e.g. dynamic DNS) still work, but reading then needs the token.
     """
     global _OWN_NAMES
 
     host = (header or "").strip().lower()
     if not host:
         return True
-    # The port, and the brackets an IPv6 address is written in.
+    # Strip the port and IPv6 brackets.
     if host.startswith("["):
         host = host[1:].split("]", 1)[0]
     elif host.count(":") == 1:
