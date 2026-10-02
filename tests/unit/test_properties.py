@@ -22,12 +22,18 @@ def test_subtitle_short_code(code, short):
 @pytest.mark.parametrize("code, short", [
     ("eng", "ENG"),
     ("xyz", "XYZ"),
-    ("", ""),
+    ("", "UNK"),
 ])
 def test_audio_short_code(code, short):
     from info import properties
+    xbmc.INFO["VideoPlayer.AudioCodec"] = "dtshd_ma"
     xbmc.INFO["VideoPlayer.AudioLanguage"] = code
     assert properties.get_AudioNameShortVar() == short
+
+
+def test_audio_short_code_without_audio():
+    from info import properties
+    assert properties.get_AudioNameShortVar() == ""
 
 
 def test_untagged_subtitle_event_label():

@@ -494,14 +494,20 @@ def get_AudioNameVar() -> str:
 def _language_short(label: str) -> str:
     """Return the short code of the language in InfoLabel *label*.
 
-    Codes missing from the map are shown as Kodi reports them, uppercased.
+    Codes missing from the map are shown as Kodi reports them, uppercased;
+    untagged tracks (common on Blu-ray .m2ts) read ``UNK``.
     """
     code = info(label).lower().strip()
-    return LANGUAGE_MAP_SHORT.get(code, code.upper()) if code else ""
+    return LANGUAGE_MAP_SHORT.get(code, code.upper()) if code else "UNK"
 
 
 def get_AudioNameShortVar() -> str:
-    """Return the short code of the audio language."""
+    """Return the short code of the audio language, ``UNK`` if untagged.
+
+    Empty without an audio track, so the row reads N/A.
+    """
+    if not info("VideoPlayer.AudioCodec").strip():
+        return ""
     return _language_short("VideoPlayer.AudioLanguage")
 
 
@@ -518,7 +524,7 @@ def get_SubtitleNameShortVar() -> str:
 
     Without it an untagged track would read just its codec, e.g. ``(PGS)``.
     """
-    return _language_short("VideoPlayer.SubtitlesLanguage") or "UNK"
+    return _language_short("VideoPlayer.SubtitlesLanguage")
 
 
 def get_SubtitleCodecVar() -> str:

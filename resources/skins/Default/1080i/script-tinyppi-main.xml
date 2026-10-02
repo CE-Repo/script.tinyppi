@@ -926,11 +926,11 @@
                         <left>240</left>
                         <top>180</top>
                         <width>400</width>
-                        <label>$INFO[Window().Property(AudioNameShortVar)] $INFO[Window().Property(AudioNameVar),| ]</label>
+                        <label>$INFO[Window().Property(AudioNameShortVar)]$INFO[Window().Property(AudioNameVar), | ]</label>
                         <font>font23_narrow</font>
                         <scroll>true</scroll>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-                        <visible>!String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
+                        <visible>!String.IsEmpty(Window().Property(AudioNameShortVar))</visible>
                         <aligny>top</aligny>
                     </control>
                     <!-- N/A -->
@@ -941,7 +941,7 @@
                         <label>$ADDON[script.tinyppi 32033]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-                        <visible>String.IsEmpty(VideoPlayer.AudioLanguage)</visible>
+                        <visible>String.IsEmpty(Window().Property(AudioNameShortVar))</visible>
                         <aligny>top</aligny>
                     </control>
 
