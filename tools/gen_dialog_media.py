@@ -2,11 +2,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Draw the media files the VS10 dialog's layouts need.
+"""Draw the media files of the VS10 dialog layouts.
 
-Only the single button layout needs any: the two chevrons that say what left
-and right do. They are white and fully opaque, and the skin tints them, the
-way it tints everything else the dialog draws.
+Only the single-button layout needs any: the left and right chevrons, white
+and opaque, tinted by the skin.
 
 Run from the repository root:
 
@@ -22,8 +21,7 @@ MEDIA = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ARROW_SIZE = 32
 
-# Samples per pixel per axis along a shape's edge. The inside and the outside
-# of a shape are answered without sampling, so this is only paid for the edge.
+# Samples per pixel and axis, used only on a shape's edge.
 SUPERSAMPLE = 4
 
 
@@ -48,10 +46,10 @@ def _png(path, width, height, rows):
 
 
 def _coverage(inside, x, y):
-    """How much of the pixel at (x, y) the shape covers, from 0.0 to 1.0.
+    """Return the coverage (0.0-1.0) of the pixel at (*x*, *y*).
 
-    The four corners answer for the whole pixel wherever they agree, which is
-    every pixel but the ones an edge runs through; only those are sampled.
+    When all four corners agree the pixel is fully in or out; only edge
+    pixels are supersampled.
     """
     corners = (inside(x, y), inside(x + 1.0, y),
                inside(x, y + 1.0), inside(x + 1.0, y + 1.0))
@@ -69,7 +67,7 @@ def _coverage(inside, x, y):
 
 
 def _render(size, inside):
-    """Rasterise a white shape with the given inside test, anti-aliased."""
+    """Rasterise a white, anti-aliased shape defined by *inside*."""
     rows = []
     for y in range(size):
         row = bytearray(size * 4)
@@ -87,14 +85,14 @@ def _render(size, inside):
 
 
 def _arrow(pointing_right):
-    """A chevron for the single button layout's left and right steps."""
+    """Return the rows of a left or right chevron."""
     size = float(ARROW_SIZE)
-    # A triangle with a blunt tip, so the shape survives being drawn small.
+    # A triangle with a blunt tip, so it stays legible when small.
     tip = size - 7.0 if pointing_right else 7.0
     back = 7.0 if pointing_right else size - 7.0
 
     def inside(x, y):
-        # How far along the arrow the sample is, from the back edge to the tip.
+        # Position from the back edge (0) to the tip (1).
         along = (x - back) / (tip - back)
         if not 0.0 <= along <= 1.0:
             return False

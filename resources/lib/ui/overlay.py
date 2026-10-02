@@ -36,9 +36,7 @@ from info import properties
 from ui.fonts import ensure_fonts
 from ui.theme import apply_theme
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
+# --- Constants -------------------------------------------------------------
 
 # The add-on folder, fixed while Kodi runs.  Settings and strings are read
 # through _settings() and localized(), so changes are seen.
@@ -242,9 +240,7 @@ def _release_overlay(home) -> None:
         _dialog_lock = False
 
 
-# ---------------------------------------------------------------------------
-# Overlay dialog
-# ---------------------------------------------------------------------------
+# --- Overlay dialog --------------------------------------------------------
 
 class TinyPPIDialog(xbmcgui.WindowXMLDialog):
     """Live player info over fullscreen video.
@@ -536,9 +532,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
             pass
 
 
-# ---------------------------------------------------------------------------
-# Entry points
-# ---------------------------------------------------------------------------
+# --- Entry points ----------------------------------------------------------
 
 def _show_overlay(home) -> str | None:
     """Show the overlay once and return the next view, or None to end."""

@@ -2,16 +2,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Write the VS10 dialog's layout window files.
+"""Generate the window files of the bar and single-button VS10 layouts.
 
-Two of the three layouts draw the same four branches - what the stream is
-decides which choices there are - in a different arrangement, so they are
-generated from one description rather than kept in step by hand. The third,
-the panel the add-on has always opened with, is written by hand and left
-alone here.
-
-The choices themselves, and how large each layout's panel is, come from
-``resources/lib/ui/dialog_layout.py``, which the dialog reads too.
+Both draw the same four branches in different arrangements, generated from
+one description in ``resources/lib/ui/dialog_layout.py`` (also used by the
+dialog).  The original panel layout is maintained by hand.
 
 Run from the repository root:
 
@@ -85,7 +80,7 @@ def label(left, top, width, height, text, colour, font="font23_narrow",
 
 
 def button(control_id, left, top, width, height, text, nav):
-    """One choice: the same button the hand written panel draws."""
+    """Return one choice button, styled like the hand-written panel's."""
     body = ["<control type=\"button\" id=\"%d\">" % control_id,
             "    <left>%d</left>" % left,
             "    <top>%d</top>" % top,
@@ -111,13 +106,13 @@ def button(control_id, left, top, width, height, text, nav):
 
 
 def panel(width, height):
-    """The rounded rectangle a generated layout rests its choices on."""
+    """Return the rounded background panel."""
     return image(0, 0, width, height, "common/button-white.png",
                  HOME % "DialogBackgroundColor", border=40)
 
 
 def header(width, title_left, title_top, icon_size, icon_top, font):
-    """The "VS10" heading and its icon, each hidden by its own setting."""
+    """Return the "VS10" heading and icon, each with its own visibility."""
     icon_left = width - title_left - icon_size
     return "\n".join([
         label(title_left, title_top, width - 2 * title_left, 44, "[B]VS10[/B]",
@@ -135,11 +130,10 @@ def rule(left, top, width):
 
 
 def stacked_branches(place, keys):
-    """Every branch's choices, each group hidden unless its stream is playing.
+    """Return every branch's buttons in a group visible for its stream type.
 
-    ``place`` is handed the branch's buttons and returns the controls for
-    them; ``keys`` names which pair of directions walks the ring, so the
-    stacked layouts step with up and down and the bars with left and right.
+    *place* lays out a branch's buttons; *keys* names the two directions
+    that cycle through them.
     """
     out = []
     for branch in layout.BRANCHES:
@@ -155,7 +149,7 @@ def stacked_branches(place, keys):
 
 
 def nav_for(buttons, index, keys):
-    """Which button each of the two active directions leads to."""
+    """Return the navigation targets of button *index*."""
     count = len(buttons)
     nav = {}
     if count > 1:
@@ -164,8 +158,7 @@ def nav_for(buttons, index, keys):
     else:
         nav[keys[0]] = buttons[0][0]
         nav[keys[1]] = buttons[0][0]
-    # The other two directions lead back to the button itself, so a press
-    # across the grain leaves focus where it is instead of dropping it.
+    # The other directions point to the button itself, keeping focus.
     other = ("onup", "ondown") if keys[0] == "onleft" else ("onleft", "onright")
     nav[other[0]] = buttons[index][0]
     nav[other[1]] = buttons[index][0]
@@ -174,7 +167,7 @@ def nav_for(buttons, index, keys):
 
 def window(title, default_control, width, height, left, top, body,
            entry, exit_):
-    """The window every layout shares: the dim, the moved group, the panel."""
+    """Return the shared window: background dim, movable group, panel."""
     dim = image(0, 0, 1920, 1080, "common/dot-1x1.png",
                 HOME % "DialogGlobalBackgroundColor", visible=PLACED)
     return (HEADER % title) + "\n".join([
@@ -240,16 +233,14 @@ def slide_out(dx, dy):
         "WindowClose</animation>" % (dx, dy))
 
 
-# -- the bars ---------------------------------------------------------------
+# --- The bars --------------------------------------------------------------
 
 def bar(mode, title, margin, gap, header_font, title_top, icon_size,
         rule_top, button_top, button_height, second_rule_top, single_width):
-    """The bar: the choices in a row.
+    """Return the bar layout: the choices in one row.
 
-    Each branch fills the row with the choices it has rather than leaving the
-    gaps a branch with more would want: three names over four buttons' worth
-    of room is what cut "Dolby Vision (Original)" short. The panel stays one
-    size whatever is playing, so the position settings still mean one thing.
+    Each branch spreads its buttons over the full row (so long labels fit);
+    the panel size stays fixed, so the position settings stay meaningful.
     """
     width, height = layout.PANEL_SIZE[mode]
     inner = width - 2 * margin
@@ -280,7 +271,7 @@ def bar(mode, title, margin, gap, header_font, title_top, icon_size,
                   left, top, body, slide(0, 120), slide_out(0, 240))
 
 
-# -- the single button ------------------------------------------------------
+# --- The single button -----------------------------------------------------
 
 def single(title):
     mode = layout.MODE_SINGLE
@@ -289,10 +280,8 @@ def single(title):
     inner = width - 2 * margin
     nav = {key: layout.SINGLE_BUTTON
            for key in ("onup", "ondown", "onleft", "onright")}
-    # What left and right do. Not buttons: there is nowhere for focus to go
-    # but the one button there is, which is also why they take the colour the
-    # button is drawn in rather than the one its name is written in - the
-    # three read as one piece that way.
+    # Left/right indicators (images, not buttons), tinted like the focused
+    # button so the three read as one control.
     arrows = [image(left, 122, 32, 32, "dialog/" + name,
                     HOME % "DialogFocusColor", aspect="keep")
               for name, left in (("arrow-left.png", margin + 4),

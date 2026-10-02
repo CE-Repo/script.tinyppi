@@ -15,7 +15,7 @@ PROFILE_DIR = f"special://profile/addon_data/{ADDON_ID}"
 # The Home window, where TinyPPI publishes its state as properties.
 HOME_WINDOW_ID = 10000
 
-# --- Handing a view to the service --------------------------------------------
+# --- Handing a view to the service -----------------------------------------
 #
 # Set while the service runs.  A launch that finds it hands its view to the
 # service instead of loading the overlay in a throwaway interpreter.

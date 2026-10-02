@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Addon entry point: bootstrap the lib path and dispatch the command."""
+"""Add-on entry point: set up the import path and dispatch the command."""
 
 import os
 import sys
@@ -10,8 +10,8 @@ import time
 import xbmc
 import xbmcgui
 
-# resources/lib on the import path, read off this file rather than asked of
-# Kodi: the constants below are needed before anything else is.
+# Put resources/lib on the import path (derived from this file, without
+# asking Kodi).
 _LIB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "resources", "lib")
 if _LIB_PATH not in sys.path:
@@ -28,10 +28,9 @@ from core.constants import (  # noqa: E402  needs the path above
 )
 from core.log import log  # noqa: E402
 
-# How long a launch waits for the service to take the view off its hands before
-# opening it here instead, and how often it looks.  The service acknowledges as
-# the first thing it does, so the wait is a couple of milliseconds in practice;
-# the timeout only covers a service that is marked as running but is not.
+# How long (and how often) a launch waits for the service to acknowledge a
+# handover.  Normally a few milliseconds; the timeout covers a service that
+# is marked as running but does not answer.
 _ACK_TIMEOUT_MS = 750
 _ACK_STEP_MS    = 10
 
@@ -45,19 +44,12 @@ def _split_args(raw_args: list[str]) -> list[str]:
 
 
 def _hand_to_service(view: str) -> bool:
-    """Ask the running service to open *view*, returning whether it took it.
+    """Ask the running service to open *view*; return whether it accepted.
 
-    Kodi starts a fresh interpreter for every launch, and the overlay's own
-    modules -- the property getters, the side-data reader, the theme, the
-    title list -- have to be imported into it before anything can be drawn.
-    The service has had all of them loaded since Kodi started, so handing the
-    view over there opens it without that import pass, which is most of the
-    wait between the button and the first frame.
-
-    Nothing is assumed about the service being alive: it publishes
-    ``PROP_SERVICE`` while it runs and acknowledges this request before it
-    does anything else, so a launch that gets no answer simply opens the view
-    itself (below) rather than doing nothing at all.
+    Each launch runs in a fresh interpreter that would have to import the
+    overlay modules first; the service has them loaded already, which saves
+    most of the delay.  Without an acknowledgement the caller opens the
+    view itself.
     """
     message = OPEN_MESSAGES.get(view)
     if not message:
@@ -79,8 +71,7 @@ def _hand_to_service(view: str) -> bool:
         xbmc.sleep(_ACK_STEP_MS)
         waited += _ACK_STEP_MS
 
-    # Withdraw the request before opening the view here, so a service that is
-    # only very late does not open a second one on top of it.
+    # Withdraw the request, so a late service does not open a second view.
     home.setProperty(PROP_OPEN_REQUEST, OPEN_WITHDRAWN)
     log("the service did not answer – opening in this script instead",
         xbmc.LOGWARNING)
@@ -88,13 +79,11 @@ def _hand_to_service(view: str) -> bool:
 
 
 def _open_view(view: str) -> None:
-    """Open the overlay or the VS10 dialog, in the service where possible."""
+    """Open the overlay or the VS10 dialog, preferably in the service."""
     if _hand_to_service(view):
         return
 
-    # Imported here rather than at the top of the module: on the fast path
-    # above nothing of this is needed, and every other command has its own
-    # imports to do.
+    # Imported lazily: the fast path above needs none of this.
     if view == "dialog":
         from ui.overlay import open_dialog_mode
         open_dialog_mode()
@@ -104,13 +93,12 @@ def _open_view(view: str) -> None:
 
 
 def main() -> None:
-    """Dispatch TinyPPI's script entry point."""
+    """Run the command given in the script arguments."""
     args = _split_args(sys.argv[1:])
     command = args[0] if args else ""
 
-    # The settings are read only when the launch names no view of its own.
-    # Making the handle parses the add-on's whole settings definition, which
-    # a keymap or a button that names its view never needs.
+    # Read settings only without an explicit view: creating the handle parses
+    # the whole settings definition.
     if not command:
         from core import settings
         launch_mode = settings.addon().getSetting("launch_mode")

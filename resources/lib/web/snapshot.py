@@ -703,7 +703,7 @@ class SessionLog:
         self._cpu_full = False
         self._fps = None
 
-    # -- writing --
+    # --- Writing -----------------------------------------------------------
 
     def end(self) -> None:
         """Mark the session as ended after playback stopped.
@@ -887,7 +887,7 @@ class SessionLog:
             del self._events[:len(self._events) - self.MAX_EVENTS]
         return event
 
-    # -- reading --
+    # --- Reading -----------------------------------------------------------
 
     def summary(self) -> dict:
         """Return the small per-snapshot summary: counters and event ``seq``.

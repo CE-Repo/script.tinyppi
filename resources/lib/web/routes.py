@@ -87,7 +87,7 @@ class Handler(BaseHTTPRequestHandler):
     # hold a thread forever.
     timeout          = _REQUEST_TIMEOUT
 
-    # -- plumbing --
+    # --- Plumbing ----------------------------------------------------------
 
     def log_message(self, fmt: str, *args) -> None:  # noqa: A003 - base API
         _log(_TOKEN_IN_QUERY.sub(r"\1***", fmt % args), xbmc.LOGDEBUG)
@@ -137,7 +137,7 @@ class Handler(BaseHTTPRequestHandler):
     def _send_error_json(self, status: HTTPStatus, message: str) -> None:
         self._send_json({"error": message}, status)
 
-    # -- auth --
+    # --- Auth --------------------------------------------------------------
 
     def _presented_token(self) -> str:
         header = self.headers.get("X-TinyPPI-Token", "")
@@ -180,7 +180,7 @@ class Handler(BaseHTTPRequestHandler):
         return (self.server.auth_read
                 or not access.trusted_host(self.headers.get("Host", "")))
 
-    # -- routing --
+    # --- Routing -----------------------------------------------------------
 
     def do_GET(self) -> None:  # noqa: N802 - base API
         route = urlparse(self.path).path
@@ -286,7 +286,7 @@ class Handler(BaseHTTPRequestHandler):
             return None
         return payload
 
-    # -- responses --
+    # --- Responses ---------------------------------------------------------
 
     def _state_payload(self) -> dict:
         payload = dict(self.server.producer.fresh())

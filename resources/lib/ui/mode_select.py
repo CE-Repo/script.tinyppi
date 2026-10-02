@@ -721,7 +721,7 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         self._place()
         threading.Thread(target=self._hdr_type_loop, daemon=True).start()
 
-    # -- layout -----------------------------------------------------------
+    # --- Layout ------------------------------------------------------------
 
     def _place(self) -> None:
         """Move the panel to the configured position, then reveal it.
@@ -779,7 +779,7 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         self._set_label(dialog_layout.SINGLE_BUTTON,
                         dialog_layout.plain_label(markup))
 
-    # -- lifecycle --------------------------------------------------------
+    # --- Lifecycle ---------------------------------------------------------
 
     def _publish_hdr_type(self, logged: bool = True) -> bool:
         """Republish the HDR type; False when the read failed.

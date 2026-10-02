@@ -226,7 +226,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         """Wait for the refresh thread to stop (called after doModal())."""
         join_refresh_thread(self._thread)
 
-    # --- List ---------------------------------------------------------------
+    # --- List --------------------------------------------------------------
 
     @staticmethod
     def _paint(item: xbmcgui.ListItem, row: tuple, label) -> None:
@@ -355,7 +355,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
 
         self._last_labels = labels
 
-    # --- Geometry -----------------------------------------------------------
+    # --- Geometry ----------------------------------------------------------
 
     def _resize(self, shown: int) -> None:
         """Shrink the window to fit *shown* rows (at most ``_MAX_ROWS``).
@@ -385,7 +385,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             return
         self._list_height = height
 
-    # --- Sections -----------------------------------------------------------
+    # --- Sections ----------------------------------------------------------
 
     def _area_index(self) -> int:
         """Return the index of the current section, found by title.
@@ -417,7 +417,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         """Move one section up or down."""
         self._focus_area(self._area_index() + direction)
 
-    # --- Input --------------------------------------------------------------
+    # --- Input -------------------------------------------------------------
 
     def _settled(self) -> bool:
         """Return False while the opening key press may still arrive."""
@@ -487,7 +487,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         except Exception:
             pass
 
-    # --- Refresh ------------------------------------------------------------
+    # --- Refresh -----------------------------------------------------------
 
     def _update_loop(self) -> None:
         """Refresh every ``_REFRESH`` seconds until the view should close.
