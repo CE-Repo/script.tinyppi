@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Static lookup tables, keyed on the lowercase codec/language id Kodi returns."""
+"""Static lookup tables keyed on the lowercase codec or language id from Kodi."""
 
 # Video codec map (VideoPlayer.VideoCodec -> display label)
 VIDEO_CODEC_MAP = {
@@ -127,8 +127,8 @@ AUDIO_CODEC_MAP = {
     "cdda":            "CD Audio",
 }
 
-# Audio codec -> splash logo (VideoPlayer.AudioCodec -> codecs/*.png, relative to
-# the skin media folder).  Unmapped codecs omit the audio image.
+# Audio codec -> splash logo (codecs/*.png in the skin's media folder).
+# Unmapped codecs show no audio logo.
 AUDIO_LOGO_MAP = {
     # AAC
     "aac":             "codecs/AAC.png",
@@ -177,7 +177,7 @@ AUDIO_LOGO_MAP = {
 }
 
 # HDR type -> splash logo (codecs/*.png).  The empty string maps to the SDR
-# logo so every video resolves to a video image.
+# logo, so every video gets a video logo.
 HDR_LOGO_MAP = {
     "":            "codecs/SDR.png",
     "hdr10":       "codecs/HDR10.png",
@@ -186,10 +186,9 @@ HDR_LOGO_MAP = {
     "dolbyvision": "codecs/Dolby_Vision.png",
 }
 
-# Stand in for the plain logos above while a film recognised as IMAX material
-# plays -- see ui.splash._current_logos, which falls back to the plain logo for
-# any of these files that is not installed.  HLG and SDR have no combined logo,
-# so they keep theirs.
+# Replacements for the logos above while IMAX material plays (see
+# ui.splash._current_logos, which falls back to the plain logo when one is
+# not installed).  HLG and SDR have no IMAX variant.
 IMAX_LOGO_MAP = {
     "hdr10":       "codecs/HDR10_IMAX.png",
     "hdr10+":      "codecs/HDR10Plus_IMAX.png",
@@ -222,8 +221,8 @@ CHANNELS_INPUT_MAP = {
     10: "FL, FR, FC, LFE, BL, BR, SL, SR, FWL, FWR",
 }
 
-# Channel count -> speaker-layout graphic name (drawn from the per-size
-# channels/<box>/ folder chosen in properties.py).  Unmapped counts omit it.
+# Channel count -> speaker-layout graphic in the channels/<box>/ folder
+# chosen by properties.py.  Unmapped counts show no graphic.
 CHANNELS_ICON_MAP = {
     1: "1.0",
     2: "2.0",
@@ -235,9 +234,9 @@ CHANNELS_ICON_MAP = {
     8: "7.1",
 }
 
-# Codecs that carry height channels: the Atmos and DTS:X families (IMAX
-# Enhanced is DTS:X based).  Kodi reports only a channel count, never the
-# height-channel count, so the height speakers are inferred from the codec.
+# Codecs with height channels: the Atmos and DTS:X families (IMAX Enhanced is
+# DTS:X based).  Kodi reports only the channel count, so height speakers are
+# inferred from the codec.
 HEIGHT_CHANNEL_CODECS = frozenset({
     "eac3_ddp_atmos",
     "truehd_atmos",

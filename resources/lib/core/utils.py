@@ -1,9 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""
-utils.py – Generic Kodi API wrappers and shared window-state helpers.
-"""
+"""Kodi API wrappers and shared window-state helpers."""
 
 import re
 import threading
@@ -17,53 +15,44 @@ from core.log import log
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
 
-# Separators between individual readings in a composite value.  The metadata
-# view uses a pipe; the compact overlay swaps it for a lowercase ``l`` because
-# that glyph reads more clearly in its narrow font.  Runs of spaces separate
-# the wide trim-table values.
+# Separators between readings in a composite value: a pipe in the metadata
+# view, a lowercase ``l`` in the compact overlay (clearer in its narrow font),
+# and runs of spaces in the wide trim tables.
 _READING_GAP_RE = re.compile(r"(\s{2,}|\s+[|l]\s+)")
 
-# Home-window (10000) properties describing the TinyPPI overlay state.
-# Shared by overlay.py and mode_select.py.
+# Home-window (10000) properties for the overlay state, shared by overlay.py
+# and mode_select.py.
 PROP_RUNNING     = "TinyPPI.Running"
 PROP_ACTIVE      = "TinyPPI.Active"
 PROP_DIALOG_MODE = "TinyPPI.DialogMode"
 
-# The output type the overlay's layout follows, published by
-# info.properties.publish_hdr_type.
+# The output type the overlay layout follows (see
+# info.properties.publish_hdr_type).
 PROP_EFFECTIVE_HDR_TYPE = "TinyPPI.EffectiveHdrType"
 
-# Whether the playing stream still carries HDR10+ dynamic metadata, published
-# alongside the two above.  What reads it is the VS10 side: a Dolby Vision
-# title with an ST 2094-40 payload beside its RPU is a hybrid grade, and the
-# driver does not take the VS10 modes for one (issue #71), so neither the
-# dialog nor the dashboard offers them.
+# Whether the stream carries HDR10+ metadata.  A Dolby Vision title with an
+# ST 2094-40 payload next to its RPU is a hybrid grade the driver cannot
+# convert with VS10 (issue #71), so the dialog and dashboard hide the modes.
 PROP_HDR10PLUS_PRESENT = "TinyPPI.Hdr10PlusPresent"
 
 
-# Per-pass read caches, one set per thread (the overlay refreshes from its own
-# polling thread while the metadata view refreshes from another).  ``None``
-# outside a pass, which is when every read goes straight to Kodi.
+# Per-pass read caches, one per thread (the overlay and the metadata view
+# refresh from different threads).  ``None`` outside a pass, where every read
+# goes straight to Kodi.
 _reads = threading.local()
 
 
 class read_pass:
-    """Read each InfoLabel and condition Kodi is asked for at most once.
+    """Read each InfoLabel and condition at most once per pass.
 
-    One refresh works out around sixty readings off some forty InfoLabels, and
-    the same handful -- the Amlogic pixel format, the output gamut, the audio
-    codec, the CPU load -- are wanted by several of them.  Each read crosses
-    into Kodi's info manager and takes its lock, which is a poor way to spend a
-    tick on a set-top box that is decoding 4K at the same time, and the readings
-    inside one pass are meant to describe one moment anyway.
+    One refresh computes about sixty readings from some forty InfoLabels, many
+    of them shared.  Every read takes the lock of Kodi's info manager, which is
+    costly on a box decoding 4K, and readings within one pass should describe
+    the same moment anyway.
 
-    The pass also holds one handle on the Home window for everything in it
-    that reads or writes a property there (see ``home_window``).
-
-    Nests: an inner pass shares the outer one's cache rather than starting a
-    second, so a caller that wraps two passes of its own gets one set of reads
-    for both.  Nothing is kept once the outermost pass ends -- the next tick
-    reads the player afresh.
+    The pass also shares one Home-window handle (see ``home_window``).  Passes
+    nest: an inner pass uses the outer one's cache.  Nothing is kept after the
+    outermost pass ends.
     """
 
     __slots__ = ("_outer",)
@@ -87,11 +76,9 @@ class read_pass:
 def home_window() -> xbmcgui.Window:
     """Return the Home window (10000), where TinyPPI publishes its state.
 
-    Looking a window up takes Kodi's GUI lock, and one refresh asks for this
-    one again and again, so inside a ``read_pass`` the whole pass shares one
-    handle.  Outside a pass every call looks it up afresh.  Never kept past the
-    pass: Kodi builds its windows anew when the skin is reloaded, and a handle
-    held across that would point at a window that is gone.
+    A window lookup takes Kodi's GUI lock, so inside a ``read_pass`` one
+    handle is shared.  It is never kept beyond the pass: Kodi recreates its
+    windows when the skin reloads.
     """
     if getattr(_reads, "info", None) is None:
         return xbmcgui.Window(HOME_WINDOW_ID)
@@ -102,7 +89,7 @@ def home_window() -> xbmcgui.Window:
 
 
 def cond(condition: str) -> bool:
-    """Return True when the given Kodi condition string is satisfied."""
+    """Return True when the Kodi condition *condition* is met."""
     cache = getattr(_reads, "cond", None)
     if cache is None:
         return xbmc.getCondVisibility(condition)
@@ -114,10 +101,10 @@ def cond(condition: str) -> bool:
 
 
 def effective_hdr_type() -> str:
-    """Return the HDR type the overlay's layout follows.
+    """Return the HDR type the overlay layout follows.
 
-    The effective type, not the source: a stream VS10 converts to SDR is drawn
-    in the SDR layout, so this is what the boxes and panels are sized against.
+    This is the effective type, not the source: a stream VS10 converts to SDR
+    uses the SDR layout.
     """
     return home_window().getProperty(PROP_EFFECTIVE_HDR_TYPE)
 
@@ -125,9 +112,8 @@ def effective_hdr_type() -> str:
 def is_effective_dv() -> bool:
     """Return whether the layout follows the Dolby Vision branch.
 
-    Mirrors the skin's own condition, which puts the channel graphics in the
-    smaller panel and the Dolby Vision panels on screen.  Answered in one place
-    rather than restated per caller, so the copies cannot drift apart.
+    Mirrors the skin's own condition; kept in one place so callers cannot
+    drift apart.
     """
     return "dolby" in effective_hdr_type().lower()
 
@@ -135,7 +121,7 @@ def is_effective_dv() -> bool:
 def info(label: str) -> str:
     """Return the current value of a Kodi InfoLabel (never None).
 
-    Answered out of the current ``read_pass`` when one is open; see there.
+    Served from the current ``read_pass`` when one is open.
     """
     cache = getattr(_reads, "info", None)
     if cache is None:
@@ -157,11 +143,10 @@ def _known(label: str, value: str) -> str:
     return "" if value == label else value
 
 
-# How often ``localized`` asks Kodi which language it is in (seconds).
+# How often ``localized`` checks Kodi's language, in seconds.
 _LANGUAGE_RECHECK = 1.0
 
-# This add-on's strings as read, the language they were read in, and when
-# that was last checked.
+# Cached strings, the language they were read in, and the last check.
 _strings: dict[int, str] = {}
 _strings_language: str | None = None
 _language_checked = float("-inf")
@@ -170,11 +155,9 @@ _language_checked = float("-inf")
 def localized(string_id: int) -> str:
     """Return this add-on's string *string_id* in Kodi's language.
 
-    Each string is asked of Kodi once and then held: the dashboard labels
-    every row it sends, five times a second, and the N/A check behind many
-    readings asks for the same string on every tick.  The held strings are
-    dropped when Kodi's language changes, which is checked at most once a
-    second, so a switch shows within a second rather than after a restart.
+    Strings are cached because the dashboard and the N/A checks ask for the
+    same ones several times a second.  The cache is dropped when Kodi's
+    language changes, which is checked at most once a second.
     """
     global _strings_language, _language_checked
 
@@ -192,20 +175,18 @@ def localized(string_id: int) -> str:
 
 
 def clean(val) -> str:
-    """Strip commas that Kodi inserts as thousands separators."""
+    """Strip the commas Kodi inserts as thousands separators."""
     if val is None:
         return ""
     return str(val).replace(",", "")
 
 
-# How long a reading that moved keeps the highlight color when the caller
-# names no duration of its own.  The same 750ms the Highlight duration sliders
-# default to, so a profile too old to hold the setting behaves like one that
-# has never been touched rather than like one set to something else.
+# Default highlight duration for a changed reading, matching the 750 ms
+# default of the highlight duration settings.
 DEFAULT_HIGHLIGHT_HOLD = 0.75
 
-# Deadline key standing for the whole value rather than one part of it, used
-# for the values that cannot be compared part by part (see _changed_parts).
+# Deadline key for the whole value, used when parts cannot be compared
+# individually (see ``_changed_parts``).
 _WHOLE = -1
 
 
@@ -215,18 +196,12 @@ def _colored(text: str, color: str) -> str:
 
 
 def _changed_parts(previous, current) -> list:
-    """Which parts of *current* read differently than they did in *previous*.
+    """Return the indices of the parts of *current* that differ from *previous*.
 
-    Strings are split on the separators between readings, so one moving number
-    in a composite value does not report its neighbours as changed; the
-    returned indices are into that split, which ``_colored_parts`` rebuilds the
-    string from.  Lists are compared cell by cell, for the metadata view's
-    fixed-column tables.
-
-    ``[_WHOLE]`` when the two cannot be lined up part by part at all -- a
-    different number of readings, or a value that changed shape from a table
-    row to a plain one -- which marks the value changed as a whole, the way
-    the part-by-part comparison could not.
+    Strings are split on the reading separators, so one moving number does
+    not mark its neighbours; the indices refer to that split.  Lists are
+    compared cell by cell.  Returns ``[_WHOLE]`` when the values cannot be
+    lined up (different number of readings, or a change of shape).
     """
     if isinstance(current, list):
         before = previous if isinstance(previous, list) else []
@@ -238,19 +213,17 @@ def _changed_parts(previous, current) -> list:
     before = _READING_GAP_RE.split(previous)
     if len(parts) != len(before):
         return [_WHOLE]
-    # Odd indices are the separators the split kept; only the readings between
-    # them are compared, and only they are ever colored.
+    # Odd indices are the separators kept by the split; only readings count.
     return [index for index, part in enumerate(parts)
             if not index % 2 and part != before[index]]
 
 
 def _colored_parts(value, parts, color: str):
-    """Return *value* with the parts named in *parts* color-marked.
+    """Return *value* with the parts listed in *parts* colored.
 
-    Indices left over from a value of a different shape cannot color the wrong
-    reading: whatever set them also set ``_WHOLE`` at a deadline no earlier
-    than theirs (see ``_changed_parts``), so while any of them is still live
-    the whole value is lit anyway.
+    Stale indices from a value of another shape are harmless: whatever set
+    them also set ``_WHOLE`` with a deadline at least as late, so the whole
+    value is lit while they are live.
     """
     if not parts:
         return value
@@ -267,45 +240,31 @@ def _colored_parts(value, parts, color: str):
 
 
 class ChangeHighlighter:
-    """Color the readings that moved, and keep them colored for *hold* seconds.
+    """Color readings that changed and keep them colored for *hold* seconds.
 
-    The views poll their readings ten times a second, which is the cadence the
-    Dolby Vision blocks themselves move at.  A highlight that lasts exactly one
-    such tick, though, is a tenth of a second on screen -- over before the eye
-    that noticed it can land on it.  So what a tick decides here is not whether
-    a reading is colored but whether it *just changed*: a change stamps a
-    deadline on the reading, and every tick up to that deadline draws it in the
-    highlight color, however many ticks that takes.  The polling stays as fast
-    as it was; the blink lasts as long as *hold* says.
-
-    Which is also why the deadlines live here rather than in the callers: a
-    caller that only ever compares this tick's value against the last one can
-    light a reading for a single tick and no longer.
-
-    Each part of a composite reading carries its own deadline, so a value that
-    moves again halfway through does not cut its neighbour's highlight short.
+    The views poll ten times a second, so a highlight lasting one tick would
+    be too short to notice.  A change therefore stamps a deadline on the
+    reading, and every tick until then draws it highlighted.  Each part of a
+    composite reading has its own deadline, so a part that changes again does
+    not cut its neighbour's highlight short.
     """
 
     def __init__(self, hold: float = DEFAULT_HIGHLIGHT_HOLD) -> None:
         self._hold = max(0.0, hold)
-        # Per key: the last plain value seen, and the deadline every part of it
-        # still being highlighted is lit until.  Kept apart so a key with
-        # nothing lit costs one dict entry rather than two.
+        # Per key: the last plain value, and the highlight deadline per part.
+        # Separate dicts, so a key with nothing lit costs a single entry.
         self._values: dict = {}
         self._until: dict  = {}
 
     def mark(self, key, value, color: str, now: float = None):
-        """Record *value* under *key* and return it with its changes lit.
+        """Record *value* under *key* and return it with its changes colored.
 
-        A value without history is returned plain: there is nothing to compare
-        it against yet, and a view that lit every reading the moment it opened
-        would say everything changed at once.  So is every value when *color*
-        is empty, which is how a caller says the highlight does not apply right
-        now -- the value is still remembered, so the reading has its history
-        ready for whenever it does apply again.
+        A value without history is returned plain, so a freshly opened view
+        does not light everything.  An empty *color* disables highlighting
+        for now, but the value is still recorded.
 
-        *now* comes from ``time.monotonic``; pass one taken once for a whole
-        pass over many keys, so every reading in it shares a deadline.
+        *now* is a ``time.monotonic`` value; pass one per pass so all
+        readings in it share a deadline.
         """
         now      = time.monotonic() if now is None else now
         previous = self._values.get(key)
@@ -329,13 +288,10 @@ class ChangeHighlighter:
         return _colored_parts(value, deadlines, color)
 
     def retain(self, keys) -> None:
-        """Forget every key that is not in *keys*.
+        """Forget every key not in *keys*.
 
-        For callers whose set of readings changes under them -- the metadata
-        view's rows come and go with the frame -- so the history does not grow
-        for the life of the view.  A key that goes away and comes back is a
-        reading without history again, which is the same thing the view says
-        of it: it was not on screen to have moved.
+        For views whose rows come and go (the metadata view), so the history
+        does not grow for the life of the view.
         """
         keep = set(keys)
         for store in (self._values, self._until):
@@ -344,15 +300,11 @@ class ChangeHighlighter:
 
 
 def highlight_hold(setting_id: str) -> float:
-    """Seconds a changed reading stays lit, from the milliseconds *setting_id*
-    is set to.
+    """Return the highlight duration in seconds from setting *setting_id*.
 
-    Read through ``core.settings`` so a duration changed mid-session applies
-    to the next view opened rather than to the next Kodi start.  Anything the
-    setting cannot answer with -- a profile written before it existed, a value
-    the slider could not have produced -- reads as DEFAULT_HIGHLIGHT_HOLD: a
-    missing setting should cost the viewer's choice of duration, not the
-    highlighting itself.
+    The setting holds milliseconds and is read through ``core.settings``, so
+    a change applies to the next view opened.  Missing or invalid values fall
+    back to ``DEFAULT_HIGHLIGHT_HOLD``.
     """
     try:
         milliseconds = settings.addon().getSettingInt(setting_id)
@@ -364,8 +316,8 @@ def highlight_hold(setting_id: str) -> float:
 def parse_offsets(value: str) -> tuple[int, int, int, int] | None:
     """Return the four L5 offsets from an ``L | R | T | B`` string.
 
-    None for anything that is not four numbers: an empty field, or one of
-    dvinfo's status labels.
+    None for anything that is not four numbers, such as an empty field or a
+    status label from dvinfo.
     """
     parts = value.split("|")
     if len(parts) != 4:
@@ -377,7 +329,7 @@ def parse_offsets(value: str) -> tuple[int, int, int, int] | None:
 
 
 def coded_frame() -> tuple[int, int] | None:
-    """Return the coded video frame size, or None when it is not known."""
+    """Return the coded video frame size, or None when unknown."""
     try:
         width = int(clean(info("Player.Process(videowidth)")))
         height = int(clean(info("Player.Process(videoheight)")))
@@ -387,7 +339,7 @@ def coded_frame() -> tuple[int, int] | None:
 
 
 def first_float(raw: str) -> float | None:
-    """Return the first decimal number found in *raw*, or None."""
+    """Return the first decimal number in *raw*, or None."""
     match = _DECIMAL_RE.search(raw)
     if not match:
         return None
@@ -401,13 +353,11 @@ def picture_aspect_ratio(offsets: str) -> float | None:
     """Return the display aspect ratio of the picture inside the black bars.
 
     Kodi's ``videodar`` describes the coded frame, so a letterboxed picture
-    reports its container's ratio rather than its own; scaling that by the bars
-    gives the ratio actually on screen.  Scaling rather than dividing the
-    picture's own dimensions carries any non-square pixel aspect through
-    unchanged.
+    reports its container's ratio.  Scaling that ratio by the bars gives the
+    visible ratio and keeps any non-square pixel aspect.
 
-    None when the frame, the bars or Kodi's own ratio are unknown, or when the
-    bars would leave no picture at all.
+    None when the frame, the bars or Kodi's ratio are unknown, or when the
+    bars leave no picture.
     """
     bars = parse_offsets(offsets)
     coded = coded_frame()
@@ -426,19 +376,17 @@ def picture_aspect_ratio(offsets: str) -> float | None:
 
 
 def set_window_properties(window, values: tuple[tuple[str, str], ...]) -> None:
-    """Publish a batch of Kodi window properties."""
+    """Publish a batch of window properties."""
     for name, value in values:
         window.setProperty(name, value)
 
 
 def set_changed_properties(window, published: dict, values: tuple[tuple[str, str], ...]) -> None:
-    """Publish only the values that differ from what ``published`` last recorded.
+    """Publish only the values that differ from *published*.
 
-    ``published`` is the caller's own tracking dict, kept for the life of
-    whatever polls this window; only the entries actually written here are
-    updated in it, so it stays an accurate record of what the window holds
-    even when something else (a highlight overwrite, say) also writes to the
-    same keys and updates the same dict.
+    *published* is the caller's record of what the window holds; only the
+    entries written here are updated in it, so it stays accurate when other
+    code (e.g. a highlight) writes the same keys and updates it too.
     """
     for name, value in values:
         if published.get(name) != value:
@@ -448,24 +396,19 @@ def set_changed_properties(window, published: dict, values: tuple[tuple[str, str
 
 # --- Refresh thread --------------------------------------------------------
 
-# Seconds join_refresh_thread gives a refresh thread to wind down: far past
-# the tick it may still be sleeping through, so a live thread always makes it
-# and a wedged one does not hold the hand-off for good.
+# How long join_refresh_thread waits: well past one tick, so a live thread
+# always finishes, while a wedged one cannot block the hand-over for good.
 _JOIN_TIMEOUT = 1.0
 
 
 def join_refresh_thread(thread) -> None:
-    """Wait for a view's refresh thread to actually stop.
+    """Wait for a view's refresh thread to stop.
 
-    Every view runs its loop the same way, so they all wind it down the same
-    way: the loop only checks the view's running flag between ticks, so it can
-    outlive doModal() by up to one tick -- still writing to a window Kodi is
-    tearing down, and still touching the side-data hold state the next view's
-    loop reads (info.dvmetadata's module-level _held / _held_source).  The
-    hand-over to the next view waits here instead of racing it.  Logs once if
-    the thread is still alive after the timeout -- a wedged thread can only
-    happen once per dialog instance, so an unconditional log on that path is
-    enough.
+    The loop checks the view's running flag only between ticks, so it can
+    outlive doModal() by one tick, still writing to a closing window and
+    touching the side-data hold state the next view reads
+    (``info.dvmetadata._held`` / ``_held_source``).  Logs a warning if the
+    thread is still alive after the timeout.
     """
     if thread is None:
         return
@@ -480,10 +423,10 @@ def join_refresh_thread(thread) -> None:
 
 
 def log_refresh_failure(view: str, exc: Exception) -> None:
-    """Log a failed refresh of ``view`` (e.g. ``'overlay'``).
+    """Log a failed refresh of *view* (e.g. ``'overlay'``).
 
-    The caller keeps the once-per-view flag that gates this: a persistent
-    fault should leave a trace without writing to the log every tick.
+    The caller gates this with a once-per-view flag, so a persistent fault
+    leaves one trace instead of one per tick.
     """
     log(
         f"{view} refresh failed, continuing with the last "

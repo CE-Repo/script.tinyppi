@@ -3,31 +3,22 @@
 
 """Display reset for Dolby Vision output switches.
 
-Kodi re-applies the display mode whenever the played stream's HDR type changes:
-``CWinSystemAmlogicGLESContext::CreateNewWindow`` compares the new type against
-the old one and, when they differ, forces a mode switch.  That forced switch is
-what makes the HDMI output re-negotiate, and it is why a stream that starts as
-Dolby Vision reaches the TV as Dolby Vision.
+Kodi forces a display mode switch when the stream's HDR type changes
+(``CWinSystemAmlogicGLESContext::CreateNewWindow``); that switch makes the
+HDMI output renegotiate.  A VS10 switch during playback bypasses it: neither
+the sysfs writes nor the ``vs10.*`` actions tell Kodi, so the driver sends a
+new output format over a link set up for the old one.  The TV then stays out
+of Dolby Vision and colours are wrong, most visibly in Player-LED mode.
 
-A VS10 output switch made while a stream is already playing never goes through
-that path.  Neither the sysfs writes nor the native ``vs10.*`` actions tell Kodi
-anything, so the Dolby Vision driver starts sending a different output format
-while the HDMI output is still set up for the previous one -- the TV then never
-switches to Dolby Vision and the picture comes out with the wrong colours, most
-visibly in Player-LED mode.
+Since kernel 5.15 the mode can only be changed by a DRM atomic commit from
+the DRM master, which is Kodi.  Add-ons run inside Kodi's process, so its DRM
+descriptor is reachable here.  This module sets the Amlogic ``UPDATE``
+connector property, the same step Kodi uses when the mode string does not
+change (``CAMLDRMUtils::aml_set_drmDevice_mode``), which re-applies the
+current output.
 
-Since kernel 5.15 the display mode can no longer be set through
-``/sys/class/display/mode``; Amlogic disabled that and it now takes a DRM atomic
-commit, which only the DRM master may perform.  Kodi is that master -- and
-add-ons run inside the Kodi process, so its own DRM file descriptor is reachable
-from here.  This module uses it for the one step Kodi's own forced mode switch
-falls back to when the mode string itself does not change: setting the Amlogic
-``UPDATE`` connector property, which makes the driver re-apply the current
-output (``CAMLDRMUtils::aml_set_drmDevice_mode``).
-
-Everything here is best effort.  A kernel without the property, a Kodi build
-that does not use DRM, a descriptor that is not the master -- each just means no
-reset, never a failed mode switch.
+Best effort only: without the property, without DRM, or without the master
+descriptor there is simply no reset; the mode switch itself never fails.
 """
 
 import ctypes
@@ -39,27 +30,26 @@ from core.log import log
 
 try:
     import fcntl
-except ImportError:  # Not Linux (a dev box); every call below then no-ops.
+except ImportError:  # not Linux (a dev box): every call below is a no-op
     fcntl = None
 
 # --- DRM ioctl plumbing ----------------------------------------------------
 #
-# Only the four calls libdrm would make for
-# ``drmModeObjectSetProperty(fd, connector, "UPDATE", 1)``: list the connectors,
-# ask one for its type and connection state, list its properties, set one.
+# The four calls libdrm makes for
+# ``drmModeObjectSetProperty(fd, connector, "UPDATE", 1)``: list connectors,
+# get a connector's type and state, list its properties, set one.
 
 _DRM_IOCTL_BASE = ord("d")
 
 _DRM_MODE_OBJECT_CONNECTOR = 0xC0C0C0C0
 _DRM_MODE_DISCONNECTED = 2
-# HDMI-A and HDMI-B, the only connector types Dolby Vision can come out of.
+# HDMI-A and HDMI-B, the only connectors Dolby Vision can leave through.
 _DRM_MODE_CONNECTOR_HDMI = (11, 12)
 
 _UPDATE_PROPERTY = b"UPDATE"
 
-# Length of drm_mode_modeinfo, allocated only so the kernel has somewhere to
-# put a mode should it ever copy one; see _get_connector for why it must not
-# be asked for zero modes.
+# Size of drm_mode_modeinfo: room for the one mode the kernel may copy (see
+# _get_connector for why zero modes must not be requested).
 _MODEINFO_SIZE = 68
 
 
@@ -143,32 +133,30 @@ _IOCTL_GETPROPERTY      = _iowr(0xAA, ctypes.sizeof(_GetProperty))
 _IOCTL_OBJ_GETPROPERTIES = _iowr(0xB9, ctypes.sizeof(_ObjGetProperties))
 _IOCTL_OBJ_SETPROPERTY  = _iowr(0xBA, ctypes.sizeof(_ObjSetProperty))
 
-# Connector and property id of the UPDATE property, once found.  Both are
-# device-global and stable for as long as Kodi runs, so the scan happens once;
-# None means "not probed yet", False means "probed, not available here".
+# Connector and property id of UPDATE once found; both are stable while Kodi
+# runs, so the scan happens once.  None: not probed yet; False: unavailable.
 _target: tuple[int, int] | None | bool = None
 
 
 def _ioctl(fd: int, request: int, payload) -> bool:
-    """Run one DRM ioctl on ``fd``, returning whether it succeeded."""
+    """Run one DRM ioctl on *fd* and return whether it succeeded."""
     if fcntl is None:
         return False
     try:
         fcntl.ioctl(fd, request, payload, True)
         return True
     except (OSError, OverflowError, ValueError):
-        # OSError is the ordinary "this kernel/descriptor won't do that"; the
-        # other two guard against a Python that refuses the request number.
+        # OSError: unsupported by this kernel or descriptor.  The other two:
+        # Python refusing the request number.
         return False
 
 
 def _drm_fds() -> list[int]:
-    """Return the process' open descriptors for a DRM card node.
+    """Return this process's open descriptors for DRM card nodes.
 
-    Kodi opens ``/dev/dri/cardN`` and becomes its master; that descriptor lives
-    in this very process, so it is reachable through ``/proc/self/fd``.  Read
-    fresh every time -- a cached number could point at some unrelated file by
-    the time it is used.
+    Kodi opens ``/dev/dri/cardN`` as master in this same process, so the
+    descriptor is visible in ``/proc/self/fd``.  Read fresh each time: a
+    cached number could refer to another file by then.
     """
     found = []
     try:
@@ -180,7 +168,7 @@ def _drm_fds() -> list[int]:
         try:
             target = os.readlink(f"/proc/self/fd/{entry}")
         except OSError:
-            # The descriptor list is a snapshot; entries can already be gone.
+            # The listing is a snapshot; the descriptor may be gone.
             continue
         if target.startswith("/dev/dri/card"):
             try:
@@ -191,7 +179,7 @@ def _drm_fds() -> list[int]:
 
 
 def _connector_ids(fd: int) -> list[int]:
-    """Return the ids of every connector the DRM device exposes."""
+    """Return the ids of all connectors of the DRM device."""
     res = _CardRes()
     if not _ioctl(fd, _IOCTL_GETRESOURCES, res) or not res.count_connectors:
         return []
@@ -211,11 +199,10 @@ def _connector_ids(fd: int) -> list[int]:
 def _get_connector(fd: int, connector_id: int) -> _GetConnector | None:
     """Return the connector's type and connection state, or None.
 
-    ``count_modes`` is deliberately non-zero: the kernel takes a zero there as
-    a request to re-probe the connector, which re-reads the EDID and is not
-    something to do behind Kodi's back mid-playback.  One mode's worth of room
-    is passed along for the rare display that has exactly one, in which case
-    the kernel does copy it.
+    ``count_modes`` is deliberately non-zero: zero makes the kernel re-probe
+    the connector and re-read the EDID, which must not happen behind Kodi's
+    back during playback.  Room for one mode is passed in case the display
+    has exactly one and the kernel copies it.
     """
     modes = (ctypes.c_uint8 * _MODEINFO_SIZE)()
     conn = _GetConnector(
@@ -227,7 +214,7 @@ def _get_connector(fd: int, connector_id: int) -> _GetConnector | None:
 
 
 def _property_id(fd: int, connector_id: int, name: bytes) -> int | None:
-    """Return the id of the named property on ``connector_id``, or None."""
+    """Return the id of property *name* on *connector_id*, or None."""
     props = _ObjGetProperties(
         obj_id=connector_id, obj_type=_DRM_MODE_OBJECT_CONNECTOR
     )
@@ -249,7 +236,7 @@ def _property_id(fd: int, connector_id: int, name: bytes) -> int | None:
 
     for prop_id in list(prop_ids)[: min(count, props.count_props)]:
         prop = _GetProperty(prop_id=prop_id)
-        # Matched without regard to case, as Kodi's own set_drmProp does.
+        # Case-insensitive, like Kodi's own set_drmProp.
         if _ioctl(fd, _IOCTL_GETPROPERTY, prop) and prop.name.upper() == name:
             return prop_id
     return None
@@ -258,11 +245,10 @@ def _property_id(fd: int, connector_id: int, name: bytes) -> int | None:
 def _find_update_property(fd: int) -> tuple[int, int] | None:
     """Return ``(connector_id, prop_id)`` of the output to reset, or None.
 
-    The HDMI connector is what Dolby Vision leaves the box through, so it wins;
-    anything else carrying the property is kept as a fallback rather than
-    dropped.  A connector reporting UNKNOWN is not skipped -- Kodi itself forces
-    its connector to connected for a mode switch -- but a disconnected one is:
-    there is no output to re-apply.
+    HDMI is preferred, since Dolby Vision leaves through it; another
+    connector with the property is the fallback.  Connectors reporting
+    UNKNOWN are kept (Kodi forces its connector to connected for a mode
+    switch), disconnected ones are skipped.
     """
     fallback = None
     for connector_id in _connector_ids(fd):
@@ -284,9 +270,9 @@ def _find_update_property(fd: int) -> tuple[int, int] | None:
 def reset(reason: str = "") -> bool:
     """Ask the display driver to re-apply the current output.
 
-    Returns whether the reset was actually performed.  A first call scans for
-    the ``UPDATE`` connector property and remembers the answer, including a
-    negative one, so a kernel without it costs nothing from then on.
+    Returns whether the reset was performed.  The first call looks for the
+    ``UPDATE`` property and caches the result, including a negative one, so
+    a kernel without it costs nothing afterwards.
     """
     global _target
 
@@ -308,14 +294,12 @@ def reset(reason: str = "") -> bool:
             obj_type=_DRM_MODE_OBJECT_CONNECTOR,
         )
         if _ioctl(fd, _IOCTL_OBJ_SETPROPERTY, request):
-            # Only a descriptor that is the DRM master gets this far, so cache
-            # the ids now: they are what the next reset needs.
+            # Only the DRM master's descriptor gets here; cache its ids.
             _target = target
             log(f"display reset{note}", xbmc.LOGINFO)
             return True
 
-        # Not the master (Kodi may hold more than one descriptor) -- try the
-        # next one rather than giving up on the whole device.
+        # Not the master (Kodi may hold several descriptors): try the next.
 
     _target = False
     log(
