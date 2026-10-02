@@ -23,6 +23,7 @@ python3 -m pytest tests
 | `unit/test_artwork.py` | Artwork sources (Kodi's texture cache first) and types (from the bytes) |
 | `unit/test_settings_definition.py` | `resources/settings.xml` against the five languages, the code and the skin: texts, defaults, dependencies, action buttons, colour defaults, opacity sliders, every setting read, every colour property used |
 | `unit/test_settings_logic.py` | The settings that only act with Dolby Vision or on Amlogic hardware, checked on their code paths; every colour setting reaching its skin property |
+| `unit/test_properties.py` | The language codes of the audio and subtitle rows: unmapped codes as reported, untagged subtitles as UNK |
 | `unit/test_modules.py` | Every module imports; the small state holders behave |
 
 ## Kodi 22 suite

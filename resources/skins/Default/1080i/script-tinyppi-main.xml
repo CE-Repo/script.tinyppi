@@ -957,7 +957,7 @@
                         <left>240</left>
                         <top>210</top>
                         <width>400</width>
-                        <label>$INFO[Window().Property(SubtitleNameShortVar)] $INFO[Window().Property(SubtitleNameVar),| ] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(SubtitleCodecVar),(,)][/COLOR]</label>
+                        <label>$INFO[Window().Property(SubtitleNameShortVar)]$INFO[Window().Property(SubtitleNameVar), | ] [COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window().Property(SubtitleCodecVar),(,)][/COLOR]</label>
                         <font>font23_narrow</font>
                         <scroll>true</scroll>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>

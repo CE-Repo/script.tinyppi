@@ -491,10 +491,18 @@ def get_AudioNameVar() -> str:
     return LANGUAGE_MAP.get(code, "") if code else ""
 
 
+def _language_short(label: str) -> str:
+    """Return the short code of the language in InfoLabel *label*.
+
+    Codes missing from the map are shown as Kodi reports them, uppercased.
+    """
+    code = info(label).lower().strip()
+    return LANGUAGE_MAP_SHORT.get(code, code.upper()) if code else ""
+
+
 def get_AudioNameShortVar() -> str:
     """Return the short code of the audio language."""
-    code = info("VideoPlayer.AudioLanguage").lower().strip()
-    return LANGUAGE_MAP_SHORT.get(code, "") if code else ""
+    return _language_short("VideoPlayer.AudioLanguage")
 
 
 # --- Subtitle properties ---------------------------------------------------
@@ -506,9 +514,11 @@ def get_SubtitleNameVar() -> str:
 
 
 def get_SubtitleNameShortVar() -> str:
-    """Return the short code of the subtitle language."""
-    code = info("VideoPlayer.SubtitlesLanguage").lower().strip()
-    return LANGUAGE_MAP_SHORT.get(code, "") if code else ""
+    """Return the short code of the subtitle language, ``UNK`` if untagged.
+
+    Without it an untagged track would read just its codec, e.g. ``(PGS)``.
+    """
+    return _language_short("VideoPlayer.SubtitlesLanguage") or "UNK"
 
 
 def get_SubtitleCodecVar() -> str:
