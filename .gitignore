@@ -5,3 +5,6 @@
 
 # Python cache folder
 __pycache__/
+
+# Test runs
+.pytest_cache/

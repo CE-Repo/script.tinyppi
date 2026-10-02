@@ -419,6 +419,15 @@ xbmc.executebuiltin('RunScript(script.tinyppi,run_mode,dv)')
 
 ---
 
+## Tests
+
+Unit tests run outside Kodi (`python3 -m pytest tests`); an end-to-end suite
+drives a real Kodi 22 and checks the service, the overlay, the dialogs, the
+dashboard and every setting. Both are described in
+**[tests/README.md](tests/README.md)**.
+
+---
+
 ## Credits
 
 TinyPPI builds on the work of the following projects — many thanks to their authors and contributors.
