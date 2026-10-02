@@ -340,8 +340,11 @@ def _overlay_rows(values: dict[str, str]) -> dict[str, str]:
     """
     rows: dict[str, str] = {}
 
-    # Output: Passthrough, the sink's channels, or Decoding.
-    if cond("Player.Passthrough"):
+    # Output: Passthrough, the sink's channels or Decoding; N/A (empty)
+    # without an audio codec, like the other audio rows.
+    if not info("VideoPlayer.AudioCodec").strip():
+        rows["AudioOutputRow"] = ""
+    elif cond("Player.Passthrough"):
         rows["AudioOutputRow"] = _label(32035)
     else:
         rows["AudioOutputRow"] = (values.get("AudioChannelsSink", "")

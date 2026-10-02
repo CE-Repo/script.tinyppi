@@ -369,8 +369,19 @@ def _output_mode_from_videoplayer() -> str:
 
 # --- Audio properties ------------------------------------------------------
 
+def _has_audio() -> bool:
+    """Return whether Kodi names a codec for the current audio track.
+
+    Without one Kodi may still report channels, a bitrate and a format;
+    those rows read N/A like the codec instead.
+    """
+    return bool(info("VideoPlayer.AudioCodec").strip())
+
+
 def get_AudioBitrateKBVar() -> str:
     """Return the audio bitrate in Kb/s for display."""
+    if not _has_audio():
+        return ""
     bitrate = clean(info("VideoPlayer.AudioBitrate"))
     try:
         kbps = int(float(bitrate))
@@ -381,6 +392,8 @@ def get_AudioBitrateKBVar() -> str:
 
 def get_AudioLiveBitrateVar() -> str:
     """Return the live audio bitrate with a decimal point."""
+    if not _has_audio():
+        return ""
     bitrate = info("Player.Process(audiolivebitrate)")
     if not bitrate:
         return ""
@@ -408,6 +421,8 @@ def get_AudioCodecSpatialVar() -> str:
 
 def get_AudioChannelsVar() -> str:
     """Return the surround layout for the channel count, e.g. ``7.1``."""
+    if not _has_audio():
+        return ""
     try:
         ch = int(info("VideoPlayer.AudioChannels"))
         return CHANNELS_MAP.get(ch, "")
@@ -417,6 +432,8 @@ def get_AudioChannelsVar() -> str:
 
 def get_AudioChannelsInputVar() -> str:
     """Return the speaker labels for the channel count."""
+    if not _has_audio():
+        return na_label()
     try:
         ch = int(info("VideoPlayer.AudioChannels"))
         return CHANNELS_INPUT_MAP.get(ch, na_label())
@@ -430,6 +447,8 @@ def _channel_layout() -> str:
     Atmos and DTS:X tracks with 6 or 8 channels use the height variant
     (5.1.2 / 7.1.2), since Kodi reports no height count.
     """
+    if not _has_audio():
+        return ""
     try:
         ch = int(info("VideoPlayer.AudioChannels"))
     except (ValueError, TypeError):
@@ -464,6 +483,8 @@ def get_AudioBitDepthVar() -> str:
     Kodi reports 0 for streams without a PCM depth (lossy codecs,
     passthrough); that is shown as ''.
     """
+    if not _has_audio():
+        return ""
     bits = clean(info("Player.Process(AudioBitsPerSample)")).strip()
     try:
         depth = int(float(bits))
@@ -474,6 +495,8 @@ def get_AudioBitDepthVar() -> str:
 
 def get_AudioSampleRateVar() -> str:
     """Return the audio sample rate in kHz, e.g. ``96 kHz`` or ``44.1 kHz``."""
+    if not _has_audio():
+        return ""
     samplerate = clean(info("Player.Process(AudioSamplerate)"))
     try:
         hz = float(samplerate)
@@ -487,14 +510,30 @@ def get_AudioSampleRateVar() -> str:
 
 def get_AudioNameVar() -> str:
     """Return the native name of the audio language."""
+    if not _has_audio():
+        return ""
     code = info("VideoPlayer.AudioLanguage").lower().strip()
     return LANGUAGE_MAP.get(code, "") if code else ""
 
 
+def _language_short(label: str) -> str:
+    """Return the short code of the language in InfoLabel *label*.
+
+    Codes missing from the map are shown as Kodi reports them, uppercased;
+    untagged tracks (common on Blu-ray .m2ts) read ``UNK``.
+    """
+    code = info(label).lower().strip()
+    return LANGUAGE_MAP_SHORT.get(code, code.upper()) if code else "UNK"
+
+
 def get_AudioNameShortVar() -> str:
-    """Return the short code of the audio language."""
-    code = info("VideoPlayer.AudioLanguage").lower().strip()
-    return LANGUAGE_MAP_SHORT.get(code, "") if code else ""
+    """Return the short code of the audio language, ``UNK`` if untagged.
+
+    Empty without an audio track, so the row reads N/A.
+    """
+    if not _has_audio():
+        return ""
+    return _language_short("VideoPlayer.AudioLanguage")
 
 
 # --- Subtitle properties ---------------------------------------------------
@@ -506,9 +545,11 @@ def get_SubtitleNameVar() -> str:
 
 
 def get_SubtitleNameShortVar() -> str:
-    """Return the short code of the subtitle language."""
-    code = info("VideoPlayer.SubtitlesLanguage").lower().strip()
-    return LANGUAGE_MAP_SHORT.get(code, "") if code else ""
+    """Return the short code of the subtitle language, ``UNK`` if untagged.
+
+    Without it an untagged track would read just its codec, e.g. ``(PGS)``.
+    """
+    return _language_short("VideoPlayer.SubtitlesLanguage")
 
 
 def get_SubtitleCodecVar() -> str:
