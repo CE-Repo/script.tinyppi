@@ -27,19 +27,36 @@ from core.constants import PROFILE_DIR
 # The file holding this add-on's stored setting values.
 _VALUES_FILE = f"{PROFILE_DIR}/settings.xml"
 
-_lock   = threading.Lock()
-_path   = ""
-_handle = None
-_stamp  = None
+
+class _Handle:
+    """The settings handle and the stamp of the values file it was read at."""
+
+    def __init__(self) -> None:
+        self._lock   = threading.Lock()
+        self._path   = ""
+        self._handle = None
+        self._stamp  = None
+
+    def _values_stamp(self) -> tuple | None:
+        """Return the values file's stamp, or None while it does not exist."""
+        try:
+            stat = os.stat(self._path)
+        except OSError:
+            return None
+        return (stat.st_mtime_ns, stat.st_size, stat.st_ino)
+
+    def get(self) -> xbmcaddon.Addon:
+        if not self._path:
+            self._path = xbmcvfs.translatePath(_VALUES_FILE)
+        stamp = self._values_stamp()
+        with self._lock:
+            if self._handle is None or stamp != self._stamp:
+                self._handle = xbmcaddon.Addon()
+                self._stamp  = stamp
+            return self._handle
 
 
-def _values_stamp() -> tuple | None:
-    """Return the values file's stamp, or None while it does not exist."""
-    try:
-        stat = os.stat(_path)
-    except OSError:
-        return None
-    return (stat.st_mtime_ns, stat.st_size, stat.st_ino)
+_current = _Handle()
 
 
 def addon() -> xbmcaddon.Addon:
@@ -48,13 +65,4 @@ def addon() -> xbmcaddon.Addon:
     Raises what ``xbmcaddon.Addon()`` raises when a new handle is needed,
     e.g. while an update briefly unregisters the add-on.
     """
-    global _path, _handle, _stamp
-
-    if not _path:
-        _path = xbmcvfs.translatePath(_VALUES_FILE)
-    stamp = _values_stamp()
-    with _lock:
-        if _handle is None or stamp != _stamp:
-            _handle = xbmcaddon.Addon()
-            _stamp  = stamp
-        return _handle
+    return _current.get()

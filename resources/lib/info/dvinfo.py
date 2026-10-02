@@ -104,20 +104,8 @@ _FIELDS = (
 # of the title (hybrid grade or not), so it is latched too.
 _STATIC_FIELDS = ("source_mdl", "hdr10plus_present")
 
-_latched: dict[str, str] = {}
-_latched_source = ""
-
-_lock              = threading.Lock()
-_snapshot_key      = None
-_snapshot_info: dict[str, str] = dict.fromkeys(_FIELDS, "")
-_snapshot_parsed: dict | None  = None
-_snapshot_playing  = False
-_snapshot_until    = 0.0
-
-_mapping_until     = 0.0
-
-_logged_import_error = False
-_logged_derive_error = False
+# Problems already logged ("import", "derive"): each is logged once.
+_warned: set[str] = set()
 
 
 _log = channel("dv", xbmc.LOGINFO)
@@ -171,11 +159,9 @@ def _parse(raw: str, mapping: bool = False) -> dict:
     *mapping* also builds the RPU's composer data, which the overlay never
     needs.
     """
-    global _logged_import_error
-
     if _parse_sidedata is None:
-        if not _logged_import_error:
-            _logged_import_error = True
+        if "import" not in _warned:
+            _warned.add("import")
             _log(
                 "DV: script.module.sidedata unavailable "
                 f"({_SIDEDATA_IMPORT_ERROR}); DV/HDR metadata is not available",
@@ -206,15 +192,13 @@ def _derive(key: tuple[str, str, str, bool]) -> tuple[dict | None, dict[str, str
     into a native library, so a failure only costs the frame's metadata and
     is logged once.
     """
-    global _logged_derive_error
-
     parsed = None
     try:
         parsed = _parse(key[0], key[3])
         return parsed, _build_info(parsed, key[1], key[2])
     except Exception as exc:
-        if not _logged_derive_error:
-            _logged_derive_error = True
+        if "derive" not in _warned:
+            _warned.add("derive")
             _log(
                 f"DV: side data could not be interpreted ({exc}); "
                 "DV/HDR fields stay empty for now",
@@ -223,91 +207,125 @@ def _derive(key: tuple[str, str, str, bool]) -> tuple[dict | None, dict[str, str
         return parsed, _empty_info()
 
 
-def _hold_static(fields: dict[str, str], source: str) -> None:
-    """Carry title-level fields across frames that omit them.
+class _Snapshots:
+    """The current frame's fields, held for ``_SNAPSHOT_TTL``.
 
-    With DM metadata compression most frames refer back to earlier metadata,
-    so these fields are usually absent and their rows would blink N/A.  The
-    last reading therefore stands until replaced, within the same title:
-    a change of *source* clears the latch.
-
-    Keyed to the title, not to the end of playback, which this module may
-    never see (the dashboard producer stops asking when playback ends, see
-    ``Snapshots.build`` in web/snapshot.py).  Otherwise a plain DV title after
-    a DV + HDR10+ hybrid read as hybrid and got no VS10 modes (issue #71).
-
-    Call under ``_lock``, with *source* read outside it.
+    Shared by everything that polls the metadata (overlay, splash,
+    dashboard); the payload is re-parsed only when it changes.  Also holds
+    the latch of title-level fields (see ``_hold_static``) and the pending
+    composer-data request (see ``get_sidedata``).
     """
-    global _latched_source
 
-    if source != _latched_source:
-        _latched.clear()
-        _latched_source = source
+    def __init__(self) -> None:
+        self._lock    = threading.Lock()
+        self._key     = None
+        self._info    = _empty_info()
+        self._parsed: dict | None = None
+        self._playing = False
+        self._until   = 0.0
+        self._mapping_until  = 0.0
+        self._latched: dict[str, str] = {}
+        self._latched_source = ""
 
-    for name in _STATIC_FIELDS:
-        value = fields.get(name, "")
-        if value:
-            _latched[name] = value
-        elif _latched.get(name):
-            fields[name] = _latched[name]
+    def want_mapping(self) -> None:
+        """Ask for the RPU's composer data for the next ``_MAPPING_TTL``."""
+        with self._lock:
+            self._mapping_until = time.monotonic() + _MAPPING_TTL
+
+    @property
+    def parsed(self) -> dict | None:
+        """The full parse result behind the current fields."""
+        with self._lock:
+            return self._parsed
+
+    def _hold_static(self, fields: dict[str, str], source: str) -> None:
+        """Carry title-level fields across frames that omit them.
+
+        With DM metadata compression most frames refer back to earlier
+        metadata, so these fields are usually absent and their rows would
+        blink N/A.  The last reading therefore stands until replaced, within
+        the same title: a change of *source* clears the latch.
+
+        Keyed to the title, not to the end of playback, which this module
+        may never see (the dashboard producer stops asking when playback
+        ends, see ``Snapshots.build`` in web/snapshot.py).  Otherwise a plain
+        DV title after a DV + HDR10+ hybrid read as hybrid and got no VS10
+        modes (issue #71).
+
+        Call with the lock held, with *source* read outside it.
+        """
+        if source != self._latched_source:
+            self._latched.clear()
+            self._latched_source = source
+
+        for name in _STATIC_FIELDS:
+            value = fields.get(name, "")
+            if value:
+                self._latched[name] = value
+            elif self._latched.get(name):
+                fields[name] = self._latched[name]
+
+    def current(self) -> tuple[dict[str, str], bool]:
+        """Return ``(fields, playing)`` for the current frame.
+
+        *playing* tells "no video" (all fields empty) from "no such
+        metadata" (N/A or the row's placeholder).
+
+        A pending composer-data request is part of the key, so the snapshot
+        is re-parsed when the mapping is first wanted and again after the
+        request lapses.
+        """
+        now = time.monotonic()
+        with self._lock:
+            if now < self._until:
+                return self._info, self._playing
+            mapping = now < self._mapping_until
+
+        if not xbmc.getCondVisibility("Player.HasVideo"):
+            empty = _empty_info()
+            with self._lock:
+                self._key     = None
+                self._info    = empty
+                self._parsed  = None
+                self._playing = False
+                self._until   = now + _SNAPSHOT_TTL
+                self._latched.clear()
+                self._latched_source = ""
+            return empty, False
+
+        key = (
+            xbmc.getInfoLabel(_SIDEDATA_LABEL),
+            xbmc.getInfoLabel(_HDR_TYPE_LABEL),
+            xbmc.getInfoLabel(_HDR_DETAIL_LABEL),
+            mapping,
+        )
+
+        with self._lock:
+            if key == self._key:
+                self._playing = True
+                self._until   = now + _SNAPSHOT_TTL
+                return self._info, True
+
+        parsed, fields = _derive(key)
+        # Read outside the lock: only assignments happen under it.
+        source = xbmc.getInfoLabel(_SOURCE_LABEL)
+
+        with self._lock:
+            self._hold_static(fields, source)
+            self._key     = key
+            self._info    = fields
+            self._parsed  = parsed
+            self._playing = True
+            self._until   = time.monotonic() + _SNAPSHOT_TTL
+        return fields, True
+
+
+_snapshots = _Snapshots()
 
 
 def _snapshot() -> tuple[dict[str, str], bool]:
-    """Return ``(fields, playing)`` for the current frame.
-
-    *playing* tells "no video" (all fields empty) from "no such metadata"
-    (N/A or the row's placeholder).  The payload is re-parsed only when it
-    changes, and the result is held for ``_SNAPSHOT_TTL``.
-
-    A pending composer-data request (see ``get_sidedata``) is part of the
-    key, so the snapshot is re-parsed when the mapping is first wanted and
-    again after the request lapses.
-    """
-    global _snapshot_key, _snapshot_info, _snapshot_parsed
-    global _snapshot_playing, _snapshot_until, _latched_source
-
-    now = time.monotonic()
-    with _lock:
-        if now < _snapshot_until:
-            return _snapshot_info, _snapshot_playing
-
-    if not xbmc.getCondVisibility("Player.HasVideo"):
-        empty = _empty_info()
-        with _lock:
-            _snapshot_key     = None
-            _snapshot_info    = empty
-            _snapshot_parsed  = None
-            _snapshot_playing = False
-            _snapshot_until   = now + _SNAPSHOT_TTL
-            _latched.clear()
-            _latched_source = ""
-        return empty, False
-
-    key = (
-        xbmc.getInfoLabel(_SIDEDATA_LABEL),
-        xbmc.getInfoLabel(_HDR_TYPE_LABEL),
-        xbmc.getInfoLabel(_HDR_DETAIL_LABEL),
-        now < _mapping_until,
-    )
-
-    with _lock:
-        if key == _snapshot_key:
-            _snapshot_playing = True
-            _snapshot_until   = now + _SNAPSHOT_TTL
-            return _snapshot_info, True
-
-    parsed, fields = _derive(key)
-    # Read outside the lock: only assignments happen under it.
-    source = xbmc.getInfoLabel(_SOURCE_LABEL)
-
-    with _lock:
-        _hold_static(fields, source)
-        _snapshot_key     = key
-        _snapshot_info    = fields
-        _snapshot_parsed  = parsed
-        _snapshot_playing = True
-        _snapshot_until   = time.monotonic() + _SNAPSHOT_TTL
-    return fields, True
+    """Return ``(fields, playing)`` for the current frame (see ``_Snapshots``)."""
+    return _snapshots.current()
 
 
 def get_sidedata(mapping: bool = False) -> dict | None:
@@ -320,14 +338,10 @@ def get_sidedata(mapping: bool = False) -> dict | None:
 
     None while no video plays or when the payload did not parse.
     """
-    global _mapping_until
-
     if mapping:
-        with _lock:
-            _mapping_until = time.monotonic() + _MAPPING_TTL
-    _snapshot()
-    with _lock:
-        return _snapshot_parsed
+        _snapshots.want_mapping()
+    _snapshots.current()
+    return _snapshots.parsed
 
 
 # --- Value formatting ------------------------------------------------------

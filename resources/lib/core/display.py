@@ -133,9 +133,20 @@ _IOCTL_GETPROPERTY      = _iowr(0xAA, ctypes.sizeof(_GetProperty))
 _IOCTL_OBJ_GETPROPERTIES = _iowr(0xB9, ctypes.sizeof(_ObjGetProperties))
 _IOCTL_OBJ_SETPROPERTY  = _iowr(0xBA, ctypes.sizeof(_ObjSetProperty))
 
-# Connector and property id of UPDATE once found; both are stable while Kodi
-# runs, so the scan happens once.  None: not probed yet; False: unavailable.
-_target: tuple[int, int] | None | bool = None
+class _Target:
+    """Connector and property id of UPDATE once found.
+
+    Both are stable while Kodi runs, so the scan happens once.  ``ids`` is
+    None while not probed yet and False when unavailable.
+    """
+
+    __slots__ = ("ids",)
+
+    def __init__(self) -> None:
+        self.ids: tuple[int, int] | None | bool = None
+
+
+_target = _Target()
 
 
 def _ioctl(fd: int, request: int, payload) -> bool:
@@ -274,15 +285,14 @@ def reset(reason: str = "") -> bool:
     ``UPDATE`` property and caches the result, including a negative one, so
     a kernel without it costs nothing afterwards.
     """
-    global _target
-
-    if _target is False:
+    if _target.ids is False:
         return False
 
     note = f" ({reason})" if reason else ""
 
     for fd in _drm_fds():
-        target = _target if isinstance(_target, tuple) else _find_update_property(fd)
+        target = (_target.ids if isinstance(_target.ids, tuple)
+                  else _find_update_property(fd))
         if target is None:
             continue
 
@@ -295,13 +305,13 @@ def reset(reason: str = "") -> bool:
         )
         if _ioctl(fd, _IOCTL_OBJ_SETPROPERTY, request):
             # Only the DRM master's descriptor gets here; cache its ids.
-            _target = target
+            _target.ids = target
             log(f"display reset{note}", xbmc.LOGINFO)
             return True
 
         # Not the master (Kodi may hold several descriptors): try the next.
 
-    _target = False
+    _target.ids = False
     log(
         f"display reset{note} not available -- no DRM connector with "
         "an UPDATE property could be driven from this process",

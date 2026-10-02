@@ -19,9 +19,11 @@ does not carry are dropped, and sections without fields with them.
 
 Under DM metadata compression most frames omit blocks such as L2, L8 or the
 source range, so the last received block is held until replaced (see
-``_hold``).  Given a parse result of its own, ``build_scene_rows`` holds
+``_HeldBlocks``).  Given a parse result of its own, ``build_scene_rows`` holds
 nothing and simply formats it.
 """
+
+from functools import cache
 
 import xbmc
 import xbmcaddon
@@ -55,13 +57,13 @@ MAX_COMPACT_COLUMNS = 9
 EMPTY = "—"
 
 # Origin of a section's block.  Only CACHED is shown, next to the heading of
-# a section held from an earlier frame (see _hold).
+# a section held from an earlier frame (see _HeldBlocks).
 LIVE   = "Live"
 CACHED = "Cached"
 
 _SIDEDATA_ID = "script.module.sidedata"
 
-# The playing item; held blocks belong to it (see _hold).
+# The playing item; held blocks belong to it (see _HeldBlocks).
 _SOURCE_LABEL = "Player.FilenameAndPath"
 
 # Separator in composite values ("2081 | 1000").
@@ -139,23 +141,17 @@ def _coords(pair) -> str:
     return _joined(_num(x), _num(y))
 
 
-_module_version_read: str | None = None
-
-
+@cache
 def _module_version() -> str:
     """Return the installed script.module.sidedata version, or EMPTY.
 
     Read once: the imported parser stays in use until the process ends.
     """
-    global _module_version_read
-
-    if _module_version_read is None:
-        try:
-            version = xbmcaddon.Addon(_SIDEDATA_ID).getAddonInfo("version")
-        except Exception:
-            version = ""
-        _module_version_read = version or EMPTY
-    return _module_version_read
+    try:
+        version = xbmcaddon.Addon(_SIDEDATA_ID).getAddonInfo("version")
+    except Exception:
+        version = ""
+    return version or EMPTY
 
 
 # --- Sections --------------------------------------------------------------
@@ -202,7 +198,7 @@ def _stream_pairs(parsed: dict, carried: str) -> list:
     """Return Kodi's view of the stream and what the raw label delivered.
 
     *carried* names the sections in this frame's own payload, which may
-    differ from the sections shown (some may be held, see _hold).
+    differ from the sections shown (some may be held, see _HeldBlocks).
     """
     flags = parsed.get("flags") or []
     return [
@@ -928,59 +924,65 @@ _HELD_TOP = ("config", "rpu", "mdcv", "cll", "hdr10plus")
 _HELD_RPU = ("header", "data_mapping", "source", "colorimetry", "l1", "l2",
              "l3", "l4", "l5", "l6", "l8", "l9", "l10", "l11", "l254", "l255")
 
-# Last blocks seen, and the item they belong to; a new item clears them.
-# Only the metadata view's refresh uses these.
-_held: dict = {}
-_held_source: str | None = None
+class _HeldBlocks:
+    """The last blocks seen, and the item they belong to.
 
-
-def _fill_in(current: dict, names: tuple, prefix: str) -> tuple[dict, dict]:
-    """Fill omitted blocks of *current* from _held and remember present ones.
-
-    Also returns each block's origin: LIVE, CACHED, or no entry when
-    neither has it.
+    A new item clears them.  Only the metadata view's refresh uses these.
     """
-    filled: dict = dict(current)
-    origin: dict = {}
-    for name in names:
-        block = current.get(name)
-        key   = prefix + name
-        if block:
-            _held[key]   = block
-            origin[key]  = LIVE
-        elif _held.get(key) is not None:
-            filled[name] = _held[key]
-            origin[key]  = CACHED
-    return filled, origin
+
+    def __init__(self) -> None:
+        self._blocks: dict = {}
+        self._source: str | None = None
+
+    def _fill_in(self, current: dict, names: tuple,
+                 prefix: str) -> tuple[dict, dict]:
+        """Fill omitted blocks of *current* and remember present ones.
+
+        Also returns each block's origin: LIVE, CACHED, or no entry when
+        neither has it.
+        """
+        held = self._blocks
+        filled: dict = dict(current)
+        origin: dict = {}
+        for name in names:
+            block = current.get(name)
+            key   = prefix + name
+            if block:
+                held[key]    = block
+                origin[key]  = LIVE
+            elif held.get(key) is not None:
+                filled[name] = held[key]
+                origin[key]  = CACHED
+        return filled, origin
+
+    def hold(self, parsed: dict) -> tuple[dict, dict]:
+        """Fill *parsed* with the blocks this frame does not repeat.
+
+        Keeps sections such as the L2 / L8 trims from blinking out between
+        frames; a new block still replaces the held one.  Also returns the
+        origin map, so headings can mark held sections as Cached.  A change
+        of item (or the end of playback) clears the held blocks.
+        """
+        source = xbmc.getInfoLabel(_SOURCE_LABEL)
+        if source != self._source:
+            self._blocks.clear()
+            self._source = source
+
+        parsed, origin = self._fill_in(parsed, _HELD_TOP, "")
+        rpu = parsed.get("rpu")
+        if isinstance(rpu, dict):
+            filled, inside = self._fill_in(rpu, _HELD_RPU, "rpu.")
+            # Hold the filled RPU, so a frame without any RPU still gets
+            # every block.
+            parsed["rpu"] = self._blocks["rpu"] = filled
+            if origin.get("rpu") == CACHED:
+                # No RPU in this frame: every block in it is held.
+                inside = dict.fromkeys(inside, CACHED)
+            origin.update(inside)
+        return parsed, origin
 
 
-def _hold(parsed: dict) -> tuple[dict, dict]:
-    """Fill *parsed* with the blocks this frame does not repeat.
-
-    Keeps sections such as the L2 / L8 trims from blinking out between
-    frames; a new block still replaces the held one.  Also returns the
-    origin map, so headings can mark held sections as Cached.  A change of
-    item (or the end of playback) clears the held blocks.
-    """
-    global _held_source
-
-    source = xbmc.getInfoLabel(_SOURCE_LABEL)
-    if source != _held_source:
-        _held.clear()
-        _held_source = source
-
-    parsed, origin = _fill_in(parsed, _HELD_TOP, "")
-    rpu = parsed.get("rpu")
-    if isinstance(rpu, dict):
-        filled, inside = _fill_in(rpu, _HELD_RPU, "rpu.")
-        # Hold the filled RPU, so a frame without any RPU still gets every
-        # block.
-        parsed["rpu"] = _held["rpu"] = filled
-        if origin.get("rpu") == CACHED:
-            # No RPU in this frame: every block in it is held.
-            inside = dict.fromkeys(inside, CACHED)
-        origin.update(inside)
-    return parsed, origin
+_held = _HeldBlocks()
 
 
 def _state(origin: dict, *keys: str) -> str:
@@ -998,7 +1000,7 @@ def build_scene_rows(
 
     Returns ``(rows, parsed, origin, carried)``.  The scene rows (L1, L2,
     L8, L5, L3, L4, HDR10+) change during playback and are rebuilt on every
-    poll.  Reads the live side data, holding omitted blocks (see _hold),
+    poll.  Reads the live side data, holding omitted blocks (see _HeldBlocks),
     unless *parsed* is given, which is used as is.
     """
     live   = parsed is None
@@ -1010,7 +1012,7 @@ def build_scene_rows(
     carried = _payload_summary(parsed)
     origin: dict = {}
     if live:
-        parsed, origin = _hold(parsed)
+        parsed, origin = _held.hold(parsed)
 
     rpu = parsed.get("rpu")
     rows: list[tuple[str, str, str]] = []

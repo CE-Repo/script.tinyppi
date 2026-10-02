@@ -10,6 +10,7 @@ are applied by ``set_mode``.
 import json
 import threading
 import time
+from functools import cache
 
 import xbmc
 import xbmcgui
@@ -83,9 +84,6 @@ _DV_OUTPUT_TIMEOUT_MS = 1000
 # A setting added together with the native vs10.* actions (SamuriHL/
 # coreelec-xbmc commit 7df0943); if JSON-RPC knows it, the actions exist.
 _VS10_PROBE_SETTING = "coreelec.amlogic.dolbyvision.vs10.dv"
-
-# Cached probe result (None: not probed yet).
-_vs10_actions = None
 
 # Failed sysfs writes per thread, so a switch can tell whether its sequence
 # reached the driver (see _apply_mode).  Per thread: staged switches, the
@@ -460,24 +458,23 @@ def _probe_vs10_actions() -> bool:
     return isinstance(response, dict) and "result" in response
 
 
+@cache
 def _vs10_actions_available() -> bool:
-    """Return the cached probe result, logging the chosen path once."""
-    global _vs10_actions
-    if _vs10_actions is None:
-        _vs10_actions = _probe_vs10_actions()
-        if _vs10_actions:
-            log(
-                "native VS10 Actions available -> preferred during "
-                "playback, with sysfs fallback if they don't take effect",
-                xbmc.LOGINFO,
-            )
-        else:
-            log(
-                "native VS10 Actions not available -> using the "
-                "built-in TinyPPI VS10 (sysfs) path",
-                xbmc.LOGINFO,
-            )
-    return _vs10_actions
+    """Return the probe result (probed once), logging the chosen path."""
+    available = _probe_vs10_actions()
+    if available:
+        log(
+            "native VS10 Actions available -> preferred during "
+            "playback, with sysfs fallback if they don't take effect",
+            xbmc.LOGINFO,
+        )
+    else:
+        log(
+            "native VS10 Actions not available -> using the "
+            "built-in TinyPPI VS10 (sysfs) path",
+            xbmc.LOGINFO,
+        )
+    return available
 
 
 def _probe_dv_Player_LED_setting():

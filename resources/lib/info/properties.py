@@ -25,6 +25,7 @@ from core.maps import (
     SUBTITLE_CODEC_MAP,
     VIDEO_CODEC_MAP,
 )
+from core.memo import KeyedMemo
 from core.utils import (
     PROP_HDR10PLUS_PRESENT,
     clean,
@@ -271,9 +272,9 @@ def get_VideoBitDepthVar() -> str:
 
 # --- HDR / Dolby Vision properties -----------------------------------------
 
-# (pixformat, result) for get_DoviTunnelVar.  The sysfs DV mode only changes
-# with a VS10 switch, which also changes the pixel format.
-_dovi_tunnel_cache: tuple[str, str] | None = None
+# get_DoviTunnelVar's result by pixel format.  The sysfs DV mode only
+# changes with a VS10 switch, which also changes the pixel format.
+_dovi_tunnel = KeyedMemo()
 
 
 def get_DoviTunnelVar() -> str:
@@ -281,11 +282,10 @@ def get_DoviTunnelVar() -> str:
 
     Cached per Amlogic pixel format.
     """
-    global _dovi_tunnel_cache
-
     pixformat = info("Player.Process(amlogic.pixformat)").strip()
-    if _dovi_tunnel_cache is not None and _dovi_tunnel_cache[0] == pixformat:
-        return _dovi_tunnel_cache[1]
+    held = _dovi_tunnel.get(pixformat)
+    if held is not None:
+        return held
 
     result = ""
     bits = re.search(r"(\d+)-bit", pixformat, re.IGNORECASE)
@@ -302,7 +302,7 @@ def get_DoviTunnelVar() -> str:
             # Not cached: retry next cycle.
             return ""
 
-    _dovi_tunnel_cache = (pixformat, result)
+    _dovi_tunnel.put(pixformat, result)
     return result
 
 

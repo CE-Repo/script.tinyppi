@@ -1292,34 +1292,73 @@ _KNOWN_MODES = frozenset(
 
 _log = channel("web")
 
-# One switch at a time; concurrent requests wait.
-_switching = threading.Lock()
+
+class _ModeSwitcher:
+    """Apply VS10 modes one at a time, the latest request winning.
+
+    A switch takes seconds (display resets, sometimes a stage through SDR).
+    Requests arriving meanwhile replace each other, so quick taps on three
+    buttons end in the last mode instead of three switches in a row.  Runs
+    on a service thread (no ``RunScript``), so the request is not held
+    during the driver's settling delays.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        # The mode to apply next, and whether a worker is applying modes.
+        self._wanted: str | None = None
+        self._running = False
+
+    def request(self, mode: str) -> None:
+        """Queue *mode*, replacing any mode still waiting."""
+        with self._lock:
+            if self._wanted is not None:
+                _log(f"VS10 mode '{self._wanted}' replaced by '{mode}' "
+                     "before it started", xbmc.LOGDEBUG)
+            self._wanted = mode
+            if self._running:
+                return
+            self._running = True
+        try:
+            threading.Thread(target=self._work, name="TinyPPI-vs10",
+                             daemon=True).start()
+        except RuntimeError as exc:
+            with self._lock:
+                self._running = False
+                self._wanted = None
+            _log(f"VS10 mode '{mode}' could not be started: {exc}",
+                 xbmc.LOGERROR)
+
+    def _next(self, monitor: xbmc.Monitor) -> str | None:
+        """Take the waiting mode, or end the worker (None)."""
+        with self._lock:
+            mode = self._wanted
+            self._wanted = None
+            # No new switch during shutdown (it would delay Kodi).
+            if mode is None or monitor.abortRequested():
+                self._running = False
+                return None
+            return mode
+
+    def _work(self) -> None:
+        monitor = xbmc.Monitor()
+        while (mode := self._next(monitor)) is not None:
+            try:
+                from ui.mode_select import set_mode
+                set_mode(mode)
+            except Exception as exc:  # a switch must not break the service
+                _log(f"VS10 mode '{mode}' failed: {exc}", xbmc.LOGERROR)
+
+
+_switcher = _ModeSwitcher()
 
 
 def apply_mode(mode: str) -> bool:
-    """Start switching to VS10 *mode*; False for modes not offered.
-
-    Runs on a service thread (no ``RunScript``), so the request is not held
-    during the driver's settling delays.
-    """
+    """Start switching to VS10 *mode*; False for modes not offered."""
     if mode not in _KNOWN_MODES:
         return False
-    threading.Thread(target=_run_mode, args=(mode,), name="TinyPPI-vs10",
-                     daemon=True).start()
+    _switcher.request(mode)
     return True
-
-
-def _run_mode(mode: str) -> None:
-    """Run one switch after any running one."""
-    with _switching:
-        # No new switch during shutdown (it would delay Kodi).
-        if xbmc.Monitor().abortRequested():
-            return
-        try:
-            from ui.mode_select import set_mode
-            set_mode(mode)
-        except Exception as exc:  # a switch must not break the service
-            _log(f"VS10 mode '{mode}' failed: {exc}", xbmc.LOGERROR)
 
 
 # --- Player commands -------------------------------------------------------

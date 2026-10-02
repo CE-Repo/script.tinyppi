@@ -31,6 +31,16 @@ from web.routes import Handler
 # open).
 _MAX_STREAMS = 6
 
+# Maximum open connections, in all and per address.  Each holds a thread,
+# for up to _REQUEST_TIMEOUT (web/routes.py) while idle; a browser opens six
+# at most per host, so this leaves room for several devices while one cannot
+# pile up threads on the box.
+_MAX_CONNECTIONS = 48
+_MAX_PER_ADDRESS = 16
+
+# Seconds between two log lines about refused connections.
+_REFUSAL_LOG_INTERVAL = 60.0
+
 # Total time stop() waits for all threads, as one deadline: separate
 # timeouts added up to more than Kodi's five seconds per script.
 _JOIN_TIMEOUT = 3.0
@@ -133,31 +143,50 @@ class _Server(ThreadingHTTPServer):
         # the interpreter, daemon or not.
         self._workers      = set()
         self._worker_lock  = threading.Lock()
-        # Open connections, so stop() can hang up on idle keep-alives.
-        self._connections  = set()
+        # Open connections and their addresses, so stop() can hang up on
+        # idle keep-alives and verify_request() can cap them.
+        self._connections: dict = {}
+        self._refusal_logged = 0.0
         # Cached poster and fanart of the playing title.
         self._art = artwork.PlayingArtwork()
 
     def verify_request(self, request, client_address) -> bool:
-        """Refuse connections once shutdown has begun.
+        """Refuse connections once shutdown has begun or over the caps.
 
         Checked before a thread is started, so reconnecting pages cannot
-        delay Kodi's shutdown.
+        delay Kodi's shutdown, and one device cannot fill the box with
+        threads (see ``_MAX_CONNECTIONS``).
         """
-        return not self.stop_event.is_set()
+        if self.stop_event.is_set():
+            return False
+        address = client_address[0]
+        with self._worker_lock:
+            total = len(self._connections)
+            mine = sum(1 for held in self._connections.values()
+                       if held == address)
+            if total < _MAX_CONNECTIONS and mine < _MAX_PER_ADDRESS:
+                return True
+            now = time.monotonic()
+            quiet = now - self._refusal_logged >= _REFUSAL_LOG_INTERVAL
+            if quiet:
+                self._refusal_logged = now
+        if quiet:
+            _log(f"refusing a connection from {address}: {mine} open from it, "
+                 f"{total} in all", xbmc.LOGWARNING)
+        return False
 
     def process_request(self, request, client_address) -> None:
-        # Registered on the accept loop, so the set is complete once
+        # Registered on the accept loop, so the table is complete once
         # shutdown() has returned.
         with self._worker_lock:
-            self._connections.add(request)
+            self._connections[request] = client_address[0]
         super().process_request(request, client_address)
 
     def shutdown_request(self, request) -> None:
         # Removed under the lock before closing, so close_connections()
         # never touches a closed socket.
         with self._worker_lock:
-            self._connections.discard(request)
+            self._connections.pop(request, None)
         super().shutdown_request(request)
 
     def close_connections(self, how: int = socket.SHUT_RD) -> int:

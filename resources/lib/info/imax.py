@@ -39,16 +39,6 @@ _TITLE_FILE = "imax_titles.txt"
 # after the title, before any comment: ``Eternals @enhanced   # Disney+ only``
 _ENHANCED_TAG = "@enhanced"
 
-# Title -> [(year or None, is IMAX Enhanced)]; several films can share a
-# title.  The stamp is the (mtime, size) of both files, so an edited list is
-# re-read without restarting Kodi (the service stays loaded all session).
-_titles: dict[str, tuple[tuple[int | None, bool], ...]] | None = None
-_titles_stamp: tuple | None = None
-
-# Last answer per playing file, so the badge is not recomputed every tick:
-# (path, names used, IMAX, IMAX Enhanced).
-_cache: tuple[str, tuple[str, ...], bool, bool] | None = None
-
 # A year in a release name or on a listed entry.
 _YEAR = re.compile(r"^(?:19|20)\d{2}$")
 
@@ -236,23 +226,44 @@ def _title_stamp(paths: tuple[str, str]) -> tuple:
     return tuple(stamp)
 
 
+class _TitleIndex:
+    """All known titles from the bundled and the user's list.
+
+    Title -> [(year or None, is IMAX Enhanced)]; several films can share a
+    title.  The stamp is the (mtime, size) of both files, so an edited list
+    is re-read without restarting Kodi (the service stays loaded all
+    session).
+    """
+
+    def __init__(self) -> None:
+        self._titles: dict[str, tuple[tuple[int | None, bool], ...]] | None = None
+        self._stamp: tuple | None = None
+
+    def get(self) -> dict[str, tuple[tuple[int | None, bool], ...]]:
+        """Return the titles, re-reading the lists when either changed."""
+        paths = _title_files()
+        stamp = _title_stamp(paths)
+        if self._titles is None or stamp != self._stamp:
+            bundled, personal = paths
+            merged = _read_titles(bundled)
+            for title, listed in _read_titles(personal).items():
+                merged.setdefault(title, []).extend(listed)
+            self._titles = {title: tuple(listed)
+                            for title, listed in merged.items()}
+            self._stamp = stamp
+            enhanced = sum(1 for listed in self._titles.values()
+                           for _, is_enhanced in listed if is_enhanced)
+            _log(f"IMAX: {len(self._titles)} titles known, "
+                 f"{enhanced} of them IMAX Enhanced")
+        return self._titles
+
+
+_titles = _TitleIndex()
+
+
 def _title_index() -> dict[str, tuple[tuple[int | None, bool], ...]]:
     """Return all known titles from the bundled and the user's list."""
-    global _titles, _titles_stamp
-
-    paths = _title_files()
-    stamp = _title_stamp(paths)
-    if _titles is None or stamp != _titles_stamp:
-        bundled, personal = paths
-        merged = _read_titles(bundled)
-        for title, listed in _read_titles(personal).items():
-            merged.setdefault(title, []).extend(listed)
-        _titles = {title: tuple(listed) for title, listed in merged.items()}
-        _titles_stamp = stamp
-        enhanced = sum(1 for listed in _titles.values()
-                       for _, is_enhanced in listed if is_enhanced)
-        _log(f"IMAX: {len(_titles)} titles known, {enhanced} of them IMAX Enhanced")
-    return _titles
+    return _titles.get()
 
 
 def playing_path() -> str:
@@ -374,28 +385,42 @@ def _classify(names: tuple[str, ...]) -> tuple[bool, bool]:
     return imax, enhanced
 
 
+class _Verdict:
+    """The last answer for the playing file, so the badge is not recomputed
+    every tick: ``(path, names used, IMAX, IMAX Enhanced)``."""
+
+    def __init__(self) -> None:
+        self._last: tuple[str, tuple[str, ...], bool, bool] | None = None
+
+    def current(self) -> tuple[bool, bool]:
+        """Return ``(is IMAX, is IMAX Enhanced)`` for the playing file.
+
+        Computed once per file, and again when the names change (Kodi fills
+        in metadata shortly after playback starts).  A positive result is
+        kept for the rest of the file so the badge does not blink.
+        """
+        path = playing_path()
+        names = _playing_names(path)
+
+        last = self._last
+        if last is not None and last[0] == path:
+            if last[1] == names:
+                return last[2], last[3]
+            imax, enhanced = _classify(names)
+            imax, enhanced = imax or last[2], enhanced or last[3]
+        else:
+            imax, enhanced = _classify(names)
+
+        self._last = (path, names, imax, enhanced)
+        return imax, enhanced
+
+
+_verdict = _Verdict()
+
+
 def _current() -> tuple[bool, bool]:
-    """Return ``(is IMAX, is IMAX Enhanced)`` for the playing file.
-
-    Computed once per file, and again when the names change (Kodi fills in
-    metadata shortly after playback starts).  A positive result is kept for
-    the rest of the file so the badge does not blink.
-    """
-    global _cache
-
-    path = playing_path()
-    names = _playing_names(path)
-
-    if _cache is not None and _cache[0] == path:
-        if _cache[1] == names:
-            return _cache[2], _cache[3]
-        imax, enhanced = _classify(names)
-        imax, enhanced = imax or _cache[2], enhanced or _cache[3]
-    else:
-        imax, enhanced = _classify(names)
-
-    _cache = (path, names, imax, enhanced)
-    return imax, enhanced
+    """Return ``(is IMAX, is IMAX Enhanced)`` for the playing file."""
+    return _verdict.current()
 
 
 def is_known_imax_title(name: str = "") -> bool:

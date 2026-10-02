@@ -17,6 +17,7 @@ import ipaddress
 import socket
 import threading
 import time
+from functools import cache
 
 import xbmc
 
@@ -105,8 +106,9 @@ class Guesses:
             del self._wrong[oldest]
 
 
+@cache
 def _own_names() -> frozenset[str]:
-    """Return this box's own host names, lower-cased."""
+    """Return this box's own host names, lower-cased (looked up once)."""
     names = set()
     for lookup in (socket.gethostname, socket.getfqdn):
         try:
@@ -118,9 +120,6 @@ def _own_names() -> frozenset[str]:
     return frozenset(names)
 
 
-_OWN_NAMES: frozenset[str] | None = None
-
-
 def trusted_host(header: str) -> bool:
     """Return whether the ``Host`` header can only come from the home network.
 
@@ -128,8 +127,6 @@ def trusted_host(header: str) -> bool:
     label, the box's own names, or a ``_PRIVATE_SUFFIXES`` name.  Other
     names (e.g. dynamic DNS) still work, but reading then needs the token.
     """
-    global _OWN_NAMES
-
     host = (header or "").strip().lower()
     if not host:
         return True
@@ -149,6 +146,4 @@ def trusted_host(header: str) -> bool:
         pass
     if "." not in host or host.endswith(_PRIVATE_SUFFIXES):
         return True
-    if _OWN_NAMES is None:
-        _OWN_NAMES = _own_names()
-    return host in _OWN_NAMES
+    return host in _own_names()
