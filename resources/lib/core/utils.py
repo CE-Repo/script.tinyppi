@@ -139,12 +139,22 @@ def info(label: str) -> str:
     """
     cache = getattr(_reads, "info", None)
     if cache is None:
-        return xbmc.getInfoLabel(label)
+        return _known(label, xbmc.getInfoLabel(label))
     try:
         return cache[label]
     except KeyError:
-        value = cache[label] = xbmc.getInfoLabel(label)
+        value = cache[label] = _known(label, xbmc.getInfoLabel(label))
         return value
+
+
+def _known(label: str, value: str) -> str:
+    """Return *value*, or '' when Kodi does not know *label*.
+
+    Kodi answers an InfoLabel it does not know with the label's own text, so
+    a CoreELEC-only label on another build, or one a CoreELEC release renamed,
+    would otherwise show up as ``Player.Process(amlogic...)`` on screen.
+    """
+    return "" if value == label else value
 
 
 # How often ``localized`` asks Kodi which language it is in (seconds).
