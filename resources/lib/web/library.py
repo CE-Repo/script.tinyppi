@@ -41,34 +41,149 @@ _RATING_SOURCES = (("imdb", "imdb"),
 # ``invalidate``), so this only covers missed ones.
 _TTL = 300.0
 
-_lock = threading.Lock()
-_catalogue: dict | None = None
-_read_at = 0.0
-
 # Delays after playback stops before the lists are dropped.  Kodi writes the
 # resume point and play count after the stop notification (and announces
 # only the play count), so the drop waits.  The second delay covers a video
 # database on a network share; an extra drop costs one query.
 _SETTLE = (1.5, 5.0)
 
-# Bumped on every drop and sent with every snapshot (see web/producer.py);
-# clients re-read their lists when it changes.
-_revision = 0
-# Due times of deferred drops, soonest first (see ``settle``).
-_settling: list[float] = []
-
-# Shows cache, and episodes of opened shows by show id.
-_shows: dict | None = None
-_shows_read_at = 0.0
-_episodes: dict[int, dict] = {}
-# Episode art paths by episode id (artwork URLs name only the episode).
-_episode_art: dict[int, dict[str, str]] = {}
-# Partly watched films and episodes (see ``continuing``).
-_continuing: dict | None = None
-_continuing_read_at = 0.0
+# Item notifications come in bursts (a scan sends one per item), and every
+# drop makes each open page re-read its list, so a burst is dropped once
+# after _QUIET seconds without a new one (see ``changed``).  A long scan
+# still reaches open pages every _BURST_LIMIT seconds.
+_QUIET       = 2.0
+_BURST_LIMIT = 10.0
 
 
 _log = channel("library")
+
+
+# --- The cache -------------------------------------------------------------
+
+class _Slot:
+    """One cached list, read on demand and kept for ``_TTL``.
+
+    Readers arriving while a read runs wait for its answer instead of
+    querying again.  A read that a drop overtook is handed to its caller but
+    not kept: it may predate the change that caused the drop, and keeping it
+    would serve the old list until the TTL ran out.
+    """
+
+    def __init__(self, cache: "_Cache", read) -> None:
+        self._cache   = cache
+        self._read    = read
+        self._value: dict | None = None
+        self._read_at = 0.0
+        # Held for the length of a read: one query per list at a time.
+        self._reading = threading.Lock()
+
+    def _fresh(self) -> dict | None:
+        """Return the kept list while it is fresh (cache lock held)."""
+        if self._value is not None and time.monotonic() - self._read_at < _TTL:
+            return self._value
+        return None
+
+    def peek(self) -> dict | None:
+        """Return the kept list without reading, or None."""
+        with self._cache.lock:
+            return self._value
+
+    def clear(self) -> None:
+        """Forget the kept list (cache lock held)."""
+        self._value   = None
+        self._read_at = 0.0
+
+    def get(self) -> dict:
+        """Return the list, reading it when none is kept or it is stale."""
+        cache = self._cache
+        with cache.lock:
+            held = self._fresh()
+        if held is not None:
+            return held
+
+        with self._reading:
+            with cache.lock:
+                # Read by the reader this one waited for.
+                held = self._fresh()
+                started = cache.revision
+            if held is not None:
+                return held
+            built = self._read()
+            with cache.lock:
+                if cache.revision == started:
+                    self._value   = built
+                    self._read_at = time.monotonic()
+        return built
+
+
+class _Cache:
+    """The cached lists, the revision that versions them and pending drops.
+
+    The revision is bumped on every drop and sent with every snapshot (see
+    web/producer.py); clients re-read their lists when it changes.
+    """
+
+    def __init__(self) -> None:
+        self.lock     = threading.Lock()
+        self.revision = 0
+        self.films      = _Slot(self, _read)
+        self.shows      = _Slot(self, _read_shows)
+        # Partly watched films and episodes (see ``continuing``).
+        self.continuing = _Slot(self, _load_continuing)
+        # Episodes of opened shows, by show id.
+        self.episodes: dict[int, _Slot] = {}
+        # Episode art paths by episode id (artwork URLs name only the
+        # episode).
+        self.episode_art: dict[int, dict[str, str]] = {}
+        # Due times of the drops after playback stopped, soonest first.
+        self._settling: list[float] = []
+        # Start and due time of the drop for a burst of item notifications.
+        self._burst_since: float | None = None
+        self._burst_due:   float | None = None
+
+    def drop(self) -> None:
+        """Drop every list and bump the revision."""
+        with self.lock:
+            self._drop()
+
+    def _drop(self) -> None:
+        # Lock held.  A pending burst is covered by this drop.
+        for slot in (self.films, self.shows, self.continuing):
+            slot.clear()
+        self.episodes.clear()
+        self.episode_art.clear()
+        self._burst_since = None
+        self._burst_due   = None
+        self.revision += 1
+
+    def settle(self) -> None:
+        """Schedule the drops after playback stopped (see ``_SETTLE``)."""
+        now = time.monotonic()
+        with self.lock:
+            self._settling = sorted(now + delay for delay in _SETTLE)
+
+    def burst(self) -> None:
+        """Schedule, or postpone, the drop for a burst (see ``_QUIET``)."""
+        now = time.monotonic()
+        with self.lock:
+            if self._burst_since is None:
+                self._burst_since = now
+            self._burst_due = min(now + _QUIET,
+                                  self._burst_since + _BURST_LIMIT)
+
+    def current(self) -> int:
+        """Return the revision, running the drops that have fallen due."""
+        now = time.monotonic()
+        with self.lock:
+            due = False
+            while self._settling and self._settling[0] <= now:
+                self._settling.pop(0)
+                due = True
+            if self._burst_due is not None and self._burst_due <= now:
+                due = True
+            if due:
+                self._drop()
+            return self.revision
 
 
 # --- The list --------------------------------------------------------------
@@ -76,20 +191,18 @@ _log = channel("library")
 def invalidate() -> None:
     """Drop all cached lists and bump the revision.
 
-    Called by the monitor on library changes; reads nothing itself.
+    Called on library changes; reads nothing itself.
     """
-    global _catalogue, _read_at, _shows, _shows_read_at, _revision
-    global _continuing, _continuing_read_at
-    with _lock:
-        _catalogue = None
-        _read_at = 0.0
-        _shows = None
-        _shows_read_at = 0.0
-        _continuing = None
-        _continuing_read_at = 0.0
-        _episodes.clear()
-        _episode_art.clear()
-        _revision += 1
+    _cache.drop()
+
+
+def changed() -> None:
+    """Drop the lists once a burst of item notifications has passed.
+
+    Called by the monitor for each ``OnUpdate`` / ``OnRemove``; the drop
+    itself runs on the producer's cadence (see ``revision``).
+    """
+    _cache.burst()
 
 
 def settle() -> None:
@@ -98,9 +211,7 @@ def settle() -> None:
     Kodi writes the resume point after the stop notification and does not
     announce it, so dropping right away would re-read stale rows.
     """
-    now = time.monotonic()
-    with _lock:
-        _settling[:] = sorted(now + delay for delay in _SETTLE)
+    _cache.settle()
 
 
 def revision() -> int:
@@ -109,39 +220,15 @@ def revision() -> int:
     Called on the producer's cadence, which serves as the add-on's timer
     (an extra timer thread would delay Kodi's shutdown).
     """
-    due = False
-    with _lock:
-        now = time.monotonic()
-        while _settling and _settling[0] <= now:
-            _settling.pop(0)
-            due = True
-        held = _revision
-    if not due:
-        return held
-    # Outside the lock: invalidate() takes it.
-    invalidate()
-    with _lock:
-        return _revision
+    return _cache.current()
 
 
-def catalogue(force: bool = False) -> dict:
+def catalogue() -> dict:
     """Return the films as ``{"movies": [...], "art": {...}, "tag": str}``.
 
-    ``tag`` changes only with the list (for 304 answers).  The lock is not
-    held during the query, so concurrent readers may both query.
+    ``tag`` changes only with the list (for 304 answers).
     """
-    global _catalogue, _read_at
-    with _lock:
-        held = _catalogue
-        fresh = held is not None and time.monotonic() - _read_at < _TTL
-    if held is not None and fresh and not force:
-        return held
-
-    built = _read()
-    with _lock:
-        _catalogue = built
-        _read_at = time.monotonic()
-    return built
+    return _cache.films.get()
 
 
 def movies() -> dict:
@@ -360,28 +447,25 @@ def episodes(show_id) -> dict | None:
     if wanted <= 0:
         return None
 
-    with _lock:
-        held = _episodes.get(wanted)
-    if held is not None:
-        return {"tvshowid": wanted, "title": held["title"],
-                "episodes": held["episodes"], "count": len(held["episodes"]),
-                "tag": held["tag"]}
+    with _cache.lock:
+        slot = _cache.episodes.get(wanted)
+    if slot is None:
+        # The title comes from the cached show list.
+        title = ""
+        for show in _show_catalogue()["shows"]:
+            if show["id"] == wanted:
+                title = show["title"]
+                break
+        if not title:
+            return None
+        with _cache.lock:
+            slot = _cache.episodes.setdefault(
+                wanted, _Slot(_cache, lambda: _load_episodes(wanted, title)))
 
-    # The title comes from the cached show list.
-    title = ""
-    for show in _show_catalogue()["shows"]:
-        if show["id"] == wanted:
-            title = show["title"]
-            break
-    if not title:
-        return None
-
-    built = _read_episodes(wanted, title)
-    with _lock:
-        _episodes[wanted] = built
-        _episode_art.update(built["art"])
-    return {"tvshowid": wanted, "title": title, "episodes": built["episodes"],
-            "count": len(built["episodes"]), "tag": built["tag"]}
+    held = slot.get()
+    return {"tvshowid": wanted, "title": held["title"],
+            "episodes": held["episodes"], "count": len(held["episodes"]),
+            "tag": held["tag"]}
 
 
 def show_art_path(show_id, kind: str) -> str:
@@ -403,32 +487,20 @@ def episode_art_path(episode_id, kind: str) -> str:
         wanted = int(episode_id)
     except (TypeError, ValueError):
         return ""
-    with _lock:
-        entry = _episode_art.get(wanted)
-        dropped = _continuing is None
-    if entry is None and dropped:
+    with _cache.lock:
+        entry = _cache.episode_art.get(wanted)
+    if entry is None and _cache.continuing.peek() is None:
         # Cache dropped since: re-read the "continue" row, the one list with
         # episodes of unopened shows.
         continuing()
-        with _lock:
-            entry = _episode_art.get(wanted)
+        with _cache.lock:
+            entry = _cache.episode_art.get(wanted)
     return (entry or {}).get(kind, "")
 
 
-def _show_catalogue(force: bool = False) -> dict:
+def _show_catalogue() -> dict:
     """Return the shows as ``{"shows": [...], "art": {...}, "tag": str}``."""
-    global _shows, _shows_read_at
-    with _lock:
-        held = _shows
-        fresh = held is not None and time.monotonic() - _shows_read_at < _TTL
-    if held is not None and fresh and not force:
-        return held
-
-    built = _read_shows()
-    with _lock:
-        _shows = built
-        _shows_read_at = time.monotonic()
-    return built
+    return _cache.shows.get()
 
 
 def _read_shows() -> dict:
@@ -494,6 +566,14 @@ def _read_shows() -> dict:
     _log(f"{len(series)} series read from the video database", xbmc.LOGINFO)
     return {"shows": series, "art": art,
             "tag": f"{len(series):x}-{signature:08x}"}
+
+
+def _load_episodes(show_id: int, title: str) -> dict:
+    """Read a show's episodes and register their stills' paths."""
+    built = _read_episodes(show_id, title)
+    with _cache.lock:
+        _cache.episode_art.update(built["art"])
+    return built
 
 
 def _read_episodes(show_id: int, title: str) -> dict:
@@ -585,10 +665,13 @@ def play_episode(episode_id, resume: bool = True) -> bool:
 
 
 def _episode_resume_point(episode_id: int) -> int:
-    with _lock:
-        held = list(_episodes.values())
-        started = _continuing
-    for show in held:
+    with _cache.lock:
+        opened = list(_cache.episodes.values())
+    started = _cache.continuing.peek()
+    for slot in opened:
+        show = slot.peek()
+        if show is None:
+            continue
         for episode in show["episodes"]:
             if episode["id"] == episode_id:
                 return int(episode.get("resume") or 0)
@@ -721,24 +804,24 @@ def continuing(films: bool = True, series: bool = True) -> dict:
     One list (``{"items": [...], "count": int, "tag": str}``), each entry
     marked by ``kind``.  *films* / *series* leave out disabled shelves.
     """
-    global _continuing, _continuing_read_at
-    with _lock:
-        held = _continuing
-        fresh = (held is not None
-                 and time.monotonic() - _continuing_read_at < _TTL)
-    if held is None or not fresh:
-        held = _read_continuing()
-        with _lock:
-            _continuing = held
-            _continuing_read_at = time.monotonic()
-            # Register episode art for unopened shows (see episode_art_path).
-            _episode_art.update(held["art"])
-
+    held = _cache.continuing.get()
     items = [entry for entry in held["items"]
              if (films and entry["kind"] == "movie")
              or (series and entry["kind"] == "episode")]
     return {"items": items, "count": len(items),
             "tag": f"{int(films)}{int(series)}-{held['tag']}"}
+
+
+def _load_continuing() -> dict:
+    """Read the "continue" row and register its episodes' pictures.
+
+    Episodes of unopened shows are known only from here (see
+    ``episode_art_path``).
+    """
+    built = _read_continuing()
+    with _cache.lock:
+        _cache.episode_art.update(built["art"])
+    return built
 
 
 def _read_continuing() -> dict:
@@ -871,3 +954,7 @@ def _continue_entry(row, kind: str) -> dict | None:
     if isinstance(played, str) and played.strip():
         entry["lastplayed"] = played.strip()
     return entry
+
+
+# Created last: the slots name the readers defined above.
+_cache = _Cache()

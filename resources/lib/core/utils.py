@@ -146,32 +146,40 @@ def _known(label: str, value: str) -> str:
 # How often ``localized`` checks Kodi's language, in seconds.
 _LANGUAGE_RECHECK = 1.0
 
-# Cached strings, the language they were read in, and the last check.
-_strings: dict[int, str] = {}
-_strings_language: str | None = None
-_language_checked = float("-inf")
+class _Strings:
+    """This add-on's strings, read once per language.
+
+    Cached because the dashboard and the N/A checks ask for the same ones
+    several times a second.  The cache is dropped when Kodi's language
+    changes, which is checked at most once a second.
+    """
+
+    def __init__(self) -> None:
+        self._texts: dict[int, str] = {}
+        self._language: str | None = None
+        self._checked = float("-inf")
+
+    def get(self, string_id: int) -> str:
+        now = time.monotonic()
+        if now - self._checked >= _LANGUAGE_RECHECK:
+            self._checked = now
+            language = xbmc.getLanguage()
+            if language != self._language:
+                self._texts.clear()
+                self._language = language
+        text = self._texts.get(string_id)
+        if text is None:
+            text = settings.addon().getLocalizedString(string_id)
+            self._texts[string_id] = text
+        return text
+
+
+_strings = _Strings()
 
 
 def localized(string_id: int) -> str:
-    """Return this add-on's string *string_id* in Kodi's language.
-
-    Strings are cached because the dashboard and the N/A checks ask for the
-    same ones several times a second.  The cache is dropped when Kodi's
-    language changes, which is checked at most once a second.
-    """
-    global _strings_language, _language_checked
-
-    now = time.monotonic()
-    if now - _language_checked >= _LANGUAGE_RECHECK:
-        _language_checked = now
-        language = xbmc.getLanguage()
-        if language != _strings_language:
-            _strings.clear()
-            _strings_language = language
-    text = _strings.get(string_id)
-    if text is None:
-        text = _strings[string_id] = settings.addon().getLocalizedString(string_id)
-    return text
+    """Return this add-on's string *string_id* in Kodi's language."""
+    return _strings.get(string_id)
 
 
 def clean(val) -> str:
@@ -407,8 +415,8 @@ def join_refresh_thread(thread) -> None:
     The loop checks the view's running flag only between ticks, so it can
     outlive doModal() by one tick, still writing to a closing window and
     touching the side-data hold state the next view reads
-    (``info.dvmetadata._held`` / ``_held_source``).  Logs a warning if the
-    thread is still alive after the timeout.
+    (``info.dvmetadata._held``).  Logs a warning if the thread is still
+    alive after the timeout.
     """
     if thread is None:
         return

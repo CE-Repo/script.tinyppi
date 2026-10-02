@@ -24,6 +24,7 @@ import re
 import xbmc
 import xbmcvfs
 
+from core.memo import KeyedMemo
 from core.utils import cond, info
 from info.dvinfo import na_label
 from info.imax import playing_path
@@ -50,8 +51,9 @@ _FILE_MARKERS = frozenset({
 })
 _RESOLUTION_SHAPE = re.compile(r"^\d{3,4}[pi]$")
 
-# Last (path, size text), so the stat runs once per title (see _size_text).
-_size_cache: tuple[str, str] | None = None
+# Last path and its size text, so the stat runs once per title (see
+# _size_text).
+_sizes = KeyedMemo()
 
 # File extension -> container label.  Only real containers: playlist or
 # wrapper extensions (.m3u8, .strm, .pvr) describe the delivery instead.
@@ -190,15 +192,12 @@ def _size_text(path: str) -> str:
     every tick, and a network stat would otherwise run on the overlay thread
     each time.
     """
-    global _size_cache
-
     if not path:
         return ""
-    if _size_cache and _size_cache[0] == path:
-        return _size_cache[1]
-
-    text = _measure(path)
-    _size_cache = (path, text)
+    text = _sizes.get(path)
+    if text is None:
+        text = _measure(path)
+        _sizes.put(path, text)
     return text
 
 

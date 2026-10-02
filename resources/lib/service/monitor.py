@@ -51,11 +51,15 @@ _SKIN_SETTLE = 1.0
 # not compete with Kodi's own startup.
 _WARMUP_DELAY = 5.0
 
-# Notifications that make the dashboard's cached film list stale.  The list
-# is dropped and re-read on the next request (see web/library.py).
-_LIBRARY_NOTIFICATIONS = (
+# Notifications that make the dashboard's cached lists stale.  The lists are
+# dropped and re-read on the next request (see web/library.py).  Item
+# notifications come in bursts (a scan sends one per item) and are coalesced
+# into one drop; the end of a scan or a clean drops the lists at once.
+_LIBRARY_ITEM_NOTIFICATIONS = (
     "VideoLibrary.OnUpdate",
     "VideoLibrary.OnRemove",
+)
+_LIBRARY_DONE_NOTIFICATIONS = (
     "VideoLibrary.OnScanFinished",
     "VideoLibrary.OnCleanFinished",
 )
@@ -92,8 +96,10 @@ class KodiMonitor(xbmc.Monitor):
         if method == "Player.OnAVStart":
             self._maybe_show_splash()
 
-        if method in _LIBRARY_NOTIFICATIONS:
+        if method in _LIBRARY_DONE_NOTIFICATIONS:
             library.invalidate()
+        elif method in _LIBRARY_ITEM_NOTIFICATIONS:
+            library.changed()
         elif method == _PLAYBACK_ENDED:
             library.settle()
 

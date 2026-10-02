@@ -127,7 +127,10 @@ class PlayingArtwork:
         """Return the bytes and type of artwork *kind*, or None.
 
         Read once per picture, outside the lock, so a slow share blocks
-        nothing else (racing requests just read it twice).
+        nothing else (racing requests just read it twice).  Kodi's cached
+        copy comes first, like on the shelves (see ``shelf_picture``): a
+        scraped original is large, and on a box without internet it cannot
+        be read at all.
         """
         path = art_path(kind)
         if not path:
@@ -138,21 +141,17 @@ class PlayingArtwork:
             if cached is not None and cached[0] == path:
                 return cached[1], cached[2]
 
-        source = unwrap_image_url(path)
-        data = read_art(source)
-        if data is None and source != path:
-            data = read_art(path)   # the texture URL itself
-        if data is None:
+        found = shelf_picture(path)
+        if found is None:
             return None
-
-        content_type = art_type(source)
+        data, content_type = found
         with self._lock:
             self._art[kind] = (path, data, content_type)
-        return data, content_type
+        return found
 
 
 def shelf_picture(path: str) -> tuple[bytes, str] | None:
-    """Return one shelf picture (bytes, type), preferring Kodi's cached copy.
+    """Return one picture (bytes, type), preferring Kodi's cached copy.
 
     Not cached here; the browser caches them (see ``art_sources``).
     """

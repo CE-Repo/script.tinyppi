@@ -42,7 +42,9 @@ from ui.theme import apply_theme
 # through _settings() and localized(), so changes are seen.
 _ADDON_PATH = settings.addon().getAddonInfo("path")
 
-_dialog_lock = False
+# Set while a closed overlay settles (see _release_overlay); a press then is
+# dropped rather than opening it again at once.
+_releasing = threading.Event()
 
 # Held from the _preflight guards until TinyPPI is marked open.  The service
 # handles each request on its own thread, so a second press in that window
@@ -200,7 +202,7 @@ def _preflight(home, player, toggle_log: str) -> bool:
         xbmc.executebuiltin("Action(Back)")
         return False
 
-    return not _dialog_lock
+    return not _releasing.is_set()
 
 
 def _dv_metadata_enabled() -> bool:
@@ -231,13 +233,12 @@ def _elements_visible(addon) -> str:
 
 def _release_overlay(home) -> None:
     """Clear the overlay state, then hold the re-entry lock briefly."""
-    global _dialog_lock
-    _dialog_lock = True
+    _releasing.set()
     clear_overlay_state(home)
     try:
         xbmc.Monitor().waitForAbort(0.2)
     finally:
-        _dialog_lock = False
+        _releasing.clear()
 
 
 # --- Overlay dialog --------------------------------------------------------
