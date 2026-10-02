@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Core logic for the TinyPPI overlay dialog and its entry points.
+"""The TinyPPI overlay dialog and the entry points for both views.
 
-Imported by main.py, which sets up sys.path first.
+Imported by main.py (which sets up sys.path) and by the service.
 """
 
 import os
@@ -40,34 +40,27 @@ from ui.theme import apply_theme
 # Constants
 # ---------------------------------------------------------------------------
 
-# Where the addon lives, which cannot change while Kodi runs: read once, off
-# the one settings handle every module shares (see core.settings).  Settings
-# are read through _settings() and strings through localized(), so a change
-# made while the service runs is seen.
+# The add-on folder, fixed while Kodi runs.  Settings and strings are read
+# through _settings() and localized(), so changes are seen.
 _ADDON_PATH = settings.addon().getAddonInfo("path")
 
 _dialog_lock = False
 
-# Held from the guards in _preflight to the moment TinyPPI is marked as open.
-# The service runs every open request on a thread of its own, and a second
-# press arriving while the first is still between those two points would pass
-# the same guards and stack a second view on top of the first.  It is dropped
-# instead, as the duplicate it is; once TinyPPI is marked as open, a press
-# toggles it closed as before.
+# Held from the _preflight guards until TinyPPI is marked open.  The service
+# handles each request on its own thread, so a second press in that window
+# would stack a second view; it is dropped instead.  Once open, a press
+# toggles TinyPPI closed.
 _opening = threading.Lock()
 
-# Raise to True to allow launching on non-CoreELEC platforms (e.g. for testing).
+# Set True to allow launching on non-CoreELEC platforms (for testing).
 _ALLOW_NON_COREELEC = False
 
-# Runtime nudge: pixels moved per arrow-key press, and the direction each key
-# shifts the overlay by.  Off unless the viewer turns it on (see
-# _nudge_enabled), and deliberately not persisted even then – the nudge lives
-# on the dialog instance, so the next launch starts from the configured
-# offsets again.
+# Arrow-key nudge: pixels per press.  Only when enabled (see _nudge_enabled)
+# and never saved; the next launch starts from the configured offsets.
 _NUDGE_STEP = 10
 
-# Outermost edges of the overlay content inside group 5000 (see the skin XML);
-# the nudge and the configured offsets are clamped so these stay on screen.
+# Outer edges of the content in group 5000 (see the skin XML); offsets and
+# nudge are clamped to keep them on screen.
 _CONTENT_LEFT         = 35
 _CONTENT_BOTTOM       = 1045
 _CONTENT_TOP          = 340
@@ -75,12 +68,12 @@ _CONTENT_TOP_DV       = 37    # DV with channels: separate panel above the main 
 _CONTENT_RIGHT_NARROW = 1292  # SDR without channels
 _CONTENT_RIGHT_WIDE   = 1885  # HDR, and SDR with channels
 
-# Skin position of the DV channel panel (control 5100), which offset_x_dv slides
-# left from: at 0 % its left edge lands on _CONTENT_LEFT.
+# Skin x of the DV channel panel (control 5100); offset_x_dv slides it left,
+# to _CONTENT_LEFT at 0 %.
 _CHANNEL_PANEL_DV_LEFT = 1485
 
-# Gap the configured vertical offset leaves above the DV channel panel, matching
-# the left inset.  The arrow-key nudge ignores it and goes to the edge.
+# Top gap kept by the configured offset above the DV channel panel; the
+# nudge may go to the edge.
 _MARGIN_TOP_DV = 37
 
 _NUDGE_ACTIONS = {
@@ -90,17 +83,13 @@ _NUDGE_ACTIONS = {
     xbmcgui.ACTION_MOVE_DOWN:  (0, _NUDGE_STEP),
 }
 
-# The view open_tinyppi() shows next once the current one closes.  On a Dolby
-# Vision source OK goes down into it and Back comes back up out of it; Back
-# here, on the overlay itself, is the end of the session.
+# Next view for open_tinyppi(): OK on a DV source opens the metadata view,
+# Back returns.  Back on the overlay ends the session.
 _VIEW_DV_METADATA = "dv_metadata"
 
-# Label properties carrying the readings in the overlay's two Dolby Vision
-# panels.  The RPU / BL / EL fields are icons whose green/red state already
-# makes a change visible, and the FEL/MEL tag has its own themed color; the
-# remaining text would otherwise all use the normal output color.  HDR10 rows
-# are included because they sit inside the DV metadata panel and are part of
-# the side data shown for a DV source.
+# Text properties of the two DV panels that get the change highlight.  The
+# RPU / BL / EL icons and the FEL/MEL tag show changes on their own.  The
+# HDR10 rows sit in the DV panel, so they are included.
 _DV_VALUE_PROPERTIES = (
     "DoviCmVersionVar",
     "DoviStructureVar",
@@ -116,36 +105,29 @@ _DV_VALUE_PROPERTIES = (
 )
 
 _DV_CHANGED_COLOR    = "TinyPPI.OutputChangedColor"
-_DV_CHANGED_FALLBACK = "FF82B1FF"  # Light blue, the setting's default
+_DV_CHANGED_FALLBACK = "FF82B1FF"  # Blue, the setting's default
 
-# How long a changed reading stays in that color, in milliseconds (Output ->
-# Changed values -> Highlight duration).  The loop below still polls at 100ms:
-# what this setting holds is the highlight, not the reading behind it.
+# Setting for how long a changed reading stays highlighted (ms); polling
+# stays at 100 ms.
 _DV_CHANGED_HOLD = "output_changed_duration"
 
-# How often the tick loop refreshes properties.update_static_properties.
-# Video/audio/subtitle facts and CPU stats settle at most once a title, so
-# they do not need the loop's own 100ms cadence the way the Dolby Vision /
-# HDR10 readings in publish_scene_properties do.
+# Interval of properties.update_static_properties: per-title facts and CPU
+# stats need not follow the 100 ms scene cadence.
 _STATIC_POLL_INTERVAL = 1.0
 
 
 def _settings() -> xbmcaddon.Addon:
-    """Return a handle whose settings are the ones in force right now.
+    """Return a handle with the settings currently in force.
 
-    A handle holds the settings as they read when it was made, which used to
-    be a distinction without a difference: each launch was its own script, so
-    a handle made in a module global was made moments before it was read.  The
-    overlay now opens inside the service, which is loaded once and stays
-    loaded for the session, so a handle kept in a global would answer with the
-    settings as they were when Kodi started -- every colour, offset and toggle
-    frozen at boot.  ``core.settings`` renews it whenever they change.
+    The overlay runs inside the long-lived service, so a handle kept in a
+    global would freeze the settings at Kodi start; ``core.settings`` renews
+    it on every change.
     """
     return settings.addon()
 
 
 def _is_coreelec() -> bool:
-    """Return True when running on a CoreELEC installation."""
+    """Return whether this is a CoreELEC installation."""
     if os.path.isdir("/etc/coreelec"):
         return True
     try:
@@ -156,7 +138,7 @@ def _is_coreelec() -> bool:
 
 
 def _notify_error(message_id: int) -> None:
-    """Show a Kodi error notification using a localised string ID."""
+    """Show an error notification with localized string *message_id*."""
     xbmcgui.Dialog().notification(
         "TinyPPI",
         localized(message_id),
@@ -182,10 +164,10 @@ def _set_overlay_state(home, dialog_mode: bool = False) -> None:
 
 
 def _preflight(home, player, toggle_log: str) -> bool:
-    """Run the environment and playback guards shared by both entry points.
+    """Run the platform and playback checks shared by both entry points.
 
-    Returns True when the overlay may open, else shows an error notification
-    (or triggers the toggle-close) and returns False.
+    Returns True when a view may open; otherwise notifies (or toggles the
+    open view closed) and returns False.
     """
     if not _ALLOW_NON_COREELEC:
         if not _is_coreelec():
@@ -226,34 +208,31 @@ def _preflight(home, player, toggle_log: str) -> bool:
 def _dv_metadata_enabled() -> bool:
     """Return whether OK may open the Dolby Vision metadata view.
 
-    Off out of the box: OK does nothing on the overlay until someone turns the
-    view on under Metadata, so the key keeps behaving as it always has for anyone
-    who has no use for the metadata.  Read through ``_settings()``, so the
-    toggle applies to a session already under way.
+    On by default (DV metadata settings); read per press, so a change
+    applies immediately.
     """
     return _settings().getSettingBool("dv_metadata_view")
 
 
 def _nudge_enabled() -> bool:
-    """Return whether the arrow keys may move the overlay around.
+    """Return whether the arrow keys may move the overlay.
 
-    Off out of the box, like the metadata view: the arrow keys do nothing on
-    the overlay until someone turns the nudge on under General -> Position, so
-    a stray press on the remote cannot walk the overlay off where it was put.
-    Read once when the overlay opens rather than per key press, which is where
-    a held-down arrow key would land it.
+    Off by default (General -> Position), so stray presses cannot move it.
+    Read once when the overlay opens, not per key press.
     """
     return _settings().getSettingBool("nudge_position")
 
 
 def _elements_visible(addon) -> str:
-    """Return the "1"/"0" flag for the header title, header icon and separator
-    lines: they follow the background and hide only when it is fully transparent."""
+    """Return "0" when the background is fully transparent, else "1".
+
+    Controls the header title, header icon and separator lines.
+    """
     return "0" if addon.getSettingInt("background_opacity") == 0 else "1"
 
 
 def _release_overlay(home) -> None:
-    """Clear overlay state immediately, then briefly hold the re-entry lock."""
+    """Clear the overlay state, then hold the re-entry lock briefly."""
     global _dialog_lock
     _dialog_lock = True
     clear_overlay_state(home)
@@ -268,8 +247,10 @@ def _release_overlay(home) -> None:
 # ---------------------------------------------------------------------------
 
 class TinyPPIDialog(xbmcgui.WindowXMLDialog):
-    """Overlay showing live player info during fullscreen playback; auto-closes
-    when playback stops or the user leaves the fullscreen video window."""
+    """Live player info over fullscreen video.
+
+    Closes when playback stops or fullscreen video is left.
+    """
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -280,67 +261,49 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._auto_hide = 0
         self._nudge     = (0, 0)
         self._nudge_on  = False
-        # The position sliders, read once in onInit.
+        # Position sliders, read in onInit.
         self._offset_pct    = (0, 0)
         self._dv_offset_pct = 100
         self._thread    = None
         self._dv_channel_offset = None
         self._refresh_failed    = False
-        # What the DV readings said last, and how long each change of them
-        # stays lit; built in onInit, where the setting behind the duration is
-        # read.  self._shown is what the window itself currently holds for
-        # those properties, which is not the same thing as self.published --
-        # see _highlight_dv_changes.
+        # Highlight state for the DV readings, built in onInit.  _shown is
+        # what the window holds (with markup), unlike self.published (see
+        # _highlight_dv_changes).
         self._highlighter       = None
         self._shown: dict       = {}
-        # Not underscore-prefixed: _show_overlay() seeds this from outside the
-        # class, the same way next_view below is read from outside once doModal()
-        # returns.
+        # Public: _show_overlay() fills it before doModal().
         self.published: dict    = {}
         self._color_missing     = False
-        # The highlight color, read on the slow cadence (see _update_loop):
-        # it only moves with the theme.
+        # Highlight color, refreshed on the slow cadence (see _update_loop).
         self._changed_color     = ""
-        # Read by open_tinyppi() once doModal() returns; see _open_dv_metadata.
+        # Read by open_tinyppi() after doModal() (see _open_dv_metadata).
         self.next_view  = None
 
     def onInit(self) -> None:
         self._running   = True
         self._opened_at = time.time()
         addon = _settings()
-        # Auto-hide timeout in seconds (0 = off). Applies to the TinyPPI
-        # overlay only, not the VS10 selection dialog.
+        # Auto-hide in seconds (0 = off); overlay only, not the VS10 dialog.
         self._auto_hide = addon.getSettingInt("auto_hide")
         self._nudge_on  = _nudge_enabled()
-        # The configured position, read here rather than per tick: the offsets
-        # are re-applied on every cycle because the HDR type and the channel
-        # icon move the box around underneath them, not because the sliders do
-        # -- those are where the viewer left them for as long as this overlay
-        # is up.
+        # Read once: offsets are re-applied every tick because the layout
+        # changes, not the sliders.
         self._offset_pct    = (
             addon.getSettingInt("offset_x"),
             addon.getSettingInt("offset_y"),
         )
         self._dv_offset_pct = addon.getSettingInt("offset_x_dv")
 
-        # Everything the first frame needs was published before doModal(), so
-        # there is nothing to fetch here: place the overlay against the HDR type
-        # already known and hand over to the polling loop, whose first pass runs
-        # immediately and covers the progress control a loaded window adds.
-        # Kodi dispatches onInit to this thread with the window already on
-        # screen, so work done here is work the viewer waits through.
+        # The values were published before doModal(); onInit runs with the
+        # window already visible, so it only places the overlay and starts
+        # the loop (which also sets the progress control).
         self._apply_position_offset()
         self._remember_dv_values()
         self._start_update_loop()
 
     def _remember_dv_values(self) -> None:
-        """Take the DV readings the dialog opened with as the starting point.
-
-        Marked without a color, which records them as history without lighting
-        any of them: what is already on screen when the overlay opens has not
-        changed under anybody's eyes.  The window holds exactly these values,
-        so self._shown starts out saying so.
-        """
+        """Record the opening DV readings as history, without highlighting."""
         self._highlighter = ChangeHighlighter(highlight_hold(_DV_CHANGED_HOLD))
         self._changed_color = self._dv_changed_color()
         self._shown = {
@@ -350,7 +313,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
             self._highlighter.mark(name, value, "")
 
     def _dv_changed_color(self) -> str:
-        """Return the themed DV-change color, with its light-blue fallback."""
+        """Return the themed highlight color, or the default blue."""
         color = home_window().getProperty(_DV_CHANGED_COLOR)
         if color:
             return color
@@ -364,27 +327,14 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         return _DV_CHANGED_FALLBACK
 
     def _highlight_dv_changes(self) -> None:
-        """Light the DV readings that moved, and keep them lit for as long as
-        the highlight duration says.
+        """Highlight DV readings that changed, for the highlight duration.
 
-        Reads current values from ``self.published`` rather than back from
-        the window: whichever publish call last touched a given property (the
-        fast scene pass or the slower static one) already recorded its plain
-        current value there regardless of whether it needed a fresh
-        ``setProperty`` call.  Nothing colored is ever written back into it,
-        so what it holds stays the plain reading -- which is what the publish
-        passes have to compare against, and what the highlighter has to be
-        given each tick.  The colored text goes to the window and is recorded
-        in ``self._shown`` instead, so a highlight held over several ticks
-        costs one ``setProperty`` on the tick it starts and one on the tick it
-        ends: the plain value is not rewritten underneath it in between, which
-        at ten ticks a second would be ten chances for a frame to catch the
-        reading mid-swap.
+        Plain values come from ``self.published`` (never colored, as the
+        publish passes compare against them).  The colored text goes to the
+        window and into ``self._shown``, so a highlight costs one
+        ``setProperty`` when it starts and one when it ends.
 
-        An empty color where the source is not Dolby Vision keeps the
-        readings' history without lighting any of them, so a stream that comes
-        back to DV is compared against what it last said rather than against
-        nothing.
+        Outside Dolby Vision the history is kept without highlighting.
         """
         current = {
             name: self.published.get(name, "") for name in _DV_VALUE_PROPERTIES
@@ -399,12 +349,11 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
                 self._shown[name] = highlighted
 
     def _base_offset(self, wide: bool, up_limit: int) -> tuple:
-        """Return the (x, y) offset configured in the settings.
+        """Return the configured (x, y) offset.
 
-        100 % is the max on-screen travel (30.9 % / 28.1 % of the screen);
-        horizontal only applies to SDR without channels (HDR and SDR with
-        channels stay left-aligned, which is what *wide* says), and vertical
-        stops *up_limit* pixels up, short of the top edge in DV with channels.
+        100 % is the maximum travel (30.9 % / 28.1 % of the screen).  The
+        wide layouts (*wide*) stay left-aligned; vertical travel stops
+        *up_limit* pixels up.
         """
         max_x = 0.309
         max_y = 0.281
@@ -418,25 +367,19 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
     @staticmethod
     def _is_dv_source() -> bool:
-        """Whether the stream itself is Dolby Vision, which is what decides
-        there is anything for the metadata view to show.
+        """Return whether the source is Dolby Vision.
 
-        The source type, not the effective one the layout follows: VS10 may be
-        converting the picture to SDR or HDR10, but the side data still
-        describes the Dolby Vision stream being decoded.
+        The source type, not the effective one: the side data still describes
+        the DV stream while VS10 converts it.
         """
         return "dolby" in home_window().getProperty("TinyPPI.HdrType").lower()
 
     def _layout(self) -> tuple[bool, bool, bool]:
-        """Return ``(hdr, dv, channels)`` for the layout on screen.
+        """Return ``(hdr, dv, channels)`` for the current layout.
 
-        Both types are the effective one, not the source: a stream VS10
-        converts to SDR is drawn in the SDR layout, so the box the placement
-        clamps against is the narrow one.  *channels* mirrors the skin's
-        visibility condition for the channel variant.
-
-        Read once per placement: every one of these reads takes Kodi's GUI
-        lock, and the placement runs on every tick of the refresh loop.
+        Uses the effective type (VS10 to SDR uses the SDR layout); *channels*
+        mirrors the skin's condition.  Read once per placement, since each
+        read takes Kodi's GUI lock.
         """
         channels = (
             home_window().getProperty("TinyPPI.ShowChannelIcon") == "1"
@@ -445,18 +388,14 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         return bool(effective_hdr_type()), is_effective_dv(), channels
 
     def _apply_position_offset(self) -> None:
-        """Move group 5000 to the configured offset plus the current nudge.
+        """Move group 5000 to the configured offset plus the nudge.
 
-        The nudge is clamped here (not at the resulting position) so a later
-        HDR switch or channel icon appearing pulls an already-nudged overlay
-        back on screen, while keeping the first press in the opposite
-        direction effective.  Re-applied each cycle since HDR type is detected
-        asynchronously; cached so the unchanged case is skipped.
-
-        DV with channels puts the channel panel above the main box, which
-        moves the content's top edge up.  The nudge is free to go all the way
-        to the screen edge from there; the configured offset keeps the panel
-        35 px clear of it, which leaves it 2 px there.
+        The nudge itself is clamped, so a layout change pulls a nudged
+        overlay back on screen and the next opposite press acts at once.
+        Re-applied every tick (the HDR type is detected asynchronously) and
+        skipped when unchanged.  In DV with channels the channel panel sits
+        above the main box; the nudge may reach the edge, the configured
+        offset keeps a margin.
         """
         hdr, dv, channels = self._layout()
         wide = hdr or channels
@@ -479,11 +418,9 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._apply_dv_channel_offset()
 
     def _apply_dv_channel_offset(self) -> None:
-        """Slide the DV channel panel (5100) along its own row.
+        """Slide the DV channel panel (5100) horizontally on its own.
 
-        The panel sits above the main box, so it can move horizontally on its
-        own: 100 % leaves it skin-aligned on the right, 0 % puts it at the left
-        inset.  Only the panel moves; the main box below it stays put.
+        100 % keeps it at the right as in the skin, 0 % at the left inset.
         """
         travel = _CHANNEL_PANEL_DV_LEFT - _CONTENT_LEFT
         pct    = min(max(self._dv_offset_pct, 0), 100)
@@ -494,7 +431,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self.getControl(5100).setPosition(*offset)
 
     def _move(self, dx: int, dy: int) -> None:
-        """Shift the overlay by one step; reverts on the next launch."""
+        """Nudge the overlay by (*dx*, *dy*); not saved."""
         nudge_x, nudge_y = self._nudge
         self._nudge = (nudge_x + dx, nudge_y + dy)
         self._apply_position_offset()
@@ -521,15 +458,10 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
     def _open_dv_metadata(self) -> None:
         """Hand over to the Dolby Vision metadata view.
 
-        Only when the metadata setting is on, and only for a Dolby Vision source
-        -- on anything else there is no side data to show, and OK keeps doing
-        what it did before either way, which is nothing.
-
-        The view is not opened from here: open_tinyppi() opens it once this
-        window is gone.  A modal opened from inside a callback would nest
-        inside the loop that dispatched the callback, and the same deferral is
-        what the VS10 dialog does with a picked mode, for the same reason --
-        an action fired while a modal is still closing is dropped.
+        Only for a DV source with the setting on.  open_tinyppi() opens the
+        view after this window has closed: a modal opened from a callback
+        would nest in its dispatch loop, and actions sent while a modal is
+        closing are dropped.
         """
         if not _dv_metadata_enabled() or not self._is_dv_source():
             return
@@ -541,26 +473,17 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._thread.start()
 
     def join_update_loop(self) -> None:
-        """Wait for the update loop to actually stop before handing over."""
+        """Wait for the update loop to stop before handing over."""
         join_refresh_thread(self._thread)
 
     def _update_loop(self) -> None:
-        """Refresh the overlay every 100ms until it should close.
+        """Refresh the overlay every 100 ms until it should close.
 
-        Only ``publish_scene_properties`` runs on every tick: it is the
-        Dolby Vision / HDR10 readings there that can move every scene.
-        Everything else settles at most once a title, so
-        ``update_static_properties`` runs on its own, slower
-        ``_STATIC_POLL_INTERVAL`` timer instead of every tick.
-
-        ``self.published`` makes both cadences cheap: whichever pass ran,
-        an idle tick costs no ``setProperty`` calls, only the recompute.
-
-        A failed refresh never ends the loop: the values come from the player
-        and from the stream's side data, so a bad cycle is worth one stale
-        tick, not a window that stops auto-closing.  ``close_dialog`` runs
-        from ``finally`` so even an unforeseen failure still releases the
-        overlay instead of leaving it up, frozen and marked active.
+        The scene readings refresh every tick, the per-title ones every
+        ``_STATIC_POLL_INTERVAL``; ``self.published`` makes idle ticks free
+        of ``setProperty`` calls.  A failed refresh costs one stale tick, not
+        the loop, and ``close_dialog`` runs in ``finally`` so the overlay is
+        never left frozen.
         """
         player = xbmc.Player()
         next_static_publish = 0.0
@@ -575,8 +498,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
                     break
 
                 try:
-                    # One read pass for the whole tick, so its two halves and
-                    # the placement share their Kodi reads (see read_pass).
+                    # One read pass for the whole tick (see read_pass).
                     with read_pass():
                         properties.publish_scene_properties(self, self.published)
                         self._highlight_dv_changes()
@@ -584,11 +506,8 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
                         now = time.time()
                         if now >= next_static_publish:
-                            # Advance the deadline before the call, not after:
-                            # a failure below still counts this as tried, so
-                            # it retries in another _STATIC_POLL_INTERVAL
-                            # rather than every tick until it happens to
-                            # succeed.
+                            # Advance first, so a failure retries after an
+                            # interval rather than every tick.
                             next_static_publish = now + _STATIC_POLL_INTERVAL
                             properties.update_static_properties(
                                 self, self.published)
@@ -602,8 +521,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
             self.close_dialog()
 
     def _log_refresh_failure(self, exc: Exception) -> None:
-        """Log a failed refresh once per overlay, so a persistent fault leaves
-        a trace without writing to the log every second."""
+        """Log a failed refresh once per overlay."""
         if self._refresh_failed:
             return
         self._refresh_failed = True
@@ -623,14 +541,10 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 # ---------------------------------------------------------------------------
 
 def _show_overlay(home) -> str | None:
-    """Show the overlay window once, and return the view it handed over to.
-
-    None when the overlay was simply closed, which ends the session.
-    """
-    # Marks the overlay itself as on screen, which the codec-logo splash
-    # follows.  Set per showing, not once per session: the overlay clears it as
-    # it closes, including when it closes to hand over to the metadata view, and
-    # the splash belongs with the overlay rather than with that view.
+    """Show the overlay once and return the next view, or None to end."""
+    # Marks the overlay as visible for the codec-logo splash.  Set per
+    # showing: the overlay clears it on close, including when handing over to
+    # the metadata view, which has no splash.
     home.setProperty(PROP_ACTIVE, "true")
 
     dialog = TinyPPIDialog(
@@ -639,11 +553,8 @@ def _show_overlay(home) -> str | None:
         "Default",
         "1080i",
     )
-    # Fill the window before Kodi draws it.  onInit() is dispatched to the
-    # script thread only once the window is up and fading in, so anything
-    # published there arrives after the viewer is already looking at the
-    # rows; done here, the first frame carries the values.  Properties only
-    # -- the controls the full refresh touches do not exist yet.
+    # Fill the window before Kodi draws it (onInit runs only once it is
+    # visible).  Properties only: the controls do not exist yet.
     properties.publish_properties(dialog, dialog.published)
     dialog.doModal()
     dialog.join_update_loop()
@@ -653,15 +564,12 @@ def _show_overlay(home) -> str | None:
 
 
 def open_tinyppi() -> None:
-    """Validate the environment and show TinyPPI until the viewer closes it.
+    """Check the environment and show TinyPPI until the viewer closes it.
 
-    The overlay is the view it opens with; on a Dolby Vision source OK hands
-    over to the metadata view and Back hands back, so this runs until one of
-    them is closed for good rather than handing over to the other.
-
-    Skips silently on non-CoreELEC (unless ``_ALLOW_NON_COREELEC``), Kodi < 22,
-    a 720p skin, no fullscreen video, or nothing playing; toggle-closes when the
-    overlay is already open.
+    Starts with the overlay; on a DV source OK switches to the metadata view
+    and Back returns.  Does nothing on non-CoreELEC (unless
+    ``_ALLOW_NON_COREELEC``), Kodi < 22, a 720p skin, without fullscreen
+    video or playback; toggles closed when already open.
     """
     home   = home_window()
     player = xbmc.Player()
@@ -673,9 +581,7 @@ def open_tinyppi() -> None:
         if not _preflight(home, player, "Toggle close"):
             return
 
-        # Normally a single window-property read: the service registered the
-        # font entries at Kodi start, so nothing here goes near the skin
-        # directory.
+        # Normally one property read: the service registered the fonts.
         ensure_fonts()
 
         addon            = _settings()
@@ -698,15 +604,12 @@ def open_tinyppi() -> None:
                 ("TinyPPI.ShowHeaderIcon", elements_visible),
             ),
         )
-        # From the HDR type known so far, so the right variant is up before
-        # the first frame; the update loop re-publishes it once detection
-        # finishes.
+        # From the HDR type known so far; the update loop refreshes it.
         properties.publish_channel_visibility(home)
         apply_theme(home, addon)
 
         while _show_overlay(home) == _VIEW_DV_METADATA:
-            # Loaded on the first hand-over, so a session that never opens the
-            # metadata view never pays for it.
+            # Imported on first use only.
             from ui.dvmetadata import open_dv_metadata
             if not open_dv_metadata():
                 break
@@ -719,7 +622,7 @@ def open_dialog_mode() -> None:
     home   = home_window()
     player = xbmc.Player()
 
-    # The same guard as open_tinyppi's: see _opening.
+    # See _opening.
     if not _opening.acquire(blocking=False):
         log("open request dropped: TinyPPI is already opening")
         return

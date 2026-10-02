@@ -1,11 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""The dashboard's two settings buttons: show its address, mint a new token.
+"""The dashboard's two settings actions: show the address, create a token.
 
-Both run through ``RunScript`` from the settings dialog, so they happen in
-their own interpreter and never hold the settings UI while sysfs or a socket
-answers.
+Both run via ``RunScript`` from the settings dialog, in their own
+interpreter, so they never block the settings UI.
 """
 
 import xbmcgui
@@ -21,8 +20,7 @@ _TOKEN_NEW     = 32438   # Generate a new token
 
 
 def show_web_info() -> None:
-    """Show the URL and token together, which is what someone standing in
-    front of the TV with a phone actually needs."""
+    """Show the dashboard URL and token together."""
     address = local_address()
     token   = ensure_token(settings.addon())
     body = (
@@ -34,12 +32,7 @@ def show_web_info() -> None:
 
 
 def new_web_token() -> None:
-    """Mint a new token and show it, so the one just invalidated is replaced
-    by one the user can read straight away.
-
-    Every browser holding the old token is logged out by this; that is the
-    point of the button.
-    """
+    """Create and show a new token, logging out every browser using the old one."""
     token = generate_token(settings.addon())
     xbmcgui.Dialog().ok(
         localized(_TOKEN_NEW),

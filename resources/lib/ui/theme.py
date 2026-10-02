@@ -3,12 +3,10 @@
 
 """Color theme engine.
 
-Maps the user's color settings onto ARGB hex strings and publishes them as
-Home-window (10000) properties, consumed by the skin via
-``$INFO[Window(10000).Property(TinyPPI.<Name>Color)]``.
-
-Each color is chosen in Kodi's own color picker, opened on the add-on's palette
-from the setting's row (see ``pick_color``).
+Maps the color settings to ARGB hex strings and publishes them as Home-window
+(10000) properties for the skin
+(``$INFO[Window(10000).Property(TinyPPI.<Name>Color)]``).  Colors are chosen
+in Kodi's color picker with the add-on's palette (see ``pick_color``).
 """
 
 import json
@@ -86,8 +84,8 @@ _DIALOG_FOCUS_TEXT_COLORS = (
     "FFFFFFFF",  # 1  White
 ) + _TEXT_COLORS[1:]
 
-# Channel layout graphic and its active channels; index 0 is pure white, so the
-# defaults reproduce the skin's untinted look.
+# Channel layout graphic and active channels; index 0 is pure white (the
+# untinted look).
 _CHANNEL_COLORS = ("FFFFFFFF",) + _TEXT_COLORS[1:]
 
 # Inline detail accents: _TEXT_COLORS hues at alpha B3 (~70%).
@@ -153,20 +151,18 @@ _BACKGROUND_COLORS = (
     "FA12171A",  # 49 Dark cadet
 )
 
-# The strings naming each palette's colors, index for index.
+# String ids naming each palette color, by index.
 _TEXT_LABELS = (
     *range(32120, 32130), *range(32150, 32170), *range(32200, 32220),
 )
 _BACKGROUND_LABELS = (
     *range(32130, 32140), *range(32170, 32190), *range(32220, 32240),
 )
-# Black (default) and white lead, as in _DIALOG_FOCUS_TEXT_COLORS: the
-# background palette's black and the text palette's white, by name.
+# Names for _DIALOG_FOCUS_TEXT_COLORS: black (default) and white first.
 _DIALOG_FOCUS_TEXT_LABELS = (32131, 32120) + _TEXT_LABELS[1:]
 
-# What the picker draws a background as, and the dot its row shows: a brighter
-# stand-in for each shade, index for index.  The shades themselves are all but
-# black, and a picker full of black tiles would offer nothing to choose between.
+# Brighter stand-ins for the background shades, used in the picker and the
+# settings row (the real shades are nearly black).
 _BACKGROUND_SWATCHES = (
     "FF2A2E33", "FF000000", "FF3A1414", "FF3A2A12", "FF3A360F",
     "FF123A12", "FF0F3A3A", "FF12203A", "FF26123A", "FF444444",
@@ -196,8 +192,8 @@ _DEFAULT_COLOR_INDEX = {
     "convert_no_color":  25,  # Crimson
     "fel_color":         34,  # Forest
     "mel_color":         31,  # Tangerine
-    "output_changed_color": 7,  # Light blue
-    "metadata_changed_color": 7,  # Light blue
+    "output_changed_color": 7,  # Blue
+    "metadata_changed_color": 7,  # Blue
     "splash_start_convert_dot_color":   34,  # Forest
     "splash_osd_convert_dot_color":     34,  # Forest
     "splash_tinyppi_convert_dot_color": 34,  # Forest
@@ -209,39 +205,28 @@ _DEFAULT_COLOR_INDEX = {
     "splash_tinyppi_mel_color": 31,  # Tangerine
 }
 
-# How a color setting stores its choice.  The value is also what the settings
-# list shows on the setting's row, so it is written to read as one: a swatch,
-# then a reference to the string naming the palette color -- which the list
-# resolves in whatever language Kodi is set to -- or the HEX color's code:
+# Stored form of a color setting, which the settings list also displays: a
+# swatch, then the localized color name or the HEX code:
 #
 #     [COLOR=FF82B1FF]●[/COLOR] $ADDON[script.tinyppi 32127]
 #     [COLOR=FF5733AA]●[/COLOR] #5733AA
 #
-# The setting's own default -- and only that color -- carries "(Default)"
-# after its name, a string of its own referenced the same way, so no color
-# needs a second string for it.  The row says which color is set without the
-# settings carrying fifty options per color, which is what used to make
-# settings.xml some 360 KB, parsed in full by every ``xbmcaddon.Addon()`` (see
-# core.settings).
+# Only the setting's default carries "(Default)".  This replaced fifty options
+# per color, which made settings.xml ~360 KB (see core.settings).
 _STORED_RE     = re.compile(r"^\[COLOR=[0-9A-Fa-f]{8}\]●\[/COLOR\] (.*)$")
 _NAME_REF      = "$ADDON[" + ADDON_ID + " {}]"
 _NAME_REF_RE   = re.compile(r"\$ADDON\[" + re.escape(ADDON_ID) + r" (\d+)\]")
 _DEFAULT_LABEL = 32589  # (Default)
 _DEFAULT_MARK  = " " + _NAME_REF.format(_DEFAULT_LABEL)
 
-# How the settings stored a color before the picker: the palette index, or 999
-# for a HEX color whose ARGB was kept in a JSON file beside them.  Read only to
-# carry a profile over (see migrate_legacy_colors) and until that has run.
+# Pre-picker storage: the palette index, or 999 for a HEX color kept in a
+# JSON file.  Only read until migrate_legacy_colors has run.
 _LEGACY_CUSTOM      = "999"
 _LEGACY_CUSTOM_FILE = f"{PROFILE_DIR}/custom_colors.json"
 
-# The picker's last tile, which asks for a HEX color instead of being one.
-#
-# The picker hands back the second label of the tile that was pressed, exactly
-# as it was given, so the tile is told apart from the palette by that label
-# alone: in lower case, where every palette tile's is in upper case.  It shows
-# the HEX color in force, or nothing at all -- fully transparent -- while the
-# setting is on a palette color.
+# The picker's last tile, which asks for a HEX color.  The picker returns the
+# tile's second label unchanged, so this tile uses lower case (palette tiles
+# use upper case).  It shows the current HEX color, or is transparent.
 _HEX_TILE_LABEL = 32241  # HEX color
 _HEX_TILE_EMPTY = "00000000"
 
@@ -260,13 +245,12 @@ def _notify(addon, message_id: int, icon: str, duration: int) -> None:
 
 
 def _load_legacy_custom() -> dict:
-    """Return the HEX colors the settings kept before the picker, keyed by
-    setting id, or an empty dict when there are none."""
+    """Return the pre-picker HEX colors by setting id, or {}."""
     try:
         with open(xbmcvfs.translatePath(_LEGACY_CUSTOM_FILE),
                   encoding="utf-8") as handle:
             data = json.load(handle)
-    except (OSError, ValueError):  # no file, or none worth reading
+    except (OSError, ValueError):  # no file, or unreadable
         return {}
     return data if isinstance(data, dict) else {}
 
@@ -279,11 +263,11 @@ def _pick(palette: tuple, value: str) -> str:
         return palette[0]
 
 
-# Fallback opacity (percent) when a setting is missing or invalid.
+# Opacity (percent) for missing or invalid settings.
 _DEFAULT_OPACITY = 100
 
-# Per-element opacity defaults (percent), keyed by color setting id, reproducing
-# each element's palette alpha.  Unlisted elements use _DEFAULT_OPACITY (100 %).
+# Default opacity (percent) per color setting, matching each element's
+# palette alpha; others use _DEFAULT_OPACITY.
 _DEFAULT_OPACITIES = {
     "background_color":        98,  # FA – Modern panel background
     "dialog_background_color": 98,  # FA – VS10 dialog panel background
@@ -305,8 +289,7 @@ _DEFAULT_OPACITIES = {
     "splash_osd_divider_color":     35,
     "splash_tinyppi_bg_color":      98,
     "splash_tinyppi_divider_color": 35,
-    # Dolby Vision layer-indicator pill: FEL/MEL fully opaque, any other DV
-    # profile faint, out of the box.
+    # DV layer pill: FEL/MEL opaque, other profiles faint by default.
     "splash_start_fel_color":   100,
     "splash_start_mel_color":   100,
     "splash_start_dv_color":    20,
@@ -325,8 +308,10 @@ def _opacity_setting(color_setting_id: str) -> str:
 
 
 def _opacity_alpha(addon, setting_id, default, overrides=None) -> str:
-    """Return the 2-digit hex alpha for a 0–100 % opacity slider (``default``
-    percent when missing/invalid)."""
+    """Return the hex alpha for opacity slider *setting_id* (0-100 %).
+
+    *default* applies when the value is missing or invalid.
+    """
     try:
         percent = int(_setting_value(addon, setting_id, overrides))
     except (ValueError, TypeError):
@@ -337,25 +322,24 @@ def _opacity_alpha(addon, setting_id, default, overrides=None) -> str:
 
 
 def _setting_value(addon, setting_id: str, overrides) -> str:
-    """Return a setting value, allowing fresh writes to bypass Kodi's cache."""
+    """Return a setting value, preferring *overrides* (fresh, unsaved writes)."""
     if overrides and setting_id in overrides:
         return str(overrides[setting_id])
     return addon.getSetting(setting_id)
 
 
 class _ColorSetting(NamedTuple):
-    """What one color setting can be set to."""
+    """The choices of one color setting."""
 
-    palette: tuple   # the ARGB each palette choice publishes
-    labels: tuple    # the string naming each choice, index for index
-    swatches: tuple  # the ARGB each choice is drawn as, index for index
-    index_of: dict   # label id -> index, for reading a stored choice back
-    default: int     # the index the setting starts out on
+    palette: tuple   # published ARGB per choice
+    labels: tuple    # string id per choice
+    swatches: tuple  # displayed ARGB per choice
+    index_of: dict   # string id -> index, to decode a stored value
+    default: int     # default index
 
 
 def _encode(spec: _ColorSetting, index: int, rgb: str = "") -> str:
-    """Return the stored value choosing palette color ``index``, or the 6-digit
-    HEX color ``rgb`` when one is given."""
+    """Return the stored value for palette *index*, or for HEX color *rgb*."""
     if rgb:
         return f"[COLOR=FF{rgb}]●[/COLOR] #{rgb}"
     name = _NAME_REF.format(spec.labels[index])
@@ -364,14 +348,11 @@ def _encode(spec: _ColorSetting, index: int, rgb: str = "") -> str:
 
 
 def _decode(spec: _ColorSetting, value: str, legacy_hex: str = "") -> tuple[int, str]:
-    """Return what a stored value chooses: ``(index, "")`` for a palette color,
-    ``(-1, "RRGGBB")`` for a HEX one.
+    """Decode a stored value: ``(index, "")`` or ``(-1, "RRGGBB")`` for HEX.
 
-    Anything that cannot be read is the setting's default rather than palette
-    index 0, which for a text color is white: an unset highlight would come out
-    the same color as the values it has to stand out from.  ``legacy_hex`` is
-    what the old JSON file holds for the setting, needed only while its value
-    still reads 999.
+    Unreadable values give the setting's default, not index 0 (white, which
+    would make a highlight invisible).  *legacy_hex* is the old JSON entry,
+    used while the value is still 999.
     """
     match = _STORED_RE.match(value)
     if match:
@@ -379,8 +360,7 @@ def _decode(spec: _ColorSetting, value: str, legacy_hex: str = "") -> tuple[int,
         if text.startswith("#") and _HEX6_RE.match(text[1:]):
             return -1, text[1:].upper()
 
-    # Read by the first string it names, the color's own: the swatch in front
-    # of it and the "(Default)" after it are only there to be seen.
+    # The first string reference is the color name; "(Default)" is cosmetic.
     match = _NAME_REF_RE.search(value)
     if match:
         index = spec.index_of.get(int(match.group(1)))
@@ -397,7 +377,7 @@ def _decode(spec: _ColorSetting, value: str, legacy_hex: str = "") -> tuple[int,
 
 
 def _resolve(spec: _ColorSetting, value: str, legacy_hex: str = "") -> str:
-    """Resolve a stored color value to an ARGB hex string."""
+    """Return the ARGB hex string for a stored color value."""
     index, rgb = _decode(spec, value, legacy_hex)
     return spec.palette[index] if index >= 0 else "FF" + rgb
 
@@ -423,15 +403,14 @@ _THEME_PROPERTIES = (
     ("TinyPPI.DialogBackgroundColor", _BACKGROUND_COLORS, "dialog_background_color"),
     ("TinyPPI.DialogGlobalBackgroundColor", _BACKGROUND_COLORS, "dialog_global_background_color"),
     ("TinyPPI.GlobalBackgroundColor", _BACKGROUND_COLORS, "global_background_color"),
-    # Codec logos: an independent bg / video / audio / divider colour per context
-    # (playback start, video OSD, TinyPPI overlay).
+    # Codec logos: bg / video / audio / divider colours per context (playback
+    # start, video OSD, TinyPPI overlay).
     ("TinyPPI.SplashStartBgColor",        _BACKGROUND_COLORS, "splash_start_bg_color"),
     ("TinyPPI.SplashStartVideoColor",     _TEXT_COLORS,       "splash_start_video_color"),
     ("TinyPPI.SplashStartAudioColor",     _TEXT_COLORS,       "splash_start_audio_color"),
     ("TinyPPI.SplashStartDividerColor",   _TEXT_COLORS,       "splash_start_divider_color"),
     ("TinyPPI.SplashStartConvertDotColor", _TEXT_COLORS,      "splash_start_convert_dot_color"),
-    # Dolby Vision layer-indicator pill: one colour per FEL / MEL / other-profile
-    # bucket, independent per context like the rest of the codec-logo tints.
+    # DV layer pill: FEL / MEL / other-profile colours, per context.
     ("TinyPPI.SplashStartFelColor", _TEXT_COLORS, "splash_start_fel_color"),
     ("TinyPPI.SplashStartMelColor", _TEXT_COLORS, "splash_start_mel_color"),
     ("TinyPPI.SplashStartDvColor",  _TEXT_COLORS, "splash_start_dv_color"),
@@ -451,15 +430,12 @@ _THEME_PROPERTIES = (
     ("TinyPPI.SplashTinyppiFelColor", _TEXT_COLORS, "splash_tinyppi_fel_color"),
     ("TinyPPI.SplashTinyppiMelColor", _TEXT_COLORS, "splash_tinyppi_mel_color"),
     ("TinyPPI.SplashTinyppiDvColor",  _TEXT_COLORS, "splash_tinyppi_dv_color"),
-    # Channel layout: the DV panel background, the speaker layout graphic behind
-    # the channels, and the active channels themselves.
+    # Channel layout: DV panel background, speaker layout graphic, active
+    # channels.
     ("TinyPPI.ChannelBackgroundColor", _BACKGROUND_COLORS, "channel_background_color"),
     ("TinyPPI.ChannelLayoutColor",     _CHANNEL_COLORS,    "channel_layout_color"),
     ("TinyPPI.ChannelIconColor",       _CHANNEL_COLORS,    "channel_icon_color"),
-    # Dolby Vision metadata view.  It draws nothing the overlay draws, so it
-    # carries its own colour per element rather than borrowing the overlay's:
-    # a view for reading a bitstream wants a different balance from one laid
-    # over a film.
+    # DV metadata view: its own colours, independent of the overlay.
     ("TinyPPI.MetadataChangedColor",     _TEXT_COLORS, "metadata_changed_color"),
     ("TinyPPI.MetadataGlobalBackgroundColor",  _BACKGROUND_COLORS, "metadata_global_background_color"),
     ("TinyPPI.MetadataBackgroundColor",        _BACKGROUND_COLORS, "metadata_background_color"),
@@ -477,9 +453,7 @@ _THEME_PROPERTIES = (
     ("TinyPPI.DialogHeaderColor",     _TEXT_COLORS, "dialog_header_color"),
     ("TinyPPI.DialogHeaderIconColor", _TEXT_COLORS, "dialog_header_icon_color"),
     ("TinyPPI.DialogLineColor",       _LINE_COLORS, "dialog_line_color"),
-    # The dialog's buttons carry their own unfocused text colour rather than
-    # borrowing the overlay's description colour, so the one can be set
-    # without moving the other.
+    # Unfocused dialog button text, independent of the description colour.
     ("TinyPPI.DialogTextColor",       _TEXT_COLORS, "dialog_text_color"),
     ("TinyPPI.DialogFocusColor",      _DIALOG_FOCUS_COLORS, "dialog_focus_color"),
     (
@@ -491,22 +465,20 @@ _THEME_PROPERTIES = (
 
 
 def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
-    """Describe one color setting: its palette, the names and swatches it is
-    offered with, and where it starts out."""
+    """Build the ``_ColorSetting`` for *setting_id* on *palette*."""
     if palette is _BACKGROUND_COLORS:
         labels, swatches = _BACKGROUND_LABELS, _BACKGROUND_SWATCHES
     elif palette is _DIALOG_FOCUS_TEXT_COLORS:
         labels, swatches = _DIALOG_FOCUS_TEXT_LABELS, _DIALOG_FOCUS_TEXT_COLORS
     else:
-        # Every other palette is a text color's hues under another alpha, or
-        # with a lead of its own that is still offered as the white it is.
+        # The remaining palettes are text hues (other alpha or white lead).
         labels, swatches = _TEXT_LABELS, _TEXT_COLORS
     index_of = {label: index for index, label in enumerate(labels)}
     return _ColorSetting(palette, labels, swatches, index_of,
                          _DEFAULT_COLOR_INDEX.get(setting_id, 0))
 
 
-# Every color setting by id, built once from the table above.
+# Every color setting by id.
 _COLOR_SETTINGS = {
     setting_id: _color_setting(palette, setting_id)
     for _property, palette, setting_id in _THEME_PROPERTIES
@@ -524,9 +496,8 @@ def apply_theme(home, addon=None, overrides=None) -> None:
         (property_name, setting_id, _setting_value(addon, setting_id, overrides))
         for property_name, _palette, setting_id in _THEME_PROPERTIES
     ]
-    # Only a profile the migration has not reached yet still points into the
-    # old JSON file, so it is read only then rather than on every pass -- this
-    # runs on the splash controller's four-times-a-second poll.
+    # Read the old JSON file only for unmigrated values; this runs four
+    # times a second from the splash controller.
     legacy = (_load_legacy_custom()
               if any(value == _LEGACY_CUSTOM for _name, _id, value in values)
               else {})
@@ -534,8 +505,7 @@ def apply_theme(home, addon=None, overrides=None) -> None:
     for property_name, setting_id, value in values:
         color = _resolve(_COLOR_SETTINGS[setting_id], value,
                          legacy.get(setting_id, ""))
-        # The per-element opacity slider overrides the palette alpha, so the
-        # chosen color only supplies the RGB channels.
+        # The opacity slider sets the alpha; the color supplies RGB.
         alpha = _opacity_alpha(
             addon,
             _opacity_setting(setting_id),
@@ -551,11 +521,10 @@ def apply_theme(home, addon=None, overrides=None) -> None:
 
 
 def _ask_hex(addon, spec: _ColorSetting, current_rgb: str) -> str | None:
-    """Ask for a 6-digit HEX color and return the value storing it.
+    """Ask for a 6-digit HEX color and return its stored value.
 
-    Starts from the color in force, so a shade can be nudged rather than typed
-    out again.  None when the keyboard is cancelled; an invalid entry falls back
-    to the setting's default, and says so.
+    Pre-filled with the current color.  None when cancelled; invalid input
+    gives the default (with a notification).
     """
     keyboard = xbmc.Keyboard(current_rgb, addon.getLocalizedString(32243))
     keyboard.doModal()
@@ -572,15 +541,11 @@ def _ask_hex(addon, spec: _ColorSetting, current_rgb: str) -> str | None:
 
 
 def pick_color(setting_id: str, heading_id: str = "") -> None:
-    """Offer a color setting's palette in Kodi's color picker and store the pick.
+    """Show a color setting's palette in Kodi's picker and store the choice.
 
-    Invoked from the setting's own row, via
-    ``RunScript(script.tinyppi,pick_color,<setting id>,<label id>)``, the label
-    being the setting's own to head the picker with.
-
-    The picker draws the palette with the names and swatches the setting's row
-    shows, plus a last tile that asks for a HEX color instead.  Cancelling it,
-    or the keyboard behind that tile, leaves the setting as it was.
+    Called from the setting's row via
+    ``RunScript(script.tinyppi,pick_color,<setting id>,<label id>)``.  The
+    last tile asks for a HEX color.  Cancelling leaves the setting unchanged.
     """
     spec = _COLOR_SETTINGS.get(setting_id)
     if spec is None:
@@ -624,9 +589,8 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
 
     addon.setSetting(setting_id, new_value)
 
-    # Re-publish so an already-open overlay updates too.  The settings dialog
-    # keeps the new value to itself until it is closed, so it is handed over
-    # rather than read back.
+    # Re-publish for an open overlay.  The settings dialog keeps the value
+    # until it closes, so it is passed in directly.
     try:
         apply_theme(home_window(), addon, overrides={setting_id: new_value})
     except Exception:  # best effort, never block the change
@@ -634,17 +598,11 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
 
 
 def migrate_legacy_colors(addon=None) -> int:
-    """Bring every color setting's stored value into the form it is written in.
+    """Rewrite color settings stored in the old form; return the count.
 
-    Kodi moves a value saved as the default over to the new default by itself,
-    so what is left is a color somebody chose in an older form -- the palette
-    index the option lists stored, or the 999 that pointed into the JSON file --
-    and either would show on the setting's row as the bare number.  Each is
-    rewritten once, here, and the JSON file is removed once nothing reads it
-    any more.  A value already in its form is left alone, so from then on this
-    only reads.
-
-    Returns how many settings were rewritten.
+    Old values (a palette index, or 999 pointing into the JSON file) would
+    show as bare numbers.  Each is rewritten once and the JSON file removed;
+    afterwards this only reads.
     """
     addon = addon or settings.addon()
 
@@ -661,9 +619,9 @@ def migrate_legacy_colors(addon=None) -> int:
         addon.setSetting(setting_id, stored)
         moved += 1
 
-    # Reached only once every setting above has been written.
+    # Only reached once every setting has been written.
     try:
         os.remove(xbmcvfs.translatePath(_LEGACY_CUSTOM_FILE))
     except OSError:
-        pass  # none left, or there never was one
+        pass  # no file
     return moved
