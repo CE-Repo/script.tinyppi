@@ -840,7 +840,7 @@
                         <label>$ADDON[script.tinyppi 32035]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-                        <visible>Player.Passthrough</visible>
+                        <visible>Player.Passthrough + !String.IsEmpty(VideoPlayer.AudioCodec)</visible>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -850,7 +850,7 @@
                         <label>$INFO[Player.Process(audiochannelssink)]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-                        <visible>!Player.Passthrough</visible>
+                        <visible>!Player.Passthrough + !String.IsEmpty(VideoPlayer.AudioCodec)</visible>
                         <aligny>top</aligny>
                     </control>
                     <control type="label">
@@ -860,7 +860,18 @@
                         <label>$ADDON[script.tinyppi 32087]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
-                        <visible>!Player.Passthrough + String.IsEmpty(Player.Process(audiochannelssink))</visible>
+                        <visible>!Player.Passthrough + !String.IsEmpty(VideoPlayer.AudioCodec) + String.IsEmpty(Player.Process(audiochannelssink))</visible>
+                        <aligny>top</aligny>
+                    </control>
+                    <!-- N/A -->
+                    <control type="label">
+                        <left>240</left>
+                        <top>120</top>
+                        <width>400</width>
+                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <visible>String.IsEmpty(VideoPlayer.AudioCodec)</visible>
                         <aligny>top</aligny>
                     </control>
 

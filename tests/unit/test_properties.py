@@ -46,3 +46,31 @@ def test_untagged_subtitle_event_label():
         "SubtitleCodecVar": properties.get_SubtitleCodecVar(),
     }
     assert subtitle_event_label(values) == "UNK (PGS)"
+
+
+def test_audio_rows_without_codec_read_na():
+    """Channels and bitrates Kodi still reports are not shown without a codec."""
+    from info import properties
+    from info.dvinfo import na_label
+    xbmc.INFO.update({
+        "VideoPlayer.AudioChannels": "2",
+        "VideoPlayer.AudioBitrate": "1536",
+        "Player.Process(audiolivebitrate)": "1.536 Kb/s",
+        "Player.Process(AudioBitsPerSample)": "24",
+        "Player.Process(AudioSamplerate)": "48000",
+        "VideoPlayer.AudioLanguage": "eng",
+    })
+    assert properties.get_AudioChannelsInputVar() == na_label()
+    for getter in (properties.get_AudioChannelsVar,
+                   properties.get_AudioBitrateKBVar,
+                   properties.get_AudioLiveBitrateVar,
+                   properties.get_AudioBitDepthVar,
+                   properties.get_AudioSampleRateVar,
+                   properties.get_AudioNameVar,
+                   properties.get_AudioNameShortVar):
+        assert getter() == "", getter.__name__
+
+    xbmc.INFO["VideoPlayer.AudioCodec"] = "dtshd_ma"
+    xbmc.INFO["VideoPlayer.AudioChannels"] = "6"
+    assert properties.get_AudioChannelsInputVar() == "FL, FR, FC, LFE, SL, SR"
+    assert properties.get_AudioBitrateKBVar() == "1.536 Kb/s"
