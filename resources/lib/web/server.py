@@ -43,6 +43,10 @@ _MAX_STREAMS = 6
 # holding the service script open any longer only makes the shutdown worse.
 _JOIN_TIMEOUT = 3.0
 
+# How long, of that, the request threads get to finish an answer or a stream's
+# parting frame before their connections are cut off outright.
+_HANGUP_GRACE = 0.5
+
 # Ambiguity-free alphabet: a token is read off a TV and typed on a phone.
 _TOKEN_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 _TOKEN_LENGTH   = 8
@@ -144,6 +148,9 @@ class _Server(ThreadingHTTPServer):
         # interpreter that Kodi never gets round to tearing down.
         self._workers      = set()
         self._worker_lock  = threading.Lock()
+        # Every connection a request thread is holding, so stop() can hang up
+        # on them instead of waiting out a browser's idle keep-alive.
+        self._connections  = set()
         # The playing title's poster and fanart, kept between requests.
         self._art = artwork.PlayingArtwork()
 
@@ -156,6 +163,40 @@ class _Server(ThreadingHTTPServer):
         actually finish.
         """
         return not self.stop_event.is_set()
+
+    def process_request(self, request, client_address) -> None:
+        # Registered here, on the accept loop, rather than in the thread: once
+        # shutdown() has returned the set is complete, and close_connections()
+        # cannot miss a thread that had not got round to adding itself.
+        with self._worker_lock:
+            self._connections.add(request)
+        super().process_request(request, client_address)
+
+    def shutdown_request(self, request) -> None:
+        # Out of the set before the socket is closed, under the lock
+        # close_connections() holds, so it never acts on a closed socket.
+        with self._worker_lock:
+            self._connections.discard(request)
+        super().shutdown_request(request)
+
+    def close_connections(self, how: int = socket.SHUT_RD) -> int:
+        """Hang up on every connection still open, and report how many.
+
+        A browser keeps its connection open between requests, and the thread
+        holding it sits in a read until _REQUEST_TIMEOUT -- three times what
+        Kodi allows the whole script to stop in.  Shutting the socket down for
+        reading ends that read at once while an answer, or a stream's parting
+        frame, still goes out; ``SHUT_RDWR`` also cuts off a write into a
+        browser that has stopped reading.
+        """
+        with self._worker_lock:
+            connections = list(self._connections)
+            for connection in connections:
+                try:
+                    connection.shutdown(how)
+                except OSError:
+                    pass
+        return len(connections)
 
     def process_request_thread(self, request, client_address) -> None:
         worker = threading.current_thread()
@@ -348,7 +389,9 @@ class WebDashboard:
         SystemExit in it, so anything skipped here is skipped for good.  What
         must not be skipped is closing the listening socket -- a socket still
         accepting is a browser reconnecting, and every reconnect is another
-        thread for Kodi to wait on before it can finish shutting down.
+        thread for Kodi to wait on before it can finish shutting down -- and
+        then the connections already open, whose threads would otherwise wait
+        for a browser that has nothing more to ask.
         """
         with self._lock:
             if final:
@@ -391,6 +434,14 @@ class WebDashboard:
                         server.server_close()
                     except Exception as exc:
                         _log(f"server close failed: {exc}", xbmc.LOGWARNING)
+                    # With the accept loop gone no connection can be added,
+                    # so this reaches every one: the request threads then end
+                    # now rather than at their read timeout.
+                    try:
+                        server.close_connections()
+                    except Exception as exc:
+                        _log(f"closing connections failed: {exc}",
+                             xbmc.LOGWARNING)
 
             # Then wait for the threads themselves.  Kodi's own wait for them
             # has no timeout, so a thread left running here is a Kodi that
@@ -411,7 +462,16 @@ class WebDashboard:
                 if producer.is_alive():
                     _log("snapshot producer did not stop", xbmc.LOGWARNING)
             if server is not None:
-                left = server.join_workers(remaining())
+                # The connections were shut for reading above; a thread still
+                # running a moment later is stuck writing, and is cut off.
+                left = server.join_workers(min(remaining(), _HANGUP_GRACE))
+                if left:
+                    try:
+                        server.close_connections(socket.SHUT_RDWR)
+                    except Exception as exc:
+                        _log(f"closing connections failed: {exc}",
+                             xbmc.LOGWARNING)
+                    left = server.join_workers(remaining())
                 if left:
                     _log(f"{left} request thread(s) still running",
                          xbmc.LOGWARNING)

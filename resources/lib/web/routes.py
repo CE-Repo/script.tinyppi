@@ -41,9 +41,11 @@ _HEARTBEAT_INTERVAL = 15.0
 # a Kodi that will not shut down, and every wait here has to end on its own.
 #
 # _REQUEST_TIMEOUT bounds a kept-alive connection that has gone quiet between
-# requests; _STREAM_WRITE_TIMEOUT bounds a write into a stream whose reader
-# stopped reading.  Both are well inside the five seconds Kodi allows a script
-# to stop in (PYTHON_SCRIPT_TIMEOUT).
+# requests while the server runs; it is longer than the five seconds Kodi
+# allows a script to stop in (PYTHON_SCRIPT_TIMEOUT), so stopping does not wait
+# for it but hangs up on every open connection (_Server.close_connections in
+# web/server.py).  _STREAM_WRITE_TIMEOUT bounds a write into a stream whose
+# reader stopped reading.
 _REQUEST_TIMEOUT      = 15.0
 _STREAM_WRITE_TIMEOUT = 4.0
 
