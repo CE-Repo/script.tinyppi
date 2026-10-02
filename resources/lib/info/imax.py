@@ -1,28 +1,23 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Deciding whether a film is IMAX material.
+"""Decide whether the playing film is IMAX material.
 
-An IMAX sequence is not a ratio: a film shot for IMAX carries two framings and
-switches between them, so 1.78:1 is IMAX in The Dark Knight but just the format
-in a TV production. No single frame can tell those apart, so the film is
-identified instead, from the name it plays under (an ``IMAX`` release name) or
-from ``resources/data/imax_titles.txt`` plus the user's own copy under the
-addon's profile folder.
+IMAX is not an aspect ratio: 1.78:1 is IMAX in The Dark Knight but ordinary
+in a TV production, and no single frame can tell them apart.  So the film is
+identified by name instead: an ``IMAX`` release name, or an entry in
+``resources/data/imax_titles.txt`` or the user's copy in the profile folder.
 
-The name is taken from the file and its folder and from what Kodi knows about
-the item -- title, original title and year -- so a film streamed through an
-addon, where the path is an opaque URL, is identified by its library entry
-instead.  Each name is reduced to bare words (accents folded, ``&`` spelled
-out, roman numerals and number words in figures) and cut where the release name
-stops naming the film and starts describing the file, and a listed title has to
-sit at the end of what remains.  That anchoring is what keeps a sequel apart
-from the film it follows: *Aquaman and the Lost Kingdom* does not end in
-*Aquaman*.  A year on a listed entry has to be the year of the item as well,
-which is how a remake stays apart from its original.
+Names come from the file, its folder, and Kodi's title, original title and
+year (so addon streams with opaque URLs are found via their library entry).
+Each name is normalised (accents folded, ``&`` spelled out, roman numerals
+and number words as figures) and cut where the release tags begin; a listed
+title must match the end of what remains.  That keeps sequels apart
+(*Aquaman and the Lost Kingdom* does not end in *Aquaman*), and a year on a
+listed entry must match too, which keeps remakes apart.
 
-A film that is not identified is never marked, since guessing from the picture
-alone would claim IMAX for every ordinary 1.78:1 film.
+Unidentified films are never marked: guessing from the picture would mark
+every 1.78:1 film.
 """
 
 import os
@@ -40,32 +35,26 @@ from core.maps import IMAX_LOGO_MAP
 
 _TITLE_FILE = "imax_titles.txt"
 
-# Marks a listed title as carrying the IMAX Enhanced certification rather than
-# plain IMAX material, so the badge can say which.  Written after the title and
-# before any comment:  ``Eternals @enhanced   # Disney+ only``
+# Marks a listed title as IMAX Enhanced rather than plain IMAX.  Written
+# after the title, before any comment: ``Eternals @enhanced   # Disney+ only``
 _ENHANCED_TAG = "@enhanced"
 
-# Title -> [(year or None, is IMAX Enhanced)], and the (mtime, size) of the two
-# files it was parsed from.  A title can appear more than once when two films
-# share it, which is why the years hang off the title rather than the other way
-# round.  The stamp is what keeps an edit to the personal list from waiting for
-# the next Kodi start: the overlay now runs inside the service, which is loaded
-# once and stays loaded, so a list parsed "once" is parsed once a session.
+# Title -> [(year or None, is IMAX Enhanced)]; several films can share a
+# title.  The stamp is the (mtime, size) of both files, so an edited list is
+# re-read without restarting Kodi (the service stays loaded all session).
 _titles: dict[str, tuple[tuple[int | None, bool], ...]] | None = None
 _titles_stamp: tuple | None = None
 
-# Last answer, kept per playing file so a badge asked for on every polling tick
-# is only worked out once.  (path, names it was worked out from, IMAX,
-# IMAX Enhanced).
+# Last answer per playing file, so the badge is not recomputed every tick:
+# (path, names used, IMAX, IMAX Enhanced).
 _cache: tuple[str, tuple[str, ...], bool, bool] | None = None
 
-# A year, as it appears in a release name or on a listed entry.
+# A year in a release name or on a listed entry.
 _YEAR = re.compile(r"^(?:19|20)\d{2}$")
 
-# Words that mean the release name has stopped naming the film and started
-# describing the file.  Everything from the first of these onwards is dropped
-# before a title is looked for, so "Dunkirk 2017 2160p UHD BluRay" is read as
-# "Dunkirk" and a title cannot be matched against a codec.
+# Words that describe the file rather than the film.  Everything from the
+# first one on is dropped before matching, so "Dunkirk 2017 2160p UHD BluRay"
+# reads as "Dunkirk".
 _TAGS = frozenset("""
     uhd hd sd 4k 8k hdr hdr10 hdr10plus dv dovi hlg sdr imax remux bluray
     bd br bdrip brrip bdremux webrip webdl web hdtv pdtv dvdrip dvd dvd5 dvd9
@@ -80,15 +69,12 @@ _TAGS = frozenset("""
     season episode
 """.split())
 
-# The same, for tags built out of digits: 1080p, 2160i, x265, h264, 10bit, and
-# the episode numbers that mark an item as television rather than a film.
+# The same for tags with digits: 1080p, x265, 10bit, and episode numbers.
 _TAG_SHAPES = re.compile(
     r"^(?:\d{3,4}[pi]|[xh]26[3-5]|\d{1,2}bit|s\d{1,2}e\d{1,3}|\d{1,2}x\d{2})$")
 
-# Spellings that name the same thing, applied to listed titles and to release
-# names alike so both sides come out the same.  Roman numerals stop at what
-# cannot be read as an ordinary word: "I", "V" and "X" stay letters, so
-# "Batman v Superman" survives.
+# Equivalent spellings, applied to both listed titles and release names.
+# "I", "V" and "X" stay letters, so "Batman v Superman" survives.
 _ALIASES = {
     "ii": "2", "iii": "3", "iv": "4", "vi": "6", "vii": "7", "viii": "8",
     "ix": "9", "xi": "11", "xii": "12",
@@ -97,28 +83,24 @@ _ALIASES = {
     "volume": "vol", "pt": "part", "chapter": "part",
 }
 
-# German letters that release names spell out rather than drop: the scene
-# writes "Drachenzaehmen", and a name folded the way accents are would come out
-# "drachenzahmen" on one side and "drachenzaehmen" on the other.  ß has no base
-# letter at all and would otherwise split the word it sits in.
+# German letters that release names spell out ("Drachenzaehmen"); folding
+# them like accents would not match.  ß has no base letter at all.
 _SPELLED_OUT = str.maketrans({
     "ä": "ae", "ö": "oe", "ü": "ue", "Ä": "Ae", "Ö": "Oe", "Ü": "Ue", "ß": "ss",
 })
 
-# Folders that are part of a disc layout rather than a name; the film is named
-# by whatever holds them.
+# Disc-layout folders; the film is named by the folder above them.
 _DISC_FOLDERS = frozenset({
     "bdmv", "stream", "playlist", "clipinf", "backup",
     "video_ts", "audio_ts", "hvdvd_ts",
 })
 
-# Disc images.  Kodi plays one by mounting it and handing out a path into the
-# disc inside, so the name of the image is where the film is named.
+# Disc images: Kodi plays a path inside the mounted image, so the film is
+# named by the image file.
 _IMAGE_TYPES = frozenset({"iso", "img", "nrg", "mdf", "udf", "bin", "cue"})
 
-# What may be dropped off the end of a name as a file type rather than kept as
-# a word.  Only these, so a title cannot lose "The.Dark.Knight.2008.2160p" to
-# an extension that was never there.
+# Extensions that may be stripped from a name.  Only these, so a name like
+# "The.Dark.Knight.2008.2160p" does not lose a word.
 _FILE_TYPES = _IMAGE_TYPES | frozenset("""
     mkv mp4 m4v avi mov wmv webm flv ogm rmvb 3gp divx mpg mpeg m2v vob evo
     m2ts mts ts trp mpls ifo bdmv dat strm disc
@@ -142,12 +124,11 @@ def _words(text: str) -> list[str]:
 
 
 def _unshuffle_article(text: str) -> str:
-    """Put back an article a naming scheme has parked at the end.
+    """Move a trailing article back to the front.
 
-    ``Dark Knight, The (2008)`` is how a sort-title reads, and only the words
-    after the article say so: nothing but a year and the like may follow it.
-    That is what keeps a comma inside a title, as in ``The Good, the Bad and
-    the Ugly``, from being read as one.
+    ``Dark Knight, The (2008)`` becomes ``The Dark Knight (2008)``.  Only tags
+    may follow the article, so a comma inside a title (``The Good, the Bad
+    and the Ugly``) is left alone.
     """
     match = re.match(r"^(.+?),\s*(the|a|an)\b(.*)$", text.strip(), flags=re.I)
     if not match or not all(_is_tag(word) for word in _words(match.group(3))):
@@ -156,18 +137,14 @@ def _unshuffle_article(text: str) -> str:
 
 
 def _tokens(text: str) -> list[str]:
-    """Reduce a name to its bare words, so names differing only in spelling
-    compare equal.
+    """Reduce a name to normalised words, so spelling variants compare equal.
 
-    German umlauts and ß are spelled out the way a release name writes them
-    (``Drachenzähmen`` matches ``Drachenzaehmen``), other accents are folded
-    onto their base letter (``Folie a Deux`` matches ``Folie à Deux``), ``&`` is
-    spelled out, an article parked at the end by a library naming scheme is put
-    back in front, punctuation becomes word breaks and the spellings in
-    ``_ALIASES`` are settled.
+    Umlauts and ß are spelled out (``Drachenzähmen`` = ``Drachenzaehmen``),
+    other accents folded (``Folie à Deux`` = ``Folie a Deux``), ``&`` spelled
+    out, a trailing article moved to the front, punctuation turned into word
+    breaks, and ``_ALIASES`` applied.
     """
-    # Composed first, so an umlaut stored as a + combining mark (as a macOS
-    # share hands out filenames) is spelled out like any other.
+    # Compose first, so decomposed umlauts (macOS shares) are spelled out.
     text = unicodedata.normalize("NFC", text).translate(_SPELLED_OUT)
     text = unicodedata.normalize("NFKD", text)
     text = "".join(c for c in text if not unicodedata.combining(c))
@@ -176,10 +153,10 @@ def _tokens(text: str) -> list[str]:
 
 
 def _film_part(tokens: list[str]) -> list[str]:
-    """Return the leading words that still name the film.
+    """Return the leading words that name the film.
 
-    Cut at the first word describing the file, never at the very first word, so
-    a film named after a number (``1917``) keeps a name to match on.
+    Cut at the first tag, but never at the first word, so ``1917`` keeps a
+    name.
     """
     for index, token in enumerate(tokens):
         if index and _is_tag(token):
@@ -188,7 +165,7 @@ def _film_part(tokens: list[str]) -> list[str]:
 
 
 def _year_of(tokens: list[str]) -> int | None:
-    """Return the first year in *tokens*, or None when there is none."""
+    """Return the first year in *tokens*, or None."""
     for token in tokens:
         if _YEAR.match(token):
             return int(token)
@@ -196,12 +173,10 @@ def _year_of(tokens: list[str]) -> int | None:
 
 
 def _read_titles(path: str) -> dict[str, list[tuple[int | None, bool]]]:
-    """Return ``{title: [(year, is enhanced)]}`` from one file, empty when
-    unreadable.
+    """Return ``{title: [(year, is enhanced)]}`` from *path* ({} if unreadable).
 
-    A trailing year is taken off the title and kept as a condition on it, so
-    ``Ghostbusters 2016`` matches the remake wherever the year sits in the
-    release name and never the original.
+    A trailing year becomes a condition, so ``Ghostbusters 2016`` matches the
+    remake but not the original.
     """
     try:
         with xbmcvfs.File(path) as handle:
@@ -222,10 +197,9 @@ def _read_titles(path: str) -> dict[str, list[tuple[int | None, bool]]]:
 
         tokens = _tokens(line)
         year = None
-        # A year in last place is read as a condition rather than as part of
-        # the name.  A title ending in a year of its own, Wonder Woman 1984,
-        # comes out the same either way: a release name carries that year in
-        # the same place, and the rest of it is cut off there too.
+        # A trailing year is a condition, not part of the name.  Titles ending
+        # in a year (Wonder Woman 1984) still match: release names are cut at
+        # the same place.
         if len(tokens) > 1 and _YEAR.match(tokens[-1]):
             year = int(tokens[-1])
             tokens = tokens[:-1]
@@ -236,7 +210,7 @@ def _read_titles(path: str) -> dict[str, list[tuple[int | None, bool]]]:
 
 
 def _title_files() -> tuple[str, str]:
-    """The bundled list and the viewer's own copy, in that order."""
+    """Return the paths of the bundled list and the user's own list."""
     addon = settings.addon()
     return (
         os.path.join(
@@ -247,12 +221,10 @@ def _title_files() -> tuple[str, str]:
 
 
 def _title_stamp(paths: tuple[str, str]) -> tuple:
-    """What the two lists look like on disk right now.
+    """Return the on-disk stamp of both lists.
 
-    Two stats, and only when the playing file has changed (see _current), which
-    is where re-parsing a list that has been edited is worth that much: the
-    alternative is a viewer adding a title and not seeing it until Kodi is
-    restarted.
+    Two stats, done only when the playing file changes (see ``_current``), so
+    an added title applies without restarting Kodi.
     """
     stamp = []
     for path in paths:
@@ -265,7 +237,7 @@ def _title_stamp(paths: tuple[str, str]) -> tuple:
 
 
 def _title_index() -> dict[str, tuple[tuple[int | None, bool], ...]]:
-    """Return every known title, bundled list plus the user's own."""
+    """Return all known titles from the bundled and the user's list."""
     global _titles, _titles_stamp
 
     paths = _title_files()
@@ -284,17 +256,15 @@ def _title_index() -> dict[str, tuple[tuple[int | None, bool], ...]]:
 
 
 def playing_path() -> str:
-    """Return the path of the playing file, or ''.
+    """Return the decoded path of the playing file, or ''.
 
-    Kodi hands out a path into whatever it opened, which for a disc image is a
-    stream inside the mounted disc and the image's own path wrapped up and
-    encoded inside that:
+    For a disc image Kodi reports a path inside the mounted disc, with the
+    image path encoded once per layer:
 
         bluray://udf%3a%2f%2f%252fFilme%252fDunkirk.iso%2f/BDMV/PLAYLIST/00800.mpls
 
-    The encoding is undone here -- once per layer, since each wrapping encodes
-    the one below it again -- so the path can be read as the folders it names.
-    Any query string is dropped: an addon puts its own bookkeeping there.
+    Each layer is decoded so the folder names are readable.  Query strings
+    (addon bookkeeping) are dropped.
     """
     try:
         path = xbmc.Player().getPlayingFile()
@@ -322,12 +292,11 @@ def _is_image(part: str) -> bool:
 
 
 def _path_names(path: str) -> list[str]:
-    """Return the names a path holds the film under.
+    """Return the names *path* gives the film.
 
-    The played file, and then the first thing above it that is a name rather
-    than part of a disc layout -- for a disc image that is the image itself.
-    An image is named after nothing at all often enough (VIDEO1.ISO, disc.iso)
-    that the folder holding it is worth having as well.
+    The file itself, the first folder above it that is not a disc-layout
+    folder, and, for a disc image, also the folder holding the image (images
+    are often named VIDEO1.ISO or disc.iso).
     """
     parts = [part for part in re.split(r"[\\/]+", path)
              if part and not part.endswith(":")]
@@ -350,19 +319,14 @@ def _path_names(path: str) -> list[str]:
 def _playing_names(path: str) -> tuple[str, ...]:
     """Return every name the playing item can be identified by.
 
-    What the path names (see _path_names), since a release name lives on the
-    file or on the folder holding it and, for a disc image, on the image, plus
-    what Kodi knows about the item -- a film streamed through an addon has no
-    name in its path at all, only a library entry.  Names are kept apart rather
-    than run together, so a title has to end one of them rather than merely
-    appear somewhere in the pile.
+    The names from the path (see ``_path_names``) plus Kodi's title data,
+    which is all an addon stream has.  Names are kept separate, so a title
+    must end one of them rather than appear anywhere.
     """
     names: list[str] = _path_names(path.rstrip("/\\"))
 
-    # An episode carries its own title, which is a film title often enough
-    # (Nope, Him) to be worth leaving alone, and a live channel or a recording
-    # carries the programme rather than a release name.  Both are left to what
-    # the path says.
+    # Episode titles often equal film titles (Nope, Him), and live channels
+    # and recordings carry a programme name; for both only the path counts.
     is_episode = bool(xbmc.getInfoLabel("VideoPlayer.TVShowTitle").strip())
     if not is_episode and not path.lower().startswith(_STREAM_PREFIXES):
         year = xbmc.getInfoLabel("VideoPlayer.Year").strip()
@@ -375,12 +339,10 @@ def _playing_names(path: str) -> tuple[str, ...]:
 
 
 def _classify(names: tuple[str, ...]) -> tuple[bool, bool]:
-    """Return ``(is IMAX, is IMAX Enhanced)`` for the given names.
+    """Return ``(is IMAX, is IMAX Enhanced)`` for *names*.
 
-    A name saying so outright is taken at its word; otherwise every ending of
-    the part that still names the film is looked up, which anchors a listed
-    title to the end of the name and keeps a sequel from matching the film it
-    follows.
+    An explicit ``IMAX`` tag counts directly.  Otherwise every suffix of the
+    film part is looked up, which anchors titles to the end of the name.
     """
     index = _title_index()
     imax = enhanced = False
@@ -413,13 +375,11 @@ def _classify(names: tuple[str, ...]) -> tuple[bool, bool]:
 
 
 def _current() -> tuple[bool, bool]:
-    """Return ``(is IMAX, is IMAX Enhanced)`` for what is playing.
+    """Return ``(is IMAX, is IMAX Enhanced)`` for the playing file.
 
-    Worked out once per file: the answer names the film, not the framing of
-    whatever is on screen this second.  It is worked out again when the names
-    change, since Kodi fills in what it knows about an item a moment after
-    playback starts, and an identification once made is kept for the rest of
-    the file -- metadata coming and going must not make the badge blink.
+    Computed once per file, and again when the names change (Kodi fills in
+    metadata shortly after playback starts).  A positive result is kept for
+    the rest of the file so the badge does not blink.
     """
     global _cache
 
@@ -439,10 +399,9 @@ def _current() -> tuple[bool, bool]:
 
 
 def is_known_imax_title(name: str = "") -> bool:
-    """Return whether what is playing is known to hold IMAX material.
+    """Return whether the playing film (or *name*) is known IMAX material.
 
-    True when the name says ``IMAX`` outright, or matches an entry in the title
-    lists.  A name given here is judged on its own, without touching the player.
+    True for an explicit ``IMAX`` tag or a match in the title lists.
     """
     if name:
         return _classify((name,))[0]
@@ -450,11 +409,10 @@ def is_known_imax_title(name: str = "") -> bool:
 
 
 def is_enhanced_title(name: str = "") -> bool:
-    """Return whether what is playing is an IMAX Enhanced release.
+    """Return whether the playing film (or *name*) is IMAX Enhanced.
 
-    Recognised from the name saying so outright, or from an ``@enhanced`` tag on
-    its entry in the title lists.  A film can hold IMAX material without the
-    certification, so this is a narrower claim than is_known_imax_title().
+    True for an explicit tag or an ``@enhanced`` entry in the title lists; a
+    narrower claim than ``is_known_imax_title``.
     """
     if name:
         return _classify((name,))[1]
@@ -463,21 +421,19 @@ def is_enhanced_title(name: str = "") -> bool:
 
 # --- The combined IMAX logo ------------------------------------------------
 
-# Where the skin keeps the graphics the splash draws.
+# The skin's media folder with the splash graphics.
 _MEDIA_PATH = os.path.join(
     settings.addon().getAddonInfo("path"), "resources", "skins", "Default", "media"
 )
 
-# Which combined logos are installed, by relative path; each is looked up once.
+# Whether each combined logo is installed, by relative path (checked once).
 _logo_installed: dict[str, bool] = {}
 
 
 def imax_logo(hdr_token: str) -> str:
-    """Return the combined IMAX logo for *hdr_token*, or '' when there is none.
+    """Return the combined IMAX logo for *hdr_token*, or ''.
 
-    The files are optional and ship separately from the code, so a missing one
-    means the plain logo for that format rather than a splash with a hole in
-    it.
+    The logo files are optional; without one the plain logo is used.
     """
     rel_path = IMAX_LOGO_MAP.get(hdr_token, "")
     if not rel_path:
