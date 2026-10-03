@@ -5,21 +5,21 @@
 
 A palette is a list of families: grays first, then the hues from red round
 to rose, each light to dark.  A color is named after its family and numbered
-from the second on: "Red", "Red 1", "Red 2", ...; only the colors settings
-start out on keep a translated name (see ui.theme).  A setting stores the
-color's swatch, so a color keeps its place in a setting when a family grows;
-only its name moves on.
+from the second on: "Red", "Red 1", "Red 2", ...  A color given a fixed name
+(the translated names of the colors settings start out on, see ui.theme) is
+left out of the count.  A setting stores the color's swatch, so a color keeps
+its place in a setting when a family grows; only its name moves on.
 """
 
 # Text, icons, lines and accents: (family, ARGB colors).
 TEXT = (
     ("White", (
-        "FFEDEDED", "FFE0E0E0",
+        "FFEDEDED",
     )),
     ("Gray", (
-        "FFCFD8DC", "FFD7CCC8", "FFC4C4C4", "FFB0BEC5", "FFB1B1B1", "FFBCAAA4",
-        "FF90A4AE", "FF9E9E9E", "FF8C8C8C", "FF7A7A7A", "FF666666", "FF525252",
-        "FF404040", "FF2E2E2E", "FF1F1F1F",
+        "FFE0E0E0", "FFCFD8DC", "FFD7CCC8", "FFC4C4C4", "FFB0BEC5", "FFB1B1B1",
+        "FFBCAAA4", "FF90A4AE", "FF9E9E9E", "FF8C8C8C", "FF7A7A7A", "FF666666",
+        "FF525252", "FF404040", "FF2E2E2E", "FF1F1F1F",
     )),
     ("Red", (
         "FFFF8A80", "FFF67972", "FFEE6761", "FFFF5252", "FFE65350", "FFDB4241",
@@ -248,8 +248,20 @@ BACKGROUND = (
 )
 
 
-def named(families: tuple) -> list[tuple[str, object]]:
-    """Return ``(name, entry)`` for every color of *families*, in order."""
-    return [(f"{family} {number}" if number else family, entry)
-            for family, entries in families
-            for number, entry in enumerate(entries)]
+def named(families: tuple, fixed: dict) -> list[tuple[object, object]]:
+    """Return ``(name, entry)`` for every color of *families*, in order.
+
+    *fixed* names some colors by swatch (an entry's ARGB, or the second of
+    its pair); the rest of each family is numbered without them.
+    """
+    result = []
+    for family, entries in families:
+        number = 0
+        for entry in entries:
+            swatch = entry if isinstance(entry, str) else entry[1]
+            if swatch in fixed:
+                result.append((fixed[swatch], entry))
+                continue
+            result.append((f"{family} {number}" if number else family, entry))
+            number += 1
+    return result

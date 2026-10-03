@@ -147,9 +147,15 @@ def test_picker_shows_the_hex_tile_first_then_the_palette(monkeypatch, setting_i
 
 
 def test_colour_names_count_up_per_family():
-    families = (("Red", ("FFFF0000", "FFCC0000", "FF990000")), ("Black", ("FF000000",)))
-    assert [name for name, _colour in palette.named(families)] == ["Red", "Red 1", "Red 2", "Black"]
-    assert len(palette.named(palette.TEXT)) == len(palette.named(palette.BACKGROUND)) == 250
+    families = (("Red", ("FFFF0000", "FFEE0000", "FFCC0000", "FF990000")), ("Black", ("FF000000",)))
+    assert [name for name, _colour in palette.named(families, {})] == [
+        "Red", "Red 1", "Red 2", "Red 3", "Black"]
+    # A fixed name leaves the count without a gap.
+    assert [name for name, _colour in palette.named(families, {"FFEE0000": 32165})] == [
+        "Red", 32165, "Red 1", "Red 2", "Black"]
+    pairs = (("Dark gray", (("FA151515", "FF2A2A2A"), ("FA101010", "FF202020"))),)
+    assert [name for name, _pair in palette.named(pairs, {"FF2A2A2A": 32130})] == [32130, "Dark gray"]
+    assert len(palette.named(palette.TEXT, {})) == len(palette.named(palette.BACKGROUND, {})) == 250
 
 
 def test_picking_a_new_colour_stores_and_publishes_it(monkeypatch):

@@ -22,8 +22,21 @@ from core.constants import ADDON_ID, PROFILE_DIR
 from core.utils import home_window
 from ui.palette import BACKGROUND, TEXT, named
 
+# The colors settings start out on keep their translated names (string ids);
+# every other color is named after its family (see ui.palette).  Mirrors the
+# names in the <default> values of settings.xml.
+_DEFAULT_NAMES = {
+    "FFEDEDED": 32120,  # White
+    "FF82B1FF": 32127,  # Light blue
+    "FF2A2E33": 32130,  # Charcoal
+    "FF000000": 32131,  # Black
+    "FFFF5252": 32165,  # Crimson
+    "FFFFB74D": 32201,  # Tangerine
+    "FF81C784": 32204,  # Forest
+}
+
 # Palette for text-based elements, and the names of its colors.
-_TEXT_NAMES, _TEXT_COLORS = map(tuple, zip(*named(TEXT)))
+_TEXT_NAMES, _TEXT_COLORS = map(tuple, zip(*named(TEXT, _DEFAULT_NAMES)))
 
 # VS10 dialog focused-button highlight (texturefocus); index 0 is pure white.
 _DIALOG_FOCUS_COLORS = ("FFFFFFFF",) + _TEXT_COLORS[1:]
@@ -33,7 +46,7 @@ _DIALOG_FOCUS_TEXT_COLORS = (
     "FF000000",  # 0  Black (default)
     "FFFFFFFF",  # 1  White
 ) + _TEXT_COLORS[1:]
-_DIALOG_FOCUS_TEXT_NAMES = ("Black", "White") + _TEXT_NAMES[1:]
+_DIALOG_FOCUS_TEXT_NAMES = (_DEFAULT_NAMES["FF000000"], "White") + _TEXT_NAMES[1:]
 
 # Channel layout graphic and active channels; index 0 is pure white (the
 # untinted look).
@@ -51,7 +64,7 @@ _LINE_COLORS = ("26808080",) + tuple(
 # Modern background: semi-transparent dark shades, their names, and the
 # brighter stand-ins shown in the picker and the settings row (the real shades
 # are nearly black).
-_BACKGROUND_NAMES, _BACKGROUND_PAIRS = zip(*named(BACKGROUND))
+_BACKGROUND_NAMES, _BACKGROUND_PAIRS = zip(*named(BACKGROUND, _DEFAULT_NAMES))
 _BACKGROUND_COLORS = tuple(color for color, _swatch in _BACKGROUND_PAIRS)
 _BACKGROUND_SWATCHES = tuple(swatch for _color, swatch in _BACKGROUND_PAIRS)
 
@@ -86,24 +99,12 @@ _DEFAULT_SWATCH = {
 }
 _BACKGROUND_DEFAULT = "FF2A2E33"
 
-# The colors settings start out on keep their translated names (string ids);
-# every other color is named after its family (see ui.palette).
-_DEFAULT_NAMES = {
-    "FFEDEDED": 32120,  # White
-    "FF82B1FF": 32127,  # Light blue
-    "FF2A2E33": 32130,  # Charcoal
-    "FF000000": 32131,  # Black
-    "FFFF5252": 32165,  # Crimson
-    "FFFFB74D": 32201,  # Tangerine
-    "FF81C784": 32204,  # Forest
-}
-
 # Stored form of a color setting, which the settings list also displays: a
 # swatch, then the color's name (a string reference for a translated one) or
 # the HEX code:
 #
 #     [COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120]
-#     [COLOR=FFE65350]●[/COLOR] Red 4
+#     [COLOR=FFE65350]●[/COLOR] Red 3
 #     [COLOR=FF5733AA]●[/COLOR] #5733AA
 #
 # The swatch tells the color; the name is for show and follows the palette.
@@ -395,8 +396,6 @@ def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
         # The remaining palettes are text hues (other alpha or white lead).
         names, swatches = _TEXT_NAMES, _TEXT_COLORS
         legacy, default = _LEGACY_TEXT, swatches[0]
-    names = tuple(_DEFAULT_NAMES.get(swatch, name)
-                  for name, swatch in zip(names, swatches))
     index_of = {swatch: index for index, swatch in enumerate(swatches)}
     default = index_of[_DEFAULT_SWATCH.get(setting_id, default)]
     return _ColorSetting(palette, names, swatches, index_of, legacy, default)
