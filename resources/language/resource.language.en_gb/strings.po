@@ -259,40 +259,8 @@ msgctxt "#32120"
 msgid "White"
 msgstr ""
 
-msgctxt "#32121"
-msgid "Light gray"
-msgstr ""
-
-msgctxt "#32122"
-msgid "Light red"
-msgstr ""
-
-msgctxt "#32123"
-msgid "Light orange"
-msgstr ""
-
-msgctxt "#32124"
-msgid "Light yellow"
-msgstr ""
-
-msgctxt "#32125"
-msgid "Light green"
-msgstr ""
-
-msgctxt "#32126"
-msgid "Light cyan"
-msgstr ""
-
 msgctxt "#32127"
 msgid "Light blue"
-msgstr ""
-
-msgctxt "#32128"
-msgid "Light purple"
-msgstr ""
-
-msgctxt "#32129"
-msgid "Light pink"
 msgstr ""
 
 msgctxt "#32130"
@@ -301,38 +269,6 @@ msgstr ""
 
 msgctxt "#32131"
 msgid "Black"
-msgstr ""
-
-msgctxt "#32132"
-msgid "Dark red"
-msgstr ""
-
-msgctxt "#32133"
-msgid "Dark orange"
-msgstr ""
-
-msgctxt "#32134"
-msgid "Dark yellow"
-msgstr ""
-
-msgctxt "#32135"
-msgid "Dark green"
-msgstr ""
-
-msgctxt "#32136"
-msgid "Dark cyan"
-msgstr ""
-
-msgctxt "#32137"
-msgid "Dark blue"
-msgstr ""
-
-msgctxt "#32138"
-msgid "Dark purple"
-msgstr ""
-
-msgctxt "#32139"
-msgid "Dark gray"
 msgstr ""
 
 msgctxt "#32140"
@@ -355,164 +291,8 @@ msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
 msgstr ""
 
-msgctxt "#32150"
-msgid "Coral"
-msgstr ""
-
-msgctxt "#32151"
-msgid "Salmon"
-msgstr ""
-
-msgctxt "#32152"
-msgid "Amber"
-msgstr ""
-
-msgctxt "#32153"
-msgid "Gold"
-msgstr ""
-
-msgctxt "#32154"
-msgid "Lime"
-msgstr ""
-
-msgctxt "#32155"
-msgid "Mint"
-msgstr ""
-
-msgctxt "#32156"
-msgid "Teal"
-msgstr ""
-
-msgctxt "#32157"
-msgid "Sky blue"
-msgstr ""
-
-msgctxt "#32158"
-msgid "Azure"
-msgstr ""
-
-msgctxt "#32159"
-msgid "Indigo"
-msgstr ""
-
-msgctxt "#32160"
-msgid "Violet"
-msgstr ""
-
-msgctxt "#32161"
-msgid "Lavender"
-msgstr ""
-
-msgctxt "#32162"
-msgid "Magenta"
-msgstr ""
-
-msgctxt "#32163"
-msgid "Fuchsia"
-msgstr ""
-
-msgctxt "#32164"
-msgid "Rose"
-msgstr ""
-
 msgctxt "#32165"
 msgid "Crimson"
-msgstr ""
-
-msgctxt "#32166"
-msgid "Brown"
-msgstr ""
-
-msgctxt "#32167"
-msgid "Olive"
-msgstr ""
-
-msgctxt "#32168"
-msgid "Slate"
-msgstr ""
-
-msgctxt "#32169"
-msgid "Silver"
-msgstr ""
-
-msgctxt "#32170"
-msgid "Dark teal"
-msgstr ""
-
-msgctxt "#32171"
-msgid "Dark sky"
-msgstr ""
-
-msgctxt "#32172"
-msgid "Dark indigo"
-msgstr ""
-
-msgctxt "#32173"
-msgid "Dark violet"
-msgstr ""
-
-msgctxt "#32174"
-msgid "Dark magenta"
-msgstr ""
-
-msgctxt "#32175"
-msgid "Dark pink"
-msgstr ""
-
-msgctxt "#32176"
-msgid "Dark rose"
-msgstr ""
-
-msgctxt "#32177"
-msgid "Dark brown"
-msgstr ""
-
-msgctxt "#32178"
-msgid "Dark olive"
-msgstr ""
-
-msgctxt "#32179"
-msgid "Dark lime"
-msgstr ""
-
-msgctxt "#32180"
-msgid "Dark mint"
-msgstr ""
-
-msgctxt "#32181"
-msgid "Dark azure"
-msgstr ""
-
-msgctxt "#32182"
-msgid "Dark slate"
-msgstr ""
-
-msgctxt "#32183"
-msgid "Dark navy"
-msgstr ""
-
-msgctxt "#32184"
-msgid "Dark maroon"
-msgstr ""
-
-msgctxt "#32185"
-msgid "Midnight"
-msgstr ""
-
-msgctxt "#32186"
-msgid "Espresso"
-msgstr ""
-
-msgctxt "#32187"
-msgid "Onyx"
-msgstr ""
-
-msgctxt "#32188"
-msgid "Graphite"
-msgstr ""
-
-msgctxt "#32189"
-msgid "Steel"
 msgstr ""
 
 msgctxt "#32190"
@@ -551,164 +331,12 @@ msgctxt "#32198"
 msgid "Color of the playing file name."
 msgstr ""
 
-msgctxt "#32200"
-msgid "Peach"
-msgstr ""
-
 msgctxt "#32201"
 msgid "Tangerine"
 msgstr ""
 
-msgctxt "#32202"
-msgid "Mustard"
-msgstr ""
-
-msgctxt "#32203"
-msgid "Chartreuse"
-msgstr ""
-
 msgctxt "#32204"
 msgid "Forest"
-msgstr ""
-
-msgctxt "#32205"
-msgid "Emerald"
-msgstr ""
-
-msgctxt "#32206"
-msgid "Spring"
-msgstr ""
-
-msgctxt "#32207"
-msgid "Aqua"
-msgstr ""
-
-msgctxt "#32208"
-msgid "Turquoise"
-msgstr ""
-
-msgctxt "#32209"
-msgid "Cerulean"
-msgstr ""
-
-msgctxt "#32210"
-msgid "Cobalt"
-msgstr ""
-
-msgctxt "#32211"
-msgid "Periwinkle"
-msgstr ""
-
-msgctxt "#32212"
-msgid "Plum"
-msgstr ""
-
-msgctxt "#32213"
-msgid "Orchid"
-msgstr ""
-
-msgctxt "#32214"
-msgid "Raspberry"
-msgstr ""
-
-msgctxt "#32215"
-msgid "Watermelon"
-msgstr ""
-
-msgctxt "#32216"
-msgid "Scarlet"
-msgstr ""
-
-msgctxt "#32217"
-msgid "Sand"
-msgstr ""
-
-msgctxt "#32218"
-msgid "Pistachio"
-msgstr ""
-
-msgctxt "#32219"
-msgid "Cadet"
-msgstr ""
-
-msgctxt "#32220"
-msgid "Dark peach"
-msgstr ""
-
-msgctxt "#32221"
-msgid "Dark tangerine"
-msgstr ""
-
-msgctxt "#32222"
-msgid "Dark mustard"
-msgstr ""
-
-msgctxt "#32223"
-msgid "Dark chartreuse"
-msgstr ""
-
-msgctxt "#32224"
-msgid "Dark forest"
-msgstr ""
-
-msgctxt "#32225"
-msgid "Dark emerald"
-msgstr ""
-
-msgctxt "#32226"
-msgid "Dark spring"
-msgstr ""
-
-msgctxt "#32227"
-msgid "Dark aqua"
-msgstr ""
-
-msgctxt "#32228"
-msgid "Dark turquoise"
-msgstr ""
-
-msgctxt "#32229"
-msgid "Dark cerulean"
-msgstr ""
-
-msgctxt "#32230"
-msgid "Dark cobalt"
-msgstr ""
-
-msgctxt "#32231"
-msgid "Dark periwinkle"
-msgstr ""
-
-msgctxt "#32232"
-msgid "Dark plum"
-msgstr ""
-
-msgctxt "#32233"
-msgid "Dark orchid"
-msgstr ""
-
-msgctxt "#32234"
-msgid "Dark raspberry"
-msgstr ""
-
-msgctxt "#32235"
-msgid "Dark watermelon"
-msgstr ""
-
-msgctxt "#32236"
-msgid "Dark scarlet"
-msgstr ""
-
-msgctxt "#32237"
-msgid "Dark sand"
-msgstr ""
-
-msgctxt "#32238"
-msgid "Dark pistachio"
-msgstr ""
-
-msgctxt "#32239"
-msgid "Dark cadet"
 msgstr ""
 
 msgctxt "#32241"
@@ -1735,13 +1363,9 @@ msgctxt "#32558"
 msgid "Dialog"
 msgstr ""
 
-
 msgctxt "#32560"
 msgid "Bar"
 msgstr ""
-
-
-
 
 msgctxt "#32564"
 msgid "Single button"

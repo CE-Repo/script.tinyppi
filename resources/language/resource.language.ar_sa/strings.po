@@ -259,41 +259,9 @@ msgctxt "#32120"
 msgid "White"
 msgstr "أبيض"
 
-msgctxt "#32121"
-msgid "Light gray"
-msgstr "رمادي فاتح"
-
-msgctxt "#32122"
-msgid "Light red"
-msgstr "أحمر فاتح"
-
-msgctxt "#32123"
-msgid "Light orange"
-msgstr "برتقالي فاتح"
-
-msgctxt "#32124"
-msgid "Light yellow"
-msgstr "أصفر فاتح"
-
-msgctxt "#32125"
-msgid "Light green"
-msgstr "أخضر فاتح"
-
-msgctxt "#32126"
-msgid "Light cyan"
-msgstr "سماوي فاتح"
-
 msgctxt "#32127"
 msgid "Light blue"
 msgstr "أزرق فاتح"
-
-msgctxt "#32128"
-msgid "Light purple"
-msgstr "بنفسجي فاتح"
-
-msgctxt "#32129"
-msgid "Light pink"
-msgstr "وردي فاتح"
 
 msgctxt "#32130"
 msgid "Charcoal"
@@ -302,38 +270,6 @@ msgstr "فحمي"
 msgctxt "#32131"
 msgid "Black"
 msgstr "أسود"
-
-msgctxt "#32132"
-msgid "Dark red"
-msgstr "أحمر داكن"
-
-msgctxt "#32133"
-msgid "Dark orange"
-msgstr "برتقالي داكن"
-
-msgctxt "#32134"
-msgid "Dark yellow"
-msgstr "أصفر داكن"
-
-msgctxt "#32135"
-msgid "Dark green"
-msgstr "أخضر داكن"
-
-msgctxt "#32136"
-msgid "Dark cyan"
-msgstr "سماوي داكن"
-
-msgctxt "#32137"
-msgid "Dark blue"
-msgstr "أزرق داكن"
-
-msgctxt "#32138"
-msgid "Dark purple"
-msgstr "بنفسجي داكن"
-
-msgctxt "#32139"
-msgid "Dark gray"
-msgstr "رمادي داكن"
 
 msgctxt "#32140"
 msgid "FPS"
@@ -355,165 +291,9 @@ msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
 msgstr "لون أيقونة الرسم البياني (حديث)."
 
-msgctxt "#32150"
-msgid "Coral"
-msgstr "مرجاني"
-
-msgctxt "#32151"
-msgid "Salmon"
-msgstr "سلموني"
-
-msgctxt "#32152"
-msgid "Amber"
-msgstr "كهرماني"
-
-msgctxt "#32153"
-msgid "Gold"
-msgstr "ذهبي"
-
-msgctxt "#32154"
-msgid "Lime"
-msgstr "ليموني"
-
-msgctxt "#32155"
-msgid "Mint"
-msgstr "نعناعي"
-
-msgctxt "#32156"
-msgid "Teal"
-msgstr "أزرق مخضر"
-
-msgctxt "#32157"
-msgid "Sky blue"
-msgstr "أزرق سماوي"
-
-msgctxt "#32158"
-msgid "Azure"
-msgstr "لازوردي"
-
-msgctxt "#32159"
-msgid "Indigo"
-msgstr "نيلي"
-
-msgctxt "#32160"
-msgid "Violet"
-msgstr "بنفسجي"
-
-msgctxt "#32161"
-msgid "Lavender"
-msgstr "خزامي"
-
-msgctxt "#32162"
-msgid "Magenta"
-msgstr "أرجواني"
-
-msgctxt "#32163"
-msgid "Fuchsia"
-msgstr "فوشيا"
-
-msgctxt "#32164"
-msgid "Rose"
-msgstr "وردي غامق"
-
 msgctxt "#32165"
 msgid "Crimson"
 msgstr "قرمزي"
-
-msgctxt "#32166"
-msgid "Brown"
-msgstr "بني"
-
-msgctxt "#32167"
-msgid "Olive"
-msgstr "زيتوني"
-
-msgctxt "#32168"
-msgid "Slate"
-msgstr "أردوازي"
-
-msgctxt "#32169"
-msgid "Silver"
-msgstr "فضي"
-
-msgctxt "#32170"
-msgid "Dark teal"
-msgstr "أزرق مخضر داكن"
-
-msgctxt "#32171"
-msgid "Dark sky"
-msgstr "سماوي داكن"
-
-msgctxt "#32172"
-msgid "Dark indigo"
-msgstr "نيلي داكن"
-
-msgctxt "#32173"
-msgid "Dark violet"
-msgstr "بنفسجي داكن"
-
-msgctxt "#32174"
-msgid "Dark magenta"
-msgstr "أرجواني داكن"
-
-msgctxt "#32175"
-msgid "Dark pink"
-msgstr "وردي داكن"
-
-msgctxt "#32176"
-msgid "Dark rose"
-msgstr "وردي غامق داكن"
-
-msgctxt "#32177"
-msgid "Dark brown"
-msgstr "بني داكن"
-
-msgctxt "#32178"
-msgid "Dark olive"
-msgstr "زيتوني داكن"
-
-msgctxt "#32179"
-msgid "Dark lime"
-msgstr "ليموني داكن"
-
-msgctxt "#32180"
-msgid "Dark mint"
-msgstr "نعناعي داكن"
-
-msgctxt "#32181"
-msgid "Dark azure"
-msgstr "لازوردي داكن"
-
-msgctxt "#32182"
-msgid "Dark slate"
-msgstr "أردوازي داكن"
-
-msgctxt "#32183"
-msgid "Dark navy"
-msgstr "كحلي داكن"
-
-msgctxt "#32184"
-msgid "Dark maroon"
-msgstr "عنابي داكن"
-
-msgctxt "#32185"
-msgid "Midnight"
-msgstr "منتصف الليل"
-
-msgctxt "#32186"
-msgid "Espresso"
-msgstr "إسبريسو"
-
-msgctxt "#32187"
-msgid "Onyx"
-msgstr "أونيكس"
-
-msgctxt "#32188"
-msgid "Graphite"
-msgstr "غرافيت"
-
-msgctxt "#32189"
-msgid "Steel"
-msgstr "فولاذي"
 
 msgctxt "#32190"
 msgid "Brightness unit"
@@ -551,165 +331,13 @@ msgctxt "#32198"
 msgid "Color of the playing file name."
 msgstr "لون اسم الملف الجاري تشغيله."
 
-msgctxt "#32200"
-msgid "Peach"
-msgstr "خوخي"
-
 msgctxt "#32201"
 msgid "Tangerine"
 msgstr "يوسفي"
 
-msgctxt "#32202"
-msgid "Mustard"
-msgstr "خردلي"
-
-msgctxt "#32203"
-msgid "Chartreuse"
-msgstr "أخضر مصفر"
-
 msgctxt "#32204"
 msgid "Forest"
 msgstr "غابي"
-
-msgctxt "#32205"
-msgid "Emerald"
-msgstr "زمردي"
-
-msgctxt "#32206"
-msgid "Spring"
-msgstr "ربيعي"
-
-msgctxt "#32207"
-msgid "Aqua"
-msgstr "مائي"
-
-msgctxt "#32208"
-msgid "Turquoise"
-msgstr "فيروزي"
-
-msgctxt "#32209"
-msgid "Cerulean"
-msgstr "أزرق سماوي فاتح"
-
-msgctxt "#32210"
-msgid "Cobalt"
-msgstr "كوبالت"
-
-msgctxt "#32211"
-msgid "Periwinkle"
-msgstr "بنفسجي مزرق"
-
-msgctxt "#32212"
-msgid "Plum"
-msgstr "برقوقي"
-
-msgctxt "#32213"
-msgid "Orchid"
-msgstr "سحلبي"
-
-msgctxt "#32214"
-msgid "Raspberry"
-msgstr "توت العليق"
-
-msgctxt "#32215"
-msgid "Watermelon"
-msgstr "بطيخي"
-
-msgctxt "#32216"
-msgid "Scarlet"
-msgstr "قرمزي فاتح"
-
-msgctxt "#32217"
-msgid "Sand"
-msgstr "رملي"
-
-msgctxt "#32218"
-msgid "Pistachio"
-msgstr "فستقي"
-
-msgctxt "#32219"
-msgid "Cadet"
-msgstr "أزرق رمادي"
-
-msgctxt "#32220"
-msgid "Dark peach"
-msgstr "خوخي داكن"
-
-msgctxt "#32221"
-msgid "Dark tangerine"
-msgstr "يوسفي داكن"
-
-msgctxt "#32222"
-msgid "Dark mustard"
-msgstr "خردلي داكن"
-
-msgctxt "#32223"
-msgid "Dark chartreuse"
-msgstr "أخضر مصفر داكن"
-
-msgctxt "#32224"
-msgid "Dark forest"
-msgstr "غابي داكن"
-
-msgctxt "#32225"
-msgid "Dark emerald"
-msgstr "زمردي داكن"
-
-msgctxt "#32226"
-msgid "Dark spring"
-msgstr "ربيعي داكن"
-
-msgctxt "#32227"
-msgid "Dark aqua"
-msgstr "مائي داكن"
-
-msgctxt "#32228"
-msgid "Dark turquoise"
-msgstr "فيروزي داكن"
-
-msgctxt "#32229"
-msgid "Dark cerulean"
-msgstr "أزرق سماوي فاتح داكن"
-
-msgctxt "#32230"
-msgid "Dark cobalt"
-msgstr "كوبالت داكن"
-
-msgctxt "#32231"
-msgid "Dark periwinkle"
-msgstr "بنفسجي مزرق داكن"
-
-msgctxt "#32232"
-msgid "Dark plum"
-msgstr "برقوقي داكن"
-
-msgctxt "#32233"
-msgid "Dark orchid"
-msgstr "سحلبي داكن"
-
-msgctxt "#32234"
-msgid "Dark raspberry"
-msgstr "توت العليق داكن"
-
-msgctxt "#32235"
-msgid "Dark watermelon"
-msgstr "بطيخي داكن"
-
-msgctxt "#32236"
-msgid "Dark scarlet"
-msgstr "قرمزي فاتح داكن"
-
-msgctxt "#32237"
-msgid "Dark sand"
-msgstr "رملي داكن"
-
-msgctxt "#32238"
-msgid "Dark pistachio"
-msgstr "فستقي داكن"
-
-msgctxt "#32239"
-msgid "Dark cadet"
-msgstr "أزرق رمادي داكن"
 
 msgctxt "#32241"
 msgid "HEX color"
@@ -1735,13 +1363,9 @@ msgctxt "#32558"
 msgid "Dialog"
 msgstr "مربع الحوار"
 
-
 msgctxt "#32560"
 msgid "Bar"
 msgstr "شريط"
-
-
-
 
 msgctxt "#32564"
 msgid "Single button"

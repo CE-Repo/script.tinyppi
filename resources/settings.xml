@@ -95,7 +95,7 @@
             <group id="1" label="32269">
                 <setting id="global_background_color" type="string" label="32269" help="32271">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,global_background_color,32269)</data>
                     </control>
@@ -114,7 +114,7 @@
             <group id="2" label="32103">
                 <setting id="background_color" type="string" label="32103" help="32104">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,background_color,32103)</data>
                     </control>
@@ -495,7 +495,7 @@
             <group id="2" label="32269">
                 <setting id="metadata_global_background_color" type="string" label="32269" help="32401">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_global_background_color,32269)</data>
                     </control>
@@ -514,7 +514,7 @@
             <group id="3" label="32103">
                 <setting id="metadata_background_color" type="string" label="32103" help="32403">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_background_color,32103)</data>
                     </control>
@@ -871,7 +871,7 @@
                 </setting>
                 <setting id="splash_start_bg_color" type="string" label="32313" help="32314">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
@@ -1191,7 +1191,7 @@
                 </setting>
                 <setting id="splash_osd_bg_color" type="string" label="32313" help="32314">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
@@ -1511,7 +1511,7 @@
                 </setting>
                 <setting id="splash_tinyppi_bg_color" type="string" label="32313" help="32314">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
@@ -1767,7 +1767,7 @@
             <group id="7" label="32269">
                 <setting id="dialog_global_background_color" type="string" label="32269" help="32271">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,dialog_global_background_color,32269)</data>
                     </control>
@@ -1786,7 +1786,7 @@
             <group id="1" label="32103">
                 <setting id="dialog_background_color" type="string" label="32103" help="32337">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,dialog_background_color,32103)</data>
                     </control>
@@ -1948,7 +1948,7 @@
             <group id="2" label="32103">
                 <setting id="channel_background_color" type="string" label="32103" help="32353">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,channel_background_color,32103)</data>
                     </control>
