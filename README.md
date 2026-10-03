@@ -116,8 +116,10 @@ Red, Red 1, Red 2 and so on. The colors the settings start out on (White,
 Charcoal, Forest, ...) keep their translated names.
 
 The first tile in the picker is **HEX color**. It opens the keyboard on the
-current color's 6-digit HEX code, to be changed to any color at all. The opacity
-of each element stays a slider of its own beside its color.
+current color's 6-digit HEX code, to be changed to any color at all. The second
+tile is the setting's default color, marked (Default), so it is always one step
+away; the rest of the palette follows. The opacity of each element stays a
+slider of its own beside its color.
 
 ---
 
