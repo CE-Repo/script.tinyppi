@@ -255,6 +255,22 @@ msgctxt "#32118"
 msgid "Color of the cd/m² brightness unit."
 msgstr ""
 
+msgctxt "#32120"
+msgid "White"
+msgstr ""
+
+msgctxt "#32127"
+msgid "Light blue"
+msgstr ""
+
+msgctxt "#32130"
+msgid "Charcoal"
+msgstr ""
+
+msgctxt "#32131"
+msgid "Black"
+msgstr ""
+
 msgctxt "#32140"
 msgid "FPS"
 msgstr ""
@@ -273,6 +289,10 @@ msgstr ""
 
 msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
+msgstr ""
+
+msgctxt "#32165"
+msgid "Crimson"
 msgstr ""
 
 msgctxt "#32190"
@@ -309,6 +329,14 @@ msgstr ""
 
 msgctxt "#32198"
 msgid "Color of the playing file name."
+msgstr ""
+
+msgctxt "#32201"
+msgid "Tangerine"
+msgstr ""
+
+msgctxt "#32204"
+msgid "Forest"
 msgstr ""
 
 msgctxt "#32241"

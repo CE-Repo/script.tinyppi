@@ -66,30 +66,44 @@ _UNIT_LABELS = (
 
 # Swatch of the color each setting starts out on.  Mirrors <default> in
 # settings.xml; unlisted settings start on their palette's first color, the
-# backgrounds on _BACKGROUND_DEFAULT (charcoal).
+# backgrounds on _BACKGROUND_DEFAULT (Charcoal).
 _DEFAULT_SWATCH = {
-    "convert_yes_color": "FF81C784",  # green
-    "convert_no_color":  "FFFF5252",  # red
-    "fel_color":         "FF81C784",  # green
-    "mel_color":         "FFFFB74D",  # amber
-    "output_changed_color":   "FF82B1FF",  # blue
-    "metadata_changed_color": "FF82B1FF",  # blue
-    "splash_start_convert_dot_color":   "FF81C784",  # green
-    "splash_osd_convert_dot_color":     "FF81C784",  # green
-    "splash_tinyppi_convert_dot_color": "FF81C784",  # green
-    "splash_start_fel_color":   "FF81C784",  # green
-    "splash_osd_fel_color":     "FF81C784",  # green
-    "splash_tinyppi_fel_color": "FF81C784",  # green
-    "splash_start_mel_color":   "FFFFB74D",  # amber
-    "splash_osd_mel_color":     "FFFFB74D",  # amber
-    "splash_tinyppi_mel_color": "FFFFB74D",  # amber
+    "convert_yes_color": "FF81C784",  # Forest
+    "convert_no_color":  "FFFF5252",  # Crimson
+    "fel_color":         "FF81C784",  # Forest
+    "mel_color":         "FFFFB74D",  # Tangerine
+    "output_changed_color":   "FF82B1FF",  # Light blue
+    "metadata_changed_color": "FF82B1FF",  # Light blue
+    "splash_start_convert_dot_color":   "FF81C784",  # Forest
+    "splash_osd_convert_dot_color":     "FF81C784",  # Forest
+    "splash_tinyppi_convert_dot_color": "FF81C784",  # Forest
+    "splash_start_fel_color":   "FF81C784",  # Forest
+    "splash_osd_fel_color":     "FF81C784",  # Forest
+    "splash_tinyppi_fel_color": "FF81C784",  # Forest
+    "splash_start_mel_color":   "FFFFB74D",  # Tangerine
+    "splash_osd_mel_color":     "FFFFB74D",  # Tangerine
+    "splash_tinyppi_mel_color": "FFFFB74D",  # Tangerine
 }
 _BACKGROUND_DEFAULT = "FF2A2E33"
 
+# The colors settings start out on keep their translated names (string ids);
+# every other color is named after its family (see ui.palette).
+_DEFAULT_NAMES = {
+    "FFEDEDED": 32120,  # White
+    "FF82B1FF": 32127,  # Light blue
+    "FF2A2E33": 32130,  # Charcoal
+    "FF000000": 32131,  # Black
+    "FFFF5252": 32165,  # Crimson
+    "FFFFB74D": 32201,  # Tangerine
+    "FF81C784": 32204,  # Forest
+}
+
 # Stored form of a color setting, which the settings list also displays: a
-# swatch, then the color's name or the HEX code:
+# swatch, then the color's name (a string reference for a translated one) or
+# the HEX code:
 #
-#     [COLOR=FF82B1FF]●[/COLOR] Blue 3
+#     [COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120]
+#     [COLOR=FFE65350]●[/COLOR] Red 4
 #     [COLOR=FF5733AA]●[/COLOR] #5733AA
 #
 # The swatch tells the color; the name is for show and follows the palette.
@@ -97,7 +111,8 @@ _BACKGROUND_DEFAULT = "FF2A2E33"
 # per color, which made settings.xml ~360 KB (see core.settings).
 _STORED_RE     = re.compile(r"^\[COLOR=([0-9A-Fa-f]{8})\]●\[/COLOR\] (.*)$")
 _DEFAULT_LABEL = 32589  # (Default)
-_DEFAULT_MARK  = f" $ADDON[{ADDON_ID} {_DEFAULT_LABEL}]"
+_NAME_REF      = "$ADDON[" + ADDON_ID + " {}]"
+_DEFAULT_MARK  = " " + _NAME_REF.format(_DEFAULT_LABEL)
 
 # Pre-picker storage: the palette index, or 999 for a HEX color kept in a
 # JSON file.  Only read until migrate_legacy_colors has run.  The indices
@@ -235,7 +250,7 @@ class _ColorSetting(NamedTuple):
     """The choices of one color setting."""
 
     palette: tuple   # published ARGB per choice
-    names: tuple     # name per choice
+    names: tuple     # name (or its string id) per choice
     swatches: tuple  # displayed ARGB per choice
     index_of: dict   # swatch -> index, to decode a stored value
     legacy: tuple    # swatch per pre-picker index
@@ -246,8 +261,11 @@ def _encode(spec: _ColorSetting, index: int, rgb: str = "") -> str:
     """Return the stored value for palette *index*, or for HEX color *rgb*."""
     if rgb:
         return f"[COLOR=FF{rgb}]●[/COLOR] #{rgb}"
+    name = spec.names[index]
+    if isinstance(name, int):
+        name = _NAME_REF.format(name)
     mark = _DEFAULT_MARK if index == spec.default else ""
-    return f"[COLOR={spec.swatches[index]}]●[/COLOR] {spec.names[index]}{mark}"
+    return f"[COLOR={spec.swatches[index]}]●[/COLOR] {name}{mark}"
 
 
 def _decode(spec: _ColorSetting, value: str, legacy_hex: str = "") -> tuple[int, str]:
@@ -377,6 +395,8 @@ def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
         # The remaining palettes are text hues (other alpha or white lead).
         names, swatches = _TEXT_NAMES, _TEXT_COLORS
         legacy, default = _LEGACY_TEXT, swatches[0]
+    names = tuple(_DEFAULT_NAMES.get(swatch, name)
+                  for name, swatch in zip(names, swatches))
     index_of = {swatch: index for index, swatch in enumerate(swatches)}
     default = index_of[_DEFAULT_SWATCH.get(setting_id, default)]
     return _ColorSetting(palette, names, swatches, index_of, legacy, default)
@@ -467,6 +487,8 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
                               hex_tile, offscreen=True)]
     default_mark = addon.getLocalizedString(_DEFAULT_LABEL)
     for position, (name, swatch) in enumerate(zip(spec.names, spec.swatches)):
+        if isinstance(name, int):
+            name = addon.getLocalizedString(name)
         if position == spec.default:
             name = f"{name} {default_mark}"
         tiles.append(xbmcgui.ListItem(name, swatch, offscreen=True))
@@ -503,8 +525,8 @@ def migrate_legacy_colors(addon=None) -> int:
     """Rewrite color settings stored in the old form; return the count.
 
     Old values (a palette index, 999 pointing into the JSON file, or a name
-    given as a string id) would show as bare numbers or untranslated ids, and
-    a name moves on when its family grows.  Each is rewritten once and the
+    whose string is gone) would show as bare numbers or string references,
+    and a name moves on when its family grows.  Each is rewritten once and the
     JSON file removed; afterwards this only reads.
     """
     addon = addon or settings.addon()

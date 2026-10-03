@@ -137,8 +137,12 @@ def test_picker_shows_the_hex_tile_first_then_the_palette(monkeypatch, setting_i
     shown = _picker_tiles(monkeypatch, setting_id)
     assert shown["tiles"][0] == (f"#{theme._HEX_TILE_LABEL}", theme._HEX_TILE_EMPTY)
     assert shown["tiles"][1:] == [
-        (name + (f" #{theme._DEFAULT_LABEL}" if index == spec.default else ""), swatch)
+        ((f"#{name}" if isinstance(name, int) else name)
+         + (f" #{theme._DEFAULT_LABEL}" if index == spec.default else ""), swatch)
         for index, (name, swatch) in enumerate(zip(spec.names, spec.swatches))]
+    # Only the colours settings start out on keep a translated name.
+    translated = {swatch for name, swatch in zip(spec.names, spec.swatches) if isinstance(name, int)}
+    assert spec.swatches[spec.default] in translated <= set(theme._DEFAULT_NAMES)
     assert shown["selected"] == spec.swatches[spec.default]
 
 
@@ -158,17 +162,25 @@ def test_picking_a_new_colour_stores_and_publishes_it(monkeypatch):
 
 
 @pytest.mark.parametrize("stored", [
-    "34",                                                           # palette index
-    "[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204]",        # name by string id
-    "[COLOR=FF81C784]●[/COLOR] Forest",                             # a name since renamed
+    "12",                                                           # palette index
+    "[COLOR=FFFFD54F]●[/COLOR] $ADDON[script.tinyppi 32152]",        # name whose string is gone
+    "[COLOR=FFFFD54F]●[/COLOR] Amber 9",                            # a name since moved on
 ])
 def test_older_stored_colours_keep_their_colour(stored):
     spec = theme._COLOR_SETTINGS["title_color"]
-    green = spec.swatches.index("FF81C784")
-    assert theme._decode(spec, stored) == (green, "")
+    amber = spec.swatches.index("FFFFD54F")
+    assert theme._decode(spec, stored) == (amber, "")
     use(title_color=stored)
     assert theme.migrate_legacy_colors() == 1
-    assert xbmcaddon.SETTINGS["title_color"] == theme._encode(spec, green)
+    assert xbmcaddon.SETTINGS["title_color"] == f"[COLOR=FFFFD54F]●[/COLOR] {spec.names[amber]}"
+    assert theme.migrate_legacy_colors() == 0
+
+
+def test_translated_default_names_stay_as_stored_before():
+    spec = theme._COLOR_SETTINGS["convert_yes_color"]
+    stored = "[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]"
+    assert theme._encode(spec, spec.default) == stored
+    use(convert_yes_color=stored)
     assert theme.migrate_legacy_colors() == 0
 
 

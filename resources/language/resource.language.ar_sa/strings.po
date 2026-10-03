@@ -255,6 +255,22 @@ msgctxt "#32118"
 msgid "Color of the cd/m² brightness unit."
 msgstr "لون وحدة السطوع cd/m²."
 
+msgctxt "#32120"
+msgid "White"
+msgstr "أبيض"
+
+msgctxt "#32127"
+msgid "Light blue"
+msgstr "أزرق فاتح"
+
+msgctxt "#32130"
+msgid "Charcoal"
+msgstr "فحمي"
+
+msgctxt "#32131"
+msgid "Black"
+msgstr "أسود"
+
 msgctxt "#32140"
 msgid "FPS"
 msgstr "إطار/ث"
@@ -274,6 +290,10 @@ msgstr "أيقونة الرأس"
 msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
 msgstr "لون أيقونة الرسم البياني (حديث)."
+
+msgctxt "#32165"
+msgid "Crimson"
+msgstr "قرمزي"
 
 msgctxt "#32190"
 msgid "Brightness unit"
@@ -310,6 +330,14 @@ msgstr "اسم الملف"
 msgctxt "#32198"
 msgid "Color of the playing file name."
 msgstr "لون اسم الملف الجاري تشغيله."
+
+msgctxt "#32201"
+msgid "Tangerine"
+msgstr "يوسفي"
+
+msgctxt "#32204"
+msgid "Forest"
+msgstr "غابي"
 
 msgctxt "#32241"
 msgid "HEX color"

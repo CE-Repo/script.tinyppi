@@ -111,6 +111,8 @@ setting and pick a tile. The picker offers TinyPPI's own palette of 250 colors
 force. The tiles are sorted by color: grays first, then red, orange, yellow,
 green, cyan, blue, violet and pink, each light to dark. Every tile is named
 after its color family and numbered within it: Red, Red 1, Red 2 and so on.
+The colors the settings start out on (White, Charcoal, Forest, ...) keep their
+translated names.
 
 The first tile in the picker is **HEX color**. It opens the keyboard on the
 current color's 6-digit HEX code, to be changed to any color at all. The opacity

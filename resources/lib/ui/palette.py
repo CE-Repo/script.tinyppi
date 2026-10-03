@@ -5,7 +5,8 @@
 
 A palette is a list of families: grays first, then the hues from red round
 to rose, each light to dark.  A color is named after its family and numbered
-from the second on: "Red", "Red 1", "Red 2", ...  A setting stores the
+from the second on: "Red", "Red 1", "Red 2", ...; only the colors settings
+start out on keep a translated name (see ui.theme).  A setting stores the
 color's swatch, so a color keeps its place in a setting when a family grows;
 only its name moves on.
 """

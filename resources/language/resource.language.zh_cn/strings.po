@@ -255,6 +255,22 @@ msgctxt "#32118"
 msgid "Color of the cd/m² brightness unit."
 msgstr "cd/m² 亮度单位的颜色。"
 
+msgctxt "#32120"
+msgid "White"
+msgstr "白色"
+
+msgctxt "#32127"
+msgid "Light blue"
+msgstr "浅蓝色"
+
+msgctxt "#32130"
+msgid "Charcoal"
+msgstr "炭黑色"
+
+msgctxt "#32131"
+msgid "Black"
+msgstr "黑色"
+
 msgctxt "#32140"
 msgid "FPS"
 msgstr "FPS"
@@ -274,6 +290,10 @@ msgstr "标题图标"
 msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
 msgstr "图表图标的颜色 (Modern)。"
+
+msgctxt "#32165"
+msgid "Crimson"
+msgstr "猩红色"
 
 msgctxt "#32190"
 msgid "Brightness unit"
@@ -310,6 +330,14 @@ msgstr "文件名"
 msgctxt "#32198"
 msgid "Color of the playing file name."
 msgstr "正在播放的文件名的颜色。"
+
+msgctxt "#32201"
+msgid "Tangerine"
+msgstr "橘色"
+
+msgctxt "#32204"
+msgid "Forest"
+msgstr "森林绿"
 
 msgctxt "#32241"
 msgid "HEX color"

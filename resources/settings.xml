@@ -95,7 +95,7 @@
             <group id="1" label="32269">
                 <setting id="global_background_color" type="string" label="32269" help="32271">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] Dark gray 8 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,global_background_color,32269)</data>
                     </control>
@@ -114,7 +114,7 @@
             <group id="2" label="32103">
                 <setting id="background_color" type="string" label="32103" help="32104">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] Dark gray 8 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,background_color,32103)</data>
                     </control>
@@ -133,7 +133,7 @@
             <group id="3" label="32105">
                 <setting id="title_color" type="string" label="32105" help="32106">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,title_color,32105)</data>
                     </control>
@@ -152,7 +152,7 @@
             <group id="4" label="32342">
                 <setting id="header_color" type="string" label="32342" help="32143">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,header_color,32342)</data>
                     </control>
@@ -171,7 +171,7 @@
             <group id="5" label="32107">
                 <setting id="description_color" type="string" label="32107" help="32108">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,description_color,32107)</data>
                     </control>
@@ -190,7 +190,7 @@
             <group id="6" label="32109">
                 <setting id="output_color" type="string" label="32109" help="32110">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,output_color,32109)</data>
                     </control>
@@ -209,7 +209,7 @@
             <group id="7" label="32395">
                 <setting id="output_changed_color" type="string" label="32395" help="32396">
                     <level>0</level>
-                    <default>[COLOR=FF82B1FF]●[/COLOR] Blue $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF82B1FF]●[/COLOR] $ADDON[script.tinyppi 32127] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,output_changed_color,32395)</data>
                     </control>
@@ -238,7 +238,7 @@
             <group id="8" label="32197">
                 <setting id="filename_color" type="string" label="32197" help="32198">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="filename">true</condition>
@@ -267,7 +267,7 @@
             <group id="9" label="32140">
                 <setting id="fps_color" type="string" label="32140" help="32141">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,fps_color,32140)</data>
                     </control>
@@ -286,7 +286,7 @@
             <group id="10" label="32117">
                 <setting id="unit_color" type="string" label="32117" help="32118">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="!is" setting="unit_type">2</condition>
@@ -315,7 +315,7 @@
             <group id="11" label="32113">
                 <setting id="accent_color" type="string" label="32113" help="32114">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,accent_color,32113)</data>
                     </control>
@@ -334,7 +334,7 @@
             <group id="12" label="32115">
                 <setting id="icon_color" type="string" label="32115" help="32116">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,icon_color,32115)</data>
                     </control>
@@ -353,7 +353,7 @@
             <group id="13" label="32144">
                 <setting id="header_icon_color" type="string" label="32144" help="32145">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,header_icon_color,32144)</data>
                     </control>
@@ -372,7 +372,7 @@
             <group id="14" label="32111">
                 <setting id="progress_color" type="string" label="32111" help="32112">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,progress_color,32111)</data>
                     </control>
@@ -391,7 +391,7 @@
             <group id="15" label="32251">
                 <setting id="line_color" type="string" label="32251" help="32252">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,line_color,32251)</data>
                     </control>
@@ -410,7 +410,7 @@
             <group id="16" label="32275">
                 <setting id="convert_yes_color" type="string" label="32275" help="32276">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] Green $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,convert_yes_color,32275)</data>
                     </control>
@@ -429,7 +429,7 @@
             <group id="17" label="32277">
                 <setting id="convert_no_color" type="string" label="32277" help="32278">
                     <level>0</level>
-                    <default>[COLOR=FFFF5252]●[/COLOR] Red 3 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFFF5252]●[/COLOR] $ADDON[script.tinyppi 32165] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,convert_no_color,32277)</data>
                     </control>
@@ -448,7 +448,7 @@
             <group id="18" label="32279">
                 <setting id="fel_color" type="string" label="32279" help="32280">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] Green $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,fel_color,32279)</data>
                     </control>
@@ -467,7 +467,7 @@
             <group id="19" label="32281">
                 <setting id="mel_color" type="string" label="32281" help="32282">
                     <level>0</level>
-                    <default>[COLOR=FFFFB74D]●[/COLOR] Amber 2 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFFFB74D]●[/COLOR] $ADDON[script.tinyppi 32201] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,mel_color,32281)</data>
                     </control>
@@ -495,7 +495,7 @@
             <group id="2" label="32269">
                 <setting id="metadata_global_background_color" type="string" label="32269" help="32401">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] Dark gray 8 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_global_background_color,32269)</data>
                     </control>
@@ -514,7 +514,7 @@
             <group id="3" label="32103">
                 <setting id="metadata_background_color" type="string" label="32103" help="32403">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] Dark gray 8 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_background_color,32103)</data>
                     </control>
@@ -533,7 +533,7 @@
             <group id="4" label="32342">
                 <setting id="metadata_header_color" type="string" label="32342" help="32405">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_header_color,32342)</data>
                     </control>
@@ -552,7 +552,7 @@
             <group id="5" label="32144">
                 <setting id="metadata_header_icon_color" type="string" label="32144" help="32407">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_header_icon_color,32144)</data>
                     </control>
@@ -571,7 +571,7 @@
             <group id="6" label="32105">
                 <setting id="metadata_title_color" type="string" label="32105" help="32409">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_title_color,32105)</data>
                     </control>
@@ -590,7 +590,7 @@
             <group id="7" label="32410">
                 <setting id="metadata_column_color" type="string" label="32410" help="32411">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_column_color,32410)</data>
                     </control>
@@ -609,7 +609,7 @@
             <group id="8" label="32107">
                 <setting id="metadata_name_color" type="string" label="32107" help="32413">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_name_color,32107)</data>
                     </control>
@@ -628,7 +628,7 @@
             <group id="9" label="32109">
                 <setting id="metadata_value_color" type="string" label="32109" help="32415">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_value_color,32109)</data>
                     </control>
@@ -647,7 +647,7 @@
             <group id="10" label="32395">
                 <setting id="metadata_changed_color" type="string" label="32395" help="32396">
                     <level>0</level>
-                    <default>[COLOR=FF82B1FF]●[/COLOR] Blue $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF82B1FF]●[/COLOR] $ADDON[script.tinyppi 32127] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_changed_color,32395)</data>
                     </control>
@@ -676,7 +676,7 @@
             <group id="11" label="32251">
                 <setting id="metadata_line_color" type="string" label="32251" help="32417">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_line_color,32251)</data>
                     </control>
@@ -695,7 +695,7 @@
             <group id="12" label="32253">
                 <setting id="metadata_focus_color" type="string" label="32253" help="32419">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_focus_color,32253)</data>
                     </control>
@@ -714,7 +714,7 @@
             <group id="13" label="32420">
                 <setting id="metadata_scrollbar_color" type="string" label="32420" help="32421">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_scrollbar_color,32420)</data>
                     </control>
@@ -733,7 +733,7 @@
             <group id="14" label="32422">
                 <setting id="metadata_hint_color" type="string" label="32422" help="32423">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,metadata_hint_color,32422)</data>
                     </control>
@@ -871,7 +871,7 @@
                 </setting>
                 <setting id="splash_start_bg_color" type="string" label="32313" help="32314">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] Dark gray 8 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
@@ -898,7 +898,7 @@
                 </setting>
                 <setting id="splash_start_video_color" type="string" label="32315" help="32316">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
@@ -925,7 +925,7 @@
                 </setting>
                 <setting id="splash_start_audio_color" type="string" label="32317" help="32318">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
@@ -952,7 +952,7 @@
                 </setting>
                 <setting id="splash_start_divider_color" type="string" label="32321" help="32322">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
@@ -979,7 +979,7 @@
                 </setting>
                 <setting id="splash_start_convert_dot_color" type="string" label="32367" help="32368">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] Green $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
@@ -1006,7 +1006,7 @@
                 </setting>
                 <setting id="splash_start_fel_color" type="string" label="32369" help="32370">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] Green $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
@@ -1033,7 +1033,7 @@
                 </setting>
                 <setting id="splash_start_mel_color" type="string" label="32371" help="32372">
                     <level>0</level>
-                    <default>[COLOR=FFFFB74D]●[/COLOR] Amber 2 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFFFB74D]●[/COLOR] $ADDON[script.tinyppi 32201] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
@@ -1060,7 +1060,7 @@
                 </setting>
                 <setting id="splash_start_dv_color" type="string" label="32373" help="32374">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
@@ -1191,7 +1191,7 @@
                 </setting>
                 <setting id="splash_osd_bg_color" type="string" label="32313" help="32314">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] Dark gray 8 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
@@ -1218,7 +1218,7 @@
                 </setting>
                 <setting id="splash_osd_video_color" type="string" label="32315" help="32316">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
@@ -1245,7 +1245,7 @@
                 </setting>
                 <setting id="splash_osd_audio_color" type="string" label="32317" help="32318">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
@@ -1272,7 +1272,7 @@
                 </setting>
                 <setting id="splash_osd_divider_color" type="string" label="32321" help="32322">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
@@ -1299,7 +1299,7 @@
                 </setting>
                 <setting id="splash_osd_convert_dot_color" type="string" label="32367" help="32368">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] Green $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
@@ -1326,7 +1326,7 @@
                 </setting>
                 <setting id="splash_osd_fel_color" type="string" label="32369" help="32370">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] Green $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
@@ -1353,7 +1353,7 @@
                 </setting>
                 <setting id="splash_osd_mel_color" type="string" label="32371" help="32372">
                     <level>0</level>
-                    <default>[COLOR=FFFFB74D]●[/COLOR] Amber 2 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFFFB74D]●[/COLOR] $ADDON[script.tinyppi 32201] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
@@ -1380,7 +1380,7 @@
                 </setting>
                 <setting id="splash_osd_dv_color" type="string" label="32373" help="32374">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
@@ -1511,7 +1511,7 @@
                 </setting>
                 <setting id="splash_tinyppi_bg_color" type="string" label="32313" help="32314">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] Dark gray 8 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
@@ -1538,7 +1538,7 @@
                 </setting>
                 <setting id="splash_tinyppi_video_color" type="string" label="32315" help="32316">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
@@ -1565,7 +1565,7 @@
                 </setting>
                 <setting id="splash_tinyppi_audio_color" type="string" label="32317" help="32318">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
@@ -1592,7 +1592,7 @@
                 </setting>
                 <setting id="splash_tinyppi_divider_color" type="string" label="32321" help="32322">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
@@ -1619,7 +1619,7 @@
                 </setting>
                 <setting id="splash_tinyppi_convert_dot_color" type="string" label="32367" help="32368">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] Green $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
@@ -1646,7 +1646,7 @@
                 </setting>
                 <setting id="splash_tinyppi_fel_color" type="string" label="32369" help="32370">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] Green $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
@@ -1673,7 +1673,7 @@
                 </setting>
                 <setting id="splash_tinyppi_mel_color" type="string" label="32371" help="32372">
                     <level>0</level>
-                    <default>[COLOR=FFFFB74D]●[/COLOR] Amber 2 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFFFB74D]●[/COLOR] $ADDON[script.tinyppi 32201] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
@@ -1700,7 +1700,7 @@
                 </setting>
                 <setting id="splash_tinyppi_dv_color" type="string" label="32373" help="32374">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
@@ -1767,7 +1767,7 @@
             <group id="7" label="32269">
                 <setting id="dialog_global_background_color" type="string" label="32269" help="32271">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] Dark gray 8 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,dialog_global_background_color,32269)</data>
                     </control>
@@ -1786,7 +1786,7 @@
             <group id="1" label="32103">
                 <setting id="dialog_background_color" type="string" label="32103" help="32337">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] Dark gray 8 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,dialog_background_color,32103)</data>
                     </control>
@@ -1805,7 +1805,7 @@
             <group id="2" label="32342">
                 <setting id="dialog_header_color" type="string" label="32342" help="32343">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,dialog_header_color,32342)</data>
                     </control>
@@ -1824,7 +1824,7 @@
             <group id="3" label="32144">
                 <setting id="dialog_header_icon_color" type="string" label="32144" help="32341">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,dialog_header_icon_color,32144)</data>
                     </control>
@@ -1843,7 +1843,7 @@
             <group id="4" label="32251">
                 <setting id="dialog_line_color" type="string" label="32251" help="32339">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,dialog_line_color,32251)</data>
                     </control>
@@ -1862,7 +1862,7 @@
             <group id="22" label="32570">
                 <setting id="dialog_text_color" type="string" label="32570" help="32571">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,dialog_text_color,32570)</data>
                     </control>
@@ -1881,7 +1881,7 @@
             <group id="5" label="32253">
                 <setting id="dialog_focus_color" type="string" label="32253" help="32254">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,dialog_focus_color,32253)</data>
                     </control>
@@ -1900,7 +1900,7 @@
             <group id="6" label="32255">
                 <setting id="dialog_focus_text_color" type="string" label="32255" help="32256">
                     <level>0</level>
-                    <default>[COLOR=FF000000]●[/COLOR] Black $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF000000]●[/COLOR] $ADDON[script.tinyppi 32131] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,dialog_focus_text_color,32255)</data>
                     </control>
@@ -1948,7 +1948,7 @@
             <group id="2" label="32103">
                 <setting id="channel_background_color" type="string" label="32103" help="32353">
                     <level>0</level>
-                    <default>[COLOR=FF2A2E33]●[/COLOR] Dark gray 8 $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF2A2E33]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,channel_background_color,32103)</data>
                     </control>
@@ -1967,7 +1967,7 @@
             <group id="3" label="32352">
                 <setting id="channel_layout_color" type="string" label="32352" help="32354">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,channel_layout_color,32352)</data>
                     </control>
@@ -1986,7 +1986,7 @@
             <group id="4" label="32350">
                 <setting id="channel_icon_color" type="string" label="32350" help="32355">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] White $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,pick_color,channel_icon_color,32350)</data>
                     </control>

@@ -255,6 +255,22 @@ msgctxt "#32118"
 msgid "Color of the cd/m² brightness unit."
 msgstr "A cd/m² fényerőegység színe."
 
+msgctxt "#32120"
+msgid "White"
+msgstr "Fehér"
+
+msgctxt "#32127"
+msgid "Light blue"
+msgstr "Világoskék"
+
+msgctxt "#32130"
+msgid "Charcoal"
+msgstr "Antracit"
+
+msgctxt "#32131"
+msgid "Black"
+msgstr "Fekete"
+
 msgctxt "#32140"
 msgid "FPS"
 msgstr "FPS"
@@ -274,6 +290,10 @@ msgstr "Fejléc ikon"
 msgctxt "#32145"
 msgid "Color of the chart icon (Modern)."
 msgstr "A diagram ikonjának színe (Modern)."
+
+msgctxt "#32165"
+msgid "Crimson"
+msgstr "Karmazsinvörös"
 
 msgctxt "#32190"
 msgid "Brightness unit"
@@ -310,6 +330,14 @@ msgstr "Fájlnév"
 msgctxt "#32198"
 msgid "Color of the playing file name."
 msgstr "A lejátszott fájl nevének a színe."
+
+msgctxt "#32201"
+msgid "Tangerine"
+msgstr "Mandarin"
+
+msgctxt "#32204"
+msgid "Forest"
+msgstr "Erdőzöld"
 
 msgctxt "#32241"
 msgid "HEX color"

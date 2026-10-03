@@ -97,6 +97,16 @@ def test_action_buttons_run_known_commands():
     assert not wrong
 
 
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_default_colours_keep_their_translated_names(language):
+    table = strings(language)
+    defaults = {spec.swatches[spec.default] for spec in theme._COLOR_SETTINGS.values()}
+    assert defaults == set(theme._DEFAULT_NAMES)
+    missing = [i for i in theme._DEFAULT_NAMES.values() if i not in table or not table[i][0]
+               or (language != "en_gb" and not table[i][1])]
+    assert not missing
+
+
 def test_colour_defaults_are_what_the_picker_stores():
     colours = [s for s in SETTINGS if s.get("id").endswith("_color")]
     assert len(colours) == len(theme._COLOR_SETTINGS)
