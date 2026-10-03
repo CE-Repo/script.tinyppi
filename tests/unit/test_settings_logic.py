@@ -195,3 +195,36 @@ def test_every_tile_can_be_told_apart():
     for setting_id, spec in theme._COLOR_SETTINGS.items():
         assert len(set(spec.swatches)) == len(spec.swatches) >= 250, setting_id
         assert len(set(spec.names)) == len(spec.names), setting_id
+
+
+def _lightness(argb):
+    """OKLCH lightness of an ARGB colour."""
+    def linear(at):
+        value = int(argb[at:at + 2], 16) / 255
+        return value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4
+    red, green, blue = linear(2), linear(4), linear(6)
+    long_ = (0.4122214708 * red + 0.5363325363 * green + 0.0514459929 * blue) ** (1 / 3)
+    medium = (0.2119034982 * red + 0.6806995451 * green + 0.1073969566 * blue) ** (1 / 3)
+    short = (0.0883024619 * red + 0.2817188376 * green + 0.6299787005 * blue) ** (1 / 3)
+    return 0.2104542553 * long_ + 0.7936177850 * medium - 0.0040720468 * short
+
+
+def test_every_family_runs_light_to_dark():
+    for family, colours in palette.TEXT:
+        steps = [_lightness(colour) for colour in colours]
+        assert steps == sorted(steps, reverse=True), family
+    for family, pairs in palette.BACKGROUND:
+        shades = [_lightness(shade) for shade, _swatch in pairs]
+        assert shades == sorted(shades, reverse=True), family
+        # The swatches follow their shades, but for rounding.
+        swatches = [_lightness(swatch) for _shade, swatch in pairs]
+        assert all(after <= before + 0.005 for before, after in zip(swatches, swatches[1:])), family
+
+
+def test_former_background_swatches_still_read_as_their_shade():
+    spec = theme._COLOR_SETTINGS["background_color"]
+    assert len(set(spec.palette)) == len(spec.palette)     # no two tiles give one shade
+    for number, (swatch, shade) in enumerate(theme._LEGACY_BACKGROUND):
+        index, _rgb = theme._decode(spec, f"[COLOR={swatch}]●[/COLOR] $ADDON[script.tinyppi 32132]")
+        assert spec.palette[index] == shade
+        assert spec.palette[theme._decode(spec, str(number))[0]] == shade

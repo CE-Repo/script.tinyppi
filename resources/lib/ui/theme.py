@@ -28,7 +28,7 @@ from ui.palette import BACKGROUND, TEXT, named
 _DEFAULT_NAMES = {
     "FFEDEDED": 32120,  # White
     "FF82B1FF": 32127,  # Light blue
-    "FF2A2E33": 32130,  # Charcoal
+    "FF272D32": 32130,  # Charcoal
     "FF000000": 32131,  # Black
     "FFFF5252": 32165,  # Crimson
     "FFFFB74D": 32201,  # Tangerine
@@ -97,7 +97,7 @@ _DEFAULT_SWATCH = {
     "splash_osd_mel_color":     "FFFFB74D",  # Tangerine
     "splash_tinyppi_mel_color": "FFFFB74D",  # Tangerine
 }
-_BACKGROUND_DEFAULT = "FF2A2E33"
+_BACKGROUND_DEFAULT = "FF272D32"
 
 # Stored form of a color setting, which the settings list also displays: a
 # swatch, then the color's name (a string reference for a translated one) or
@@ -117,7 +117,9 @@ _DEFAULT_MARK  = " " + _NAME_REF.format(_DEFAULT_LABEL)
 
 # Pre-picker storage: the palette index, or 999 for a HEX color kept in a
 # JSON file.  Only read until migrate_legacy_colors has run.  The indices
-# counted the swatches in this order.
+# counted the colors in the order below.  The backgrounds are given as (former
+# swatch, shade): stored values named a background by that swatch until every
+# swatch came to be worked out from its shade.
 _LEGACY_CUSTOM      = "999"
 _LEGACY_CUSTOM_FILE = f"{PROFILE_DIR}/custom_colors.json"
 _LEGACY_TEXT = (
@@ -132,15 +134,23 @@ _LEGACY_TEXT = (
     "FFC5E1A5", "FF90A4AE",
 )
 _LEGACY_BACKGROUND = (
-    "FF2A2E33", "FF000000", "FF3A1414", "FF3A2A12", "FF3A360F", "FF123A12",
-    "FF0F3A3A", "FF12203A", "FF26123A", "FF444444", "FF0F3A36", "FF0F2A3A",
-    "FF1E2240", "FF2E1E40", "FF3A1E3A", "FF3A1E2C", "FF3A1E24", "FF3A2A1E",
-    "FF2A2E12", "FF223A12", "FF123A28", "FF12303A", "FF222E33", "FF12182E",
-    "FF3A1212", "FF1A1A2A", "FF2E2418", "FF1E1E1E", "FF2C2C30", "FF2E343A",
-    "FF3E2820", "FF3E2C10", "FF383010", "FF303814", "FF1C3420", "FF143424",
-    "FF203814", "FF143838", "FF143830", "FF142C3E", "FF1C2040", "FF2A2040",
-    "FF341E38", "FF301C34", "FF3E1428", "FF3E1424", "FF3E1C14", "FF342E28",
-    "FF28341C", "FF242E34",
+    ("FF2A2E33", "FA15181A"), ("FF000000", "E6000000"), ("FF3A1414", "FA1A0E0E"),
+    ("FF3A2A12", "FA1A130A"), ("FF3A360F", "FA1A180A"), ("FF123A12", "FA0E1A0E"),
+    ("FF0F3A3A", "FA0A1A1A"), ("FF12203A", "FA0E121A"), ("FF26123A", "FA140E1A"),
+    ("FF444444", "FA242424"), ("FF0F3A36", "FA0A1A18"), ("FF0F2A3A", "FA0A151A"),
+    ("FF1E2240", "FA10121F"), ("FF2E1E40", "FA17101F"), ("FF3A1E3A", "FA1A0E1A"),
+    ("FF3A1E2C", "FA1F0E16"), ("FF3A1E24", "FA1F0E12"), ("FF3A2A1E", "FA1A130F"),
+    ("FF2A2E12", "FA15170A"), ("FF223A12", "FA121A0A"), ("FF123A28", "FA0A1A14"),
+    ("FF12303A", "FA0A171F"), ("FF222E33", "FA12171A"), ("FF12182E", "FA0A0E1A"),
+    ("FF3A1212", "FA1F0A0A"), ("FF1A1A2A", "FA0D0D14"), ("FF2E2418", "FA1A1410"),
+    ("FF1E1E1E", "FA121212"), ("FF2C2C30", "FA1C1C1E"), ("FF2E343A", "FA1A1D20"),
+    ("FF3E2820", "FA1F1410"), ("FF3E2C10", "FA1F1608"), ("FF383010", "FA1C1808"),
+    ("FF303814", "FA181C0A"), ("FF1C3420", "FA0E1A10"), ("FF143424", "FA0A1A12"),
+    ("FF203814", "FA101C0A"), ("FF143838", "FA0A1C1C"), ("FF143830", "FA0A1C18"),
+    ("FF142C3E", "FA0A161F"), ("FF1C2040", "FA0E1020"), ("FF2A2040", "FA15101F"),
+    ("FF341E38", "FA1A0F1C"), ("FF301C34", "FA180E1A"), ("FF3E1428", "FA1F0A14"),
+    ("FF3E1424", "FA1F0A12"), ("FF3E1C14", "FA1F0E0A"), ("FF342E28", "FA1A1714"),
+    ("FF28341C", "FA141A0E"), ("FF242E34", "FA141B20"),
 )
 
 # The picker's first tile, which asks for a HEX color.  The picker returns the
@@ -254,7 +264,7 @@ class _ColorSetting(NamedTuple):
     names: tuple     # name (or its string id) per choice
     swatches: tuple  # displayed ARGB per choice
     index_of: dict   # swatch -> index, to decode a stored value
-    legacy: tuple    # swatch per pre-picker index
+    legacy: tuple    # index per pre-picker index
     default: int     # default index
 
 
@@ -291,8 +301,7 @@ def _decode(spec: _ColorSetting, value: str, legacy_hex: str = "") -> tuple[int,
             return -1, stored[2:]
         return spec.default, ""
     if value.isdigit() and int(value) < len(spec.legacy):
-        index = spec.index_of.get(spec.legacy[int(value)])
-        return (spec.default if index is None else index), ""
+        return spec.legacy[int(value)], ""
     return spec.default, ""
 
 
@@ -388,15 +397,23 @@ def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
     """Build the ``_ColorSetting`` for *setting_id* on *palette*."""
     if palette is _BACKGROUND_COLORS:
         names, swatches = _BACKGROUND_NAMES, _BACKGROUND_SWATCHES
-        legacy, default = _LEGACY_BACKGROUND, _BACKGROUND_DEFAULT
-    elif palette is _DIALOG_FOCUS_TEXT_COLORS:
-        names, swatches = _DIALOG_FOCUS_TEXT_NAMES, _DIALOG_FOCUS_TEXT_COLORS
-        legacy, default = ("FF000000", "FFFFFFFF") + _LEGACY_TEXT[1:], swatches[0]
+        index_of = {swatch: index for index, swatch in enumerate(swatches)}
+        # Older values name a background by its former swatch.
+        shade_of = {color: index for index, color in enumerate(palette)}
+        legacy = tuple(shade_of[color] for _swatch, color in _LEGACY_BACKGROUND)
+        index_of = {**{swatch: shade_of[color] for swatch, color in _LEGACY_BACKGROUND},
+                    **index_of}
+        default = _BACKGROUND_DEFAULT
     else:
-        # The remaining palettes are text hues (other alpha or white lead).
-        names, swatches = _TEXT_NAMES, _TEXT_COLORS
-        legacy, default = _LEGACY_TEXT, swatches[0]
-    index_of = {swatch: index for index, swatch in enumerate(swatches)}
+        if palette is _DIALOG_FOCUS_TEXT_COLORS:
+            names, swatches = _DIALOG_FOCUS_TEXT_NAMES, _DIALOG_FOCUS_TEXT_COLORS
+            former = ("FF000000", "FFFFFFFF") + _LEGACY_TEXT[1:]
+        else:
+            # The remaining palettes are text hues (other alpha or white lead).
+            names, swatches, former = _TEXT_NAMES, _TEXT_COLORS, _LEGACY_TEXT
+        index_of = {swatch: index for index, swatch in enumerate(swatches)}
+        legacy = tuple(index_of[swatch] for swatch in former)
+        default = swatches[0]
     default = index_of[_DEFAULT_SWATCH.get(setting_id, default)]
     return _ColorSetting(palette, names, swatches, index_of, legacy, default)
 
