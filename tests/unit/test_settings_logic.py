@@ -129,7 +129,7 @@ def _picker_tiles(monkeypatch, setting_id, answer=""):
         return answer
 
     monkeypatch.setattr(xbmcgui.Dialog, "colorpicker", colorpicker)
-    theme.pick_color(setting_id, "32105")
+    theme.pick_color(setting_id, "32040")
     return shown
 
 
@@ -153,10 +153,10 @@ def test_colour_names_count_up_per_family():
     assert [name for name, _colour in palette.named(families, {})] == [
         "Red", "Red 1", "Red 2", "Red 3", "Black"]
     # A fixed name leaves the count without a gap.
-    assert [name for name, _colour in palette.named(families, {"FFEE0000": 32165})] == [
-        "Red", 32165, "Red 1", "Red 2", "Black"]
+    assert [name for name, _colour in palette.named(families, {"FFEE0000": 32212})] == [
+        "Red", 32212, "Red 1", "Red 2", "Black"]
     pairs = (("Dark gray", (("FA151515", "FF2A2A2A"), ("FA101010", "FF202020"))),)
-    assert [name for name, _pair in palette.named(pairs, {"FF2A2A2A": 32130})] == [32130, "Dark gray"]
+    assert [name for name, _pair in palette.named(pairs, {"FF2A2A2A": 32210})] == [32210, "Dark gray"]
     assert len(palette.named(palette.TEXT, {})) == len(palette.named(palette.BACKGROUND, {})) == 250
 
 
@@ -186,7 +186,7 @@ def test_older_stored_colours_keep_their_colour(stored):
 
 def test_translated_default_names_stay_as_stored_before():
     spec = theme._COLOR_SETTINGS["convert_yes_color"]
-    stored = "[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]"
+    stored = "[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32214] $ADDON[script.tinyppi 32203]"
     assert theme._encode(spec, spec.default) == stored
     use(convert_yes_color=stored)
     assert theme.migrate_legacy_colors() == 0

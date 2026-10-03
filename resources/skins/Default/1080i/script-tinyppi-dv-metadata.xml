@@ -63,7 +63,7 @@
                 <left>35</left>
                 <top>35</top>
                 <control type="label">
-                    <label>[B]$ADDON[script.tinyppi 32389][/B]</label>
+                    <label>[B]$ADDON[script.tinyppi 32079][/B]</label>
                     <font>font32</font>
                     <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataHeaderColor)]</textcolor>
                     <aligny>top</aligny>
@@ -912,7 +912,7 @@
                 <width>1220</width>
                 <height>30</height>
                 <align>center</align>
-                <label>$ADDON[script.tinyppi 32390]</label>
+                <label>$ADDON[script.tinyppi 32272]</label>
                 <font>font23_narrow</font>
                 <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataHintColor)]</textcolor>
                 <aligny>top</aligny>
@@ -924,7 +924,7 @@
                 <width>1220</width>
                 <height>30</height>
                 <align>center</align>
-                <label>$ADDON[script.tinyppi 32424]</label>
+                <label>$ADDON[script.tinyppi 32273]</label>
                 <font>font23_narrow</font>
                 <textcolor>$INFO[Window(10000).Property(TinyPPI.MetadataHintColor)]</textcolor>
                 <aligny>top</aligny>

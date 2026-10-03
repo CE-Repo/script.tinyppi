@@ -8,1465 +8,1465 @@ msgstr ""
 "Language: en\n"
 
 msgctxt "#32000"
-msgid "Display output"
-msgstr ""
-
-msgctxt "#32001"
-msgid "Video stream"
-msgstr ""
-
-msgctxt "#32002"
 msgid "General"
 msgstr ""
 
-msgctxt "#32003"
+msgctxt "#32001"
 msgid "TinyPPI settings"
 msgstr ""
 
-msgctxt "#32005"
-msgid "Decoder"
-msgstr ""
-
-msgctxt "#32007"
-msgid "Processing"
-msgstr ""
-
-msgctxt "#32012"
-msgid "720p skins are not supported"
-msgstr ""
-
-msgctxt "#32013"
-msgid "Playback time"
-msgstr ""
-
-msgctxt "#32014"
-msgid "Processor"
-msgstr ""
-
-msgctxt "#32015"
-msgid "Color gamut"
-msgstr ""
-
-msgctxt "#32016"
-msgid "Only CoreELEC 22 or later is supported"
-msgstr ""
-
-msgctxt "#32017"
-msgid "The CoreELEC version could not be detected"
-msgstr ""
-
-msgctxt "#32018"
-msgid "Temperature"
-msgstr ""
-
-msgctxt "#32019"
-msgid "Show file name"
-msgstr ""
-
-msgctxt "#32021"
-msgid "Show the currently playing file name in TinyPPI."
-msgstr ""
-
-msgctxt "#32022"
-msgid "Video queue / data"
-msgstr ""
-
-msgctxt "#32023"
-msgid "Pixel format"
-msgstr ""
-
-msgctxt "#32024"
-msgid "Aspect ratio"
-msgstr ""
-
-msgctxt "#32025"
-msgid "Audio queue / data"
-msgstr ""
-
-msgctxt "#32028"
-msgid "Converting"
-msgstr ""
-
-msgctxt "#32030"
-msgid "L5 Active Area"
-msgstr ""
-
-msgctxt "#32032"
-msgid "Player cache"
-msgstr ""
-
-msgctxt "#32033"
-msgid "N/A"
-msgstr ""
-
-msgctxt "#32034"
-msgid "Memory usage"
-msgstr ""
-
-msgctxt "#32035"
-msgid "Passthrough"
-msgstr ""
-
-msgctxt "#32036"
-msgid "In / drop / out"
-msgstr ""
-
-msgctxt "#32045"
-msgid "Audio codec"
-msgstr ""
-
-msgctxt "#32047"
-msgid "Bitrate"
-msgstr ""
-
-msgctxt "#32051"
-msgid "Input"
-msgstr ""
-
-msgctxt "#32052"
-msgid "Audio language"
-msgstr ""
-
-msgctxt "#32053"
-msgid "Subtitle language"
-msgstr ""
-
-msgctxt "#32054"
-msgid "Video"
-msgstr ""
-
-msgctxt "#32055"
-msgid "Output"
-msgstr ""
-
-msgctxt "#32056"
-msgid "Audio"
-msgstr ""
-
-msgctxt "#32057"
-msgid "Output"
-msgstr ""
-
-msgctxt "#32069"
-msgid "Audio resolution"
-msgstr ""
-
-msgctxt "#32070"
-msgid "Mode"
-msgstr ""
-
-msgctxt "#32087"
-msgid "Decoding"
-msgstr ""
-
-msgctxt "#32088"
-msgid "System"
-msgstr ""
-
-msgctxt "#32091"
-msgid "Disabled"
-msgstr ""
-
-msgctxt "#32092"
-msgid "Launch mode"
-msgstr ""
-
-msgctxt "#32093"
-msgid "Choose what opens when the add-on is launched."
-msgstr ""
-
-msgctxt "#32094"
-msgid "TinyPPI"
-msgstr ""
-
-msgctxt "#32095"
-msgid "VS10 dialog"
-msgstr ""
-
-msgctxt "#32099"
-msgid "Bit depth"
-msgstr ""
-
-msgctxt "#32101"
-msgid "Customise the TinyPPI overlay colors."
-msgstr ""
-
-msgctxt "#32103"
-msgid "Background"
-msgstr ""
-
-msgctxt "#32104"
-msgid "Background color of the overlay style."
-msgstr ""
-
-msgctxt "#32105"
-msgid "Title"
-msgstr ""
-
-msgctxt "#32106"
-msgid "Color of the section titles."
-msgstr ""
-
-msgctxt "#32107"
-msgid "Description"
-msgstr ""
-
-msgctxt "#32108"
-msgid "Color of the label descriptions."
-msgstr ""
-
-msgctxt "#32109"
-msgid "Output"
-msgstr ""
-
-msgctxt "#32110"
-msgid "Color of the output values."
-msgstr ""
-
-msgctxt "#32111"
-msgid "Progress bar"
-msgstr ""
-
-msgctxt "#32112"
-msgid "Color of the progress bars."
-msgstr ""
-
-msgctxt "#32113"
-msgid "Detail"
-msgstr ""
-
-msgctxt "#32114"
-msgid "Color of the dimmed detail values shown in parentheses."
-msgstr ""
-
-msgctxt "#32115"
-msgid "Icon"
-msgstr ""
-
-msgctxt "#32116"
-msgid "Color of the section icons."
-msgstr ""
-
-msgctxt "#32117"
-msgid "Unit (cd/m², nits)"
-msgstr ""
-
-msgctxt "#32118"
-msgid "Color of the cd/m² brightness unit."
-msgstr ""
-
-msgctxt "#32120"
-msgid "White"
-msgstr ""
-
-msgctxt "#32127"
-msgid "Light blue"
-msgstr ""
-
-msgctxt "#32130"
-msgid "Charcoal"
-msgstr ""
-
-msgctxt "#32131"
-msgid "Black"
-msgstr ""
-
-msgctxt "#32140"
-msgid "FPS"
-msgstr ""
-
-msgctxt "#32141"
-msgid "Color of the In / drop / out FPS values."
-msgstr ""
-
-msgctxt "#32143"
-msgid "Color of the overlay header label (Modern)."
-msgstr ""
-
-msgctxt "#32144"
-msgid "Header icon"
-msgstr ""
-
-msgctxt "#32145"
-msgid "Color of the chart icon (Modern)."
-msgstr ""
-
-msgctxt "#32165"
-msgid "Crimson"
-msgstr ""
-
-msgctxt "#32190"
-msgid "Brightness unit"
-msgstr ""
-
-msgctxt "#32191"
-msgid "Choose the unit shown for the L6 brightness values."
-msgstr ""
-
-msgctxt "#32192"
-msgid "cd/m²"
-msgstr ""
-
-msgctxt "#32193"
-msgid "nits"
-msgstr ""
-
-msgctxt "#32194"
-msgid "Hidden"
-msgstr ""
-
-msgctxt "#32195"
-msgid "Show L5 offsets icon"
-msgstr ""
-
-msgctxt "#32196"
-msgid "Show the L5 offsets icon (lrtb) next to the L5 values."
-msgstr ""
-
-msgctxt "#32197"
-msgid "File name"
-msgstr ""
-
-msgctxt "#32198"
-msgid "Color of the playing file name."
-msgstr ""
-
-msgctxt "#32201"
-msgid "Tangerine"
-msgstr ""
-
-msgctxt "#32204"
-msgid "Forest"
-msgstr ""
-
-msgctxt "#32241"
-msgid "HEX color"
-msgstr ""
-
-msgctxt "#32243"
-msgid "Enter a 6-digit HEX color (e.g. FF5733)"
-msgstr ""
-
-msgctxt "#32244"
-msgid "Invalid HEX color – using the default color"
-msgstr ""
-
-msgctxt "#32245"
-msgid "Custom color applied"
-msgstr ""
-
-msgctxt "#32251"
-msgid "Separator line"
-msgstr ""
-
-msgctxt "#32252"
-msgid "Color of the separator lines."
-msgstr ""
-
-msgctxt "#32253"
-msgid "Selection"
-msgstr ""
-
-msgctxt "#32254"
-msgid "Background color of the focused button in the VS10 dialog."
-msgstr ""
-
-msgctxt "#32255"
-msgid "Selection text"
-msgstr ""
-
-msgctxt "#32256"
-msgid "Text color of the focused button in the VS10 dialog."
-msgstr ""
-
-msgctxt "#32260"
-msgid "Overlay position"
-msgstr ""
-
-msgctxt "#32261"
-msgid "Horizontal offset (SDR only)"
-msgstr ""
-
-msgctxt "#32262"
-msgid "Shifts the overlay to the right from its default position. 100% is the maximum shift that keeps the content on screen."
-msgstr ""
-
-msgctxt "#32263"
-msgid "Vertical offset"
-msgstr ""
-
-msgctxt "#32264"
-msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
-msgstr ""
-
-msgctxt "#32266"
-msgid "Opacity of the overlay background, from 0% (fully transparent) to 100% (fully opaque)."
-msgstr ""
-
-msgctxt "#32267"
-msgid "Transparency"
-msgstr ""
-
-msgctxt "#32268"
-msgid "Opacity of the full-screen background behind the overlay, from 0% (off) to 100% (fully opaque)."
-msgstr ""
-
-msgctxt "#32269"
-msgid "Global background"
-msgstr ""
-
-msgctxt "#32271"
-msgid "Color of the full-screen global background."
-msgstr ""
-
-msgctxt "#32274"
-msgid "Opacity of this element, from 0% (fully transparent) to 100% (fully opaque)."
-msgstr ""
-
-msgctxt "#32275"
-msgid "Conversion (yes)"
-msgstr ""
-
-msgctxt "#32276"
-msgid "Color of the check-circle icon shown when conversion is active."
-msgstr ""
-
-msgctxt "#32277"
-msgid "Conversion (no)"
-msgstr ""
-
-msgctxt "#32278"
-msgid "Color of the cross-circle icon shown when conversion is inactive."
-msgstr ""
-
-msgctxt "#32279"
-msgid "FEL tag"
-msgstr ""
-
-msgctxt "#32280"
-msgid "Color of the FEL enhancement-layer tag in the input."
-msgstr ""
-
-msgctxt "#32281"
-msgid "MEL tag"
-msgstr ""
-
-msgctxt "#32282"
-msgid "Color of the MEL enhancement-layer tag in the input."
-msgstr ""
-
-msgctxt "#32287"
-msgid "Decode method"
-msgstr ""
-
-msgctxt "#32288"
-msgid "Media source"
-msgstr ""
-
-msgctxt "#32289"
-msgid "Metadata"
-msgstr ""
-
-msgctxt "#32290"
-msgid "Profile"
-msgstr ""
-
-msgctxt "#32291"
-msgid "Version"
-msgstr ""
-
-msgctxt "#32296"
-msgid "HDR10 MDL"
-msgstr ""
-
-msgctxt "#32297"
-msgid "HDR10 CLL/FALL"
-msgstr ""
-
-msgctxt "#32298"
-msgid "L6 MDL"
-msgstr ""
-
-msgctxt "#32299"
-msgid "L6 MaxCLL/FALL"
-msgstr ""
-
-msgctxt "#32300"
-msgid "HDR Static Metadata"
-msgstr ""
-
-msgctxt "#32301"
-msgid "Codec logos"
-msgstr ""
-
-msgctxt "#32302"
-msgid "Show codec logos on playback start"
-msgstr ""
-
-msgctxt "#32303"
-msgid "When a video starts, briefly shows the audio format and HDR/video format logos in the top-right corner."
-msgstr ""
-
-msgctxt "#32304"
-msgid "Display duration (seconds)"
-msgstr ""
-
-msgctxt "#32305"
-msgid "How long the format logos stay on screen before they disappear."
-msgstr ""
-
-msgctxt "#32306"
-msgid "Show codec logos in the video OSD"
-msgstr ""
-
-msgctxt "#32307"
-msgid "Also shows the format logos whenever the on-screen playback controls (video OSD) are visible."
-msgstr ""
-
-msgctxt "#32308"
-msgid "Horizontal offset"
-msgstr ""
-
-msgctxt "#32309"
-msgid "Moves the logos from the left edge (0%) to the right edge (100%) of the screen."
-msgstr ""
-
-msgctxt "#32310"
-msgid "Codec logos shown on the picture when playback starts or the OSD is open."
-msgstr ""
-
-msgctxt "#32313"
-msgid "Background color"
-msgstr ""
-
-msgctxt "#32314"
-msgid "Color and transparency of the panel behind the logos."
-msgstr ""
-
-msgctxt "#32315"
-msgid "Video logo"
-msgstr ""
-
-msgctxt "#32316"
-msgid "Color and transparency of the HDR/video format logo."
-msgstr ""
-
-msgctxt "#32317"
-msgid "Audio logo"
-msgstr ""
-
-msgctxt "#32318"
-msgid "Color and transparency of the audio format logo."
-msgstr ""
-
-msgctxt "#32319"
-msgid "Show codec logos in the TinyPPI overlay"
-msgstr ""
-
-msgctxt "#32320"
-msgid "Also shows the format logos while the TinyPPI info overlay is open."
-msgstr ""
-
-msgctxt "#32321"
-msgid "Divider"
-msgstr ""
-
-msgctxt "#32322"
-msgid "Color and transparency of the divider line between the two logos."
-msgstr ""
-
-msgctxt "#32323"
-msgid "Vertical offset"
-msgstr ""
-
-msgctxt "#32324"
-msgid "Moves the logos from the top edge (0%) to the bottom edge (100%) of the screen."
-msgstr ""
-
-msgctxt "#32325"
-msgid "On playback start"
-msgstr ""
-
-msgctxt "#32326"
-msgid "Video OSD"
-msgstr ""
-
-msgctxt "#32327"
-msgid "TinyPPI overlay"
-msgstr ""
-
-msgctxt "#32328"
-msgid "Size (%)"
-msgstr ""
-
-msgctxt "#32329"
-msgid "Scales the format logos. 100% is the default size; lower values shrink them, higher values enlarge them. The horizontal and vertical offset are kept."
-msgstr ""
-
-msgctxt "#32334"
+msgctxt "#32002"
 msgid "Launch"
 msgstr ""
 
-msgctxt "#32335"
-msgid "Overlay content"
+msgctxt "#32003"
+msgid "Launch mode"
 msgstr ""
 
-msgctxt "#32337"
-msgid "Background color of the VS10 selection dialog panel."
+msgctxt "#32004"
+msgid "Choose what opens when the add-on is launched."
 msgstr ""
 
-msgctxt "#32339"
-msgid "Color of the separator lines in the VS10 selection dialog."
+msgctxt "#32005"
+msgid "TinyPPI"
 msgstr ""
 
-msgctxt "#32341"
-msgid "Color of the chart icon in the VS10 selection dialog."
+msgctxt "#32006"
+msgid "VS10 dialog"
 msgstr ""
 
-msgctxt "#32342"
-msgid "Header title"
-msgstr ""
-
-msgctxt "#32343"
-msgid "Color of the VS10 header label in the selection dialog."
-msgstr ""
-
-msgctxt "#32344"
+msgctxt "#32007"
 msgid "Auto-hide"
 msgstr ""
 
-msgctxt "#32345"
+msgctxt "#32008"
 msgid "Automatically hides the TinyPPI overlay after the selected time (in seconds). 0 = off. Does not apply to the VS10 dialog."
 msgstr ""
 
-msgctxt "#32348"
-msgid "Horizontal offset of the channel box"
+msgctxt "#32009"
+msgid "Overlay content"
 msgstr ""
 
-msgctxt "#32349"
-msgid "Moves the channel box in Dolby Vision to the right. 0% places it at the left edge, 100% keeps it in its default position on the right."
+msgctxt "#32010"
+msgid "Show file name"
 msgstr ""
 
-msgctxt "#32350"
-msgid "Channels"
+msgctxt "#32011"
+msgid "Show the currently playing file name in TinyPPI."
 msgstr ""
 
-msgctxt "#32351"
-msgid "Customise the colors of the channel layout graphic."
+msgctxt "#32012"
+msgid "Show L5 offsets icon"
 msgstr ""
 
-msgctxt "#32352"
-msgid "Layout"
+msgctxt "#32013"
+msgid "Show the L5 offsets icon (lrtb) next to the L5 values."
 msgstr ""
 
-msgctxt "#32353"
-msgid "Background color of the channel box shown in Dolby Vision."
+msgctxt "#32014"
+msgid "Brightness unit"
 msgstr ""
 
-msgctxt "#32354"
-msgid "Color of the speaker layout graphic behind the active channels."
+msgctxt "#32015"
+msgid "Choose the unit shown for the L6 brightness values."
 msgstr ""
 
-msgctxt "#32355"
-msgid "Color of the active channels in the layout graphic."
+msgctxt "#32016"
+msgid "cd/m²"
 msgstr ""
 
-msgctxt "#32356"
-msgid "Channels in SDR"
+msgctxt "#32017"
+msgid "nits"
 msgstr ""
 
-msgctxt "#32357"
-msgid "Show the channel layout graphic while playing SDR content."
+msgctxt "#32018"
+msgid "Hidden"
 msgstr ""
 
-msgctxt "#32358"
-msgid "Channels in HDR10 / HLG / HDR10+"
+msgctxt "#32019"
+msgid "Overlay position"
 msgstr ""
 
-msgctxt "#32359"
-msgid "Show the channel layout graphic while playing HDR10, HLG or HDR10+ content."
+msgctxt "#32020"
+msgid "Horizontal offset (SDR only)"
 msgstr ""
 
-msgctxt "#32360"
-msgid "Channels in Dolby Vision"
+msgctxt "#32021"
+msgid "Shifts the overlay to the right from its default position. 100% is the maximum shift that keeps the content on screen."
 msgstr ""
 
-msgctxt "#32361"
-msgid "Show the channel layout graphic while playing Dolby Vision content."
+msgctxt "#32022"
+msgid "Vertical offset"
 msgstr ""
 
-msgctxt "#32362"
-msgid "Live TV"
+msgctxt "#32023"
+msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
 msgstr ""
 
-msgctxt "#32363"
-msgid "Livestream"
-msgstr ""
-
-msgctxt "#32367"
-msgid "Conversion indicator"
-msgstr ""
-
-msgctxt "#32368"
-msgid "Color of the dot shown on the video-format logo while a conversion is active."
-msgstr ""
-
-msgctxt "#32369"
-msgid "FEL indicator"
-msgstr ""
-
-msgctxt "#32370"
-msgid "Color of the pill shown on the splash logo when the source is Dolby Vision FEL."
-msgstr ""
-
-msgctxt "#32371"
-msgid "MEL indicator"
-msgstr ""
-
-msgctxt "#32372"
-msgid "Color of the pill shown on the splash logo when the source is Dolby Vision MEL."
-msgstr ""
-
-msgctxt "#32373"
-msgid "Other Dolby Vision"
-msgstr ""
-
-msgctxt "#32374"
-msgid "Color of the pill shown on the splash logo for any other Dolby Vision profile (no enhancement layer)."
-msgstr ""
-
-msgctxt "#32375"
-msgid "L1 Lum Min/Max/Ø"
-msgstr ""
-
-msgctxt "#32376"
-msgid "L1 PQ Min/Max/Ø"
-msgstr ""
-
-msgctxt "#32379"
-msgid "CM Version"
-msgstr ""
-
-msgctxt "#32380"
-msgid "Structure"
-msgstr ""
-
-msgctxt "#32381"
-msgid "RPU / BL"
-msgstr ""
-
-msgctxt "#32382"
-msgid "EL / Type"
-msgstr ""
-
-msgctxt "#32383"
-msgid "Converted output"
-msgstr ""
-
-msgctxt "#32384"
-msgid "Keep the HDR/DV area when converting to SDR"
-msgstr ""
-
-msgctxt "#32385"
-msgid "Keeps the HDR static-metadata and Dolby Vision panels on screen while VS10 converts the source to SDR. Turn off to draw the overlay in its SDR layout instead."
-msgstr ""
-
-msgctxt "#32386"
-msgid "Keep the Dolby Vision area when converting to HDR10"
-msgstr ""
-
-msgctxt "#32387"
-msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
-msgstr ""
-
-msgctxt "#32388"
-msgid "Display"
-msgstr ""
-
-msgctxt "#32389"
-msgid "Dolby Vision metadata"
-msgstr ""
-
-msgctxt "#32390"
-msgid "OK: open section — Back: TinyPPI overlay"
-msgstr ""
-
-msgctxt "#32391"
-msgid "DV metadata"
-msgstr ""
-
-msgctxt "#32392"
-msgid "Diagnostic views for reading what a stream actually carries."
-msgstr ""
-
-msgctxt "#32393"
-msgid "Dolby Vision metadata view"
-msgstr ""
-
-msgctxt "#32394"
-msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK opens the section under the cursor in a window of its own, Back returns to the TinyPPI overlay. On any other source OK does nothing."
-msgstr ""
-
-msgctxt "#32395"
-msgid "Changed values"
-msgstr ""
-
-msgctxt "#32396"
-msgid "Color for the readings that just changed. A value that moved is written in this color until the highlight duration below runs out, so the live readings can be told from the ones that do not move."
-msgstr ""
-
-msgctxt "#32398"
+msgctxt "#32024"
 msgid "Move with the arrow keys"
 msgstr ""
 
-msgctxt "#32399"
+msgctxt "#32025"
 msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above."
 msgstr ""
 
-msgctxt "#32401"
-msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Raise its opacity to dim the picture behind it."
+msgctxt "#32026"
+msgid "Converted output"
 msgstr ""
 
-msgctxt "#32403"
-msgid "Background color of the metadata view itself."
+msgctxt "#32027"
+msgid "Keep the HDR/DV area when converting to SDR"
 msgstr ""
 
-msgctxt "#32405"
-msgid "Color of the heading at the top of the metadata view."
+msgctxt "#32028"
+msgid "Keeps the HDR static-metadata and Dolby Vision panels on screen while VS10 converts the source to SDR. Turn off to draw the overlay in its SDR layout instead."
 msgstr ""
 
-msgctxt "#32407"
-msgid "Color of the Dolby Vision logo in the top right corner."
+msgctxt "#32029"
+msgid "Keep the Dolby Vision area when converting to HDR10"
 msgstr ""
 
-msgctxt "#32409"
-msgid "Color of the section headings, such as RPU or L2 — Trims."
+msgctxt "#32030"
+msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
 msgstr ""
 
-msgctxt "#32410"
-msgid "Column headings"
+msgctxt "#32031"
+msgid "TinyPPI overlay"
 msgstr ""
 
-msgctxt "#32411"
-msgid "Color of the column headings in the trim tables: Slope, Offset, Power and the rest."
+msgctxt "#32032"
+msgid "Customise the TinyPPI overlay colors."
 msgstr ""
 
-msgctxt "#32413"
-msgid "Color of the field names down the left column."
+msgctxt "#32033"
+msgid "Global background"
 msgstr ""
 
-msgctxt "#32415"
-msgid "Color of the readings. A value that just changed is written in the \"Changed values\" color instead, for as long as it keeps changing."
+msgctxt "#32034"
+msgid "Color of the full-screen global background."
 msgstr ""
 
-msgctxt "#32417"
-msgid "Color of the rules under the section headings and above and below the list."
+msgctxt "#32035"
+msgid "Transparency"
 msgstr ""
 
-msgctxt "#32419"
-msgid "Color of the bar behind the row the selection is on."
+msgctxt "#32036"
+msgid "Opacity of the full-screen background behind the overlay, from 0% (off) to 100% (fully opaque)."
 msgstr ""
 
-msgctxt "#32420"
-msgid "Scrollbar"
+msgctxt "#32037"
+msgid "Background"
 msgstr ""
 
-msgctxt "#32421"
-msgid "Color of the scrollbar down the right-hand edge."
+msgctxt "#32038"
+msgid "Background color of the overlay style."
 msgstr ""
 
-msgctxt "#32422"
-msgid "Key hint"
+msgctxt "#32039"
+msgid "Opacity of the overlay background, from 0% (fully transparent) to 100% (fully opaque)."
 msgstr ""
 
-msgctxt "#32423"
-msgid "Color of the line at the bottom naming what the keys do."
+msgctxt "#32040"
+msgid "Title"
 msgstr ""
 
-msgctxt "#32424"
-msgid "Back: metadata list"
+msgctxt "#32041"
+msgid "Color of the section titles."
 msgstr ""
 
-msgctxt "#32425"
-msgid "RPU MDL"
+msgctxt "#32042"
+msgid "Opacity of this element, from 0% (fully transparent) to 100% (fully opaque)."
 msgstr ""
 
-msgctxt "#32426"
-msgid "RPU MaxCLL/FALL"
+msgctxt "#32043"
+msgid "Header title"
 msgstr ""
 
-msgctxt "#32427"
+msgctxt "#32044"
+msgid "Color of the overlay header label (Modern)."
+msgstr ""
+
+msgctxt "#32045"
+msgid "Description"
+msgstr ""
+
+msgctxt "#32046"
+msgid "Color of the label descriptions."
+msgstr ""
+
+msgctxt "#32047"
+msgid "Output"
+msgstr ""
+
+msgctxt "#32048"
+msgid "Color of the output values."
+msgstr ""
+
+msgctxt "#32049"
+msgid "Changed values"
+msgstr ""
+
+msgctxt "#32050"
+msgid "Color for the readings that just changed. A value that moved is written in this color until the highlight duration below runs out, so the live readings can be told from the ones that do not move."
+msgstr ""
+
+msgctxt "#32051"
 msgid "Highlight duration"
 msgstr ""
 
-msgctxt "#32428"
+msgctxt "#32052"
 msgid "How long a reading that just changed stays in the highlight color, in milliseconds. The readings behind it are still read ten times a second whatever this is set to, so no change is missed; at 100 the highlight lasts a single refresh, which is too brief to follow."
 msgstr ""
 
-msgctxt "#32429"
-msgid "Input"
+msgctxt "#32053"
+msgid "File name"
 msgstr ""
 
-msgctxt "#32430"
-msgid "Dashboard"
+msgctxt "#32054"
+msgid "Color of the playing file name."
 msgstr ""
 
-msgctxt "#32431"
-msgid "A live view of the playing stream in a browser on your phone or laptop, so the picture itself stays untouched."
+msgctxt "#32055"
+msgid "FPS"
 msgstr ""
 
-msgctxt "#32432"
-msgid "Enable web dashboard"
+msgctxt "#32056"
+msgid "Color of the In / drop / out FPS values."
 msgstr ""
 
-msgctxt "#32433"
-msgid "Serves the dashboard on this box's own address. Off by default; once it is on, anything on the same network can reach it, so do not forward its port to the internet."
+msgctxt "#32057"
+msgid "Unit (cd/m², nits)"
 msgstr ""
 
-msgctxt "#32434"
-msgid "Port"
+msgctxt "#32058"
+msgid "Color of the cd/m² brightness unit."
 msgstr ""
 
-msgctxt "#32435"
-msgid "The port the dashboard listens on. Leave 8080 alone - Kodi's own web server usually has it."
+msgctxt "#32059"
+msgid "Detail"
 msgstr ""
 
-msgctxt "#32436"
-msgid "Access token"
+msgctxt "#32060"
+msgid "Color of the dimmed detail values shown in parentheses."
 msgstr ""
 
-msgctxt "#32437"
-msgid "The key the dashboard asks for. Switching a VS10 mode from the browser always needs it; reading needs it only when the setting below says so."
+msgctxt "#32061"
+msgid "Icon"
 msgstr ""
 
-msgctxt "#32438"
-msgid "Generate a new token"
+msgctxt "#32062"
+msgid "Color of the section icons."
 msgstr ""
 
-msgctxt "#32439"
-msgid "Replaces the token with a fresh one. Every browser still holding the old one is logged out."
+msgctxt "#32063"
+msgid "Header icon"
 msgstr ""
 
-msgctxt "#32440"
-msgid "Require the token for reading too"
+msgctxt "#32064"
+msgid "Color of the chart icon (Modern)."
 msgstr ""
 
-msgctxt "#32441"
-msgid "Asks for the token before showing anything at all, not just before switching a mode. Turn this on when the box is on a shared network."
+msgctxt "#32065"
+msgid "Progress bar"
 msgstr ""
 
-msgctxt "#32442"
-msgid "Allow VS10 switching from the dashboard"
+msgctxt "#32066"
+msgid "Color of the progress bars."
 msgstr ""
 
-msgctxt "#32443"
-msgid "Shows the VS10 output modes for the playing source in the browser, so the mode can be switched from a phone. The token is required either way."
+msgctxt "#32067"
+msgid "Separator line"
 msgstr ""
 
-msgctxt "#32444"
-msgid "Show address and token"
+msgctxt "#32068"
+msgid "Color of the separator lines."
 msgstr ""
 
-msgctxt "#32445"
-msgid "Shows the address to open in a browser, together with the current token."
+msgctxt "#32069"
+msgid "Conversion (yes)"
 msgstr ""
 
-msgctxt "#32446"
-msgid "Web dashboard"
+msgctxt "#32070"
+msgid "Color of the check-circle icon shown when conversion is active."
 msgstr ""
 
-msgctxt "#32447"
-msgid "Open this address in a browser on the same network:"
+msgctxt "#32071"
+msgid "Conversion (no)"
 msgstr ""
 
-msgctxt "#32448"
-msgid "Connected"
+msgctxt "#32072"
+msgid "Color of the cross-circle icon shown when conversion is inactive."
 msgstr ""
 
-msgctxt "#32449"
-msgid "Connecting..."
+msgctxt "#32073"
+msgid "FEL tag"
 msgstr ""
 
-msgctxt "#32450"
-msgid "Disconnected"
+msgctxt "#32074"
+msgid "Color of the FEL enhancement-layer tag in the input."
 msgstr ""
 
-msgctxt "#32451"
-msgid "Nothing is playing"
+msgctxt "#32075"
+msgid "MEL tag"
 msgstr ""
 
-msgctxt "#32452"
-msgid "Start a video on the box and everything it carries appears here."
+msgctxt "#32076"
+msgid "Color of the MEL enhancement-layer tag in the input."
 msgstr ""
 
-msgctxt "#32453"
-msgid "Peak"
+msgctxt "#32077"
+msgid "DV metadata"
 msgstr ""
 
-msgctxt "#32454"
-msgid "Average"
+msgctxt "#32078"
+msgid "Diagnostic views for reading what a stream actually carries."
 msgstr ""
 
-msgctxt "#32455"
-msgid "Frame luminance (L1)"
+msgctxt "#32079"
+msgid "Dolby Vision metadata"
 msgstr ""
 
-msgctxt "#32456"
-msgid "Copy report"
+msgctxt "#32080"
+msgid "Dolby Vision metadata view"
 msgstr ""
 
-msgctxt "#32457"
-msgid "Copied"
+msgctxt "#32081"
+msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK opens the section under the cursor in a window of its own, Back returns to the TinyPPI overlay. On any other source OK does nothing."
 msgstr ""
 
-msgctxt "#32459"
-msgid "Enter the access token"
+msgctxt "#32082"
+msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Raise its opacity to dim the picture behind it."
 msgstr ""
 
-msgctxt "#32460"
-msgid "You will find it in the add-on settings under Dashboard."
+msgctxt "#32083"
+msgid "Background color of the metadata view itself."
 msgstr ""
 
-msgctxt "#32461"
-msgid "Save"
+msgctxt "#32084"
+msgid "Color of the heading at the top of the metadata view."
 msgstr ""
 
-msgctxt "#32462"
-msgid "Cancel"
+msgctxt "#32085"
+msgid "Color of the Dolby Vision logo in the top right corner."
 msgstr ""
 
-msgctxt "#32463"
-msgid "Wrong or missing token"
+msgctxt "#32086"
+msgid "Color of the section headings, such as RPU or L2 — Trims."
 msgstr ""
 
-msgctxt "#32464"
-msgid "Switching..."
+msgctxt "#32087"
+msgid "Column headings"
 msgstr ""
 
-msgctxt "#32465"
-msgid "Switched"
+msgctxt "#32088"
+msgid "Color of the column headings in the trim tables: Slope, Offset, Power and the rest."
 msgstr ""
 
-msgctxt "#32466"
-msgid "Switching failed"
+msgctxt "#32089"
+msgid "Color of the field names down the left column."
 msgstr ""
 
-msgctxt "#32467"
-msgid "VS10 output"
+msgctxt "#32090"
+msgid "Color of the readings. A value that just changed is written in the \"Changed values\" color instead, for as long as it keeps changing."
 msgstr ""
 
-msgctxt "#32468"
-msgid "Show the Dolby Vision metadata view"
+msgctxt "#32091"
+msgid "Color of the rules under the section headings and above and below the list."
 msgstr ""
 
-msgctxt "#32469"
-msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
+msgctxt "#32092"
+msgid "Selection"
 msgstr ""
 
-msgctxt "#32470"
-msgid "No Dolby Vision metadata"
+msgctxt "#32093"
+msgid "Color of the bar behind the row the selection is on."
 msgstr ""
 
-msgctxt "#32471"
-msgid "This source carries no Dolby Vision RPU, so there is no metadata to list. The window fills as soon as a Dolby Vision title starts."
+msgctxt "#32094"
+msgid "Scrollbar"
 msgstr ""
 
-msgctxt "#32472"
-msgid "Dolby Vision"
+msgctxt "#32095"
+msgid "Color of the scrollbar down the right-hand edge."
 msgstr ""
 
-msgctxt "#32478"
-msgid "Switches"
+msgctxt "#32096"
+msgid "Key hint"
 msgstr ""
 
-msgctxt "#32479"
-msgid "Events"
+msgctxt "#32097"
+msgid "Color of the line at the bottom naming what the keys do."
 msgstr ""
 
-msgctxt "#32480"
-msgid "Nothing out of the ordinary yet"
+msgctxt "#32098"
+msgid "Codec logos"
 msgstr ""
 
-msgctxt "#32481"
-msgid "1 min"
+msgctxt "#32099"
+msgid "Codec logos shown on the picture when playback starts or the OSD is open."
 msgstr ""
 
-msgctxt "#32482"
-msgid "10 min"
+msgctxt "#32100"
+msgid "On playback start"
 msgstr ""
 
-msgctxt "#32483"
-msgid "Whole title"
+msgctxt "#32101"
+msgid "Show codec logos on playback start"
 msgstr ""
 
-msgctxt "#32484"
-msgid "Audio track"
+msgctxt "#32102"
+msgid "When a video starts, briefly shows the audio format and HDR/video format logos in the top-right corner."
 msgstr ""
 
-msgctxt "#32485"
-msgid "Subtitles"
+msgctxt "#32103"
+msgid "Display duration (seconds)"
 msgstr ""
 
-msgctxt "#32486"
-msgid "Off"
+msgctxt "#32104"
+msgid "How long the format logos stay on screen before they disappear."
 msgstr ""
 
-msgctxt "#32488"
-msgid "Mute"
-msgstr ""
-
-msgctxt "#32489"
-msgid "Play / Pause"
-msgstr ""
-
-msgctxt "#32490"
-msgid "Stop"
-msgstr ""
-
-msgctxt "#32491"
-msgid "Display mode"
-msgstr ""
-
-msgctxt "#32494"
-msgid "Playback controls"
-msgstr ""
-
-msgctxt "#32495"
-msgid "Metrics"
-msgstr ""
-
-msgctxt "#32496"
-msgid "Dark"
-msgstr ""
-
-msgctxt "#32497"
-msgid "Dark (adaptive)"
-msgstr ""
-
-msgctxt "#32498"
-msgid "Midnight"
-msgstr ""
-
-msgctxt "#32500"
-msgid "Choose a theme"
-msgstr ""
-
-msgctxt "#32501"
-msgid "Intensity"
-msgstr ""
-
-msgctxt "#32502"
-msgid "Subtle"
-msgstr ""
-
-msgctxt "#32503"
-msgid "Standard"
-msgstr ""
-
-msgctxt "#32504"
-msgid "Strong"
-msgstr ""
-
-msgctxt "#32507"
-msgid "Last played"
-msgstr ""
-
-msgctxt "#32508"
-msgid "Summary"
-msgstr ""
-
-msgctxt "#32509"
-msgid "Too many connections"
-msgstr ""
-
-msgctxt "#32511"
-msgid "Player cache"
-msgstr ""
-
-msgctxt "#32514"
-msgid "Warnings"
-msgstr ""
-
-msgctxt "#32515"
-msgid "Previous chapter"
-msgstr ""
-
-msgctxt "#32516"
-msgid "Next chapter"
-msgstr ""
-
-msgctxt "#32517"
-msgid "Volume down"
-msgstr ""
-
-msgctxt "#32518"
-msgid "Volume up"
-msgstr ""
-
-msgctxt "#32519"
+msgctxt "#32105"
 msgid "Show video codec logo"
 msgstr ""
 
-msgctxt "#32520"
+msgctxt "#32106"
 msgid "Includes the HDR/video format logo in the stack. Turn it off to show the audio format logo on its own."
 msgstr ""
 
-msgctxt "#32521"
+msgctxt "#32107"
 msgid "Show audio codec logo"
 msgstr ""
 
-msgctxt "#32522"
+msgctxt "#32108"
 msgid "Includes the audio format logo in the stack. Turn it off to show the HDR/video format logo on its own."
 msgstr ""
 
-msgctxt "#32523"
+msgctxt "#32109"
 msgid "Logo order"
 msgstr ""
 
-msgctxt "#32524"
+msgctxt "#32110"
 msgid "Which of the two logos sits on top of the stack."
 msgstr ""
 
-msgctxt "#32525"
+msgctxt "#32111"
 msgid "Video on top, audio below"
 msgstr ""
 
-msgctxt "#32526"
+msgctxt "#32112"
 msgid "Audio on top, video below"
 msgstr ""
 
-msgctxt "#32527"
+msgctxt "#32113"
 msgid "Dolby Vision pill position"
 msgstr ""
 
-msgctxt "#32528"
+msgctxt "#32114"
 msgid "Which edge of the logo panel the Dolby Vision layer pill sits on."
 msgstr ""
 
-msgctxt "#32529"
+msgctxt "#32115"
 msgid "Bottom edge"
 msgstr ""
 
-msgctxt "#32530"
+msgctxt "#32116"
 msgid "Top edge"
 msgstr ""
 
-msgctxt "#32531"
-msgid "Ends at"
+msgctxt "#32117"
+msgid "Horizontal offset"
 msgstr ""
 
-msgctxt "#32532"
-msgid "Films"
+msgctxt "#32118"
+msgid "Moves the logos from the left edge (0%) to the right edge (100%) of the screen."
 msgstr ""
 
-msgctxt "#32533"
-msgid "No films in the video library"
+msgctxt "#32119"
+msgid "Vertical offset"
 msgstr ""
 
-msgctxt "#32534"
-msgid "Search films"
+msgctxt "#32120"
+msgid "Moves the logos from the top edge (0%) to the bottom edge (100%) of the screen."
 msgstr ""
 
-msgctxt "#32535"
-msgid "Starting…"
+msgctxt "#32121"
+msgid "Size (%)"
 msgstr ""
 
-msgctxt "#32536"
-msgid "Playback could not be started"
+msgctxt "#32122"
+msgid "Scales the format logos. 100% is the default size; lower values shrink them, higher values enlarge them. The horizontal and vertical offset are kept."
 msgstr ""
 
-msgctxt "#32537"
-msgid "Resume"
+msgctxt "#32123"
+msgid "Background color"
 msgstr ""
 
-msgctxt "#32538"
-msgid "Show the film library"
+msgctxt "#32124"
+msgid "Color and transparency of the panel behind the logos."
 msgstr ""
 
-msgctxt "#32539"
-msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
+msgctxt "#32125"
+msgid "Video logo"
 msgstr ""
 
-msgctxt "#32540"
-msgid "Watched"
+msgctxt "#32126"
+msgid "Color and transparency of the HDR/video format logo."
 msgstr ""
 
-msgctxt "#32541"
-msgid "Series"
+msgctxt "#32127"
+msgid "Audio logo"
 msgstr ""
 
-msgctxt "#32542"
-msgid "No series in the video library"
+msgctxt "#32128"
+msgid "Color and transparency of the audio format logo."
 msgstr ""
 
-msgctxt "#32543"
-msgid "Search series"
+msgctxt "#32129"
+msgid "Divider"
 msgstr ""
 
-msgctxt "#32544"
-msgid "All series"
+msgctxt "#32130"
+msgid "Color and transparency of the divider line between the two logos."
 msgstr ""
 
-msgctxt "#32545"
-msgid "Unwatched episodes"
+msgctxt "#32131"
+msgid "Conversion indicator"
 msgstr ""
 
-msgctxt "#32546"
-msgid "Season %s"
+msgctxt "#32132"
+msgid "Color of the dot shown on the video-format logo while a conversion is active."
 msgstr ""
 
-msgctxt "#32547"
-msgid "Specials"
+msgctxt "#32133"
+msgid "FEL indicator"
 msgstr ""
 
-msgctxt "#32548"
-msgid "Episodes could not be loaded"
+msgctxt "#32134"
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision FEL."
 msgstr ""
 
-msgctxt "#32549"
-msgid "Show the series library"
+msgctxt "#32135"
+msgid "MEL indicator"
 msgstr ""
 
-msgctxt "#32550"
-msgid "Offers the series in the video library on the dashboard while nothing is playing. A press opens one and starts an episode on the box."
+msgctxt "#32136"
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision MEL."
 msgstr ""
 
-msgctxt "#32551"
-msgid "Clear the search"
+msgctxt "#32137"
+msgid "Other Dolby Vision"
 msgstr ""
 
-msgctxt "#32552"
-msgid "%s h %s min"
+msgctxt "#32138"
+msgid "Color of the pill shown on the splash logo for any other Dolby Vision profile (no enhancement layer)."
 msgstr ""
 
-msgctxt "#32553"
-msgid "%s min"
+msgctxt "#32139"
+msgid "Video OSD"
 msgstr ""
 
-msgctxt "#32554"
-msgid "%s h"
+msgctxt "#32140"
+msgid "Show codec logos in the video OSD"
 msgstr ""
 
-msgctxt "#32555"
+msgctxt "#32141"
+msgid "Also shows the format logos whenever the on-screen playback controls (video OSD) are visible."
+msgstr ""
+
+msgctxt "#32142"
+msgid "Show codec logos in the TinyPPI overlay"
+msgstr ""
+
+msgctxt "#32143"
+msgid "Also shows the format logos while the TinyPPI info overlay is open."
+msgstr ""
+
+msgctxt "#32144"
 msgid "Layout"
 msgstr ""
 
-msgctxt "#32556"
+msgctxt "#32145"
 msgid "Dialog layout"
 msgstr ""
 
-msgctxt "#32557"
+msgctxt "#32146"
 msgid "Which of the designs the VS10 dialog is drawn as."
 msgstr ""
 
-msgctxt "#32558"
-msgid "Dialog"
-msgstr ""
-
-msgctxt "#32560"
-msgid "Bar"
-msgstr ""
-
-msgctxt "#32564"
+msgctxt "#32147"
 msgid "Single button"
 msgstr ""
 
-msgctxt "#32565"
+msgctxt "#32148"
+msgid "Bar"
+msgstr ""
+
+msgctxt "#32149"
+msgid "Dialog"
+msgstr ""
+
+msgctxt "#32150"
 msgid "Dialog position"
 msgstr ""
 
-msgctxt "#32566"
+msgctxt "#32151"
 msgid "Vertical position"
 msgstr ""
 
-msgctxt "#32567"
+msgctxt "#32152"
 msgid "Where the dialog sits between the top edge of the screen (0%) and the bottom one (100%). 50% leaves it in the middle, where it has always been."
 msgstr ""
 
-msgctxt "#32568"
+msgctxt "#32153"
 msgid "Horizontal position"
 msgstr ""
 
-msgctxt "#32569"
+msgctxt "#32154"
 msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
 msgstr ""
 
-msgctxt "#32570"
+msgctxt "#32155"
+msgid "Background color of the VS10 selection dialog panel."
+msgstr ""
+
+msgctxt "#32156"
+msgid "Color of the VS10 header label in the selection dialog."
+msgstr ""
+
+msgctxt "#32157"
+msgid "Color of the chart icon in the VS10 selection dialog."
+msgstr ""
+
+msgctxt "#32158"
+msgid "Color of the separator lines in the VS10 selection dialog."
+msgstr ""
+
+msgctxt "#32159"
 msgid "Button text"
 msgstr ""
 
-msgctxt "#32571"
+msgctxt "#32160"
 msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
 msgstr ""
 
-msgctxt "#32572"
-msgid "Continue watching"
+msgctxt "#32161"
+msgid "Background color of the focused button in the VS10 dialog."
 msgstr ""
 
-msgctxt "#32573"
-msgid "Unwatched films"
+msgctxt "#32162"
+msgid "Selection text"
 msgstr ""
 
-msgctxt "#32574"
-msgid "Unwatched series"
+msgctxt "#32163"
+msgid "Text color of the focused button in the VS10 dialog."
 msgstr ""
 
-msgctxt "#32575"
-msgid "Mark as watched"
+msgctxt "#32164"
+msgid "Channels"
 msgstr ""
 
-msgctxt "#32576"
-msgid "Mark as unwatched"
+msgctxt "#32165"
+msgid "Customise the colors of the channel layout graphic."
 msgstr ""
 
-msgctxt "#32577"
-msgid "The library could not be updated"
+msgctxt "#32166"
+msgid "Display"
 msgstr ""
 
-msgctxt "#32578"
-msgid "Play"
+msgctxt "#32167"
+msgid "Channels in SDR"
 msgstr ""
 
-msgctxt "#32579"
-msgid "Open"
+msgctxt "#32168"
+msgid "Show the channel layout graphic while playing SDR content."
 msgstr ""
 
-msgctxt "#32580"
-msgid "Play from the beginning"
+msgctxt "#32169"
+msgid "Channels in HDR10 / HLG / HDR10+"
 msgstr ""
 
-msgctxt "#32581"
-msgid "Clear resume point"
+msgctxt "#32170"
+msgid "Show the channel layout graphic while playing HDR10, HLG or HDR10+ content."
 msgstr ""
 
-msgctxt "#32582"
-msgid "Live"
+msgctxt "#32171"
+msgid "Channels in Dolby Vision"
 msgstr ""
 
-msgctxt "#32583"
+msgctxt "#32172"
+msgid "Show the channel layout graphic while playing Dolby Vision content."
+msgstr ""
+
+msgctxt "#32173"
+msgid "Horizontal offset of the channel box"
+msgstr ""
+
+msgctxt "#32174"
+msgid "Moves the channel box in Dolby Vision to the right. 0% places it at the left edge, 100% keeps it in its default position on the right."
+msgstr ""
+
+msgctxt "#32175"
+msgid "Background color of the channel box shown in Dolby Vision."
+msgstr ""
+
+msgctxt "#32176"
+msgid "Layout"
+msgstr ""
+
+msgctxt "#32177"
+msgid "Color of the speaker layout graphic behind the active channels."
+msgstr ""
+
+msgctxt "#32178"
+msgid "Color of the active channels in the layout graphic."
+msgstr ""
+
+msgctxt "#32179"
+msgid "Dashboard"
+msgstr ""
+
+msgctxt "#32180"
+msgid "A live view of the playing stream in a browser on your phone or laptop, so the picture itself stays untouched."
+msgstr ""
+
+msgctxt "#32181"
+msgid "Enable web dashboard"
+msgstr ""
+
+msgctxt "#32182"
+msgid "Serves the dashboard on this box's own address. Off by default; once it is on, anything on the same network can reach it, so do not forward its port to the internet."
+msgstr ""
+
+msgctxt "#32183"
+msgid "Port"
+msgstr ""
+
+msgctxt "#32184"
+msgid "The port the dashboard listens on. Leave 8080 alone - Kodi's own web server usually has it."
+msgstr ""
+
+msgctxt "#32185"
+msgid "Show address and token"
+msgstr ""
+
+msgctxt "#32186"
+msgid "Shows the address to open in a browser, together with the current token."
+msgstr ""
+
+msgctxt "#32187"
+msgid "Access token"
+msgstr ""
+
+msgctxt "#32188"
+msgid "The key the dashboard asks for. Switching a VS10 mode from the browser always needs it; reading needs it only when the setting below says so."
+msgstr ""
+
+msgctxt "#32189"
+msgid "Generate a new token"
+msgstr ""
+
+msgctxt "#32190"
+msgid "Replaces the token with a fresh one. Every browser still holding the old one is logged out."
+msgstr ""
+
+msgctxt "#32191"
+msgid "Show the Dolby Vision metadata view"
+msgstr ""
+
+msgctxt "#32192"
+msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
+msgstr ""
+
+msgctxt "#32193"
+msgid "Show the film library"
+msgstr ""
+
+msgctxt "#32194"
+msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
+msgstr ""
+
+msgctxt "#32195"
+msgid "Show the series library"
+msgstr ""
+
+msgctxt "#32196"
+msgid "Offers the series in the video library on the dashboard while nothing is playing. A press opens one and starts an episode on the box."
+msgstr ""
+
+msgctxt "#32197"
+msgid "Require the token for reading too"
+msgstr ""
+
+msgctxt "#32198"
+msgid "Asks for the token before showing anything at all, not just before switching a mode. Turn this on when the box is on a shared network."
+msgstr ""
+
+msgctxt "#32199"
+msgid "Allow VS10 switching from the dashboard"
+msgstr ""
+
+msgctxt "#32200"
+msgid "Shows the VS10 output modes for the playing source in the browser, so the mode can be switched from a phone. The token is required either way."
+msgstr ""
+
+msgctxt "#32201"
+msgid "Web dashboard"
+msgstr ""
+
+msgctxt "#32202"
+msgid "Open this address in a browser on the same network:"
+msgstr ""
+
+msgctxt "#32203"
+msgid "(Default)"
+msgstr ""
+
+msgctxt "#32204"
+msgid "HEX color"
+msgstr ""
+
+msgctxt "#32205"
+msgid "Enter a 6-digit HEX color (e.g. FF5733)"
+msgstr ""
+
+msgctxt "#32206"
+msgid "Invalid HEX color – using the default color"
+msgstr ""
+
+msgctxt "#32207"
+msgid "Custom color applied"
+msgstr ""
+
+msgctxt "#32208"
+msgid "White"
+msgstr ""
+
+msgctxt "#32209"
+msgid "Light blue"
+msgstr ""
+
+msgctxt "#32210"
+msgid "Charcoal"
+msgstr ""
+
+msgctxt "#32211"
+msgid "Black"
+msgstr ""
+
+msgctxt "#32212"
+msgid "Crimson"
+msgstr ""
+
+msgctxt "#32213"
+msgid "Tangerine"
+msgstr ""
+
+msgctxt "#32214"
+msgid "Forest"
+msgstr ""
+
+msgctxt "#32215"
+msgid "Only CoreELEC 22 or later is supported"
+msgstr ""
+
+msgctxt "#32216"
+msgid "The CoreELEC version could not be detected"
+msgstr ""
+
+msgctxt "#32217"
+msgid "720p skins are not supported"
+msgstr ""
+
+msgctxt "#32218"
+msgid "Video"
+msgstr ""
+
+msgctxt "#32219"
+msgid "Display output"
+msgstr ""
+
+msgctxt "#32220"
+msgid "Video stream"
+msgstr ""
+
+msgctxt "#32221"
+msgid "Pixel format"
+msgstr ""
+
+msgctxt "#32222"
+msgid "Bit depth"
+msgstr ""
+
+msgctxt "#32223"
+msgid "Aspect ratio"
+msgstr ""
+
+msgctxt "#32224"
+msgid "Decoder"
+msgstr ""
+
+msgctxt "#32225"
+msgid "Decode method"
+msgstr ""
+
+msgctxt "#32226"
+msgid "Processing"
+msgstr ""
+
+msgctxt "#32227"
+msgid "Input"
+msgstr ""
+
+msgctxt "#32228"
+msgid "Converting"
+msgstr ""
+
+msgctxt "#32229"
+msgid "Bitrate"
+msgstr ""
+
+msgctxt "#32230"
+msgid "N/A"
+msgstr ""
+
+msgctxt "#32231"
+msgid "Mode"
+msgstr ""
+
+msgctxt "#32232"
+msgid "Color gamut"
+msgstr ""
+
+msgctxt "#32233"
+msgid "Media source"
+msgstr ""
+
+msgctxt "#32234"
+msgid "Playback time"
+msgstr ""
+
+msgctxt "#32235"
+msgid "Live TV"
+msgstr ""
+
+msgctxt "#32236"
+msgid "Livestream"
+msgstr ""
+
+msgctxt "#32237"
+msgid "Audio"
+msgstr ""
+
+msgctxt "#32238"
+msgid "Audio codec"
+msgstr ""
+
+msgctxt "#32239"
+msgid "Audio resolution"
+msgstr ""
+
+msgctxt "#32240"
+msgid "Input"
+msgstr ""
+
+msgctxt "#32241"
+msgid "Output"
+msgstr ""
+
+msgctxt "#32242"
+msgid "Passthrough"
+msgstr ""
+
+msgctxt "#32243"
+msgid "Decoding"
+msgstr ""
+
+msgctxt "#32244"
+msgid "Audio language"
+msgstr ""
+
+msgctxt "#32245"
+msgid "Subtitle language"
+msgstr ""
+
+msgctxt "#32246"
+msgid "Disabled"
+msgstr ""
+
+msgctxt "#32247"
+msgid "System"
+msgstr ""
+
+msgctxt "#32248"
+msgid "In / drop / out"
+msgstr ""
+
+msgctxt "#32249"
+msgid "Processor"
+msgstr ""
+
+msgctxt "#32250"
+msgid "Temperature"
+msgstr ""
+
+msgctxt "#32251"
+msgid "Memory usage"
+msgstr ""
+
+msgctxt "#32252"
+msgid "Player cache"
+msgstr ""
+
+msgctxt "#32253"
+msgid "Video queue / data"
+msgstr ""
+
+msgctxt "#32254"
+msgid "Audio queue / data"
+msgstr ""
+
+msgctxt "#32255"
+msgid "HDR Static Metadata"
+msgstr ""
+
+msgctxt "#32256"
+msgid "HDR10 MDL"
+msgstr ""
+
+msgctxt "#32257"
+msgid "HDR10 CLL/FALL"
+msgstr ""
+
+msgctxt "#32258"
+msgid "CM Version"
+msgstr ""
+
+msgctxt "#32259"
+msgid "Structure"
+msgstr ""
+
+msgctxt "#32260"
+msgid "Version"
+msgstr ""
+
+msgctxt "#32261"
+msgid "Profile"
+msgstr ""
+
+msgctxt "#32262"
+msgid "RPU / BL"
+msgstr ""
+
+msgctxt "#32263"
+msgid "EL / Type"
+msgstr ""
+
+msgctxt "#32264"
 msgid "Metadata"
 msgstr ""
 
-msgctxt "#32584"
+msgctxt "#32265"
+msgid "RPU MDL"
+msgstr ""
+
+msgctxt "#32266"
+msgid "L6 MDL"
+msgstr ""
+
+msgctxt "#32267"
+msgid "RPU MaxCLL/FALL"
+msgstr ""
+
+msgctxt "#32268"
+msgid "L6 MaxCLL/FALL"
+msgstr ""
+
+msgctxt "#32269"
+msgid "L1 Lum Min/Max/Ø"
+msgstr ""
+
+msgctxt "#32270"
+msgid "L1 PQ Min/Max/Ø"
+msgstr ""
+
+msgctxt "#32271"
+msgid "L5 Active Area"
+msgstr ""
+
+msgctxt "#32272"
+msgid "OK: open section — Back: TinyPPI overlay"
+msgstr ""
+
+msgctxt "#32273"
+msgid "Back: metadata list"
+msgstr ""
+
+msgctxt "#32274"
+msgid "Connected"
+msgstr ""
+
+msgctxt "#32275"
+msgid "Connecting..."
+msgstr ""
+
+msgctxt "#32276"
+msgid "Disconnected"
+msgstr ""
+
+msgctxt "#32277"
+msgid "Nothing is playing"
+msgstr ""
+
+msgctxt "#32278"
+msgid "Start a video on the box and everything it carries appears here."
+msgstr ""
+
+msgctxt "#32279"
+msgid "Peak"
+msgstr ""
+
+msgctxt "#32280"
+msgid "Average"
+msgstr ""
+
+msgctxt "#32281"
+msgid "Frame luminance (L1)"
+msgstr ""
+
+msgctxt "#32282"
+msgid "VS10 output"
+msgstr ""
+
+msgctxt "#32283"
+msgid "No Dolby Vision metadata"
+msgstr ""
+
+msgctxt "#32284"
+msgid "This source carries no Dolby Vision RPU, so there is no metadata to list. The window fills as soon as a Dolby Vision title starts."
+msgstr ""
+
+msgctxt "#32285"
+msgid "Output"
+msgstr ""
+
+msgctxt "#32286"
+msgid "Copy report"
+msgstr ""
+
+msgctxt "#32287"
+msgid "Copied"
+msgstr ""
+
+msgctxt "#32288"
+msgid "Enter the access token"
+msgstr ""
+
+msgctxt "#32289"
+msgid "You will find it in the add-on settings under Dashboard."
+msgstr ""
+
+msgctxt "#32290"
+msgid "Save"
+msgstr ""
+
+msgctxt "#32291"
+msgid "Cancel"
+msgstr ""
+
+msgctxt "#32292"
+msgid "Wrong or missing token"
+msgstr ""
+
+msgctxt "#32293"
+msgid "Switching..."
+msgstr ""
+
+msgctxt "#32294"
+msgid "Switched"
+msgstr ""
+
+msgctxt "#32295"
+msgid "Switching failed"
+msgstr ""
+
+msgctxt "#32296"
+msgid "Switches"
+msgstr ""
+
+msgctxt "#32297"
+msgid "Events"
+msgstr ""
+
+msgctxt "#32298"
+msgid "Nothing out of the ordinary yet"
+msgstr ""
+
+msgctxt "#32299"
+msgid "1 min"
+msgstr ""
+
+msgctxt "#32300"
+msgid "10 min"
+msgstr ""
+
+msgctxt "#32301"
+msgid "Whole title"
+msgstr ""
+
+msgctxt "#32302"
+msgid "Audio track"
+msgstr ""
+
+msgctxt "#32303"
+msgid "Subtitles"
+msgstr ""
+
+msgctxt "#32304"
+msgid "Off"
+msgstr ""
+
+msgctxt "#32305"
+msgid "Mute"
+msgstr ""
+
+msgctxt "#32306"
+msgid "Play / Pause"
+msgstr ""
+
+msgctxt "#32307"
+msgid "Stop"
+msgstr ""
+
+msgctxt "#32308"
+msgid "Display mode"
+msgstr ""
+
+msgctxt "#32309"
+msgid "Playback controls"
+msgstr ""
+
+msgctxt "#32310"
+msgid "Metrics"
+msgstr ""
+
+msgctxt "#32311"
+msgid "Player cache"
+msgstr ""
+
+msgctxt "#32312"
+msgid "Warnings"
+msgstr ""
+
+msgctxt "#32313"
+msgid "Dark"
+msgstr ""
+
+msgctxt "#32314"
+msgid "Dark (adaptive)"
+msgstr ""
+
+msgctxt "#32315"
+msgid "Midnight"
+msgstr ""
+
+msgctxt "#32316"
+msgid "Choose a theme"
+msgstr ""
+
+msgctxt "#32317"
+msgid "Intensity"
+msgstr ""
+
+msgctxt "#32318"
+msgid "Subtle"
+msgstr ""
+
+msgctxt "#32319"
+msgid "Standard"
+msgstr ""
+
+msgctxt "#32320"
+msgid "Strong"
+msgstr ""
+
+msgctxt "#32321"
+msgid "Last played"
+msgstr ""
+
+msgctxt "#32322"
+msgid "Summary"
+msgstr ""
+
+msgctxt "#32323"
+msgid "Too many connections"
+msgstr ""
+
+msgctxt "#32324"
+msgid "Live"
+msgstr ""
+
+msgctxt "#32325"
+msgid "Metadata"
+msgstr ""
+
+msgctxt "#32326"
 msgid "History"
 msgstr ""
 
-msgctxt "#32585"
+msgctxt "#32327"
 msgid "Settings"
 msgstr ""
 
-msgctxt "#32586"
+msgctxt "#32328"
 msgid "Enter token"
 msgstr ""
 
-msgctxt "#32587"
+msgctxt "#32329"
 msgid "Readings and events"
 msgstr ""
 
-msgctxt "#32588"
+msgctxt "#32330"
+msgid "Previous chapter"
+msgstr ""
+
+msgctxt "#32331"
+msgid "Next chapter"
+msgstr ""
+
+msgctxt "#32332"
+msgid "Volume down"
+msgstr ""
+
+msgctxt "#32333"
+msgid "Volume up"
+msgstr ""
+
+msgctxt "#32334"
+msgid "Ends at"
+msgstr ""
+
+msgctxt "#32335"
+msgid "Films"
+msgstr ""
+
+msgctxt "#32336"
+msgid "No films in the video library"
+msgstr ""
+
+msgctxt "#32337"
+msgid "Search films"
+msgstr ""
+
+msgctxt "#32338"
+msgid "Starting…"
+msgstr ""
+
+msgctxt "#32339"
+msgid "Playback could not be started"
+msgstr ""
+
+msgctxt "#32340"
+msgid "Resume"
+msgstr ""
+
+msgctxt "#32341"
+msgid "Watched"
+msgstr ""
+
+msgctxt "#32342"
+msgid "Continue watching"
+msgstr ""
+
+msgctxt "#32343"
 msgid "Recently added"
 msgstr ""
 
-msgctxt "#32589"
-msgid "(Default)"
+msgctxt "#32344"
+msgid "Unwatched films"
+msgstr ""
+
+msgctxt "#32345"
+msgid "Unwatched series"
+msgstr ""
+
+msgctxt "#32346"
+msgid "Mark as watched"
+msgstr ""
+
+msgctxt "#32347"
+msgid "Mark as unwatched"
+msgstr ""
+
+msgctxt "#32348"
+msgid "The library could not be updated"
+msgstr ""
+
+msgctxt "#32349"
+msgid "Play"
+msgstr ""
+
+msgctxt "#32350"
+msgid "Open"
+msgstr ""
+
+msgctxt "#32351"
+msgid "Play from the beginning"
+msgstr ""
+
+msgctxt "#32352"
+msgid "Clear resume point"
+msgstr ""
+
+msgctxt "#32353"
+msgid "Series"
+msgstr ""
+
+msgctxt "#32354"
+msgid "No series in the video library"
+msgstr ""
+
+msgctxt "#32355"
+msgid "Search series"
+msgstr ""
+
+msgctxt "#32356"
+msgid "All series"
+msgstr ""
+
+msgctxt "#32357"
+msgid "Unwatched episodes"
+msgstr ""
+
+msgctxt "#32358"
+msgid "Season %s"
+msgstr ""
+
+msgctxt "#32359"
+msgid "Specials"
+msgstr ""
+
+msgctxt "#32360"
+msgid "Episodes could not be loaded"
+msgstr ""
+
+msgctxt "#32361"
+msgid "Clear the search"
+msgstr ""
+
+msgctxt "#32362"
+msgid "%s h %s min"
+msgstr ""
+
+msgctxt "#32363"
+msgid "%s min"
+msgstr ""
+
+msgctxt "#32364"
+msgid "%s h"
+msgstr ""
+
+msgctxt "#32365"
+msgid "Dolby Vision"
 msgstr ""

@@ -13,10 +13,10 @@ from core import settings
 from core.utils import localized
 from web.server import ensure_token, generate_token, local_address
 
-_HEADING       = 32446   # Web dashboard
-_ADDRESS_INTRO = 32447   # Open this address in a browser on the same network:
-_TOKEN_LABEL   = 32436   # Access token
-_TOKEN_NEW     = 32438   # Generate a new token
+_HEADING       = 32201   # Web dashboard
+_ADDRESS_INTRO = 32202   # Open this address in a browser on the same network:
+_TOKEN_LABEL   = 32187   # Access token
+_TOKEN_NEW     = 32189   # Generate a new token
 
 
 def show_web_info() -> None:

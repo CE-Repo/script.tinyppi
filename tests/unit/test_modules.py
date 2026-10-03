@@ -39,7 +39,7 @@ def test_settings_handle_is_kept():
 
 def test_strings_are_cached_per_language():
     from core.utils import localized
-    assert localized(32033) == "#32033"
+    assert localized(32230) == "#32230"
 
 
 def test_display_reset_without_drm_gives_up_once():

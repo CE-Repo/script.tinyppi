@@ -81,74 +81,74 @@ def S(key: str, prefix: str = "", suffix: str = "") -> tuple[str, str, str]:
 # Rows: (label string id, value segments, detail segments).  The detail is
 # what the overlay shows in its accent color.
 _VIDEO = (
-    (32000, (S("DisplayModeVar"),), ()),
-    (32001, (S("VideoResolutionVar"),), ()),
-    (32023, (S("VideoPixelFormatVar"),), (S("DoviTunnelVar", "(", ")"),)),
-    (32099, (S("VideoBitDepthVar"),), ()),
-    (32024, (S("AspectRatioVar", "", ":1"),), (S("ImaxVar", "(", ")"),)),
-    (32005, (S("VideoDecoderNameVar"), S("VideoCodecVar")),
+    (32219, (S("DisplayModeVar"),), ()),
+    (32220, (S("VideoResolutionVar"),), ()),
+    (32221, (S("VideoPixelFormatVar"),), (S("DoviTunnelVar", "(", ")"),)),
+    (32222, (S("VideoBitDepthVar"),), ()),
+    (32223, (S("AspectRatioVar", "", ":1"),), (S("ImaxVar", "(", ")"),)),
+    (32224, (S("VideoDecoderNameVar"), S("VideoCodecVar")),
             (S("VideoDecoderVar", "(", ")"),)),
-    (32287, (S("VideoDecoderLongVar"),), ()),
+    (32225, (S("VideoDecoderLongVar"),), ()),
 )
 
 _PROCESSING = (
-    (32051, (S("DoviProfileVar"),), ()),
-    (32070, (S("ModeVar"),), ()),
-    (32015, (S("GamutVar"),), ()),
-    (32047, (S("VideoBitrateRow"),), (S("VideoBitrateDetail"),)),
-    (32288, (S("MediaSourceVar"),), ()),
-    (32013, (S("PlaybackStateRow"), S("PlaybackTimeRow"),
+    (32227, (S("DoviProfileVar"),), ()),
+    (32231, (S("ModeVar"),), ()),
+    (32232, (S("GamutVar"),), ()),
+    (32229, (S("VideoBitrateRow"),), (S("VideoBitrateDetail"),)),
+    (32233, (S("MediaSourceVar"),), ()),
+    (32234, (S("PlaybackStateRow"), S("PlaybackTimeRow"),
              S("PlaybackDurationRow", " / ", "")),
             (S("PlaybackProgressRow", "(", "%)"),)),
 )
 
 _AUDIO = (
     # AudioCodecSpatialVar already includes its parentheses.
-    (32045, (S("AudioCodecVar"), S("AudioChannelsVar", " ", "")),
+    (32238, (S("AudioCodecVar"), S("AudioChannelsVar", " ", "")),
              (S("AudioCodecSpatialVar"),)),
-    (32069, (S("AudioBitDepthVar", "", " / "), S("AudioSampleRateVar")), ()),
-    (32429, (S("AudioChannelsInputVar"),), ()),
-    (32055, (S("AudioOutputRow"),), ()),
-    (32047, (S("AudioBitrateRow"),), (S("AudioBitrateDetail"),)),
-    (32052, (S("AudioNameShortVar"), S("AudioNameVar", " | ", "")), ()),
-    (32053, (S("SubtitleStateRow"), S("SubtitleShortRow"),
+    (32239, (S("AudioBitDepthVar", "", " / "), S("AudioSampleRateVar")), ()),
+    (32240, (S("AudioChannelsInputVar"),), ()),
+    (32241, (S("AudioOutputRow"),), ()),
+    (32229, (S("AudioBitrateRow"),), (S("AudioBitrateDetail"),)),
+    (32244, (S("AudioNameShortVar"), S("AudioNameVar", " | ", "")), ()),
+    (32245, (S("SubtitleStateRow"), S("SubtitleShortRow"),
              S("SubtitleNameRow", " | ", "")),
             (S("SubtitleCodecRow", "(", ")"),)),
 )
 
 _SYSTEM = (
-    (32036, (S("FpsInfoVar"), S("FpsDropVar", " = ", " FPS")), ()),
-    (32014, (S("CpuTopUsageVar", "", " |"), S("CpuUsageVar", " ", "")), ()),
-    (32018, (S("CpuTemperature"),), ()),
-    (32034, (S("MemoryUsed"),), ()),
-    (32032, (S("PlayerCacheLevel", "", "%"),), ()),
-    (32022, (S("VideoQueueLevel", "", "%"), S("VideoQueueDataLevel", " | ", "%")), ()),
-    (32025, (S("AudioQueueLevel", "", "%"), S("AudioQueueDataLevel", " | ", "%")), ()),
+    (32248, (S("FpsInfoVar"), S("FpsDropVar", " = ", " FPS")), ()),
+    (32249, (S("CpuTopUsageVar", "", " |"), S("CpuUsageVar", " ", "")), ()),
+    (32250, (S("CpuTemperature"),), ()),
+    (32251, (S("MemoryUsed"),), ()),
+    (32252, (S("PlayerCacheLevel", "", "%"),), ()),
+    (32253, (S("VideoQueueLevel", "", "%"), S("VideoQueueDataLevel", " | ", "%")), ()),
+    (32254, (S("AudioQueueLevel", "", "%"), S("AudioQueueDataLevel", " | ", "%")), ()),
 )
 
 _HDR_STATIC = (
-    (32296, (S("Hdr10MdlVar"),), ()),
-    (32297, (S("Hdr10MaxCllFallVar"),), ()),
+    (32256, (S("Hdr10MdlVar"),), ()),
+    (32257, (S("Hdr10MaxCllFallVar"),), ()),
 )
 
 # Dolby Vision stream facts: profile, versions and layers.
 _DOLBY_VISION = (
-    (32290, (S("DoviProfileNumberVar"),), ()),
-    (32291, (S("DoviVersionVar"),), ()),
-    (32379, (S("DoviCmVersionVar"),), ()),
-    (32380, (S("DoviStructureVar"),), ()),
-    (32381, (S("DoviRpuPresentFlag"), S("DoviBlPresentFlag", " | ", "")), ()),
-    (32382, (S("DoviElPresentFlag"),), (S("DoviElTypeVar", "(", ")"),)),
+    (32261, (S("DoviProfileNumberVar"),), ()),
+    (32260, (S("DoviVersionVar"),), ()),
+    (32258, (S("DoviCmVersionVar"),), ()),
+    (32259, (S("DoviStructureVar"),), ()),
+    (32262, (S("DoviRpuPresentFlag"), S("DoviBlPresentFlag", " | ", "")), ()),
+    (32263, (S("DoviElPresentFlag"),), (S("DoviElTypeVar", "(", ")"),)),
 )
 
 # RPU readings (mastering display, frame luminance, active area); shown in
-# one "Metadata" card (#32289) with the static readings, as in the overlay.
+# one "Metadata" card (#32264) with the static readings, as in the overlay.
 _DV_METADATA = (
-    (32425, (S("DoviRpuMdlVar"),), ()),
-    (32426, (S("DoviLevel6RpuMaxCllFallVar"),), ()),
-    (32375, (S("DoviLevel1FllVar"),), ()),
-    (32376, (S("DoviLevel1PqVar"),), ()),
-    (32030, (S("DoviLevel5OffsetsVar"),), ()),
+    (32265, (S("DoviRpuMdlVar"),), ()),
+    (32267, (S("DoviLevel6RpuMaxCllFallVar"),), ()),
+    (32269, (S("DoviLevel1FllVar"),), ()),
+    (32270, (S("DoviLevel1PqVar"),), ()),
+    (32271, (S("DoviLevel5OffsetsVar"),), ()),
 )
 
 
@@ -180,15 +180,15 @@ def _is_plain_hdr(source: str) -> bool:
 # applies-to hides HDR / DV cards for other sources, since their getters pad
 # missing blocks with zeros (see dvinfo._value_or), like the overlay does.
 _GROUPS = (
-    ("video",      32054, _VIDEO,       _always),
-    ("processing", 32007, _PROCESSING,  _always),
-    ("audio",      32056, _AUDIO,       _always),
-    ("system",     32088, _SYSTEM,      _always),
-    ("hdr",        32300, _HDR_STATIC,  _is_plain_hdr),
-    ("dv",         32472, _DOLBY_VISION, _is_dv),
+    ("video",      32218, _VIDEO,       _always),
+    ("processing", 32226, _PROCESSING,  _always),
+    ("audio",      32237, _AUDIO,       _always),
+    ("system",     32247, _SYSTEM,      _always),
+    ("hdr",        32255, _HDR_STATIC,  _is_plain_hdr),
+    ("dv",         32365, _DOLBY_VISION, _is_dv),
     # Two entries with the same id form one card (see _groups).
-    ("metadata",   32289, _HDR_STATIC,   _is_dv),
-    ("metadata",   32289, _DV_METADATA,  _is_dv),
+    ("metadata",   32264, _HDR_STATIC,   _is_dv),
+    ("metadata",   32264, _DV_METADATA,  _is_dv),
 )
 
 # Readings taken directly from Kodi, under the keys the rows use.
@@ -345,10 +345,10 @@ def _overlay_rows(values: dict[str, str]) -> dict[str, str]:
     if not info("VideoPlayer.AudioCodec").strip():
         rows["AudioOutputRow"] = ""
     elif cond("Player.Passthrough"):
-        rows["AudioOutputRow"] = _label(32035)
+        rows["AudioOutputRow"] = _label(32242)
     else:
         rows["AudioOutputRow"] = (values.get("AudioChannelsSink", "")
-                                  or _label(32087))
+                                  or _label(32243))
 
     rows["VideoBitrateRow"], rows["VideoBitrateDetail"] = _bitrate_row(
         values.get("VideoLiveBitrateVar", ""), values.get("VideoBitrateMBVar", ""))
@@ -361,15 +361,15 @@ def _overlay_rows(values: dict[str, str]) -> dict[str, str]:
         rows["SubtitleNameRow"] = values.get("SubtitleNameVar", "")
         rows["SubtitleCodecRow"] = values.get("SubtitleCodecVar", "")
     elif cond("VideoPlayer.HasSubtitles"):
-        rows["SubtitleStateRow"] = _label(32091)
+        rows["SubtitleStateRow"] = _label(32246)
 
     # Live TV without EPG and streams without a length get a label instead
     # of meaningless times.
     if _is_live_tv() and not values.get("BroadcastTimes"):
-        rows["PlaybackStateRow"] = _label(32362)
+        rows["PlaybackStateRow"] = _label(32235)
     elif (not values.get("PlayerDuration")
           and cond("Player.IsInternetStream") and not _is_live_tv()):
-        rows["PlaybackStateRow"] = _label(32363)
+        rows["PlaybackStateRow"] = _label(32236)
     elif values.get("PlayerDuration"):
         rows["PlaybackTimeRow"] = values.get("PlayerTime", "")
         rows["PlaybackDurationRow"] = values.get("PlayerDuration", "")

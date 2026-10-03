@@ -306,7 +306,7 @@
      are found by id, not by label, because the labels are translated. */
 
   const AUDIO_GROUP = "audio";
-  const AUDIO_CODEC_ROW = "audio.32045";
+  const AUDIO_CODEC_ROW = "audio.32238";
   const CHANNEL_LAYOUT = /^\d+\.\d+$/;
 
   /* Longest first, so "IMAX Enhanced" is found whole rather than as an IMAX

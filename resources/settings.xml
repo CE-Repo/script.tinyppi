@@ -3,20 +3,20 @@
      Copyright (c) 2026 U3knOwn -->
 <settings version="1">
     <section id="script.tinyppi">
-        <category id="General" label="32002" help="32003">
-            <group id="1" label="32334">
-                <setting id="launch_mode" type="integer" label="32092" help="32093">
+        <category id="General" label="32000" help="32001">
+            <group id="1" label="32002">
+                <setting id="launch_mode" type="integer" label="32003" help="32004">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32094">0</option>
-                            <option label="32095">1</option>
+                            <option label="32005">0</option>
+                            <option label="32006">1</option>
                         </options>
                     </constraints>
                     <control type="spinner" format="string" />
                 </setting>
-                <setting id="auto_hide" type="integer" label="32344" help="32345">
+                <setting id="auto_hide" type="integer" label="32007" help="32008">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -27,32 +27,32 @@
                     <control type="slider" format="integer" />
                 </setting>
             </group>
-            <group id="2" label="32335">
-                <setting id="filename" type="boolean" label="32019" help="32021">
+            <group id="2" label="32009">
+                <setting id="filename" type="boolean" label="32010" help="32011">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle" />
                 </setting>
-                <setting id="show_l5_icon" type="boolean" label="32195" help="32196">
+                <setting id="show_l5_icon" type="boolean" label="32012" help="32013">
                     <level>0</level>
                     <default>true</default>
                     <control type="toggle" />
                 </setting>
-                <setting id="unit_type" type="integer" label="32190" help="32191">
+                <setting id="unit_type" type="integer" label="32014" help="32015">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32192">0</option>
-                            <option label="32193">1</option>
-                            <option label="32194">2</option>
+                            <option label="32016">0</option>
+                            <option label="32017">1</option>
+                            <option label="32018">2</option>
                         </options>
                     </constraints>
                     <control type="spinner" format="string" />
                 </setting>
             </group>
-            <group id="3" label="32260">
-                <setting id="offset_x" type="integer" label="32261" help="32262">
+            <group id="3" label="32019">
+                <setting id="offset_x" type="integer" label="32020" help="32021">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -62,7 +62,7 @@
                     </constraints>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="offset_y" type="integer" label="32263" help="32264">
+                <setting id="offset_y" type="integer" label="32022" help="32023">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -72,35 +72,35 @@
                     </constraints>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="nudge_position" type="boolean" label="32398" help="32399">
+                <setting id="nudge_position" type="boolean" label="32024" help="32025">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle" />
                 </setting>
             </group>
-            <group id="4" label="32383">
-                <setting id="keep_area_on_sdr" type="boolean" label="32384" help="32385">
+            <group id="4" label="32026">
+                <setting id="keep_area_on_sdr" type="boolean" label="32027" help="32028">
                     <level>0</level>
                     <default>true</default>
                     <control type="toggle" />
                 </setting>
-                <setting id="keep_dv_area_on_hdr10" type="boolean" label="32386" help="32387">
+                <setting id="keep_dv_area_on_hdr10" type="boolean" label="32029" help="32030">
                     <level>0</level>
                     <default>true</default>
                     <control type="toggle" />
                 </setting>
             </group>
         </category>
-        <category id="TinyPPIOverlay" label="32327" help="32101">
-            <group id="1" label="32269">
-                <setting id="global_background_color" type="string" label="32269" help="32271">
+        <category id="TinyPPIOverlay" label="32031" help="32032">
+            <group id="1" label="32033">
+                <setting id="global_background_color" type="string" label="32033" help="32034">
                     <level>0</level>
-                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32210] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,global_background_color,32269)</data>
+                        <data>RunScript(script.tinyppi,pick_color,global_background_color,32033)</data>
                     </control>
                 </setting>
-                <setting id="global_background_opacity" type="integer" label="32267" help="32268">
+                <setting id="global_background_opacity" type="integer" label="32035" help="32036">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -111,15 +111,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="2" label="32103">
-                <setting id="background_color" type="string" label="32103" help="32104">
+            <group id="2" label="32037">
+                <setting id="background_color" type="string" label="32037" help="32038">
                     <level>0</level>
-                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32210] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,background_color,32103)</data>
+                        <data>RunScript(script.tinyppi,pick_color,background_color,32037)</data>
                     </control>
                 </setting>
-                <setting id="background_opacity" type="integer" label="32267" help="32266">
+                <setting id="background_opacity" type="integer" label="32035" help="32039">
                     <level>0</level>
                     <default>98</default>
                     <constraints>
@@ -130,15 +130,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="3" label="32105">
-                <setting id="title_color" type="string" label="32105" help="32106">
+            <group id="3" label="32040">
+                <setting id="title_color" type="string" label="32040" help="32041">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,title_color,32105)</data>
+                        <data>RunScript(script.tinyppi,pick_color,title_color,32040)</data>
                     </control>
                 </setting>
-                <setting id="title_opacity" type="integer" label="32267" help="32274">
+                <setting id="title_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -149,15 +149,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="4" label="32342">
-                <setting id="header_color" type="string" label="32342" help="32143">
+            <group id="4" label="32043">
+                <setting id="header_color" type="string" label="32043" help="32044">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,header_color,32342)</data>
+                        <data>RunScript(script.tinyppi,pick_color,header_color,32043)</data>
                     </control>
                 </setting>
-                <setting id="header_opacity" type="integer" label="32267" help="32274">
+                <setting id="header_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -168,15 +168,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="5" label="32107">
-                <setting id="description_color" type="string" label="32107" help="32108">
+            <group id="5" label="32045">
+                <setting id="description_color" type="string" label="32045" help="32046">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,description_color,32107)</data>
+                        <data>RunScript(script.tinyppi,pick_color,description_color,32045)</data>
                     </control>
                 </setting>
-                <setting id="description_opacity" type="integer" label="32267" help="32274">
+                <setting id="description_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -187,15 +187,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="6" label="32109">
-                <setting id="output_color" type="string" label="32109" help="32110">
+            <group id="6" label="32047">
+                <setting id="output_color" type="string" label="32047" help="32048">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,output_color,32109)</data>
+                        <data>RunScript(script.tinyppi,pick_color,output_color,32047)</data>
                     </control>
                 </setting>
-                <setting id="output_opacity" type="integer" label="32267" help="32274">
+                <setting id="output_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -206,15 +206,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="7" label="32395">
-                <setting id="output_changed_color" type="string" label="32395" help="32396">
+            <group id="7" label="32049">
+                <setting id="output_changed_color" type="string" label="32049" help="32050">
                     <level>0</level>
-                    <default>[COLOR=FF82B1FF]●[/COLOR] $ADDON[script.tinyppi 32127] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF82B1FF]●[/COLOR] $ADDON[script.tinyppi 32209] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,output_changed_color,32395)</data>
+                        <data>RunScript(script.tinyppi,pick_color,output_changed_color,32049)</data>
                     </control>
                 </setting>
-                <setting id="output_changed_opacity" type="integer" label="32267" help="32274">
+                <setting id="output_changed_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -224,7 +224,7 @@
                     </constraints>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="output_changed_duration" type="integer" label="32427" help="32428">
+                <setting id="output_changed_duration" type="integer" label="32051" help="32052">
                     <level>0</level>
                     <default>750</default>
                     <constraints>
@@ -235,20 +235,20 @@
                     <control type="slider" format="integer" />
                 </setting>
             </group>
-            <group id="8" label="32197">
-                <setting id="filename_color" type="string" label="32197" help="32198">
+            <group id="8" label="32053">
+                <setting id="filename_color" type="string" label="32053" help="32054">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="filename">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,filename_color,32197)</data>
+                        <data>RunScript(script.tinyppi,pick_color,filename_color,32053)</data>
                     </control>
                 </setting>
-                <setting id="filename_opacity" type="integer" label="32267" help="32274">
+                <setting id="filename_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -264,15 +264,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="9" label="32140">
-                <setting id="fps_color" type="string" label="32140" help="32141">
+            <group id="9" label="32055">
+                <setting id="fps_color" type="string" label="32055" help="32056">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,fps_color,32140)</data>
+                        <data>RunScript(script.tinyppi,pick_color,fps_color,32055)</data>
                     </control>
                 </setting>
-                <setting id="fps_opacity" type="integer" label="32267" help="32274">
+                <setting id="fps_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -283,20 +283,20 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="10" label="32117">
-                <setting id="unit_color" type="string" label="32117" help="32118">
+            <group id="10" label="32057">
+                <setting id="unit_color" type="string" label="32057" help="32058">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="!is" setting="unit_type">2</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,unit_color,32117)</data>
+                        <data>RunScript(script.tinyppi,pick_color,unit_color,32057)</data>
                     </control>
                 </setting>
-                <setting id="unit_opacity" type="integer" label="32267" help="32274">
+                <setting id="unit_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -312,15 +312,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="11" label="32113">
-                <setting id="accent_color" type="string" label="32113" help="32114">
+            <group id="11" label="32059">
+                <setting id="accent_color" type="string" label="32059" help="32060">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,accent_color,32113)</data>
+                        <data>RunScript(script.tinyppi,pick_color,accent_color,32059)</data>
                     </control>
                 </setting>
-                <setting id="accent_opacity" type="integer" label="32267" help="32274">
+                <setting id="accent_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>70</default>
                     <constraints>
@@ -331,15 +331,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="12" label="32115">
-                <setting id="icon_color" type="string" label="32115" help="32116">
+            <group id="12" label="32061">
+                <setting id="icon_color" type="string" label="32061" help="32062">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,icon_color,32115)</data>
+                        <data>RunScript(script.tinyppi,pick_color,icon_color,32061)</data>
                     </control>
                 </setting>
-                <setting id="icon_opacity" type="integer" label="32267" help="32274">
+                <setting id="icon_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -350,15 +350,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="13" label="32144">
-                <setting id="header_icon_color" type="string" label="32144" help="32145">
+            <group id="13" label="32063">
+                <setting id="header_icon_color" type="string" label="32063" help="32064">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,header_icon_color,32144)</data>
+                        <data>RunScript(script.tinyppi,pick_color,header_icon_color,32063)</data>
                     </control>
                 </setting>
-                <setting id="header_icon_opacity" type="integer" label="32267" help="32274">
+                <setting id="header_icon_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -369,15 +369,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="14" label="32111">
-                <setting id="progress_color" type="string" label="32111" help="32112">
+            <group id="14" label="32065">
+                <setting id="progress_color" type="string" label="32065" help="32066">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,progress_color,32111)</data>
+                        <data>RunScript(script.tinyppi,pick_color,progress_color,32065)</data>
                     </control>
                 </setting>
-                <setting id="progress_opacity" type="integer" label="32267" help="32274">
+                <setting id="progress_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -388,15 +388,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="15" label="32251">
-                <setting id="line_color" type="string" label="32251" help="32252">
+            <group id="15" label="32067">
+                <setting id="line_color" type="string" label="32067" help="32068">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,line_color,32251)</data>
+                        <data>RunScript(script.tinyppi,pick_color,line_color,32067)</data>
                     </control>
                 </setting>
-                <setting id="line_opacity" type="integer" label="32267" help="32274">
+                <setting id="line_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>15</default>
                     <constraints>
@@ -407,15 +407,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="16" label="32275">
-                <setting id="convert_yes_color" type="string" label="32275" help="32276">
+            <group id="16" label="32069">
+                <setting id="convert_yes_color" type="string" label="32069" help="32070">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32214] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,convert_yes_color,32275)</data>
+                        <data>RunScript(script.tinyppi,pick_color,convert_yes_color,32069)</data>
                     </control>
                 </setting>
-                <setting id="convert_yes_opacity" type="integer" label="32267" help="32274">
+                <setting id="convert_yes_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -426,15 +426,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="17" label="32277">
-                <setting id="convert_no_color" type="string" label="32277" help="32278">
+            <group id="17" label="32071">
+                <setting id="convert_no_color" type="string" label="32071" help="32072">
                     <level>0</level>
-                    <default>[COLOR=FFFF5252]●[/COLOR] $ADDON[script.tinyppi 32165] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFFF5252]●[/COLOR] $ADDON[script.tinyppi 32212] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,convert_no_color,32277)</data>
+                        <data>RunScript(script.tinyppi,pick_color,convert_no_color,32071)</data>
                     </control>
                 </setting>
-                <setting id="convert_no_opacity" type="integer" label="32267" help="32274">
+                <setting id="convert_no_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -445,15 +445,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="18" label="32279">
-                <setting id="fel_color" type="string" label="32279" help="32280">
+            <group id="18" label="32073">
+                <setting id="fel_color" type="string" label="32073" help="32074">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32214] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,fel_color,32279)</data>
+                        <data>RunScript(script.tinyppi,pick_color,fel_color,32073)</data>
                     </control>
                 </setting>
-                <setting id="fel_opacity" type="integer" label="32267" help="32274">
+                <setting id="fel_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -464,15 +464,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="19" label="32281">
-                <setting id="mel_color" type="string" label="32281" help="32282">
+            <group id="19" label="32075">
+                <setting id="mel_color" type="string" label="32075" help="32076">
                     <level>0</level>
-                    <default>[COLOR=FFFFB74D]●[/COLOR] $ADDON[script.tinyppi 32201] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFFFB74D]●[/COLOR] $ADDON[script.tinyppi 32213] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,mel_color,32281)</data>
+                        <data>RunScript(script.tinyppi,pick_color,mel_color,32075)</data>
                     </control>
                 </setting>
-                <setting id="mel_opacity" type="integer" label="32267" help="32274">
+                <setting id="mel_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -484,23 +484,23 @@
                 </setting>
             </group>
         </category>
-        <category id="Metadata" label="32391" help="32392">
-            <group id="1" label="32389">
-                <setting id="dv_metadata_view" type="boolean" label="32393" help="32394">
+        <category id="Metadata" label="32077" help="32078">
+            <group id="1" label="32079">
+                <setting id="dv_metadata_view" type="boolean" label="32080" help="32081">
                     <level>0</level>
                     <default>true</default>
                     <control type="toggle" />
                 </setting>
             </group>
-            <group id="2" label="32269">
-                <setting id="metadata_global_background_color" type="string" label="32269" help="32401">
+            <group id="2" label="32033">
+                <setting id="metadata_global_background_color" type="string" label="32033" help="32082">
                     <level>0</level>
-                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32210] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,metadata_global_background_color,32269)</data>
+                        <data>RunScript(script.tinyppi,pick_color,metadata_global_background_color,32033)</data>
                     </control>
                 </setting>
-                <setting id="metadata_global_background_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_global_background_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -511,15 +511,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="3" label="32103">
-                <setting id="metadata_background_color" type="string" label="32103" help="32403">
+            <group id="3" label="32037">
+                <setting id="metadata_background_color" type="string" label="32037" help="32083">
                     <level>0</level>
-                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32210] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,metadata_background_color,32103)</data>
+                        <data>RunScript(script.tinyppi,pick_color,metadata_background_color,32037)</data>
                     </control>
                 </setting>
-                <setting id="metadata_background_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_background_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>98</default>
                     <constraints>
@@ -530,15 +530,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="4" label="32342">
-                <setting id="metadata_header_color" type="string" label="32342" help="32405">
+            <group id="4" label="32043">
+                <setting id="metadata_header_color" type="string" label="32043" help="32084">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,metadata_header_color,32342)</data>
+                        <data>RunScript(script.tinyppi,pick_color,metadata_header_color,32043)</data>
                     </control>
                 </setting>
-                <setting id="metadata_header_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_header_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -549,15 +549,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="5" label="32144">
-                <setting id="metadata_header_icon_color" type="string" label="32144" help="32407">
+            <group id="5" label="32063">
+                <setting id="metadata_header_icon_color" type="string" label="32063" help="32085">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,metadata_header_icon_color,32144)</data>
+                        <data>RunScript(script.tinyppi,pick_color,metadata_header_icon_color,32063)</data>
                     </control>
                 </setting>
-                <setting id="metadata_header_icon_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_header_icon_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -568,15 +568,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="6" label="32105">
-                <setting id="metadata_title_color" type="string" label="32105" help="32409">
+            <group id="6" label="32040">
+                <setting id="metadata_title_color" type="string" label="32040" help="32086">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,metadata_title_color,32105)</data>
+                        <data>RunScript(script.tinyppi,pick_color,metadata_title_color,32040)</data>
                     </control>
                 </setting>
-                <setting id="metadata_title_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_title_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -587,15 +587,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="7" label="32410">
-                <setting id="metadata_column_color" type="string" label="32410" help="32411">
+            <group id="7" label="32087">
+                <setting id="metadata_column_color" type="string" label="32087" help="32088">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,metadata_column_color,32410)</data>
+                        <data>RunScript(script.tinyppi,pick_color,metadata_column_color,32087)</data>
                     </control>
                 </setting>
-                <setting id="metadata_column_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_column_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -606,15 +606,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="8" label="32107">
-                <setting id="metadata_name_color" type="string" label="32107" help="32413">
+            <group id="8" label="32045">
+                <setting id="metadata_name_color" type="string" label="32045" help="32089">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,metadata_name_color,32107)</data>
+                        <data>RunScript(script.tinyppi,pick_color,metadata_name_color,32045)</data>
                     </control>
                 </setting>
-                <setting id="metadata_name_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_name_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -625,15 +625,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="9" label="32109">
-                <setting id="metadata_value_color" type="string" label="32109" help="32415">
+            <group id="9" label="32047">
+                <setting id="metadata_value_color" type="string" label="32047" help="32090">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,metadata_value_color,32109)</data>
+                        <data>RunScript(script.tinyppi,pick_color,metadata_value_color,32047)</data>
                     </control>
                 </setting>
-                <setting id="metadata_value_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_value_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -644,15 +644,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="10" label="32395">
-                <setting id="metadata_changed_color" type="string" label="32395" help="32396">
+            <group id="10" label="32049">
+                <setting id="metadata_changed_color" type="string" label="32049" help="32050">
                     <level>0</level>
-                    <default>[COLOR=FF82B1FF]●[/COLOR] $ADDON[script.tinyppi 32127] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF82B1FF]●[/COLOR] $ADDON[script.tinyppi 32209] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,metadata_changed_color,32395)</data>
+                        <data>RunScript(script.tinyppi,pick_color,metadata_changed_color,32049)</data>
                     </control>
                 </setting>
-                <setting id="metadata_changed_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_changed_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -662,7 +662,7 @@
                     </constraints>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="metadata_changed_duration" type="integer" label="32427" help="32428">
+                <setting id="metadata_changed_duration" type="integer" label="32051" help="32052">
                     <level>0</level>
                     <default>750</default>
                     <constraints>
@@ -673,15 +673,15 @@
                     <control type="slider" format="integer" />
                 </setting>
             </group>
-            <group id="11" label="32251">
-                <setting id="metadata_line_color" type="string" label="32251" help="32417">
+            <group id="11" label="32067">
+                <setting id="metadata_line_color" type="string" label="32067" help="32091">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,metadata_line_color,32251)</data>
+                        <data>RunScript(script.tinyppi,pick_color,metadata_line_color,32067)</data>
                     </control>
                 </setting>
-                <setting id="metadata_line_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_line_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>15</default>
                     <constraints>
@@ -692,15 +692,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="12" label="32253">
-                <setting id="metadata_focus_color" type="string" label="32253" help="32419">
+            <group id="12" label="32092">
+                <setting id="metadata_focus_color" type="string" label="32092" help="32093">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,metadata_focus_color,32253)</data>
+                        <data>RunScript(script.tinyppi,pick_color,metadata_focus_color,32092)</data>
                     </control>
                 </setting>
-                <setting id="metadata_focus_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_focus_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>15</default>
                     <constraints>
@@ -711,15 +711,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="13" label="32420">
-                <setting id="metadata_scrollbar_color" type="string" label="32420" help="32421">
+            <group id="13" label="32094">
+                <setting id="metadata_scrollbar_color" type="string" label="32094" help="32095">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,metadata_scrollbar_color,32420)</data>
+                        <data>RunScript(script.tinyppi,pick_color,metadata_scrollbar_color,32094)</data>
                     </control>
                 </setting>
-                <setting id="metadata_scrollbar_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_scrollbar_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -730,15 +730,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="14" label="32422">
-                <setting id="metadata_hint_color" type="string" label="32422" help="32423">
+            <group id="14" label="32096">
+                <setting id="metadata_hint_color" type="string" label="32096" help="32097">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,metadata_hint_color,32422)</data>
+                        <data>RunScript(script.tinyppi,pick_color,metadata_hint_color,32096)</data>
                     </control>
                 </setting>
-                <setting id="metadata_hint_opacity" type="integer" label="32267" help="32274">
+                <setting id="metadata_hint_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -750,14 +750,14 @@
                 </setting>
             </group>
         </category>
-        <category id="Splash" label="32301" help="32310">
-            <group id="1" label="32325">
-                <setting id="splash_enabled" type="boolean" label="32302" help="32303">
+        <category id="Splash" label="32098" help="32099">
+            <group id="1" label="32100">
+                <setting id="splash_enabled" type="boolean" label="32101" help="32102">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle" />
                 </setting>
-                <setting id="splash_duration" type="integer" label="32304" help="32305">
+                <setting id="splash_duration" type="integer" label="32103" help="32104">
                     <level>0</level>
                     <default>8</default>
                     <constraints>
@@ -772,7 +772,7 @@
                     </dependencies>
                     <control type="slider" format="integer" />
                 </setting>
-                <setting id="splash_start_show_video" type="boolean" label="32519" help="32520">
+                <setting id="splash_start_show_video" type="boolean" label="32105" help="32106">
                     <level>0</level>
                     <default>true</default>
                     <dependencies>
@@ -782,7 +782,7 @@
                     </dependencies>
                     <control type="toggle" />
                 </setting>
-                <setting id="splash_start_show_audio" type="boolean" label="32521" help="32522">
+                <setting id="splash_start_show_audio" type="boolean" label="32107" help="32108">
                     <level>0</level>
                     <default>true</default>
                     <dependencies>
@@ -792,13 +792,13 @@
                     </dependencies>
                     <control type="toggle" />
                 </setting>
-                <setting id="splash_start_order" type="integer" label="32523" help="32524">
+                <setting id="splash_start_order" type="integer" label="32109" help="32110">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32525">0</option>
-                            <option label="32526">1</option>
+                            <option label="32111">0</option>
+                            <option label="32112">1</option>
                         </options>
                     </constraints>
                     <dependencies>
@@ -808,13 +808,13 @@
                     </dependencies>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="splash_start_pill_position" type="integer" label="32527" help="32528">
+                <setting id="splash_start_pill_position" type="integer" label="32113" help="32114">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32529">0</option>
-                            <option label="32530">1</option>
+                            <option label="32115">0</option>
+                            <option label="32116">1</option>
                         </options>
                     </constraints>
                     <dependencies>
@@ -824,7 +824,7 @@
                     </dependencies>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="splash_start_offset_x" type="integer" label="32308" help="32309">
+                <setting id="splash_start_offset_x" type="integer" label="32117" help="32118">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -839,7 +839,7 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_start_offset_y" type="integer" label="32323" help="32324">
+                <setting id="splash_start_offset_y" type="integer" label="32119" help="32120">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -854,7 +854,7 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_start_scale" type="integer" label="32328" help="32329">
+                <setting id="splash_start_scale" type="integer" label="32121" help="32122">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -869,19 +869,19 @@
                     </dependencies>
                     <control type="slider" format="integer" />
                 </setting>
-                <setting id="splash_start_bg_color" type="string" label="32313" help="32314">
+                <setting id="splash_start_bg_color" type="string" label="32123" help="32124">
                     <level>0</level>
-                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32210] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_start_bg_color,32313)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_start_bg_color,32123)</data>
                     </control>
                 </setting>
-                <setting id="splash_start_bg_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_start_bg_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>98</default>
                     <constraints>
@@ -896,19 +896,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_start_video_color" type="string" label="32315" help="32316">
+                <setting id="splash_start_video_color" type="string" label="32125" help="32126">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_start_video_color,32315)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_start_video_color,32125)</data>
                     </control>
                 </setting>
-                <setting id="splash_start_video_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_start_video_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -923,19 +923,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_start_audio_color" type="string" label="32317" help="32318">
+                <setting id="splash_start_audio_color" type="string" label="32127" help="32128">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_start_audio_color,32317)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_start_audio_color,32127)</data>
                     </control>
                 </setting>
-                <setting id="splash_start_audio_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_start_audio_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -950,19 +950,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_start_divider_color" type="string" label="32321" help="32322">
+                <setting id="splash_start_divider_color" type="string" label="32129" help="32130">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_start_divider_color,32321)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_start_divider_color,32129)</data>
                     </control>
                 </setting>
-                <setting id="splash_start_divider_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_start_divider_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>35</default>
                     <constraints>
@@ -977,19 +977,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_start_convert_dot_color" type="string" label="32367" help="32368">
+                <setting id="splash_start_convert_dot_color" type="string" label="32131" help="32132">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32214] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_start_convert_dot_color,32367)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_start_convert_dot_color,32131)</data>
                     </control>
                 </setting>
-                <setting id="splash_start_convert_dot_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_start_convert_dot_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1004,19 +1004,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_start_fel_color" type="string" label="32369" help="32370">
+                <setting id="splash_start_fel_color" type="string" label="32133" help="32134">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32214] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_start_fel_color,32369)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_start_fel_color,32133)</data>
                     </control>
                 </setting>
-                <setting id="splash_start_fel_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_start_fel_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1031,19 +1031,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_start_mel_color" type="string" label="32371" help="32372">
+                <setting id="splash_start_mel_color" type="string" label="32135" help="32136">
                     <level>0</level>
-                    <default>[COLOR=FFFFB74D]●[/COLOR] $ADDON[script.tinyppi 32201] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFFFB74D]●[/COLOR] $ADDON[script.tinyppi 32213] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_start_mel_color,32371)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_start_mel_color,32135)</data>
                     </control>
                 </setting>
-                <setting id="splash_start_mel_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_start_mel_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1058,19 +1058,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_start_dv_color" type="string" label="32373" help="32374">
+                <setting id="splash_start_dv_color" type="string" label="32137" help="32138">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_enabled">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_start_dv_color,32373)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_start_dv_color,32137)</data>
                     </control>
                 </setting>
-                <setting id="splash_start_dv_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_start_dv_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>20</default>
                     <constraints>
@@ -1086,13 +1086,13 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="2" label="32326">
-                <setting id="splash_show_on_osd" type="boolean" label="32306" help="32307">
+            <group id="2" label="32139">
+                <setting id="splash_show_on_osd" type="boolean" label="32140" help="32141">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle" />
                 </setting>
-                <setting id="splash_osd_show_video" type="boolean" label="32519" help="32520">
+                <setting id="splash_osd_show_video" type="boolean" label="32105" help="32106">
                     <level>0</level>
                     <default>true</default>
                     <dependencies>
@@ -1102,7 +1102,7 @@
                     </dependencies>
                     <control type="toggle" />
                 </setting>
-                <setting id="splash_osd_show_audio" type="boolean" label="32521" help="32522">
+                <setting id="splash_osd_show_audio" type="boolean" label="32107" help="32108">
                     <level>0</level>
                     <default>true</default>
                     <dependencies>
@@ -1112,13 +1112,13 @@
                     </dependencies>
                     <control type="toggle" />
                 </setting>
-                <setting id="splash_osd_order" type="integer" label="32523" help="32524">
+                <setting id="splash_osd_order" type="integer" label="32109" help="32110">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32525">0</option>
-                            <option label="32526">1</option>
+                            <option label="32111">0</option>
+                            <option label="32112">1</option>
                         </options>
                     </constraints>
                     <dependencies>
@@ -1128,13 +1128,13 @@
                     </dependencies>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="splash_osd_pill_position" type="integer" label="32527" help="32528">
+                <setting id="splash_osd_pill_position" type="integer" label="32113" help="32114">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32529">0</option>
-                            <option label="32530">1</option>
+                            <option label="32115">0</option>
+                            <option label="32116">1</option>
                         </options>
                     </constraints>
                     <dependencies>
@@ -1144,7 +1144,7 @@
                     </dependencies>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="splash_osd_offset_x" type="integer" label="32308" help="32309">
+                <setting id="splash_osd_offset_x" type="integer" label="32117" help="32118">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -1159,7 +1159,7 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_osd_offset_y" type="integer" label="32323" help="32324">
+                <setting id="splash_osd_offset_y" type="integer" label="32119" help="32120">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -1174,7 +1174,7 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_osd_scale" type="integer" label="32328" help="32329">
+                <setting id="splash_osd_scale" type="integer" label="32121" help="32122">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1189,19 +1189,19 @@
                     </dependencies>
                     <control type="slider" format="integer" />
                 </setting>
-                <setting id="splash_osd_bg_color" type="string" label="32313" help="32314">
+                <setting id="splash_osd_bg_color" type="string" label="32123" help="32124">
                     <level>0</level>
-                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32210] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_osd_bg_color,32313)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_osd_bg_color,32123)</data>
                     </control>
                 </setting>
-                <setting id="splash_osd_bg_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_osd_bg_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>98</default>
                     <constraints>
@@ -1216,19 +1216,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_osd_video_color" type="string" label="32315" help="32316">
+                <setting id="splash_osd_video_color" type="string" label="32125" help="32126">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_osd_video_color,32315)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_osd_video_color,32125)</data>
                     </control>
                 </setting>
-                <setting id="splash_osd_video_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_osd_video_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1243,19 +1243,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_osd_audio_color" type="string" label="32317" help="32318">
+                <setting id="splash_osd_audio_color" type="string" label="32127" help="32128">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_osd_audio_color,32317)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_osd_audio_color,32127)</data>
                     </control>
                 </setting>
-                <setting id="splash_osd_audio_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_osd_audio_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1270,19 +1270,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_osd_divider_color" type="string" label="32321" help="32322">
+                <setting id="splash_osd_divider_color" type="string" label="32129" help="32130">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_osd_divider_color,32321)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_osd_divider_color,32129)</data>
                     </control>
                 </setting>
-                <setting id="splash_osd_divider_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_osd_divider_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>35</default>
                     <constraints>
@@ -1297,19 +1297,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_osd_convert_dot_color" type="string" label="32367" help="32368">
+                <setting id="splash_osd_convert_dot_color" type="string" label="32131" help="32132">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32214] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_osd_convert_dot_color,32367)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_osd_convert_dot_color,32131)</data>
                     </control>
                 </setting>
-                <setting id="splash_osd_convert_dot_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_osd_convert_dot_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1324,19 +1324,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_osd_fel_color" type="string" label="32369" help="32370">
+                <setting id="splash_osd_fel_color" type="string" label="32133" help="32134">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32214] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_osd_fel_color,32369)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_osd_fel_color,32133)</data>
                     </control>
                 </setting>
-                <setting id="splash_osd_fel_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_osd_fel_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1351,19 +1351,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_osd_mel_color" type="string" label="32371" help="32372">
+                <setting id="splash_osd_mel_color" type="string" label="32135" help="32136">
                     <level>0</level>
-                    <default>[COLOR=FFFFB74D]●[/COLOR] $ADDON[script.tinyppi 32201] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFFFB74D]●[/COLOR] $ADDON[script.tinyppi 32213] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_osd_mel_color,32371)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_osd_mel_color,32135)</data>
                     </control>
                 </setting>
-                <setting id="splash_osd_mel_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_osd_mel_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1378,19 +1378,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_osd_dv_color" type="string" label="32373" help="32374">
+                <setting id="splash_osd_dv_color" type="string" label="32137" help="32138">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_osd">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_osd_dv_color,32373)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_osd_dv_color,32137)</data>
                     </control>
                 </setting>
-                <setting id="splash_osd_dv_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_osd_dv_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>20</default>
                     <constraints>
@@ -1406,13 +1406,13 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="3" label="32327">
-                <setting id="splash_show_on_tinyppi" type="boolean" label="32319" help="32320">
+            <group id="3" label="32031">
+                <setting id="splash_show_on_tinyppi" type="boolean" label="32142" help="32143">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle" />
                 </setting>
-                <setting id="splash_tinyppi_show_video" type="boolean" label="32519" help="32520">
+                <setting id="splash_tinyppi_show_video" type="boolean" label="32105" help="32106">
                     <level>0</level>
                     <default>true</default>
                     <dependencies>
@@ -1422,7 +1422,7 @@
                     </dependencies>
                     <control type="toggle" />
                 </setting>
-                <setting id="splash_tinyppi_show_audio" type="boolean" label="32521" help="32522">
+                <setting id="splash_tinyppi_show_audio" type="boolean" label="32107" help="32108">
                     <level>0</level>
                     <default>true</default>
                     <dependencies>
@@ -1432,13 +1432,13 @@
                     </dependencies>
                     <control type="toggle" />
                 </setting>
-                <setting id="splash_tinyppi_order" type="integer" label="32523" help="32524">
+                <setting id="splash_tinyppi_order" type="integer" label="32109" help="32110">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32525">0</option>
-                            <option label="32526">1</option>
+                            <option label="32111">0</option>
+                            <option label="32112">1</option>
                         </options>
                     </constraints>
                     <dependencies>
@@ -1448,13 +1448,13 @@
                     </dependencies>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="splash_tinyppi_pill_position" type="integer" label="32527" help="32528">
+                <setting id="splash_tinyppi_pill_position" type="integer" label="32113" help="32114">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
                         <options>
-                            <option label="32529">0</option>
-                            <option label="32530">1</option>
+                            <option label="32115">0</option>
+                            <option label="32116">1</option>
                         </options>
                     </constraints>
                     <dependencies>
@@ -1464,7 +1464,7 @@
                     </dependencies>
                     <control type="list" format="string" />
                 </setting>
-                <setting id="splash_tinyppi_offset_x" type="integer" label="32308" help="32309">
+                <setting id="splash_tinyppi_offset_x" type="integer" label="32117" help="32118">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -1479,7 +1479,7 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_tinyppi_offset_y" type="integer" label="32323" help="32324">
+                <setting id="splash_tinyppi_offset_y" type="integer" label="32119" help="32120">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -1494,7 +1494,7 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_tinyppi_scale" type="integer" label="32328" help="32329">
+                <setting id="splash_tinyppi_scale" type="integer" label="32121" help="32122">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1509,19 +1509,19 @@
                     </dependencies>
                     <control type="slider" format="integer" />
                 </setting>
-                <setting id="splash_tinyppi_bg_color" type="string" label="32313" help="32314">
+                <setting id="splash_tinyppi_bg_color" type="string" label="32123" help="32124">
                     <level>0</level>
-                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32210] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_bg_color,32313)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_bg_color,32123)</data>
                     </control>
                 </setting>
-                <setting id="splash_tinyppi_bg_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_tinyppi_bg_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>98</default>
                     <constraints>
@@ -1536,19 +1536,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_tinyppi_video_color" type="string" label="32315" help="32316">
+                <setting id="splash_tinyppi_video_color" type="string" label="32125" help="32126">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_video_color,32315)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_video_color,32125)</data>
                     </control>
                 </setting>
-                <setting id="splash_tinyppi_video_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_tinyppi_video_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1563,19 +1563,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_tinyppi_audio_color" type="string" label="32317" help="32318">
+                <setting id="splash_tinyppi_audio_color" type="string" label="32127" help="32128">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_audio_color,32317)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_audio_color,32127)</data>
                     </control>
                 </setting>
-                <setting id="splash_tinyppi_audio_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_tinyppi_audio_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1590,19 +1590,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_tinyppi_divider_color" type="string" label="32321" help="32322">
+                <setting id="splash_tinyppi_divider_color" type="string" label="32129" help="32130">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_divider_color,32321)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_divider_color,32129)</data>
                     </control>
                 </setting>
-                <setting id="splash_tinyppi_divider_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_tinyppi_divider_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>35</default>
                     <constraints>
@@ -1617,19 +1617,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_tinyppi_convert_dot_color" type="string" label="32367" help="32368">
+                <setting id="splash_tinyppi_convert_dot_color" type="string" label="32131" help="32132">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32214] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_convert_dot_color,32367)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_convert_dot_color,32131)</data>
                     </control>
                 </setting>
-                <setting id="splash_tinyppi_convert_dot_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_tinyppi_convert_dot_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1644,19 +1644,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_tinyppi_fel_color" type="string" label="32369" help="32370">
+                <setting id="splash_tinyppi_fel_color" type="string" label="32133" help="32134">
                     <level>0</level>
-                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32214] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_fel_color,32369)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_fel_color,32133)</data>
                     </control>
                 </setting>
-                <setting id="splash_tinyppi_fel_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_tinyppi_fel_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1671,19 +1671,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_tinyppi_mel_color" type="string" label="32371" help="32372">
+                <setting id="splash_tinyppi_mel_color" type="string" label="32135" help="32136">
                     <level>0</level>
-                    <default>[COLOR=FFFFB74D]●[/COLOR] $ADDON[script.tinyppi 32201] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFFFB74D]●[/COLOR] $ADDON[script.tinyppi 32213] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_mel_color,32371)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_mel_color,32135)</data>
                     </control>
                 </setting>
-                <setting id="splash_tinyppi_mel_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_tinyppi_mel_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1698,19 +1698,19 @@
                     </dependencies>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="splash_tinyppi_dv_color" type="string" label="32373" help="32374">
+                <setting id="splash_tinyppi_dv_color" type="string" label="32137" help="32138">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <dependencies>
                         <dependency type="visible">
                             <condition operator="is" setting="splash_show_on_tinyppi">true</condition>
                         </dependency>
                     </dependencies>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_dv_color,32373)</data>
+                        <data>RunScript(script.tinyppi,pick_color,splash_tinyppi_dv_color,32137)</data>
                     </control>
                 </setting>
-                <setting id="splash_tinyppi_dv_opacity" type="integer" label="32267" help="32274">
+                <setting id="splash_tinyppi_dv_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>20</default>
                     <constraints>
@@ -1727,23 +1727,23 @@
                 </setting>
             </group>
         </category>
-        <category id="Dialog" label="32095" help="32101">
-            <group id="20" label="32555">
-                <setting id="dialog_mode" type="integer" label="32556" help="32557">
+        <category id="Dialog" label="32006" help="32032">
+            <group id="20" label="32144">
+                <setting id="dialog_mode" type="integer" label="32145" help="32146">
                     <level>0</level>
                     <default>2</default>
                     <constraints>
                         <options>
-                            <option label="32564">2</option>
-                            <option label="32560">1</option>
-                            <option label="32558">0</option>
+                            <option label="32147">2</option>
+                            <option label="32148">1</option>
+                            <option label="32149">0</option>
                         </options>
                     </constraints>
                     <control type="list" format="string" />
                 </setting>
             </group>
-            <group id="21" label="32565">
-                <setting id="dialog_position_y" type="integer" label="32566" help="32567">
+            <group id="21" label="32150">
+                <setting id="dialog_position_y" type="integer" label="32151" help="32152">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1753,7 +1753,7 @@
                     </constraints>
                     <control type="slider" format="percentage" />
                 </setting>
-                <setting id="dialog_position_x" type="integer" label="32568" help="32569">
+                <setting id="dialog_position_x" type="integer" label="32153" help="32154">
                     <level>0</level>
                     <default>50</default>
                     <constraints>
@@ -1764,15 +1764,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="7" label="32269">
-                <setting id="dialog_global_background_color" type="string" label="32269" help="32271">
+            <group id="7" label="32033">
+                <setting id="dialog_global_background_color" type="string" label="32033" help="32034">
                     <level>0</level>
-                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32210] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,dialog_global_background_color,32269)</data>
+                        <data>RunScript(script.tinyppi,pick_color,dialog_global_background_color,32033)</data>
                     </control>
                 </setting>
-                <setting id="dialog_global_background_opacity" type="integer" label="32267" help="32268">
+                <setting id="dialog_global_background_opacity" type="integer" label="32035" help="32036">
                     <level>0</level>
                     <default>0</default>
                     <constraints>
@@ -1783,15 +1783,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="1" label="32103">
-                <setting id="dialog_background_color" type="string" label="32103" help="32337">
+            <group id="1" label="32037">
+                <setting id="dialog_background_color" type="string" label="32037" help="32155">
                     <level>0</level>
-                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32210] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,dialog_background_color,32103)</data>
+                        <data>RunScript(script.tinyppi,pick_color,dialog_background_color,32037)</data>
                     </control>
                 </setting>
-                <setting id="dialog_background_opacity" type="integer" label="32267" help="32274">
+                <setting id="dialog_background_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>98</default>
                     <constraints>
@@ -1802,15 +1802,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="2" label="32342">
-                <setting id="dialog_header_color" type="string" label="32342" help="32343">
+            <group id="2" label="32043">
+                <setting id="dialog_header_color" type="string" label="32043" help="32156">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,dialog_header_color,32342)</data>
+                        <data>RunScript(script.tinyppi,pick_color,dialog_header_color,32043)</data>
                     </control>
                 </setting>
-                <setting id="dialog_header_opacity" type="integer" label="32267" help="32274">
+                <setting id="dialog_header_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1821,15 +1821,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="3" label="32144">
-                <setting id="dialog_header_icon_color" type="string" label="32144" help="32341">
+            <group id="3" label="32063">
+                <setting id="dialog_header_icon_color" type="string" label="32063" help="32157">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,dialog_header_icon_color,32144)</data>
+                        <data>RunScript(script.tinyppi,pick_color,dialog_header_icon_color,32063)</data>
                     </control>
                 </setting>
-                <setting id="dialog_header_icon_opacity" type="integer" label="32267" help="32274">
+                <setting id="dialog_header_icon_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1840,15 +1840,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="4" label="32251">
-                <setting id="dialog_line_color" type="string" label="32251" help="32339">
+            <group id="4" label="32067">
+                <setting id="dialog_line_color" type="string" label="32067" help="32158">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,dialog_line_color,32251)</data>
+                        <data>RunScript(script.tinyppi,pick_color,dialog_line_color,32067)</data>
                     </control>
                 </setting>
-                <setting id="dialog_line_opacity" type="integer" label="32267" help="32274">
+                <setting id="dialog_line_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>15</default>
                     <constraints>
@@ -1859,15 +1859,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="22" label="32570">
-                <setting id="dialog_text_color" type="string" label="32570" help="32571">
+            <group id="22" label="32159">
+                <setting id="dialog_text_color" type="string" label="32159" help="32160">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,dialog_text_color,32570)</data>
+                        <data>RunScript(script.tinyppi,pick_color,dialog_text_color,32159)</data>
                     </control>
                 </setting>
-                <setting id="dialog_text_opacity" type="integer" label="32267" help="32274">
+                <setting id="dialog_text_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1878,15 +1878,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="5" label="32253">
-                <setting id="dialog_focus_color" type="string" label="32253" help="32254">
+            <group id="5" label="32092">
+                <setting id="dialog_focus_color" type="string" label="32092" help="32161">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,dialog_focus_color,32253)</data>
+                        <data>RunScript(script.tinyppi,pick_color,dialog_focus_color,32092)</data>
                     </control>
                 </setting>
-                <setting id="dialog_focus_opacity" type="integer" label="32267" help="32274">
+                <setting id="dialog_focus_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1897,15 +1897,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="6" label="32255">
-                <setting id="dialog_focus_text_color" type="string" label="32255" help="32256">
+            <group id="6" label="32162">
+                <setting id="dialog_focus_text_color" type="string" label="32162" help="32163">
                     <level>0</level>
-                    <default>[COLOR=FF000000]●[/COLOR] $ADDON[script.tinyppi 32131] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF000000]●[/COLOR] $ADDON[script.tinyppi 32211] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,dialog_focus_text_color,32255)</data>
+                        <data>RunScript(script.tinyppi,pick_color,dialog_focus_text_color,32162)</data>
                     </control>
                 </setting>
-                <setting id="dialog_focus_text_opacity" type="integer" label="32267" help="32274">
+                <setting id="dialog_focus_text_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1917,24 +1917,24 @@
                 </setting>
             </group>
         </category>
-        <category id="Channels" label="32350" help="32351">
-            <group id="1" label="32388">
-                <setting id="channels_sdr" type="boolean" label="32356" help="32357">
+        <category id="Channels" label="32164" help="32165">
+            <group id="1" label="32166">
+                <setting id="channels_sdr" type="boolean" label="32167" help="32168">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle" />
                 </setting>
-                <setting id="channels_hdr" type="boolean" label="32358" help="32359">
+                <setting id="channels_hdr" type="boolean" label="32169" help="32170">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle" />
                 </setting>
-                <setting id="channels_dv" type="boolean" label="32360" help="32361">
+                <setting id="channels_dv" type="boolean" label="32171" help="32172">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle" />
                 </setting>
-                <setting id="offset_x_dv" type="integer" label="32348" help="32349">
+                <setting id="offset_x_dv" type="integer" label="32173" help="32174">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -1945,15 +1945,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="2" label="32103">
-                <setting id="channel_background_color" type="string" label="32103" help="32353">
+            <group id="2" label="32037">
+                <setting id="channel_background_color" type="string" label="32037" help="32175">
                     <level>0</level>
-                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32130] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FF272D32]●[/COLOR] $ADDON[script.tinyppi 32210] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,channel_background_color,32103)</data>
+                        <data>RunScript(script.tinyppi,pick_color,channel_background_color,32037)</data>
                     </control>
                 </setting>
-                <setting id="channel_background_opacity" type="integer" label="32267" help="32274">
+                <setting id="channel_background_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>98</default>
                     <constraints>
@@ -1964,15 +1964,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="3" label="32352">
-                <setting id="channel_layout_color" type="string" label="32352" help="32354">
+            <group id="3" label="32176">
+                <setting id="channel_layout_color" type="string" label="32176" help="32177">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,channel_layout_color,32352)</data>
+                        <data>RunScript(script.tinyppi,pick_color,channel_layout_color,32176)</data>
                     </control>
                 </setting>
-                <setting id="channel_layout_opacity" type="integer" label="32267" help="32274">
+                <setting id="channel_layout_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>33</default>
                     <constraints>
@@ -1983,15 +1983,15 @@
                     <control type="slider" format="percentage" />
                 </setting>
             </group>
-            <group id="4" label="32350">
-                <setting id="channel_icon_color" type="string" label="32350" help="32355">
+            <group id="4" label="32164">
+                <setting id="channel_icon_color" type="string" label="32164" help="32178">
                     <level>0</level>
-                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120] $ADDON[script.tinyppi 32589]</default>
+                    <default>[COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208] $ADDON[script.tinyppi 32203]</default>
                     <control type="button" format="action">
-                        <data>RunScript(script.tinyppi,pick_color,channel_icon_color,32350)</data>
+                        <data>RunScript(script.tinyppi,pick_color,channel_icon_color,32164)</data>
                     </control>
                 </setting>
-                <setting id="channel_icon_opacity" type="integer" label="32267" help="32274">
+                <setting id="channel_icon_opacity" type="integer" label="32035" help="32042">
                     <level>0</level>
                     <default>100</default>
                     <constraints>
@@ -2003,14 +2003,14 @@
                 </setting>
             </group>
         </category>
-        <category id="Dashboard" label="32430" help="32431">
-            <group id="1" label="32430">
-                <setting id="web_enabled" type="boolean" label="32432" help="32433">
+        <category id="Dashboard" label="32179" help="32180">
+            <group id="1" label="32179">
+                <setting id="web_enabled" type="boolean" label="32181" help="32182">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle" />
                 </setting>
-                <setting id="web_port" type="integer" label="32434" help="32435">
+                <setting id="web_port" type="integer" label="32183" help="32184">
                     <level>0</level>
                     <default>8099</default>
                     <constraints>
@@ -2023,7 +2023,7 @@
                     </dependencies>
                     <control type="edit" format="integer" />
                 </setting>
-                <setting id="web_info" type="action" label="32444" help="32445">
+                <setting id="web_info" type="action" label="32185" help="32186">
                     <level>0</level>
                     <dependencies>
                         <dependency type="enable" setting="web_enabled">true</dependency>
@@ -2033,24 +2033,24 @@
                     </control>
                 </setting>
             </group>
-            <group id="2" label="32436">
-                <setting id="web_token" type="string" label="32436" help="32437">
+            <group id="2" label="32187">
+                <setting id="web_token" type="string" label="32187" help="32188">
                     <level>0</level>
                     <default></default>
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
                     <control type="edit" format="string">
-                        <heading>32436</heading>
+                        <heading>32187</heading>
                     </control>
                 </setting>
-                <setting id="web_token_new" type="action" label="32438" help="32439">
+                <setting id="web_token_new" type="action" label="32189" help="32190">
                     <level>0</level>
                     <control type="button" format="action">
                         <data>RunScript(script.tinyppi,web_token)</data>
                     </control>
                 </setting>
-                <setting id="web_metadata" type="boolean" label="32468" help="32469">
+                <setting id="web_metadata" type="boolean" label="32191" help="32192">
                     <level>0</level>
                     <default>true</default>
                     <dependencies>
@@ -2058,7 +2058,7 @@
                     </dependencies>
                     <control type="toggle" />
                 </setting>
-                <setting id="web_library" type="boolean" label="32538" help="32539">
+                <setting id="web_library" type="boolean" label="32193" help="32194">
                     <level>0</level>
                     <default>true</default>
                     <dependencies>
@@ -2066,7 +2066,7 @@
                     </dependencies>
                     <control type="toggle" />
                 </setting>
-                <setting id="web_series" type="boolean" label="32549" help="32550">
+                <setting id="web_series" type="boolean" label="32195" help="32196">
                     <level>0</level>
                     <default>true</default>
                     <dependencies>
@@ -2074,12 +2074,12 @@
                     </dependencies>
                     <control type="toggle" />
                 </setting>
-                <setting id="web_auth_read" type="boolean" label="32440" help="32441">
+                <setting id="web_auth_read" type="boolean" label="32197" help="32198">
                     <level>0</level>
                     <default>false</default>
                     <control type="toggle" />
                 </setting>
-                <setting id="web_allow_control" type="boolean" label="32442" help="32443">
+                <setting id="web_allow_control" type="boolean" label="32199" help="32200">
                     <level>0</level>
                     <default>true</default>
                     <control type="toggle" />
