@@ -21,8 +21,8 @@ python3 -m pytest tests
 | `unit/test_access.py` | Which host names count as the home network; the lockout table |
 | `unit/test_delta.py` | Delta frames of the event stream, applied as `js/core.js` applies them |
 | `unit/test_artwork.py` | Artwork sources (Kodi's texture cache first) and types (from the bytes) |
-| `unit/test_settings_definition.py` | `resources/settings.xml` against the five languages, the code and the skin: texts, defaults, dependencies, action buttons, colour defaults, opacity sliders, every setting read, every colour property used |
-| `unit/test_settings_logic.py` | The settings that only act with Dolby Vision or on Amlogic hardware, checked on their code paths; every colour setting reaching its skin property |
+| `unit/test_settings_definition.py` | `resources/settings.xml` against the five languages, the code and the skin: texts, defaults, dependencies, action buttons, colour defaults, every palette colour named, opacity sliders, every setting read, every colour property used |
+| `unit/test_settings_logic.py` | The settings that only act with Dolby Vision or on Amlogic hardware, checked on their code paths; every colour setting reaching its skin property; the colour picker (HEX tile first, then the palette sorted by hue, every tile distinct) |
 | `unit/test_properties.py` | The language codes of the audio and subtitle rows: unmapped codes as reported, untagged tracks as UNK, no audio track as N/A; the audio rows read N/A without a codec |
 | `unit/test_modules.py` | Every module imports; the small state holders behave |
 

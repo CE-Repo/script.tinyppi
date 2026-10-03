@@ -1846,3 +1846,1603 @@ msgstr "Nemrég hozzáadott"
 msgctxt "#32589"
 msgid "(Default)"
 msgstr "(Alap)"
+
+msgctxt "#32590"
+msgid "Gray 1"
+msgstr "Szürke 1"
+
+msgctxt "#32591"
+msgid "Gray 2"
+msgstr "Szürke 2"
+
+msgctxt "#32592"
+msgid "Gray 3"
+msgstr "Szürke 3"
+
+msgctxt "#32593"
+msgid "Gray 4"
+msgstr "Szürke 4"
+
+msgctxt "#32594"
+msgid "Gray 5"
+msgstr "Szürke 5"
+
+msgctxt "#32595"
+msgid "Gray 6"
+msgstr "Szürke 6"
+
+msgctxt "#32596"
+msgid "Gray 7"
+msgstr "Szürke 7"
+
+msgctxt "#32597"
+msgid "Gray 8"
+msgstr "Szürke 8"
+
+msgctxt "#32598"
+msgid "Gray 9"
+msgstr "Szürke 9"
+
+msgctxt "#32599"
+msgid "Gray 10"
+msgstr "Szürke 10"
+
+msgctxt "#32600"
+msgid "Red 1"
+msgstr "Piros 1"
+
+msgctxt "#32601"
+msgid "Red 2"
+msgstr "Piros 2"
+
+msgctxt "#32602"
+msgid "Red 3"
+msgstr "Piros 3"
+
+msgctxt "#32603"
+msgid "Red 4"
+msgstr "Piros 4"
+
+msgctxt "#32604"
+msgid "Red 5"
+msgstr "Piros 5"
+
+msgctxt "#32605"
+msgid "Red 6"
+msgstr "Piros 6"
+
+msgctxt "#32606"
+msgid "Red 7"
+msgstr "Piros 7"
+
+msgctxt "#32607"
+msgid "Red 8"
+msgstr "Piros 8"
+
+msgctxt "#32608"
+msgid "Red 9"
+msgstr "Piros 9"
+
+msgctxt "#32609"
+msgid "Scarlet 1"
+msgstr "Skarlát 1"
+
+msgctxt "#32610"
+msgid "Scarlet 2"
+msgstr "Skarlát 2"
+
+msgctxt "#32611"
+msgid "Scarlet 3"
+msgstr "Skarlát 3"
+
+msgctxt "#32612"
+msgid "Scarlet 4"
+msgstr "Skarlát 4"
+
+msgctxt "#32613"
+msgid "Scarlet 5"
+msgstr "Skarlát 5"
+
+msgctxt "#32614"
+msgid "Scarlet 6"
+msgstr "Skarlát 6"
+
+msgctxt "#32615"
+msgid "Scarlet 7"
+msgstr "Skarlát 7"
+
+msgctxt "#32616"
+msgid "Scarlet 8"
+msgstr "Skarlát 8"
+
+msgctxt "#32617"
+msgid "Scarlet 9"
+msgstr "Skarlát 9"
+
+msgctxt "#32618"
+msgid "Orange 1"
+msgstr "Narancs 1"
+
+msgctxt "#32619"
+msgid "Orange 2"
+msgstr "Narancs 2"
+
+msgctxt "#32620"
+msgid "Orange 3"
+msgstr "Narancs 3"
+
+msgctxt "#32621"
+msgid "Orange 4"
+msgstr "Narancs 4"
+
+msgctxt "#32622"
+msgid "Orange 5"
+msgstr "Narancs 5"
+
+msgctxt "#32623"
+msgid "Orange 6"
+msgstr "Narancs 6"
+
+msgctxt "#32624"
+msgid "Orange 7"
+msgstr "Narancs 7"
+
+msgctxt "#32625"
+msgid "Orange 8"
+msgstr "Narancs 8"
+
+msgctxt "#32626"
+msgid "Orange 9"
+msgstr "Narancs 9"
+
+msgctxt "#32627"
+msgid "Orange 10"
+msgstr "Narancs 10"
+
+msgctxt "#32628"
+msgid "Orange 11"
+msgstr "Narancs 11"
+
+msgctxt "#32629"
+msgid "Amber 1"
+msgstr "Borostyán 1"
+
+msgctxt "#32630"
+msgid "Amber 2"
+msgstr "Borostyán 2"
+
+msgctxt "#32631"
+msgid "Amber 3"
+msgstr "Borostyán 3"
+
+msgctxt "#32632"
+msgid "Amber 4"
+msgstr "Borostyán 4"
+
+msgctxt "#32633"
+msgid "Amber 5"
+msgstr "Borostyán 5"
+
+msgctxt "#32634"
+msgid "Amber 6"
+msgstr "Borostyán 6"
+
+msgctxt "#32635"
+msgid "Amber 7"
+msgstr "Borostyán 7"
+
+msgctxt "#32636"
+msgid "Amber 8"
+msgstr "Borostyán 8"
+
+msgctxt "#32637"
+msgid "Amber 9"
+msgstr "Borostyán 9"
+
+msgctxt "#32638"
+msgid "Amber 10"
+msgstr "Borostyán 10"
+
+msgctxt "#32639"
+msgid "Amber 11"
+msgstr "Borostyán 11"
+
+msgctxt "#32640"
+msgid "Yellow 1"
+msgstr "Sárga 1"
+
+msgctxt "#32641"
+msgid "Yellow 2"
+msgstr "Sárga 2"
+
+msgctxt "#32642"
+msgid "Yellow 3"
+msgstr "Sárga 3"
+
+msgctxt "#32643"
+msgid "Yellow 4"
+msgstr "Sárga 4"
+
+msgctxt "#32644"
+msgid "Yellow 5"
+msgstr "Sárga 5"
+
+msgctxt "#32645"
+msgid "Yellow 6"
+msgstr "Sárga 6"
+
+msgctxt "#32646"
+msgid "Yellow 7"
+msgstr "Sárga 7"
+
+msgctxt "#32647"
+msgid "Yellow 8"
+msgstr "Sárga 8"
+
+msgctxt "#32648"
+msgid "Yellow 9"
+msgstr "Sárga 9"
+
+msgctxt "#32649"
+msgid "Yellow 10"
+msgstr "Sárga 10"
+
+msgctxt "#32650"
+msgid "Yellow 11"
+msgstr "Sárga 11"
+
+msgctxt "#32651"
+msgid "Yellow 12"
+msgstr "Sárga 12"
+
+msgctxt "#32652"
+msgid "Yellow 13"
+msgstr "Sárga 13"
+
+msgctxt "#32653"
+msgid "Lime 1"
+msgstr "Limezöld 1"
+
+msgctxt "#32654"
+msgid "Lime 2"
+msgstr "Limezöld 2"
+
+msgctxt "#32655"
+msgid "Lime 3"
+msgstr "Limezöld 3"
+
+msgctxt "#32656"
+msgid "Lime 4"
+msgstr "Limezöld 4"
+
+msgctxt "#32657"
+msgid "Lime 5"
+msgstr "Limezöld 5"
+
+msgctxt "#32658"
+msgid "Lime 6"
+msgstr "Limezöld 6"
+
+msgctxt "#32659"
+msgid "Lime 7"
+msgstr "Limezöld 7"
+
+msgctxt "#32660"
+msgid "Lime 8"
+msgstr "Limezöld 8"
+
+msgctxt "#32661"
+msgid "Lime 9"
+msgstr "Limezöld 9"
+
+msgctxt "#32662"
+msgid "Lime 10"
+msgstr "Limezöld 10"
+
+msgctxt "#32663"
+msgid "Lime 11"
+msgstr "Limezöld 11"
+
+msgctxt "#32664"
+msgid "Lime 12"
+msgstr "Limezöld 12"
+
+msgctxt "#32665"
+msgid "Green 1"
+msgstr "Zöld 1"
+
+msgctxt "#32666"
+msgid "Green 2"
+msgstr "Zöld 2"
+
+msgctxt "#32667"
+msgid "Green 3"
+msgstr "Zöld 3"
+
+msgctxt "#32668"
+msgid "Green 4"
+msgstr "Zöld 4"
+
+msgctxt "#32669"
+msgid "Green 5"
+msgstr "Zöld 5"
+
+msgctxt "#32670"
+msgid "Green 6"
+msgstr "Zöld 6"
+
+msgctxt "#32671"
+msgid "Green 7"
+msgstr "Zöld 7"
+
+msgctxt "#32672"
+msgid "Green 8"
+msgstr "Zöld 8"
+
+msgctxt "#32673"
+msgid "Green 9"
+msgstr "Zöld 9"
+
+msgctxt "#32674"
+msgid "Emerald 1"
+msgstr "Smaragd 1"
+
+msgctxt "#32675"
+msgid "Emerald 2"
+msgstr "Smaragd 2"
+
+msgctxt "#32676"
+msgid "Emerald 3"
+msgstr "Smaragd 3"
+
+msgctxt "#32677"
+msgid "Emerald 4"
+msgstr "Smaragd 4"
+
+msgctxt "#32678"
+msgid "Emerald 5"
+msgstr "Smaragd 5"
+
+msgctxt "#32679"
+msgid "Emerald 6"
+msgstr "Smaragd 6"
+
+msgctxt "#32680"
+msgid "Emerald 7"
+msgstr "Smaragd 7"
+
+msgctxt "#32681"
+msgid "Emerald 8"
+msgstr "Smaragd 8"
+
+msgctxt "#32682"
+msgid "Emerald 9"
+msgstr "Smaragd 9"
+
+msgctxt "#32683"
+msgid "Emerald 10"
+msgstr "Smaragd 10"
+
+msgctxt "#32684"
+msgid "Teal 1"
+msgstr "Kékeszöld 1"
+
+msgctxt "#32685"
+msgid "Teal 2"
+msgstr "Kékeszöld 2"
+
+msgctxt "#32686"
+msgid "Teal 3"
+msgstr "Kékeszöld 3"
+
+msgctxt "#32687"
+msgid "Teal 4"
+msgstr "Kékeszöld 4"
+
+msgctxt "#32688"
+msgid "Teal 5"
+msgstr "Kékeszöld 5"
+
+msgctxt "#32689"
+msgid "Teal 6"
+msgstr "Kékeszöld 6"
+
+msgctxt "#32690"
+msgid "Teal 7"
+msgstr "Kékeszöld 7"
+
+msgctxt "#32691"
+msgid "Cyan 1"
+msgstr "Cián 1"
+
+msgctxt "#32692"
+msgid "Cyan 2"
+msgstr "Cián 2"
+
+msgctxt "#32693"
+msgid "Cyan 3"
+msgstr "Cián 3"
+
+msgctxt "#32694"
+msgid "Cyan 4"
+msgstr "Cián 4"
+
+msgctxt "#32695"
+msgid "Cyan 5"
+msgstr "Cián 5"
+
+msgctxt "#32696"
+msgid "Cyan 6"
+msgstr "Cián 6"
+
+msgctxt "#32697"
+msgid "Cyan 7"
+msgstr "Cián 7"
+
+msgctxt "#32698"
+msgid "Sky blue 1"
+msgstr "Égszínkék 1"
+
+msgctxt "#32699"
+msgid "Sky blue 2"
+msgstr "Égszínkék 2"
+
+msgctxt "#32700"
+msgid "Sky blue 3"
+msgstr "Égszínkék 3"
+
+msgctxt "#32701"
+msgid "Sky blue 4"
+msgstr "Égszínkék 4"
+
+msgctxt "#32702"
+msgid "Sky blue 5"
+msgstr "Égszínkék 5"
+
+msgctxt "#32703"
+msgid "Sky blue 6"
+msgstr "Égszínkék 6"
+
+msgctxt "#32704"
+msgid "Sky blue 7"
+msgstr "Égszínkék 7"
+
+msgctxt "#32705"
+msgid "Sky blue 8"
+msgstr "Égszínkék 8"
+
+msgctxt "#32706"
+msgid "Sky blue 9"
+msgstr "Égszínkék 9"
+
+msgctxt "#32707"
+msgid "Azure 1"
+msgstr "Azúrkék 1"
+
+msgctxt "#32708"
+msgid "Azure 2"
+msgstr "Azúrkék 2"
+
+msgctxt "#32709"
+msgid "Azure 3"
+msgstr "Azúrkék 3"
+
+msgctxt "#32710"
+msgid "Azure 4"
+msgstr "Azúrkék 4"
+
+msgctxt "#32711"
+msgid "Azure 5"
+msgstr "Azúrkék 5"
+
+msgctxt "#32712"
+msgid "Azure 6"
+msgstr "Azúrkék 6"
+
+msgctxt "#32713"
+msgid "Azure 7"
+msgstr "Azúrkék 7"
+
+msgctxt "#32714"
+msgid "Azure 8"
+msgstr "Azúrkék 8"
+
+msgctxt "#32715"
+msgid "Azure 9"
+msgstr "Azúrkék 9"
+
+msgctxt "#32716"
+msgid "Azure 10"
+msgstr "Azúrkék 10"
+
+msgctxt "#32717"
+msgid "Azure 11"
+msgstr "Azúrkék 11"
+
+msgctxt "#32718"
+msgid "Blue 1"
+msgstr "Kék 1"
+
+msgctxt "#32719"
+msgid "Blue 2"
+msgstr "Kék 2"
+
+msgctxt "#32720"
+msgid "Blue 3"
+msgstr "Kék 3"
+
+msgctxt "#32721"
+msgid "Blue 4"
+msgstr "Kék 4"
+
+msgctxt "#32722"
+msgid "Blue 5"
+msgstr "Kék 5"
+
+msgctxt "#32723"
+msgid "Blue 6"
+msgstr "Kék 6"
+
+msgctxt "#32724"
+msgid "Blue 7"
+msgstr "Kék 7"
+
+msgctxt "#32725"
+msgid "Blue 8"
+msgstr "Kék 8"
+
+msgctxt "#32726"
+msgid "Blue 9"
+msgstr "Kék 9"
+
+msgctxt "#32727"
+msgid "Indigo 1"
+msgstr "Indigó 1"
+
+msgctxt "#32728"
+msgid "Indigo 2"
+msgstr "Indigó 2"
+
+msgctxt "#32729"
+msgid "Indigo 3"
+msgstr "Indigó 3"
+
+msgctxt "#32730"
+msgid "Indigo 4"
+msgstr "Indigó 4"
+
+msgctxt "#32731"
+msgid "Indigo 5"
+msgstr "Indigó 5"
+
+msgctxt "#32732"
+msgid "Indigo 6"
+msgstr "Indigó 6"
+
+msgctxt "#32733"
+msgid "Indigo 7"
+msgstr "Indigó 7"
+
+msgctxt "#32734"
+msgid "Violet 1"
+msgstr "Ibolya 1"
+
+msgctxt "#32735"
+msgid "Violet 2"
+msgstr "Ibolya 2"
+
+msgctxt "#32736"
+msgid "Violet 3"
+msgstr "Ibolya 3"
+
+msgctxt "#32737"
+msgid "Violet 4"
+msgstr "Ibolya 4"
+
+msgctxt "#32738"
+msgid "Violet 5"
+msgstr "Ibolya 5"
+
+msgctxt "#32739"
+msgid "Violet 6"
+msgstr "Ibolya 6"
+
+msgctxt "#32740"
+msgid "Violet 7"
+msgstr "Ibolya 7"
+
+msgctxt "#32741"
+msgid "Violet 8"
+msgstr "Ibolya 8"
+
+msgctxt "#32742"
+msgid "Violet 9"
+msgstr "Ibolya 9"
+
+msgctxt "#32743"
+msgid "Violet 10"
+msgstr "Ibolya 10"
+
+msgctxt "#32744"
+msgid "Purple 1"
+msgstr "Lila 1"
+
+msgctxt "#32745"
+msgid "Purple 2"
+msgstr "Lila 2"
+
+msgctxt "#32746"
+msgid "Purple 3"
+msgstr "Lila 3"
+
+msgctxt "#32747"
+msgid "Purple 4"
+msgstr "Lila 4"
+
+msgctxt "#32748"
+msgid "Purple 5"
+msgstr "Lila 5"
+
+msgctxt "#32749"
+msgid "Purple 6"
+msgstr "Lila 6"
+
+msgctxt "#32750"
+msgid "Purple 7"
+msgstr "Lila 7"
+
+msgctxt "#32751"
+msgid "Purple 8"
+msgstr "Lila 8"
+
+msgctxt "#32752"
+msgid "Purple 9"
+msgstr "Lila 9"
+
+msgctxt "#32753"
+msgid "Purple 10"
+msgstr "Lila 10"
+
+msgctxt "#32754"
+msgid "Purple 11"
+msgstr "Lila 11"
+
+msgctxt "#32755"
+msgid "Magenta 1"
+msgstr "Magenta 1"
+
+msgctxt "#32756"
+msgid "Magenta 2"
+msgstr "Magenta 2"
+
+msgctxt "#32757"
+msgid "Magenta 3"
+msgstr "Magenta 3"
+
+msgctxt "#32758"
+msgid "Magenta 4"
+msgstr "Magenta 4"
+
+msgctxt "#32759"
+msgid "Magenta 5"
+msgstr "Magenta 5"
+
+msgctxt "#32760"
+msgid "Magenta 6"
+msgstr "Magenta 6"
+
+msgctxt "#32761"
+msgid "Magenta 7"
+msgstr "Magenta 7"
+
+msgctxt "#32762"
+msgid "Magenta 8"
+msgstr "Magenta 8"
+
+msgctxt "#32763"
+msgid "Magenta 9"
+msgstr "Magenta 9"
+
+msgctxt "#32764"
+msgid "Magenta 10"
+msgstr "Magenta 10"
+
+msgctxt "#32765"
+msgid "Magenta 11"
+msgstr "Magenta 11"
+
+msgctxt "#32766"
+msgid "Pink 1"
+msgstr "Rózsaszín 1"
+
+msgctxt "#32767"
+msgid "Pink 2"
+msgstr "Rózsaszín 2"
+
+msgctxt "#32768"
+msgid "Pink 3"
+msgstr "Rózsaszín 3"
+
+msgctxt "#32769"
+msgid "Pink 4"
+msgstr "Rózsaszín 4"
+
+msgctxt "#32770"
+msgid "Pink 5"
+msgstr "Rózsaszín 5"
+
+msgctxt "#32771"
+msgid "Pink 6"
+msgstr "Rózsaszín 6"
+
+msgctxt "#32772"
+msgid "Pink 7"
+msgstr "Rózsaszín 7"
+
+msgctxt "#32773"
+msgid "Pink 8"
+msgstr "Rózsaszín 8"
+
+msgctxt "#32774"
+msgid "Pink 9"
+msgstr "Rózsaszín 9"
+
+msgctxt "#32775"
+msgid "Pink 10"
+msgstr "Rózsaszín 10"
+
+msgctxt "#32776"
+msgid "Pink 11"
+msgstr "Rózsaszín 11"
+
+msgctxt "#32777"
+msgid "Pink 12"
+msgstr "Rózsaszín 12"
+
+msgctxt "#32778"
+msgid "Pink 13"
+msgstr "Rózsaszín 13"
+
+msgctxt "#32779"
+msgid "Rose 1"
+msgstr "Rózsa 1"
+
+msgctxt "#32780"
+msgid "Rose 2"
+msgstr "Rózsa 2"
+
+msgctxt "#32781"
+msgid "Rose 3"
+msgstr "Rózsa 3"
+
+msgctxt "#32782"
+msgid "Rose 4"
+msgstr "Rózsa 4"
+
+msgctxt "#32783"
+msgid "Rose 5"
+msgstr "Rózsa 5"
+
+msgctxt "#32784"
+msgid "Rose 6"
+msgstr "Rózsa 6"
+
+msgctxt "#32785"
+msgid "Rose 7"
+msgstr "Rózsa 7"
+
+msgctxt "#32786"
+msgid "Rose 8"
+msgstr "Rózsa 8"
+
+msgctxt "#32787"
+msgid "Rose 9"
+msgstr "Rózsa 9"
+
+msgctxt "#32788"
+msgid "Rose 10"
+msgstr "Rózsa 10"
+
+msgctxt "#32789"
+msgid "Rose 11"
+msgstr "Rózsa 11"
+
+msgctxt "#32790"
+msgid "Dark gray 1"
+msgstr "Sötétszürke 1"
+
+msgctxt "#32791"
+msgid "Dark gray 2"
+msgstr "Sötétszürke 2"
+
+msgctxt "#32792"
+msgid "Dark gray 3"
+msgstr "Sötétszürke 3"
+
+msgctxt "#32793"
+msgid "Dark gray 4"
+msgstr "Sötétszürke 4"
+
+msgctxt "#32794"
+msgid "Dark gray 5"
+msgstr "Sötétszürke 5"
+
+msgctxt "#32795"
+msgid "Dark gray 6"
+msgstr "Sötétszürke 6"
+
+msgctxt "#32796"
+msgid "Dark gray 7"
+msgstr "Sötétszürke 7"
+
+msgctxt "#32797"
+msgid "Dark red 1"
+msgstr "Sötétpiros 1"
+
+msgctxt "#32798"
+msgid "Dark red 2"
+msgstr "Sötétpiros 2"
+
+msgctxt "#32799"
+msgid "Dark red 3"
+msgstr "Sötétpiros 3"
+
+msgctxt "#32800"
+msgid "Dark red 4"
+msgstr "Sötétpiros 4"
+
+msgctxt "#32801"
+msgid "Dark red 5"
+msgstr "Sötétpiros 5"
+
+msgctxt "#32802"
+msgid "Dark red 6"
+msgstr "Sötétpiros 6"
+
+msgctxt "#32803"
+msgid "Dark red 7"
+msgstr "Sötétpiros 7"
+
+msgctxt "#32804"
+msgid "Dark red 8"
+msgstr "Sötétpiros 8"
+
+msgctxt "#32805"
+msgid "Dark red 9"
+msgstr "Sötétpiros 9"
+
+msgctxt "#32806"
+msgid "Dark scarlet 1"
+msgstr "Sötét skarlát 1"
+
+msgctxt "#32807"
+msgid "Dark scarlet 2"
+msgstr "Sötét skarlát 2"
+
+msgctxt "#32808"
+msgid "Dark scarlet 3"
+msgstr "Sötét skarlát 3"
+
+msgctxt "#32809"
+msgid "Dark scarlet 4"
+msgstr "Sötét skarlát 4"
+
+msgctxt "#32810"
+msgid "Dark scarlet 5"
+msgstr "Sötét skarlát 5"
+
+msgctxt "#32811"
+msgid "Dark scarlet 6"
+msgstr "Sötét skarlát 6"
+
+msgctxt "#32812"
+msgid "Dark scarlet 7"
+msgstr "Sötét skarlát 7"
+
+msgctxt "#32813"
+msgid "Dark scarlet 8"
+msgstr "Sötét skarlát 8"
+
+msgctxt "#32814"
+msgid "Dark scarlet 9"
+msgstr "Sötét skarlát 9"
+
+msgctxt "#32815"
+msgid "Dark scarlet 10"
+msgstr "Sötét skarlát 10"
+
+msgctxt "#32816"
+msgid "Dark scarlet 11"
+msgstr "Sötét skarlát 11"
+
+msgctxt "#32817"
+msgid "Dark orange 1"
+msgstr "Sötétnarancs 1"
+
+msgctxt "#32818"
+msgid "Dark orange 2"
+msgstr "Sötétnarancs 2"
+
+msgctxt "#32819"
+msgid "Dark orange 3"
+msgstr "Sötétnarancs 3"
+
+msgctxt "#32820"
+msgid "Dark orange 4"
+msgstr "Sötétnarancs 4"
+
+msgctxt "#32821"
+msgid "Dark orange 5"
+msgstr "Sötétnarancs 5"
+
+msgctxt "#32822"
+msgid "Dark orange 6"
+msgstr "Sötétnarancs 6"
+
+msgctxt "#32823"
+msgid "Dark orange 7"
+msgstr "Sötétnarancs 7"
+
+msgctxt "#32824"
+msgid "Dark orange 8"
+msgstr "Sötétnarancs 8"
+
+msgctxt "#32825"
+msgid "Dark orange 9"
+msgstr "Sötétnarancs 9"
+
+msgctxt "#32826"
+msgid "Dark orange 10"
+msgstr "Sötétnarancs 10"
+
+msgctxt "#32827"
+msgid "Dark orange 11"
+msgstr "Sötétnarancs 11"
+
+msgctxt "#32828"
+msgid "Dark orange 12"
+msgstr "Sötétnarancs 12"
+
+msgctxt "#32829"
+msgid "Dark amber 1"
+msgstr "Sötét borostyán 1"
+
+msgctxt "#32830"
+msgid "Dark amber 2"
+msgstr "Sötét borostyán 2"
+
+msgctxt "#32831"
+msgid "Dark amber 3"
+msgstr "Sötét borostyán 3"
+
+msgctxt "#32832"
+msgid "Dark amber 4"
+msgstr "Sötét borostyán 4"
+
+msgctxt "#32833"
+msgid "Dark amber 5"
+msgstr "Sötét borostyán 5"
+
+msgctxt "#32834"
+msgid "Dark amber 6"
+msgstr "Sötét borostyán 6"
+
+msgctxt "#32835"
+msgid "Dark amber 7"
+msgstr "Sötét borostyán 7"
+
+msgctxt "#32836"
+msgid "Dark amber 8"
+msgstr "Sötét borostyán 8"
+
+msgctxt "#32837"
+msgid "Dark amber 9"
+msgstr "Sötét borostyán 9"
+
+msgctxt "#32838"
+msgid "Dark amber 10"
+msgstr "Sötét borostyán 10"
+
+msgctxt "#32839"
+msgid "Dark yellow 1"
+msgstr "Sötétsárga 1"
+
+msgctxt "#32840"
+msgid "Dark yellow 2"
+msgstr "Sötétsárga 2"
+
+msgctxt "#32841"
+msgid "Dark yellow 3"
+msgstr "Sötétsárga 3"
+
+msgctxt "#32842"
+msgid "Dark yellow 4"
+msgstr "Sötétsárga 4"
+
+msgctxt "#32843"
+msgid "Dark yellow 5"
+msgstr "Sötétsárga 5"
+
+msgctxt "#32844"
+msgid "Dark yellow 6"
+msgstr "Sötétsárga 6"
+
+msgctxt "#32845"
+msgid "Dark yellow 7"
+msgstr "Sötétsárga 7"
+
+msgctxt "#32846"
+msgid "Dark yellow 8"
+msgstr "Sötétsárga 8"
+
+msgctxt "#32847"
+msgid "Dark yellow 9"
+msgstr "Sötétsárga 9"
+
+msgctxt "#32848"
+msgid "Dark yellow 10"
+msgstr "Sötétsárga 10"
+
+msgctxt "#32849"
+msgid "Dark lime 1"
+msgstr "Sötét limezöld 1"
+
+msgctxt "#32850"
+msgid "Dark lime 2"
+msgstr "Sötét limezöld 2"
+
+msgctxt "#32851"
+msgid "Dark lime 3"
+msgstr "Sötét limezöld 3"
+
+msgctxt "#32852"
+msgid "Dark lime 4"
+msgstr "Sötét limezöld 4"
+
+msgctxt "#32853"
+msgid "Dark lime 5"
+msgstr "Sötét limezöld 5"
+
+msgctxt "#32854"
+msgid "Dark lime 6"
+msgstr "Sötét limezöld 6"
+
+msgctxt "#32855"
+msgid "Dark lime 7"
+msgstr "Sötét limezöld 7"
+
+msgctxt "#32856"
+msgid "Dark lime 8"
+msgstr "Sötét limezöld 8"
+
+msgctxt "#32857"
+msgid "Dark lime 9"
+msgstr "Sötét limezöld 9"
+
+msgctxt "#32858"
+msgid "Dark lime 10"
+msgstr "Sötét limezöld 10"
+
+msgctxt "#32859"
+msgid "Dark lime 11"
+msgstr "Sötét limezöld 11"
+
+msgctxt "#32860"
+msgid "Dark lime 12"
+msgstr "Sötét limezöld 12"
+
+msgctxt "#32861"
+msgid "Dark lime 13"
+msgstr "Sötét limezöld 13"
+
+msgctxt "#32862"
+msgid "Dark green 1"
+msgstr "Sötétzöld 1"
+
+msgctxt "#32863"
+msgid "Dark green 2"
+msgstr "Sötétzöld 2"
+
+msgctxt "#32864"
+msgid "Dark green 3"
+msgstr "Sötétzöld 3"
+
+msgctxt "#32865"
+msgid "Dark green 4"
+msgstr "Sötétzöld 4"
+
+msgctxt "#32866"
+msgid "Dark green 5"
+msgstr "Sötétzöld 5"
+
+msgctxt "#32867"
+msgid "Dark green 6"
+msgstr "Sötétzöld 6"
+
+msgctxt "#32868"
+msgid "Dark green 7"
+msgstr "Sötétzöld 7"
+
+msgctxt "#32869"
+msgid "Dark green 8"
+msgstr "Sötétzöld 8"
+
+msgctxt "#32870"
+msgid "Dark green 9"
+msgstr "Sötétzöld 9"
+
+msgctxt "#32871"
+msgid "Dark green 10"
+msgstr "Sötétzöld 10"
+
+msgctxt "#32872"
+msgid "Dark emerald 1"
+msgstr "Sötét smaragd 1"
+
+msgctxt "#32873"
+msgid "Dark emerald 2"
+msgstr "Sötét smaragd 2"
+
+msgctxt "#32874"
+msgid "Dark emerald 3"
+msgstr "Sötét smaragd 3"
+
+msgctxt "#32875"
+msgid "Dark emerald 4"
+msgstr "Sötét smaragd 4"
+
+msgctxt "#32876"
+msgid "Dark emerald 5"
+msgstr "Sötét smaragd 5"
+
+msgctxt "#32877"
+msgid "Dark emerald 6"
+msgstr "Sötét smaragd 6"
+
+msgctxt "#32878"
+msgid "Dark emerald 7"
+msgstr "Sötét smaragd 7"
+
+msgctxt "#32879"
+msgid "Dark emerald 8"
+msgstr "Sötét smaragd 8"
+
+msgctxt "#32880"
+msgid "Dark emerald 9"
+msgstr "Sötét smaragd 9"
+
+msgctxt "#32881"
+msgid "Dark teal 1"
+msgstr "Sötét kékeszöld 1"
+
+msgctxt "#32882"
+msgid "Dark teal 2"
+msgstr "Sötét kékeszöld 2"
+
+msgctxt "#32883"
+msgid "Dark teal 3"
+msgstr "Sötét kékeszöld 3"
+
+msgctxt "#32884"
+msgid "Dark teal 4"
+msgstr "Sötét kékeszöld 4"
+
+msgctxt "#32885"
+msgid "Dark teal 5"
+msgstr "Sötét kékeszöld 5"
+
+msgctxt "#32886"
+msgid "Dark teal 6"
+msgstr "Sötét kékeszöld 6"
+
+msgctxt "#32887"
+msgid "Dark teal 7"
+msgstr "Sötét kékeszöld 7"
+
+msgctxt "#32888"
+msgid "Dark teal 8"
+msgstr "Sötét kékeszöld 8"
+
+msgctxt "#32889"
+msgid "Dark teal 9"
+msgstr "Sötét kékeszöld 9"
+
+msgctxt "#32890"
+msgid "Dark teal 10"
+msgstr "Sötét kékeszöld 10"
+
+msgctxt "#32891"
+msgid "Dark cyan 1"
+msgstr "Sötétcián 1"
+
+msgctxt "#32892"
+msgid "Dark cyan 2"
+msgstr "Sötétcián 2"
+
+msgctxt "#32893"
+msgid "Dark cyan 3"
+msgstr "Sötétcián 3"
+
+msgctxt "#32894"
+msgid "Dark cyan 4"
+msgstr "Sötétcián 4"
+
+msgctxt "#32895"
+msgid "Dark cyan 5"
+msgstr "Sötétcián 5"
+
+msgctxt "#32896"
+msgid "Dark cyan 6"
+msgstr "Sötétcián 6"
+
+msgctxt "#32897"
+msgid "Dark cyan 7"
+msgstr "Sötétcián 7"
+
+msgctxt "#32898"
+msgid "Dark sky 1"
+msgstr "Sötét égszínkék 1"
+
+msgctxt "#32899"
+msgid "Dark sky 2"
+msgstr "Sötét égszínkék 2"
+
+msgctxt "#32900"
+msgid "Dark sky 3"
+msgstr "Sötét égszínkék 3"
+
+msgctxt "#32901"
+msgid "Dark sky 4"
+msgstr "Sötét égszínkék 4"
+
+msgctxt "#32902"
+msgid "Dark sky 5"
+msgstr "Sötét égszínkék 5"
+
+msgctxt "#32903"
+msgid "Dark sky 6"
+msgstr "Sötét égszínkék 6"
+
+msgctxt "#32904"
+msgid "Dark sky 7"
+msgstr "Sötét égszínkék 7"
+
+msgctxt "#32905"
+msgid "Dark sky 8"
+msgstr "Sötét égszínkék 8"
+
+msgctxt "#32906"
+msgid "Dark sky 9"
+msgstr "Sötét égszínkék 9"
+
+msgctxt "#32907"
+msgid "Dark sky 10"
+msgstr "Sötét égszínkék 10"
+
+msgctxt "#32908"
+msgid "Dark azure 1"
+msgstr "Sötét azúrkék 1"
+
+msgctxt "#32909"
+msgid "Dark azure 2"
+msgstr "Sötét azúrkék 2"
+
+msgctxt "#32910"
+msgid "Dark azure 3"
+msgstr "Sötét azúrkék 3"
+
+msgctxt "#32911"
+msgid "Dark azure 4"
+msgstr "Sötét azúrkék 4"
+
+msgctxt "#32912"
+msgid "Dark azure 5"
+msgstr "Sötét azúrkék 5"
+
+msgctxt "#32913"
+msgid "Dark azure 6"
+msgstr "Sötét azúrkék 6"
+
+msgctxt "#32914"
+msgid "Dark azure 7"
+msgstr "Sötét azúrkék 7"
+
+msgctxt "#32915"
+msgid "Dark azure 8"
+msgstr "Sötét azúrkék 8"
+
+msgctxt "#32916"
+msgid "Dark azure 9"
+msgstr "Sötét azúrkék 9"
+
+msgctxt "#32917"
+msgid "Dark azure 10"
+msgstr "Sötét azúrkék 10"
+
+msgctxt "#32918"
+msgid "Dark azure 11"
+msgstr "Sötét azúrkék 11"
+
+msgctxt "#32919"
+msgid "Dark blue 1"
+msgstr "Sötétkék 1"
+
+msgctxt "#32920"
+msgid "Dark blue 2"
+msgstr "Sötétkék 2"
+
+msgctxt "#32921"
+msgid "Dark blue 3"
+msgstr "Sötétkék 3"
+
+msgctxt "#32922"
+msgid "Dark blue 4"
+msgstr "Sötétkék 4"
+
+msgctxt "#32923"
+msgid "Dark blue 5"
+msgstr "Sötétkék 5"
+
+msgctxt "#32924"
+msgid "Dark blue 6"
+msgstr "Sötétkék 6"
+
+msgctxt "#32925"
+msgid "Dark blue 7"
+msgstr "Sötétkék 7"
+
+msgctxt "#32926"
+msgid "Dark blue 8"
+msgstr "Sötétkék 8"
+
+msgctxt "#32927"
+msgid "Dark blue 9"
+msgstr "Sötétkék 9"
+
+msgctxt "#32928"
+msgid "Dark blue 10"
+msgstr "Sötétkék 10"
+
+msgctxt "#32929"
+msgid "Dark blue 11"
+msgstr "Sötétkék 11"
+
+msgctxt "#32930"
+msgid "Dark indigo 1"
+msgstr "Sötét indigó 1"
+
+msgctxt "#32931"
+msgid "Dark indigo 2"
+msgstr "Sötét indigó 2"
+
+msgctxt "#32932"
+msgid "Dark indigo 3"
+msgstr "Sötét indigó 3"
+
+msgctxt "#32933"
+msgid "Dark indigo 4"
+msgstr "Sötét indigó 4"
+
+msgctxt "#32934"
+msgid "Dark indigo 5"
+msgstr "Sötét indigó 5"
+
+msgctxt "#32935"
+msgid "Dark indigo 6"
+msgstr "Sötét indigó 6"
+
+msgctxt "#32936"
+msgid "Dark indigo 7"
+msgstr "Sötét indigó 7"
+
+msgctxt "#32937"
+msgid "Dark indigo 8"
+msgstr "Sötét indigó 8"
+
+msgctxt "#32938"
+msgid "Dark indigo 9"
+msgstr "Sötét indigó 9"
+
+msgctxt "#32939"
+msgid "Dark indigo 10"
+msgstr "Sötét indigó 10"
+
+msgctxt "#32940"
+msgid "Dark violet 1"
+msgstr "Sötét ibolya 1"
+
+msgctxt "#32941"
+msgid "Dark violet 2"
+msgstr "Sötét ibolya 2"
+
+msgctxt "#32942"
+msgid "Dark violet 3"
+msgstr "Sötét ibolya 3"
+
+msgctxt "#32943"
+msgid "Dark violet 4"
+msgstr "Sötét ibolya 4"
+
+msgctxt "#32944"
+msgid "Dark violet 5"
+msgstr "Sötét ibolya 5"
+
+msgctxt "#32945"
+msgid "Dark violet 6"
+msgstr "Sötét ibolya 6"
+
+msgctxt "#32946"
+msgid "Dark violet 7"
+msgstr "Sötét ibolya 7"
+
+msgctxt "#32947"
+msgid "Dark violet 8"
+msgstr "Sötét ibolya 8"
+
+msgctxt "#32948"
+msgid "Dark violet 9"
+msgstr "Sötét ibolya 9"
+
+msgctxt "#32949"
+msgid "Dark violet 10"
+msgstr "Sötét ibolya 10"
+
+msgctxt "#32950"
+msgid "Dark violet 11"
+msgstr "Sötét ibolya 11"
+
+msgctxt "#32951"
+msgid "Dark purple 1"
+msgstr "Sötétlila 1"
+
+msgctxt "#32952"
+msgid "Dark purple 2"
+msgstr "Sötétlila 2"
+
+msgctxt "#32953"
+msgid "Dark purple 3"
+msgstr "Sötétlila 3"
+
+msgctxt "#32954"
+msgid "Dark purple 4"
+msgstr "Sötétlila 4"
+
+msgctxt "#32955"
+msgid "Dark purple 5"
+msgstr "Sötétlila 5"
+
+msgctxt "#32956"
+msgid "Dark purple 6"
+msgstr "Sötétlila 6"
+
+msgctxt "#32957"
+msgid "Dark purple 7"
+msgstr "Sötétlila 7"
+
+msgctxt "#32958"
+msgid "Dark purple 8"
+msgstr "Sötétlila 8"
+
+msgctxt "#32959"
+msgid "Dark purple 9"
+msgstr "Sötétlila 9"
+
+msgctxt "#32960"
+msgid "Dark magenta 1"
+msgstr "Sötét magenta 1"
+
+msgctxt "#32961"
+msgid "Dark magenta 2"
+msgstr "Sötét magenta 2"
+
+msgctxt "#32962"
+msgid "Dark magenta 3"
+msgstr "Sötét magenta 3"
+
+msgctxt "#32963"
+msgid "Dark magenta 4"
+msgstr "Sötét magenta 4"
+
+msgctxt "#32964"
+msgid "Dark magenta 5"
+msgstr "Sötét magenta 5"
+
+msgctxt "#32965"
+msgid "Dark magenta 6"
+msgstr "Sötét magenta 6"
+
+msgctxt "#32966"
+msgid "Dark magenta 7"
+msgstr "Sötét magenta 7"
+
+msgctxt "#32967"
+msgid "Dark magenta 8"
+msgstr "Sötét magenta 8"
+
+msgctxt "#32968"
+msgid "Dark magenta 9"
+msgstr "Sötét magenta 9"
+
+msgctxt "#32969"
+msgid "Dark pink 1"
+msgstr "Sötét rózsaszín 1"
+
+msgctxt "#32970"
+msgid "Dark pink 2"
+msgstr "Sötét rózsaszín 2"
+
+msgctxt "#32971"
+msgid "Dark pink 3"
+msgstr "Sötét rózsaszín 3"
+
+msgctxt "#32972"
+msgid "Dark pink 4"
+msgstr "Sötét rózsaszín 4"
+
+msgctxt "#32973"
+msgid "Dark pink 5"
+msgstr "Sötét rózsaszín 5"
+
+msgctxt "#32974"
+msgid "Dark pink 6"
+msgstr "Sötét rózsaszín 6"
+
+msgctxt "#32975"
+msgid "Dark pink 7"
+msgstr "Sötét rózsaszín 7"
+
+msgctxt "#32976"
+msgid "Dark pink 8"
+msgstr "Sötét rózsaszín 8"
+
+msgctxt "#32977"
+msgid "Dark pink 9"
+msgstr "Sötét rózsaszín 9"
+
+msgctxt "#32978"
+msgid "Dark pink 10"
+msgstr "Sötét rózsaszín 10"
+
+msgctxt "#32979"
+msgid "Dark rose 1"
+msgstr "Sötét rózsa 1"
+
+msgctxt "#32980"
+msgid "Dark rose 2"
+msgstr "Sötét rózsa 2"
+
+msgctxt "#32981"
+msgid "Dark rose 3"
+msgstr "Sötét rózsa 3"
+
+msgctxt "#32982"
+msgid "Dark rose 4"
+msgstr "Sötét rózsa 4"
+
+msgctxt "#32983"
+msgid "Dark rose 5"
+msgstr "Sötét rózsa 5"
+
+msgctxt "#32984"
+msgid "Dark rose 6"
+msgstr "Sötét rózsa 6"
+
+msgctxt "#32985"
+msgid "Dark rose 7"
+msgstr "Sötét rózsa 7"
+
+msgctxt "#32986"
+msgid "Dark rose 8"
+msgstr "Sötét rózsa 8"
+
+msgctxt "#32987"
+msgid "Dark rose 9"
+msgstr "Sötét rózsa 9"
+
+msgctxt "#32988"
+msgid "Dark rose 10"
+msgstr "Sötét rózsa 10"
+
+msgctxt "#32989"
+msgid "Dark rose 11"
+msgstr "Sötét rózsa 11"

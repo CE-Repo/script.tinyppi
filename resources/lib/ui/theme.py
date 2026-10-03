@@ -20,60 +20,11 @@ import xbmcvfs
 from core import settings
 from core.constants import ADDON_ID, PROFILE_DIR
 from core.utils import home_window
+from ui.palette import BACKGROUND, TEXT, picker_order
 
-# Palette for text-based elements; index matches _TEXT_LABELS.
-_TEXT_COLORS = (
-    "FFEDEDED",  # 0  White
-    "FFE0E0E0",  # 1  Light gray
-    "FFFF8A80",  # 2  Red
-    "FFFFCC80",  # 3  Orange
-    "FFFFFF8D",  # 4  Yellow
-    "FFB9F6CA",  # 5  Green
-    "FF84FFFF",  # 6  Cyan
-    "FF82B1FF",  # 7  Blue
-    "FFE1BEE7",  # 8  Purple
-    "FFFF80AB",  # 9  Pink
-    "FFFF8A65",  # 10 Coral
-    "FFFFAB91",  # 11 Salmon
-    "FFFFD54F",  # 12 Amber
-    "FFFFE082",  # 13 Gold
-    "FFCCFF90",  # 14 Lime
-    "FFA7FFEB",  # 15 Mint
-    "FF80CBC4",  # 16 Teal
-    "FF80D8FF",  # 17 Sky blue
-    "FF40C4FF",  # 18 Azure
-    "FF8C9EFF",  # 19 Indigo
-    "FFB388FF",  # 20 Violet
-    "FFD1C4E9",  # 21 Lavender
-    "FFEA80FC",  # 22 Magenta
-    "FFF48FB1",  # 23 Fuchsia
-    "FFF06292",  # 24 Rose
-    "FFFF5252",  # 25 Crimson
-    "FFBCAAA4",  # 26 Brown
-    "FFDCE775",  # 27 Olive
-    "FFB0BEC5",  # 28 Slate
-    "FFCFD8DC",  # 29 Silver
-    "FFFFCCBC",  # 30 Peach
-    "FFFFB74D",  # 31 Tangerine
-    "FFE4C441",  # 32 Mustard
-    "FFE6EE9C",  # 33 Chartreuse
-    "FF81C784",  # 34 Forest
-    "FF69F0AE",  # 35 Emerald
-    "FFB2FF59",  # 36 Spring
-    "FF18FFFF",  # 37 Aqua
-    "FF64FFDA",  # 38 Turquoise
-    "FF4FC3F7",  # 39 Cerulean
-    "FF536DFE",  # 40 Cobalt
-    "FFB39DDB",  # 41 Periwinkle
-    "FFCE93D8",  # 42 Plum
-    "FFBA68C8",  # 43 Orchid
-    "FFFF4081",  # 44 Raspberry
-    "FFFF5C8D",  # 45 Watermelon
-    "FFFF6E40",  # 46 Scarlet
-    "FFD7CCC8",  # 47 Sand
-    "FFC5E1A5",  # 48 Pistachio
-    "FF90A4AE",  # 49 Cadet
-)
+# Palette for text-based elements and the string ids naming its colors.
+_TEXT_COLORS = tuple(color for color, _name in TEXT)
+_TEXT_LABELS = tuple(name for _color, name in TEXT)
 
 # VS10 dialog focused-button highlight (texturefocus); index 0 is pure white.
 _DIALOG_FOCUS_COLORS = ("FFFFFFFF",) + _TEXT_COLORS[1:]
@@ -97,84 +48,15 @@ _LINE_COLORS = ("26808080",) + tuple(
     "26" + color[2:] for color in _TEXT_COLORS[1:]
 )
 
-# Modern background: semi-transparent dark shades (alpha FA).
-_BACKGROUND_COLORS = (
-    "FA15181A",  # 0  Charcoal (default)
-    "E6000000",  # 1  Black
-    "FA1A0E0E",  # 2  Dark red
-    "FA1A130A",  # 3  Dark orange
-    "FA1A180A",  # 4  Dark yellow
-    "FA0E1A0E",  # 5  Dark green
-    "FA0A1A1A",  # 6  Dark cyan
-    "FA0E121A",  # 7  Dark blue
-    "FA140E1A",  # 8  Dark purple
-    "FA242424",  # 9  Dark gray
-    "FA0A1A18",  # 10 Dark teal
-    "FA0A151A",  # 11 Dark sky
-    "FA10121F",  # 12 Dark indigo
-    "FA17101F",  # 13 Dark violet
-    "FA1A0E1A",  # 14 Dark magenta
-    "FA1F0E16",  # 15 Dark pink
-    "FA1F0E12",  # 16 Dark rose
-    "FA1A130F",  # 17 Dark brown
-    "FA15170A",  # 18 Dark olive
-    "FA121A0A",  # 19 Dark lime
-    "FA0A1A14",  # 20 Dark mint
-    "FA0A171F",  # 21 Dark azure
-    "FA12171A",  # 22 Dark slate
-    "FA0A0E1A",  # 23 Dark navy
-    "FA1F0A0A",  # 24 Dark maroon
-    "FA0D0D14",  # 25 Midnight
-    "FA1A1410",  # 26 Espresso
-    "FA121212",  # 27 Onyx
-    "FA1C1C1E",  # 28 Graphite
-    "FA1A1D20",  # 29 Steel
-    "FA1F1410",  # 30 Dark peach
-    "FA1F1608",  # 31 Dark tangerine
-    "FA1C1808",  # 32 Dark mustard
-    "FA181C0A",  # 33 Dark chartreuse
-    "FA0E1A10",  # 34 Dark forest
-    "FA0A1A12",  # 35 Dark emerald
-    "FA101C0A",  # 36 Dark spring
-    "FA0A1C1C",  # 37 Dark aqua
-    "FA0A1C18",  # 38 Dark turquoise
-    "FA0A161F",  # 39 Dark cerulean
-    "FA0E1020",  # 40 Dark cobalt
-    "FA15101F",  # 41 Dark periwinkle
-    "FA1A0F1C",  # 42 Dark plum
-    "FA180E1A",  # 43 Dark orchid
-    "FA1F0A14",  # 44 Dark raspberry
-    "FA1F0A12",  # 45 Dark watermelon
-    "FA1F0E0A",  # 46 Dark scarlet
-    "FA1A1714",  # 47 Dark sand
-    "FA141A0E",  # 48 Dark pistachio
-    "FA12171A",  # 49 Dark cadet
-)
+# Modern background: semi-transparent dark shades, their names, and the
+# brighter stand-ins shown in the picker and the settings row (the real shades
+# are nearly black).
+_BACKGROUND_COLORS = tuple(color for color, _swatch, _name in BACKGROUND)
+_BACKGROUND_SWATCHES = tuple(swatch for _color, swatch, _name in BACKGROUND)
+_BACKGROUND_LABELS = tuple(name for _color, _swatch, name in BACKGROUND)
 
-# String ids naming each palette color, by index.
-_TEXT_LABELS = (
-    *range(32120, 32130), *range(32150, 32170), *range(32200, 32220),
-)
-_BACKGROUND_LABELS = (
-    *range(32130, 32140), *range(32170, 32190), *range(32220, 32240),
-)
 # Names for _DIALOG_FOCUS_TEXT_COLORS: black (default) and white first.
 _DIALOG_FOCUS_TEXT_LABELS = (32131, 32120) + _TEXT_LABELS[1:]
-
-# Brighter stand-ins for the background shades, used in the picker and the
-# settings row (the real shades are nearly black).
-_BACKGROUND_SWATCHES = (
-    "FF2A2E33", "FF000000", "FF3A1414", "FF3A2A12", "FF3A360F",
-    "FF123A12", "FF0F3A3A", "FF12203A", "FF26123A", "FF444444",
-    "FF0F3A36", "FF0F2A3A", "FF1E2240", "FF2E1E40", "FF3A1E3A",
-    "FF3A1E2C", "FF3A1E24", "FF3A2A1E", "FF2A2E12", "FF223A12",
-    "FF123A28", "FF12303A", "FF222E33", "FF12182E", "FF3A1212",
-    "FF1A1A2A", "FF2E2418", "FF1E1E1E", "FF2C2C30", "FF2E343A",
-    "FF3E2820", "FF3E2C10", "FF383010", "FF303814", "FF1C3420",
-    "FF143424", "FF203814", "FF143838", "FF143830", "FF142C3E",
-    "FF1C2040", "FF2A2040", "FF341E38", "FF301C34", "FF3E1428",
-    "FF3E1424", "FF3E1C14", "FF342E28", "FF28341C", "FF242E34",
-)
 
 
 # Brightness unit labels for the L6 metadata values ("" = hidden).
@@ -224,7 +106,7 @@ _DEFAULT_MARK  = " " + _NAME_REF.format(_DEFAULT_LABEL)
 _LEGACY_CUSTOM      = "999"
 _LEGACY_CUSTOM_FILE = f"{PROFILE_DIR}/custom_colors.json"
 
-# The picker's last tile, which asks for a HEX color.  The picker returns the
+# The picker's first tile, which asks for a HEX color.  The picker returns the
 # tile's second label unchanged, so this tile uses lower case (palette tiles
 # use upper case).  It shows the current HEX color, or is transparent.
 _HEX_TILE_LABEL = 32241  # HEX color
@@ -545,7 +427,8 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
 
     Called from the setting's row via
     ``RunScript(script.tinyppi,pick_color,<setting id>,<label id>)``.  The
-    last tile asks for a HEX color.  Cancelling leaves the setting unchanged.
+    first tile asks for a HEX color; the palette follows sorted by hue.
+    Cancelling leaves the setting unchanged.
     """
     spec = _COLOR_SETTINGS.get(setting_id)
     if spec is None:
@@ -557,17 +440,16 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
                   if value == _LEGACY_CUSTOM else "")
     index, rgb = _decode(spec, value, legacy_hex)
 
+    hex_tile = ("ff" + rgb.lower()) if rgb else _HEX_TILE_EMPTY
+    tiles = [xbmcgui.ListItem(addon.getLocalizedString(_HEX_TILE_LABEL),
+                              hex_tile, offscreen=True)]
     default_mark = addon.getLocalizedString(_DEFAULT_LABEL)
-    tiles = []
-    for position, label_id in enumerate(spec.labels):
-        name = addon.getLocalizedString(label_id)
+    for position in picker_order(spec.swatches):
+        name = addon.getLocalizedString(spec.labels[position])
         if position == spec.default:
             name = f"{name} {default_mark}"
         tiles.append(xbmcgui.ListItem(name, spec.swatches[position],
                                       offscreen=True))
-    hex_tile = ("ff" + rgb.lower()) if rgb else _HEX_TILE_EMPTY
-    tiles.append(xbmcgui.ListItem(addon.getLocalizedString(_HEX_TILE_LABEL),
-                                  hex_tile, offscreen=True))
 
     heading = (addon.getLocalizedString(int(heading_id))
                if heading_id.isdigit() else "")

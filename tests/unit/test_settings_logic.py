@@ -14,7 +14,7 @@ import xbmcgui
 from core.utils import highlight_hold
 from info import properties
 from ui import dvmetadata as metadata_view
-from ui import overlay, splash, theme
+from ui import overlay, palette, splash, theme
 from web.snapshot import SnapshotBuilder
 
 
@@ -117,3 +117,45 @@ def test_colours_reach_their_properties():
         expected[prop] = f"{int(opacity * 255 / 100 + 0.5):02X}{rgb}"
     theme.apply_theme(home)
     assert {prop: home.getProperty(prop) for prop in expected} == expected
+
+
+def _picker_tiles(monkeypatch, setting_id, answer=""):
+    shown = {}
+
+    def colorpicker(_dialog, heading, selected, colorlist):
+        shown.update(selected=selected, tiles=[(tile.label, tile.label2) for tile in colorlist])
+        return answer(shown["tiles"]) if callable(answer) else answer
+
+    monkeypatch.setattr(xbmcgui.Dialog, "colorpicker", colorpicker)
+    theme.pick_color(setting_id, "32105")
+    return shown
+
+
+@pytest.mark.parametrize("setting_id", ["title_color", "background_color", "dialog_focus_text_color"])
+def test_picker_shows_the_hex_tile_first_then_the_palette_by_hue(monkeypatch, setting_id):
+    spec = theme._COLOR_SETTINGS[setting_id]
+    tiles = _picker_tiles(monkeypatch, setting_id)["tiles"]
+    assert tiles[0] == (f"#{theme._HEX_TILE_LABEL}", theme._HEX_TILE_EMPTY)
+    assert len(tiles) == len(spec.swatches) + 1 >= 251
+    shown = [swatch for _label, swatch in tiles[1:]]
+    assert sorted(shown) == sorted(spec.swatches)
+    keys = [palette._picker_key(swatch) for swatch in shown]
+    assert keys == sorted(keys)                  # grays, then red round to rose
+    assert keys[0][0] == 0 and keys[-1][0] == len(palette._FAMILY_HUES)
+    for label, swatch in tiles[1:]:              # every tile keeps its own name
+        assert label.split()[0] == f"#{spec.labels[spec.swatches.index(swatch)]}"
+
+
+def test_picking_a_new_colour_stores_and_publishes_it(monkeypatch):
+    spec = theme._COLOR_SETTINGS["title_color"]
+    _picker_tiles(monkeypatch, "title_color", answer=spec.swatches[200])
+    stored = xbmcaddon.SETTINGS["title_color"]
+    assert stored == theme._encode(spec, 200) and theme._decode(spec, stored) == (200, "")
+    assert xbmcgui.Window(10000).getProperty("TinyPPI.TitleColor") == spec.palette[200]
+
+
+def test_every_tile_can_be_told_apart():
+    # The picker hands back the tile's swatch, so no two tiles may share one.
+    for setting_id, spec in theme._COLOR_SETTINGS.items():
+        assert len(set(spec.swatches)) == len(spec.swatches) >= 250, setting_id
+        assert len(set(spec.labels)) == len(spec.labels), setting_id
