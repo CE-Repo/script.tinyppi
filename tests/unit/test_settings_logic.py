@@ -134,14 +134,16 @@ def _picker_tiles(monkeypatch, setting_id, answer=""):
 
 
 @pytest.mark.parametrize("setting_id", ["title_color", "background_color", "dialog_focus_text_color"])
-def test_picker_shows_the_hex_tile_first_then_the_palette(monkeypatch, setting_id):
+def test_picker_shows_the_hex_tile_then_the_default_then_the_palette(monkeypatch, setting_id):
     spec = theme._COLOR_SETTINGS[setting_id]
     shown = _picker_tiles(monkeypatch, setting_id)
     assert shown["tiles"][0] == (f"#{theme._HEX_TILE_LABEL}", theme._HEX_TILE_EMPTY)
-    assert shown["tiles"][1:] == [
-        ((f"#{name}" if isinstance(name, int) else name)
-         + (f" #{theme._DEFAULT_LABEL}" if index == spec.default else ""), swatch)
-        for index, (name, swatch) in enumerate(zip(spec.names, spec.swatches))]
+    tiles = {swatch: ((f"#{name}" if isinstance(name, int) else name)
+                      + (f" #{theme._DEFAULT_LABEL}" if index == spec.default else ""), swatch)
+             for index, (name, swatch) in enumerate(zip(spec.names, spec.swatches))}
+    default = spec.swatches[spec.default]
+    assert shown["tiles"][1] == tiles[default]
+    assert shown["tiles"][2:] == [tile for swatch, tile in tiles.items() if swatch != default]
     # Only the colours settings start out on keep a translated name.
     translated = {swatch for name, swatch in zip(spec.names, spec.swatches) if isinstance(name, int)}
     assert spec.swatches[spec.default] in translated <= set(theme._DEFAULT_NAMES)

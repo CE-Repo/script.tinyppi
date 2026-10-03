@@ -485,8 +485,9 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
 
     Called from the setting's row via
     ``RunScript(script.tinyppi,pick_color,<setting id>,<label id>)``.  The
-    first tile asks for a HEX color; the palette follows in its own order.
-    Cancelling leaves the setting unchanged.
+    first tile asks for a HEX color, the second is the setting's default; the
+    rest of the palette follows in its own order.  Cancelling leaves the
+    setting unchanged.
     """
     spec = _COLOR_SETTINGS.get(setting_id)
     if spec is None:
@@ -502,12 +503,15 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
     tiles = [xbmcgui.ListItem(addon.getLocalizedString(_HEX_TILE_LABEL),
                               hex_tile, offscreen=True)]
     default_mark = addon.getLocalizedString(_DEFAULT_LABEL)
-    for position, (name, swatch) in enumerate(zip(spec.names, spec.swatches)):
+    order = [spec.default] + [position for position in range(len(spec.swatches))
+                              if position != spec.default]
+    for position in order:
+        name = spec.names[position]
         if isinstance(name, int):
             name = addon.getLocalizedString(name)
         if position == spec.default:
             name = f"{name} {default_mark}"
-        tiles.append(xbmcgui.ListItem(name, swatch, offscreen=True))
+        tiles.append(xbmcgui.ListItem(name, spec.swatches[position], offscreen=True))
 
     heading = (addon.getLocalizedString(int(heading_id))
                if heading_id.isdigit() else "")
