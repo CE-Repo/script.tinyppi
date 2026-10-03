@@ -109,10 +109,11 @@ Every color in the settings is chosen in Kodi's own color picker: select the
 setting and pick a tile. The picker offers TinyPPI's own palette of 250 colors
 (250 dark shades for backgrounds), and the setting's row shows the color in
 force. The tiles are sorted by color: grays first (neutral, cool, warm), then
-red, orange, yellow, green, cyan, blue, violet and pink, each light to dark. Every tile is named
-after its color family and numbered within it: Red, Red 1, Red 2 and so on.
-The colors the settings start out on (White, Charcoal, Forest, ...) keep their
-translated names.
+red, orange, yellow, green, cyan, blue, violet and pink, each in a vivid and a
+soft family (Red, Soft red; for backgrounds Dark red, Dusky red), each family
+light to dark. Every tile is named after its family and numbered within it:
+Red, Red 1, Red 2 and so on. The colors the settings start out on (White,
+Charcoal, Forest, ...) keep their translated names.
 
 The first tile in the picker is **HEX color**. It opens the keyboard on the
 current color's 6-digit HEX code, to be changed to any color at all. The opacity
