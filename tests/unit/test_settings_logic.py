@@ -124,7 +124,7 @@ def _picker_tiles(monkeypatch, setting_id, answer=""):
 
     def colorpicker(_dialog, heading, selected, colorlist):
         shown.update(selected=selected, tiles=[(tile.label, tile.label2) for tile in colorlist])
-        return answer(shown["tiles"]) if callable(answer) else answer
+        return answer
 
     monkeypatch.setattr(xbmcgui.Dialog, "colorpicker", colorpicker)
     theme.pick_color(setting_id, "32105")
@@ -132,30 +132,48 @@ def _picker_tiles(monkeypatch, setting_id, answer=""):
 
 
 @pytest.mark.parametrize("setting_id", ["title_color", "background_color", "dialog_focus_text_color"])
-def test_picker_shows_the_hex_tile_first_then_the_palette_by_hue(monkeypatch, setting_id):
+def test_picker_shows_the_hex_tile_first_then_the_palette(monkeypatch, setting_id):
     spec = theme._COLOR_SETTINGS[setting_id]
-    tiles = _picker_tiles(monkeypatch, setting_id)["tiles"]
-    assert tiles[0] == (f"#{theme._HEX_TILE_LABEL}", theme._HEX_TILE_EMPTY)
-    assert len(tiles) == len(spec.swatches) + 1 >= 251
-    shown = [swatch for _label, swatch in tiles[1:]]
-    assert sorted(shown) == sorted(spec.swatches)
-    keys = [palette._picker_key(swatch) for swatch in shown]
-    assert keys == sorted(keys)                  # grays, then red round to rose
-    assert keys[0][0] == 0 and keys[-1][0] == len(palette._FAMILY_HUES)
-    for label, swatch in tiles[1:]:              # every tile keeps its own name
-        assert label.split()[0] == f"#{spec.labels[spec.swatches.index(swatch)]}"
+    shown = _picker_tiles(monkeypatch, setting_id)
+    assert shown["tiles"][0] == (f"#{theme._HEX_TILE_LABEL}", theme._HEX_TILE_EMPTY)
+    assert shown["tiles"][1:] == [
+        (name + (f" #{theme._DEFAULT_LABEL}" if index == spec.default else ""), swatch)
+        for index, (name, swatch) in enumerate(zip(spec.names, spec.swatches))]
+    assert shown["selected"] == spec.swatches[spec.default]
+
+
+def test_colour_names_count_up_per_family():
+    families = (("Red", ("FFFF0000", "FFCC0000", "FF990000")), ("Black", ("FF000000",)))
+    assert [name for name, _colour in palette.named(families)] == ["Red", "Red 1", "Red 2", "Black"]
+    assert len(palette.named(palette.TEXT)) == len(palette.named(palette.BACKGROUND)) == 250
 
 
 def test_picking_a_new_colour_stores_and_publishes_it(monkeypatch):
     spec = theme._COLOR_SETTINGS["title_color"]
     _picker_tiles(monkeypatch, "title_color", answer=spec.swatches[200])
     stored = xbmcaddon.SETTINGS["title_color"]
-    assert stored == theme._encode(spec, 200) and theme._decode(spec, stored) == (200, "")
+    assert stored == f"[COLOR={spec.swatches[200]}]●[/COLOR] {spec.names[200]}"
+    assert theme._decode(spec, stored) == (200, "")
     assert xbmcgui.Window(10000).getProperty("TinyPPI.TitleColor") == spec.palette[200]
 
 
+@pytest.mark.parametrize("stored", [
+    "34",                                                           # palette index
+    "[COLOR=FF81C784]●[/COLOR] $ADDON[script.tinyppi 32204]",        # name by string id
+    "[COLOR=FF81C784]●[/COLOR] Forest",                             # a name since renamed
+])
+def test_older_stored_colours_keep_their_colour(stored):
+    spec = theme._COLOR_SETTINGS["title_color"]
+    green = spec.swatches.index("FF81C784")
+    assert theme._decode(spec, stored) == (green, "")
+    use(title_color=stored)
+    assert theme.migrate_legacy_colors() == 1
+    assert xbmcaddon.SETTINGS["title_color"] == theme._encode(spec, green)
+    assert theme.migrate_legacy_colors() == 0
+
+
 def test_every_tile_can_be_told_apart():
-    # The picker hands back the tile's swatch, so no two tiles may share one.
+    # The picker hands back the tile's swatch, and a setting stores it.
     for setting_id, spec in theme._COLOR_SETTINGS.items():
         assert len(set(spec.swatches)) == len(spec.swatches) >= 250, setting_id
-        assert len(set(spec.labels)) == len(spec.labels), setting_id
+        assert len(set(spec.names)) == len(spec.names), setting_id

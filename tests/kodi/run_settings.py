@@ -141,7 +141,7 @@ def theme_tests():
     values, expected = {}, {}
     for i, (prop, _palette, sid) in enumerate(entries):
         spec = theme._COLOR_SETTINGS[sid]
-        index = (i % (len(spec.labels) - 1)) + 1 if len(spec.labels) > 1 else 0
+        index = (i % (len(spec.names) - 1)) + 1 if len(spec.names) > 1 else 0
         values[sid] = theme._encode(spec, index)
         values[theme._opacity_setting(sid)] = 50
         expected[prop] = "80" + spec.palette[index][2:]

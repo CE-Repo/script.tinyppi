@@ -20,11 +20,10 @@ import xbmcvfs
 from core import settings
 from core.constants import ADDON_ID, PROFILE_DIR
 from core.utils import home_window
-from ui.palette import BACKGROUND, TEXT, picker_order
+from ui.palette import BACKGROUND, TEXT, named
 
-# Palette for text-based elements and the string ids naming its colors.
-_TEXT_COLORS = tuple(color for color, _name in TEXT)
-_TEXT_LABELS = tuple(name for _color, name in TEXT)
+# Palette for text-based elements, and the names of its colors.
+_TEXT_NAMES, _TEXT_COLORS = map(tuple, zip(*named(TEXT)))
 
 # VS10 dialog focused-button highlight (texturefocus); index 0 is pure white.
 _DIALOG_FOCUS_COLORS = ("FFFFFFFF",) + _TEXT_COLORS[1:]
@@ -34,6 +33,7 @@ _DIALOG_FOCUS_TEXT_COLORS = (
     "FF000000",  # 0  Black (default)
     "FFFFFFFF",  # 1  White
 ) + _TEXT_COLORS[1:]
+_DIALOG_FOCUS_TEXT_NAMES = ("Black", "White") + _TEXT_NAMES[1:]
 
 # Channel layout graphic and active channels; index 0 is pure white (the
 # untinted look).
@@ -51,12 +51,9 @@ _LINE_COLORS = ("26808080",) + tuple(
 # Modern background: semi-transparent dark shades, their names, and the
 # brighter stand-ins shown in the picker and the settings row (the real shades
 # are nearly black).
-_BACKGROUND_COLORS = tuple(color for color, _swatch, _name in BACKGROUND)
-_BACKGROUND_SWATCHES = tuple(swatch for _color, swatch, _name in BACKGROUND)
-_BACKGROUND_LABELS = tuple(name for _color, _swatch, name in BACKGROUND)
-
-# Names for _DIALOG_FOCUS_TEXT_COLORS: black (default) and white first.
-_DIALOG_FOCUS_TEXT_LABELS = (32131, 32120) + _TEXT_LABELS[1:]
+_BACKGROUND_NAMES, _BACKGROUND_PAIRS = zip(*named(BACKGROUND))
+_BACKGROUND_COLORS = tuple(color for color, _swatch in _BACKGROUND_PAIRS)
+_BACKGROUND_SWATCHES = tuple(swatch for _color, swatch in _BACKGROUND_PAIRS)
 
 
 # Brightness unit labels for the L6 metadata values ("" = hidden).
@@ -67,44 +64,68 @@ _UNIT_LABELS = (
 )
 
 
-# Palette index each color setting starts out on.  Mirrors <default> in
-# settings.xml; unlisted settings start on 0.
-_DEFAULT_COLOR_INDEX = {
-    "convert_yes_color": 34,  # Forest
-    "convert_no_color":  25,  # Crimson
-    "fel_color":         34,  # Forest
-    "mel_color":         31,  # Tangerine
-    "output_changed_color": 7,  # Blue
-    "metadata_changed_color": 7,  # Blue
-    "splash_start_convert_dot_color":   34,  # Forest
-    "splash_osd_convert_dot_color":     34,  # Forest
-    "splash_tinyppi_convert_dot_color": 34,  # Forest
-    "splash_start_fel_color":   34,  # Forest
-    "splash_osd_fel_color":     34,  # Forest
-    "splash_tinyppi_fel_color": 34,  # Forest
-    "splash_start_mel_color":   31,  # Tangerine
-    "splash_osd_mel_color":     31,  # Tangerine
-    "splash_tinyppi_mel_color": 31,  # Tangerine
+# Swatch of the color each setting starts out on.  Mirrors <default> in
+# settings.xml; unlisted settings start on their palette's first color, the
+# backgrounds on _BACKGROUND_DEFAULT (charcoal).
+_DEFAULT_SWATCH = {
+    "convert_yes_color": "FF81C784",  # green
+    "convert_no_color":  "FFFF5252",  # red
+    "fel_color":         "FF81C784",  # green
+    "mel_color":         "FFFFB74D",  # amber
+    "output_changed_color":   "FF82B1FF",  # blue
+    "metadata_changed_color": "FF82B1FF",  # blue
+    "splash_start_convert_dot_color":   "FF81C784",  # green
+    "splash_osd_convert_dot_color":     "FF81C784",  # green
+    "splash_tinyppi_convert_dot_color": "FF81C784",  # green
+    "splash_start_fel_color":   "FF81C784",  # green
+    "splash_osd_fel_color":     "FF81C784",  # green
+    "splash_tinyppi_fel_color": "FF81C784",  # green
+    "splash_start_mel_color":   "FFFFB74D",  # amber
+    "splash_osd_mel_color":     "FFFFB74D",  # amber
+    "splash_tinyppi_mel_color": "FFFFB74D",  # amber
 }
+_BACKGROUND_DEFAULT = "FF2A2E33"
 
 # Stored form of a color setting, which the settings list also displays: a
-# swatch, then the localized color name or the HEX code:
+# swatch, then the color's name or the HEX code:
 #
-#     [COLOR=FF82B1FF]●[/COLOR] $ADDON[script.tinyppi 32127]
+#     [COLOR=FF82B1FF]●[/COLOR] Blue 3
 #     [COLOR=FF5733AA]●[/COLOR] #5733AA
 #
+# The swatch tells the color; the name is for show and follows the palette.
 # Only the setting's default carries "(Default)".  This replaced fifty options
 # per color, which made settings.xml ~360 KB (see core.settings).
-_STORED_RE     = re.compile(r"^\[COLOR=[0-9A-Fa-f]{8}\]●\[/COLOR\] (.*)$")
-_NAME_REF      = "$ADDON[" + ADDON_ID + " {}]"
-_NAME_REF_RE   = re.compile(r"\$ADDON\[" + re.escape(ADDON_ID) + r" (\d+)\]")
+_STORED_RE     = re.compile(r"^\[COLOR=([0-9A-Fa-f]{8})\]●\[/COLOR\] (.*)$")
 _DEFAULT_LABEL = 32589  # (Default)
-_DEFAULT_MARK  = " " + _NAME_REF.format(_DEFAULT_LABEL)
+_DEFAULT_MARK  = f" $ADDON[{ADDON_ID} {_DEFAULT_LABEL}]"
 
 # Pre-picker storage: the palette index, or 999 for a HEX color kept in a
-# JSON file.  Only read until migrate_legacy_colors has run.
+# JSON file.  Only read until migrate_legacy_colors has run.  The indices
+# counted the swatches in this order.
 _LEGACY_CUSTOM      = "999"
 _LEGACY_CUSTOM_FILE = f"{PROFILE_DIR}/custom_colors.json"
+_LEGACY_TEXT = (
+    "FFEDEDED", "FFE0E0E0", "FFFF8A80", "FFFFCC80", "FFFFFF8D", "FFB9F6CA",
+    "FF84FFFF", "FF82B1FF", "FFE1BEE7", "FFFF80AB", "FFFF8A65", "FFFFAB91",
+    "FFFFD54F", "FFFFE082", "FFCCFF90", "FFA7FFEB", "FF80CBC4", "FF80D8FF",
+    "FF40C4FF", "FF8C9EFF", "FFB388FF", "FFD1C4E9", "FFEA80FC", "FFF48FB1",
+    "FFF06292", "FFFF5252", "FFBCAAA4", "FFDCE775", "FFB0BEC5", "FFCFD8DC",
+    "FFFFCCBC", "FFFFB74D", "FFE4C441", "FFE6EE9C", "FF81C784", "FF69F0AE",
+    "FFB2FF59", "FF18FFFF", "FF64FFDA", "FF4FC3F7", "FF536DFE", "FFB39DDB",
+    "FFCE93D8", "FFBA68C8", "FFFF4081", "FFFF5C8D", "FFFF6E40", "FFD7CCC8",
+    "FFC5E1A5", "FF90A4AE",
+)
+_LEGACY_BACKGROUND = (
+    "FF2A2E33", "FF000000", "FF3A1414", "FF3A2A12", "FF3A360F", "FF123A12",
+    "FF0F3A3A", "FF12203A", "FF26123A", "FF444444", "FF0F3A36", "FF0F2A3A",
+    "FF1E2240", "FF2E1E40", "FF3A1E3A", "FF3A1E2C", "FF3A1E24", "FF3A2A1E",
+    "FF2A2E12", "FF223A12", "FF123A28", "FF12303A", "FF222E33", "FF12182E",
+    "FF3A1212", "FF1A1A2A", "FF2E2418", "FF1E1E1E", "FF2C2C30", "FF2E343A",
+    "FF3E2820", "FF3E2C10", "FF383010", "FF303814", "FF1C3420", "FF143424",
+    "FF203814", "FF143838", "FF143830", "FF142C3E", "FF1C2040", "FF2A2040",
+    "FF341E38", "FF301C34", "FF3E1428", "FF3E1424", "FF3E1C14", "FF342E28",
+    "FF28341C", "FF242E34",
+)
 
 # The picker's first tile, which asks for a HEX color.  The picker returns the
 # tile's second label unchanged, so this tile uses lower case (palette tiles
@@ -214,9 +235,10 @@ class _ColorSetting(NamedTuple):
     """The choices of one color setting."""
 
     palette: tuple   # published ARGB per choice
-    labels: tuple    # string id per choice
+    names: tuple     # name per choice
     swatches: tuple  # displayed ARGB per choice
-    index_of: dict   # string id -> index, to decode a stored value
+    index_of: dict   # swatch -> index, to decode a stored value
+    legacy: tuple    # swatch per pre-picker index
     default: int     # default index
 
 
@@ -224,9 +246,8 @@ def _encode(spec: _ColorSetting, index: int, rgb: str = "") -> str:
     """Return the stored value for palette *index*, or for HEX color *rgb*."""
     if rgb:
         return f"[COLOR=FF{rgb}]●[/COLOR] #{rgb}"
-    name = _NAME_REF.format(spec.labels[index])
     mark = _DEFAULT_MARK if index == spec.default else ""
-    return f"[COLOR={spec.swatches[index]}]●[/COLOR] {name}{mark}"
+    return f"[COLOR={spec.swatches[index]}]●[/COLOR] {spec.names[index]}{mark}"
 
 
 def _decode(spec: _ColorSetting, value: str, legacy_hex: str = "") -> tuple[int, str]:
@@ -238,14 +259,11 @@ def _decode(spec: _ColorSetting, value: str, legacy_hex: str = "") -> tuple[int,
     """
     match = _STORED_RE.match(value)
     if match:
-        text = match.group(1)
+        swatch, text = match.groups()
         if text.startswith("#") and _HEX6_RE.match(text[1:]):
             return -1, text[1:].upper()
-
-    # The first string reference is the color name; "(Default)" is cosmetic.
-    match = _NAME_REF_RE.search(value)
-    if match:
-        index = spec.index_of.get(int(match.group(1)))
+        # Also reads the older form, which named the color by string id.
+        index = spec.index_of.get(swatch.upper())
         return (spec.default if index is None else index), ""
 
     if value == _LEGACY_CUSTOM:
@@ -253,8 +271,9 @@ def _decode(spec: _ColorSetting, value: str, legacy_hex: str = "") -> tuple[int,
         if _HEX8_RE.match(stored):
             return -1, stored[2:]
         return spec.default, ""
-    if value.isdigit() and int(value) < len(spec.palette):
-        return int(value), ""
+    if value.isdigit() and int(value) < len(spec.legacy):
+        index = spec.index_of.get(spec.legacy[int(value)])
+        return (spec.default if index is None else index), ""
     return spec.default, ""
 
 
@@ -349,15 +368,18 @@ _THEME_PROPERTIES = (
 def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
     """Build the ``_ColorSetting`` for *setting_id* on *palette*."""
     if palette is _BACKGROUND_COLORS:
-        labels, swatches = _BACKGROUND_LABELS, _BACKGROUND_SWATCHES
+        names, swatches = _BACKGROUND_NAMES, _BACKGROUND_SWATCHES
+        legacy, default = _LEGACY_BACKGROUND, _BACKGROUND_DEFAULT
     elif palette is _DIALOG_FOCUS_TEXT_COLORS:
-        labels, swatches = _DIALOG_FOCUS_TEXT_LABELS, _DIALOG_FOCUS_TEXT_COLORS
+        names, swatches = _DIALOG_FOCUS_TEXT_NAMES, _DIALOG_FOCUS_TEXT_COLORS
+        legacy, default = ("FF000000", "FFFFFFFF") + _LEGACY_TEXT[1:], swatches[0]
     else:
         # The remaining palettes are text hues (other alpha or white lead).
-        labels, swatches = _TEXT_LABELS, _TEXT_COLORS
-    index_of = {label: index for index, label in enumerate(labels)}
-    return _ColorSetting(palette, labels, swatches, index_of,
-                         _DEFAULT_COLOR_INDEX.get(setting_id, 0))
+        names, swatches = _TEXT_NAMES, _TEXT_COLORS
+        legacy, default = _LEGACY_TEXT, swatches[0]
+    index_of = {swatch: index for index, swatch in enumerate(swatches)}
+    default = index_of[_DEFAULT_SWATCH.get(setting_id, default)]
+    return _ColorSetting(palette, names, swatches, index_of, legacy, default)
 
 
 # Every color setting by id.
@@ -427,7 +449,7 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
 
     Called from the setting's row via
     ``RunScript(script.tinyppi,pick_color,<setting id>,<label id>)``.  The
-    first tile asks for a HEX color; the palette follows sorted by hue.
+    first tile asks for a HEX color; the palette follows in its own order.
     Cancelling leaves the setting unchanged.
     """
     spec = _COLOR_SETTINGS.get(setting_id)
@@ -444,12 +466,10 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
     tiles = [xbmcgui.ListItem(addon.getLocalizedString(_HEX_TILE_LABEL),
                               hex_tile, offscreen=True)]
     default_mark = addon.getLocalizedString(_DEFAULT_LABEL)
-    for position in picker_order(spec.swatches):
-        name = addon.getLocalizedString(spec.labels[position])
+    for position, (name, swatch) in enumerate(zip(spec.names, spec.swatches)):
         if position == spec.default:
             name = f"{name} {default_mark}"
-        tiles.append(xbmcgui.ListItem(name, spec.swatches[position],
-                                      offscreen=True))
+        tiles.append(xbmcgui.ListItem(name, swatch, offscreen=True))
 
     heading = (addon.getLocalizedString(int(heading_id))
                if heading_id.isdigit() else "")
@@ -482,9 +502,10 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
 def migrate_legacy_colors(addon=None) -> int:
     """Rewrite color settings stored in the old form; return the count.
 
-    Old values (a palette index, or 999 pointing into the JSON file) would
-    show as bare numbers.  Each is rewritten once and the JSON file removed;
-    afterwards this only reads.
+    Old values (a palette index, 999 pointing into the JSON file, or a name
+    given as a string id) would show as bare numbers or untranslated ids, and
+    a name moves on when its family grows.  Each is rewritten once and the
+    JSON file removed; afterwards this only reads.
     """
     addon = addon or settings.addon()
 
