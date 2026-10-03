@@ -8,1465 +8,1465 @@ msgstr ""
 "Language: hu\n"
 
 msgctxt "#32000"
-msgid "Display output"
-msgstr "Kimenő felbontás"
-
-msgctxt "#32001"
-msgid "Video stream"
-msgstr "Videó felbontás"
-
-msgctxt "#32002"
 msgid "General"
 msgstr "Általános"
 
-msgctxt "#32003"
+msgctxt "#32001"
 msgid "TinyPPI settings"
 msgstr "Beállítások"
 
-msgctxt "#32005"
-msgid "Decoder"
-msgstr "Dekóder"
-
-msgctxt "#32007"
-msgid "Processing"
-msgstr "Feldolgozás"
-
-msgctxt "#32012"
-msgid "720p skins are not supported"
-msgstr "720p felszínek nem támogatottak"
-
-msgctxt "#32013"
-msgid "Playback time"
-msgstr "Lejátszási idő"
-
-msgctxt "#32014"
-msgid "Processor"
-msgstr "Processzor"
-
-msgctxt "#32015"
-msgid "Color gamut"
-msgstr "Színtér"
-
-msgctxt "#32016"
-msgid "Only CoreELEC 22 or later is supported"
-msgstr "Csak CoreELEC 22 vagy újabb verzió támogatott"
-
-msgctxt "#32017"
-msgid "The CoreELEC version could not be detected"
-msgstr "A CoreELEC verziója nem ismerhető fel"
-
-msgctxt "#32018"
-msgid "Temperature"
-msgstr "Hőmérséklet"
-
-msgctxt "#32019"
-msgid "Show file name"
-msgstr "Fájlnév mutatása"
-
-msgctxt "#32021"
-msgid "Show the currently playing file name in TinyPPI."
-msgstr "Mutasd az aktuálisan lejátszott fájl nevét."
-
-msgctxt "#32022"
-msgid "Video queue / data"
-msgstr "Videó sor / adatok"
-
-msgctxt "#32023"
-msgid "Pixel format"
-msgstr "Színmélység"
-
-msgctxt "#32024"
-msgid "Aspect ratio"
-msgstr "Képarány"
-
-msgctxt "#32025"
-msgid "Audio queue / data"
-msgstr "Hang sor / adatok"
-
-msgctxt "#32028"
-msgid "Converting"
-msgstr "Konvertálás"
-
-msgctxt "#32030"
-msgid "L5 Active Area"
-msgstr "L5 aktív képterület"
-
-msgctxt "#32032"
-msgid "Player cache"
-msgstr "Lejátszó puffer"
-
-msgctxt "#32033"
-msgid "N/A"
-msgstr "N/A"
-
-msgctxt "#32034"
-msgid "Memory usage"
-msgstr "Memória használat"
-
-msgctxt "#32035"
-msgid "Passthrough"
-msgstr "Hangtovábbítás"
-
-msgctxt "#32036"
-msgid "In / drop / out"
-msgstr "Dobott / kodi fps"
-
-msgctxt "#32045"
-msgid "Audio codec"
-msgstr "Hangkodek"
-
-msgctxt "#32047"
-msgid "Bitrate"
-msgstr "Bitráta"
-
-msgctxt "#32051"
-msgid "Input"
-msgstr "Média forrás"
-
-msgctxt "#32052"
-msgid "Audio language"
-msgstr "Szinkronnyelv"
-
-msgctxt "#32053"
-msgid "Subtitle language"
-msgstr "Feliratnyelv"
-
-msgctxt "#32054"
-msgid "Video"
-msgstr "Videó"
-
-msgctxt "#32055"
-msgid "Output"
-msgstr "Hangkimenet"
-
-msgctxt "#32056"
-msgid "Audio"
-msgstr "Hang"
-
-msgctxt "#32057"
-msgid "Output"
-msgstr "Kép kimenet"
-
-msgctxt "#32069"
-msgid "Audio resolution"
-msgstr "Hangfelbontás"
-
-msgctxt "#32070"
-msgid "Mode"
-msgstr "Videó kimenet"
-
-msgctxt "#32087"
-msgid "Decoding"
-msgstr "Dekóder"
-
-msgctxt "#32088"
-msgid "System"
-msgstr "Rendszer"
-
-msgctxt "#32091"
-msgid "Disabled"
-msgstr "Letiltva"
-
-msgctxt "#32092"
-msgid "Launch mode"
-msgstr "Futtatás módja"
-
-msgctxt "#32093"
-msgid "Choose what opens when the add-on is launched."
-msgstr "Válaszd ki, hogy mi nyíljon meg a kiegészítő indításakor."
-
-msgctxt "#32094"
-msgid "TinyPPI"
-msgstr "TinyPPI"
-
-msgctxt "#32095"
-msgid "VS10 dialog"
-msgstr "VS10 dialóg"
-
-msgctxt "#32099"
-msgid "Bit depth"
-msgstr "Bitmélység"
-
-msgctxt "#32101"
-msgid "Customise the TinyPPI overlay colors."
-msgstr "Testreszabhatod a TinyPPI színeit."
-
-msgctxt "#32103"
-msgid "Background"
-msgstr "Háttér"
-
-msgctxt "#32104"
-msgid "Background color of the overlay style."
-msgstr "A háttér-panel háttérszíne."
-
-msgctxt "#32105"
-msgid "Title"
-msgstr "Cím"
-
-msgctxt "#32106"
-msgid "Color of the section titles."
-msgstr "A szakaszcímek színe."
-
-msgctxt "#32107"
-msgid "Description"
-msgstr "Leírás"
-
-msgctxt "#32108"
-msgid "Color of the label descriptions."
-msgstr "A címkeleírások színe."
-
-msgctxt "#32109"
-msgid "Output"
-msgstr "Kimenet"
-
-msgctxt "#32110"
-msgid "Color of the output values."
-msgstr "A kimenetek színe"
-
-msgctxt "#32111"
-msgid "Progress bar"
-msgstr "Folyamatjelző sáv"
-
-msgctxt "#32112"
-msgid "Color of the progress bars."
-msgstr "A progressbar színe"
-
-msgctxt "#32113"
-msgid "Detail"
-msgstr "Részletek"
-
-msgctxt "#32114"
-msgid "Color of the dimmed detail values shown in parentheses."
-msgstr "A zárójelben látható halványított értékek színe."
-
-msgctxt "#32115"
-msgid "Icon"
-msgstr "Ikon"
-
-msgctxt "#32116"
-msgid "Color of the section icons."
-msgstr "Ikonok színe"
-
-msgctxt "#32117"
-msgid "Unit (cd/m², nits)"
-msgstr "Mértékegység (cd/m², nit)"
-
-msgctxt "#32118"
-msgid "Color of the cd/m² brightness unit."
-msgstr "A cd/m² fényerőegység színe."
-
-msgctxt "#32120"
-msgid "White"
-msgstr "Fehér"
-
-msgctxt "#32127"
-msgid "Light blue"
-msgstr "Világoskék"
-
-msgctxt "#32130"
-msgid "Charcoal"
-msgstr "Antracit"
-
-msgctxt "#32131"
-msgid "Black"
-msgstr "Fekete"
-
-msgctxt "#32140"
-msgid "FPS"
-msgstr "FPS"
-
-msgctxt "#32141"
-msgid "Color of the In / drop / out FPS values."
-msgstr "A bejövő / kieső / kimenő FPS értékek színe."
-
-msgctxt "#32143"
-msgid "Color of the overlay header label (Modern)."
-msgstr "Az fejléc címke színe (Modern)."
-
-msgctxt "#32144"
-msgid "Header icon"
-msgstr "Fejléc ikon"
-
-msgctxt "#32145"
-msgid "Color of the chart icon (Modern)."
-msgstr "A diagram ikonjának színe (Modern)."
-
-msgctxt "#32165"
-msgid "Crimson"
-msgstr "Karmazsinvörös"
-
-msgctxt "#32190"
-msgid "Brightness unit"
-msgstr "Fényerő egység"
-
-msgctxt "#32191"
-msgid "Choose the unit shown for the L6 brightness values."
-msgstr "Válaszd ki az L6 fényerőértékeihez megjelenített mértékegységet."
-
-msgctxt "#32192"
-msgid "cd/m²"
-msgstr "cd/m²"
-
-msgctxt "#32193"
-msgid "nits"
-msgstr "nit"
-
-msgctxt "#32194"
-msgid "Hidden"
-msgstr "Rejtve"
-
-msgctxt "#32195"
-msgid "Show L5 offsets icon"
-msgstr "L5 vágás ikon mutatása"
-
-msgctxt "#32196"
-msgid "Show the L5 offsets icon (lrtb) next to the L5 values."
-msgstr "Jelenítsd meg az L5 vágás ikonját az L5 értékek mellett."
-
-msgctxt "#32197"
-msgid "File name"
-msgstr "Fájlnév"
-
-msgctxt "#32198"
-msgid "Color of the playing file name."
-msgstr "A lejátszott fájl nevének a színe."
-
-msgctxt "#32201"
-msgid "Tangerine"
-msgstr "Mandarin"
-
-msgctxt "#32204"
-msgid "Forest"
-msgstr "Erdőzöld"
-
-msgctxt "#32241"
-msgid "HEX color"
-msgstr "HEX szín"
-
-msgctxt "#32243"
-msgid "Enter a 6-digit HEX color (e.g. FF5733)"
-msgstr "Írd be a saját 6 jegyű HEX színedet (pl.FF5733)."
-
-msgctxt "#32244"
-msgid "Invalid HEX color – using the default color"
-msgstr "Érvénytelen HEX szín – az alapértelmezett színt használjuk"
-
-msgctxt "#32245"
-msgid "Custom color applied"
-msgstr "Saját szín alkalmazása"
-
-msgctxt "#32251"
-msgid "Separator line"
-msgstr "Elválasztó"
-
-msgctxt "#32252"
-msgid "Color of the separator lines."
-msgstr "Elválasztó színe"
-
-msgctxt "#32253"
-msgid "Selection"
-msgstr "Kiválasztás"
-
-msgctxt "#32254"
-msgid "Background color of the focused button in the VS10 dialog."
-msgstr "A fókuszban lévő gomb háttérszíne a VS10 párbeszédpanelen."
-
-msgctxt "#32255"
-msgid "Selection text"
-msgstr "Kiválasztás szövege"
-
-msgctxt "#32256"
-msgid "Text color of the focused button in the VS10 dialog."
-msgstr "A fókuszban lévő gomb szövegszíne a VS10 párbeszédpanelen."
-
-msgctxt "#32260"
-msgid "Overlay position"
-msgstr "Megejelenített pozíció"
-
-msgctxt "#32261"
-msgid "Horizontal offset (SDR only)"
-msgstr "Vízszintes eltolás (csak SDR)"
-
-msgctxt "#32262"
-msgid "Shifts the overlay to the right from its default position. 100% is the maximum shift that keeps the content on screen."
-msgstr "A panelt jobbra tolja az alapértelmezett pozíciójához képest. A 100% a maximális eltolás, amelynél a tartalom a még képernyőn marad."
-
-msgctxt "#32263"
-msgid "Vertical offset"
-msgstr "Függőleges eltolás"
-
-msgctxt "#32264"
-msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
-msgstr "Felfelé tolja a panelt az alapértelmezett pozíciójából. A 100% a maximális eltolás, amely még a képernyőn tartja a tartalmat."
-
-msgctxt "#32266"
-msgid "Opacity of the overlay background, from 0% (fully transparent) to 100% (fully opaque)."
-msgstr "A panel hátterének átlátszósága 0%-tól (teljesen átlátszó) 100%-ig (teljesen átlátszatlan)."
-
-msgctxt "#32267"
-msgid "Transparency"
-msgstr "Átlátszóság"
-
-msgctxt "#32268"
-msgid "Opacity of the full-screen background behind the overlay, from 0% (off) to 100% (fully opaque)."
-msgstr "A teljes képernyős háttér átlátszatlansága a kijelzés mögött, 0%-tól (kikapcsolva) 100%-ig (teljesen átlátszatlan)."
-
-msgctxt "#32269"
-msgid "Global background"
-msgstr "Általános háttér"
-
-msgctxt "#32271"
-msgid "Color of the full-screen global background."
-msgstr "A teljes képernyős általános háttér színe."
-
-msgctxt "#32274"
-msgid "Opacity of this element, from 0% (fully transparent) to 100% (fully opaque)."
-msgstr "Az elem átlátszósága 0%-tól (teljesen átlátszó) 100%-ig (teljesen átlátszatlan) terjedhet."
-
-msgctxt "#32275"
-msgid "Conversion (yes)"
-msgstr "Konverzió (igen)"
-
-msgctxt "#32276"
-msgid "Color of the check-circle icon shown when conversion is active."
-msgstr "A pipa-kör ikon színe, amely aktív konverzió esetén látható."
-
-msgctxt "#32277"
-msgid "Conversion (no)"
-msgstr "Konverzió (nem)"
-
-msgctxt "#32278"
-msgid "Color of the cross-circle icon shown when conversion is inactive."
-msgstr "Az x-kör ikon színe, amely inaktív konverzió esetén látható."
-
-msgctxt "#32279"
-msgid "FEL tag"
-msgstr "FEL réteg"
-
-msgctxt "#32280"
-msgid "Color of the FEL enhancement-layer tag in the input."
-msgstr "A FEL réteg kijelzésének színe a bemeneten."
-
-msgctxt "#32281"
-msgid "MEL tag"
-msgstr "MEL réteg"
-
-msgctxt "#32282"
-msgid "Color of the MEL enhancement-layer tag in the input."
-msgstr "A MEL réteg kijelzésének színe a bemeneten."
-
-msgctxt "#32287"
-msgid "Decode method"
-msgstr "Dekódolás"
-
-msgctxt "#32288"
-msgid "Media source"
-msgstr "Média adatok"
-
-msgctxt "#32289"
-msgid "Metadata"
-msgstr "Metaadat"
-
-msgctxt "#32290"
-msgid "Profile"
-msgstr "Profil"
-
-msgctxt "#32291"
-msgid "Version"
-msgstr "Verzió"
-
-msgctxt "#32296"
-msgid "HDR10 MDL"
-msgstr "HDR10 MDL"
-
-msgctxt "#32297"
-msgid "HDR10 CLL/FALL"
-msgstr "HDR10 CLL/FALL"
-
-msgctxt "#32298"
-msgid "L6 MDL"
-msgstr "L6 MDL"
-
-msgctxt "#32299"
-msgid "L6 MaxCLL/FALL"
-msgstr "L6 MaxCLL/FALL"
-
-msgctxt "#32300"
-msgid "HDR Static Metadata"
-msgstr "HDR statikus metaadat"
-
-msgctxt "#32301"
-msgid "Codec logos"
-msgstr "Kodek logók"
-
-msgctxt "#32302"
-msgid "Show codec logos on playback start"
-msgstr "Kodek logók megjelenítése lejátszás indításakor"
-
-msgctxt "#32303"
-msgid "When a video starts, briefly shows the audio format and HDR/video format logos in the top-right corner."
-msgstr "Amikor egy videó elindul, rövid időre megjelenik a hangformátum és a HDR/videoformátum logója a jobb felső sarokban."
-
-msgctxt "#32304"
-msgid "Display duration (seconds)"
-msgstr "Megjelenítési időtartam (másodperc)"
-
-msgctxt "#32305"
-msgid "How long the format logos stay on screen before they disappear."
-msgstr "Mennyi ideig maradnak a logók a képernyőn, mielőtt eltűnnek."
-
-msgctxt "#32306"
-msgid "Show codec logos in the video OSD"
-msgstr "Kodek logók megjelenítése a videó OSD-vel"
-
-msgctxt "#32307"
-msgid "Also shows the format logos whenever the on-screen playback controls (video OSD) are visible."
-msgstr "A logókat megjeleníti, amikor a képernyőn megjelenő lejátszó-vezérlők (video OSD) láthatók."
-
-msgctxt "#32308"
-msgid "Horizontal offset"
-msgstr "Vízszintes eltolás"
-
-msgctxt "#32309"
-msgid "Moves the logos from the left edge (0%) to the right edge (100%) of the screen."
-msgstr "A logókat a képernyő bal széléről (0%) a jobb szélére (100%) mozgatja."
-
-msgctxt "#32310"
-msgid "Codec logos shown on the picture when playback starts or the OSD is open."
-msgstr "A kodek logók megjelennek a képen, amikor a lejátszás elindul, vagy a képernyőmenü meg van nyitva."
-
-msgctxt "#32313"
-msgid "Background color"
-msgstr "Háttérszín"
-
-msgctxt "#32314"
-msgid "Color and transparency of the panel behind the logos."
-msgstr "A logók mögötti panel színe és átlátszósága."
-
-msgctxt "#32315"
-msgid "Video logo"
-msgstr "Videó logó"
-
-msgctxt "#32316"
-msgid "Color and transparency of the HDR/video format logo."
-msgstr "A HDR/videó formátum logók színe és átlátszósága."
-
-msgctxt "#32317"
-msgid "Audio logo"
-msgstr "Audió logó"
-
-msgctxt "#32318"
-msgid "Color and transparency of the audio format logo."
-msgstr "Az audió formátum logók színe és átlátszósága."
-
-msgctxt "#32319"
-msgid "Show codec logos in the TinyPPI overlay"
-msgstr "Kodek logók megjelenítése a TinyPPI panellel"
-
-msgctxt "#32320"
-msgid "Also shows the format logos while the TinyPPI info overlay is open."
-msgstr "A formátumlogókat is megjeleníti, miközben a TinyPPI panel meg van nyitva."
-
-msgctxt "#32321"
-msgid "Divider"
-msgstr "Elválasztó"
-
-msgctxt "#32322"
-msgid "Color and transparency of the divider line between the two logos."
-msgstr "A két logó közötti elválasztó vonal színe és átlátszósága."
-
-msgctxt "#32323"
-msgid "Vertical offset"
-msgstr "Függőleges eltolás"
-
-msgctxt "#32324"
-msgid "Moves the logos from the top edge (0%) to the bottom edge (100%) of the screen."
-msgstr "A logókat a képernyő felső széléről (0%) az alsó szélére (100%) helyezi át."
-
-msgctxt "#32325"
-msgid "On playback start"
-msgstr "Lejátszás indításakor"
-
-msgctxt "#32326"
-msgid "Video OSD"
-msgstr "Videó OSD"
-
-msgctxt "#32327"
-msgid "TinyPPI overlay"
-msgstr "TinyPPI panel"
-
-msgctxt "#32328"
-msgid "Size (%)"
-msgstr "Méret (%)"
-
-msgctxt "#32329"
-msgid "Scales the format logos. 100% is the default size; lower values shrink them, higher values enlarge them. The horizontal and vertical offset are kept."
-msgstr "Méretezi a logókat. A 100% az alapértelmezett méret; alacsonyabb értékek kicsinyítik, magasabb értékek növelik őket. A vízszintes és függőleges eltolás megmarad."
-
-msgctxt "#32334"
+msgctxt "#32002"
 msgid "Launch"
 msgstr "Indítás"
 
-msgctxt "#32335"
-msgid "Overlay content"
-msgstr "Panel tartalom"
+msgctxt "#32003"
+msgid "Launch mode"
+msgstr "Futtatás módja"
 
-msgctxt "#32337"
-msgid "Background color of the VS10 selection dialog panel."
-msgstr "A VS10 kiválasztó panel háttérszíne."
+msgctxt "#32004"
+msgid "Choose what opens when the add-on is launched."
+msgstr "Válaszd ki, hogy mi nyíljon meg a kiegészítő indításakor."
 
-msgctxt "#32339"
-msgid "Color of the separator lines in the VS10 selection dialog."
-msgstr "Az elválasztó vonalak színe a VS10 kiválasztó panelen."
+msgctxt "#32005"
+msgid "TinyPPI"
+msgstr "TinyPPI"
 
-msgctxt "#32341"
-msgid "Color of the chart icon in the VS10 selection dialog."
-msgstr "A diagram ikon színe a VS10 kiválasztó panelen."
+msgctxt "#32006"
+msgid "VS10 dialog"
+msgstr "VS10 dialóg"
 
-msgctxt "#32342"
-msgid "Header title"
-msgstr "Fejléc címke"
-
-msgctxt "#32343"
-msgid "Color of the VS10 header label in the selection dialog."
-msgstr "A VS10 fejléccímke színe a kiválasztó panelen."
-
-msgctxt "#32344"
+msgctxt "#32007"
 msgid "Auto-hide"
 msgstr "Automatikus elrejtés"
 
-msgctxt "#32345"
+msgctxt "#32008"
 msgid "Automatically hides the TinyPPI overlay after the selected time (in seconds). 0 = off. Does not apply to the VS10 dialog."
 msgstr "Automatikusan elrejti a TinyPPI panelt a kiválasztott idő (másodpercben) elteltével. 0 = ki. Nem vonatkozik a VS10 panelre."
 
-msgctxt "#32348"
-msgid "Horizontal offset of the channel box"
-msgstr "Hangszóró ikonok vízszintes eltolása"
+msgctxt "#32009"
+msgid "Overlay content"
+msgstr "Panel tartalom"
 
-msgctxt "#32349"
-msgid "Moves the channel box in Dolby Vision to the right. 0% places it at the left edge, 100% keeps it in its default position on the right."
-msgstr "Dolby Vision esetén jobbra mozgatja a hangszóró ikonokat. 0% beállítás esetén a bal szélre kerül, 100% esetén pedig az alapértelmezett jobb szélre."
+msgctxt "#32010"
+msgid "Show file name"
+msgstr "Fájlnév mutatása"
 
-msgctxt "#32350"
-msgid "Channels"
-msgstr "Hangszóró ikonok"
+msgctxt "#32011"
+msgid "Show the currently playing file name in TinyPPI."
+msgstr "Mutasd az aktuálisan lejátszott fájl nevét."
 
-msgctxt "#32351"
-msgid "Customise the colors of the channel layout graphic."
-msgstr "Testreszabhatod a hangszóró ikonok elrendezési grafikájának színeit."
+msgctxt "#32012"
+msgid "Show L5 offsets icon"
+msgstr "L5 vágás ikon mutatása"
 
-msgctxt "#32352"
-msgid "Layout"
-msgstr "Elrendezés"
+msgctxt "#32013"
+msgid "Show the L5 offsets icon (lrtb) next to the L5 values."
+msgstr "Jelenítsd meg az L5 vágás ikonját az L5 értékek mellett."
 
-msgctxt "#32353"
-msgid "Background color of the channel box shown in Dolby Vision."
-msgstr "Hangszóró ikonok panel háttérszíne Dolby Vision-ben."
+msgctxt "#32014"
+msgid "Brightness unit"
+msgstr "Fényerő egység"
 
-msgctxt "#32354"
-msgid "Color of the speaker layout graphic behind the active channels."
-msgstr "Az aktív hangszóró ikonok mögötti, elrendezési grafika színe."
+msgctxt "#32015"
+msgid "Choose the unit shown for the L6 brightness values."
+msgstr "Válaszd ki az L6 fényerőértékeihez megjelenített mértékegységet."
 
-msgctxt "#32355"
-msgid "Color of the active channels in the layout graphic."
-msgstr "Az aktív hangszóró ikonok színe az elrendezési grafikán."
+msgctxt "#32016"
+msgid "cd/m²"
+msgstr "cd/m²"
 
-msgctxt "#32356"
-msgid "Channels in SDR"
-msgstr "Hangszóró ikonok SDR-nél"
+msgctxt "#32017"
+msgid "nits"
+msgstr "nit"
 
-msgctxt "#32357"
-msgid "Show the channel layout graphic while playing SDR content."
-msgstr "A hangszóró ikonok elrendezés grafikáinak megjelenítése SDR tartalom lejátszása közben."
+msgctxt "#32018"
+msgid "Hidden"
+msgstr "Rejtve"
 
-msgctxt "#32358"
-msgid "Channels in HDR10 / HLG / HDR10+"
-msgstr "Hangszóró ikonok HDR10 / HLG / HDR10+ -nél"
+msgctxt "#32019"
+msgid "Overlay position"
+msgstr "Megejelenített pozíció"
 
-msgctxt "#32359"
-msgid "Show the channel layout graphic while playing HDR10, HLG or HDR10+ content."
-msgstr "A hangszóró ikonok elrendezés grafikáinak megjelenítése HDR10, HLG vagy HDR10+ tartalom lejátszása közben."
+msgctxt "#32020"
+msgid "Horizontal offset (SDR only)"
+msgstr "Vízszintes eltolás (csak SDR)"
 
-msgctxt "#32360"
-msgid "Channels in Dolby Vision"
-msgstr "Hangszóró ikonok Dolby Vision-nél"
+msgctxt "#32021"
+msgid "Shifts the overlay to the right from its default position. 100% is the maximum shift that keeps the content on screen."
+msgstr "A panelt jobbra tolja az alapértelmezett pozíciójához képest. A 100% a maximális eltolás, amelynél a tartalom a még képernyőn marad."
 
-msgctxt "#32361"
-msgid "Show the channel layout graphic while playing Dolby Vision content."
-msgstr "A hangszóró ikonok elrendezés grafikáinak megjelenítése Dolby Vision tartalom lejátszása közben."
+msgctxt "#32022"
+msgid "Vertical offset"
+msgstr "Függőleges eltolás"
 
-msgctxt "#32362"
-msgid "Live TV"
-msgstr "Élő TV"
+msgctxt "#32023"
+msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
+msgstr "Felfelé tolja a panelt az alapértelmezett pozíciójából. A 100% a maximális eltolás, amely még a képernyőn tartja a tartalmat."
 
-msgctxt "#32363"
-msgid "Livestream"
-msgstr "Élő Stream"
-
-msgctxt "#32367"
-msgid "Conversion indicator"
-msgstr "Konverziójelző"
-
-msgctxt "#32368"
-msgid "Color of the dot shown on the video-format logo while a conversion is active."
-msgstr "A videoformátum-logón megjelenő kör színe, amíg aktív egy konverzió."
-
-msgctxt "#32369"
-msgid "FEL indicator"
-msgstr "FEL jelző"
-
-msgctxt "#32370"
-msgid "Color of the pill shown on the splash logo when the source is Dolby Vision FEL."
-msgstr "A splash logón megjelenő hasáb színe, ha a forrás Dolby Vision FEL."
-
-msgctxt "#32371"
-msgid "MEL indicator"
-msgstr "MEL jelző"
-
-msgctxt "#32372"
-msgid "Color of the pill shown on the splash logo when the source is Dolby Vision MEL."
-msgstr "A splash logón megjelenő hasáb színe, ha a forrás Dolby Vision MEL."
-
-msgctxt "#32373"
-msgid "Other Dolby Vision"
-msgstr "Egyéb Dolby Vision"
-
-msgctxt "#32374"
-msgid "Color of the pill shown on the splash logo for any other Dolby Vision profile (no enhancement layer)."
-msgstr "A splash logón megjelenő hasáb színe minden más Dolby Vision profilhoz (enhancement layer nélkül)."
-
-msgctxt "#32375"
-msgid "L1 Lum Min/Max/Ø"
-msgstr "L1 Lum Min/Max/Ø"
-
-msgctxt "#32376"
-msgid "L1 PQ Min/Max/Ø"
-msgstr "L1 PQ Min/Max/Ø"
-
-msgctxt "#32379"
-msgid "CM Version"
-msgstr "CM verzió"
-
-msgctxt "#32380"
-msgid "Structure"
-msgstr "Sávok"
-
-msgctxt "#32381"
-msgid "RPU / BL"
-msgstr "RPU / BL"
-
-msgctxt "#32382"
-msgid "EL / Type"
-msgstr "EL / típus"
-
-msgctxt "#32383"
-msgid "Converted output"
-msgstr "Átalakított kimenet"
-
-msgctxt "#32384"
-msgid "Keep the HDR/DV area when converting to SDR"
-msgstr "A HDR/DV terület megtartása SDR-re alakításkor"
-
-msgctxt "#32385"
-msgid "Keeps the HDR static-metadata and Dolby Vision panels on screen while VS10 converts the source to SDR. Turn off to draw the overlay in its SDR layout instead."
-msgstr "A képernyőn tartja a statikus HDR-metaadatok és a Dolby Vision paneljeit, miközben a VS10 SDR-re alakítja a forrást. Kikapcsolva az átfedés az SDR-elrendezésben jelenik meg."
-
-msgctxt "#32386"
-msgid "Keep the Dolby Vision area when converting to HDR10"
-msgstr "A Dolby Vision terület megtartása HDR10-re alakításkor"
-
-msgctxt "#32387"
-msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
-msgstr "A képernyőn tartja a Dolby Vision paneljeit, miközben a VS10 HDR10-re alakít egy Dolby Vision forrást. Kikapcsolva helyette a statikus HDR-metaadatok panelje jelenik meg."
-
-msgctxt "#32388"
-msgid "Display"
-msgstr "Megjelenítés"
-
-msgctxt "#32389"
-msgid "Dolby Vision metadata"
-msgstr "Dolby Vision metaadatok"
-
-msgctxt "#32390"
-msgid "OK: open section — Back: TinyPPI overlay"
-msgstr "OK: szakasz megnyitása — Vissza: TinyPPI-átfedés"
-
-msgctxt "#32391"
-msgid "DV metadata"
-msgstr "DV metaadatok"
-
-msgctxt "#32392"
-msgid "Diagnostic views for reading what a stream actually carries."
-msgstr "Diagnosztikai nézetek annak megtekintéséhez, hogy egy adatfolyam valójában mit hordoz."
-
-msgctxt "#32393"
-msgid "Dolby Vision metadata view"
-msgstr "Dolby Vision metaadat-nézet"
-
-msgctxt "#32394"
-msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK opens the section under the cursor in a window of its own, Back returns to the TinyPPI overlay. On any other source OK does nothing."
-msgstr "Az OK gomb megnyitja a Dolby Vision metaadat-nézetet, amíg a TinyPPI-átfedés látható és Dolby Vision forrás játszik. Felsorolja az adatfolyam oldalsó adatainak minden blokkját – a konfigurációs rekordot, az RPU-t a fejlécétől L11-ig, a trimmeléseket és a statikus SEI-ket. Az OK a kijelölt szakaszt saját ablakban nyitja meg, a Vissza visszatér a TinyPPI-átfedéshez. Más forrásoknál az OK nem csinál semmit."
-
-msgctxt "#32395"
-msgid "Changed values"
-msgstr "Változott értékek"
-
-msgctxt "#32396"
-msgid "Color for the readings that just changed. A value that moved is written in this color until the highlight duration below runs out, so the live readings can be told from the ones that do not move."
-msgstr "Az éppen megváltozott értékek színe. A megváltozott érték ebben a színben jelenik meg, amíg az alábbi kiemelési időtartam le nem telik, így a mozgó értékek megkülönböztethetők az állóktól."
-
-msgctxt "#32398"
+msgctxt "#32024"
 msgid "Move with the arrow keys"
 msgstr "Mozgatás az iránygombokkal"
 
-msgctxt "#32399"
+msgctxt "#32025"
 msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above."
 msgstr "Lehetővé teszi, hogy a távirányító iránygombjaival mozgasd a TinyPPI réteget a képernyőn, amíg nyitva van. A mozgatás nem kerül mentésre: a következő indításkor újra a fent beállított pozíció érvényes."
 
-msgctxt "#32401"
-msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Raise its opacity to dim the picture behind it."
-msgstr "A Dolby Vision metaadat-nézet mögött az egész képernyőre helyezett szín. Növeld az átlátszatlanságát a mögötte lévő kép sötétítéséhez."
+msgctxt "#32026"
+msgid "Converted output"
+msgstr "Átalakított kimenet"
 
-msgctxt "#32403"
-msgid "Background color of the metadata view itself."
-msgstr "Magának a metaadat-nézetnek a háttérszíne."
+msgctxt "#32027"
+msgid "Keep the HDR/DV area when converting to SDR"
+msgstr "A HDR/DV terület megtartása SDR-re alakításkor"
 
-msgctxt "#32405"
-msgid "Color of the heading at the top of the metadata view."
-msgstr "A metaadat-nézet tetején lévő cím színe."
+msgctxt "#32028"
+msgid "Keeps the HDR static-metadata and Dolby Vision panels on screen while VS10 converts the source to SDR. Turn off to draw the overlay in its SDR layout instead."
+msgstr "A képernyőn tartja a statikus HDR-metaadatok és a Dolby Vision paneljeit, miközben a VS10 SDR-re alakítja a forrást. Kikapcsolva az átfedés az SDR-elrendezésben jelenik meg."
 
-msgctxt "#32407"
-msgid "Color of the Dolby Vision logo in the top right corner."
-msgstr "A jobb felső sarokban lévő Dolby Vision logó színe."
+msgctxt "#32029"
+msgid "Keep the Dolby Vision area when converting to HDR10"
+msgstr "A Dolby Vision terület megtartása HDR10-re alakításkor"
 
-msgctxt "#32409"
-msgid "Color of the section headings, such as RPU or L2 — Trims."
-msgstr "A szakaszcímek színe, például RPU vagy L2 — Trims."
+msgctxt "#32030"
+msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
+msgstr "A képernyőn tartja a Dolby Vision paneljeit, miközben a VS10 HDR10-re alakít egy Dolby Vision forrást. Kikapcsolva helyette a statikus HDR-metaadatok panelje jelenik meg."
 
-msgctxt "#32410"
-msgid "Column headings"
-msgstr "Oszlopfejlécek"
+msgctxt "#32031"
+msgid "TinyPPI overlay"
+msgstr "TinyPPI panel"
 
-msgctxt "#32411"
-msgid "Color of the column headings in the trim tables: Slope, Offset, Power and the rest."
-msgstr "A trim táblázatok oszlopfejléceinek színe: Slope, Offset, Power és a többi."
+msgctxt "#32032"
+msgid "Customise the TinyPPI overlay colors."
+msgstr "Testreszabhatod a TinyPPI színeit."
 
-msgctxt "#32413"
-msgid "Color of the field names down the left column."
-msgstr "A bal oldali oszlopban lévő mezőnevek színe."
+msgctxt "#32033"
+msgid "Global background"
+msgstr "Általános háttér"
 
-msgctxt "#32415"
-msgid "Color of the readings. A value that just changed is written in the \"Changed values\" color instead, for as long as it keeps changing."
-msgstr "A leolvasott értékek színe. Az éppen megváltozott érték helyette a \"Változott értékek\" színével jelenik meg, amíg változik."
+msgctxt "#32034"
+msgid "Color of the full-screen global background."
+msgstr "A teljes képernyős általános háttér színe."
 
-msgctxt "#32417"
-msgid "Color of the rules under the section headings and above and below the list."
-msgstr "A szakaszcímek alatti, valamint a lista fölötti és alatti vonalak színe."
+msgctxt "#32035"
+msgid "Transparency"
+msgstr "Átlátszóság"
 
-msgctxt "#32419"
-msgid "Color of the bar behind the row the selection is on."
-msgstr "A kijelölés alatti sor mögötti sáv színe."
+msgctxt "#32036"
+msgid "Opacity of the full-screen background behind the overlay, from 0% (off) to 100% (fully opaque)."
+msgstr "A teljes képernyős háttér átlátszatlansága a kijelzés mögött, 0%-tól (kikapcsolva) 100%-ig (teljesen átlátszatlan)."
 
-msgctxt "#32420"
-msgid "Scrollbar"
-msgstr "Görgetősáv"
+msgctxt "#32037"
+msgid "Background"
+msgstr "Háttér"
 
-msgctxt "#32421"
-msgid "Color of the scrollbar down the right-hand edge."
-msgstr "A jobb szélen lévő görgetősáv színe."
+msgctxt "#32038"
+msgid "Background color of the overlay style."
+msgstr "A háttér-panel háttérszíne."
 
-msgctxt "#32422"
-msgid "Key hint"
-msgstr "Billentyű-súgó"
+msgctxt "#32039"
+msgid "Opacity of the overlay background, from 0% (fully transparent) to 100% (fully opaque)."
+msgstr "A panel hátterének átlátszósága 0%-tól (teljesen átlátszó) 100%-ig (teljesen átlátszatlan)."
 
-msgctxt "#32423"
-msgid "Color of the line at the bottom naming what the keys do."
-msgstr "Az alul lévő sor színe, amely a billentyűk funkcióját nevezi meg."
+msgctxt "#32040"
+msgid "Title"
+msgstr "Cím"
 
-msgctxt "#32424"
-msgid "Back: metadata list"
-msgstr "Vissza: metaadatlista"
+msgctxt "#32041"
+msgid "Color of the section titles."
+msgstr "A szakaszcímek színe."
 
-msgctxt "#32425"
-msgid "RPU MDL"
-msgstr "RPU MDL"
+msgctxt "#32042"
+msgid "Opacity of this element, from 0% (fully transparent) to 100% (fully opaque)."
+msgstr "Az elem átlátszósága 0%-tól (teljesen átlátszó) 100%-ig (teljesen átlátszatlan) terjedhet."
 
-msgctxt "#32426"
-msgid "RPU MaxCLL/FALL"
-msgstr "RPU MaxCLL/FALL"
+msgctxt "#32043"
+msgid "Header title"
+msgstr "Fejléc címke"
 
-msgctxt "#32427"
+msgctxt "#32044"
+msgid "Color of the overlay header label (Modern)."
+msgstr "Az fejléc címke színe (Modern)."
+
+msgctxt "#32045"
+msgid "Description"
+msgstr "Leírás"
+
+msgctxt "#32046"
+msgid "Color of the label descriptions."
+msgstr "A címkeleírások színe."
+
+msgctxt "#32047"
+msgid "Output"
+msgstr "Kimenet"
+
+msgctxt "#32048"
+msgid "Color of the output values."
+msgstr "A kimenetek színe"
+
+msgctxt "#32049"
+msgid "Changed values"
+msgstr "Változott értékek"
+
+msgctxt "#32050"
+msgid "Color for the readings that just changed. A value that moved is written in this color until the highlight duration below runs out, so the live readings can be told from the ones that do not move."
+msgstr "Az éppen megváltozott értékek színe. A megváltozott érték ebben a színben jelenik meg, amíg az alábbi kiemelési időtartam le nem telik, így a mozgó értékek megkülönböztethetők az állóktól."
+
+msgctxt "#32051"
 msgid "Highlight duration"
 msgstr "Kiemelés időtartama"
 
-msgctxt "#32428"
+msgctxt "#32052"
 msgid "How long a reading that just changed stays in the highlight color, in milliseconds. The readings behind it are still read ten times a second whatever this is set to, so no change is missed; at 100 the highlight lasts a single refresh, which is too brief to follow."
 msgstr "Meddig marad a kiemelés színében egy éppen megváltozott érték, ezredmásodpercben. Maguk az értékek ettől függetlenül másodpercenként tízszer frissülnek, így egyetlen változás sem vész el; 100 esetén a kiemelés egyetlen frissítésig tart, ami túl rövid ahhoz, hogy követni lehessen."
 
-msgctxt "#32429"
-msgid "Input"
-msgstr "Hangcsatornák"
-
-msgctxt "#32430"
-msgid "Dashboard"
-msgstr "Vezérlőpult"
-
-msgctxt "#32431"
-msgid "A live view of the playing stream in a browser on your phone or laptop, so the picture itself stays untouched."
-msgstr "A futó adatfolyam élő nézete böngészőben, telefonon vagy laptopon, miközben maga a kép érintetlen marad."
-
-msgctxt "#32432"
-msgid "Enable web dashboard"
-msgstr "Webes vezérlőpult bekapcsolása"
-
-msgctxt "#32433"
-msgid "Serves the dashboard on this box's own address. Off by default; once it is on, anything on the same network can reach it, so do not forward its port to the internet."
-msgstr "A vezérlőpultot a médialejátszó saját címén szolgálja ki. Alapból ki van kapcsolva; bekapcsolva bárki eléri az azonos hálózaton, ezért a portját ne továbbítsd az internetre."
-
-msgctxt "#32434"
-msgid "Port"
-msgstr "Port"
-
-msgctxt "#32435"
-msgid "The port the dashboard listens on. Leave 8080 alone - Kodi's own web server usually has it."
-msgstr "A port, amelyen a vezérlőpult figyel. A 8080-at hagyd válatozatlanul - azt általában a Kodi saját webkiszolgálója foglalja le."
-
-msgctxt "#32436"
-msgid "Access token"
-msgstr "Hozzáférési token"
-
-msgctxt "#32437"
-msgid "The key the dashboard asks for. Switching a VS10 mode from the browser always needs it; reading needs it only when the setting below says so."
-msgstr "A kulcs, amelyet a vezérlőpult kér. A VS10-mód böngészőből való váltásához mindig kell; az olvasáshoz csak akkor, ha az alábbi beállítás így kéri."
-
-msgctxt "#32438"
-msgid "Generate a new token"
-msgstr "Új token létrehozása"
-
-msgctxt "#32439"
-msgid "Replaces the token with a fresh one. Every browser still holding the old one is logged out."
-msgstr "Frissre cseréli a tokent. Minden böngésző, amely még a régit mentette, kilép."
-
-msgctxt "#32440"
-msgid "Require the token for reading too"
-msgstr "Token kérése olvasáshoz is"
-
-msgctxt "#32441"
-msgid "Asks for the token before showing anything at all, not just before switching a mode. Turn this on when the box is on a shared network."
-msgstr "Már azelőtt kéri a tokent, hogy bármit megjelenítene, nem csak váltás előtt. Kapcsold be, ha a médialejátszó megosztott hálózaton van."
-
-msgctxt "#32442"
-msgid "Allow VS10 switching from the dashboard"
-msgstr "VS10-váltás engedélyezése a vezérlőpultról"
-
-msgctxt "#32443"
-msgid "Shows the VS10 output modes for the playing source in the browser, so the mode can be switched from a phone. The token is required either way."
-msgstr "Megjeleníti a futó forrás VS10 kimeneti módjait a böngészőben, így a mód telefonról is váltható. A token mindkét esetben szükséges."
-
-msgctxt "#32444"
-msgid "Show address and token"
-msgstr "Cím és token megjelenítése"
-
-msgctxt "#32445"
-msgid "Shows the address to open in a browser, together with the current token."
-msgstr "Megmutatja a böngészőben megnyitandó címet az aktuális tokennel együtt."
-
-msgctxt "#32446"
-msgid "Web dashboard"
-msgstr "Webes vezérlőpult"
-
-msgctxt "#32447"
-msgid "Open this address in a browser on the same network:"
-msgstr "Nyisd meg ezt a címet egy böngészőben az azonos hálózaton:"
-
-msgctxt "#32448"
-msgid "Connected"
-msgstr "Csatlakozva"
-
-msgctxt "#32449"
-msgid "Connecting..."
-msgstr "Csatlakozás..."
-
-msgctxt "#32450"
-msgid "Disconnected"
-msgstr "Szétkapcsolva"
-
-msgctxt "#32451"
-msgid "Nothing is playing"
-msgstr "Nincs lejátszás"
-
-msgctxt "#32452"
-msgid "Start a video on the box and everything it carries appears here."
-msgstr "Indíts el egy videót a médialejátszón, és itt megjelenik minden lehetséges adat, amit tartalmaz."
-
-msgctxt "#32453"
-msgid "Peak"
-msgstr "Csúcs"
-
-msgctxt "#32454"
-msgid "Average"
-msgstr "Átlag"
-
-msgctxt "#32455"
-msgid "Frame luminance (L1)"
-msgstr "Képfényesség (L1)"
-
-msgctxt "#32456"
-msgid "Copy report"
-msgstr "Jelentés másolása"
-
-msgctxt "#32457"
-msgid "Copied"
-msgstr "Másolva"
-
-msgctxt "#32459"
-msgid "Enter the access token"
-msgstr "Add meg a hozzáférési tokent"
-
-msgctxt "#32460"
-msgid "You will find it in the add-on settings under Dashboard."
-msgstr "A kiegészítő beállításaiban találod, a Vezérlőpult alatt."
-
-msgctxt "#32461"
-msgid "Save"
-msgstr "Mentés"
-
-msgctxt "#32462"
-msgid "Cancel"
-msgstr "Mégse"
-
-msgctxt "#32463"
-msgid "Wrong or missing token"
-msgstr "Hiányzó vagy hibás token"
-
-msgctxt "#32464"
-msgid "Switching..."
-msgstr "Váltás..."
-
-msgctxt "#32465"
-msgid "Switched"
-msgstr "Átváltva"
-
-msgctxt "#32466"
-msgid "Switching failed"
-msgstr "A váltás nem sikerült"
-
-msgctxt "#32467"
-msgid "VS10 output"
-msgstr "VS10 kimenet"
-
-msgctxt "#32468"
-msgid "Show the Dolby Vision metadata view"
-msgstr "A Dolby Vision metaadat-nézet megjelenítése"
-
-msgctxt "#32469"
-msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
-msgstr "Hozzáadja a teljes metaadatlistát a vezérlőpulthoz - minden blokkot, amit az adatfolyam mellékadatai hordoznak, ugyanazt, amit a képernyőn látható nézet mutat. Csak Dolby Vision forráshoz készül el, ez a legnagyobb, ami küldésre kerül, ezért lassú hálózaton kapcsold ki."
-
-msgctxt "#32470"
-msgid "No Dolby Vision metadata"
-msgstr "Nincs Dolby Vision metaadat"
-
-msgctxt "#32471"
-msgid "This source carries no Dolby Vision RPU, so there is no metadata to list. The window fills as soon as a Dolby Vision title starts."
-msgstr "Ez a forrás nem tartalmaz Dolby Vision RPU-t, így nincs mit megjeleníteni. Az ablak betöltődik, amint egy Dolby Vision cím elindul."
-
-msgctxt "#32472"
-msgid "Dolby Vision"
-msgstr "Dolby Vision"
-
-msgctxt "#32478"
-msgid "Switches"
-msgstr "Váltások"
-
-msgctxt "#32479"
-msgid "Events"
-msgstr "Események"
-
-msgctxt "#32480"
-msgid "Nothing out of the ordinary yet"
-msgstr "Eddig semmi rendellenes"
-
-msgctxt "#32481"
-msgid "1 min"
-msgstr "1 perc"
-
-msgctxt "#32482"
-msgid "10 min"
-msgstr "10 perc"
-
-msgctxt "#32483"
-msgid "Whole title"
-msgstr "Teljes cím"
-
-msgctxt "#32484"
-msgid "Audio track"
-msgstr "Hangsáv"
-
-msgctxt "#32485"
-msgid "Subtitles"
-msgstr "Feliratok"
-
-msgctxt "#32486"
-msgid "Off"
-msgstr "Ki"
-
-msgctxt "#32488"
-msgid "Mute"
-msgstr "Némítás"
-
-msgctxt "#32489"
-msgid "Play / Pause"
-msgstr "Lejátszás / Szünet"
-
-msgctxt "#32490"
-msgid "Stop"
-msgstr "Leállítás"
-
-msgctxt "#32491"
-msgid "Display mode"
-msgstr "Megjelenítési mód"
-
-msgctxt "#32494"
-msgid "Playback controls"
-msgstr "Lejátszásvezérlők"
-
-msgctxt "#32495"
-msgid "Metrics"
-msgstr "Mérőszámok"
-
-msgctxt "#32496"
-msgid "Dark"
-msgstr "Sötét"
-
-msgctxt "#32497"
-msgid "Dark (adaptive)"
-msgstr "Sötét (adaptív)"
-
-msgctxt "#32498"
-msgid "Midnight"
-msgstr "Éjfél"
-
-msgctxt "#32500"
-msgid "Choose a theme"
-msgstr "Téma választása"
-
-msgctxt "#32501"
-msgid "Intensity"
-msgstr "Intenzitás"
-
-msgctxt "#32502"
-msgid "Subtle"
-msgstr "Visszafogott"
-
-msgctxt "#32503"
-msgid "Standard"
-msgstr "Normál"
-
-msgctxt "#32504"
-msgid "Strong"
-msgstr "Erős"
-
-msgctxt "#32507"
-msgid "Last played"
-msgstr "Legutóbb lejátszva"
-
-msgctxt "#32508"
-msgid "Summary"
-msgstr "Összegzés"
-
-msgctxt "#32509"
-msgid "Too many connections"
-msgstr "Túl sok kapcsolat"
-
-msgctxt "#32511"
-msgid "Player cache"
-msgstr "Lejátszó gyorsítótár"
-
-msgctxt "#32514"
-msgid "Warnings"
-msgstr "Figyelmeztetések"
-
-msgctxt "#32515"
-msgid "Previous chapter"
-msgstr "Előző fejezet"
-
-msgctxt "#32516"
-msgid "Next chapter"
-msgstr "Következő fejezet"
-
-msgctxt "#32517"
-msgid "Volume down"
-msgstr "Halkítás"
-
-msgctxt "#32518"
-msgid "Volume up"
-msgstr "Hangosítás"
-
-msgctxt "#32519"
+msgctxt "#32053"
+msgid "File name"
+msgstr "Fájlnév"
+
+msgctxt "#32054"
+msgid "Color of the playing file name."
+msgstr "A lejátszott fájl nevének a színe."
+
+msgctxt "#32055"
+msgid "FPS"
+msgstr "FPS"
+
+msgctxt "#32056"
+msgid "Color of the In / drop / out FPS values."
+msgstr "A bejövő / kieső / kimenő FPS értékek színe."
+
+msgctxt "#32057"
+msgid "Unit (cd/m², nits)"
+msgstr "Mértékegység (cd/m², nit)"
+
+msgctxt "#32058"
+msgid "Color of the cd/m² brightness unit."
+msgstr "A cd/m² fényerőegység színe."
+
+msgctxt "#32059"
+msgid "Detail"
+msgstr "Részletek"
+
+msgctxt "#32060"
+msgid "Color of the dimmed detail values shown in parentheses."
+msgstr "A zárójelben látható halványított értékek színe."
+
+msgctxt "#32061"
+msgid "Icon"
+msgstr "Ikon"
+
+msgctxt "#32062"
+msgid "Color of the section icons."
+msgstr "Ikonok színe"
+
+msgctxt "#32063"
+msgid "Header icon"
+msgstr "Fejléc ikon"
+
+msgctxt "#32064"
+msgid "Color of the chart icon (Modern)."
+msgstr "A diagram ikonjának színe (Modern)."
+
+msgctxt "#32065"
+msgid "Progress bar"
+msgstr "Folyamatjelző sáv"
+
+msgctxt "#32066"
+msgid "Color of the progress bars."
+msgstr "A progressbar színe"
+
+msgctxt "#32067"
+msgid "Separator line"
+msgstr "Elválasztó"
+
+msgctxt "#32068"
+msgid "Color of the separator lines."
+msgstr "Elválasztó színe"
+
+msgctxt "#32069"
+msgid "Conversion (yes)"
+msgstr "Konverzió (igen)"
+
+msgctxt "#32070"
+msgid "Color of the check-circle icon shown when conversion is active."
+msgstr "A pipa-kör ikon színe, amely aktív konverzió esetén látható."
+
+msgctxt "#32071"
+msgid "Conversion (no)"
+msgstr "Konverzió (nem)"
+
+msgctxt "#32072"
+msgid "Color of the cross-circle icon shown when conversion is inactive."
+msgstr "Az x-kör ikon színe, amely inaktív konverzió esetén látható."
+
+msgctxt "#32073"
+msgid "FEL tag"
+msgstr "FEL réteg"
+
+msgctxt "#32074"
+msgid "Color of the FEL enhancement-layer tag in the input."
+msgstr "A FEL réteg kijelzésének színe a bemeneten."
+
+msgctxt "#32075"
+msgid "MEL tag"
+msgstr "MEL réteg"
+
+msgctxt "#32076"
+msgid "Color of the MEL enhancement-layer tag in the input."
+msgstr "A MEL réteg kijelzésének színe a bemeneten."
+
+msgctxt "#32077"
+msgid "DV metadata"
+msgstr "DV metaadatok"
+
+msgctxt "#32078"
+msgid "Diagnostic views for reading what a stream actually carries."
+msgstr "Diagnosztikai nézetek annak megtekintéséhez, hogy egy adatfolyam valójában mit hordoz."
+
+msgctxt "#32079"
+msgid "Dolby Vision metadata"
+msgstr "Dolby Vision metaadatok"
+
+msgctxt "#32080"
+msgid "Dolby Vision metadata view"
+msgstr "Dolby Vision metaadat-nézet"
+
+msgctxt "#32081"
+msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK opens the section under the cursor in a window of its own, Back returns to the TinyPPI overlay. On any other source OK does nothing."
+msgstr "Az OK gomb megnyitja a Dolby Vision metaadat-nézetet, amíg a TinyPPI-átfedés látható és Dolby Vision forrás játszik. Felsorolja az adatfolyam oldalsó adatainak minden blokkját – a konfigurációs rekordot, az RPU-t a fejlécétől L11-ig, a trimmeléseket és a statikus SEI-ket. Az OK a kijelölt szakaszt saját ablakban nyitja meg, a Vissza visszatér a TinyPPI-átfedéshez. Más forrásoknál az OK nem csinál semmit."
+
+msgctxt "#32082"
+msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Raise its opacity to dim the picture behind it."
+msgstr "A Dolby Vision metaadat-nézet mögött az egész képernyőre helyezett szín. Növeld az átlátszatlanságát a mögötte lévő kép sötétítéséhez."
+
+msgctxt "#32083"
+msgid "Background color of the metadata view itself."
+msgstr "Magának a metaadat-nézetnek a háttérszíne."
+
+msgctxt "#32084"
+msgid "Color of the heading at the top of the metadata view."
+msgstr "A metaadat-nézet tetején lévő cím színe."
+
+msgctxt "#32085"
+msgid "Color of the Dolby Vision logo in the top right corner."
+msgstr "A jobb felső sarokban lévő Dolby Vision logó színe."
+
+msgctxt "#32086"
+msgid "Color of the section headings, such as RPU or L2 — Trims."
+msgstr "A szakaszcímek színe, például RPU vagy L2 — Trims."
+
+msgctxt "#32087"
+msgid "Column headings"
+msgstr "Oszlopfejlécek"
+
+msgctxt "#32088"
+msgid "Color of the column headings in the trim tables: Slope, Offset, Power and the rest."
+msgstr "A trim táblázatok oszlopfejléceinek színe: Slope, Offset, Power és a többi."
+
+msgctxt "#32089"
+msgid "Color of the field names down the left column."
+msgstr "A bal oldali oszlopban lévő mezőnevek színe."
+
+msgctxt "#32090"
+msgid "Color of the readings. A value that just changed is written in the \"Changed values\" color instead, for as long as it keeps changing."
+msgstr "A leolvasott értékek színe. Az éppen megváltozott érték helyette a \"Változott értékek\" színével jelenik meg, amíg változik."
+
+msgctxt "#32091"
+msgid "Color of the rules under the section headings and above and below the list."
+msgstr "A szakaszcímek alatti, valamint a lista fölötti és alatti vonalak színe."
+
+msgctxt "#32092"
+msgid "Selection"
+msgstr "Kiválasztás"
+
+msgctxt "#32093"
+msgid "Color of the bar behind the row the selection is on."
+msgstr "A kijelölés alatti sor mögötti sáv színe."
+
+msgctxt "#32094"
+msgid "Scrollbar"
+msgstr "Görgetősáv"
+
+msgctxt "#32095"
+msgid "Color of the scrollbar down the right-hand edge."
+msgstr "A jobb szélen lévő görgetősáv színe."
+
+msgctxt "#32096"
+msgid "Key hint"
+msgstr "Billentyű-súgó"
+
+msgctxt "#32097"
+msgid "Color of the line at the bottom naming what the keys do."
+msgstr "Az alul lévő sor színe, amely a billentyűk funkcióját nevezi meg."
+
+msgctxt "#32098"
+msgid "Codec logos"
+msgstr "Kodek logók"
+
+msgctxt "#32099"
+msgid "Codec logos shown on the picture when playback starts or the OSD is open."
+msgstr "A kodek logók megjelennek a képen, amikor a lejátszás elindul, vagy a képernyőmenü meg van nyitva."
+
+msgctxt "#32100"
+msgid "On playback start"
+msgstr "Lejátszás indításakor"
+
+msgctxt "#32101"
+msgid "Show codec logos on playback start"
+msgstr "Kodek logók megjelenítése lejátszás indításakor"
+
+msgctxt "#32102"
+msgid "When a video starts, briefly shows the audio format and HDR/video format logos in the top-right corner."
+msgstr "Amikor egy videó elindul, rövid időre megjelenik a hangformátum és a HDR/videoformátum logója a jobb felső sarokban."
+
+msgctxt "#32103"
+msgid "Display duration (seconds)"
+msgstr "Megjelenítési időtartam (másodperc)"
+
+msgctxt "#32104"
+msgid "How long the format logos stay on screen before they disappear."
+msgstr "Mennyi ideig maradnak a logók a képernyőn, mielőtt eltűnnek."
+
+msgctxt "#32105"
 msgid "Show video codec logo"
 msgstr "Videó kodek logó megjelenítése"
 
-msgctxt "#32520"
+msgctxt "#32106"
 msgid "Includes the HDR/video format logo in the stack. Turn it off to show the audio format logo on its own."
 msgstr "A HDR/videó formátum logóját is megjeleníti. Kikapcsolva csak az audió formátum logója látszik."
 
-msgctxt "#32521"
+msgctxt "#32107"
 msgid "Show audio codec logo"
 msgstr "Audió kodek logó megjelenítése"
 
-msgctxt "#32522"
+msgctxt "#32108"
 msgid "Includes the audio format logo in the stack. Turn it off to show the HDR/video format logo on its own."
 msgstr "Az audió formátum logóját is megjeleníti. Kikapcsolva csak a HDR/videó formátum logója látszik."
 
-msgctxt "#32523"
+msgctxt "#32109"
 msgid "Logo order"
 msgstr "Logók sorrendje"
 
-msgctxt "#32524"
+msgctxt "#32110"
 msgid "Which of the two logos sits on top of the stack."
 msgstr "Melyik logó legyen a kettő közül felül."
 
-msgctxt "#32525"
+msgctxt "#32111"
 msgid "Video on top, audio below"
 msgstr "Videó felül, audió alul"
 
-msgctxt "#32526"
+msgctxt "#32112"
 msgid "Audio on top, video below"
 msgstr "Audió felül, videó alul"
 
-msgctxt "#32527"
+msgctxt "#32113"
 msgid "Dolby Vision pill position"
 msgstr "Dolby Vision hasáb helye"
 
-msgctxt "#32528"
+msgctxt "#32114"
 msgid "Which edge of the logo panel the Dolby Vision layer pill sits on."
 msgstr "A logópanel melyik szélén legyen a Dolby Vision réteg hasábja."
 
-msgctxt "#32529"
+msgctxt "#32115"
 msgid "Bottom edge"
 msgstr "Alsó szél"
 
-msgctxt "#32530"
+msgctxt "#32116"
 msgid "Top edge"
 msgstr "Felső szél"
 
-msgctxt "#32531"
-msgid "Ends at"
-msgstr "Vége ekkor"
+msgctxt "#32117"
+msgid "Horizontal offset"
+msgstr "Vízszintes eltolás"
 
-msgctxt "#32532"
-msgid "Films"
-msgstr "Filmek"
+msgctxt "#32118"
+msgid "Moves the logos from the left edge (0%) to the right edge (100%) of the screen."
+msgstr "A logókat a képernyő bal széléről (0%) a jobb szélére (100%) mozgatja."
 
-msgctxt "#32533"
-msgid "No films in the video library"
-msgstr "Nincs film a videótárban"
+msgctxt "#32119"
+msgid "Vertical offset"
+msgstr "Függőleges eltolás"
 
-msgctxt "#32534"
-msgid "Search films"
-msgstr "Filmek keresése"
+msgctxt "#32120"
+msgid "Moves the logos from the top edge (0%) to the bottom edge (100%) of the screen."
+msgstr "A logókat a képernyő felső széléről (0%) az alsó szélére (100%) helyezi át."
 
-msgctxt "#32535"
-msgid "Starting…"
-msgstr "Indítás…"
+msgctxt "#32121"
+msgid "Size (%)"
+msgstr "Méret (%)"
 
-msgctxt "#32536"
-msgid "Playback could not be started"
-msgstr "A lejátszás nem indítható el"
+msgctxt "#32122"
+msgid "Scales the format logos. 100% is the default size; lower values shrink them, higher values enlarge them. The horizontal and vertical offset are kept."
+msgstr "Méretezi a logókat. A 100% az alapértelmezett méret; alacsonyabb értékek kicsinyítik, magasabb értékek növelik őket. A vízszintes és függőleges eltolás megmarad."
 
-msgctxt "#32537"
-msgid "Resume"
-msgstr "Folytatás"
+msgctxt "#32123"
+msgid "Background color"
+msgstr "Háttérszín"
 
-msgctxt "#32538"
-msgid "Show the film library"
-msgstr "Filmtár megjelenítése"
+msgctxt "#32124"
+msgid "Color and transparency of the panel behind the logos."
+msgstr "A logók mögötti panel színe és átlátszósága."
 
-msgctxt "#32539"
-msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
-msgstr "A vezérlőpulton felkínálja a videótár filmjeit, amíg semmi nem megy. Egy koppintás elindítja az egyiket a boxon."
+msgctxt "#32125"
+msgid "Video logo"
+msgstr "Videó logó"
 
-msgctxt "#32540"
-msgid "Watched"
-msgstr "Megtekintve"
+msgctxt "#32126"
+msgid "Color and transparency of the HDR/video format logo."
+msgstr "A HDR/videó formátum logók színe és átlátszósága."
 
-msgctxt "#32541"
-msgid "Series"
-msgstr "Sorozatok"
+msgctxt "#32127"
+msgid "Audio logo"
+msgstr "Audió logó"
 
-msgctxt "#32542"
-msgid "No series in the video library"
-msgstr "Nincs sorozat a videótárban"
+msgctxt "#32128"
+msgid "Color and transparency of the audio format logo."
+msgstr "Az audió formátum logók színe és átlátszósága."
 
-msgctxt "#32543"
-msgid "Search series"
-msgstr "Sorozatok keresése"
+msgctxt "#32129"
+msgid "Divider"
+msgstr "Elválasztó"
 
-msgctxt "#32544"
-msgid "All series"
-msgstr "Összes sorozat"
+msgctxt "#32130"
+msgid "Color and transparency of the divider line between the two logos."
+msgstr "A két logó közötti elválasztó vonal színe és átlátszósága."
 
-msgctxt "#32545"
-msgid "Unwatched episodes"
-msgstr "Meg nem nézett epizódok"
+msgctxt "#32131"
+msgid "Conversion indicator"
+msgstr "Konverziójelző"
 
-msgctxt "#32546"
-msgid "Season %s"
-msgstr "%s. évad"
+msgctxt "#32132"
+msgid "Color of the dot shown on the video-format logo while a conversion is active."
+msgstr "A videoformátum-logón megjelenő kör színe, amíg aktív egy konverzió."
 
-msgctxt "#32547"
-msgid "Specials"
-msgstr "Különkiadások"
+msgctxt "#32133"
+msgid "FEL indicator"
+msgstr "FEL jelző"
 
-msgctxt "#32548"
-msgid "Episodes could not be loaded"
-msgstr "Az epizódokat nem sikerült betölteni"
+msgctxt "#32134"
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision FEL."
+msgstr "A splash logón megjelenő hasáb színe, ha a forrás Dolby Vision FEL."
 
-msgctxt "#32549"
-msgid "Show the series library"
-msgstr "Sorozattár megjelenítése"
+msgctxt "#32135"
+msgid "MEL indicator"
+msgstr "MEL jelző"
 
-msgctxt "#32550"
-msgid "Offers the series in the video library on the dashboard while nothing is playing. A press opens one and starts an episode on the box."
-msgstr "A vezérlőpulton felkínálja a videótár sorozatait, amíg semmi nem megy. Egy koppintás megnyit egyet, és elindít egy epizódot a boxon."
+msgctxt "#32136"
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision MEL."
+msgstr "A splash logón megjelenő hasáb színe, ha a forrás Dolby Vision MEL."
 
-msgctxt "#32551"
-msgid "Clear the search"
-msgstr "Keresés törlése"
+msgctxt "#32137"
+msgid "Other Dolby Vision"
+msgstr "Egyéb Dolby Vision"
 
-msgctxt "#32552"
-msgid "%s h %s min"
-msgstr "%s ó %s p"
+msgctxt "#32138"
+msgid "Color of the pill shown on the splash logo for any other Dolby Vision profile (no enhancement layer)."
+msgstr "A splash logón megjelenő hasáb színe minden más Dolby Vision profilhoz (enhancement layer nélkül)."
 
-msgctxt "#32553"
-msgid "%s min"
-msgstr "%s p"
+msgctxt "#32139"
+msgid "Video OSD"
+msgstr "Videó OSD"
 
-msgctxt "#32554"
-msgid "%s h"
-msgstr "%s ó"
+msgctxt "#32140"
+msgid "Show codec logos in the video OSD"
+msgstr "Kodek logók megjelenítése a videó OSD-vel"
 
-msgctxt "#32555"
+msgctxt "#32141"
+msgid "Also shows the format logos whenever the on-screen playback controls (video OSD) are visible."
+msgstr "A logókat megjeleníti, amikor a képernyőn megjelenő lejátszó-vezérlők (video OSD) láthatók."
+
+msgctxt "#32142"
+msgid "Show codec logos in the TinyPPI overlay"
+msgstr "Kodek logók megjelenítése a TinyPPI panellel"
+
+msgctxt "#32143"
+msgid "Also shows the format logos while the TinyPPI info overlay is open."
+msgstr "A formátumlogókat is megjeleníti, miközben a TinyPPI panel meg van nyitva."
+
+msgctxt "#32144"
 msgid "Layout"
 msgstr "Elrendezés"
 
-msgctxt "#32556"
+msgctxt "#32145"
 msgid "Dialog layout"
 msgstr "Párbeszédpanel elrendezése"
 
-msgctxt "#32557"
+msgctxt "#32146"
 msgid "Which of the designs the VS10 dialog is drawn as."
 msgstr "Meghatározza, melyik kivitelben jelenik meg a VS10 párbeszédpanel."
 
-msgctxt "#32558"
-msgid "Dialog"
-msgstr "Párbeszédpanel"
-
-msgctxt "#32560"
-msgid "Bar"
-msgstr "Sáv"
-
-msgctxt "#32564"
+msgctxt "#32147"
 msgid "Single button"
 msgstr "Egyetlen gomb"
 
-msgctxt "#32565"
+msgctxt "#32148"
+msgid "Bar"
+msgstr "Sáv"
+
+msgctxt "#32149"
+msgid "Dialog"
+msgstr "Párbeszédpanel"
+
+msgctxt "#32150"
 msgid "Dialog position"
 msgstr "Párbeszédpanel helyzete"
 
-msgctxt "#32566"
+msgctxt "#32151"
 msgid "Vertical position"
 msgstr "Függőleges helyzet"
 
-msgctxt "#32567"
+msgctxt "#32152"
 msgid "Where the dialog sits between the top edge of the screen (0%) and the bottom one (100%). 50% leaves it in the middle, where it has always been."
 msgstr "Megadja, hol helyezkedjen el a párbeszédpanel a képernyő teteje (0%) és alja (100%) között. 50% esetén középen marad, ahol eddig is volt."
 
-msgctxt "#32568"
+msgctxt "#32153"
 msgid "Horizontal position"
 msgstr "Vízszintes helyzet"
 
-msgctxt "#32569"
+msgctxt "#32154"
 msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
 msgstr "Megadja, hol helyezkedjen el a párbeszédpanel a képernyő bal (0%) és jobb széle (100%) között. 50% esetén középen marad."
 
-msgctxt "#32570"
+msgctxt "#32155"
+msgid "Background color of the VS10 selection dialog panel."
+msgstr "A VS10 kiválasztó panel háttérszíne."
+
+msgctxt "#32156"
+msgid "Color of the VS10 header label in the selection dialog."
+msgstr "A VS10 fejléccímke színe a kiválasztó panelen."
+
+msgctxt "#32157"
+msgid "Color of the chart icon in the VS10 selection dialog."
+msgstr "A diagram ikon színe a VS10 kiválasztó panelen."
+
+msgctxt "#32158"
+msgid "Color of the separator lines in the VS10 selection dialog."
+msgstr "Az elválasztó vonalak színe a VS10 kiválasztó panelen."
+
+msgctxt "#32159"
 msgid "Button text"
 msgstr "Gombfelirat"
 
-msgctxt "#32571"
+msgctxt "#32160"
 msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
 msgstr "A VS10 párbeszédpanel azon gombjainak szövegszíne, amelyeken nem áll a távirányító."
 
-msgctxt "#32572"
-msgid "Continue watching"
-msgstr "Megtekintés folytatása"
+msgctxt "#32161"
+msgid "Background color of the focused button in the VS10 dialog."
+msgstr "A fókuszban lévő gomb háttérszíne a VS10 párbeszédpanelen."
 
-msgctxt "#32573"
-msgid "Unwatched films"
-msgstr "Nem látott filmek"
+msgctxt "#32162"
+msgid "Selection text"
+msgstr "Kiválasztás szövege"
 
-msgctxt "#32574"
-msgid "Unwatched series"
-msgstr "Nem látott sorozatok"
+msgctxt "#32163"
+msgid "Text color of the focused button in the VS10 dialog."
+msgstr "A fókuszban lévő gomb szövegszíne a VS10 párbeszédpanelen."
 
-msgctxt "#32575"
-msgid "Mark as watched"
-msgstr "Megjelölés látottként"
+msgctxt "#32164"
+msgid "Channels"
+msgstr "Hangszóró ikonok"
 
-msgctxt "#32576"
-msgid "Mark as unwatched"
-msgstr "Megjelölés nem látottként"
+msgctxt "#32165"
+msgid "Customise the colors of the channel layout graphic."
+msgstr "Testreszabhatod a hangszóró ikonok elrendezési grafikájának színeit."
 
-msgctxt "#32577"
-msgid "The library could not be updated"
-msgstr "A könyvtárat nem sikerült frissíteni"
+msgctxt "#32166"
+msgid "Display"
+msgstr "Megjelenítés"
 
-msgctxt "#32578"
-msgid "Play"
-msgstr "Lejátszás"
+msgctxt "#32167"
+msgid "Channels in SDR"
+msgstr "Hangszóró ikonok SDR-nél"
 
-msgctxt "#32579"
-msgid "Open"
-msgstr "Megnyitás"
+msgctxt "#32168"
+msgid "Show the channel layout graphic while playing SDR content."
+msgstr "A hangszóró ikonok elrendezés grafikáinak megjelenítése SDR tartalom lejátszása közben."
 
-msgctxt "#32580"
-msgid "Play from the beginning"
-msgstr "Lejátszás az elejéről"
+msgctxt "#32169"
+msgid "Channels in HDR10 / HLG / HDR10+"
+msgstr "Hangszóró ikonok HDR10 / HLG / HDR10+ -nél"
 
-msgctxt "#32581"
-msgid "Clear resume point"
-msgstr "Folytatási pont törlése"
+msgctxt "#32170"
+msgid "Show the channel layout graphic while playing HDR10, HLG or HDR10+ content."
+msgstr "A hangszóró ikonok elrendezés grafikáinak megjelenítése HDR10, HLG vagy HDR10+ tartalom lejátszása közben."
 
-msgctxt "#32582"
-msgid "Live"
-msgstr "Élő"
+msgctxt "#32171"
+msgid "Channels in Dolby Vision"
+msgstr "Hangszóró ikonok Dolby Vision-nél"
 
-msgctxt "#32583"
+msgctxt "#32172"
+msgid "Show the channel layout graphic while playing Dolby Vision content."
+msgstr "A hangszóró ikonok elrendezés grafikáinak megjelenítése Dolby Vision tartalom lejátszása közben."
+
+msgctxt "#32173"
+msgid "Horizontal offset of the channel box"
+msgstr "Hangszóró ikonok vízszintes eltolása"
+
+msgctxt "#32174"
+msgid "Moves the channel box in Dolby Vision to the right. 0% places it at the left edge, 100% keeps it in its default position on the right."
+msgstr "Dolby Vision esetén jobbra mozgatja a hangszóró ikonokat. 0% beállítás esetén a bal szélre kerül, 100% esetén pedig az alapértelmezett jobb szélre."
+
+msgctxt "#32175"
+msgid "Background color of the channel box shown in Dolby Vision."
+msgstr "Hangszóró ikonok panel háttérszíne Dolby Vision-ben."
+
+msgctxt "#32176"
+msgid "Layout"
+msgstr "Elrendezés"
+
+msgctxt "#32177"
+msgid "Color of the speaker layout graphic behind the active channels."
+msgstr "Az aktív hangszóró ikonok mögötti, elrendezési grafika színe."
+
+msgctxt "#32178"
+msgid "Color of the active channels in the layout graphic."
+msgstr "Az aktív hangszóró ikonok színe az elrendezési grafikán."
+
+msgctxt "#32179"
+msgid "Dashboard"
+msgstr "Vezérlőpult"
+
+msgctxt "#32180"
+msgid "A live view of the playing stream in a browser on your phone or laptop, so the picture itself stays untouched."
+msgstr "A futó adatfolyam élő nézete böngészőben, telefonon vagy laptopon, miközben maga a kép érintetlen marad."
+
+msgctxt "#32181"
+msgid "Enable web dashboard"
+msgstr "Webes vezérlőpult bekapcsolása"
+
+msgctxt "#32182"
+msgid "Serves the dashboard on this box's own address. Off by default; once it is on, anything on the same network can reach it, so do not forward its port to the internet."
+msgstr "A vezérlőpultot a médialejátszó saját címén szolgálja ki. Alapból ki van kapcsolva; bekapcsolva bárki eléri az azonos hálózaton, ezért a portját ne továbbítsd az internetre."
+
+msgctxt "#32183"
+msgid "Port"
+msgstr "Port"
+
+msgctxt "#32184"
+msgid "The port the dashboard listens on. Leave 8080 alone - Kodi's own web server usually has it."
+msgstr "A port, amelyen a vezérlőpult figyel. A 8080-at hagyd válatozatlanul - azt általában a Kodi saját webkiszolgálója foglalja le."
+
+msgctxt "#32185"
+msgid "Show address and token"
+msgstr "Cím és token megjelenítése"
+
+msgctxt "#32186"
+msgid "Shows the address to open in a browser, together with the current token."
+msgstr "Megmutatja a böngészőben megnyitandó címet az aktuális tokennel együtt."
+
+msgctxt "#32187"
+msgid "Access token"
+msgstr "Hozzáférési token"
+
+msgctxt "#32188"
+msgid "The key the dashboard asks for. Switching a VS10 mode from the browser always needs it; reading needs it only when the setting below says so."
+msgstr "A kulcs, amelyet a vezérlőpult kér. A VS10-mód böngészőből való váltásához mindig kell; az olvasáshoz csak akkor, ha az alábbi beállítás így kéri."
+
+msgctxt "#32189"
+msgid "Generate a new token"
+msgstr "Új token létrehozása"
+
+msgctxt "#32190"
+msgid "Replaces the token with a fresh one. Every browser still holding the old one is logged out."
+msgstr "Frissre cseréli a tokent. Minden böngésző, amely még a régit mentette, kilép."
+
+msgctxt "#32191"
+msgid "Show the Dolby Vision metadata view"
+msgstr "A Dolby Vision metaadat-nézet megjelenítése"
+
+msgctxt "#32192"
+msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
+msgstr "Hozzáadja a teljes metaadatlistát a vezérlőpulthoz - minden blokkot, amit az adatfolyam mellékadatai hordoznak, ugyanazt, amit a képernyőn látható nézet mutat. Csak Dolby Vision forráshoz készül el, ez a legnagyobb, ami küldésre kerül, ezért lassú hálózaton kapcsold ki."
+
+msgctxt "#32193"
+msgid "Show the film library"
+msgstr "Filmtár megjelenítése"
+
+msgctxt "#32194"
+msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
+msgstr "A vezérlőpulton felkínálja a videótár filmjeit, amíg semmi nem megy. Egy koppintás elindítja az egyiket a boxon."
+
+msgctxt "#32195"
+msgid "Show the series library"
+msgstr "Sorozattár megjelenítése"
+
+msgctxt "#32196"
+msgid "Offers the series in the video library on the dashboard while nothing is playing. A press opens one and starts an episode on the box."
+msgstr "A vezérlőpulton felkínálja a videótár sorozatait, amíg semmi nem megy. Egy koppintás megnyit egyet, és elindít egy epizódot a boxon."
+
+msgctxt "#32197"
+msgid "Require the token for reading too"
+msgstr "Token kérése olvasáshoz is"
+
+msgctxt "#32198"
+msgid "Asks for the token before showing anything at all, not just before switching a mode. Turn this on when the box is on a shared network."
+msgstr "Már azelőtt kéri a tokent, hogy bármit megjelenítene, nem csak váltás előtt. Kapcsold be, ha a médialejátszó megosztott hálózaton van."
+
+msgctxt "#32199"
+msgid "Allow VS10 switching from the dashboard"
+msgstr "VS10-váltás engedélyezése a vezérlőpultról"
+
+msgctxt "#32200"
+msgid "Shows the VS10 output modes for the playing source in the browser, so the mode can be switched from a phone. The token is required either way."
+msgstr "Megjeleníti a futó forrás VS10 kimeneti módjait a böngészőben, így a mód telefonról is váltható. A token mindkét esetben szükséges."
+
+msgctxt "#32201"
+msgid "Web dashboard"
+msgstr "Webes vezérlőpult"
+
+msgctxt "#32202"
+msgid "Open this address in a browser on the same network:"
+msgstr "Nyisd meg ezt a címet egy böngészőben az azonos hálózaton:"
+
+msgctxt "#32203"
+msgid "(Default)"
+msgstr "(Alap)"
+
+msgctxt "#32204"
+msgid "HEX color"
+msgstr "HEX szín"
+
+msgctxt "#32205"
+msgid "Enter a 6-digit HEX color (e.g. FF5733)"
+msgstr "Írd be a saját 6 jegyű HEX színedet (pl.FF5733)."
+
+msgctxt "#32206"
+msgid "Invalid HEX color – using the default color"
+msgstr "Érvénytelen HEX szín – az alapértelmezett színt használjuk"
+
+msgctxt "#32207"
+msgid "Custom color applied"
+msgstr "Saját szín alkalmazása"
+
+msgctxt "#32208"
+msgid "White"
+msgstr "Fehér"
+
+msgctxt "#32209"
+msgid "Light blue"
+msgstr "Világoskék"
+
+msgctxt "#32210"
+msgid "Charcoal"
+msgstr "Antracit"
+
+msgctxt "#32211"
+msgid "Black"
+msgstr "Fekete"
+
+msgctxt "#32212"
+msgid "Crimson"
+msgstr "Karmazsinvörös"
+
+msgctxt "#32213"
+msgid "Tangerine"
+msgstr "Mandarin"
+
+msgctxt "#32214"
+msgid "Forest"
+msgstr "Erdőzöld"
+
+msgctxt "#32215"
+msgid "Only CoreELEC 22 or later is supported"
+msgstr "Csak CoreELEC 22 vagy újabb verzió támogatott"
+
+msgctxt "#32216"
+msgid "The CoreELEC version could not be detected"
+msgstr "A CoreELEC verziója nem ismerhető fel"
+
+msgctxt "#32217"
+msgid "720p skins are not supported"
+msgstr "720p felszínek nem támogatottak"
+
+msgctxt "#32218"
+msgid "Video"
+msgstr "Videó"
+
+msgctxt "#32219"
+msgid "Display output"
+msgstr "Kimenő felbontás"
+
+msgctxt "#32220"
+msgid "Video stream"
+msgstr "Videó felbontás"
+
+msgctxt "#32221"
+msgid "Pixel format"
+msgstr "Színmélység"
+
+msgctxt "#32222"
+msgid "Bit depth"
+msgstr "Bitmélység"
+
+msgctxt "#32223"
+msgid "Aspect ratio"
+msgstr "Képarány"
+
+msgctxt "#32224"
+msgid "Decoder"
+msgstr "Dekóder"
+
+msgctxt "#32225"
+msgid "Decode method"
+msgstr "Dekódolás"
+
+msgctxt "#32226"
+msgid "Processing"
+msgstr "Feldolgozás"
+
+msgctxt "#32227"
+msgid "Input"
+msgstr "Média forrás"
+
+msgctxt "#32228"
+msgid "Converting"
+msgstr "Konvertálás"
+
+msgctxt "#32229"
+msgid "Bitrate"
+msgstr "Bitráta"
+
+msgctxt "#32230"
+msgid "N/A"
+msgstr "N/A"
+
+msgctxt "#32231"
+msgid "Mode"
+msgstr "Videó kimenet"
+
+msgctxt "#32232"
+msgid "Color gamut"
+msgstr "Színtér"
+
+msgctxt "#32233"
+msgid "Media source"
+msgstr "Média adatok"
+
+msgctxt "#32234"
+msgid "Playback time"
+msgstr "Lejátszási idő"
+
+msgctxt "#32235"
+msgid "Live TV"
+msgstr "Élő TV"
+
+msgctxt "#32236"
+msgid "Livestream"
+msgstr "Élő Stream"
+
+msgctxt "#32237"
+msgid "Audio"
+msgstr "Hang"
+
+msgctxt "#32238"
+msgid "Audio codec"
+msgstr "Hangkodek"
+
+msgctxt "#32239"
+msgid "Audio resolution"
+msgstr "Hangfelbontás"
+
+msgctxt "#32240"
+msgid "Input"
+msgstr "Hangcsatornák"
+
+msgctxt "#32241"
+msgid "Output"
+msgstr "Hangkimenet"
+
+msgctxt "#32242"
+msgid "Passthrough"
+msgstr "Hangtovábbítás"
+
+msgctxt "#32243"
+msgid "Decoding"
+msgstr "Dekóder"
+
+msgctxt "#32244"
+msgid "Audio language"
+msgstr "Szinkronnyelv"
+
+msgctxt "#32245"
+msgid "Subtitle language"
+msgstr "Feliratnyelv"
+
+msgctxt "#32246"
+msgid "Disabled"
+msgstr "Letiltva"
+
+msgctxt "#32247"
+msgid "System"
+msgstr "Rendszer"
+
+msgctxt "#32248"
+msgid "In / drop / out"
+msgstr "Dobott / kodi fps"
+
+msgctxt "#32249"
+msgid "Processor"
+msgstr "Processzor"
+
+msgctxt "#32250"
+msgid "Temperature"
+msgstr "Hőmérséklet"
+
+msgctxt "#32251"
+msgid "Memory usage"
+msgstr "Memória használat"
+
+msgctxt "#32252"
+msgid "Player cache"
+msgstr "Lejátszó puffer"
+
+msgctxt "#32253"
+msgid "Video queue / data"
+msgstr "Videó sor / adatok"
+
+msgctxt "#32254"
+msgid "Audio queue / data"
+msgstr "Hang sor / adatok"
+
+msgctxt "#32255"
+msgid "HDR Static Metadata"
+msgstr "HDR statikus metaadat"
+
+msgctxt "#32256"
+msgid "HDR10 MDL"
+msgstr "HDR10 MDL"
+
+msgctxt "#32257"
+msgid "HDR10 CLL/FALL"
+msgstr "HDR10 CLL/FALL"
+
+msgctxt "#32258"
+msgid "CM Version"
+msgstr "CM verzió"
+
+msgctxt "#32259"
+msgid "Structure"
+msgstr "Sávok"
+
+msgctxt "#32260"
+msgid "Version"
+msgstr "Verzió"
+
+msgctxt "#32261"
+msgid "Profile"
+msgstr "Profil"
+
+msgctxt "#32262"
+msgid "RPU / BL"
+msgstr "RPU / BL"
+
+msgctxt "#32263"
+msgid "EL / Type"
+msgstr "EL / típus"
+
+msgctxt "#32264"
 msgid "Metadata"
 msgstr "Metaadat"
 
-msgctxt "#32584"
+msgctxt "#32265"
+msgid "RPU MDL"
+msgstr "RPU MDL"
+
+msgctxt "#32266"
+msgid "L6 MDL"
+msgstr "L6 MDL"
+
+msgctxt "#32267"
+msgid "RPU MaxCLL/FALL"
+msgstr "RPU MaxCLL/FALL"
+
+msgctxt "#32268"
+msgid "L6 MaxCLL/FALL"
+msgstr "L6 MaxCLL/FALL"
+
+msgctxt "#32269"
+msgid "L1 Lum Min/Max/Ø"
+msgstr "L1 Lum Min/Max/Ø"
+
+msgctxt "#32270"
+msgid "L1 PQ Min/Max/Ø"
+msgstr "L1 PQ Min/Max/Ø"
+
+msgctxt "#32271"
+msgid "L5 Active Area"
+msgstr "L5 aktív képterület"
+
+msgctxt "#32272"
+msgid "OK: open section — Back: TinyPPI overlay"
+msgstr "OK: szakasz megnyitása — Vissza: TinyPPI-átfedés"
+
+msgctxt "#32273"
+msgid "Back: metadata list"
+msgstr "Vissza: metaadatlista"
+
+msgctxt "#32274"
+msgid "Connected"
+msgstr "Csatlakozva"
+
+msgctxt "#32275"
+msgid "Connecting..."
+msgstr "Csatlakozás..."
+
+msgctxt "#32276"
+msgid "Disconnected"
+msgstr "Szétkapcsolva"
+
+msgctxt "#32277"
+msgid "Nothing is playing"
+msgstr "Nincs lejátszás"
+
+msgctxt "#32278"
+msgid "Start a video on the box and everything it carries appears here."
+msgstr "Indíts el egy videót a médialejátszón, és itt megjelenik minden lehetséges adat, amit tartalmaz."
+
+msgctxt "#32279"
+msgid "Peak"
+msgstr "Csúcs"
+
+msgctxt "#32280"
+msgid "Average"
+msgstr "Átlag"
+
+msgctxt "#32281"
+msgid "Frame luminance (L1)"
+msgstr "Képfényesség (L1)"
+
+msgctxt "#32282"
+msgid "VS10 output"
+msgstr "VS10 kimenet"
+
+msgctxt "#32283"
+msgid "No Dolby Vision metadata"
+msgstr "Nincs Dolby Vision metaadat"
+
+msgctxt "#32284"
+msgid "This source carries no Dolby Vision RPU, so there is no metadata to list. The window fills as soon as a Dolby Vision title starts."
+msgstr "Ez a forrás nem tartalmaz Dolby Vision RPU-t, így nincs mit megjeleníteni. Az ablak betöltődik, amint egy Dolby Vision cím elindul."
+
+msgctxt "#32285"
+msgid "Output"
+msgstr "Kép kimenet"
+
+msgctxt "#32286"
+msgid "Copy report"
+msgstr "Jelentés másolása"
+
+msgctxt "#32287"
+msgid "Copied"
+msgstr "Másolva"
+
+msgctxt "#32288"
+msgid "Enter the access token"
+msgstr "Add meg a hozzáférési tokent"
+
+msgctxt "#32289"
+msgid "You will find it in the add-on settings under Dashboard."
+msgstr "A kiegészítő beállításaiban találod, a Vezérlőpult alatt."
+
+msgctxt "#32290"
+msgid "Save"
+msgstr "Mentés"
+
+msgctxt "#32291"
+msgid "Cancel"
+msgstr "Mégse"
+
+msgctxt "#32292"
+msgid "Wrong or missing token"
+msgstr "Hiányzó vagy hibás token"
+
+msgctxt "#32293"
+msgid "Switching..."
+msgstr "Váltás..."
+
+msgctxt "#32294"
+msgid "Switched"
+msgstr "Átváltva"
+
+msgctxt "#32295"
+msgid "Switching failed"
+msgstr "A váltás nem sikerült"
+
+msgctxt "#32296"
+msgid "Switches"
+msgstr "Váltások"
+
+msgctxt "#32297"
+msgid "Events"
+msgstr "Események"
+
+msgctxt "#32298"
+msgid "Nothing out of the ordinary yet"
+msgstr "Eddig semmi rendellenes"
+
+msgctxt "#32299"
+msgid "1 min"
+msgstr "1 perc"
+
+msgctxt "#32300"
+msgid "10 min"
+msgstr "10 perc"
+
+msgctxt "#32301"
+msgid "Whole title"
+msgstr "Teljes cím"
+
+msgctxt "#32302"
+msgid "Audio track"
+msgstr "Hangsáv"
+
+msgctxt "#32303"
+msgid "Subtitles"
+msgstr "Feliratok"
+
+msgctxt "#32304"
+msgid "Off"
+msgstr "Ki"
+
+msgctxt "#32305"
+msgid "Mute"
+msgstr "Némítás"
+
+msgctxt "#32306"
+msgid "Play / Pause"
+msgstr "Lejátszás / Szünet"
+
+msgctxt "#32307"
+msgid "Stop"
+msgstr "Leállítás"
+
+msgctxt "#32308"
+msgid "Display mode"
+msgstr "Megjelenítési mód"
+
+msgctxt "#32309"
+msgid "Playback controls"
+msgstr "Lejátszásvezérlők"
+
+msgctxt "#32310"
+msgid "Metrics"
+msgstr "Mérőszámok"
+
+msgctxt "#32311"
+msgid "Player cache"
+msgstr "Lejátszó gyorsítótár"
+
+msgctxt "#32312"
+msgid "Warnings"
+msgstr "Figyelmeztetések"
+
+msgctxt "#32313"
+msgid "Dark"
+msgstr "Sötét"
+
+msgctxt "#32314"
+msgid "Dark (adaptive)"
+msgstr "Sötét (adaptív)"
+
+msgctxt "#32315"
+msgid "Midnight"
+msgstr "Éjfél"
+
+msgctxt "#32316"
+msgid "Choose a theme"
+msgstr "Téma választása"
+
+msgctxt "#32317"
+msgid "Intensity"
+msgstr "Intenzitás"
+
+msgctxt "#32318"
+msgid "Subtle"
+msgstr "Visszafogott"
+
+msgctxt "#32319"
+msgid "Standard"
+msgstr "Normál"
+
+msgctxt "#32320"
+msgid "Strong"
+msgstr "Erős"
+
+msgctxt "#32321"
+msgid "Last played"
+msgstr "Legutóbb lejátszva"
+
+msgctxt "#32322"
+msgid "Summary"
+msgstr "Összegzés"
+
+msgctxt "#32323"
+msgid "Too many connections"
+msgstr "Túl sok kapcsolat"
+
+msgctxt "#32324"
+msgid "Live"
+msgstr "Élő"
+
+msgctxt "#32325"
+msgid "Metadata"
+msgstr "Metaadat"
+
+msgctxt "#32326"
 msgid "History"
 msgstr "Előzmény"
 
-msgctxt "#32585"
+msgctxt "#32327"
 msgid "Settings"
 msgstr "Beállítások"
 
-msgctxt "#32586"
+msgctxt "#32328"
 msgid "Enter token"
 msgstr "Token megadása"
 
-msgctxt "#32587"
+msgctxt "#32329"
 msgid "Readings and events"
 msgstr "Értékek és események"
 
-msgctxt "#32588"
+msgctxt "#32330"
+msgid "Previous chapter"
+msgstr "Előző fejezet"
+
+msgctxt "#32331"
+msgid "Next chapter"
+msgstr "Következő fejezet"
+
+msgctxt "#32332"
+msgid "Volume down"
+msgstr "Halkítás"
+
+msgctxt "#32333"
+msgid "Volume up"
+msgstr "Hangosítás"
+
+msgctxt "#32334"
+msgid "Ends at"
+msgstr "Vége ekkor"
+
+msgctxt "#32335"
+msgid "Films"
+msgstr "Filmek"
+
+msgctxt "#32336"
+msgid "No films in the video library"
+msgstr "Nincs film a videótárban"
+
+msgctxt "#32337"
+msgid "Search films"
+msgstr "Filmek keresése"
+
+msgctxt "#32338"
+msgid "Starting…"
+msgstr "Indítás…"
+
+msgctxt "#32339"
+msgid "Playback could not be started"
+msgstr "A lejátszás nem indítható el"
+
+msgctxt "#32340"
+msgid "Resume"
+msgstr "Folytatás"
+
+msgctxt "#32341"
+msgid "Watched"
+msgstr "Megtekintve"
+
+msgctxt "#32342"
+msgid "Continue watching"
+msgstr "Megtekintés folytatása"
+
+msgctxt "#32343"
 msgid "Recently added"
 msgstr "Nemrég hozzáadott"
 
-msgctxt "#32589"
-msgid "(Default)"
-msgstr "(Alap)"
+msgctxt "#32344"
+msgid "Unwatched films"
+msgstr "Nem látott filmek"
+
+msgctxt "#32345"
+msgid "Unwatched series"
+msgstr "Nem látott sorozatok"
+
+msgctxt "#32346"
+msgid "Mark as watched"
+msgstr "Megjelölés látottként"
+
+msgctxt "#32347"
+msgid "Mark as unwatched"
+msgstr "Megjelölés nem látottként"
+
+msgctxt "#32348"
+msgid "The library could not be updated"
+msgstr "A könyvtárat nem sikerült frissíteni"
+
+msgctxt "#32349"
+msgid "Play"
+msgstr "Lejátszás"
+
+msgctxt "#32350"
+msgid "Open"
+msgstr "Megnyitás"
+
+msgctxt "#32351"
+msgid "Play from the beginning"
+msgstr "Lejátszás az elejéről"
+
+msgctxt "#32352"
+msgid "Clear resume point"
+msgstr "Folytatási pont törlése"
+
+msgctxt "#32353"
+msgid "Series"
+msgstr "Sorozatok"
+
+msgctxt "#32354"
+msgid "No series in the video library"
+msgstr "Nincs sorozat a videótárban"
+
+msgctxt "#32355"
+msgid "Search series"
+msgstr "Sorozatok keresése"
+
+msgctxt "#32356"
+msgid "All series"
+msgstr "Összes sorozat"
+
+msgctxt "#32357"
+msgid "Unwatched episodes"
+msgstr "Meg nem nézett epizódok"
+
+msgctxt "#32358"
+msgid "Season %s"
+msgstr "%s. évad"
+
+msgctxt "#32359"
+msgid "Specials"
+msgstr "Különkiadások"
+
+msgctxt "#32360"
+msgid "Episodes could not be loaded"
+msgstr "Az epizódokat nem sikerült betölteni"
+
+msgctxt "#32361"
+msgid "Clear the search"
+msgstr "Keresés törlése"
+
+msgctxt "#32362"
+msgid "%s h %s min"
+msgstr "%s ó %s p"
+
+msgctxt "#32363"
+msgid "%s min"
+msgstr "%s p"
+
+msgctxt "#32364"
+msgid "%s h"
+msgstr "%s ó"
+
+msgctxt "#32365"
+msgid "Dolby Vision"
+msgstr "Dolby Vision"

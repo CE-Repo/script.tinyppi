@@ -333,7 +333,7 @@
 
                     <!-- Video -->
                     <control type="label">
-                        <label>[B][UPPERCASE]$ADDON[script.tinyppi 32054][/UPPERCASE][/B]</label>
+                        <label>[B][UPPERCASE]$ADDON[script.tinyppi 32218][/UPPERCASE][/B]</label>
                         <left>35</left>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
@@ -343,7 +343,7 @@
                     <!-- Display output -->
                     <control type="label">
                         <top>30</top>
-                        <label>$ADDON[script.tinyppi 32000]:</label>
+                        <label>$ADDON[script.tinyppi 32219]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -361,7 +361,7 @@
                     <!-- Video stream -->
                     <control type="label">
                         <top>60</top>
-                        <label>$ADDON[script.tinyppi 32001]:</label>
+                        <label>$ADDON[script.tinyppi 32220]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -379,7 +379,7 @@
                     <!-- Pixel format -->
                     <control type="label">
                         <top>90</top>
-                        <label>$ADDON[script.tinyppi 32023]:</label>
+                        <label>$ADDON[script.tinyppi 32221]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -397,7 +397,7 @@
                     <!-- Bit depth -->
                     <control type="label">
                         <top>120</top>
-                        <label>$ADDON[script.tinyppi 32099]:</label>
+                        <label>$ADDON[script.tinyppi 32222]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -415,7 +415,7 @@
                     <!-- Aspect ratio -->
                     <control type="label">
                         <top>150</top>
-                        <label>$ADDON[script.tinyppi 32024]:</label>
+                        <label>$ADDON[script.tinyppi 32223]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -433,7 +433,7 @@
                     <!-- Decoder -->
                     <control type="label">
                         <top>180</top>
-                        <label>$ADDON[script.tinyppi 32005]:</label>
+                        <label>$ADDON[script.tinyppi 32224]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -451,7 +451,7 @@
                     <!-- Decode method -->
                     <control type="label">
                         <top>210</top>
-                        <label>$ADDON[script.tinyppi 32287]:</label>
+                        <label>$ADDON[script.tinyppi 32225]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -483,7 +483,7 @@
 
                     <!-- Processing -->
                     <control type="label">
-                        <label>[B][UPPERCASE]$ADDON[script.tinyppi 32007][/UPPERCASE][/B]</label>
+                        <label>[B][UPPERCASE]$ADDON[script.tinyppi 32226][/UPPERCASE][/B]</label>
                         <left>35</left>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
@@ -493,7 +493,7 @@
                     <!-- Input -->
                     <control type="label">
                         <top>30</top>
-                        <label>$ADDON[script.tinyppi 32051]:</label>
+                        <label>$ADDON[script.tinyppi 32227]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -511,7 +511,7 @@
                     <!-- Converting -->
                     <control type="label">
                         <top>60</top>
-                        <label>$ADDON[script.tinyppi 32028]:</label>
+                        <label>$ADDON[script.tinyppi 32228]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -570,7 +570,7 @@
                     <!-- Bitrate -->
                     <control type="label">
                         <top>90</top>
-                        <label>$ADDON[script.tinyppi 32047]:</label>
+                        <label>$ADDON[script.tinyppi 32229]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -610,7 +610,7 @@
                         <left>240</left>
                         <top>90</top>
                         <width>380</width>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <visible>String.IsEmpty(Window().Property(VideoLiveBitrateVar)) + String.IsEmpty(Window().Property(VideoBitrateMBVar))</visible>
@@ -620,7 +620,7 @@
                     <!-- Mode -->
                     <control type="label">
                         <top>120</top>
-                        <label>$ADDON[script.tinyppi 32070]:</label>
+                        <label>$ADDON[script.tinyppi 32231]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -638,7 +638,7 @@
                     <!-- Color gamut -->
                     <control type="label">
                         <top>150</top>
-                        <label>$ADDON[script.tinyppi 32015]:</label>
+                        <label>$ADDON[script.tinyppi 32232]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -656,7 +656,7 @@
                     <!-- Media source -->
                     <control type="label">
                         <top>180</top>
-                        <label>$ADDON[script.tinyppi 32288]:</label>
+                        <label>$ADDON[script.tinyppi 32233]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -674,7 +674,7 @@
                     <!-- Playback time -->
                     <control type="label">
                         <top>210</top>
-                        <label>$ADDON[script.tinyppi 32013]:</label>
+                        <label>$ADDON[script.tinyppi 32234]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -705,7 +705,7 @@
                         <left>240</left>
                         <top>210</top>
                         <width>380</width>
-                        <label>$ADDON[script.tinyppi 32362]</label>
+                        <label>$ADDON[script.tinyppi 32235]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <visible>[PVR.IsPlayingTV | PVR.IsPlayingRadio] + [String.IsEmpty(PVR.EpgEventDuration) | String.IsEqual(PVR.EpgEventDuration,00:00) | String.IsEqual(PVR.EpgEventDuration,00:00:00)]</visible>
@@ -716,7 +716,7 @@
                         <left>240</left>
                         <top>210</top>
                         <width>380</width>
-                        <label>$ADDON[script.tinyppi 32363]</label>
+                        <label>$ADDON[script.tinyppi 32236]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <visible>String.IsEmpty(Player.Duration) + Player.IsInternetStream + ![PVR.IsPlayingTV | PVR.IsPlayingRadio]</visible>
@@ -727,7 +727,7 @@
                         <left>240</left>
                         <top>210</top>
                         <width>380</width>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <visible>String.IsEmpty(Player.Duration) + ![PVR.IsPlayingTV | PVR.IsPlayingRadio] + !Player.IsInternetStream</visible>
@@ -751,7 +751,7 @@
 
                     <!-- Audio -->
                     <control type="label">
-                        <label>[B][UPPERCASE]$ADDON[script.tinyppi 32056][/UPPERCASE][/B]</label>
+                        <label>[B][UPPERCASE]$ADDON[script.tinyppi 32237][/UPPERCASE][/B]</label>
                         <left>35</left>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
@@ -761,7 +761,7 @@
                     <!-- Audio codec -->
                     <control type="label">
                         <top>30</top>
-                        <label>$ADDON[script.tinyppi 32045]:</label>
+                        <label>$ADDON[script.tinyppi 32238]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -779,7 +779,7 @@
                     <!-- Audio resolution -->
                     <control type="label">
                         <top>60</top>
-                        <label>$ADDON[script.tinyppi 32069]:</label>
+                        <label>$ADDON[script.tinyppi 32239]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -799,7 +799,7 @@
                         <left>240</left>
                         <top>60</top>
                         <width>400</width>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <visible>String.IsEmpty(Window().Property(AudioBitDepthVar)) + String.IsEmpty(Window().Property(AudioSampleRateVar))</visible>
@@ -809,7 +809,7 @@
                     <!-- Input -->
                     <control type="label">
                         <top>90</top>
-                        <label>$ADDON[script.tinyppi 32429]:</label>
+                        <label>$ADDON[script.tinyppi 32240]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -828,7 +828,7 @@
                     <!-- Output -->
                     <control type="label">
                         <top>120</top>
-                        <label>$ADDON[script.tinyppi 32055]:</label>
+                        <label>$ADDON[script.tinyppi 32241]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -837,7 +837,7 @@
                         <left>240</left>
                         <top>120</top>
                         <width>400</width>
-                        <label>$ADDON[script.tinyppi 32035]</label>
+                        <label>$ADDON[script.tinyppi 32242]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <visible>Player.Passthrough + !String.IsEmpty(VideoPlayer.AudioCodec)</visible>
@@ -857,7 +857,7 @@
                         <left>240</left>
                         <top>120</top>
                         <width>400</width>
-                        <label>$ADDON[script.tinyppi 32087]</label>
+                        <label>$ADDON[script.tinyppi 32243]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <visible>!Player.Passthrough + !String.IsEmpty(VideoPlayer.AudioCodec) + String.IsEmpty(Player.Process(audiochannelssink))</visible>
@@ -868,7 +868,7 @@
                         <left>240</left>
                         <top>120</top>
                         <width>400</width>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <visible>String.IsEmpty(VideoPlayer.AudioCodec)</visible>
@@ -878,7 +878,7 @@
                     <!-- Bitrate -->
                     <control type="label">
                         <top>150</top>
-                        <label>$ADDON[script.tinyppi 32047]:</label>
+                        <label>$ADDON[script.tinyppi 32229]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -918,7 +918,7 @@
                         <left>240</left>
                         <top>150</top>
                         <width>400</width>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <visible>String.IsEmpty(Window().Property(AudioLiveBitrateVar)) + String.IsEmpty(Window().Property(AudioBitrateKBVar))</visible>
@@ -928,7 +928,7 @@
                     <!-- Audio language -->
                     <control type="label">
                         <top>180</top>
-                        <label>$ADDON[script.tinyppi 32052]:</label>
+                        <label>$ADDON[script.tinyppi 32244]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -949,7 +949,7 @@
                         <left>240</left>
                         <top>180</top>
                         <width>400</width>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <visible>String.IsEmpty(Window().Property(AudioNameShortVar))</visible>
@@ -959,7 +959,7 @@
                     <!-- Subtitle language -->
                     <control type="label">
                         <top>210</top>
-                        <label>$ADDON[script.tinyppi 32053]:</label>
+                        <label>$ADDON[script.tinyppi 32245]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -981,7 +981,7 @@
                         <left>240</left>
                         <top>210</top>
                         <width>400</width>
-                        <label>$ADDON[script.tinyppi 32091]</label>
+                        <label>$ADDON[script.tinyppi 32246]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <visible>VideoPlayer.HasSubtitles + !VideoPlayer.SubtitlesEnabled</visible>
@@ -992,7 +992,7 @@
                         <left>240</left>
                         <top>210</top>
                         <width>400</width>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <visible>!VideoPlayer.HasSubtitles</visible>
@@ -1017,7 +1017,7 @@
 
                     <!-- System -->
                     <control type="label">
-                        <label>[B][UPPERCASE]$ADDON[script.tinyppi 32088][/UPPERCASE][/B]</label>
+                        <label>[B][UPPERCASE]$ADDON[script.tinyppi 32247][/UPPERCASE][/B]</label>
                         <left>35</left>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
@@ -1027,7 +1027,7 @@
                     <!-- In / drop / out -->
                     <control type="label">
                         <top>30</top>
-                        <label>$ADDON[script.tinyppi 32036]:</label>
+                        <label>$ADDON[script.tinyppi 32248]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1045,7 +1045,7 @@
                     <!-- Processor -->
                     <control type="label">
                         <top>60</top>
-                        <label>$ADDON[script.tinyppi 32014]:</label>
+                        <label>$ADDON[script.tinyppi 32249]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1063,7 +1063,7 @@
                     <!-- Temperature -->
                     <control type="label">
                         <top>90</top>
-                        <label>$ADDON[script.tinyppi 32018]:</label>
+                        <label>$ADDON[script.tinyppi 32250]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1097,7 +1097,7 @@
                     <!-- Memory usage -->
                     <control type="label">
                         <top>120</top>
-                        <label>$ADDON[script.tinyppi 32034]:</label>
+                        <label>$ADDON[script.tinyppi 32251]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1132,7 +1132,7 @@
                     <!-- Player cache -->
                     <control type="label">
                         <top>150</top>
-                        <label>$ADDON[script.tinyppi 32032]:</label>
+                        <label>$ADDON[script.tinyppi 32252]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1167,7 +1167,7 @@
                     <!-- Video queue / data -->
                     <control type="label">
                         <top>180</top>
-                        <label>$ADDON[script.tinyppi 32022]:</label>
+                        <label>$ADDON[script.tinyppi 32253]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1252,7 +1252,7 @@
                     <!-- Audio queue / data -->
                     <control type="label">
                         <top>210</top>
-                        <label>$ADDON[script.tinyppi 32025]:</label>
+                        <label>$ADDON[script.tinyppi 32254]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1356,7 +1356,7 @@
 
                         <!-- HDR Static Metadata -->
                         <control type="label">
-                            <label>[B][UPPERCASE]$ADDON[script.tinyppi 32300][/UPPERCASE][/B]</label>
+                            <label>[B][UPPERCASE]$ADDON[script.tinyppi 32255][/UPPERCASE][/B]</label>
                             <left>35</left>
                             <font>font23_narrow</font>
                             <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
@@ -1366,7 +1366,7 @@
                         <!-- HDR10 MDL -->
                         <control type="label">
                             <top>30</top>
-                            <label>$ADDON[script.tinyppi 32296]:</label>
+                            <label>$ADDON[script.tinyppi 32256]:</label>
                             <font>font23_narrow</font>
                             <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                             <aligny>top</aligny>
@@ -1385,7 +1385,7 @@
                         <!-- HDR10 MaxCLL/FALL -->
                         <control type="label">
                             <top>60</top>
-                            <label>$ADDON[script.tinyppi 32297]:</label>
+                            <label>$ADDON[script.tinyppi 32257]:</label>
                             <font>font23_narrow</font>
                             <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                             <aligny>top</aligny>
@@ -1437,7 +1437,7 @@
 
                         <!-- HDR Static Metadata -->
                         <control type="label">
-                            <label>[B][UPPERCASE]$ADDON[script.tinyppi 32300][/UPPERCASE][/B]</label>
+                            <label>[B][UPPERCASE]$ADDON[script.tinyppi 32255][/UPPERCASE][/B]</label>
                             <left>35</left>
                             <font>font23_narrow</font>
                             <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
@@ -1447,7 +1447,7 @@
                         <!-- HDR10 MDL -->
                         <control type="label">
                             <top>30</top>
-                            <label>$ADDON[script.tinyppi 32296]:</label>
+                            <label>$ADDON[script.tinyppi 32256]:</label>
                             <font>font23_narrow</font>
                             <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                             <aligny>top</aligny>
@@ -1466,7 +1466,7 @@
                         <!-- HDR10 MaxCLL/FALL -->
                         <control type="label">
                             <top>60</top>
-                            <label>$ADDON[script.tinyppi 32297]:</label>
+                            <label>$ADDON[script.tinyppi 32257]:</label>
                             <font>font23_narrow</font>
                             <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                             <aligny>top</aligny>
@@ -1511,7 +1511,7 @@
                     <!-- CM Version -->
                     <control type="label">
                         <top>30</top>
-                        <label>$ADDON[script.tinyppi 32379]:</label>
+                        <label>$ADDON[script.tinyppi 32258]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1533,7 +1533,7 @@
                         <align>right</align>
                         <left>177</left>
                         <top>30</top>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1543,7 +1543,7 @@
                     <!-- Structure -->
                     <control type="label">
                         <top>60</top>
-                        <label>$ADDON[script.tinyppi 32380]:</label>
+                        <label>$ADDON[script.tinyppi 32259]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1565,7 +1565,7 @@
                         <align>right</align>
                         <left>177</left>
                         <top>60</top>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1575,7 +1575,7 @@
                     <!-- Version -->
                     <control type="label">
                         <top>90</top>
-                        <label>$ADDON[script.tinyppi 32291]:</label>
+                        <label>$ADDON[script.tinyppi 32260]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1597,7 +1597,7 @@
                         <align>right</align>
                         <left>177</left>
                         <top>90</top>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1607,7 +1607,7 @@
                     <!-- Profile -->
                     <control type="label">
                         <top>120</top>
-                        <label>$ADDON[script.tinyppi 32290]:</label>
+                        <label>$ADDON[script.tinyppi 32261]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1629,7 +1629,7 @@
                         <align>right</align>
                         <left>177</left>
                         <top>120</top>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1639,7 +1639,7 @@
                     <!-- RPU / BL -->
                     <control type="label">
                         <top>150</top>
-                        <label>$ADDON[script.tinyppi 32381] :</label>
+                        <label>$ADDON[script.tinyppi 32262] :</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1670,7 +1670,7 @@
                         <top>150</top>
                         <width>270</width>
                         <align>right</align>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1715,7 +1715,7 @@
                         <top>150</top>
                         <width>270</width>
                         <align>right</align>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1725,7 +1725,7 @@
                     <!-- EL / Type -->
                     <control type="label">
                         <top>180</top>
-                        <label>$ADDON[script.tinyppi 32382]:</label>
+                        <label>$ADDON[script.tinyppi 32263]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1756,7 +1756,7 @@
                         <top>180</top>
                         <width>270</width>
                         <align>right</align>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1802,7 +1802,7 @@
                         <top>180</top>
                         <width>270</width>
                         <align>right</align>
-                        <label>$ADDON[script.tinyppi 32033]</label>
+                        <label>$ADDON[script.tinyppi 32230]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1828,7 +1828,7 @@
 
                     <!-- Metadata -->
                     <control type="label">
-                        <label>[B][UPPERCASE]$ADDON[script.tinyppi 32289][/UPPERCASE][/B]</label>
+                        <label>[B][UPPERCASE]$ADDON[script.tinyppi 32264][/UPPERCASE][/B]</label>
                         <left>35</left>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.TitleColor)]</textcolor>
@@ -1838,7 +1838,7 @@
                     <!-- HDR10 MDL -->
                     <control type="label">
                         <top>30</top>
-                        <label>$ADDON[script.tinyppi 32296]:</label>
+                        <label>$ADDON[script.tinyppi 32256]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1857,7 +1857,7 @@
                     <!-- HDR10 CLL/FALL -->
                     <control type="label">
                         <top>57</top>
-                        <label>$ADDON[script.tinyppi 32297]:</label>
+                        <label>$ADDON[script.tinyppi 32257]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1876,7 +1876,7 @@
                     <!-- RPU MDL: the source range when the RPU carries it, else L6 -->
                     <control type="label">
                         <top>100</top>
-                        <label>$ADDON[script.tinyppi 32425]:</label>
+                        <label>$ADDON[script.tinyppi 32265]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1885,7 +1885,7 @@
                     <!-- L6 MDL -->
                     <control type="label">
                         <top>100</top>
-                        <label>$ADDON[script.tinyppi 32298]:</label>
+                        <label>$ADDON[script.tinyppi 32266]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1905,7 +1905,7 @@
                     <!-- RPU MaxCLL/FALL -->
                     <control type="label">
                         <top>127</top>
-                        <label>$ADDON[script.tinyppi 32426]:</label>
+                        <label>$ADDON[script.tinyppi 32267]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1914,7 +1914,7 @@
                     <!-- L6 MaxCLL/FALL -->
                     <control type="label">
                         <top>127</top>
-                        <label>$ADDON[script.tinyppi 32299]:</label>
+                        <label>$ADDON[script.tinyppi 32268]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1934,7 +1934,7 @@
                     <!-- L1 Lum Min/Max/Ø -->
                     <control type="label">
                         <top>170</top>
-                        <label>$ADDON[script.tinyppi 32375]:</label>
+                        <label>$ADDON[script.tinyppi 32269]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1953,7 +1953,7 @@
                     <!-- L1 PQ Min/Max/Ø -->
                     <control type="label">
                         <top>197</top>
-                        <label>$ADDON[script.tinyppi 32376]:</label>
+                        <label>$ADDON[script.tinyppi 32270]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1972,7 +1972,7 @@
                     <!-- L5 Active Area -->
                     <control type="label">
                         <top>240</top>
-                        <label>$ADDON[script.tinyppi 32030]:</label>
+                        <label>$ADDON[script.tinyppi 32271]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>

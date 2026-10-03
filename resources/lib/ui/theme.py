@@ -26,13 +26,13 @@ from ui.palette import BACKGROUND, TEXT, named
 # every other color is named after its family (see ui.palette).  Mirrors the
 # names in the <default> values of settings.xml.
 _DEFAULT_NAMES = {
-    "FFEDEDED": 32120,  # White
-    "FF82B1FF": 32127,  # Light blue
-    "FF272D32": 32130,  # Charcoal
-    "FF000000": 32131,  # Black
-    "FFFF5252": 32165,  # Crimson
-    "FFFFB74D": 32201,  # Tangerine
-    "FF81C784": 32204,  # Forest
+    "FFEDEDED": 32208,  # White
+    "FF82B1FF": 32209,  # Light blue
+    "FF272D32": 32210,  # Charcoal
+    "FF000000": 32211,  # Black
+    "FFFF5252": 32212,  # Crimson
+    "FFFFB74D": 32213,  # Tangerine
+    "FF81C784": 32214,  # Forest
 }
 
 # Palette for text-based elements, and the names of its colors.
@@ -103,7 +103,7 @@ _BACKGROUND_DEFAULT = "FF272D32"
 # swatch, then the color's name (a string reference for a translated one) or
 # the HEX code:
 #
-#     [COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32120]
+#     [COLOR=FFEDEDED]●[/COLOR] $ADDON[script.tinyppi 32208]
 #     [COLOR=FFE65350]●[/COLOR] Red 3
 #     [COLOR=FF5733AA]●[/COLOR] #5733AA
 #
@@ -111,7 +111,7 @@ _BACKGROUND_DEFAULT = "FF272D32"
 # Only the setting's default carries "(Default)".  This replaced fifty options
 # per color, which made settings.xml ~360 KB (see core.settings).
 _STORED_RE     = re.compile(r"^\[COLOR=([0-9A-Fa-f]{8})\]●\[/COLOR\] (.*)$")
-_DEFAULT_LABEL = 32589  # (Default)
+_DEFAULT_LABEL = 32203  # (Default)
 _NAME_REF      = "$ADDON[" + ADDON_ID + " {}]"
 _DEFAULT_MARK  = " " + _NAME_REF.format(_DEFAULT_LABEL)
 
@@ -156,7 +156,7 @@ _LEGACY_BACKGROUND = (
 # The picker's first tile, which asks for a HEX color.  The picker returns the
 # tile's second label unchanged, so this tile uses lower case (palette tiles
 # use upper case).  It shows the current HEX color, or is transparent.
-_HEX_TILE_LABEL = 32241  # HEX color
+_HEX_TILE_LABEL = 32204  # HEX color
 _HEX_TILE_EMPTY = "00000000"
 
 _HEX6_RE = re.compile(r"^[0-9A-Fa-f]{6}$")
@@ -466,17 +466,17 @@ def _ask_hex(addon, spec: _ColorSetting, current_rgb: str) -> str | None:
     Pre-filled with the current color.  None when cancelled; invalid input
     gives the default (with a notification).
     """
-    keyboard = xbmc.Keyboard(current_rgb, addon.getLocalizedString(32243))
+    keyboard = xbmc.Keyboard(current_rgb, addon.getLocalizedString(32205))
     keyboard.doModal()
     if not keyboard.isConfirmed():
         return None
 
     raw = keyboard.getText().strip().lstrip("#").upper()
     if not _HEX6_RE.match(raw):
-        _notify(addon, 32244, xbmcgui.NOTIFICATION_ERROR, 4000)
+        _notify(addon, 32206, xbmcgui.NOTIFICATION_ERROR, 4000)
         return _encode(spec, spec.default)
 
-    _notify(addon, 32245, xbmcgui.NOTIFICATION_INFO, 3000)
+    _notify(addon, 32207, xbmcgui.NOTIFICATION_INFO, 3000)
     return _encode(spec, -1, raw)
 
 

@@ -51,7 +51,7 @@ except Exception as exc:  # a broken module must not break the add-on
 _MAPPING_KWARG = "include_mapping" in getattr(
     getattr(_parse_sidedata, "__code__", None), "co_varnames", ())
 
-_LABEL_NA = 32033
+_LABEL_NA = 32230
 
 # Shown for L5 / L1 when the RPU has nothing to report.
 L5_EMPTY = "0 | 0 | 0 | 0"

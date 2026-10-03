@@ -78,7 +78,7 @@ let lastDrawn = "";        /* what the report card was last drawn from      */
 let libraryAt = null;      /* which version of the shelves are on the page  */
 
 /* Only the two per-frame L1 summaries use the transient change colour. */
-const FLASH_ROWS = new Set(["metadata.32375", "metadata.32376"]);
+const FLASH_ROWS = new Set(["metadata.32269", "metadata.32270"]);
 const DEFAULT_OPEN_GROUPS = new Set([
   "video", "audio", "processing", "dv", "system", "metadata"
 ]);

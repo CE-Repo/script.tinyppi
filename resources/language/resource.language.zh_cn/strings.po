@@ -8,1465 +8,1465 @@ msgstr ""
 "Language: zh_CN\n"
 
 msgctxt "#32000"
-msgid "Display output"
-msgstr "显示输出"
-
-msgctxt "#32001"
-msgid "Video stream"
-msgstr "视频流"
-
-msgctxt "#32002"
 msgid "General"
 msgstr "常规"
 
-msgctxt "#32003"
+msgctxt "#32001"
 msgid "TinyPPI settings"
 msgstr "TinyPPI 设置"
 
-msgctxt "#32005"
-msgid "Decoder"
-msgstr "解码器"
-
-msgctxt "#32007"
-msgid "Processing"
-msgstr "正在处理"
-
-msgctxt "#32012"
-msgid "720p skins are not supported"
-msgstr "不支持 720p 皮肤"
-
-msgctxt "#32013"
-msgid "Playback time"
-msgstr "播放时间"
-
-msgctxt "#32014"
-msgid "Processor"
-msgstr "处理器"
-
-msgctxt "#32015"
-msgid "Color gamut"
-msgstr "色域"
-
-msgctxt "#32016"
-msgid "Only CoreELEC 22 or later is supported"
-msgstr "仅支持 CoreELEC 22 或更高版本"
-
-msgctxt "#32017"
-msgid "The CoreELEC version could not be detected"
-msgstr "无法检测 CoreELEC 版本"
-
-msgctxt "#32018"
-msgid "Temperature"
-msgstr "温度"
-
-msgctxt "#32019"
-msgid "Show file name"
-msgstr "显示文件名"
-
-msgctxt "#32021"
-msgid "Show the currently playing file name in TinyPPI."
-msgstr "在 TinyPPI 中显示当前播放文件的名称。"
-
-msgctxt "#32022"
-msgid "Video queue / data"
-msgstr "视频队列 / 数据"
-
-msgctxt "#32023"
-msgid "Pixel format"
-msgstr "像素格式"
-
-msgctxt "#32024"
-msgid "Aspect ratio"
-msgstr "宽高比"
-
-msgctxt "#32025"
-msgid "Audio queue / data"
-msgstr "音频队列 / 数据"
-
-msgctxt "#32028"
-msgid "Converting"
-msgstr "正在转换"
-
-msgctxt "#32030"
-msgid "L5 Active Area"
-msgstr "L5 有效区域"
-
-msgctxt "#32032"
-msgid "Player cache"
-msgstr "播放器缓存"
-
-msgctxt "#32033"
-msgid "N/A"
-msgstr "不适用"
-
-msgctxt "#32034"
-msgid "Memory usage"
-msgstr "内存使用"
-
-msgctxt "#32035"
-msgid "Passthrough"
-msgstr "直通"
-
-msgctxt "#32036"
-msgid "In / drop / out"
-msgstr "输入 / 丢帧 / 输出"
-
-msgctxt "#32045"
-msgid "Audio codec"
-msgstr "音频编解码器"
-
-msgctxt "#32047"
-msgid "Bitrate"
-msgstr "码率"
-
-msgctxt "#32051"
-msgid "Input"
-msgstr "输入"
-
-msgctxt "#32052"
-msgid "Audio language"
-msgstr "音频语言"
-
-msgctxt "#32053"
-msgid "Subtitle language"
-msgstr "字幕语言"
-
-msgctxt "#32054"
-msgid "Video"
-msgstr "视频"
-
-msgctxt "#32055"
-msgid "Output"
-msgstr "输出"
-
-msgctxt "#32056"
-msgid "Audio"
-msgstr "音频"
-
-msgctxt "#32057"
-msgid "Output"
-msgstr "图像输出"
-
-msgctxt "#32069"
-msgid "Audio resolution"
-msgstr "音频分辨率"
-
-msgctxt "#32070"
-msgid "Mode"
-msgstr "模式"
-
-msgctxt "#32087"
-msgid "Decoding"
-msgstr "正在解码"
-
-msgctxt "#32088"
-msgid "System"
-msgstr "系统"
-
-msgctxt "#32091"
-msgid "Disabled"
-msgstr "已禁用"
-
-msgctxt "#32092"
-msgid "Launch mode"
-msgstr "启动模式"
-
-msgctxt "#32093"
-msgid "Choose what opens when the add-on is launched."
-msgstr "选择插件启动时打开的内容。"
-
-msgctxt "#32094"
-msgid "TinyPPI"
-msgstr "TinyPPI"
-
-msgctxt "#32095"
-msgid "VS10 dialog"
-msgstr "VS10 对话框"
-
-msgctxt "#32099"
-msgid "Bit depth"
-msgstr "位深度"
-
-msgctxt "#32101"
-msgid "Customise the TinyPPI overlay colors."
-msgstr "自定义 TinyPPI 叠加层的颜色。"
-
-msgctxt "#32103"
-msgid "Background"
-msgstr "背景"
-
-msgctxt "#32104"
-msgid "Background color of the overlay style."
-msgstr "现代叠加层样式的背景颜色。"
-
-msgctxt "#32105"
-msgid "Title"
-msgstr "标题"
-
-msgctxt "#32106"
-msgid "Color of the section titles."
-msgstr "分区标题的颜色。"
-
-msgctxt "#32107"
-msgid "Description"
-msgstr "说明文字"
-
-msgctxt "#32108"
-msgid "Color of the label descriptions."
-msgstr "标签说明文字的颜色。"
-
-msgctxt "#32109"
-msgid "Output"
-msgstr "输出值"
-
-msgctxt "#32110"
-msgid "Color of the output values."
-msgstr "输出值的颜色。"
-
-msgctxt "#32111"
-msgid "Progress bar"
-msgstr "进度条"
-
-msgctxt "#32112"
-msgid "Color of the progress bars."
-msgstr "进度条的颜色。"
-
-msgctxt "#32113"
-msgid "Detail"
-msgstr "细节"
-
-msgctxt "#32114"
-msgid "Color of the dimmed detail values shown in parentheses."
-msgstr "括号中显示的暗淡细节值的颜色。"
-
-msgctxt "#32115"
-msgid "Icon"
-msgstr "图标"
-
-msgctxt "#32116"
-msgid "Color of the section icons."
-msgstr "分区图标的颜色。"
-
-msgctxt "#32117"
-msgid "Unit (cd/m², nits)"
-msgstr "单位 (cd/m², nits)"
-
-msgctxt "#32118"
-msgid "Color of the cd/m² brightness unit."
-msgstr "cd/m² 亮度单位的颜色。"
-
-msgctxt "#32120"
-msgid "White"
-msgstr "白色"
-
-msgctxt "#32127"
-msgid "Light blue"
-msgstr "浅蓝色"
-
-msgctxt "#32130"
-msgid "Charcoal"
-msgstr "炭黑色"
-
-msgctxt "#32131"
-msgid "Black"
-msgstr "黑色"
-
-msgctxt "#32140"
-msgid "FPS"
-msgstr "FPS"
-
-msgctxt "#32141"
-msgid "Color of the In / drop / out FPS values."
-msgstr "In / drop / out FPS 值的颜色。"
-
-msgctxt "#32143"
-msgid "Color of the overlay header label (Modern)."
-msgstr "叠加层标题栏的颜色 (Modern)。"
-
-msgctxt "#32144"
-msgid "Header icon"
-msgstr "标题图标"
-
-msgctxt "#32145"
-msgid "Color of the chart icon (Modern)."
-msgstr "图表图标的颜色 (Modern)。"
-
-msgctxt "#32165"
-msgid "Crimson"
-msgstr "猩红色"
-
-msgctxt "#32190"
-msgid "Brightness unit"
-msgstr "亮度单位"
-
-msgctxt "#32191"
-msgid "Choose the unit shown for the L6 brightness values."
-msgstr "选择 L6 亮度值显示的单位。"
-
-msgctxt "#32192"
-msgid "cd/m²"
-msgstr "cd/m²"
-
-msgctxt "#32193"
-msgid "nits"
-msgstr "nits"
-
-msgctxt "#32194"
-msgid "Hidden"
-msgstr "隐藏"
-
-msgctxt "#32195"
-msgid "Show L5 offsets icon"
-msgstr "显示 L5 偏移图标"
-
-msgctxt "#32196"
-msgid "Show the L5 offsets icon (lrtb) next to the L5 values."
-msgstr "在 L5 数值旁显示 L5 偏移图标 (lrtb)。"
-
-msgctxt "#32197"
-msgid "File name"
-msgstr "文件名"
-
-msgctxt "#32198"
-msgid "Color of the playing file name."
-msgstr "正在播放的文件名的颜色。"
-
-msgctxt "#32201"
-msgid "Tangerine"
-msgstr "橘色"
-
-msgctxt "#32204"
-msgid "Forest"
-msgstr "森林绿"
-
-msgctxt "#32241"
-msgid "HEX color"
-msgstr "HEX 颜色"
-
-msgctxt "#32243"
-msgid "Enter a 6-digit HEX color (e.g. FF5733)"
-msgstr "输入 6 位 HEX 颜色（例如 FF5733）"
-
-msgctxt "#32244"
-msgid "Invalid HEX color – using the default color"
-msgstr "无效的 HEX 颜色 – 使用默认颜色"
-
-msgctxt "#32245"
-msgid "Custom color applied"
-msgstr "已应用自定义颜色"
-
-msgctxt "#32251"
-msgid "Separator line"
-msgstr "分隔线"
-
-msgctxt "#32252"
-msgid "Color of the separator lines."
-msgstr "分隔线的颜色。"
-
-msgctxt "#32253"
-msgid "Selection"
-msgstr "选中"
-
-msgctxt "#32254"
-msgid "Background color of the focused button in the VS10 dialog."
-msgstr "VS10 对话框中聚焦按钮的背景颜色。"
-
-msgctxt "#32255"
-msgid "Selection text"
-msgstr "选中文本"
-
-msgctxt "#32256"
-msgid "Text color of the focused button in the VS10 dialog."
-msgstr "VS10 对话框中聚焦按钮的文本颜色。"
-
-msgctxt "#32260"
-msgid "Overlay position"
-msgstr "叠加层位置"
-
-msgctxt "#32261"
-msgid "Horizontal offset (SDR only)"
-msgstr "水平偏移 (仅 SDR)"
-
-msgctxt "#32262"
-msgid "Shifts the overlay to the right from its default position. 100% is the maximum shift that keeps the content on screen."
-msgstr "将叠加层从默认位置向右移动。100% 为保持内容完全显示在屏幕内的最大移动量。"
-
-msgctxt "#32263"
-msgid "Vertical offset"
-msgstr "垂直偏移"
-
-msgctxt "#32264"
-msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
-msgstr "将叠加层从默认位置向上移动。100% 为保持内容完全显示在屏幕内的最大移动量。"
-
-msgctxt "#32266"
-msgid "Opacity of the overlay background, from 0% (fully transparent) to 100% (fully opaque)."
-msgstr "叠加层背景的不透明度，从 0%（完全透明）到 100%（完全不透明）。"
-
-msgctxt "#32267"
-msgid "Transparency"
-msgstr "透明度"
-
-msgctxt "#32268"
-msgid "Opacity of the full-screen background behind the overlay, from 0% (off) to 100% (fully opaque)."
-msgstr "叠加层后面全屏背景的不透明度，从 0%（关闭）到 100%（完全不透明）。"
-
-msgctxt "#32269"
-msgid "Global background"
-msgstr "全局背景"
-
-msgctxt "#32271"
-msgid "Color of the full-screen global background."
-msgstr "全屏全局背景的颜色。"
-
-msgctxt "#32274"
-msgid "Opacity of this element, from 0% (fully transparent) to 100% (fully opaque)."
-msgstr "此元素的不透明度，从 0%（完全透明）到 100%（完全不透明）。"
-
-msgctxt "#32275"
-msgid "Conversion (yes)"
-msgstr "转换（是）"
-
-msgctxt "#32276"
-msgid "Color of the check-circle icon shown when conversion is active."
-msgstr "转换进行时显示的对勾圆圈图标的颜色。"
-
-msgctxt "#32277"
-msgid "Conversion (no)"
-msgstr "转换（否）"
-
-msgctxt "#32278"
-msgid "Color of the cross-circle icon shown when conversion is inactive."
-msgstr "转换未进行时显示的叉号圆圈图标的颜色。"
-
-msgctxt "#32279"
-msgid "FEL tag"
-msgstr "FEL 标记"
-
-msgctxt "#32280"
-msgid "Color of the FEL enhancement-layer tag in the input."
-msgstr "输入中 FEL 增强层标记的颜色。"
-
-msgctxt "#32281"
-msgid "MEL tag"
-msgstr "MEL 标记"
-
-msgctxt "#32282"
-msgid "Color of the MEL enhancement-layer tag in the input."
-msgstr "输入中 MEL 增强层标记的颜色。"
-
-msgctxt "#32287"
-msgid "Decode method"
-msgstr "解码方式"
-
-msgctxt "#32288"
-msgid "Media source"
-msgstr "媒体源"
-
-msgctxt "#32289"
-msgid "Metadata"
-msgstr "元数据"
-
-msgctxt "#32290"
-msgid "Profile"
-msgstr "配置文件"
-
-msgctxt "#32291"
-msgid "Version"
-msgstr "版本"
-
-msgctxt "#32296"
-msgid "HDR10 MDL"
-msgstr "HDR10 MDL"
-
-msgctxt "#32297"
-msgid "HDR10 CLL/FALL"
-msgstr "HDR10 CLL/FALL"
-
-msgctxt "#32298"
-msgid "L6 MDL"
-msgstr "L6 MDL"
-
-msgctxt "#32299"
-msgid "L6 MaxCLL/FALL"
-msgstr "L6 MaxCLL/FALL"
-
-msgctxt "#32300"
-msgid "HDR Static Metadata"
-msgstr "HDR 静态元数据"
-
-msgctxt "#32301"
-msgid "Codec logos"
-msgstr "编解码器徽标"
-
-msgctxt "#32302"
-msgid "Show codec logos on playback start"
-msgstr "播放开始时显示编解码器徽标"
-
-msgctxt "#32303"
-msgid "When a video starts, briefly shows the audio format and HDR/video format logos in the top-right corner."
-msgstr "视频开始播放时，在右上角短暂显示音频格式和 HDR/视频格式徽标。"
-
-msgctxt "#32304"
-msgid "Display duration (seconds)"
-msgstr "显示时长（秒）"
-
-msgctxt "#32305"
-msgid "How long the format logos stay on screen before they disappear."
-msgstr "格式徽标在消失前停留在屏幕上的时长。"
-
-msgctxt "#32306"
-msgid "Show codec logos in the video OSD"
-msgstr "在视频 OSD 中显示编解码器徽标"
-
-msgctxt "#32307"
-msgid "Also shows the format logos whenever the on-screen playback controls (video OSD) are visible."
-msgstr "只要屏幕播放控制（视频 OSD）可见，就同时显示格式徽标。"
-
-msgctxt "#32308"
-msgid "Horizontal offset"
-msgstr "水平偏移"
-
-msgctxt "#32309"
-msgid "Moves the logos from the left edge (0%) to the right edge (100%) of the screen."
-msgstr "将徽标从屏幕左边缘（0%）移动到右边缘（100%）。"
-
-msgctxt "#32310"
-msgid "Codec logos shown on the picture when playback starts or the OSD is open."
-msgstr "在播放开始或 OSD 打开时显示在画面上的编解码器徽标。"
-
-msgctxt "#32313"
-msgid "Background color"
-msgstr "背景颜色"
-
-msgctxt "#32314"
-msgid "Color and transparency of the panel behind the logos."
-msgstr "徽标后面板的颜色和透明度。"
-
-msgctxt "#32315"
-msgid "Video logo"
-msgstr "视频徽标"
-
-msgctxt "#32316"
-msgid "Color and transparency of the HDR/video format logo."
-msgstr "HDR/视频格式徽标的颜色和透明度。"
-
-msgctxt "#32317"
-msgid "Audio logo"
-msgstr "音频徽标"
-
-msgctxt "#32318"
-msgid "Color and transparency of the audio format logo."
-msgstr "音频格式徽标的颜色和透明度。"
-
-msgctxt "#32319"
-msgid "Show codec logos in the TinyPPI overlay"
-msgstr "在 TinyPPI 叠加层中显示编解码器徽标"
-
-msgctxt "#32320"
-msgid "Also shows the format logos while the TinyPPI info overlay is open."
-msgstr "在 TinyPPI 信息叠加层打开时也显示格式徽标。"
-
-msgctxt "#32321"
-msgid "Divider"
-msgstr "分隔线"
-
-msgctxt "#32322"
-msgid "Color and transparency of the divider line between the two logos."
-msgstr "两个徽标之间分隔线的颜色和透明度。"
-
-msgctxt "#32323"
-msgid "Vertical offset"
-msgstr "垂直偏移"
-
-msgctxt "#32324"
-msgid "Moves the logos from the top edge (0%) to the bottom edge (100%) of the screen."
-msgstr "将徽标从屏幕顶部（0%）移动到底部（100%）。"
-
-msgctxt "#32325"
-msgid "On playback start"
-msgstr "播放开始时"
-
-msgctxt "#32326"
-msgid "Video OSD"
-msgstr "视频 OSD"
-
-msgctxt "#32327"
-msgid "TinyPPI overlay"
-msgstr "TinyPPI 叠加层"
-
-msgctxt "#32328"
-msgid "Size (%)"
-msgstr "大小 (%)"
-
-msgctxt "#32329"
-msgid "Scales the format logos. 100% is the default size; lower values shrink them, higher values enlarge them. The horizontal and vertical offset are kept."
-msgstr "缩放格式徽标。100% 为默认大小；较小的值会缩小徽标，较大的值会放大徽标。水平和垂直偏移保持不变。"
-
-msgctxt "#32334"
+msgctxt "#32002"
 msgid "Launch"
 msgstr "启动"
 
-msgctxt "#32335"
-msgid "Overlay content"
-msgstr "叠加层内容"
+msgctxt "#32003"
+msgid "Launch mode"
+msgstr "启动模式"
 
-msgctxt "#32337"
-msgid "Background color of the VS10 selection dialog panel."
-msgstr "VS10 选择对话框面板的背景颜色。"
+msgctxt "#32004"
+msgid "Choose what opens when the add-on is launched."
+msgstr "选择插件启动时打开的内容。"
 
-msgctxt "#32339"
-msgid "Color of the separator lines in the VS10 selection dialog."
-msgstr "VS10 选择对话框中分隔线的颜色。"
+msgctxt "#32005"
+msgid "TinyPPI"
+msgstr "TinyPPI"
 
-msgctxt "#32341"
-msgid "Color of the chart icon in the VS10 selection dialog."
-msgstr "VS10 选择对话框中图表图标的颜色。"
+msgctxt "#32006"
+msgid "VS10 dialog"
+msgstr "VS10 对话框"
 
-msgctxt "#32342"
-msgid "Header title"
-msgstr "标题"
-
-msgctxt "#32343"
-msgid "Color of the VS10 header label in the selection dialog."
-msgstr "选择对话框中 VS10 标题标签的颜色。"
-
-msgctxt "#32344"
+msgctxt "#32007"
 msgid "Auto-hide"
 msgstr "自动隐藏"
 
-msgctxt "#32345"
+msgctxt "#32008"
 msgid "Automatically hides the TinyPPI overlay after the selected time (in seconds). 0 = off. Does not apply to the VS10 dialog."
 msgstr "在设定的时间（秒）后自动隐藏 TinyPPI 叠加层。0 = 关闭。不适用于 VS10 对话框。"
 
-msgctxt "#32348"
-msgid "Horizontal offset of the channel box"
-msgstr "声道框水平偏移"
+msgctxt "#32009"
+msgid "Overlay content"
+msgstr "叠加层内容"
 
-msgctxt "#32349"
-msgid "Moves the channel box in Dolby Vision to the right. 0% places it at the left edge, 100% keeps it in its default position on the right."
-msgstr "在杜比视界下将声道框向右移动。0% 将其置于左边缘，100% 保持其右侧的默认位置。"
+msgctxt "#32010"
+msgid "Show file name"
+msgstr "显示文件名"
 
-msgctxt "#32350"
-msgid "Channels"
-msgstr "声道"
+msgctxt "#32011"
+msgid "Show the currently playing file name in TinyPPI."
+msgstr "在 TinyPPI 中显示当前播放文件的名称。"
 
-msgctxt "#32351"
-msgid "Customise the colors of the channel layout graphic."
-msgstr "自定义声道布局图形的颜色。"
+msgctxt "#32012"
+msgid "Show L5 offsets icon"
+msgstr "显示 L5 偏移图标"
 
-msgctxt "#32352"
-msgid "Layout"
-msgstr "布局"
+msgctxt "#32013"
+msgid "Show the L5 offsets icon (lrtb) next to the L5 values."
+msgstr "在 L5 数值旁显示 L5 偏移图标 (lrtb)。"
 
-msgctxt "#32353"
-msgid "Background color of the channel box shown in Dolby Vision."
-msgstr "杜比视界下声道框的背景颜色。"
+msgctxt "#32014"
+msgid "Brightness unit"
+msgstr "亮度单位"
 
-msgctxt "#32354"
-msgid "Color of the speaker layout graphic behind the active channels."
-msgstr "活动声道后方扬声器布局图形的颜色。"
+msgctxt "#32015"
+msgid "Choose the unit shown for the L6 brightness values."
+msgstr "选择 L6 亮度值显示的单位。"
 
-msgctxt "#32355"
-msgid "Color of the active channels in the layout graphic."
-msgstr "布局图形中活动声道的颜色。"
+msgctxt "#32016"
+msgid "cd/m²"
+msgstr "cd/m²"
 
-msgctxt "#32356"
-msgid "Channels in SDR"
-msgstr "SDR 下的声道"
+msgctxt "#32017"
+msgid "nits"
+msgstr "nits"
 
-msgctxt "#32357"
-msgid "Show the channel layout graphic while playing SDR content."
-msgstr "播放 SDR 内容时显示声道布局图形。"
+msgctxt "#32018"
+msgid "Hidden"
+msgstr "隐藏"
 
-msgctxt "#32358"
-msgid "Channels in HDR10 / HLG / HDR10+"
-msgstr "HDR10 / HLG / HDR10+ 下的声道"
+msgctxt "#32019"
+msgid "Overlay position"
+msgstr "叠加层位置"
 
-msgctxt "#32359"
-msgid "Show the channel layout graphic while playing HDR10, HLG or HDR10+ content."
-msgstr "播放 HDR10、HLG 或 HDR10+ 内容时显示声道布局图形。"
+msgctxt "#32020"
+msgid "Horizontal offset (SDR only)"
+msgstr "水平偏移 (仅 SDR)"
 
-msgctxt "#32360"
-msgid "Channels in Dolby Vision"
-msgstr "杜比视界下的声道"
+msgctxt "#32021"
+msgid "Shifts the overlay to the right from its default position. 100% is the maximum shift that keeps the content on screen."
+msgstr "将叠加层从默认位置向右移动。100% 为保持内容完全显示在屏幕内的最大移动量。"
 
-msgctxt "#32361"
-msgid "Show the channel layout graphic while playing Dolby Vision content."
-msgstr "播放杜比视界内容时显示声道布局图形。"
+msgctxt "#32022"
+msgid "Vertical offset"
+msgstr "垂直偏移"
 
-msgctxt "#32362"
-msgid "Live TV"
-msgstr "直播电视"
+msgctxt "#32023"
+msgid "Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen."
+msgstr "将叠加层从默认位置向上移动。100% 为保持内容完全显示在屏幕内的最大移动量。"
 
-msgctxt "#32363"
-msgid "Livestream"
-msgstr "网络直播"
-
-msgctxt "#32367"
-msgid "Conversion indicator"
-msgstr "转换指示点"
-
-msgctxt "#32368"
-msgid "Color of the dot shown on the video-format logo while a conversion is active."
-msgstr "转换进行时，显示在视频格式图标上的圆点颜色。"
-
-msgctxt "#32369"
-msgid "FEL indicator"
-msgstr "FEL 指示"
-
-msgctxt "#32370"
-msgid "Color of the pill shown on the splash logo when the source is Dolby Vision FEL."
-msgstr "当源为 Dolby Vision FEL 时，显示在 Splash 图标上的圆角条颜色。"
-
-msgctxt "#32371"
-msgid "MEL indicator"
-msgstr "MEL 指示"
-
-msgctxt "#32372"
-msgid "Color of the pill shown on the splash logo when the source is Dolby Vision MEL."
-msgstr "当源为 Dolby Vision MEL 时，显示在 Splash 图标上的圆角条颜色。"
-
-msgctxt "#32373"
-msgid "Other Dolby Vision"
-msgstr "其他 Dolby Vision"
-
-msgctxt "#32374"
-msgid "Color of the pill shown on the splash logo for any other Dolby Vision profile (no enhancement layer)."
-msgstr "适用于其他任何 Dolby Vision 配置（无增强层）时，显示在 Splash 图标上的圆角条颜色。"
-
-msgctxt "#32375"
-msgid "L1 Lum Min/Max/Ø"
-msgstr "L1 Lum Min/Max/Ø"
-
-msgctxt "#32376"
-msgid "L1 PQ Min/Max/Ø"
-msgstr "L1 PQ Min/Max/Ø"
-
-msgctxt "#32379"
-msgid "CM Version"
-msgstr "CM 版本"
-
-msgctxt "#32380"
-msgid "Structure"
-msgstr "结构"
-
-msgctxt "#32381"
-msgid "RPU / BL"
-msgstr "RPU / BL"
-
-msgctxt "#32382"
-msgid "EL / Type"
-msgstr "EL / 类型"
-
-msgctxt "#32383"
-msgid "Converted output"
-msgstr "转换后的输出"
-
-msgctxt "#32384"
-msgid "Keep the HDR/DV area when converting to SDR"
-msgstr "转换为 SDR 时保留 HDR/DV 区域"
-
-msgctxt "#32385"
-msgid "Keeps the HDR static-metadata and Dolby Vision panels on screen while VS10 converts the source to SDR. Turn off to draw the overlay in its SDR layout instead."
-msgstr "在 VS10 将源转换为 SDR 期间，仍显示 HDR 静态元数据面板和杜比视界面板。关闭后，叠加层改用 SDR 布局。"
-
-msgctxt "#32386"
-msgid "Keep the Dolby Vision area when converting to HDR10"
-msgstr "转换为 HDR10 时保留杜比视界区域"
-
-msgctxt "#32387"
-msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
-msgstr "在 VS10 将杜比视界源转换为 HDR10 期间，仍显示杜比视界面板。关闭后，改为显示 HDR 静态元数据面板。"
-
-msgctxt "#32388"
-msgid "Display"
-msgstr "显示"
-
-msgctxt "#32389"
-msgid "Dolby Vision metadata"
-msgstr "杜比视界元数据"
-
-msgctxt "#32390"
-msgid "OK: open section — Back: TinyPPI overlay"
-msgstr "OK：打开区块 — 返回：TinyPPI 叠加层"
-
-msgctxt "#32391"
-msgid "DV metadata"
-msgstr "DV 元数据"
-
-msgctxt "#32392"
-msgid "Diagnostic views for reading what a stream actually carries."
-msgstr "用于查看数据流实际携带内容的诊断视图。"
-
-msgctxt "#32393"
-msgid "Dolby Vision metadata view"
-msgstr "杜比视界元数据视图"
-
-msgctxt "#32394"
-msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK opens the section under the cursor in a window of its own, Back returns to the TinyPPI overlay. On any other source OK does nothing."
-msgstr "在 TinyPPI 叠加层打开且正在播放杜比视界源时，按 OK 打开杜比视界元数据视图。它会列出该数据流附加数据中的每个块——配置记录、从头部到 L11 的 RPU、修剪参数以及静态 SEI。按 OK 在独立窗口中打开所选区块，按返回回到 TinyPPI 叠加层。其他源按 OK 无效。"
-
-msgctxt "#32395"
-msgid "Changed values"
-msgstr "变化的数值"
-
-msgctxt "#32396"
-msgid "Color for the readings that just changed. A value that moved is written in this color until the highlight duration below runs out, so the live readings can be told from the ones that do not move."
-msgstr "刚刚变化的数值的颜色。变化的数值会以此颜色显示，直到下方的高亮持续时间结束为止，这样便能将实时变化的数值与静止的数值区分开。"
-
-msgctxt "#32398"
+msgctxt "#32024"
 msgid "Move with the arrow keys"
 msgstr "使用方向键移动"
 
-msgctxt "#32399"
+msgctxt "#32025"
 msgid "Lets the arrow keys on the remote move the TinyPPI overlay around the screen while it is open. The move is not saved: the next launch starts from the position configured above."
 msgstr "允许在 TinyPPI 叠加层打开时，用遥控器的方向键在屏幕上移动它。移动结果不会保存：下次打开时仍使用上面设置的位置。"
 
-msgctxt "#32401"
-msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Raise its opacity to dim the picture behind it."
-msgstr "在杜比视界元数据视图后面覆盖整个屏幕的颜色。提高其不透明度可让后面的画面变暗。"
+msgctxt "#32026"
+msgid "Converted output"
+msgstr "转换后的输出"
 
-msgctxt "#32403"
-msgid "Background color of the metadata view itself."
-msgstr "元数据视图本身的背景颜色。"
+msgctxt "#32027"
+msgid "Keep the HDR/DV area when converting to SDR"
+msgstr "转换为 SDR 时保留 HDR/DV 区域"
 
-msgctxt "#32405"
-msgid "Color of the heading at the top of the metadata view."
-msgstr "元数据视图顶部标题的颜色。"
+msgctxt "#32028"
+msgid "Keeps the HDR static-metadata and Dolby Vision panels on screen while VS10 converts the source to SDR. Turn off to draw the overlay in its SDR layout instead."
+msgstr "在 VS10 将源转换为 SDR 期间，仍显示 HDR 静态元数据面板和杜比视界面板。关闭后，叠加层改用 SDR 布局。"
 
-msgctxt "#32407"
-msgid "Color of the Dolby Vision logo in the top right corner."
-msgstr "右上角杜比视界标志的颜色。"
+msgctxt "#32029"
+msgid "Keep the Dolby Vision area when converting to HDR10"
+msgstr "转换为 HDR10 时保留杜比视界区域"
 
-msgctxt "#32409"
-msgid "Color of the section headings, such as RPU or L2 — Trims."
-msgstr "章节标题的颜色，例如 RPU 或 L2 — Trims。"
+msgctxt "#32030"
+msgid "Keeps the Dolby Vision panels on screen while VS10 converts a Dolby Vision source to HDR10. Turn off to show the HDR static-metadata panel instead."
+msgstr "在 VS10 将杜比视界源转换为 HDR10 期间，仍显示杜比视界面板。关闭后，改为显示 HDR 静态元数据面板。"
 
-msgctxt "#32410"
-msgid "Column headings"
-msgstr "列标题"
+msgctxt "#32031"
+msgid "TinyPPI overlay"
+msgstr "TinyPPI 叠加层"
 
-msgctxt "#32411"
-msgid "Color of the column headings in the trim tables: Slope, Offset, Power and the rest."
-msgstr "trim 表格中列标题的颜色：Slope、Offset、Power 等。"
+msgctxt "#32032"
+msgid "Customise the TinyPPI overlay colors."
+msgstr "自定义 TinyPPI 叠加层的颜色。"
 
-msgctxt "#32413"
-msgid "Color of the field names down the left column."
-msgstr "左列字段名称的颜色。"
+msgctxt "#32033"
+msgid "Global background"
+msgstr "全局背景"
 
-msgctxt "#32415"
-msgid "Color of the readings. A value that just changed is written in the \"Changed values\" color instead, for as long as it keeps changing."
-msgstr "读数的颜色。刚刚变化的数值会改用\"变化的数值\"颜色显示，直到它不再变化为止。"
+msgctxt "#32034"
+msgid "Color of the full-screen global background."
+msgstr "全屏全局背景的颜色。"
 
-msgctxt "#32417"
-msgid "Color of the rules under the section headings and above and below the list."
-msgstr "章节标题下方以及列表上下分隔线的颜色。"
+msgctxt "#32035"
+msgid "Transparency"
+msgstr "透明度"
 
-msgctxt "#32419"
-msgid "Color of the bar behind the row the selection is on."
-msgstr "选中所在行背后横条的颜色。"
+msgctxt "#32036"
+msgid "Opacity of the full-screen background behind the overlay, from 0% (off) to 100% (fully opaque)."
+msgstr "叠加层后面全屏背景的不透明度，从 0%（关闭）到 100%（完全不透明）。"
 
-msgctxt "#32420"
-msgid "Scrollbar"
-msgstr "滚动条"
+msgctxt "#32037"
+msgid "Background"
+msgstr "背景"
 
-msgctxt "#32421"
-msgid "Color of the scrollbar down the right-hand edge."
-msgstr "右侧边缘滚动条的颜色。"
+msgctxt "#32038"
+msgid "Background color of the overlay style."
+msgstr "现代叠加层样式的背景颜色。"
 
-msgctxt "#32422"
-msgid "Key hint"
-msgstr "按键提示"
+msgctxt "#32039"
+msgid "Opacity of the overlay background, from 0% (fully transparent) to 100% (fully opaque)."
+msgstr "叠加层背景的不透明度，从 0%（完全透明）到 100%（完全不透明）。"
 
-msgctxt "#32423"
-msgid "Color of the line at the bottom naming what the keys do."
-msgstr "底部说明按键功能那一行的颜色。"
+msgctxt "#32040"
+msgid "Title"
+msgstr "标题"
 
-msgctxt "#32424"
-msgid "Back: metadata list"
-msgstr "返回：元数据列表"
+msgctxt "#32041"
+msgid "Color of the section titles."
+msgstr "分区标题的颜色。"
 
-msgctxt "#32425"
-msgid "RPU MDL"
-msgstr "RPU MDL"
+msgctxt "#32042"
+msgid "Opacity of this element, from 0% (fully transparent) to 100% (fully opaque)."
+msgstr "此元素的不透明度，从 0%（完全透明）到 100%（完全不透明）。"
 
-msgctxt "#32426"
-msgid "RPU MaxCLL/FALL"
-msgstr "RPU MaxCLL/FALL"
+msgctxt "#32043"
+msgid "Header title"
+msgstr "标题"
 
-msgctxt "#32427"
+msgctxt "#32044"
+msgid "Color of the overlay header label (Modern)."
+msgstr "叠加层标题栏的颜色 (Modern)。"
+
+msgctxt "#32045"
+msgid "Description"
+msgstr "说明文字"
+
+msgctxt "#32046"
+msgid "Color of the label descriptions."
+msgstr "标签说明文字的颜色。"
+
+msgctxt "#32047"
+msgid "Output"
+msgstr "输出值"
+
+msgctxt "#32048"
+msgid "Color of the output values."
+msgstr "输出值的颜色。"
+
+msgctxt "#32049"
+msgid "Changed values"
+msgstr "变化的数值"
+
+msgctxt "#32050"
+msgid "Color for the readings that just changed. A value that moved is written in this color until the highlight duration below runs out, so the live readings can be told from the ones that do not move."
+msgstr "刚刚变化的数值的颜色。变化的数值会以此颜色显示，直到下方的高亮持续时间结束为止，这样便能将实时变化的数值与静止的数值区分开。"
+
+msgctxt "#32051"
 msgid "Highlight duration"
 msgstr "高亮持续时间"
 
-msgctxt "#32428"
+msgctxt "#32052"
 msgid "How long a reading that just changed stays in the highlight color, in milliseconds. The readings behind it are still read ten times a second whatever this is set to, so no change is missed; at 100 the highlight lasts a single refresh, which is too brief to follow."
 msgstr "刚刚变化的数值保持高亮颜色的时长（毫秒）。无论此项如何设置，数值本身仍每秒读取十次，因此不会遗漏任何变化；设为 100 时高亮仅持续一次刷新，短得难以看清。"
 
-msgctxt "#32429"
-msgid "Input"
-msgstr "输入"
-
-msgctxt "#32430"
-msgid "Dashboard"
-msgstr "仪表板"
-
-msgctxt "#32431"
-msgid "A live view of the playing stream in a browser on your phone or laptop, so the picture itself stays untouched."
-msgstr "在手机或笔记本电脑的浏览器中实时查看正在播放的流，而画面本身保持不变。"
-
-msgctxt "#32432"
-msgid "Enable web dashboard"
-msgstr "启用网页仪表板"
-
-msgctxt "#32433"
-msgid "Serves the dashboard on this box's own address. Off by default; once it is on, anything on the same network can reach it, so do not forward its port to the internet."
-msgstr "在本机地址上提供仪表板。默认关闭；开启后同一网络中的任何设备都可访问，因此请勿将其端口转发到互联网。"
-
-msgctxt "#32434"
-msgid "Port"
-msgstr "端口"
-
-msgctxt "#32435"
-msgid "The port the dashboard listens on. Leave 8080 alone - Kodi's own web server usually has it."
-msgstr "仪表板监听的端口。请避开 8080 - 它通常被 Kodi 自带的网页服务器占用。"
-
-msgctxt "#32436"
-msgid "Access token"
-msgstr "访问令牌"
-
-msgctxt "#32437"
-msgid "The key the dashboard asks for. Switching a VS10 mode from the browser always needs it; reading needs it only when the setting below says so."
-msgstr "仪表板要求的密钥。从浏览器切换 VS10 模式始终需要它；仅当下方设置要求时，读取才需要。"
-
-msgctxt "#32438"
-msgid "Generate a new token"
-msgstr "生成新令牌"
-
-msgctxt "#32439"
-msgid "Replaces the token with a fresh one. Every browser still holding the old one is logged out."
-msgstr "将令牌替换为新的。仍持有旧令牌的浏览器都会被登出。"
-
-msgctxt "#32440"
-msgid "Require the token for reading too"
-msgstr "读取也需要令牌"
-
-msgctxt "#32441"
-msgid "Asks for the token before showing anything at all, not just before switching a mode. Turn this on when the box is on a shared network."
-msgstr "在显示任何内容之前就要求令牌，而不仅仅是在切换之前。若本机位于共享网络，请开启此项。"
-
-msgctxt "#32442"
-msgid "Allow VS10 switching from the dashboard"
-msgstr "允许从仪表板切换 VS10"
-
-msgctxt "#32443"
-msgid "Shows the VS10 output modes for the playing source in the browser, so the mode can be switched from a phone. The token is required either way."
-msgstr "在浏览器中显示当前源可用的 VS10 输出模式，以便从手机切换模式。两种情况下均需令牌。"
-
-msgctxt "#32444"
-msgid "Show address and token"
-msgstr "显示地址和令牌"
-
-msgctxt "#32445"
-msgid "Shows the address to open in a browser, together with the current token."
-msgstr "显示要在浏览器中打开的地址以及当前令牌。"
-
-msgctxt "#32446"
-msgid "Web dashboard"
-msgstr "网页仪表板"
-
-msgctxt "#32447"
-msgid "Open this address in a browser on the same network:"
-msgstr "在同一网络的浏览器中打开此地址："
-
-msgctxt "#32448"
-msgid "Connected"
-msgstr "已连接"
-
-msgctxt "#32449"
-msgid "Connecting..."
-msgstr "连接中..."
-
-msgctxt "#32450"
-msgid "Disconnected"
-msgstr "已断开"
-
-msgctxt "#32451"
-msgid "Nothing is playing"
-msgstr "当前没有播放"
-
-msgctxt "#32452"
-msgid "Start a video on the box and everything it carries appears here."
-msgstr "在本机上开始播放视频，其携带的全部信息将显示在这里。"
-
-msgctxt "#32453"
-msgid "Peak"
-msgstr "峰值"
-
-msgctxt "#32454"
-msgid "Average"
-msgstr "平均"
-
-msgctxt "#32455"
-msgid "Frame luminance (L1)"
-msgstr "画面亮度 (L1)"
-
-msgctxt "#32456"
-msgid "Copy report"
-msgstr "复制报告"
-
-msgctxt "#32457"
-msgid "Copied"
-msgstr "已复制"
-
-msgctxt "#32459"
-msgid "Enter the access token"
-msgstr "输入访问令牌"
-
-msgctxt "#32460"
-msgid "You will find it in the add-on settings under Dashboard."
-msgstr "可在插件设置的“仪表板”中找到。"
-
-msgctxt "#32461"
-msgid "Save"
-msgstr "保存"
-
-msgctxt "#32462"
-msgid "Cancel"
-msgstr "取消"
-
-msgctxt "#32463"
-msgid "Wrong or missing token"
-msgstr "令牌缺失或错误"
-
-msgctxt "#32464"
-msgid "Switching..."
-msgstr "正在切换..."
-
-msgctxt "#32465"
-msgid "Switched"
-msgstr "已切换"
-
-msgctxt "#32466"
-msgid "Switching failed"
-msgstr "切换失败"
-
-msgctxt "#32467"
-msgid "VS10 output"
-msgstr "VS10 输出"
-
-msgctxt "#32468"
-msgid "Show the Dolby Vision metadata view"
-msgstr "显示 Dolby Vision 元数据视图"
-
-msgctxt "#32469"
-msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
-msgstr "在仪表板中加入完整的元数据列表 - 流的附加数据所携带的每一个区块，与屏幕上的视图相同。仅对 Dolby Vision 源构建，也是页面传输量最大的部分，网络较慢时请关闭。"
-
-msgctxt "#32470"
-msgid "No Dolby Vision metadata"
-msgstr "没有 Dolby Vision 元数据"
-
-msgctxt "#32471"
-msgid "This source carries no Dolby Vision RPU, so there is no metadata to list. The window fills as soon as a Dolby Vision title starts."
-msgstr "该源不携带 Dolby Vision RPU，因此没有可列出的元数据。一旦开始播放 Dolby Vision 片源，此窗口便会填充内容。"
-
-msgctxt "#32472"
-msgid "Dolby Vision"
-msgstr "杜比视界"
-
-msgctxt "#32478"
-msgid "Switches"
-msgstr "切换"
-
-msgctxt "#32479"
-msgid "Events"
-msgstr "事件"
-
-msgctxt "#32480"
-msgid "Nothing out of the ordinary yet"
-msgstr "暂无异常"
-
-msgctxt "#32481"
-msgid "1 min"
-msgstr "1 分钟"
-
-msgctxt "#32482"
-msgid "10 min"
-msgstr "10 分钟"
-
-msgctxt "#32483"
-msgid "Whole title"
-msgstr "整个影片"
-
-msgctxt "#32484"
-msgid "Audio track"
-msgstr "音轨"
-
-msgctxt "#32485"
-msgid "Subtitles"
-msgstr "字幕"
-
-msgctxt "#32486"
-msgid "Off"
-msgstr "关闭"
-
-msgctxt "#32488"
-msgid "Mute"
-msgstr "静音"
-
-msgctxt "#32489"
-msgid "Play / Pause"
-msgstr "播放 / 暂停"
-
-msgctxt "#32490"
-msgid "Stop"
-msgstr "停止"
-
-msgctxt "#32491"
-msgid "Display mode"
-msgstr "显示模式"
-
-msgctxt "#32494"
-msgid "Playback controls"
-msgstr "播放控制"
-
-msgctxt "#32495"
-msgid "Metrics"
-msgstr "指标"
-
-msgctxt "#32496"
-msgid "Dark"
-msgstr "深色"
-
-msgctxt "#32497"
-msgid "Dark (adaptive)"
-msgstr "深色（自适应）"
-
-msgctxt "#32498"
-msgid "Midnight"
-msgstr "午夜"
-
-msgctxt "#32500"
-msgid "Choose a theme"
-msgstr "选择主题"
-
-msgctxt "#32501"
-msgid "Intensity"
-msgstr "强度"
-
-msgctxt "#32502"
-msgid "Subtle"
-msgstr "轻微"
-
-msgctxt "#32503"
-msgid "Standard"
-msgstr "标准"
-
-msgctxt "#32504"
-msgid "Strong"
-msgstr "强烈"
-
-msgctxt "#32507"
-msgid "Last played"
-msgstr "最近播放"
-
-msgctxt "#32508"
-msgid "Summary"
-msgstr "汇总"
-
-msgctxt "#32509"
-msgid "Too many connections"
-msgstr "连接数过多"
-
-msgctxt "#32511"
-msgid "Player cache"
-msgstr "播放器缓存"
-
-msgctxt "#32514"
-msgid "Warnings"
-msgstr "警告"
-
-msgctxt "#32515"
-msgid "Previous chapter"
-msgstr "上一章节"
-
-msgctxt "#32516"
-msgid "Next chapter"
-msgstr "下一章节"
-
-msgctxt "#32517"
-msgid "Volume down"
-msgstr "音量减小"
-
-msgctxt "#32518"
-msgid "Volume up"
-msgstr "音量增大"
-
-msgctxt "#32519"
+msgctxt "#32053"
+msgid "File name"
+msgstr "文件名"
+
+msgctxt "#32054"
+msgid "Color of the playing file name."
+msgstr "正在播放的文件名的颜色。"
+
+msgctxt "#32055"
+msgid "FPS"
+msgstr "FPS"
+
+msgctxt "#32056"
+msgid "Color of the In / drop / out FPS values."
+msgstr "In / drop / out FPS 值的颜色。"
+
+msgctxt "#32057"
+msgid "Unit (cd/m², nits)"
+msgstr "单位 (cd/m², nits)"
+
+msgctxt "#32058"
+msgid "Color of the cd/m² brightness unit."
+msgstr "cd/m² 亮度单位的颜色。"
+
+msgctxt "#32059"
+msgid "Detail"
+msgstr "细节"
+
+msgctxt "#32060"
+msgid "Color of the dimmed detail values shown in parentheses."
+msgstr "括号中显示的暗淡细节值的颜色。"
+
+msgctxt "#32061"
+msgid "Icon"
+msgstr "图标"
+
+msgctxt "#32062"
+msgid "Color of the section icons."
+msgstr "分区图标的颜色。"
+
+msgctxt "#32063"
+msgid "Header icon"
+msgstr "标题图标"
+
+msgctxt "#32064"
+msgid "Color of the chart icon (Modern)."
+msgstr "图表图标的颜色 (Modern)。"
+
+msgctxt "#32065"
+msgid "Progress bar"
+msgstr "进度条"
+
+msgctxt "#32066"
+msgid "Color of the progress bars."
+msgstr "进度条的颜色。"
+
+msgctxt "#32067"
+msgid "Separator line"
+msgstr "分隔线"
+
+msgctxt "#32068"
+msgid "Color of the separator lines."
+msgstr "分隔线的颜色。"
+
+msgctxt "#32069"
+msgid "Conversion (yes)"
+msgstr "转换（是）"
+
+msgctxt "#32070"
+msgid "Color of the check-circle icon shown when conversion is active."
+msgstr "转换进行时显示的对勾圆圈图标的颜色。"
+
+msgctxt "#32071"
+msgid "Conversion (no)"
+msgstr "转换（否）"
+
+msgctxt "#32072"
+msgid "Color of the cross-circle icon shown when conversion is inactive."
+msgstr "转换未进行时显示的叉号圆圈图标的颜色。"
+
+msgctxt "#32073"
+msgid "FEL tag"
+msgstr "FEL 标记"
+
+msgctxt "#32074"
+msgid "Color of the FEL enhancement-layer tag in the input."
+msgstr "输入中 FEL 增强层标记的颜色。"
+
+msgctxt "#32075"
+msgid "MEL tag"
+msgstr "MEL 标记"
+
+msgctxt "#32076"
+msgid "Color of the MEL enhancement-layer tag in the input."
+msgstr "输入中 MEL 增强层标记的颜色。"
+
+msgctxt "#32077"
+msgid "DV metadata"
+msgstr "DV 元数据"
+
+msgctxt "#32078"
+msgid "Diagnostic views for reading what a stream actually carries."
+msgstr "用于查看数据流实际携带内容的诊断视图。"
+
+msgctxt "#32079"
+msgid "Dolby Vision metadata"
+msgstr "杜比视界元数据"
+
+msgctxt "#32080"
+msgid "Dolby Vision metadata view"
+msgstr "杜比视界元数据视图"
+
+msgctxt "#32081"
+msgid "Lets OK open the Dolby Vision metadata view while the TinyPPI overlay is up and a Dolby Vision source is playing. It lists every block the stream's side data carries — the configuration record, the RPU from its header through L11, the trim passes and the static SEIs. OK opens the section under the cursor in a window of its own, Back returns to the TinyPPI overlay. On any other source OK does nothing."
+msgstr "在 TinyPPI 叠加层打开且正在播放杜比视界源时，按 OK 打开杜比视界元数据视图。它会列出该数据流附加数据中的每个块——配置记录、从头部到 L11 的 RPU、修剪参数以及静态 SEI。按 OK 在独立窗口中打开所选区块，按返回回到 TinyPPI 叠加层。其他源按 OK 无效。"
+
+msgctxt "#32082"
+msgid "Color laid over the whole screen behind the Dolby Vision metadata view. Raise its opacity to dim the picture behind it."
+msgstr "在杜比视界元数据视图后面覆盖整个屏幕的颜色。提高其不透明度可让后面的画面变暗。"
+
+msgctxt "#32083"
+msgid "Background color of the metadata view itself."
+msgstr "元数据视图本身的背景颜色。"
+
+msgctxt "#32084"
+msgid "Color of the heading at the top of the metadata view."
+msgstr "元数据视图顶部标题的颜色。"
+
+msgctxt "#32085"
+msgid "Color of the Dolby Vision logo in the top right corner."
+msgstr "右上角杜比视界标志的颜色。"
+
+msgctxt "#32086"
+msgid "Color of the section headings, such as RPU or L2 — Trims."
+msgstr "章节标题的颜色，例如 RPU 或 L2 — Trims。"
+
+msgctxt "#32087"
+msgid "Column headings"
+msgstr "列标题"
+
+msgctxt "#32088"
+msgid "Color of the column headings in the trim tables: Slope, Offset, Power and the rest."
+msgstr "trim 表格中列标题的颜色：Slope、Offset、Power 等。"
+
+msgctxt "#32089"
+msgid "Color of the field names down the left column."
+msgstr "左列字段名称的颜色。"
+
+msgctxt "#32090"
+msgid "Color of the readings. A value that just changed is written in the \"Changed values\" color instead, for as long as it keeps changing."
+msgstr "读数的颜色。刚刚变化的数值会改用\"变化的数值\"颜色显示，直到它不再变化为止。"
+
+msgctxt "#32091"
+msgid "Color of the rules under the section headings and above and below the list."
+msgstr "章节标题下方以及列表上下分隔线的颜色。"
+
+msgctxt "#32092"
+msgid "Selection"
+msgstr "选中"
+
+msgctxt "#32093"
+msgid "Color of the bar behind the row the selection is on."
+msgstr "选中所在行背后横条的颜色。"
+
+msgctxt "#32094"
+msgid "Scrollbar"
+msgstr "滚动条"
+
+msgctxt "#32095"
+msgid "Color of the scrollbar down the right-hand edge."
+msgstr "右侧边缘滚动条的颜色。"
+
+msgctxt "#32096"
+msgid "Key hint"
+msgstr "按键提示"
+
+msgctxt "#32097"
+msgid "Color of the line at the bottom naming what the keys do."
+msgstr "底部说明按键功能那一行的颜色。"
+
+msgctxt "#32098"
+msgid "Codec logos"
+msgstr "编解码器徽标"
+
+msgctxt "#32099"
+msgid "Codec logos shown on the picture when playback starts or the OSD is open."
+msgstr "在播放开始或 OSD 打开时显示在画面上的编解码器徽标。"
+
+msgctxt "#32100"
+msgid "On playback start"
+msgstr "播放开始时"
+
+msgctxt "#32101"
+msgid "Show codec logos on playback start"
+msgstr "播放开始时显示编解码器徽标"
+
+msgctxt "#32102"
+msgid "When a video starts, briefly shows the audio format and HDR/video format logos in the top-right corner."
+msgstr "视频开始播放时，在右上角短暂显示音频格式和 HDR/视频格式徽标。"
+
+msgctxt "#32103"
+msgid "Display duration (seconds)"
+msgstr "显示时长（秒）"
+
+msgctxt "#32104"
+msgid "How long the format logos stay on screen before they disappear."
+msgstr "格式徽标在消失前停留在屏幕上的时长。"
+
+msgctxt "#32105"
 msgid "Show video codec logo"
 msgstr "显示视频编解码器徽标"
 
-msgctxt "#32520"
+msgctxt "#32106"
 msgid "Includes the HDR/video format logo in the stack. Turn it off to show the audio format logo on its own."
 msgstr "在徽标组中包含 HDR/视频格式徽标。关闭后仅显示音频格式徽标。"
 
-msgctxt "#32521"
+msgctxt "#32107"
 msgid "Show audio codec logo"
 msgstr "显示音频编解码器徽标"
 
-msgctxt "#32522"
+msgctxt "#32108"
 msgid "Includes the audio format logo in the stack. Turn it off to show the HDR/video format logo on its own."
 msgstr "在徽标组中包含音频格式徽标。关闭后仅显示 HDR/视频格式徽标。"
 
-msgctxt "#32523"
+msgctxt "#32109"
 msgid "Logo order"
 msgstr "徽标顺序"
 
-msgctxt "#32524"
+msgctxt "#32110"
 msgid "Which of the two logos sits on top of the stack."
 msgstr "两个徽标中哪一个显示在上方。"
 
-msgctxt "#32525"
+msgctxt "#32111"
 msgid "Video on top, audio below"
 msgstr "视频在上，音频在下"
 
-msgctxt "#32526"
+msgctxt "#32112"
 msgid "Audio on top, video below"
 msgstr "音频在上，视频在下"
 
-msgctxt "#32527"
+msgctxt "#32113"
 msgid "Dolby Vision pill position"
 msgstr "Dolby Vision 圆角条位置"
 
-msgctxt "#32528"
+msgctxt "#32114"
 msgid "Which edge of the logo panel the Dolby Vision layer pill sits on."
 msgstr "Dolby Vision 层级圆角条位于徽标面板的哪条边。"
 
-msgctxt "#32529"
+msgctxt "#32115"
 msgid "Bottom edge"
 msgstr "底边"
 
-msgctxt "#32530"
+msgctxt "#32116"
 msgid "Top edge"
 msgstr "顶边"
 
-msgctxt "#32531"
-msgid "Ends at"
-msgstr "结束于"
+msgctxt "#32117"
+msgid "Horizontal offset"
+msgstr "水平偏移"
 
-msgctxt "#32532"
-msgid "Films"
-msgstr "影片"
+msgctxt "#32118"
+msgid "Moves the logos from the left edge (0%) to the right edge (100%) of the screen."
+msgstr "将徽标从屏幕左边缘（0%）移动到右边缘（100%）。"
 
-msgctxt "#32533"
-msgid "No films in the video library"
-msgstr "视频媒体库中没有影片"
+msgctxt "#32119"
+msgid "Vertical offset"
+msgstr "垂直偏移"
 
-msgctxt "#32534"
-msgid "Search films"
-msgstr "搜索影片"
+msgctxt "#32120"
+msgid "Moves the logos from the top edge (0%) to the bottom edge (100%) of the screen."
+msgstr "将徽标从屏幕顶部（0%）移动到底部（100%）。"
 
-msgctxt "#32535"
-msgid "Starting…"
-msgstr "正在启动…"
+msgctxt "#32121"
+msgid "Size (%)"
+msgstr "大小 (%)"
 
-msgctxt "#32536"
-msgid "Playback could not be started"
-msgstr "无法开始播放"
+msgctxt "#32122"
+msgid "Scales the format logos. 100% is the default size; lower values shrink them, higher values enlarge them. The horizontal and vertical offset are kept."
+msgstr "缩放格式徽标。100% 为默认大小；较小的值会缩小徽标，较大的值会放大徽标。水平和垂直偏移保持不变。"
 
-msgctxt "#32537"
-msgid "Resume"
-msgstr "继续播放"
+msgctxt "#32123"
+msgid "Background color"
+msgstr "背景颜色"
 
-msgctxt "#32538"
-msgid "Show the film library"
-msgstr "显示影片库"
+msgctxt "#32124"
+msgid "Color and transparency of the panel behind the logos."
+msgstr "徽标后面板的颜色和透明度。"
 
-msgctxt "#32539"
-msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
-msgstr "在没有播放内容时，于仪表板上提供视频媒体库中的影片。按一下即可在设备上开始播放。"
+msgctxt "#32125"
+msgid "Video logo"
+msgstr "视频徽标"
 
-msgctxt "#32540"
-msgid "Watched"
-msgstr "已观看"
+msgctxt "#32126"
+msgid "Color and transparency of the HDR/video format logo."
+msgstr "HDR/视频格式徽标的颜色和透明度。"
 
-msgctxt "#32541"
-msgid "Series"
-msgstr "剧集"
+msgctxt "#32127"
+msgid "Audio logo"
+msgstr "音频徽标"
 
-msgctxt "#32542"
-msgid "No series in the video library"
-msgstr "视频媒体库中没有剧集"
+msgctxt "#32128"
+msgid "Color and transparency of the audio format logo."
+msgstr "音频格式徽标的颜色和透明度。"
 
-msgctxt "#32543"
-msgid "Search series"
-msgstr "搜索剧集"
+msgctxt "#32129"
+msgid "Divider"
+msgstr "分隔线"
 
-msgctxt "#32544"
-msgid "All series"
-msgstr "所有剧集"
+msgctxt "#32130"
+msgid "Color and transparency of the divider line between the two logos."
+msgstr "两个徽标之间分隔线的颜色和透明度。"
 
-msgctxt "#32545"
-msgid "Unwatched episodes"
-msgstr "未观看的分集"
+msgctxt "#32131"
+msgid "Conversion indicator"
+msgstr "转换指示点"
 
-msgctxt "#32546"
-msgid "Season %s"
-msgstr "第 %s 季"
+msgctxt "#32132"
+msgid "Color of the dot shown on the video-format logo while a conversion is active."
+msgstr "转换进行时，显示在视频格式图标上的圆点颜色。"
 
-msgctxt "#32547"
-msgid "Specials"
-msgstr "特别篇"
+msgctxt "#32133"
+msgid "FEL indicator"
+msgstr "FEL 指示"
 
-msgctxt "#32548"
-msgid "Episodes could not be loaded"
-msgstr "无法加载分集"
+msgctxt "#32134"
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision FEL."
+msgstr "当源为 Dolby Vision FEL 时，显示在 Splash 图标上的圆角条颜色。"
 
-msgctxt "#32549"
-msgid "Show the series library"
-msgstr "显示剧集库"
+msgctxt "#32135"
+msgid "MEL indicator"
+msgstr "MEL 指示"
 
-msgctxt "#32550"
-msgid "Offers the series in the video library on the dashboard while nothing is playing. A press opens one and starts an episode on the box."
-msgstr "在没有播放内容时，于仪表板上提供视频媒体库中的剧集。按一下即可打开一部剧集并在设备上开始播放某一集。"
+msgctxt "#32136"
+msgid "Color of the pill shown on the splash logo when the source is Dolby Vision MEL."
+msgstr "当源为 Dolby Vision MEL 时，显示在 Splash 图标上的圆角条颜色。"
 
-msgctxt "#32551"
-msgid "Clear the search"
-msgstr "清除搜索"
+msgctxt "#32137"
+msgid "Other Dolby Vision"
+msgstr "其他 Dolby Vision"
 
-msgctxt "#32552"
-msgid "%s h %s min"
-msgstr "%s 小时 %s 分钟"
+msgctxt "#32138"
+msgid "Color of the pill shown on the splash logo for any other Dolby Vision profile (no enhancement layer)."
+msgstr "适用于其他任何 Dolby Vision 配置（无增强层）时，显示在 Splash 图标上的圆角条颜色。"
 
-msgctxt "#32553"
-msgid "%s min"
-msgstr "%s 分钟"
+msgctxt "#32139"
+msgid "Video OSD"
+msgstr "视频 OSD"
 
-msgctxt "#32554"
-msgid "%s h"
-msgstr "%s 小时"
+msgctxt "#32140"
+msgid "Show codec logos in the video OSD"
+msgstr "在视频 OSD 中显示编解码器徽标"
 
-msgctxt "#32555"
+msgctxt "#32141"
+msgid "Also shows the format logos whenever the on-screen playback controls (video OSD) are visible."
+msgstr "只要屏幕播放控制（视频 OSD）可见，就同时显示格式徽标。"
+
+msgctxt "#32142"
+msgid "Show codec logos in the TinyPPI overlay"
+msgstr "在 TinyPPI 叠加层中显示编解码器徽标"
+
+msgctxt "#32143"
+msgid "Also shows the format logos while the TinyPPI info overlay is open."
+msgstr "在 TinyPPI 信息叠加层打开时也显示格式徽标。"
+
+msgctxt "#32144"
 msgid "Layout"
 msgstr "布局"
 
-msgctxt "#32556"
+msgctxt "#32145"
 msgid "Dialog layout"
 msgstr "对话框布局"
 
-msgctxt "#32557"
+msgctxt "#32146"
 msgid "Which of the designs the VS10 dialog is drawn as."
 msgstr "决定 VS10 对话框采用哪一种设计。"
 
-msgctxt "#32558"
-msgid "Dialog"
-msgstr "对话框"
-
-msgctxt "#32560"
-msgid "Bar"
-msgstr "横栏"
-
-msgctxt "#32564"
+msgctxt "#32147"
 msgid "Single button"
 msgstr "单按钮"
 
-msgctxt "#32565"
+msgctxt "#32148"
+msgid "Bar"
+msgstr "横栏"
+
+msgctxt "#32149"
+msgid "Dialog"
+msgstr "对话框"
+
+msgctxt "#32150"
 msgid "Dialog position"
 msgstr "对话框位置"
 
-msgctxt "#32566"
+msgctxt "#32151"
 msgid "Vertical position"
 msgstr "垂直位置"
 
-msgctxt "#32567"
+msgctxt "#32152"
 msgid "Where the dialog sits between the top edge of the screen (0%) and the bottom one (100%). 50% leaves it in the middle, where it has always been."
 msgstr "设定对话框在屏幕上边缘（0%）与下边缘（100%）之间的位置。50% 时保持在中间，也就是一直以来的位置。"
 
-msgctxt "#32568"
+msgctxt "#32153"
 msgid "Horizontal position"
 msgstr "水平位置"
 
-msgctxt "#32569"
+msgctxt "#32154"
 msgid "Where the dialog sits between the left edge of the screen (0%) and the right one (100%). 50% leaves it in the middle."
 msgstr "设定对话框在屏幕左边缘（0%）与右边缘（100%）之间的位置。50% 时保持在中间。"
 
-msgctxt "#32570"
+msgctxt "#32155"
+msgid "Background color of the VS10 selection dialog panel."
+msgstr "VS10 选择对话框面板的背景颜色。"
+
+msgctxt "#32156"
+msgid "Color of the VS10 header label in the selection dialog."
+msgstr "选择对话框中 VS10 标题标签的颜色。"
+
+msgctxt "#32157"
+msgid "Color of the chart icon in the VS10 selection dialog."
+msgstr "VS10 选择对话框中图表图标的颜色。"
+
+msgctxt "#32158"
+msgid "Color of the separator lines in the VS10 selection dialog."
+msgstr "VS10 选择对话框中分隔线的颜色。"
+
+msgctxt "#32159"
 msgid "Button text"
 msgstr "按钮文字"
 
-msgctxt "#32571"
+msgctxt "#32160"
 msgid "Text color of the buttons the remote is not sitting on in the VS10 dialog."
 msgstr "VS10 对话框中未获得焦点的按钮的文字颜色。"
 
-msgctxt "#32572"
-msgid "Continue watching"
-msgstr "继续观看"
+msgctxt "#32161"
+msgid "Background color of the focused button in the VS10 dialog."
+msgstr "VS10 对话框中聚焦按钮的背景颜色。"
 
-msgctxt "#32573"
-msgid "Unwatched films"
-msgstr "未观看的电影"
+msgctxt "#32162"
+msgid "Selection text"
+msgstr "选中文本"
 
-msgctxt "#32574"
-msgid "Unwatched series"
-msgstr "未观看的剧集"
+msgctxt "#32163"
+msgid "Text color of the focused button in the VS10 dialog."
+msgstr "VS10 对话框中聚焦按钮的文本颜色。"
 
-msgctxt "#32575"
-msgid "Mark as watched"
-msgstr "标记为已观看"
+msgctxt "#32164"
+msgid "Channels"
+msgstr "声道"
 
-msgctxt "#32576"
-msgid "Mark as unwatched"
-msgstr "标记为未观看"
+msgctxt "#32165"
+msgid "Customise the colors of the channel layout graphic."
+msgstr "自定义声道布局图形的颜色。"
 
-msgctxt "#32577"
-msgid "The library could not be updated"
-msgstr "无法更新媒体库"
+msgctxt "#32166"
+msgid "Display"
+msgstr "显示"
 
-msgctxt "#32578"
-msgid "Play"
-msgstr "播放"
+msgctxt "#32167"
+msgid "Channels in SDR"
+msgstr "SDR 下的声道"
 
-msgctxt "#32579"
-msgid "Open"
-msgstr "打开"
+msgctxt "#32168"
+msgid "Show the channel layout graphic while playing SDR content."
+msgstr "播放 SDR 内容时显示声道布局图形。"
 
-msgctxt "#32580"
-msgid "Play from the beginning"
-msgstr "从头播放"
+msgctxt "#32169"
+msgid "Channels in HDR10 / HLG / HDR10+"
+msgstr "HDR10 / HLG / HDR10+ 下的声道"
 
-msgctxt "#32581"
-msgid "Clear resume point"
-msgstr "清除续播位置"
+msgctxt "#32170"
+msgid "Show the channel layout graphic while playing HDR10, HLG or HDR10+ content."
+msgstr "播放 HDR10、HLG 或 HDR10+ 内容时显示声道布局图形。"
 
-msgctxt "#32582"
-msgid "Live"
-msgstr "实时"
+msgctxt "#32171"
+msgid "Channels in Dolby Vision"
+msgstr "杜比视界下的声道"
 
-msgctxt "#32583"
+msgctxt "#32172"
+msgid "Show the channel layout graphic while playing Dolby Vision content."
+msgstr "播放杜比视界内容时显示声道布局图形。"
+
+msgctxt "#32173"
+msgid "Horizontal offset of the channel box"
+msgstr "声道框水平偏移"
+
+msgctxt "#32174"
+msgid "Moves the channel box in Dolby Vision to the right. 0% places it at the left edge, 100% keeps it in its default position on the right."
+msgstr "在杜比视界下将声道框向右移动。0% 将其置于左边缘，100% 保持其右侧的默认位置。"
+
+msgctxt "#32175"
+msgid "Background color of the channel box shown in Dolby Vision."
+msgstr "杜比视界下声道框的背景颜色。"
+
+msgctxt "#32176"
+msgid "Layout"
+msgstr "布局"
+
+msgctxt "#32177"
+msgid "Color of the speaker layout graphic behind the active channels."
+msgstr "活动声道后方扬声器布局图形的颜色。"
+
+msgctxt "#32178"
+msgid "Color of the active channels in the layout graphic."
+msgstr "布局图形中活动声道的颜色。"
+
+msgctxt "#32179"
+msgid "Dashboard"
+msgstr "仪表板"
+
+msgctxt "#32180"
+msgid "A live view of the playing stream in a browser on your phone or laptop, so the picture itself stays untouched."
+msgstr "在手机或笔记本电脑的浏览器中实时查看正在播放的流，而画面本身保持不变。"
+
+msgctxt "#32181"
+msgid "Enable web dashboard"
+msgstr "启用网页仪表板"
+
+msgctxt "#32182"
+msgid "Serves the dashboard on this box's own address. Off by default; once it is on, anything on the same network can reach it, so do not forward its port to the internet."
+msgstr "在本机地址上提供仪表板。默认关闭；开启后同一网络中的任何设备都可访问，因此请勿将其端口转发到互联网。"
+
+msgctxt "#32183"
+msgid "Port"
+msgstr "端口"
+
+msgctxt "#32184"
+msgid "The port the dashboard listens on. Leave 8080 alone - Kodi's own web server usually has it."
+msgstr "仪表板监听的端口。请避开 8080 - 它通常被 Kodi 自带的网页服务器占用。"
+
+msgctxt "#32185"
+msgid "Show address and token"
+msgstr "显示地址和令牌"
+
+msgctxt "#32186"
+msgid "Shows the address to open in a browser, together with the current token."
+msgstr "显示要在浏览器中打开的地址以及当前令牌。"
+
+msgctxt "#32187"
+msgid "Access token"
+msgstr "访问令牌"
+
+msgctxt "#32188"
+msgid "The key the dashboard asks for. Switching a VS10 mode from the browser always needs it; reading needs it only when the setting below says so."
+msgstr "仪表板要求的密钥。从浏览器切换 VS10 模式始终需要它；仅当下方设置要求时，读取才需要。"
+
+msgctxt "#32189"
+msgid "Generate a new token"
+msgstr "生成新令牌"
+
+msgctxt "#32190"
+msgid "Replaces the token with a fresh one. Every browser still holding the old one is logged out."
+msgstr "将令牌替换为新的。仍持有旧令牌的浏览器都会被登出。"
+
+msgctxt "#32191"
+msgid "Show the Dolby Vision metadata view"
+msgstr "显示 Dolby Vision 元数据视图"
+
+msgctxt "#32192"
+msgid "Adds the full metadata list to the dashboard - every block the stream's side data carries, the same one the on-screen view shows. It is only built for a Dolby Vision source, and it is the largest thing the page sends, so turn it off on a slow network."
+msgstr "在仪表板中加入完整的元数据列表 - 流的附加数据所携带的每一个区块，与屏幕上的视图相同。仅对 Dolby Vision 源构建，也是页面传输量最大的部分，网络较慢时请关闭。"
+
+msgctxt "#32193"
+msgid "Show the film library"
+msgstr "显示影片库"
+
+msgctxt "#32194"
+msgid "Offers the films in the video library on the dashboard while nothing is playing. A press starts one on the box."
+msgstr "在没有播放内容时，于仪表板上提供视频媒体库中的影片。按一下即可在设备上开始播放。"
+
+msgctxt "#32195"
+msgid "Show the series library"
+msgstr "显示剧集库"
+
+msgctxt "#32196"
+msgid "Offers the series in the video library on the dashboard while nothing is playing. A press opens one and starts an episode on the box."
+msgstr "在没有播放内容时，于仪表板上提供视频媒体库中的剧集。按一下即可打开一部剧集并在设备上开始播放某一集。"
+
+msgctxt "#32197"
+msgid "Require the token for reading too"
+msgstr "读取也需要令牌"
+
+msgctxt "#32198"
+msgid "Asks for the token before showing anything at all, not just before switching a mode. Turn this on when the box is on a shared network."
+msgstr "在显示任何内容之前就要求令牌，而不仅仅是在切换之前。若本机位于共享网络，请开启此项。"
+
+msgctxt "#32199"
+msgid "Allow VS10 switching from the dashboard"
+msgstr "允许从仪表板切换 VS10"
+
+msgctxt "#32200"
+msgid "Shows the VS10 output modes for the playing source in the browser, so the mode can be switched from a phone. The token is required either way."
+msgstr "在浏览器中显示当前源可用的 VS10 输出模式，以便从手机切换模式。两种情况下均需令牌。"
+
+msgctxt "#32201"
+msgid "Web dashboard"
+msgstr "网页仪表板"
+
+msgctxt "#32202"
+msgid "Open this address in a browser on the same network:"
+msgstr "在同一网络的浏览器中打开此地址："
+
+msgctxt "#32203"
+msgid "(Default)"
+msgstr "(默认)"
+
+msgctxt "#32204"
+msgid "HEX color"
+msgstr "HEX 颜色"
+
+msgctxt "#32205"
+msgid "Enter a 6-digit HEX color (e.g. FF5733)"
+msgstr "输入 6 位 HEX 颜色（例如 FF5733）"
+
+msgctxt "#32206"
+msgid "Invalid HEX color – using the default color"
+msgstr "无效的 HEX 颜色 – 使用默认颜色"
+
+msgctxt "#32207"
+msgid "Custom color applied"
+msgstr "已应用自定义颜色"
+
+msgctxt "#32208"
+msgid "White"
+msgstr "白色"
+
+msgctxt "#32209"
+msgid "Light blue"
+msgstr "浅蓝色"
+
+msgctxt "#32210"
+msgid "Charcoal"
+msgstr "炭黑色"
+
+msgctxt "#32211"
+msgid "Black"
+msgstr "黑色"
+
+msgctxt "#32212"
+msgid "Crimson"
+msgstr "猩红色"
+
+msgctxt "#32213"
+msgid "Tangerine"
+msgstr "橘色"
+
+msgctxt "#32214"
+msgid "Forest"
+msgstr "森林绿"
+
+msgctxt "#32215"
+msgid "Only CoreELEC 22 or later is supported"
+msgstr "仅支持 CoreELEC 22 或更高版本"
+
+msgctxt "#32216"
+msgid "The CoreELEC version could not be detected"
+msgstr "无法检测 CoreELEC 版本"
+
+msgctxt "#32217"
+msgid "720p skins are not supported"
+msgstr "不支持 720p 皮肤"
+
+msgctxt "#32218"
+msgid "Video"
+msgstr "视频"
+
+msgctxt "#32219"
+msgid "Display output"
+msgstr "显示输出"
+
+msgctxt "#32220"
+msgid "Video stream"
+msgstr "视频流"
+
+msgctxt "#32221"
+msgid "Pixel format"
+msgstr "像素格式"
+
+msgctxt "#32222"
+msgid "Bit depth"
+msgstr "位深度"
+
+msgctxt "#32223"
+msgid "Aspect ratio"
+msgstr "宽高比"
+
+msgctxt "#32224"
+msgid "Decoder"
+msgstr "解码器"
+
+msgctxt "#32225"
+msgid "Decode method"
+msgstr "解码方式"
+
+msgctxt "#32226"
+msgid "Processing"
+msgstr "正在处理"
+
+msgctxt "#32227"
+msgid "Input"
+msgstr "输入"
+
+msgctxt "#32228"
+msgid "Converting"
+msgstr "正在转换"
+
+msgctxt "#32229"
+msgid "Bitrate"
+msgstr "码率"
+
+msgctxt "#32230"
+msgid "N/A"
+msgstr "不适用"
+
+msgctxt "#32231"
+msgid "Mode"
+msgstr "模式"
+
+msgctxt "#32232"
+msgid "Color gamut"
+msgstr "色域"
+
+msgctxt "#32233"
+msgid "Media source"
+msgstr "媒体源"
+
+msgctxt "#32234"
+msgid "Playback time"
+msgstr "播放时间"
+
+msgctxt "#32235"
+msgid "Live TV"
+msgstr "直播电视"
+
+msgctxt "#32236"
+msgid "Livestream"
+msgstr "网络直播"
+
+msgctxt "#32237"
+msgid "Audio"
+msgstr "音频"
+
+msgctxt "#32238"
+msgid "Audio codec"
+msgstr "音频编解码器"
+
+msgctxt "#32239"
+msgid "Audio resolution"
+msgstr "音频分辨率"
+
+msgctxt "#32240"
+msgid "Input"
+msgstr "输入"
+
+msgctxt "#32241"
+msgid "Output"
+msgstr "输出"
+
+msgctxt "#32242"
+msgid "Passthrough"
+msgstr "直通"
+
+msgctxt "#32243"
+msgid "Decoding"
+msgstr "正在解码"
+
+msgctxt "#32244"
+msgid "Audio language"
+msgstr "音频语言"
+
+msgctxt "#32245"
+msgid "Subtitle language"
+msgstr "字幕语言"
+
+msgctxt "#32246"
+msgid "Disabled"
+msgstr "已禁用"
+
+msgctxt "#32247"
+msgid "System"
+msgstr "系统"
+
+msgctxt "#32248"
+msgid "In / drop / out"
+msgstr "输入 / 丢帧 / 输出"
+
+msgctxt "#32249"
+msgid "Processor"
+msgstr "处理器"
+
+msgctxt "#32250"
+msgid "Temperature"
+msgstr "温度"
+
+msgctxt "#32251"
+msgid "Memory usage"
+msgstr "内存使用"
+
+msgctxt "#32252"
+msgid "Player cache"
+msgstr "播放器缓存"
+
+msgctxt "#32253"
+msgid "Video queue / data"
+msgstr "视频队列 / 数据"
+
+msgctxt "#32254"
+msgid "Audio queue / data"
+msgstr "音频队列 / 数据"
+
+msgctxt "#32255"
+msgid "HDR Static Metadata"
+msgstr "HDR 静态元数据"
+
+msgctxt "#32256"
+msgid "HDR10 MDL"
+msgstr "HDR10 MDL"
+
+msgctxt "#32257"
+msgid "HDR10 CLL/FALL"
+msgstr "HDR10 CLL/FALL"
+
+msgctxt "#32258"
+msgid "CM Version"
+msgstr "CM 版本"
+
+msgctxt "#32259"
+msgid "Structure"
+msgstr "结构"
+
+msgctxt "#32260"
+msgid "Version"
+msgstr "版本"
+
+msgctxt "#32261"
+msgid "Profile"
+msgstr "配置文件"
+
+msgctxt "#32262"
+msgid "RPU / BL"
+msgstr "RPU / BL"
+
+msgctxt "#32263"
+msgid "EL / Type"
+msgstr "EL / 类型"
+
+msgctxt "#32264"
 msgid "Metadata"
 msgstr "元数据"
 
-msgctxt "#32584"
+msgctxt "#32265"
+msgid "RPU MDL"
+msgstr "RPU MDL"
+
+msgctxt "#32266"
+msgid "L6 MDL"
+msgstr "L6 MDL"
+
+msgctxt "#32267"
+msgid "RPU MaxCLL/FALL"
+msgstr "RPU MaxCLL/FALL"
+
+msgctxt "#32268"
+msgid "L6 MaxCLL/FALL"
+msgstr "L6 MaxCLL/FALL"
+
+msgctxt "#32269"
+msgid "L1 Lum Min/Max/Ø"
+msgstr "L1 Lum Min/Max/Ø"
+
+msgctxt "#32270"
+msgid "L1 PQ Min/Max/Ø"
+msgstr "L1 PQ Min/Max/Ø"
+
+msgctxt "#32271"
+msgid "L5 Active Area"
+msgstr "L5 有效区域"
+
+msgctxt "#32272"
+msgid "OK: open section — Back: TinyPPI overlay"
+msgstr "OK：打开区块 — 返回：TinyPPI 叠加层"
+
+msgctxt "#32273"
+msgid "Back: metadata list"
+msgstr "返回：元数据列表"
+
+msgctxt "#32274"
+msgid "Connected"
+msgstr "已连接"
+
+msgctxt "#32275"
+msgid "Connecting..."
+msgstr "连接中..."
+
+msgctxt "#32276"
+msgid "Disconnected"
+msgstr "已断开"
+
+msgctxt "#32277"
+msgid "Nothing is playing"
+msgstr "当前没有播放"
+
+msgctxt "#32278"
+msgid "Start a video on the box and everything it carries appears here."
+msgstr "在本机上开始播放视频，其携带的全部信息将显示在这里。"
+
+msgctxt "#32279"
+msgid "Peak"
+msgstr "峰值"
+
+msgctxt "#32280"
+msgid "Average"
+msgstr "平均"
+
+msgctxt "#32281"
+msgid "Frame luminance (L1)"
+msgstr "画面亮度 (L1)"
+
+msgctxt "#32282"
+msgid "VS10 output"
+msgstr "VS10 输出"
+
+msgctxt "#32283"
+msgid "No Dolby Vision metadata"
+msgstr "没有 Dolby Vision 元数据"
+
+msgctxt "#32284"
+msgid "This source carries no Dolby Vision RPU, so there is no metadata to list. The window fills as soon as a Dolby Vision title starts."
+msgstr "该源不携带 Dolby Vision RPU，因此没有可列出的元数据。一旦开始播放 Dolby Vision 片源，此窗口便会填充内容。"
+
+msgctxt "#32285"
+msgid "Output"
+msgstr "图像输出"
+
+msgctxt "#32286"
+msgid "Copy report"
+msgstr "复制报告"
+
+msgctxt "#32287"
+msgid "Copied"
+msgstr "已复制"
+
+msgctxt "#32288"
+msgid "Enter the access token"
+msgstr "输入访问令牌"
+
+msgctxt "#32289"
+msgid "You will find it in the add-on settings under Dashboard."
+msgstr "可在插件设置的“仪表板”中找到。"
+
+msgctxt "#32290"
+msgid "Save"
+msgstr "保存"
+
+msgctxt "#32291"
+msgid "Cancel"
+msgstr "取消"
+
+msgctxt "#32292"
+msgid "Wrong or missing token"
+msgstr "令牌缺失或错误"
+
+msgctxt "#32293"
+msgid "Switching..."
+msgstr "正在切换..."
+
+msgctxt "#32294"
+msgid "Switched"
+msgstr "已切换"
+
+msgctxt "#32295"
+msgid "Switching failed"
+msgstr "切换失败"
+
+msgctxt "#32296"
+msgid "Switches"
+msgstr "切换"
+
+msgctxt "#32297"
+msgid "Events"
+msgstr "事件"
+
+msgctxt "#32298"
+msgid "Nothing out of the ordinary yet"
+msgstr "暂无异常"
+
+msgctxt "#32299"
+msgid "1 min"
+msgstr "1 分钟"
+
+msgctxt "#32300"
+msgid "10 min"
+msgstr "10 分钟"
+
+msgctxt "#32301"
+msgid "Whole title"
+msgstr "整个影片"
+
+msgctxt "#32302"
+msgid "Audio track"
+msgstr "音轨"
+
+msgctxt "#32303"
+msgid "Subtitles"
+msgstr "字幕"
+
+msgctxt "#32304"
+msgid "Off"
+msgstr "关闭"
+
+msgctxt "#32305"
+msgid "Mute"
+msgstr "静音"
+
+msgctxt "#32306"
+msgid "Play / Pause"
+msgstr "播放 / 暂停"
+
+msgctxt "#32307"
+msgid "Stop"
+msgstr "停止"
+
+msgctxt "#32308"
+msgid "Display mode"
+msgstr "显示模式"
+
+msgctxt "#32309"
+msgid "Playback controls"
+msgstr "播放控制"
+
+msgctxt "#32310"
+msgid "Metrics"
+msgstr "指标"
+
+msgctxt "#32311"
+msgid "Player cache"
+msgstr "播放器缓存"
+
+msgctxt "#32312"
+msgid "Warnings"
+msgstr "警告"
+
+msgctxt "#32313"
+msgid "Dark"
+msgstr "深色"
+
+msgctxt "#32314"
+msgid "Dark (adaptive)"
+msgstr "深色（自适应）"
+
+msgctxt "#32315"
+msgid "Midnight"
+msgstr "午夜"
+
+msgctxt "#32316"
+msgid "Choose a theme"
+msgstr "选择主题"
+
+msgctxt "#32317"
+msgid "Intensity"
+msgstr "强度"
+
+msgctxt "#32318"
+msgid "Subtle"
+msgstr "轻微"
+
+msgctxt "#32319"
+msgid "Standard"
+msgstr "标准"
+
+msgctxt "#32320"
+msgid "Strong"
+msgstr "强烈"
+
+msgctxt "#32321"
+msgid "Last played"
+msgstr "最近播放"
+
+msgctxt "#32322"
+msgid "Summary"
+msgstr "汇总"
+
+msgctxt "#32323"
+msgid "Too many connections"
+msgstr "连接数过多"
+
+msgctxt "#32324"
+msgid "Live"
+msgstr "实时"
+
+msgctxt "#32325"
+msgid "Metadata"
+msgstr "元数据"
+
+msgctxt "#32326"
 msgid "History"
 msgstr "历史"
 
-msgctxt "#32585"
+msgctxt "#32327"
 msgid "Settings"
 msgstr "设置"
 
-msgctxt "#32586"
+msgctxt "#32328"
 msgid "Enter token"
 msgstr "输入令牌"
 
-msgctxt "#32587"
+msgctxt "#32329"
 msgid "Readings and events"
 msgstr "数值与事件"
 
-msgctxt "#32588"
+msgctxt "#32330"
+msgid "Previous chapter"
+msgstr "上一章节"
+
+msgctxt "#32331"
+msgid "Next chapter"
+msgstr "下一章节"
+
+msgctxt "#32332"
+msgid "Volume down"
+msgstr "音量减小"
+
+msgctxt "#32333"
+msgid "Volume up"
+msgstr "音量增大"
+
+msgctxt "#32334"
+msgid "Ends at"
+msgstr "结束于"
+
+msgctxt "#32335"
+msgid "Films"
+msgstr "影片"
+
+msgctxt "#32336"
+msgid "No films in the video library"
+msgstr "视频媒体库中没有影片"
+
+msgctxt "#32337"
+msgid "Search films"
+msgstr "搜索影片"
+
+msgctxt "#32338"
+msgid "Starting…"
+msgstr "正在启动…"
+
+msgctxt "#32339"
+msgid "Playback could not be started"
+msgstr "无法开始播放"
+
+msgctxt "#32340"
+msgid "Resume"
+msgstr "继续播放"
+
+msgctxt "#32341"
+msgid "Watched"
+msgstr "已观看"
+
+msgctxt "#32342"
+msgid "Continue watching"
+msgstr "继续观看"
+
+msgctxt "#32343"
 msgid "Recently added"
 msgstr "最近添加"
 
-msgctxt "#32589"
-msgid "(Default)"
-msgstr "(默认)"
+msgctxt "#32344"
+msgid "Unwatched films"
+msgstr "未观看的电影"
+
+msgctxt "#32345"
+msgid "Unwatched series"
+msgstr "未观看的剧集"
+
+msgctxt "#32346"
+msgid "Mark as watched"
+msgstr "标记为已观看"
+
+msgctxt "#32347"
+msgid "Mark as unwatched"
+msgstr "标记为未观看"
+
+msgctxt "#32348"
+msgid "The library could not be updated"
+msgstr "无法更新媒体库"
+
+msgctxt "#32349"
+msgid "Play"
+msgstr "播放"
+
+msgctxt "#32350"
+msgid "Open"
+msgstr "打开"
+
+msgctxt "#32351"
+msgid "Play from the beginning"
+msgstr "从头播放"
+
+msgctxt "#32352"
+msgid "Clear resume point"
+msgstr "清除续播位置"
+
+msgctxt "#32353"
+msgid "Series"
+msgstr "剧集"
+
+msgctxt "#32354"
+msgid "No series in the video library"
+msgstr "视频媒体库中没有剧集"
+
+msgctxt "#32355"
+msgid "Search series"
+msgstr "搜索剧集"
+
+msgctxt "#32356"
+msgid "All series"
+msgstr "所有剧集"
+
+msgctxt "#32357"
+msgid "Unwatched episodes"
+msgstr "未观看的分集"
+
+msgctxt "#32358"
+msgid "Season %s"
+msgstr "第 %s 季"
+
+msgctxt "#32359"
+msgid "Specials"
+msgstr "特别篇"
+
+msgctxt "#32360"
+msgid "Episodes could not be loaded"
+msgstr "无法加载分集"
+
+msgctxt "#32361"
+msgid "Clear the search"
+msgstr "清除搜索"
+
+msgctxt "#32362"
+msgid "%s h %s min"
+msgstr "%s 小时 %s 分钟"
+
+msgctxt "#32363"
+msgid "%s min"
+msgstr "%s 分钟"
+
+msgctxt "#32364"
+msgid "%s h"
+msgstr "%s 小时"
+
+msgctxt "#32365"
+msgid "Dolby Vision"
+msgstr "杜比视界"
