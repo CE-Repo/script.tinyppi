@@ -13,6 +13,7 @@ import json
 import threading
 import time
 from functools import cache
+from typing import Any
 
 import xbmc
 from core import display
@@ -497,7 +498,7 @@ def _probe_dv_Player_LED_setting() -> int | None:
     result = response.get("result") if isinstance(response, dict) else None
     if not isinstance(result, dict):
         return None
-    value = result.get("value")
+    value: Any = result.get("value")  # whatever the setting holds
     # As a number, so a textual "0" is still TV-LED.
     try:
         return int(value)
