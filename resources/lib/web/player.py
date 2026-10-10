@@ -215,6 +215,8 @@ _SEEK_LIMIT = 3600
 
 def _number(value: Unchecked, low: float, high: float) -> float | None:
     """Return *value* as a number within [*low*, *high*], or None."""
+    if isinstance(value, bool):  # JSON true/false would pass as 1/0
+        return None
     try:
         number = float(value)
     except (TypeError, ValueError):

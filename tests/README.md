@@ -31,6 +31,8 @@ development files.
 | `unit/test_library.py` | The dashboard's library cache: one query for concurrent readers, no stale list after a drop, a scan's burst of notifications as one drop, the drops after playback stops, episodes, the continue row, marking |
 | `unit/test_vs10_switcher.py` | VS10 switches from the dashboard: the last tap wins, a failed switch does not stop the next, the modes offered per source |
 | `unit/test_server.py` | The HTTP server: the fixed routes, security headers, the token for writing and for untrusted host names, the guessing lockout, the connection caps, tokens and ports, IPv6 and IPv4 on one socket |
+| `unit/test_routes.py` | What the write and library routes accept: bad bodies and lengths, unknown routes, control off, no token, commands and modes, a shelf's own setting, `watched` only as a boolean, library errors as 503, listings by ETag, artwork kinds and ids |
+| `unit/test_player.py` | The transport commands: only listed actions, seek and track values checked (no NaN, infinity, booleans or out-of-range values reach Kodi), seeking live TV against the broadcast, volume as remote input, chapters; track labels, player state, the EPG times |
 | `unit/test_access.py` | Which host names count as the home network; the lockout table; client addresses (IPv4-mapped as IPv4, IPv6 per /64) |
 | `unit/test_delta.py` | Delta frames of the event stream, applied as `js/core.js` applies them |
 | `unit/test_artwork.py` | Artwork sources (Kodi's texture cache first) and types (from the bytes) |

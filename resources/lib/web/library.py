@@ -22,7 +22,7 @@ import xbmc
 
 from core.log import channel
 from web.player import rpc
-from web.values import Unchecked, clean_value
+from web.values import Unchecked, clean_value, library_id
 
 # Film properties the tiles need.  ``dateadded`` feeds the "recently added"
 # row (see ``_added``), read here so the row matches the wall.
@@ -395,11 +395,8 @@ def play(movie_id: Unchecked, resume: bool = True) -> bool:
     is always explicit so Kodi does not ask on the TV.  JSON-RPC reports
     success, unlike a builtin.
     """
-    try:
-        wanted = int(movie_id)
-    except (TypeError, ValueError):
-        return False
-    if wanted <= 0:
+    wanted = library_id(movie_id)
+    if not wanted:
         return False
 
     params: dict = {"item": {"movieid": wanted}}
@@ -449,11 +446,8 @@ def episodes(show_id: Unchecked) -> dict | None:
 
     Read on first open, then cached.
     """
-    try:
-        wanted = int(show_id)
-    except (TypeError, ValueError):
-        return None
-    if wanted <= 0:
+    wanted = library_id(show_id)
+    if not wanted:
         return None
 
     with _cache.lock:
@@ -479,10 +473,7 @@ def episodes(show_id: Unchecked) -> dict | None:
 
 def show_art_path(show_id: Unchecked, kind: str) -> str:
     """Return a show's raw artwork path, or ''."""
-    try:
-        entry = _show_catalogue()["art"].get(int(show_id)) or {}
-    except (TypeError, ValueError):
-        return ""
+    entry = _show_catalogue()["art"].get(library_id(show_id)) or {}
     return entry.get(kind, "")
 
 
@@ -492,9 +483,8 @@ def episode_art_path(episode_id: Unchecked, kind: str) -> str:
     Only episodes of opened shows or on the "continue" row are known, the
     only ways their URLs can reach a browser.
     """
-    try:
-        wanted = int(episode_id)
-    except (TypeError, ValueError):
+    wanted = library_id(episode_id)
+    if not wanted:
         return ""
     with _cache.lock:
         entry = _cache.episode_art.get(wanted)
@@ -653,11 +643,8 @@ def play_episode(episode_id: Unchecked, resume: bool = True) -> bool:
 
     Resumes like ``play``; the resume point comes from the cached lists.
     """
-    try:
-        wanted = int(episode_id)
-    except (TypeError, ValueError):
-        return False
-    if wanted <= 0:
+    wanted = library_id(episode_id)
+    if not wanted:
         return False
 
     params: dict = {"item": {"episodeid": wanted}}
@@ -715,11 +702,8 @@ def set_watched(kind: str, item_id: Unchecked, watched: bool) -> bool:
     the play count and keeps the resume point.  Returns whether the library
     accepted it; the cache is dropped either way.
     """
-    try:
-        wanted = int(item_id)
-    except (TypeError, ValueError):
-        return False
-    if wanted <= 0:
+    wanted = library_id(item_id)
+    if not wanted:
         return False
 
     if kind == "tvshow":
@@ -740,11 +724,8 @@ def clear_resume(kind: str, item_id: Unchecked) -> bool:
     """Clear a film's or episode's resume point, keeping its play count."""
     if kind not in _MARKABLE:
         return False
-    try:
-        wanted = int(item_id)
-    except (TypeError, ValueError):
-        return False
-    if wanted <= 0:
+    wanted = library_id(item_id)
+    if not wanted:
         return False
     key, method = _MARKABLE[kind]
     done = rpc(method, {key: wanted,

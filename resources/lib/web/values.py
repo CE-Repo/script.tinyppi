@@ -13,6 +13,25 @@ from info.dvinfo import is_status_label
 Unchecked = Any
 
 
+def library_id(value: Unchecked) -> int:
+    """Return *value* as a library id (a positive integer), or 0.
+
+    JSON true/false and fractions are refused rather than read as 1 or cut
+    down to the id below; a query string's digits are accepted.
+    """
+    if isinstance(value, bool):
+        return 0
+    if isinstance(value, float):
+        if not value.is_integer():
+            return 0
+        value = int(value)
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return 0
+    return number if number > 0 else 0
+
+
 _NUMBER_RE = re.compile(r"-?\d+(?:\.\d+)?")
 
 # Kodi text markup (e.g. the themed FEL/MEL tag) is stripped rather than
