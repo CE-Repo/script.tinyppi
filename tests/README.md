@@ -18,7 +18,7 @@ The same checks CI runs on every push (`.github/workflows/ci.yml`):
 ```
 ruff check .                 # lint (settings in pyproject.toml)
 mypy                         # types, with Kodistubs for Kodi's modules
-python3 -m pytest --cov=resources/lib tests/unit   # fails below the floor in pyproject.toml
+python3 -m pytest --cov tests/unit    # fails below the floor in pyproject.toml
 npm ci && npm run lint       # ESLint for resources/web/js
 npm test                     # the dashboard's scripts in jsdom (tests/web)
 npm run test:browser         # the dashboard in Chromium against the real server (tests/browser)
@@ -90,12 +90,11 @@ output format the codec logos show.  Those want a CoreELEC box.
   CoreELEC only; this makes a desktop Kodi pass.  Use a throwaway machine
   or container.
 
-### In CI
+### Not in CI
 
-`.github/workflows/kodi.yml` runs the suite on a GitHub runner once a week
-and on request (Actions -> "Kodi 22 suite" -> Run workflow).  The first run
-builds Kodi (about an hour); later ones restore it from the cache.  The
-results and screenshots are kept as the `kodi-suite` artifact.
+CI runs the unit, dashboard and browser tests and the add-on checker only.
+This suite builds Kodi from source (about an hour) and wants a throwaway
+machine, so it runs by hand, e.g. before a release.
 
 ### Running it
 
