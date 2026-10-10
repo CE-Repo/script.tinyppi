@@ -120,10 +120,15 @@ def test_a_skin_load_registers_the_fonts(threads, monkeypatch):
 
 
 def test_no_font_work_while_kodi_stops(threads, monkeypatch):
+    waits = []
     monkeypatch.setattr(service.fonts, "ensure_fonts", pytest.fail)
-    monkeypatch.setattr(service.KodiMonitor, "waitForAbort", lambda self, timeout=None: True)
+    monkeypatch.setattr(service.KodiMonitor, "waitForAbort",
+                        lambda self, timeout=None: waits.append(timeout) or True)
     service.KodiMonitor().onNotification("xbmc", "GUI.OnSkinLoaded", "")
+    assert len(threads.started) == 1            # off Kodi's notification thread
     threads.run_all()
+    assert waits == [service._SKIN_SETTLE]
+    assert [entry for entry in xbmc.LOG if entry[0] >= xbmc.LOGWARNING] == []
 
 
 def splash_ran(threads, monkeypatch, video=True, **flags):
@@ -191,9 +196,13 @@ def test_a_failing_dashboard_does_not_take_the_monitor_down(threads):
 
 
 def test_the_warm_up_skips_everything_while_kodi_stops(monkeypatch):
+    waits = []
     monkeypatch.setattr(service.fonts, "ensure_fonts", pytest.fail)
-    stopping = types.SimpleNamespace(waitForAbort=lambda timeout=None: True)
+    monkeypatch.setattr(service.images, "prune_cache", pytest.fail)
+    stopping = types.SimpleNamespace(waitForAbort=lambda timeout=None: waits.append(timeout) or True)
     service._warm_up(stopping)
+    assert waits == [service._WARMUP_DELAY]
+    assert xbmc.LOG == []
 
 
 def test_the_warm_up_registers_fonts_and_prunes_textures(monkeypatch):

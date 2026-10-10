@@ -107,11 +107,14 @@ def test_text_worth_compressing_gets_a_gzip_copy(tmp_path, content_type, body, c
         assert packed is None
 
 
-def test_the_etag_is_made_of_mtime_and_size(tmp_path):
+def test_an_unchanged_file_keeps_its_etag_across_restarts(tmp_path):
     path = _write(tmp_path / "site.css", b"body {}")
-    stat = os.stat(path)
-    _body, _packed, etag = static.StaticFiles().get(path, "text/css")
-    assert etag == f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"'
+    other = _write(tmp_path / "other.css", b"p {}")
+    first = static.StaticFiles().get(path, "text/css")[2]
+    # A new cache (the server restarted) gives the same validator, so browsers keep their copy.
+    assert static.StaticFiles().get(path, "text/css")[2] == first
+    assert first.startswith('"') and first.endswith('"') and len(first) > 2
+    assert static.StaticFiles().get(other, "text/css")[2] != first
 
 
 def test_a_file_is_read_once_until_it_changes(tmp_path, monkeypatch):

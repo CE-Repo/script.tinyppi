@@ -114,8 +114,11 @@ def test_strings_are_read_once_per_language(monkeypatch):
     assert asked == [1, 1]
 
 
-def test_localized_answers_from_the_addon():
+def test_localized_answers_from_the_addon(monkeypatch):
+    # A fresh cache, so strings another test left in the shared one cannot answer.
+    monkeypatch.setattr(utils, "_strings", utils._Strings())
     assert utils.localized(32230) == "#32230"
+    assert utils.localized(32231) == "#32231"
 
 
 # --- Change highlights --------------------------------------------------------

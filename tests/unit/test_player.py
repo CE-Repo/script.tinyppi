@@ -229,3 +229,47 @@ def test_broadcast_times_from_the_epg():
     times = player.broadcast_times()
     assert times["PlayerProgress"] == "100.0" and times["BroadcastTimes"] == "1"
     assert not math.isnan(float(times["PlayerProgress"]))
+
+
+@pytest.mark.parametrize("answer", [{"result": ["junk"]}, {"result": "junk"}])
+def test_player_controls_ignore_malformed_track_lists(kodi, answer):
+    kodi.answers["Application.GetProperties"] = {"result": {"volume": 30, "muted": False}}
+    xbmc.INFO["Player.ChapterCount"] = "4"
+    kodi.answers["Player.GetProperties"] = answer
+    state = player.player_controls()
+    assert (state["volume"], state["chapters"]) == (30, 4)
+    assert state["audio"] == [] and state["subtitle"] == []
+    assert (state["audio_current"], state["subtitle_current"]) == (-1, -1)
+
+
+def test_player_controls_keep_defaults_for_malformed_current_tracks(kodi):
+    kodi.answers["Application.GetProperties"] = {"result": "junk"}
+    kodi.answers["Player.GetProperties"] = {"result": {
+        "audiostreams": [{"name": "Main"}],
+        "currentaudiostream": "1", "currentsubtitle": ["0"], "subtitleenabled": True,
+    }}
+    state = player.player_controls()
+    assert state["volume"] is None and state["muted"] is False
+    assert state["audio"] == [{"index": 0, "label": "Main"}]    # the position stands in
+    assert state["audio_current"] == state["subtitle_current"] == -1
+    assert state["subtitle_on"] is True
+
+
+def test_track_tokens_from_a_malformed_answer_are_empty(kodi):
+    kodi.answers["Player.GetProperties"] = {"result": ["junk"]}
+    assert player.current_track_state() == {"audio": "", "audio_id": "", "subtitle": ""}
+
+
+@pytest.mark.parametrize(("audio", "subtitle", "expected"), [
+    # A stream without an index has no token, as does one that is no dict.
+    ({"name": "English"}, {"index": 2, "language": "ger"},
+     {"audio": "", "audio_id": "", "subtitle": "#3 · GER"}),
+    ("eng", {}, {"audio": "", "audio_id": "", "subtitle": ""}),
+    # Without a label the number alone is the token.
+    ({"index": 0}, {"index": 1}, {"audio": "#1", "audio_id": "#1", "subtitle": "#2"}),
+])
+def test_track_tokens_with_subtitles_on(kodi, audio, subtitle, expected):
+    kodi.answers["Player.GetProperties"] = {"result": {
+        "currentaudiostream": audio, "currentsubtitle": subtitle, "subtitleenabled": True,
+    }}
+    assert player.current_track_state() == expected

@@ -71,6 +71,27 @@ def threads(monkeypatch):
     return started
 
 
+@pytest.fixture
+def launch(monkeypatch):
+    """Record what open_dialog does; *answer* is what the viewer does in the dialog."""
+    record = types.SimpleNamespace(events=[], answer=lambda dialog: None)
+    real_init = mode_select.SettingsDialog.__init__
+
+    def init(self, *args, **kwargs):
+        record.events.append(("created", args, home().getProperty(layout.PROP_PLACED)))
+        real_init(self, *args, **kwargs)
+
+    def do_modal(self):
+        record.events.append(("shown",))
+        record.answer(self)
+
+    monkeypatch.setattr(mode_select.SettingsDialog, "__init__", init)
+    monkeypatch.setattr(mode_select.SettingsDialog, "doModal", do_modal)
+    monkeypatch.setattr(mode_select, "delay", lambda ms: record.events.append(("delay", ms)))
+    monkeypatch.setattr(mode_select, "set_mode", lambda mode: record.events.append(("set_mode", mode)))
+    return record
+
+
 def home():
     return xbmcgui.Window(10000)
 
@@ -190,13 +211,19 @@ def test_other_keys_leave_the_single_button_as_it_is(detection, threads):
 @pytest.mark.parametrize(("moves", "mode"), [
     (1, "original_sdr"), (2, "hdr10"), (3, "dv"), (7, "dv"),
 ])
-def test_the_single_button_applies_its_current_choice(detection, threads, moves, mode):
-    dialog = opened(layout.MODE_SINGLE)
-    for _ in range(moves):
-        dialog.onAction(xbmcgui.Action(layout.ACTION_MOVE_RIGHT))
-    dialog.onClick(layout.SINGLE_BUTTON)
-    assert dialog._pending_mode == mode
-    assert closed(dialog)
+def test_the_single_button_applies_its_current_choice(detection, threads, launch, moves, mode):
+    xbmcaddon.SETTINGS["dialog_mode"] = str(layout.MODE_SINGLE)
+
+    def answer(dialog):
+        dialog.onInit()
+        for _ in range(moves):
+            dialog.onAction(xbmcgui.Action(layout.ACTION_MOVE_RIGHT))
+        dialog.onClick(layout.SINGLE_BUTTON)
+        assert closed(dialog)
+
+    launch.answer = answer
+    mode_select.open_dialog()
+    assert launch.events[-2:] == [("delay", 250), ("set_mode", mode)]
 
 
 @pytest.mark.parametrize("mode", [layout.MODE_DIALOG, layout.MODE_BAR])
@@ -204,8 +231,8 @@ def test_left_and_right_belong_to_kodi_outside_the_single_layout(detection, thre
     dialog = opened(mode)
     for move in (layout.ACTION_MOVE_LEFT, layout.ACTION_MOVE_RIGHT):
         dialog.onAction(xbmcgui.Action(move))
-    assert dialog._step == 0
     assert dialog.getControl(layout.SINGLE_BUTTON).calls == []
+    assert focused(dialog) == [1001]                    # Kodi moves the focus, not the dialog
     assert not closed(dialog)
 
 
@@ -214,10 +241,13 @@ def test_left_and_right_belong_to_kodi_outside_the_single_layout(detection, thre
 @pytest.mark.parametrize("action", [xbmcgui.ACTION_PREVIOUS_MENU, xbmcgui.ACTION_NAV_BACK, xbmcgui.ACTION_STOP])
 @pytest.mark.parametrize("mode", [layout.MODE_SINGLE, layout.MODE_BAR])
 def test_back_and_stop_close_without_a_choice(detection, threads, action, mode):
-    dialog = opened(mode)
+    monitor = Monitor(ticks=3)
+    dialog = opened(mode, monitor=monitor)
     dialog.onAction(xbmcgui.Action(action))
-    assert closed(dialog) and dialog._running is False
-    assert dialog._pending_mode is None
+    assert closed(dialog) and dialog._pending_mode is None
+    # The refresh loop, started with the dialog, ends without another read.
+    dialog._hdr_type_loop()
+    assert detection.calls == 1 and monitor.waits == []
 
 
 @pytest.mark.parametrize(("hdr_type", "control_id", "mode"), [
@@ -225,11 +255,20 @@ def test_back_and_stop_close_without_a_choice(detection, threads, action, mode):
     ("hdr10", 1005, "original_hdr"), ("hdr10", 1006, "sdr8"), ("hdr10", 1008, "dv"),
     ("dolbyvision", 1012, "original_dv"), ("dolbyvision", 1013, "sdr8"),
 ])
-def test_a_mode_button_closes_and_leaves_its_mode_for_later(detection, threads, hdr_type, control_id, mode):
-    dialog = opened(layout.MODE_DIALOG, hdr_type)
-    dialog.onClick(control_id)
-    assert dialog._pending_mode == mode
-    assert closed(dialog)
+def test_a_mode_button_closes_and_its_mode_is_applied_once_the_dialog_is_gone(
+        detection, threads, launch, hdr_type, control_id, mode):
+    xbmcaddon.SETTINGS["dialog_mode"] = str(layout.MODE_DIALOG)
+    home().setProperty("TinyPPI.HdrType", hdr_type)
+
+    def answer(dialog):
+        dialog.onInit()
+        dialog.onClick(control_id)
+        assert closed(dialog)
+        assert launch.events[-1] == ("shown",)          # nothing applied while it closes
+
+    launch.answer = answer
+    mode_select.open_dialog()
+    assert launch.events[-2:] == [("delay", 250), ("set_mode", mode)]
 
 
 @pytest.mark.parametrize(("mode", "control_id"), [
@@ -319,27 +358,6 @@ def test_a_failing_hdr_read_is_logged_once_per_loop(detection, threads):
 
 
 # --- open_dialog -----------------------------------------------------------------
-
-@pytest.fixture
-def launch(monkeypatch):
-    """Record what open_dialog does; *answer* is what the viewer does in the dialog."""
-    record = types.SimpleNamespace(events=[], answer=lambda dialog: None)
-    real_init = mode_select.SettingsDialog.__init__
-
-    def init(self, *args, **kwargs):
-        record.events.append(("created", args, home().getProperty(layout.PROP_PLACED)))
-        real_init(self, *args, **kwargs)
-
-    def do_modal(self):
-        record.events.append(("shown",))
-        record.answer(self)
-
-    monkeypatch.setattr(mode_select.SettingsDialog, "__init__", init)
-    monkeypatch.setattr(mode_select.SettingsDialog, "doModal", do_modal)
-    monkeypatch.setattr(mode_select, "delay", lambda ms: record.events.append(("delay", ms)))
-    monkeypatch.setattr(mode_select, "set_mode", lambda mode: record.events.append(("set_mode", mode)))
-    return record
-
 
 def test_open_dialog_applies_the_chosen_mode_once_the_dialog_is_gone(launch):
     xbmcaddon.SETTINGS["dialog_mode"] = str(layout.MODE_BAR)

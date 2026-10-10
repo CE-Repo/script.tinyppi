@@ -12,9 +12,17 @@ import pytest
 from core import files
 
 
-def test_the_temporary_name_sits_next_to_the_target():
-    name = files.temp_path("/skin/Font.xml")
-    assert name == f"/skin/Font.xml.{os.getpid()}-{threading.get_ident()}.tmp"
+def test_the_temporary_name_sits_next_to_the_target_and_differs_per_thread():
+    names = []
+    worker = threading.Thread(target=lambda: names.append(files.temp_path("/skin/Font.xml")))
+    worker.start()
+    worker.join()
+    names.append(files.temp_path("/skin/Font.xml"))
+    assert names[0] != names[1]
+    for name in names:
+        assert name.startswith("/skin/Font.xml.") and name.endswith(".tmp")
+        assert os.path.dirname(name) == "/skin"
+    assert files.temp_path("/skin/Font.xml") == names[1]       # stable within a thread
 
 
 def test_a_new_file_is_written(tmp_path):

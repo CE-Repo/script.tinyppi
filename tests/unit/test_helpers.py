@@ -50,8 +50,8 @@ def test_fps_sysfs_parsing(monkeypatch, tmp_path):
     node = tmp_path / "fps_info"
     node.write_text("input_fps:0x18 output_fps:0x17 drop_fps:0x1\n")
     real_open = open
-    monkeypatch.setattr("builtins.open", lambda path, *args, **kwargs: real_open(
-        node if path == "/sys/class/video/fps_info" else path, *args, **kwargs))
+    monkeypatch.setattr(helpers, "open", lambda path, *args, **kwargs: real_open(
+        node if path == "/sys/class/video/fps_info" else path, *args, **kwargs), raising=False)
     assert helpers._read_fps_sysfs() == (24, 23)
     node.write_text("garbage")
     assert helpers._read_fps_sysfs() is None

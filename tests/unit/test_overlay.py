@@ -480,7 +480,34 @@ def test_per_title_readings_refresh_on_the_slow_cadence(loop, clock):
     loop._update_loop()
     assert loop.seen == {"scene": 4, "static": 2}
     assert loop._changed_color == "FFFF0000"
-    assert position(loop) == (0, 0)                          # placed on every tick
+
+
+def test_the_loop_highlights_the_readings_each_tick_publishes(monkeypatch, loop, clock):
+    home().setProperty(CHANGED_COLOR, "FFFF0000")
+    loop.setProperty("DoviProfileNumberVar", "8")
+    loop._remember_dv_values()
+
+    def scene(window, published):
+        published.update({"TinyPPI.HdrType": "Dolby Vision", "DoviProfileNumberVar": "7"})
+
+    monkeypatch.setattr(publish, "publish_scene_properties", scene)
+    loop._monitor = Monitor(clock, ticks=1)
+    loop._update_loop()
+    assert loop.getProperty("DoviProfileNumberVar") == "[COLOR=FFFF0000]7[/COLOR]"
+
+
+def test_the_loop_follows_a_layout_change_while_it_runs(monkeypatch, loop, clock):
+    loop._offset_pct = (100, 0)
+
+    def scene(window, published):
+        if loop.seen["scene"] == 1:
+            show_layout(window, "HDR10")      # the HDR type is detected late
+        loop.seen["scene"] += 1
+
+    monkeypatch.setattr(publish, "publish_scene_properties", scene)
+    loop._monitor = Monitor(clock, ticks=3)
+    loop._update_loop()
+    assert moves(loop) == [(593, 0), (0, 0)]
 
 
 def test_a_failing_refresh_is_logged_once_and_the_loop_goes_on(monkeypatch, loop, clock):

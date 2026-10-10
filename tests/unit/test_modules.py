@@ -24,22 +24,15 @@ def test_module_imports(name):
     importlib.import_module(name)
 
 
-def test_keyed_memo():
+def test_the_memo_holds_one_value_for_the_key_it_was_computed_for():
     from core.memo import KeyedMemo
     memo = KeyedMemo()
     assert memo.get("a") is None
     memo.put("a", "")
     assert memo.get("a") == "" and memo.get("b") is None
-
-
-def test_settings_handle_is_kept():
-    from core import settings
-    assert settings.addon() is settings.addon()
-
-
-def test_strings_are_cached_per_language():
-    from core.utils import localized
-    assert localized(32230) == "#32230"
+    memo.put(("yuv420p", 10), "HDR")
+    assert memo.get(("yuv420p", 10)) == "HDR"
+    assert memo.get("a") is None                 # one entry: the new key replaced it
 
 
 def test_display_reset_without_drm_gives_up_once(monkeypatch):
@@ -79,8 +72,18 @@ def test_dv_metadata_holds_blocks_per_item():
     assert "config" not in origin
 
 
-def test_overlay_reentry_flag():
+def test_a_closed_overlay_holds_off_reentry_while_it_settles(monkeypatch):
+    import xbmc
+    from core.utils import PROP_ACTIVE, PROP_RUNNING
     from ui import overlay
+    held = []
+    monkeypatch.setattr(xbmc.Monitor, "waitForAbort",
+                        lambda self, timeout=None: held.append(
+                            (timeout, overlay._releasing.is_set())) or False)
     home = xbmcgui.Window(10000)
+    home.setProperty(PROP_RUNNING, "true")
+    home.setProperty(PROP_ACTIVE, "true")
     overlay._release_overlay(home)
+    assert held == [(0.2, True)]
+    assert home.getProperty(PROP_RUNNING) == home.getProperty(PROP_ACTIVE) == ""
     assert not overlay._releasing.is_set()

@@ -3,6 +3,7 @@
 
 """The Dolby Vision metadata list and section windows (ui/dvmetadata.py)."""
 
+import importlib
 import os
 import xml.etree.ElementTree as ET
 
@@ -252,21 +253,25 @@ def test_an_unchanged_tick_leaves_the_list_alone():
 LONG = [section("A")] + [row(f"r{index}", "0") for index in range(29)]
 
 
-def test_a_value_change_keeps_the_viewport():
+@pytest.mark.parametrize(("position", "current", "selected"), [
+    ("2", "13", [29, 12]),      # page 10-34, clamped to the last row
+    ("0", "2", [25, 1]),        # page 1-25, the selection at its top
+    ("5", "3", [24, 2]),        # a slot past the selection reads as the list top
+])
+def test_a_value_change_keeps_the_viewport(position, current, selected):
     dialog = view.DVMetadataDialog()
     dialog._fill(LONG)
     control = listed(dialog)
     control.calls.clear()
-    # Row 12 selected, third from the top of the page.
-    xbmc.INFO["Container(6000).Position"] = "2"
-    xbmc.INFO["Container(6000).CurrentItem"] = "13"
+    xbmc.INFO["Container(6000).Position"] = position
+    xbmc.INFO["Container(6000).CurrentItem"] = current
     changed = list(LONG)
     changed[5] = row("r4", "1")
     dialog._fill(changed)
     assert [call for call, _args in control.calls] == [
         "reset", "addItems", "selectItem", "selectItem"]
-    # The last row of the old page first (clamped to the list), then the row itself.
-    assert selections(control) == [29, 12]
+    # The last row of the old page first, then the row itself.
+    assert selections(control) == selected
     assert calls(control, "setHeight") == []
 
 
@@ -466,6 +471,34 @@ def test_up_and_down_jump_between_sections(listing, start, action, landed, selec
     assert selections(listed(listing)) == selected
 
 
+@pytest.fixture
+def paging():
+    """The view as loaded by a Kodi build that has the page up/down actions."""
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(xbmcgui, "ACTION_PAGE_UP", 5, raising=False)
+        patch.setattr(xbmcgui, "ACTION_PAGE_DOWN", 6, raising=False)
+        importlib.reload(view)
+        yield view
+    importlib.reload(view)
+
+
+@pytest.mark.parametrize(("start", "action", "landed"), [
+    ("L1", 6, "L5"),
+    ("RPU", 5, "L5"),
+])
+def test_page_up_and_down_jump_between_sections_where_kodi_has_them(paging, start, action,
+                                                                    landed):
+    dialog = paging.DVMetadataDialog()
+    dialog._fill(ROWS)
+    dialog._area_title = start
+    dialog.onAction(xbmcgui.Action(action))
+    assert dialog._area_title == landed
+
+
+def test_without_paging_actions_only_the_arrows_jump():
+    assert set(view._STEP_ACTIONS) == {xbmcgui.ACTION_MOVE_UP, xbmcgui.ACTION_MOVE_DOWN}
+
+
 def test_nothing_is_selected_without_sections():
     dialog = view.DVMetadataDialog()
     dialog.onAction(xbmcgui.Action(xbmcgui.ACTION_MOVE_DOWN))
@@ -482,7 +515,7 @@ def test_ok_opens_the_section_under_the_selection(listing, clock, position, titl
     assert ("close", ()) in listing.calls
 
 
-def test_ok_on_the_blank_row_opens_the_last_section(listing, clock):
+def test_ok_on_the_blank_row_opens_the_current_section(listing, clock):
     settled(listing, clock)
     listing._area_title = "L5"
     listed(listing).selected = 3

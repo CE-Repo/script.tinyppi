@@ -11,6 +11,18 @@ import xbmc
 from web import access
 
 
+@pytest.fixture(autouse=True)
+def own_names(monkeypatch):
+    """Replace the box's host name lookups (no resolver is asked); the names are
+    looked up afresh.  Every test starts on a box called "coreelec"."""
+    def install(hostname, fqdn):
+        monkeypatch.setattr(access, "socket", SimpleNamespace(gethostname=hostname, getfqdn=fqdn))
+        access._own_names.cache_clear()
+    install(lambda: "coreelec", lambda: "coreelec")
+    yield install
+    access._own_names.cache_clear()
+
+
 @pytest.mark.parametrize("host", [
     "", "192.168.1.20", "192.168.1.20:8099", "[fe80::1]:8099", "coreelec", "coreelec:8099",
     "coreelec.local", "box.fritz.box", "tv.speedport.ip", "media.lan", "media.home.arpa", "box.local.",
@@ -149,14 +161,6 @@ def test_over_the_cap_the_oldest_address_is_forgotten(clock):
     assert len(guesses._wrong) == access._MAX_TRACKED
 
 
-@pytest.fixture
-def own_names(monkeypatch):
-    """Replace the box's host name lookups; the names are looked up afresh."""
-    def install(hostname, fqdn):
-        monkeypatch.setattr(access, "socket", SimpleNamespace(gethostname=hostname, getfqdn=fqdn))
-        access._own_names.cache_clear()
-    yield install
-    access._own_names.cache_clear()
 
 
 def test_the_boxs_own_names_are_trusted(own_names):

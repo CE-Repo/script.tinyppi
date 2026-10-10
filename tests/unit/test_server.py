@@ -19,6 +19,13 @@ from web import access
 from web import server as web_server
 
 
+@pytest.fixture(autouse=True)
+def no_resolver(monkeypatch):
+    """Keep name lookups off the network: the box's own names and the server's name."""
+    monkeypatch.setattr(access, "_own_names", lambda: frozenset({"coreelec"}))
+    monkeypatch.setattr(socket, "getfqdn", lambda name="": name or "coreelec")
+
+
 def _wait_until(condition, timeout=2.0):
     deadline = time.monotonic() + timeout
     while not condition():
