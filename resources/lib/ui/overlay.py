@@ -10,6 +10,7 @@ import contextlib
 import os
 import threading
 import time
+from typing import Any
 
 import xbmc
 import xbmcaddon
@@ -17,6 +18,8 @@ import xbmcgui
 import xbmcvfs
 from core import settings
 from core.log import log
+from core.protocols import PropertyTarget
+
 from core.utils import (
     PROP_ACTIVE,
     PROP_DIALOG_MODE,
@@ -148,7 +151,7 @@ def _notify_error(message_id: int) -> None:
     )
 
 
-def _set_overlay_state(home, dialog_mode: bool = False) -> None:
+def _set_overlay_state(home: PropertyTarget, dialog_mode: bool = False) -> None:
     """Publish the Home-window properties that mark TinyPPI as open."""
     set_window_properties(
         home,
@@ -164,7 +167,7 @@ def _set_overlay_state(home, dialog_mode: bool = False) -> None:
         home.clearProperty(PROP_DIALOG_MODE)
 
 
-def _preflight(home, player, toggle_log: str) -> bool:
+def _preflight(home: PropertyTarget, player: xbmc.Player, toggle_log: str) -> bool:
     """Run the platform and playback checks shared by both entry points.
 
     Returns True when a view may open; otherwise notifies (or toggles the
@@ -224,7 +227,7 @@ def _nudge_enabled() -> bool:
     return _settings().getSettingBool("nudge_position")
 
 
-def _elements_visible(addon) -> str:
+def _elements_visible(addon: xbmcaddon.Addon) -> str:
     """Return "0" when the background is fully transparent, else "1".
 
     Controls the header title, header icon and separator lines.
@@ -232,7 +235,7 @@ def _elements_visible(addon) -> str:
     return "0" if addon.getSettingInt("background_opacity") == 0 else "1"
 
 
-def _release_overlay(home) -> None:
+def _release_overlay(home: PropertyTarget) -> None:
     """Clear the overlay state, then hold the re-entry lock briefly."""
     _releasing.set()
     clear_overlay_state(home)
@@ -250,7 +253,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
     Closes when playback stops or fullscreen video is left.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._running   = False
         self._monitor   = xbmc.Monitor()
@@ -537,7 +540,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
 # --- Entry points ----------------------------------------------------------
 
-def _show_overlay(home) -> str | None:
+def _show_overlay(home: PropertyTarget) -> str | None:
     """Show the overlay once and return the next view, or None to end."""
     # Marks the overlay as visible for the codec-logo splash.  Set per
     # showing: the overlay clears it on close, including when handing over to

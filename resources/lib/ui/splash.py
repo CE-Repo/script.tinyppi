@@ -22,12 +22,14 @@ import time
 from typing import NamedTuple
 
 import xbmc
+import xbmcaddon
 import xbmcgui
 from core import settings
 from core.constants import HOME_WINDOW_ID
 from core.log import channel
 from core.images import display_texture
 from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
+from core.protocols import PropertyTarget
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
 from info.dvinfo import get_dv_el_type_raw, get_hdr_format
 from info.imax import imax_logo, is_known_imax_title
@@ -481,7 +483,7 @@ def _build_controls(
     return controls, dot
 
 
-def _window_dims(window) -> tuple[int, int]:
+def _window_dims(window: xbmcgui.Window) -> tuple[int, int]:
     """Return the coordinate space ``addControl`` uses on *window*.
 
     The window's own size, which may differ from the screen size; falls
@@ -496,7 +498,7 @@ def _window_dims(window) -> tuple[int, int]:
     return xbmcgui.getScreenWidth(), xbmcgui.getScreenHeight()
 
 
-def _read_settings(addon) -> _Settings:
+def _read_settings(addon: xbmcaddon.Addon) -> _Settings:
     """Read all controller settings (see ``_Settings``)."""
     modes = {}
     for mode in _MODE_PROP_PREFIX:
@@ -523,7 +525,7 @@ def _read_settings(addon) -> _Settings:
     )
 
 
-def _mode_colors(home, mode: str) -> dict[str, str]:
+def _mode_colors(home: PropertyTarget, mode: str) -> dict[str, str]:
     """Return *mode*'s tints from the Home properties, with fallbacks.
 
     Call after ``apply_theme``.
@@ -543,7 +545,7 @@ def _mode_colors(home, mode: str) -> dict[str, str]:
     }
 
 
-def _mode_scale(addon, mode: str) -> float:
+def _mode_scale(addon: xbmcaddon.Addon, mode: str) -> float:
     """Return *mode*'s size multiplier, clamped to 0.8-1.3."""
     try:
         percent = addon.getSettingInt(_SCALE_SETTINGS[mode])
@@ -593,7 +595,7 @@ def _visible_condition(mode: str, suppress_start_for_osd: bool = False,
     return " + ".join(parts)
 
 
-def _clear_mode_visibility(home, mode: str | None = None) -> None:
+def _clear_mode_visibility(home: PropertyTarget, mode: str | None = None) -> None:
     """Clear *mode*'s visibility property, or all of them."""
     props = (_MODE_VISIBLE_PROPS[mode],) if mode else _MODE_VISIBLE_PROPS.values()
     for prop in props:
@@ -601,8 +603,9 @@ def _clear_mode_visibility(home, mode: str | None = None) -> None:
 
 
 def _fade_in(
-    video_window, home, monitor, mode: str, controls, condition: str,
-    dot=None,
+    video_window: xbmcgui.Window, home: PropertyTarget, monitor: xbmc.Monitor,
+    mode: str, controls: list[xbmcgui.Control], condition: str,
+    dot: xbmcgui.Control | None = None,
 ) -> None:
     """Add *controls* to the video window and fade them in.
 
@@ -630,14 +633,15 @@ def _fade_in(
     home.setProperty(_MODE_VISIBLE_PROPS[mode], "true")
 
 
-def _remove_controls(video_window, controls) -> None:
+def _remove_controls(video_window: xbmcgui.Window, controls: list[xbmcgui.Control]) -> None:
     """Remove *controls* from the video window, ignoring failures."""
     # The window may already be gone.
     with contextlib.suppress(Exception):
         video_window.removeControls(controls)
 
 
-def _fade_out(video_window, home, monitor, mode: str, controls) -> None:
+def _fade_out(video_window: xbmcgui.Window, home: PropertyTarget, monitor: xbmc.Monitor,
+              mode: str, controls: list[xbmcgui.Control]) -> None:
     """Fade *controls* out, wait, and remove them.
 
     Not removed while Kodi stops the service: removal waits on the GUI
@@ -649,7 +653,7 @@ def _fade_out(video_window, home, monitor, mode: str, controls) -> None:
     _remove_controls(video_window, controls)
 
 
-def _safe_addon():
+def _safe_addon() -> xbmcaddon.Addon | None:
     """Return the current settings handle, or None while unavailable.
 
     During an add-on update ``Addon()`` may raise ``RuntimeError`` or load

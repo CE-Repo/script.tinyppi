@@ -17,6 +17,7 @@ sections held from earlier frames as ``(Cached)`` (see _paint).
 import contextlib
 import threading
 import time
+from typing import Any, TypeVar
 
 import xbmc
 import xbmcgui
@@ -147,7 +148,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
     keys jump between sections and show as much of each as fits.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._running   = False
         self._monitor   = xbmc.Monitor()
@@ -230,7 +231,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
     # --- List --------------------------------------------------------------
 
     @staticmethod
-    def _paint(item: xbmcgui.ListItem, row: tuple, label) -> None:
+    def _paint(item: xbmcgui.ListItem, row: tuple, label: str | list[str]) -> None:
         """Make *item* show *row* with *label* as its value.
 
         All rows share one layout (Kodi evaluates list layout conditions once
@@ -530,7 +531,7 @@ class DVSectionDialog(DVMetadataDialog):
     arrow keys scroll by rows.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         # Set before doModal(): the section title to show.
         self.section     = ""
@@ -569,7 +570,11 @@ class DVSectionDialog(DVMetadataDialog):
             self._close(back_to_caller=False)
 
 
-def _dialog(dialog_class):
+_Dialog = TypeVar("_Dialog", bound=xbmcgui.WindowXMLDialog)
+
+
+def _dialog(dialog_class: type[_Dialog]) -> _Dialog:
+
     """Create a *dialog_class* window from the metadata skin file."""
     return dialog_class(
         "script-tinyppi-dv-metadata.xml",

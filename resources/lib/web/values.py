@@ -4,8 +4,14 @@
 """Text helpers shared by the snapshot, the player state and the library."""
 
 import re
+from typing import Any
 
 from info.dvinfo import is_status_label
+
+# A value straight from a request (query or JSON body): any type, or None.
+# The function receiving it validates and converts it.
+Unchecked = Any
+
 
 _NUMBER_RE = re.compile(r"-?\d+(?:\.\d+)?")
 

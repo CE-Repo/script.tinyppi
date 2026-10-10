@@ -101,7 +101,7 @@ class Handler(BaseHTTPRequestHandler):
         """The client's address for log lines."""
         return access.plain_address(self.client_address[0])
 
-    def log_message(self, fmt: str, *args) -> None:  # noqa: A003 - base API
+    def log_message(self, fmt: str, *args: object) -> None:  # noqa: A003 - base API
         _log(_TOKEN_IN_QUERY.sub(r"\1***", fmt % args), xbmc.LOGDEBUG)
 
     def _send(self, status: HTTPStatus, body: bytes, content_type: str,

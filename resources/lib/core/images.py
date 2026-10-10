@@ -407,7 +407,7 @@ def _scale_png_for_display(src_path: str, dst_path: str, dst_w: int, dst_h: int)
     _write_png_rgba(dst_path, dst_w, dst_h, _unpremultiply_rgba(resized))
 
 
-def _cache_target(path: str, box_w: int, box_h: int):
+def _cache_target(path: str, box_w: int, box_h: int) -> tuple[str, int, int] | None:
     """Return ``(cache_path, dst_w, dst_h)`` for a texture worth scaling.
 
     None when the source can be used as is: not a PNG, unreadable, or already

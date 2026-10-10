@@ -15,6 +15,8 @@ web/vs10.py and the title's history in web/session.py.
 """
 
 import time
+from collections.abc import Iterable
+
 import zlib
 
 import xbmc
@@ -234,7 +236,7 @@ _PRESENCE_FLAGS = (
 )
 
 
-def _render(segments, values: dict[str, str]) -> str:
+def _render(segments: Iterable[tuple[str, str, str]], values: dict[str, str]) -> str:
     """Concatenate the non-empty segments with their prefixes and suffixes.
 
     Empty segments drop their separators too; spacing comes from the
@@ -329,13 +331,13 @@ def _finish_time(values: dict[str, str]) -> str:
     return values.get("PlayerFinishTime", "")
 
 
-def _web_presence_value(value) -> str:
+def _web_presence_value(value: object) -> str:
     """Replace standalone Yes/No parts with icon markers."""
     parts = clean_value(str(value)).split(" | ")
     return " | ".join(_PRESENCE_WORD.get(part, part) for part in parts)
 
 
-def _metadata_row(kind: str, name: str, value) -> dict:
+def _metadata_row(kind: str, name: str, value: object) -> dict:
     """Convert an ``info.dvmetadata`` row for the page (cells stay a list)."""
     if isinstance(value, (list, tuple)):
         return {"kind": kind, "name": clean_value(name),

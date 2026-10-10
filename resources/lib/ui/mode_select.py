@@ -11,6 +11,7 @@ import json
 import threading
 import time
 from functools import cache
+from typing import Any
 
 import xbmc
 import xbmcgui
@@ -112,7 +113,7 @@ def _delay(ms: int) -> None:
         time.sleep(ms / 1000)
 
 
-def _read(path: str):
+def _read(path: str) -> str | None:
     """Return a sysfs node's stripped contents, or None."""
     try:
         with open(path, encoding="utf-8") as f:
@@ -121,12 +122,13 @@ def _read(path: str):
         return None
 
 
-def _dv_state():
+def _dv_state() -> tuple[str | None, str | None, str | None]:
     """Return the DV driver nodes, to tell whether a native action took."""
     return (_read(_POLICY), _read(_ENABLE), _read(_DVMODE))
 
 
-def _wait_for_dv_change(before, timeout_ms: int = 500, step_ms: int = 50) -> bool:
+def _wait_for_dv_change(before: tuple[str | None, ...], timeout_ms: int = 500,
+                        step_ms: int = 50) -> bool:
     """Poll the DV driver state; True once it differs from *before*."""
     waited = 0
     while waited < timeout_ms:
@@ -179,7 +181,7 @@ def _wait_for_dv_output_change(
 
 
 def _wait_for_dv_output_value_change(
-    before,
+    before: str | None,
     timeout_ms: int = _DV_OUTPUT_TIMEOUT_MS,
     step_ms: int = 50,
 ) -> bool:
@@ -206,7 +208,7 @@ def _is_playing_video() -> bool:
         return False
 
 
-def _reset_display_after_switch(name: str, output_before, via_sysfs: bool) -> None:
+def _reset_display_after_switch(name: str, output_before: str | None, via_sysfs: bool) -> None:
     """Re-apply the HDMI output after a VS10 switch (see ``core.display``).
 
     Kodi only re-applies the display mode when the stream's HDR type
@@ -477,7 +479,8 @@ def _vs10_actions_available() -> bool:
     return available
 
 
-def _probe_dv_Player_LED_setting():
+def _probe_dv_Player_LED_setting() -> int | None:
+
     """Return the DV LED setting (0 TV-LED, 1 Player-LED), or None.
 
     Reads the value of ``coreelec.amlogic.dolbyvisionled``; its mere
@@ -697,7 +700,7 @@ _ACTIONS = {
 class SettingsDialog(xbmcgui.WindowXMLDialog):
     """Menu dialog to pick a VS10 output mode or launch the TinyPPI overlay."""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         # The layout this window was built from (geometry, key handling).
         self._layout = dialog_layout.dialog_mode()

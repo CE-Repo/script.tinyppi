@@ -4,6 +4,7 @@
 """The dashboard's UI strings in Kodi's current language."""
 
 import xbmc
+import xbmcaddon
 
 from core import settings
 
@@ -128,7 +129,7 @@ _UI_STRINGS = {
 }
 
 
-def ui_strings(addon=None) -> dict[str, str]:
+def ui_strings(addon: xbmcaddon.Addon | None = None) -> dict[str, str]:
     """Return the UI strings localized through Kodi."""
     addon = addon or settings.addon()
     strings = {key: addon.getLocalizedString(string_id)

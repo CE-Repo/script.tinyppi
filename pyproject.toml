@@ -50,5 +50,14 @@ mypy_path = ["resources/lib"]
 explicit_package_bases = true
 files = ["resources/lib", "main.py"]
 ignore_missing_imports = true
-check_untyped_defs = false
 warn_unused_ignores = true
+# Every function is annotated and its body checked.  Values of no fixed type
+# say so: ``object`` when only inspected, ``web.values.Unchecked`` for raw
+# request input.  Kodi windows and their stand-ins share
+# ``core.protocols.PropertyTarget``.
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+strict_equality = true
+warn_redundant_casts = true
+extra_checks = true

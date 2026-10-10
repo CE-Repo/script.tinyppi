@@ -12,7 +12,7 @@ import xbmc
 
 from core.log import channel
 from core.utils import cond, info
-from web.values import clean_value, numbers
+from web.values import Unchecked, clean_value, numbers
 
 _log = channel("web")
 
@@ -213,7 +213,7 @@ _COMMANDS = ("playpause", "stop", "seek", "seek_percent", "volume", "mute",
 _SEEK_LIMIT = 3600
 
 
-def _number(value, low: float, high: float) -> float | None:
+def _number(value: Unchecked, low: float, high: float) -> float | None:
     """Return *value* as a number within [*low*, *high*], or None."""
     try:
         number = float(value)
@@ -224,7 +224,7 @@ def _number(value, low: float, high: float) -> float | None:
     return number
 
 
-def apply_command(action: str, value=None) -> bool:
+def apply_command(action: str, value: Unchecked = None) -> bool:
     """Run a transport command and return whether it succeeded.
 
     JSON-RPC (not builtins) so success can be reported; False without a

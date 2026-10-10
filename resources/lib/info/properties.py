@@ -10,6 +10,7 @@ before a window is shown.
 
 import re
 
+import xbmcgui
 from core import settings
 from core.constants import HOME_WINDOW_ID
 from core.helpers import format_fps, fps_display_texts, normalize_fps
@@ -26,6 +27,7 @@ from core.maps import (
     VIDEO_CODEC_MAP,
 )
 from core.memo import KeyedMemo
+from core.protocols import PropertyTarget
 from core.utils import (
     PROP_HDR10PLUS_PRESENT,
     clean,
@@ -660,7 +662,8 @@ def _channel_setting_for(hdr_type: str) -> str:
     return "channels_hdr"
 
 
-def publish_channel_visibility(home=None, published=None) -> None:
+def publish_channel_visibility(home: PropertyTarget | None = None,
+                               published: dict | None = None) -> None:
     """Publish ``TinyPPI.ShowChannelIcon`` for the current output type.
 
     Re-read on every poll: the HDR type is detected asynchronously, and a
@@ -721,7 +724,8 @@ def _hdr10_panel_stands_in_for_dv() -> bool:
     )
 
 
-def publish_hdr_type(home=None, published=None) -> None:
+def publish_hdr_type(home: PropertyTarget | None = None,
+                     published: dict | None = None) -> None:
     """Publish the source HDR type and the type the layout follows.
 
     ``TinyPPI.HdrType`` is the source, ``TinyPPI.EffectiveHdrType`` the
@@ -753,7 +757,8 @@ def publish_hdr_type(home=None, published=None) -> None:
     )
 
 
-def _set_progress(window, published: dict, values: tuple[tuple[int, float], ...]) -> None:
+def _set_progress(window: xbmcgui.Window, published: dict,
+                  values: tuple[tuple[int, float], ...]) -> None:
     """Set progress controls, skipping values *published* already holds."""
     for control_id, value in values:
         key = f"__progress_{control_id}"
@@ -762,7 +767,7 @@ def _set_progress(window, published: dict, values: tuple[tuple[int, float], ...]
             published[key] = value
 
 
-def update_static_properties(window, published=None) -> None:
+def update_static_properties(window: xbmcgui.Window, published: dict | None = None) -> None:
     """Publish the per-title properties and the CPU temperature bar.
 
     For the polling loop's slow cadence.  The progress control is addressed
@@ -785,7 +790,7 @@ def update_static_properties(window, published=None) -> None:
         )
 
 
-def publish_scene_properties(window, published=None) -> None:
+def publish_scene_properties(window: PropertyTarget, published: dict | None = None) -> None:
     """Publish the Dolby Vision / HDR10 readings that change per scene.
 
     Active-area offsets and L1 luminance come from the current frame, so the
@@ -800,7 +805,7 @@ def publish_scene_properties(window, published=None) -> None:
         _publish_scene_properties(window, published)
 
 
-def _publish_scene_properties(window, published: dict) -> None:
+def _publish_scene_properties(window: PropertyTarget, published: dict) -> None:
     """Run the scene pass inside the caller's ``read_pass``."""
     unit, pq_unit = _metadata_units()
 
@@ -851,7 +856,7 @@ def _publish_scene_properties(window, published: dict) -> None:
     )
 
 
-def publish_static_properties(window, published=None) -> None:
+def publish_static_properties(window: PropertyTarget, published: dict | None = None) -> None:
     """Publish the properties that change at most once per title.
 
     Video and audio format facts, DV / HDR10 presence flags and CPU load.
@@ -868,7 +873,7 @@ def publish_static_properties(window, published=None) -> None:
         _publish_static_properties(window, published)
 
 
-def _publish_static_properties(window, published: dict) -> None:
+def _publish_static_properties(window: PropertyTarget, published: dict) -> None:
     """Run the static pass inside the caller's ``read_pass``."""
     publish_hdr_type(published=published)
     # Uses the type just published; gates the channel graphics below.
@@ -930,7 +935,8 @@ def _publish_static_properties(window, published: dict) -> None:
     )
 
 
-def publish_properties(window, published=None) -> None:
+def publish_properties(window: PropertyTarget, published: dict | None = None) -> None:
+
     """Publish all player properties to *window* in one pass.
 
     Called once before ``doModal()`` so the first frame is complete; the
