@@ -3,10 +3,14 @@
   "private": true,
   "description": "Development tooling only (lint and tests for the dashboard's scripts); not part of the add-on.",
   "license": "AGPL-3.0-or-later",
+  "config": {
+    "coverage": 100
+  },
   "scripts": {
     "lint": "eslint resources/web/js tests/web tests/browser",
     "test": "node --test \"tests/web/*.test.mjs\"",
-    "test:browser": "node --test \"tests/browser/*.test.mjs\""
+    "test:browser": "node --test \"tests/browser/*.test.mjs\"",
+    "coverage": "node --test --experimental-test-coverage --test-coverage-include=\"resources/web/js/**\" --test-coverage-lines=$npm_package_config_coverage --test-coverage-branches=$npm_package_config_coverage --test-coverage-functions=$npm_package_config_coverage \"tests/web/*.test.mjs\""
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
