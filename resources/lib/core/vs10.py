@@ -494,9 +494,10 @@ def _probe_dv_Player_LED_setting() -> int | None:
     except Exception as e:
         log(f"probe failed: {e}", xbmc.LOGWARNING)
         return None
-    if not isinstance(response, dict) or "result" not in response:
+    result = response.get("result") if isinstance(response, dict) else None
+    if not isinstance(result, dict):
         return None
-    value = response["result"].get("value")
+    value = result.get("value")
     # As a number, so a textual "0" is still TV-LED.
     try:
         return int(value)
