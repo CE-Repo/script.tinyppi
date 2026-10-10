@@ -147,7 +147,9 @@ class _Server(ThreadingHTTPServer):
         # Open connections and their addresses, so stop() can hang up on
         # idle keep-alives and verify_request() can cap them.
         self._connections: dict = {}
-        self._refusal_logged = 0.0
+        # monotonic() counts from boot, and Kodi starts seconds after it:
+        # 0.0 would hide every refusal in the first minute.
+        self._refusal_logged = float("-inf")
         # Cached poster and fanart of the playing title.
         self._art = artwork.PlayingArtwork()
 
