@@ -509,7 +509,7 @@ window.TinyPPI = (function () {
      viewer can find again rather than one their browser had to rescue. */
   function fileSafe(title) {
     return String(title)
-      .replace(/[\\\/:*?"<>|]+/g, "")
+      .replace(/[\\/:*?"<>|]+/g, "")
       .trim()
       .replace(/\s+/g, "_")
       .replace(/_{2,}/g, "_")

@@ -8,3 +8,6 @@ __pycache__/
 
 # Test runs
 .pytest_cache/
+
+# Lint tooling (npm install)
+node_modules/

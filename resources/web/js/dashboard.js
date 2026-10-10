@@ -70,8 +70,8 @@ el.lastCard.after(el.eventsCard);
 
 let state = null;
 let control = false;
-let rowNodes = new Map();  /* row id -> {element, key, value, last}     */
-let groupNodes = new Map();
+const rowNodes = new Map();  /* row id -> {element, key, value, last}     */
+const groupNodes = new Map();
 let pending = null;        /* the VS10 mode a button is waiting on      */
 let wasPlaying = null;     /* what the last snapshot said, for the library */
 let lastDrawn = "";        /* what the report card was last drawn from      */
