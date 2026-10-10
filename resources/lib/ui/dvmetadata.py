@@ -247,7 +247,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         compact = table and len(label) == dvmetadata.MAX_COMPACT_COLUMNS
         # Right-align narrow tables in the fixed slots, so the list has one
         # right edge.  All rows of a table have the heading's width (see
-        # dvmetadata._grid and _table), so readings stay under their
+        # dvcomposer._grid and dvmetadata._table), so readings stay under their
         # headings.  Full-width and compact tables are not shifted.
         offset  = (max(0, dvmetadata.MAX_COLUMNS - len(label))
                    if table and not compact else 0)

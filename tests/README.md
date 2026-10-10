@@ -40,6 +40,7 @@ development files.
 | `unit/test_imax.py` | IMAX by name: listed titles at the end of the film part, years on remakes, spelling variants, the IMAX tag, Enhanced, names from paths and Kodi's titles |
 | `unit/test_mediasource.py` | The media source row: release types, containers, sizes, streaming protocols, PVR, discs, addon links never stat'd |
 | `unit/test_dvinfo.py` | Dolby Vision and HDR fields from parsed side data: profiles, layers, L1/L5/L6, HDR10 and HDR10+, number formats, EL tag colours |
+| `unit/test_dvmetadata.py` | The DV metadata view's rows: scene and static sections, trim tables per target display, the composer's curves and coefficients, value formatting |
 | `unit/test_display.py` | The DRM display reset against a simulated device: HDMI first, the master descriptor, the cached ids and the negative cache |
 
 ## Kodi 22 suite
