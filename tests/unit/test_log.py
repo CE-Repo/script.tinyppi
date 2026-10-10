@@ -37,3 +37,12 @@ def test_forced_debug_raises_only_debug_lines_to_info(monkeypatch, level, writte
     levels = [entry[0] for entry in xbmc.LOG]
     assert levels == [written, written]
     assert [entry[1] for entry in xbmc.LOG] == ["TinyPPI: line", "TinyPPI [web]: line"]
+
+
+@pytest.mark.parametrize(("path", "logged"), [
+    ("smb://user:secret@nas/Films/film.mkv", "smb://***@nas/Films/film.mkv"),
+    ("ftp://user@host/film.mkv", "ftp://***@host/film.mkv"),
+    ("/storage/videos/film.mkv", "/storage/videos/film.mkv"),
+])
+def test_credentials_are_taken_out_of_a_logged_path(path, logged):
+    assert log.redacted(path) == logged

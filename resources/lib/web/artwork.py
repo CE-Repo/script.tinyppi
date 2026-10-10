@@ -6,13 +6,12 @@ pictures, read through Kodi's VFS."""
 
 import contextlib
 import os
-import re
 import threading
 from urllib.parse import quote, unquote
 
 import xbmc
 import xbmcvfs
-from core.log import channel
+from core.log import channel, redacted
 from web.snapshot import art_path
 
 # Artwork kinds the page may request, and the maximum size.  ``thumb`` is an
@@ -30,9 +29,6 @@ _ART_TYPES = {
     ".webp": "image/webp", ".gif": "image/gif", ".bmp": "image/bmp",
 }
 _ART_FALLBACK_TYPE = "image/jpeg"
-
-# Credentials in a source URL (smb://user:secret@nas/), removed from logs.
-_USERINFO_IN_URL = re.compile(r"(://)[^/@\s]*@")
 
 _log = channel("web", xbmc.LOGINFO)
 
@@ -65,11 +61,6 @@ def art_sources(path: str) -> tuple[str, ...]:
         return (path, unwrap_image_url(path))
     # A plain file: wrap it for the cache, keep the file as fallback.
     return ("image://" + quote(path, safe="") + "/", path)
-
-
-def redacted(path: str) -> str:
-    """Return *path* with credentials removed, for logging."""
-    return _USERINFO_IN_URL.sub(r"\1***@", path)
 
 
 def art_type(path: str) -> str:
@@ -106,7 +97,8 @@ def read_art(path: str) -> bytes | None:
             with contextlib.suppress(Exception):
                 handle.close()
     except Exception as exc:  # the VFS raises RuntimeError or worse for a bad path
-        _log(f"artwork {path} unreadable: {exc}", xbmc.LOGDEBUG)
+        # The error repeats the path, so the whole line is redacted.
+        _log(redacted(f"artwork {path} unreadable: {exc}"), xbmc.LOGDEBUG)
         return None
     return data or None
 

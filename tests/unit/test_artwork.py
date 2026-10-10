@@ -178,3 +178,9 @@ def test_a_shelf_without_a_picture_reads_nothing(monkeypatch):
     assert artwork.shelf_picture("") is None
     assert artwork.shelf_picture("/films/poster.jpg") is None
     assert reads == ["image://%2Ffilms%2Fposter.jpg/", "/films/poster.jpg"]
+
+
+def test_an_unreadable_artwork_logs_no_credentials():
+    assert artwork.read_art("smb://user:secret@nas/posters/film.jpg") is None
+    lines = [line for _level, line in xbmc.LOG if "unreadable" in line]
+    assert lines and "secret" not in lines[0] and "smb://***@nas/posters/film.jpg" in lines[0]

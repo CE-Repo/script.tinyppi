@@ -227,3 +227,9 @@ def test_a_live_stream_without_a_protocol_shows_its_container(playing):
     xbmc.CONDITIONS["Player.IsLive"] = True
     playing("http://tuner.local/stream/channel.ts")
     assert mediasource.get_MediaSourceVar() == "TS"
+
+
+def test_a_failed_stat_logs_no_credentials():
+    assert mediasource._measure("smb://user:secret@nas/films/film.mkv") == ""
+    lines = [line for _level, line in xbmc.LOG if "unknown" in line]
+    assert lines and "secret" not in lines[0] and "smb://***@nas/films/film.mkv" in lines[0]
