@@ -99,7 +99,7 @@
   <!-- The films the video database holds: what was left half-watched, what
        arrived last, what has not been seen yet, and the wall of all of them.  A press on a
        poster asks what is wanted of it (see "what a press asks" in
-       js/dashboard.js). -->
+       js/marking.js). -->
   <section class="tabpanel" id="tab-films" data-tab="films" role="tabpanel"
            aria-labelledby="tabbtn-films">
     <details class="card hidden" id="continueFilmsCard">
@@ -211,7 +211,7 @@
            aria-labelledby="tabbtn-history">
     <!-- The add-on keeps a session for a while after the player stops, which
          is when its figures are worth reading (see SessionLog.end in
-         web/snapshot.py). -->
+         web/session.py). -->
     <section class="card hidden" id="lastCard">
       <div class="lasthead">
         <span class="k" id="lastLabel"></span>
@@ -272,7 +272,7 @@
 <!-- The floating bar the tabs are switched with: the five places of the
      app's bar, in its order, and the settings.  Icons only; each key says
      what it is to a screen reader and under a pointer (see applyStrings in
-     js/dashboard.js).  Over the page rather than under it: the panels
+     js/start.js).  Over the page rather than under it: the panels
      leave room at their foot for it (see .tabbar in css/base.css). -->
 <nav class="tabbar" id="tabBar" role="tablist" aria-label="TinyPPI">
   <button class="tab" id="tabbtn-live" type="button" role="tab" data-tab="live"
@@ -303,7 +303,7 @@
 
 <!-- What a press on a poster or an episode asks: play it (open it, for a
      series), or have the box count it as seen or as unseen (see "what a press
-     asks" in js/dashboard.js). -->
+     asks" in js/marking.js). -->
 <dialog id="markDialog"><form method="dialog">
   <h3 id="markTitle"></h3>
   <div class="markoptions">

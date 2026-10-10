@@ -4,5 +4,7 @@ pytest==9.1.1
 pytest-cov==7.1.0
 ruff==0.17.0
 mypy==2.4.0
+# Cyclomatic complexity (radon), held to the limits in .github/workflows/ci.yml.
+xenon==0.9.3
 # Typed stand-ins for Kodi's modules, for mypy (the tests use tests/stubs).
 Kodistubs==21.0.0

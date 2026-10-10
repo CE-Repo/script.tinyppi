@@ -2,6 +2,16 @@
   <img width="1200" alt="script.tinyppi" src="fanart.png" />
 </p>
 
+<p align="center">
+  <a href="https://github.com/CE-Repo/script.tinyppi/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/CE-Repo/script.tinyppi/actions/workflows/ci.yml/badge.svg?branch=main" /></a>
+  <a href="tests/README.md"><img alt="Python coverage" src="https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FCE-Repo%2Fscript.tinyppi%2Fmain%2Fpyproject.toml&query=%24.tool.coverage.report.fail_under&label=coverage%20%28Python%29&suffix=%25&color=brightgreen" /></a>
+  <a href="tests/README.md"><img alt="Dashboard coverage" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FCE-Repo%2Fscript.tinyppi%2Fmain%2Fpackage.json&query=%24.config.coverage&label=coverage%20%28dashboard%29&suffix=%25&color=brightgreen" /></a>
+  <a href="https://github.com/astral-sh/ruff"><img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" /></a>
+  <a href="https://mypy-lang.org/"><img alt="Checked with mypy" src="https://www.mypy-lang.org/static/mypy_badge.svg" /></a>
+  <a href="https://eslint.org/"><img alt="Linted with ESLint" src="https://img.shields.io/badge/lint-ESLint-4B32C3?logo=eslint" /></a>
+  <a href="https://github.com/rubik/xenon"><img alt="Complexity A" src="https://img.shields.io/badge/complexity-A%20(radon)-brightgreen" /></a>
+</p>
+
 A CoreELEC addon that displays detailed playback information in a custom overlay window during video playback. It provides real-time data on video, audio, HDR, system resources, and more — with special support for **Amlogic** hardware (e.g. CoreELEC devices).
 
 ---

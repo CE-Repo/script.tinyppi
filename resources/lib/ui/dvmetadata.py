@@ -573,7 +573,6 @@ _Dialog = TypeVar("_Dialog", bound=xbmcgui.WindowXMLDialog)
 
 
 def _dialog(dialog_class: type[_Dialog]) -> _Dialog:
-
     """Create a *dialog_class* window from the metadata skin file."""
     return dialog_class(
         "script-tinyppi-dv-metadata.xml",

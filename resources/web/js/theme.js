@@ -10,9 +10,10 @@
    -- and they differ in how far down they go and in where their colour comes
    from:
 
-     dark           the plain one, and what a first visit gets
+     dark           the plain one
      dark-adaptive  the same page, with the now-playing card taking its colour
-                    from the poster of whatever is on screen (js/cover-tint.js)
+                    from the poster of whatever is on screen (js/cover-tint.js),
+                    and what a first visit gets
      midnight       deeper and bluer, for a room with nothing else lit in it
 
    They are picked on the settings tab, where this file draws the choice into
@@ -94,17 +95,20 @@ window.TinyPPITheme = (function () {
     catch (_) { /* no localStorage -> the choice just will not persist */ }
   }
 
+  function paintBars(theme) {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", META_COLORS[theme]);
+  }
+
   /* Both attributes are set before the first paint, below, so this is only
      what puts a *change* on the page.  js/cover-tint.js watches them. */
   function applyTheme(theme) {
     document.documentElement.setAttribute("data-theme", theme);
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", META_COLORS[theme] || META_COLORS[DEFAULT_THEME]);
+    paintBars(theme);
     paint();
   }
 
   function setTheme(theme) {
-    if (!THEME_ORDER.includes(theme)) theme = DEFAULT_THEME;
     store(THEME_KEY, theme);
     applyTheme(theme);
   }
@@ -223,6 +227,7 @@ window.TinyPPITheme = (function () {
     } catch (_) { /* no localStorage -> keep the defaults */ }
     document.documentElement.setAttribute("data-theme", theme);
     document.documentElement.setAttribute("data-cover-strength", String(strength));
+    paintBars(theme);
   })();
 
   if (document.readyState === "loading") {

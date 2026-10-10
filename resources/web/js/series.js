@@ -33,13 +33,15 @@
 let shows = [];            /* what the box last said its shelf holds      */
 let seriesTag = "";        /* that list's own tag, unchanged lists skipped */
 let seriesBusy = false;    /* a request for the shelf is in flight        */
-let seriesRead = false;    /* the shelf has been read at least once       */
+let seriesRead = false;    /* the shelf has been read since it last moved */
+let seriesShown = false;   /* the shelf has been read at least once       */
 let seriesOffered = true;  /* until the box says it offers no series      */
 let seriesNextTry = 0;     /* not before this, after a failure            */
 let openShow = null;       /* the show whose episodes are on the card     */
 let episodesBusy = false;  /* a request for one show's episodes           */
 let startingEpisode = 0;   /* the episode a press is waiting on           */
 let episodeReleasing = 0;  /* the timer that gives the list back          */
+let episodesPutOff = false; /* the open show waits to be read again        */
 
 /* Called from the other parts of the page once the series shelf may have moved: the
    next request reads it again. */
@@ -49,7 +51,7 @@ function seriesStale() {
 
 function requestSeries(force) {
   if (seriesBusy || !seriesOffered) return;
-  if (startingEpisode) return;   /* as above, for the episode being waited on */
+  if (startingEpisode) return;   /* as with the films (see requestFilms in js/films.js) */
   if (!force && seriesRead) return;
   if (Date.now() < seriesNextTry) return;
   seriesBusy = true;
@@ -57,9 +59,18 @@ function requestSeries(force) {
 }
 
 async function loadSeries() {
+  /* As with the films: read as the request goes out, so that a move announced
+     while it is out still stands afterwards. */
+  seriesRead = true;
   try {
     const answer = await TinyPPI.getJSON("/api/series");
-    seriesRead = true;
+    /* Nor built under an episode pressed while the box was answering: a
+       shelf without the open show would close it under the press. */
+    if (startingEpisode) {
+      seriesRead = false;
+      return;
+    }
+    seriesShown = true;
     seriesNextTry = 0;
     const list = Array.isArray(answer.shows) ? answer.shows : [];
     if (!el.seriesGrid.children.length || (answer.tag || "") !== seriesTag) {
@@ -75,12 +86,13 @@ async function loadSeries() {
     /* Away only inside a show, where there is no wall to narrow. */
     el.seriesBox.classList.toggle("hidden", openShow !== null);
   } catch (error) {
+    seriesRead = false;
     seriesNextTry = Date.now() + FILMS_RETRY_MS;
     /* 403: no series on offer -- switched off in the add-on's settings, or a
        box that will not be told what to play.  A settled answer rather than a
        failure, so it is not asked again. */
     if (String((error || {}).message) === "403") seriesOffered = false;
-    if (!seriesRead) hideSeries();
+    if (!seriesShown) hideSeries();
   }
 }
 
@@ -237,7 +249,7 @@ async function openShowView(show) {
     openShow = show;
     buildEpisodes(Array.isArray(answer.episodes) ? answer.episodes : []);
     el.seriesGrid.classList.add("hidden");
-    el.seriesSearch.classList.add("hidden");
+    el.seriesBox.classList.add("hidden");
     el.episodeList.classList.remove("hidden");
     el.seriesBack.classList.remove("hidden");
     el.seriesOpen.classList.remove("hidden");
@@ -254,6 +266,7 @@ async function openShowView(show) {
   } finally {
     episodesBusy = false;
   }
+  readEpisodesPutOff();
 }
 
 /* Read the open show's episodes again, in place.
@@ -268,11 +281,21 @@ async function openShowView(show) {
    somebody who had just opened one is a list that threw away where they were
    looking, which over a nine-season show is most of the card. */
 async function refreshEpisodes() {
+  /* Something already reading, or opening a show, which may have asked
+     before the move it is sent for: read once more when it is back. */
+  if (episodesBusy) {
+    episodesPutOff = true;
+    return;
+  }
   const show = openShow;
-  /* Nothing to read, something already reading, or a press waiting on an
-     episode -- which is a list about to be rebuilt under the row showing the
-     press.  The next version the box announces reads it again. */
-  if (!show || episodesBusy || startingEpisode) return;
+  if (!show) return;
+  /* A press waiting on an episode, which is a list about to be rebuilt under
+     the row showing the press: read once the press is over instead (see
+     releaseSeries). */
+  if (startingEpisode) {
+    episodesPutOff = true;
+    return;
+  }
   episodesBusy = true;
   try {
     const answer = await TinyPPI.getJSON(
@@ -282,6 +305,11 @@ async function refreshEpisodes() {
        longer on the screen.  By id and not by identity: a shelf read again in
        the meantime hands the card a fresh object for the same show. */
     if (!openShow || openShow.id !== show.id) return;
+    /* An episode pressed while the box was answering: as above. */
+    if (startingEpisode) {
+      episodesPutOff = true;
+      return;
+    }
     buildEpisodes(Array.isArray(answer.episodes) ? answer.episodes : [],
                   unfoldedSeasons());
   } catch (_) {
@@ -290,6 +318,16 @@ async function refreshEpisodes() {
     seriesRead = false;
   } finally {
     episodesBusy = false;
+  }
+  readEpisodesPutOff();
+}
+
+/* The read a move asked for while another was out, unless a press is now
+   waiting on an episode (releaseSeries reads it then). */
+function readEpisodesPutOff() {
+  if (episodesPutOff && !startingEpisode) {
+    episodesPutOff = false;
+    refreshEpisodes();
   }
 }
 
@@ -521,6 +559,10 @@ function releaseSeries() {
   for (const row of el.episodeList.querySelectorAll(".episode")) {
     row.disabled = false;
     row.classList.remove("busy");
+  }
+  if (episodesPutOff) {
+    episodesPutOff = false;
+    refreshEpisodes();
   }
 }
 

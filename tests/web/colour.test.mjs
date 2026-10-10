@@ -4,10 +4,12 @@
 // The cover tint's colour arithmetic (resources/web/js/colour.js).
 
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { after, test } from "node:test";
 import { bare } from "./harness.mjs";
 
-const colour = bare("colour.js").TinyPPIColour;
+const page = bare("colour.js");
+after(() => page.close());
+const colour = page.TinyPPIColour;
 const { contrast, luminance, rgbToOklch, oklchToRgb, composite,
         srgbToLinear, linearToSrgb, inGamut, rgbToOklab, oklabToLinearRgb } = colour;
 

@@ -1012,7 +1012,7 @@
         setControlsOpen(false, false);
       }
       /* The title that has just ended keeps its samples and its events for a
-         while (see SessionLog.end in web/snapshot.py).  While it does, the
+         while (see SessionLog.end in web/session.py).  While it does, the
          list stays where it was rather than emptying the moment the credits
          stop -- which is the minute the figures are worth most. */
       const last = snapshot && snapshot.last;

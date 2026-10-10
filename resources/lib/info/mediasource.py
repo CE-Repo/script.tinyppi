@@ -23,7 +23,7 @@ import re
 
 import xbmc
 import xbmcvfs
-from core.log import log
+from core.log import log, redacted
 from core.memo import KeyedMemo
 from core.utils import cond, info
 from info.dvinfo import na_label
@@ -249,7 +249,8 @@ def _measure(path: str) -> str:
     try:
         size = xbmcvfs.Stat(path).st_size()
     except Exception as exc:  # the VFS raises RuntimeError or worse for a bad path
-        log(f"size of {path} unknown: {exc}")
+        # The error repeats the path, so the whole line is redacted.
+        log(redacted(f"size of {path} unknown: {exc}"))
         return ""
     if size <= 0:
         return ""

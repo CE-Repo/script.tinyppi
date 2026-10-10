@@ -9,6 +9,7 @@ import pytest
 
 import xbmc
 import xbmcgui
+import xbmcvfs
 from ui import fonts
 
 FONT_XML = """<?xml version="1.0" encoding="UTF-8"?>
@@ -187,3 +188,76 @@ def test_a_skin_still_loading_is_not_remembered(monkeypatch):
     fonts.ensure_fonts()
     assert not home().getProperty(fonts.PROP_FONTS_READY)
     assert not home().getProperty(fonts.PROP_FONTS_FAILED)
+
+
+def test_a_folder_declared_twice_is_searched_once(skin):
+    (skin / "addon.xml").write_text('<addon><res folder="xml" /><res folder="./xml/" /></addon>')
+    assert fonts._res_folders(str(skin)) == [str(skin / "xml")]
+
+
+def test_a_declared_folder_that_is_missing_falls_back_to_the_walk(skin):
+    (skin / "addon.xml").write_text('<addon><res folder="1080i" /></addon>')
+    assert fonts._font_xml_in(str(skin / "1080i")) is None
+    assert fonts._find_font_xmls(str(skin)) == [str(skin / "xml" / "Font.xml")]
+
+
+def test_a_folder_called_font_xml_is_not_taken_for_the_file(skin):
+    (skin / "xml" / "Font.xml").unlink()
+    (skin / "xml" / "Font.xml").mkdir()
+    (skin / "xml" / "font.xml").write_text(FONT_XML)
+    assert fonts._font_xml_in(str(skin / "xml")) == str(skin / "xml" / "font.xml")
+
+
+def test_the_skin_path_is_where_kodi_loaded_the_skin_from(tmp_path, monkeypatch):
+    monkeypatch.setattr(xbmcvfs, "HOME", str(tmp_path))
+    assert fonts._get_skin_path() is None                       # not loaded yet
+    (tmp_path / "skin").mkdir()
+    assert fonts._get_skin_path() == str(tmp_path / "skin")
+
+
+def test_an_incomplete_font_entry_does_not_count(skin):
+    path = skin / "xml" / "Font.xml"
+    path.write_text(
+        '<fonts><fontset id="Default">\n'
+        f"<font><name>font23_narrow</name><filename>{fonts._FONT_FILE}</filename></font>\n"
+        f"<font><name>font32</name><filename>{fonts._FONT_FILE}</filename><size>32</size></font>\n"
+        "</fontset></fonts>\n")
+    assert not fonts.fonts_already_installed(str(path))
+    assert fonts._install_xml(str(path))
+    [found] = entries(path.read_text())
+    assert found == {fonts._spec_entry(spec) for spec in fonts._REQUIRED_FONTS}
+    assert path.read_text().count("<name>font32</name>") == 1   # only the missing one was added
+
+
+def test_a_mark_for_a_vanished_font_xml_is_not_set(tmp_path):
+    fonts._remember(home(), xbmc.getSkinDir(), [str(tmp_path / "Font.xml")])
+    assert home().getProperty(fonts.PROP_FONTS_READY) == ""
+    assert any(level == xbmc.LOGWARNING and "cannot stat Font.xml" in line for level, line in xbmc.LOG)
+
+
+def test_a_removed_font_xml_lapses_the_mark(skin):
+    fonts.ensure_fonts()
+    assert fonts._settled()
+    os.remove(skin / "xml" / "Font.xml")
+    assert not fonts._settled()
+    fonts.ensure_fonts()
+    assert home().getProperty(fonts.PROP_FONTS_FAILED)
+
+
+def test_a_launch_waiting_for_another_install_does_not_repeat_it(skin, monkeypatch):
+    real_install = fonts._install_fonts
+
+    class OtherCallerFirst:
+        """The lock, taken while another caller installs the fonts."""
+
+        def __enter__(self):
+            real_install()
+
+        def __exit__(self, *exc):
+            return False
+
+    monkeypatch.setattr(fonts, "_install_lock", OtherCallerFirst())
+    monkeypatch.setattr(fonts, "_install_fonts", pytest.fail)
+    fonts.ensure_fonts()
+    assert xbmc.BUILTINS == ["ReloadSkin(reload)"]              # the other caller's reload only
+    assert fonts.fonts_already_installed(str(skin / "xml" / "Font.xml"))

@@ -401,7 +401,6 @@ def _vector_block(trim: dict, key: str) -> dict:
 
 def _table(legend: str, controls: Sequence[tuple[str, str]], trims: list,
            block_of: Callable[[dict], dict], formatter: Callable[[object], str]) -> list:
-
     """Build one trim table: a heading row, then one row per pass.
 
     Only controls set by some pass get a column; unset cells are blank (a

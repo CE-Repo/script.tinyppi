@@ -12,6 +12,8 @@ import pytest
 import xbmc
 import xbmcaddon
 import xbmcgui
+import xbmcvfs
+from info import dvinfo
 from web import producer as producer_module
 from web import snapshot
 from web.producer import Producer
@@ -25,6 +27,12 @@ PLAYING = {
     "System.CPUTemperature": "55 °C", "VideoPlayer.VideoCodec": "hevc",
     "VideoPlayer.Year": "2021", "VideoPlayer.Genre": "Drama",
 }
+
+
+@pytest.fixture(autouse=True)
+def private_home(monkeypatch, tmp_path):
+    """The IMAX title list is looked up in the profile: keep it per test."""
+    monkeypatch.setattr(xbmcvfs, "HOME", str(tmp_path))
 
 
 def play(**info):
@@ -100,7 +108,145 @@ def test_controls_when_allowed(monkeypatch):
     assert asked == [1]
 
 
+@pytest.fixture
+def dolby_vision(monkeypatch):
+    """Serve a Dolby Vision frame from dvinfo and fake the metadata view's rows."""
+    fields = {"hdr_format": "dolbyvision", "output_mode": "Dolby Vision Profile 8.1",
+              "dv_profile": "8.1", "dv_rpu_present": "true", "dv_bl_present": "true",
+              "dv_el_present": "false", "l1_nits": "0.01 | 1000 | 92",
+              "l5_offsets": "0 | 0 | 276 | 276"}
+    built = []
+
+    def static_rows(parsed, origin, carried):
+        built.append(carried)
+        return [("row", "[B]RPU[/B]", xbmc.getLocalizedString(107))]
+
+    monkeypatch.setattr(snapshot.dvmetadata, "build_scene_rows",
+                        lambda: ([("table", "L2", ["1", "2"])], {}, {}, "carried"))
+    monkeypatch.setattr(snapshot.dvmetadata, "build_static_rows", static_rows)
+    monkeypatch.setattr(dvinfo, "_snapshot", lambda: (fields, True))
+    return built
+
+
+def test_a_dolby_vision_title(dolby_vision):
+    play()
+    shot = SnapshotBuilder().build()
+    assert shot["hdr_type"] == "dolbyvision"
+    assert shot["metrics"]["l1"] == {"min": 0.01, "max": 1000.0, "avg": 92.0}
+    assert shot["metrics"]["bars"] == [0.0, 0.0, 276.0, 276.0]
+    ids = [group["id"] for group in shot["groups"]]
+    assert "hdr" not in ids and ids.count("metadata") == 1
+    # The static and the RPU readings form one Metadata card.
+    metadata = next(group for group in shot["groups"] if group["id"] == "metadata")
+    labels = [row["id"] for row in metadata["rows"]]
+    assert labels[:2] == ["metadata.32256", "metadata.32257"] and "metadata.32271" in labels
+    dv = next(group for group in shot["groups"] if group["id"] == "dv")
+    flags = next(row for row in dv["rows"] if row["id"] == "dv.32262")
+    assert flags["value"] == "✔ | ✔"
+
+
+def test_dolby_vision_metadata_rows(dolby_vision):
+    play()
+    builder = SnapshotBuilder()
+    rows = builder.build(metadata=True)["metadata"]
+    assert rows[0] == {"kind": "table", "name": "L2", "cells": ["1", "2"]}
+    assert rows[-1] == {"kind": "row", "name": "RPU", "value": "✔"}
+    assert len(rows) == 3                            # a blank row between the halves
+    builder.build(metadata=True)
+    assert dolby_vision == ["carried"]               # static rows within their interval
+    assert builder.build(metadata=False)["metadata"] == []
+    builder.build(metadata=True)
+    assert dolby_vision == ["carried", "carried"]    # rebuilt after being switched off
+
+
+def test_static_metadata_rows_are_rebuilt_on_their_interval(dolby_vision):
+    play()
+    builder = SnapshotBuilder()
+    builder.STATIC_INTERVAL = 0.0
+    builder.build(metadata=True)
+    builder.build(metadata=True)
+    assert len(dolby_vision) == 2
+
+
+def test_a_card_without_any_value_is_left_out(dolby_vision, monkeypatch):
+    monkeypatch.setattr(dvinfo, "_snapshot", lambda: ({"hdr_format": "dolbyvision"}, True))
+    play()
+    ids = [group["id"] for group in SnapshotBuilder().build()["groups"]]
+    assert "dv" not in ids and "metadata" in ids
+
+
+def test_an_unknown_frame_size_is_left_out():
+    play(**{"Player.Process(videowidth)": ""})
+    assert SnapshotBuilder().build()["metrics"]["frame"] is None
+
+
 # --- Helpers ----------------------------------------------------------------
+
+def test_the_property_sink_behaves_like_a_window():
+    sink = snapshot.PropertySink()
+    sink.setProperty("A", None)
+    sink.setProperty("B", 5)
+    assert (sink.getProperty("A"), sink.getProperty("B"), sink.getProperty("C")) == ("", "5", "")
+    sink.clearProperty("B")
+    sink.clearProperty("never set")
+    assert sink.values == {"A": ""}
+
+
+@pytest.mark.parametrize(("codec", "passthrough", "sink", "row"), [
+    ("", True, "5.1", ""),                           # no audio track reads N/A
+    ("truehd", True, "5.1", "#32242"),               # Passthrough
+    ("truehd", False, "5.1", "5.1"),
+    ("truehd", False, "", "#32243"),                 # Decoding
+])
+def test_the_audio_output_row(codec, passthrough, sink, row):
+    xbmc.INFO["VideoPlayer.AudioCodec"] = codec
+    xbmc.CONDITIONS["Player.Passthrough"] = passthrough
+    assert snapshot._overlay_rows({"AudioChannelsSink": sink})["AudioOutputRow"] == row
+
+
+SUBTITLE_VALUES = {"SubtitleNameShortVar": "DEU", "SubtitleNameVar": "Deutsch",
+                   "SubtitleCodecVar": "PGS"}
+
+
+@pytest.mark.parametrize(("has", "enabled", "rows"), [
+    (True, True, {"SubtitleShortRow": "DEU", "SubtitleNameRow": "Deutsch",
+                  "SubtitleCodecRow": "PGS"}),
+    (True, False, {"SubtitleStateRow": "#32246"}),   # Disabled
+    (False, True, {}),
+])
+def test_the_subtitle_rows(has, enabled, rows):
+    xbmc.CONDITIONS["VideoPlayer.HasSubtitles"] = has
+    xbmc.CONDITIONS["VideoPlayer.SubtitlesEnabled"] = enabled
+    found = snapshot._overlay_rows(SUBTITLE_VALUES)
+    assert {key: value for key, value in found.items() if key.startswith("Subtitle")} == rows
+
+
+@pytest.mark.parametrize(("conditions", "values", "rows"), [
+    ({"PVR.IsPlayingTV": True}, {}, {"PlaybackStateRow": "#32235"}),    # Live TV, no EPG
+    ({"PVR.IsPlayingTV": True}, {"BroadcastTimes": "1", "PlayerDuration": "01:00:00",
+                                 "PlayerTime": "00:30:00", "PlayerProgress": "50.0"},
+     {"PlaybackTimeRow": "00:30:00", "PlaybackDurationRow": "01:00:00",
+      "PlaybackProgressRow": "50.0"}),
+    ({"Player.IsInternetStream": True}, {}, {"PlaybackStateRow": "#32236"}),  # no length
+    ({}, {"PlayerDuration": "02:00:00", "PlayerTime": "00:10:00", "PlayerProgress": "8.3"},
+     {"PlaybackTimeRow": "00:10:00", "PlaybackDurationRow": "02:00:00",
+      "PlaybackProgressRow": "8.3"}),
+    ({}, {}, {}),                                    # nothing known yet
+])
+def test_the_playback_rows(conditions, values, rows):
+    xbmc.CONDITIONS.update(conditions)
+    found = snapshot._overlay_rows(values)
+    assert {key: value for key, value in found.items() if key.startswith("Playback")} == rows
+
+
+@pytest.mark.parametrize("condition", [
+    "Player.IsLive", "PVR.IsPlayingRecording", "PVR.IsPlayingRadio",
+])
+def test_no_finish_time_for_live_items_and_recordings(condition):
+    xbmc.CONDITIONS[condition] = True
+    values = {"PlayerDuration": "01:30:00", "PlayerFinishTime": "21:00"}
+    assert snapshot._finish_time(values) == ""
+
 
 def test_render_drops_empty_segments_and_their_separators():
     segments = (("a", "", ""), ("b", " | ", ""), ("c", " (", ")"))
@@ -169,11 +315,13 @@ class Builder:
         self.seq = 0
         self.idle_passes = 0
         self.fail = False
+        self.failures = 0
         self.session = type("Session", (), {"history": lambda self: {"t": [1]}})()
         self.options = []
 
     def build(self, detail=True, **options):
         if self.fail:
+            self.failures += 1
             raise RuntimeError("side data unreadable")
         if not detail:
             self.idle_passes += 1
@@ -242,7 +390,7 @@ def test_fresh_builds_one_for_a_request(producer):
 def test_a_failing_pass_is_logged_once_and_recovery_too(producer):
     producer._builder.fail = True
     producer.watch()
-    time.sleep(0.15)
+    assert wait_until(lambda: producer._builder.failures >= 3)
     producer._builder.fail = False
     assert wait_until(lambda: any("snapshot recovered" in line for _level, line in xbmc.LOG))
     failures = [line for _level, line in xbmc.LOG if "snapshot failed" in line]

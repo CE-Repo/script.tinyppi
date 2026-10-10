@@ -54,6 +54,11 @@ _MAX_BODY = 4096
 # posted to forums.
 _TOKEN_IN_QUERY = re.compile(r"(token=)[^&\s\"']*", re.IGNORECASE)
 
+# An artwork tag as the add-on makes them (CRC-32 in hex, see
+# snapshot._art_tags and library._tag).  It goes into the ETag header, so
+# anything else (e.g. an encoded CR/LF that would add headers) is no tag.
+_ART_TAG = re.compile(r"[0-9a-f]{1,16}")
+
 # Headers on every response: no framing (clickjacking) and no referrer
 # (some URLs carry the token).
 _SECURITY_HEADERS = (
@@ -185,10 +190,12 @@ class Handler(BaseHTTPRequestHandler):
     def _token_to_read(self) -> bool:
         """Return whether reading needs the token for this request.
 
-        When the setting says so, or for an untrusted host name (see
+        When the setting says so, for a client beyond the home network (see
+        ``access.home_peer``), or for an untrusted host name (see
         ``access.trusted_host``).
         """
         return (self.server.auth_read
+                or not access.home_peer(self.client_address[0])
                 or not access.trusted_host(self.headers.get("Host", "")))
 
     # --- Routing -----------------------------------------------------------
@@ -466,6 +473,8 @@ class Handler(BaseHTTPRequestHandler):
         episode = (query.get("episodeid") or [""])[0]
         # The URL carries the picture's tag, so the answer is immutable.
         tag  = (query.get("v") or [""])[0]
+        if not _ART_TAG.fullmatch(tag):
+            tag = ""
         etag = f'"{tag}"' if tag else ""
         cache = artwork.CACHE if tag else "no-store"
         if etag and self._holds(etag):

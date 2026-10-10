@@ -68,3 +68,12 @@ def test_a_new_shape_sends_the_whole_list():
     frame = snapshot_delta(BASE, current)
     assert frame["groups"] == current["groups"] and frame["metadata"] == current["metadata"]
     assert apply(BASE, frame) == current
+
+
+def test_only_the_changed_metadata_rows_are_sent():
+    current = copy.deepcopy(BASE)
+    current["seq"] = 2
+    current["metadata"][1]["cells"] = ["1", "9"]
+    frame = snapshot_delta(BASE, current)
+    assert frame == {"seq": 2, "metadata": {"rows": [[1, ["1", "9"]]]}}
+    assert apply(BASE, frame) == current

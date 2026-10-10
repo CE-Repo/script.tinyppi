@@ -15,7 +15,7 @@ from ui import dialog_layout as layout
     ("23.976", "23.976"), ("23.98", "23.976"), ("24", "24"), ("24.0", "24"),
     ("25.0", "25"), ("29.97", "29.97"), ("59.94", "59.94"), ("60.0", "60"),
     ("119.9", "120"), ("47.952", "47.952"), ("12.5", "12.5"),
-    (50, "50"), ("", ""), ("x", "x"),
+    (50, "50"), ("", ""), ("x", "x"), ("nan", "nan"), ("inf", "inf"),
 ])
 def test_normalize_fps_snaps_to_broadcast_rates(raw, expected):
     assert helpers.normalize_fps(raw) == expected
@@ -25,6 +25,7 @@ def test_normalize_fps_snaps_to_broadcast_rates(raw, expected):
     ("23.976023", "23.976"), ("23.99", "23.976"), ("24.000", "24"),
     ("29.97003", "29.97"), ("59.94006", "59.94"), ("60", "60"),
     ("25.1", "25.1"), ("12.3456", "12.346"), ("", ""), ("abc", ""),
+    ("inf", ""), ("-inf", ""), ("1e400", ""), ("nan", ""),     # not a rate
 ])
 def test_format_fps_trims_and_snaps(raw, expected):
     assert helpers.format_fps(raw) == expected
@@ -44,17 +45,30 @@ def test_fps_without_sysfs_or_a_rate(monkeypatch):
     assert helpers.fps_display_texts("50") == ("050 - 000", "50")
     monkeypatch.setattr(helpers, "_read_fps_sysfs", pytest.fail)  # never read without a rate
     assert helpers.fps_display_texts("") == ("000 - 000", "0")
+    for raw in ("nan", "inf", "-inf", "1e400"):                 # no finite rate
+        assert helpers.fps_display_texts(raw) == ("000 - 000", "0")
 
 
 def test_fps_sysfs_parsing(monkeypatch, tmp_path):
     node = tmp_path / "fps_info"
     node.write_text("input_fps:0x18 output_fps:0x17 drop_fps:0x1\n")
     real_open = open
-    monkeypatch.setattr("builtins.open", lambda path, *args, **kwargs: real_open(
-        node if path == "/sys/class/video/fps_info" else path, *args, **kwargs))
+    monkeypatch.setattr(helpers, "open", lambda path, *args, **kwargs: real_open(
+        node if path == "/sys/class/video/fps_info" else path, *args, **kwargs), raising=False)
     assert helpers._read_fps_sysfs() == (24, 23)
     node.write_text("garbage")
     assert helpers._read_fps_sysfs() is None
+    node.write_text("input_fps:0x18\n")                  # no output rate
+    assert helpers._read_fps_sysfs() is None
+
+
+def test_an_unreadable_fps_node_counts_as_no_drop(monkeypatch):
+    def missing(path, *_args, **_kwargs):
+        raise FileNotFoundError(path)
+    monkeypatch.setattr(helpers, "open", missing, raising=False)
+    assert helpers._read_fps_sysfs() is None
+    assert helpers.get_fps_drop() == 0
+    assert helpers.fps_display_texts("25") == ("025 - 000", "25")
 
 
 # --- The VS10 dialog's layouts ----------------------------------------------

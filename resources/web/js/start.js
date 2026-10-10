@@ -8,7 +8,7 @@
 
    Part of the dashboard page: a classic script sharing the global scope
    of js/dashboard.js and its other parts (see index.html for the order).
-   What it uses from them and what it gives them is listed below. */
+   What it uses from them is listed below. */
 
 /* global $, el, offerShelves, render, selectTab, storedTab, tabFromAddress */
 
@@ -71,7 +71,7 @@ function applyStrings(strings, hello) {
   $("vs10Title").textContent = strings.vs10;
   $("vs10OutLabel").textContent = strings.output;
   if (hello) {
-    el.version.textContent = "v" + hello.version;
+    if (hello.version) el.version.textContent = "v" + hello.version;
     offerShelves(hello);
   }
 }

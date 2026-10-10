@@ -397,7 +397,6 @@ def _publish_static_properties(window: PropertyTarget, published: dict) -> None:
 
 
 def publish_properties(window: PropertyTarget, published: dict | None = None) -> None:
-
     """Publish all player properties to *window* in one pass.
 
     Called once before ``doModal()`` so the first frame is complete; the

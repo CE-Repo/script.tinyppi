@@ -63,7 +63,6 @@ _log = channel("web", xbmc.LOGINFO)
 _Request = socket.socket | tuple[bytes, socket.socket]
 
 
-
 # --- Settings --------------------------------------------------------------
 
 def _addon() -> xbmcaddon.Addon:
@@ -387,18 +386,32 @@ class WebDashboard:
             return
 
         server.refresh_settings()
-        self._server = server
-        self._port   = port
-        self._token  = token
-        self._producer.start()
-        self._thread = threading.Thread(
+        thread = threading.Thread(
             target=server.serve_forever,
             # Short poll, so shutdown() returns quickly.
             kwargs={"poll_interval": 0.1},
             name="TinyPPI-web-server",
             daemon=True,
         )
-        self._thread.start()
+        try:
+            self._producer.start()
+            thread.start()
+        except Exception as exc:  # RuntimeError("can't start new thread")
+            _log(f"cannot start the dashboard: {exc}", xbmc.LOGERROR)
+            # Not stop(): serve_forever never ran, so server.shutdown() would
+            # wait forever.  End the producer if it started, close the socket.
+            self._stop.set()
+            self._producer.wake()
+            if self._producer.is_alive():
+                self._producer.join(timeout=_JOIN_TIMEOUT)
+            server.server_close()
+            self._stop = None
+            self._producer = None
+            return
+        self._server = server
+        self._thread = thread
+        self._port   = port
+        self._token  = token
         _log(f"dashboard listening on {local_address(port)}")
 
     def stop(self, final: bool = False) -> None:

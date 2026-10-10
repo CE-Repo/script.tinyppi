@@ -173,3 +173,38 @@ def test_ending_nothing_keeps_nothing(clock):
     log.end()
     log.end()
     assert log.last() == {}
+
+
+def test_a_track_reading_counts_only_after_the_settle_time(clock):
+    log = SessionLog()
+    english = {"audio": {"id": "1", "label": "English"}}
+    german = {"audio": {"id": "2", "label": "German"}}
+    observe(log, clock, watched=english)
+    observe(log, clock, SessionLog.TRACK_SETTLE, watched=english)
+    observe(log, clock, 0.1, watched=german)
+    observe(log, clock, SessionLog.TRACK_SETTLE - 0.2, watched=german)     # not yet
+    assert log.history()["events"] == []
+    observe(log, clock, 0.2, watched=german, position="00:05:00")
+    [event] = log.history()["events"]
+    assert (event["from"], event["to"]) == ("English", "German")
+    # Dated from the first German reading, not from when it settled.
+    assert (event["t"], event["pos"]) == (round(SessionLog.TRACK_SETTLE + 0.1, 1), "00:01:00")
+
+
+def test_a_full_cpu_warns_once_until_it_recovers(clock):
+    log = SessionLog()
+    for cpu in (100.0, 100.0, 100.0, 60.0, 100.0):
+        observe(log, clock, 0.1, metrics={"cpu": cpu})
+    assert [event["value"] for event in log.history()["events"]] == [100.0, 100.0]
+    assert log.summary()["warnings"] == 2
+
+
+def test_a_track_reading_without_an_id_is_ignored(clock):
+    log = SessionLog()
+    observe(log, clock, watched={"audio": {"id": "1", "label": "English"}})
+    observe(log, clock, SessionLog.TRACK_SETTLE, watched={"audio": {"id": "1", "label": "English"}})
+    for _ in range(3):
+        observe(log, clock, SessionLog.TRACK_SETTLE,
+                watched={"audio": {"id": " ", "label": "German"}})
+    observe(log, clock, SessionLog.TRACK_SETTLE, watched={"audio": {"id": "1", "label": "English"}})
+    assert log.summary()["seq"] == 0

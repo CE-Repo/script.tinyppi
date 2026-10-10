@@ -357,6 +357,13 @@ function render(next) {
   else hideSeries();
   if (control) requestContinue(ended);
   else hideContinue();
+  /* Hidden, the shelves come back only with a read: marked unread, so that
+     control returning reads them again. */
+  if (!control) {
+    filmsStale();
+    seriesStale();
+    continueStale();
+  }
 
   if (!next.playing) {
     el.idleCard.classList.remove("hidden");
@@ -431,7 +438,7 @@ function libraryVersion(version) {
 /* --- the title that just ended ------------------------------------------ */
 
 /* The add-on holds a finished session for ten minutes (see SessionLog.end in
-   web/snapshot.py), which is the window in which someone walks over to the
+   web/session.py), which is the window in which someone walks over to the
    phone and asks what that film actually did.  What it did is three figures
    and the events beneath them; the event list is the same card that was there
    while it played, and stays where it was. */
@@ -503,6 +510,8 @@ function renderVs10(vs10) {
       button.className = "mode";
       button.dataset.mode = option.mode;
       button.textContent = option.label;
+      /* Locked like the buttons it replaces while a switch settles. */
+      button.disabled = pending !== null;
       button.addEventListener("click", () => switchMode(option.mode, button));
       el.modes.appendChild(button);
     }

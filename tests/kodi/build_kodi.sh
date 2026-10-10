@@ -30,7 +30,7 @@ apt-get install -y -q autoconf automake autopoint autotools-dev cmake curl debhe
   libxkbcommon-dev libinput-dev libgbm-dev \
   xvfb x11-utils imagemagick mesa-utils libgl1-mesa-dri sqlite3 ffmpeg
 
-# Only the packages (Kodi itself restored from a cache, as in CI).
+# KODI_DEPS_ONLY=1: the packages only, for a Kodi already in $KODI_PREFIX.
 if [ "${KODI_DEPS_ONLY:-0}" = 1 ]; then
   exit 0
 fi

@@ -474,7 +474,6 @@ def _vs10_actions_available() -> bool:
 
 
 def _probe_dv_Player_LED_setting() -> int | None:
-
     """Return the DV LED setting (0 TV-LED, 1 Player-LED), or None.
 
     Reads the value of ``coreelec.amlogic.dolbyvisionled``; its mere

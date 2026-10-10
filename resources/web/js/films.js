@@ -45,7 +45,8 @@ const FILMS_START_MS = 4000;
 let films = [];            /* what the box last said its library holds    */
 let filmsTag = "";         /* that list's own tag, unchanged lists skipped */
 let filmsBusy = false;     /* a request is in flight                      */
-let filmsRead = false;     /* the list has been read at least once        */
+let filmsRead = false;     /* the list has been read since it last moved  */
+let filmsShown = false;    /* the wall has been read at least once        */
 let filmsOffered = true;   /* until the box says it offers no library     */
 let filmsNextTry = 0;      /* not before this, after a failure            */
 let starting = 0;          /* the film a press is waiting on              */
@@ -71,9 +72,18 @@ function requestFilms(force) {
 }
 
 async function loadFilms() {
+  /* Read as the request goes out rather than as it comes back, so that a move
+     announced while it is out (see filmsStale) still stands afterwards. */
+  filmsRead = true;
   try {
     const answer = await TinyPPI.getJSON("/api/library");
-    filmsRead = true;
+    /* A tile pressed while the box was answering: not built under it (see
+       requestFilms), and read again once the press is over. */
+    if (starting) {
+      filmsRead = false;
+      return;
+    }
+    filmsShown = true;
     filmsNextTry = 0;
     const list = Array.isArray(answer.movies) ? answer.movies : [];
     /* The tag changes only when the library does, so a list that has not
@@ -90,13 +100,14 @@ async function loadFilms() {
     el.unseenFilmsCard.classList.toggle("hidden",
                                         !el.unseenFilmGrid.children.length);
   } catch (error) {
+    filmsRead = false;
     filmsNextTry = Date.now() + FILMS_RETRY_MS;
     /* 403: there is no library on offer -- switched off in the add-on's
        settings, or a box that will not be told what to play.  Asking again
        every time a film ends would be asking to be told the same thing all
        evening. */
     if (String((error || {}).message) === "403") filmsOffered = false;
-    if (!filmsRead) hideFilms();
+    if (!filmsShown) hideFilms();
   }
 }
 
