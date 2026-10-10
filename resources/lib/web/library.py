@@ -13,6 +13,8 @@ see ``CACHE`` in ``web/artwork.py``).  Episodes of a series are read only
 when the series is opened, then cached alongside.
 """
 
+import json
+import math
 import threading
 import time
 import zlib
@@ -264,7 +266,6 @@ def _read() -> dict:
 
     films: list[dict] = []
     art: dict[int, dict[str, str]] = {}
-    signature = zlib.crc32(b"")
 
     for row in rows:
         if not isinstance(row, dict):
@@ -299,16 +300,9 @@ def _read() -> dict:
             film["added"] = added
         films.append(film)
 
-        signature = zlib.crc32(
-            f"{movie_id}\x1f{title}\x1f{film['poster']}\x1f"
-            f"{film.get('resume', 0)}\x1f{film.get('watched', False)}\x1f"
-            f"{film.get('duration', 0)}\x1f{film.get('rating', 0)}\x1f"
-            f"{added}"
-            .encode("utf-8", "replace"), signature)
-
     _log(f"{len(films)} films read from the video database", xbmc.LOGINFO)
     return {"movies": films, "art": art,
-            "tag": f"{len(films):x}-{signature:08x}"}
+            "tag": f"{len(films):x}-{_signature(films)}"}
 
 
 def _art_of(row: dict) -> dict:
@@ -357,6 +351,10 @@ def _resume(resume: object) -> int:
         total = float(resume.get("total") or 0)
     except (TypeError, ValueError):
         return 0
+    # json.loads reads NaN and Infinity: NaN slips past the checks below and
+    # int() fails on both.
+    if not (math.isfinite(position) and math.isfinite(total)):
+        return 0
     if position < 30 or total <= 0 or position >= total:
         return 0
     return int(position)
@@ -375,6 +373,19 @@ def _added(value: object) -> str:
     if not value or value.startswith("0000"):
         return ""
     return value
+
+
+def _signature(rows: list[dict], head: str = "") -> str:
+    """Return a checksum of *rows* as sent, for a list's tag.
+
+    Every field counts: the tag is the list's ETag (see web/routes.py), so a
+    field left out would never reach a page holding the list.
+    """
+    signature = zlib.crc32(head.encode("utf-8", "replace"))
+    for row in rows:
+        sent = json.dumps(row, sort_keys=True, ensure_ascii=False)
+        signature = zlib.crc32(sent.encode("utf-8", "replace"), signature)
+    return f"{signature:08x}"
 
 
 def _tag(path: str) -> str:
@@ -517,7 +528,6 @@ def _read_shows() -> dict:
 
     series: list[dict] = []
     art: dict[int, dict[str, str]] = {}
-    signature = zlib.crc32(b"")
 
     for row in rows:
         if not isinstance(row, dict):
@@ -555,15 +565,9 @@ def _read_shows() -> dict:
             show["added"] = added
         series.append(show)
 
-        signature = zlib.crc32(
-            f"{show_id}\x1f{title}\x1f{show['poster']}\x1f{show['fanart']}\x1f"
-            f"{show.get('unseen', -1)}\x1f{show.get('episodes', 0)}\x1f"
-            f"{show.get('rating', 0)}\x1f{added}"
-            .encode("utf-8", "replace"), signature)
-
     _log(f"{len(series)} series read from the video database", xbmc.LOGINFO)
     return {"shows": series, "art": art,
-            "tag": f"{len(series):x}-{signature:08x}"}
+            "tag": f"{len(series):x}-{_signature(series)}"}
 
 
 def _load_episodes(show_id: int, title: str) -> dict:
@@ -591,7 +595,6 @@ def _read_episodes(show_id: int, title: str) -> dict:
 
     listing: list[dict] = []
     art: dict[int, dict[str, str]] = {}
-    signature = zlib.crc32(b"")
 
     for row in rows:
         if not isinstance(row, dict):
@@ -626,15 +629,10 @@ def _read_episodes(show_id: int, title: str) -> dict:
             entry["resume"] = resume
         listing.append(entry)
 
-        signature = zlib.crc32(
-            f"{episode_id}\x1f{entry['title']}\x1f{entry['thumb']}\x1f"
-            f"{entry.get('resume', 0)}\x1f{entry.get('watched', False)}\x1f"
-            f"{entry.get('duration', 0)}"
-            .encode("utf-8", "replace"), signature)
-
     _log(f"{len(listing)} episodes read for series {show_id}")
+    # The show's title is sent with the episodes, so it counts too.
     return {"title": title, "episodes": listing, "art": art,
-            "tag": f"{show_id:x}-{len(listing):x}-{signature:08x}"}
+            "tag": f"{show_id:x}-{len(listing):x}-{_signature(listing, title)}"}
 
 
 def play_episode(episode_id: Unchecked, resume: bool = True) -> bool:
@@ -882,17 +880,9 @@ def _read_continuing() -> dict:
     listing.sort(key=lambda entry: entry.get("lastplayed", ""), reverse=True)
     del listing[_CONTINUE_LIMIT:]
 
-    signature = zlib.crc32(b"")
-    for entry in listing:
-        signature = zlib.crc32(
-            f"{entry['kind']}\x1f{entry['id']}\x1f{entry['title']}\x1f"
-            f"{entry.get('poster', '')}\x1f{entry.get('resume', 0)}\x1f"
-            f"{entry.get('lastplayed', '')}\x1f{entry.get('rating', 0)}"
-            .encode("utf-8", "replace"), signature)
-
     _log(f"{len(listing)} titles in progress read from the video database")
     return {"items": listing, "art": art,
-            "tag": f"{len(listing):x}-{signature:08x}"}
+            "tag": f"{len(listing):x}-{_signature(listing)}"}
 
 
 def _show_ratings() -> dict[int, dict]:
@@ -932,13 +922,9 @@ def _continue_entry(row: dict, kind: str) -> dict | None:
     if isinstance(runtime, int) and runtime > 0:
         entry["duration"] = runtime
     else:
-        # Without a runtime, take the length from the resume point.
-        try:
-            total = int(float((row.get("resume") or {}).get("total") or 0))
-        except (TypeError, ValueError, AttributeError):
-            total = 0
-        if total > 0:
-            entry["duration"] = total
+        # Without a runtime, take the length from the resume point, which
+        # _resume has found a finite number past the position.
+        entry["duration"] = int(float(row["resume"]["total"]))
     played = row.get("lastplayed")
     if isinstance(played, str) and played.strip():
         entry["lastplayed"] = played.strip()

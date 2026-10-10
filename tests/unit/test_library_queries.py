@@ -155,9 +155,26 @@ def test_film_fields_out_of_range_are_left_out(kodi, fields):
     ({"position": "abc", "total": 100}, None),
     ({"position": [1], "total": 100}, None),
     ({"position": "45.7", "total": "100"}, 45),
+    # JSON-RPC answers may carry NaN and Infinity (json.loads reads them).
+    ({"position": float("nan"), "total": 100}, None),
+    ({"position": float("inf"), "total": float("nan")}, None),
+    ({"position": 60, "total": float("nan")}, None),
+    ({"position": 60, "total": float("inf")}, None),
 ])
 def test_a_resume_point_counts_from_30_seconds_before_the_end(kodi, resume, wanted):
     assert film(kodi, resume=resume).get("resume") == wanted
+
+
+def test_a_resume_point_that_is_no_number_spoils_no_list(kodi):
+    broken = {"position": float("nan"), "total": 100}
+    kodi.rows("VideoLibrary.GetMovies", "movies", [
+        {"movieid": 1, "title": "A", "resume": broken}, {"movieid": 2, "title": "B"}])
+    assert [entry["id"] for entry in library.movies()["movies"]] == [1, 2]
+    kodi.rows("VideoLibrary.GetEpisodes", "episodes", [{"episodeid": 3, "resume": broken}])
+    assert library.set_watched("tvshow", 9, True) is True
+    kodi.answers["VideoLibrary.GetEpisodes (in progress)"] = {"result": {"episodes": [
+        {"episodeid": 3, "title": "Ep", "resume": broken}]}}
+    assert library.continuing()["items"] == []
 
 
 @pytest.mark.parametrize(("ratings", "wanted"), [
@@ -203,6 +220,70 @@ def test_the_tag_follows_the_list(kodi):
         tag = library.movies()["tag"]
         assert tag != first
         first = tag
+
+
+@pytest.mark.parametrize(("method", "key", "row", "edits", "read"), [
+    ("VideoLibrary.GetMovies", "movies", {"movieid": 1, "title": "A"},
+     [{"year": 2001}, {"ratings": {"imdb": {"rating": 7}}},
+      {"ratings": {"tmdb": {"rating": 7}}}, {"runtime": 60}, {"playcount": 1},
+      {"dateadded": "2025-01-01 00:00:00"}],
+     lambda: library.movies()["tag"]),
+    ("VideoLibrary.GetTVShows", "tvshows", {"tvshowid": 7, "title": "S"},
+     [{"year": 2001}, {"ratings": {"imdb": {"rating": 7}}},
+      {"ratings": {"tmdb": {"rating": 7}}}, {"episode": 4, "watchedepisodes": 1},
+      {"art": {"fanart": "/f.jpg"}}],
+     lambda: library.shows()["tag"]),
+])
+def test_the_list_tag_follows_every_field_sent(kodi, method, key, row, edits, read):
+    # The tag is the ETag: a field it leaves out never reaches a held list.
+    kodi.rows(method, key, [row])
+    seen = {read()}
+    for edit in edits:
+        kodi.rows(method, key, [{**row, **edit}])
+        library.invalidate()
+        seen.add(read())
+    assert len(seen) == len(edits) + 1
+
+
+def test_the_episode_tag_follows_every_field_sent(kodi):
+    shows = [{"tvshowid": 7, "title": "Show"}]
+    row = {"episodeid": 71, "title": "Pilot"}
+    edits = [{"season": 1}, {"season": 2}, {"episode": 1}, {"runtime": 60},
+             {"playcount": 1}, {"resume": {"position": 60, "total": 600}}]
+    kodi.rows("VideoLibrary.GetTVShows", "tvshows", shows)
+    kodi.rows("VideoLibrary.GetEpisodes", "episodes", [row])
+    seen = {library.episodes(7)["tag"]}
+    for edit in edits:
+        kodi.rows("VideoLibrary.GetEpisodes", "episodes", [{**row, **edit}])
+        library.invalidate()
+        seen.add(library.episodes(7)["tag"])
+    # The show's title is sent with its episodes.
+    kodi.rows("VideoLibrary.GetTVShows", "tvshows", [{"tvshowid": 7, "title": "Renamed"}])
+    library.invalidate()
+    seen.add(library.episodes(7)["tag"])
+    assert len(seen) == len(edits) + 2
+
+
+def test_the_continue_tag_follows_every_field_sent(kodi):
+    film_row = {"movieid": 1, "title": "A", "resume": {"position": 60, "total": 600}}
+    film_edits = [{"runtime": 700}, {"year": 2001}, {"ratings": {"imdb": {"rating": 7}}},
+                  {"ratings": {"tmdb": {"rating": 7}}}]
+    episode_row = {"episodeid": 3, "title": "Ep", "resume": {"position": 60, "total": 600}}
+    episode_edits = [{"showtitle": "Show"}, {"tvshowid": 7}, {"season": 1}, {"episode": 2},
+                     {"art": {"thumb": "/still.jpg"}}]
+    seen = {library.continuing()["tag"]}
+    for edit in film_edits:
+        kodi.answers["VideoLibrary.GetMovies (in progress)"] = {
+            "result": {"movies": [{**film_row, **edit}]}}
+        library.invalidate()
+        seen.add(library.continuing()["tag"])
+    kodi.answers["VideoLibrary.GetMovies (in progress)"] = {"result": {"movies": []}}
+    for edit in episode_edits:
+        kodi.answers["VideoLibrary.GetEpisodes (in progress)"] = {
+            "result": {"episodes": [{**episode_row, **edit}]}}
+        library.invalidate()
+        seen.add(library.continuing()["tag"])
+    assert len(seen) == len(film_edits) + len(episode_edits) + 1
 
 
 def test_poster_tags_change_with_the_path_only(kodi):
@@ -656,12 +737,13 @@ def test_the_continue_row_is_most_recent_first_and_capped(kodi, monkeypatch):
     assert any("3 titles in progress read" in line for line in logged())
 
 
-def test_a_resume_total_that_is_no_number_gives_no_length(kodi):
-    # NaN passes the resume check but has no integer length.
+@pytest.mark.parametrize("total", [float("nan"), float("inf")])
+def test_a_resume_total_that_is_no_number_is_no_resume_point(kodi, total):
+    # Like a total of 0: no length, so nothing to continue.
     kodi.answers["VideoLibrary.GetEpisodes (in progress)"] = {"result": {"episodes": [
-        {"episodeid": 3, "title": "Ep", "resume": {"position": 60, "total": float("nan")}}]}}
-    [entry] = library.continuing()["items"]
-    assert entry["resume"] == 60 and "duration" not in entry
+        {"episodeid": 3, "title": "Ep", "resume": {"position": 60, "total": total}},
+        {"episodeid": 4, "title": "Ep", "resume": {"position": 60, "total": 600}}]}}
+    assert [entry["id"] for entry in library.continuing()["items"]] == [4]
 
 
 def test_a_broken_series_read_leaves_continue_episodes_unrated(kodi):

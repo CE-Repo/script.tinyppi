@@ -507,7 +507,7 @@ class _QuickServer(web_server._Server):
 @pytest.fixture
 def lifecycle(monkeypatch):
     """A dashboard whose servers listen on 127.0.0.1 beside a fake producer."""
-    env = SimpleNamespace(dash=web_server.WebDashboard(), producers=[], ports=[])
+    env = SimpleNamespace(dash=web_server.WebDashboard(), producers=[], ports=[], servers=[])
 
     def producer(stop_event):
         env.producers.append(_Producer(stop_event))
@@ -515,7 +515,8 @@ def lifecycle(monkeypatch):
 
     def bind(port, producer, stop, token):
         env.ports.append(port)
-        return _QuickServer(("127.0.0.1", 0), producer, stop, token)
+        env.servers.append(_QuickServer(("127.0.0.1", 0), producer, stop, token))
+        return env.servers[-1]
 
     monkeypatch.setattr(web_server, "Producer", producer)
     monkeypatch.setattr(web_server, "_bind", bind)
@@ -628,6 +629,45 @@ def test_a_port_in_use_leaves_the_dashboard_stopped(lifecycle, monkeypatch):
     # Nothing ran, so stopping has nothing to log.
     assert xbmc.LOG == [(xbmc.LOGERROR,
                          "TinyPPI [web]: cannot bind port 8099: [Errno 98] Address already in use")]
+
+
+def _raise(exc):
+    raise exc
+
+
+@pytest.mark.parametrize("failing", ["producer", "server thread"])
+def test_a_thread_that_cannot_start_leaves_the_dashboard_stopped(lifecycle, monkeypatch,
+                                                                  failing):
+    refusals = [RuntimeError("can't start new thread")]     # only the first start fails
+
+    if failing == "producer":
+        real_start = _Producer.start
+        monkeypatch.setattr(_Producer, "start", lambda producer: (
+            real_start(producer) if not refusals else _raise(refusals.pop())))
+    else:
+        # The producer is running when the server thread fails.
+        monkeypatch.setattr(_Producer, "is_alive", lambda producer: True)
+        real_start = threading.Thread.start
+        monkeypatch.setattr(threading.Thread, "start", lambda thread: (
+            _raise(refusals.pop()) if refusals and thread.name == "TinyPPI-web-server"
+            else real_start(thread)))
+
+    lifecycle.dash.start(8099, TOKEN)
+
+    srv, producer = lifecycle.servers[0], lifecycle.producers[0]
+    assert not lifecycle.dash.running and lifecycle.dash._thread is None
+    assert lifecycle.dash._producer is None and lifecycle.dash._stop is None
+    assert srv.socket.fileno() == -1
+    assert producer.stop_event.is_set()
+    assert producer.calls == (["wake"] if failing == "producer" else ["start", "wake", "join"])
+    assert xbmc.LOG == [(xbmc.LOGERROR,
+                         "TinyPPI [web]: cannot start the dashboard: can't start new thread")]
+
+    # Nothing is left for stop(), and the next start works.
+    lifecycle.dash.stop()
+    lifecycle.dash.start(8099, TOKEN)
+    assert lifecycle.dash.running
+    assert request(lifecycle.dash._server, "/api/hello")[0] == 200
 
 
 def test_settings_are_never_pushed_to_a_missing_server(lifecycle, monkeypatch):

@@ -380,6 +380,19 @@ def test_tagged_artwork_is_immutable_and_revalidates_empty(dashboard, art):
     assert art == [("artwork", ("poster",))]          # the 304 read nothing
 
 
+@pytest.mark.parametrize("tag", [
+    "x%0d%0aSet-Cookie:%20evil=1",                    # header injection
+    'ab"cd',
+    "ABCDEF12",                                       # tags are lowercase hex
+    "a" * 17,                                         # longer than any tag
+])
+def test_foreign_artwork_tags_are_ignored(dashboard, art, tag):
+    status, headers, _ = get(dashboard, "/api/art?kind=poster&v=" + tag)
+    assert status == 200 and "ETag" not in headers and "Set-Cookie" not in headers
+    assert headers["Cache-Control"] == "no-store"
+    assert art == [("artwork", ("poster",))]
+
+
 def test_missing_artwork_is_404(dashboard, monkeypatch):
     monkeypatch.setattr(dashboard, "artwork", lambda kind: None)
     status, _, raw = request(dashboard, "/api/art?kind=poster")

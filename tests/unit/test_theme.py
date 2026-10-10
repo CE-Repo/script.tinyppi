@@ -75,6 +75,7 @@ def notifications():
 @pytest.mark.parametrize(("stored", "label"), [
     (None, "cd/m²"), ("0", "cd/m²"), ("1", "nits"), ("2", ""),
     ("7", "cd/m²"), ("x", "cd/m²"), ("", "cd/m²"),          # unreadable: the first label
+    ("-1", "cd/m²"),                                        # not the last one
 ])
 def test_the_unit_label_follows_the_setting(stored, label):
     if stored is not None:
@@ -110,6 +111,7 @@ def test_unsaved_values_win_over_the_stored_ones():
     "[COLOR=FF123456]●[/COLOR] #12345G",                     # not a HEX code, unknown swatch
     "[COLOR=12345678]●[/COLOR] Somewhere 3",
     "999",                                                   # old HEX marker, no file
+    "²", "٣",                                                # no ASCII digits ("²" breaks int())
 ])
 def test_an_unreadable_colour_gives_the_settings_default(legacy_file, stored):
     use(convert_yes_color=stored)
@@ -164,8 +166,9 @@ def test_an_unknown_setting_opens_no_picker(picker):
     assert picker.shown == [] and xbmcaddon.SETTINGS == {}
 
 
-def test_a_heading_that_is_no_string_id_is_left_empty(picker):
-    theme.pick_color("title_color", "Title")
+@pytest.mark.parametrize("heading_id", ["Title", "²"])    # "²" passes str.isdigit()
+def test_a_heading_that_is_no_string_id_is_left_empty(picker, heading_id):
+    theme.pick_color("title_color", heading_id)
     [shown] = picker.shown
     assert shown["heading"] == ""
 

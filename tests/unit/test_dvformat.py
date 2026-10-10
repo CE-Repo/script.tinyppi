@@ -25,7 +25,7 @@ def test_numbers_drop_a_redundant_fraction(value, text):
 
 @pytest.mark.parametrize(("value", "text"), [
     (1000.4, "1000"), (0.0050, "0.005"), (-0.25, "-0.25"), (0, "0"),
-    (False, EMPTY), (None, EMPTY),
+    (False, EMPTY), (None, EMPTY), (float("inf"), EMPTY), (float("nan"), EMPTY),
 ])
 def test_luminances_keep_decimals_only_below_one_nit(value, text):
     assert dvformat.lum(value) == text
@@ -56,6 +56,8 @@ def test_flags_read_as_kodis_yes_and_no():
     ([34000, 16000], "34000 | 16000"),
     ((1, 0.5), "1.0000 | 0.5000"),
     ((None, 16000), "16000"),
+    ((0.68, None), "0.6800"),                   # a missing half is dropped for floats too
+    ((None, 0.32), "0.3200"),
     ((None, None), EMPTY),
     ((1, 2, 3), EMPTY),
     ("12", EMPTY),

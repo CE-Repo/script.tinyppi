@@ -98,17 +98,16 @@ def read_art(path: str) -> bytes | None:
 
     The VFS reaches local files, shares and URLs alike.
     """
-    handle = None
     try:
         handle = xbmcvfs.File(path)
-        data = bytes(handle.readBytes(_MAX_ART))
+        try:
+            data = bytes(handle.readBytes(_MAX_ART))
+        finally:
+            with contextlib.suppress(Exception):
+                handle.close()
     except Exception as exc:  # the VFS raises RuntimeError or worse for a bad path
         _log(f"artwork {path} unreadable: {exc}", xbmc.LOGDEBUG)
         return None
-    finally:
-        if handle is not None:
-            with contextlib.suppress(Exception):
-                handle.close()
     return data or None
 
 

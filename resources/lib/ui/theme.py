@@ -190,9 +190,11 @@ def _load_legacy_custom() -> dict:
 def _pick(palette: tuple, value: str) -> str:
     """Return ``palette[value]``, falling back to index 0 on bad input."""
     try:
-        return palette[int(value)]
-    except (ValueError, TypeError, IndexError):
+        index = int(value)
+    except (ValueError, TypeError):
         return palette[0]
+    # A negative index would count from the end of the palette.
+    return palette[index] if 0 <= index < len(palette) else palette[0]
 
 
 # Opacity (percent) for missing or invalid settings.
@@ -305,7 +307,8 @@ def _decode(spec: _ColorSetting, value: str, legacy_hex: str = "") -> tuple[int,
         if _HEX8_RE.match(stored):
             return -1, stored[2:]
         return spec.default, ""
-    if value.isdigit() and int(value) < len(spec.legacy):
+    # isdigit() alone also passes digits int() rejects, such as "²".
+    if value.isascii() and value.isdigit() and int(value) < len(spec.legacy):
         return spec.legacy[int(value)], ""
     return spec.default, ""
 
@@ -524,7 +527,7 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
         tiles.append(xbmcgui.ListItem(name, spec.swatches[position], offscreen=True))
 
     heading = (addon.getLocalizedString(int(heading_id))
-               if heading_id.isdigit() else "")
+               if heading_id.isascii() and heading_id.isdigit() else "")
     chosen = xbmcgui.Dialog().colorpicker(
         heading, hex_tile if rgb else spec.swatches[index], colorlist=tiles,
     )

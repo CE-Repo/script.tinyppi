@@ -7,6 +7,8 @@ Shared by ``info.dvmetadata`` and ``info.dvcomposer``; ui.dvmetadata reads
 the row kinds through ``info.dvmetadata``.
 """
 
+import math
+
 import xbmc
 
 # Row kinds for ui.dvmetadata: a heading, a name / value pair, a full-width
@@ -65,6 +67,8 @@ def lum(value: object) -> str:
     """Format a luminance in nits, like dvinfo (see ``info.dvinfo._fmt_lum``)."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return EMPTY
+    if not math.isfinite(value):  # NaN or Infinity from a broken payload
+        return EMPTY
     if value and abs(value) < 1.0:
         return f"{value:.4f}".rstrip("0").rstrip(".")
     return str(int(round(value)))
@@ -106,5 +110,6 @@ def coords(pair: object) -> str:
         return EMPTY
     x, y = pair
     if isinstance(x, float) or isinstance(y, float):
-        return joined(f"{x:.4f}", f"{y:.4f}")
+        # scaled() keeps a missing half EMPTY, as num() does for codes.
+        return joined(scaled(x), scaled(y))
     return joined(num(x), num(y))
