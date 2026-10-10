@@ -7,7 +7,8 @@
 
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import vm from "node:vm";
 import { JSDOM } from "jsdom";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -15,6 +16,14 @@ const WEB = join(ROOT, "resources", "web");
 
 export function source(name) {
   return readFileSync(join(WEB, "js", name), "utf8");
+}
+
+/** Run a classic script in the page under its own file name, so that
+ * `npm run coverage` counts its lines. */
+function run(dom, name) {
+  const file = join(WEB, "js", name);
+  new vm.Script(source(name), { filename: pathToFileURL(file).href })
+    .runInContext(dom.getInternalVMContext());
 }
 
 /** An EventSource the test pushes frames into. */
@@ -65,7 +74,7 @@ export function page({ scripts = ["core.js"], routes = {}, token = "" } = {}) {
   window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
   window.HTMLDialogElement.prototype.close = function () { this.open = false; };
   if (token) window.localStorage.setItem("tinyppi.token", token);
-  for (const name of scripts) window.eval(source(name));
+  for (const name of scripts) run(dom, name);
   return { window, streams, requests, dom };
 }
 
@@ -74,7 +83,7 @@ export const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 /** Run classic scripts that need no page (pure helpers) and return window. */
 export function bare(...scripts) {
-  const { window } = new JSDOM("", { runScripts: "outside-only" });
-  for (const name of scripts) window.eval(source(name));
-  return window;
+  const dom = new JSDOM("", { runScripts: "outside-only" });
+  for (const name of scripts) run(dom, name);
+  return dom.window;
 }

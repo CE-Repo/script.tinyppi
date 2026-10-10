@@ -27,6 +27,7 @@ def kodi_state():
     import xbmcgui
     xbmcaddon.SETTINGS.clear()
     xbmcgui.PROPERTIES.clear()
+    xbmcgui.DIALOGS.clear()
     xbmc.INFO.clear()
     xbmc.CONDITIONS.clear()
     xbmc.LOG.clear()

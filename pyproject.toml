@@ -42,7 +42,8 @@ testpaths = ["tests"]
 addopts = "-q"
 
 [tool.coverage.run]
-source = ["resources/lib"]
+# main.py is the script entry point; resources/lib holds everything else.
+source = ["resources/lib", "main"]
 branch = true
 
 [tool.coverage.report]
