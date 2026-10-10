@@ -10,6 +10,7 @@ import contextlib
 import os
 import threading
 import time
+from typing import Any
 
 import xbmc
 import xbmcaddon
@@ -17,6 +18,7 @@ import xbmcgui
 import xbmcvfs
 from core import settings
 from core.log import log
+from core.protocols import PropertyTarget
 from core.utils import (
     PROP_ACTIVE,
     PROP_DIALOG_MODE,
@@ -33,7 +35,7 @@ from core.utils import (
     read_pass,
     set_window_properties,
 )
-from info import properties
+from info import publish
 from ui.fonts import ensure_fonts
 from ui.theme import apply_theme
 
@@ -112,7 +114,7 @@ _DV_CHANGED_FALLBACK = "FF82B1FF"  # Blue, the setting's default
 # stays at 100 ms.
 _DV_CHANGED_HOLD = "output_changed_duration"
 
-# Interval of properties.update_static_properties: per-title facts and CPU
+# Interval of publish.update_static_properties: per-title facts and CPU
 # stats need not follow the 100 ms scene cadence.
 _STATIC_POLL_INTERVAL = 1.0
 
@@ -148,7 +150,7 @@ def _notify_error(message_id: int) -> None:
     )
 
 
-def _set_overlay_state(home, dialog_mode: bool = False) -> None:
+def _set_overlay_state(home: PropertyTarget, dialog_mode: bool = False) -> None:
     """Publish the Home-window properties that mark TinyPPI as open."""
     set_window_properties(
         home,
@@ -164,7 +166,7 @@ def _set_overlay_state(home, dialog_mode: bool = False) -> None:
         home.clearProperty(PROP_DIALOG_MODE)
 
 
-def _preflight(home, player, toggle_log: str) -> bool:
+def _preflight(home: PropertyTarget, player: xbmc.Player, toggle_log: str) -> bool:
     """Run the platform and playback checks shared by both entry points.
 
     Returns True when a view may open; otherwise notifies (or toggles the
@@ -224,7 +226,7 @@ def _nudge_enabled() -> bool:
     return _settings().getSettingBool("nudge_position")
 
 
-def _elements_visible(addon) -> str:
+def _elements_visible(addon: xbmcaddon.Addon) -> str:
     """Return "0" when the background is fully transparent, else "1".
 
     Controls the header title, header icon and separator lines.
@@ -232,7 +234,7 @@ def _elements_visible(addon) -> str:
     return "0" if addon.getSettingInt("background_opacity") == 0 else "1"
 
 
-def _release_overlay(home) -> None:
+def _release_overlay(home: PropertyTarget) -> None:
     """Clear the overlay state, then hold the re-entry lock briefly."""
     _releasing.set()
     clear_overlay_state(home)
@@ -250,7 +252,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
     Closes when playback stops or fullscreen video is left.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._running   = False
         self._monitor   = xbmc.Monitor()
@@ -501,7 +503,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
                 try:
                     # One read pass for the whole tick (see read_pass).
                     with read_pass():
-                        properties.publish_scene_properties(self, self.published)
+                        publish.publish_scene_properties(self, self.published)
                         self._highlight_dv_changes()
                         self._apply_position_offset()
 
@@ -510,7 +512,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
                             # Advance first, so a failure retries after an
                             # interval rather than every tick.
                             next_static_publish = now + _STATIC_POLL_INTERVAL
-                            properties.update_static_properties(
+                            publish.update_static_properties(
                                 self, self.published)
                             self._changed_color = self._dv_changed_color()
                 except Exception as exc:
@@ -537,7 +539,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
 # --- Entry points ----------------------------------------------------------
 
-def _show_overlay(home) -> str | None:
+def _show_overlay(home: PropertyTarget) -> str | None:
     """Show the overlay once and return the next view, or None to end."""
     # Marks the overlay as visible for the codec-logo splash.  Set per
     # showing: the overlay clears it on close, including when handing over to
@@ -552,7 +554,7 @@ def _show_overlay(home) -> str | None:
     )
     # Fill the window before Kodi draws it (onInit runs only once it is
     # visible).  Properties only: the controls do not exist yet.
-    properties.publish_properties(dialog, dialog.published)
+    publish.publish_properties(dialog, dialog.published)
     dialog.doModal()
     dialog.join_update_loop()
     next_view = dialog.next_view
@@ -602,7 +604,7 @@ def open_tinyppi() -> None:
             ),
         )
         # From the HDR type known so far; the update loop refreshes it.
-        properties.publish_channel_visibility(home)
+        publish.publish_channel_visibility(home)
         apply_theme(home, addon)
 
         while _show_overlay(home) == _VIEW_DV_METADATA:

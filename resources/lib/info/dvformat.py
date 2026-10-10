@@ -44,7 +44,7 @@ CACHED = "Cached"
 _JOIN = " | "
 
 
-def text(value) -> str:
+def text(value: object) -> str:
     """Return *value* as a stripped string, or EMPTY."""
     if value is None:
         return EMPTY
@@ -52,7 +52,7 @@ def text(value) -> str:
     return stripped or EMPTY
 
 
-def num(value) -> str:
+def num(value: object) -> str:
     """Format a number without a redundant ``.0``, or EMPTY."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return EMPTY
@@ -61,7 +61,7 @@ def num(value) -> str:
     return str(value)
 
 
-def lum(value) -> str:
+def lum(value: object) -> str:
     """Format a luminance in nits, like dvinfo (see ``info.dvinfo._fmt_lum``)."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return EMPTY
@@ -70,7 +70,7 @@ def lum(value) -> str:
     return str(int(round(value)))
 
 
-def scaled(value) -> str:
+def scaled(value: object) -> str:
     """Format a 0..1 or -1..1 value (UI trims, knee point), or EMPTY.
 
     EMPTY is also how a disabled trim control reads.
@@ -80,14 +80,14 @@ def scaled(value) -> str:
     return f"{value:.4f}"
 
 
-def percent(value) -> str:
+def percent(value: object) -> str:
     """Format a percentage to one decimal, or EMPTY."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return EMPTY
     return f"{value:.1f} %"
 
 
-def flag(value) -> str:
+def flag(value: object) -> str:
     """Format a flag as Kodi's localized Yes / No, or EMPTY."""
     if value is None:
         return EMPTY
@@ -100,7 +100,7 @@ def joined(*values: str) -> str:
     return _JOIN.join(present) if present else EMPTY
 
 
-def coords(pair) -> str:
+def coords(pair: object) -> str:
     """Format a CIE ``(x, y)`` pair of raw codes or floats."""
     if not isinstance(pair, (tuple, list)) or len(pair) != 2:
         return EMPTY

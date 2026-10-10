@@ -21,7 +21,6 @@ from http.server import ThreadingHTTPServer
 
 import xbmc
 import xbmcaddon
-
 from core import settings
 from core.log import channel
 from web import access, artwork, library, static
@@ -60,6 +59,10 @@ _DEFAULT_PORT = 8099
 
 _log = channel("web", xbmc.LOGINFO)
 
+# What socketserver hands the request hooks (a TCP server only sees sockets).
+_Request = socket.socket | tuple[bytes, socket.socket]
+
+
 
 # --- Settings --------------------------------------------------------------
 
@@ -68,7 +71,7 @@ def _addon() -> xbmcaddon.Addon:
     return settings.addon()
 
 
-def ensure_token(addon=None) -> str:
+def ensure_token(addon: xbmcaddon.Addon | None = None) -> str:
     """Return the access token, generating one when none exists yet."""
     addon = addon or _addon()
     token = (addon.getSetting("web_token") or "").strip()
@@ -77,7 +80,7 @@ def ensure_token(addon=None) -> str:
     return token
 
 
-def generate_token(addon=None) -> str:
+def generate_token(addon: xbmcaddon.Addon | None = None) -> str:
     """Generate and store a new token, invalidating the old one."""
     addon = addon or _addon()
     token = "".join(secrets.choice(_TOKEN_ALPHABET) for _ in range(_TOKEN_LENGTH))
@@ -85,7 +88,7 @@ def generate_token(addon=None) -> str:
     return token
 
 
-def configured_port(addon=None) -> int:
+def configured_port(addon: xbmcaddon.Addon | None = None) -> int:
     """Return the configured port, or the default outside 1024-65535."""
     addon = addon or _addon()
     try:
@@ -124,7 +127,7 @@ class _Server(ThreadingHTTPServer):
     daemon_threads      = True
     allow_reuse_address = True
 
-    def __init__(self, address, producer: Producer, stop_event: threading.Event,
+    def __init__(self, address: tuple[str, int], producer: Producer, stop_event: threading.Event,
                  token: str) -> None:
         super().__init__(address, Handler)
         self.producer      = producer
@@ -147,11 +150,13 @@ class _Server(ThreadingHTTPServer):
         # Open connections and their addresses, so stop() can hang up on
         # idle keep-alives and verify_request() can cap them.
         self._connections: dict = {}
-        self._refusal_logged = 0.0
+        # monotonic() counts from boot, and Kodi starts seconds after it:
+        # 0.0 would hide every refusal in the first minute.
+        self._refusal_logged = float("-inf")
         # Cached poster and fanart of the playing title.
         self._art = artwork.PlayingArtwork()
 
-    def verify_request(self, request, client_address) -> bool:
+    def verify_request(self, request: _Request, client_address: tuple[str, int]) -> bool:
         """Refuse connections once shutdown has begun or over the caps.
 
         Checked before a thread is started, so reconnecting pages cannot
@@ -176,14 +181,14 @@ class _Server(ThreadingHTTPServer):
                  f"{total} in all", xbmc.LOGWARNING)
         return False
 
-    def process_request(self, request, client_address) -> None:
+    def process_request(self, request: _Request, client_address: tuple[str, int]) -> None:
         # Registered on the accept loop, so the table is complete once
         # shutdown() has returned.
         with self._worker_lock:
             self._connections[request] = access.client_key(client_address[0])
         super().process_request(request, client_address)
 
-    def shutdown_request(self, request) -> None:
+    def shutdown_request(self, request: _Request) -> None:
         # Removed under the lock before closing, so close_connections()
         # never touches a closed socket.
         with self._worker_lock:
@@ -205,7 +210,7 @@ class _Server(ThreadingHTTPServer):
                     connection.shutdown(how)
         return len(connections)
 
-    def process_request_thread(self, request, client_address) -> None:
+    def process_request_thread(self, request: _Request, client_address: tuple[str, int]) -> None:
         worker = threading.current_thread()
         with self._worker_lock:
             self._workers.add(worker)
@@ -227,7 +232,7 @@ class _Server(ThreadingHTTPServer):
             worker.join(remaining)
         return sum(1 for worker in workers if worker.is_alive())
 
-    def refresh_settings(self, addon=None) -> None:
+    def refresh_settings(self, addon: xbmcaddon.Addon | None = None) -> None:
         """Re-read the request-related settings without a restart."""
         addon = addon or _addon()
         self.auth_read     = addon.getSetting("web_auth_read") == "true"
@@ -284,7 +289,7 @@ class _Server(ThreadingHTTPServer):
         with self._stream_lock:
             self._streams = max(0, self._streams - 1)
 
-    def handle_error(self, request, client_address) -> None:
+    def handle_error(self, request: _Request, client_address: tuple[str, int]) -> None:
         """Log request errors: hang-ups at debug, real faults with traceback."""
         exc = sys.exc_info()[1]
         if isinstance(exc, (BrokenPipeError, ConnectionResetError, TimeoutError)):

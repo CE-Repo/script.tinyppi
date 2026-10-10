@@ -8,6 +8,8 @@ base layer.  Their coefficients are the only derived values in the view:
 the RPU splits each into two halves (see ``_coefficient``).
 """
 
+from collections.abc import Sequence
+
 from info import dvformat as fmt
 from info.dvformat import COLUMNS, EMPTY, HEADINGS, MAX_COLUMNS, SPACE
 
@@ -27,7 +29,7 @@ _POLY_HEADINGS    = ("Order", "Linear interp")
 _MMR_HEADINGS     = ("Order", "Constant")
 
 
-def _coefficient(int_part, frac_part, denom) -> str:
+def _coefficient(int_part: object, frac_part: object, denom: object) -> str:
     """Combine a composer coefficient's halves as the decoder does.
 
     ``int_part + frac_part / 2 ** coefficient_log2_denom`` -- the RPU
@@ -43,7 +45,8 @@ def _coefficient(int_part, frac_part, denom) -> str:
     return f"{int_part + frac_part / float(1 << denom):.6g}"
 
 
-def _grid(legend: str, headings, rows) -> list:
+def _grid(legend: str, headings: Sequence[str],
+          rows: Sequence[tuple[str, Sequence[str]]]) -> list:
     """Lay out *rows* (``(name, cells)``) as a table under *headings*.
 
     Empty rows are dropped; more headings than ``MAX_COLUMNS`` continue in a
@@ -79,7 +82,7 @@ def _mapping(rpu: dict | None) -> dict:
     return (rpu or {}).get("data_mapping") or {}
 
 
-def _denominator(rpu: dict | None):
+def _denominator(rpu: dict | None) -> object:
     """Return the header's ``coefficient_log2_denom``."""
     return ((rpu or {}).get("header") or {}).get("coefficient_log2_denom")
 
@@ -101,7 +104,7 @@ def composer_pairs(rpu: dict | None) -> list:
     ]
 
 
-def _polynomial_entries(polynomial: dict | None, denom) -> list:
+def _polynomial_entries(polynomial: dict | None, denom: object) -> list:
     """Return a polynomial curve as a table, one segment per row.
 
     Order and linear-interpolation flag first, then the coefficients from
@@ -131,7 +134,8 @@ def _polynomial_entries(polynomial: dict | None, denom) -> list:
     return _grid(_LEGEND_SEGMENT, headings, rows)
 
 
-def _mmr_entries(mmr: dict | None, denom) -> list:
+def _mmr_entries(mmr: dict | None, denom: object) -> list:
+
     """Return an MMR curve as two tables.
 
     First one row per segment (order, constant), then one row per order

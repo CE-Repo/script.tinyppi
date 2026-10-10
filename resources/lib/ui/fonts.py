@@ -22,12 +22,14 @@ import os
 import re
 import threading
 import traceback
+from collections.abc import Sequence
 
 import xbmc
 import xbmcvfs
 from core import settings
 from core.files import atomic_write
 from core.log import channel
+from core.protocols import PropertyTarget
 from core.utils import home_window
 
 # Kodi's own arial.ttf by full path.  A bare name is looked up in the skin's
@@ -372,7 +374,7 @@ def _install_fonts() -> None:
         xbmc.executebuiltin("ReloadSkin(reload)")
 
 
-def _remember(home, skin_dir: str, font_xmls,
+def _remember(home: PropertyTarget, skin_dir: str, font_xmls: Sequence[str],
               prop: str = PROP_FONTS_READY) -> None:
     """Set mark *prop* for *font_xmls* (ready or failed)."""
     try:
@@ -382,7 +384,7 @@ def _remember(home, skin_dir: str, font_xmls,
         _log(f"cannot stat Font.xml: {exc}", xbmc.LOGWARNING)
 
 
-def _mark(skin_dir: str, font_xmls) -> str:
+def _mark(skin_dir: str, font_xmls: Sequence[str]) -> str:
     """Return a mark describing *font_xmls* as they are now.
 
     Raises OSError when a file is gone.

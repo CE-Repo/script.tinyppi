@@ -12,6 +12,8 @@ brackets, so the add-on's output is easy to filter:
 ``log`` writes lines without an area; ``channel`` builds a module's ``_log``.
 """
 
+from collections.abc import Callable
+
 import xbmc
 
 _TAG = "TinyPPI"
@@ -31,7 +33,8 @@ def log(message: str, level: int = xbmc.LOGDEBUG) -> None:
     _write(f"{_TAG}: {message}", level)
 
 
-def channel(area: str, default: int = xbmc.LOGDEBUG):
+def channel(area: str, default: int = xbmc.LOGDEBUG) -> Callable[..., None]:
+
     """Return a log function that tags its lines with *area*.
 
     *default* is the level used when a call passes none.

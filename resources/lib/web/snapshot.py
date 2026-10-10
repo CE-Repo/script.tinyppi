@@ -16,6 +16,7 @@ web/vs10.py and the title's history in web/session.py.
 
 import time
 import zlib
+from collections.abc import Iterable
 
 import xbmc
 from core.utils import (
@@ -27,6 +28,7 @@ from core.utils import (
     localized,
     read_pass,
 )
+from info import dvmetadata
 from info.dvinfo import (
     L1_EMPTY,
     L5_EMPTY,
@@ -34,9 +36,9 @@ from info.dvinfo import (
     get_l5_offsets,
     na_label,
 )
-from info import dvmetadata
 from info.mediasource import is_live, is_pvr
-from info.properties import (
+from info.properties import output_hdr_token
+from info.publish import (
     publish_scene_properties,
     publish_static_properties,
 )
@@ -234,7 +236,7 @@ _PRESENCE_FLAGS = (
 )
 
 
-def _render(segments, values: dict[str, str]) -> str:
+def _render(segments: Iterable[tuple[str, str, str]], values: dict[str, str]) -> str:
     """Concatenate the non-empty segments with their prefixes and suffixes.
 
     Empty segments drop their separators too; spacing comes from the
@@ -329,13 +331,13 @@ def _finish_time(values: dict[str, str]) -> str:
     return values.get("PlayerFinishTime", "")
 
 
-def _web_presence_value(value) -> str:
+def _web_presence_value(value: object) -> str:
     """Replace standalone Yes/No parts with icon markers."""
     parts = clean_value(str(value)).split(" | ")
     return " | ".join(_PRESENCE_WORD.get(part, part) for part in parts)
 
 
-def _metadata_row(kind: str, name: str, value) -> dict:
+def _metadata_row(kind: str, name: str, value: object) -> dict:
     """Convert an ``info.dvmetadata`` row for the page (cells stay a list)."""
     if isinstance(value, (list, tuple)):
         return {"kind": kind, "name": clean_value(name),
@@ -347,23 +349,6 @@ def _metadata_row(kind: str, name: str, value) -> dict:
 # --- Output ----------------------------------------------------------------
 
 
-def _output_token(mode: str) -> str:
-    """Map the Amlogic output mode to an HDR token ('' for SDR).
-
-    Follows ``ui.splash._amlogic_hdr_token``.
-    """
-    mode = (mode or "").upper()
-    if "DV" in mode or "DOLBY" in mode:
-        return "dolbyvision"
-    if "HDR10+" in mode or "HDR10PLUS" in mode or "PLUS" in mode:
-        return "hdr10+"
-    if "HLG" in mode:
-        return "hlg"
-    if "HDR" in mode:
-        return "hdr10"
-    return ""
-
-
 def _output_hdr_type(mode: str, source: str) -> str:
     """Return the output as a source-style token, to detect conversions.
 
@@ -373,7 +358,7 @@ def _output_hdr_type(mode: str, source: str) -> str:
     """
     if not (mode or "").strip():
         return source
-    token = _output_token(mode)
+    token = output_hdr_token(mode)
     # The source side spells it hdr10plus (see publish_hdr_type).
     return "hdr10plus" if token == "hdr10+" else token
 

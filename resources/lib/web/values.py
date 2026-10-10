@@ -4,8 +4,33 @@
 """Text helpers shared by the snapshot, the player state and the library."""
 
 import re
+from typing import Any
 
 from info.dvinfo import is_status_label
+
+# A value straight from a request (query or JSON body): any type, or None.
+# The function receiving it validates and converts it.
+Unchecked = Any
+
+
+def library_id(value: Unchecked) -> int:
+    """Return *value* as a library id (a positive integer), or 0.
+
+    JSON true/false and fractions are refused rather than read as 1 or cut
+    down to the id below; a query string's digits are accepted.
+    """
+    if isinstance(value, bool):
+        return 0
+    if isinstance(value, float):
+        if not value.is_integer():
+            return 0
+        value = int(value)
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return 0
+    return number if number > 0 else 0
+
 
 _NUMBER_RE = re.compile(r"-?\d+(?:\.\d+)?")
 

@@ -25,7 +25,6 @@ import ctypes
 import os
 
 import xbmc
-
 from core.log import log
 
 try:
@@ -149,7 +148,7 @@ class _Target:
 _target = _Target()
 
 
-def _ioctl(fd: int, request: int, payload) -> bool:
+def _ioctl(fd: int, request: int, payload: ctypes.Structure) -> bool:
     """Run one DRM ioctl on *fd* and return whether it succeeded."""
     if fcntl is None:
         return False

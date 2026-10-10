@@ -4,6 +4,7 @@
 """The language codes of the audio and subtitle rows."""
 
 import pytest
+
 import xbmc
 
 

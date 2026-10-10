@@ -346,7 +346,7 @@ def get_sidedata(mapping: bool = False) -> dict | None:
 
 # --- Value formatting ------------------------------------------------------
 
-def _fmt_num(value) -> str:
+def _fmt_num(value: object) -> str:
     """Format a number without a redundant ``.0``; '' for non-numbers."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return ""
@@ -355,7 +355,7 @@ def _fmt_num(value) -> str:
     return str(value)
 
 
-def _fmt_lum(value) -> str:
+def _fmt_lum(value: object) -> str:
     """Format a luminance in nits.
 
     Whole numbers from 1 cd/m² up, otherwise up to four decimals with
@@ -373,7 +373,7 @@ def _joined(values: list[str]) -> str:
     return " | ".join(values) if all(values) else ""
 
 
-def _present_flag(value) -> str:
+def _present_flag(value: object) -> str:
     """Return ``true``/``false`` for a presence flag, or '' when unknown.
 
     The skin shows an icon via ``String.IsEqual``; '' shows neither.
@@ -507,7 +507,7 @@ def _cm_version(rpu: dict | None) -> str:
     return f"CMv{version}" if version else ""
 
 
-def _structure_abbr(structure, config: dict | None, el_type: str) -> str:
+def _structure_abbr(structure: object, config: dict | None, el_type: str) -> str:
     """Return the layer structure: ``ST-DL``, ``DT-DL`` or ``ST-SL``.
 
     Single/dual track, single/dual layer.  The side data names a structure

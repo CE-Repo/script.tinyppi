@@ -30,6 +30,11 @@ apt-get install -y -q autoconf automake autopoint autotools-dev cmake curl debhe
   libxkbcommon-dev libinput-dev libgbm-dev \
   xvfb x11-utils imagemagick mesa-utils libgl1-mesa-dri sqlite3 ffmpeg
 
+# Only the packages (Kodi itself restored from a cache, as in CI).
+if [ "${KODI_DEPS_ONLY:-0}" = 1 ]; then
+  exit 0
+fi
+
 mkdir -p "$BUILD_DIR"
 [ -d "$BUILD_DIR/src" ] || git clone --depth 1 --branch "$KODI_REF" https://github.com/xbmc/xbmc.git "$BUILD_DIR/src"
 mkdir -p "$BUILD_DIR/build"

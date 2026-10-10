@@ -22,15 +22,22 @@ import time
 from typing import NamedTuple
 
 import xbmc
+import xbmcaddon
 import xbmcgui
 from core import settings
 from core.constants import HOME_WINDOW_ID
-from core.log import channel
 from core.images import display_texture
-from core.maps import AUDIO_LOGO_MAP, HDR_LOGO_MAP, IMAX_LOGO_MAP
+from core.log import channel
+from core.protocols import PropertyTarget
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
 from info.dvinfo import get_dv_el_type_raw, get_hdr_format
-from info.imax import imax_logo, is_known_imax_title
+from info.properties import output_hdr_token
+from ui.splash_logos import (
+    current_logos,
+    dv_layer_token,
+    is_converting,
+    video_has_audio,
+)
 from ui.theme import apply_theme
 
 _MEDIA_PATH = os.path.join(
@@ -54,10 +61,10 @@ _ASPECT_STRETCH = 0
 # masks, tinted with one ARGB colour.
 _BG_TEXTURE     = os.path.join("common", "dot-1x1.png")
 _DIVIDER_COLOR  = "59FFFFFF"
-# Conversion badge in the panel's top-right corner (see _is_converting).
+# Conversion badge in the panel's top-right corner (see is_converting).
 _DOT_TEXTURE       = os.path.join("common", "dot-circle.png")
 _CONVERT_DOT_COLOR = "FF81C784"  # palette Forest
-# DV layer pill on the panel's bottom (or top) edge (see _dv_layer_token).
+# DV layer pill on the panel's bottom (or top) edge (see dv_layer_token).
 _PILL_TEXTURE = os.path.join("common", "pill.png")
 _CORNER_TEXTURES = {
     "tl": os.path.join("splash", "corner-tl.png"),
@@ -170,31 +177,9 @@ _ANIM_IN  = ("Visible",
 _ANIM_OUT = ("Hidden",
              f"effect=fade start=100 end=0 time={_FADE_OUT_MS}")
 
-# "true" while a conversion is active (see _is_converting); part of the
+# "true" while a conversion is active (see is_converting); part of the
 # badge's condition, so it toggles without a rebuild.
 PROP_CONVERTING = "TinyPPI.SplashConverting"
-
-
-def _is_converting(hdr_type: str, gamut: str) -> bool:
-    """Return whether the output *gamut* shows a conversion.
-
-    Mirrors the check-circle condition in script-tinyppi-main.xml: non-DV
-    source output as DV, HDR/DV output as SDR, or SDR/DV output as HDR10.
-    *hdr_type* comes from the side data, so this works without the overlay.
-    """
-    gamut = gamut.upper()
-    parts = gamut.split()
-    mode = parts[0] if parts else ""
-
-    non_dv_source     = hdr_type in ("hdr10", "hlg", "hdr10+", "")
-    hdr_or_dv_source  = hdr_type in ("hdr10", "hlg", "hdr10+") or "dolby" in hdr_type
-    sdr_or_dv_source  = hdr_type in ("", "hdr10+") or "dolby" in hdr_type
-
-    if non_dv_source and "DV" in gamut:
-        return True
-    if hdr_or_dv_source and "SDR" in gamut:
-        return True
-    return bool(sdr_or_dv_source and mode == "HDR10")
 
 
 # Fallback DV pill colours per layer (FEL forest, MEL tangerine, other white).
@@ -203,25 +188,6 @@ _LAYER_COLOR_FALLBACK = {
     "mel":   "FFFFB74D",  # palette Tangerine
     "other": _LOGO_COLOR,  # palette White
 }
-
-
-def _dv_layer_token(hdr_token: str, hdr_type: str, el_type: str) -> str:
-    """Return the DV pill token for the output: fel, mel, other or ''.
-
-    Based on the actual output (*hdr_token*): '' when it is not DV, 'other'
-    for non-DV sources converted to DV and other profiles, else the source's
-    enhancement layer (*el_type*).
-    """
-    if hdr_token != "dolbyvision":
-        return ""
-    if "dolby" not in hdr_type:
-        return "other"
-    el_type = el_type.upper()
-    if el_type == "FEL":
-        return "fel"
-    if el_type == "MEL":
-        return "mel"
-    return "other"
 
 
 # Per-mode offset settings (x, y).
@@ -268,54 +234,6 @@ _PILL_TOP = 1
 
 # Base scale of the logo block (at a user scale of 100 %).
 _BASE_SCALE = 0.95
-
-
-def _amlogic_hdr_token(gamut: str) -> str:
-    """Map the Amlogic output mode to an ``HDR_LOGO_MAP`` key ('' for SDR)."""
-    parts = gamut.split()
-    mode = parts[0].upper() if parts else ""
-    if "DV" in mode or "DOLBY" in mode:
-        return "dolbyvision"
-    if "HDR10+" in mode or "HDR10PLUS" in mode or "PLUS" in mode:
-        return "hdr10+"
-    if "HLG" in mode:
-        return "hlg"
-    if "HDR" in mode:
-        return "hdr10"
-    return ""
-
-
-def _current_logos(hdr_token: str) -> tuple[str, str]:
-    """Return the ``(video, audio)`` logos for the current output.
-
-    The video logo is always set (SDR fallback); the audio logo is '' for a
-    codec without one.  ``_mode_logos`` decides what a mode shows.
-    """
-    codec = info("VideoPlayer.AudioCodec").lower().strip()
-    audio_logo = AUDIO_LOGO_MAP.get(codec, "")
-
-    video_logo = HDR_LOGO_MAP.get(hdr_token, HDR_LOGO_MAP[""])
-    # IMAX films get the combined logo of the output format.  The map lookup
-    # comes first, so only candidate formats pay for the title match.
-    if hdr_token in IMAX_LOGO_MAP and is_known_imax_title():
-        video_logo = imax_logo(hdr_token) or video_logo
-
-    return video_logo, audio_logo
-
-
-def _has_audio(player: xbmc.Player) -> bool:
-    """Return whether the video has an audio track.
-
-    Asks the player as well: the codec is also empty before Kodi has named
-    it.
-    """
-    if info("VideoPlayer.AudioCodec").strip():
-        return True
-    try:
-        return bool(player.getAvailableAudioStreams())
-    except RuntimeError:
-        # Playback ended; the loop notices.  True keeps the stack unchanged.
-        return True
 
 
 def _mode_logos(
@@ -481,7 +399,7 @@ def _build_controls(
     return controls, dot
 
 
-def _window_dims(window) -> tuple[int, int]:
+def _window_dims(window: xbmcgui.Window) -> tuple[int, int]:
     """Return the coordinate space ``addControl`` uses on *window*.
 
     The window's own size, which may differ from the screen size; falls
@@ -489,14 +407,14 @@ def _window_dims(window) -> tuple[int, int]:
     """
     try:
         width, height = window.getWidth(), window.getHeight()
-    except Exception:
+    except Exception:  # window not created yet
         width = height = 0
     if width >= 640 and height >= 480:
         return width, height
     return xbmcgui.getScreenWidth(), xbmcgui.getScreenHeight()
 
 
-def _read_settings(addon) -> _Settings:
+def _read_settings(addon: xbmcaddon.Addon) -> _Settings:
     """Read all controller settings (see ``_Settings``)."""
     modes = {}
     for mode in _MODE_PROP_PREFIX:
@@ -523,7 +441,7 @@ def _read_settings(addon) -> _Settings:
     )
 
 
-def _mode_colors(home, mode: str) -> dict[str, str]:
+def _mode_colors(home: PropertyTarget, mode: str) -> dict[str, str]:
     """Return *mode*'s tints from the Home properties, with fallbacks.
 
     Call after ``apply_theme``.
@@ -543,11 +461,11 @@ def _mode_colors(home, mode: str) -> dict[str, str]:
     }
 
 
-def _mode_scale(addon, mode: str) -> float:
+def _mode_scale(addon: xbmcaddon.Addon, mode: str) -> float:
     """Return *mode*'s size multiplier, clamped to 0.8-1.3."""
     try:
         percent = addon.getSettingInt(_SCALE_SETTINGS[mode])
-    except Exception:
+    except Exception:  # unknown mode, or a setting that is not an integer
         return 1.0
     return min(1.3, max(0.8, percent / 100.0))
 
@@ -593,7 +511,7 @@ def _visible_condition(mode: str, suppress_start_for_osd: bool = False,
     return " + ".join(parts)
 
 
-def _clear_mode_visibility(home, mode: str | None = None) -> None:
+def _clear_mode_visibility(home: PropertyTarget, mode: str | None = None) -> None:
     """Clear *mode*'s visibility property, or all of them."""
     props = (_MODE_VISIBLE_PROPS[mode],) if mode else _MODE_VISIBLE_PROPS.values()
     for prop in props:
@@ -601,8 +519,9 @@ def _clear_mode_visibility(home, mode: str | None = None) -> None:
 
 
 def _fade_in(
-    video_window, home, monitor, mode: str, controls, condition: str,
-    dot=None,
+    video_window: xbmcgui.Window, home: PropertyTarget, monitor: xbmc.Monitor,
+    mode: str, controls: list[xbmcgui.Control], condition: str,
+    dot: xbmcgui.Control | None = None,
 ) -> None:
     """Add *controls* to the video window and fade them in.
 
@@ -630,14 +549,15 @@ def _fade_in(
     home.setProperty(_MODE_VISIBLE_PROPS[mode], "true")
 
 
-def _remove_controls(video_window, controls) -> None:
+def _remove_controls(video_window: xbmcgui.Window, controls: list[xbmcgui.Control]) -> None:
     """Remove *controls* from the video window, ignoring failures."""
     # The window may already be gone.
     with contextlib.suppress(Exception):
         video_window.removeControls(controls)
 
 
-def _fade_out(video_window, home, monitor, mode: str, controls) -> None:
+def _fade_out(video_window: xbmcgui.Window, home: PropertyTarget, monitor: xbmc.Monitor,
+              mode: str, controls: list[xbmcgui.Control]) -> None:
     """Fade *controls* out, wait, and remove them.
 
     Not removed while Kodi stops the service: removal waits on the GUI
@@ -649,7 +569,7 @@ def _fade_out(video_window, home, monitor, mode: str, controls) -> None:
     _remove_controls(video_window, controls)
 
 
-def _safe_addon():
+def _safe_addon() -> xbmcaddon.Addon | None:
     """Return the current settings handle, or None while unavailable.
 
     During an add-on update ``Addon()`` may raise ``RuntimeError`` or load
@@ -687,8 +607,8 @@ def open_splash() -> None:
         return
 
     gamut = info("Player.Process(amlogic.eoft_gamut)")
-    logos = _current_logos(_amlogic_hdr_token(gamut))
-    has_audio = _has_audio(player)
+    logos = current_logos(output_hdr_token(gamut))
+    has_audio = video_has_audio(player)
     enabled_modes = [
         mode for mode, on in (
             ("start", config.show_on_start), ("osd", config.show_on_osd),
@@ -751,19 +671,19 @@ def open_splash() -> None:
 
             # Read once for badge, pill and logos.
             gamut = info("Player.Process(amlogic.eoft_gamut)")
-            hdr_token = _amlogic_hdr_token(gamut)
+            hdr_token = output_hdr_token(gamut)
             # Reading the format parses side data, so it is re-read once a
             # second, when the output changes, or every poll until known.  The
             # audio-track check (player lock) uses the same schedule.
             if not hdr_type or gamut != format_gamut or now >= format_due:
                 hdr_type = get_hdr_format()
                 el_type = get_dv_el_type_raw() if "dolby" in hdr_type else ""
-                has_audio = _has_audio(player)
+                has_audio = video_has_audio(player)
                 format_gamut = gamut
                 format_due = now + _FORMAT_INTERVAL
 
             # Updated every poll; the badge's condition follows it.
-            now_converting = "true" if _is_converting(hdr_type, gamut) else "false"
+            now_converting = "true" if is_converting(hdr_type, gamut) else "false"
             if now_converting != converting:
                 converting = now_converting
                 home.setProperty(PROP_CONVERTING, converting)
@@ -784,7 +704,7 @@ def open_splash() -> None:
 
             desired_states: dict[str, _ModeState] = {}
             if in_fullscreen:
-                logos = _current_logos(hdr_token)
+                logos = current_logos(hdr_token)
                 modes = []
                 if show_on_start and in_start_window:
                     modes.append("start")
@@ -803,7 +723,7 @@ def open_splash() -> None:
                             for mode in _MODE_PROP_PREFIX
                         }
                         themed = True
-                    layer_token = _dv_layer_token(hdr_token, hdr_type, el_type)
+                    layer_token = dv_layer_token(hdr_token, hdr_type, el_type)
                     for mode in modes:
                         # A mode without logos draws nothing this poll.
                         mode_settings = config.modes[mode]

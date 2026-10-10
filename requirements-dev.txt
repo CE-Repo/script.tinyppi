@@ -1,6 +1,7 @@
 # Development tooling only; Kodi installs the add-on from addon.xml.
 #   python3 -m pip install -r requirements-dev.txt
 pytest==9.1.1
+pytest-cov==7.1.0
 ruff==0.17.0
 mypy==2.4.0
 # Typed stand-ins for Kodi's modules, for mypy (the tests use tests/stubs).

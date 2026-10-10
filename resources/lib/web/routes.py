@@ -19,13 +19,12 @@ from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlparse
 
 import xbmc
-
 from core import settings
 from core.log import channel
 from web import access, artwork, library
 from web.delta import snapshot_delta
-from web.producer import PRODUCE_INTERVAL, Producer
 from web.player import apply_command
+from web.producer import PRODUCE_INTERVAL, Producer
 from web.static import MIN_COMPRESS, STATIC_CACHE
 from web.strings import ui_strings
 from web.vs10 import apply_mode
@@ -101,7 +100,7 @@ class Handler(BaseHTTPRequestHandler):
         """The client's address for log lines."""
         return access.plain_address(self.client_address[0])
 
-    def log_message(self, fmt: str, *args) -> None:  # noqa: A003 - base API
+    def log_message(self, fmt: str, *args: object) -> None:  # noqa: A003 - base API
         _log(_TOKEN_IN_QUERY.sub(r"\1***", fmt % args), xbmc.LOGDEBUG)
 
     def _send(self, status: HTTPStatus, body: bytes, content_type: str,

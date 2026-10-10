@@ -3,7 +3,8 @@
 
 // Lint for the dashboard's scripts (resources/web/js).  They are classic
 // scripts loaded in order by index.html and share one global scope:
-// core.js, theme.js and cover-tint.js each publish one global object.
+// core.js, theme.js, colour.js, cover-tint.js and readings.js each publish
+// one global object.
 
 import js from "@eslint/js";
 import globals from "globals";
@@ -18,7 +19,9 @@ export default [
       globals: {
         ...globals.browser,
         TinyPPI: "writable",
+        TinyPPIColour: "writable",
         TinyPPICover: "writable",
+        TinyPPIReadings: "writable",
         TinyPPITheme: "writable",
       },
     },
@@ -30,5 +33,20 @@ export default [
       "no-var": "error",
       "prefer-const": "error",
     },
+  },
+  {
+    // The tests for those scripts (npm test, npm run test:browser): ES
+    // modules run by Node.
+    files: ["tests/web/**/*.mjs", "tests/browser/**/*.mjs"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: globals.node,
+    },
+  },
+  {
+    // The browser test also hands functions to the page, which run there.
+    files: ["tests/browser/**/*.mjs"],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 ];

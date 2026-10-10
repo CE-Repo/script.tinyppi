@@ -120,7 +120,7 @@ BRANCHES = (
 )
 
 
-def _setting_int(name, default):
+def _setting_int(name: str, default: int) -> int:
     if settings is None:
         return default
     try:
@@ -129,7 +129,7 @@ def _setting_int(name, default):
         return default
 
 
-def dialog_mode():
+def dialog_mode() -> int:
     """Return the selected layout, or the single button (the default).
 
     Unknown values (from a newer version) fall back to the default.
@@ -138,12 +138,12 @@ def dialog_mode():
     return mode if mode in XML_FILES else MODE_SINGLE
 
 
-def xml_file(mode=None):
+def xml_file(mode: int | None = None) -> str:
     """Return the window file for *mode* (default: the selected layout)."""
     return XML_FILES[dialog_mode() if mode is None else mode]
 
 
-def _across(value, low, high):
+def _across(value: int, low: int, high: int) -> int:
     """Return *value* percent of the way from *low* to *high*.
 
     Rounded half up (not to even) so a centred panel lands where the
@@ -152,19 +152,19 @@ def _across(value, low, high):
     return low + int((high - low) * max(0, min(100, value)) / 100.0 + 0.5)
 
 
-def left_range(mode):
+def left_range(mode: int) -> tuple[int, int]:
     """Return the horizontal range of the panel's left edge."""
     width = PANEL_SIZE[mode][0]
     return SCREEN_MARGIN, SCREEN_WIDTH - width - SCREEN_MARGIN
 
 
-def top_range(mode):
+def top_range(mode: int) -> tuple[int, int]:
     """Return the vertical range of the panel's top edge."""
     height = PANEL_SIZE[mode][1]
     return SCREEN_MARGIN, SCREEN_HEIGHT - height - SCREEN_MARGIN
 
 
-def panel_position(mode):
+def panel_position(mode: int) -> tuple[int, int]:
     """Return the panel position from the two position settings.
 
     0% and 100% are the margins on each axis; the defaults (50% across,
@@ -177,7 +177,7 @@ def panel_position(mode):
             _across(_setting_int("dialog_position_y", 100), ceiling, floor))
 
 
-def branch_for(hdr_type, hdr10plus_present):
+def branch_for(hdr_type: str | None, hdr10plus_present: str) -> dict:
     """Return the branch for the published HDR type and HDR10+ flag.
 
     Mirrors the window files' conditions, so the single-button layout
@@ -199,7 +199,7 @@ def branch_for(hdr_type, hdr10plus_present):
     return BRANCHES[0]
 
 
-def plain_label(markup):
+def plain_label(markup: str) -> str:
     """Return *markup* with ``$LOCALIZE`` resolved, for a label set in code.
 
     Text markup survives ``setLabel``, but ``$LOCALIZE`` is only resolved in

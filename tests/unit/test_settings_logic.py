@@ -15,7 +15,7 @@ import pytest
 import xbmcaddon
 import xbmcgui
 from core.utils import highlight_hold
-from info import properties
+from info import publish
 from ui import dvmetadata as metadata_view
 from ui import overlay, palette, splash, theme
 from web.snapshot import SnapshotBuilder
@@ -34,9 +34,9 @@ def use(**values):
     ("", "keep_dv_area_on_hdr10", False, "dolbyvision", "dolbyvision"),
 ])
 def test_layout_follows_the_output(monkeypatch, mode, setting, value, source, expected):
-    monkeypatch.setattr(properties, "get_ModeVar", lambda: mode)
+    monkeypatch.setattr(publish, "get_ModeVar", lambda: mode)
     use(**{setting: value})
-    assert properties._effective_hdr_type(source) == expected
+    assert publish._effective_hdr_type(source) == expected
 
 
 @pytest.mark.parametrize("setting, output", [
@@ -47,7 +47,7 @@ def test_channel_graphic_per_output(setting, output, on):
     use(**{setting: on})
     home = xbmcgui.Window(10000)
     home.setProperty("TinyPPI.EffectiveHdrType", output)
-    properties.publish_channel_visibility(home)
+    publish.publish_channel_visibility(home)
     assert home.getProperty("TinyPPI.ShowChannelIcon") == ("1" if on else "0")
 
 

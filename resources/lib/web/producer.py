@@ -11,7 +11,6 @@ import threading
 import time
 
 import xbmc
-
 from core import settings
 from core.log import channel
 from web import library

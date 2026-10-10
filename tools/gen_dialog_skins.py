@@ -22,6 +22,13 @@ sys.path.insert(0, os.path.join(ROOT, "resources", "lib"))
 from core.constants import HOME_WINDOW_ID  # noqa: E402
 from ui import dialog_layout as layout  # noqa: E402
 
+# The files carry the default panel position.  With Kodistubs installed
+# (requirements-dev.txt) the Kodi imports succeed outside Kodi and every
+# setting would read 0, moving the panel to the top-left corner.
+layout.xbmc = None
+layout.settings = None
+
+
 SKIN = os.path.join(ROOT, "resources", "skins", "Default", "1080i")
 
 _WINDOW = f"Window({HOME_WINDOW_ID})"

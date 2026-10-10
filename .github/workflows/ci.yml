@@ -12,18 +12,20 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Every job names its Ubuntu release rather than ubuntu-latest, which moves
+# to a new release on GitHub's schedule; a move is then a change of its own.
 jobs:
   python:
-    name: Python ${{ matrix.python }} (ruff, mypy, pytest)
-    runs-on: ubuntu-latest
+    name: Python ${{ matrix.python }} (ruff, mypy, pytest, coverage)
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         # CoreELEC's Kodi 21 ships 3.11; newer Kodi builds use newer Pythons.
-        python: ["3.11", "3.13"]
+        python: ["3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: ${{ matrix.python }}
           cache: pip
@@ -34,26 +36,43 @@ jobs:
       - name: mypy
         run: mypy
       - name: Unit tests
-        run: python -m pytest tests/unit
+        run: python -m pytest --cov=resources/lib --cov-report=term-missing:skip-covered tests/unit
 
   web:
-    name: Dashboard scripts (ESLint)
-    runs-on: ubuntu-latest
+    name: Dashboard scripts (ESLint, tests)
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - run: npm test
+
+  browser:
+    name: Dashboard in Chromium
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
 
   addon:
     name: Kodi add-on checker
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: "3.11"
       - run: python -m pip install kodi-addon-checker==0.0.36

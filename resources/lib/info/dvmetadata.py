@@ -23,13 +23,14 @@ source range, so the last received block is held until replaced (see
 nothing and simply formats it.
 """
 
+from collections.abc import Callable, Iterable, Sequence
 from functools import cache
 
 import xbmc
 import xbmcaddon
-
 from info import dvformat as fmt
 from info.dvcomposer import CURVE_COMPONENTS, composer_pairs, curve_entries, nlq_entries
+
 # The row kinds are part of this module's interface (ui.dvmetadata, the
 # dashboard), so they are re-exported here.
 from info.dvformat import (  # noqa: F401
@@ -64,14 +65,14 @@ def _module_version() -> str:
     """
     try:
         version = xbmcaddon.Addon(_SIDEDATA_ID).getAddonInfo("version")
-    except Exception:
+    except Exception:  # not installed: Kodi raises RuntimeError
         version = ""
     return version or EMPTY
 
 
 # --- Sections --------------------------------------------------------------
 
-def _section(rows: list, title: str, entries, state: str = "") -> None:
+def _section(rows: list, title: str, entries: Iterable[tuple], state: str = "") -> None:
     """Append a heading and its entries to *rows*, skipping empty ones.
 
     An entry is a ``(name, value)`` pair or a full ``(kind, name, value)``
@@ -398,7 +399,9 @@ def _vector_block(trim: dict, key: str) -> dict:
     return dict(enumerate(vector))
 
 
-def _table(legend: str, controls, trims: list, block_of, formatter) -> list:
+def _table(legend: str, controls: Sequence[tuple[str, str]], trims: list,
+           block_of: Callable[[dict], dict], formatter: Callable[[object], str]) -> list:
+
     """Build one trim table: a heading row, then one row per pass.
 
     Only controls set by some pass get a column; unset cells are blank (a

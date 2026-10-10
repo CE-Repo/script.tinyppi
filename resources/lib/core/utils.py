@@ -6,12 +6,15 @@
 import re
 import threading
 import time
+from collections.abc import Collection, Hashable, Iterable
+from typing import TypeVar
 
 import xbmc
 import xbmcgui
 from core import settings
 from core.constants import HOME_WINDOW_ID
 from core.log import log
+from core.protocols import PropertyTarget
 
 _DECIMAL_RE = re.compile(r"-?\d+(?:[.,]\d+)?")
 
@@ -27,7 +30,7 @@ PROP_ACTIVE      = "TinyPPI.Active"
 PROP_DIALOG_MODE = "TinyPPI.DialogMode"
 
 # The output type the overlay layout follows (see
-# info.properties.publish_hdr_type).
+# info.publish.publish_hdr_type).
 PROP_EFFECTIVE_HDR_TYPE = "TinyPPI.EffectiveHdrType"
 
 # Whether the stream carries HDR10+ metadata.  A Dolby Vision title with an
@@ -57,7 +60,7 @@ class read_pass:
 
     __slots__ = ("_outer",)
 
-    def __enter__(self):
+    def __enter__(self) -> "read_pass":
         self._outer = getattr(_reads, "info", None)
         if self._outer is None:
             _reads.info = {}
@@ -65,7 +68,7 @@ class read_pass:
             _reads.home = None
         return self
 
-    def __exit__(self, *_exc) -> None:
+    def __exit__(self, *_exc: object) -> None:
         if self._outer is None:
             _reads.info = None
             _reads.cond = None
@@ -181,7 +184,7 @@ def localized(string_id: int) -> str:
     return _strings.get(string_id)
 
 
-def clean(val) -> str:
+def clean(val: object) -> str:
     """Strip the commas Kodi inserts as thousands separators."""
     if val is None:
         return ""
@@ -196,13 +199,16 @@ DEFAULT_HIGHLIGHT_HOLD = 0.75
 # individually (see ``_changed_parts``).
 _WHOLE = -1
 
+# A reading: one string, or a list of cells (the metadata view's rows).
+Reading = TypeVar("Reading", str, list[str])
+
 
 def _colored(text: str, color: str) -> str:
     """Wrap non-empty *text* in Kodi color markup."""
     return f"[COLOR={color}]{text}[/COLOR]" if text else text
 
 
-def _changed_parts(previous, current) -> list:
+def _changed_parts(previous: object, current: str | list[str]) -> list[int]:
     """Return the indices of the parts of *current* that differ from *previous*.
 
     Strings are split on the reading separators, so one moving number does
@@ -225,7 +231,7 @@ def _changed_parts(previous, current) -> list:
             if not index % 2 and part != before[index]]
 
 
-def _colored_parts(value, parts, color: str):
+def _colored_parts(value: Reading, parts: Collection[int], color: str) -> Reading:
     """Return *value* with the parts listed in *parts* colored.
 
     Stale indices from a value of another shape are harmless: whatever set
@@ -260,10 +266,11 @@ class ChangeHighlighter:
         self._hold = max(0.0, hold)
         # Per key: the last plain value, and the highlight deadline per part.
         # Separate dicts, so a key with nothing lit costs a single entry.
-        self._values: dict = {}
-        self._until: dict  = {}
+        self._values: dict[Hashable, str | list[str]] = {}
+        self._until: dict[Hashable, dict[int, float]] = {}
 
-    def mark(self, key, value, color: str, now: float | None = None):
+    def mark(self, key: Hashable, value: Reading, color: str,
+             now: float | None = None) -> Reading:
         """Record *value* under *key* and return it with its changes colored.
 
         A value without history is returned plain, so a freshly opened view
@@ -294,7 +301,7 @@ class ChangeHighlighter:
             self._until.pop(key, None)
         return _colored_parts(value, deadlines, color)
 
-    def retain(self, keys) -> None:
+    def retain(self, keys: Iterable[Hashable]) -> None:
         """Forget every key not in *keys*.
 
         For views whose rows come and go (the metadata view), so the history
@@ -315,7 +322,7 @@ def highlight_hold(setting_id: str) -> float:
     """
     try:
         milliseconds = settings.addon().getSettingInt(setting_id)
-    except Exception:
+    except Exception:  # missing or not an integer (Kodi raises TypeError)
         milliseconds = 0
     return milliseconds / 1000.0 if milliseconds > 0 else DEFAULT_HIGHLIGHT_HOLD
 
@@ -383,13 +390,14 @@ def picture_aspect_ratio(offsets: str) -> float | None:
     return coded_dar * (picture_w / coded_w) * (coded_h / picture_h)
 
 
-def set_window_properties(window, values: tuple[tuple[str, str], ...]) -> None:
+def set_window_properties(window: PropertyTarget, values: tuple[tuple[str, str], ...]) -> None:
     """Publish a batch of window properties."""
     for name, value in values:
         window.setProperty(name, value)
 
 
-def set_changed_properties(window, published: dict, values: tuple[tuple[str, str], ...]) -> None:
+def set_changed_properties(window: PropertyTarget, published: dict[str, str],
+                           values: tuple[tuple[str, str], ...]) -> None:
     """Publish only the values that differ from *published*.
 
     *published* is the caller's record of what the window holds; only the
@@ -409,7 +417,7 @@ def set_changed_properties(window, published: dict, values: tuple[tuple[str, str
 _JOIN_TIMEOUT = 1.0
 
 
-def join_refresh_thread(thread) -> None:
+def join_refresh_thread(thread: threading.Thread | None) -> None:
     """Wait for a view's refresh thread to stop.
 
     The loop checks the view's running flag only between ticks, so it can
@@ -443,7 +451,8 @@ def log_refresh_failure(view: str, exc: Exception) -> None:
     )
 
 
-def clear_overlay_state(home) -> None:
+def clear_overlay_state(home: PropertyTarget) -> None:
+
     """Clear the Home-window properties that mark TinyPPI as open."""
     for prop in (PROP_RUNNING, PROP_ACTIVE, PROP_DIALOG_MODE):
         home.clearProperty(prop)

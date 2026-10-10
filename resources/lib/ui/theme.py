@@ -16,10 +16,12 @@ import re
 from typing import NamedTuple
 
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcvfs
 from core import settings
 from core.constants import ADDON_ID, PROFILE_DIR
+from core.protocols import PropertyTarget
 from core.utils import home_window
 from ui.palette import BACKGROUND, TEXT, named
 
@@ -164,7 +166,7 @@ _HEX6_RE = re.compile(r"^[0-9A-Fa-f]{6}$")
 _HEX8_RE = re.compile(r"^[0-9A-Fa-f]{8}$")
 
 
-def _notify(addon, message_id: int, icon: str, duration: int) -> None:
+def _notify(addon: xbmcaddon.Addon, message_id: int, icon: str, duration: int) -> None:
     """Show a localized TinyPPI settings notification."""
     xbmcgui.Dialog().notification(
         addon.getAddonInfo("name"),
@@ -237,7 +239,8 @@ def _opacity_setting(color_setting_id: str) -> str:
     return color_setting_id[: -len("_color")] + "_opacity"
 
 
-def _opacity_alpha(addon, setting_id, default, overrides=None) -> str:
+def _opacity_alpha(addon: xbmcaddon.Addon, setting_id: str, default: int,
+                   overrides: dict[str, str] | None = None) -> str:
     """Return the hex alpha for opacity slider *setting_id* (0-100 %).
 
     *default* applies when the value is missing or invalid.
@@ -251,7 +254,8 @@ def _opacity_alpha(addon, setting_id, default, overrides=None) -> str:
     return f"{int(percent * 255 / 100 + 0.5):02X}"
 
 
-def _setting_value(addon, setting_id: str, overrides) -> str:
+def _setting_value(addon: xbmcaddon.Addon, setting_id: str,
+                   overrides: dict[str, str] | None) -> str:
     """Return a setting value, preferring *overrides* (fresh, unsaved writes)."""
     if overrides and setting_id in overrides:
         return str(overrides[setting_id])
@@ -430,7 +434,8 @@ _COLOR_SETTINGS = {
 }
 
 
-def apply_theme(home, addon=None, overrides=None) -> None:
+def apply_theme(home: PropertyTarget, addon: xbmcaddon.Addon | None = None,
+                overrides: dict[str, str] | None = None) -> None:
     """Read the color settings and publish them as Home-window properties.
 
     Call before opening the overlay so the skin can resolve every color.
@@ -465,7 +470,7 @@ def apply_theme(home, addon=None, overrides=None) -> None:
     )
 
 
-def _ask_hex(addon, spec: _ColorSetting, current_rgb: str) -> str | None:
+def _ask_hex(addon: xbmcaddon.Addon, spec: _ColorSetting, current_rgb: str) -> str | None:
     """Ask for a 6-digit HEX color and return its stored value.
 
     Pre-filled with the current color.  None when cancelled; invalid input
@@ -545,7 +550,7 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
         apply_theme(home_window(), addon, overrides={setting_id: new_value})
 
 
-def migrate_legacy_colors(addon=None) -> int:
+def migrate_legacy_colors(addon: xbmcaddon.Addon | None = None) -> int:
     """Rewrite color settings stored in the old form; return the count.
 
     Old values (a palette index, 999 pointing into the JSON file, or a name

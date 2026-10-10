@@ -9,9 +9,11 @@ import math
 import re
 
 import xbmc
-
+from core.log import channel
 from core.utils import cond, info
-from web.values import clean_value, numbers
+from web.values import Unchecked, clean_value, numbers
+
+_log = channel("web")
 
 
 # --- State -----------------------------------------------------------------
@@ -23,7 +25,8 @@ def rpc(method: str, params: dict | None = None) -> dict:
         request["params"] = params
     try:
         answer = json.loads(xbmc.executeJSONRPC(json.dumps(request)))
-    except Exception:
+    except Exception as exc:  # Kodi shutting down, or an answer that is no JSON
+        _log(f"JSON-RPC {method} failed: {exc}")
         return {}
     return answer if isinstance(answer, dict) else {}
 
@@ -209,8 +212,10 @@ _COMMANDS = ("playpause", "stop", "seek", "seek_percent", "volume", "mute",
 _SEEK_LIMIT = 3600
 
 
-def _number(value, low: float, high: float) -> float | None:
+def _number(value: Unchecked, low: float, high: float) -> float | None:
     """Return *value* as a number within [*low*, *high*], or None."""
+    if isinstance(value, bool):  # JSON true/false would pass as 1/0
+        return None
     try:
         number = float(value)
     except (TypeError, ValueError):
@@ -220,7 +225,7 @@ def _number(value, low: float, high: float) -> float | None:
     return number
 
 
-def apply_command(action: str, value=None) -> bool:
+def apply_command(action: str, value: Unchecked = None) -> bool:
     """Run a transport command and return whether it succeeded.
 
     JSON-RPC (not builtins) so success can be reported; False without a

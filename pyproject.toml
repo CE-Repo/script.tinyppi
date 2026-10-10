@@ -16,11 +16,18 @@ select = [
     "PIE",
     "UP",            # pyupgrade
     "PLE", "PLW",    # pylint errors and warnings
+    "I",             # import order
 ]
 ignore = [
     "UP031",   # %-formatting is kept where it reads better (skin labels)
     "SIM905",  # word lists written as one split string on purpose
 ]
+
+[tool.ruff.lint.isort]
+# Kodi's modules sit with the add-on's own packages, after the standard
+# library and anything installed.
+known-first-party = ["core", "info", "ui", "web", "xbmc", "xbmcaddon", "xbmcgui", "xbmcvfs",
+                     "dashboard_server"]
 
 [tool.ruff.lint.per-file-ignores]
 # The service puts resources/lib on sys.path before importing from it.
@@ -34,6 +41,15 @@ ignore = [
 testpaths = ["tests"]
 addopts = "-q"
 
+[tool.coverage.run]
+source = ["resources/lib"]
+branch = true
+
+[tool.coverage.report]
+# A floor, not a target: raise it as tests are added, never lower it.
+fail_under = 70
+skip_empty = true
+
 [tool.mypy]
 python_version = "3.10"
 # Kodi's modules are typed by Kodistubs (pip install Kodistubs).
@@ -41,5 +57,14 @@ mypy_path = ["resources/lib"]
 explicit_package_bases = true
 files = ["resources/lib", "main.py"]
 ignore_missing_imports = true
-check_untyped_defs = false
 warn_unused_ignores = true
+# Every function is annotated and its body checked.  Values of no fixed type
+# say so: ``object`` when only inspected, ``web.values.Unchecked`` for raw
+# request input.  Kodi windows and their stand-ins share
+# ``core.protocols.PropertyTarget``.
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+strict_equality = true
+warn_redundant_casts = true
+extra_checks = true

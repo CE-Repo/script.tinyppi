@@ -13,3 +13,5 @@ __pycache__/
 
 # Lint tooling (npm install)
 node_modules/
+.coverage
+htmlcov/

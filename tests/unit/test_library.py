@@ -168,3 +168,20 @@ def test_marking_drops_the_lists(kodi):
     assert library.revision() == revision + 1
     assert not library.set_watched("movie", "x", True)
     assert not library.set_watched("album", 1, True)
+
+
+@pytest.mark.parametrize(("value", "wanted"), [
+    (5, 5), ("5", 5), (" 7 ", 7), (3.0, 3),
+    (True, 0), (False, 0), (2.5, 0), (float("nan"), 0), (float("inf"), 0),
+    (0, 0), (-4, 0), ("5.0", 0), ("x", 0), (None, 0), ([], 0), ({}, 0),
+])
+def test_ids_from_requests(value, wanted):
+    from web.values import library_id
+    assert library_id(value) == wanted
+
+
+def test_a_boolean_id_starts_nothing(kodi):
+    assert library.play(True) is False
+    assert library.play_episode(1.5) is False
+    assert library.set_watched("movie", True, True) is False
+    assert library.clear_resume("episode", False) is False
