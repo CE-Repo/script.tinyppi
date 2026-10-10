@@ -352,7 +352,7 @@ def _metadata_row(kind: str, name: str, value: object) -> dict:
 def _output_token(mode: str) -> str:
     """Map the Amlogic output mode to an HDR token ('' for SDR).
 
-    Follows ``ui.splash._amlogic_hdr_token``.
+    Follows ``ui.splash_logos.output_hdr_token``.
     """
     mode = (mode or "").upper()
     if "DV" in mode or "DOLBY" in mode:

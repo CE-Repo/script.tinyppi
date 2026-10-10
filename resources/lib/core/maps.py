@@ -190,7 +190,7 @@ HDR_LOGO_MAP = {
 }
 
 # Replacements for the logos above while IMAX material plays (see
-# ui.splash._current_logos, which falls back to the plain logo when one is
+# ui.splash_logos.current_logos, which falls back to the plain logo when one is
 # not installed).  HLG and SDR have no IMAX variant.
 IMAX_LOGO_MAP = {
     "hdr10":       "codecs/HDR10_IMAX.png",

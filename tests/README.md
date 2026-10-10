@@ -48,6 +48,7 @@ development files.
 | `unit/test_helpers.py` | Frame-rate formatting and drops; the VS10 dialog's layouts: files, positions on screen, the branch per stream type |
 | `unit/test_images.py` | PNG decoding (every filter, colour type and indexed bit depth), scaling in premultiplied alpha, the texture cache and its pruning |
 | `unit/test_fonts.py` | Font.xml: the resolution folders (never outside the skin), entries inserted in every fontset with the file's own layout, the ready and failed marks |
+| `unit/test_splash_logos.py` | What the codec-logo splash shows: the logo per output mode, conversions told from the output, the DV layer pill, IMAX logos only when installed, audio known before Kodi names the codec |
 | `web/core.test.mjs` | The dashboard's connection in jsdom: whole snapshots, delta frames as `web/delta.py` writes them, a delta without a base, bad frames, the token in the stream address and the command header, the token dialog, `bye`, the localized strings, value formatting, folded cards |
 | `web/colour.test.mjs` | The cover tint's colour arithmetic: the sRGB curve, WCAG contrast, OKLab reference values, OKLCh round trips, chroma pulled into the gamut with lightness and hue kept |
 
