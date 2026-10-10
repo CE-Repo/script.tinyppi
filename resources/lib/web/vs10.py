@@ -133,7 +133,7 @@ class _ModeSwitcher:
         monitor = xbmc.Monitor()
         while (mode := self._next(monitor)) is not None:
             try:
-                from ui.mode_select import set_mode
+                from core.vs10 import set_mode
                 set_mode(mode)
             except Exception as exc:  # a switch must not break the service
                 _log(f"VS10 mode '{mode}' failed: {exc}", xbmc.LOGERROR)

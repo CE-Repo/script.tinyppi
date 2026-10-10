@@ -14,7 +14,7 @@ from web import vs10
 
 @pytest.fixture
 def switches(monkeypatch):
-    """Replace ui.mode_select.set_mode with a slow recorder."""
+    """Replace core.vs10.set_mode with a slow recorder."""
     applied = []
 
     def set_mode(mode):
@@ -23,9 +23,9 @@ def switches(monkeypatch):
         if mode == "boom":
             raise ValueError("driver said no")
 
-    module = types.ModuleType("ui.mode_select")
+    module = types.ModuleType("core.vs10")
     module.set_mode = set_mode
-    monkeypatch.setitem(sys.modules, "ui.mode_select", module)
+    monkeypatch.setitem(sys.modules, "core.vs10", module)
     monkeypatch.setattr(vs10, "_switcher", vs10._ModeSwitcher())
     return applied
 

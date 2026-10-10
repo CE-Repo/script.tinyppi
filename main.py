@@ -110,7 +110,7 @@ def main() -> None:
         from ui.splash import open_splash
         open_splash()
     elif command == "run_mode" and len(args) > 1:
-        from ui.mode_select import set_mode
+        from core.vs10 import set_mode
         set_mode(args[1])
     elif command == "pick_color" and len(args) > 1:
         from ui.theme import pick_color
