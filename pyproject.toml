@@ -40,7 +40,7 @@ branch = true
 
 [tool.coverage.report]
 # A floor, not a target: raise it as tests are added, never lower it.
-fail_under = 44
+fail_under = 55
 skip_empty = true
 
 [tool.mypy]

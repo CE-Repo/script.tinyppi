@@ -42,6 +42,11 @@ development files.
 | `unit/test_dvinfo.py` | Dolby Vision and HDR fields from parsed side data: profiles, layers, L1/L5/L6, HDR10 and HDR10+, number formats, EL tag colours |
 | `unit/test_dvmetadata.py` | The DV metadata view's rows: scene and static sections, trim tables per target display, the composer's curves and coefficients, value formatting |
 | `unit/test_display.py` | The DRM display reset against a simulated device: HDMI first, the master descriptor, the cached ids and the negative cache |
+| `unit/test_session.py` | The dashboard's history of the playing title: the sample clock, events for changed readings, track changes held back until settled, warnings once per crossing, frame-rate events, a new title, the finished title kept for the idle page |
+| `unit/test_monitor.py` | The service's notifications: library drops, view handover (acknowledged, withdrawn, failing), fonts on a skin load, one splash at a time, dashboard settings, the start-up warm-up |
+| `unit/test_helpers.py` | Frame-rate formatting and drops; the VS10 dialog's layouts: files, positions on screen, the branch per stream type |
+| `unit/test_images.py` | PNG decoding (every filter, colour type and indexed bit depth), scaling in premultiplied alpha, the texture cache and its pruning |
+| `unit/test_fonts.py` | Font.xml: the resolution folders (never outside the skin), entries inserted in every fontset with the file's own layout, the ready and failed marks |
 
 ## Kodi 22 suite
 
