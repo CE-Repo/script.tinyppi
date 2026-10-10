@@ -91,6 +91,19 @@ function fakeCanvas(window) {
     return image;
   }
 
+  /* The page moving an <img> on to another poster, *at* its pixels, which
+     then has to load like any other. */
+  function replace(image, src, at) {
+    const { width, height } = pixels.get(image);
+    const data = new Uint8ClampedArray(width * height * 4);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) data.set([...at(x, y), 255], (y * width + x) * 4);
+    }
+    pixels.set(image, { width, height, data });
+    Object.assign(state.get(image), { complete: false, naturalWidth: 0 });
+    image.src = src;
+  }
+
   /* The browser finishing a poster that was still loading. */
   function arrive(image, { decoded = true, failed = false } = {}) {
     const status = state.get(image);
@@ -99,7 +112,7 @@ function fakeCanvas(window) {
     image.dispatchEvent(new window.Event(failed ? "error" : "load"));
   }
 
-  return { log, poster, arrive };
+  return { log, poster, replace, arrive };
 }
 
 /* A page wearing the adaptive theme, as a first visit does, with a
@@ -119,7 +132,9 @@ function tinted({ scripts = ["theme.js", "colour.js", "cover-tint.js"] } = {}) {
     main: document.querySelector("main"),
     chrome: [document.querySelector(".topbar"), document.querySelector(".tabbar")],
     C: window.TinyPPIColour,
+    /* The <img> carries the address it is shown with, as the page's does. */
     async show(url, image, element = card) {
+      if (image) image.src = url;
       window.TinyPPICover.show(element, url, image);
       await settle();
     },
@@ -395,6 +410,39 @@ test("a poster still loading is read once it arrives", async () => {
   assert.deepEqual(Object.keys(painted(view.card)), PAINTED);
 });
 
+test("a poster still loading is read once, however often the page repaints meanwhile", async () => {
+  const view = tinted();
+  const image = view.canvas.poster(96, 144, BLUE, { loading: true });
+  await view.show("/late", image);
+  await view.set("data-cover-strength", "0");
+  await view.set("data-cover-strength", "2");
+  await view.show("/late", image);
+  view.canvas.arrive(image);
+  await settle();
+  assert.equal(view.canvas.log.contexts, 1);
+  assert.deepEqual(Object.keys(painted(view.card)), PAINTED);
+});
+
+test("an <img> moved on to the next poster while loading keeps each poster's colour its own", async () => {
+  const view = tinted();
+  const { canvas } = view;
+  const image = canvas.poster(96, 144, BLUE, { loading: true });
+  await view.show("/blue", image);
+  canvas.replace(image, "/red", RED);
+  await view.show("/red", image);
+  canvas.arrive(image);
+  await settle();
+  const red = accentOf(view.card);
+  assert.ok(red[0] > red[2], `${red}`);
+  assert.equal(canvas.log.contexts, 1);
+
+  // Blue was never read, so it is read when it comes back, not painted red.
+  await view.show("/blue", canvas.poster(96, 144, BLUE));
+  assert.equal(canvas.log.contexts, 2);
+  const blue = accentOf(view.card);
+  assert.ok(blue[2] > blue[0], `${blue}`);
+});
+
 test("a poster that fails, or loads without pixels, paints nothing and is not tried again", async () => {
   for (const outcome of [{ failed: true }, { decoded: false }]) {
     const view = tinted();
@@ -526,6 +574,7 @@ test("without a MutationObserver a theme change is seen at the next poster", asy
   const canvas = fakeCanvas(view.window);
   const card = view.window.document.createElement("div");
   const image = canvas.poster(96, 144, BLUE);
+  image.src = "/blue";
   view.window.TinyPPICover.show(card, "/blue", image);
   await settle();
   view.window.document.documentElement.setAttribute("data-theme", "midnight");
@@ -548,7 +597,9 @@ test("a page with neither a card nor a main area has nothing to paint", async ()
   assert.equal(canvas.log.contexts, 0);
   // A card alone is painted, with no bars around it to take the accent.
   const card = window.document.createElement("div");
-  window.TinyPPICover.show(card, "/blue", canvas.poster(96, 144, BLUE));
+  const image = canvas.poster(96, 144, BLUE);
+  image.src = "/blue";
+  window.TinyPPICover.show(card, "/blue", image);
   await settle();
   assert.deepEqual(Object.keys(painted(card)), PAINTED);
   assert.equal(tints.length, 2);

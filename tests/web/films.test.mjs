@@ -560,20 +560,85 @@ test("the wall is not read again under a pressed tile, and is once the press is 
 
 test("a second film pressed while the first is waiting starts nothing", async (t) => {
   const view = await open(t);
-  // The only way to reach a second tile during a press: a read already on
-  // its way when the press comes builds the wall again under it, with tiles
-  // that know nothing of the press.  (That rebuild losing the press is a
-  // defect of its own, reported alongside these tests; should it be fixed,
-  // this precondition goes and so does the way to a second press.)
+  await press(view, "Alien");
+  // A waiting wall takes no press; a click that reaches a tile all the same
+  // (sent by a script, say) is dropped.
+  assert.equal(tile(view, "Dune").disabled, true);
+  tile(view, "Dune").dispatchEvent(new view.window.MouseEvent("click"));
+  answer(view, "play");
+  await settle();
+  assert.deepEqual(plays(view), [{ movieid: 1 }]);
+});
+
+test("a read already on its way when a tile is pressed does not build the wall under it", async (t) => {
+  const view = await open(t);
+  await view.state({ ...IDLE, library: 1 });
   const release = hold(view, "/api/library");
   view.routes["/api/library"] = [200, { tag: "f2", movies: FILMS }];
-  await view.state({ ...IDLE, library: 1 });
   await view.state({ ...IDLE, library: 2 });
   await press(view, "Alien");
-  assert.equal(tile(view, "Dune").disabled, true);
+  const dune = tile(view, "Dune");
   await release();
-  assert.equal(tile(view, "Dune").disabled, false, "the wall was built again under the press");
+  assert.equal(tile(view, "Dune"), dune);
+  assert.equal(dune.disabled, true);
+  assert.equal(tile(view, "Alien").classList.contains("busy"), true);
 
-  await press(view, "Dune");
-  assert.deepEqual(plays(view), [{ movieid: 1 }]);
+  // The answer that was put off is asked for again once the press is over.
+  view.clock.tick(4000);
+  await view.state(IDLE);
+  assert.equal(reads(view, "/api/library"), 3);
+  assert.notEqual(tile(view, "Dune"), dune);
+  assert.equal(tile(view, "Dune").disabled, false);
+});
+
+test("an answer put off under a press is asked for again when the press fails", async (t) => {
+  const view = await open(t);
+  await view.state({ ...IDLE, library: 1 });
+  const library = hold(view, "/api/library");
+  view.routes["/api/library"] = [200, { tag: "f2", movies: FILMS.slice(1) }];
+  await view.state({ ...IDLE, library: 2 });
+  view.routes["/api/play"] = [500, {}];
+  const play = hold(view, "/api/play");
+  await press(view, "Alien");
+  await library();
+  assert.equal(titles(view, "filmGrid").length, 5);
+  // Nothing started, so only the move put off says the wall is unread.
+  await play();
+  assert.equal(tile(view, "Dune").disabled, false);
+  await view.state({ ...IDLE, library: 2 });
+  assert.equal(reads(view, "/api/library"), 3);
+  assert.deepEqual(titles(view, "filmGrid"), ["Brazil", "Cube", "Dune", "Eraserhead"]);
+});
+
+test("a library that moves again while it is being read is read once more", async (t) => {
+  const view = await open(t);
+  await view.state({ ...IDLE, library: 1 });
+  const release = hold(view, "/api/library");
+  await view.state({ ...IDLE, library: 2 });
+  view.routes["/api/library"] = [200, { tag: "f2", movies: FILMS.slice(1) }];
+  await view.state({ ...IDLE, library: 3 });
+  assert.equal(reads(view, "/api/library"), 2);
+  await release();
+  assert.equal(titles(view, "filmGrid").length, 5);
+
+  await view.state({ ...IDLE, library: 3 });
+  assert.equal(reads(view, "/api/library"), 3);
+  assert.deepEqual(titles(view, "filmGrid"), ["Brazil", "Cube", "Dune", "Eraserhead"]);
+});
+
+test("a read that fails after the library moved leaves the wall standing", async (t) => {
+  const view = await open(t);
+  await view.state({ ...IDLE, library: 1 });
+  view.routes["/api/library"] = [500, {}];
+  await view.state({ ...IDLE, library: 2 });
+  assert.equal(reads(view, "/api/library"), 2);
+  for (const card of ["filmsCard", "recentFilmsCard", "unseenFilmsCard"]) {
+    assert.equal(hidden(view, card), false, card);
+  }
+  assert.equal(titles(view, "filmGrid").length, 5);
+
+  // Still unread: once the wait is over it is asked for again.
+  view.clock.tick(5000);
+  await view.state({ ...IDLE, library: 2 });
+  assert.equal(reads(view, "/api/library"), 3);
 });

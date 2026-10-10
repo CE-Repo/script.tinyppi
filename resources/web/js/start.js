@@ -71,7 +71,7 @@ function applyStrings(strings, hello) {
   $("vs10Title").textContent = strings.vs10;
   $("vs10OutLabel").textContent = strings.output;
   if (hello) {
-    el.version.textContent = "v" + hello.version;
+    if (hello.version) el.version.textContent = "v" + hello.version;
     offerShelves(hello);
   }
 }

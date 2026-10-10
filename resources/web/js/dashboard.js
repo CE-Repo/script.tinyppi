@@ -357,6 +357,13 @@ function render(next) {
   else hideSeries();
   if (control) requestContinue(ended);
   else hideContinue();
+  /* Hidden, the shelves come back only with a read: marked unread, so that
+     control returning reads them again. */
+  if (!control) {
+    filmsStale();
+    seriesStale();
+    continueStale();
+  }
 
   if (!next.playing) {
     el.idleCard.classList.remove("hidden");
@@ -503,6 +510,8 @@ function renderVs10(vs10) {
       button.className = "mode";
       button.dataset.mode = option.mode;
       button.textContent = option.label;
+      /* Locked like the buttons it replaces while a switch settles. */
+      button.disabled = pending !== null;
       button.addEventListener("click", () => switchMode(option.mode, button));
       el.modes.appendChild(button);
     }

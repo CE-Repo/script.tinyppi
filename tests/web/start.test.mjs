@@ -29,8 +29,8 @@ function load(dom, name) {
 /** The dashboard as index.html loads it, with the page's timers held (none
  * of them is wanted here) and the window closed when the test ends.
  * *before* runs on the bare page ahead of the scripts. */
-function open(t, { hello = { version: "2.15.0", strings: {} }, before } = {}) {
-  const view = page({ scripts: [], routes: { "/api/hello": [200, hello] } });
+function open(t, { hello = { version: "2.15.0", strings: {} }, status = 200, before } = {}) {
+  const view = page({ scripts: [], routes: { "/api/hello": [status, hello] } });
   const { window, dom } = view;
   t.after(() => window.close());
   window.setTimeout = () => 0;
@@ -134,6 +134,14 @@ test("until /api/hello answers, the frame carries the built-in English", (t) => 
   assert.equal($("markCancel").textContent, "Cancel");
   assert.equal($("tokenHead").textContent, "Access token");
   assert.equal($("vs10Title").textContent, "VS10 output");
+  assert.equal($("continueFilmsLabel").textContent, "Continue watching");
+  assert.equal($("recentSeriesLabel").textContent, "Recently added");
+  assert.equal($("unseenFilmsLabel").textContent, "Unwatched films");
+  assert.equal($("unseenSeriesLabel").textContent, "Unwatched series");
+  assert.equal($("markRestart").textContent, "Play from the beginning");
+  assert.equal($("markClear").textContent, "Clear resume point");
+  assert.equal($("markWatched").textContent, "Mark as watched");
+  assert.equal($("markUnwatched").textContent, "Mark as unwatched");
   assert.equal($("version").textContent, "");
   const live = window.document.querySelector('#tabBar .tab[data-tab="live"]');
   assert.equal(live.getAttribute("aria-label"), "Live");
@@ -198,4 +206,16 @@ test("a /api/hello that cannot be reached leaves the English and the tab in plac
   assert.equal(front(view), "settings");
   assert.equal(view.$("idleTitle").textContent, "Nothing is playing");
   assert.equal(view.$("version").textContent, "");
+});
+
+test("an error answer from /api/hello, or one without a version, writes no version", async (t) => {
+  const failed = open(t, { status: 500, hello: {
+    error: "boom", version: "2.15.0", strings: { idle_title: "Nichts läuft" } } });
+  await settle();
+  assert.equal(failed.$("version").textContent, "");
+  assert.equal(failed.$("idleTitle").textContent, "Nothing is playing");
+
+  const bare = open(t, { hello: { strings: {} } });
+  await settle();
+  assert.equal(bare.$("version").textContent, "");
 });

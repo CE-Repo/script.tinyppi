@@ -293,3 +293,22 @@ test("a write that fails, or never reaches the box, says so and reads nothing ag
   assert.deepEqual(reads(view), before);
   assert.equal(view.$("tokenDialog").open, false);
 });
+
+test("before /api/hello has given any words, the question and its failure are in English", async (t) => {
+  const view = await open(t, { routes: {
+    "/api/hello": [200, { version: "2.15.0", strings: {} }], "/api/watched": [500, {}] } });
+  tile(view, "Film 01").click();
+  assert.equal(asked(view).play, "Play");
+  assert.deepEqual(["markWatched", "markUnwatched", "markCancel"].map((id) => view.$(id).textContent),
+                   ["Mark as watched", "Mark as unwatched", "Cancel"]);
+  answer(view, "watched");
+  await settle();
+  assert.equal(view.$("toast").textContent, "The library could not be updated");
+
+  tile(view, "Film 03").click();
+  assert.deepEqual(["markRestart", "markClear"].map((id) => view.$(id).textContent),
+                   ["Play from the beginning", "Clear resume point"]);
+  answer(view, "");
+  tile(view, "Show 2").click();
+  assert.equal(asked(view).play, "Open");
+});

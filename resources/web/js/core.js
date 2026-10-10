@@ -57,8 +57,13 @@ window.TinyPPI = (function () {
     search_clear: "Clear the search",
     runtime_hm: "%s h %s min", runtime_m: "%s min", runtime_h: "%s h",
     films_failed: "Playback could not be started", films_resume: "Resume",
-    films_watched: "Watched",
-    series: "Series", series_empty: "No series in the video library",
+    films_watched: "Watched", films_play: "Play",
+    play_from_start: "Play from the beginning", resume_clear: "Clear resume point",
+    mark_watched: "Mark as watched", mark_unwatched: "Mark as unwatched",
+    mark_failed: "The library could not be updated",
+    continue: "Continue watching", recent: "Recently added",
+    films_unseen: "Unwatched films", series_unseen_shows: "Unwatched series",
+    series: "Series", series_empty: "No series in the video library", series_open: "Open",
     series_search: "Search series", series_back: "All series",
     series_unseen: "Unwatched episodes", series_season: "Season %s",
     series_specials: "Specials",
@@ -586,7 +591,10 @@ window.TinyPPI = (function () {
     connect();
 
     try {
-      const hello = await (await fetch("/api/hello")).json();
+      const response = await fetch("/api/hello");
+      /* An error page may carry JSON of its own, and none of it is a hello. */
+      if (!response.ok) return;
+      const hello = await response.json();
       Object.assign(T, hello.strings || {});
       applyChromeStrings();
       if (options.onStrings) options.onStrings(T, hello);

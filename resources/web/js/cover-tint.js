@@ -251,10 +251,7 @@ window.TinyPPICover = (function () {
     return best && best.rgb.map(Math.round);
   }
 
-  function sampleSize(image) {
-    const width = image.naturalWidth || image.width;
-    const height = image.naturalHeight || image.height;
-    if (!width || !height) return { width: SAMPLE_MAX, height: SAMPLE_MAX };
+  function sampleSize(width, height) {
     const scale = Math.min(1, SAMPLE_MAX / Math.max(width, height));
     return {
       width: Math.max(1, Math.round(width * scale)),
@@ -331,11 +328,13 @@ window.TinyPPICover = (function () {
 
   function paletteFromImage(image) {
     try {
-      const width = image.naturalWidth || image.width;
+      /* Only a poster with pixels gets here (see ready); an SVG may still
+         know no height of its own, and then its box has to do. */
+      const width = image.naturalWidth;
       const height = image.naturalHeight || image.height;
-      if (!width || !height) return null;
+      if (!height) return null;
 
-      const size = sampleSize(image);
+      const size = sampleSize(width, height);
       const pixels = reduce(image, width, height, size);
 
       const palette = regionalPalette(pixels, size.width, size.height);
@@ -610,16 +609,24 @@ window.TinyPPICover = (function () {
   /* Reading a poster costs an image decode and a canvas read, so each one is
      read once and what it yielded is kept.  A stored null records "nothing to
      paint for this one", which stops an unreadable poster being retried every
-     time the theme changes. */
+     time the theme changes.  A read still waiting for its poster is kept too,
+     so the repaints that come meanwhile all wait on that one. */
   const palettes = new Map();
+  const reading = new Map();
 
   function readCover(url, image) {
-    if (palettes.has(url)) return Promise.resolve(palettes.get(url));
-    return ready(image).then((ok) => {
+    if (reading.has(url)) return reading.get(url);
+    const read = ready(image).then((ok) => {
+      reading.delete(url);
+      /* The page reuses one <img> and only changes its address, so what loaded
+         may be the next film's poster; that one is read under its own. */
+      if (image.getAttribute("src") !== url) return null;
       const palette = ok ? paletteFromImage(image) : null;
       palettes.set(url, palette);
       return palette;
     });
+    reading.set(url, read);
+    return read;
   }
 
   /* The poster being painted from, and the card the hero variant goes on.  The

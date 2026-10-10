@@ -341,7 +341,7 @@ test("a press on a show asks to open it, and opening it lists its seasons folded
   for (const id of ["episodeList", "seriesBack", "seriesOpen"]) {
     assert.equal(hidden(view, id), false, id);
   }
-  for (const id of ["seriesGrid", "seriesSearch", "seriesEmpty"]) {
+  for (const id of ["seriesGrid", "seriesSearchBox", "seriesEmpty"]) {
     assert.equal(hidden(view, id), true, id);
   }
   // Opened from the wall itself, nothing is scrolled.
@@ -649,6 +649,7 @@ test("under a pressed episode the shelf and the show wait, and are read once it 
   view.clock.tick(4000);
   await view.state(IDLE);
   assert.equal(reads(view, "/api/series"), 2);
+  assert.equal(reads(view, "/api/episodes"), 2);
 });
 
 test("no other show is opened while an episode is waiting", async (t) => {
@@ -670,19 +671,116 @@ test("no other show is opened while an episode is waiting", async (t) => {
 test("a second episode pressed while the first is waiting starts nothing", async (t) => {
   const view = await open(t);
   await openShow(view, "Andor");
-  // The only way to reach a second row during a press: a read already on
-  // its way when the press comes builds the list again under it, with rows
-  // that know nothing of the press.  (That rebuild losing the press is a
-  // defect of its own, reported alongside these tests.)
+  await press(view, row(view, "Kassa"));
+  // A waiting list takes no press; a click that reaches a row all the same
+  // (sent by a script, say) is dropped.
+  assert.equal(row(view, "One Way Out").disabled, true);
+  row(view, "One Way Out").dispatchEvent(new view.window.MouseEvent("click"));
+  answer(view, "play");
+  await settle();
+  assert.deepEqual(plays(view), [{ episodeid: 101 }]);
+});
+
+test("a read of the show already on its way when an episode is pressed does not build the list under it", async (t) => {
+  const view = await open(t);
+  await openShow(view, "Andor");
   const release = hold(view, "/api/episodes");
+  view.routes["/api/episodes"] = [200, { tag: "e2", episodes: EPISODES.slice(1) }];
   await view.moved();
   await press(view, row(view, "Kassa"));
-  assert.equal(row(view, "One Way Out").disabled, true);
+  const before = rows(view);
   await release();
-  assert.equal(row(view, "One Way Out").disabled, false, "the list was built again under the press");
+  const after = rows(view);
+  assert.equal(after.length, before.length);
+  assert.ok(after.every((node, index) => node === before[index]));
+  assert.equal(row(view, "One Way Out").disabled, true);
+  assert.equal(row(view, "Kassa").classList.contains("busy"), true);
 
-  await press(view, row(view, "One Way Out"));
-  assert.deepEqual(plays(view), [{ episodeid: 101 }]);
+  // The answer that was put off is asked for again once the press is over.
+  view.clock.tick(4000);
+  await settle();
+  assert.equal(reads(view, "/api/episodes"), 3);
+  assert.equal(rows(view).length, EPISODES.length - 1);
+  assert.equal(rows(view).some((node) => node.disabled), false);
+});
+
+test("a shelf read already on its way when an episode is pressed does not close the show under it", async (t) => {
+  const view = await open(t);
+  await openShow(view, "Andor");
+  // The show is scanned away, and the shelf saying so is on its way.
+  view.routes["/api/series"] = [200, { tag: "s2", shows: SHOWS.slice(1) }];
+  const release = hold(view, "/api/series");
+  await view.moved();
+  await press(view, row(view, "Kassa"));
+  await release();
+  assert.equal(hidden(view, "episodeList"), false);
+  assert.equal(row(view, "Kassa").classList.contains("busy"), true);
+  assert.equal(titles(view, "seriesGrid").length, 4);
+
+  view.clock.tick(4000);
+  await view.state(IDLE);
+  assert.equal(reads(view, "/api/series"), 3);
+  assert.equal(hidden(view, "episodeList"), true);
+  assert.deepEqual(titles(view, "seriesGrid"), ["Babylon 5", "Columbo", "Dark"]);
+});
+
+test("a shelf put off under a press is asked for again when the press fails", async (t) => {
+  const view = await open(t);
+  await openShow(view, "Andor");
+  view.routes["/api/series"] = [200, { tag: "s2", shows: SHOWS.slice(1) }];
+  const shelf = hold(view, "/api/series");
+  await view.moved();
+  view.routes["/api/play"] = [500, {}];
+  const play = hold(view, "/api/play");
+  await press(view, row(view, "Kassa"));
+  await shelf();
+  assert.equal(hidden(view, "episodeList"), false);
+  // Nothing started, so only the move put off says the shelf is unread.
+  await play();
+  await view.state(IDLE);
+  assert.equal(reads(view, "/api/series"), 3);
+  assert.equal(hidden(view, "episodeList"), true);
+  assert.deepEqual(titles(view, "seriesGrid"), ["Babylon 5", "Columbo", "Dark"]);
+});
+
+test("a shelf that moves again while it is being read is read once more", async (t) => {
+  const view = await open(t);
+  const release = hold(view, "/api/series");
+  await view.moved();
+  view.routes["/api/series"] = [200, { tag: "s2", shows: SHOWS.slice(1) }];
+  await view.moved();
+  assert.equal(reads(view, "/api/series"), 2);
+  await release();
+  assert.equal(titles(view, "seriesGrid").length, 4);
+
+  await view.state(IDLE);
+  assert.equal(reads(view, "/api/series"), 3);
+  assert.deepEqual(titles(view, "seriesGrid"), ["Babylon 5", "Columbo", "Dark"]);
+});
+
+test("a shelf read that fails after the library moved leaves the wall standing", async (t) => {
+  const view = await open(t);
+  view.routes["/api/series"] = [500, {}];
+  await view.moved();
+  assert.equal(reads(view, "/api/series"), 2);
+  for (const card of ["seriesCard", "recentSeriesCard", "unseenSeriesCard"]) {
+    assert.equal(hidden(view, card), false, card);
+  }
+  assert.equal(titles(view, "seriesGrid").length, 4);
+
+  // Still unread: once the wait is over it is asked for again.
+  view.clock.tick(5000);
+  await view.state(IDLE);
+  assert.equal(reads(view, "/api/series"), 3);
+});
+
+test("the search comes back with the wall when the show is left", async (t) => {
+  const view = await open(t);
+  await openShow(view, "Andor");
+  assert.equal(hidden(view, "seriesSearchBox"), true);
+  view.$("seriesBack").click();
+  assert.equal(hidden(view, "seriesSearchBox"), false);
+  assert.equal(hidden(view, "seriesSearch"), false);
 });
 
 test("the shelf is not asked for twice at once, nor again once read, until a title ends", async (t) => {

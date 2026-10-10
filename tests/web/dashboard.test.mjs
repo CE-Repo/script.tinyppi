@@ -573,6 +573,17 @@ test("a box that will not be told what to play shows no shelves and reads none",
   }
 });
 
+test("the shelves hidden while control is withdrawn come back with it", async (t) => {
+  const view = open(t, { routes: LIBRARY });
+  const shelves = ["filmsCard", "seriesCard", "continueFilmsCard", "continueSeriesCard"];
+  await view.state(IDLE);
+  for (const id of shelves) assert.equal(hidden(view.$(id)), false, id);
+  await view.state({ ...IDLE, control: false });
+  for (const id of shelves) assert.equal(hidden(view.$(id)), true, id);
+  await view.state(IDLE);
+  for (const id of shelves) assert.equal(hidden(view.$(id)), false, id);
+});
+
 test("the shelves are read on arrival and again when a title ends, not on every snapshot", async (t) => {
   const view = open(t, { routes: LIBRARY });
   const counts = () => ["/api/library", "/api/series", "/api/continue"].map((path) => reads(view, path));
@@ -681,11 +692,13 @@ test("a mode switch posts the mode with the token and keeps the buttons locked w
   assert.equal($("toast").textContent, "Switched");
   assert.equal($("toast").classList.contains("bad"), false);
 
-  // New modes arriving mid-switch are drawn, but a press on one is dropped
-  // while the switch is still settling.
+  // New modes arriving mid-switch are drawn locked like the others, and a
+  // press that reaches one all the same is dropped while the switch is still
+  // settling.
   await view.state({ ...PLAYING, vs10: { ...VS10, options: [{ mode: "hdr10", label: "HDR10" }] } });
   assert.deepEqual(modes(view), [["hdr10", "HDR10", "button", "mode"]]);
-  $("modes").firstElementChild.click();
+  assert.equal($("modes").firstElementChild.disabled, true);
+  $("modes").firstElementChild.dispatchEvent(new view.window.MouseEvent("click"));
   await settle();
   assert.equal(view.requests.filter((request) => request.url === "/api/mode").length, 1);
 
@@ -693,6 +706,7 @@ test("a mode switch posts the mode with the token and keeps the buttons locked w
   assert.equal(sdr.classList.contains("busy"), true);
   clock.tick(1);
   assert.equal(sdr.classList.contains("busy"), false);
+  assert.equal($("modes").firstElementChild.disabled, false);
   $("modes").firstElementChild.click();
   await settle();
   const last = view.requests.filter((request) => request.url === "/api/mode").at(-1);

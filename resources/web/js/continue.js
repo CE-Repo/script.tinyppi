@@ -29,6 +29,7 @@
 let continueTag = "";      /* the row's own tag, unchanged rows skipped    */
 let continueBusy = false;  /* a request for the row is in flight           */
 let continueRead = false;  /* the row has been read since it last moved    */
+let continueShown = false; /* the row has been read at least once          */
 let continueOffered = true; /* until the box says it offers no shelves     */
 let continueNextTry = 0;   /* not before this, after a failure             */
 let continueFilms = 0;     /* how many films the films row holds           */
@@ -52,9 +53,17 @@ function requestContinue(force) {
 }
 
 async function loadContinue() {
+  /* As with the walls: read as the request goes out, so that a move announced
+     while it is out still stands afterwards. */
+  continueRead = true;
   try {
     const answer = await TinyPPI.getJSON("/api/continue");
-    continueRead = true;
+    /* Nor built under a tile pressed while the box was answering. */
+    if (resuming) {
+      continueRead = false;
+      return;
+    }
+    continueShown = true;
     continueNextTry = 0;
     const list = Array.isArray(answer.items) ? answer.items : [];
     if ((answer.tag || "") !== continueTag ||
@@ -66,11 +75,12 @@ async function loadContinue() {
     el.continueFilmsCard.classList.toggle("hidden", continueFilms === 0);
     el.continueSeriesCard.classList.toggle("hidden", continueEpisodes === 0);
   } catch (error) {
+    continueRead = false;
     continueNextTry = Date.now() + FILMS_RETRY_MS;
     /* 403: neither shelf on offer.  404: an add-on older than the row. */
     const code = String((error || {}).message);
     if (code === "403" || code === "404") continueOffered = false;
-    if (!continueRead) hideContinue();
+    if (!continueShown) hideContinue();
   }
 }
 

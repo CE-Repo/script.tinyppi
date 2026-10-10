@@ -437,18 +437,80 @@ test("a read failing with no error at all still counts as a failure", async (t) 
 
 test("a second title pressed while the first is waiting starts nothing", async (t) => {
   const view = await open(t);
-  // The only way to reach a second tile during a press: a read already on
-  // its way when the press comes builds the rows again under it, with tiles
-  // that know nothing of the press.  (That rebuild losing the press is a
-  // defect of its own, reported alongside these tests.)
+  await press(view, "Film 03");
+  // A waiting row takes no press; a click that reaches a tile all the same
+  // (sent by a script, say) is dropped.
+  assert.equal(tile(view, "Show 2").disabled, true);
+  tile(view, "Show 2").dispatchEvent(new view.window.MouseEvent("click"));
+  answer(view, "play");
+  await settle();
+  assert.deepEqual(plays(view), [{ movieid: 3 }]);
+});
+
+test("a read already on its way when a tile is pressed does not build the rows under it", async (t) => {
+  const view = await open(t);
   const release = hold(view, "/api/continue");
   view.routes["/api/continue"] = [200, { tag: "c2", items: ITEMS }];
   await view.moved();
   await press(view, "Film 03");
-  assert.equal(tile(view, "Show 2").disabled, true);
+  const show = tile(view, "Show 2");
   await release();
-  assert.equal(tile(view, "Show 2").disabled, false, "the rows were built again under the press");
+  assert.equal(tile(view, "Show 2"), show);
+  assert.equal(show.disabled, true);
+  assert.equal(tile(view, "Film 03").classList.contains("busy"), true);
 
-  await press(view, "Show 2");
-  assert.deepEqual(plays(view), [{ movieid: 3 }]);
+  // The answer that was put off is asked for again once the press is over.
+  view.clock.tick(4000);
+  await view.state(IDLE);
+  assert.equal(reads(view, "/api/continue"), 3);
+  assert.notEqual(tile(view, "Show 2"), show);
+  assert.equal(tile(view, "Show 2").disabled, false);
+});
+
+test("an answer put off under a press is asked for again when the press fails", async (t) => {
+  const view = await open(t);
+  const row = hold(view, "/api/continue");
+  view.routes["/api/continue"] = [200, { tag: "c2", items: ITEMS.slice(1) }];
+  await view.moved();
+  view.routes["/api/play"] = [500, {}];
+  const play = hold(view, "/api/play");
+  await press(view, "Film 03");
+  await row();
+  assert.equal(everyTile(view).length, 4);
+  // Nothing started, so only the move put off says the row is unread.
+  await play();
+  assert.equal(tile(view, "Show 2").disabled, false);
+  await view.state(IDLE);
+  assert.equal(reads(view, "/api/continue"), 3);
+  assert.deepEqual(titles(view, "continueFilmsRow"), ["Film 04"]);
+});
+
+test("a row that moves again while it is being read is read once more", async (t) => {
+  const view = await open(t);
+  const release = hold(view, "/api/continue");
+  await view.moved();
+  view.routes["/api/continue"] = [200, { tag: "c2", items: ITEMS.slice(1) }];
+  await view.moved();
+  assert.equal(reads(view, "/api/continue"), 2);
+  await release();
+  assert.equal(everyTile(view).length, 4);
+
+  await view.state(IDLE);
+  assert.equal(reads(view, "/api/continue"), 3);
+  assert.deepEqual(titles(view, "continueFilmsRow"), ["Film 04"]);
+});
+
+test("a read that fails after the library moved leaves the rows standing", async (t) => {
+  const view = await open(t);
+  view.routes["/api/continue"] = [500, {}];
+  await view.moved();
+  assert.equal(reads(view, "/api/continue"), 2);
+  assert.equal(hidden(view, "continueFilmsCard"), false);
+  assert.equal(hidden(view, "continueSeriesCard"), false);
+  assert.equal(everyTile(view).length, 4);
+
+  // Still unread: once the wait is over it is asked for again.
+  view.clock.tick(5000);
+  await view.state(IDLE);
+  assert.equal(reads(view, "/api/continue"), 3);
 });

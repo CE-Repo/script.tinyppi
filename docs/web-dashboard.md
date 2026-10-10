@@ -157,9 +157,10 @@ The settings tab switches the page between three themes, and every one of
 them is dark — this is watched in the room the projector is in, so there is
 nothing here for a lit one:
 
-- **Dark** — the plain one, and what a first visit gets.
-- **Dark (adaptive)** — the same page, with the **now-playing card** taking
-  its colour from the poster of whatever is on screen. The artwork is read
+- **Dark** — the plain one.
+- **Dark (adaptive)** — what a first visit gets: the same page, with the
+  **now-playing card** taking its colour from the poster of whatever is on
+  screen. The artwork is read
   region by region and the one colour that stands for it best is drawn across
   the card as a broad glow — strongest beside the poster, spent well before the
   foot, so the bottom of the card is the same plain panel every other one is

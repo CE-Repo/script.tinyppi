@@ -78,6 +78,12 @@ test("the theme and strength chosen last time are put back", async () => {
   assert.deepEqual(pressed(window), ["2"]);
 });
 
+test("the phone's bars wear the theme from the first paint, not only after a press", async () => {
+  const bars = (window) => window.document.querySelector('meta[name="theme-color"]').getAttribute("content");
+  assert.equal(bars((await themed()).window), "#0b0d10");
+  assert.equal(bars((await themed({ "tinyppi.theme": "midnight" })).window), "#04060c");
+});
+
 test("unknown stored values fall back to the defaults", async () => {
   for (const [theme, tint] of [["neon", "7"], ["Midnight", "-1"], ["", "x"], ["dark", "0.5"]]) {
     const { window } = await themed({ "tinyppi.theme": theme, "tinyppi.tint": tint });

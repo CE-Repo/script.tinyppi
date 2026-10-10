@@ -7,6 +7,7 @@
 // copied report, and the small formatting helpers.
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { after, test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -635,6 +636,28 @@ test("an unreadable hello leaves the page on its English", async () => {
   await view.window.TinyPPI.boot({ onStrings: (T, hello) => seen.push([T.connected, hello]) });
   assert.deepEqual(seen, [["Connected", undefined]]);
   assert.equal(view.streams.length, 1);
+});
+
+test("every word the add-on sends has an English stand-in until it does", () => {
+  const table = readFileSync(join(JS, "..", "..", "lib", "web", "strings.py"), "utf8");
+  const sent = [...table.match(/_UI_STRINGS = \{([^}]*)\}/)[1].matchAll(/"(\w+)":/g)]
+    .map((found) => found[1]);
+  assert.ok(sent.length > 90);
+  const { T } = page().window.TinyPPI;
+  /* Bar the end time's label, which the live panels leave off until Kodi's
+     own word for it arrives rather than put an English one in front of a
+     clock already in the box's regional format. */
+  assert.deepEqual(sent.filter((key) => typeof T[key] !== "string"), ["ends_at"]);
+});
+
+test("an error answer from hello is no hello, whatever its body says", async () => {
+  const view = page({ routes: { "/api/hello": [500, {
+    error: "boom", strings: { connected: "Verbunden" }, auth_read: true }] } });
+  const seen = [];
+  await view.window.TinyPPI.boot({ onStrings: (T, hello) => seen.push([T.connected, hello]) });
+  assert.deepEqual(seen, [["Connected", undefined]]);
+  assert.equal(view.window.TinyPPI.T.connected, "Connected");
+  assert.equal(view.window.document.getElementById("tokenDialog").open, false);
 });
 
 test("a page that already holds a token is not asked for one", async () => {
