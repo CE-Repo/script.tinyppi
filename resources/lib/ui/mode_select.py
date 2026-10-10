@@ -124,7 +124,7 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
 
         *logged* suppresses repeated failure logs.
         """
-        from info.properties import publish_hdr_type
+        from info.publish import publish_hdr_type
 
         try:
             publish_hdr_type(home_window())

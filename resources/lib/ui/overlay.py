@@ -36,7 +36,7 @@ from core.utils import (
     read_pass,
     set_window_properties,
 )
-from info import properties
+from info import publish
 from ui.fonts import ensure_fonts
 from ui.theme import apply_theme
 
@@ -115,7 +115,7 @@ _DV_CHANGED_FALLBACK = "FF82B1FF"  # Blue, the setting's default
 # stays at 100 ms.
 _DV_CHANGED_HOLD = "output_changed_duration"
 
-# Interval of properties.update_static_properties: per-title facts and CPU
+# Interval of publish.update_static_properties: per-title facts and CPU
 # stats need not follow the 100 ms scene cadence.
 _STATIC_POLL_INTERVAL = 1.0
 
@@ -504,7 +504,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
                 try:
                     # One read pass for the whole tick (see read_pass).
                     with read_pass():
-                        properties.publish_scene_properties(self, self.published)
+                        publish.publish_scene_properties(self, self.published)
                         self._highlight_dv_changes()
                         self._apply_position_offset()
 
@@ -513,7 +513,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
                             # Advance first, so a failure retries after an
                             # interval rather than every tick.
                             next_static_publish = now + _STATIC_POLL_INTERVAL
-                            properties.update_static_properties(
+                            publish.update_static_properties(
                                 self, self.published)
                             self._changed_color = self._dv_changed_color()
                 except Exception as exc:
@@ -555,7 +555,7 @@ def _show_overlay(home: PropertyTarget) -> str | None:
     )
     # Fill the window before Kodi draws it (onInit runs only once it is
     # visible).  Properties only: the controls do not exist yet.
-    properties.publish_properties(dialog, dialog.published)
+    publish.publish_properties(dialog, dialog.published)
     dialog.doModal()
     dialog.join_update_loop()
     next_view = dialog.next_view
@@ -605,7 +605,7 @@ def open_tinyppi() -> None:
             ),
         )
         # From the HDR type known so far; the update loop refreshes it.
-        properties.publish_channel_visibility(home)
+        publish.publish_channel_visibility(home)
         apply_theme(home, addon)
 
         while _show_overlay(home) == _VIEW_DV_METADATA:

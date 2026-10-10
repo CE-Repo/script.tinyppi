@@ -38,7 +38,7 @@ from info.dvinfo import (
 )
 from info import dvmetadata
 from info.mediasource import is_live, is_pvr
-from info.properties import (
+from info.publish import (
     publish_scene_properties,
     publish_static_properties,
 )

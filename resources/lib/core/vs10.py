@@ -530,7 +530,7 @@ def _player_led_mode() -> bool:
 def _hybrid_dv_hdr10plus() -> bool:
     """Return whether the stream is a DV + HDR10+ hybrid.
 
-    Uses the properties from ``info.properties.publish_hdr_type``.
+    Uses the properties from ``info.publish.publish_hdr_type``.
     """
     home = home_window()
     return (

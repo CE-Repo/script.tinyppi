@@ -30,7 +30,7 @@ PROP_ACTIVE      = "TinyPPI.Active"
 PROP_DIALOG_MODE = "TinyPPI.DialogMode"
 
 # The output type the overlay layout follows (see
-# info.properties.publish_hdr_type).
+# info.publish.publish_hdr_type).
 PROP_EFFECTIVE_HDR_TYPE = "TinyPPI.EffectiveHdrType"
 
 # Whether the stream carries HDR10+ metadata.  A Dolby Vision title with an
