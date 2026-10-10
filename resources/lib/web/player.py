@@ -9,7 +9,6 @@ import math
 import re
 
 import xbmc
-
 from core.log import channel
 from core.utils import cond, info
 from web.values import Unchecked, clean_value, numbers

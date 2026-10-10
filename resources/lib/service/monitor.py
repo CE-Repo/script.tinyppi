@@ -243,7 +243,7 @@ def _warm_up(monitor: xbmc.Monitor) -> None:
     # largest and only reached from the overlay, so it loads on first use.
     try:
         import ui.mode_select  # noqa: F401  imported to have it loaded, not used
-        import ui.overlay      # noqa: F401
+        import ui.overlay  # noqa: F401
     except Exception as exc:  # pragma: no cover - never block the service
         _log(f"pre-loading the views failed: {exc}", xbmc.LOGWARNING)
 

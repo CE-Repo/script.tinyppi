@@ -23,7 +23,6 @@ from core.utils import (
     read_pass,
     set_changed_properties,
 )
-from info.mediasource import get_MediaSourceVar
 from info.dvinfo import (
     get_cm_version,
     get_dv_bl_present,
@@ -46,10 +45,8 @@ from info.dvinfo import (
     get_structure,
     is_status_label,
 )
+from info.mediasource import get_MediaSourceVar
 from info.properties import (
-    output_mode_from_videoplayer,
-    separated,
-    with_unit,
     get_AspectRatioVar,
     get_AudioBitDepthVar,
     get_AudioBitrateKBVar,
@@ -83,8 +80,10 @@ from info.properties import (
     get_VideoLiveBitrateVar,
     get_VideoPixelFormatVar,
     get_VideoResolutionVar,
+    output_mode_from_videoplayer,
+    separated,
+    with_unit,
 )
-
 
 # The PQ row shows raw 12-bit code words (0-4095), not a brightness, so its
 # unit is fixed.

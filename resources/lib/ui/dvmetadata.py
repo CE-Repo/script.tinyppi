@@ -21,7 +21,6 @@ from typing import Any, TypeVar
 
 import xbmc
 import xbmcgui
-
 from core import settings
 from core.log import log
 from core.utils import (

@@ -10,6 +10,7 @@ git ref.
 
 import base64
 import contextlib
+import io
 import json
 import os
 import shutil
@@ -17,7 +18,6 @@ import signal
 import sqlite3
 import subprocess
 import tarfile
-import io
 import time
 import urllib.error
 import urllib.request

@@ -5,7 +5,6 @@
 
 import xbmc
 import xbmcaddon
-
 from core import settings
 
 # UI string ids keyed as the page's script names them, sent with /api/hello.

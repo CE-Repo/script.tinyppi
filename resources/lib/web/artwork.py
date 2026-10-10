@@ -12,7 +12,6 @@ from urllib.parse import quote, unquote
 
 import xbmc
 import xbmcvfs
-
 from core.log import channel
 from web.snapshot import art_path
 

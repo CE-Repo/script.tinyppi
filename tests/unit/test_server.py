@@ -11,9 +11,8 @@ import time
 import pytest
 
 import xbmc
-from web import server as web_server
-
 from dashboard_server import DIRECT, TOKEN, IdleProducer, request
+from web import server as web_server
 
 
 def test_page_and_static_files(dashboard):

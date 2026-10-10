@@ -28,9 +28,9 @@ from functools import cache
 
 import xbmc
 import xbmcaddon
-
 from info import dvformat as fmt
 from info.dvcomposer import CURVE_COMPONENTS, composer_pairs, curve_entries, nlq_entries
+
 # The row kinds are part of this module's interface (ui.dvmetadata, the
 # dashboard), so they are re-exported here.
 from info.dvformat import (  # noqa: F401

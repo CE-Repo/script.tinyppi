@@ -7,12 +7,12 @@ import sys
 import types
 
 import pytest
+from service import monitor as service
 
 import xbmc
 import xbmcaddon
 import xbmcgui
 from core.constants import OPEN_WITHDRAWN, PROP_OPEN_ACK, PROP_OPEN_REQUEST
-from service import monitor as service
 from web import library
 
 

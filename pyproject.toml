@@ -16,11 +16,18 @@ select = [
     "PIE",
     "UP",            # pyupgrade
     "PLE", "PLW",    # pylint errors and warnings
+    "I",             # import order
 ]
 ignore = [
     "UP031",   # %-formatting is kept where it reads better (skin labels)
     "SIM905",  # word lists written as one split string on purpose
 ]
+
+[tool.ruff.lint.isort]
+# Kodi's modules sit with the add-on's own packages, after the standard
+# library and anything installed.
+known-first-party = ["core", "info", "ui", "web", "xbmc", "xbmcaddon", "xbmcgui", "xbmcvfs",
+                     "dashboard_server"]
 
 [tool.ruff.lint.per-file-ignores]
 # The service puts resources/lib on sys.path before importing from it.

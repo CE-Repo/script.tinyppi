@@ -21,7 +21,6 @@ import threading
 
 import xbmcaddon
 import xbmcvfs
-
 from core.constants import PROFILE_DIR
 
 # The file holding this add-on's stored setting values.

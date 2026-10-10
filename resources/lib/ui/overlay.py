@@ -19,7 +19,6 @@ import xbmcvfs
 from core import settings
 from core.log import log
 from core.protocols import PropertyTarget
-
 from core.utils import (
     PROP_ACTIVE,
     PROP_DIALOG_MODE,

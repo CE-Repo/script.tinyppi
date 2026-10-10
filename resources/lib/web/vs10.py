@@ -6,7 +6,6 @@
 import threading
 
 import xbmc
-
 from core.log import channel
 from core.utils import info
 

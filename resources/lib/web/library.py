@@ -14,12 +14,11 @@ when the series is opened, then cached alongside.
 """
 
 import threading
-from collections.abc import Callable
 import time
 import zlib
+from collections.abc import Callable
 
 import xbmc
-
 from core.log import channel
 from web.player import rpc
 from web.values import Unchecked, clean_value, library_id

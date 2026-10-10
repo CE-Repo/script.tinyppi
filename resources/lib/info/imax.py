@@ -27,11 +27,9 @@ from urllib.parse import unquote
 
 import xbmc
 import xbmcvfs
-
 from core import settings
 from core.log import channel
 from core.maps import IMAX_LOGO_MAP
-
 
 _TITLE_FILE = "imax_titles.txt"
 

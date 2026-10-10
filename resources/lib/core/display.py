@@ -25,7 +25,6 @@ import ctypes
 import os
 
 import xbmc
-
 from core.log import log
 
 try:

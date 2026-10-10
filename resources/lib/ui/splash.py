@@ -26,8 +26,8 @@ import xbmcaddon
 import xbmcgui
 from core import settings
 from core.constants import HOME_WINDOW_ID
-from core.log import channel
 from core.images import display_texture
+from core.log import channel
 from core.protocols import PropertyTarget
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
 from info.dvinfo import get_dv_el_type_raw, get_hdr_format

@@ -15,9 +15,8 @@ web/vs10.py and the title's history in web/session.py.
 """
 
 import time
-from collections.abc import Iterable
-
 import zlib
+from collections.abc import Iterable
 
 import xbmc
 from core.utils import (
@@ -29,6 +28,7 @@ from core.utils import (
     localized,
     read_pass,
 )
+from info import dvmetadata
 from info.dvinfo import (
     L1_EMPTY,
     L5_EMPTY,
@@ -36,7 +36,6 @@ from info.dvinfo import (
     get_l5_offsets,
     na_label,
 )
-from info import dvmetadata
 from info.mediasource import is_live, is_pvr
 from info.publish import (
     publish_scene_properties,

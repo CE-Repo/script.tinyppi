@@ -8,7 +8,6 @@ interpreter, so they never block the settings UI.
 """
 
 import xbmcgui
-
 from core import settings
 from core.utils import localized
 from web.server import ensure_token, generate_token, local_address

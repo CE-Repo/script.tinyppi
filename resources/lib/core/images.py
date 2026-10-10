@@ -26,7 +26,6 @@ import zlib
 
 import xbmc
 import xbmcvfs
-
 from core.constants import PROFILE_DIR
 from core.files import atomic_write
 from core.log import channel

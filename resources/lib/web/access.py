@@ -22,7 +22,6 @@ import time
 from functools import cache
 
 import xbmc
-
 from core.log import channel
 
 # Different wrong tokens allowed per address and window, and the lockout.

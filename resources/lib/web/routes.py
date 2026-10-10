@@ -19,13 +19,12 @@ from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlparse
 
 import xbmc
-
 from core import settings
 from core.log import channel
 from web import access, artwork, library
 from web.delta import snapshot_delta
-from web.producer import PRODUCE_INTERVAL, Producer
 from web.player import apply_command
+from web.producer import PRODUCE_INTERVAL, Producer
 from web.static import MIN_COMPRESS, STATIC_CACHE
 from web.strings import ui_strings
 from web.vs10 import apply_mode

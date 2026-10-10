@@ -17,7 +17,6 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path[:0] = [os.path.join(ROOT, "tests", "stubs"), os.path.join(ROOT, "resources", "lib")]
 
 import xbmcaddon  # noqa: E402
-
 from web import library  # noqa: E402
 from web import server as web_server  # noqa: E402
 

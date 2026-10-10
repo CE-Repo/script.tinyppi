@@ -33,13 +33,13 @@ from core.utils import (
     parse_offsets,
     picture_aspect_ratio,
 )
-from info.imax import is_enhanced_title, is_known_imax_title
 from info.dvinfo import (
     get_bit_depth,
     get_hdr_format,
     is_status_label,
     na_label,
 )
+from info.imax import is_enhanced_title, is_known_imax_title
 
 # Channel graphics ship pre-scaled to the skin's boxes, so Kodi never
 # resamples them: SDR and HDR10/HDR10+/HLG use 495x298, DV the smaller

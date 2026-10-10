@@ -21,7 +21,6 @@ from http.server import ThreadingHTTPServer
 
 import xbmc
 import xbmcaddon
-
 from core import settings
 from core.log import channel
 from web import access, artwork, library, static

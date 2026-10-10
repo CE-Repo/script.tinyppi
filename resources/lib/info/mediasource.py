@@ -23,7 +23,6 @@ import re
 
 import xbmc
 import xbmcvfs
-
 from core.log import log
 from core.memo import KeyedMemo
 from core.utils import cond, info
