@@ -5,6 +5,8 @@
 
 - **Guessing:** an address presenting too many different wrong tokens is
   locked out for a while (``Guesses``).
+- **IPv6:** a device can pick any address in its /64 at will, so guesses and
+  connection caps count per /64 network (``client_key``).
 - **DNS rebinding:** with *Require the token for reading too* off (the
   default), a web page could point its own host name at the box and read
   through the visitor's browser.  Its ``Host`` header still carries the
@@ -45,6 +47,36 @@ _PRIVATE_SUFFIXES = (
 
 
 _log = channel("web", xbmc.LOGINFO)
+
+
+def plain_address(address: str) -> str:
+    """Return *address* with an IPv4-mapped IPv6 address as plain IPv4.
+
+    The dual-stack server sees IPv4 clients as ``::ffff:a.b.c.d``.
+    """
+    try:
+        parsed = ipaddress.ip_address(address)
+    except ValueError:
+        return address
+    if isinstance(parsed, ipaddress.IPv6Address) and parsed.ipv4_mapped:
+        return str(parsed.ipv4_mapped)
+    return address
+
+
+def client_key(address: str) -> str:
+    """Return what guesses and connection caps count *address* under.
+
+    IPv4 addresses count on their own; IPv6 ones per /64, the block one
+    device can draw new addresses from (privacy extensions).
+    """
+    address = plain_address(address)
+    try:
+        parsed = ipaddress.ip_address(address)
+    except ValueError:
+        return address
+    if isinstance(parsed, ipaddress.IPv6Address):
+        return str(ipaddress.IPv6Network((parsed, 64), strict=False))
+    return address
 
 
 class Guesses:

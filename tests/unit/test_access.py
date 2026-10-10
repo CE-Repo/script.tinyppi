@@ -44,3 +44,23 @@ def test_the_table_is_capped():
     for i in range(access._MAX_TRACKED + 50):
         guesses.wrong(f"10.1.{i // 250}.{i % 250}", "WRONG")
     assert len(guesses._wrong) <= access._MAX_TRACKED
+
+
+@pytest.mark.parametrize(("address", "plain", "key"), [
+    ("192.168.1.20", "192.168.1.20", "192.168.1.20"),
+    ("::ffff:192.168.1.20", "192.168.1.20", "192.168.1.20"),
+    ("2001:db8:1:2:aaaa::1", "2001:db8:1:2:aaaa::1", "2001:db8:1:2::/64"),
+    ("fe80::1234", "fe80::1234", "fe80::/64"),
+    ("not-an-address", "not-an-address", "not-an-address"),
+])
+def test_client_addresses(address, plain, key):
+    assert access.plain_address(address) == plain
+    assert access.client_key(address) == key
+
+
+def test_new_ipv6_addresses_in_one_network_share_the_lockout():
+    guesses = access.Guesses()
+    for i in range(access._GUESS_LIMIT):
+        guesses.wrong(access.client_key(f"2001:db8:1:2::{i + 1:x}"), f"GUESS{i}")
+    assert guesses.locked_for(access.client_key("2001:db8:1:2::ffff")) > 590
+    assert guesses.locked_for(access.client_key("2001:db8:1:3::1")) == 0

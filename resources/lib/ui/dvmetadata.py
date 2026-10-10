@@ -14,6 +14,7 @@ list, highlights changed readings for the highlight duration, and marks
 sections held from earlier frames as ``(Cached)`` (see _paint).
 """
 
+import contextlib
 import threading
 import time
 
@@ -163,9 +164,9 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         # Cached static rows, their signature and the next fallback rebuild
         # (owned by _merged_rows).
         self._static_rows: list = []
-        self._static_signature = None
+        self._static_signature: tuple | None = None
         self._next_static_rows = 0.0
-        self._thread         = None
+        self._thread: threading.Thread | None = None
         self._closing        = False
         self._refresh_failed = False
         self._color_missing  = False
@@ -246,7 +247,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         compact = table and len(label) == dvmetadata.MAX_COMPACT_COLUMNS
         # Right-align narrow tables in the fixed slots, so the list has one
         # right edge.  All rows of a table have the heading's width (see
-        # dvmetadata._grid and _table), so readings stay under their
+        # dvcomposer._grid and dvmetadata._table), so readings stay under their
         # headings.  Full-width and compact tables are not shifted.
         offset  = (max(0, dvmetadata.MAX_COLUMNS - len(label))
                    if table and not compact else 0)
@@ -316,14 +317,14 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         labels = [
             value if kind == dvmetadata.SECTION
             else self._highlighter.mark(key, value, color, now)
-            for (kind, _name, value), key in zip(rows, keys)
+            for (kind, _name, value), key in zip(rows, keys, strict=True)
         ]
 
         if keys == self._keys and labels == self._last_labels:
             return
 
         items = []
-        for row, label in zip(rows, labels):
+        for row, label in zip(rows, labels, strict=True):
             item = xbmcgui.ListItem("", "", offscreen=True)
             self._paint(item, row, label)
             items.append(item)
@@ -482,10 +483,8 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self._closing       = True
         self.back_to_caller = back_to_caller
         self._running       = False
-        try:
+        with contextlib.suppress(Exception):
             self.close()
-        except Exception:
-            pass
 
     # --- Refresh -----------------------------------------------------------
 

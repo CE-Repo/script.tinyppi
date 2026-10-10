@@ -15,6 +15,7 @@ import secrets
 import time
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
+from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlparse
 
 import xbmc
@@ -24,9 +25,13 @@ from core.log import channel
 from web import access, artwork, library
 from web.delta import snapshot_delta
 from web.producer import PRODUCE_INTERVAL, Producer
-from web.snapshot import apply_command, apply_mode
+from web.player import apply_command
 from web.static import MIN_COMPRESS, STATIC_CACHE
 from web.strings import ui_strings
+from web.vs10 import apply_mode
+
+if TYPE_CHECKING:  # web.server imports this module
+    from web.server import _Server
 
 # Heartbeat interval on an idle stream, so dropped connections are noticed.
 _HEARTBEAT_INTERVAL = 15.0
@@ -87,7 +92,14 @@ class Handler(BaseHTTPRequestHandler):
     # hold a thread forever.
     timeout          = _REQUEST_TIMEOUT
 
+    server: "_Server"
+
     # --- Plumbing ----------------------------------------------------------
+
+    @property
+    def _peer(self) -> str:
+        """The client's address for log lines."""
+        return access.plain_address(self.client_address[0])
 
     def log_message(self, fmt: str, *args) -> None:  # noqa: A003 - base API
         _log(_TOKEN_IN_QUERY.sub(r"\1***", fmt % args), xbmc.LOGDEBUG)
@@ -152,7 +164,7 @@ class Handler(BaseHTTPRequestHandler):
         Otherwise it has been answered with 401, or 429 for a locked-out
         address (see ``access.Guesses``).
         """
-        address = self.client_address[0]
+        address = access.client_key(self.client_address[0])
         wait = self.server.guesses.locked_for(address)
         if wait:
             self._send_json({"error": "too many wrong tokens",
@@ -252,7 +264,7 @@ class Handler(BaseHTTPRequestHandler):
         if not apply_mode(mode):
             self._send_error_json(HTTPStatus.BAD_REQUEST, "unknown mode")
             return
-        _log(f"VS10 mode '{mode}' requested from {self.client_address[0]}")
+        _log(f"VS10 mode '{mode}' requested from {self._peer}")
         self._send_json({"ok": True, "mode": mode})
 
     def _run_command(self, payload: dict) -> None:
@@ -262,7 +274,7 @@ class Handler(BaseHTTPRequestHandler):
             self._send_error_json(HTTPStatus.BAD_REQUEST, "command failed")
             return
         # Seek and volume arrive in bursts, so they log at debug level.
-        _log(f"'{action}' requested from {self.client_address[0]}",
+        _log(f"'{action}' requested from {self._peer}",
              xbmc.LOGDEBUG if action in ("seek", "seek_percent", "volume")
              else xbmc.LOGINFO)
         self._send_json({"ok": True, "action": action})
@@ -323,7 +335,7 @@ class Handler(BaseHTTPRequestHandler):
             if not library.play_episode(episode_id, resume):
                 self._send_error_json(HTTPStatus.BAD_REQUEST, "playback failed")
                 return
-            _log(f"episode {episode_id} started from {self.client_address[0]}")
+            _log(f"episode {episode_id} started from {self._peer}")
             self._send_json({"ok": True, "episodeid": episode_id})
             return
 
@@ -334,7 +346,7 @@ class Handler(BaseHTTPRequestHandler):
         if not library.play(movie_id, resume):
             self._send_error_json(HTTPStatus.BAD_REQUEST, "playback failed")
             return
-        _log(f"film {movie_id} started from {self.client_address[0]}")
+        _log(f"film {movie_id} started from {self._peer}")
         # The page learns about the playback from the next snapshot.
         self._send_json({"ok": True, "movieid": movie_id})
 
@@ -487,7 +499,7 @@ class Handler(BaseHTTPRequestHandler):
         if self._holds(etag):
             self._send_unchanged(etag, STATIC_CACHE)
             return
-        extra = (("ETag", etag), ("Vary", "Accept-Encoding"))
+        extra: tuple[tuple[str, str], ...] = (("ETag", etag), ("Vary", "Accept-Encoding"))
         if content_type.startswith("text/html"):
             extra += (("Content-Security-Policy", _PAGE_POLICY),)
         if packed is not None and "gzip" in self.headers.get("Accept-Encoding", ""):
@@ -564,7 +576,7 @@ class Handler(BaseHTTPRequestHandler):
                 kind, frame = "delta", snapshot_delta(sent, payload)
             sent = payload
             data = json.dumps(frame, ensure_ascii=False)
-            self.wfile.write(f"event: {kind}\ndata: {data}\n\n".encode("utf-8"))
+            self.wfile.write(f"event: {kind}\ndata: {data}\n\n".encode())
             self.wfile.flush()
 
         # Parting frame: the page shows "offline" and waits before

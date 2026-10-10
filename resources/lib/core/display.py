@@ -31,7 +31,7 @@ from core.log import log
 try:
     import fcntl
 except ImportError:  # not Linux (a dev box): every call below is a no-op
-    fcntl = None
+    fcntl = None  # type: ignore[assignment]
 
 # --- DRM ioctl plumbing ----------------------------------------------------
 #
@@ -169,7 +169,7 @@ def _drm_fds() -> list[int]:
     descriptor is visible in ``/proc/self/fd``.  Read fresh each time: a
     cached number could refer to another file by then.
     """
-    found = []
+    found: list[int] = []
     try:
         entries = os.listdir("/proc/self/fd")
     except OSError:

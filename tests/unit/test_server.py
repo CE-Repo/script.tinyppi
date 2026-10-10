@@ -106,7 +106,7 @@ def test_one_address_holds_at_most_16_connections(dashboard):
             try:
                 if sock.recv(1) == b"":
                     refused += 1
-            except socket.timeout:
+            except TimeoutError:
                 pass
             except ConnectionResetError:
                 refused += 1
@@ -128,3 +128,35 @@ def test_tokens_and_ports():
     for value, port in (("8123", 8123), ("80", 8099), ("70000", 8099), ("x", 8099)):
         addon.setSetting("web_port", value)
         assert web_server.configured_port(addon) == port
+
+
+def _ipv6_loopback() -> bool:
+    if not socket.has_ipv6:
+        return False
+    try:
+        with socket.socket(socket.AF_INET6) as probe:
+            probe.bind(("::1", 0))
+    except OSError:
+        return False
+    return True
+
+
+@pytest.mark.skipif(not _ipv6_loopback(), reason="no IPv6 on this machine")
+def test_the_dashboard_answers_over_ipv6_and_ipv4():
+    stop = threading.Event()
+    srv = web_server._bind(0, IdleProducer(), stop, TOKEN)
+    assert isinstance(srv, web_server._DualStackServer)
+    srv.refresh_settings()
+    thread = threading.Thread(target=srv.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True)
+    thread.start()
+    try:
+        port = srv.server_address[1]
+        for host in ("127.0.0.1", "[::1]"):
+            with _DIRECT.open(f"http://{host}:{port}/api/hello", timeout=5) as resp:
+                assert resp.status == 200
+    finally:
+        stop.set()
+        srv.shutdown()
+        srv.server_close()
+        srv.close_connections()
+        srv.join_workers(2)

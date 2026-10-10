@@ -9,22 +9,39 @@ The add-on's code runs outside Kodi: `tests/stubs` stands in for `xbmc`,
 `xbmcgui`, `xbmcaddon` and `xbmcvfs`.
 
 ```
-python3 -m pip install pytest
+python3 -m pip install -r requirements-dev.txt
 python3 -m pytest tests
 ```
+
+The same checks CI runs on every push (`.github/workflows/ci.yml`):
+
+```
+ruff check .                 # lint (settings in pyproject.toml)
+mypy                         # types, with Kodistubs for Kodi's modules
+python3 -m pytest tests/unit
+npm ci && npm run lint       # ESLint for resources/web/js
+```
+
+CI also runs the official `kodi-addon-checker` on the add-on without its
+development files.
 
 | File | Covers |
 |---|---|
 | `unit/test_library.py` | The dashboard's library cache: one query for concurrent readers, no stale list after a drop, a scan's burst of notifications as one drop, the drops after playback stops, episodes, the continue row, marking |
 | `unit/test_vs10_switcher.py` | VS10 switches from the dashboard: the last tap wins, a failed switch does not stop the next, the modes offered per source |
-| `unit/test_server.py` | The HTTP server: the fixed routes, security headers, the token for writing and for untrusted host names, the guessing lockout, the connection caps, tokens and ports |
-| `unit/test_access.py` | Which host names count as the home network; the lockout table |
+| `unit/test_server.py` | The HTTP server: the fixed routes, security headers, the token for writing and for untrusted host names, the guessing lockout, the connection caps, tokens and ports, IPv6 and IPv4 on one socket |
+| `unit/test_access.py` | Which host names count as the home network; the lockout table; client addresses (IPv4-mapped as IPv4, IPv6 per /64) |
 | `unit/test_delta.py` | Delta frames of the event stream, applied as `js/core.js` applies them |
 | `unit/test_artwork.py` | Artwork sources (Kodi's texture cache first) and types (from the bytes) |
 | `unit/test_settings_definition.py` | `resources/settings.xml` against the five languages, the code and the skin: texts, defaults, dependencies, action buttons, colour defaults and their translated names, opacity sliders, every setting read, every colour property used |
 | `unit/test_settings_logic.py` | The settings that only act with Dolby Vision or on Amlogic hardware, checked on their code paths; every colour setting reaching its skin property; the colour picker (HEX tile first, then the default, then the rest of the palette; colour names numbered per family; every family light to dark, its neighbours alike in saturation; every tile distinct; older stored colours keep their colour) |
 | `unit/test_properties.py` | The language codes of the audio and subtitle rows: unmapped codes as reported, untagged tracks as UNK, no audio track as N/A; the audio rows read N/A without a codec |
 | `unit/test_modules.py` | Every module imports; the small state holders behave |
+| `unit/test_imax.py` | IMAX by name: listed titles at the end of the film part, years on remakes, spelling variants, the IMAX tag, Enhanced, names from paths and Kodi's titles |
+| `unit/test_mediasource.py` | The media source row: release types, containers, sizes, streaming protocols, PVR, discs, addon links never stat'd |
+| `unit/test_dvinfo.py` | Dolby Vision and HDR fields from parsed side data: profiles, layers, L1/L5/L6, HDR10 and HDR10+, number formats, EL tag colours |
+| `unit/test_dvmetadata.py` | The DV metadata view's rows: scene and static sections, trim tables per target display, the composer's curves and coefficients, value formatting |
+| `unit/test_display.py` | The DRM display reset against a simulated device: HDMI first, the master descriptor, the cached ids and the negative cache |
 
 ## Kodi 22 suite
 

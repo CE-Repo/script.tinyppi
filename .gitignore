@@ -6,5 +6,10 @@
 # Python cache folder
 __pycache__/
 
-# Test runs
+# Test and lint runs
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Lint tooling (npm install)
+node_modules/

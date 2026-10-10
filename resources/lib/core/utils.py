@@ -65,12 +65,11 @@ class read_pass:
             _reads.home = None
         return self
 
-    def __exit__(self, *_exc) -> bool:
+    def __exit__(self, *_exc) -> None:
         if self._outer is None:
             _reads.info = None
             _reads.cond = None
             _reads.home = None
-        return False
 
 
 def home_window() -> xbmcgui.Window:
@@ -264,7 +263,7 @@ class ChangeHighlighter:
         self._values: dict = {}
         self._until: dict  = {}
 
-    def mark(self, key, value, color: str, now: float = None):
+    def mark(self, key, value, color: str, now: float | None = None):
         """Record *value* under *key* and return it with its changes colored.
 
         A value without history is returned plain, so a freshly opened view
@@ -331,9 +330,10 @@ def parse_offsets(value: str) -> tuple[int, int, int, int] | None:
     if len(parts) != 4:
         return None
     try:
-        return tuple(int(part.strip()) for part in parts)
+        left, right, top, bottom = (int(part.strip()) for part in parts)
     except ValueError:
         return None
+    return left, right, top, bottom
 
 
 def coded_frame() -> tuple[int, int] | None:

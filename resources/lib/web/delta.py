@@ -31,8 +31,8 @@ def _group_rows_delta(previous: list, current: list) -> list | None:
     if _group_shape(previous) != _group_shape(current):
         return None
     changed = []
-    for was, now in zip(previous, current):
-        for old_row, new_row in zip(was.get("rows", ()), now.get("rows", ())):
+    for was, now in zip(previous, current, strict=True):
+        for old_row, new_row in zip(was.get("rows", ()), now.get("rows", ()), strict=True):
             if (old_row.get("value") != new_row.get("value")
                     or old_row.get("detail") != new_row.get("detail")):
                 changed.append([new_row.get("id"), new_row.get("value"),
@@ -58,7 +58,7 @@ def _metadata_delta(previous: list, current: list) -> list | None:
     if _metadata_shape(previous) != _metadata_shape(current):
         return None
     changed = []
-    for index, (was, now) in enumerate(zip(previous, current)):
+    for index, (was, now) in enumerate(zip(previous, current, strict=True)):
         if was.get("value") != now.get("value") or was.get("cells") != now.get("cells"):
             changed.append([index, now["cells"] if "cells" in now else now.get("value")])
     return changed

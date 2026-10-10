@@ -12,7 +12,7 @@ anything.
 
 The composer subtree is only parsed on request (see
 ``info.dvinfo.get_sidedata``), and its coefficients are the only derived
-values: the RPU splits each into two halves (see ``_coefficient``).
+values: the RPU splits each into two halves (see ``info.dvcomposer``).
 
 Names, units and scalings follow the module's FIELDS.md.  Fields the stream
 does not carry are dropped, and sections without fields with them.
@@ -28,117 +28,32 @@ from functools import cache
 import xbmc
 import xbmcaddon
 
+from info import dvformat as fmt
+from info.dvcomposer import CURVE_COMPONENTS, composer_pairs, curve_entries, nlq_entries
+# The row kinds are part of this module's interface (ui.dvmetadata, the
+# dashboard), so they are re-exported here.
+from info.dvformat import (  # noqa: F401
+    CACHED,
+    COLUMNS,
+    EMPTY,
+    HEADINGS,
+    LIVE,
+    MAX_COLUMNS,
+    MAX_COMPACT_COLUMNS,
+    ROW,
+    SECTION,
+    SPACE,
+    WIDE,
+)
 from info.dvinfo import get_sidedata
-
-# Row kinds for ui.dvmetadata: a heading, a name / value pair, a full-width
-# line, and an empty row.  Kodi lists scroll by a uniform item size, so the
-# space above a heading is an empty row rather than a taller layout.
-SECTION = "section"
-ROW     = "row"
-WIDE    = "wide"
-SPACE   = "space"
-
-# Table rows: column headings and readings, with cells as a list.  A
-# proportional font cannot be padded into columns, so the skin draws each
-# cell in a fixed slot.
-HEADINGS = "headings"
-COLUMNS  = "columns"
-
-# Cells per table row: the 1195 px list holds a 235 px name column and six
-# 160 px cells.  Wider levels (L8 has eight controls) continue in a second
-# table below.
-MAX_COLUMNS = 6
-
-# Cells per row on the compact grid, used for nine-column tables such as the
-# HDR10+ distribution.
-MAX_COMPACT_COLUMNS = 9
-
-# Internal marker for "no reading"; _section drops rows holding it.
-EMPTY = "—"
-
-# Origin of a section's block.  Only CACHED is shown, next to the heading of
-# a section held from an earlier frame (see _HeldBlocks).
-LIVE   = "Live"
-CACHED = "Cached"
 
 _SIDEDATA_ID = "script.module.sidedata"
 
 # The playing item; held blocks belong to it (see _HeldBlocks).
 _SOURCE_LABEL = "Player.FilenameAndPath"
 
-# Separator in composite values ("2081 | 1000").
-_JOIN = " | "
-
 # HDR10+ maxRGB percentiles shown, in spec order.
 _HDR10PLUS_PERCENTILES = (1, 5, 10, 25, 50, 75, 90, 95, 99)
-
-
-# --- Value formatting ------------------------------------------------------
-
-def _text(value) -> str:
-    """Return *value* as a stripped string, or EMPTY."""
-    if value is None:
-        return EMPTY
-    text = str(value).strip()
-    return text or EMPTY
-
-
-def _num(value) -> str:
-    """Format a number without a redundant ``.0``, or EMPTY."""
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        return EMPTY
-    if isinstance(value, float) and value.is_integer():
-        return str(int(value))
-    return str(value)
-
-
-def _lum(value) -> str:
-    """Format a luminance in nits, like dvinfo (see ``dvinfo._fmt_lum``)."""
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        return EMPTY
-    if value and abs(value) < 1.0:
-        return f"{value:.4f}".rstrip("0").rstrip(".")
-    return str(int(round(value)))
-
-
-def _scaled(value) -> str:
-    """Format a 0..1 or -1..1 value (UI trims, knee point), or EMPTY.
-
-    EMPTY is also how a disabled trim control reads.
-    """
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        return EMPTY
-    return f"{value:.4f}"
-
-
-def _percent(value) -> str:
-    """Format a percentage to one decimal, or EMPTY."""
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        return EMPTY
-    return f"{value:.1f} %"
-
-
-def _flag(value) -> str:
-    """Format a flag as Kodi's localized Yes / No, or EMPTY."""
-    if value is None:
-        return EMPTY
-    return xbmc.getLocalizedString(107 if value else 106)
-
-
-def _joined(*values: str) -> str:
-    """Join the present parts of a composite value, or return EMPTY."""
-    present = [value for value in values if value != EMPTY]
-    return _JOIN.join(present) if present else EMPTY
-
-
-def _coords(pair) -> str:
-    """Format a CIE ``(x, y)`` pair of raw codes or floats."""
-    if not isinstance(pair, (tuple, list)) or len(pair) != 2:
-        return EMPTY
-    x, y = pair
-    if isinstance(x, float) or isinstance(y, float):
-        return _joined(f"{x:.4f}", f"{y:.4f}")
-    return _joined(_num(x), _num(y))
 
 
 @cache
@@ -202,11 +117,11 @@ def _stream_pairs(parsed: dict, carried: str) -> list:
     """
     flags = parsed.get("flags") or []
     return [
-        ("HDR type (Kodi)", _text(xbmc.getInfoLabel("VideoPlayer.HdrType"))),
-        ("HDR detail (Kodi)", _text(xbmc.getInfoLabel("VideoPlayer.HdrDetail"))),
+        ("HDR type (Kodi)", fmt.text(xbmc.getInfoLabel("VideoPlayer.HdrType"))),
+        ("HDR detail (Kodi)", fmt.text(xbmc.getInfoLabel("VideoPlayer.HdrDetail"))),
         ("Side data", carried),
         ("Flags", ", ".join(flags) if flags else EMPTY),
-        ("Structure", _text(parsed.get("structure"))),
+        ("Structure", fmt.text(parsed.get("structure"))),
         ("Parser module", _module_version()),
     ]
 
@@ -214,18 +129,18 @@ def _stream_pairs(parsed: dict, carried: str) -> list:
 def _config_pairs(config: dict | None) -> list:
     """Return the dvcC / dvvC record rows (source profile even after 4/7 -> 8)."""
     config = config or {}
-    major = _num(config.get("version_major"))
-    minor = _num(config.get("version_minor"))
+    major = fmt.num(config.get("version_major"))
+    minor = fmt.num(config.get("version_minor"))
     version = EMPTY if EMPTY in (major, minor) else f"{major}.{minor}"
     return [
         ("Record version", version),
-        ("Profile", _num(config.get("profile"))),
-        ("Compatibility ID", _num(config.get("compat_id"))),
-        ("Level", _num(config.get("level"))),
-        ("RPU present", _flag(config.get("rpu_present"))),
-        ("BL present", _flag(config.get("bl_present"))),
-        ("EL present", _flag(config.get("el_present"))),
-        ("MD compression", _num(config.get("md_compression"))),
+        ("Profile", fmt.num(config.get("profile"))),
+        ("Compatibility ID", fmt.num(config.get("compat_id"))),
+        ("Level", fmt.num(config.get("level"))),
+        ("RPU present", fmt.flag(config.get("rpu_present"))),
+        ("BL present", fmt.flag(config.get("bl_present"))),
+        ("EL present", fmt.flag(config.get("el_present"))),
+        ("MD compression", fmt.num(config.get("md_compression"))),
     ]
 
 
@@ -237,51 +152,51 @@ def _rpu_pairs(rpu: dict | None) -> list:
     rpu = rpu or {}
     header = rpu.get("header") or {}
     return [
-        ("Guessed profile", _num(rpu.get("profile"))),
-        ("CM version", _text(rpu.get("cm_version"))),
-        ("DM compression", _flag(rpu.get("compressed"))),
+        ("Guessed profile", fmt.num(rpu.get("profile"))),
+        ("CM version", fmt.text(rpu.get("cm_version"))),
+        ("DM compression", fmt.flag(rpu.get("compressed"))),
         # The DM metadata ids and scene refresh flag: how a compressed frame
         # refers back to earlier metadata, and where a scene starts.
-        ("Affected DM metadata ID", _num(rpu.get("affected_dm_metadata_id"))),
-        ("Current DM metadata ID", _num(rpu.get("current_dm_metadata_id"))),
-        ("Scene refresh", _num(rpu.get("scene_refresh_flag"))),
+        ("Affected DM metadata ID", fmt.num(rpu.get("affected_dm_metadata_id"))),
+        ("Current DM metadata ID", fmt.num(rpu.get("current_dm_metadata_id"))),
+        ("Scene refresh", fmt.num(rpu.get("scene_refresh_flag"))),
         # Extension blocks declared across the CM v2.9 and v4.0 groups.
-        ("Extension blocks", _num(rpu.get("num_ext_blocks"))),
-        ("RPU type", _num(header.get("rpu_type"))),
-        ("RPU format", _num(header.get("rpu_format"))),
-        ("VDR RPU profile", _num(header.get("vdr_rpu_profile"))),
-        ("VDR RPU level", _num(header.get("vdr_rpu_level"))),
-        ("VDR RPU normalized IDC", _num(header.get("vdr_rpu_normalized_idc"))),
+        ("Extension blocks", fmt.num(rpu.get("num_ext_blocks"))),
+        ("RPU type", fmt.num(header.get("rpu_type"))),
+        ("RPU format", fmt.num(header.get("rpu_format"))),
+        ("VDR RPU profile", fmt.num(header.get("vdr_rpu_profile"))),
+        ("VDR RPU level", fmt.num(header.get("vdr_rpu_level"))),
+        ("VDR RPU normalized IDC", fmt.num(header.get("vdr_rpu_normalized_idc"))),
         # Presence flags for the sequence info (source of the bit depths) and
         # the DM metadata (source of the levels and the source range).
-        ("VDR sequence info", _flag(header.get("vdr_seq_info_present_flag"))),
-        ("VDR DM metadata", _flag(header.get("vdr_dm_metadata_present_flag"))),
-        ("BL bit depth", _num(header.get("bl_bit_depth"))),
-        ("EL bit depth", _num(header.get("el_bit_depth"))),
-        ("VDR bit depth", _num(header.get("vdr_bit_depth"))),
-        ("BL full range", _flag(header.get("bl_video_full_range_flag"))),
-        ("EL type", _text(header.get("el_type"))),
+        ("VDR sequence info", fmt.flag(header.get("vdr_seq_info_present_flag"))),
+        ("VDR DM metadata", fmt.flag(header.get("vdr_dm_metadata_present_flag"))),
+        ("BL bit depth", fmt.num(header.get("bl_bit_depth"))),
+        ("EL bit depth", fmt.num(header.get("el_bit_depth"))),
+        ("VDR bit depth", fmt.num(header.get("vdr_bit_depth"))),
+        ("BL full range", fmt.flag(header.get("bl_video_full_range_flag"))),
+        ("EL type", fmt.text(header.get("el_type"))),
         (
             "EL spatial resampling",
-            _flag(header.get("el_spatial_resampling_filter_flag")),
+            fmt.flag(header.get("el_spatial_resampling_filter_flag")),
         ),
         (
             "Spatial resampling",
-            _flag(header.get("spatial_resampling_filter_flag")),
+            fmt.flag(header.get("spatial_resampling_filter_flag")),
         ),
         (
             "Chroma resampling filter",
-            _flag(header.get("chroma_resampling_explicit_filter_flag")),
+            fmt.flag(header.get("chroma_resampling_explicit_filter_flag")),
         ),
-        ("Residual disabled", _flag(header.get("disable_residual_flag"))),
-        ("Coefficient data type", _num(header.get("coefficient_data_type"))),
-        ("Coefficient log2 denom", _num(header.get("coefficient_log2_denom"))),
-        ("Reuses previous VDR RPU", _flag(header.get("use_prev_vdr_rpu_flag"))),
-        ("Previous VDR RPU ID", _num(header.get("prev_vdr_rpu_id"))),
+        ("Residual disabled", fmt.flag(header.get("disable_residual_flag"))),
+        ("Coefficient data type", fmt.num(header.get("coefficient_data_type"))),
+        ("Coefficient log2 denom", fmt.num(header.get("coefficient_log2_denom"))),
+        ("Reuses previous VDR RPU", fmt.flag(header.get("use_prev_vdr_rpu_flag"))),
+        ("Previous VDR RPU ID", fmt.num(header.get("prev_vdr_rpu_id"))),
         # Fields without meaning of their own (deprecated NAL prefix, reserved
         # bits), shown because the RPU carries them.
-        ("RPU NAL prefix", _num(header.get("rpu_nal_prefix"))),
-        ("Reserved (3 bits)", _num(header.get("reserved_zero_3bits"))),
+        ("RPU NAL prefix", fmt.num(header.get("rpu_nal_prefix"))),
+        ("Reserved (3 bits)", fmt.num(header.get("reserved_zero_3bits"))),
     ]
 
 
@@ -289,7 +204,7 @@ def _l1_pairs(rpu: dict | None) -> list:
     """Return L1 frame luminance rows as PQ code and nits (per frame)."""
     l1 = (rpu or {}).get("l1") or {}
     return [
-        (name, _joined(_num(l1.get(pq)), _lum(l1.get(nits))))
+        (name, fmt.joined(fmt.num(l1.get(pq)), fmt.lum(l1.get(nits))))
         for name, pq, nits in (
             ("Min (PQ | nits)", "min_pq", "min_nits"),
             ("Max (PQ | nits)", "max_pq", "max_nits"),
@@ -305,11 +220,11 @@ def _source_pairs(rpu: dict | None) -> list:
     """
     source = (rpu or {}).get("source") or {}
     return [
-        ("Min (PQ | nits)", _joined(_num(source.get("min_pq")),
-                                    _lum(source.get("min_nits")))),
-        ("Max (PQ | nits)", _joined(_num(source.get("max_pq")),
-                                    _lum(source.get("max_nits")))),
-        ("Display diagonal (in)", _num(source.get("diagonal"))),
+        ("Min (PQ | nits)", fmt.joined(fmt.num(source.get("min_pq")),
+                                    fmt.lum(source.get("min_nits")))),
+        ("Max (PQ | nits)", fmt.joined(fmt.num(source.get("max_pq")),
+                                    fmt.lum(source.get("max_nits")))),
+        ("Display diagonal (in)", fmt.num(source.get("diagonal"))),
     ]
 
 
@@ -333,7 +248,7 @@ def _colorimetry_entries(rpu: dict | None) -> list:
     entries: list = []
 
     matrices = [
-        (name, [_num(value) for value in block.get(key) or []])
+        (name, [fmt.num(value) for value in block.get(key) or []])
         for key, name in _COLORIMETRY_MATRICES
     ]
     matrices = [(name, cells) for name, cells in matrices
@@ -351,15 +266,15 @@ def _colorimetry_entries(rpu: dict | None) -> list:
     offsets = block.get("ycc_to_rgb_offset") or []
     entries.extend([
         ("YCC to RGB offset",
-         _joined(*(_num(value) for value in offsets)) if offsets else EMPTY),
-        ("Signal EOTF", _num(block.get("signal_eotf"))),
+         fmt.joined(*(fmt.num(value) for value in offsets)) if offsets else EMPTY),
+        ("Signal EOTF", fmt.num(block.get("signal_eotf"))),
         ("EOTF parameters",
-         _joined(*(_num(block.get(f"signal_eotf_param{index}"))
+         fmt.joined(*(fmt.num(block.get(f"signal_eotf_param{index}"))
                    for index in range(3)))),
-        ("Signal bit depth", _num(block.get("signal_bit_depth"))),
-        ("Colour space", _num(block.get("signal_color_space"))),
-        ("Chroma format", _num(block.get("signal_chroma_format"))),
-        ("Full range", _num(block.get("signal_full_range_flag"))),
+        ("Signal bit depth", fmt.num(block.get("signal_bit_depth"))),
+        ("Colour space", fmt.num(block.get("signal_color_space"))),
+        ("Chroma format", fmt.num(block.get("signal_chroma_format"))),
+        ("Full range", fmt.num(block.get("signal_full_range_flag"))),
     ])
     return entries
 
@@ -368,9 +283,9 @@ def _l3_pairs(rpu: dict | None) -> list:
     """Return the L3 PQ offset rows."""
     l3 = (rpu or {}).get("l3") or {}
     return [
-        ("Min PQ offset", _num(l3.get("min_pq_offset"))),
-        ("Max PQ offset", _num(l3.get("max_pq_offset"))),
-        ("Average PQ offset", _num(l3.get("avg_pq_offset"))),
+        ("Min PQ offset", fmt.num(l3.get("min_pq_offset"))),
+        ("Max PQ offset", fmt.num(l3.get("max_pq_offset"))),
+        ("Average PQ offset", fmt.num(l3.get("avg_pq_offset"))),
     ]
 
 
@@ -378,8 +293,8 @@ def _l4_pairs(rpu: dict | None) -> list:
     """Return the L4 temporal stability anchors as raw codes."""
     l4 = (rpu or {}).get("l4") or {}
     return [
-        ("Anchor PQ", _num(l4.get("anchor_pq"))),
-        ("Anchor power", _num(l4.get("anchor_power"))),
+        ("Anchor PQ", fmt.num(l4.get("anchor_pq"))),
+        ("Anchor power", fmt.num(l4.get("anchor_power"))),
     ]
 
 
@@ -387,7 +302,7 @@ def _l5_pairs(rpu: dict | None) -> list:
     """Return the L5 active-area offsets of this frame."""
     l5 = (rpu or {}).get("l5") or {}
     return [
-        (f"{edge.capitalize()} offset", _num(l5.get(edge)))
+        (f"{edge.capitalize()} offset", fmt.num(l5.get(edge)))
         for edge in ("left", "right", "top", "bottom")
     ]
 
@@ -396,10 +311,10 @@ def _l6_pairs(rpu: dict | None) -> list:
     """Return the L6 rows (the RPU's own declaration, not the static SEIs)."""
     l6 = (rpu or {}).get("l6") or {}
     return [
-        ("MaxCLL", _num(l6.get("max_cll"))),
-        ("MaxFALL", _num(l6.get("max_fall"))),
-        ("Max luminance", _lum(l6.get("max_lum_nits"))),
-        ("Min luminance", _lum(l6.get("min_lum_nits"))),
+        ("MaxCLL", fmt.num(l6.get("max_cll"))),
+        ("MaxFALL", fmt.num(l6.get("max_fall"))),
+        ("Max luminance", fmt.lum(l6.get("max_lum_nits"))),
+        ("Min luminance", fmt.lum(l6.get("min_lum_nits"))),
     ]
 
 
@@ -469,7 +384,7 @@ def _target(trim: dict) -> str:
     The L10 index and raw target PQ code repeat the same information and are
     left out to keep the width for the cells.
     """
-    return f"{_num(trim.get('nits'))} nits"
+    return f"{fmt.num(trim.get('nits'))} nits"
 
 
 def _vector_block(trim: dict, key: str) -> dict:
@@ -525,17 +440,17 @@ def _trim_entries(level: str, trims: list | None) -> list:
              if _target_nits(trim) in _TRIM_TARGETS]
     entries: list = []
 
-    tables = [
-        (_LEGEND_RAW, raw_controls, lambda trim: trim, _num),
-        (_LEGEND_UI, _TRIM_UI, lambda trim: trim.get("ui") or {}, _scaled),
+    tables: list[tuple] = [
+        (_LEGEND_RAW, raw_controls, lambda trim: trim, fmt.num),
+        (_LEGEND_UI, _TRIM_UI, lambda trim: trim.get("ui") or {}, fmt.scaled),
     ]
     tables.extend(
         (legend, _VECTOR_FIELDS,
-         lambda trim, key=key: _vector_block(trim, key), _num)
+         lambda trim, key=key: _vector_block(trim, key), fmt.num)
         for key, legend in (_TRIM_VECTORS if level == "l8" else ())
     )
     if level == "l8":
-        tables.append((_LEGEND_BLOCK, _TRIM_BLOCK, lambda trim: trim, _num))
+        tables.append((_LEGEND_BLOCK, _TRIM_BLOCK, lambda trim: trim, fmt.num))
 
     for legend, controls, block_of, formatter in tables:
         table = _table(legend, controls, trims, block_of, formatter)
@@ -552,17 +467,17 @@ def _l9_pairs(rpu: dict | None) -> list:
     """Return the L9 source primaries, with coordinates when present."""
     block = (rpu or {}).get("l9") or {}
     pairs = [
-        ("Index", _num(block.get("index"))),
-        ("Primaries", _text(block.get("name"))),
+        ("Index", fmt.num(block.get("index"))),
+        ("Primaries", fmt.text(block.get("name"))),
     ]
     coords = block.get("coords") or {}
     if coords:
         pairs.extend(
-            (f"{key.capitalize()} (x | y)", _coords(coords.get(key)))
+            (f"{key.capitalize()} (x | y)", fmt.coords(coords.get(key)))
             for key in ("red", "green", "blue", "white")
         )
     # The length decides whether coordinates are present at all.
-    pairs.append(("Block length", _num(block.get("length"))))
+    pairs.append(("Block length", fmt.num(block.get("length"))))
     return pairs
 
 
@@ -570,18 +485,18 @@ def _l10_pairs(targets: list | None) -> list:
     """Return one row per L10 target display with its primaries and PQ range."""
     pairs = []
     for target in targets or []:
-        name = f"{_num(target.get('nits'))} nits"
+        name = f"{fmt.num(target.get('nits'))} nits"
         index = target.get("target_display_index")
         if index is not None:
-            name += f" (#{_num(index)})"
+            name += f" (#{fmt.num(index)})"
         readings = []
-        primary = _text(target.get("primary_name"))
+        primary = fmt.text(target.get("primary_name"))
         if primary != EMPTY:
             readings.append(primary)
         for label, key in (("max PQ", "target_max_pq"),
                            ("min PQ", "target_min_pq"),
                            ("length", "length")):
-            reading = _num(target.get(key))
+            reading = fmt.num(target.get(key))
             if reading != EMPTY:
                 readings.append(f"{label} {reading}")
         if readings:
@@ -593,11 +508,11 @@ def _l11_pairs(rpu: dict | None) -> list:
     """Return the L11 content type and whitepoint rows."""
     l11 = (rpu or {}).get("l11") or {}
     return [
-        ("Content type", _text(l11.get("content_type_name"))),
-        ("Whitepoint", _text(l11.get("whitepoint_name"))),
-        ("Reference mode", _flag(l11.get("reference_mode"))),
-        ("Reserved bytes", _joined(_num(l11.get("reserved_byte2")),
-                                   _num(l11.get("reserved_byte3")))),
+        ("Content type", fmt.text(l11.get("content_type_name"))),
+        ("Whitepoint", fmt.text(l11.get("whitepoint_name"))),
+        ("Reference mode", fmt.flag(l11.get("reference_mode"))),
+        ("Reserved bytes", fmt.joined(fmt.num(l11.get("reserved_byte2")),
+                                   fmt.num(l11.get("reserved_byte3")))),
     ]
 
 
@@ -605,8 +520,8 @@ def _l254_pairs(rpu: dict | None) -> list:
     """Return the L254 (CM v4.0 marker) raw codes."""
     l254 = (rpu or {}).get("l254") or {}
     return [
-        ("DM mode", _num(l254.get("dm_mode"))),
-        ("DM version index", _num(l254.get("dm_version_index"))),
+        ("DM mode", fmt.num(l254.get("dm_mode"))),
+        ("DM version index", fmt.num(l254.get("dm_version_index"))),
     ]
 
 
@@ -614,234 +529,11 @@ def _l255_pairs(rpu: dict | None) -> list:
     """Return the L255 debug run mode rows (rare in encoded content)."""
     l255 = (rpu or {}).get("l255") or {}
     return [
-        ("Run mode", _num(l255.get("dm_run_mode"))),
-        ("Run version", _num(l255.get("dm_run_version"))),
-        ("Debug", _joined(*(_num(l255.get(f"dm_debug{index}"))
+        ("Run mode", fmt.num(l255.get("dm_run_mode"))),
+        ("Run version", fmt.num(l255.get("dm_run_version"))),
+        ("Debug", fmt.joined(*(fmt.num(l255.get(f"dm_debug{index}"))
                             for index in range(4)))),
     ]
-
-
-# --- Composer (RPU data mapping) -------------------------------------------
-
-# The three reshaping curves in module order, named by component; also the
-# NLQ table's columns.
-_CURVE_COMPONENTS = ("Y", "Cb", "Cr")
-
-# Curve shapes by ``mapping_idc``; unknown codes are shown as is.
-_MAPPING_IDC_NAMES = {0: "Polynomial", 1: "MMR"}
-
-# Composer table legends and leading columns: polynomial segments start
-# with order and interpolation, MMR segments with order and constant.
-_LEGEND_SEGMENT   = "Segment"
-_LEGEND_TERM      = "Term"
-_LEGEND_COMPONENT = "Component"
-_POLY_HEADINGS    = ("Order", "Linear interp")
-_MMR_HEADINGS     = ("Order", "Constant")
-
-
-def _coefficient(int_part, frac_part, denom) -> str:
-    """Combine a composer coefficient's halves as the decoder does.
-
-    ``int_part + frac_part / 2 ** coefficient_log2_denom`` -- the RPU
-    syntax's own arithmetic, the only derived value in the view.  EMPTY
-    without the header's denominator.
-    """
-    if isinstance(denom, bool) or not isinstance(denom, int) or denom < 0:
-        return EMPTY
-    if isinstance(int_part, bool) or not isinstance(int_part, int):
-        return EMPTY
-    if isinstance(frac_part, bool) or not isinstance(frac_part, int):
-        frac_part = 0
-    return f"{int_part + frac_part / float(1 << denom):.6g}"
-
-
-def _grid(legend: str, headings, rows) -> list:
-    """Lay out *rows* (``(name, cells)``) as a table under *headings*.
-
-    Empty rows are dropped; more headings than ``MAX_COLUMNS`` continue in a
-    second table.  Short rows are padded to the heading width so
-    ui.dvmetadata._paint can right-align narrow tables and keep each reading
-    under its heading.
-    """
-    entries: list = []
-    for start in range(0, len(headings), MAX_COLUMNS):
-        stop  = start + MAX_COLUMNS
-        chunk = list(headings[start:stop])
-        body  = []
-        for name, cells in rows:
-            part = ["" if cell == EMPTY else cell for cell in cells[start:stop]]
-            if any(part):
-                body.append((COLUMNS, name, part + [""] * (len(chunk) - len(part))))
-        if not body:
-            continue
-        if entries:
-            entries.append((SPACE, f"space.{legend}.{start}", ""))
-        entries.append((HEADINGS, legend, chunk))
-        entries.extend(body)
-    return entries
-
-
-def _mapping(rpu: dict | None) -> dict:
-    """Return the RPU's composer data, or {}.
-
-    Only parsed while the metadata view asks for it (see
-    ``info.dvinfo.get_sidedata``) and missing before sidedata 1.6.0; the
-    composer sections then drop out.
-    """
-    return (rpu or {}).get("data_mapping") or {}
-
-
-def _denominator(rpu: dict | None):
-    """Return the header's ``coefficient_log2_denom``."""
-    return ((rpu or {}).get("header") or {}).get("coefficient_log2_denom")
-
-
-def _composer_pairs(rpu: dict | None) -> list:
-    """Return the composer scalars: RPU id, colour space, partitions, NLQ."""
-    mapping = _mapping(rpu)
-    pivots  = mapping.get("nlq_pred_pivot_value") or []
-    return [
-        ("VDR RPU ID", _num(mapping.get("vdr_rpu_id"))),
-        ("Mapping colour space", _num(mapping.get("mapping_color_space"))),
-        ("Mapping chroma format",
-         _num(mapping.get("mapping_chroma_format_idc"))),
-        ("Partitions (x | y)", _joined(_num(mapping.get("num_x_partitions")),
-                                       _num(mapping.get("num_y_partitions")))),
-        ("NLQ method", _num(mapping.get("nlq_method_idc"))),
-        ("NLQ pivots", _num(mapping.get("nlq_num_pivots"))),
-        ("NLQ pivot values", _joined(*(_num(value) for value in pivots))),
-    ]
-
-
-def _polynomial_entries(polynomial: dict | None, denom) -> list:
-    """Return a polynomial curve as a table, one segment per row.
-
-    Order and linear-interpolation flag first, then the coefficients from
-    the lowest order up.
-    """
-    polynomial = polynomial or {}
-    orders     = polynomial.get("poly_order") or []
-    interp     = polynomial.get("linear_interp_flag") or []
-    coef_int   = polynomial.get("poly_coef_int") or []
-    coef_frac  = polynomial.get("poly_coef") or []
-
-    width    = max((len(terms) for terms in coef_int), default=0)
-    headings = list(_POLY_HEADINGS) + [f"c{term}" for term in range(width)]
-    rows     = []
-    for segment in range(max(len(orders), len(coef_int))):
-        ints  = coef_int[segment] if segment < len(coef_int) else []
-        fracs = coef_frac[segment] if segment < len(coef_frac) else []
-        cells = [
-            _num(orders[segment]) if segment < len(orders) else EMPTY,
-            _flag(interp[segment]) if segment < len(interp) else EMPTY,
-        ]
-        cells.extend(
-            _coefficient(value, fracs[term] if term < len(fracs) else 0, denom)
-            for term, value in enumerate(ints)
-        )
-        rows.append((f"Segment {segment + 1}", cells))
-    return _grid(_LEGEND_SEGMENT, headings, rows)
-
-
-def _mmr_entries(mmr: dict | None, denom) -> list:
-    """Return an MMR curve as two tables.
-
-    First one row per segment (order, constant), then one row per order
-    level of coefficients, since higher orders add product terms.  Terms are
-    named by position only, as the module documents them.
-    """
-    mmr        = mmr or {}
-    orders     = mmr.get("mmr_order") or []
-    const_int  = mmr.get("mmr_constant_int") or []
-    const_frac = mmr.get("mmr_constant") or []
-    coef_int   = mmr.get("mmr_coef_int") or []
-    coef_frac  = mmr.get("mmr_coef") or []
-
-    segments  = max(len(orders), len(const_int), len(coef_int))
-    head_rows = []
-    coef_rows = []
-    width     = 0
-    for segment in range(segments):
-        head_rows.append((f"Segment {segment + 1}", [
-            _num(orders[segment]) if segment < len(orders) else EMPTY,
-            _coefficient(
-                const_int[segment] if segment < len(const_int) else None,
-                const_frac[segment] if segment < len(const_frac) else 0,
-                denom,
-            ),
-        ]))
-        levels = coef_int[segment] if segment < len(coef_int) else []
-        fracs  = coef_frac[segment] if segment < len(coef_frac) else []
-        for level, ints in enumerate(levels):
-            row   = fracs[level] if level < len(fracs) else []
-            width = max(width, len(ints))
-            # With one segment (the usual case) the segment is not named.
-            name  = (f"Order {level + 1}" if segments == 1 else
-                     f"Segment {segment + 1} · order {level + 1}")
-            coef_rows.append((name, [
-                _coefficient(value, row[term] if term < len(row) else 0, denom)
-                for term, value in enumerate(ints)
-            ]))
-
-    entries = _grid(_LEGEND_SEGMENT, list(_MMR_HEADINGS), head_rows)
-    terms   = _grid(_LEGEND_TERM,
-                    [str(term + 1) for term in range(width)], coef_rows)
-    if entries and terms:
-        # Space between the two tables.
-        entries.append((SPACE, "space.mmr", ""))
-    entries.extend(terms)
-    return entries
-
-
-def _curve_entries(rpu: dict | None, index: int) -> list:
-    """Return one component's curve: shape, pivots and coefficients."""
-    curves = _mapping(rpu).get("curves") or []
-    curve  = (curves[index] if index < len(curves) else None) or {}
-    if not curve:
-        return []
-
-    idc     = curve.get("mapping_idc")
-    pivots  = curve.get("pivots") or []
-    entries: list = [
-        ("Shape", _text(_MAPPING_IDC_NAMES.get(idc, _num(idc)))),
-        ("Pivots", _num(curve.get("num_pivots"))),
-        ("Pivot codewords", _joined(*(_num(value) for value in pivots))),
-    ]
-
-    denom = _denominator(rpu)
-    table = (_polynomial_entries(curve.get("polynomial"), denom) +
-             _mmr_entries(curve.get("mmr"), denom))
-    if table:
-        entries.append((SPACE, f"space.curve.{index}", ""))
-        entries.extend(table)
-    return entries
-
-
-def _nlq_entries(rpu: dict | None) -> list:
-    """Return the NLQ dequantization data, one column per component.
-
-    Dual-layer profiles (4 and 7) only.
-    """
-    nlq = _mapping(rpu).get("nlq") or {}
-    if not nlq:
-        return []
-
-    denom = _denominator(rpu)
-    rows  = [("Offset", [_num(value) for value in nlq.get("nlq_offset") or []])]
-    for name, int_key, frac_key in (
-        ("VDR in max", "vdr_in_max_int", "vdr_in_max"),
-        ("Deadzone slope",
-         "linear_deadzone_slope_int", "linear_deadzone_slope"),
-        ("Deadzone threshold",
-         "linear_deadzone_threshold_int", "linear_deadzone_threshold"),
-    ):
-        ints  = nlq.get(int_key) or []
-        fracs = nlq.get(frac_key) or []
-        rows.append((name, [
-            _coefficient(value, fracs[at] if at < len(fracs) else 0, denom)
-            for at, value in enumerate(ints)
-        ]))
-    return _grid(_LEGEND_COMPONENT, list(_CURVE_COMPONENTS), rows)
 
 
 def _static_pairs(mdcv: dict | None, cll: dict | None) -> list:
@@ -850,19 +542,19 @@ def _static_pairs(mdcv: dict | None, cll: dict | None) -> list:
     cll  = cll or {}
     primaries = mdcv.get("primaries") or {}
     pairs = [
-        ("Max luminance", _lum(mdcv.get("max_luminance"))),
-        ("Min luminance", _lum(mdcv.get("min_luminance"))),
-        ("Primaries", _text(primaries.get("name"))),
+        ("Max luminance", fmt.lum(mdcv.get("max_luminance"))),
+        ("Min luminance", fmt.lum(mdcv.get("min_luminance"))),
+        ("Primaries", fmt.text(primaries.get("name"))),
     ]
     if primaries:
         pairs.extend(
-            (f"{key.capitalize()} (x | y)", _coords(primaries.get(key)))
+            (f"{key.capitalize()} (x | y)", fmt.coords(primaries.get(key)))
             for key in ("red", "green", "blue")
         )
     pairs.extend((
-        ("White point (x | y)", _coords(mdcv.get("white_point"))),
-        ("MaxCLL", _num(cll.get("max_cll"))),
-        ("MaxFALL", _num(cll.get("max_fall"))),
+        ("White point (x | y)", fmt.coords(mdcv.get("white_point"))),
+        ("MaxCLL", fmt.num(cll.get("max_cll"))),
+        ("MaxFALL", fmt.num(cll.get("max_fall"))),
     ))
     return pairs
 
@@ -876,34 +568,34 @@ def _hdr10plus_pairs(hdr10plus: dict) -> list:
         entry.get("percentage"): entry.get("nits")
         for entry in hdr10plus.get("distribution") or []
     }
-    pairs = [
-        ("Profile", _text(hdr10plus.get("profile"))),
-        ("Application version", _num(hdr10plus.get("application_version"))),
-        ("Windows", _num(hdr10plus.get("num_windows"))),
+    pairs: list[tuple] = [
+        ("Profile", fmt.text(hdr10plus.get("profile"))),
+        ("Application version", fmt.num(hdr10plus.get("application_version"))),
+        ("Windows", fmt.num(hdr10plus.get("num_windows"))),
         (
             "Target display (nits)",
-            _lum(hdr10plus.get("targeted_system_display_maximum_luminance")),
+            fmt.lum(hdr10plus.get("targeted_system_display_maximum_luminance")),
         ),
         (
             "MaxSCL (R | G | B)",
-            _joined(*(_lum(value) for value in maxscl)) if maxscl else EMPTY,
+            fmt.joined(*(fmt.lum(value) for value in maxscl)) if maxscl else EMPTY,
         ),
-        ("Average maxRGB", _lum(hdr10plus.get("average_maxrgb"))),
-        ("Bright pixels", _percent(hdr10plus.get("fraction_bright_pixels"))),
+        ("Average maxRGB", fmt.lum(hdr10plus.get("average_maxrgb"))),
+        ("Bright pixels", fmt.percent(hdr10plus.get("fraction_bright_pixels"))),
     ]
     if profile_b:
         pairs.extend((
             ("Knee point (x | y)",
-             _joined(_scaled(hdr10plus.get("knee_point_x")),
-                     _scaled(hdr10plus.get("knee_point_y")))),
-            ("Bézier anchors", " ".join(_num(value) for value in anchors)
+             fmt.joined(fmt.scaled(hdr10plus.get("knee_point_x")),
+                     fmt.scaled(hdr10plus.get("knee_point_y")))),
+            ("Bézier anchors", " ".join(fmt.num(value) for value in anchors)
                                or EMPTY),
         ))
     # The nine maxRGB percentiles as one compact table; ui.dvmetadata picks
     # the compact grid from the cell count.
     percentile_values = []
     for percent in _HDR10PLUS_PERCENTILES:
-        value = _lum(distribution.get(percent))
+        value = fmt.lum(distribution.get(percent))
         percentile_values.append("" if value == EMPTY else value)
     if any(percentile_values):
         pairs.extend((
@@ -1080,13 +772,13 @@ def build_static_rows(parsed: dict, origin: dict, carried: str) -> list[tuple[st
     # The composer, which reconstructs the picture from the base layer (not
     # a level, so it follows the header).  Only present when requested (see
     # info.dvinfo.get_sidedata).
-    _section(rows, "Composer — Data mapping", _composer_pairs(rpu),
+    _section(rows, "Composer — Data mapping", composer_pairs(rpu),
              _state(origin, "rpu.data_mapping"))
-    for index, component in enumerate(_CURVE_COMPONENTS):
+    for index, component in enumerate(CURVE_COMPONENTS):
         _section(rows, f"Composer — {component} curve",
-                 _curve_entries(rpu, index),
+                 curve_entries(rpu, index),
                  _state(origin, "rpu.data_mapping"))
-    _section(rows, "Composer — NLQ", _nlq_entries(rpu),
+    _section(rows, "Composer — NLQ", nlq_entries(rpu),
              _state(origin, "rpu.data_mapping"))
 
     _section(rows, "Configuration record (dvcC / dvvC)",

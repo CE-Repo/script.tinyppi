@@ -6,6 +6,7 @@
 Imported by main.py (which sets up sys.path) and by the service.
 """
 
+import contextlib
 import os
 import threading
 import time
@@ -254,20 +255,20 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._running   = False
         self._monitor   = xbmc.Monitor()
         self._opened_at = 0.0
-        self._offset    = None
+        self._offset: tuple | None = None
         self._auto_hide = 0
         self._nudge     = (0, 0)
         self._nudge_on  = False
         # Position sliders, read in onInit.
         self._offset_pct    = (0, 0)
         self._dv_offset_pct = 100
-        self._thread    = None
-        self._dv_channel_offset = None
+        self._thread: threading.Thread | None = None
+        self._dv_channel_offset: tuple[int, int] | None = None
         self._refresh_failed    = False
         # Highlight state for the DV readings, built in onInit.  _shown is
         # what the window holds (with markup), unlike self.published (see
         # _highlight_dv_changes).
-        self._highlighter       = None
+        self._highlighter: ChangeHighlighter | None = None
         self._shown: dict       = {}
         # Public: _show_overlay() fills it before doModal().
         self.published: dict    = {}
@@ -275,7 +276,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         # Highlight color, refreshed on the slow cadence (see _update_loop).
         self._changed_color     = ""
         # Read by open_tinyppi() after doModal() (see _open_dv_metadata).
-        self.next_view  = None
+        self.next_view: str | None = None
 
     def onInit(self) -> None:
         self._running   = True
@@ -339,8 +340,11 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         hdr_type = self.published.get("TinyPPI.HdrType", "").lower()
         color = self._changed_color if "dolby" in hdr_type else ""
         now   = time.monotonic()
+        highlighter = self._highlighter
+        if highlighter is None:  # before onInit
+            return
         for name, value in current.items():
-            highlighted = self._highlighter.mark(name, value, color, now)
+            highlighted = highlighter.mark(name, value, color, now)
             if self._shown.get(name) != highlighted:
                 self.setProperty(name, highlighted)
                 self._shown[name] = highlighted
@@ -527,10 +531,8 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
     def close_dialog(self) -> None:
         self._running = False
         home_window().clearProperty(PROP_ACTIVE)
-        try:
+        with contextlib.suppress(Exception):
             self.close()
-        except Exception:
-            pass
 
 
 # --- Entry points ----------------------------------------------------------

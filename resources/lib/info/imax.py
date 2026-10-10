@@ -176,16 +176,16 @@ def _read_titles(path: str) -> dict[str, list[tuple[int | None, bool]]]:
         return {}
 
     entries: dict[str, list[tuple[int | None, bool]]] = {}
-    for line in (raw or "").splitlines():
-        line = line.split("#", 1)[0].strip()
-        if not line:
+    for raw_line in (raw or "").splitlines():
+        entry = raw_line.split("#", 1)[0].strip()
+        if not entry:
             continue
 
-        is_enhanced = line.lower().endswith(_ENHANCED_TAG)
+        is_enhanced = entry.lower().endswith(_ENHANCED_TAG)
         if is_enhanced:
-            line = line[:-len(_ENHANCED_TAG)].strip()
+            entry = entry[:-len(_ENHANCED_TAG)].strip()
 
-        tokens = _tokens(line)
+        tokens = _tokens(entry)
         year = None
         # A trailing year is a condition, not part of the name.  Titles ending
         # in a year (Wonder Woman 1984) still match: release names are cut at
@@ -216,7 +216,7 @@ def _title_stamp(paths: tuple[str, str]) -> tuple:
     Two stats, done only when the playing file changes (see ``_current``), so
     an added title applies without restarting Kodi.
     """
-    stamp = []
+    stamp: list[tuple[float, int] | None] = []
     for path in paths:
         try:
             listing = os.stat(path)
@@ -363,7 +363,7 @@ def _classify(names: tuple[str, ...]) -> tuple[bool, bool]:
         if not tokens:
             continue
 
-        for first, second in zip(tokens, tokens[1:] + [""]):
+        for first, second in zip(tokens, tokens[1:] + [""], strict=True):
             if first == "imax":
                 imax = True
                 enhanced = enhanced or second == "enhanced"

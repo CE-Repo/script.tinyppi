@@ -16,7 +16,7 @@ try:  # pragma: no cover - absent when the skin generator runs this
     from core import settings
 except ImportError:
     xbmc = None
-    settings = None
+    settings = None  # type: ignore[assignment]
 
 # Layout ids and their window files.  The numbers are stored in settings and
 # must keep their meaning; the settings list orders them independently.

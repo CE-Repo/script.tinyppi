@@ -1,0 +1,14 @@
+{
+  "name": "script.tinyppi-dev",
+  "private": true,
+  "description": "Development tooling only (lint for the dashboard's scripts); not part of the add-on.",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "lint": "eslint resources/web/js"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.4",
+    "eslint": "9.39.4",
+    "globals": "16.5.0"
+  }
+}

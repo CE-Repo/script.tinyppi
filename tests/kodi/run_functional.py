@@ -349,7 +349,7 @@ def run():
         try:
             if s.recv(1) == b"":
                 refused += 1
-        except socket.timeout:
+        except TimeoutError:
             pass
         except ConnectionResetError:
             refused += 1

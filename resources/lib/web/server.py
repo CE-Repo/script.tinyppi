@@ -4,12 +4,13 @@
 """The dashboard's HTTP server and its lifecycle.
 
 A producer thread builds snapshots that are pushed to every browser via
-Server-Sent Events (web/producer.py).  Routes live in web/routes.py, delta
-frames in web/delta.py, artwork in web/artwork.py and the page's files in
-web/static.py.  Routes are a fixed table, never a filesystem lookup; every
+Server-Sent Events (web/producer.py, built by web/snapshot.py).  Routes live
+in web/routes.py, delta frames in web/delta.py, artwork in web/artwork.py and
+the page's files in web/static.py.  Routes are a fixed table, never a filesystem lookup; every
 state change needs the token.  The server is off unless enabled.
 """
 
+import contextlib
 import secrets
 import socket
 import sys
@@ -141,7 +142,7 @@ class _Server(ThreadingHTTPServer):
         self._stream_lock  = threading.Lock()
         # Request threads, joined in stop(): Kodi waits for every thread of
         # the interpreter, daemon or not.
-        self._workers      = set()
+        self._workers: set[threading.Thread] = set()
         self._worker_lock  = threading.Lock()
         # Open connections and their addresses, so stop() can hang up on
         # idle keep-alives and verify_request() can cap them.
@@ -159,7 +160,7 @@ class _Server(ThreadingHTTPServer):
         """
         if self.stop_event.is_set():
             return False
-        address = client_address[0]
+        address = access.client_key(client_address[0])
         with self._worker_lock:
             total = len(self._connections)
             mine = sum(1 for held in self._connections.values()
@@ -179,7 +180,7 @@ class _Server(ThreadingHTTPServer):
         # Registered on the accept loop, so the table is complete once
         # shutdown() has returned.
         with self._worker_lock:
-            self._connections[request] = client_address[0]
+            self._connections[request] = access.client_key(client_address[0])
         super().process_request(request, client_address)
 
     def shutdown_request(self, request) -> None:
@@ -200,10 +201,8 @@ class _Server(ThreadingHTTPServer):
         with self._worker_lock:
             connections = list(self._connections)
             for connection in connections:
-                try:
+                with contextlib.suppress(OSError):
                     connection.shutdown(how)
-                except OSError:
-                    pass
         return len(connections)
 
     def process_request_thread(self, request, client_address) -> None:
@@ -289,10 +288,35 @@ class _Server(ThreadingHTTPServer):
         """Log request errors: hang-ups at debug, real faults with traceback."""
         exc = sys.exc_info()[1]
         if isinstance(exc, (BrokenPipeError, ConnectionResetError, TimeoutError)):
-            _log(f"connection from {client_address[0]} ended early", xbmc.LOGDEBUG)
+            _log(f"connection from {access.plain_address(client_address[0])} ended early",
+                 xbmc.LOGDEBUG)
             return
-        _log(f"request from {client_address[0]} failed:\n"
+        _log(f"request from {access.plain_address(client_address[0])} failed:\n"
              f"{traceback.format_exc()}", xbmc.LOGERROR)
+
+
+class _DualStackServer(_Server):
+    """The server on one IPv6 socket that also accepts IPv4 clients.
+
+    Binding fails, and the caller falls back to IPv4 only, where IPv6 is
+    off or the socket cannot be opened for IPv4 too.
+    """
+
+    address_family = socket.AF_INET6
+
+    def server_bind(self) -> None:
+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+        super().server_bind()
+
+
+def _bind(port: int, producer: Producer, stop: threading.Event, token: str) -> _Server:
+    """Return a server listening on *port* over IPv6 and IPv4, or IPv4 only."""
+    if socket.has_ipv6:
+        try:
+            return _DualStackServer(("::", port), producer, stop, token)
+        except OSError as exc:
+            _log(f"IPv6 unavailable ({exc}), listening on IPv4 only", xbmc.LOGDEBUG)
+    return _Server(("0.0.0.0", port), producer, stop, token)
 
 
 class WebDashboard:
@@ -350,7 +374,7 @@ class WebDashboard:
         self._stop     = threading.Event()
         self._producer = Producer(self._stop)
         try:
-            server = _Server(("0.0.0.0", port), self._producer, self._stop, token)
+            server = _bind(port, self._producer, self._stop, token)
         except OSError as exc:
             _log(f"cannot bind port {port}: {exc}", xbmc.LOGERROR)
             self._stop = None

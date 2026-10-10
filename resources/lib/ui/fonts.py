@@ -17,6 +17,7 @@ A skin with several resolution folders (``<res folder=...>`` in its
 addon.xml) has one Font.xml per folder; each gets the entries.
 """
 
+import contextlib
 import os
 import re
 import threading
@@ -183,7 +184,8 @@ def _block_entry(block: str) -> tuple[str, str, str] | None:
         if match is None:
             return None
         values.append(match.group(1))
-    return tuple(values)
+    name, filename, size = values
+    return name, filename, size
 
 
 def _fontset_entries(inner: str) -> set:
@@ -286,7 +288,8 @@ def _install_xml(font_xml_path: str) -> bool:
         if inc:
             insert_pos = inc.end()
             line_start = inner.rfind("\n", 0, inc.start()) + 1
-            indent = re.match(r"[ \t]*", inner[line_start:inc.start()]).group(0)
+            indent = inner[line_start:inc.start()]
+            indent = indent[:len(indent) - len(indent.lstrip(" \t"))]
         else:
             insert_pos = 0
             indent = "        "
@@ -365,10 +368,8 @@ def _install_fonts() -> None:
               PROP_FONTS_FAILED if failed else PROP_FONTS_READY)
     if not written:
         return
-    try:
+    with contextlib.suppress(Exception):
         xbmc.executebuiltin("ReloadSkin(reload)")
-    except Exception:
-        pass
 
 
 def _remember(home, skin_dir: str, font_xmls,
