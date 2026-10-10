@@ -31,11 +31,11 @@ from core.log import channel
 from core.protocols import PropertyTarget
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
 from info.dvinfo import get_dv_el_type_raw, get_hdr_format
+from info.properties import output_hdr_token
 from ui.splash_logos import (
     current_logos,
     dv_layer_token,
     is_converting,
-    output_hdr_token,
     video_has_audio,
 )
 from ui.theme import apply_theme

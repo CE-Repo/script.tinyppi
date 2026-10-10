@@ -7,6 +7,7 @@ import pytest
 
 import xbmc
 from info import imax
+from info.properties import output_hdr_token
 from ui import splash_logos as logos
 
 
@@ -14,10 +15,11 @@ from ui import splash_logos as logos
     ("DV-STD BT2020", "dolbyvision"), ("DOLBYVISION", "dolbyvision"), ("dv-ll", "dolbyvision"),
     ("HDR10+ BT2020", "hdr10+"), ("HDR10PLUS", "hdr10+"),
     ("HLG BT2020", "hlg"), ("HDR10 BT2020", "hdr10"), ("HDR", "hdr10"),
-    ("SDR BT709", ""), ("", ""),
+    ("SDR BT709", ""), ("", ""), (None, ""),
+    ("HDR10, BT2020", "hdr10"), ("DV-STD,BT2020", "dolbyvision"),   # as web/vs10.py cuts it
 ])
 def test_the_output_mode_picks_the_logo_key(gamut, token):
-    assert logos.output_hdr_token(gamut) == token
+    assert output_hdr_token(gamut) == token
 
 
 @pytest.mark.parametrize(("source", "gamut", "converting"), [

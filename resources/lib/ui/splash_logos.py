@@ -14,21 +14,6 @@ from core.utils import info
 from info.imax import imax_logo, is_known_imax_title
 
 
-def output_hdr_token(gamut: str) -> str:
-    """Map the Amlogic output mode to an ``HDR_LOGO_MAP`` key ('' for SDR)."""
-    parts = gamut.split()
-    mode = parts[0].upper() if parts else ""
-    if "DV" in mode or "DOLBY" in mode:
-        return "dolbyvision"
-    if "HDR10+" in mode or "HDR10PLUS" in mode or "PLUS" in mode:
-        return "hdr10+"
-    if "HLG" in mode:
-        return "hlg"
-    if "HDR" in mode:
-        return "hdr10"
-    return ""
-
-
 def current_logos(hdr_token: str) -> tuple[str, str]:
     """Return the ``(video, audio)`` logos for the current output.
 

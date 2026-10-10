@@ -316,6 +316,26 @@ def get_ModeVar() -> str:
     return parts[0] if parts else ""
 
 
+def output_hdr_token(eoft_gamut: str) -> str:
+    """Map an ``amlogic.eoft_gamut`` reading to an HDR token ('' for SDR).
+
+    Only the mode field (the first token, see ``get_ModeVar``) is read.  The
+    tokens are the keys of ``core.maps.HDR_LOGO_MAP``: dolbyvision, hdr10+,
+    hlg, hdr10.
+    """
+    parts = (eoft_gamut or "").split()
+    mode = parts[0].upper() if parts else ""
+    if "DV" in mode or "DOLBY" in mode:
+        return "dolbyvision"
+    if "HDR10+" in mode or "HDR10PLUS" in mode or "PLUS" in mode:
+        return "hdr10+"
+    if "HLG" in mode:
+        return "hlg"
+    if "HDR" in mode:
+        return "hdr10"
+    return ""
+
+
 def get_GamutVar() -> str:
     """Return the second token of ``amlogic.eoft_gamut`` (the gamut field)."""
     parts = info("Player.Process(amlogic.eoft_gamut)").split()

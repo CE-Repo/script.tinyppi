@@ -37,6 +37,7 @@ from info.dvinfo import (
     na_label,
 )
 from info.mediasource import is_live, is_pvr
+from info.properties import output_hdr_token
 from info.publish import (
     publish_scene_properties,
     publish_static_properties,
@@ -348,23 +349,6 @@ def _metadata_row(kind: str, name: str, value: object) -> dict:
 # --- Output ----------------------------------------------------------------
 
 
-def _output_token(mode: str) -> str:
-    """Map the Amlogic output mode to an HDR token ('' for SDR).
-
-    Follows ``ui.splash_logos.output_hdr_token``.
-    """
-    mode = (mode or "").upper()
-    if "DV" in mode or "DOLBY" in mode:
-        return "dolbyvision"
-    if "HDR10+" in mode or "HDR10PLUS" in mode or "PLUS" in mode:
-        return "hdr10+"
-    if "HLG" in mode:
-        return "hlg"
-    if "HDR" in mode:
-        return "hdr10"
-    return ""
-
-
 def _output_hdr_type(mode: str, source: str) -> str:
     """Return the output as a source-style token, to detect conversions.
 
@@ -374,7 +358,7 @@ def _output_hdr_type(mode: str, source: str) -> str:
     """
     if not (mode or "").strip():
         return source
-    token = _output_token(mode)
+    token = output_hdr_token(mode)
     # The source side spells it hdr10plus (see publish_hdr_type).
     return "hdr10plus" if token == "hdr10+" else token
 
