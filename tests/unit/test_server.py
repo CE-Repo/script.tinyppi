@@ -57,6 +57,15 @@ def test_hello_and_reading(dashboard):
     assert request(dashboard, "/api/state", host="evil.example.com", token=TOKEN)[0] == 200
 
 
+def test_reading_from_beyond_the_home_network_needs_the_token(dashboard, monkeypatch):
+    seen = []
+    monkeypatch.setattr(access, "home_peer", lambda address: seen.append(address) or False)
+    assert request(dashboard, "/api/state")[0] == 401
+    assert request(dashboard, "/api/state", token=TOKEN)[0] == 200
+    assert request(dashboard, "/api/hello")[0] == 200       # what the page needs to ask
+    assert seen and set(seen) == {"127.0.0.1"}
+
+
 def test_writing_needs_the_token(dashboard):
     assert request(dashboard, "/api/mode", "POST", {"mode": "nope"})[0] == 401
     assert request(dashboard, "/api/mode", "POST", {"mode": "nope"}, token="WRONG")[0] == 401
@@ -325,11 +334,17 @@ def test_refused_connections_are_logged_once_a_minute(bare, clock):
     assert len(_warnings()) == 2
 
 
-def test_one_ipv6_network_counts_as_one_device(bare):
-    bare._connections.update({_Held(): access.client_key(f"2001:db8:1:2::{i + 1:x}")
+def test_one_ipv6_network_beyond_the_home_counts_as_one_device(bare):
+    bare._connections.update({_Held(): access.client_key(f"2a00:1450:4001:2::{i + 1:x}")
                               for i in range(16)})
-    assert not bare.verify_request(None, ("2001:db8:1:2::ffff", 1))
-    assert bare.verify_request(None, ("2001:db8:1:3::1", 1))
+    assert not bare.verify_request(None, ("2a00:1450:4001:2::ffff", 1))
+    assert bare.verify_request(None, ("2a00:1450:4001:3::1", 1))
+
+
+def test_at_home_every_ipv6_address_counts_on_its_own(bare):
+    bare._connections.update({_Held(): access.client_key("fd00::1") for _ in range(16)})
+    assert not bare.verify_request(None, ("fd00::1", 1))
+    assert bare.verify_request(None, ("fd00::2", 1))
 
 
 def test_at_most_48_connections_are_held_in_all(bare):

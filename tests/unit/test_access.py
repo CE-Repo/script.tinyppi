@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Host-name trust and the guessing lockout (web/access.py)."""
+"""Host-name trust, home-network clients and the guessing lockout (web/access.py)."""
 
 from types import SimpleNamespace
 
@@ -21,6 +21,26 @@ def own_names(monkeypatch):
     install(lambda: "coreelec", lambda: "coreelec")
     yield install
     access._own_names.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def own_ipv6(tmp_path, monkeypatch):
+    """The box's IPv6 address table in a file of the test's own (empty at
+    first), read afresh: write(lines) replaces it."""
+    table = tmp_path / "if_inet6"
+    table.write_text("")
+    monkeypatch.setattr(access, "_IF_INET6", str(table))
+    monkeypatch.setattr(access, "_own_networks", access._OwnNetworks())
+
+    def write(*lines):
+        table.write_text("".join(line + "\n" for line in lines))
+    return write
+
+
+# Lines of /proc/net/if_inet6: the box's global 2a01:598:1234:5600::10/64,
+# and its link-local address.
+OWN_GLOBAL = "2a010598123456000000000000000010 02 40 00 80     eth0"
+OWN_LINK = "fe80000000000000021122fffe334455 02 40 20 80     eth0"
 
 
 @pytest.mark.parametrize("host", [
@@ -64,8 +84,9 @@ def test_the_table_is_capped():
 @pytest.mark.parametrize(("address", "plain", "key"), [
     ("192.168.1.20", "192.168.1.20", "192.168.1.20"),
     ("::ffff:192.168.1.20", "192.168.1.20", "192.168.1.20"),
-    ("2001:db8:1:2:aaaa::1", "2001:db8:1:2:aaaa::1", "2001:db8:1:2::/64"),
-    ("fe80::1234", "fe80::1234", "fe80::/64"),
+    ("2a00:1450:4001:2:aaaa::1", "2a00:1450:4001:2:aaaa::1", "2a00:1450:4001:2::/64"),
+    ("fe80::1234", "fe80::1234", "fe80::1234"),          # at home: on its own
+    ("fd12:3456:789a:1::5", "fd12:3456:789a:1::5", "fd12:3456:789a:1::5"),
     ("not-an-address", "not-an-address", "not-an-address"),
 ])
 def test_client_addresses(address, plain, key):
@@ -76,9 +97,69 @@ def test_client_addresses(address, plain, key):
 def test_new_ipv6_addresses_in_one_network_share_the_lockout():
     guesses = access.Guesses()
     for i in range(access._GUESS_LIMIT):
-        guesses.wrong(access.client_key(f"2001:db8:1:2::{i + 1:x}"), f"GUESS{i}")
-    assert guesses.locked_for(access.client_key("2001:db8:1:2::ffff")) > 590
-    assert guesses.locked_for(access.client_key("2001:db8:1:3::1")) == 0
+        guesses.wrong(access.client_key(f"2a00:1450:4001:2::{i + 1:x}"), f"GUESS{i}")
+    assert guesses.locked_for(access.client_key("2a00:1450:4001:2::ffff")) > 590
+    assert guesses.locked_for(access.client_key("2a00:1450:4001:3::1")) == 0
+
+
+def test_a_device_at_home_locks_out_only_itself(own_ipv6):
+    own_ipv6(OWN_GLOBAL)
+    guesses = access.Guesses()
+    for i in range(access._GUESS_LIMIT):
+        guesses.wrong(access.client_key("2a01:598:1234:5600::aa"), f"GUESS{i}")
+    assert guesses.locked_for(access.client_key("2a01:598:1234:5600::aa")) > 590
+    assert guesses.locked_for(access.client_key("2a01:598:1234:5600::bb")) == 0
+
+
+@pytest.mark.parametrize(("address", "home"), [
+    ("127.0.0.1", True), ("::1", True), ("192.168.1.20", True), ("10.0.0.7", True),
+    ("172.16.4.2", True), ("::ffff:192.168.1.20", True), ("169.254.1.1", True),
+    ("fe80::1", True), ("fd12:3456:789a:1::5", True),
+    ("8.8.8.8", False), ("::ffff:8.8.8.8", False), ("2a00:1450:4001:2::1", False),
+    ("2a01:598:1234:5600::abcd", False),                 # the box's prefix is not known
+    ("not-an-address", False), ("", False),
+])
+def test_home_network_clients(address, home):
+    assert access.home_peer(address) is home
+
+
+def test_addresses_in_the_boxs_own_ipv6_network_are_at_home(own_ipv6):
+    own_ipv6(OWN_LINK, OWN_GLOBAL)
+    assert access.home_peer("2a01:598:1234:5600::abcd")
+    assert access.home_peer("::1")
+    assert not access.home_peer("2a01:598:1234:5601::1")
+
+
+def test_the_own_networks_are_read_again_after_a_minute(own_ipv6, monkeypatch):
+    now = [1000.0]
+    monkeypatch.setattr(access.time, "monotonic", lambda: now[0])
+    assert not access.home_peer("2a01:598:1234:5600::abcd")
+    own_ipv6(OWN_GLOBAL)
+    now[0] += 59
+    assert not access.home_peer("2a01:598:1234:5600::abcd")
+    now[0] += 1
+    assert access.home_peer("2a01:598:1234:5600::abcd")
+
+
+@pytest.mark.parametrize("lines", [
+    ("zz010598123456000000000000000010 02 40 00 80     eth0",),
+    ("2a010598123456000000000000000010 02 zz 00 80     eth0",),
+])
+def test_an_unreadable_address_table_knows_no_own_networks(own_ipv6, lines):
+    own_ipv6(*lines)
+    assert not access.home_peer("2a01:598:1234:5600::abcd")
+    assert any("own IPv6 networks unknown" in message for _level, message in xbmc.LOG)
+
+
+def test_a_box_without_an_address_table_knows_no_own_networks(monkeypatch):
+    monkeypatch.setattr(access, "_IF_INET6", "/nonexistent/if_inet6")
+    assert not access.home_peer("2a01:598:1234:5600::abcd")
+    assert access.home_peer("192.168.1.20")
+
+
+def test_short_lines_in_the_address_table_are_skipped(own_ipv6):
+    own_ipv6("2a010598123456000000000000000010 02 40", OWN_GLOBAL)
+    assert access.home_peer("2a01:598:1234:5600::abcd")
 
 
 @pytest.mark.parametrize("host", [".", ":8099", "[]:8099", "..."])

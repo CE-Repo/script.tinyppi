@@ -190,10 +190,12 @@ class Handler(BaseHTTPRequestHandler):
     def _token_to_read(self) -> bool:
         """Return whether reading needs the token for this request.
 
-        When the setting says so, or for an untrusted host name (see
+        When the setting says so, for a client beyond the home network (see
+        ``access.home_peer``), or for an untrusted host name (see
         ``access.trusted_host``).
         """
         return (self.server.auth_read
+                or not access.home_peer(self.client_address[0])
                 or not access.trusted_host(self.headers.get("Host", "")))
 
     # --- Routing -----------------------------------------------------------
