@@ -9,9 +9,21 @@ The add-on's code runs outside Kodi: `tests/stubs` stands in for `xbmc`,
 `xbmcgui`, `xbmcaddon` and `xbmcvfs`.
 
 ```
-python3 -m pip install pytest
+python3 -m pip install -r requirements-dev.txt
 python3 -m pytest tests
 ```
+
+The same checks CI runs on every push (`.github/workflows/ci.yml`):
+
+```
+ruff check .                 # lint (settings in pyproject.toml)
+mypy                         # types, with Kodistubs for Kodi's modules
+python3 -m pytest tests/unit
+npm ci && npm run lint       # ESLint for resources/web/js
+```
+
+CI also runs the official `kodi-addon-checker` on the add-on without its
+development files.
 
 | File | Covers |
 |---|---|
