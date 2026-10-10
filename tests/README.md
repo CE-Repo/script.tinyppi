@@ -18,7 +18,7 @@ The same checks CI runs on every push (`.github/workflows/ci.yml`):
 ```
 ruff check .                 # lint (settings in pyproject.toml)
 mypy                         # types, with Kodistubs for Kodi's modules
-python3 -m pytest --cov tests/unit    # fails below the floor in pyproject.toml
+python3 -m pytest tests/unit --cov    # fails below the floor in pyproject.toml
 npm ci && npm run lint       # ESLint for resources/web/js
 npm test                     # the dashboard's scripts in jsdom (tests/web)
 npm run test:browser         # the dashboard in Chromium against the real server (tests/browser)

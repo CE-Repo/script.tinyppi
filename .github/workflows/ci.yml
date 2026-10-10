@@ -36,7 +36,7 @@ jobs:
       - name: mypy
         run: mypy
       - name: Unit tests
-        run: python -m pytest --cov --cov-report=term-missing:skip-covered tests/unit
+        run: python -m pytest tests/unit --cov --cov-report=term-missing:skip-covered
 
   web:
     name: Dashboard scripts (ESLint, tests)
