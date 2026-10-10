@@ -218,7 +218,7 @@ class _Snapshots:
 
     def __init__(self) -> None:
         self._lock    = threading.Lock()
-        self._key     = None
+        self._key: tuple | None = None
         self._info    = _empty_info()
         self._parsed: dict | None = None
         self._playing = False

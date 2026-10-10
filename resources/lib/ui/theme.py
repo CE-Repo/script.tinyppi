@@ -9,6 +9,7 @@ Maps the color settings to ARGB hex strings and publishes them as Home-window
 in Kodi's color picker with the add-on's palette (see ``pick_color``).
 """
 
+import contextlib
 import json
 import os
 import re
@@ -36,7 +37,7 @@ _DEFAULT_NAMES = {
 }
 
 # Palette for text-based elements, and the names of its colors.
-_TEXT_NAMES, _TEXT_COLORS = map(tuple, zip(*named(TEXT, _DEFAULT_NAMES)))
+_TEXT_NAMES, _TEXT_COLORS = map(tuple, zip(*named(TEXT, _DEFAULT_NAMES), strict=True))
 
 # VS10 dialog focused-button highlight (texturefocus); index 0 is pure white.
 _DIALOG_FOCUS_COLORS = ("FFFFFFFF",) + _TEXT_COLORS[1:]
@@ -64,7 +65,7 @@ _LINE_COLORS = ("26808080",) + tuple(
 # Modern background: semi-transparent dark shades, their names, and the
 # brighter stand-ins shown in the picker and the settings row (the real shades
 # are nearly black).
-_BACKGROUND_NAMES, _BACKGROUND_PAIRS = zip(*named(BACKGROUND, _DEFAULT_NAMES))
+_BACKGROUND_NAMES, _BACKGROUND_PAIRS = zip(*named(BACKGROUND, _DEFAULT_NAMES), strict=True)
 _BACKGROUND_COLORS = tuple(color for color, _swatch in _BACKGROUND_PAIRS)
 _BACKGROUND_SWATCHES = tuple(swatch for _color, swatch in _BACKGROUND_PAIRS)
 
@@ -366,7 +367,8 @@ _THEME_PROPERTIES = (
     ("TinyPPI.ChannelIconColor",       _CHANNEL_COLORS,    "channel_icon_color"),
     # DV metadata view: its own colours, independent of the overlay.
     ("TinyPPI.MetadataChangedColor",     _TEXT_COLORS, "metadata_changed_color"),
-    ("TinyPPI.MetadataGlobalBackgroundColor",  _BACKGROUND_COLORS, "metadata_global_background_color"),
+    ("TinyPPI.MetadataGlobalBackgroundColor",  _BACKGROUND_COLORS,
+     "metadata_global_background_color"),
     ("TinyPPI.MetadataBackgroundColor",        _BACKGROUND_COLORS, "metadata_background_color"),
     ("TinyPPI.MetadataHeaderColor",            _TEXT_COLORS, "metadata_header_color"),
     ("TinyPPI.MetadataHeaderIconColor",        _TEXT_COLORS, "metadata_header_icon_color"),
@@ -395,6 +397,8 @@ _THEME_PROPERTIES = (
 
 def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
     """Build the ``_ColorSetting`` for *setting_id* on *palette*."""
+    names: tuple
+    swatches: tuple
     if palette is _BACKGROUND_COLORS:
         names, swatches = _BACKGROUND_NAMES, _BACKGROUND_SWATCHES
         index_of = {swatch: index for index, swatch in enumerate(swatches)}
@@ -403,8 +407,9 @@ def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
         legacy = tuple(shade_of[color] for _swatch, color in _LEGACY_BACKGROUND)
         index_of = {**{swatch: shade_of[color] for swatch, color in _LEGACY_BACKGROUND},
                     **index_of}
-        default = _BACKGROUND_DEFAULT
+        fallback = _BACKGROUND_DEFAULT
     else:
+        former: tuple
         if palette is _DIALOG_FOCUS_TEXT_COLORS:
             names, swatches = _DIALOG_FOCUS_TEXT_NAMES, _DIALOG_FOCUS_TEXT_COLORS
             former = ("FF000000", "FFFFFFFF") + _LEGACY_TEXT[1:]
@@ -413,8 +418,8 @@ def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
             names, swatches, former = _TEXT_NAMES, _TEXT_COLORS, _LEGACY_TEXT
         index_of = {swatch: index for index, swatch in enumerate(swatches)}
         legacy = tuple(index_of[swatch] for swatch in former)
-        default = swatches[0]
-    default = index_of[_DEFAULT_SWATCH.get(setting_id, default)]
+        fallback = swatches[0]
+    default = index_of[_DEFAULT_SWATCH.get(setting_id, fallback)]
     return _ColorSetting(palette, names, swatches, index_of, legacy, default)
 
 
@@ -535,10 +540,9 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
 
     # Re-publish for an open overlay.  The settings dialog keeps the value
     # until it closes, so it is passed in directly.
-    try:
+    # Best effort, never block the change.
+    with contextlib.suppress(Exception):
         apply_theme(home_window(), addon, overrides={setting_id: new_value})
-    except Exception:  # best effort, never block the change
-        pass
 
 
 def migrate_legacy_colors(addon=None) -> int:
@@ -565,8 +569,6 @@ def migrate_legacy_colors(addon=None) -> int:
         moved += 1
 
     # Only reached once every setting has been written.
-    try:
+    with contextlib.suppress(OSError):  # no file
         os.remove(xbmcvfs.translatePath(_LEGACY_CUSTOM_FILE))
-    except OSError:
-        pass  # no file
     return moved

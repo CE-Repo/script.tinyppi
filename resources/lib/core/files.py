@@ -10,6 +10,7 @@ the new content goes to a temporary file next to the target, is flushed to
 storage, and then renamed over the target in one step.
 """
 
+import contextlib
 import os
 import stat
 import threading
@@ -36,14 +37,11 @@ def atomic_write(path: str, data: bytes) -> None:
             handle.write(data)
             handle.flush()
             os.fsync(handle.fileno())
-        try:
+        # No existing file, or its mode cannot be copied.
+        with contextlib.suppress(OSError):
             os.chmod(tmp, stat.S_IMODE(os.stat(path).st_mode))
-        except OSError:
-            pass  # no existing file, or its mode cannot be copied
         os.replace(tmp, path)
     except BaseException:
-        try:
+        with contextlib.suppress(OSError):
             os.remove(tmp)
-        except OSError:
-            pass
         raise

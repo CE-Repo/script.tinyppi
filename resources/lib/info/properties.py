@@ -701,9 +701,9 @@ def _effective_hdr_type(hdr_type: str) -> str:
     addon = settings.addon()
     if mode.startswith("SDR"):
         return hdr_type if addon.getSetting("keep_area_on_sdr") == "true" else ""
-    if mode.startswith("HDR") and "dolby" in hdr_type.lower():
-        if addon.getSetting("keep_dv_area_on_hdr10") != "true":
-            return "hdr10"
+    if (mode.startswith("HDR") and "dolby" in hdr_type.lower()
+            and addon.getSetting("keep_dv_area_on_hdr10") != "true"):
+        return "hdr10"
     return hdr_type
 
 

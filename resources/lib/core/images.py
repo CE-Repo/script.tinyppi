@@ -14,6 +14,7 @@ changes.  ``prune_cache`` removes copies that can no longer be requested.
 """
 
 import binascii
+import contextlib
 import hashlib
 import math
 import os
@@ -85,10 +86,8 @@ _log = channel("images")
 
 
 def _log_debug(message: str) -> None:
-    try:
+    with contextlib.suppress(Exception):
         _log(message)
-    except Exception:
-        pass
 
 
 def _png_dimensions(path: str) -> tuple[int, int]:
@@ -213,8 +212,8 @@ def _decode_png_rgba(path: str) -> tuple[int, int, list[tuple[int, int, int, int
                 raise ValueError("unsupported PNG format")
         elif kind == b"PLTE":
             palette = [
-                tuple(payload[i:i + 3])
-                for i in range(0, len(payload), 3)
+                (payload[i], payload[i + 1], payload[i + 2])
+                for i in range(0, len(payload) - 2, 3)
             ]
         elif kind == b"tRNS":
             transparency = payload
@@ -313,7 +312,7 @@ def _resize_horizontal(
     src_w: int, src_h: int, dst_w: int,
 ) -> list[tuple[float, float, float, float]]:
     taps = _box_taps(src_w, dst_w)
-    resized = []
+    resized: list[tuple[float, float, float, float]] = []
     append = resized.append
     for y in range(src_h):
         _breathe(y)
@@ -335,7 +334,7 @@ def _resize_vertical(
     pixels: list[tuple[float, float, float, float]],
     src_w: int, src_h: int, dst_h: int,
 ) -> list[tuple[float, float, float, float]]:
-    resized = []
+    resized: list[tuple[float, float, float, float]] = []
     append = resized.append
     for y, (start, weights) in enumerate(_box_taps(src_h, dst_h)):
         _breathe(y)
@@ -525,9 +524,7 @@ def _current_keys(stem: str, sources: dict, current: dict) -> set[str]:
     if keys is None:
         keys = set()
         for path in sources.get(stem, ()):
-            try:
+            with contextlib.suppress(OSError):
                 keys.add(_content_key(path))
-            except OSError:
-                pass
         current[stem] = keys
     return keys

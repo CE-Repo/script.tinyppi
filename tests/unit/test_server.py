@@ -106,7 +106,7 @@ def test_one_address_holds_at_most_16_connections(dashboard):
             try:
                 if sock.recv(1) == b"":
                     refused += 1
-            except socket.timeout:
+            except TimeoutError:
                 pass
             except ConnectionResetError:
                 refused += 1

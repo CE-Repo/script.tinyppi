@@ -10,6 +10,7 @@ web/static.py.  Routes are a fixed table, never a filesystem lookup; every
 state change needs the token.  The server is off unless enabled.
 """
 
+import contextlib
 import secrets
 import socket
 import sys
@@ -141,7 +142,7 @@ class _Server(ThreadingHTTPServer):
         self._stream_lock  = threading.Lock()
         # Request threads, joined in stop(): Kodi waits for every thread of
         # the interpreter, daemon or not.
-        self._workers      = set()
+        self._workers: set[threading.Thread] = set()
         self._worker_lock  = threading.Lock()
         # Open connections and their addresses, so stop() can hang up on
         # idle keep-alives and verify_request() can cap them.
@@ -200,10 +201,8 @@ class _Server(ThreadingHTTPServer):
         with self._worker_lock:
             connections = list(self._connections)
             for connection in connections:
-                try:
+                with contextlib.suppress(OSError):
                     connection.shutdown(how)
-                except OSError:
-                    pass
         return len(connections)
 
     def process_request_thread(self, request, client_address) -> None:

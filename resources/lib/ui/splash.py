@@ -16,6 +16,7 @@ The logos are ``ControlImage`` controls added to the fullscreen video window
 Logos are re-resolved every poll, so audio track changes show live.
 """
 
+import contextlib
 import os
 import time
 from typing import NamedTuple
@@ -631,11 +632,9 @@ def _fade_in(
 
 def _remove_controls(video_window, controls) -> None:
     """Remove *controls* from the video window, ignoring failures."""
-    try:
+    # The window may already be gone.
+    with contextlib.suppress(Exception):
         video_window.removeControls(controls)
-    except Exception:
-        # The window may already be gone.
-        pass
 
 
 def _fade_out(video_window, home, monitor, mode: str, controls) -> None:

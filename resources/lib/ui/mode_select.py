@@ -392,7 +392,7 @@ _MODE_OUTPUT = {
 
 # Switches the driver cannot make directly ("from this output, not to
 # these"): HDR10 <-> DV needs SDR in between to clear the display setup.
-_NO_DIRECT_SWITCH = {
+_NO_DIRECT_SWITCH: dict[str, tuple[str, ...]] = {
     "hdr10": ("dv",),
     "dv":    ("hdr10",),
 }
@@ -417,7 +417,7 @@ def _needs_sdr_first(name: str) -> bool:
     if not _is_playing_video():
         return False
 
-    output = _DV_OUTPUT_FORMAT.get(_read(_DV_OUTPUT))
+    output = _DV_OUTPUT_FORMAT.get(_read(_DV_OUTPUT) or "", "")
     return _MODE_OUTPUT.get(name) in _NO_DIRECT_SWITCH.get(output, ())
 
 
@@ -703,10 +703,10 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         self._layout = dialog_layout.dialog_mode()
         # Current choice of the single-button layout.
         self._step = 0
-        self._branch_key = None
+        self._branch_key: str | None = None
         self._running = False
-        self._pending_mode = None
-        self._monitor = None
+        self._pending_mode: int | str | None = None
+        self._monitor: xbmc.Monitor | None = None
 
     def onInit(self) -> None:
         # Refresh TinyPPI.HdrType before placing the panel: the branch
@@ -796,13 +796,16 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
     def _hdr_type_loop(self) -> None:
         """Republish the HDR type until the dialog closes (failures cost a cycle)."""
         logged = False
-        while self._running and not self._monitor.abortRequested():
+        monitor = self._monitor
+        if monitor is None:  # before onInit
+            return
+        while self._running and not monitor.abortRequested():
             if self._publish_hdr_type(logged):
                 if self._running:
                     self._sync_branch()
             else:
                 logged = True
-            if self._monitor.waitForAbort(0.5):
+            if monitor.waitForAbort(0.5):
                 break
 
     def close(self) -> None:

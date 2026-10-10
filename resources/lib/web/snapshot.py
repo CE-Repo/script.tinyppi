@@ -12,6 +12,7 @@ ids, so translations and label changes apply to both.
 """
 
 import json
+import math
 import re
 import threading
 import time
@@ -704,7 +705,7 @@ class SessionLog:
         self._pending: dict[str, tuple] = {}
         self._temperature_hot = False
         self._cpu_full = False
-        self._fps = None
+        self._fps: int | None = None
 
     # --- Writing -----------------------------------------------------------
 
@@ -1383,7 +1384,7 @@ def _number(value, low: float, high: float) -> float | None:
         number = float(value)
     except (TypeError, ValueError):
         return None
-    if number != number or not low <= number <= high:  # NaN fails both
+    if math.isnan(number) or not low <= number <= high:
         return None
     return number
 

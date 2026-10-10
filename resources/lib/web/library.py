@@ -274,7 +274,7 @@ def _read() -> dict:
         if not title:
             continue
 
-        pictures = row.get("art") if isinstance(row.get("art"), dict) else {}
+        pictures = _art_of(row)
         poster = _picture(pictures, _POSTER_KEYS)
         art[movie_id] = {"poster": poster,
                          "fanart": _picture(pictures, _FANART_KEYS)}
@@ -307,6 +307,12 @@ def _read() -> dict:
     _log(f"{len(films)} films read from the video database", xbmc.LOGINFO)
     return {"movies": films, "art": art,
             "tag": f"{len(films):x}-{signature:08x}"}
+
+
+def _art_of(row: dict) -> dict:
+    """Return a JSON-RPC row's ``art`` mapping, or an empty one."""
+    pictures = row.get("art")
+    return pictures if isinstance(pictures, dict) else {}
 
 
 def _picture(pictures: dict, keys: tuple[str, ...]) -> str:
@@ -531,7 +537,7 @@ def _read_shows() -> dict:
         if not title:
             continue
 
-        pictures = row.get("art") if isinstance(row.get("art"), dict) else {}
+        pictures = _art_of(row)
         poster = _picture(pictures, _POSTER_KEYS)
         fanart = _picture(pictures, _FANART_KEYS)
         art[show_id] = {"poster": poster, "fanart": fanart}
@@ -602,7 +608,7 @@ def _read_episodes(show_id: int, title: str) -> dict:
         if not isinstance(episode_id, int):
             continue
 
-        pictures = row.get("art") if isinstance(row.get("art"), dict) else {}
+        pictures = _art_of(row)
         still = _picture(pictures, _EPISODE_PICTURE_KEYS)
         art[episode_id] = {"thumb": still}
 
@@ -842,7 +848,7 @@ def _read_continuing() -> dict:
         # A film without a title cannot be shown.
         if entry is None or not entry["title"]:
             continue
-        pictures = row.get("art") if isinstance(row.get("art"), dict) else {}
+        pictures = _art_of(row)
         entry["poster"] = _tag(_picture(pictures, _POSTER_KEYS))
         year = row.get("year")
         if isinstance(year, int) and year > 0:
@@ -864,7 +870,7 @@ def _read_continuing() -> dict:
         entry = _continue_entry(row, "episode")
         if entry is None:
             continue
-        pictures = row.get("art") if isinstance(row.get("art"), dict) else {}
+        pictures = _art_of(row)
         poster = _picture(pictures, _EPISODE_POSTER_KEYS)
         still = _picture(pictures, _EPISODE_PICTURE_KEYS)
         art[entry["id"]] = {"poster": poster, "thumb": still}

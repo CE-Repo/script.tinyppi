@@ -278,8 +278,8 @@ def single(title):
     width, height = layout.PANEL_SIZE[mode]
     margin = 30
     inner = width - 2 * margin
-    nav = {key: layout.SINGLE_BUTTON
-           for key in ("onup", "ondown", "onleft", "onright")}
+    nav = dict.fromkeys(("onup", "ondown", "onleft", "onright"),
+                        layout.SINGLE_BUTTON)
     # Left/right indicators (images, not buttons), tinted like the focused
     # button so the three read as one control.
     arrows = [image(left, 122, 32, 32, "dialog/" + name,

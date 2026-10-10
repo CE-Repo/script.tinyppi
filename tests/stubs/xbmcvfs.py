@@ -24,7 +24,7 @@ def exists(path):
 
 class File:
     def __init__(self, path, mode="r"):
-        self._handle = open(translatePath(path), "rb")
+        self._handle = open(translatePath(path), "rb")  # noqa: SIM115 - closed by close()
 
     def read(self):
         return self._handle.read().decode("utf-8", "replace")

@@ -15,6 +15,7 @@ import secrets
 import time
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
+from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlparse
 
 import xbmc
@@ -27,6 +28,9 @@ from web.producer import PRODUCE_INTERVAL, Producer
 from web.snapshot import apply_command, apply_mode
 from web.static import MIN_COMPRESS, STATIC_CACHE
 from web.strings import ui_strings
+
+if TYPE_CHECKING:  # web.server imports this module
+    from web.server import _Server
 
 # Heartbeat interval on an idle stream, so dropped connections are noticed.
 _HEARTBEAT_INTERVAL = 15.0
@@ -86,6 +90,8 @@ class Handler(BaseHTTPRequestHandler):
     # Applied before the first request line, so a silent connection cannot
     # hold a thread forever.
     timeout          = _REQUEST_TIMEOUT
+
+    server: "_Server"
 
     # --- Plumbing ----------------------------------------------------------
 
@@ -487,7 +493,7 @@ class Handler(BaseHTTPRequestHandler):
         if self._holds(etag):
             self._send_unchanged(etag, STATIC_CACHE)
             return
-        extra = (("ETag", etag), ("Vary", "Accept-Encoding"))
+        extra: tuple[tuple[str, str], ...] = (("ETag", etag), ("Vary", "Accept-Encoding"))
         if content_type.startswith("text/html"):
             extra += (("Content-Security-Policy", _PAGE_POLICY),)
         if packed is not None and "gzip" in self.headers.get("Accept-Encoding", ""):
@@ -564,7 +570,7 @@ class Handler(BaseHTTPRequestHandler):
                 kind, frame = "delta", snapshot_delta(sent, payload)
             sent = payload
             data = json.dumps(frame, ensure_ascii=False)
-            self.wfile.write(f"event: {kind}\ndata: {data}\n\n".encode("utf-8"))
+            self.wfile.write(f"event: {kind}\ndata: {data}\n\n".encode())
             self.wfile.flush()
 
         # Parting frame: the page shows "offline" and waits before

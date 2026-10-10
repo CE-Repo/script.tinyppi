@@ -525,7 +525,7 @@ def _trim_entries(level: str, trims: list | None) -> list:
              if _target_nits(trim) in _TRIM_TARGETS]
     entries: list = []
 
-    tables = [
+    tables: list[tuple] = [
         (_LEGEND_RAW, raw_controls, lambda trim: trim, _num),
         (_LEGEND_UI, _TRIM_UI, lambda trim: trim.get("ui") or {}, _scaled),
     ]
@@ -628,7 +628,7 @@ def _l255_pairs(rpu: dict | None) -> list:
 _CURVE_COMPONENTS = ("Y", "Cb", "Cr")
 
 # Curve shapes by ``mapping_idc``; unknown codes are shown as is.
-_MAPPING_IDC_NAMES = {0: "Polynomial", 1: "MMR"}
+_MAPPING_IDC_NAMES: dict[int | None, str] = {0: "Polynomial", 1: "MMR"}
 
 # Composer table legends and leading columns: polynomial segments start
 # with order and interpolation, MMR segments with order and constant.
@@ -876,7 +876,7 @@ def _hdr10plus_pairs(hdr10plus: dict) -> list:
         entry.get("percentage"): entry.get("nits")
         for entry in hdr10plus.get("distribution") or []
     }
-    pairs = [
+    pairs: list[tuple] = [
         ("Profile", _text(hdr10plus.get("profile"))),
         ("Application version", _num(hdr10plus.get("application_version"))),
         ("Windows", _num(hdr10plus.get("num_windows"))),

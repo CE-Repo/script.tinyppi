@@ -8,6 +8,7 @@ apply them are checked directly.
 """
 
 import math
+from itertools import pairwise
 
 import pytest
 
@@ -140,12 +141,12 @@ def test_picker_shows_the_hex_tile_then_the_default_then_the_palette(monkeypatch
     assert shown["tiles"][0] == (f"#{theme._HEX_TILE_LABEL}", theme._HEX_TILE_EMPTY)
     tiles = {swatch: ((f"#{name}" if isinstance(name, int) else name)
                       + (f" #{theme._DEFAULT_LABEL}" if index == spec.default else ""), swatch)
-             for index, (name, swatch) in enumerate(zip(spec.names, spec.swatches))}
+             for index, (name, swatch) in enumerate(zip(spec.names, spec.swatches, strict=True))}
     default = spec.swatches[spec.default]
     assert shown["tiles"][1] == tiles[default]
     assert shown["tiles"][2:] == [tile for swatch, tile in tiles.items() if swatch != default]
     # Only the colours settings start out on keep a translated name.
-    translated = {swatch for name, swatch in zip(spec.names, spec.swatches) if isinstance(name, int)}
+    translated = {swatch for name, swatch in zip(spec.names, spec.swatches, strict=True) if isinstance(name, int)}
     assert spec.swatches[spec.default] in translated <= set(theme._DEFAULT_NAMES)
     assert shown["selected"] == spec.swatches[spec.default]
 
@@ -225,7 +226,7 @@ def test_every_family_runs_light_to_dark():
         assert shades == sorted(shades), family
         # The swatches follow their shades, but for rounding.
         swatches = [_depth(swatch) for _shade, swatch in pairs]
-        assert all(after >= before - 0.005 for before, after in zip(swatches, swatches[1:])), family
+        assert all(after >= before - 0.005 for before, after in pairwise(swatches)), family
 
 
 def _saturation(argb):
@@ -270,7 +271,7 @@ def test_neighbours_in_a_family_share_their_saturation():
         if family in GRAYS:
             continue
         shares = [_saturation(colour) for colour in colours]
-        assert all(abs(after - before) < 0.26 for before, after in zip(shares, shares[1:])), family
+        assert all(abs(after - before) < 0.26 for before, after in pairwise(shares)), family
 
 
 def test_former_background_swatches_still_read_as_their_shade():
