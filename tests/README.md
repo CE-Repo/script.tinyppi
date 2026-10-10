@@ -17,8 +17,8 @@ python3 -m pytest tests
 |---|---|
 | `unit/test_library.py` | The dashboard's library cache: one query for concurrent readers, no stale list after a drop, a scan's burst of notifications as one drop, the drops after playback stops, episodes, the continue row, marking |
 | `unit/test_vs10_switcher.py` | VS10 switches from the dashboard: the last tap wins, a failed switch does not stop the next, the modes offered per source |
-| `unit/test_server.py` | The HTTP server: the fixed routes, security headers, the token for writing and for untrusted host names, the guessing lockout, the connection caps, tokens and ports |
-| `unit/test_access.py` | Which host names count as the home network; the lockout table |
+| `unit/test_server.py` | The HTTP server: the fixed routes, security headers, the token for writing and for untrusted host names, the guessing lockout, the connection caps, tokens and ports, IPv6 and IPv4 on one socket |
+| `unit/test_access.py` | Which host names count as the home network; the lockout table; client addresses (IPv4-mapped as IPv4, IPv6 per /64) |
 | `unit/test_delta.py` | Delta frames of the event stream, applied as `js/core.js` applies them |
 | `unit/test_artwork.py` | Artwork sources (Kodi's texture cache first) and types (from the bytes) |
 | `unit/test_settings_definition.py` | `resources/settings.xml` against the five languages, the code and the skin: texts, defaults, dependencies, action buttons, colour defaults and their translated names, opacity sliders, every setting read, every colour property used |

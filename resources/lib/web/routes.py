@@ -95,6 +95,11 @@ class Handler(BaseHTTPRequestHandler):
 
     # --- Plumbing ----------------------------------------------------------
 
+    @property
+    def _peer(self) -> str:
+        """The client's address for log lines."""
+        return access.plain_address(self.client_address[0])
+
     def log_message(self, fmt: str, *args) -> None:  # noqa: A003 - base API
         _log(_TOKEN_IN_QUERY.sub(r"\1***", fmt % args), xbmc.LOGDEBUG)
 
@@ -158,7 +163,7 @@ class Handler(BaseHTTPRequestHandler):
         Otherwise it has been answered with 401, or 429 for a locked-out
         address (see ``access.Guesses``).
         """
-        address = self.client_address[0]
+        address = access.client_key(self.client_address[0])
         wait = self.server.guesses.locked_for(address)
         if wait:
             self._send_json({"error": "too many wrong tokens",
@@ -258,7 +263,7 @@ class Handler(BaseHTTPRequestHandler):
         if not apply_mode(mode):
             self._send_error_json(HTTPStatus.BAD_REQUEST, "unknown mode")
             return
-        _log(f"VS10 mode '{mode}' requested from {self.client_address[0]}")
+        _log(f"VS10 mode '{mode}' requested from {self._peer}")
         self._send_json({"ok": True, "mode": mode})
 
     def _run_command(self, payload: dict) -> None:
@@ -268,7 +273,7 @@ class Handler(BaseHTTPRequestHandler):
             self._send_error_json(HTTPStatus.BAD_REQUEST, "command failed")
             return
         # Seek and volume arrive in bursts, so they log at debug level.
-        _log(f"'{action}' requested from {self.client_address[0]}",
+        _log(f"'{action}' requested from {self._peer}",
              xbmc.LOGDEBUG if action in ("seek", "seek_percent", "volume")
              else xbmc.LOGINFO)
         self._send_json({"ok": True, "action": action})
@@ -329,7 +334,7 @@ class Handler(BaseHTTPRequestHandler):
             if not library.play_episode(episode_id, resume):
                 self._send_error_json(HTTPStatus.BAD_REQUEST, "playback failed")
                 return
-            _log(f"episode {episode_id} started from {self.client_address[0]}")
+            _log(f"episode {episode_id} started from {self._peer}")
             self._send_json({"ok": True, "episodeid": episode_id})
             return
 
@@ -340,7 +345,7 @@ class Handler(BaseHTTPRequestHandler):
         if not library.play(movie_id, resume):
             self._send_error_json(HTTPStatus.BAD_REQUEST, "playback failed")
             return
-        _log(f"film {movie_id} started from {self.client_address[0]}")
+        _log(f"film {movie_id} started from {self._peer}")
         # The page learns about the playback from the next snapshot.
         self._send_json({"ok": True, "movieid": movie_id})
 
