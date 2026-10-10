@@ -35,12 +35,18 @@ export default [
     },
   },
   {
-    // The tests for those scripts (npm test): ES modules run by Node.
-    files: ["tests/web/**/*.mjs"],
+    // The tests for those scripts (npm test, npm run test:browser): ES
+    // modules run by Node.
+    files: ["tests/web/**/*.mjs", "tests/browser/**/*.mjs"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
       globals: globals.node,
     },
+  },
+  {
+    // The browser test also hands functions to the page, which run there.
+    files: ["tests/browser/**/*.mjs"],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 ];

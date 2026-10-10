@@ -21,6 +21,7 @@ mypy                         # types, with Kodistubs for Kodi's modules
 python3 -m pytest --cov=resources/lib tests/unit   # fails below the floor in pyproject.toml
 npm ci && npm run lint       # ESLint for resources/web/js
 npm test                     # the dashboard's scripts in jsdom (tests/web)
+npm run test:browser         # the dashboard in Chromium against the real server (tests/browser)
 ```
 
 CI also runs the official `kodi-addon-checker` on the add-on without its
@@ -56,6 +57,7 @@ development files.
 | `web/core.test.mjs` | The dashboard's connection in jsdom: whole snapshots, delta frames as `web/delta.py` writes them, a delta without a base, bad frames, the token in the stream address and the command header, the token dialog, `bye`, the localized strings, value formatting, folded cards |
 | `web/colour.test.mjs` | The cover tint's colour arithmetic: the sRGB curve, WCAG contrast, OKLab reference values, OKLCh round trips, chroma pulled into the gamut with lightness and hue kept |
 | `web/readings.test.mjs` | The now-playing card's format badges (grade, resolution by coded width, IMAX/Atmos/DTS:X marks, the DV profile and layer, conversions) and the history's events (names with fallbacks, values, trends, switch totals) |
+| `browser/dashboard.test.mjs` | The dashboard in Chromium against the real server with Kodi faked (`browser/serve.py`): the stream, the format badges, the film wall and its search, the question a press asks and what marking sends, cancelling, a show's seasons, the history's wording, every tab, no script errors |
 
 ## Kodi 22 suite
 
