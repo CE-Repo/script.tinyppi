@@ -157,7 +157,7 @@ def test_transparent_pixels_do_not_bleed_their_colour(tmp_path):
     target = str(tmp_path / "edge-small.png")
     images._scale_png_for_display(source, target, 1, 1)
     [(r, g, b, a)] = images._decode_png_rgba(target)[2]
-    assert min(r, g, b) >= 254              # straight alpha would give about 128
+    assert (r, g, b) == (255, 255, 255)     # straight alpha would give about 128
     assert a in (127, 128)
 
 
@@ -212,3 +212,24 @@ def test_prune_keeps_current_copies_only(tmp_path, cache):
 
 def test_prune_without_a_cache(tmp_path, cache):
     assert images.prune_cache(str(tmp_path)) == 0
+
+
+def test_unpremultiplying_is_exact():
+    # Half and a quarter covered white, and nearly transparent red.
+    out = images._unpremultiply_rgba([(127.5, 127.5, 127.5, 127.5), (63.75, 63.75, 63.75, 63.75),
+                                      (0.6, 0.0, 0.0, 0.6), (0.1, 0.1, 0.1, 0.1)])
+    assert list(out) == [255, 255, 255, 128, 255, 255, 255, 64, 255, 0, 0, 1, 0, 0, 0, 0]
+
+
+def test_a_new_scaler_version_rebuilds_old_copies(tmp_path, cache, monkeypatch):
+    media = tmp_path / "media"
+    media.mkdir()
+    logo = rgba_png(media / "dts.png", [(1, 2, 3, 255)] * 100, 10, 10)
+    old = images.display_texture(logo, 5, 5)
+    monkeypatch.setattr(images, "_SCALER_VERSION", b"next")
+    images._content_keys.clear()
+    new = images.display_texture(logo, 5, 5)
+    assert new != old
+    assert images.prune_cache(str(media)) == 1
+    assert os.path.exists(new) and not os.path.exists(old)
+

@@ -36,7 +36,7 @@ _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 # Part of every content key.  Raise it whenever the scaler's output changes,
 # so older textures stop matching (and prune_cache removes them).
-_SCALER_VERSION = b"1"
+_SCALER_VERSION = b"2"
 
 # ``<source name>_<width>x<height>_<content key>.png``; anything else in the
 # cache was left by an older version or an interrupted build.
@@ -364,10 +364,13 @@ def _unpremultiply_rgba(
         if alpha == 0:
             rgba.extend((0, 0, 0, 0))
         else:
+            # Divided by the exact coverage, not the rounded byte: a half
+            # covered white edge would otherwise come out as 254.
+            scale = 255.0 / a
             rgba.extend((
-                _clamp_byte(r * 255.0 / alpha),
-                _clamp_byte(g * 255.0 / alpha),
-                _clamp_byte(b * 255.0 / alpha),
+                _clamp_byte(r * scale),
+                _clamp_byte(g * scale),
+                _clamp_byte(b * scale),
                 alpha,
             ))
     return bytes(rgba)
