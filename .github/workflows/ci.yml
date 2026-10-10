@@ -37,7 +37,7 @@ jobs:
         run: python -m pytest --cov=resources/lib --cov-report=term-missing:skip-covered tests/unit
 
   web:
-    name: Dashboard scripts (ESLint)
+    name: Dashboard scripts (ESLint, tests)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
@@ -47,6 +47,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - run: npm test
 
   addon:
     name: Kodi add-on checker
