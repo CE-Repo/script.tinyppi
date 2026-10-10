@@ -42,8 +42,10 @@ def test_strings_are_cached_per_language():
     assert localized(32230) == "#32230"
 
 
-def test_display_reset_without_drm_gives_up_once():
+def test_display_reset_without_drm_gives_up_once(monkeypatch):
     from core import display
+    monkeypatch.setattr(display, "_drm_fds", list)            # no DRM card open
+    monkeypatch.setattr(display, "_target", display._Target())   # not left to other tests
     assert display.reset("test") is False
     assert display._target.ids is False and display.reset() is False
 

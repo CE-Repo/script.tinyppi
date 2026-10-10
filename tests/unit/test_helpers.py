@@ -55,6 +55,17 @@ def test_fps_sysfs_parsing(monkeypatch, tmp_path):
     assert helpers._read_fps_sysfs() == (24, 23)
     node.write_text("garbage")
     assert helpers._read_fps_sysfs() is None
+    node.write_text("input_fps:0x18\n")                  # no output rate
+    assert helpers._read_fps_sysfs() is None
+
+
+def test_an_unreadable_fps_node_counts_as_no_drop(monkeypatch):
+    def missing(path, *_args, **_kwargs):
+        raise FileNotFoundError(path)
+    monkeypatch.setattr(helpers, "open", missing, raising=False)
+    assert helpers._read_fps_sysfs() is None
+    assert helpers.get_fps_drop() == 0
+    assert helpers.fps_display_texts("25") == ("025 - 000", "25")
 
 
 # --- The VS10 dialog's layouts ----------------------------------------------

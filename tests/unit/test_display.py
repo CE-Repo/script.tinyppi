@@ -4,9 +4,13 @@
 """The display reset over DRM (core/display.py), against a simulated device."""
 
 import ctypes
+import importlib.util
+import sys
+import types
 
 import pytest
 
+import xbmc
 from core import display
 
 HDMI_A, COMPOSITE = 11, 5
@@ -17,7 +21,9 @@ class FakeDrm:
     """Answer the DRM ioctls the way the kernel fills the structures.
 
     *connectors* maps id -> (type, connection, {property id: name});
-    *master* is the descriptor allowed to set properties.
+    *master* is the descriptor allowed to set properties.  ``refuse`` maps a
+    request to the numbers (1-based) of its calls that fail, as a kernel
+    refusing it would.
     """
 
     def __init__(self, connectors, master=7):
@@ -25,9 +31,12 @@ class FakeDrm:
         self.master = master
         self.calls = []
         self.updates = []
+        self.refuse = {}
 
     def ioctl(self, fd, request, payload):
         self.calls.append(request)
+        if self.calls.count(request) in self.refuse.get(request, ()):
+            return False
         if request == display._IOCTL_GETRESOURCES:
             ids = list(self.connectors)
             if payload.connector_id_ptr:
@@ -124,3 +133,97 @@ def test_the_ioctl_wrapper_never_raises(monkeypatch):
     assert not display._ioctl(3, display._IOCTL_GETRESOURCES, display._CardRes())
     monkeypatch.setattr(display, "fcntl", None)
     assert not display._ioctl(3, display._IOCTL_GETRESOURCES, display._CardRes())
+
+
+def test_a_successful_ioctl_passes_the_structure_for_the_kernel_to_fill(monkeypatch):
+    seen = []
+    monkeypatch.setattr(display, "fcntl", types.SimpleNamespace(
+        ioctl=lambda *args: seen.append(args)))
+    payload = display._CardRes()
+    assert display._ioctl(3, display._IOCTL_GETRESOURCES, payload) is True
+    assert seen == [(3, display._IOCTL_GETRESOURCES, payload, True)]
+
+
+def test_without_fcntl_the_module_still_loads_and_does_nothing(monkeypatch):
+    # A dev box without fcntl: load a second copy of the module, leaving core.display alone.
+    monkeypatch.setitem(sys.modules, "fcntl", None)
+    spec = importlib.util.spec_from_file_location("display_without_fcntl", display.__file__)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert module.fcntl is None
+    assert module._ioctl(3, module._IOCTL_GETRESOURCES, module._CardRes()) is False
+    assert display.fcntl is not None
+
+
+def test_only_card_nodes_open_in_this_process_count(monkeypatch):
+    links = {"0": "/dev/pts/0", "3": "/dev/dri/card0", "5": "/dev/dri/renderD128",
+             "9": "/dev/dri/card1", "self": "/dev/dri/card2"}
+
+    def readlink(path):
+        entry = path.rsplit("/", 1)[1]
+        if entry not in links:
+            raise FileNotFoundError(path)       # closed since the listing
+        return links[entry]
+    monkeypatch.setattr(display, "os", types.SimpleNamespace(
+        listdir=lambda _path: ["0", "3", "4", "5", "9", "self"], readlink=readlink))
+    assert display._drm_fds() == [3, 9]
+
+
+def test_no_descriptors_when_proc_is_unreadable(monkeypatch):
+    def refused(path):
+        raise PermissionError(path)
+    monkeypatch.setattr(display, "os", types.SimpleNamespace(listdir=refused))
+    assert display._drm_fds() == []
+
+
+@pytest.mark.parametrize("refused", [{1}, {2}])
+def test_a_device_that_will_not_list_its_connectors_is_not_reset(drm, refused):
+    fake = drm({32: (HDMI_A, CONNECTED, {42: b"UPDATE"})}, fds=(7,))
+    fake.refuse = {display._IOCTL_GETRESOURCES: refused}
+    assert display._connector_ids(7) == []
+    fake.calls.clear()
+    assert not display.reset()
+    assert fake.updates == []
+
+
+def test_a_device_without_connectors_is_not_reset(drm):
+    fake = drm({}, fds=(7,))
+    assert display._connector_ids(7) == []
+    assert not display.reset("VS10 switch")
+    assert fake.updates == []
+    assert xbmc.LOG == [(xbmc.LOGWARNING,
+                         "TinyPPI: display reset (VS10 switch) not available -- no DRM connector "
+                         "with an UPDATE property could be driven from this process")]
+
+
+@pytest.mark.parametrize("refused", [{1}, {2}])
+def test_a_connector_whose_properties_cannot_be_listed_is_skipped(drm, refused):
+    fake = drm({32: (HDMI_A, CONNECTED, {42: b"UPDATE"})}, fds=(7,))
+    fake.refuse = {display._IOCTL_OBJ_GETPROPERTIES: refused}
+    assert display._property_id(7, 32, b"UPDATE") is None
+
+
+def test_a_connector_without_properties_has_no_update(drm):
+    drm({32: (HDMI_A, CONNECTED, {})}, fds=(7,))
+    assert display._property_id(7, 32, b"UPDATE") is None
+
+
+def test_unreadable_connectors_and_properties_are_passed_over(drm):
+    fake = drm({
+        31: (HDMI_A, CONNECTED, {40: b"UPDATE"}),
+        32: (HDMI_A, CONNECTED, {41: b"UPDATE", 42: b"UPDATE"}),
+    }, fds=(7,))
+    fake.refuse = {display._IOCTL_GETCONNECTOR: {1},      # connector 31
+                   display._IOCTL_GETPROPERTY: {1}}       # property 41
+    assert display.reset()
+    assert fake.updates == [(32, 42, 1)]
+
+
+def test_the_first_of_several_other_connectors_is_the_fallback(drm):
+    fake = drm({
+        31: (COMPOSITE, CONNECTED, {40: b"UPDATE"}),
+        32: (COMPOSITE, CONNECTED, {41: b"UPDATE"}),
+    }, fds=(7,))
+    assert display.reset("test")
+    assert fake.updates == [(31, 40, 1)]
+    assert xbmc.LOG == [(xbmc.LOGINFO, "TinyPPI: display reset (test)")]

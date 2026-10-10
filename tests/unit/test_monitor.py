@@ -3,7 +3,10 @@
 
 """The background service's notification handling (service/monitor.py)."""
 
+import os
+import runpy
 import sys
+import threading
 import types
 
 import pytest
@@ -12,8 +15,9 @@ from service import monitor as service
 import xbmc
 import xbmcaddon
 import xbmcgui
-from core.constants import OPEN_WITHDRAWN, PROP_OPEN_ACK, PROP_OPEN_REQUEST
-from web import library
+from core.constants import OPEN_WITHDRAWN, PROP_OPEN_ACK, PROP_OPEN_REQUEST, PROP_SERVICE
+from ui import theme
+from web import library, server
 
 
 class Threads:
@@ -201,3 +205,125 @@ def test_the_warm_up_registers_fonts_and_prunes_textures(monkeypatch):
     assert done[0] == "fonts"
     assert done[1].endswith("resources/skins/Default/media")
     assert any("removed 2 outdated" in line for _level, line in xbmc.LOG)
+
+
+def test_the_warm_up_is_quiet_when_nothing_was_pruned(monkeypatch):
+    pruned = []
+    monkeypatch.setattr(service.fonts, "ensure_fonts", lambda: None)
+    monkeypatch.setattr(service.images, "prune_cache", lambda media: pruned.append(media) or 0)
+    service._warm_up(types.SimpleNamespace(waitForAbort=lambda timeout=None: False))
+    assert len(pruned) == 1
+    assert not any("outdated" in line for _level, line in xbmc.LOG)
+
+
+def test_a_failing_font_registration_is_logged(threads, monkeypatch):
+    def read_only():
+        raise OSError("read-only skin")
+    monkeypatch.setattr(service.fonts, "ensure_fonts", read_only)
+    monkeypatch.setattr(service.KodiMonitor, "waitForAbort", lambda self, timeout=None: False)
+    service.KodiMonitor().onNotification("xbmc", "GUI.OnSkinLoaded", "")
+    threads.run_all()
+    assert (xbmc.LOGERROR,
+            "TinyPPI [service]: Exception registering the fonts: read-only skin") in xbmc.LOG
+
+
+def test_unreadable_settings_start_no_splash(threads, monkeypatch):
+    def unregistered():
+        raise RuntimeError("add-on being updated")
+    monkeypatch.setattr(service.settings, "addon", unregistered)
+    service.KodiMonitor().onNotification("xbmc", "Player.OnAVStart", "")
+    assert threads.started == []
+    assert (xbmc.LOGERROR,
+            "TinyPPI [service]: Exception starting splash: add-on being updated") in xbmc.LOG
+
+
+# --- The service script -------------------------------------------------------
+
+LIB = os.path.dirname(os.path.dirname(os.path.abspath(service.__file__)))
+
+
+def run_service(monkeypatch, moved=0, broken=()):
+    """Run service/monitor.py as Kodi starts it; return what happened, in order.
+
+    *broken* names the steps that raise, as they are recorded in the events.
+    """
+    events = []
+
+    def step(name, result=None):
+        def run(*_args, **_kwargs):
+            if name in broken:
+                raise RuntimeError(f"{name} broke")
+            events.append(name)
+            return result
+        return run
+
+    class Dashboard:
+        apply_settings = step("dashboard applied")
+
+        def stop(self, final=False):
+            step("dashboard stopped")()
+            events.append(("final", final))
+
+    def wait_for_abort(_monitor, timeout=None):
+        events.append(("running", home.getProperty(PROP_SERVICE)))
+        return True
+
+    home = xbmcgui.Window(10000)
+    started = []
+    monkeypatch.setattr(server, "WebDashboard", Dashboard)
+    monkeypatch.setattr(theme, "migrate_legacy_colors", step("colors", moved))
+    monkeypatch.setattr(theme, "apply_theme", step("theme"))
+    monkeypatch.setattr(threading, "Thread", lambda target, args=(), **_kwargs:
+                        types.SimpleNamespace(start=lambda: started.append((target, args))))
+    monkeypatch.setattr(xbmc.Monitor, "waitForAbort", wait_for_abort)
+    # Started by Kodi, the script finds its own folder missing from sys.path.
+    monkeypatch.setattr(sys, "path", [path for path in sys.path if path != LIB])
+    runpy.run_path(service.__file__, run_name="__main__")
+    assert sys.path[0] == LIB
+    return events, started
+
+
+def test_the_service_starts_everything_and_stops_the_dashboard_at_shutdown(monkeypatch):
+    events, started = run_service(monkeypatch)
+    assert events == ["colors", "theme", "dashboard applied", ("running", "1"),
+                      "dashboard stopped", ("final", True)]
+    assert xbmcgui.Window(10000).getProperty(PROP_SERVICE) == ""   # no handovers any more
+    [(target, (monitor,))] = started
+    assert target.__name__ == "_warm_up" and type(monitor).__name__ == "KodiMonitor"
+    assert (xbmc.LOGINFO, "TinyPPI [service]: KodiMonitor started") in xbmc.LOG
+    assert not any("color setting" in line for _level, line in xbmc.LOG)
+
+
+def test_the_service_reports_carried_over_colors(monkeypatch):
+    run_service(monkeypatch, moved=3)
+    assert (xbmc.LOGINFO,
+            "TinyPPI [service]: carried 3 color setting(s) over to the color picker") in xbmc.LOG
+
+
+def test_failing_startup_and_shutdown_steps_never_stop_the_service(monkeypatch):
+    events, started = run_service(monkeypatch, broken={"colors", "theme", "dashboard stopped"})
+    assert events == ["dashboard applied", ("running", "1")]
+    assert xbmcgui.Window(10000).getProperty(PROP_SERVICE) == ""
+    assert len(started) == 1
+    problems = [entry for entry in xbmc.LOG if entry[0] >= xbmc.LOGWARNING]
+    assert problems == [
+        (xbmc.LOGWARNING,
+         "TinyPPI [service]: carrying the color settings over failed: colors broke"),
+        (xbmc.LOGWARNING, "TinyPPI [service]: apply_theme at startup failed: theme broke"),
+        (xbmc.LOGERROR,
+         "TinyPPI [service]: stopping the web dashboard failed: dashboard stopped broke"),
+    ]
+
+
+def test_the_warm_up_carries_on_past_every_failure(monkeypatch):
+    def broken(*_args):
+        raise OSError("no access")
+    monkeypatch.setattr(service.fonts, "ensure_fonts", broken)
+    monkeypatch.setitem(sys.modules, "ui.mode_select", None)      # the import fails
+    monkeypatch.setattr(service.images, "prune_cache", broken)
+    service._warm_up(types.SimpleNamespace(waitForAbort=lambda timeout=None: False))
+    warnings = [line for level, line in xbmc.LOG if level == xbmc.LOGWARNING]
+    assert warnings[0] == "TinyPPI [service]: registering the fonts failed: no access"
+    assert warnings[1].startswith("TinyPPI [service]: pre-loading the views failed: ")
+    assert warnings[2] == "TinyPPI [service]: tidying the texture cache failed: no access"
+    assert len(warnings) == 3

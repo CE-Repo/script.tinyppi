@@ -9,6 +9,9 @@ real one does a moment after a write: the output mode follows dv_mode while
 the policy forces an output, and the DV core runs while it sends DV.
 """
 
+import threading
+import types
+
 import pytest
 
 import xbmc
@@ -107,6 +110,7 @@ def writes(driver):
 
 @pytest.mark.parametrize(("mode", "dvmode", "output"), [
     ("hdr10", "3", "2"), ("sdr10", "4", "3"), ("sdr8", "5", "4"),
+    ("original_hdr", "3", "2"),        # HDR10 passed through: the same writes
 ])
 def test_conversion_modes(driver, kodi, mode, dvmode, output):
     vs10.set_mode(mode)
@@ -278,3 +282,88 @@ def test_a_broken_probe_answer(driver, kodi, monkeypatch):
     assert vs10._probe_dv_Player_LED_setting() is None
     monkeypatch.setattr(xbmc, "executeJSONRPC", lambda _request: '{"result": "OK"}')
     assert vs10._probe_dv_Player_LED_setting() is None
+
+
+def test_a_native_action_crossing_the_dv_line_that_never_lands_is_not_reset(driver, kodi):
+    kodi.native = True
+    driver.frozen = True               # the nodes change, the output never follows
+    kodi.native_effect = lambda drv: (drv.set("_ENABLE", "Y"), drv.set("_POLICY", "2"),
+                                      drv.set("_DVMODE", "2"))
+    vs10.set_mode("dv")
+    assert xbmc.BUILTINS == ["Action(vs10.dv)"]
+    assert writes(driver) == []
+    assert kodi.resets == []
+    assert (xbmc.LOGWARNING,
+            "TinyPPI: 'dv' did not move the driver's output mode -> no display reset") in xbmc.LOG
+
+
+@pytest.mark.parametrize(("value", "led"), [
+    (1, 1), (2, 2), (True, 1), ("1", 1), ("0", 0), (" 1 ", 1),
+    ("yes", 1), ("", 0), (None, 0), ([1], 1), ([], 0),
+])
+def test_the_led_setting_is_read_as_a_number(value, led):
+    xbmc.RPC = lambda _request: {"result": {"value": value}}
+    assert vs10._probe_dv_Player_LED_setting() == led
+
+
+def test_the_led_mode_defaults_to_tv_led(driver, kodi):
+    kodi.led = None
+    driver.paths["_LL_POLICY"].unlink()
+    assert vs10._player_led_mode() is False
+    assert not any("low-latency policy" in line for _level, line in xbmc.LOG)
+
+
+def test_a_staged_switch_that_overruns_is_left_running(monkeypatch):
+    release = threading.Event()
+    reached = []
+
+    def stuck(name):
+        reached.append(name)
+        release.wait(2)
+    monkeypatch.setattr(vs10, "_staged_switch", stuck)
+    monkeypatch.setattr(vs10, "_STAGE_TIMEOUT_S", 0)
+    try:
+        vs10._switch_through_sdr("dv")
+        assert (xbmc.LOGWARNING,
+                "TinyPPI: staged switch to 'dv' is still running after 0s -> leaving it to "
+                "finish on its own") in xbmc.LOG
+    finally:
+        release.set()
+        for thread in threading.enumerate():
+            if thread.name == "TinyPPI-vs10-stage":
+                thread.join(1)
+    assert reached == ["dv"]
+
+
+# --- Kodi and the nodes -------------------------------------------------------
+
+def test_waiting_uses_kodis_sleep_and_plain_sleep_while_kodi_stops(monkeypatch):
+    slept = []
+    monkeypatch.setattr(xbmc, "sleep", slept.append)
+    vs10.delay(50)
+    assert slept == [50]
+
+    def stopping(_ms):
+        raise RuntimeError("abort requested")
+    monkeypatch.setattr(xbmc, "sleep", stopping)
+    monkeypatch.setattr(vs10, "time", types.SimpleNamespace(sleep=slept.append))
+    vs10.delay(50)
+    assert slept == [50, 0.05]
+
+
+def test_a_missing_node_reads_as_nothing(tmp_path, monkeypatch):
+    missing = str(tmp_path / "dolby_vision_status")
+    assert vs10._read(missing) is None
+    monkeypatch.setattr(vs10, "_DV_STATUS", missing)
+    assert vs10._dv_status_off() is True        # no core to wait for
+
+
+def test_whether_a_video_plays_comes_from_the_player(monkeypatch):
+    assert vs10._is_playing_video() is False
+    monkeypatch.setattr(xbmc, "Player", lambda: types.SimpleNamespace(isPlayingVideo=lambda: True))
+    assert vs10._is_playing_video() is True
+
+    def shutting_down():
+        raise RuntimeError("Kodi is shutting down")
+    monkeypatch.setattr(xbmc, "Player", shutting_down)
+    assert vs10._is_playing_video() is False
