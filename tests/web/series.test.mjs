@@ -875,3 +875,16 @@ test("a move announced while the show is being read reads it once more", async (
   assert.equal(reads(view, "/api/episodes"), 3);
   assert.equal(rows(view).length, EPISODES.length - 1);
 });
+
+test("a move announced while a show is being opened reads it once more", async (t) => {
+  const view = await open(t);
+  const release = hold(view, "/api/episodes");
+  await openShow(view, "Andor");
+  // The answer on its way was asked for before the episode ended.
+  view.routes["/api/episodes"] = [200, { tag: "e2", episodes: EPISODES.slice(1) }];
+  await view.moved();
+  await release();
+  await settle();
+  assert.equal(reads(view, "/api/episodes"), 2);
+  assert.equal(rows(view).length, EPISODES.length - 1);
+});

@@ -51,7 +51,7 @@ function seriesStale() {
 
 function requestSeries(force) {
   if (seriesBusy || !seriesOffered) return;
-  if (startingEpisode) return;   /* as above, for the episode being waited on */
+  if (startingEpisode) return;   /* as with the films (see requestFilms in js/films.js) */
   if (!force && seriesRead) return;
   if (Date.now() < seriesNextTry) return;
   seriesBusy = true;
@@ -266,6 +266,7 @@ async function openShowView(show) {
   } finally {
     episodesBusy = false;
   }
+  readEpisodesPutOff();
 }
 
 /* Read the open show's episodes again, in place.
@@ -280,14 +281,14 @@ async function openShowView(show) {
    somebody who had just opened one is a list that threw away where they were
    looking, which over a nine-season show is most of the card. */
 async function refreshEpisodes() {
-  const show = openShow;
-  if (!show) return;
-  /* Something already reading, which may have left before the move it is
-     sent for: read once more when it is back. */
+  /* Something already reading, or opening a show, which may have asked
+     before the move it is sent for: read once more when it is back. */
   if (episodesBusy) {
     episodesPutOff = true;
     return;
   }
+  const show = openShow;
+  if (!show) return;
   /* A press waiting on an episode, which is a list about to be rebuilt under
      the row showing the press: read once the press is over instead (see
      releaseSeries). */
@@ -318,6 +319,12 @@ async function refreshEpisodes() {
   } finally {
     episodesBusy = false;
   }
+  readEpisodesPutOff();
+}
+
+/* The read a move asked for while another was out, unless a press is now
+   waiting on an episode (releaseSeries reads it then). */
+function readEpisodesPutOff() {
   if (episodesPutOff && !startingEpisode) {
     episodesPutOff = false;
     refreshEpisodes();
