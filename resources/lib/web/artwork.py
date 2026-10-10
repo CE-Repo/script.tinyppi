@@ -103,7 +103,8 @@ def read_art(path: str) -> bytes | None:
     try:
         handle = xbmcvfs.File(path)
         data = bytes(handle.readBytes(_MAX_ART))
-    except Exception:
+    except Exception as exc:  # the VFS raises RuntimeError or worse for a bad path
+        _log(f"artwork {path} unreadable: {exc}", xbmc.LOGDEBUG)
         return None
     finally:
         if handle is not None:

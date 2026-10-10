@@ -10,8 +10,11 @@ import re
 
 import xbmc
 
+from core.log import channel
 from core.utils import cond, info
 from web.values import clean_value, numbers
+
+_log = channel("web")
 
 
 # --- State -----------------------------------------------------------------
@@ -23,7 +26,8 @@ def rpc(method: str, params: dict | None = None) -> dict:
         request["params"] = params
     try:
         answer = json.loads(xbmc.executeJSONRPC(json.dumps(request)))
-    except Exception:
+    except Exception as exc:  # Kodi shutting down, or an answer that is no JSON
+        _log(f"JSON-RPC {method} failed: {exc}")
         return {}
     return answer if isinstance(answer, dict) else {}
 

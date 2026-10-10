@@ -335,7 +335,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             try:
                 slot    = int(xbmc.getInfoLabel(f"Container({_LIST}).Position"))
                 current = int(xbmc.getInfoLabel(f"Container({_LIST}).CurrentItem")) - 1
-            except Exception:
+            except ValueError:  # empty labels while the list is still empty
                 current = -1
             first_visible = max(0, current - slot) if current >= 0 else 0
             control.reset()
@@ -434,7 +434,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             return self._area_title
         try:
             position = self.getControl(_LIST).getSelectedPosition()
-        except Exception:
+        except Exception:  # window closing: the control is gone
             return self._area_title
         for start, title, end in self._areas:
             if start <= position <= end:

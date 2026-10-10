@@ -94,7 +94,7 @@ def _png_dimensions(path: str) -> tuple[int, int]:
     try:
         with open(path, "rb") as handle:
             header = handle.read(24)
-    except Exception:
+    except OSError:
         return (0, 0)
     if len(header) < 24 or not header.startswith(_PNG_SIGNATURE):
         return (0, 0)

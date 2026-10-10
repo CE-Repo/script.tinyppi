@@ -315,7 +315,7 @@ def highlight_hold(setting_id: str) -> float:
     """
     try:
         milliseconds = settings.addon().getSettingInt(setting_id)
-    except Exception:
+    except Exception:  # missing or not an integer (Kodi raises TypeError)
         milliseconds = 0
     return milliseconds / 1000.0 if milliseconds > 0 else DEFAULT_HIGHLIGHT_HOLD
 

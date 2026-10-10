@@ -108,7 +108,7 @@ def _w(path: str, value: str) -> None:
 def _delay(ms: int) -> None:
     try:
         xbmc.sleep(ms)
-    except Exception:
+    except Exception:  # Kodi is shutting down
         time.sleep(ms / 1000)
 
 
@@ -202,7 +202,7 @@ def _is_playing_video() -> bool:
     """Return whether a video plays (needed for native VS10 actions)."""
     try:
         return xbmc.Player().isPlayingVideo()
-    except Exception:
+    except Exception:  # Kodi is shutting down
         return False
 
 

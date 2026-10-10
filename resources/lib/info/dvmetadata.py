@@ -64,7 +64,7 @@ def _module_version() -> str:
     """
     try:
         version = xbmcaddon.Addon(_SIDEDATA_ID).getAddonInfo("version")
-    except Exception:
+    except Exception:  # not installed: Kodi raises RuntimeError
         version = ""
     return version or EMPTY
 
