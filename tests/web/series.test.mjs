@@ -537,8 +537,11 @@ test("the open show is not read twice at once", async (t) => {
   const release = hold(view, "/api/episodes");
   await view.moved();
   await view.moved();
-  await release();
   assert.equal(reads(view, "/api/episodes"), 2);
+  // The second move waits for the first read, then has its own.
+  await release();
+  await settle();
+  assert.equal(reads(view, "/api/episodes"), 3);
 });
 
 test("an answer about a show that was left in the meantime draws nothing", async (t) => {
@@ -857,4 +860,18 @@ test("a shelf read failing with no error at all still counts as a failure", asyn
   await view.state(IDLE);
   assert.equal(reads(view, "/api/series"), 1);
   assert.equal(titles(view, "seriesGrid").length, 4);
+});
+
+test("a move announced while the show is being read reads it once more", async (t) => {
+  const view = await open(t);
+  await openShow(view, "Andor");
+  const release = hold(view, "/api/episodes");
+  await view.moved();
+  // The episode ends while the first read is out: its answer predates it.
+  view.routes["/api/episodes"] = [200, { tag: "e2", episodes: EPISODES.slice(1) }];
+  await view.moved();
+  await release();
+  await settle();
+  assert.equal(reads(view, "/api/episodes"), 3);
+  assert.equal(rows(view).length, EPISODES.length - 1);
 });

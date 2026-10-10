@@ -41,7 +41,7 @@ let openShow = null;       /* the show whose episodes are on the card     */
 let episodesBusy = false;  /* a request for one show's episodes           */
 let startingEpisode = 0;   /* the episode a press is waiting on           */
 let episodeReleasing = 0;  /* the timer that gives the list back          */
-let episodesPutOff = false; /* the open show waits on the press to be read */
+let episodesPutOff = false; /* the open show waits to be read again        */
 
 /* Called from the other parts of the page once the series shelf may have moved: the
    next request reads it again. */
@@ -281,8 +281,13 @@ async function openShowView(show) {
    looking, which over a nine-season show is most of the card. */
 async function refreshEpisodes() {
   const show = openShow;
-  /* Nothing to read, or something already reading. */
-  if (!show || episodesBusy) return;
+  if (!show) return;
+  /* Something already reading, which may have left before the move it is
+     sent for: read once more when it is back. */
+  if (episodesBusy) {
+    episodesPutOff = true;
+    return;
+  }
   /* A press waiting on an episode, which is a list about to be rebuilt under
      the row showing the press: read once the press is over instead (see
      releaseSeries). */
@@ -312,6 +317,10 @@ async function refreshEpisodes() {
     seriesRead = false;
   } finally {
     episodesBusy = false;
+  }
+  if (episodesPutOff && !startingEpisode) {
+    episodesPutOff = false;
+    refreshEpisodes();
   }
 }
 
