@@ -90,6 +90,13 @@ output format the codec logos show.  Those want a CoreELEC box.
   CoreELEC only; this makes a desktop Kodi pass.  Use a throwaway machine
   or container.
 
+### In CI
+
+`.github/workflows/kodi.yml` runs the suite on a GitHub runner once a week
+and on request (Actions -> "Kodi 22 suite" -> Run workflow).  The first run
+builds Kodi (about an hour); later ones restore it from the cache.  The
+results and screenshots are kept as the `kodi-suite` artifact.
+
 ### Running it
 
 ```

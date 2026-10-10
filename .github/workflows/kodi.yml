@@ -1,0 +1,74 @@
+name: Kodi 22 suite
+
+# The end-to-end suite in tests/kodi: TinyPPI in a real Kodi 22 under Xvfb
+# (see tests/README.md).  Kodi is built from source, about an hour the first
+# time, then restored from the cache, so this runs on request and once a
+# week rather than on every push.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kodi-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  KODI_REF: 22.0rc1-Piers
+  # Outside /opt, so the cache can restore it without root.
+  KODI_PREFIX: ${{ github.workspace }}/../kodi
+  KODI_BIN: ${{ github.workspace }}/../kodi/bin/kodi
+  KODI_TEST_ROOT: ${{ github.workspace }}/../kodi-test
+
+jobs:
+  kodi:
+    name: TinyPPI in Kodi 22
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Restore Kodi
+        id: kodi
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
+        with:
+          path: ${{ env.KODI_PREFIX }}
+          key: kodi-${{ env.KODI_REF }}-${{ hashFiles('tests/kodi/build_kodi.sh') }}
+
+      - name: Build Kodi (cache miss)
+        if: steps.kodi.outputs.cache-hit != 'true'
+        run: sudo --preserve-env=KODI_REF,KODI_PREFIX tests/kodi/build_kodi.sh
+
+      - name: Install Kodi's packages (cache hit)
+        if: steps.kodi.outputs.cache-hit == 'true'
+        run: sudo --preserve-env=KODI_REF,KODI_PREFIX KODI_DEPS_ONLY=1 tests/kodi/build_kodi.sh
+
+      - name: Playwright for the page check
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run the suite
+        run: |
+          # The overlay and the VS10 dialog open on CoreELEC only; this
+          # throwaway runner passes as one.
+          sudo mkdir -p /etc/coreelec
+          mkdir -p "$KODI_TEST_ROOT"
+          PYTHON=/usr/bin/python3 tests/kodi/run_all.sh
+
+      - name: Keep the results and screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: kodi-suite
+          path: |
+            ${{ env.KODI_TEST_ROOT }}/results
+            ${{ env.KODI_TEST_ROOT }}/shots
+          if-no-files-found: ignore
