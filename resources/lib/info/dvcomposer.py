@@ -135,7 +135,6 @@ def _polynomial_entries(polynomial: dict | None, denom: object) -> list:
 
 
 def _mmr_entries(mmr: dict | None, denom: object) -> list:
-
     """Return an MMR curve as two tables.
 
     First one row per segment (order, constant), then one row per order

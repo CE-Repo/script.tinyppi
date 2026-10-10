@@ -63,7 +63,6 @@ _log = channel("web", xbmc.LOGINFO)
 _Request = socket.socket | tuple[bytes, socket.socket]
 
 
-
 # --- Settings --------------------------------------------------------------
 
 def _addon() -> xbmcaddon.Addon:

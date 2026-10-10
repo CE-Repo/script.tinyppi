@@ -3,7 +3,7 @@
 
 """Build the dashboard snapshot from the overlay's own readings.
 
-``info.properties`` only calls ``setProperty`` on its window, so passing a
+``info.publish`` only calls ``setProperty`` on its window, so passing a
 collector instead of an ``xbmcgui.Window`` yields exactly the overlay's
 values (formatting, units, N/A labels) without duplicating the logic.
 
@@ -54,7 +54,7 @@ _PROP_HDR_TYPE = "TinyPPI.HdrType"
 class PropertySink:
     """Stand-in for ``xbmcgui.Window`` that collects property values.
 
-    Only the property methods ``info.properties`` uses are provided.
+    Only the property methods ``info.publish`` uses are provided.
     """
 
     __slots__ = ("values",)

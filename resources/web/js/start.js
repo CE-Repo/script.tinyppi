@@ -8,7 +8,7 @@
 
    Part of the dashboard page: a classic script sharing the global scope
    of js/dashboard.js and its other parts (see index.html for the order).
-   What it uses from them and what it gives them is listed below. */
+   What it uses from them is listed below. */
 
 /* global $, el, offerShelves, render, selectTab, storedTab, tabFromAddress */
 

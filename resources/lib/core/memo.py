@@ -29,6 +29,5 @@ class KeyedMemo:
         return None
 
     def put(self, key: Hashable, value: Any) -> None:
-
         """Hold *value* for *key*, replacing the previous entry."""
         self._entry = (key, value)

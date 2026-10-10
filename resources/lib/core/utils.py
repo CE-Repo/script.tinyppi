@@ -452,7 +452,6 @@ def log_refresh_failure(view: str, exc: Exception) -> None:
 
 
 def clear_overlay_state(home: PropertyTarget) -> None:
-
     """Clear the Home-window properties that mark TinyPPI as open."""
     for prop in (PROP_RUNNING, PROP_ACTIVE, PROP_DIALOG_MODE):
         home.clearProperty(prop)

@@ -438,7 +438,7 @@ function libraryVersion(version) {
 /* --- the title that just ended ------------------------------------------ */
 
 /* The add-on holds a finished session for ten minutes (see SessionLog.end in
-   web/snapshot.py), which is the window in which someone walks over to the
+   web/session.py), which is the window in which someone walks over to the
    phone and asks what that film actually did.  What it did is three figures
    and the events beneath them; the event list is the same card that was there
    while it played, and stays where it was. */

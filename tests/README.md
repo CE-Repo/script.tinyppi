@@ -20,7 +20,7 @@ ruff check .                 # lint (settings in pyproject.toml)
 mypy                         # types, with Kodistubs for Kodi's modules
 python3 -m pytest tests/unit --cov    # fails below the floor in pyproject.toml
 npm ci && npm run lint       # ESLint for resources/web/js
-npm test                     # the dashboard's scripts in jsdom (tests/web)
+npm run coverage             # the dashboard's scripts in jsdom (tests/web); fails below config.coverage in package.json
 npm run test:browser         # the dashboard in Chromium against the real server (tests/browser)
 ```
 
@@ -35,7 +35,7 @@ development files.
 | `unit/test_server.py` | The HTTP server: the fixed routes, security headers, the token for writing and for untrusted host names, the guessing lockout, the connection caps, tokens and ports, IPv6 and IPv4 on one socket |
 | `unit/test_routes.py` | What the write and library routes accept: bad bodies and lengths, unknown routes, control off, no token, commands and modes, a shelf's own setting, `watched` only as a boolean, library errors as 503, listings by ETag, artwork kinds and ids |
 | `unit/test_player.py` | The transport commands: only listed actions, seek and track values checked (no NaN, infinity, booleans or out-of-range values reach Kodi), seeking live TV against the broadcast, volume as remote input, chapters; track labels, player state, the EPG times |
-| `unit/test_access.py` | Which host names count as the home network; the lockout table; client addresses (IPv4-mapped as IPv4, IPv6 per /64) |
+| `unit/test_access.py` | Which host names count as the home network, which clients do (private, link-local, the box's own IPv6 networks); the lockout table; client addresses (IPv4-mapped as IPv4, IPv6 per /64 beyond the home network) |
 | `unit/test_snapshot.py` | The snapshot: nothing playing, a playing title (times, frame, groups with N/A for empty rows), the file-name setting, the session-only pass, the last title kept, metadata only for DV, controls on the static interval, row and label helpers, artwork; the producer: idle passes, snapshots for watchers with the library revision, settings handed on, failures logged once, waits ending on stop |
 | `unit/test_delta.py` | Delta frames of the event stream, applied as `js/core.js` applies them |
 | `unit/test_artwork.py` | Artwork sources (Kodi's texture cache first) and types (from the bytes) |
@@ -54,9 +54,39 @@ development files.
 | `unit/test_images.py` | PNG decoding (every filter, colour type and indexed bit depth), scaling in premultiplied alpha, the texture cache and its pruning |
 | `unit/test_fonts.py` | Font.xml: the resolution folders (never outside the skin), entries inserted in every fontset with the file's own layout, the ready and failed marks |
 | `unit/test_splash_logos.py` | What the codec-logo splash shows: the logo per output mode, conversions told from the output, the DV layer pill, IMAX logos only when installed, audio known before Kodi names the codec |
+| `unit/test_main.py` | The entry point: a view handed to the running service (acknowledged, withdrawn, no service), the commands and their arguments, the launch-mode default |
+| `unit/test_overlay.py` | The overlay: CoreELEC and Kodi checks, opening over fullscreen video, placement per layout and the arrow-key nudge, keys and closing, DV readings lit when they change, the update loop and its stop reasons, the entry points and their locks |
+| `unit/test_dvmetadata_dialog.py` | The Dolby Vision metadata windows: rows painted per kind, the list filled and its viewport kept, sections and their keys, highlights, the window fitted to its rows, static rows rebuilt, the session between list and sections |
+| `unit/test_mode_select.py` | The VS10 dialog: its layout and labels per stream, focus, keys, the mode chosen and applied after it closes |
+| `unit/test_dialog_layout.py` | The VS10 dialog's layouts outside Kodi and their fallbacks |
+| `unit/test_splash.py` | The codec-logo splash: logo stacks, panel pieces, offsets and scale, per-mode settings, colours and visibility, fades, and the controller (start window, OSD and overlay modes, audio and settings changes, badges, settling, Kodi stopping) |
+| `unit/test_theme.py` | Publishing the colour and opacity settings, the unit label, the colour picker and its HEX tile, old storage forms rewritten |
+| `unit/test_webinfo.py` | The dashboard's settings actions: the address shown, a new token created |
+| `unit/test_utils.py` | Kodi read passes, localized strings, change highlights, offsets, the coded frame and picture ratio, property batches, the overlay state and its refresh thread |
+| `unit/test_core_settings.py` | The cached settings handle |
+| `unit/test_files.py` | Atomic file writes |
+| `unit/test_log.py` | Tagged log lines, the debug switch, credentials taken out of logged paths |
+| `unit/test_publish.py` | The overlay's readings written as window properties: scene and static passes, only changed values, the progress bars |
+| `unit/test_producer.py` | Snapshots handed out without a running producer thread |
+| `unit/test_library_queries.py` | The library's JSON-RPC queries and rows: films, series, episodes and the continue row, resume points (including NaN and Infinity), ratings, tags that follow every field sent, playing and marking, bad ids that ask Kodi nothing |
+| `unit/test_static.py` | The dashboard's route table and static file cache |
+| `unit/test_strings.py` | The dashboard's UI strings |
+| `unit/test_values.py` | Text and id helpers shared by the dashboard |
+| `unit/test_dvcomposer.py` | The composer's rows of the Dolby Vision metadata view: curves, polynomial and MMR coefficients |
+| `unit/test_dvformat.py` | Value formatting for the metadata view: numbers, luminances, scaled values and coordinates, missing and non-finite values |
 | `web/core.test.mjs` | The dashboard's connection in jsdom: whole snapshots, delta frames as `web/delta.py` writes them, a delta without a base, bad frames, the token in the stream address and the command header, the token dialog, `bye`, the localized strings, value formatting, folded cards |
 | `web/colour.test.mjs` | The cover tint's colour arithmetic: the sRGB curve, WCAG contrast, OKLab reference values, OKLCh round trips, chroma pulled into the gamut with lightness and hue kept |
 | `web/readings.test.mjs` | The now-playing card's format badges (grade, resolution by coded width, IMAX/Atmos/DTS:X marks, the DV profile and layer, conversions) and the history's events (names with fallbacks, values, trends, switch totals) |
+| `web/dashboard.test.mjs` | The dashboard's frame: tabs and the bar, the settings tab, idle and playing cards, detail groups, VS10 switching and its lock, the library reads a snapshot sets off, the report |
+| `web/start.test.mjs` | Starting the page: the first tab, the stream, the words before and after `/api/hello` (also an error answer) |
+| `web/marking.test.mjs` | What a press on a film, show or episode asks and what each answer sends, the lists read again afterwards, failures and the token dialog |
+| `web/films.test.mjs` | The film wall, its rows and search, when the list is read again (a move during a read, a failed read after one), starting a film and the wall waiting on it |
+| `web/series.test.mjs` | The series shelf, an opened show with its seasons, the way back (search included), the open show read again (also after a move during a read or while it opens), starting an episode |
+| `web/continue.test.mjs` | The continue-watching rows, when they are read again, resuming a title |
+| `web/live-panels.test.mjs` | The now-playing card, the remote and its track pickers, the figures, the event list and the luminance chart (canvas faked) |
+| `web/metadata.test.mjs` | The Dolby Vision metadata tab: the idle and L5 cards, blocks and trim tables, readings lit when they move, the report |
+| `web/theme.test.mjs` | The themes and the tint strength: before the first paint (the bar colour too), the choice on the settings tab, what a press keeps |
+| `web/cover-tint.test.mjs` | The adaptive theme's poster tint (canvas and images faked): the colour a poster gives, where it is painted, contrast, one read per poster, a reused `<img>` |
 | `browser/dashboard.test.mjs` | The dashboard in Chromium against the real server with Kodi faked (`browser/serve.py`): the stream, the format badges, the film wall and its search, the question a press asks and what marking sends, cancelling, a show's seasons, the history's wording, every tab, no script errors |
 
 ## Kodi 22 suite

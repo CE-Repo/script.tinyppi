@@ -47,7 +47,7 @@ source = ["resources/lib", "main"]
 branch = true
 
 [tool.coverage.report]
-# A floor, not a target: raise it as tests are added, never lower it.
+# Every line and branch is covered: new code comes with its tests.
 fail_under = 100
 skip_empty = true
 

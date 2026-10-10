@@ -73,7 +73,6 @@ class _Slot:
     """
 
     def __init__(self, cache: "_Cache", read: Callable[[], dict]) -> None:
-
         self._cache   = cache
         self._read    = read
         self._value: dict | None = None
