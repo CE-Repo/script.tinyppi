@@ -34,6 +34,15 @@ ignore = [
 testpaths = ["tests"]
 addopts = "-q"
 
+[tool.coverage.run]
+source = ["resources/lib"]
+branch = true
+
+[tool.coverage.report]
+# A floor, not a target: raise it as tests are added, never lower it.
+fail_under = 44
+skip_empty = true
+
 [tool.mypy]
 python_version = "3.10"
 # Kodi's modules are typed by Kodistubs (pip install Kodistubs).
