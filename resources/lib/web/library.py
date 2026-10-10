@@ -20,7 +20,8 @@ import zlib
 import xbmc
 
 from core.log import channel
-from web.snapshot import clean_value, rpc
+from web.player import rpc
+from web.values import clean_value
 
 # Film properties the tiles need.  ``dateadded`` feeds the "recently added"
 # row (see ``_added``), read here so the row matches the wall.

@@ -9,17 +9,15 @@ values (formatting, units, N/A labels) without duplicating the logic.
 
 The row layout mirrors ``script-tinyppi-main.xml`` and reuses its string
 ids, so translations and label changes apply to both.
+
+The player's tracks and commands live in web/player.py, the VS10 modes in
+web/vs10.py and the title's history in web/session.py.
 """
 
-import json
-import math
-import re
-import threading
 import time
 import zlib
 
 import xbmc
-from core.log import channel
 from core.utils import (
     PROP_EFFECTIVE_HDR_TYPE,
     PROP_HDR10PLUS_PRESENT,
@@ -34,7 +32,6 @@ from info.dvinfo import (
     L5_EMPTY,
     get_l1_nits,
     get_l5_offsets,
-    is_status_label,
     na_label,
 )
 from info import dvmetadata
@@ -43,6 +40,10 @@ from info.properties import (
     publish_scene_properties,
     publish_static_properties,
 )
+from web.player import broadcast_times, current_track_state, is_live_tv, player_controls
+from web.session import SessionLog
+from web.values import clean_value, numbers
+from web.vs10 import vs10_state
 
 # Home property with the source HDR type (from publish_hdr_type).
 _PROP_HDR_TYPE = "TinyPPI.HdrType"
@@ -232,25 +233,6 @@ _PRESENCE_FLAGS = (
     ("DoviElPresentFlag",  "DoviElPresentVar"),
 )
 
-_NUMBER_RE = re.compile(r"-?\d+(?:\.\d+)?")
-
-# Kodi text markup (e.g. the themed FEL/MEL tag) is stripped rather than
-# turned into HTML, which would mean building HTML from file names.
-_MARKUP_RE = re.compile(r"\[/?(?:COLOR|B|I|UPPERCASE|LOWERCASE|CAPITALIZE|LIGHT|CR)[^\]]*\]",
-                        re.IGNORECASE)
-
-
-# The overlay's "l" separator (see properties._DISPLAY_SEPARATOR) is turned
-# back into a pipe for the browser.
-_SEPARATOR_RE = re.compile(r" l ")
-
-
-def clean_value(value: str) -> str:
-    """Return *value* without markup and with pipe separators."""
-    if not value:
-        return value
-    return _SEPARATOR_RE.sub(" | ", _MARKUP_RE.sub("", value)).strip()
-
 
 def _render(segments, values: dict[str, str]) -> str:
     """Concatenate the non-empty segments with their prefixes and suffixes.
@@ -266,60 +248,9 @@ def _render(segments, values: dict[str, str]) -> str:
     return "".join(out).strip()
 
 
-def _numbers(value: str) -> list[float]:
-    """Return every number in a composite reading."""
-    if not value or is_status_label(value):
-        return []
-    return [float(match) for match in _NUMBER_RE.findall(value)]
-
-
 def _first_number(value: str) -> float | None:
-    numbers = _numbers(value)
-    return numbers[0] if numbers else None
-
-
-def _is_live_tv() -> bool:
-    """Return whether a live PVR channel (TV or radio) is playing."""
-    return cond("PVR.IsPlayingTV") or cond("PVR.IsPlayingRadio")
-
-
-def _seconds(clock: str) -> int | None:
-    """Return ``hh:mm:ss`` or ``mm:ss`` as seconds, or None."""
-    try:
-        parts = [int(part) for part in clock.strip().split(":")]
-    except ValueError:
-        return None
-    if not 2 <= len(parts) <= 3:
-        return None
-    total = 0
-    for part in parts:
-        total = total * 60 + part
-    return total
-
-
-def _broadcast_times() -> dict[str, str]:
-    """Return position, length and progress of a live broadcast from the EPG.
-
-    On live TV the player only knows the timeshift buffer.  Without EPG data
-    the player's readings stay.
-    """
-    if not _is_live_tv():
-        return {}
-    duration = info("PVR.EpgEventDuration(hh:mm:ss)")
-    if not any(_numbers(duration)):
-        return {}
-    elapsed = info("PVR.EpgEventElapsedTime(hh:mm:ss)")
-    # Computed: PVR.EpgEventProgress is empty as a label.
-    length, position = _seconds(duration), _seconds(elapsed)
-    progress = (f"{min(100.0, max(0.0, position * 100 / length)):.1f}"
-                if length and position is not None else "")
-    return {
-        "PlayerTime":       elapsed,
-        "PlayerDuration":   duration,
-        "PlayerProgress":   progress,
-        "PlayerFinishTime": info("VideoPlayer.EndTime"),
-        "BroadcastTimes":   "1",
-    }
+    found = numbers(value)
+    return found[0] if found else None
 
 
 def _label(string_id: int) -> str:
@@ -366,10 +297,10 @@ def _overlay_rows(values: dict[str, str]) -> dict[str, str]:
 
     # Live TV without EPG and streams without a length get a label instead
     # of meaningless times.
-    if _is_live_tv() and not values.get("BroadcastTimes"):
+    if is_live_tv() and not values.get("BroadcastTimes"):
         rows["PlaybackStateRow"] = _label(32235)
     elif (not values.get("PlayerDuration")
-          and cond("Player.IsInternetStream") and not _is_live_tv()):
+          and cond("Player.IsInternetStream") and not is_live_tv()):
         rows["PlaybackStateRow"] = _label(32236)
     elif values.get("PlayerDuration"):
         rows["PlaybackTimeRow"] = values.get("PlayerTime", "")
@@ -386,14 +317,14 @@ def _finish_time(values: dict[str, str]) -> str:
     other live items and recordings: ''.  Also '' while the duration is
     still 00:00, which would just show the current time.
     """
-    if _is_live_tv():
+    if is_live_tv():
         if not values.get("BroadcastTimes"):
             return ""
         return values.get("PlayerFinishTime", "")
     if is_live() or is_pvr():
         return ""
     # Covers both an all-zero and an empty duration.
-    if not any(_numbers(values.get("PlayerDuration", ""))):
+    if not any(numbers(values.get("PlayerDuration", ""))):
         return ""
     return values.get("PlayerFinishTime", "")
 
@@ -489,146 +420,6 @@ def _art_tags() -> dict:
     return tags
 
 
-# --- The player ------------------------------------------------------------
-
-def _rpc(method: str, params: dict | None = None) -> dict:
-    """Call Kodi's JSON-RPC and return the answer as a dict ({} on failure)."""
-    request = {"jsonrpc": "2.0", "id": 1, "method": method}
-    if params:
-        request["params"] = params
-    try:
-        answer = json.loads(xbmc.executeJSONRPC(json.dumps(request)))
-    except Exception:
-        return {}
-    return answer if isinstance(answer, dict) else {}
-
-
-# Public alias for web/library.py.
-rpc = _rpc
-
-
-def _video_player_id() -> int | None:
-    """Return the video player id, or None when nothing plays."""
-    result = _rpc("Player.GetActivePlayers").get("result") or []
-    for player in result:
-        if isinstance(player, dict) and player.get("type") == "video":
-            return player.get("playerid")
-    return None
-
-
-def _chapter_count() -> int:
-    """Return the chapter count (only available as an InfoLabel)."""
-    try:
-        return int(info("Player.ChapterCount") or 0)
-    except ValueError:
-        return 0
-
-
-def _stream_label(stream: dict, fallback: str) -> str:
-    """Return a track label prefixed with its upper-cased language code.
-
-    Only a separate leading token counts as an existing prefix (``eng`` vs.
-    the start of ``English``).
-    """
-    name = (stream.get("name") or "").strip()
-    language = (stream.get("language") or "").strip()
-    tag = language.upper() if re.fullmatch(r"[A-Za-z]{2,3}", language) else language
-    if name and tag:
-        leading_tag = re.compile(
-            rf"^{re.escape(language)}(?=$|[\s·|:/-])", re.IGNORECASE
-        )
-        if leading_tag.search(name):
-            return leading_tag.sub(tag, name, count=1)
-        return f"{tag} · {name}"
-    return name or tag or fallback
-
-
-def player_controls() -> dict:
-    """Return the controllable player state: tracks, volume, mute, chapters.
-
-    Via JSON-RPC, since pickers need full lists with indices.  Only used
-    when control is enabled.
-    """
-    state: dict = {"audio": [], "subtitle": [], "audio_current": -1,
-                   "subtitle_current": -1, "subtitle_on": False,
-                   "volume": None, "muted": False, "chapters": 0}
-
-    app = _rpc("Application.GetProperties",
-               {"properties": ["volume", "muted"]}).get("result") or {}
-    if isinstance(app, dict):
-        state["volume"] = app.get("volume")
-        state["muted"] = bool(app.get("muted"))
-
-    player_id = _video_player_id()
-    if player_id is None:
-        return state
-
-    # Tells the page whether to show the chapter keys.
-    state["chapters"] = _chapter_count()
-
-    properties = _rpc("Player.GetProperties", {
-        "playerid": player_id,
-        "properties": ["audiostreams", "currentaudiostream",
-                       "subtitles", "currentsubtitle", "subtitleenabled"],
-    }).get("result") or {}
-    if not isinstance(properties, dict):
-        return state
-
-    for index, stream in enumerate(properties.get("audiostreams") or []):
-        state["audio"].append({
-            "index": stream.get("index", index),
-            "label": clean_value(_stream_label(stream, f"#{index + 1}")),
-        })
-    for index, stream in enumerate(properties.get("subtitles") or []):
-        state["subtitle"].append({
-            "index": stream.get("index", index),
-            "label": clean_value(_stream_label(stream, f"#{index + 1}")),
-        })
-
-    current_audio = properties.get("currentaudiostream") or {}
-    current_sub   = properties.get("currentsubtitle") or {}
-    if isinstance(current_audio, dict):
-        state["audio_current"] = current_audio.get("index", -1)
-    if isinstance(current_sub, dict):
-        state["subtitle_current"] = current_sub.get("index", -1)
-    state["subtitle_on"] = bool(properties.get("subtitleenabled"))
-    return state
-
-
-def current_track_state() -> dict[str, str]:
-    """Return identifying tokens for the active audio and subtitle streams.
-
-    Includes the index (via JSON-RPC), since tracks may share language and
-    name.
-    """
-    player_id = _video_player_id()
-    if player_id is None:
-        return {"audio": "", "audio_id": "", "subtitle": ""}
-    result = _rpc("Player.GetProperties", {
-        "playerid": player_id,
-        "properties": ["currentaudiostream", "currentsubtitle",
-                       "subtitleenabled"],
-    }).get("result") or {}
-    if not isinstance(result, dict):
-        return {"audio": "", "audio_id": "", "subtitle": ""}
-
-    def token(stream: dict) -> str:
-        if not isinstance(stream, dict) or stream.get("index") is None:
-            return ""
-        index = int(stream.get("index", -1))
-        label = clean_value(_stream_label(stream, f"#{index + 1}"))
-        return f"#{index + 1} · {label}" if label != f"#{index + 1}" else label
-
-    audio_stream = result.get("currentaudiostream") or {}
-    audio = token(audio_stream)
-    audio_id = (f"#{int(audio_stream.get('index', -1)) + 1}"
-                if isinstance(audio_stream, dict)
-                and audio_stream.get("index") is not None else "")
-    subtitle = (token(result.get("currentsubtitle") or {})
-                if result.get("subtitleenabled") else "__off__")
-    return {"audio": audio, "audio_id": audio_id, "subtitle": subtitle}
-
-
 def audio_event_label(values: dict[str, str]) -> str:
     """Return the active audio label, as in the audio card."""
     language = clean_value(values.get("AudioNameShortVar", "")).strip()
@@ -654,294 +445,6 @@ def subtitle_event_label(values: dict[str, str]) -> str:
 
 
 # --- Snapshot --------------------------------------------------------------
-
-class SessionLog:
-    """History of the playing title: chart samples, events and counters.
-
-    Kept by the producer, so a page opened mid-film gets the full chart.
-    Reset for a new title.  Written by the producer and read by request
-    threads, so all access goes through the lock.
-    """
-
-    #: Seconds between chart samples (enough for an hour-wide chart).
-    SAMPLE_INTERVAL = 1.0
-    #: One hour of samples; longer films keep the last hour.
-    MAX_SAMPLES = 3600
-    #: Maximum events kept; the oldest are dropped.
-    MAX_EVENTS = 60
-
-    #: How long a track reading must be stable before it counts.  Index
-    #: (JSON-RPC) and label (InfoLabels) may update in different ticks; the
-    #: event keeps the time the change was first seen.
-    TRACK_SETTLE = 1.5
-
-    TEMP_HIGH   = 75.0
-    CPU_FULL    = 100.0
-    SWITCH_KINDS = frozenset(("vs10", "mode", "audio", "subtitle"))
-    WARNING_KINDS = frozenset(("temperature", "cpu"))
-    #: How long a finished title's figures are kept after playback stops.
-    RETAIN_SECONDS = 600.0
-
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self.reset("")
-
-    def reset(self, key: str, title: str = "") -> None:
-        """Start a new session for *key* (title and source)."""
-        self._key       = key
-        self._title     = title
-        self._position  = ""
-        self._ended     = 0.0
-        self._started   = time.monotonic()
-        self._samples: list[tuple] = []
-        self._events:  list[dict]  = []
-        self._seq       = 0
-        self._sampled   = 0.0
-        self._switches  = 0
-        self._warnings  = 0
-        # (identity, display label) per watched reading.
-        self._watched: dict[str, tuple[str, str]] = {}
-        # Changed but not yet settled readings (see _settle).
-        self._pending: dict[str, tuple] = {}
-        self._temperature_hot = False
-        self._cpu_full = False
-        self._fps: int | None = None
-
-    # --- Writing -----------------------------------------------------------
-
-    def end(self) -> None:
-        """Mark the session as ended after playback stopped.
-
-        The figures stay for ``RETAIN_SECONDS`` (or until the next title)
-        for the idle page.  Cheap to call on every idle pass.
-        """
-        with self._lock:
-            if not (self._key or self._samples or self._events):
-                return
-            if not self._ended:
-                self._ended = time.monotonic()
-                return
-            if time.monotonic() - self._ended >= self.RETAIN_SECONDS:
-                self.reset("")
-
-    def observe(self, title: str, source: str, metrics: dict, watched: dict,
-                position: str) -> None:
-        """Add one pass to the session; chart samples use their own interval.
-
-        Sessions are told apart by title and *source* (the file), since titles
-        repeat and lengths of live streams grow.
-        """
-        with self._lock:
-            key = f"{title}\n{source}"
-            if self._ended or self._is_another_title(title, source, key):
-                self.reset(key, title)
-            self._position = position
-            now = time.monotonic()
-            self._note_changes(watched, now, position)
-            self._watch_levels(metrics, now, position)
-            if now - self._sampled < self.SAMPLE_INTERVAL:
-                return
-            self._sampled = now
-            self._sample(metrics, now)
-
-    def _is_another_title(self, title: str, source: str, key: str) -> bool:
-        """Return whether this pass belongs to a different title.
-
-        A half-empty reading is a player winding down, not a new title, so
-        the finished title's figures are kept (see ``last``).  Without a
-        source, a changed title is enough.
-        """
-        if not self._key:
-            return True            # nothing is being tracked yet
-        if key == self._key:
-            return False
-        if title and source:
-            return True            # a whole reading, and a different one
-        return bool(title) and title != self._title
-
-    def _note_changes(self, watched: dict, now: float, position: str) -> None:
-        """Record events for readings that changed since the last pass.
-
-        Runs on every producer pass (short switches would be missed on the
-        sample clock).  The first pass only records the initial values.
-        """
-        for name, value in watched.items():
-            at, at_position = now, position
-            if isinstance(value, dict):
-                # Two-part reading: wait until settled (see _settle), dated
-                # from the first change.
-                identity = str(value.get("id") or "").strip()
-                label = str(value.get("label") or identity).strip()
-                if not identity:
-                    continue
-                settled = self._settle(name, (identity, label), now, position)
-                if settled is None:
-                    continue
-                at, at_position = settled
-            else:
-                identity = str(value or "").strip()
-                label = identity
-                if not identity:
-                    continue
-            previous = self._watched.get(name)
-            self._watched[name] = (identity, label)
-            if previous is None or previous[0] == identity:
-                continue
-            self._add_event(at, at_position, name,
-                            {"from": previous[1], "to": label})
-
-    def _settle(self, name: str, current: tuple[str, str], now: float,
-                position: str) -> tuple[float, str] | None:
-        """Hold a two-part reading back until stable for ``TRACK_SETTLE``.
-
-        Returns the time and position of the first change once settled, else
-        None.  Only settled values are committed, so ``from`` is always right.
-        """
-        if current == self._watched.get(name):
-            self._pending.pop(name, None)
-            return None
-        pending = self._pending.get(name)
-        if pending is None:
-            self._pending[name] = (current, now, now, position)
-            return None
-        reading, since, first, first_position = pending
-        if reading != current:
-            # Changed again: restart the wait, keep the first change time.
-            self._pending[name] = (current, now, first, first_position)
-            return None
-        if now - since < self.TRACK_SETTLE:
-            return None
-        del self._pending[name]
-        return first, first_position
-
-    def _watch_levels(self, metrics: dict, now: float, position: str) -> None:
-        """Track warning levels and the frame rate on every pass."""
-        temperature = metrics.get("cpu_temp")
-        if temperature is not None:
-            self._watch_temperature(temperature, now, position)
-        cpu = metrics.get("cpu")
-        if cpu is not None:
-            self._watch_cpu(cpu, now, position)
-        fps = metrics.get("fps_in")
-        if fps is not None:
-            self._watch_fps(fps, now, position)
-
-    def _sample(self, metrics: dict, now: float) -> None:
-        """Add one chart sample."""
-        level = metrics.get("l1") or {}
-        peak  = level.get("max")
-        mean  = level.get("avg")
-        self._samples.append((
-            round(now - self._started, 1), peak, mean,
-        ))
-        if len(self._samples) > self.MAX_SAMPLES:
-            del self._samples[:len(self._samples) - self.MAX_SAMPLES]
-
-    def _watch_temperature(self, temperature: float, now: float,
-                           position: str) -> None:
-        hot = temperature >= self.TEMP_HIGH
-        if hot and not self._temperature_hot:
-            self._add_event(now, position, "temperature", {"value": temperature})
-        self._temperature_hot = hot
-
-    def _watch_cpu(self, cpu: float, now: float, position: str) -> None:
-        full = cpu >= self.CPU_FULL
-        if full and not self._cpu_full:
-            self._add_event(now, position, "cpu", {"value": cpu})
-        self._cpu_full = full
-
-    def _watch_fps(self, fps: float, now: float, position: str) -> None:
-        """Record an event when the input frame rate changes.
-
-        The input rate, not the output (which drops with every lost frame).
-        Recorded as a transition (see ``eventTrend`` in js/live-panels.js)
-        but not counted as a switch: the display mode change is already
-        counted.
-        """
-        try:
-            rate = int(round(float(fps)))
-        except (TypeError, ValueError):
-            return
-        if rate <= 0:
-            # Not a real rate (not playing yet, or unsettled).
-            return
-        previous = self._fps
-        self._fps = rate
-        if previous is None or previous == rate:
-            return
-        self._add_event(now, position, "fps", {"from": previous, "to": rate})
-
-    def _add_event(self, now: float, position: str, kind: str,
-                   detail: dict) -> dict:
-        """Add an event, update the counters, and return the event."""
-        self._seq += 1
-        # Counters change only here, so every event is counted.
-        if kind in self.SWITCH_KINDS:
-            self._switches += 1
-        if kind in self.WARNING_KINDS:
-            self._warnings += 1
-        event = {
-            "t": round(now - self._started, 1),
-            "pos": position,
-            "kind": kind,
-            **detail,
-        }
-        self._events.append(event)
-        if len(self._events) > self.MAX_EVENTS:
-            del self._events[:len(self._events) - self.MAX_EVENTS]
-        return event
-
-    # --- Reading -----------------------------------------------------------
-
-    def summary(self) -> dict:
-        """Return the small per-snapshot summary: counters and event ``seq``.
-
-        A changed ``seq`` tells the page to fetch the history again.
-        """
-        with self._lock:
-            return {
-                "seq":      self._seq,
-                "switches": self._switches,
-                "warnings": self._warnings,
-            }
-
-    def last(self) -> dict:
-        """Return the finished title's summary for the idle page, or {}."""
-        with self._lock:
-            if not self._ended or not self._key:
-                return {}
-            ago = time.monotonic() - self._ended
-            if ago >= self.RETAIN_SECONDS:
-                return {}
-            peaks = [sample[1] for sample in self._samples if sample[1] is not None]
-            return {
-                "title":    self._title,
-                "position": self._position,
-                "ago":      int(ago),
-                "switches": self._switches,
-                "warnings": self._warnings,
-                "peak":     max(peaks) if peaks else None,
-                "events":   len(self._events),
-            }
-
-    def history(self) -> dict:
-        """Return the full chart and event list.
-
-        One array per series (compact for 3600 samples); ``now`` is the
-        session age, so the page needs no synchronised clock.
-        """
-        with self._lock:
-            return {
-                "now":    round(time.monotonic() - self._started, 1),
-                "step":   self.SAMPLE_INTERVAL,
-                "t":      [sample[0] for sample in self._samples],
-                "max":    [sample[1] for sample in self._samples],
-                "avg":    [sample[2] for sample in self._samples],
-                "events": list(self._events),
-                "seq":    self._seq,
-                "switches": self._switches,
-            }
-
 
 class SnapshotBuilder:
     """Build one dashboard snapshot per call with the overlay's publishers.
@@ -985,7 +488,7 @@ class SnapshotBuilder:
         values = dict(self._sink.values)
         for key, label in _EXTRA_INFOLABELS:
             values[key] = info(label)
-        values.update(_broadcast_times())
+        values.update(broadcast_times())
         values.update(_overlay_rows(values))
         for flag_key, source_key in _PRESENCE_FLAGS:
             values[flag_key] = _PRESENCE_GLYPH.get(values.get(source_key, ""), "")
@@ -1009,10 +512,10 @@ class SnapshotBuilder:
         """
         raw_nits = get_l1_nits()
         raw_bars = get_l5_offsets()
-        nits = _numbers(raw_nits) if is_dv and raw_nits != L1_EMPTY else []
-        bars = _numbers(raw_bars) if is_dv and raw_bars != L5_EMPTY else []
+        nits = numbers(raw_nits) if is_dv and raw_nits != L1_EMPTY else []
+        bars = numbers(raw_bars) if is_dv and raw_bars != L5_EMPTY else []
         # FpsInfoVar is "input - drop" (see core.helpers.fps_display_texts).
-        fps  = _numbers(values.get("FpsInfoVar", ""))
+        fps  = numbers(values.get("FpsInfoVar", ""))
         return {
             "l1": {
                 "min": nits[0] if len(nits) > 0 else None,
@@ -1223,254 +726,3 @@ class SnapshotBuilder:
         }
 
 
-# --- VS10 ------------------------------------------------------------------
-
-# Modes per source type, as in the on-screen dialog (see ui.dialog_layout).
-# Format names are not translated, like in the dialog.
-_VS10_OPTIONS = {
-    "sdr": (
-        ("original_sdr", "Original"),
-        ("hdr10",        "SDR → HDR10"),
-        ("dv",           "SDR → Dolby Vision"),
-    ),
-    "hdr10": (
-        ("original_hdr", "HDR10 (Original)"),
-        ("sdr8",         "HDR10 → SDR"),
-        ("dv",           "HDR10 → Dolby Vision"),
-    ),
-    "dolby vision": (
-        ("original_dv",  "Dolby Vision (Original)"),
-        ("sdr8",         "Dolby Vision → SDR"),
-    ),
-}
-
-
-def _is_hdr10_plus(key: str) -> bool:
-    """Return whether the source token is HDR10+ (either spelling)."""
-    return "hdr10plus" in key or "hdr10+" in key
-
-
-def _has_no_modes(key: str, hdr10plus: bool = False) -> bool:
-    """Return whether the source has no VS10 modes.
-
-    HDR10+ and HLG are no VS10 inputs; *hdr10plus* covers DV + HDR10+
-    hybrids (from ``TinyPPI.Hdr10PlusPresent``), which read as DV.
-    """
-    return hdr10plus or _is_hdr10_plus(key) or "hlg" in key
-
-
-def _options_for(source: str, playing: bool = True,
-                 hdr10plus: bool = False) -> tuple:
-    """Return the mode buttons for *source*.
-
-    None for sources without modes (see ``_has_no_modes``) or when nothing
-    plays; the page then hides the VS10 card.  An empty source is SDR.
-    """
-    if not playing:
-        return ()
-    key = (source or "").strip().lower()
-    if _has_no_modes(key, hdr10plus):
-        return ()
-    if "dolby" in key:
-        return _VS10_OPTIONS["dolby vision"]
-    if "hdr10" in key:
-        return _VS10_OPTIONS["hdr10"]
-    return _VS10_OPTIONS["sdr"]
-
-
-def vs10_state(source: str, playing: bool = True,
-               hdr10plus: bool = False) -> dict:
-    """Return the VS10 buttons for the source and the current output."""
-    return {
-        "options": [{"mode": mode, "label": label}
-                    for mode, label in _options_for(source, playing, hdr10plus)],
-        "output":  info("Player.Process(amlogic.eoft_gamut)").split(",")[0].strip(),
-    }
-
-
-# Modes the dashboard accepts: exactly the buttons above.
-_KNOWN_MODES = frozenset(
-    mode for options in _VS10_OPTIONS.values() for mode, _ in options
-)
-
-
-_log = channel("web")
-
-
-class _ModeSwitcher:
-    """Apply VS10 modes one at a time, the latest request winning.
-
-    A switch takes seconds (display resets, sometimes a stage through SDR).
-    Requests arriving meanwhile replace each other, so quick taps on three
-    buttons end in the last mode instead of three switches in a row.  Runs
-    on a service thread (no ``RunScript``), so the request is not held
-    during the driver's settling delays.
-    """
-
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        # The mode to apply next, and whether a worker is applying modes.
-        self._wanted: str | None = None
-        self._running = False
-
-    def request(self, mode: str) -> None:
-        """Queue *mode*, replacing any mode still waiting."""
-        with self._lock:
-            if self._wanted is not None:
-                _log(f"VS10 mode '{self._wanted}' replaced by '{mode}' "
-                     "before it started", xbmc.LOGDEBUG)
-            self._wanted = mode
-            if self._running:
-                return
-            self._running = True
-        try:
-            threading.Thread(target=self._work, name="TinyPPI-vs10",
-                             daemon=True).start()
-        except RuntimeError as exc:
-            with self._lock:
-                self._running = False
-                self._wanted = None
-            _log(f"VS10 mode '{mode}' could not be started: {exc}",
-                 xbmc.LOGERROR)
-
-    def _next(self, monitor: xbmc.Monitor) -> str | None:
-        """Take the waiting mode, or end the worker (None)."""
-        with self._lock:
-            mode = self._wanted
-            self._wanted = None
-            # No new switch during shutdown (it would delay Kodi).
-            if mode is None or monitor.abortRequested():
-                self._running = False
-                return None
-            return mode
-
-    def _work(self) -> None:
-        monitor = xbmc.Monitor()
-        while (mode := self._next(monitor)) is not None:
-            try:
-                from ui.mode_select import set_mode
-                set_mode(mode)
-            except Exception as exc:  # a switch must not break the service
-                _log(f"VS10 mode '{mode}' failed: {exc}", xbmc.LOGERROR)
-
-
-_switcher = _ModeSwitcher()
-
-
-def apply_mode(mode: str) -> bool:
-    """Start switching to VS10 *mode*; False for modes not offered."""
-    if mode not in _KNOWN_MODES:
-        return False
-    _switcher.request(mode)
-    return True
-
-
-# --- Player commands -------------------------------------------------------
-
-# Allowed transport commands; requests name an action, never a JSON-RPC
-# method.  "volume" (absolute) is no longer used by the page but kept for
-# older clients.
-_COMMANDS = ("playpause", "stop", "seek", "seek_percent", "volume", "mute",
-             "audio", "subtitle", "chapter_previous", "chapter_next",
-             "volume_up", "volume_down")
-
-# Maximum relative seek in seconds.
-_SEEK_LIMIT = 3600
-
-
-def _number(value, low: float, high: float) -> float | None:
-    """Return *value* as a number within [*low*, *high*], or None."""
-    try:
-        number = float(value)
-    except (TypeError, ValueError):
-        return None
-    if math.isnan(number) or not low <= number <= high:
-        return None
-    return number
-
-
-def apply_command(action: str, value=None) -> bool:
-    """Run a transport command and return whether it succeeded.
-
-    JSON-RPC (not builtins) so success can be reported; False without a
-    playing video.
-    """
-    if action not in _COMMANDS:
-        return False
-
-    if action == "volume":
-        level = _number(value, 0, 100)
-        if level is None:
-            return False
-        return "result" in _rpc("Application.SetVolume",
-                                {"volume": int(level)})
-
-    # Volume and mute are sent as input actions, like a remote, not via
-    # Application.SetVolume/SetMute (Kodi's software mixer).  Only the input
-    # path lets a CEC adapter forward them to an amplifier; without CEC they
-    # change Kodi's volume.  CEC has no absolute level, hence the steps, and
-    # the volume Kodi reports may then not match the amplifier's.
-    if action in ("volume_up", "volume_down"):
-        name = "volumeup" if action == "volume_up" else "volumedown"
-        return _rpc("Input.ExecuteAction",
-                    {"action": name}).get("result") == "OK"
-    if action == "mute":
-        return _rpc("Input.ExecuteAction",
-                    {"action": "mute"}).get("result") == "OK"
-
-    player_id = _video_player_id()
-    if player_id is None:
-        return False
-
-    if action == "playpause":
-        return "result" in _rpc("Player.PlayPause", {"playerid": player_id})
-    if action == "stop":
-        return "result" in _rpc("Player.Stop", {"playerid": player_id})
-    if action == "seek":
-        step = _number(value, -_SEEK_LIMIT, _SEEK_LIMIT)
-        if step is None:
-            return False
-        return "result" in _rpc("Player.Seek", {
-            "playerid": player_id, "value": {"seconds": int(step)}})
-    if action == "seek_percent":
-        where = _number(value, 0, 100)
-        if where is None:
-            return False
-        # Live TV: the bar is the broadcast (see _broadcast_times) but Kodi's
-        # percentage is the timeshift buffer's, so seek relatively.
-        broadcast = _broadcast_times()
-        if broadcast:
-            length = _seconds(broadcast["PlayerDuration"])
-            now = _seconds(broadcast["PlayerTime"])
-            if length is None or now is None:
-                return False
-            return "result" in _rpc("Player.Seek", {
-                "playerid": player_id,
-                "value": {"seconds": int(round(length * where / 100 - now))}})
-        return "result" in _rpc("Player.Seek", {
-            "playerid": player_id, "value": {"percentage": where}})
-    if action in ("chapter_previous", "chapter_next"):
-        # No JSON-RPC method for chapters; the input action falls back to a
-        # big step without chapters, so the count is checked first.
-        if _chapter_count() < 2:
-            return False
-        name = ("chapterorbigstepforward" if action == "chapter_next"
-                else "chapterorbigstepback")
-        return _rpc("Input.ExecuteAction",
-                    {"action": name}).get("result") == "OK"
-    if action == "audio":
-        index = _number(value, 0, 64)
-        if index is None:
-            return False
-        return "result" in _rpc("Player.SetAudioStream", {
-            "playerid": player_id, "stream": int(index)})
-
-    # subtitle: -1 turns them off, any other index selects and enables.
-    index = _number(value, -1, 64)
-    if index is None:
-        return False
-    if index < 0:
-        return "result" in _rpc("Player.SetSubtitle", {
-            "playerid": player_id, "subtitle": "off"})
-    return "result" in _rpc("Player.SetSubtitle", {
-        "playerid": player_id, "subtitle": int(index), "enable": True})

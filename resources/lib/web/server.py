@@ -4,9 +4,9 @@
 """The dashboard's HTTP server and its lifecycle.
 
 A producer thread builds snapshots that are pushed to every browser via
-Server-Sent Events (web/producer.py).  Routes live in web/routes.py, delta
-frames in web/delta.py, artwork in web/artwork.py and the page's files in
-web/static.py.  Routes are a fixed table, never a filesystem lookup; every
+Server-Sent Events (web/producer.py, built by web/snapshot.py).  Routes live
+in web/routes.py, delta frames in web/delta.py, artwork in web/artwork.py and
+the page's files in web/static.py.  Routes are a fixed table, never a filesystem lookup; every
 state change needs the token.  The server is off unless enabled.
 """
 

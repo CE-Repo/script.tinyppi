@@ -25,9 +25,10 @@ from core.log import channel
 from web import access, artwork, library
 from web.delta import snapshot_delta
 from web.producer import PRODUCE_INTERVAL, Producer
-from web.snapshot import apply_command, apply_mode
+from web.player import apply_command
 from web.static import MIN_COMPRESS, STATIC_CACHE
 from web.strings import ui_strings
+from web.vs10 import apply_mode
 
 if TYPE_CHECKING:  # web.server imports this module
     from web.server import _Server
