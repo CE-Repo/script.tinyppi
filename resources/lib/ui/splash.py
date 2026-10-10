@@ -583,6 +583,252 @@ def _safe_addon() -> xbmcaddon.Addon | None:
         return None
 
 
+def _active_modes(config: _Settings, in_start_window: bool = True) -> list[str]:
+    """Return the enabled modes in drawing order.
+
+    The start mode counts only while *in_start_window*.
+    """
+    modes = []
+    if config.show_on_start and in_start_window:
+        modes.append("start")
+    if config.show_on_osd:
+        modes.append("osd")
+    if config.show_on_tinyppi:
+        modes.append("tinyppi")
+    return modes
+
+
+def _anything_to_show(config: _Settings, player: xbmc.Player) -> bool:
+    """Return whether any enabled mode has logos for the current video."""
+    gamut = info("Player.Process(amlogic.eoft_gamut)")
+    logos = current_logos(output_hdr_token(gamut))
+    has_audio = video_has_audio(player)
+    return any(_mode_logos(config.modes[mode], logos, has_audio)
+               for mode in _active_modes(config))
+
+
+class _Controller:
+    """One controller run: the polls of ``open_splash`` and their state.
+
+    Each poll prepares the enabled modes and redraws those whose
+    ``_ModeState`` changed; ``open_splash`` sets up and cleans up around it.
+    """
+
+    def __init__(
+        self, addon: xbmcaddon.Addon, config: _Settings, player: xbmc.Player,
+        home: xbmcgui.Window, video_window: xbmcgui.Window,
+        screen: tuple[int, int], monitor: xbmc.Monitor, run: str,
+    ) -> None:
+        self.player       = player
+        self.home         = home
+        self.video_window = video_window
+        self.screen_w, self.screen_h = screen
+        self.monitor      = monitor
+        self.run_token    = run
+        self.controls_by_mode: dict[str, list[xbmcgui.ControlImage]] = {}
+        self.states: dict[str, _ModeState] = {}
+        # Handle ``config`` came from, and whether the theme was published since.
+        self.addon  = addon
+        self.config = config
+        self.themed = False
+        self.colors_by_mode: dict[str, dict[str, str]] = {}
+        # Source format and layer, the output they were read for, the next
+        # re-read, and the published badge state.
+        self.hdr_type = self.el_type = ""
+        self.has_audio = True
+        self.format_gamut: str | None = None
+        self.format_due = 0.0
+        self.converting: str | None = None
+        # When the logos were first drawn (start of the start window); None
+        # while the output settles.
+        self.started: float | None = None
+        self.waiting_since = time.monotonic()
+        self.settle_gamut: str | None = None
+        self.settle_since = self.waiting_since
+
+    def run(self) -> None:
+        """Poll until playback, the settings or Kodi end the run."""
+        while not self.monitor.abortRequested():
+            if not self._poll():
+                break
+
+    def _poll(self) -> bool:
+        """Run one poll and its wait; return False when the run ends."""
+        if not self.player.isPlayingVideo():
+            return False
+        if not self._refresh_settings():
+            return False
+        config = self.config
+
+        now = time.monotonic()
+        in_fullscreen = xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)")
+        in_start_window = config.show_on_start and (
+            self.started is None or now - self.started < config.duration)
+
+        # Read once for badge, pill and logos.
+        gamut = info("Player.Process(amlogic.eoft_gamut)")
+        hdr_token = output_hdr_token(gamut)
+        self._refresh_format(gamut, now)
+        self._publish_converting(gamut)
+
+        started = self.started
+        if started is None:
+            started = self._settle(gamut, hdr_token, now)
+            if started is None:
+                return not self.monitor.waitForAbort(_POLL_INTERVAL)
+
+        desired_states = (
+            self._desired_states(hdr_token, in_start_window) if in_fullscreen else {}
+        )
+        if not self._remove_stale(desired_states):
+            return False
+        self._draw(desired_states, gamut)
+
+        if (not config.show_on_osd and not config.show_on_tinyppi
+                and not in_start_window and not self.states):
+            return False
+        return not self.monitor.waitForAbort(self._wait_time(in_start_window, started))
+
+    def _refresh_settings(self) -> bool:
+        """Re-read the settings after a change; False while unavailable."""
+        # A new handle means changed settings; None during an update.
+        addon = _safe_addon()
+        if addon is None:
+            return False
+        if addon is not self.addon:
+            self.addon = addon
+            self.config = _read_settings(addon)
+            self.themed = False
+        return True
+
+    def _refresh_format(self, gamut: str, now: float) -> None:
+        """Re-read the source format, its DV layer and the audio track when due."""
+        # Reading the format parses side data, so it is re-read once a
+        # second, when the output changes, or every poll until known.  The
+        # audio-track check (player lock) uses the same schedule.
+        if not self.hdr_type or gamut != self.format_gamut or now >= self.format_due:
+            self.hdr_type = get_hdr_format()
+            self.el_type = get_dv_el_type_raw() if "dolby" in self.hdr_type else ""
+            self.has_audio = video_has_audio(self.player)
+            self.format_gamut = gamut
+            self.format_due = now + _FORMAT_INTERVAL
+
+    def _publish_converting(self, gamut: str) -> None:
+        """Publish the badge state (``PROP_CONVERTING``) when it changed."""
+        # Updated every poll; the badge's condition follows it.
+        now_converting = "true" if is_converting(self.hdr_type, gamut) else "false"
+        if now_converting != self.converting:
+            self.converting = now_converting
+            self.home.setProperty(PROP_CONVERTING, self.converting)
+
+    def _settle(self, gamut: str, hdr_token: str, now: float) -> float | None:
+        """Return the start time once the output has settled, else None."""
+        # Wait for the output to settle before drawing.
+        if gamut != self.settle_gamut:
+            self.settle_gamut, self.settle_since = gamut, now
+        switching = bool(self.hdr_type) and not hdr_token
+        if (now - self.settle_since < _SETTLE_SECONDS
+                or (switching and now - self.waiting_since < _SETTLE_SDR_LIMIT)):
+            return None
+        self.started = now
+        _log(f"output settled after {now - self.waiting_since:.1f}s at "
+             f"{gamut!r}, source {self.hdr_type or 'sdr'!r}")
+        return now
+
+    def _desired_states(self, hdr_token: str, in_start_window: bool) -> dict[str, _ModeState]:
+        """Return the state each mode to show should have this poll."""
+        desired_states: dict[str, _ModeState] = {}
+        logos = current_logos(hdr_token)
+        modes = _active_modes(self.config, in_start_window)
+        if not modes:
+            return desired_states
+
+        # Publish the theme once per settings change, then read
+        # each context's tints back.
+        if not self.themed:
+            apply_theme(self.home, self.addon)
+            self.colors_by_mode = {
+                mode: _mode_colors(self.home, mode)
+                for mode in _MODE_PROP_PREFIX
+            }
+            self.themed = True
+        layer_token = dv_layer_token(hdr_token, self.hdr_type, self.el_type)
+        for mode in modes:
+            # A mode without logos draws nothing this poll.
+            mode_settings = self.config.modes[mode]
+            mode_logos = _mode_logos(mode_settings, logos, self.has_audio)
+            if not mode_logos:
+                continue
+            colors = self.colors_by_mode[mode]
+            desired_states[mode] = _ModeState(
+                logos=mode_logos,
+                offset_x=mode_settings.offset_x,
+                offset_y=mode_settings.offset_y,
+                scale=mode_settings.scale,
+                colors=tuple(sorted(colors.items())),
+                condition=_visible_condition(mode, self.config.show_on_osd, self.run_token),
+                layer_token=layer_token,
+                pill_at_top=mode_settings.pill_at_top,
+            )
+        return desired_states
+
+    def _remove_stale(self, desired_states: dict[str, _ModeState]) -> bool:
+        """Fade out and remove the modes not wanted; False on abort."""
+        remove_modes = [
+            mode for mode in tuple(self.controls_by_mode)
+            if mode not in desired_states
+        ]
+        if remove_modes:
+            for mode in remove_modes:
+                self.home.clearProperty(_MODE_VISIBLE_PROPS[mode])
+            if self.monitor.waitForAbort(_FADE_OUT_SECONDS):
+                return False
+            for mode in remove_modes:
+                _remove_controls(self.video_window, self.controls_by_mode[mode])
+                self.controls_by_mode.pop(mode, None)
+                self.states.pop(mode, None)
+        return True
+
+    def _draw(self, desired_states: dict[str, _ModeState], gamut: str) -> None:
+        """(Re)draw each mode whose desired state changed."""
+        monitor = self.monitor
+        for mode, desired in desired_states.items():
+            # Adding controls waits on the GUI thread, so nothing is
+            # drawn while Kodi stops the service.
+            if monitor.abortRequested():
+                break
+            if self.states.get(mode) == desired:
+                continue
+            if mode in self.controls_by_mode:
+                _log(f"{mode} redrawn for output {gamut!r}, source "
+                     f"{self.hdr_type or 'sdr'!r}")
+                _fade_out(self.video_window, self.home, monitor, mode,
+                          self.controls_by_mode[mode])
+                if monitor.abortRequested():
+                    break
+            controls, dot = _build_controls(
+                list(desired.logos), self.colors_by_mode[mode],
+                desired.offset_x, desired.offset_y,
+                self.screen_w, self.screen_h, desired.scale, desired.layer_token,
+                desired.pill_at_top,
+            )
+            self.controls_by_mode[mode] = controls
+            self.states[mode] = desired
+            _fade_in(
+                self.video_window, self.home, monitor, mode, controls,
+                desired.condition, dot,
+            )
+
+    def _wait_time(self, in_start_window: bool, started: float) -> float:
+        """Return the poll wait, cut to what is left of the start window."""
+        wait_time = _POLL_INTERVAL
+        if self.config.show_on_start and in_start_window:
+            remaining = self.config.duration - (time.monotonic() - started)
+            if remaining > 0:
+                wait_time = min(wait_time, remaining)
+        return wait_time
+
+
 def open_splash() -> None:
     """Run the splash controller for the current video.
 
@@ -595,7 +841,7 @@ def open_splash() -> None:
     if addon is None:
         return
     config = _read_settings(addon)
-    if not (config.show_on_start or config.show_on_osd or config.show_on_tinyppi):
+    if not _active_modes(config):
         return
 
     player = xbmc.Player()
@@ -606,21 +852,11 @@ def open_splash() -> None:
     if home.getProperty(PROP_SPLASH_ACTIVE) == "true":
         return
 
-    gamut = info("Player.Process(amlogic.eoft_gamut)")
-    logos = current_logos(output_hdr_token(gamut))
-    has_audio = video_has_audio(player)
-    enabled_modes = [
-        mode for mode, on in (
-            ("start", config.show_on_start), ("osd", config.show_on_osd),
-            ("tinyppi", config.show_on_tinyppi),
-        ) if on
-    ]
-    if not any(_mode_logos(config.modes[mode], logos, has_audio)
-               for mode in enabled_modes):
+    if not _anything_to_show(config, player):
         return
 
     video_window = xbmcgui.Window(WINDOW_FULLSCREEN_VIDEO)
-    screen_w, screen_h = _window_dims(video_window)
+    screen = _window_dims(video_window)
     monitor = xbmc.Monitor()
 
     home.setProperty(PROP_SPLASH_ACTIVE, "true")
@@ -628,171 +864,9 @@ def open_splash() -> None:
     home.setProperty(PROP_SPLASH_RUN, run)
     home.clearProperty(PROP_SPLASH_VISIBLE)
     _clear_mode_visibility(home)
-    controls_by_mode: dict[str, list[xbmcgui.ControlImage]] = {}
-    states: dict[str, _ModeState] = {}
-    # Handle ``config`` came from, and whether the theme was published since.
-    read_from = addon
-    themed = False
-    colors_by_mode: dict[str, dict[str, str]] = {}
-    # Source format and layer, the output they were read for, the next
-    # re-read, and the published badge state.
-    hdr_type = el_type = ""
-    format_gamut = None
-    format_due = 0.0
-    converting = None
-    # When the logos were first drawn (start of the start window); None
-    # while the output settles.
-    started = None
-    waiting_since = time.monotonic()
-    settle_gamut = None
-    settle_since = waiting_since
+    controller = _Controller(addon, config, player, home, video_window, screen, monitor, run)
     try:
-        while not monitor.abortRequested():
-            if not player.isPlayingVideo():
-                break
-
-            # A new handle means changed settings; None during an update.
-            addon = _safe_addon()
-            if addon is None:
-                break
-            if addon is not read_from:
-                read_from = addon
-                config = _read_settings(addon)
-                themed = False
-            show_on_start = config.show_on_start
-            show_on_osd = config.show_on_osd
-            show_on_tinyppi = config.show_on_tinyppi
-            duration = config.duration
-
-            now = time.monotonic()
-            in_fullscreen = xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)")
-            in_start_window = show_on_start and (
-                started is None or now - started < duration)
-
-            # Read once for badge, pill and logos.
-            gamut = info("Player.Process(amlogic.eoft_gamut)")
-            hdr_token = output_hdr_token(gamut)
-            # Reading the format parses side data, so it is re-read once a
-            # second, when the output changes, or every poll until known.  The
-            # audio-track check (player lock) uses the same schedule.
-            if not hdr_type or gamut != format_gamut or now >= format_due:
-                hdr_type = get_hdr_format()
-                el_type = get_dv_el_type_raw() if "dolby" in hdr_type else ""
-                has_audio = video_has_audio(player)
-                format_gamut = gamut
-                format_due = now + _FORMAT_INTERVAL
-
-            # Updated every poll; the badge's condition follows it.
-            now_converting = "true" if is_converting(hdr_type, gamut) else "false"
-            if now_converting != converting:
-                converting = now_converting
-                home.setProperty(PROP_CONVERTING, converting)
-
-            if started is None:
-                # Wait for the output to settle before drawing.
-                if gamut != settle_gamut:
-                    settle_gamut, settle_since = gamut, now
-                switching = bool(hdr_type) and not hdr_token
-                if (now - settle_since < _SETTLE_SECONDS
-                        or (switching and now - waiting_since < _SETTLE_SDR_LIMIT)):
-                    if monitor.waitForAbort(_POLL_INTERVAL):
-                        break
-                    continue
-                started = now
-                _log(f"output settled after {now - waiting_since:.1f}s at "
-                     f"{gamut!r}, source {hdr_type or 'sdr'!r}")
-
-            desired_states: dict[str, _ModeState] = {}
-            if in_fullscreen:
-                logos = current_logos(hdr_token)
-                modes = []
-                if show_on_start and in_start_window:
-                    modes.append("start")
-                if show_on_osd:
-                    modes.append("osd")
-                if show_on_tinyppi:
-                    modes.append("tinyppi")
-
-                if modes:
-                    # Publish the theme once per settings change, then read
-                    # each context's tints back.
-                    if not themed:
-                        apply_theme(home, addon)
-                        colors_by_mode = {
-                            mode: _mode_colors(home, mode)
-                            for mode in _MODE_PROP_PREFIX
-                        }
-                        themed = True
-                    layer_token = dv_layer_token(hdr_token, hdr_type, el_type)
-                    for mode in modes:
-                        # A mode without logos draws nothing this poll.
-                        mode_settings = config.modes[mode]
-                        mode_logos = _mode_logos(mode_settings, logos, has_audio)
-                        if not mode_logos:
-                            continue
-                        colors = colors_by_mode[mode]
-                        desired_states[mode] = _ModeState(
-                            logos=mode_logos,
-                            offset_x=mode_settings.offset_x,
-                            offset_y=mode_settings.offset_y,
-                            scale=mode_settings.scale,
-                            colors=tuple(sorted(colors.items())),
-                            condition=_visible_condition(mode, show_on_osd, run),
-                            layer_token=layer_token,
-                            pill_at_top=mode_settings.pill_at_top,
-                        )
-
-            remove_modes = [
-                mode for mode in tuple(controls_by_mode)
-                if mode not in desired_states
-            ]
-            if remove_modes:
-                for mode in remove_modes:
-                    home.clearProperty(_MODE_VISIBLE_PROPS[mode])
-                if monitor.waitForAbort(_FADE_OUT_SECONDS):
-                    break
-                for mode in remove_modes:
-                    _remove_controls(video_window, controls_by_mode[mode])
-                    controls_by_mode.pop(mode, None)
-                    states.pop(mode, None)
-
-            for mode, desired in desired_states.items():
-                # Adding controls waits on the GUI thread, so nothing is
-                # drawn while Kodi stops the service.
-                if monitor.abortRequested():
-                    break
-                if states.get(mode) == desired:
-                    continue
-                if mode in controls_by_mode:
-                    _log(f"{mode} redrawn for output {gamut!r}, source "
-                         f"{hdr_type or 'sdr'!r}")
-                    _fade_out(video_window, home, monitor, mode, controls_by_mode[mode])
-                    if monitor.abortRequested():
-                        break
-                controls, dot = _build_controls(
-                    list(desired.logos), colors_by_mode[mode],
-                    desired.offset_x, desired.offset_y,
-                    screen_w, screen_h, desired.scale, desired.layer_token,
-                    desired.pill_at_top,
-                )
-                controls_by_mode[mode] = controls
-                states[mode] = desired
-                _fade_in(
-                    video_window, home, monitor, mode, controls,
-                    desired.condition, dot,
-                )
-
-            if not show_on_osd and not show_on_tinyppi and not in_start_window and not states:
-                break
-
-            wait_time = _POLL_INTERVAL
-            if show_on_start and in_start_window:
-                remaining = duration - (time.monotonic() - started)
-                if remaining > 0:
-                    wait_time = min(wait_time, remaining)
-
-            if monitor.waitForAbort(wait_time):
-                break
+        controller.run()
     except TypeError:
         # Settings vanished mid-poll (add-on update); clean up and leave.
         pass
@@ -808,5 +882,5 @@ def open_splash() -> None:
         home.clearProperty(PROP_SPLASH_RUN)
         home.clearProperty(PROP_SPLASH_ACTIVE)
         if not monitor.abortRequested():
-            for controls in controls_by_mode.values():
+            for controls in controller.controls_by_mode.values():
                 _remove_controls(video_window, controls)

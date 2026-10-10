@@ -468,6 +468,7 @@ class Kodi:
         self.logos = ("codecs/SDR.png", "audio/aac.png")
         self.has_audio = True
         self.format_reads, self.el_reads, self.themes = [], 0, 0
+        self.theme_handles = []
         self.theme = {}
         xbmc.CONDITIONS[FULLSCREEN] = True
         monkeypatch.setattr(splash.settings, "addon", self._settings)
@@ -534,6 +535,7 @@ class Kodi:
 
     def _apply_theme(self, home, addon):
         self.themes += 1
+        self.theme_handles.append(addon)
         for prop, value in self.theme.items():
             home.setProperty(prop, value)
 
@@ -658,6 +660,30 @@ def test_the_osd_and_overlay_logos_follow_the_fullscreen_window(kodi):
     assert kodi.splash_props() == []
 
 
+def test_a_video_without_audio_shows_its_video_logo_alone(kodi):
+    use(splash_enabled=True)
+    kodi.logos, kodi.has_audio = ("codecs/SDR.png", ""), False
+    kodi.stop_at(2)
+    kodi.run()
+
+    (start,) = kodi.drawn()
+    assert textures(start)[9] == media("codecs/SDR.png") and len(start) == 11
+
+
+def test_outside_fullscreen_the_controller_keeps_polling_for_the_osd_logos(kodi):
+    use(splash_show_on_osd=True)
+    kodi.gamut, kodi.hdr_type = "HDR10 BT2020", "hdr10"
+    xbmc.CONDITIONS[FULLSCREEN] = False
+    kodi.at(10, lambda: xbmc.CONDITIONS.update({FULLSCREEN: True}))
+    kodi.stop_at(11)
+    kodi.run()
+
+    assert kodi.timeline() == [("add", "osd"), ("remove", "osd")]
+    assert kodi.waits[:9] == [POLL] * 9
+    # Polls every 0.25 s outside fullscreen: the known format is re-read on the second.
+    assert kodi.format_reads == [0.0, 1.0, 2.0]
+
+
 def test_a_mode_without_logos_draws_nothing_while_the_others_show(kodi):
     use(splash_enabled=True, splash_start_show_audio=False,
         splash_show_on_osd=True, splash_osd_show_video=False)
@@ -703,12 +729,15 @@ def test_changed_settings_redraw_with_the_new_theme_and_position(kodi):
         kodi.theme = {"TinyPPI.SplashStartVideoColor": "FF405060"}
         kodi.addon = xbmcaddon.Addon()              # Kodi hands out a new handle
 
+    first = kodi.addon
     kodi.at(3, change_settings)
     kodi.stop_at(5)
     kodi.run()
 
     before, after = kodi.drawn()
     assert kodi.themes == 2                         # once per settings change, not per poll
+    # Each time from the handle the settings were read from.
+    assert kodi.theme_handles[0] is first and kodi.theme_handles[1] is kodi.addon
     assert (before[10].color, after[10].color) == ("FF102030", "FF405060")
     assert before[11].color == "FFEDEDED"
     assert bounds(before[:9])[0] == 35 and bounds(after[:9])[2] == 1920 - 35
@@ -828,6 +857,15 @@ def test_kodi_stopping_leaves_the_controls_hidden_by_their_run_token(kodi, chang
     assert kodi.run_token() in controls[0].condition
     assert {e[1] for e in kodi.events if e[0] == "clear"} >= {
         splash.PROP_SPLASH_RUN, splash.PROP_SPLASH_VISIBLE, VISIBLE["osd"]}
+    assert kodi.splash_props() == []
+
+
+def test_kodi_stopping_while_one_mode_fades_in_draws_no_other(kodi):
+    use(splash_show_on_osd=True, splash_show_on_tinyppi=True)
+    kodi.abort_on = TICK
+    kodi.run()
+
+    assert kodi.timeline() == [("add", "osd")]
     assert kodi.splash_props() == []
 
 
