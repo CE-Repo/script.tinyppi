@@ -25,6 +25,10 @@ python3 -m pytest tests
 | `unit/test_settings_logic.py` | The settings that only act with Dolby Vision or on Amlogic hardware, checked on their code paths; every colour setting reaching its skin property; the colour picker (HEX tile first, then the default, then the rest of the palette; colour names numbered per family; every family light to dark, its neighbours alike in saturation; every tile distinct; older stored colours keep their colour) |
 | `unit/test_properties.py` | The language codes of the audio and subtitle rows: unmapped codes as reported, untagged tracks as UNK, no audio track as N/A; the audio rows read N/A without a codec |
 | `unit/test_modules.py` | Every module imports; the small state holders behave |
+| `unit/test_imax.py` | IMAX by name: listed titles at the end of the film part, years on remakes, spelling variants, the IMAX tag, Enhanced, names from paths and Kodi's titles |
+| `unit/test_mediasource.py` | The media source row: release types, containers, sizes, streaming protocols, PVR, discs, addon links never stat'd |
+| `unit/test_dvinfo.py` | Dolby Vision and HDR fields from parsed side data: profiles, layers, L1/L5/L6, HDR10 and HDR10+, number formats, EL tag colours |
+| `unit/test_display.py` | The DRM display reset against a simulated device: HDMI first, the master descriptor, the cached ids and the negative cache |
 
 ## Kodi 22 suite
 
