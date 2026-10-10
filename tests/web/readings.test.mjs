@@ -77,8 +77,13 @@ test("events: names, values and trends", () => {
   assert.equal(R.eventLabel("mode"), "Display mode");
   assert.equal(R.eventLabel("cache_low"), "cache_low");
   assert.equal(R.eventLabel(undefined), "Event");
+  const saved = window.TinyPPI.T.ev_mode;
   window.TinyPPI.T.ev_mode = "Anzeigemodus";
-  assert.equal(R.eventLabel("mode"), "Anzeigemodus");
+  try {
+    assert.equal(R.eventLabel("mode"), "Anzeigemodus");
+  } finally {
+    window.TinyPPI.T.ev_mode = saved;
+  }
 
   assert.equal(R.eventText({ kind: "audio", from: "#1 · ENG · English", to: "#2 · GER · Deutsch" }), "Deutsch");
   assert.equal(R.eventText({ kind: "subtitle", from: "x", to: "__off__" }), "Off");

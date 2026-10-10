@@ -437,14 +437,17 @@ test("a read failing with no error at all still counts as a failure", async (t) 
 
 test("a second title pressed while the first is waiting starts nothing", async (t) => {
   const view = await open(t);
-  // A read already on its way when the press comes builds the rows again
-  // under it, with tiles that know nothing of the press.
+  // The only way to reach a second tile during a press: a read already on
+  // its way when the press comes builds the rows again under it, with tiles
+  // that know nothing of the press.  (That rebuild losing the press is a
+  // defect of its own, reported alongside these tests.)
   const release = hold(view, "/api/continue");
   view.routes["/api/continue"] = [200, { tag: "c2", items: ITEMS }];
   await view.moved();
   await press(view, "Film 03");
+  assert.equal(tile(view, "Show 2").disabled, true);
   await release();
-  assert.equal(tile(view, "Show 2").disabled, false);
+  assert.equal(tile(view, "Show 2").disabled, false, "the rows were built again under the press");
 
   await press(view, "Show 2");
   assert.deepEqual(plays(view), [{ movieid: 3 }]);

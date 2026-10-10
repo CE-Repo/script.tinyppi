@@ -83,6 +83,20 @@ async function booted(options = {}) {
   return { ...view, states, stream: view.streams.at(-1) };
 }
 
+/* A stream the browser has given up on, and what the probe after it finds. */
+async function closeStream(view) {
+  const stream = view.streams.at(-1);
+  stream.readyState = view.window.EventSource.CLOSED;
+  stream.emit("error");
+  await settle();
+  return stream;
+}
+
+const statusOf = (window) => {
+  const status = window.document.getElementById("status");
+  return [status.dataset.state, window.document.getElementById("statusText").textContent];
+};
+
 test("a whole snapshot is delivered as it is", async () => {
   const { stream, states, window } = await booted();
   stream.emit("open");
@@ -162,25 +176,38 @@ test("the token travels in the stream address", async () => {
 test("a closed stream that wants a token opens the token dialog", async () => {
   const view = page({ routes: { "/api/hello": [200, {}], "/api/state": [401, {}] } });
   await view.window.TinyPPI.boot({});
-  const stream = view.streams.at(-1);
-  stream.readyState = view.window.EventSource.CLOSED;
-  stream.emit("error");
-  await settle();
+  await closeStream(view);
   assert.equal(view.window.document.getElementById("status").dataset.state, "down");
   assert.equal(view.window.document.getElementById("tokenDialog").open, true);
 });
 
-test("bye closes the stream and stays away as long as asked", async (t) => {
-  const { stream, window } = await booted();
-  const delays = [];
-  const realSetTimeout = window.setTimeout;
-  window.setTimeout = (fn, delay) => { delays.push(delay); return realSetTimeout(() => {}, 0); };
-  t.after(() => { window.setTimeout = realSetTimeout; });
+test("bye closes the stream, stays away as long as asked, then backs off afresh", async () => {
+  const view = page({ routes: { "/api/hello": [200, {}], "/api/state": [502, {}] } });
+  await view.window.TinyPPI.boot({});
+  const timers = fakeTimers(view.window);
+  // Two missed attempts first, so the next wait would have grown to 4 s.
+  for (let attempt = 0; attempt < 2; attempt++) { await closeStream(view); timers.run(); }
+
+  const stream = view.streams.at(-1);
   stream.emit("bye", { retry_ms: 45000 });
   assert.equal(stream.closed, true);
-  assert.ok(delays.includes(45000));
-  stream.emit("bye", {});
-  assert.ok(delays.includes(20000));       // the floor
+  assert.deepEqual(statusOf(view.window), ["down", "Disconnected"]);
+  assert.deepEqual(timers.delays(), [45000]);
+  const count = view.streams.length;
+  timers.run(45000);
+  assert.equal(view.streams.length, count + 1);
+  assert.equal(view.streams.at(-1).closed, undefined);
+
+  // The backoff starts over rather than going on from 4 s.
+  await closeStream(view);
+  assert.deepEqual(timers.delays(), [1000]);
+  timers.run();
+  // A bye that asks for less, or says nothing, stays away 20 s at least.
+  for (const body of [{ retry_ms: 3000 }, {}]) {
+    view.streams.at(-1).emit("bye", body);
+    assert.deepEqual(timers.delays(), [20000], JSON.stringify(body));
+    timers.run();
+  }
 });
 
 test("hello's strings and auth_read reach the page", async () => {
@@ -239,20 +266,6 @@ test("folded cards are remembered, but not the default", () => {
   card.dispatchEvent(new window.Event("toggle"));
   assert.equal(disclosureState("video", true), false);
 });
-
-/* A stream the browser has given up on, and what the probe after it finds. */
-async function closeStream(view) {
-  const stream = view.streams.at(-1);
-  stream.readyState = view.window.EventSource.CLOSED;
-  stream.emit("error");
-  await settle();
-  return stream;
-}
-
-const statusOf = (window) => {
-  const status = window.document.getElementById("status");
-  return [status.dataset.state, window.document.getElementById("statusText").textContent];
-};
 
 test("an open card is written as 1, and a retired key is forgotten", () => {
   const { window } = page();

@@ -316,9 +316,9 @@ test("the strength sets how strongly the card glows, and nonsense reads as stand
   const chroma = (values) => C.rgbToOklch(triple(values["--cover-gradient"].split("rgba(")[1]))[1];
   assert.ok(chroma(at["0"]) < chroma(at["1"]), "subtle keeps more of the plain panel");
   // The quiet variant does not change with the strength.
-  assert.equal(view.main.style.getPropertyValue("--cover-accent-rgb"),
-               (await (async () => { await view.set("data-cover-strength", "0");
-                 return view.main.style.getPropertyValue("--cover-accent-rgb"); })()));
+  const quiet = view.main.style.getPropertyValue("--cover-accent-rgb");
+  await view.set("data-cover-strength", "0");
+  assert.equal(view.main.style.getPropertyValue("--cover-accent-rgb"), quiet);
 });
 
 test("another theme leaves a poster nobody has read unread and the cards plain", async () => {

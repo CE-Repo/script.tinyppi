@@ -560,15 +560,19 @@ test("the wall is not read again under a pressed tile, and is once the press is 
 
 test("a second film pressed while the first is waiting starts nothing", async (t) => {
   const view = await open(t);
-  // A read already on its way when the press comes builds the wall again
-  // under it, with tiles that know nothing of the press.
+  // The only way to reach a second tile during a press: a read already on
+  // its way when the press comes builds the wall again under it, with tiles
+  // that know nothing of the press.  (That rebuild losing the press is a
+  // defect of its own, reported alongside these tests; should it be fixed,
+  // this precondition goes and so does the way to a second press.)
   const release = hold(view, "/api/library");
   view.routes["/api/library"] = [200, { tag: "f2", movies: FILMS }];
   await view.state({ ...IDLE, library: 1 });
   await view.state({ ...IDLE, library: 2 });
   await press(view, "Alien");
+  assert.equal(tile(view, "Dune").disabled, true);
   await release();
-  assert.equal(tile(view, "Dune").disabled, false);
+  assert.equal(tile(view, "Dune").disabled, false, "the wall was built again under the press");
 
   await press(view, "Dune");
   assert.deepEqual(plays(view), [{ movieid: 1 }]);

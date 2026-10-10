@@ -562,7 +562,13 @@ test("a show that cannot be read again stays as it was, and the shelf is asked f
   await view.moved();
   assert.equal(reads(view, "/api/series"), 2);
   await release();
-  assert.deepEqual(rows(view), before);
+  // The very same rows, not a list built again (deepEqual would take any
+  // two elements as equal, so they are compared one by one).
+  const after = rows(view);
+  assert.equal(after.length, before.length);
+  assert.ok(after.every((node, index) => node === before[index]));
+  assert.equal(hidden(view, "episodeList"), false);
+  assert.equal(view.$("seriesOpen").textContent, "Andor");
   assert.equal(view.$("toast").textContent, "");
   // The shelf read that came back first is no longer taken as current.
   await view.state(IDLE);
@@ -664,13 +670,16 @@ test("no other show is opened while an episode is waiting", async (t) => {
 test("a second episode pressed while the first is waiting starts nothing", async (t) => {
   const view = await open(t);
   await openShow(view, "Andor");
-  // A read already on its way when the press comes builds the list again
-  // under it, with rows that know nothing of the press.
+  // The only way to reach a second row during a press: a read already on
+  // its way when the press comes builds the list again under it, with rows
+  // that know nothing of the press.  (That rebuild losing the press is a
+  // defect of its own, reported alongside these tests.)
   const release = hold(view, "/api/episodes");
   await view.moved();
   await press(view, row(view, "Kassa"));
+  assert.equal(row(view, "One Way Out").disabled, true);
   await release();
-  assert.equal(row(view, "One Way Out").disabled, false);
+  assert.equal(row(view, "One Way Out").disabled, false, "the list was built again under the press");
 
   await press(view, row(view, "One Way Out"));
   assert.deepEqual(plays(view), [{ episodeid: 101 }]);

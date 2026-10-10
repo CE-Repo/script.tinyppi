@@ -29,8 +29,8 @@ function load(dom, name) {
 /** The dashboard as index.html loads it, with the page's timers held (none
  * of them is wanted here) and the window closed when the test ends.
  * *before* runs on the bare page ahead of the scripts. */
-function open(t, { hello = { version: "2.15.0", strings: {} }, status = 200, before } = {}) {
-  const view = page({ scripts: [], routes: { "/api/hello": [status, hello] } });
+function open(t, { hello = { version: "2.15.0", strings: {} }, before } = {}) {
+  const view = page({ scripts: [], routes: { "/api/hello": [200, hello] } });
   const { window, dom } = view;
   t.after(() => window.close());
   window.setTimeout = () => 0;
@@ -189,7 +189,7 @@ test("an add-on older than the shelf flags keeps both shelves", async (t) => {
   assert.equal(view.window.document.querySelectorAll("#tabBar .tab.hidden").length, 0);
 });
 
-test("a /api/hello that never answers leaves the English and the tab in place", async (t) => {
+test("a /api/hello that cannot be reached leaves the English and the tab in place", async (t) => {
   const view = open(t, { before: (w) => {
     w.location.hash = "#settings";
     w.fetch = () => Promise.reject(new TypeError("Failed to fetch"));

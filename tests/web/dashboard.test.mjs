@@ -100,6 +100,10 @@ const offered = ({ window }) =>
 
 const hidden = (node) => node.classList.contains("hidden");
 
+/** Let jsdom fire the hashchange a new address queues: it is queued with
+ * setImmediate, which settle()'s timer may or may not come after. */
+const navigated = () => new Promise((resolve) => setImmediate(resolve)).then(settle);
+
 const reads = ({ requests }, path) =>
   requests.filter((request) => request.url.replace(/\?.*$/, "") === path).length;
 
@@ -263,15 +267,15 @@ test("the arrow keys do nothing before the page has chosen a tab", (t) => {
 test("a changed address changes the tab, and one naming no tab is ignored", async (t) => {
   const view = open(t);
   view.window.location.hash = "#settings";
-  await settle();
+  await navigated();
   assert.equal(front(view), "settings");
   view.window.location.hash = "#nowhere";
-  await settle();
+  await navigated();
   assert.equal(front(view), "settings");
   // An address naming a tab that is not on offer lands on the live one.
   await view.state({ ...PLAYING, hdr_type: "hdr10", metadata: [] });
   view.window.location.hash = "#metadata";
-  await settle();
+  await navigated();
   assert.equal(front(view), "live");
   assert.equal(view.window.location.hash, "#live");
 });
@@ -304,6 +308,7 @@ test("the shelf tabs are there only on a box that will be told what to play", as
 test("a box that refuses the film or the series list loses that tab", async (t) => {
   const view = open(t, { routes: { "/api/library": [403, {}], "/api/series": [403, {}] } });
   await view.state(IDLE);
+  // The refusal is heard after the first snapshot asked; the next one redraws the bar.
   await view.state(IDLE);
   assert.deepEqual(offered(view), ["live", "history", "settings"]);
 });
@@ -676,14 +681,15 @@ test("a mode switch posts the mode with the token and keeps the buttons locked w
   assert.equal($("toast").textContent, "Switched");
   assert.equal($("toast").classList.contains("bad"), false);
 
-  // New modes arriving mid-switch are drawn, but a press on one waits too.
+  // New modes arriving mid-switch are drawn, but a press on one is dropped
+  // while the switch is still settling.
   await view.state({ ...PLAYING, vs10: { ...VS10, options: [{ mode: "hdr10", label: "HDR10" }] } });
+  assert.deepEqual(modes(view), [["hdr10", "HDR10", "button", "mode"]]);
   $("modes").firstElementChild.click();
   await settle();
   assert.equal(view.requests.filter((request) => request.url === "/api/mode").length, 1);
 
   clock.tick(1199);
-  assert.equal($("modes").firstElementChild.disabled, false, "a new button is not locked");
   assert.equal(sdr.classList.contains("busy"), true);
   clock.tick(1);
   assert.equal(sdr.classList.contains("busy"), false);
