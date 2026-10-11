@@ -17,6 +17,7 @@ import sys
 import threading
 import time
 import traceback
+from collections.abc import Callable
 from http.server import ThreadingHTTPServer
 
 import xbmc
@@ -449,48 +450,50 @@ class WebDashboard:
                 producer.wake()
 
             if server is not None:
-                # End the accept loop, then always close the listening socket.
-                try:
-                    server.shutdown()
-                except Exception as exc:
-                    _log(f"server shutdown failed: {exc}", xbmc.LOGWARNING)
-                finally:
-                    try:
-                        server.server_close()
-                    except Exception as exc:
-                        _log(f"server close failed: {exc}", xbmc.LOGWARNING)
-                    # No new connections now; end the idle reads at once.
-                    try:
-                        server.close_connections()
-                    except Exception as exc:
-                        _log(f"closing connections failed: {exc}",
-                             xbmc.LOGWARNING)
+                _close_server(server)
+            _join_all(thread, producer, server)
 
-            # Then wait for the threads, with one shared deadline.
-            deadline = time.monotonic() + _JOIN_TIMEOUT
 
-            def remaining() -> float:
-                return max(0.0, deadline - time.monotonic())
+def _guarded(step: Callable[[], object], failure: str) -> None:
+    """Run one shutdown step, logging rather than raising when it fails."""
+    try:
+        step()
+    except Exception as exc:
+        _log(f"{failure}: {exc}", xbmc.LOGWARNING)
 
-            if thread is not None:
-                thread.join(timeout=remaining())
-                if thread.is_alive():
-                    _log("web server thread did not stop", xbmc.LOGWARNING)
-            if producer is not None:
-                producer.join(timeout=remaining())
-                if producer.is_alive():
-                    _log("snapshot producer did not stop", xbmc.LOGWARNING)
-            if server is not None:
-                # A thread still running after the grace period is stuck
-                # writing; cut its connection off.
-                left = server.join_workers(min(remaining(), _HANGUP_GRACE))
-                if left:
-                    try:
-                        server.close_connections(socket.SHUT_RDWR)
-                    except Exception as exc:
-                        _log(f"closing connections failed: {exc}",
-                             xbmc.LOGWARNING)
-                    left = server.join_workers(remaining())
-                if left:
-                    _log(f"{left} request thread(s) still running",
-                         xbmc.LOGWARNING)
+
+def _close_server(server: _Server) -> None:
+    """End the accept loop, then always close the listening socket."""
+    try:
+        _guarded(server.shutdown, "server shutdown failed")
+    finally:
+        _guarded(server.server_close, "server close failed")
+        # No new connections now; end the idle reads at once.
+        _guarded(server.close_connections, "closing connections failed")
+
+
+def _join_all(thread: threading.Thread | None, producer: Producer | None,
+              server: _Server | None) -> None:
+    """Wait for the server's threads, with one shared deadline."""
+    deadline = time.monotonic() + _JOIN_TIMEOUT
+
+    def remaining() -> float:
+        return max(0.0, deadline - time.monotonic())
+
+    for waited, name in ((thread, "web server thread"),
+                         (producer, "snapshot producer")):
+        if waited is not None:
+            waited.join(timeout=remaining())
+            if waited.is_alive():
+                _log(f"{name} did not stop", xbmc.LOGWARNING)
+    if server is None:
+        return
+    # A thread still running after the grace period is stuck writing; cut
+    # its connection off.
+    left = server.join_workers(min(remaining(), _HANGUP_GRACE))
+    if left:
+        _guarded(lambda: server.close_connections(socket.SHUT_RDWR),
+                 "closing connections failed")
+        left = server.join_workers(remaining())
+    if left:
+        _log(f"{left} request thread(s) still running", xbmc.LOGWARNING)

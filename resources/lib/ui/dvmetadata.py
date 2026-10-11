@@ -107,6 +107,23 @@ _STEP_ACTIONS = {
 }
 
 
+def _paint_cells(item: xbmcgui.ListItem, kind: str, names: tuple[str, str],
+                 cells: list[str], slots: int) -> None:
+    """Write a table row's *cells* into *slots* heading or value properties.
+
+    Headings rows fill the heading properties and readings rows the value
+    properties; every other property, and every slot past the cells, is
+    written empty.
+    """
+    heading, value = names
+    for position in range(slots):
+        cell = cells[position] if position < len(cells) else ""
+        item.setProperty(f"{heading}{position}",
+                         cell if kind == dvmetadata.HEADINGS else "")
+        item.setProperty(f"{value}{position}",
+                         cell if kind == dvmetadata.COLUMNS else "")
+
+
 def _identities(rows: list) -> list:
     """Return a stable key per row: (kind, name, repeat index).
 
@@ -257,20 +274,12 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         item.setProperty("head", name if heading else "")
         item.setProperty("state", label if heading else "")
         item.setProperty("rule", _RULE_TEXTURE if heading else "")
-        for position in range(dvmetadata.MAX_COLUMNS):
-            at   = position - offset
-            cell = (label[at]
-                    if table and not compact and 0 <= at < len(label) else "")
-            item.setProperty(f"{_CELL_HEADING}{position}",
-                             cell if kind == dvmetadata.HEADINGS else "")
-            item.setProperty(f"{_CELL_VALUE}{position}",
-                             cell if kind == dvmetadata.COLUMNS else "")
-        for position in range(dvmetadata.MAX_COMPACT_COLUMNS):
-            cell = label[position] if compact and position < len(label) else ""
-            item.setProperty(f"{_COMPACT_CELL_HEADING}{position}",
-                             cell if kind == dvmetadata.HEADINGS else "")
-            item.setProperty(f"{_COMPACT_CELL_VALUE}{position}",
-                             cell if kind == dvmetadata.COLUMNS else "")
+        cells = list(label) if table else []
+        wide  = [""] * offset + cells if not compact else []
+        _paint_cells(item, kind, (_CELL_HEADING, _CELL_VALUE),
+                     wide, dvmetadata.MAX_COLUMNS)
+        _paint_cells(item, kind, (_COMPACT_CELL_HEADING, _COMPACT_CELL_VALUE),
+                     cells if compact else [], dvmetadata.MAX_COMPACT_COLUMNS)
 
     def _changed_color(self) -> str:
         """Return the published highlight color, or the default (logged once)."""

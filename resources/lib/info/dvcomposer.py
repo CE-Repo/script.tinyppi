@@ -9,6 +9,7 @@ the RPU splits each into two halves (see ``_coefficient``).
 """
 
 from collections.abc import Sequence
+from typing import Any
 
 from info import dvformat as fmt
 from info.dvformat import COLUMNS, EMPTY, HEADINGS, MAX_COLUMNS, SPACE
@@ -104,6 +105,11 @@ def composer_pairs(rpu: dict | None) -> list:
     ]
 
 
+def _at(values: Sequence, index: int, default: Any = None) -> Any:
+    """Return ``values[index]``, or *default* past its end."""
+    return values[index] if index < len(values) else default
+
+
 def _polynomial_entries(polynomial: dict | None, denom: object) -> list:
     """Return a polynomial curve as a table, one segment per row.
 
@@ -120,15 +126,14 @@ def _polynomial_entries(polynomial: dict | None, denom: object) -> list:
     headings = list(_POLY_HEADINGS) + [f"c{term}" for term in range(width)]
     rows     = []
     for segment in range(max(len(orders), len(coef_int))):
-        ints  = coef_int[segment] if segment < len(coef_int) else []
-        fracs = coef_frac[segment] if segment < len(coef_frac) else []
+        fracs = _at(coef_frac, segment, [])
         cells = [
             fmt.num(orders[segment]) if segment < len(orders) else EMPTY,
             fmt.flag(interp[segment]) if segment < len(interp) else EMPTY,
         ]
         cells.extend(
-            _coefficient(value, fracs[term] if term < len(fracs) else 0, denom)
-            for term, value in enumerate(ints)
+            _coefficient(value, _at(fracs, term, 0), denom)
+            for term, value in enumerate(_at(coef_int, segment, []))
         )
         rows.append((f"Segment {segment + 1}", cells))
     return _grid(_LEGEND_SEGMENT, headings, rows)
@@ -150,30 +155,18 @@ def _mmr_entries(mmr: dict | None, denom: object) -> list:
 
     segments  = max(len(orders), len(const_int), len(coef_int))
     head_rows = []
-    coef_rows = []
-    width     = 0
+    coef_rows: list = []
     for segment in range(segments):
         head_rows.append((f"Segment {segment + 1}", [
             fmt.num(orders[segment]) if segment < len(orders) else EMPTY,
-            _coefficient(
-                const_int[segment] if segment < len(const_int) else None,
-                const_frac[segment] if segment < len(const_frac) else 0,
-                denom,
-            ),
+            _coefficient(_at(const_int, segment), _at(const_frac, segment, 0), denom),
         ]))
-        levels = coef_int[segment] if segment < len(coef_int) else []
-        fracs  = coef_frac[segment] if segment < len(coef_frac) else []
-        for level, ints in enumerate(levels):
-            row   = fracs[level] if level < len(fracs) else []
-            width = max(width, len(ints))
-            # With one segment (the usual case) the segment is not named.
-            name  = (f"Order {level + 1}" if segments == 1 else
-                     f"Segment {segment + 1} · order {level + 1}")
-            coef_rows.append((name, [
-                _coefficient(value, row[term] if term < len(row) else 0, denom)
-                for term, value in enumerate(ints)
-            ]))
+        # With one segment (the usual case) the segment is not named.
+        name = "" if segments == 1 else f"Segment {segment + 1} · "
+        coef_rows.extend(_mmr_levels(_at(coef_int, segment, []),
+                                     _at(coef_frac, segment, []), name, denom))
 
+    width   = max((len(cells) for _name, cells in coef_rows), default=0)
     entries = _grid(_LEGEND_SEGMENT, list(_MMR_HEADINGS), head_rows)
     terms   = _grid(_LEGEND_TERM,
                     [str(term + 1) for term in range(width)], coef_rows)
@@ -182,6 +175,20 @@ def _mmr_entries(mmr: dict | None, denom: object) -> list:
         entries.append((SPACE, "space.mmr", ""))
     entries.extend(terms)
     return entries
+
+
+def _mmr_levels(levels: Sequence, fracs: Sequence, prefix: str,
+                denom: object) -> list:
+    """Return one MMR segment's coefficient rows, one per order level."""
+    rows = []
+    for level, ints in enumerate(levels):
+        row  = _at(fracs, level, [])
+        name = f"{prefix}order {level + 1}" if prefix else f"Order {level + 1}"
+        rows.append((name, [
+            _coefficient(value, _at(row, term, 0), denom)
+            for term, value in enumerate(ints)
+        ]))
+    return rows
 
 
 def curve_entries(rpu: dict | None, index: int) -> list:

@@ -35,9 +35,9 @@ jobs:
         run: ruff check --output-format=github .
       - name: mypy
         run: mypy
-      # Average rank A, every module B or better, no function past E.
+      # Average rank A, every module B or better, no function past C.
       - name: complexity
-        run: xenon --max-average A --max-modules B --max-absolute E resources/lib main.py
+        run: xenon --max-average A --max-modules B --max-absolute C resources/lib main.py
       - name: Unit tests
         run: python -m pytest tests/unit --cov --cov-report=term-missing:skip-covered
 

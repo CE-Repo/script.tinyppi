@@ -18,7 +18,7 @@ The same checks CI runs on every push (`.github/workflows/ci.yml`):
 ```
 ruff check .                 # lint (settings in pyproject.toml)
 mypy                         # types, with Kodistubs for Kodi's modules
-xenon --max-average A --max-modules B --max-absolute E resources/lib main.py   # complexity
+xenon --max-average A --max-modules B --max-absolute C resources/lib main.py   # complexity
 python3 -m pytest tests/unit --cov    # fails below the floor in pyproject.toml
 npm ci && npm run lint       # ESLint for resources/web/js
 npm run coverage             # the dashboard's scripts in jsdom (tests/web); fails below config.coverage in package.json
