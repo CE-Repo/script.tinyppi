@@ -1,13 +1,14 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""The add-on's entry point: handing a view to the service and dispatching commands (main.py)."""
+"""The script: handing a view to the service and dispatching commands (launcher.py, main.py)."""
 
 import importlib
 import os
 import runpy
 import sys
 
+import launcher
 import pytest
 
 import xbmc
@@ -24,6 +25,7 @@ LIB = os.path.join(ROOT, "resources", "lib")
 
 @pytest.fixture
 def main(monkeypatch):
+    """main.py, imported as a module."""
     monkeypatch.syspath_prepend(ROOT)
     module = importlib.import_module("main")
     assert module.__file__ == MAIN
@@ -32,7 +34,7 @@ def main(monkeypatch):
 
 @pytest.fixture
 def opened(monkeypatch):
-    """Record every view and command main() can start, instead of starting it."""
+    """Record every view and command launcher.main() can start, instead of starting it."""
     seen = []
     monkeypatch.setattr(overlay, "open_tinyppi", lambda: seen.append("overlay"))
     monkeypatch.setattr(overlay, "open_dialog_mode", lambda: seen.append("dialog"))
@@ -86,61 +88,61 @@ def test_the_library_folder_is_put_on_the_import_path_once(main, monkeypatch, li
     (["run_mode,dv"], ["run_mode", "dv"]),
     (["pick_color,title_color", "32040"], ["pick_color", "title_color", "32040"]),
 ])
-def test_kodis_comma_separated_arguments_are_flattened(main, raw, args):
-    assert main._split_args(raw) == args
+def test_kodis_comma_separated_arguments_are_flattened(raw, args):
+    assert launcher._split_args(raw) == args
 
 
 # --- Handing a view to the service ----------------------------------------------
 
 @pytest.mark.parametrize(("view", "message"), [("overlay", "open_overlay"), ("dialog", "open_dialog")])
-def test_a_running_service_that_acknowledges_takes_the_view(main, service, view, message):
+def test_a_running_service_that_acknowledges_takes_the_view(service, view, message):
     service.after = 3
-    assert main._hand_to_service(view) is True
+    assert launcher._hand_to_service(view) is True
     [builtin] = xbmc.BUILTINS
     assert builtin == f"NotifyAll(script.tinyppi,{message})"
     request = home().getProperty(PROP_OPEN_REQUEST)
     assert request.startswith(f"{view}:{os.getpid()}:")
     assert home().getProperty(PROP_OPEN_ACK) == request
-    assert service.naps == [main._ACK_STEP_MS] * 3
+    assert service.naps == [launcher._ACK_STEP_MS] * 3
 
 
-def test_an_earlier_acknowledgement_is_cleared_before_the_service_is_asked(main, service, monkeypatch):
+def test_an_earlier_acknowledgement_is_cleared_before_the_service_is_asked(service, monkeypatch):
     home().setProperty(PROP_OPEN_ACK, "overlay:1:2.000")   # from an earlier launch
     asked = []
     monkeypatch.setattr(xbmc, "executebuiltin", lambda command: asked.append(
         (command, home().getProperty(PROP_OPEN_ACK), home().getProperty(PROP_OPEN_REQUEST))))
-    assert main._hand_to_service("overlay") is True
+    assert launcher._hand_to_service("overlay") is True
     [(command, ack, request)] = asked
     assert command == "NotifyAll(script.tinyppi,open_overlay)"
     assert ack == "" and request.startswith("overlay:")
 
 
-def test_a_silent_service_has_the_request_withdrawn(main, service):
+def test_a_silent_service_has_the_request_withdrawn(service):
     service.after = 0                                   # never answers
-    assert main._hand_to_service("overlay") is False
-    assert sum(service.naps) == main._ACK_TIMEOUT_MS
+    assert launcher._hand_to_service("overlay") is False
+    assert sum(service.naps) == launcher._ACK_TIMEOUT_MS
     assert home().getProperty(PROP_OPEN_REQUEST) == OPEN_WITHDRAWN
     assert (xbmc.LOGWARNING, "TinyPPI: the service did not answer – opening in this script instead") in xbmc.LOG
 
 
 @pytest.mark.parametrize(("running", "view"), [("", "overlay"), ("0", "dialog"), ("1", "splash")])
-def test_no_handover_without_a_service_or_for_other_views(main, monkeypatch, running, view):
+def test_no_handover_without_a_service_or_for_other_views(monkeypatch, running, view):
     home().setProperty(PROP_SERVICE, running)
     monkeypatch.setattr(xbmc, "sleep", pytest.fail)
-    assert main._hand_to_service(view) is False
+    assert launcher._hand_to_service(view) is False
     assert xbmc.BUILTINS == []
     assert home().getProperty(PROP_OPEN_REQUEST) == ""
 
 
 @pytest.mark.parametrize("view", ["overlay", "dialog"])
-def test_a_view_the_service_took_is_not_opened_again(main, service, opened, view):
-    main._open_view(view)
+def test_a_view_the_service_took_is_not_opened_again(service, opened, view):
+    launcher._open_view(view)
     assert opened == []
 
 
 @pytest.mark.parametrize(("view", "local"), [("overlay", "overlay"), ("dialog", "dialog"), ("other", "overlay")])
-def test_without_the_service_the_script_opens_the_view_itself(main, opened, view, local):
-    main._open_view(view)
+def test_without_the_service_the_script_opens_the_view_itself(opened, view, local):
+    launcher._open_view(view)
     assert opened == [local]
 
 
@@ -160,18 +162,18 @@ def test_without_the_service_the_script_opens_the_view_itself(main, opened, view
     (["web_token"], ["web_token"]),
     (["something_new"], ["overlay"]),
 ])
-def test_each_command_starts_its_action(main, opened, monkeypatch, argv, started):
+def test_each_command_starts_its_action(opened, monkeypatch, argv, started):
     monkeypatch.setattr(sys, "argv", ["main.py", *argv])
-    main.main()
+    launcher.main()
     assert opened == started
 
 
 @pytest.mark.parametrize(("launch_mode", "started"), [("0", "overlay"), ("1", "dialog"), (None, "overlay")])
-def test_without_a_command_the_launch_mode_setting_decides(main, opened, monkeypatch, launch_mode, started):
+def test_without_a_command_the_launch_mode_setting_decides(opened, monkeypatch, launch_mode, started):
     if launch_mode is not None:
         xbmcaddon.SETTINGS["launch_mode"] = launch_mode
     monkeypatch.setattr(sys, "argv", ["main.py"])
-    main.main()
+    launcher.main()
     assert opened == [started]
 
 

@@ -1,22 +1,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Background service (xbmc.service).
+"""Background service (xbmc.service, started through service/start.py).
 
 Keeps a Kodi monitor alive for the session to react to notifications, opens
 views handed over by main.py, runs the splash and owns the web dashboard.
 """
 
 import os
-import sys
 import threading
 
 import xbmc
-
-_LIB_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if _LIB_PATH not in sys.path:
-    sys.path.insert(0, _LIB_PATH)
-
 from core import images, settings
 from core.constants import (
     ADDON_ID,
@@ -258,7 +252,8 @@ def _warm_up(monitor: xbmc.Monitor) -> None:
         _log(f"tidying the texture cache failed: {exc}", xbmc.LOGWARNING)
 
 
-if __name__ == "__main__":
+def run() -> None:
+    """Run the service until Kodi shuts down."""
     addon     = settings.addon()
     win       = home_window()
     dashboard = WebDashboard()

@@ -30,8 +30,6 @@ known-first-party = ["core", "info", "ui", "web", "xbmc", "xbmcaddon", "xbmcgui"
                      "dashboard_server"]
 
 [tool.ruff.lint.per-file-ignores]
-# The service puts resources/lib on sys.path before importing from it.
-"resources/lib/service/monitor.py" = ["E402"]
 # Long data rows and assertions in tests are easier to read on one line.
 "tests/**" = ["E501"]
 # The end-to-end scripts drive a real Kodi process and keep a module global.

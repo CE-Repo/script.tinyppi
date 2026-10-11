@@ -16,8 +16,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 from core.constants import OPEN_WITHDRAWN, PROP_OPEN_ACK, PROP_OPEN_REQUEST, PROP_SERVICE
-from ui import theme
-from web import library, server
+from web import library
 
 
 class Threads:
@@ -249,10 +248,11 @@ def test_unreadable_settings_start_no_splash(threads, monkeypatch):
 # --- The service script -------------------------------------------------------
 
 LIB = os.path.dirname(os.path.dirname(os.path.abspath(service.__file__)))
+START = os.path.join(LIB, "service", "start.py")
 
 
-def run_service(monkeypatch, moved=0, broken=()):
-    """Run service/monitor.py as Kodi starts it; return what happened, in order.
+def run_service(monkeypatch, moved=0, broken=(), listed=False):
+    """Run service/start.py as Kodi starts it; return what happened, in order.
 
     *broken* names the steps that raise, as they are recorded in the events.
     """
@@ -279,21 +279,24 @@ def run_service(monkeypatch, moved=0, broken=()):
 
     home = xbmcgui.Window(10000)
     started = []
-    monkeypatch.setattr(server, "WebDashboard", Dashboard)
-    monkeypatch.setattr(theme, "migrate_legacy_colors", step("colors", moved))
-    monkeypatch.setattr(theme, "apply_theme", step("theme"))
+    monkeypatch.setattr(service, "WebDashboard", Dashboard)
+    monkeypatch.setattr(service, "migrate_legacy_colors", step("colors", moved))
+    monkeypatch.setattr(service, "apply_theme", step("theme"))
     monkeypatch.setattr(threading, "Thread", lambda target, args=(), **_kwargs:
                         types.SimpleNamespace(start=lambda: started.append((target, args))))
     monkeypatch.setattr(xbmc.Monitor, "waitForAbort", wait_for_abort)
-    # Started by Kodi, the script finds its own folder missing from sys.path.
-    monkeypatch.setattr(sys, "path", [path for path in sys.path if path != LIB])
-    runpy.run_path(service.__file__, run_name="__main__")
-    assert sys.path[0] == LIB
+    # Started by Kodi, the script usually finds resources/lib missing from sys.path.
+    monkeypatch.setattr(sys, "path", [path for path in sys.path if path != LIB] + ([LIB] if listed else []))
+    runpy.run_path(START, run_name="__main__")
+    # Put in front when missing, left where it was otherwise.
+    assert sys.path.count(LIB) == 1
+    assert sys.path.index(LIB) == (len(sys.path) - 1 if listed else 0)
     return events, started
 
 
-def test_the_service_starts_everything_and_stops_the_dashboard_at_shutdown(monkeypatch):
-    events, started = run_service(monkeypatch)
+@pytest.mark.parametrize("listed", [False, True])
+def test_the_service_starts_everything_and_stops_the_dashboard_at_shutdown(monkeypatch, listed):
+    events, started = run_service(monkeypatch, listed=listed)
     assert events == ["colors", "theme", "dashboard applied", ("running", "1"),
                       "dashboard stopped", ("final", True)]
     assert xbmcgui.Window(10000).getProperty(PROP_SERVICE) == ""   # no handovers any more
@@ -336,3 +339,8 @@ def test_the_warm_up_carries_on_past_every_failure(monkeypatch):
     assert warnings[1].startswith("TinyPPI [service]: pre-loading the views failed: ")
     assert warnings[2] == "TinyPPI [service]: tidying the texture cache failed: no access"
     assert len(warnings) == 3
+
+
+def test_importing_the_entry_point_starts_nothing(monkeypatch):
+    monkeypatch.setattr(service, "run", lambda: pytest.fail("the service ran"))
+    runpy.run_path(START, run_name="service.start")

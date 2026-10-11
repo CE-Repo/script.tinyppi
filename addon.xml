@@ -4,7 +4,7 @@
         <import addon="xbmc.python" version="3.1.0"/>
         <import addon="script.module.sidedata" version="1.6.0"/>
     </requires>
-    <extension point="xbmc.service" library="resources/lib/service/monitor.py" />
+    <extension point="xbmc.service" library="resources/lib/service/start.py" />
     <extension point="xbmc.python.script" library="main.py">
         <provides>executable</provides>
     </extension>

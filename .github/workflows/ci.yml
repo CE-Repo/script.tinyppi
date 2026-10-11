@@ -12,6 +12,13 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# actions/checkout runs `git init`, which otherwise prints a hint about the
+# default branch name in every job.
+env:
+  GIT_CONFIG_COUNT: 1
+  GIT_CONFIG_KEY_0: init.defaultBranch
+  GIT_CONFIG_VALUE_0: main
+
 # Every job names its Ubuntu release rather than ubuntu-latest, which moves
 # to a new release on GitHub's schedule; a move is then a change of its own.
 jobs:
@@ -82,6 +89,9 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/addons"
           git archive HEAD --prefix=script.tinyppi/ | tar -x -C "$RUNNER_TEMP/addons"
+      # The add-on ships through its own repository, not Kodi's: no check of
+      # the dependencies against Kodi's repository (script.module.sidedata
+      # is in ours), and the dashboard's file types allowed (see the script).
       - name: Check
         working-directory: ${{ runner.temp }}/addons
-        run: kodi-addon-checker --branch piers script.tinyppi
+        run: python "$GITHUB_WORKSPACE/tools/check_addon.py" --branch piers --skip-dependency-checks script.tinyppi

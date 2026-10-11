@@ -86,8 +86,9 @@ def test_dependencies_name_existing_settings():
 
 
 def test_action_buttons_run_known_commands():
-    # The keys of main._COMMANDS.
-    commands = set(re.findall(r'^ {4}"(\w+)": +\(\d', read("main.py"), re.MULTILINE))
+    # The keys of launcher._COMMANDS.
+    commands = set(re.findall(r'^ {4}"(\w+)": +\(\d', read("resources", "lib", "launcher.py"),
+                              re.MULTILINE))
     assert {"overlay", "dialog", "pick_color"} <= commands
     wrong = []
     for setting_id, data in ACTIONS:
