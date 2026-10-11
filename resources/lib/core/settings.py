@@ -34,9 +34,9 @@ class _Handle:
         self._lock   = threading.Lock()
         self._path   = ""
         self._handle: xbmcaddon.Addon | None = None
-        self._stamp: tuple | None = None
+        self._stamp: tuple[int, int, int] | None = None
 
-    def _values_stamp(self) -> tuple | None:
+    def _values_stamp(self) -> tuple[int, int, int] | None:
         """Return the values file's stamp, or None while it does not exist."""
         try:
             stat = os.stat(self._path)

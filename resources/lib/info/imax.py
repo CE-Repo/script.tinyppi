@@ -208,7 +208,11 @@ def _title_files() -> tuple[str, str]:
     )
 
 
-def _title_stamp(paths: tuple[str, str]) -> tuple:
+# Modification time and size of each title list, None where it is missing.
+_Stamp = tuple[tuple[float, int] | None, ...]
+
+
+def _title_stamp(paths: tuple[str, str]) -> _Stamp:
     """Return the on-disk stamp of both lists.
 
     Two stats, done only when the playing file changes (see ``_current``), so
@@ -235,7 +239,7 @@ class _TitleIndex:
 
     def __init__(self) -> None:
         self._titles: dict[str, tuple[tuple[int | None, bool], ...]] | None = None
-        self._stamp: tuple | None = None
+        self._stamp: _Stamp | None = None
 
     def get(self) -> dict[str, tuple[tuple[int | None, bool], ...]]:
         """Return the titles, re-reading the lists when either changed."""

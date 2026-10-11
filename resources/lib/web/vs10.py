@@ -45,7 +45,7 @@ def _has_no_modes(key: str, hdr10plus: bool = False) -> bool:
 
 
 def _options_for(source: str, playing: bool = True,
-                 hdr10plus: bool = False) -> tuple:
+                 hdr10plus: bool = False) -> tuple[tuple[str, str], ...]:
     """Return the mode buttons for *source*.
 
     None for sources without modes (see ``_has_no_modes``) or when nothing

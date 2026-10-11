@@ -229,7 +229,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self.back_to_caller = False
         self.open_section   = ""
 
-    def _merged_rows(self) -> list:
+    def _merged_rows(self) -> list[dvmetadata.Row]:
         """Return this tick's scene rows joined with the cached static rows.
 
         The static rows are rebuilt when ``dvmetadata.static_signature``
@@ -249,7 +249,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             rows = [(dvmetadata.SECTION, "No metadata in this frame", "")]
         return rows
 
-    def _rows(self) -> list:
+    def _rows(self) -> list[dvmetadata.Row]:
         """Return the rows to show (all; DVSectionDialog narrows this)."""
         return self._merged_rows()
 
@@ -566,7 +566,7 @@ class DVSectionDialog(DVMetadataDialog):
         self.section     = ""
         self._settled_in = False
 
-    def _rows(self) -> list:
+    def _rows(self) -> list[dvmetadata.Row]:
         """Return this section's rows, heading included.
 
         Sliced from ``_merged_rows`` on every refresh, so the section stays

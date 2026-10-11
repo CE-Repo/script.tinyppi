@@ -13,7 +13,7 @@ import contextlib
 import json
 import os
 import re
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import xbmc
 import xbmcaddon
@@ -176,8 +176,11 @@ def _notify(addon: xbmcaddon.Addon, message_id: int, icon: str, duration: int) -
     )
 
 
-def _load_legacy_custom() -> dict:
-    """Return the pre-picker HEX colors by setting id, or {}."""
+def _load_legacy_custom() -> dict[str, Any]:
+    """Return the pre-picker HEX colors by setting id, or {}.
+
+    As the JSON file holds them, unchecked.
+    """
     try:
         with open(xbmcvfs.translatePath(_LEGACY_CUSTOM_FILE),
                   encoding="utf-8") as handle:
@@ -187,7 +190,7 @@ def _load_legacy_custom() -> dict:
     return data if isinstance(data, dict) else {}
 
 
-def _pick(palette: tuple, value: str) -> str:
+def _pick(palette: tuple[str, ...], value: str) -> str:
     """Return ``palette[value]``, falling back to index 0 on bad input."""
     try:
         index = int(value)
@@ -267,11 +270,11 @@ def _setting_value(addon: xbmcaddon.Addon, setting_id: str,
 class _ColorSetting(NamedTuple):
     """The choices of one color setting."""
 
-    palette: tuple   # published ARGB per choice
-    names: tuple     # name (or its string id) per choice
-    swatches: tuple  # displayed ARGB per choice
-    index_of: dict   # swatch -> index, to decode a stored value
-    legacy: tuple    # index per pre-picker index
+    palette: tuple[str, ...]         # published ARGB per choice
+    names: tuple[str | int, ...]     # name (or its string id) per choice
+    swatches: tuple[str, ...]        # displayed ARGB per choice
+    index_of: dict[str, int]         # swatch -> index, to decode a stored value
+    legacy: tuple[int, ...]          # index per pre-picker index
     default: int     # default index
 
 
@@ -402,10 +405,10 @@ _THEME_PROPERTIES = (
 )
 
 
-def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
+def _color_setting(palette: tuple[str, ...], setting_id: str) -> _ColorSetting:
     """Build the ``_ColorSetting`` for *setting_id* on *palette*."""
-    names: tuple
-    swatches: tuple
+    names: tuple[str | int, ...]
+    swatches: tuple[str, ...]
     if palette is _BACKGROUND_COLORS:
         names, swatches = _BACKGROUND_NAMES, _BACKGROUND_SWATCHES
         index_of = {swatch: index for index, swatch in enumerate(swatches)}
@@ -416,7 +419,7 @@ def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
                     **index_of}
         fallback = _BACKGROUND_DEFAULT
     else:
-        former: tuple
+        former: tuple[str, ...]
         if palette is _DIALOG_FOCUS_TEXT_COLORS:
             names, swatches = _DIALOG_FOCUS_TEXT_NAMES, _DIALOG_FOCUS_TEXT_COLORS
             former = ("FF000000", "FFFFFFFF") + _LEGACY_TEXT[1:]

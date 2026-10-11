@@ -19,6 +19,7 @@ import time
 import traceback
 from collections.abc import Callable
 from http.server import ThreadingHTTPServer
+from typing import cast
 
 import xbmc
 import xbmcaddon
@@ -152,7 +153,7 @@ class _Server(ThreadingHTTPServer):
         self._worker_lock  = threading.Lock()
         # Open connections and their addresses, so stop() can hang up on
         # idle keep-alives and verify_request() can cap them.
-        self._connections: dict = {}
+        self._connections: dict[_Request, str] = {}
         # monotonic() counts from boot, and Kodi starts seconds after it:
         # 0.0 would hide every refusal in the first minute.
         self._refusal_logged = float("-inf")
@@ -210,7 +211,8 @@ class _Server(ThreadingHTTPServer):
             connections = list(self._connections)
             for connection in connections:
                 with contextlib.suppress(OSError):
-                    connection.shutdown(how)
+                    # A TCP server's requests are its connections' sockets.
+                    cast(socket.socket, connection).shutdown(how)
         return len(connections)
 
     def process_request_thread(self, request: _Request, client_address: tuple[str, int]) -> None:

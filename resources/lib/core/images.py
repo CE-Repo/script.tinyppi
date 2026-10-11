@@ -23,7 +23,7 @@ import struct
 import threading
 import time
 import zlib
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from typing import NamedTuple
 
 import xbmc
@@ -579,7 +579,8 @@ def prune_cache(media_root: str) -> int:
     return removed
 
 
-def _current_keys(stem: str, sources: dict, current: dict) -> set[str]:
+def _current_keys(stem: str, sources: Mapping[str, Iterable[str]],
+                  current: dict[str, set[str]]) -> set[str]:
     """Return the content keys of the sources named *stem*, once per prune."""
     keys = current.get(stem)
     if keys is None:

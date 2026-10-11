@@ -29,7 +29,7 @@ def is_playing_video() -> bool:
         return False
 
 
-def _ask_setting(setting: str, what: str) -> dict | None:
+def _ask_setting(setting: str, what: str) -> dict[str, Any] | None:
     """Return Kodi's JSON-RPC answer for the value of *setting*, or None."""
     request = json.dumps(
         {

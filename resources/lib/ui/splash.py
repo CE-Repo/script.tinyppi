@@ -95,11 +95,11 @@ class _ModeState(NamedTuple):
     controls (hence ``colors`` as a sorted tuple).
     """
 
-    logos: tuple
+    logos: tuple[tuple[str, str], ...]
     offset_x: int
     offset_y: int
     scale: float
-    colors: tuple
+    colors: tuple[tuple[str, str], ...]
     condition: str
     layer_token: str
     pill_at_top: bool

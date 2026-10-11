@@ -21,7 +21,7 @@ from web.payloads import DeltaFrame, Group, MetadataRow, RowsDelta, Snapshot
 _DELTA_LISTS = ("groups", "metadata")
 
 
-def _group_shape(groups: list[Group]) -> tuple:
+def _group_shape(groups: list[Group]) -> tuple[object, ...]:
     """Return the cards and their rows' ids and labels."""
     return tuple(
         (group.get("id"), group.get("title"),
@@ -44,7 +44,7 @@ def _group_rows_delta(previous: list[Group], current: list[Group]) -> list[list[
     return changed
 
 
-def _metadata_shape(rows: list[MetadataRow]) -> tuple:
+def _metadata_shape(rows: list[MetadataRow]) -> tuple[object, ...]:
     """Return each metadata row's kind, name and cell count (-1 for a value).
 
     The cell count also catches a table that gained a column (see

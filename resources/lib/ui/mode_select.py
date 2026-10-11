@@ -75,7 +75,7 @@ class SettingsDialog(xbmcgui.WindowXMLDialog):
         # Default focus went nowhere while hidden; focus the visible branch.
         self._sync_branch(force=True)
 
-    def _branch(self) -> dict:
+    def _branch(self) -> dialog_layout.Branch:
         home = home_window()
         return dialog_layout.branch_for(
             home.getProperty("TinyPPI.HdrType"),
