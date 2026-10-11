@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""The snapshot the dashboard receives (web/snapshot.py) and the thread that
-builds it (web/producer.py)."""
+"""The snapshot the dashboard receives (web/snapshot.py, its rows in
+web/rows.py) and the thread that builds it (web/producer.py)."""
 
 import threading
 import time
@@ -15,6 +15,7 @@ import xbmcgui
 import xbmcvfs
 from info import dvinfo
 from web import producer as producer_module
+from web import rows as web_rows
 from web import snapshot
 from web.producer import Producer
 from web.snapshot import SnapshotBuilder
@@ -201,7 +202,7 @@ def test_the_property_sink_behaves_like_a_window():
 def test_the_audio_output_row(codec, passthrough, sink, row):
     xbmc.INFO["VideoPlayer.AudioCodec"] = codec
     xbmc.CONDITIONS["Player.Passthrough"] = passthrough
-    assert snapshot._overlay_rows({"AudioChannelsSink": sink})["AudioOutputRow"] == row
+    assert web_rows.overlay_rows({"AudioChannelsSink": sink})["AudioOutputRow"] == row
 
 
 SUBTITLE_VALUES = {"SubtitleNameShortVar": "DEU", "SubtitleNameVar": "Deutsch",
@@ -217,7 +218,7 @@ SUBTITLE_VALUES = {"SubtitleNameShortVar": "DEU", "SubtitleNameVar": "Deutsch",
 def test_the_subtitle_rows(has, enabled, rows):
     xbmc.CONDITIONS["VideoPlayer.HasSubtitles"] = has
     xbmc.CONDITIONS["VideoPlayer.SubtitlesEnabled"] = enabled
-    found = snapshot._overlay_rows(SUBTITLE_VALUES)
+    found = web_rows.overlay_rows(SUBTITLE_VALUES)
     assert {key: value for key, value in found.items() if key.startswith("Subtitle")} == rows
 
 
@@ -235,7 +236,7 @@ def test_the_subtitle_rows(has, enabled, rows):
 ])
 def test_the_playback_rows(conditions, values, rows):
     xbmc.CONDITIONS.update(conditions)
-    found = snapshot._overlay_rows(values)
+    found = web_rows.overlay_rows(values)
     assert {key: value for key, value in found.items() if key.startswith("Playback")} == rows
 
 
@@ -245,13 +246,13 @@ def test_the_playback_rows(conditions, values, rows):
 def test_no_finish_time_for_live_items_and_recordings(condition):
     xbmc.CONDITIONS[condition] = True
     values = {"PlayerDuration": "01:30:00", "PlayerFinishTime": "21:00"}
-    assert snapshot._finish_time(values) == ""
+    assert web_rows.finish_time(values) == ""
 
 
 def test_render_drops_empty_segments_and_their_separators():
     segments = (("a", "", ""), ("b", " | ", ""), ("c", " (", ")"))
-    assert snapshot._render(segments, {"a": "1", "b": "", "c": "x"}) == "1 (x)"
-    assert snapshot._render(segments, {}) == ""
+    assert web_rows.render(segments, {"a": "1", "b": "", "c": "x"}) == "1 (x)"
+    assert web_rows.render(segments, {}) == ""
 
 
 @pytest.mark.parametrize(("live", "average", "row"), [
@@ -259,15 +260,15 @@ def test_render_drops_empty_segments_and_their_separators():
     ("12 Mb/s", "", ("12 Mb/s", "")), ("", "10 Mb/s", ("10 Mb/s", "")), ("", "", ("", "")),
 ])
 def test_bitrate_rows(live, average, row):
-    assert snapshot._bitrate_row(live, average) == row
+    assert web_rows._bitrate_row(live, average) == row
 
 
 def test_finish_time_only_for_a_known_length():
-    assert snapshot._finish_time({"PlayerDuration": "00:00:00", "PlayerFinishTime": "21:00"}) == ""
-    assert snapshot._finish_time({"PlayerDuration": "01:30:00", "PlayerFinishTime": "21:00"}) == "21:00"
+    assert web_rows.finish_time({"PlayerDuration": "00:00:00", "PlayerFinishTime": "21:00"}) == ""
+    assert web_rows.finish_time({"PlayerDuration": "01:30:00", "PlayerFinishTime": "21:00"}) == "21:00"
     xbmc.CONDITIONS["PVR.IsPlayingTV"] = True
-    assert snapshot._finish_time({"PlayerFinishTime": "21:00"}) == ""        # no EPG
-    assert snapshot._finish_time({"BroadcastTimes": "1", "PlayerFinishTime": "21:00"}) == "21:00"
+    assert web_rows.finish_time({"PlayerFinishTime": "21:00"}) == ""        # no EPG
+    assert web_rows.finish_time({"BroadcastTimes": "1", "PlayerFinishTime": "21:00"}) == "21:00"
 
 
 @pytest.mark.parametrize(("mode", "source", "output"), [
