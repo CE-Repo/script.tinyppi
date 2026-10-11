@@ -33,8 +33,6 @@ A CoreELEC addon that displays detailed playback information in a custom overlay
 
 ## Installation
 
-**Requires Kodi 22 (Piers), August 2026 builds or later** — e.g. CoreELEC 22. Earlier Kodi versions are not supported.
-
 ### Via Repository
 
 1. Open **Settings → File Manager → Add Source**.
