@@ -7,6 +7,7 @@ and the transport commands the dashboard may send."""
 import json
 import math
 import re
+from collections.abc import Callable
 
 import xbmc
 from core.log import channel
@@ -201,15 +202,11 @@ def broadcast_times() -> dict[str, str]:
 
 # --- Player commands -------------------------------------------------------
 
-# Allowed transport commands; requests name an action, never a JSON-RPC
-# method.  "volume" (absolute) is no longer used by the page but kept for
-# older clients.
-_COMMANDS = ("playpause", "stop", "seek", "seek_percent", "volume", "mute",
-             "audio", "subtitle", "chapter_previous", "chapter_next",
-             "volume_up", "volume_down")
-
 # Maximum relative seek in seconds.
 _SEEK_LIMIT = 3600
+
+# A command on the playing video: (player id, value) -> success.
+_PlayerCommand = Callable[[int, Unchecked], bool]
 
 
 def _number(value: Unchecked, low: float, high: float) -> float | None:
@@ -225,83 +222,72 @@ def _number(value: Unchecked, low: float, high: float) -> float | None:
     return number
 
 
-def apply_command(action: str, value: Unchecked = None) -> bool:
-    """Run a transport command and return whether it succeeded.
+def _input_action(name: str) -> bool:
+    """Send *name* as an input action, like a remote, and return success."""
+    return rpc("Input.ExecuteAction", {"action": name}).get("result") == "OK"
 
-    JSON-RPC (not builtins) so success can be reported; False without a
-    playing video.
-    """
-    if action not in _COMMANDS:
+
+def _set_volume(value: Unchecked) -> bool:
+    level = _number(value, 0, 100)
+    if level is None:
         return False
+    return "result" in rpc("Application.SetVolume", {"volume": int(level)})
 
-    if action == "volume":
-        level = _number(value, 0, 100)
-        if level is None:
-            return False
-        return "result" in rpc("Application.SetVolume",
-                                {"volume": int(level)})
 
-    # Volume and mute are sent as input actions, like a remote, not via
-    # Application.SetVolume/SetMute (Kodi's software mixer).  Only the input
-    # path lets a CEC adapter forward them to an amplifier; without CEC they
-    # change Kodi's volume.  CEC has no absolute level, hence the steps, and
-    # the volume Kodi reports may then not match the amplifier's.
-    if action in ("volume_up", "volume_down"):
-        name = "volumeup" if action == "volume_up" else "volumedown"
-        return rpc("Input.ExecuteAction",
-                    {"action": name}).get("result") == "OK"
-    if action == "mute":
-        return rpc("Input.ExecuteAction",
-                    {"action": "mute"}).get("result") == "OK"
+def _play_pause(player_id: int, value: Unchecked) -> bool:
+    return "result" in rpc("Player.PlayPause", {"playerid": player_id})
 
-    player_id = video_player_id()
-    if player_id is None:
+
+def _stop(player_id: int, value: Unchecked) -> bool:
+    return "result" in rpc("Player.Stop", {"playerid": player_id})
+
+
+def _seek(player_id: int, value: Unchecked) -> bool:
+    step = _number(value, -_SEEK_LIMIT, _SEEK_LIMIT)
+    if step is None:
         return False
+    return "result" in rpc("Player.Seek", {
+        "playerid": player_id, "value": {"seconds": int(step)}})
 
-    if action == "playpause":
-        return "result" in rpc("Player.PlayPause", {"playerid": player_id})
-    if action == "stop":
-        return "result" in rpc("Player.Stop", {"playerid": player_id})
-    if action == "seek":
-        step = _number(value, -_SEEK_LIMIT, _SEEK_LIMIT)
-        if step is None:
+
+def _seek_percent(player_id: int, value: Unchecked) -> bool:
+    where = _number(value, 0, 100)
+    if where is None:
+        return False
+    # Live TV: the bar is the broadcast (see broadcast_times) but Kodi's
+    # percentage is the timeshift buffer's, so seek relatively.
+    broadcast = broadcast_times()
+    if broadcast:
+        length = seconds(broadcast["PlayerDuration"])
+        now = seconds(broadcast["PlayerTime"])
+        if length is None or now is None:
             return False
         return "result" in rpc("Player.Seek", {
-            "playerid": player_id, "value": {"seconds": int(step)}})
-    if action == "seek_percent":
-        where = _number(value, 0, 100)
-        if where is None:
-            return False
-        # Live TV: the bar is the broadcast (see broadcast_times) but Kodi's
-        # percentage is the timeshift buffer's, so seek relatively.
-        broadcast = broadcast_times()
-        if broadcast:
-            length = seconds(broadcast["PlayerDuration"])
-            now = seconds(broadcast["PlayerTime"])
-            if length is None or now is None:
-                return False
-            return "result" in rpc("Player.Seek", {
-                "playerid": player_id,
-                "value": {"seconds": int(round(length * where / 100 - now))}})
-        return "result" in rpc("Player.Seek", {
-            "playerid": player_id, "value": {"percentage": where}})
-    if action in ("chapter_previous", "chapter_next"):
+            "playerid": player_id,
+            "value": {"seconds": int(round(length * where / 100 - now))}})
+    return "result" in rpc("Player.Seek", {
+        "playerid": player_id, "value": {"percentage": where}})
+
+
+def _chapter(name: str) -> _PlayerCommand:
+    """Return the command stepping one chapter with input action *name*."""
+    def step(player_id: int, value: Unchecked) -> bool:
         # No JSON-RPC method for chapters; the input action falls back to a
         # big step without chapters, so the count is checked first.
-        if chapter_count() < 2:
-            return False
-        name = ("chapterorbigstepforward" if action == "chapter_next"
-                else "chapterorbigstepback")
-        return rpc("Input.ExecuteAction",
-                    {"action": name}).get("result") == "OK"
-    if action == "audio":
-        index = _number(value, 0, 64)
-        if index is None:
-            return False
-        return "result" in rpc("Player.SetAudioStream", {
-            "playerid": player_id, "stream": int(index)})
+        return chapter_count() >= 2 and _input_action(name)
+    return step
 
-    # subtitle: -1 turns them off, any other index selects and enables.
+
+def _audio(player_id: int, value: Unchecked) -> bool:
+    index = _number(value, 0, 64)
+    if index is None:
+        return False
+    return "result" in rpc("Player.SetAudioStream", {
+        "playerid": player_id, "stream": int(index)})
+
+
+def _subtitle(player_id: int, value: Unchecked) -> bool:
+    """-1 turns subtitles off, any other index selects and enables."""
     index = _number(value, -1, 64)
     if index is None:
         return False
@@ -310,3 +296,49 @@ def apply_command(action: str, value: Unchecked = None) -> bool:
             "playerid": player_id, "subtitle": "off"})
     return "result" in rpc("Player.SetSubtitle", {
         "playerid": player_id, "subtitle": int(index), "enable": True})
+
+
+# Commands that need no playing video.  Volume and mute are sent as input
+# actions, like a remote, not via Application.SetVolume/SetMute (Kodi's
+# software mixer).  Only the input path lets a CEC adapter forward them to
+# an amplifier; without CEC they change Kodi's volume.  CEC has no absolute
+# level, hence the steps, and the volume Kodi reports may then not match the
+# amplifier's.  "volume" (absolute) is no longer used by the page but kept
+# for older clients.
+_APP_COMMANDS: dict[str, Callable[[Unchecked], bool]] = {
+    "volume":      _set_volume,
+    "volume_up":   lambda value: _input_action("volumeup"),
+    "volume_down": lambda value: _input_action("volumedown"),
+    "mute":        lambda value: _input_action("mute"),
+}
+
+# Commands on the playing video, given its player id.
+_PLAYER_COMMANDS: dict[str, _PlayerCommand] = {
+    "playpause":        _play_pause,
+    "stop":             _stop,
+    "seek":             _seek,
+    "seek_percent":     _seek_percent,
+    "chapter_previous": _chapter("chapterorbigstepback"),
+    "chapter_next":     _chapter("chapterorbigstepforward"),
+    "audio":            _audio,
+    "subtitle":         _subtitle,
+}
+
+
+def apply_command(action: str, value: Unchecked = None) -> bool:
+    """Run a transport command and return whether it succeeded.
+
+    Requests name an action from the tables above, never a JSON-RPC method.
+    JSON-RPC (not builtins) so success can be reported; False without a
+    playing video.
+    """
+    app_command = _APP_COMMANDS.get(action)
+    if app_command is not None:
+        return app_command(value)
+    player_command = _PLAYER_COMMANDS.get(action)
+    if player_command is None:
+        return False
+    player_id = video_player_id()
+    if player_id is None:
+        return False
+    return player_command(player_id, value)

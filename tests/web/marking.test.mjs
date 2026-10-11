@@ -130,8 +130,10 @@ function asked({ $ }) {
   };
 }
 
+// The session a token buys on connect is no write.
 const posts = ({ requests }) => requests
-  .filter((request) => request.init && request.init.method === "POST")
+  .filter((request) => request.init && request.init.method === "POST"
+          && request.url !== "/api/session")
   .map((request) => [request.url, JSON.parse(request.init.body)]);
 
 const reads = ({ requests }) => Object.fromEntries(

@@ -1,0 +1,28 @@
+# Keeps the pinned tooling current: the workflow's actions (pinned to commit
+# hashes), the Python dev tools in requirements-dev.txt and the dashboard's
+# npm dev dependencies.  None of them ship with the add-on.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      python-dev:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      npm-dev:
+        patterns: ["*"]

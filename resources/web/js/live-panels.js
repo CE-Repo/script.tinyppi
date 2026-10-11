@@ -262,7 +262,7 @@
       tint("");
       return;
     }
-    const url = TinyPPI.withToken("/api/art?kind=poster&v=" + tag);
+    const url = "/api/art?kind=poster&v=" + tag;
     el.poster.src = url;
     el.artBox.classList.remove("hidden");
     tint(url);

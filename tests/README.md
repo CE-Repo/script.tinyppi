@@ -18,7 +18,7 @@ The same checks CI runs on every push (`.github/workflows/ci.yml`):
 ```
 ruff check .                 # lint (settings in pyproject.toml)
 mypy                         # types, with Kodistubs for Kodi's modules
-xenon --max-average A --max-modules B --max-absolute E resources/lib main.py   # complexity
+xenon --max-average A --max-modules B --max-absolute C resources/lib main.py   # complexity
 python3 -m pytest tests/unit --cov    # fails below the floor in pyproject.toml
 npm ci && npm run lint       # ESLint for resources/web/js
 npm run coverage             # the dashboard's scripts in jsdom (tests/web); fails below config.coverage in package.json
@@ -30,11 +30,11 @@ development files.
 
 | File | Covers |
 |---|---|
-| `unit/test_library.py` | The dashboard's library cache: one query for concurrent readers, no stale list after a drop, a scan's burst of notifications as one drop, the drops after playback stops, episodes, the continue row, marking |
+| `unit/test_library.py` | The dashboard's library cache (`web/library/`): one query for concurrent readers, no stale list after a drop, a scan's burst of notifications as one drop, the drops after playback stops, episodes, the continue row, marking |
 | `unit/test_vs10_switcher.py` | VS10 switches from the dashboard: the last tap wins, a failed switch does not stop the next, the modes offered per source |
 | `unit/test_vs10_driver.py` | VS10 switching against a simulated Dolby Vision driver (sysfs nodes as files): the write order per mode, TV-LED and Player-LED, bypass releasing the core first, HDR10 <-> DV through SDR, display resets only when the output moved, native actions preferred and their fallback, failed writes reported |
 | `unit/test_server.py` | The HTTP server: the fixed routes, security headers, the token for writing and for untrusted host names, the guessing lockout, the connection caps, tokens and ports, IPv6 and IPv4 on one socket |
-| `unit/test_routes.py` | What the write and library routes accept: bad bodies and lengths, unknown routes, control off, no token, commands and modes, a shelf's own setting, `watched` only as a boolean, library errors as 503, listings by ETag, artwork kinds and ids |
+| `unit/test_routes.py` | What the write and library routes accept: bad bodies and lengths, unknown routes, control off, no token, commands and modes, a shelf's own setting, `watched` only as a boolean, library errors as 503, listings by ETag, artwork kinds and ids, the read session cookie |
 | `unit/test_player.py` | The transport commands: only listed actions, seek and track values checked (no NaN, infinity, booleans or out-of-range values reach Kodi), seeking live TV against the broadcast, volume as remote input, chapters; track labels, player state, the EPG times |
 | `unit/test_access.py` | Which host names count as the home network, which clients do (private, link-local, the box's own IPv6 networks); the lockout table; client addresses (IPv4-mapped as IPv4, IPv6 per /64 beyond the home network) |
 | `unit/test_snapshot.py` | The snapshot: nothing playing, a playing title (times, frame, groups with N/A for empty rows), the file-name setting, the session-only pass, the last title kept, metadata only for DV, controls on the static interval, row and label helpers, artwork; the producer: idle passes, snapshots for watchers with the library revision, settings handed on, failures logged once, waits ending on stop |
@@ -75,7 +75,7 @@ development files.
 | `unit/test_values.py` | Text and id helpers shared by the dashboard |
 | `unit/test_dvcomposer.py` | The composer's rows of the Dolby Vision metadata view: curves, polynomial and MMR coefficients |
 | `unit/test_dvformat.py` | Value formatting for the metadata view: numbers, luminances, scaled values and coordinates, missing and non-finite values |
-| `web/core.test.mjs` | The dashboard's connection in jsdom: whole snapshots, delta frames as `web/delta.py` writes them, a delta without a base, bad frames, the token in the stream address and the command header, the token dialog, `bye`, the localized strings, value formatting, folded cards |
+| `web/core.test.mjs` | The dashboard's connection in jsdom: whole snapshots, delta frames as `web/delta.py` writes them, a delta without a base, bad frames, the session the token buys before the stream, the token in headers only, the token dialog, `bye`, the localized strings, value formatting, folded cards |
 | `web/colour.test.mjs` | The cover tint's colour arithmetic: the sRGB curve, WCAG contrast, OKLab reference values, OKLCh round trips, chroma pulled into the gamut with lightness and hue kept |
 | `web/readings.test.mjs` | The now-playing card's format badges (grade, resolution by coded width, IMAX/Atmos/DTS:X marks, the DV profile and layer, conversions) and the history's events (names with fallbacks, values, trends, switch totals) |
 | `web/dashboard.test.mjs` | The dashboard's frame: tabs and the bar, the settings tab, idle and playing cards, detail groups, VS10 switching and its lock, the library reads a snapshot sets off, the report |
@@ -88,7 +88,7 @@ development files.
 | `web/metadata.test.mjs` | The Dolby Vision metadata tab: the idle and L5 cards, blocks and trim tables, readings lit when they move, the report |
 | `web/theme.test.mjs` | The themes and the tint strength: before the first paint (the bar colour too), the choice on the settings tab, what a press keeps |
 | `web/cover-tint.test.mjs` | The adaptive theme's poster tint (canvas and images faked): the colour a poster gives, where it is painted, contrast, one read per poster, a reused `<img>` |
-| `browser/dashboard.test.mjs` | The dashboard in Chromium against the real server with Kodi faked (`browser/serve.py`): the stream, the format badges, the film wall and its search, the question a press asks and what marking sends, cancelling, a show's seasons, the history's wording, every tab, no script errors |
+| `browser/dashboard.test.mjs` | The dashboard in Chromium against the real server with Kodi faked (`browser/serve.py`), reading behind the token: the stream on its session cookie, no token in any address, the format badges, the film wall and its search, the question a press asks and what marking sends, cancelling, a show's seasons, the history's wording, every tab, no script errors |
 
 ## Kodi 22 suite
 

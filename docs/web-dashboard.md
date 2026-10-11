@@ -426,6 +426,13 @@ The dashboard is reachable by anything on the same network while it is on, so:
   then asks for the token before it shows anything at all.
 - **Generate a new token** replaces it and logs out every browser still holding
   the old one.
+- The token never appears in an address, where it would end up in browser
+  histories and logs. The page sends it in a request header; for the live
+  stream and the pictures, which a browser cannot send a header with, it
+  trades the token for a session cookie that only reads (HttpOnly, so no
+  script can see it, and SameSite=Strict, so no other site's page can use it).
+  The session ends with the browser, and whenever the dashboard's server
+  restarts — a new token included.
 - An address that presents **ten different wrong tokens** within ten minutes is
   turned away for ten minutes, the right token included. At home every address
   counts on its own; beyond the home network an IPv6 client counts per /64,

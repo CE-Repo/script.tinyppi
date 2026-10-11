@@ -26,7 +26,7 @@ class IdleProducer:
 DIRECT = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
-def request(srv, path, method="GET", body=None, token=None, host=None):
+def request(srv, path, method="GET", body=None, token=None, host=None, cookie=None):
     port = srv.server_address[1]
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(f"http://127.0.0.1:{port}{path}", data=data, method=method)
@@ -36,6 +36,8 @@ def request(srv, path, method="GET", body=None, token=None, host=None):
         req.add_header("X-TinyPPI-Token", token)
     if host:
         req.add_header("Host", host)
+    if cookie:
+        req.add_header("Cookie", cookie)
     try:
         with DIRECT.open(req, timeout=5) as resp:
             return resp.status, dict(resp.headers), resp.read()

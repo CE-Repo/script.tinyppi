@@ -23,6 +23,8 @@ import struct
 import threading
 import time
 import zlib
+from collections.abc import Callable
+from typing import NamedTuple
 
 import xbmc
 import xbmcvfs
@@ -185,14 +187,28 @@ def _palette_indices(row: bytes, width: int, bit_depth: int) -> list[int]:
     return indices
 
 
-def _decode_png_rgba(path: str) -> tuple[int, int, list[tuple[int, int, int, int]]]:
-    with open(path, "rb") as handle:
-        data = handle.read()
+class _PngChunks(NamedTuple):
+    """What the decoder reads from a PNG's chunks."""
+
+    width: int
+    height: int
+    bit_depth: int
+    color_type: int
+    palette: list[tuple[int, int, int]]
+    transparency: bytes
+    data: bytes
+
+
+_Pixel = tuple[int, int, int, int]
+
+
+def _read_png_chunks(data: bytes) -> _PngChunks:
+    """Return the header, palette, transparency and image data of a PNG."""
     if not data.startswith(_PNG_SIGNATURE):
         raise ValueError("not a PNG")
 
     pos = len(_PNG_SIGNATURE)
-    width = height = bit_depth = color_type = interlace = 0
+    header = (0, 0, 0, 0)
     palette: list[tuple[int, int, int]] = []
     transparency = b""
     idat = []
@@ -209,6 +225,7 @@ def _decode_png_rgba(path: str) -> tuple[int, int, list[tuple[int, int, int, int
             ) = struct.unpack(">IIBBBBB", payload)
             if compression != 0 or filter_method != 0 or interlace != 0:
                 raise ValueError("unsupported PNG format")
+            header = (width, height, bit_depth, color_type)
         elif kind == b"PLTE":
             palette = [
                 (payload[i], payload[i + 1], payload[i + 2])
@@ -221,55 +238,88 @@ def _decode_png_rgba(path: str) -> tuple[int, int, list[tuple[int, int, int, int
         elif kind == b"IEND":
             break
 
+    return _PngChunks(*header, palette, transparency, b"".join(idat))
+
+
+def _check_png_format(bit_depth: int, color_type: int) -> None:
+    """Raise ValueError for a bit depth or colour type the decoder lacks."""
     if bit_depth != 8 and color_type != 3:
         raise ValueError("unsupported PNG bit depth")
     if color_type == 3 and bit_depth not in (1, 2, 4, 8):
         raise ValueError("unsupported indexed PNG bit depth")
-    if color_type not in (0, 2, 3, 4, 6):
+    if color_type not in _PIXEL_READERS:
         raise ValueError("unsupported PNG color type")
 
-    raw = zlib.decompress(b"".join(idat))
-    rows = _unfilter_png_scanlines(raw, width, height, bit_depth, color_type)
-    pixels: list[tuple[int, int, int, int]] = []
 
-    if color_type == 6:
-        for row in rows:
-            pixels.extend(
-                (row[i], row[i + 1], row[i + 2], row[i + 3])
-                for i in range(0, len(row), 4)
-            )
-    elif color_type == 2:
-        transparent = None
-        if len(transparency) >= 6:
-            transparent = struct.unpack(">HHH", transparency[:6])
-        for row in rows:
-            for i in range(0, len(row), 3):
-                rgb = (row[i], row[i + 1], row[i + 2])
-                alpha = 0 if transparent == rgb else 255
-                pixels.append((rgb[0], rgb[1], rgb[2], alpha))
-    elif color_type == 4:
-        for row in rows:
-            pixels.extend(
-                (row[i], row[i], row[i], row[i + 1])
-                for i in range(0, len(row), 2)
-            )
-    elif color_type == 0:
-        transparent = None
-        if len(transparency) >= 2:
-            transparent = struct.unpack(">H", transparency[:2])[0]
-        for row in rows:
-            for gray in row:
-                alpha = 0 if transparent == gray else 255
-                pixels.append((gray, gray, gray, alpha))
-    else:
-        alphas = list(transparency)
-        for row in rows:
-            for index in _palette_indices(row, width, bit_depth):
-                r, g, b = palette[index]
-                alpha = alphas[index] if index < len(alphas) else 255
-                pixels.append((r, g, b, alpha))
+def _rgba_pixels(rows: list[bytes], png: _PngChunks) -> list[_Pixel]:
+    return [
+        (row[i], row[i + 1], row[i + 2], row[i + 3])
+        for row in rows
+        for i in range(0, len(row), 4)
+    ]
 
-    return (width, height, pixels)
+
+def _rgb_pixels(rows: list[bytes], png: _PngChunks) -> list[_Pixel]:
+    transparent = None
+    if len(png.transparency) >= 6:
+        transparent = struct.unpack(">HHH", png.transparency[:6])
+    pixels: list[_Pixel] = []
+    for row in rows:
+        for i in range(0, len(row), 3):
+            rgb = (row[i], row[i + 1], row[i + 2])
+            alpha = 0 if transparent == rgb else 255
+            pixels.append((rgb[0], rgb[1], rgb[2], alpha))
+    return pixels
+
+
+def _gray_alpha_pixels(rows: list[bytes], png: _PngChunks) -> list[_Pixel]:
+    return [
+        (row[i], row[i], row[i], row[i + 1])
+        for row in rows
+        for i in range(0, len(row), 2)
+    ]
+
+
+def _gray_pixels(rows: list[bytes], png: _PngChunks) -> list[_Pixel]:
+    transparent = None
+    if len(png.transparency) >= 2:
+        transparent = struct.unpack(">H", png.transparency[:2])[0]
+    return [
+        (gray, gray, gray, 0 if transparent == gray else 255)
+        for row in rows
+        for gray in row
+    ]
+
+
+def _indexed_pixels(rows: list[bytes], png: _PngChunks) -> list[_Pixel]:
+    alphas = list(png.transparency)
+    pixels: list[_Pixel] = []
+    for row in rows:
+        for index in _palette_indices(row, png.width, png.bit_depth):
+            r, g, b = png.palette[index]
+            alpha = alphas[index] if index < len(alphas) else 255
+            pixels.append((r, g, b, alpha))
+    return pixels
+
+
+# Pixel readers by PNG colour type.
+_PIXEL_READERS: dict[int, Callable[[list[bytes], _PngChunks], list[_Pixel]]] = {
+    0: _gray_pixels,
+    2: _rgb_pixels,
+    3: _indexed_pixels,
+    4: _gray_alpha_pixels,
+    6: _rgba_pixels,
+}
+
+
+def _decode_png_rgba(path: str) -> tuple[int, int, list[_Pixel]]:
+    with open(path, "rb") as handle:
+        png = _read_png_chunks(handle.read())
+    _check_png_format(png.bit_depth, png.color_type)
+    raw = zlib.decompress(png.data)
+    rows = _unfilter_png_scanlines(raw, png.width, png.height, png.bit_depth,
+                                   png.color_type)
+    return (png.width, png.height, _PIXEL_READERS[png.color_type](rows, png))
 
 
 def _premultiply_rgba(

@@ -7,7 +7,6 @@ import re
 import threading
 import time
 from collections.abc import Collection, Hashable, Iterable
-from typing import TypeVar
 
 import xbmc
 import xbmcgui
@@ -60,7 +59,7 @@ class read_pass:
 
     __slots__ = ("_outer",)
 
-    def __enter__(self) -> "read_pass":
+    def __enter__(self) -> read_pass:
         self._outer = getattr(_reads, "info", None)
         if self._outer is None:
             _reads.info = {}
@@ -199,9 +198,6 @@ DEFAULT_HIGHLIGHT_HOLD = 0.75
 # individually (see ``_changed_parts``).
 _WHOLE = -1
 
-# A reading: one string, or a list of cells (the metadata view's rows).
-Reading = TypeVar("Reading", str, list[str])
-
 
 def _colored(text: str, color: str) -> str:
     """Wrap non-empty *text* in Kodi color markup."""
@@ -231,7 +227,9 @@ def _changed_parts(previous: object, current: str | list[str]) -> list[int]:
             if not index % 2 and part != before[index]]
 
 
-def _colored_parts(value: Reading, parts: Collection[int], color: str) -> Reading:
+# ``Reading`` below: one string, or a list of cells (the metadata view's rows).
+def _colored_parts[Reading: (str, list[str])](value: Reading, parts: Collection[int],
+                                              color: str) -> Reading:
     """Return *value* with the parts listed in *parts* colored.
 
     Stale indices from a value of another shape are harmless: whatever set
@@ -269,8 +267,8 @@ class ChangeHighlighter:
         self._values: dict[Hashable, str | list[str]] = {}
         self._until: dict[Hashable, dict[int, float]] = {}
 
-    def mark(self, key: Hashable, value: Reading, color: str,
-             now: float | None = None) -> Reading:
+    def mark[Reading: (str, list[str])](self, key: Hashable, value: Reading, color: str,
+                                        now: float | None = None) -> Reading:
         """Record *value* under *key* and return it with its changes colored.
 
         A value without history is returned plain, so a freshly opened view

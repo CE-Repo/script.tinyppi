@@ -2,8 +2,8 @@
 # from this file.  CI (.github/workflows/ci.yml) runs the same checks.
 
 [tool.ruff]
-# Kodi 21+ on CoreELEC ships Python 3.11; the code needs 3.10 at least.
-target-version = "py310"
+# The add-on is for Kodi 22 (August builds on) only, which ships Python 3.14.
+target-version = "py314"
 line-length = 100
 extend-exclude = ["tests/kodi/helper"]
 
@@ -52,7 +52,7 @@ fail_under = 100
 skip_empty = true
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.14"
 # Kodi's modules are typed by Kodistubs (pip install Kodistubs).
 mypy_path = ["resources/lib"]
 explicit_package_bases = true

@@ -16,18 +16,14 @@ concurrency:
 # to a new release on GitHub's schedule; a move is then a change of its own.
 jobs:
   python:
-    name: Python ${{ matrix.python }} (ruff, mypy, complexity, pytest, coverage)
+    name: Python (ruff, mypy, complexity, pytest, coverage)
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        # CoreELEC's Kodi 21 ships 3.11; newer Kodi builds use newer Pythons.
-        python: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: ${{ matrix.python }}
+          # Kodi 22 (August builds on), the only Kodi the add-on is for.
+          python-version: "3.14"
           cache: pip
           cache-dependency-path: requirements-dev.txt
       - run: python -m pip install -r requirements-dev.txt
@@ -35,9 +31,9 @@ jobs:
         run: ruff check --output-format=github .
       - name: mypy
         run: mypy
-      # Average rank A, every module B or better, no function past E.
+      # Average rank A, every module B or better, no function past C.
       - name: complexity
-        run: xenon --max-average A --max-modules B --max-absolute E resources/lib main.py
+        run: xenon --max-average A --max-modules B --max-absolute C resources/lib main.py
       - name: Unit tests
         run: python -m pytest tests/unit --cov --cov-report=term-missing:skip-covered
 
@@ -62,7 +58,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: "3.11"
+          python-version: "3.14"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with:
           node-version: 22
@@ -78,15 +74,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: "3.11"
+          python-version: "3.14"
       - run: python -m pip install kodi-addon-checker==0.0.36
+      # .gitattributes marks the development files export-ignore, so the
+      # archive is the add-on as Kodi installs it.
       - name: Export the add-on without development files
         run: |
           mkdir -p "$RUNNER_TEMP/addons"
           git archive HEAD --prefix=script.tinyppi/ | tar -x -C "$RUNNER_TEMP/addons"
-          cd "$RUNNER_TEMP/addons/script.tinyppi"
-          rm -rf .github tests tools .gitignore pyproject.toml requirements-dev.txt \
-                 package.json package-lock.json eslint.config.mjs
       - name: Check
         working-directory: ${{ runner.temp }}/addons
-        run: kodi-addon-checker --branch omega script.tinyppi
+        run: kodi-addon-checker --branch piers script.tinyppi

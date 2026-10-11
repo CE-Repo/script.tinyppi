@@ -133,10 +133,10 @@ function continueTile(item) {
     image.decoding = "async";
     image.alt = "";
     /* An episode stands on the row as its show's poster, which the box files
-       under the episode's own id (see ``_read_continuing``). */
-    image.src = TinyPPI.withToken(
+       under the episode's own id (see web/library/progress.py). */
+    image.src =
       "/api/art?kind=poster&" + (episode ? "episodeid=" : "movieid=") +
-      encodeURIComponent(item.id) + "&v=" + encodeURIComponent(item.poster));
+      encodeURIComponent(item.id) + "&v=" + encodeURIComponent(item.poster);
     image.addEventListener("error", () => image.remove());
     frame.append(image);
   }

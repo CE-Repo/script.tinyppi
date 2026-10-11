@@ -589,28 +589,42 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
         info["hdr10plus_present"] = "1"
 
     if token == "dolbyvision":
-        info["cm_version"]     = _cm_version(rpu)
-        info["structure"]      = _structure_abbr(parsed.get("structure"), config, el_type)
-        info["dv_version"]     = _dv_record_version(config)
-        info["dv_profile"]     = profile
-        # FEL/MEL, or the profile number without an EL (e.g. 8.1).  Stored
-        # uncoloured; themed when read.
-        info["dv_el_type"]     = el_type or profile
-        info["bit_depth"]      = _bit_depth(el_type)
-        (
-            info["dv_rpu_present"],
-            info["dv_bl_present"],
-            info["dv_el_present"],
-        ) = _presence(config, rpu, el_type)
+        _dolby_vision_fields(info, parsed, profile, el_type)
+    _rpu_fields(info, rpu or {})
+    _static_fields(info, mdcv, cll)
+    return info
 
-    # Per-frame RPU blocks: L5 active area, L1 luminance in nits and PQ.
-    l5 = (rpu or {}).get("l5")
+
+def _dolby_vision_fields(info: dict[str, str], parsed: dict, profile: str,
+                         el_type: str) -> None:
+    """Fill the Dolby Vision rows: CM version, structure, profile, layers."""
+    config = parsed.get("config")
+    rpu    = parsed.get("rpu")
+    info["cm_version"]     = _cm_version(rpu)
+    info["structure"]      = _structure_abbr(parsed.get("structure"), config, el_type)
+    info["dv_version"]     = _dv_record_version(config)
+    info["dv_profile"]     = profile
+    # FEL/MEL, or the profile number without an EL (e.g. 8.1).  Stored
+    # uncoloured; themed when read.
+    info["dv_el_type"]     = el_type or profile
+    info["bit_depth"]      = _bit_depth(el_type)
+    (
+        info["dv_rpu_present"],
+        info["dv_bl_present"],
+        info["dv_el_present"],
+    ) = _presence(config, rpu, el_type)
+
+
+def _rpu_fields(info: dict[str, str], rpu: dict) -> None:
+    """Fill the rows of the per-frame RPU blocks (L5, L1, L6, source)."""
+    # L5 active area, L1 luminance in nits and PQ.
+    l5 = rpu.get("l5")
     if l5:
         info["l5_offsets"] = _joined([
             _fmt_num(l5.get(edge)) for edge in ("left", "right", "top", "bottom")
         ])
 
-    l1 = (rpu or {}).get("l1")
+    l1 = rpu.get("l1")
     if l1:
         info["l1_nits"] = _joined([
             _fmt_lum(l1.get(key)) for key in ("min_nits", "max_nits", "avg_nits")
@@ -620,7 +634,7 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
         ])
 
     # L6: mastering display and content light declared in the RPU.
-    l6 = (rpu or {}).get("l6")
+    l6 = rpu.get("l6")
     if l6:
         info["l6_mdl"] = _joined([
             _fmt_lum(l6.get("max_lum_nits")), _fmt_lum(l6.get("min_lum_nits")),
@@ -631,23 +645,23 @@ def _build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]
 
     # The source master's PQ range as luminance; the MDL row prefers it over
     # L6.  Only in frames with uncompressed DM data (see _STATIC_FIELDS).
-    source = (rpu or {}).get("source")
+    source = rpu.get("source")
     if source:
         info["source_mdl"] = _joined([
             _fmt_lum(source.get("max_nits")), _fmt_lum(source.get("min_nits")),
         ])
 
+
+def _static_fields(info: dict[str, str], mdcv: dict | None, cll: dict | None) -> None:
+    """Fill the HDR10 rows from the static MDCV and CLL SEIs."""
     if mdcv:
         info["hdr10_mdl"] = _joined([
             _fmt_lum(mdcv.get("max_luminance")), _fmt_lum(mdcv.get("min_luminance")),
         ])
-
     if cll:
         info["hdr10_max_cll_fall"] = _joined([
             _fmt_num(cll.get("max_cll")), _fmt_num(cll.get("max_fall")),
         ])
-
-    return info
 
 
 # --- Field getters ---------------------------------------------------------

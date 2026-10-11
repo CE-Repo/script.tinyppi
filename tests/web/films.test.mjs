@@ -177,7 +177,7 @@ test("the wall holds every film, with its poster, rating, tick and the line unde
   assert.equal(alien.type, "button");
   assert.equal(alien.dataset.key, "alien 1979");
   const poster = alien.querySelector(".filmposter img");
-  assert.equal(poster.getAttribute("src"), "/api/art?kind=poster&movieid=1&v=p1&token=T0K3N");
+  assert.equal(poster.getAttribute("src"), "/api/art?kind=poster&movieid=1&v=p1");
   assert.equal(poster.alt, "");
   assert.equal(poster.loading, "lazy");
   const rating = alien.querySelector(".filmrating");
@@ -194,7 +194,7 @@ test("the wall holds every film, with its poster, rating, tick and the line unde
   // The poster's tag is passed along as it is, escaped for the address.
   const brazil = tile(view, "Brazil");
   assert.equal(brazil.querySelector("img").getAttribute("src"),
-               "/api/art?kind=poster&movieid=2&v=p%202&token=T0K3N");
+               "/api/art?kind=poster&movieid=2&v=p%202");
   assert.equal(brazil.querySelector(".filmrating").getAttribute("aria-label"), "TMDb 7.9");
   assert.equal(brazil.querySelector(".filmseen"), null);
 

@@ -818,3 +818,14 @@ def test_stop_tears_down_whichever_parts_exist(part):
     assert producer.calls == ([] if part == "server" else ["wake", "join"])
     assert not dash.running and dash._producer is None
     assert (xbmc.LOGINFO, "TinyPPI [web]: stopping dashboard") in xbmc.LOG
+
+
+def test_every_server_has_its_own_read_session():
+    # A new token restarts the server, which ends the sessions bought with
+    # the old one.
+    sessions = set()
+    for _ in range(2):
+        srv = web_server._Server(("127.0.0.1", 0), IdleProducer(), threading.Event(), TOKEN)
+        sessions.add(srv.session)
+        srv.server_close()
+    assert len(sessions) == 2 and all(len(session) >= 40 for session in sessions)

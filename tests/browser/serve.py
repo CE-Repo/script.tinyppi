@@ -21,7 +21,9 @@ from web import library  # noqa: E402
 from web import server as web_server  # noqa: E402
 
 TOKEN = "BROWSER1"
-xbmcaddon.SETTINGS.update({"web_auth_read": "false", "web_allow_control": "true",
+# Reading needs the token, so the stream and the pictures go through the read
+# session (see _start_session in web/routes.py).
+xbmcaddon.SETTINGS.update({"web_auth_read": "true", "web_allow_control": "true",
                            "web_library": "true", "web_series": "true"})
 
 FILMS = [
@@ -109,7 +111,7 @@ class Producer:
         return dict(SNAPSHOT, seq=self.seq)
 
 
-library.rpc = fake_rpc
+library.common.rpc = fake_rpc
 server = web_server._Server(("127.0.0.1", 0), Producer(), threading.Event(), TOKEN)
 server.refresh_settings()
 print(f"PORT {server.server_address[1]}", flush=True)

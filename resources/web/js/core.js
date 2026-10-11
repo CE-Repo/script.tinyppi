@@ -156,6 +156,10 @@ window.TinyPPI = (function () {
   let source = null;
   let retryAt = 1000;
   let retryTimer = 0;
+  /* Counts connection attempts.  With a token, opening one waits on the
+     session first, and an attempt that a newer one -- or a disconnect --
+     overtook in the meantime must not open a stream of its own. */
+  let attempt = 0;
   /* The last whole snapshot.  Everything after the first frame of a
      connection arrives as a delta measured against it (see snapshot_delta in
      web/delta.py), so it is what those are applied to. */
@@ -199,8 +203,8 @@ window.TinyPPI = (function () {
       storeToken(token);
       /* The settings tab shows which token this device holds. */
       document.dispatchEvent(new CustomEvent("tinyppi-token"));
-      /* The stream carries the token in its URL -- an EventSource cannot send
-         a header -- so a new token means a new connection. */
+      /* The stream rides on a session the token buys (an EventSource cannot
+         send a header), so a new token means a new connection. */
       connect();
     });
 
@@ -221,10 +225,10 @@ window.TinyPPI = (function () {
 
   /* --- helpers ---------------------------------------------------------- */
 
-  function withToken(url) {
-    return token
-      ? url + (url.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(token)
-      : url;
+  /* The token travels in a header only, never in an address: addresses end
+     up in histories and logs. */
+  function tokenHeaders() {
+    return token ? { "X-TinyPPI-Token": token } : {};
   }
 
   let toastTimer = 0;
@@ -321,6 +325,7 @@ window.TinyPPI = (function () {
      always opens with a whole snapshot, so nothing may be patched onto what an
      older one left behind. */
   function disconnect() {
+    attempt += 1;
     stopRetry();
     if (source) { source.close(); source = null; }
     base = null;
@@ -395,11 +400,31 @@ window.TinyPPI = (function () {
 
   /* --- connecting -------------------------------------------------------- */
 
+  /* What a browser cannot put a header on -- the stream, the pictures --
+     carries a session cookie instead, which the token buys here (see
+     _start_session in web/routes.py).  It is bought on every connect: it
+     lasts only as long as the add-on's server does.  A refusal is left to the
+     stream: one that needs no token opens anyway, and one that does fails
+     into probe, which says why. */
+  function openSession() {
+    return fetch("/api/session", {
+      method: "POST",
+      headers: Object.assign({ "Content-Type": "application/json" }, tokenHeaders()),
+      body: "{}"
+    }).catch(() => { /* the stream will find the outage */ });
+  }
+
   function connect() {
     disconnect();
     if (document.hidden) return;
     setStatus("wait", T.connecting);
-    source = new EventSource(withToken("/api/stream"));
+    if (!token) { openStream(); return; }
+    const mine = attempt;
+    openSession().then(() => { if (mine === attempt) openStream(); });
+  }
+
+  function openStream() {
+    source = new EventSource("/api/stream");
 
     source.addEventListener("open", () => {
       retryAt = 1000;
@@ -451,7 +476,7 @@ window.TinyPPI = (function () {
      add-on wants a token, whether it is simply carrying as many streams as it
      will, and whether it is there at all. */
   function probe() {
-    fetch(withToken("/api/state")).then((response) => {
+    fetch("/api/state", { headers: tokenHeaders() }).then((response) => {
       if (response.status === 401) {
         setStatus("down", T.token_bad);
         /* A first visit to a page that wants a token has not got one wrong;
@@ -622,17 +647,16 @@ window.TinyPPI = (function () {
     }
   }
 
-  /* Whatever the stream and the images need: the token travels in the URL for
-     everything a browser cannot put a header on. */
+  /* A read with the token in its header, for when reading needs it. */
   async function getJSON(url) {
-    const response = await fetch(withToken(url));
+    const response = await fetch(url, { headers: tokenHeaders() });
     if (!response.ok) throw new Error(String(response.status));
     return response.json();
   }
 
   return {
     T, $, boot, toast, setStatus, fmtNits, renderValue, plainValue, askToken,
-    copyReport, reportLine, command, getJSON, withToken,
+    copyReport, reportLine, command, getJSON,
     disclosureState, setDisclosureState, forgetDisclosure, bindDisclosure,
     get token() { return token; }
   };

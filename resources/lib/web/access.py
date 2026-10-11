@@ -36,7 +36,10 @@ _GUESS_LIMIT  = 10
 _GUESS_WINDOW = 600.0
 _LOCKOUT      = 600.0
 
-# Cap on tracked addresses, so many senders cannot grow the table forever.
+# Cap on tracked addresses, in the windows and in the lockouts each, so many
+# senders cannot grow either table forever.  Over the cap a lockout gives way
+# to the one ending soonest: it is the least protection lost, and a sender
+# with that many addresses has that many fresh windows anyway.
 _MAX_TRACKED = 256
 
 # The box's own IPv6 addresses with their prefix lengths (Linux), and how
@@ -193,7 +196,7 @@ class Guesses:
              f"for {int(_LOCKOUT // 60)} minutes", xbmc.LOGWARNING)
 
     def _forget_expired(self, now: float) -> None:
-        """Drop expired entries and, over the cap, the oldest (lock held)."""
+        """Drop expired entries and, over the caps, the oldest (lock held)."""
         for address in [a for a, (start, _) in self._wrong.items()
                         if now - start > _GUESS_WINDOW]:
             del self._wrong[address]
@@ -202,6 +205,9 @@ class Guesses:
         while len(self._wrong) >= _MAX_TRACKED:
             oldest = min(self._wrong, key=lambda a: self._wrong[a][0])
             del self._wrong[oldest]
+        while len(self._locked) >= _MAX_TRACKED:
+            ending = min(self._locked, key=self._locked.__getitem__)
+            del self._locked[ending]
 
 
 @cache

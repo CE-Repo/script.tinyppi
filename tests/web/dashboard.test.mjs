@@ -77,6 +77,8 @@ function open(t, { routes = {}, hello = {}, token = "", before, scripts = ORDER 
     ...view, routes: table, clock, scrolled, copied,
     $: (id) => window.document.getElementById(id),
     async state(snapshot) {
+      // With a token the stream opens once the session is bought.
+      if (!view.streams.length) await settle();
       view.streams.at(-1).emit("state", snapshot);
       await settle();
     },
