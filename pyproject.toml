@@ -2,7 +2,8 @@
 # from this file.  CI (.github/workflows/ci.yml) runs the same checks.
 
 [tool.ruff]
-# Kodi 21+ on CoreELEC ships Python 3.11; the code needs 3.10 at least.
+# Current CoreELEC ships Python 3.14, older Kodi 21 builds 3.11; the code
+# needs 3.10 at least.
 target-version = "py310"
 line-length = 100
 extend-exclude = ["tests/kodi/helper"]
