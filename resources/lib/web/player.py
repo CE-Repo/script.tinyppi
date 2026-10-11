@@ -7,22 +7,22 @@ and the transport commands the dashboard may send."""
 import json
 import math
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 
 import xbmc
 from core.log import channel
 from core.utils import cond, info
 from web.payloads import Controls, Track
-from web.values import Unchecked, clean_value, numbers
+from web.values import Json, Unchecked, clean_value, numbers
 
 _log = channel("web")
 
 
 # --- State -----------------------------------------------------------------
 
-def rpc(method: str, params: dict | None = None) -> dict:
+def rpc(method: str, params: Mapping[str, object] | None = None) -> Json:
     """Call Kodi's JSON-RPC and return the answer as a dict ({} on failure)."""
-    request = {"jsonrpc": "2.0", "id": 1, "method": method}
+    request: dict[str, object] = {"jsonrpc": "2.0", "id": 1, "method": method}
     if params:
         request["params"] = params
     try:
@@ -50,7 +50,7 @@ def chapter_count() -> int:
         return 0
 
 
-def _stream_label(stream: dict, fallback: str) -> str:
+def _stream_label(stream: Json, fallback: str) -> str:
     """Return a track label prefixed with its upper-cased language code.
 
     Only a separate leading token counts as an existing prefix (``eng`` vs.
@@ -69,7 +69,7 @@ def _stream_label(stream: dict, fallback: str) -> str:
     return name or tag or fallback
 
 
-def _track_list(streams: list[dict] | None) -> list[Track]:
+def _track_list(streams: list[Json] | None) -> list[Track]:
     """Return a picker's tracks as ``{index, label}``, numbered if unnamed."""
     return [{"index": stream.get("index", index),
              "label": clean_value(_stream_label(stream, f"#{index + 1}"))}
@@ -137,7 +137,7 @@ def current_track_state() -> dict[str, str]:
     if not isinstance(result, dict):
         return {"audio": "", "audio_id": "", "subtitle": ""}
 
-    def token(stream: dict) -> str:
+    def token(stream: Json) -> str:
         if not isinstance(stream, dict) or stream.get("index") is None:
             return ""
         index = int(stream.get("index", -1))

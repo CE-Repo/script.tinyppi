@@ -3,10 +3,22 @@
 
 """The series list, the episodes of an opened series and starting one."""
 
+from collections.abc import Sequence
+
 import xbmc
 from web.library import cache, common
 from web.library.common import log
-from web.values import Unchecked, library_id
+from web.library.entries import (
+    ArtPaths,
+    Episode,
+    EpisodeListing,
+    Episodes,
+    Resumable,
+    Show,
+    ShowListing,
+    Shows,
+)
+from web.values import Json, Unchecked, library_id
 
 # Show properties the tiles need.  A show's ``dateadded`` is its newest
 # episode's, so new episodes put the show on the "recently added" row.
@@ -18,19 +30,19 @@ _EPISODE_PROPERTIES = ("title", "season", "episode", "art", "runtime",
                        "playcount", "resume")
 
 
-def shows() -> dict:
+def shows() -> ShowListing:
     """Return the show list for clients."""
     held = catalogue()
     return {"shows": held["shows"], "count": len(held["shows"]),
             "tag": held["tag"]}
 
 
-def catalogue() -> dict:
+def catalogue() -> Shows:
     """Return the shows as ``{"shows": [...], "art": {...}, "tag": str}``."""
     return cache.lists.shows.get()
 
 
-def episodes(show_id: Unchecked) -> dict | None:
+def episodes(show_id: Unchecked) -> EpisodeListing | None:
     """Return the episodes of show *show_id*, or None for an unknown show.
 
     Read on first open, then cached.
@@ -83,7 +95,7 @@ def episode_art_path(episode_id: Unchecked, kind: str) -> str:
     return (entry or {}).get(kind, "")
 
 
-def read_shows() -> dict:
+def read_shows() -> Shows:
     """Read the show list from Kodi (the reader of ``cache.lists.shows``)."""
     answer = common.rpc("VideoLibrary.GetTVShows", {
         "properties": list(_SHOW_PROPERTIES),
@@ -95,8 +107,8 @@ def read_shows() -> dict:
         log(f"VideoLibrary.GetTVShows failed: {error}")
         return {"shows": [], "art": {}, "tag": "none"}
 
-    series: list[dict] = []
-    art: dict[int, dict[str, str]] = {}
+    series: list[Show] = []
+    art: ArtPaths = {}
     for row in common.rows_of(answer, "tvshows"):
         show = _show(row, art)
         if show is not None:
@@ -107,13 +119,11 @@ def read_shows() -> dict:
             "tag": f"{len(series):x}-{common.signature(series)}"}
 
 
-def _show(row: object, art: dict[int, dict[str, str]]) -> dict | None:
+def _show(row: Json, art: ArtPaths) -> Show | None:
     """Return a show's tile from its row, registering its art in *art*.
 
     None without an id or a title.
     """
-    if not isinstance(row, dict):
-        return None
     show_id = row.get("tvshowid")
     if not isinstance(show_id, int):
         return None
@@ -127,9 +137,10 @@ def _show(row: object, art: dict[int, dict[str, str]]) -> dict | None:
     art[show_id] = {"poster": poster, "fanart": fanart}
 
     # Shows carry their fanart tag too: the episode view shows it.
-    show = {"id": show_id, "title": title,
-            "poster": common.tag(poster), "fanart": common.tag(fanart)}
-    common.counted(show, row, "year")
+    show: Show = {"id": show_id, "title": title,
+                  "poster": common.tag(poster), "fanart": common.tag(fanart)}
+    if (year := common.number(row, "year")) is not None:
+        show["year"] = year
     _count_episodes(show, row.get("episode"), row.get("watchedepisodes"))
     common.rate(show, row.get("ratings"))
     added = common.added(row.get("dateadded"))
@@ -138,26 +149,26 @@ def _show(row: object, art: dict[int, dict[str, str]]) -> dict | None:
     return show
 
 
-def _count_episodes(show: dict, total: object, seen: object) -> None:
+def _count_episodes(show: Show, total: object, seen: object) -> None:
     """Set a show's episode count and the episodes still to watch."""
     if not isinstance(total, int) or total <= 0:
         return
     show["episodes"] = total
     # Remaining episodes, not watched ones.
     if isinstance(seen, int):
-        show["unseen"] = max(0, total - seen)
-        if show["unseen"] == 0:
+        unseen = show["unseen"] = max(0, total - seen)
+        if unseen == 0:
             show["watched"] = True
 
 
-def _load_episodes(show_id: int, title: str) -> dict:
+def _load_episodes(show_id: int, title: str) -> Episodes:
     """Read a show's episodes and register their stills' paths."""
     built = _read_episodes(show_id, title)
     cache.lists.remember_art(built["art"])
     return built
 
 
-def _read_episodes(show_id: int, title: str) -> dict:
+def _read_episodes(show_id: int, title: str) -> Episodes:
     answer = common.rpc("VideoLibrary.GetEpisodes", {
         "tvshowid": show_id,
         "properties": list(_EPISODE_PROPERTIES),
@@ -169,8 +180,8 @@ def _read_episodes(show_id: int, title: str) -> dict:
         log(f"VideoLibrary.GetEpisodes failed for {show_id}: {error}")
         return {"title": title, "episodes": [], "art": {}, "tag": "none"}
 
-    listing: list[dict] = []
-    art: dict[int, dict[str, str]] = {}
+    listing: list[Episode] = []
+    art: ArtPaths = {}
     for row in common.rows_of(answer, "episodes"):
         entry = _episode(row, art)
         if entry is not None:
@@ -182,10 +193,8 @@ def _read_episodes(show_id: int, title: str) -> dict:
             "tag": f"{show_id:x}-{len(listing):x}-{common.signature(listing, title)}"}
 
 
-def _episode(row: object, art: dict[int, dict[str, str]]) -> dict | None:
+def _episode(row: Json, art: ArtPaths) -> Episode | None:
     """Return an episode's list entry, registering its still in *art*."""
-    if not isinstance(row, dict):
-        return None
     episode_id = row.get("episodeid")
     if not isinstance(episode_id, int):
         return None
@@ -193,21 +202,29 @@ def _episode(row: object, art: dict[int, dict[str, str]]) -> dict | None:
     still = common.picture(common.art_of(row), common.EPISODE_PICTURE_KEYS)
     art[episode_id] = {"thumb": still}
 
-    entry = {
+    entry: Episode = {
         "id": episode_id,
         # No invented titles; season and number identify the episode.
         "title": common.clean_title(row),
         "thumb": common.tag(still),
     }
-    common.counted(entry, row, "season", low=0)
-    common.counted(entry, row, "episode", low=0)
-    common.counted(entry, row, "runtime", name="duration")
+    _describe(entry, row)
+    return entry
+
+
+def _describe(entry: Episode, row: Json) -> None:
+    """Add the optional fields Kodi has meaningful values for."""
+    if (season := common.number(row, "season", low=0)) is not None:
+        entry["season"] = season
+    if (number := common.number(row, "episode", low=0)) is not None:
+        entry["episode"] = number
+    if (duration := common.number(row, "runtime")) is not None:
+        entry["duration"] = duration
     if isinstance(row.get("playcount"), int) and row["playcount"] > 0:
         entry["watched"] = True
     resume = common.resume_of(row.get("resume"))
     if resume:
         entry["resume"] = resume
-    return entry
 
 
 def play_episode(episode_id: Unchecked, resume: bool = True) -> bool:
@@ -247,7 +264,7 @@ def _episode_resume_point(episode_id: int) -> int:
     return common.resume_of((details or {}).get("resume"))
 
 
-def _resume_in(episodes: list[dict], episode_id: int) -> int | None:
+def _resume_in(episodes: Sequence[Episode | Resumable], episode_id: int) -> int | None:
     """Return the resume point of *episode_id* among *episodes*, or None."""
     for episode in episodes:
         if episode["id"] == episode_id:

@@ -6,13 +6,14 @@
 import json
 import math
 import zlib
-from collections.abc import Callable
+from collections.abc import Callable, Mapping, Sequence
 
 import xbmc
 from core.log import channel
 from web import player
 from web.library import cache
-from web.values import clean_value
+from web.library.entries import Rated
+from web.values import Json, clean_value
 
 # Every query of the library goes through here, so the tests answer them
 # from a fake video database by replacing this one name.
@@ -38,24 +39,28 @@ _RATING_SOURCES = (("imdb", "imdb"),
 _ART_REVISION = "#2"
 
 
-def rows_of(answer: dict, key: str) -> list:
-    """Return the rows under *key* of a JSON-RPC answer, or none."""
+def rows_of(answer: Json, key: str) -> list[Json]:
+    """Return the rows (JSON objects) under *key* of a JSON-RPC answer.
+
+    Anything else Kodi sent there is left out.
+    """
     result = answer.get("result")
-    return (result.get(key) or []) if isinstance(result, dict) else []
+    rows = (result.get(key) or []) if isinstance(result, dict) else []
+    return [row for row in rows if isinstance(row, dict)]
 
 
-def clean_title(row: dict) -> str:
+def clean_title(row: Json) -> str:
     """Return a row's title (or label) as shown, or ''."""
     return clean_value(str(row.get("title") or row.get("label") or ""))
 
 
-def art_of(row: dict) -> dict:
+def art_of(row: Json) -> Json:
     """Return a JSON-RPC row's ``art`` mapping, or an empty one."""
     pictures = row.get("art")
     return pictures if isinstance(pictures, dict) else {}
 
 
-def picture(pictures: dict, keys: tuple[str, ...]) -> str:
+def picture(pictures: Json, keys: tuple[str, ...]) -> str:
     """Return the first non-empty path among *keys*, or ''."""
     for key in keys:
         path = pictures.get(key)
@@ -64,18 +69,19 @@ def picture(pictures: dict, keys: tuple[str, ...]) -> str:
     return ""
 
 
-def counted(entry: dict, row: dict, key: str, low: int = 1, name: str = "") -> None:
-    """Copy *row*'s int *key* to *entry* (as *name*) when it is at least *low*.
+def number(row: Json, key: str, low: int = 1) -> int | None:
+    """Return *row*'s int *key* when it is at least *low*, else None.
 
     For years, runtimes, season and episode numbers; anything else (a
-    missing value, 0 for "unknown") is left out.
+    missing value, 0 for "unknown") is left out of the entry.
     """
     value = row.get(key)
     if isinstance(value, int) and value >= low:
-        entry[name or key] = value
+        return value
+    return None
 
 
-def rate(entry: dict, ratings: object) -> None:
+def rate(entry: Rated, ratings: object) -> None:
     """Set the best available rating and its source on *entry*.
 
     Nothing is set without a valid rating (e.g. unscraped files).
@@ -126,7 +132,7 @@ def added(value: object) -> str:
     return value
 
 
-def signature(rows: list[dict], head: str = "") -> str:
+def signature(rows: Sequence[Mapping[str, object]], head: str = "") -> str:
     """Return a checksum of *rows* as sent, for a list's tag.
 
     Every field counts: the tag is the list's ETag (see web/routes.py), so a
@@ -158,13 +164,13 @@ def resume_option(resume: bool, point: Callable[[], int]) -> bool | None:
     return True if point() else None
 
 
-def open_item(item: dict, resume: bool | None, what: str) -> bool:
+def open_item(item: dict[str, int], resume: bool | None, what: str) -> bool:
     """Play a library *item* and return whether Kodi accepted it.
 
     The resume option is explicit whenever there is a choice, so Kodi does
     not ask on the TV.  JSON-RPC reports success, unlike a builtin.
     """
-    params: dict = {"item": item}
+    params: dict[str, object] = {"item": item}
     if resume is not None:
         params["options"] = {"resume": resume}
     if rpc("Player.Open", params).get("result") != "OK":

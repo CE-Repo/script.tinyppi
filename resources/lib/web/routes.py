@@ -24,6 +24,7 @@ from core import settings
 from core.log import channel
 from web import access, artwork, library
 from web.delta import snapshot_delta
+from web.library.entries import Listing
 from web.payloads import DeltaFrame, Snapshot
 from web.player import apply_command
 from web.producer import PRODUCE_INTERVAL, Producer
@@ -506,7 +507,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         self._send_listing(payload)
 
-    def _send_listing(self, payload: dict) -> None:
+    def _send_listing(self, payload: Listing) -> None:
         """Send a library list with its tag as ETag (304 when unchanged)."""
         etag = f'"{payload["tag"]}"'
         if self._holds(etag):
