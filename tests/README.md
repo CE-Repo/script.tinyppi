@@ -60,7 +60,7 @@ development files.
 | `unit/test_dvmetadata_dialog.py` | The Dolby Vision metadata windows: rows painted per kind, the list filled and its viewport kept, sections and their keys, highlights, the window fitted to its rows, static rows rebuilt, the session between list and sections |
 | `unit/test_mode_select.py` | The VS10 dialog: its layout and labels per stream, focus, keys, the mode chosen and applied after it closes |
 | `unit/test_dialog_layout.py` | The VS10 dialog's layouts outside Kodi and their fallbacks |
-| `unit/test_splash.py` | The codec-logo splash: logo stacks, panel pieces, offsets and scale, per-mode settings, colours and visibility, fades, and the controller (start window, OSD and overlay modes, audio and settings changes, badges, settling, Kodi stopping) |
+| `unit/test_splash.py` | The codec-logo splash (`ui/splash.py`, `splash_panel.py`, `splash_settings.py`): logo stacks, panel pieces, offsets and scale, per-mode settings, colours and visibility, fades, and the controller (start window, OSD and overlay modes, audio and settings changes, badges, settling, Kodi stopping) |
 | `unit/test_theme.py` | Publishing the colour and opacity settings, the unit label, the colour picker and its HEX tile, old storage forms rewritten |
 | `unit/test_webinfo.py` | The dashboard's settings actions: the address shown, a new token created |
 | `unit/test_utils.py` | Kodi read passes, localized strings, change highlights, offsets, the coded frame and picture ratio, property batches, the overlay state and its refresh thread |

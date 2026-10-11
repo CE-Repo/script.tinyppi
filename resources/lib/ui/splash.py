@@ -26,7 +26,6 @@ import xbmcaddon
 import xbmcgui
 from core import settings
 from core.constants import HOME_WINDOW_ID
-from core.images import display_texture
 from core.log import channel
 from core.protocols import PropertyTarget
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
@@ -38,11 +37,9 @@ from ui.splash_logos import (
     is_converting,
     video_has_audio,
 )
+from ui.splash_panel import build_controls, window_dims
+from ui.splash_settings import ModeSettings, Settings, read_settings
 from ui.theme import apply_theme
-
-_MEDIA_PATH = os.path.join(
-    settings.addon().getAddonInfo("path"), "resources", "skins", "Default", "media"
-)
 
 _log = channel("splash")
 
@@ -53,29 +50,11 @@ WINDOW_FULLSCREEN_VIDEO = 12005
 # RunScript call runs in another interpreter than the service's thread.
 PROP_SPLASH_ACTIVE = "TinyPPI.SplashActive"
 
-# ControlImage aspect-ratio modes: keep for the logos, stretch for the panel.
-_ASPECT_KEEP    = 2
-_ASPECT_STRETCH = 0
-
-# Background panel: 9-slice rounded rectangle from a 1x1 fill and four corner
-# masks, tinted with one ARGB colour.
-_BG_TEXTURE     = os.path.join("common", "dot-1x1.png")
-_DIVIDER_COLOR  = "59FFFFFF"
-# Conversion badge in the panel's top-right corner (see is_converting).
-_DOT_TEXTURE       = os.path.join("common", "dot-circle.png")
-_CONVERT_DOT_COLOR = "FF81C784"  # palette Forest
-# DV layer pill on the panel's bottom (or top) edge (see dv_layer_token).
-_PILL_TEXTURE = os.path.join("common", "pill.png")
-_CORNER_TEXTURES = {
-    "tl": os.path.join("splash", "corner-tl.png"),
-    "tr": os.path.join("splash", "corner-tr.png"),
-    "bl": os.path.join("splash", "corner-bl.png"),
-    "br": os.path.join("splash", "corner-br.png"),
-}
-
 # Fallback colours until theme.apply_theme has published the themed ones.
-_BG_COLOR   = "FA15181A"  # Charcoal panel (matches the overlay background)
-_LOGO_COLOR = "FFEDEDED"  # near-white (leaves white logos unchanged)
+_BG_COLOR          = "FA15181A"  # Charcoal panel (matches the overlay background)
+_LOGO_COLOR        = "FFEDEDED"  # near-white (leaves white logos unchanged)
+_DIVIDER_COLOR     = "59FFFFFF"
+_CONVERT_DOT_COLOR = "FF81C784"  # palette Forest (the conversion badge)
 
 # Home properties of the splash colours (from theme.apply_theme), separate
 # per context (start / osd / tinyppi).
@@ -126,32 +105,6 @@ class _ModeState(NamedTuple):
     pill_at_top: bool
 
 
-class _ModeSettings(NamedTuple):
-    """One mode's settings, read once per settings change."""
-
-    show_video: bool
-    show_audio: bool
-    audio_first: bool
-    offset_x: int
-    offset_y: int
-    scale: float
-    pill_at_top: bool
-
-
-class _Settings(NamedTuple):
-    """All settings the controller uses.
-
-    Read in one go when ``core.settings`` returns a new handle (i.e. after a
-    change), not on every poll.
-    """
-
-    show_on_start: bool
-    show_on_osd: bool
-    show_on_tinyppi: bool
-    duration: int
-    modes: dict
-
-
 # Kodi plays Visible/Hidden animations on runtime-added controls only when a
 # visibility condition changes (not on setVisible()), so the controls watch a
 # global and a per-mode Home property.  OSD and overlay conditions can then
@@ -190,54 +143,8 @@ _LAYER_COLOR_FALLBACK = {
 }
 
 
-# Per-mode offset settings (x, y).
-_OFFSET_SETTINGS = {
-    "start":   ("splash_start_offset_x",   "splash_start_offset_y"),
-    "osd":     ("splash_osd_offset_x",     "splash_osd_offset_y"),
-    "tinyppi": ("splash_tinyppi_offset_x", "splash_tinyppi_offset_y"),
-}
-
-# Per-mode size setting (80-130 %, default 100 %), times _BASE_SCALE.
-_SCALE_SETTINGS = {
-    "start":   "splash_start_scale",
-    "osd":     "splash_osd_scale",
-    "tinyppi": "splash_tinyppi_scale",
-}
-
-# Per-mode logo selection and order (default: both, video on top).
-_SHOW_VIDEO_SETTINGS = {
-    "start":   "splash_start_show_video",
-    "osd":     "splash_osd_show_video",
-    "tinyppi": "splash_tinyppi_show_video",
-}
-_SHOW_AUDIO_SETTINGS = {
-    "start":   "splash_start_show_audio",
-    "osd":     "splash_osd_show_audio",
-    "tinyppi": "splash_tinyppi_show_audio",
-}
-_ORDER_SETTINGS = {
-    "start":   "splash_start_order",
-    "osd":     "splash_osd_order",
-    "tinyppi": "splash_tinyppi_order",
-}
-# splash_<mode>_order: 0 keeps video on top, 1 puts audio on top.
-_ORDER_AUDIO_FIRST = 1
-
-# Per-mode edge of the DV layer pill.
-_PILL_POSITION_SETTINGS = {
-    "start":   "splash_start_pill_position",
-    "osd":     "splash_osd_pill_position",
-    "tinyppi": "splash_tinyppi_pill_position",
-}
-# splash_<mode>_pill_position: 0 bottom edge, 1 top edge.
-_PILL_TOP = 1
-
-# Base scale of the logo block (at a user scale of 100 %).
-_BASE_SCALE = 0.95
-
-
 def _mode_logos(
-    mode_settings: _ModeSettings, logos: tuple[str, str],
+    mode_settings: ModeSettings, logos: tuple[str, str],
     has_audio: bool = True,
 ) -> tuple[tuple[str, str], ...]:
     """Return a mode's stack as ``(logo, colour key)`` pairs, top first.
@@ -260,184 +167,6 @@ def _mode_logos(
     return tuple(stack)
 
 
-def _make_image(rel_path: str, x: int, y: int, w: int, h: int, color: str) -> xbmcgui.ControlImage:
-    """Build a tinted, aspect-keeping image from a media-relative path."""
-    full_path = os.path.join(_MEDIA_PATH, rel_path.replace("/", os.sep))
-    texture = display_texture(full_path, w, h)
-    return xbmcgui.ControlImage(
-        x, y, w, h, texture, aspectRatio=_ASPECT_KEEP, colorDiffuse=color,
-    )
-
-
-def _make_dot(cx: int, cy: int, diameter: int, color: str) -> xbmcgui.ControlImage:
-    """Build a filled circle centred on (*cx*, *cy*)."""
-    return _make_image(
-        _DOT_TEXTURE,
-        cx - diameter // 2, cy - diameter // 2, diameter, diameter, color,
-    )
-
-
-def _solid(x: int, y: int, w: int, h: int, color: str) -> xbmcgui.ControlImage:
-    """Return a solid-colour rectangle from the 1x1 texture."""
-    texture = os.path.join(_MEDIA_PATH, _BG_TEXTURE)
-    return xbmcgui.ControlImage(
-        x, y, max(1, w), max(1, h), texture,
-        aspectRatio=_ASPECT_STRETCH, colorDiffuse=color,
-    )
-
-
-def _panel_controls(
-    x: int, y: int, w: int, h: int, radius: int, color: str
-) -> list[xbmcgui.ControlImage]:
-    """Build a rounded rectangle from a centre, four edges and four corners."""
-    c = max(1, min(radius, w // 2, h // 2))
-    corner = lambda key, cx, cy: xbmcgui.ControlImage(  # noqa: E731
-        cx, cy, c, c, os.path.join(_MEDIA_PATH, _CORNER_TEXTURES[key]),
-        aspectRatio=_ASPECT_STRETCH, colorDiffuse=color,
-    )
-    return [
-        _solid(x + c, y + c, w - 2 * c, h - 2 * c, color),  # centre
-        _solid(x + c, y, w - 2 * c, c, color),              # top edge
-        _solid(x + c, y + h - c, w - 2 * c, c, color),      # bottom edge
-        _solid(x, y + c, c, h - 2 * c, color),              # left edge
-        _solid(x + w - c, y + c, c, h - 2 * c, color),      # right edge
-        corner("tl", x, y),
-        corner("tr", x + w - c, y),
-        corner("bl", x, y + h - c),
-        corner("br", x + w - c, y + h - c),
-    ]
-
-
-def _build_controls(
-    logos: list[tuple[str, str]], colors: dict[str, str],
-    offset_x: int, offset_y: int, screen_w: int, screen_h: int,
-    user_scale: float = 1.0, layer_token: str = "", pill_at_top: bool = False,
-) -> tuple[list[xbmcgui.ControlImage], xbmcgui.ControlImage | None]:
-    """Lay out the logos as a vertical stack on a rounded panel.
-
-    *logos* are ``(logo, colour key)`` pairs, top first; a single logo has
-    no divider.  Sizes are fractions of the window's coordinate space.
-    *offset_x* / *offset_y* (0-100 %) move the panel from the top-left inset
-    to the bottom-right; *user_scale* resizes it.  *colors* holds the tints
-    by key; *layer_token* picks the DV pill colour ('' for no pill), and
-    *pill_at_top* moves the pill to the top edge.
-
-    Returns ``(controls, dot)``; *dot* is the conversion badge (also in
-    *controls*) for its own condition, None when there are no logos.
-    """
-    if not logos:
-        return [], None
-
-    # Base scale times the mode's own scale.
-    scale = _BASE_SCALE * user_scale
-
-    box_w    = int(screen_w * 0.09 * scale)
-    box_h    = int(screen_h * 0.055 * scale)
-    v_gap    = int(screen_h * 0.02 * scale)
-    pad_x    = int(screen_w * 0.012 * scale)
-    pad_y    = int(screen_h * 0.02 * scale)
-    radius   = int(screen_h * 0.02 * scale)
-
-    count   = len(logos)
-    stack_h = count * box_h + (count - 1) * v_gap
-    panel_w = box_w + 2 * pad_x
-    panel_h = stack_h + 2 * pad_y
-
-    # Position: an inset at 0 %, a smaller gap at 100 %, never flush.
-    inset = int(screen_h * 0.0325)
-    edge  = 35
-    offset_x = min(100, max(0, offset_x))
-    offset_y = min(100, max(0, offset_y))
-    panel_x = inset + max(0, screen_w - panel_w - inset - edge) * offset_x // 100
-    panel_y = inset + max(0, screen_h - panel_h - inset - edge) * offset_y // 100
-    block_x = panel_x + pad_x
-    top     = panel_y + pad_y
-
-    controls: list[xbmcgui.ControlImage] = []
-
-    # Panel and divider; always present, hidden by their themed opacity.
-    controls.extend(_panel_controls(
-        block_x - pad_x, top - pad_y,
-        box_w + 2 * pad_x, panel_h,
-        radius, colors["bg"],
-    ))
-    if count == 2:
-        div_h = max(1, int(screen_h * 0.0025 * scale))
-        div_y = top + box_h + v_gap // 2 - div_h // 2
-        controls.append(_solid(block_x, div_y, box_w, div_h, colors["divider"]))
-
-    # Logos top to bottom, each tinted by its kind (follows the order).
-    for index, (logo, kind) in enumerate(logos):
-        y = top + index * (box_h + v_gap)
-        controls.append(_make_image(logo, block_x, y, box_w, box_h, colors[kind]))
-
-    # Conversion badge in the top-right corner (condition set by the caller).
-    dot_d   = max(1, int(box_h * 0.20))
-    dot_pad = max(1, int(box_h * 0.20))
-    dot_cx  = panel_x + panel_w - dot_pad - dot_d // 2
-    dot_cy  = panel_y + dot_pad + dot_d // 2
-    dot = _make_dot(dot_cx, dot_cy, dot_d, colors["convert_dot"])
-    controls.append(dot)
-
-    # DV layer pill, centred on the bottom or top edge; none for non-DV.
-    if layer_token in ("fel", "mel", "other"):
-        pill_w      = max(1, int(box_w * 0.30))
-        pill_h      = max(1, int(box_h * 0.15))
-        pill_margin = max(1, int(box_h * 0.10))
-        pill_x = panel_x + (panel_w - pill_w) // 2
-        pill_y = (
-            panel_y + pill_margin if pill_at_top
-            else panel_y + panel_h - pill_margin - pill_h
-        )
-        controls.append(
-            _make_image(_PILL_TEXTURE, pill_x, pill_y, pill_w, pill_h, colors[layer_token])
-        )
-
-    return controls, dot
-
-
-def _window_dims(window: xbmcgui.Window) -> tuple[int, int]:
-    """Return the coordinate space ``addControl`` uses on *window*.
-
-    The window's own size, which may differ from the screen size; falls
-    back to the screen size when the window reports none.
-    """
-    try:
-        width, height = window.getWidth(), window.getHeight()
-    except RuntimeError:  # window not created yet
-        width = height = 0
-    if width >= 640 and height >= 480:
-        return width, height
-    return xbmcgui.getScreenWidth(), xbmcgui.getScreenHeight()
-
-
-def _read_settings(addon: xbmcaddon.Addon) -> _Settings:
-    """Read all controller settings (see ``_Settings``)."""
-    modes = {}
-    for mode in _MODE_PROP_PREFIX:
-        setting_x, setting_y = _OFFSET_SETTINGS[mode]
-        modes[mode] = _ModeSettings(
-            show_video=addon.getSettingBool(_SHOW_VIDEO_SETTINGS[mode]),
-            show_audio=addon.getSettingBool(_SHOW_AUDIO_SETTINGS[mode]),
-            audio_first=(
-                addon.getSettingInt(_ORDER_SETTINGS[mode]) == _ORDER_AUDIO_FIRST
-            ),
-            offset_x=addon.getSettingInt(setting_x),
-            offset_y=addon.getSettingInt(setting_y),
-            scale=_mode_scale(addon, mode),
-            pill_at_top=(
-                addon.getSettingInt(_PILL_POSITION_SETTINGS[mode]) == _PILL_TOP
-            ),
-        )
-    return _Settings(
-        show_on_start=addon.getSettingBool("splash_enabled"),
-        show_on_osd=addon.getSettingBool("splash_show_on_osd"),
-        show_on_tinyppi=addon.getSettingBool("splash_show_on_tinyppi"),
-        duration=addon.getSettingInt("splash_duration"),
-        modes=modes,
-    )
-
-
 def _mode_colors(home: PropertyTarget, mode: str) -> dict[str, str]:
     """Return *mode*'s tints from the Home properties, with fallbacks.
 
@@ -456,15 +185,6 @@ def _mode_colors(home: PropertyTarget, mode: str) -> dict[str, str]:
         key: home.getProperty(prefix + _COLOR_PROP_SUFFIX[key]) or fallback[key]
         for key in _COLOR_PROP_SUFFIX
     }
-
-
-def _mode_scale(addon: xbmcaddon.Addon, mode: str) -> float:
-    """Return *mode*'s size multiplier, clamped to 0.8-1.3."""
-    try:
-        percent = addon.getSettingInt(_SCALE_SETTINGS[mode])
-    except (KeyError, TypeError, ValueError, RuntimeError):  # unknown mode, or not an integer
-        return 1.0
-    return min(1.3, max(0.8, percent / 100.0))
 
 
 def _home_prop_condition(prop: str, expected: bool = True) -> str:
@@ -580,7 +300,7 @@ def _safe_addon() -> xbmcaddon.Addon | None:
         return None
 
 
-def _active_modes(config: _Settings, in_start_window: bool = True) -> list[str]:
+def _active_modes(config: Settings, in_start_window: bool = True) -> list[str]:
     """Return the enabled modes in drawing order.
 
     The start mode counts only while *in_start_window*.
@@ -595,7 +315,7 @@ def _active_modes(config: _Settings, in_start_window: bool = True) -> list[str]:
     return modes
 
 
-def _anything_to_show(config: _Settings, player: xbmc.Player) -> bool:
+def _anything_to_show(config: Settings, player: xbmc.Player) -> bool:
     """Return whether any enabled mode has logos for the current video."""
     gamut = info("Player.Process(amlogic.eoft_gamut)")
     logos = current_logos(output_hdr_token(gamut))
@@ -612,7 +332,7 @@ class _Controller:
     """
 
     def __init__(
-        self, addon: xbmcaddon.Addon, config: _Settings, player: xbmc.Player,
+        self, addon: xbmcaddon.Addon, config: Settings, player: xbmc.Player,
         home: xbmcgui.Window, video_window: xbmcgui.Window,
         screen: tuple[int, int], monitor: xbmc.Monitor, run: str,
     ) -> None:
@@ -703,7 +423,7 @@ class _Controller:
             return False
         if addon is not self.addon:
             self.addon = addon
-            self.config = _read_settings(addon)
+            self.config = read_settings(addon)
             self.themed = False
         return True
 
@@ -812,7 +532,7 @@ class _Controller:
                           self.controls_by_mode[mode])
                 if monitor.abortRequested():
                     break
-            controls, dot = _build_controls(
+            controls, dot = build_controls(
                 list(desired.logos), self.colors_by_mode[mode],
                 desired.offset_x, desired.offset_y,
                 self.screen_w, self.screen_h, desired.scale, desired.layer_token,
@@ -846,7 +566,7 @@ def open_splash() -> None:
     addon = _safe_addon()
     if addon is None:
         return
-    config = _read_settings(addon)
+    config = read_settings(addon)
     if not _active_modes(config):
         return
 
@@ -862,7 +582,7 @@ def open_splash() -> None:
         return
 
     video_window = xbmcgui.Window(WINDOW_FULLSCREEN_VIDEO)
-    screen = _window_dims(video_window)
+    screen = window_dims(video_window)
     monitor = xbmc.Monitor()
 
     home.setProperty(PROP_SPLASH_ACTIVE, "true")
