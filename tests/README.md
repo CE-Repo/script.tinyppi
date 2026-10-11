@@ -26,7 +26,8 @@ npm run test:browser         # the dashboard in Chromium against the real server
 ```
 
 CI also runs the official `kodi-addon-checker` on the add-on without its
-development files.
+development files, through `tools/check_addon.py` (the dashboard's file
+types allowed, no dependency check against Kodi's repository).
 
 | File | Covers |
 |---|---|
@@ -50,12 +51,12 @@ development files.
 | `unit/test_dvmetadata.py` | The DV metadata view's rows: scene and static sections, trim tables per target display, the composer's curves and coefficients, value formatting |
 | `unit/test_display.py` | The DRM display reset against a simulated device: HDMI first, the master descriptor, the cached ids and the negative cache |
 | `unit/test_session.py` | The dashboard's history of the playing title: the sample clock, events for changed readings, track changes held back until settled, warnings once per crossing, frame-rate events, a new title, the finished title kept for the idle page |
-| `unit/test_monitor.py` | The service's notifications: library drops, view handover (acknowledged, withdrawn, failing), fonts on a skin load, one splash at a time, dashboard settings, the start-up warm-up |
+| `unit/test_monitor.py` | The service's notifications: library drops, view handover (acknowledged, withdrawn, failing), fonts on a skin load, one splash at a time, dashboard settings, the start-up warm-up; its entry point `service/start.py` |
 | `unit/test_helpers.py` | Frame-rate formatting and drops; the VS10 dialog's layouts: files, positions on screen, the branch per stream type |
 | `unit/test_images.py` | PNG decoding (every filter, colour type and indexed bit depth), scaling in premultiplied alpha, the texture cache and its pruning |
 | `unit/test_fonts.py` | Font.xml: the resolution folders (never outside the skin), entries inserted in every fontset with the file's own layout, the ready and failed marks |
 | `unit/test_splash_logos.py` | What the codec-logo splash shows: the logo per output mode, conversions told from the output, the DV layer pill, IMAX logos only when installed, audio known before Kodi names the codec |
-| `unit/test_main.py` | The entry point: a view handed to the running service (acknowledged, withdrawn, no service), the commands and their arguments, the launch-mode default |
+| `unit/test_main.py` | The script (`launcher.py`, entry point `main.py`): a view handed to the running service (acknowledged, withdrawn, no service), the commands and their arguments, the launch-mode default |
 | `unit/test_overlay.py` | The overlay: CoreELEC and Kodi checks, opening over fullscreen video, placement per layout and the arrow-key nudge, keys and closing, DV readings lit when they change, the update loop and its stop reasons, the entry points and their locks |
 | `unit/test_dvmetadata_dialog.py` | The Dolby Vision metadata windows: rows painted per kind, the list filled and its viewport kept, sections and their keys, highlights, the window fitted to its rows, static rows rebuilt, the session between list and sections |
 | `unit/test_mode_select.py` | The VS10 dialog: its layout and labels per stream, focus, keys, the mode chosen and applied after it closes |
