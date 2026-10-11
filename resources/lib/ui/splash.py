@@ -130,6 +130,11 @@ _ANIM_IN  = ("Visible",
 _ANIM_OUT = ("Hidden",
              f"effect=fade start=100 end=0 time={_FADE_OUT_MS}")
 
+# The overlay's window.  The tinyppi logos wait for it to be visible, not
+# just for PROP_ACTIVE (set before the dialog is built and filled), so both
+# fade in together.
+_OVERLAY_WINDOW = "script-tinyppi-main.xml"
+
 # "true" while a conversion is active (see is_converting); part of the
 # badge's condition, so it toggles without a rebuild.
 PROP_CONVERTING = "TinyPPI.SplashConverting"
@@ -224,6 +229,7 @@ def _visible_condition(mode: str, suppress_start_for_osd: bool = False,
         parts.extend((
             _home_prop_condition(PROP_ACTIVE),
             _home_prop_condition(PROP_DIALOG_MODE, False),
+            f"Window.IsVisible({_OVERLAY_WINDOW})",
         ))
     return " + ".join(parts)
 
