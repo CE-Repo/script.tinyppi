@@ -49,10 +49,21 @@ _STREAM_WRITE_TIMEOUT = 4.0
 # Maximum request body size (POST bodies are tiny).
 _MAX_BODY = 4096
 
-# The token in a request line (stream and image URLs carry it in the query,
-# see withToken in js/core.js); masked before logging, since debug logs get
-# posted to forums.
+# A token in a request line.  The page never puts it there (see the session
+# below), and the server no longer reads it from there, but a page from an
+# older version or a hand-typed address may; masked before logging, since
+# debug logs get posted to forums.
 _TOKEN_IN_QUERY = re.compile(r"(token=)[^&\s\"']*", re.IGNORECASE)
+
+# The read session.  What a browser cannot send a header with (the event
+# stream, images) carries this cookie instead of the token: the page trades
+# the token for it once per connection (POST /api/session, see connect in
+# js/core.js).  HttpOnly keeps it from scripts, SameSite=Strict from other
+# sites' requests, and it is valid for reading only and for this server's
+# lifetime (a new token restarts the server).  No Max-Age: it ends with the
+# browser session.
+_SESSION_COOKIE = "tinyppi_session"
+_SESSION_ATTRIBUTES = "Path=/api/; HttpOnly; SameSite=Strict"
 
 # An artwork tag as the add-on makes them (CRC-32 in hex, see
 # snapshot._art_tags and library.common.tag).  It goes into the ETag header, so
@@ -60,7 +71,7 @@ _TOKEN_IN_QUERY = re.compile(r"(token=)[^&\s\"']*", re.IGNORECASE)
 _ART_TAG = re.compile(r"[0-9a-f]{1,16}")
 
 # Headers on every response: no framing (clickjacking) and no referrer
-# (some URLs carry the token).
+# (nothing in a URL should leave the page).
 _SECURITY_HEADERS = (
     ("X-Content-Type-Options", "nosniff"),
     ("X-Frame-Options", "DENY"),
@@ -156,18 +167,40 @@ class Handler(BaseHTTPRequestHandler):
     # --- Auth --------------------------------------------------------------
 
     def _presented_token(self) -> str:
-        header = self.headers.get("X-TinyPPI-Token", "")
-        if header:
-            return header.strip()
-        query = parse_qs(urlparse(self.path).query)
-        return (query.get("token") or [""])[0].strip()
+        """Return the token in the request's header, or ''.
 
-    def _token_holder(self) -> bool:
+        Only the header counts: a URL ends up in logs and histories.
+        """
+        return self.headers.get("X-TinyPPI-Token", "").strip()
+
+    def _session_holder(self) -> bool:
+        """Return whether the request carries this server's read session.
+
+        Parsed by hand: cookies are per host, not per port, so the header
+        may carry those of other services on the box (Kodi's own web
+        interface, say), and ``http.cookies`` drops every cookie when one
+        of them does not parse.
+        """
+        expected = self.server.session.encode("ascii")
+        for part in self.headers.get("Cookie", "").split(";"):
+            name, _sep, value = part.partition("=")
+            if name.strip() != _SESSION_COOKIE:
+                continue
+            offered = value.strip().encode("utf-8", "replace")
+            if len(offered) == len(expected) and secrets.compare_digest(offered, expected):
+                return True
+        return False
+
+    def _token_holder(self, session: bool = False) -> bool:
         """Return whether the request carries the token.
 
-        Otherwise it has been answered with 401, or 429 for a locked-out
+        With *session*, the read session counts as the token (reads only):
+        it cannot be guessed, so it is checked before any lockout.  Otherwise
+        the request has been answered with 401, or 429 for a locked-out
         address (see ``access.Guesses``).
         """
+        if session and self._session_holder():
+            return True
         address = access.client_key(self.client_address[0])
         wait = self.server.guesses.locked_for(address)
         if wait:
@@ -207,7 +240,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         reader = _READERS.get(route)
         if reader is not None:
-            if self._token_to_read() and not self._token_holder():
+            if self._token_to_read() and not self._token_holder(session=True):
                 return
             reader(self)
             return
@@ -223,7 +256,13 @@ class Handler(BaseHTTPRequestHandler):
         if payload is None:
             return
 
-        writer = _WRITERS.get(urlparse(self.path).path)
+        route = urlparse(self.path).path
+        if route == "/api/session":
+            # For reading, so control need not be allowed; the token must.
+            if self._token_holder():
+                self._start_session()
+            return
+        writer = _WRITERS.get(route)
         if writer is None:
             self._send_error_json(HTTPStatus.NOT_FOUND, "no such route")
             return
@@ -255,6 +294,13 @@ class Handler(BaseHTTPRequestHandler):
             "interval_ms": int(PRODUCE_INTERVAL * 1000),
             "strings":     ui_strings(addon),
         })
+
+    def _start_session(self) -> None:
+        """Hand a token holder the read session cookie."""
+        self._send_json({"ok": True}, extra=((
+            "Set-Cookie",
+            f"{_SESSION_COOKIE}={self.server.session}; {_SESSION_ATTRIBUTES}",
+        ),))
 
     def _serve_state(self) -> None:
         """Send the current snapshot to a page without a stream."""

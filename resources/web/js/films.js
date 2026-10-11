@@ -238,9 +238,9 @@ function filmTile(film) {
     /* The tile already says the title in type under the picture, so the
        picture itself is decoration as far as a screen reader is concerned. */
     image.alt = "";
-    image.src = TinyPPI.withToken(
+    image.src =
       "/api/art?kind=poster&movieid=" + encodeURIComponent(film.id) +
-      "&v=" + encodeURIComponent(film.poster));
+      "&v=" + encodeURIComponent(film.poster);
     /* A poster the box cannot read leaves the frame it would have filled,
        which is the same empty frame a film with no poster at all gets. */
     image.addEventListener("error", () => image.remove());

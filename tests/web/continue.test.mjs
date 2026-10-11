@@ -181,7 +181,7 @@ test("a film's tile wears its poster, rating, resume bar and the line under it",
   const film = tile(view, "Film 03");
   assert.equal(film.type, "button");
   const poster = film.querySelector(".filmposter img");
-  assert.equal(poster.getAttribute("src"), "/api/art?kind=poster&movieid=3&v=f%203&token=T0K3N");
+  assert.equal(poster.getAttribute("src"), "/api/art?kind=poster&movieid=3&v=f%203");
   assert.equal(poster.alt, "");
   assert.equal(film.querySelector(".filmrating").getAttribute("aria-label"), "IMDb 6.5");
   const bar = film.querySelector(".filmresume");
@@ -202,7 +202,7 @@ test("an episode stands on its show's poster and name, with which episode under 
   const view = await open(t, { token: "T0K3N" });
   const episode = tile(view, "Show 2");
   assert.equal(episode.querySelector("img").getAttribute("src"),
-               "/api/art?kind=poster&episodeid=99&v=s2&token=T0K3N");
+               "/api/art?kind=poster&episodeid=99&v=s2");
   assert.equal(episode.querySelector(".filmrating").getAttribute("aria-label"), "TMDb 7.2");
   assert.equal(episode.querySelector(".filmresume span").style.width, "10%");
   const line = episode.querySelector(".filmyear");

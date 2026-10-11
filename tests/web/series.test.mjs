@@ -210,7 +210,7 @@ test("the shelf holds every show, with its poster, rating and what is left to se
   const andor = tile(view, "Andor");
   assert.equal(andor.dataset.key, "andor 2022");
   const poster = andor.querySelector(".filmposter img");
-  assert.equal(poster.getAttribute("src"), "/api/art?kind=poster&tvshowid=1&v=a1&token=T0K3N");
+  assert.equal(poster.getAttribute("src"), "/api/art?kind=poster&tvshowid=1&v=a1");
   assert.equal(poster.alt, "");
   assert.equal(andor.querySelector(".filmrating").getAttribute("aria-label"), "IMDb 8.4");
   const waiting = andor.querySelector(".seriesnew");
@@ -234,7 +234,7 @@ test("the shelf holds every show, with its poster, rating and what is left to se
   assert.equal(columbo.querySelector(".filmyear"), null);
 
   assert.equal(tile(view, "Dark").querySelector("img").getAttribute("src"),
-               "/api/art?kind=poster&tvshowid=4&v=d%204&token=T0K3N");
+               "/api/art?kind=poster&tvshowid=4&v=d%204");
 });
 
 test("a poster or a still the box cannot read leaves the empty frame behind", async (t) => {
@@ -325,7 +325,7 @@ test("a press on a show asks to open it, and opening it lists its seasons folded
   await settle();
 
   const asked = view.requests.filter((request) => request.url.startsWith("/api/episodes"));
-  assert.deepEqual(asked.map((request) => request.url), ["/api/episodes?tvshowid=1&token=T0K3N"]);
+  assert.deepEqual(asked.map((request) => request.url), ["/api/episodes?tvshowid=1"]);
   assert.deepEqual(plays(view), []);
   // Shut, every one, with how many episodes and how long they run.
   assert.deepEqual(folds(view), [["Specials", "1 · 10 min", false, 1],
@@ -355,7 +355,7 @@ test("an episode row carries its still, tick, resume bar, number and running tim
   const kassa = row(view, "Kassa");
   assert.equal(kassa.type, "button");
   const still = kassa.querySelector(".episodestill img");
-  assert.equal(still.getAttribute("src"), "/api/art?kind=thumb&episodeid=101&v=t%201&token=T0K3N");
+  assert.equal(still.getAttribute("src"), "/api/art?kind=thumb&episodeid=101&v=t%201");
   assert.equal(still.alt, "");
   assert.equal(kassa.querySelector(".filmseen").getAttribute("aria-label"), "Watched");
   assert.equal(kassa.querySelector(".filmresume"), null);

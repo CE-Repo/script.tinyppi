@@ -305,8 +305,68 @@ def test_unknown_read_routes_are_404(dashboard):
 def test_reading_needs_the_token_when_the_setting_says_so(dashboard):
     dashboard.auth_read = True
     assert request(dashboard, "/api/state")[0] == 401
-    assert request(dashboard, f"/api/state?token={TOKEN}")[0] == 200
+    assert request(dashboard, "/api/state", token=TOKEN)[0] == 200
     assert json.loads(request(dashboard, "/api/hello")[2])["auth_read"] is True
+
+
+def test_a_token_in_the_address_does_not_count(dashboard):
+    dashboard.auth_read = True
+    assert request(dashboard, f"/api/state?token={TOKEN}")[0] == 401
+
+
+def session_cookie(dashboard, token=TOKEN):
+    status, headers, raw = request(dashboard, "/api/session", "POST", {}, token=token)
+    return status, headers.get("Set-Cookie", ""), raw
+
+
+def test_the_token_buys_a_read_session_cookie(dashboard):
+    status, cookie, raw = session_cookie(dashboard)
+    assert status == 200 and json.loads(raw) == {"ok": True}
+    value, *attributes = [part.strip() for part in cookie.split(";")]
+    assert value == f"tinyppi_session={dashboard.session}"
+    assert attributes == ["Path=/api/", "HttpOnly", "SameSite=Strict"]
+
+
+@pytest.mark.parametrize("token", [None, "WRONG"])
+def test_no_session_without_the_token(dashboard, token):
+    status, cookie, _raw = session_cookie(dashboard, token)
+    assert status == 401 and cookie == ""
+
+
+def test_a_session_needs_no_control(dashboard):
+    dashboard.allow_control = False
+    assert session_cookie(dashboard)[0] == 200
+
+
+def test_the_session_reads_where_reading_needs_the_token(dashboard):
+    dashboard.auth_read = True
+    held = f"kodi=1; other=\"x; tinyppi_session={dashboard.session}"
+    # Other services' cookies on the same host, one of them malformed.
+    assert request(dashboard, "/api/state", cookie=held)[0] == 200
+
+
+def test_a_session_reads_even_from_a_locked_out_address(dashboard, monkeypatch):
+    # It cannot be guessed, so it is no guess to lock out.
+    dashboard.auth_read = True
+    monkeypatch.setattr(dashboard.guesses, "locked_for", lambda address: 2.5)
+    assert request(dashboard, "/api/state", cookie=f"tinyppi_session={dashboard.session}")[0] == 200
+    assert request(dashboard, "/api/state", token=TOKEN)[0] == 429
+
+
+@pytest.mark.parametrize("cookie", [
+    "tinyppi_session=forged", "tinyppi_session=", "tinyppi_session", "other=1",
+    "tinyppi_session=\u00e9\u00e9",
+])
+def test_a_foreign_session_reads_nothing_and_is_no_guess(dashboard, cookie):
+    dashboard.auth_read = True
+    assert request(dashboard, "/api/state", cookie=cookie)[0] == 401
+    assert dashboard.guesses._wrong == {}
+
+
+def test_a_session_does_not_write(dashboard, calls):
+    status, _headers, _raw = request(dashboard, "/api/command", "POST", {"action": "pause"},
+                                     cookie=f"tinyppi_session={dashboard.session}")
+    assert status == 401 and calls == []
 
 
 def test_a_locked_out_address_is_told_when_to_retry(dashboard, monkeypatch, calls):

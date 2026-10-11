@@ -218,14 +218,14 @@ test("the poster is fetched once per tag and handed to the cover tint", (t) => {
   const { $, P, window } = panels(t, { token: "AB" });
   // Without the tint script the poster still shows.
   P.update(snap({ art: { poster: "p1" } }));
-  assert.equal($("poster").getAttribute("src"), "/api/art?kind=poster&v=p1&token=AB");
+  assert.equal($("poster").getAttribute("src"), "/api/art?kind=poster&v=p1");
   assert.equal($("artBox").classList.contains("hidden"), false);
 
   const shown = [];
   window.TinyPPICover = { show: (card, url, image) => shown.push([card.id, url, image && image.id]) };
   P.update(snap({ art: { poster: "p2" } }));
   P.update(snap({ art: { poster: "p2" } }));
-  assert.deepEqual(shown, [["nowCard", "/api/art?kind=poster&v=p2&token=AB", "poster"]]);
+  assert.deepEqual(shown, [["nowCard", "/api/art?kind=poster&v=p2", "poster"]]);
 
   $("poster").dispatchEvent(new window.Event("error"));
   assert.ok($("artBox").classList.contains("hidden"));
@@ -487,7 +487,7 @@ test("events come from the add-on's history, newest first", async (t) => {
   const { $, P, fetched } = panels(t, { token: "AB" });
   P.update(snap({ session: { seq: 3, switches: 1, warnings: 0 } }));
   assert.equal($("vSwitches").textContent, "1");
-  assert.deepEqual(fetched("/api/history").map((request) => request.url), ["/api/history?token=AB"]);
+  assert.deepEqual(fetched("/api/history").map((request) => request.url), ["/api/history"]);
   await settle();
 
   assert.equal($("eventsCard").classList.contains("hidden"), false);

@@ -168,10 +168,54 @@ test("a bad frame is skipped and a throwing page does not end the stream", async
   assert.equal(stream.closed, undefined);
 });
 
-test("the token travels in the stream address", async () => {
-  const { stream, window } = await booted({ token: "AB CD" });
-  assert.equal(stream.url, "/api/stream?token=AB%20CD");
-  assert.equal(window.TinyPPI.withToken("/api/art?kind=poster"), "/api/art?kind=poster&token=AB%20CD");
+test("the token buys a session before the stream and never travels in an address", async () => {
+  const { stream, requests, window } = await booted({ token: "AB CD" });
+  const [session] = requests.filter((request) => request.url === "/api/session");
+  assert.equal(session.init.method, "POST");
+  assert.equal(session.init.headers["X-TinyPPI-Token"], "AB CD");
+  assert.equal(requests.indexOf(session), 0, "bought before anything else is asked");
+  assert.equal(stream.url, "/api/stream");
+  assert.equal(window.TinyPPI.withToken, undefined);
+  assert.equal(requests.some((request) => request.url.includes("token=")), false);
+});
+
+test("without a token the stream opens at once, and no session is bought", async () => {
+  const view = page({ routes: { "/api/hello": [200, {}] } });
+  const booting = view.window.TinyPPI.boot({});
+  assert.equal(view.streams.length, 1);
+  await booting;
+  assert.equal(view.requests.some((request) => request.url === "/api/session"), false);
+});
+
+test("a session the add-on refuses, or a network that fails it, still opens the stream", async () => {
+  for (const answer of ["refused", "failed"]) {
+    const view = page({ routes: { "/api/hello": [200, {}], "/api/session": [401, {}] }, token: "OLD1" });
+    if (answer === "failed") {
+      const fetch = view.window.fetch;
+      view.window.fetch = (url, init) =>
+        url === "/api/session" ? Promise.reject(new Error("offline")) : fetch(url, init);
+    }
+    await view.window.TinyPPI.boot({});
+    await settle();
+    assert.equal(view.streams.length, 1, answer);
+  }
+});
+
+test("a connect overtaken while its session is bought opens no stream", async () => {
+  const view = page({ routes: { "/api/hello": [200, {}] }, token: "AB" });
+  const { window } = view;
+  let release;
+  const fetch = window.fetch;
+  window.fetch = (url, init) => url === "/api/session"
+    ? new Promise((resolve) => { release = () => resolve(fetch(url, init)); })
+    : fetch(url, init);
+  window.TinyPPI.boot({});
+  setHidden(window, true);
+  window.document.dispatchEvent(new window.Event("visibilitychange"));
+  release();
+  await settle();
+  await settle();
+  assert.equal(view.streams.length, 0);
 });
 
 test("a closed stream that wants a token opens the token dialog", async () => {
@@ -327,7 +371,9 @@ test("blocked storage: defaults stand in and the token lasts as long as the tab"
   window.document.getElementById("tokenInput").value = "abc123";
   answer(window, "ok");
   assert.equal(T.token, "ABC123");
-  assert.equal(view.streams.at(-1).url, "/api/stream?token=ABC123");
+  await settle();
+  assert.equal(view.requests.at(-1).init.headers["X-TinyPPI-Token"], "ABC123");
+  assert.equal(view.streams.at(-1).url, "/api/stream");
 });
 
 test("the token dialog's answer becomes the token and reconnects with it", async () => {
@@ -354,7 +400,11 @@ test("the token dialog's answer becomes the token and reconnects with it", async
   assert.equal(window.localStorage.getItem("tinyppi.token"), "AB12CD");
   assert.deepEqual(announced, ["AB12CD"]);
   assert.equal(first.closed, true);
-  assert.equal(streams.at(-1).url, "/api/stream?token=AB12CD");
+  await settle();
+  const session = view.requests.filter((request) => request.url === "/api/session").at(-1);
+  assert.equal(session.init.headers["X-TinyPPI-Token"], "AB12CD");
+  assert.equal(streams.at(-1).url, "/api/stream");
+  assert.notEqual(streams.at(-1), first);
 
   // Asked again, it opens on the token the device holds.
   window.TinyPPI.askToken();
@@ -526,7 +576,8 @@ test("a token the add-on turns down is said so, and asked for again", async () =
   await view.window.TinyPPI.boot({});
   await closeStream(view);
   const { document } = view.window;
-  assert.equal(view.requests.at(-1).url, "/api/state?token=OLD1");
+  assert.equal(view.requests.at(-1).url, "/api/state");
+  assert.equal(view.requests.at(-1).init.headers["X-TinyPPI-Token"], "OLD1");
   assert.deepEqual(statusOf(view.window), ["down", "Wrong or missing token"]);
   assert.equal(document.getElementById("toast").textContent, "Wrong or missing token");
   assert.equal(document.getElementById("toast").classList.contains("bad"), true);
@@ -683,6 +734,7 @@ test("getJSON carries the token and turns a failed answer into an error", async 
   const view = page({ routes: { "/api/library/films": [200, { films: [] }], "/api/library/series": [503, {}] },
                       token: "K3Y" });
   assert.deepEqual(plain(await view.window.TinyPPI.getJSON("/api/library/films")), { films: [] });
-  assert.equal(view.requests.at(-1).url, "/api/library/films?token=K3Y");
+  assert.equal(view.requests.at(-1).url, "/api/library/films");
+  assert.equal(view.requests.at(-1).init.headers["X-TinyPPI-Token"], "K3Y");
   await assert.rejects(view.window.TinyPPI.getJSON("/api/library/series"), /503/);
 });
