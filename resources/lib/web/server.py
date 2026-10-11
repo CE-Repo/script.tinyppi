@@ -266,7 +266,7 @@ class _Server(ThreadingHTTPServer):
     def episode_artwork(self, episode_id: str, kind: str) -> tuple[bytes, str] | None:
         """Return an episode still, or None.
 
-        Only episodes of opened series are known (see web/library.py).
+        Only episodes of opened series are known (see web/library/series.py).
         """
         if not (self.offer_series and self.allow_control):
             return None

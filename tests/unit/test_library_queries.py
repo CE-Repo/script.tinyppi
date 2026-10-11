@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""The library's JSON-RPC queries, rows and writes (web/library.py)."""
+"""The library's JSON-RPC queries, rows and writes (web/library/)."""
 
 import re
 
@@ -40,8 +40,8 @@ class Kodi:
 @pytest.fixture
 def kodi(monkeypatch):
     fake = Kodi()
-    monkeypatch.setattr(library, "rpc", fake)
-    monkeypatch.setattr(library, "_cache", library._Cache())
+    monkeypatch.setattr(library.common, "rpc", fake)
+    monkeypatch.setattr(library.cache, "lists", library.new_cache())
     return fake
 
 
@@ -471,8 +471,8 @@ def test_an_episode_on_the_continue_row_resumes_from_there(kodi):
     assert kodi.sent("Player.Open")[-1] == {"item": {"episodeid": 6}, "options": {"resume": True}}
     library.continuing()
     # Episode 5 shares its id with a film on the row; a film's point is not used.
-    assert library._episode_resume_point(5) == 90
-    assert library._episode_resume_point(8) == 0
+    assert library.series._episode_resume_point(5) == 90
+    assert library.series._episode_resume_point(8) == 0
     assert kodi.sent("VideoLibrary.GetEpisodeDetails") == []
 
 
@@ -481,7 +481,7 @@ def test_an_episode_of_an_unopened_series_is_found_past_the_opened_ones(show):
         {"episodeid": 99, "title": "Elsewhere", "resume": {"position": 90, "total": 900}}]}}
     library.episodes(7)
     library.continuing()
-    assert library._episode_resume_point(99) == 90
+    assert library.series._episode_resume_point(99) == 90
     assert show.sent("VideoLibrary.GetEpisodeDetails") == []
 
 
@@ -512,7 +512,7 @@ def test_a_series_still_being_read_is_skipped_for_the_resume_point(kodi):
 
     def episodes_in_flight(_params):
         # Asked while the episode list is read: its slot holds nothing yet.
-        asked.append(library._episode_resume_point(70))
+        asked.append(library.series._episode_resume_point(70))
         return {"result": {"episodes": [{"episodeid": 70, "title": "Pilot"}]}}
 
     kodi.answers["VideoLibrary.GetEpisodes"] = episodes_in_flight
@@ -719,7 +719,7 @@ def test_continue_episodes_carry_their_show_and_its_rating(kodi):
 
 
 def test_the_continue_row_is_most_recent_first_and_capped(kodi, monkeypatch):
-    monkeypatch.setattr(library, "_CONTINUE_LIMIT", 3)
+    monkeypatch.setattr(library.progress, "_CONTINUE_LIMIT", 3)
     kodi.answers["VideoLibrary.GetMovies (in progress)"] = {"result": {"movies": [
         {"movieid": 1, "title": "Old film", "resume": {"position": 60, "total": 600},
          "lastplayed": "2026-01-01 00:00:00"},

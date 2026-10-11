@@ -55,7 +55,7 @@ _MAX_BODY = 4096
 _TOKEN_IN_QUERY = re.compile(r"(token=)[^&\s\"']*", re.IGNORECASE)
 
 # An artwork tag as the add-on makes them (CRC-32 in hex, see
-# snapshot._art_tags and library._tag).  It goes into the ETag header, so
+# snapshot._art_tags and library.common.tag).  It goes into the ETag header, so
 # anything else (e.g. an encoded CR/LF that would add headers) is no tag.
 _ART_TAG = re.compile(r"[0-9a-f]{1,16}")
 

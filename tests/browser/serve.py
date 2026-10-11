@@ -109,7 +109,7 @@ class Producer:
         return dict(SNAPSHOT, seq=self.seq)
 
 
-library.rpc = fake_rpc
+library.common.rpc = fake_rpc
 server = web_server._Server(("127.0.0.1", 0), Producer(), threading.Event(), TOKEN)
 server.refresh_settings()
 print(f"PORT {server.server_address[1]}", flush=True)

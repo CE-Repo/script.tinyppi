@@ -15,7 +15,7 @@ from core.log import channel, redacted
 from web.snapshot import art_path
 
 # Artwork kinds the page may request, and the maximum size.  ``thumb`` is an
-# episode still, used by the series episode list (see web/library.py).
+# episode still, used by the series episode list (see web/library/series.py).
 KINDS = ("poster", "fanart", "thumb")
 _MAX_ART = 8 * 1024 * 1024
 

@@ -30,7 +30,7 @@ development files.
 
 | File | Covers |
 |---|---|
-| `unit/test_library.py` | The dashboard's library cache: one query for concurrent readers, no stale list after a drop, a scan's burst of notifications as one drop, the drops after playback stops, episodes, the continue row, marking |
+| `unit/test_library.py` | The dashboard's library cache (`web/library/`): one query for concurrent readers, no stale list after a drop, a scan's burst of notifications as one drop, the drops after playback stops, episodes, the continue row, marking |
 | `unit/test_vs10_switcher.py` | VS10 switches from the dashboard: the last tap wins, a failed switch does not stop the next, the modes offered per source |
 | `unit/test_vs10_driver.py` | VS10 switching against a simulated Dolby Vision driver (sysfs nodes as files): the write order per mode, TV-LED and Player-LED, bypass releasing the core first, HDR10 <-> DV through SDR, display resets only when the output moved, native actions preferred and their fallback, failed writes reported |
 | `unit/test_server.py` | The HTTP server: the fixed routes, security headers, the token for writing and for untrusted host names, the guessing lockout, the connection caps, tokens and ports, IPv6 and IPv4 on one socket |
