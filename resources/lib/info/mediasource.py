@@ -212,7 +212,7 @@ def _item_path() -> str:
         return label
     try:
         return xbmc.Player().getPlayingItem().getPath() or ""
-    except Exception:  # nothing playing, or no item to ask
+    except RuntimeError:  # nothing playing, or no item to ask
         return ""
 
 
@@ -248,7 +248,7 @@ def _measure(path: str) -> str:
         return ""
     try:
         size = xbmcvfs.Stat(path).st_size()
-    except Exception as exc:  # the VFS raises RuntimeError or worse for a bad path
+    except (RuntimeError, OSError) as exc:  # the VFS raises RuntimeError or worse for a bad path
         # The error repeats the path, so the whole line is redacted.
         log(redacted(f"size of {path} unknown: {exc}"))
         return ""

@@ -400,7 +400,7 @@ class WebDashboard:
         try:
             self._producer.start()
             thread.start()
-        except Exception as exc:  # RuntimeError("can't start new thread")
+        except RuntimeError as exc:  # RuntimeError("can't start new thread")
             _log(f"cannot start the dashboard: {exc}", xbmc.LOGERROR)
             # Not stop(): serve_forever never ran, so server.shutdown() would
             # wait forever.  End the producer if it started, close the socket.

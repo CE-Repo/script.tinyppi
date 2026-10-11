@@ -533,7 +533,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
     def close_dialog(self) -> None:
         self._running = False
         home_window().clearProperty(PROP_ACTIVE)
-        with contextlib.suppress(Exception):
+        with contextlib.suppress(RuntimeError):
             self.close()
 
 

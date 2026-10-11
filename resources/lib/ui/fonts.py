@@ -370,7 +370,7 @@ def _install_fonts() -> None:
               PROP_FONTS_FAILED if failed else PROP_FONTS_READY)
     if not written:
         return
-    with contextlib.suppress(Exception):
+    with contextlib.suppress(RuntimeError):
         xbmc.executebuiltin("ReloadSkin(reload)")
 
 

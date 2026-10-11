@@ -383,7 +383,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             self.getControl(_RULE).setPosition(35, foot + _RULE_GAP)
             for control_id in _HINTS:
                 self.getControl(control_id).setPosition(35, foot + _HINT_GAP)
-        except Exception as exc:
+        except RuntimeError as exc:
             # Without these ids the window keeps its full skin height.
             if not self._resize_failed:
                 self._resize_failed = True
@@ -443,7 +443,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             return self._area_title
         try:
             position = self.getControl(_LIST).getSelectedPosition()
-        except Exception:  # window closing: the control is gone
+        except RuntimeError:  # window closing: the control is gone
             return self._area_title
         for start, title, end in self._areas:
             if start <= position <= end:
@@ -492,7 +492,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self._closing       = True
         self.back_to_caller = back_to_caller
         self._running       = False
-        with contextlib.suppress(Exception):
+        with contextlib.suppress(RuntimeError):
             self.close()
 
     # --- Refresh -----------------------------------------------------------

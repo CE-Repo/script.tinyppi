@@ -103,7 +103,7 @@ def delay(ms: int) -> None:
     """Wait *ms* milliseconds, in Kodi's own sleep while Kodi runs."""
     try:
         xbmc.sleep(ms)
-    except Exception:  # Kodi is shutting down
+    except RuntimeError:  # Kodi is shutting down
         time.sleep(ms / 1000)
 
 
@@ -198,7 +198,7 @@ def _is_playing_video() -> bool:
     """Return whether a video plays (needed for native VS10 actions)."""
     try:
         return xbmc.Player().isPlayingVideo()
-    except Exception:  # Kodi is shutting down
+    except RuntimeError:  # Kodi is shutting down
         return False
 
 
@@ -448,7 +448,7 @@ def _probe_vs10_actions() -> bool:
     )
     try:
         response = json.loads(xbmc.executeJSONRPC(request))
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         log(f"VS10 Actions probe failed: {e}", xbmc.LOGWARNING)
         return False
     return isinstance(response, dict) and "result" in response
@@ -491,7 +491,7 @@ def _probe_dv_Player_LED_setting() -> int | None:
     )
     try:
         response = json.loads(xbmc.executeJSONRPC(request))
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         log(f"probe failed: {e}", xbmc.LOGWARNING)
         return None
     result = response.get("result") if isinstance(response, dict) else None

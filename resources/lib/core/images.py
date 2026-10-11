@@ -87,7 +87,7 @@ _log = channel("images")
 
 
 def _log_debug(message: str) -> None:
-    with contextlib.suppress(Exception):
+    with contextlib.suppress(RuntimeError):
         _log(message)
 
 

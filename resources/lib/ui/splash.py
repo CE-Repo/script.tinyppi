@@ -407,7 +407,7 @@ def _window_dims(window: xbmcgui.Window) -> tuple[int, int]:
     """
     try:
         width, height = window.getWidth(), window.getHeight()
-    except Exception:  # window not created yet
+    except RuntimeError:  # window not created yet
         width = height = 0
     if width >= 640 and height >= 480:
         return width, height
@@ -465,7 +465,7 @@ def _mode_scale(addon: xbmcaddon.Addon, mode: str) -> float:
     """Return *mode*'s size multiplier, clamped to 0.8-1.3."""
     try:
         percent = addon.getSettingInt(_SCALE_SETTINGS[mode])
-    except Exception:  # unknown mode, or a setting that is not an integer
+    except (KeyError, TypeError, ValueError, RuntimeError):  # unknown mode, or not an integer
         return 1.0
     return min(1.3, max(0.8, percent / 100.0))
 
@@ -552,7 +552,7 @@ def _fade_in(
 def _remove_controls(video_window: xbmcgui.Window, controls: list[xbmcgui.Control]) -> None:
     """Remove *controls* from the video window, ignoring failures."""
     # The window may already be gone.
-    with contextlib.suppress(Exception):
+    with contextlib.suppress(RuntimeError):
         video_window.removeControls(controls)
 
 

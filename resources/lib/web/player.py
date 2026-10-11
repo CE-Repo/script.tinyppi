@@ -26,7 +26,7 @@ def rpc(method: str, params: dict | None = None) -> dict:
         request["params"] = params
     try:
         answer = json.loads(xbmc.executeJSONRPC(json.dumps(request)))
-    except Exception as exc:  # Kodi shutting down, or an answer that is no JSON
+    except (RuntimeError, ValueError) as exc:  # Kodi shutting down, or an answer that is no JSON
         _log(f"JSON-RPC {method} failed: {exc}")
         return {}
     return answer if isinstance(answer, dict) else {}

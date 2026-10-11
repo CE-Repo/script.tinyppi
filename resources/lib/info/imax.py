@@ -169,7 +169,7 @@ def _read_titles(path: str) -> dict[str, list[tuple[int | None, bool]]]:
     try:
         with xbmcvfs.File(path) as handle:
             raw = handle.read()
-    except Exception as exc:
+    except (RuntimeError, OSError, ValueError) as exc:
         _log(f"IMAX: cannot read {path}: {exc}")
         return {}
 
