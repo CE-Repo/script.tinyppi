@@ -242,6 +242,18 @@ def test_over_the_cap_the_oldest_address_is_forgotten(clock):
     assert len(guesses._wrong) == access._MAX_TRACKED
 
 
+def test_the_lockouts_are_capped_and_the_one_ending_soonest_goes(clock):
+    guesses = access.Guesses()
+    for i in range(access._MAX_TRACKED + 1):
+        clock.now += 1
+        address = f"10.3.{i // 250}.{i % 250}"
+        for guess in range(access._GUESS_LIMIT):
+            guesses.wrong(address, f"GUESS{guess}")
+    assert len(guesses._locked) == access._MAX_TRACKED
+    assert "10.3.0.0" not in guesses._locked
+    assert guesses.locked_for("10.3.1.6") > 0
+
+
 
 
 def test_the_boxs_own_names_are_trusted(own_names):

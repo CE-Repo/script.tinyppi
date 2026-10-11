@@ -80,13 +80,12 @@ jobs:
         with:
           python-version: "3.11"
       - run: python -m pip install kodi-addon-checker==0.0.36
+      # .gitattributes marks the development files export-ignore, so the
+      # archive is the add-on as Kodi installs it.
       - name: Export the add-on without development files
         run: |
           mkdir -p "$RUNNER_TEMP/addons"
           git archive HEAD --prefix=script.tinyppi/ | tar -x -C "$RUNNER_TEMP/addons"
-          cd "$RUNNER_TEMP/addons/script.tinyppi"
-          rm -rf .github tests tools .gitignore pyproject.toml requirements-dev.txt \
-                 package.json package-lock.json eslint.config.mjs
       - name: Check
         working-directory: ${{ runner.temp }}/addons
         run: kodi-addon-checker --branch omega script.tinyppi

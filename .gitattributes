@@ -1,0 +1,12 @@
+# Development files left out of `git archive`, which builds the add-on as
+# Kodi installs it (see the addon job in .github/workflows/ci.yml).
+/.github             export-ignore
+/tests               export-ignore
+/tools               export-ignore
+/.gitattributes      export-ignore
+/.gitignore          export-ignore
+/pyproject.toml      export-ignore
+/requirements-dev.txt export-ignore
+/package.json        export-ignore
+/package-lock.json   export-ignore
+/eslint.config.mjs   export-ignore
