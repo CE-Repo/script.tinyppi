@@ -38,7 +38,7 @@ class Slot:
     would serve the old list until the TTL ran out.
     """
 
-    def __init__(self, cache: "Cache", read: Reader) -> None:
+    def __init__(self, cache: Cache, read: Reader) -> None:
         self._cache   = cache
         self._read    = read
         self._value: dict | None = None

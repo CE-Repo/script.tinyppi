@@ -107,7 +107,7 @@ class Handler(BaseHTTPRequestHandler):
     # hold a thread forever.
     timeout          = _REQUEST_TIMEOUT
 
-    server: "_Server"
+    server: _Server
 
     # --- Plumbing ----------------------------------------------------------
 

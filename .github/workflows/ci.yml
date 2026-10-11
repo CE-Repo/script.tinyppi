@@ -16,18 +16,14 @@ concurrency:
 # to a new release on GitHub's schedule; a move is then a change of its own.
 jobs:
   python:
-    name: Python ${{ matrix.python }} (ruff, mypy, complexity, pytest, coverage)
+    name: Python (ruff, mypy, complexity, pytest, coverage)
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        # Current CoreELEC ships 3.14; older Kodi 21 builds still run 3.11.
-        python: ["3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: ${{ matrix.python }}
+          # Kodi 22 (August builds on), the only Kodi the add-on is for.
+          python-version: "3.14"
           cache: pip
           cache-dependency-path: requirements-dev.txt
       - run: python -m pip install -r requirements-dev.txt
@@ -88,4 +84,4 @@ jobs:
           git archive HEAD --prefix=script.tinyppi/ | tar -x -C "$RUNNER_TEMP/addons"
       - name: Check
         working-directory: ${{ runner.temp }}/addons
-        run: kodi-addon-checker --branch omega script.tinyppi
+        run: kodi-addon-checker --branch piers script.tinyppi

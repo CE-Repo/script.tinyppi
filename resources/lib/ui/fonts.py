@@ -273,7 +273,7 @@ def _install_xml(font_xml_path: str) -> bool:
     nl = "\r\n" if "\r\n" in original else "\n"
     modified = False
 
-    def _process(match: "re.Match") -> str:
+    def _process(match: re.Match) -> str:
         nonlocal modified
         open_tag, inner, close_tag = match.group(1), match.group(2), match.group(3)
         fset_id = _fontset_id(open_tag)
