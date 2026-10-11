@@ -10,6 +10,8 @@ function of its arguments.
 
 import re
 
+from info.dvformat import Block
+
 # All fields; info.dvinfo's getters expose them one by one.
 FIELDS = (
     "hdr_format",
@@ -103,7 +105,7 @@ _LABEL_TOKENS = (
 )
 
 
-def _hdr_token(label: str, parsed: dict) -> str:
+def _hdr_token(label: str, parsed: Block) -> str:
     """Return the source HDR token: '', hdr10, hdr10+, hlg or dolbyvision.
 
     Kodi's label (from the container) is the only source for HLG.  The side
@@ -116,7 +118,7 @@ def _hdr_token(label: str, parsed: dict) -> str:
     return token if token == "dolbyvision" else _side_data_token(token, parsed)
 
 
-def _side_data_token(token: str, parsed: dict) -> str:
+def _side_data_token(token: str, parsed: Block) -> str:
     """Return *token* (from Kodi's label) as the side data refines it."""
     if parsed.get("rpu") or parsed.get("config"):
         return "dolbyvision"
@@ -127,7 +129,7 @@ def _side_data_token(token: str, parsed: dict) -> str:
     return token
 
 
-def _dv_profile(hdr_detail: str, config: dict | None, rpu: dict | None) -> str:
+def _dv_profile(hdr_detail: str, config: Block | None, rpu: Block | None) -> str:
     """Return the Dolby Vision ``<profile>.<compatibility>`` string.
 
     The dvcC/dvvC record comes first; it names the source profile even after
@@ -148,14 +150,14 @@ def _dv_profile(hdr_detail: str, config: dict | None, rpu: dict | None) -> str:
     return str(guess) if guess is not None else ""
 
 
-def _hdr10plus_profile_label(hdr10plus: dict | None) -> str:
+def _hdr10plus_profile_label(hdr10plus: Block | None) -> str:
     """Return the HDR10+ profile, e.g. ``Profile B``, or ''."""
     profile = str((hdr10plus or {}).get("profile") or "").strip()
     return f"Profile {profile.upper()}" if profile else ""
 
 
 def _output_mode(
-    token: str, profile: str, el_type: str, hdr10plus: dict | None
+    token: str, profile: str, el_type: str, hdr10plus: Block | None
 ) -> str:
     """Build the overlay's output-mode string.
 
@@ -176,13 +178,13 @@ def _output_mode(
     return ""
 
 
-def _cm_version(rpu: dict | None) -> str:
+def _cm_version(rpu: Block | None) -> str:
     """Return the CM version (``CMv4.0`` / ``CMv2.9``), or '' without DM data."""
     version = (rpu or {}).get("cm_version")
     return f"CMv{version}" if version else ""
 
 
-def _structure_abbr(structure: object, config: dict | None, el_type: str) -> str:
+def _structure_abbr(structure: object, config: Block | None, el_type: str) -> str:
     """Return the layer structure: ``ST-DL``, ``DT-DL`` or ``ST-SL``.
 
     Single/dual track, single/dual layer.  The side data names a structure
@@ -195,7 +197,7 @@ def _structure_abbr(structure: object, config: dict | None, el_type: str) -> str
     return "ST-DL" if dual else "ST-SL"
 
 
-def _dv_record_version(config: dict | None) -> str:
+def _dv_record_version(config: Block | None) -> str:
     """Return the dvcC/dvvC record version, e.g. ``1.0``, or ''.
 
     The record's own version, not the DV level (``config['level']``).
@@ -206,7 +208,7 @@ def _dv_record_version(config: dict | None) -> str:
 
 
 def _presence(
-    config: dict | None, rpu: dict | None, el_type: str
+    config: Block | None, rpu: Block | None, el_type: str
 ) -> tuple[str, str, str]:
     """Return the (RPU, base layer, enhancement layer) presence flags.
 
@@ -233,7 +235,7 @@ def _bit_depth(el_type: str) -> str:
     return "12" if el_type == "FEL" else ""
 
 
-def build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]:
+def build_info(parsed: Block, hdr_label: str, hdr_detail: str) -> dict[str, str]:
     """Turn one parse result into the overlay fields.
 
     Dolby Vision fills the RPU rows (L1, L5, L6, CM version, layers).  The
@@ -270,7 +272,7 @@ def build_info(parsed: dict, hdr_label: str, hdr_detail: str) -> dict[str, str]:
     return info
 
 
-def _dolby_vision_fields(info: dict[str, str], parsed: dict, profile: str,
+def _dolby_vision_fields(info: dict[str, str], parsed: Block, profile: str,
                          el_type: str) -> None:
     """Fill the Dolby Vision rows: CM version, structure, profile, layers."""
     config = parsed.get("config")
@@ -290,7 +292,7 @@ def _dolby_vision_fields(info: dict[str, str], parsed: dict, profile: str,
     ) = _presence(config, rpu, el_type)
 
 
-def _rpu_fields(info: dict[str, str], rpu: dict) -> None:
+def _rpu_fields(info: dict[str, str], rpu: Block) -> None:
     """Fill the rows of the per-frame RPU blocks (L5, L1, L6, source)."""
     # L5 active area, L1 luminance in nits and PQ.
     l5 = rpu.get("l5")
@@ -327,7 +329,7 @@ def _rpu_fields(info: dict[str, str], rpu: dict) -> None:
         ])
 
 
-def _static_fields(info: dict[str, str], mdcv: dict | None, cll: dict | None) -> None:
+def _static_fields(info: dict[str, str], mdcv: Block | None, cll: Block | None) -> None:
     """Fill the HDR10 rows from the static MDCV and CLL SEIs."""
     if mdcv:
         info["hdr10_mdl"] = _joined([

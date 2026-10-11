@@ -37,6 +37,7 @@ import xbmc
 from core.log import channel
 from core.utils import home_window, localized
 from info.dvfields import EL_TAGS, build_info, empty_info
+from info.dvformat import Block
 
 try:
     from sidedata import parse_sidedata as _parse_sidedata
@@ -109,7 +110,11 @@ def is_status_label(value: str) -> bool:
 
 # --- Side-data access ------------------------------------------------------
 
-def _empty_sidedata() -> dict:
+# What a parse is cached by: the raw payload, Kodi's HDR label and detail,
+# and whether the composer data was asked for.
+_Key = tuple[str, str, str, bool]
+
+def _empty_sidedata() -> Block:
     """Return a parse result shaped like script.module.sidedata's, all empty."""
     return {
         "flags": [],
@@ -122,7 +127,7 @@ def _empty_sidedata() -> dict:
     }
 
 
-def _parse(raw: str, mapping: bool = False) -> dict:
+def _parse(raw: str, mapping: bool = False) -> Block:
     """Parse the raw side-data JSON, or return an empty result.
 
     ``parse_sidedata`` returns None per section instead of raising; the guard
@@ -155,7 +160,7 @@ def _parse(raw: str, mapping: bool = False) -> dict:
     return parsed if isinstance(parsed, dict) else _empty_sidedata()
 
 
-def _derive(key: tuple[str, str, str, bool]) -> tuple[dict | None, dict[str, str]]:
+def _derive(key: _Key) -> tuple[Block | None, dict[str, str]]:
     """Parse a raw payload and derive the fields; never raises.
 
     Returns ``(parsed, fields)``, so the metadata view can reuse the parse.
@@ -189,9 +194,9 @@ class _Snapshots:
 
     def __init__(self) -> None:
         self._lock    = threading.Lock()
-        self._key: tuple | None = None
+        self._key: _Key | None = None
         self._info    = empty_info()
-        self._parsed: dict | None = None
+        self._parsed: Block | None = None
         self._playing = False
         self._until   = 0.0
         self._mapping_until  = 0.0
@@ -204,7 +209,7 @@ class _Snapshots:
             self._mapping_until = time.monotonic() + _MAPPING_TTL
 
     @property
-    def parsed(self) -> dict | None:
+    def parsed(self) -> Block | None:
         """The full parse result behind the current fields."""
         with self._lock:
             return self._parsed
@@ -299,7 +304,7 @@ def _snapshot() -> tuple[dict[str, str], bool]:
     return _snapshots.current()
 
 
-def get_sidedata(mapping: bool = False) -> dict | None:
+def get_sidedata(mapping: bool = False) -> Block | None:
     """Return the full parse result behind the current fields.
 
     For the metadata view, which prints every block; it shares the overlay's

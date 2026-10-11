@@ -345,6 +345,15 @@ def test_a_changed_reading_is_highlighted_in_the_published_color():
     assert warnings() == []
 
 
+def test_a_changed_table_cell_is_highlighted_alone():
+    xbmcgui.Window(10000).setProperty(COLOR_PROPERTY, "FFFF0000")
+    dialog = view.DVMetadataDialog()
+    table = [section("L2", ""), (dvmetadata.COLUMNS, "1000 nits", ["2048", "2048"])]
+    dialog._fill(table)
+    dialog._fill([table[0], (dvmetadata.COLUMNS, "1000 nits", ["2048", "1900"])])
+    assert cells(listed(dialog).items[1], "c", 6)[-2:] == ["2048", "[COLOR=FFFF0000]1900[/COLOR]"]
+
+
 def test_without_a_published_color_the_default_is_used_and_logged_once():
     dialog = view.DVMetadataDialog()
     dialog._fill(ROWS)

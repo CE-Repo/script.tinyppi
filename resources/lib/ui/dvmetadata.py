@@ -124,14 +124,20 @@ def _paint_cells(item: xbmcgui.ListItem, kind: str, names: tuple[str, str],
                          cell if kind == dvmetadata.COLUMNS else "")
 
 
-def _identities(rows: list) -> list:
+# A row's identity across rebuilds: (kind, name, repeat index).
+_RowKey = tuple[str, str, int]
+# A section: (heading row, title, last row).
+_Area = tuple[int, str, int]
+
+
+def _identities(rows: list[dvmetadata.Row]) -> list[_RowKey]:
     """Return a stable key per row: (kind, name, repeat index).
 
     Names repeat (MaxCLL is under L6 and the static SEIs).  The key keeps a
     row's highlight history across rebuilds, e.g. when sections come and go.
     """
-    seen: dict = {}
-    keys = []
+    seen: dict[tuple[str, str], int] = {}
+    keys: list[_RowKey] = []
     for kind, name, _value in rows:
         repeat = seen.get((kind, name), 0)
         seen[(kind, name)] = repeat + 1
@@ -139,14 +145,14 @@ def _identities(rows: list) -> list:
     return keys
 
 
-def _areas(rows: list) -> list:
+def _areas(rows: list[dvmetadata.Row]) -> list[_Area]:
     """Return the sections as ``(heading row, title, last row)``.
 
     The blank row before a heading belongs to neither section.
     """
     starts = [index for index, (kind, _name, _value) in enumerate(rows)
               if kind == dvmetadata.SECTION]
-    areas = []
+    areas: list[_Area] = []
     for position, start in enumerate(starts):
         end = (starts[position + 1] - 1 if position + 1 < len(starts)
                else len(rows) - 1)
@@ -156,7 +162,7 @@ def _areas(rows: list) -> list:
     return areas
 
 
-def _paint_table(item: xbmcgui.ListItem, kind: str, label: str | list[str]) -> None:
+def _paint_table(item: xbmcgui.ListItem, kind: str, label: dvmetadata.Value) -> None:
     """Fill the table cells of *item*, in the wide or the compact slots.
 
     Rows that are no table rows get every cell emptied.
@@ -192,17 +198,17 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self._opened_at = 0.0
         # Row identities in the list; the highlighter tracks values by
         # identity (see _identities).
-        self._keys: list = []
+        self._keys: list[_RowKey] = []
         self._highlighter = ChangeHighlighter(highlight_hold(_CHANGED_HOLD))
         # Labels (or cell lists) shown last tick, so _fill can skip idle
         # ticks.
-        self._last_labels: list = []
+        self._last_labels: list[dvmetadata.Value] = []
         # True during _fill's list swap (see _cursor_area).
         self._swapping: bool = False
         # Cached static rows, their signature and the next fallback rebuild
         # (owned by _merged_rows).
-        self._static_rows: list = []
-        self._static_signature: tuple | None = None
+        self._static_rows: list[dvmetadata.Row] = []
+        self._static_signature: tuple[object, ...] | None = None
         self._next_static_rows = 0.0
         self._thread: threading.Thread | None = None
         self._closing        = False
@@ -213,7 +219,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self._resize_failed = False
         # Sections and the current one, by title, so sections coming and
         # going do not move the viewer (see _focus_area).
-        self._areas: list = []
+        self._areas: list[_Area] = []
         self._area_title  = ""
         # Set before doModal(): the section to start on, so returning from a
         # section keeps the viewer's place.
@@ -268,7 +274,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
     # --- List --------------------------------------------------------------
 
     @staticmethod
-    def _paint(item: xbmcgui.ListItem, row: tuple, label: str | list[str]) -> None:
+    def _paint(item: xbmcgui.ListItem, row: dvmetadata.Row, label: dvmetadata.Value) -> None:
         """Make *item* show *row* with *label* as its value.
 
         All rows share one layout (Kodi evaluates list layout conditions once
@@ -303,7 +309,14 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             )
         return _CHANGED_FALLBACK
 
-    def _fill(self, rows: list) -> None:
+    def _mark(self, key: _RowKey, value: dvmetadata.Value, color: str,
+              now: float) -> dvmetadata.Value:
+        """Highlight *value*'s changes: a reading, or a table row's cells."""
+        if isinstance(value, list):
+            return self._highlighter.mark(key, value, color, now)
+        return self._highlighter.mark(key, value, color, now)
+
+    def _fill(self, rows: list[dvmetadata.Row]) -> None:
         """Replace the list with *rows* when anything changed; else do nothing.
 
         Measured on device: in-place ``setLabel``/``setProperty`` calls from
@@ -333,7 +346,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self._highlighter.retain(keys)
         labels = [
             value if kind == dvmetadata.SECTION
-            else self._highlighter.mark(key, value, color, now)
+            else self._mark(key, value, color, now)
             for (kind, _name, value), key in zip(rows, keys, strict=True)
         ]
 

@@ -250,7 +250,7 @@ class SnapshotBuilder:
         self._published: dict[str, str] = {}
         self._static_at = 0.0
         self._sequence  = 0
-        self._meta_static: list[tuple[str, str, str]] = []
+        self._meta_static: list[dvmetadata.Row] = []
         self._meta_static_at = 0.0
         #: The playing title's history; served by /api/history.
         self.session    = SessionLog()

@@ -8,6 +8,7 @@ the row kinds through ``info.dvmetadata``.
 """
 
 import math
+from typing import Any
 
 import xbmc
 
@@ -41,6 +42,19 @@ EMPTY = "—"
 # a section held from an earlier frame (see _HeldBlocks).
 LIVE   = "Live"
 CACHED = "Cached"
+
+# A block of the parsed side data (script.module.sidedata's JSON-shaped
+# result, e.g. the RPU or its L1): read with ``get``, formatted from object.
+Block = dict[str, Any]
+
+# A row's value: text, or a table row's cells.
+Value = str | list[str]
+# A row of the view: (kind, name, value).
+Row = tuple[str, str, Value]
+# A plain reading, shown as a ROW: (name, value).
+Pair = tuple[str, Value]
+# What a section is built from: pairs, and rows where the kind matters.
+Entry = Pair | Row
 
 # Separator in composite values ("2081 | 1000").
 _JOIN = " | "

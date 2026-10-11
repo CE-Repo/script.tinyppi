@@ -11,15 +11,26 @@ sections.  Names, units and scalings follow the parser module's FIELDS.md.
 """
 
 from collections.abc import Callable, Sequence
+from functools import partial
 
 from info import dvformat as fmt
-from info.dvformat import COLUMNS, EMPTY, HEADINGS, MAX_COLUMNS, MAX_COMPACT_COLUMNS, SPACE
+from info.dvformat import (
+    COLUMNS,
+    EMPTY,
+    HEADINGS,
+    MAX_COLUMNS,
+    MAX_COMPACT_COLUMNS,
+    SPACE,
+    Block,
+    Entry,
+    Pair,
+)
 
 # HDR10+ maxRGB percentiles shown, in spec order.
 _HDR10PLUS_PERCENTILES = (1, 5, 10, 25, 50, 75, 90, 95, 99)
 
 
-def l1_pairs(rpu: dict | None) -> list:
+def l1_pairs(rpu: Block | None) -> list[Pair]:
     """Return L1 frame luminance rows as PQ code and nits (per frame)."""
     l1 = (rpu or {}).get("l1") or {}
     return [
@@ -32,7 +43,7 @@ def l1_pairs(rpu: dict | None) -> list:
     ]
 
 
-def source_pairs(rpu: dict | None) -> list:
+def source_pairs(rpu: Block | None) -> list[Pair]:
     """Return the source master rows: PQ range and display size.
 
     Only frames with uncompressed DM data carry them.
@@ -68,7 +79,7 @@ def _blanked(cells: list[str]) -> list[str]:
     return ["" if cell == EMPTY else cell for cell in cells]
 
 
-def colorimetry_entries(rpu: dict | None) -> list:
+def colorimetry_entries(rpu: Block | None) -> list[Entry]:
     """Return the VDR DM signal description and colour matrices as raw codes.
 
     Only frames with uncompressed DM data carry them.
@@ -77,7 +88,7 @@ def colorimetry_entries(rpu: dict | None) -> list:
     return _matrix_entries(block) + _signal_pairs(block)
 
 
-def _matrix_entries(block: dict) -> list:
+def _matrix_entries(block: Block) -> list[Entry]:
     """Return the colour matrices as a compact table, or [] without any."""
     matrices = [
         (name, [fmt.num(value) for value in block.get(key) or []])
@@ -87,14 +98,14 @@ def _matrix_entries(block: dict) -> list:
                 if len(cells) == MAX_COMPACT_COLUMNS and not _unset(cells)]
     if not matrices:
         return []
-    entries: list = [(HEADINGS, _MATRIX_LEGEND, list(_MATRIX_COLUMNS))]
+    entries: list[Entry] = [(HEADINGS, _MATRIX_LEGEND, list(_MATRIX_COLUMNS))]
     entries.extend((COLUMNS, name, _blanked(cells)) for name, cells in matrices)
     # Space between the matrices and the signal description.
     entries.append((SPACE, "space.colorimetry", ""))
     return entries
 
 
-def _signal_pairs(block: dict) -> list:
+def _signal_pairs(block: Block) -> list[Pair]:
     """Return the signal description rows."""
     offsets = block.get("ycc_to_rgb_offset") or []
     return [
@@ -111,7 +122,7 @@ def _signal_pairs(block: dict) -> list:
     ]
 
 
-def l3_pairs(rpu: dict | None) -> list:
+def l3_pairs(rpu: Block | None) -> list[Pair]:
     """Return the L3 PQ offset rows."""
     l3 = (rpu or {}).get("l3") or {}
     return [
@@ -121,7 +132,7 @@ def l3_pairs(rpu: dict | None) -> list:
     ]
 
 
-def l4_pairs(rpu: dict | None) -> list:
+def l4_pairs(rpu: Block | None) -> list[Pair]:
     """Return the L4 temporal stability anchors as raw codes."""
     l4 = (rpu or {}).get("l4") or {}
     return [
@@ -130,7 +141,7 @@ def l4_pairs(rpu: dict | None) -> list:
     ]
 
 
-def l5_pairs(rpu: dict | None) -> list:
+def l5_pairs(rpu: Block | None) -> list[Pair]:
     """Return the L5 active-area offsets of this frame."""
     l5 = (rpu or {}).get("l5") or {}
     return [
@@ -139,7 +150,7 @@ def l5_pairs(rpu: dict | None) -> list:
     ]
 
 
-def l6_pairs(rpu: dict | None) -> list:
+def l6_pairs(rpu: Block | None) -> list[Pair]:
     """Return the L6 rows (the RPU's own declaration, not the static SEIs)."""
     l6 = (rpu or {}).get("l6") or {}
     return [
@@ -184,7 +195,11 @@ _TRIM_VECTORS = (
 )
 # One column per vector field, named by position: the module documents them
 # only as raw codes in bitstream order.
-_VECTOR_FIELDS = tuple((index, f"Field {index + 1}") for index in range(6))
+_VECTOR_FIELDS = tuple((str(index), f"Field {index + 1}") for index in range(6))
+
+# One trim table: legend, controls, the block of a pass, the formatter.
+_TrimTable = tuple[str, Sequence[tuple[str, str]], Callable[[Block], Block],
+                   Callable[[object], str]]
 
 # Name-column legends of the heading rows.
 _LEGEND_RAW   = "Legend (raw)"
@@ -202,7 +217,7 @@ _TRIM_BLOCK = (("length", "Length"),)
 _TRIM_TARGETS = (100, 600, 1000, 2000)
 
 
-def _target_nits(trim: dict) -> int | None:
+def _target_nits(trim: Block) -> int | None:
     """Return the target display brightness of *trim* in whole nits, or None."""
     value = trim.get("nits")
     if isinstance(value, bool) or not isinstance(value, (int, float)):
@@ -210,7 +225,7 @@ def _target_nits(trim: dict) -> int | None:
     return int(round(value))
 
 
-def _target(trim: dict) -> str:
+def _target(trim: Block) -> str:
     """Name a pass by its target display brightness.
 
     The L10 index and raw target PQ code repeat the same information and are
@@ -219,7 +234,7 @@ def _target(trim: dict) -> str:
     return f"{fmt.num(trim.get('nits'))} nits"
 
 
-def _vector_block(trim: dict, key: str) -> dict:
+def _vector_block(trim: Block, key: str) -> Block:
     """Return an L8 vector of *trim* keyed by position, for ``_table``.
 
     Empty when the pass has none (older parser or short block).
@@ -227,11 +242,11 @@ def _vector_block(trim: dict, key: str) -> dict:
     vector = trim.get(key)
     if not isinstance(vector, (list, tuple)):
         return {}
-    return dict(enumerate(vector))
+    return {str(index): value for index, value in enumerate(vector)}
 
 
-def _table(legend: str, controls: Sequence[tuple[str, str]], trims: list,
-           block_of: Callable[[dict], dict], formatter: Callable[[object], str]) -> list:
+def _table(legend: str, controls: Sequence[tuple[str, str]], trims: list[Block],
+           block_of: Callable[[Block], Block], formatter: Callable[[object], str]) -> list[Entry]:
     """Build one trim table: a heading row, then one row per pass.
 
     Only controls set by some pass get a column; unset cells are blank (a
@@ -245,7 +260,7 @@ def _table(legend: str, controls: Sequence[tuple[str, str]], trims: list,
     if not used:
         return []
 
-    entries: list = []
+    entries: list[Entry] = []
     for start in range(0, len(used), MAX_COLUMNS):
         chunk = used[start:start + MAX_COLUMNS]
         if entries:
@@ -256,10 +271,10 @@ def _table(legend: str, controls: Sequence[tuple[str, str]], trims: list,
     return entries
 
 
-def _pass_rows(trims: list, keys: list[str], block_of: Callable[[dict], dict],
-               formatter: Callable[[object], str]) -> list:
+def _pass_rows(trims: list[Block], keys: list[str], block_of: Callable[[Block], Block],
+               formatter: Callable[[object], str]) -> list[Entry]:
     """Return one table row per pass that sets any of *keys*."""
-    rows = []
+    rows: list[Entry] = []
     for trim in trims:
         cells = [formatter(block_of(trim).get(key)) for key in keys]
         if not _unset(cells):
@@ -267,27 +282,26 @@ def _pass_rows(trims: list, keys: list[str], block_of: Callable[[dict], dict],
     return rows
 
 
-def _trim_tables(level: str) -> list[tuple]:
+def _trim_tables(level: str) -> list[_TrimTable]:
     """Return *level*'s tables as (legend, controls, block of a pass, formatter)."""
     if level != "l8":
         return [
             (_LEGEND_RAW, _TRIM_RAW, lambda trim: trim, fmt.num),
             (_LEGEND_UI, _TRIM_UI, lambda trim: trim.get("ui") or {}, fmt.scaled),
         ]
-    tables: list[tuple] = [
+    tables: list[_TrimTable] = [
         (_LEGEND_RAW, _TRIM_RAW_L8, lambda trim: trim, fmt.num),
         (_LEGEND_UI, _TRIM_UI, lambda trim: trim.get("ui") or {}, fmt.scaled),
     ]
     tables.extend(
-        (legend, _VECTOR_FIELDS,
-         lambda trim, key=key: _vector_block(trim, key), fmt.num)
+        (legend, _VECTOR_FIELDS, partial(_vector_block, key=key), fmt.num)
         for key, legend in _TRIM_VECTORS
     )
     tables.append((_LEGEND_BLOCK, _TRIM_BLOCK, lambda trim: trim, fmt.num))
     return tables
 
 
-def trim_entries(level: str, trims: list | None) -> list:
+def trim_entries(level: str, trims: list[Block] | None) -> list[Entry]:
     """Return the trim passes of *level* (l2 / l8) as tables.
 
     Controls across, one row per target display.  Raw codes and the UI's
@@ -297,7 +311,7 @@ def trim_entries(level: str, trims: list | None) -> list:
     """
     trims = [trim for trim in (trims or [])
              if _target_nits(trim) in _TRIM_TARGETS]
-    entries: list = []
+    entries: list[Entry] = []
     for legend, controls, block_of, formatter in _trim_tables(level):
         table = _table(legend, controls, trims, block_of, formatter)
         if table and entries:
@@ -307,10 +321,10 @@ def trim_entries(level: str, trims: list | None) -> list:
     return entries
 
 
-def l9_pairs(rpu: dict | None) -> list:
+def l9_pairs(rpu: Block | None) -> list[Pair]:
     """Return the L9 source primaries, with coordinates when present."""
     block = (rpu or {}).get("l9") or {}
-    pairs = [
+    pairs: list[Pair] = [
         ("Index", fmt.num(block.get("index"))),
         ("Primaries", fmt.text(block.get("name"))),
     ]
@@ -325,9 +339,9 @@ def l9_pairs(rpu: dict | None) -> list:
     return pairs
 
 
-def l10_pairs(targets: list | None) -> list:
+def l10_pairs(targets: list[Block] | None) -> list[Pair]:
     """Return one row per L10 target display with its primaries and PQ range."""
-    pairs = []
+    pairs: list[Pair] = []
     for target in targets or []:
         name = f"{fmt.num(target.get('nits'))} nits"
         index = target.get("target_display_index")
@@ -348,7 +362,7 @@ def l10_pairs(targets: list | None) -> list:
     return pairs
 
 
-def l11_pairs(rpu: dict | None) -> list:
+def l11_pairs(rpu: Block | None) -> list[Pair]:
     """Return the L11 content type and whitepoint rows."""
     l11 = (rpu or {}).get("l11") or {}
     return [
@@ -360,7 +374,7 @@ def l11_pairs(rpu: dict | None) -> list:
     ]
 
 
-def l254_pairs(rpu: dict | None) -> list:
+def l254_pairs(rpu: Block | None) -> list[Pair]:
     """Return the L254 (CM v4.0 marker) raw codes."""
     l254 = (rpu or {}).get("l254") or {}
     return [
@@ -369,7 +383,7 @@ def l254_pairs(rpu: dict | None) -> list:
     ]
 
 
-def l255_pairs(rpu: dict | None) -> list:
+def l255_pairs(rpu: Block | None) -> list[Pair]:
     """Return the L255 debug run mode rows (rare in encoded content)."""
     l255 = (rpu or {}).get("l255") or {}
     return [
@@ -380,12 +394,12 @@ def l255_pairs(rpu: dict | None) -> list:
     ]
 
 
-def static_pairs(mdcv: dict | None, cll: dict | None) -> list:
+def static_pairs(mdcv: Block | None, cll: Block | None) -> list[Pair]:
     """Return the static MDCV / CLL rows, kept apart from L6 (they can differ)."""
     mdcv = mdcv or {}
     cll  = cll or {}
     primaries = mdcv.get("primaries") or {}
-    pairs = [
+    pairs: list[Pair] = [
         ("Max luminance", fmt.lum(mdcv.get("max_luminance"))),
         ("Min luminance", fmt.lum(mdcv.get("min_luminance"))),
         ("Primaries", fmt.text(primaries.get("name"))),
@@ -403,10 +417,10 @@ def static_pairs(mdcv: dict | None, cll: dict | None) -> list:
     return pairs
 
 
-def hdr10plus_pairs(hdr10plus: dict) -> list:
+def hdr10plus_pairs(hdr10plus: Block) -> list[Entry]:
     """Return the HDR10+ (ST 2094-40) rows."""
     maxscl = hdr10plus.get("maxscl") or []
-    pairs: list[tuple] = [
+    pairs: list[Entry] = [
         ("Profile", fmt.text(hdr10plus.get("profile"))),
         ("Application version", fmt.num(hdr10plus.get("application_version"))),
         ("Windows", fmt.num(hdr10plus.get("num_windows"))),
@@ -426,7 +440,7 @@ def hdr10plus_pairs(hdr10plus: dict) -> list:
     return pairs + _distribution_rows(hdr10plus)
 
 
-def _tone_curve_pairs(hdr10plus: dict) -> list:
+def _tone_curve_pairs(hdr10plus: Block) -> list[Pair]:
     """Return the profile B tone curve: knee point and Bézier anchors."""
     anchors = hdr10plus.get("bezier_anchors") or []
     return [
@@ -437,7 +451,7 @@ def _tone_curve_pairs(hdr10plus: dict) -> list:
     ]
 
 
-def _distribution_rows(hdr10plus: dict) -> list:
+def _distribution_rows(hdr10plus: Block) -> list[Entry]:
     """Return the nine maxRGB percentiles as one compact table, or [].
 
     ui.dvmetadata picks the compact grid from the cell count.

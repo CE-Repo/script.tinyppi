@@ -12,7 +12,7 @@ from collections.abc import Callable, Sequence
 from typing import Any
 
 from info import dvformat as fmt
-from info.dvformat import COLUMNS, EMPTY, HEADINGS, MAX_COLUMNS, SPACE
+from info.dvformat import COLUMNS, EMPTY, HEADINGS, MAX_COLUMNS, SPACE, Block, Entry, Pair
 
 # The three reshaping curves in module order, named by component; also the
 # NLQ table's columns.
@@ -47,7 +47,7 @@ def _coefficient(int_part: object, frac_part: object, denom: object) -> str:
 
 
 def _grid(legend: str, headings: Sequence[str],
-          rows: Sequence[tuple[str, Sequence[str]]]) -> list:
+          rows: Sequence[tuple[str, Sequence[str]]]) -> list[Entry]:
     """Lay out *rows* (``(name, cells)``) as a table under *headings*.
 
     Empty rows are dropped; more headings than ``MAX_COLUMNS`` continue in a
@@ -55,7 +55,7 @@ def _grid(legend: str, headings: Sequence[str],
     ui.dvmetadata._paint can right-align narrow tables and keep each reading
     under its heading.
     """
-    entries: list = []
+    entries: list[Entry] = []
     for start in range(0, len(headings), MAX_COLUMNS):
         stop  = start + MAX_COLUMNS
         chunk = list(headings[start:stop])
@@ -73,7 +73,7 @@ def _grid(legend: str, headings: Sequence[str],
     return entries
 
 
-def _mapping(rpu: dict | None) -> dict:
+def _mapping(rpu: Block | None) -> Block:
     """Return the RPU's composer data, or {}.
 
     Only parsed while the metadata view asks for it (see
@@ -83,12 +83,12 @@ def _mapping(rpu: dict | None) -> dict:
     return (rpu or {}).get("data_mapping") or {}
 
 
-def _denominator(rpu: dict | None) -> object:
+def _denominator(rpu: Block | None) -> object:
     """Return the header's ``coefficient_log2_denom``."""
     return ((rpu or {}).get("header") or {}).get("coefficient_log2_denom")
 
 
-def composer_pairs(rpu: dict | None) -> list:
+def composer_pairs(rpu: Block | None) -> list[Pair]:
     """Return the composer scalars: RPU id, colour space, partitions, NLQ."""
     mapping = _mapping(rpu)
     pivots  = mapping.get("nlq_pred_pivot_value") or []
@@ -105,22 +105,22 @@ def composer_pairs(rpu: dict | None) -> list:
     ]
 
 
-def _at(values: Sequence, index: int, default: Any = None) -> Any:
+def _at(values: Sequence[Any], index: int, default: Any = None) -> Any:
     """Return ``values[index]``, or *default* past its end."""
     return values[index] if index < len(values) else default
 
 
-def _field(mapping: dict | None, key: str) -> list:
+def _field(mapping: Block | None, key: str) -> list[Any]:
     """Return the list *mapping* holds under *key* ([] when none)."""
     return (mapping or {}).get(key) or []
 
 
-def _shown(values: Sequence, index: int, show: Callable[[Any], str]) -> str:
+def _shown(values: Sequence[Any], index: int, show: Callable[[Any], str]) -> str:
     """Return ``values[index]`` formatted by *show*, or EMPTY past its end."""
     return show(values[index]) if index < len(values) else EMPTY
 
 
-def _polynomial_entries(polynomial: dict | None, denom: object) -> list:
+def _polynomial_entries(polynomial: Block | None, denom: object) -> list[Entry]:
     """Return a polynomial curve as a table, one segment per row.
 
     Order and linear-interpolation flag first, then the coefficients from
@@ -145,7 +145,7 @@ def _polynomial_entries(polynomial: dict | None, denom: object) -> list:
     return _grid(_LEGEND_SEGMENT, headings, rows)
 
 
-def _mmr_entries(mmr: dict | None, denom: object) -> list:
+def _mmr_entries(mmr: Block | None, denom: object) -> list[Entry]:
     """Return an MMR curve as two tables.
 
     First one row per segment (order, constant), then one row per order
@@ -160,7 +160,7 @@ def _mmr_entries(mmr: dict | None, denom: object) -> list:
 
     segments  = max(len(orders), len(const_int), len(coef_int))
     head_rows = []
-    coef_rows: list = []
+    coef_rows: list[tuple[str, list[str]]] = []
     for segment in range(segments):
         head_rows.append((f"Segment {segment + 1}", [
             _shown(orders, segment, fmt.num),
@@ -182,10 +182,10 @@ def _mmr_entries(mmr: dict | None, denom: object) -> list:
     return entries
 
 
-def _mmr_levels(levels: Sequence, fracs: Sequence, prefix: str,
-                denom: object) -> list:
+def _mmr_levels(levels: Sequence[Any], fracs: Sequence[Any], prefix: str,
+                denom: object) -> list[tuple[str, list[str]]]:
     """Return one MMR segment's coefficient rows, one per order level."""
-    rows = []
+    rows: list[tuple[str, list[str]]] = []
     for level, ints in enumerate(levels):
         row  = _at(fracs, level, [])
         name = f"{prefix}order {level + 1}" if prefix else f"Order {level + 1}"
@@ -196,7 +196,7 @@ def _mmr_levels(levels: Sequence, fracs: Sequence, prefix: str,
     return rows
 
 
-def curve_entries(rpu: dict | None, index: int) -> list:
+def curve_entries(rpu: Block | None, index: int) -> list[Entry]:
     """Return one component's curve: shape, pivots and coefficients."""
     curves = _mapping(rpu).get("curves") or []
     curve  = (curves[index] if index < len(curves) else None) or {}
@@ -205,7 +205,7 @@ def curve_entries(rpu: dict | None, index: int) -> list:
 
     idc     = curve.get("mapping_idc")
     pivots  = curve.get("pivots") or []
-    entries: list = [
+    entries: list[Entry] = [
         ("Shape", fmt.text(_MAPPING_IDC_NAMES.get(idc, fmt.num(idc)))),
         ("Pivots", fmt.num(curve.get("num_pivots"))),
         ("Pivot codewords", fmt.joined(*(fmt.num(value) for value in pivots))),
@@ -220,7 +220,7 @@ def curve_entries(rpu: dict | None, index: int) -> list:
     return entries
 
 
-def nlq_entries(rpu: dict | None) -> list:
+def nlq_entries(rpu: Block | None) -> list[Entry]:
     """Return the NLQ dequantization data, one column per component.
 
     Dual-layer profiles (4 and 7) only.
