@@ -253,11 +253,8 @@ def _mode_logos(
     if show_video and show_audio and not (video_logo and audio_logo):
         return ()
 
-    stack = []
-    if show_video and video_logo:
-        stack.append((video_logo, "video"))
-    if show_audio and audio_logo:
-        stack.append((audio_logo, "audio"))
+    shown = ((video_logo, "video", show_video), (audio_logo, "audio", show_audio))
+    stack = [(logo, key) for logo, key, show in shown if show and logo]
     if mode_settings.audio_first:
         stack.reverse()
     return tuple(stack)
@@ -658,12 +655,10 @@ class _Controller:
             return False
         if not self._refresh_settings():
             return False
-        config = self.config
 
         now = time.monotonic()
         in_fullscreen = xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)")
-        in_start_window = config.show_on_start and (
-            self.started is None or now - self.started < config.duration)
+        in_start_window = self._in_start_window(now)
 
         # Read once for badge, pill and logos.
         gamut = info("Player.Process(amlogic.eoft_gamut)")
@@ -684,10 +679,21 @@ class _Controller:
             return False
         self._draw(desired_states, gamut)
 
-        if (not config.show_on_osd and not config.show_on_tinyppi
-                and not in_start_window and not self.states):
+        if self._finished(in_start_window):
             return False
         return not self.monitor.waitForAbort(self._wait_time(in_start_window, started))
+
+    def _in_start_window(self, now: float) -> bool:
+        """Return whether the start logos are (still) due."""
+        config = self.config
+        return config.show_on_start and (
+            self.started is None or now - self.started < config.duration)
+
+    def _finished(self, in_start_window: bool) -> bool:
+        """Return whether nothing is left to show: no mode, no logos."""
+        config = self.config
+        return (not config.show_on_osd and not config.show_on_tinyppi
+                and not in_start_window and not self.states)
 
     def _refresh_settings(self) -> bool:
         """Re-read the settings after a change; False while unavailable."""

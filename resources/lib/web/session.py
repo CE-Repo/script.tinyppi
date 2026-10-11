@@ -118,29 +118,36 @@ class SessionLog:
         sample clock).  The first pass only records the initial values.
         """
         for name, value in watched.items():
-            at, at_position = now, position
-            if isinstance(value, dict):
-                # Two-part reading: wait until settled (see _settle), dated
-                # from the first change.
-                identity = str(value.get("id") or "").strip()
-                label = str(value.get("label") or identity).strip()
-                if not identity:
-                    continue
-                settled = self._settle(name, (identity, label), now, position)
-                if settled is None:
-                    continue
-                at, at_position = settled
-            else:
-                identity = str(value or "").strip()
-                label = identity
-                if not identity:
-                    continue
+            reading = self._reading(name, value, now, position)
+            if reading is None:
+                continue
+            identity, label, at, at_position = reading
             previous = self._watched.get(name)
             self._watched[name] = (identity, label)
             if previous is None or previous[0] == identity:
                 continue
             self._add_event(at, at_position, name,
                             {"from": previous[1], "to": label})
+
+    def _reading(self, name: str, value: object, now: float,
+                 position: str) -> tuple[str, str, float, str] | None:
+        """Return a reading's identity, label and when it changed, or None.
+
+        None while it is empty, or for a two-part reading still settling.
+        """
+        if not isinstance(value, dict):
+            identity = str(value or "").strip()
+            return (identity, identity, now, position) if identity else None
+        # Two-part reading: wait until settled (see _settle), dated from the
+        # first change.
+        identity = str(value.get("id") or "").strip()
+        label = str(value.get("label") or identity).strip()
+        if not identity:
+            return None
+        settled = self._settle(name, (identity, label), now, position)
+        if settled is None:
+            return None
+        return (identity, label, *settled)
 
     def _settle(self, name: str, current: tuple[str, str], now: float,
                 position: str) -> tuple[float, str] | None:

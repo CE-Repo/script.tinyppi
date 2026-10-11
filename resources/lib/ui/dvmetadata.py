@@ -156,6 +156,27 @@ def _areas(rows: list) -> list:
     return areas
 
 
+def _paint_table(item: xbmcgui.ListItem, kind: str, label: str | list[str]) -> None:
+    """Fill the table cells of *item*, in the wide or the compact slots.
+
+    Rows that are no table rows get every cell emptied.
+    """
+    table   = kind in (dvmetadata.HEADINGS, dvmetadata.COLUMNS)
+    cells   = list(label) if table else []
+    compact = table and len(cells) == dvmetadata.MAX_COMPACT_COLUMNS
+    # Right-align narrow tables in the fixed slots, so the list has one
+    # right edge.  All rows of a table have the heading's width (see
+    # dvcomposer._grid and dvmetadata._table), so readings stay under their
+    # headings.  Full-width and compact tables are not shifted.
+    offset  = (max(0, dvmetadata.MAX_COLUMNS - len(cells))
+               if table and not compact else 0)
+    wide    = [""] * offset + cells if not compact else []
+    _paint_cells(item, kind, (_CELL_HEADING, _CELL_VALUE),
+                 wide, dvmetadata.MAX_COLUMNS)
+    _paint_cells(item, kind, (_COMPACT_CELL_HEADING, _COMPACT_CELL_VALUE),
+                 cells if compact else [], dvmetadata.MAX_COMPACT_COLUMNS)
+
+
 class DVMetadataDialog(xbmcgui.WindowXMLDialog):
     """The metadata list.
 
@@ -260,26 +281,13 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         heading = kind == dvmetadata.SECTION
         named   = kind in (dvmetadata.ROW, dvmetadata.HEADINGS,
                            dvmetadata.COLUMNS)
-        table   = kind in (dvmetadata.HEADINGS, dvmetadata.COLUMNS)
-        compact = table and len(label) == dvmetadata.MAX_COMPACT_COLUMNS
-        # Right-align narrow tables in the fixed slots, so the list has one
-        # right edge.  All rows of a table have the heading's width (see
-        # dvcomposer._grid and dvmetadata._table), so readings stay under their
-        # headings.  Full-width and compact tables are not shifted.
-        offset  = (max(0, dvmetadata.MAX_COLUMNS - len(label))
-                   if table and not compact else 0)
         item.setLabel(name if named else "")
         item.setLabel2(label if kind in (dvmetadata.ROW, dvmetadata.WIDE)
                        else "")
         item.setProperty("head", name if heading else "")
         item.setProperty("state", label if heading else "")
         item.setProperty("rule", _RULE_TEXTURE if heading else "")
-        cells = list(label) if table else []
-        wide  = [""] * offset + cells if not compact else []
-        _paint_cells(item, kind, (_CELL_HEADING, _CELL_VALUE),
-                     wide, dvmetadata.MAX_COLUMNS)
-        _paint_cells(item, kind, (_COMPACT_CELL_HEADING, _COMPACT_CELL_VALUE),
-                     cells if compact else [], dvmetadata.MAX_COMPACT_COLUMNS)
+        _paint_table(item, kind, label)
 
     def _changed_color(self) -> str:
         """Return the published highlight color, or the default (logged once)."""

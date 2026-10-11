@@ -255,6 +255,11 @@ def _first_number(value: str) -> float | None:
     return found[0] if found else None
 
 
+def _nth(found: list[float], index: int) -> float | None:
+    """Return *found*'s number at *index*, or None when it has fewer."""
+    return found[index] if len(found) > index else None
+
+
 def _label(string_id: int) -> str:
     return localized(string_id)
 
@@ -272,44 +277,59 @@ def _overlay_rows(values: dict[str, str]) -> dict[str, str]:
     Mirrors the skin's conditional labels (Passthrough, Disabled, Live TV,
     ...), so the page shows what the TV shows.
     """
-    rows: dict[str, str] = {}
-
-    # Output: Passthrough, the sink's channels or Decoding; N/A (empty)
-    # without an audio codec, like the other audio rows.
-    if not info("VideoPlayer.AudioCodec").strip():
-        rows["AudioOutputRow"] = ""
-    elif cond("Player.Passthrough"):
-        rows["AudioOutputRow"] = _label(32242)
-    else:
-        rows["AudioOutputRow"] = (values.get("AudioChannelsSink", "")
-                                  or _label(32243))
-
+    rows: dict[str, str] = {"AudioOutputRow": _audio_output_row(values)}
     rows["VideoBitrateRow"], rows["VideoBitrateDetail"] = _bitrate_row(
         values.get("VideoLiveBitrateVar", ""), values.get("VideoBitrateMBVar", ""))
     rows["AudioBitrateRow"], rows["AudioBitrateDetail"] = _bitrate_row(
         values.get("AudioLiveBitrateVar", ""), values.get("AudioBitrateKBVar", ""))
-
-    # Subtitles: the track when on, Disabled when off, N/A without any.
-    if cond("VideoPlayer.HasSubtitles") and cond("VideoPlayer.SubtitlesEnabled"):
-        rows["SubtitleShortRow"] = values.get("SubtitleNameShortVar", "")
-        rows["SubtitleNameRow"] = values.get("SubtitleNameVar", "")
-        rows["SubtitleCodecRow"] = values.get("SubtitleCodecVar", "")
-    elif cond("VideoPlayer.HasSubtitles"):
-        rows["SubtitleStateRow"] = _label(32246)
-
-    # Live TV without EPG and streams without a length get a label instead
-    # of meaningless times.
-    if is_live_tv() and not values.get("BroadcastTimes"):
-        rows["PlaybackStateRow"] = _label(32235)
-    elif (not values.get("PlayerDuration")
-          and cond("Player.IsInternetStream") and not is_live_tv()):
-        rows["PlaybackStateRow"] = _label(32236)
-    elif values.get("PlayerDuration"):
-        rows["PlaybackTimeRow"] = values.get("PlayerTime", "")
-        rows["PlaybackDurationRow"] = values.get("PlayerDuration", "")
-        rows["PlaybackProgressRow"] = values.get("PlayerProgress", "")
-
+    rows.update(_subtitle_rows(values))
+    rows.update(_playback_rows(values))
     return rows
+
+
+def _audio_output_row(values: dict[str, str]) -> str:
+    """Return the audio output: Passthrough, the sink's channels or Decoding.
+
+    N/A (empty) without an audio codec, like the other audio rows.
+    """
+    if not info("VideoPlayer.AudioCodec").strip():
+        return ""
+    if cond("Player.Passthrough"):
+        return _label(32242)
+    return values.get("AudioChannelsSink", "") or _label(32243)
+
+
+def _subtitle_rows(values: dict[str, str]) -> dict[str, str]:
+    """Return the subtitle rows: the track when on, Disabled when off, N/A
+    without any."""
+    if not cond("VideoPlayer.HasSubtitles"):
+        return {}
+    if not cond("VideoPlayer.SubtitlesEnabled"):
+        return {"SubtitleStateRow": _label(32246)}
+    return {
+        "SubtitleShortRow": values.get("SubtitleNameShortVar", ""),
+        "SubtitleNameRow":  values.get("SubtitleNameVar", ""),
+        "SubtitleCodecRow": values.get("SubtitleCodecVar", ""),
+    }
+
+
+def _playback_rows(values: dict[str, str]) -> dict[str, str]:
+    """Return the playback times, or the label that replaces them.
+
+    Live TV without EPG and streams without a length get a label instead
+    of meaningless times.
+    """
+    if is_live_tv() and not values.get("BroadcastTimes"):
+        return {"PlaybackStateRow": _label(32235)}
+    if values.get("PlayerDuration"):
+        return {
+            "PlaybackTimeRow":     values.get("PlayerTime", ""),
+            "PlaybackDurationRow": values.get("PlayerDuration", ""),
+            "PlaybackProgressRow": values.get("PlayerProgress", ""),
+        }
+    if cond("Player.IsInternetStream") and not is_live_tv():
+        return {"PlaybackStateRow": _label(32236)}
+    return {}
 
 
 def _finish_time(values: dict[str, str]) -> str:
@@ -502,18 +522,14 @@ class SnapshotBuilder:
         # FpsInfoVar is "input - drop" (see core.helpers.fps_display_texts).
         fps  = numbers(values.get("FpsInfoVar", ""))
         return {
-            "l1": {
-                "min": nits[0] if len(nits) > 0 else None,
-                "max": nits[1] if len(nits) > 1 else None,
-                "avg": nits[2] if len(nits) > 2 else None,
-            },
+            "l1": {"min": _nth(nits, 0), "max": _nth(nits, 1), "avg": _nth(nits, 2)},
             # L5 bars (left | right | top | bottom) and the coded frame, so
             # the page can draw the letterbox.
             "bars": bars if len(bars) == 4 else None,
             "frame": self._frame(),
             "aspect":   _first_number(values.get("AspectRatioVar", "")),
-            "fps_in":   fps[0] if len(fps) > 0 else None,
-            "fps_drop": fps[1] if len(fps) > 1 else None,
+            "fps_in":   _nth(fps, 0),
+            "fps_drop": _nth(fps, 1),
             "fps_out":  _first_number(values.get("FpsDropVar", "")),
             "progress": _first_number(values.get("PlayerProgress", "")),
             "cpu":      _first_number(values.get("CpuUsageVar", "")),

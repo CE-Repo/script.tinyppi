@@ -64,20 +64,25 @@ def _metadata_delta(previous: list, current: list) -> list | None:
     return changed
 
 
-def snapshot_delta(previous: dict, current: dict) -> dict:
-    """Return the delta frame from *previous* to *current*."""
-    frame: dict = {"seq": current.get("seq", 0)}
-
+def _fields_delta(previous: dict, current: dict) -> dict:
+    """Return the changed (``set``) and removed (``del``) plain fields."""
     moved = {key: value for key, value in current.items()
              if key != "seq" and key not in _DELTA_LISTS
              and previous.get(key) != value}
     gone = [key for key in previous
             if key not in current and key not in _DELTA_LISTS]
+    fields: dict = {}
     if moved:
-        frame["set"] = moved
+        fields["set"] = moved
     if gone:
-        frame["del"] = gone
+        fields["del"] = gone
+    return fields
 
+
+def snapshot_delta(previous: dict, current: dict) -> dict:
+    """Return the delta frame from *previous* to *current*."""
+    frame: dict = {"seq": current.get("seq", 0)}
+    frame.update(_fields_delta(previous, current))
     for key, rows_delta in (("groups", _group_rows_delta),
                             ("metadata", _metadata_delta)):
         was = previous.get(key) or []

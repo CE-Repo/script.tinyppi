@@ -349,21 +349,8 @@ def _install_fonts() -> None:
         _remember(home, skin_dir, font_xmls)
         return
 
-    written = failed = 0
-    for font_xml_path in incomplete:
-        try:
-            modified = _install_xml(font_xml_path)
-        except Exception as exc:
-            _log(f"Installation error: {exc}", xbmc.LOGERROR)
-            _log(traceback.format_exc(), xbmc.LOGERROR)
-            modified = False
-        if modified:
-            written += 1
-        else:
-            failed += 1
-            _log(f"the font entries could not be registered in {font_xml_path}; "
-                 "not trying again until the skin or its Font.xml changes",
-                 xbmc.LOGWARNING)
+    written = sum(_install_one(path) for path in incomplete)
+    failed = len(incomplete) - written
 
     # Mark the files as they are after the writes.
     _remember(home, skin_dir, font_xmls,
@@ -372,6 +359,21 @@ def _install_fonts() -> None:
         return
     with contextlib.suppress(RuntimeError):
         xbmc.executebuiltin("ReloadSkin(reload)")
+
+
+def _install_one(font_xml_path: str) -> bool:
+    """Install the entries into one Font.xml; True if it was written."""
+    try:
+        modified = _install_xml(font_xml_path)
+    except Exception as exc:  # one bad file must not stop the others
+        _log(f"Installation error: {exc}", xbmc.LOGERROR)
+        _log(traceback.format_exc(), xbmc.LOGERROR)
+        modified = False
+    if not modified:
+        _log(f"the font entries could not be registered in {font_xml_path}; "
+             "not trying again until the skin or its Font.xml changes",
+             xbmc.LOGWARNING)
+    return modified
 
 
 def _remember(home: PropertyTarget, skin_dir: str, font_xmls: Sequence[str],

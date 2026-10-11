@@ -97,6 +97,11 @@ _PAGE_POLICY = "; ".join((
 _log = channel("web", xbmc.LOGINFO)
 
 
+def _param(query: dict[str, list[str]], name: str) -> str:
+    """Return the first value of *name* in a parsed query, or ''."""
+    return (query.get(name) or [""])[0]
+
+
 class Handler(BaseHTTPRequestHandler):
     """The request handler; ``server`` holds the producer, token and files."""
 
@@ -465,7 +470,7 @@ class Handler(BaseHTTPRequestHandler):
         if not (self.server.offer_series and self.server.allow_control):
             self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
             return
-        show = (parse_qs(urlparse(self.path).query).get("tvshowid") or [""])[0]
+        show = _param(parse_qs(urlparse(self.path).query), "tvshowid")
         try:
             payload = library.episodes(show)
         except Exception as exc:
@@ -509,16 +514,12 @@ class Handler(BaseHTTPRequestHandler):
     def _serve_art(self) -> None:
         """Send artwork of the playing title or a library item."""
         query = parse_qs(urlparse(self.path).query)
-        kind = (query.get("kind") or [""])[0]
+        kind = _param(query, "kind")
         if kind not in artwork.KINDS:
             self._send_error_json(HTTPStatus.NOT_FOUND, "no such artwork")
             return
-        # No library id means the playing title.
-        film    = (query.get("movieid") or [""])[0]
-        show    = (query.get("tvshowid") or [""])[0]
-        episode = (query.get("episodeid") or [""])[0]
         # The URL carries the picture's tag, so the answer is immutable.
-        tag  = (query.get("v") or [""])[0]
+        tag  = _param(query, "v")
         if not _ART_TAG.fullmatch(tag):
             tag = ""
         etag = f'"{tag}"' if tag else ""
@@ -527,14 +528,7 @@ class Handler(BaseHTTPRequestHandler):
             self._send_unchanged(etag, cache)
             return
 
-        if film:
-            found = self.server.library_artwork(film, kind)
-        elif show:
-            found = self.server.series_artwork(show, kind)
-        elif episode:
-            found = self.server.episode_artwork(episode, kind)
-        else:
-            found = self.server.artwork(kind)
+        found = self._find_art(query, kind)
         if found is None:
             # No artwork: the page hides the frame.
             self._send_error_json(HTTPStatus.NOT_FOUND, "no artwork")
@@ -542,6 +536,18 @@ class Handler(BaseHTTPRequestHandler):
         body, content_type = found
         self._send(HTTPStatus.OK, body, content_type,
                    (("ETag", etag),) if etag else (), cache=cache)
+
+    def _find_art(self, query: dict[str, list[str]], kind: str) -> tuple[bytes, str] | None:
+        """Return the requested picture and its type, or None."""
+        # No library id means the playing title.
+        lookups = (("movieid", self.server.library_artwork),
+                   ("tvshowid", self.server.series_artwork),
+                   ("episodeid", self.server.episode_artwork))
+        for name, lookup in lookups:
+            item = _param(query, name)
+            if item:
+                return lookup(item, kind)
+        return self.server.artwork(kind)
 
     def _serve_static(self, route: str) -> None:
         path, content_type = self.server.static_routes[route]

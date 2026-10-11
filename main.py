@@ -6,6 +6,7 @@
 import os
 import sys
 import time
+from collections.abc import Callable
 
 import xbmc
 import xbmcgui
@@ -92,10 +93,48 @@ def _open_view(view: str) -> None:
         open_tinyppi()
 
 
+def _splash(args: list[str]) -> None:
+    from ui.splash import open_splash
+    open_splash()
+
+
+def _run_mode(args: list[str]) -> None:
+    from core.vs10 import set_mode
+    set_mode(args[0])
+
+
+def _pick_color(args: list[str]) -> None:
+    from ui.theme import pick_color
+    pick_color(args[0], args[1] if len(args) > 1 else "")
+
+
+def _web_info(args: list[str]) -> None:
+    from ui.webinfo import show_web_info
+    show_web_info()
+
+
+def _web_token(args: list[str]) -> None:
+    from ui.webinfo import new_web_token
+    new_web_token()
+
+
+# Command -> (arguments it needs, handler taking them).  Anything else, or
+# a command short of its arguments, opens the overlay.
+_COMMANDS: dict[str, tuple[int, Callable[[list[str]], None]]] = {
+    "overlay":    (0, lambda args: _open_view("overlay")),
+    "dialog":     (0, lambda args: _open_view("dialog")),
+    "splash":     (0, _splash),
+    "run_mode":   (1, _run_mode),
+    "pick_color": (1, _pick_color),
+    "web_info":   (0, _web_info),
+    "web_token":  (0, _web_token),
+}
+
+
 def main() -> None:
     """Run the command given in the script arguments."""
     args = _split_args(sys.argv[1:])
-    command = args[0] if args else ""
+    command, params = (args[0], args[1:]) if args else ("", [])
 
     # Read settings only without an explicit view: creating the handle parses
     # the whole settings definition.
@@ -104,25 +143,11 @@ def main() -> None:
         launch_mode = settings.addon().getSetting("launch_mode")
         command = "dialog" if launch_mode == "1" else "overlay"
 
-    if command in ("overlay", "dialog"):
-        _open_view(command)
-    elif command == "splash":
-        from ui.splash import open_splash
-        open_splash()
-    elif command == "run_mode" and len(args) > 1:
-        from core.vs10 import set_mode
-        set_mode(args[1])
-    elif command == "pick_color" and len(args) > 1:
-        from ui.theme import pick_color
-        pick_color(args[1], args[2] if len(args) > 2 else "")
-    elif command == "web_info":
-        from ui.webinfo import show_web_info
-        show_web_info()
-    elif command == "web_token":
-        from ui.webinfo import new_web_token
-        new_web_token()
-    else:
+    needed, handler = _COMMANDS.get(command, (0, None))
+    if handler is None or len(params) < needed:
         _open_view("overlay")
+        return
+    handler(params)
 
 
 if __name__ == "__main__":

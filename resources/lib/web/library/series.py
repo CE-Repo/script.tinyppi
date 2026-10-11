@@ -232,20 +232,24 @@ def _episode_resume_point(episode_id: int) -> int:
     started = lists.continuing.peek()
     for slot in opened:
         show = slot.peek()
-        if show is None:
-            continue
-        for episode in show["episodes"]:
-            if episode["id"] == episode_id:
-                return int(episode.get("resume") or 0)
+        found = None if show is None else _resume_in(show["episodes"], episode_id)
+        if found is not None:
+            return found
     # Episodes on the "continue" row may belong to unopened shows.
     if started is not None:
-        for entry in started["items"]:
-            if entry["kind"] == "episode" and entry["id"] == episode_id:
-                return int(entry.get("resume") or 0)
-        return 0
+        episodes = [entry for entry in started["items"] if entry["kind"] == "episode"]
+        return _resume_in(episodes, episode_id) or 0
     # Cache dropped meanwhile: ask Kodi instead of starting from zero.
     answer = common.rpc("VideoLibrary.GetEpisodeDetails",
                         {"episodeid": episode_id, "properties": ["resume"]})
     result = answer.get("result")
     details = result.get("episodedetails") if isinstance(result, dict) else None
     return common.resume_of((details or {}).get("resume"))
+
+
+def _resume_in(episodes: list[dict], episode_id: int) -> int | None:
+    """Return the resume point of *episode_id* among *episodes*, or None."""
+    for episode in episodes:
+        if episode["id"] == episode_id:
+            return int(episode.get("resume") or 0)
+    return None

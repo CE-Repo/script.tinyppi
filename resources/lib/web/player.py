@@ -68,6 +68,18 @@ def _stream_label(stream: dict, fallback: str) -> str:
     return name or tag or fallback
 
 
+def _track_list(streams: list[dict] | None) -> list[dict]:
+    """Return a picker's tracks as ``{index, label}``, numbered if unnamed."""
+    return [{"index": stream.get("index", index),
+             "label": clean_value(_stream_label(stream, f"#{index + 1}"))}
+            for index, stream in enumerate(streams or [])]
+
+
+def _current_index(stream: object) -> object:
+    """Return the index of the current track, or -1 for none."""
+    return stream.get("index", -1) if isinstance(stream, dict) else -1
+
+
 def player_controls() -> dict:
     """Return the controllable player state: tracks, volume, mute, chapters.
 
@@ -99,23 +111,10 @@ def player_controls() -> dict:
     if not isinstance(properties, dict):
         return state
 
-    for index, stream in enumerate(properties.get("audiostreams") or []):
-        state["audio"].append({
-            "index": stream.get("index", index),
-            "label": clean_value(_stream_label(stream, f"#{index + 1}")),
-        })
-    for index, stream in enumerate(properties.get("subtitles") or []):
-        state["subtitle"].append({
-            "index": stream.get("index", index),
-            "label": clean_value(_stream_label(stream, f"#{index + 1}")),
-        })
-
-    current_audio = properties.get("currentaudiostream") or {}
-    current_sub   = properties.get("currentsubtitle") or {}
-    if isinstance(current_audio, dict):
-        state["audio_current"] = current_audio.get("index", -1)
-    if isinstance(current_sub, dict):
-        state["subtitle_current"] = current_sub.get("index", -1)
+    state["audio"] = _track_list(properties.get("audiostreams"))
+    state["subtitle"] = _track_list(properties.get("subtitles"))
+    state["audio_current"] = _current_index(properties.get("currentaudiostream"))
+    state["subtitle_current"] = _current_index(properties.get("currentsubtitle"))
     state["subtitle_on"] = bool(properties.get("subtitleenabled"))
     return state
 
