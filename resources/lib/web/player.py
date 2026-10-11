@@ -12,6 +12,7 @@ from collections.abc import Callable
 import xbmc
 from core.log import channel
 from core.utils import cond, info
+from web.payloads import Controls, Track
 from web.values import Unchecked, clean_value, numbers
 
 _log = channel("web")
@@ -68,7 +69,7 @@ def _stream_label(stream: dict, fallback: str) -> str:
     return name or tag or fallback
 
 
-def _track_list(streams: list[dict] | None) -> list[dict]:
+def _track_list(streams: list[dict] | None) -> list[Track]:
     """Return a picker's tracks as ``{index, label}``, numbered if unnamed."""
     return [{"index": stream.get("index", index),
              "label": clean_value(_stream_label(stream, f"#{index + 1}"))}
@@ -80,13 +81,13 @@ def _current_index(stream: object) -> object:
     return stream.get("index", -1) if isinstance(stream, dict) else -1
 
 
-def player_controls() -> dict:
+def player_controls() -> Controls:
     """Return the controllable player state: tracks, volume, mute, chapters.
 
     Via JSON-RPC, since pickers need full lists with indices.  Only used
     when control is enabled.
     """
-    state: dict = {"audio": [], "subtitle": [], "audio_current": -1,
+    state: Controls = {"audio": [], "subtitle": [], "audio_current": -1,
                    "subtitle_current": -1, "subtitle_on": False,
                    "volume": None, "muted": False, "chapters": 0}
 

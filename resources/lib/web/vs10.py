@@ -8,6 +8,7 @@ import threading
 import xbmc
 from core.log import channel
 from core.utils import info
+from web.payloads import VS10State
 
 # Modes per source type, as in the on-screen dialog (see ui.dialog_layout).
 # Format names are not translated, like in the dialog.
@@ -63,7 +64,7 @@ def _options_for(source: str, playing: bool = True,
 
 
 def vs10_state(source: str, playing: bool = True,
-               hdr10plus: bool = False) -> dict:
+               hdr10plus: bool = False) -> VS10State:
     """Return the VS10 buttons for the source and the current output."""
     return {
         "options": [{"mode": mode, "label": label}

@@ -40,6 +40,17 @@ from info.publish import (
     publish_scene_properties,
     publish_static_properties,
 )
+from web.payloads import (
+    Controls,
+    FrameSize,
+    Group,
+    GroupRow,
+    IdleSnapshot,
+    MetadataRow,
+    Metrics,
+    PlayingSnapshot,
+    Snapshot,
+)
 from web.player import broadcast_times, current_track_state, player_controls
 from web.rows import GROUPS, finish_time, is_dv_source, overlay_rows, render
 from web.session import SessionLog
@@ -130,7 +141,7 @@ def _web_presence_value(value: object) -> str:
     return " | ".join(_PRESENCE_WORD.get(part, part) for part in parts)
 
 
-def _metadata_row(kind: str, name: str, value: object) -> dict:
+def _metadata_row(kind: str, name: str, value: object) -> MetadataRow:
     """Convert an ``info.dvmetadata`` row for the page (cells stay a list)."""
     if isinstance(value, (list, tuple)):
         return {"kind": kind, "name": clean_value(name),
@@ -186,7 +197,7 @@ def art_path(kind: str) -> str:
     return ""
 
 
-def _art_tags() -> dict:
+def _art_tags() -> dict[str, str]:
     """Return a short tag per artwork kind that changes with the picture.
 
     Used in the image URL, so a poster is fetched once per film.
@@ -239,12 +250,12 @@ class SnapshotBuilder:
         self._published: dict[str, str] = {}
         self._static_at = 0.0
         self._sequence  = 0
-        self._meta_static: list = []
+        self._meta_static: list[tuple[str, str, str]] = []
         self._meta_static_at = 0.0
         #: The playing title's history; served by /api/history.
         self.session    = SessionLog()
         # Player controls, refreshed on the static interval (JSON-RPC).
-        self._controls: dict = {}
+        self._controls: Controls = {}
         self._controls_at = 0.0
         self._track_state: dict[str, str] = {
             "audio": "", "audio_id": "", "subtitle": "",
@@ -273,7 +284,7 @@ class SnapshotBuilder:
         return values
 
     @staticmethod
-    def _frame() -> dict | None:
+    def _frame() -> FrameSize | None:
         """Return the coded frame size (the L5 offsets' reference)."""
         width  = _first_number(info("Player.Process(videowidth)").replace(",", ""))
         height = _first_number(info("Player.Process(videoheight)").replace(",", ""))
@@ -281,7 +292,7 @@ class SnapshotBuilder:
             return None
         return {"w": int(width), "h": int(height)}
 
-    def _metrics(self, values: dict[str, str], is_dv: bool) -> dict:
+    def _metrics(self, values: dict[str, str], is_dv: bool) -> Metrics:
         """Return the numeric readings the page charts.
 
         From the raw getters, so no localized units need parsing.  L1 and L5
@@ -311,7 +322,7 @@ class SnapshotBuilder:
             "cache":    _first_number(values.get("PlayerCacheLevel", "")),
         }
 
-    def _metadata(self, is_dv: bool, enabled: bool) -> list[dict]:
+    def _metadata(self, is_dv: bool, enabled: bool) -> list[MetadataRow]:
         """Return the DV metadata rows, the same list as the on-screen view.
 
         Scene rows every tick, static rows on the slower interval, as in
@@ -331,19 +342,19 @@ class SnapshotBuilder:
         rows = dvmetadata.join_rows(scene, self._meta_static)
         return [_metadata_row(kind, name, value) for kind, name, value in rows]
 
-    def _groups(self, values: dict[str, str], source: str) -> list[dict]:
+    def _groups(self, values: dict[str, str], source: str) -> list[Group]:
         """Return the cards with their rows, grouped like the overlay.
 
         Empty values read N/A.  Cards without any value, or not applying to
         the source (see ``GROUPS``), are left out.  Entries sharing an id
         are merged into one card in list order.
         """
-        groups: list[dict] = []
-        by_id: dict[str, dict] = {}
+        groups: list[Group] = []
+        by_id: dict[str, Group] = {}
         for group_id, title_id, rows, applies in GROUPS:
             if not applies(source):
                 continue
-            rendered = []
+            rendered: list[GroupRow] = []
             for label_id, segments, detail in rows:
                 value = render(segments, values)
                 rendered.append({
@@ -370,7 +381,7 @@ class SnapshotBuilder:
                 group["rows"].extend(rendered)
         return groups
 
-    def _player_controls(self, control: bool) -> dict:
+    def _player_controls(self, control: bool) -> Controls:
         """Return tracks and volume on the static interval, if control is on."""
         if not control:
             self._controls = {}
@@ -387,7 +398,7 @@ class SnapshotBuilder:
         return self._track_state
 
     def build(self, allow_filename: bool = True, metadata: bool = True,
-              control: bool = False, detail: bool = True) -> dict | None:
+              control: bool = False, detail: bool = True) -> Snapshot | None:
         """Build one snapshot inside a single read pass.
 
         One side-data parse per pass (see ``info.dvinfo``).  Without *detail*
@@ -398,7 +409,7 @@ class SnapshotBuilder:
             return self._build(allow_filename, metadata, control, detail)
 
     def _build(self, allow_filename: bool, metadata: bool, control: bool,
-               detail: bool) -> dict | None:
+               detail: bool) -> Snapshot | None:
         """Build the snapshot inside ``build``'s read pass."""
         playing = cond("Player.HasVideo")
         self._sequence += 1
@@ -417,7 +428,7 @@ class SnapshotBuilder:
             }
             # End the session but keep its figures for the idle page.
             self.session.end()
-            return {
+            idle: IdleSnapshot = {
                 "seq":      self._sequence,
                 "playing":  False,
                 "groups":   [],
@@ -427,6 +438,7 @@ class SnapshotBuilder:
                 "session":  self.session.summary(),
                 "last":     self.session.last(),
             }
+            return idle
 
         self._refresh()
         values = self._values()
@@ -468,7 +480,7 @@ class SnapshotBuilder:
         if not detail:
             return None
 
-        return {
+        snapshot: PlayingSnapshot = {
             "seq":       self._sequence,
             "playing":   True,
             "paused":    cond("Player.Paused"),
@@ -498,5 +510,6 @@ class SnapshotBuilder:
             "controls":  self._player_controls(control),
             "session":   self.session.summary(),
         }
+        return snapshot
 
 

@@ -14,6 +14,7 @@ import xbmc
 from core import settings
 from core.log import channel
 from web import library
+from web.payloads import History, Snapshot
 from web.snapshot import SnapshotBuilder
 
 # Rebuild interval while a page watches: smooth for the L1 chart, cheaper
@@ -43,7 +44,7 @@ class Producer(threading.Thread):
         self._stopping  = stop_event
         self._builder   = SnapshotBuilder()
         self._condition = threading.Condition()
-        self._snapshot: dict = {"seq": 0, "playing": False, "groups": [],
+        self._snapshot: Snapshot = {"seq": 0, "playing": False, "groups": [],
                                 "metrics": {}, "library": 0}
         self._failed    = False
         # Open streams and pending fresh() requests; either makes a pass
@@ -75,7 +76,7 @@ class Producer(threading.Thread):
         with self._condition:
             self._watchers = max(0, self._watchers - 1)
 
-    def fresh(self) -> dict:
+    def fresh(self) -> Snapshot:
         """Return a current snapshot for a request outside any stream.
 
         With a stream open the held one is at most a pass old; otherwise a
@@ -90,18 +91,18 @@ class Producer(threading.Thread):
         return self.wait_for(seen, _FRESH_TIMEOUT) or self.snapshot
 
     @property
-    def snapshot(self) -> dict:
+    def snapshot(self) -> Snapshot:
         with self._condition:
             return self._snapshot
 
-    def history(self) -> dict:
+    def history(self) -> History:
         """Return the playing title's chart samples and events.
 
         Called from the request thread; the session has its own lock.
         """
         return self._builder.session.history()
 
-    def wait_for(self, seen: int, timeout: float) -> dict | None:
+    def wait_for(self, seen: int, timeout: float) -> Snapshot | None:
         """Wait for a snapshot newer than *seen*; None on timeout or stop.
 
         The stop flag is checked under the lock before every wait, so a

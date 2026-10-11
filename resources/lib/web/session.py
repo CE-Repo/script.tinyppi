@@ -5,6 +5,9 @@
 
 import threading
 import time
+from collections.abc import Mapping
+
+from web.payloads import Event, EventDetail, History, LastTitle, Metrics, SessionSummary
 
 
 class SessionLog:
@@ -45,8 +48,9 @@ class SessionLog:
         self._position  = ""
         self._ended     = 0.0
         self._started   = time.monotonic()
-        self._samples: list[tuple] = []
-        self._events:  list[dict]  = []
+        # (seconds into the title, L1 peak, L1 average)
+        self._samples: list[tuple[float, float | None, float | None]] = []
+        self._events:  list[Event] = []
         self._seq       = 0
         self._sampled   = 0.0
         self._switches  = 0
@@ -54,7 +58,8 @@ class SessionLog:
         # (identity, display label) per watched reading.
         self._watched: dict[str, tuple[str, str]] = {}
         # Changed but not yet settled readings (see _settle).
-        self._pending: dict[str, tuple] = {}
+        # name -> (reading, held since, first change, its position)
+        self._pending: dict[str, tuple[tuple[str, str], float, float, str]] = {}
         self._temperature_hot = False
         self._cpu_full = False
         self._fps: int | None = None
@@ -76,8 +81,8 @@ class SessionLog:
             if time.monotonic() - self._ended >= self.RETAIN_SECONDS:
                 self.reset("")
 
-    def observe(self, title: str, source: str, metrics: dict, watched: dict,
-                position: str) -> None:
+    def observe(self, title: str, source: str, metrics: Metrics,
+                watched: Mapping[str, object], position: str) -> None:
         """Add one pass to the session; chart samples use their own interval.
 
         Sessions are told apart by title and *source* (the file), since titles
@@ -111,7 +116,8 @@ class SessionLog:
             return True            # a whole reading, and a different one
         return bool(title) and title != self._title
 
-    def _note_changes(self, watched: dict, now: float, position: str) -> None:
+    def _note_changes(self, watched: Mapping[str, object], now: float,
+                      position: str) -> None:
         """Record events for readings that changed since the last pass.
 
         Runs on every producer pass (short switches would be missed on the
@@ -173,7 +179,7 @@ class SessionLog:
         del self._pending[name]
         return first, first_position
 
-    def _watch_levels(self, metrics: dict, now: float, position: str) -> None:
+    def _watch_levels(self, metrics: Metrics, now: float, position: str) -> None:
         """Track warning levels and the frame rate on every pass."""
         temperature = metrics.get("cpu_temp")
         if temperature is not None:
@@ -185,11 +191,11 @@ class SessionLog:
         if fps is not None:
             self._watch_fps(fps, now, position)
 
-    def _sample(self, metrics: dict, now: float) -> None:
+    def _sample(self, metrics: Metrics, now: float) -> None:
         """Add one chart sample."""
-        level = metrics.get("l1") or {}
-        peak  = level.get("max")
-        mean  = level.get("avg")
+        level = metrics.get("l1")
+        peak  = level.get("max") if level else None
+        mean  = level.get("avg") if level else None
         self._samples.append((
             round(now - self._started, 1), peak, mean,
         ))
@@ -231,7 +237,7 @@ class SessionLog:
         self._add_event(now, position, "fps", {"from": previous, "to": rate})
 
     def _add_event(self, now: float, position: str, kind: str,
-                   detail: dict) -> dict:
+                   detail: EventDetail) -> Event:
         """Add an event, update the counters, and return the event."""
         self._seq += 1
         # Counters change only here, so every event is counted.
@@ -239,7 +245,7 @@ class SessionLog:
             self._switches += 1
         if kind in self.WARNING_KINDS:
             self._warnings += 1
-        event = {
+        event: Event = {
             "t": round(now - self._started, 1),
             "pos": position,
             "kind": kind,
@@ -252,7 +258,7 @@ class SessionLog:
 
     # --- Reading -----------------------------------------------------------
 
-    def summary(self) -> dict:
+    def summary(self) -> SessionSummary:
         """Return the small per-snapshot summary: counters and event ``seq``.
 
         A changed ``seq`` tells the page to fetch the history again.
@@ -264,7 +270,7 @@ class SessionLog:
                 "warnings": self._warnings,
             }
 
-    def last(self) -> dict:
+    def last(self) -> LastTitle:
         """Return the finished title's summary for the idle page, or {}."""
         with self._lock:
             if not self._ended or not self._key:
@@ -283,7 +289,7 @@ class SessionLog:
                 "events":   len(self._events),
             }
 
-    def history(self) -> dict:
+    def history(self) -> History:
         """Return the full chart and event list.
 
         One array per series (compact for 3600 samples); ``now`` is the
