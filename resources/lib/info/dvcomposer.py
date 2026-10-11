@@ -8,7 +8,7 @@ base layer.  Their coefficients are the only derived values in the view:
 the RPU splits each into two halves (see ``_coefficient``).
 """
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from typing import Any
 
 from info import dvformat as fmt
@@ -110,27 +110,33 @@ def _at(values: Sequence, index: int, default: Any = None) -> Any:
     return values[index] if index < len(values) else default
 
 
+def _field(mapping: dict | None, key: str) -> list:
+    """Return the list *mapping* holds under *key* ([] when none)."""
+    return (mapping or {}).get(key) or []
+
+
+def _shown(values: Sequence, index: int, show: Callable[[Any], str]) -> str:
+    """Return ``values[index]`` formatted by *show*, or EMPTY past its end."""
+    return show(values[index]) if index < len(values) else EMPTY
+
+
 def _polynomial_entries(polynomial: dict | None, denom: object) -> list:
     """Return a polynomial curve as a table, one segment per row.
 
     Order and linear-interpolation flag first, then the coefficients from
     the lowest order up.
     """
-    polynomial = polynomial or {}
-    orders     = polynomial.get("poly_order") or []
-    interp     = polynomial.get("linear_interp_flag") or []
-    coef_int   = polynomial.get("poly_coef_int") or []
-    coef_frac  = polynomial.get("poly_coef") or []
+    orders     = _field(polynomial, "poly_order")
+    interp     = _field(polynomial, "linear_interp_flag")
+    coef_int   = _field(polynomial, "poly_coef_int")
+    coef_frac  = _field(polynomial, "poly_coef")
 
     width    = max((len(terms) for terms in coef_int), default=0)
     headings = list(_POLY_HEADINGS) + [f"c{term}" for term in range(width)]
     rows     = []
     for segment in range(max(len(orders), len(coef_int))):
         fracs = _at(coef_frac, segment, [])
-        cells = [
-            fmt.num(orders[segment]) if segment < len(orders) else EMPTY,
-            fmt.flag(interp[segment]) if segment < len(interp) else EMPTY,
-        ]
+        cells = [_shown(orders, segment, fmt.num), _shown(interp, segment, fmt.flag)]
         cells.extend(
             _coefficient(value, _at(fracs, term, 0), denom)
             for term, value in enumerate(_at(coef_int, segment, []))
@@ -146,19 +152,18 @@ def _mmr_entries(mmr: dict | None, denom: object) -> list:
     level of coefficients, since higher orders add product terms.  Terms are
     named by position only, as the module documents them.
     """
-    mmr        = mmr or {}
-    orders     = mmr.get("mmr_order") or []
-    const_int  = mmr.get("mmr_constant_int") or []
-    const_frac = mmr.get("mmr_constant") or []
-    coef_int   = mmr.get("mmr_coef_int") or []
-    coef_frac  = mmr.get("mmr_coef") or []
+    orders     = _field(mmr, "mmr_order")
+    const_int  = _field(mmr, "mmr_constant_int")
+    const_frac = _field(mmr, "mmr_constant")
+    coef_int   = _field(mmr, "mmr_coef_int")
+    coef_frac  = _field(mmr, "mmr_coef")
 
     segments  = max(len(orders), len(const_int), len(coef_int))
     head_rows = []
     coef_rows: list = []
     for segment in range(segments):
         head_rows.append((f"Segment {segment + 1}", [
-            fmt.num(orders[segment]) if segment < len(orders) else EMPTY,
+            _shown(orders, segment, fmt.num),
             _coefficient(_at(const_int, segment), _at(const_frac, segment, 0), denom),
         ]))
         # With one segment (the usual case) the segment is not named.

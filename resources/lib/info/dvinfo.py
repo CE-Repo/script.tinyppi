@@ -422,6 +422,15 @@ def _colourise_el_tag(text: str) -> str:
 _PROFILE_RE = re.compile(r"^\d{1,2}(?:\.\d{1,2})?$")
 
 
+# Kodi's label words for each HDR token, checked in this order.
+_LABEL_TOKENS = (
+    ("dolbyvision", ("dolby", "dovi")),
+    ("hdr10+",      ("hdr10plus", "hdr10+")),
+    ("hlg",         ("hlg",)),
+    ("hdr10",       ("hdr", "pq")),
+)
+
+
 def _hdr_token(label: str, parsed: dict) -> str:
     """Return the source HDR token: '', hdr10, hdr10+, hlg or dolbyvision.
 
@@ -430,19 +439,13 @@ def _hdr_token(label: str, parsed: dict) -> str:
     e.g. DV announced only in a Blu-ray playlist, or unflagged HDR10+.
     """
     low = (label or "").strip().lower()
-    if "dolby" in low or "dovi" in low:
-        token = "dolbyvision"
-    elif "hdr10plus" in low or "hdr10+" in low:
-        token = "hdr10+"
-    elif "hlg" in low:
-        token = "hlg"
-    elif "hdr" in low or "pq" in low:
-        token = "hdr10"
-    else:
-        token = ""
+    token = next((token for token, words in _LABEL_TOKENS
+                  if any(word in low for word in words)), "")
+    return token if token == "dolbyvision" else _side_data_token(token, parsed)
 
-    if token == "dolbyvision":
-        return token
+
+def _side_data_token(token: str, parsed: dict) -> str:
+    """Return *token* (from Kodi's label) as the side data refines it."""
     if parsed.get("rpu") or parsed.get("config"):
         return "dolbyvision"
     if parsed.get("hdr10plus"):

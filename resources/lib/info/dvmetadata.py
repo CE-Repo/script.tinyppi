@@ -72,6 +72,27 @@ def _module_version() -> str:
 
 # --- Sections --------------------------------------------------------------
 
+def _kept_rows(entries: Iterable[tuple]) -> list[tuple]:
+    """Return *entries* as rows, without EMPTY values and outer blank rows."""
+    kept = [
+        entry if len(entry) == 3 else (ROW, entry[0], entry[1])
+        for entry in entries
+    ]
+    kept = [row for row in kept
+            if row[0] == SPACE or (row[2] and row[2] != EMPTY)]
+    return _without_outer_space(kept)
+
+
+def _without_outer_space(rows: list[tuple]) -> list[tuple]:
+    """Return *rows* without blank rows at either end."""
+    start, stop = 0, len(rows)
+    while start < stop and rows[start][0] == SPACE:
+        start += 1
+    while stop > start and rows[stop - 1][0] == SPACE:
+        stop -= 1
+    return rows[start:stop]
+
+
 def _section(rows: list, title: str, entries: Iterable[tuple], state: str = "") -> None:
     """Append a heading and its entries to *rows*, skipping empty ones.
 
@@ -82,16 +103,7 @@ def _section(rows: list, title: str, entries: Iterable[tuple], state: str = "") 
     *state* (CACHED or '') becomes the heading row's value rather than part
     of the title, because the view remembers the viewer's position by title.
     """
-    kept = [
-        entry if len(entry) == 3 else (ROW, entry[0], entry[1])
-        for entry in entries
-    ]
-    kept = [row for row in kept
-            if row[0] == SPACE or (row[2] and row[2] != EMPTY)]
-    while kept and kept[0][0] == SPACE:
-        kept.pop(0)
-    while kept and kept[-1][0] == SPACE:
-        kept.pop()
+    kept = _kept_rows(entries)
     if not kept:
         return
     if rows:

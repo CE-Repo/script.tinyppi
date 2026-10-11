@@ -360,26 +360,39 @@ def _classify(names: tuple[str, ...]) -> tuple[bool, bool]:
         tokens = _tokens(name)
         if not tokens:
             continue
+        for found, found_enhanced in (_tagged(tokens), _listed(index, name, tokens)):
+            imax = imax or found
+            enhanced = enhanced or found_enhanced
 
-        for first, second in zip(tokens, tokens[1:] + [""], strict=True):
-            if first == "imax":
-                imax = True
-                enhanced = enhanced or second == "enhanced"
+    return imax, enhanced
 
-        year = _year_of(tokens)
-        film = _film_part(tokens)
-        for start in range(len(film)):
-            listed = index.get(" ".join(film[start:]))
-            if not listed:
+
+def _tagged(tokens: list[str]) -> tuple[bool, bool]:
+    """Return ``(IMAX, Enhanced)`` from an explicit ``IMAX [Enhanced]`` tag."""
+    imax = enhanced = False
+    for first, second in zip(tokens, tokens[1:] + [""], strict=True):
+        if first == "imax":
+            imax = True
+            enhanced = enhanced or second == "enhanced"
+    return imax, enhanced
+
+
+def _listed(index: dict[str, tuple[tuple[int | None, bool], ...]], name: str,
+            tokens: list[str]) -> tuple[bool, bool]:
+    """Return ``(IMAX, Enhanced)`` from the title list, for any suffix of
+    the film part of *name*."""
+    imax = enhanced = False
+    year = _year_of(tokens)
+    film = _film_part(tokens)
+    for start in range(len(film)):
+        title = " ".join(film[start:])
+        for entry_year, is_enhanced in index.get(title) or ():
+            if entry_year is not None and entry_year != year:
                 continue
-            for entry_year, is_enhanced in listed:
-                if entry_year is not None and entry_year != year:
-                    continue
-                imax = True
-                enhanced = enhanced or is_enhanced
-                _log(f"IMAX: '{name}' identified as {' '.join(film[start:])}"
-                     f"{' (Enhanced)' if is_enhanced else ''}")
-
+            imax = True
+            enhanced = enhanced or is_enhanced
+            _log(f"IMAX: '{name}' identified as {title}"
+                 f"{' (Enhanced)' if is_enhanced else ''}")
     return imax, enhanced
 
 

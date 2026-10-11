@@ -20,6 +20,7 @@ extension; a stream without one leaves that part out.
 """
 
 import re
+from collections.abc import Callable
 
 import xbmc
 import xbmcvfs
@@ -132,31 +133,26 @@ def _describes_a_file(tokens: set[str]) -> bool:
     return any(_RESOLUTION_SHAPE.match(token) for token in tokens)
 
 
-def _release_type(name: str) -> str:
-    """Return the release-type label for *name*, or ''.
+# Release types by priority (remux, disc rip, web release, ...), so a name
+# with several tags shows the best one.  A bare "WEB" does not say WEB-DL or
+# WEBRip, so it is shown as is.  It is also an ordinary word, so it only
+# counts next to a release marker (otherwise "Charlotte's Web" would match).
+_RELEASE_TYPES: tuple[tuple[str, Callable[[set[str]], bool]], ...] = (
+    ("Remux",  lambda tokens: "remux" in tokens),
+    ("UHD BD", lambda tokens: bool(tokens & _BLURAY_TOKENS) and "uhd" in tokens),
+    ("BD",     lambda tokens: bool(tokens & _BLURAY_TOKENS)),
+    ("WEB-DL", lambda tokens: "webdl" in tokens or {"web", "dl"} <= tokens),
+    ("WEBRip", lambda tokens: "webrip" in tokens or {"web", "rip"} <= tokens),
+    ("WEB",    lambda tokens: "web" in tokens and _describes_a_file(tokens)),
+    ("HDTV",   lambda tokens: bool(tokens & _HDTV_TOKENS)),
+    ("DVD",    lambda tokens: bool(tokens & _DVD_TOKENS)),
+)
 
-    Checked by priority (remux, disc rip, web release, ...), so a name with
-    several tags shows the best one.
-    """
+
+def _release_type(name: str) -> str:
+    """Return the release-type label for *name*, or '' (see _RELEASE_TYPES)."""
     tokens = _tokens(name)
-    if "remux" in tokens:
-        return "Remux"
-    if tokens & _BLURAY_TOKENS:
-        return "UHD BD" if "uhd" in tokens else "BD"
-    if "webdl" in tokens or ("web" in tokens and "dl" in tokens):
-        return "WEB-DL"
-    if "webrip" in tokens or ("web" in tokens and "rip" in tokens):
-        return "WEBRip"
-    # A bare "WEB" does not say WEB-DL or WEBRip, so it is shown as is.  It
-    # is also an ordinary word, so it only counts next to a release marker
-    # (otherwise "Charlotte's Web" would match).
-    if "web" in tokens and _describes_a_file(tokens):
-        return "WEB"
-    if tokens & _HDTV_TOKENS:
-        return "HDTV"
-    if tokens & _DVD_TOKENS:
-        return "DVD"
-    return ""
+    return next((label for label, matches in _RELEASE_TYPES if matches(tokens)), "")
 
 
 def _release_type_from_path(path: str) -> str:
