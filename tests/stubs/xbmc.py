@@ -82,6 +82,9 @@ class Player:
     def getPlayingFile(self):
         raise RuntimeError("nothing is playing")
 
+    def getPlayingItem(self):
+        raise RuntimeError("nothing is playing")
+
 
 class Keyboard:
     def __init__(self, default="", heading="", hidden=False):

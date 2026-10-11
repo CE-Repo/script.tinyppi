@@ -18,7 +18,7 @@ The same checks CI runs on every push (`.github/workflows/ci.yml`):
 ```
 ruff check .                 # lint (settings in pyproject.toml)
 mypy                         # types, with Kodistubs for Kodi's modules
-xenon --max-average A --max-modules B --max-absolute C resources/lib main.py   # complexity
+xenon --max-average A --max-modules B --max-absolute B resources/lib main.py   # complexity
 python3 -m pytest tests/unit --cov    # fails below the floor in pyproject.toml
 npm ci && npm run lint       # ESLint for resources/web/js
 npm run coverage             # the dashboard's scripts in jsdom (tests/web); fails below config.coverage in package.json
@@ -46,7 +46,7 @@ development files.
 | `unit/test_modules.py` | Every module imports; the small state holders behave |
 | `unit/test_imax.py` | IMAX by name: listed titles at the end of the film part, years on remakes, spelling variants, the IMAX tag, Enhanced, names from paths and Kodi's titles |
 | `unit/test_mediasource.py` | The media source row: release types, containers, sizes, streaming protocols, PVR, discs, addon links never stat'd |
-| `unit/test_dvinfo.py` | Dolby Vision and HDR fields from parsed side data: profiles, layers, L1/L5/L6, HDR10 and HDR10+, number formats, EL tag colours |
+| `unit/test_dvinfo.py` | Dolby Vision and HDR fields from parsed side data (`info/dvinfo.py`, `dvfields.py`): profiles, layers, L1/L5/L6, HDR10 and HDR10+, number formats, EL tag colours |
 | `unit/test_dvmetadata.py` | The DV metadata view's rows: scene and static sections, trim tables per target display, the composer's curves and coefficients, value formatting |
 | `unit/test_display.py` | The DRM display reset against a simulated device: HDMI first, the master descriptor, the cached ids and the negative cache |
 | `unit/test_session.py` | The dashboard's history of the playing title: the sample clock, events for changed readings, track changes held back until settled, warnings once per crossing, frame-rate events, a new title, the finished title kept for the idle page |
@@ -60,7 +60,7 @@ development files.
 | `unit/test_dvmetadata_dialog.py` | The Dolby Vision metadata windows: rows painted per kind, the list filled and its viewport kept, sections and their keys, highlights, the window fitted to its rows, static rows rebuilt, the session between list and sections |
 | `unit/test_mode_select.py` | The VS10 dialog: its layout and labels per stream, focus, keys, the mode chosen and applied after it closes |
 | `unit/test_dialog_layout.py` | The VS10 dialog's layouts outside Kodi and their fallbacks |
-| `unit/test_splash.py` | The codec-logo splash: logo stacks, panel pieces, offsets and scale, per-mode settings, colours and visibility, fades, and the controller (start window, OSD and overlay modes, audio and settings changes, badges, settling, Kodi stopping) |
+| `unit/test_splash.py` | The codec-logo splash (`ui/splash.py`, `splash_panel.py`, `splash_settings.py`): logo stacks, panel pieces, offsets and scale, per-mode settings, colours and visibility, fades, and the controller (start window, OSD and overlay modes, audio and settings changes, badges, settling, Kodi stopping) |
 | `unit/test_theme.py` | Publishing the colour and opacity settings, the unit label, the colour picker and its HEX tile, old storage forms rewritten |
 | `unit/test_webinfo.py` | The dashboard's settings actions: the address shown, a new token created |
 | `unit/test_utils.py` | Kodi read passes, localized strings, change highlights, offsets, the coded frame and picture ratio, property batches, the overlay state and its refresh thread |
@@ -84,7 +84,7 @@ development files.
 | `web/films.test.mjs` | The film wall, its rows and search, when the list is read again (a move during a read, a failed read after one), starting a film and the wall waiting on it |
 | `web/series.test.mjs` | The series shelf, an opened show with its seasons, the way back (search included), the open show read again (also after a move during a read or while it opens), starting an episode |
 | `web/continue.test.mjs` | The continue-watching rows, when they are read again, resuming a title |
-| `web/live-panels.test.mjs` | The now-playing card, the remote and its track pickers, the figures, the event list and the luminance chart (canvas faked) |
+| `web/live-panels.test.mjs` | The now-playing card, the remote and its track pickers (`js/live-remote.js`), the figures, the event list and the luminance chart (canvas faked) |
 | `web/metadata.test.mjs` | The Dolby Vision metadata tab: the idle and L5 cards, blocks and trim tables, readings lit when they move, the report |
 | `web/theme.test.mjs` | The themes and the tint strength: before the first paint (the bar colour too), the choice on the settings tab, what a press keeps |
 | `web/cover-tint.test.mjs` | The adaptive theme's poster tint (canvas and images faked): the colour a poster gives, where it is painted, contrast, one read per poster, a reused `<img>` |

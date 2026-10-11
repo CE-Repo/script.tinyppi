@@ -12,6 +12,10 @@ from info.dvinfo import is_status_label
 # The function receiving it validates and converts it.
 Unchecked = Any
 
+# A JSON object from Kodi (a JSON-RPC answer, or one of its rows): whatever
+# Kodi sent, read with ``get`` and checked where a value is used.
+Json = dict[str, Any]
+
 
 def library_id(value: Unchecked) -> int:
     """Return *value* as a library id (a positive integer), or 0.

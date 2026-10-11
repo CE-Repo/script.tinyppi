@@ -23,6 +23,7 @@ import re
 import threading
 import traceback
 from collections.abc import Sequence
+from typing import TypedDict
 
 import xbmc
 import xbmcvfs
@@ -40,7 +41,15 @@ _FONT_FILE = "special://xbmc/media/Fonts/arial.ttf"
 
 # Only the sizes are custom; bold headers use [B] markup, so no bold face is
 # registered.
-_REQUIRED_FONTS = (
+class _FontSpec(TypedDict):
+    """A font entry the views need: its name, file and size."""
+
+    name: str
+    filename: str
+    size: str
+
+
+_REQUIRED_FONTS: tuple[_FontSpec, ...] = (
     {"name": "font23_narrow", "filename": _FONT_FILE, "size": "21"},
     {"name": "font32",        "filename": _FONT_FILE, "size": "32"},
 )
@@ -162,7 +171,7 @@ def _get_skin_path() -> str | None:
     return path if os.path.isdir(path) else None
 
 
-def _spec_entry(spec: dict) -> tuple[str, str, str]:
+def _spec_entry(spec: _FontSpec) -> tuple[str, str, str]:
     """Return the ``(name, filename, size)`` key of a required font."""
     return (spec["name"], spec["filename"], spec["size"])
 
@@ -190,7 +199,7 @@ def _block_entry(block: str) -> tuple[str, str, str] | None:
     return name, filename, size
 
 
-def _fontset_entries(inner: str) -> set:
+def _fontset_entries(inner: str) -> set[tuple[str, str, str]]:
     """Return the ``(name, filename, size)`` triples in a fontset body.
 
     The three values must come from the same <font> block; matching them
@@ -249,7 +258,7 @@ def fonts_already_installed(font_xml_path: str) -> bool:
     return True
 
 
-def _font_block(spec: dict, indent: str, nl: str) -> str:
+def _font_block(spec: _FontSpec, indent: str, nl: str) -> str:
     """Render a <font> element at *indent*, with a leading newline."""
     return (
         f"{nl}{indent}<font>"
@@ -273,7 +282,7 @@ def _install_xml(font_xml_path: str) -> bool:
     nl = "\r\n" if "\r\n" in original else "\n"
     modified = False
 
-    def _process(match: re.Match) -> str:
+    def _process(match: re.Match[str]) -> str:
         nonlocal modified
         open_tag, inner, close_tag = match.group(1), match.group(2), match.group(3)
         fset_id = _fontset_id(open_tag)
@@ -349,29 +358,31 @@ def _install_fonts() -> None:
         _remember(home, skin_dir, font_xmls)
         return
 
-    written = failed = 0
-    for font_xml_path in incomplete:
-        try:
-            modified = _install_xml(font_xml_path)
-        except Exception as exc:
-            _log(f"Installation error: {exc}", xbmc.LOGERROR)
-            _log(traceback.format_exc(), xbmc.LOGERROR)
-            modified = False
-        if modified:
-            written += 1
-        else:
-            failed += 1
-            _log(f"the font entries could not be registered in {font_xml_path}; "
-                 "not trying again until the skin or its Font.xml changes",
-                 xbmc.LOGWARNING)
+    written = sum(_install_one(path) for path in incomplete)
+    failed = len(incomplete) - written
 
     # Mark the files as they are after the writes.
     _remember(home, skin_dir, font_xmls,
               PROP_FONTS_FAILED if failed else PROP_FONTS_READY)
     if not written:
         return
-    with contextlib.suppress(Exception):
+    with contextlib.suppress(RuntimeError):
         xbmc.executebuiltin("ReloadSkin(reload)")
+
+
+def _install_one(font_xml_path: str) -> bool:
+    """Install the entries into one Font.xml; True if it was written."""
+    try:
+        modified = _install_xml(font_xml_path)
+    except Exception as exc:  # one bad file must not stop the others
+        _log(f"Installation error: {exc}", xbmc.LOGERROR)
+        _log(traceback.format_exc(), xbmc.LOGERROR)
+        modified = False
+    if not modified:
+        _log(f"the font entries could not be registered in {font_xml_path}; "
+             "not trying again until the skin or its Font.xml changes",
+             xbmc.LOGWARNING)
+    return modified
 
 
 def _remember(home: PropertyTarget, skin_dir: str, font_xmls: Sequence[str],

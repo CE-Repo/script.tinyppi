@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""The codec-logo splash: layout, conditions, fades and controller (ui/splash.py)."""
+"""The codec-logo splash: layout, settings, conditions, fades and controller
+(ui/splash.py, ui/splash_panel.py, ui/splash_settings.py)."""
 
 import os
 from types import SimpleNamespace
@@ -12,7 +13,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 from core.constants import HOME_WINDOW_ID as HOME
-from ui import splash
+from ui import splash, splash_panel, splash_settings
 
 FULLSCREEN = "Window.IsActive(fullscreenvideo)"
 GAMUT = "Player.Process(amlogic.eoft_gamut)"
@@ -34,7 +35,7 @@ def is_true(prop):
 
 
 def media(rel_path):
-    return os.path.join(splash._MEDIA_PATH, *rel_path.split("/"))
+    return os.path.join(splash_panel._MEDIA_PATH, *rel_path.split("/"))
 
 
 def use(**values):
@@ -76,7 +77,7 @@ class Image(xbmcgui.ControlImage):
 def images(monkeypatch):
     # The real display_texture would write scaled copies under special://.
     monkeypatch.setattr(xbmcgui, "ControlImage", Image)
-    monkeypatch.setattr(splash, "display_texture", lambda path, w, h: path)
+    monkeypatch.setattr(splash_panel, "display_texture", lambda path, w, h: path)
 
 
 # --- Which logos a mode shows --------------------------------------------------
@@ -95,7 +96,7 @@ def images(monkeypatch):
 ])
 def test_a_mode_stacks_the_logos_it_is_set_to_show(show_video, show_audio, audio_first, logos,
                                                    has_audio, stack):
-    mode = splash._ModeSettings(show_video, show_audio, audio_first, 0, 0, 1.0, False)
+    mode = splash_settings.ModeSettings(show_video, show_audio, audio_first, 0, 0, 1.0, False)
     assert splash._mode_logos(mode, logos, has_audio) == stack
 
 
@@ -103,29 +104,29 @@ def test_a_mode_stacks_the_logos_it_is_set_to_show(show_video, show_audio, audio
 
 def test_an_image_is_scaled_for_its_box_and_tinted(monkeypatch):
     asked = []
-    monkeypatch.setattr(splash, "display_texture",
+    monkeypatch.setattr(splash_panel, "display_texture",
                         lambda path, w, h: asked.append((path, w, h)) or "/cache/HDR10_30x40.png")
-    image = splash._make_image("codecs/HDR10.png", 1, 2, 30, 40, "FF123456")
+    image = splash_panel._make_image("codecs/HDR10.png", 1, 2, 30, 40, "FF123456")
     assert asked == [(media("codecs/HDR10.png"), 30, 40)]
     assert image.args == (1, 2, 30, 40, "/cache/HDR10_30x40.png")
-    assert image.kwargs == {"aspectRatio": splash._ASPECT_KEEP, "colorDiffuse": "FF123456"}
+    assert image.kwargs == {"aspectRatio": splash_panel._ASPECT_KEEP, "colorDiffuse": "FF123456"}
 
 
 def test_a_dot_is_centred_on_its_point():
-    dot = splash._make_dot(100, 50, 10, "FF81C784")
+    dot = splash_panel._make_dot(100, 50, 10, "FF81C784")
     assert dot.box == (95, 45, 10, 10)
     assert dot.texture == media("common/dot-circle.png") and dot.color == "FF81C784"
 
 
 def test_a_solid_rectangle_is_never_smaller_than_a_pixel():
-    solid = splash._solid(5, 6, 0, -3, "FF000000")
+    solid = splash_panel._solid(5, 6, 0, -3, "FF000000")
     assert solid.box == (5, 6, 1, 1)
     assert solid.texture == media("common/dot-1x1.png")
-    assert solid.kwargs["aspectRatio"] == splash._ASPECT_STRETCH
+    assert solid.kwargs["aspectRatio"] == splash_panel._ASPECT_STRETCH
 
 
 def test_the_panel_pieces_tile_a_rounded_rectangle():
-    pieces = splash._panel_controls(10, 20, 100, 40, 8, "FA15181A")
+    pieces = splash_panel._panel_controls(10, 20, 100, 40, 8, "FA15181A")
     assert len(pieces) == 9
     assert bounds(pieces) == (10, 20, 110, 60)
     assert sum(p.box[2] * p.box[3] for p in pieces) == 100 * 40
@@ -137,18 +138,18 @@ def test_the_panel_pieces_tile_a_rounded_rectangle():
 
 @pytest.mark.parametrize(("radius", "corner"), [(8, 8), (50, 20), (0, 1)])
 def test_the_corner_radius_fits_the_panel(radius, corner):
-    pieces = splash._panel_controls(0, 0, 100, 40, radius, "FF000000")
+    pieces = splash_panel._panel_controls(0, 0, 100, 40, radius, "FF000000")
     assert {p.box[2:] for p in pieces[5:]} == {(corner, corner)}
 
 
 # --- Layout ------------------------------------------------------------------------
 
 def test_no_logos_build_nothing():
-    assert splash._build_controls([], COLOURS, 0, 0, 1920, 1080) == ([], None)
+    assert splash_panel.build_controls([], COLOURS, 0, 0, 1920, 1080) == ([], None)
 
 
 def test_two_logos_stack_on_a_panel_with_a_divider_and_a_badge():
-    controls, dot = splash._build_controls(PAIR, COLOURS, 0, 0, 1920, 1080)
+    controls, dot = splash_panel.build_controls(PAIR, COLOURS, 0, 0, 1920, 1080)
     c = COLOURS
     assert [x.color for x in controls] == [c["bg"]] * 9 + [c["divider"], c["video"], c["audio"],
                                                            c["convert_dot"]]
@@ -164,7 +165,7 @@ def test_two_logos_stack_on_a_panel_with_a_divider_and_a_badge():
 
 
 def test_a_single_logo_has_no_divider():
-    controls, dot = splash._build_controls([("codecs/SDR.png", "video")], COLOURS, 0, 0, 1920, 1080)
+    controls, dot = splash_panel.build_controls([("codecs/SDR.png", "video")], COLOURS, 0, 0, 1920, 1080)
     assert [x.color for x in controls] == [COLOURS["bg"]] * 9 + [COLOURS["video"],
                                                                  COLOURS["convert_dot"]]
     assert dot is controls[-1]
@@ -175,14 +176,14 @@ def test_a_single_logo_has_no_divider():
     ("", None), ("hdr10", None),
 ])
 def test_the_layer_pill_is_tinted_by_its_layer(token, colour):
-    controls, _dot = splash._build_controls(PAIR, COLOURS, 0, 0, 1920, 1080, layer_token=token)
+    controls, _dot = splash_panel.build_controls(PAIR, COLOURS, 0, 0, 1920, 1080, layer_token=token)
     pills = [x for x in controls if x.texture == media("common/pill.png")]
     assert [p.color for p in pills] == ([colour] if colour else [])
 
 
 @pytest.mark.parametrize("at_top", [False, True])
 def test_the_pill_sits_in_the_panel_padding_above_or_below_the_logos(at_top):
-    controls, _dot = splash._build_controls(PAIR, COLOURS, 0, 0, 1920, 1080,
+    controls, _dot = splash_panel.build_controls(PAIR, COLOURS, 0, 0, 1920, 1080,
                                             layer_token="fel", pill_at_top=at_top)
     _left, top, _right, bottom = bounds(controls[:9])
     video, audio, pill = controls[10], controls[11], controls[-1]
@@ -194,22 +195,22 @@ def test_the_pill_sits_in_the_panel_padding_above_or_below_the_logos(at_top):
 
 
 def test_offsets_move_the_panel_from_the_top_left_inset_to_the_bottom_right_edge():
-    near, _dot = splash._build_controls(PAIR, COLOURS, 0, 0, 1920, 1080)
-    far, _dot = splash._build_controls(PAIR, COLOURS, 100, 100, 1920, 1080)
+    near, _dot = splash_panel.build_controls(PAIR, COLOURS, 0, 0, 1920, 1080)
+    far, _dot = splash_panel.build_controls(PAIR, COLOURS, 100, 100, 1920, 1080)
     assert bounds(near[:9])[:2] == (35, 35)
     assert bounds(far[:9])[2:] == (1920 - 35, 1080 - 35)
 
 
 @pytest.mark.parametrize(("offset", "clamped"), [(-20, 0), (150, 100)])
 def test_offsets_are_clamped_to_the_screen(offset, clamped):
-    beyond, _dot = splash._build_controls(PAIR, COLOURS, offset, offset, 1920, 1080)
-    edge, _dot = splash._build_controls(PAIR, COLOURS, clamped, clamped, 1920, 1080)
+    beyond, _dot = splash_panel.build_controls(PAIR, COLOURS, offset, offset, 1920, 1080)
+    edge, _dot = splash_panel.build_controls(PAIR, COLOURS, clamped, clamped, 1920, 1080)
     assert [x.box for x in beyond] == [x.box for x in edge]
 
 
 def test_the_user_scale_resizes_the_panel():
-    small, _dot = splash._build_controls(PAIR, COLOURS, 0, 0, 1920, 1080, user_scale=0.8)
-    large, _dot = splash._build_controls(PAIR, COLOURS, 0, 0, 1920, 1080, user_scale=1.3)
+    small, _dot = splash_panel.build_controls(PAIR, COLOURS, 0, 0, 1920, 1080, user_scale=0.8)
+    large, _dot = splash_panel.build_controls(PAIR, COLOURS, 0, 0, 1920, 1080, user_scale=1.3)
     # Both start at the inset; the larger one reaches further.
     assert bounds(large[:9])[:2] == bounds(small[:9])[:2] == (35, 35)
     (_l, _t, large_right, large_bottom), (_l, _t, small_right, small_bottom) = (
@@ -241,7 +242,7 @@ class Sized:
 def test_controls_are_laid_out_in_the_windows_own_space(monkeypatch, size, dims):
     monkeypatch.setattr(xbmcgui, "getScreenWidth", lambda: 2560)
     monkeypatch.setattr(xbmcgui, "getScreenHeight", lambda: 1440)
-    assert splash._window_dims(Sized(size)) == dims
+    assert splash_panel.window_dims(Sized(size)) == dims
 
 
 # --- Settings and colours ---------------------------------------------------------
@@ -251,13 +252,13 @@ def test_the_settings_are_read_per_mode():
         splash_duration=5, splash_osd_show_video=False, splash_osd_order=1,
         splash_osd_offset_x=10, splash_osd_offset_y=20, splash_osd_scale=120,
         splash_osd_pill_position=1)
-    config = splash._read_settings(xbmcaddon.Addon())
+    config = splash_settings.read_settings(xbmcaddon.Addon())
     assert (config.show_on_start, config.show_on_osd, config.show_on_tinyppi, config.duration) == (
         True, False, True, 5)
-    assert config.modes["osd"] == splash._ModeSettings(
+    assert config.modes["osd"] == splash_settings.ModeSettings(
         show_video=False, show_audio=True, audio_first=True, offset_x=10, offset_y=20,
         scale=1.2, pill_at_top=True)
-    assert config.modes["start"] == config.modes["tinyppi"] == splash._ModeSettings(
+    assert config.modes["start"] == config.modes["tinyppi"] == splash_settings.ModeSettings(
         True, True, False, 0, 0, 1.0, False)
 
 
@@ -266,11 +267,11 @@ def test_the_settings_are_read_per_mode():
 ])
 def test_the_mode_size_is_clamped(stored, scale):
     use(splash_tinyppi_scale=stored)
-    assert splash._mode_scale(xbmcaddon.Addon(), "tinyppi") == pytest.approx(scale)
+    assert splash_settings._mode_scale(xbmcaddon.Addon(), "tinyppi") == pytest.approx(scale)
 
 
 def test_an_unknown_mode_has_the_normal_size():
-    assert splash._mode_scale(xbmcaddon.Addon(), "pip") == 1.0
+    assert splash_settings._mode_scale(xbmcaddon.Addon(), "pip") == 1.0
 
 
 def test_mode_colours_come_from_the_theme_with_fallbacks():
@@ -347,7 +348,7 @@ class Steps:
 def test_fading_in_hides_adds_binds_then_shows_and_finally_plays_the_fade():
     home = xbmcgui.Window(HOME)
     home.setProperty(VISIBLE["osd"], "true")        # left over from the previous run
-    controls = [splash._solid(0, 0, 10, 10, "FF000000") for _ in range(3)]
+    controls = [splash_panel._solid(0, 0, 10, 10, "FF000000") for _ in range(3)]
     dot = controls[2]
     steps = Steps(controls)
     splash._fade_in(steps, home, steps, "osd", controls, "COND", dot)
@@ -369,7 +370,7 @@ def test_fading_in_hides_adds_binds_then_shows_and_finally_plays_the_fade():
 def test_fading_out_hides_the_mode_and_removes_it_unless_kodi_stops(aborting):
     home = xbmcgui.Window(HOME)
     home.setProperty(VISIBLE["start"], "true")
-    controls = [splash._solid(0, 0, 10, 10, "FF000000")]
+    controls = [splash_panel._solid(0, 0, 10, 10, "FF000000")]
     steps = Steps(controls, aborting)
     splash._fade_out(steps, home, steps, "start", controls)
     assert steps.log == [("wait", FADE_OUT, [0], {})]
@@ -384,7 +385,7 @@ def test_removing_from_a_window_that_is_gone_is_ignored():
             self.tried.append(controls)
             raise RuntimeError("window does not exist")
 
-    controls = [splash._solid(0, 0, 1, 1, "FF000000")]
+    controls = [splash_panel._solid(0, 0, 1, 1, "FF000000")]
     splash._remove_controls(Gone(), controls)       # does not raise
     assert Gone.tried == [controls]
 

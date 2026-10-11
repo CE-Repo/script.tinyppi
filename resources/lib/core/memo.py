@@ -19,7 +19,7 @@ class KeyedMemo:
     __slots__ = ("_entry",)
 
     def __init__(self) -> None:
-        self._entry: tuple | None = None
+        self._entry: tuple[Hashable, Any] | None = None
 
     def get(self, key: Hashable) -> Any:
         """Return the value held for *key*, or None."""

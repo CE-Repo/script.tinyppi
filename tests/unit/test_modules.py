@@ -53,9 +53,9 @@ def test_imax_titles_and_tags():
 
 
 def test_dv_snapshot_without_video():
-    from info import dvinfo
+    from info import dvfields, dvinfo
     fields, playing = dvinfo._snapshot()
-    assert playing is False and set(fields) == set(dvinfo._FIELDS)
+    assert playing is False and set(fields) == set(dvfields.FIELDS)
     assert dvinfo.get_sidedata(mapping=True) is None
 
 

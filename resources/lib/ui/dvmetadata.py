@@ -124,14 +124,20 @@ def _paint_cells(item: xbmcgui.ListItem, kind: str, names: tuple[str, str],
                          cell if kind == dvmetadata.COLUMNS else "")
 
 
-def _identities(rows: list) -> list:
+# A row's identity across rebuilds: (kind, name, repeat index).
+_RowKey = tuple[str, str, int]
+# A section: (heading row, title, last row).
+_Area = tuple[int, str, int]
+
+
+def _identities(rows: list[dvmetadata.Row]) -> list[_RowKey]:
     """Return a stable key per row: (kind, name, repeat index).
 
     Names repeat (MaxCLL is under L6 and the static SEIs).  The key keeps a
     row's highlight history across rebuilds, e.g. when sections come and go.
     """
-    seen: dict = {}
-    keys = []
+    seen: dict[tuple[str, str], int] = {}
+    keys: list[_RowKey] = []
     for kind, name, _value in rows:
         repeat = seen.get((kind, name), 0)
         seen[(kind, name)] = repeat + 1
@@ -139,14 +145,14 @@ def _identities(rows: list) -> list:
     return keys
 
 
-def _areas(rows: list) -> list:
+def _areas(rows: list[dvmetadata.Row]) -> list[_Area]:
     """Return the sections as ``(heading row, title, last row)``.
 
     The blank row before a heading belongs to neither section.
     """
     starts = [index for index, (kind, _name, _value) in enumerate(rows)
               if kind == dvmetadata.SECTION]
-    areas = []
+    areas: list[_Area] = []
     for position, start in enumerate(starts):
         end = (starts[position + 1] - 1 if position + 1 < len(starts)
                else len(rows) - 1)
@@ -154,6 +160,27 @@ def _areas(rows: list) -> list:
             end -= 1
         areas.append((start, rows[start][1], end))
     return areas
+
+
+def _paint_table(item: xbmcgui.ListItem, kind: str, label: dvmetadata.Value) -> None:
+    """Fill the table cells of *item*, in the wide or the compact slots.
+
+    Rows that are no table rows get every cell emptied.
+    """
+    table   = kind in (dvmetadata.HEADINGS, dvmetadata.COLUMNS)
+    cells   = list(label) if table else []
+    compact = table and len(cells) == dvmetadata.MAX_COMPACT_COLUMNS
+    # Right-align narrow tables in the fixed slots, so the list has one
+    # right edge.  All rows of a table have the heading's width (see
+    # dvcomposer._grid and dvmetadata._table), so readings stay under their
+    # headings.  Full-width and compact tables are not shifted.
+    offset  = (max(0, dvmetadata.MAX_COLUMNS - len(cells))
+               if table and not compact else 0)
+    wide    = [""] * offset + cells if not compact else []
+    _paint_cells(item, kind, (_CELL_HEADING, _CELL_VALUE),
+                 wide, dvmetadata.MAX_COLUMNS)
+    _paint_cells(item, kind, (_COMPACT_CELL_HEADING, _COMPACT_CELL_VALUE),
+                 cells if compact else [], dvmetadata.MAX_COMPACT_COLUMNS)
 
 
 class DVMetadataDialog(xbmcgui.WindowXMLDialog):
@@ -171,17 +198,17 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self._opened_at = 0.0
         # Row identities in the list; the highlighter tracks values by
         # identity (see _identities).
-        self._keys: list = []
+        self._keys: list[_RowKey] = []
         self._highlighter = ChangeHighlighter(highlight_hold(_CHANGED_HOLD))
         # Labels (or cell lists) shown last tick, so _fill can skip idle
         # ticks.
-        self._last_labels: list = []
+        self._last_labels: list[dvmetadata.Value] = []
         # True during _fill's list swap (see _cursor_area).
         self._swapping: bool = False
         # Cached static rows, their signature and the next fallback rebuild
         # (owned by _merged_rows).
-        self._static_rows: list = []
-        self._static_signature: tuple | None = None
+        self._static_rows: list[dvmetadata.Row] = []
+        self._static_signature: tuple[object, ...] | None = None
         self._next_static_rows = 0.0
         self._thread: threading.Thread | None = None
         self._closing        = False
@@ -192,7 +219,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self._resize_failed = False
         # Sections and the current one, by title, so sections coming and
         # going do not move the viewer (see _focus_area).
-        self._areas: list = []
+        self._areas: list[_Area] = []
         self._area_title  = ""
         # Set before doModal(): the section to start on, so returning from a
         # section keeps the viewer's place.
@@ -202,7 +229,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self.back_to_caller = False
         self.open_section   = ""
 
-    def _merged_rows(self) -> list:
+    def _merged_rows(self) -> list[dvmetadata.Row]:
         """Return this tick's scene rows joined with the cached static rows.
 
         The static rows are rebuilt when ``dvmetadata.static_signature``
@@ -222,7 +249,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             rows = [(dvmetadata.SECTION, "No metadata in this frame", "")]
         return rows
 
-    def _rows(self) -> list:
+    def _rows(self) -> list[dvmetadata.Row]:
         """Return the rows to show (all; DVSectionDialog narrows this)."""
         return self._merged_rows()
 
@@ -247,7 +274,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
     # --- List --------------------------------------------------------------
 
     @staticmethod
-    def _paint(item: xbmcgui.ListItem, row: tuple, label: str | list[str]) -> None:
+    def _paint(item: xbmcgui.ListItem, row: dvmetadata.Row, label: dvmetadata.Value) -> None:
         """Make *item* show *row* with *label* as its value.
 
         All rows share one layout (Kodi evaluates list layout conditions once
@@ -260,26 +287,13 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         heading = kind == dvmetadata.SECTION
         named   = kind in (dvmetadata.ROW, dvmetadata.HEADINGS,
                            dvmetadata.COLUMNS)
-        table   = kind in (dvmetadata.HEADINGS, dvmetadata.COLUMNS)
-        compact = table and len(label) == dvmetadata.MAX_COMPACT_COLUMNS
-        # Right-align narrow tables in the fixed slots, so the list has one
-        # right edge.  All rows of a table have the heading's width (see
-        # dvcomposer._grid and dvmetadata._table), so readings stay under their
-        # headings.  Full-width and compact tables are not shifted.
-        offset  = (max(0, dvmetadata.MAX_COLUMNS - len(label))
-                   if table and not compact else 0)
         item.setLabel(name if named else "")
         item.setLabel2(label if kind in (dvmetadata.ROW, dvmetadata.WIDE)
                        else "")
         item.setProperty("head", name if heading else "")
         item.setProperty("state", label if heading else "")
         item.setProperty("rule", _RULE_TEXTURE if heading else "")
-        cells = list(label) if table else []
-        wide  = [""] * offset + cells if not compact else []
-        _paint_cells(item, kind, (_CELL_HEADING, _CELL_VALUE),
-                     wide, dvmetadata.MAX_COLUMNS)
-        _paint_cells(item, kind, (_COMPACT_CELL_HEADING, _COMPACT_CELL_VALUE),
-                     cells if compact else [], dvmetadata.MAX_COMPACT_COLUMNS)
+        _paint_table(item, kind, label)
 
     def _changed_color(self) -> str:
         """Return the published highlight color, or the default (logged once)."""
@@ -295,7 +309,14 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             )
         return _CHANGED_FALLBACK
 
-    def _fill(self, rows: list) -> None:
+    def _mark(self, key: _RowKey, value: dvmetadata.Value, color: str,
+              now: float) -> dvmetadata.Value:
+        """Highlight *value*'s changes: a reading, or a table row's cells."""
+        if isinstance(value, list):
+            return self._highlighter.mark(key, value, color, now)
+        return self._highlighter.mark(key, value, color, now)
+
+    def _fill(self, rows: list[dvmetadata.Row]) -> None:
         """Replace the list with *rows* when anything changed; else do nothing.
 
         Measured on device: in-place ``setLabel``/``setProperty`` calls from
@@ -325,7 +346,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self._highlighter.retain(keys)
         labels = [
             value if kind == dvmetadata.SECTION
-            else self._highlighter.mark(key, value, color, now)
+            else self._mark(key, value, color, now)
             for (kind, _name, value), key in zip(rows, keys, strict=True)
         ]
 
@@ -383,7 +404,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             self.getControl(_RULE).setPosition(35, foot + _RULE_GAP)
             for control_id in _HINTS:
                 self.getControl(control_id).setPosition(35, foot + _HINT_GAP)
-        except Exception as exc:
+        except RuntimeError as exc:
             # Without these ids the window keeps its full skin height.
             if not self._resize_failed:
                 self._resize_failed = True
@@ -443,7 +464,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
             return self._area_title
         try:
             position = self.getControl(_LIST).getSelectedPosition()
-        except Exception:  # window closing: the control is gone
+        except RuntimeError:  # window closing: the control is gone
             return self._area_title
         for start, title, end in self._areas:
             if start <= position <= end:
@@ -492,7 +513,7 @@ class DVMetadataDialog(xbmcgui.WindowXMLDialog):
         self._closing       = True
         self.back_to_caller = back_to_caller
         self._running       = False
-        with contextlib.suppress(Exception):
+        with contextlib.suppress(RuntimeError):
             self.close()
 
     # --- Refresh -----------------------------------------------------------
@@ -545,7 +566,7 @@ class DVSectionDialog(DVMetadataDialog):
         self.section     = ""
         self._settled_in = False
 
-    def _rows(self) -> list:
+    def _rows(self) -> list[dvmetadata.Row]:
         """Return this section's rows, heading included.
 
         Sliced from ``_merged_rows`` on every refresh, so the section stays

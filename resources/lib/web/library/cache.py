@@ -7,6 +7,9 @@ import importlib
 import threading
 import time
 from collections.abc import Callable
+from typing import Any
+
+from web.library.entries import ArtPaths, Continuing, Episodes, Films, Shows
 
 # Cache lifetime; changes normally arrive as notifications (see
 # ``invalidate``), so this only covers missed ones.
@@ -26,10 +29,10 @@ _QUIET       = 2.0
 _BURST_LIMIT = 10.0
 
 # A list's reader: queries Kodi and returns the list as kept.
-Reader = Callable[[], dict]
+type Reader[Kept] = Callable[[], Kept]
 
 
-class Slot:
+class Slot[Kept]:
     """One cached list, read on demand and kept for ``_TTL``.
 
     Readers arriving while a read runs wait for its answer instead of
@@ -38,21 +41,21 @@ class Slot:
     would serve the old list until the TTL ran out.
     """
 
-    def __init__(self, cache: Cache, read: Reader) -> None:
+    def __init__(self, cache: Cache, read: Reader[Kept]) -> None:
         self._cache   = cache
         self._read    = read
-        self._value: dict | None = None
+        self._value: Kept | None = None
         self._read_at = 0.0
         # Held for the length of a read: one query per list at a time.
         self._reading = threading.Lock()
 
-    def _fresh(self) -> dict | None:
+    def _fresh(self) -> Kept | None:
         """Return the kept list while it is fresh (cache lock held)."""
         if self._value is not None and time.monotonic() - self._read_at < _TTL:
             return self._value
         return None
 
-    def peek(self) -> dict | None:
+    def peek(self) -> Kept | None:
         """Return the kept list without reading, or None."""
         with self._cache.lock:
             return self._value
@@ -62,7 +65,7 @@ class Slot:
         self._value   = None
         self._read_at = 0.0
 
-    def get(self) -> dict:
+    def get(self) -> Kept:
         """Return the list, reading it when none is kept or it is stale."""
         cache = self._cache
         with cache.lock:
@@ -94,7 +97,8 @@ class Cache:
     modules that use this one (see ``web/library/__init__.py``).
     """
 
-    def __init__(self, films: Reader, shows: Reader, continuing: Reader) -> None:
+    def __init__(self, films: Reader[Films], shows: Reader[Shows],
+                 continuing: Reader[Continuing]) -> None:
         self.lock     = threading.Lock()
         self.revision = 0
         self.films      = Slot(self, films)
@@ -102,10 +106,10 @@ class Cache:
         # Partly watched films and episodes (see ``progress.continuing``).
         self.continuing = Slot(self, continuing)
         # Episodes of opened shows, by show id.
-        self.episodes: dict[int, Slot] = {}
+        self.episodes: dict[int, Slot[Episodes]] = {}
         # Episode art paths by episode id (artwork URLs name only the
         # episode).
-        self.episode_art: dict[int, dict[str, str]] = {}
+        self.episode_art: ArtPaths = {}
         # Due times of the drops after playback stopped, soonest first.
         self._settling: list[float] = []
         # Start and due time of the drop for a burst of item notifications.
@@ -119,8 +123,9 @@ class Cache:
 
     def _drop(self) -> None:
         # Lock held.  A pending burst is covered by this drop.
-        for slot in (self.films, self.shows, self.continuing):
-            slot.clear()
+        self.films.clear()
+        self.shows.clear()
+        self.continuing.clear()
         self.episodes.clear()
         self.episode_art.clear()
         self._burst_since = None
@@ -156,7 +161,7 @@ class Cache:
                 self._drop()
             return self.revision
 
-    def remember_art(self, art: dict[int, dict[str, str]]) -> None:
+    def remember_art(self, art: ArtPaths) -> None:
         """Register episode art paths read with a list."""
         with self.lock:
             self.episode_art.update(art)
@@ -167,14 +172,14 @@ class Cache:
             return self.episode_art.get(episode_id)
 
 
-def _late(module: str, name: str) -> Reader:
+def _late(module: str, name: str) -> Reader[Any]:
     """Return a reader that finds ``web.library.<module>.<name>`` when it reads.
 
     The modules holding the readers import this one, so they cannot be
-    named at import time.
+    named at import time (and its list's type is checked there).
     """
-    def read() -> dict:
-        reader: Reader = getattr(importlib.import_module(f"web.library.{module}"), name)
+    def read() -> Any:
+        reader: Reader[Any] = getattr(importlib.import_module(f"web.library.{module}"), name)
         return reader()
     return read
 

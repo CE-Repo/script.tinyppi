@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""VS10 switching against a simulated Dolby Vision driver (core/vs10.py).
+"""VS10 switching against a simulated Dolby Vision driver (core/vs10.py,
+with what Kodi reports from core/vs10_kodi.py).
 
 The driver's sysfs nodes are real files in a scratch folder.  The simulated
 driver applies what was written whenever the code waits (``delay``), as the
@@ -16,7 +17,7 @@ import pytest
 
 import xbmc
 import xbmcgui
-from core import vs10
+from core import vs10, vs10_kodi
 
 NODES = {
     "_POLICY": "1", "_ENABLE": "N", "_DVMODE": "0", "_LL_POLICY": "0",
@@ -60,7 +61,7 @@ class Kodi:
 
     def __call__(self, request):
         setting = request.get("params", {}).get("setting")
-        if setting == vs10._VS10_PROBE_SETTING:
+        if setting == vs10_kodi.VS10_PROBE_SETTING:
             return {"result": {"value": True}} if self.native else {"error": {"code": -32602}}
         if setting == "coreelec.amlogic.dolbyvisionled":
             return {"error": {}} if self.led is None else {"result": {"value": self.led}}
@@ -80,8 +81,8 @@ def driver(tmp_path, monkeypatch):
 def kodi(monkeypatch, driver):
     fake = Kodi()
     xbmc.RPC = fake
-    vs10._vs10_actions_available.cache_clear()
-    monkeypatch.setattr(vs10, "_is_playing_video", lambda: True)
+    vs10_kodi.vs10_actions_available.cache_clear()
+    monkeypatch.setattr(vs10, "is_playing_video", lambda: True)
     resets = []
     monkeypatch.setattr(vs10.display, "reset", resets.append)
     fake.resets = resets
@@ -92,7 +93,7 @@ def kodi(monkeypatch, driver):
             fake.native_effect(driver)
     monkeypatch.setattr(xbmc, "executebuiltin", builtin)
     yield fake
-    vs10._vs10_actions_available.cache_clear()
+    vs10_kodi.vs10_actions_available.cache_clear()
 
 
 def writes(driver):
@@ -178,7 +179,7 @@ def test_other_switches_are_direct(driver, kodi):
 
 def test_nothing_is_staged_without_a_video(driver, kodi, monkeypatch):
     vs10.set_mode("hdr10")
-    monkeypatch.setattr(vs10, "_is_playing_video", lambda: False)
+    monkeypatch.setattr(vs10, "is_playing_video", lambda: False)
     kodi.resets.clear()
     vs10.set_mode("dv")
     assert [value for node, value in writes(driver) if node == "_DVMODE"] == ["3", "2"]
@@ -232,7 +233,7 @@ def test_sdr8_always_uses_sysfs(driver, kodi):
 
 def test_native_actions_need_a_video(driver, kodi, monkeypatch):
     kodi.native = True
-    monkeypatch.setattr(vs10, "_is_playing_video", lambda: False)
+    monkeypatch.setattr(vs10, "is_playing_video", lambda: False)
     vs10.set_mode("hdr10")
     assert xbmc.BUILTINS == []
     assert writes(driver)[-1] == ("_DVMODE", "3")
@@ -269,7 +270,7 @@ def test_unknown_modes_do_nothing(driver, kodi):
 def test_hybrid_grades_are_switched_with_a_warning(driver, kodi):
     home = xbmcgui.Window(10000)
     home.setProperty("TinyPPI.HdrType", "dolbyvision")
-    home.setProperty(vs10.PROP_HDR10PLUS_PRESENT, "1")
+    home.setProperty(vs10_kodi.PROP_HDR10PLUS_PRESENT, "1")
     vs10.set_mode("sdr10")
     assert any("also carries HDR10+" in line for level, line in xbmc.LOG
                if level == xbmc.LOGWARNING)
@@ -278,10 +279,10 @@ def test_hybrid_grades_are_switched_with_a_warning(driver, kodi):
 
 def test_a_broken_probe_answer(driver, kodi, monkeypatch):
     monkeypatch.setattr(xbmc, "executeJSONRPC", lambda _request: "garbage")
-    assert vs10._probe_vs10_actions() is False
-    assert vs10._probe_dv_Player_LED_setting() is None
+    assert vs10_kodi.probe_vs10_actions() is False
+    assert vs10_kodi.probe_dv_led_setting() is None
     monkeypatch.setattr(xbmc, "executeJSONRPC", lambda _request: '{"result": "OK"}')
-    assert vs10._probe_dv_Player_LED_setting() is None
+    assert vs10_kodi.probe_dv_led_setting() is None
 
 
 def test_a_native_action_crossing_the_dv_line_that_never_lands_is_not_reset(driver, kodi):
@@ -303,7 +304,7 @@ def test_a_native_action_crossing_the_dv_line_that_never_lands_is_not_reset(driv
 ])
 def test_the_led_setting_is_read_as_a_number(value, led):
     xbmc.RPC = lambda _request: {"result": {"value": value}}
-    assert vs10._probe_dv_Player_LED_setting() == led
+    assert vs10_kodi.probe_dv_led_setting() == led
 
 
 def test_the_led_mode_defaults_to_tv_led(driver, kodi):
@@ -359,11 +360,11 @@ def test_a_missing_node_reads_as_nothing(tmp_path, monkeypatch):
 
 
 def test_whether_a_video_plays_comes_from_the_player(monkeypatch):
-    assert vs10._is_playing_video() is False
+    assert vs10_kodi.is_playing_video() is False
     monkeypatch.setattr(xbmc, "Player", lambda: types.SimpleNamespace(isPlayingVideo=lambda: True))
-    assert vs10._is_playing_video() is True
+    assert vs10_kodi.is_playing_video() is True
 
     def shutting_down():
         raise RuntimeError("Kodi is shutting down")
     monkeypatch.setattr(xbmc, "Player", shutting_down)
-    assert vs10._is_playing_video() is False
+    assert vs10_kodi.is_playing_video() is False

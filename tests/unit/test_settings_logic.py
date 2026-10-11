@@ -17,7 +17,7 @@ import xbmcgui
 from core.utils import highlight_hold
 from info import publish
 from ui import dvmetadata as metadata_view
-from ui import overlay, palette, splash, theme
+from ui import overlay, palette, splash_panel, splash_settings, theme
 from web.snapshot import SnapshotBuilder
 
 
@@ -87,21 +87,21 @@ def test_dv_channel_panel_slides_with_offset_x_dv():
 
 def test_pill_position(monkeypatch):
     made = []
-    monkeypatch.setattr(splash, "_make_image", lambda tex, x, y, w, h, c: made.append((tex, y)) or tex)
-    monkeypatch.setattr(splash, "_make_dot", lambda x, y, d, c: "dot")
+    monkeypatch.setattr(splash_panel, "_make_image", lambda tex, x, y, w, h, c: made.append((tex, y)) or tex)
+    monkeypatch.setattr(splash_panel, "_make_dot", lambda x, y, d, c: "dot")
     colours = dict.fromkeys(("bg", "video", "audio", "divider", "convert_dot", "fel", "mel", "other"), "FFFFFFFF")
 
     def pill_y(top):
         made.clear()
-        splash._build_controls([("a.png", "video"), ("b.png", "audio")], colours, 0, 0, 1920, 1080,
+        splash_panel.build_controls([("a.png", "video"), ("b.png", "audio")], colours, 0, 0, 1920, 1080,
                                layer_token="fel", pill_at_top=top)
-        return [y for tex, y in made if tex == splash._PILL_TEXTURE][0]
+        return [y for tex, y in made if tex == splash_panel._PILL_TEXTURE][0]
 
     assert pill_y(True) < pill_y(False)
     for mode in ("start", "osd", "tinyppi"):
         for value, top in ((0, False), (1, True)):
             use(**{f"splash_{mode}_pill_position": value})
-            assert splash._read_settings(xbmcaddon.Addon()).modes[mode].pill_at_top is top
+            assert splash_settings.read_settings(xbmcaddon.Addon()).modes[mode].pill_at_top is top
 
 
 def test_web_metadata_off_sends_no_rows():

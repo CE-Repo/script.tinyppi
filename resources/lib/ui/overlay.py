@@ -257,7 +257,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         self._running   = False
         self._monitor   = xbmc.Monitor()
         self._opened_at = 0.0
-        self._offset: tuple | None = None
+        self._offset: tuple[int, int] | None = None
         self._auto_hide = 0
         self._nudge     = (0, 0)
         self._nudge_on  = False
@@ -271,9 +271,9 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         # what the window holds (with markup), unlike self.published (see
         # _highlight_dv_changes).
         self._highlighter: ChangeHighlighter | None = None
-        self._shown: dict       = {}
+        self._shown: dict[str, str] = {}
         # Public: _show_overlay() fills it before doModal().
-        self.published: dict    = {}
+        self.published: dict[str, str] = {}
         self._color_missing     = False
         # Highlight color, refreshed on the slow cadence (see _update_loop).
         self._changed_color     = ""
@@ -351,7 +351,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
                 self.setProperty(name, highlighted)
                 self._shown[name] = highlighted
 
-    def _base_offset(self, wide: bool, up_limit: int) -> tuple:
+    def _base_offset(self, wide: bool, up_limit: int) -> tuple[int, int]:
         """Return the configured (x, y) offset.
 
         100 % is the maximum travel (30.9 % / 28.1 % of the screen).  The
@@ -533,7 +533,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
     def close_dialog(self) -> None:
         self._running = False
         home_window().clearProperty(PROP_ACTIVE)
-        with contextlib.suppress(Exception):
+        with contextlib.suppress(RuntimeError):
             self.close()
 
 

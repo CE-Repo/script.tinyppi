@@ -13,6 +13,7 @@ import math
 import re
 import secrets
 import time
+from collections.abc import Mapping
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 from typing import TYPE_CHECKING
@@ -23,10 +24,13 @@ from core import settings
 from core.log import channel
 from web import access, artwork, library
 from web.delta import snapshot_delta
+from web.library.entries import Listing
+from web.payloads import DeltaFrame, Snapshot
 from web.player import apply_command
 from web.producer import PRODUCE_INTERVAL, Producer
 from web.static import MIN_COMPRESS, STATIC_CACHE
 from web.strings import ui_strings
+from web.values import Unchecked
 from web.vs10 import apply_mode
 
 if TYPE_CHECKING:  # web.server imports this module
@@ -97,6 +101,11 @@ _PAGE_POLICY = "; ".join((
 _log = channel("web", xbmc.LOGINFO)
 
 
+def _param(query: dict[str, list[str]], name: str) -> str:
+    """Return the first value of *name* in a parsed query, or ''."""
+    return (query.get(name) or [""])[0]
+
+
 class Handler(BaseHTTPRequestHandler):
     """The request handler; ``server`` holds the producer, token and files."""
 
@@ -147,7 +156,7 @@ class Handler(BaseHTTPRequestHandler):
             part.strip().removeprefix("W/") for part in offered.split(",")
         ]
 
-    def _send_json(self, payload: dict, status: HTTPStatus = HTTPStatus.OK,
+    def _send_json(self, payload: Mapping[str, object], status: HTTPStatus = HTTPStatus.OK,
                    etag: str = "", cache: str = "no-store",
                    extra: tuple[tuple[str, str], ...] = ()) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -310,7 +319,7 @@ class Handler(BaseHTTPRequestHandler):
         """Send the chart history and events (on connect and new events)."""
         self._send_json(self.server.producer.history())
 
-    def _set_mode(self, payload: dict) -> None:
+    def _set_mode(self, payload: dict[str, Unchecked]) -> None:
         """Switch the VS10 output mode."""
         mode = str(payload.get("mode", "")).strip()
         if not apply_mode(mode):
@@ -319,7 +328,7 @@ class Handler(BaseHTTPRequestHandler):
         _log(f"VS10 mode '{mode}' requested from {self._peer}")
         self._send_json({"ok": True, "mode": mode})
 
-    def _run_command(self, payload: dict) -> None:
+    def _run_command(self, payload: dict[str, Unchecked]) -> None:
         """Run a transport command (play/pause, seek, volume, ...)."""
         action = str(payload.get("action", "")).strip()
         if not apply_command(action, payload.get("value")):
@@ -331,7 +340,7 @@ class Handler(BaseHTTPRequestHandler):
              else xbmc.LOGINFO)
         self._send_json({"ok": True, "action": action})
 
-    def _read_json_body(self) -> dict | None:
+    def _read_json_body(self) -> dict[str, Unchecked] | None:
         """Return the JSON body as a dict, or None after sending an error."""
         try:
             length = int(self.headers.get("Content-Length", "0"))
@@ -352,8 +361,8 @@ class Handler(BaseHTTPRequestHandler):
 
     # --- Responses ---------------------------------------------------------
 
-    def _state_payload(self) -> dict:
-        payload = dict(self.server.producer.fresh())
+    def _state_payload(self) -> Snapshot:
+        payload = self.server.producer.fresh().copy()
         payload["control"] = self.server.allow_control
         # Whether a stream would be refused now: an EventSource cannot read
         # the 503, so the page asks here (see connect() in js/core.js).
@@ -375,7 +384,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         self._send_listing(payload)
 
-    def _start_film(self, payload: dict) -> None:
+    def _start_film(self, payload: dict[str, Unchecked]) -> None:
         """Start a film or an episode, depending on the id in *payload*."""
         # resume=False starts from the beginning; anything else resumes.
         resume = payload.get("resume") is not False
@@ -402,7 +411,7 @@ class Handler(BaseHTTPRequestHandler):
         # The page learns about the playback from the next snapshot.
         self._send_json({"ok": True, "movieid": movie_id})
 
-    def _mark_watched(self, payload: dict) -> None:
+    def _mark_watched(self, payload: dict[str, Unchecked]) -> None:
         """Mark a film, series or episode as watched or unwatched.
 
         The id in *payload* selects the kind; each needs its shelf's setting.
@@ -428,7 +437,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         self._send_error_json(HTTPStatus.BAD_REQUEST, "no title named")
 
-    def _clear_resume(self, payload: dict) -> None:
+    def _clear_resume(self, payload: dict[str, Unchecked]) -> None:
         """Clear the resume point of a film or episode."""
         for key, kind, offered in (
                 ("movieid", "movie", self.server.offer_library),
@@ -465,7 +474,7 @@ class Handler(BaseHTTPRequestHandler):
         if not (self.server.offer_series and self.server.allow_control):
             self._send_error_json(HTTPStatus.FORBIDDEN, "library disabled")
             return
-        show = (parse_qs(urlparse(self.path).query).get("tvshowid") or [""])[0]
+        show = _param(parse_qs(urlparse(self.path).query), "tvshowid")
         try:
             payload = library.episodes(show)
         except Exception as exc:
@@ -498,7 +507,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         self._send_listing(payload)
 
-    def _send_listing(self, payload: dict) -> None:
+    def _send_listing(self, payload: Listing) -> None:
         """Send a library list with its tag as ETag (304 when unchanged)."""
         etag = f'"{payload["tag"]}"'
         if self._holds(etag):
@@ -509,16 +518,12 @@ class Handler(BaseHTTPRequestHandler):
     def _serve_art(self) -> None:
         """Send artwork of the playing title or a library item."""
         query = parse_qs(urlparse(self.path).query)
-        kind = (query.get("kind") or [""])[0]
+        kind = _param(query, "kind")
         if kind not in artwork.KINDS:
             self._send_error_json(HTTPStatus.NOT_FOUND, "no such artwork")
             return
-        # No library id means the playing title.
-        film    = (query.get("movieid") or [""])[0]
-        show    = (query.get("tvshowid") or [""])[0]
-        episode = (query.get("episodeid") or [""])[0]
         # The URL carries the picture's tag, so the answer is immutable.
-        tag  = (query.get("v") or [""])[0]
+        tag  = _param(query, "v")
         if not _ART_TAG.fullmatch(tag):
             tag = ""
         etag = f'"{tag}"' if tag else ""
@@ -527,14 +532,7 @@ class Handler(BaseHTTPRequestHandler):
             self._send_unchanged(etag, cache)
             return
 
-        if film:
-            found = self.server.library_artwork(film, kind)
-        elif show:
-            found = self.server.series_artwork(show, kind)
-        elif episode:
-            found = self.server.episode_artwork(episode, kind)
-        else:
-            found = self.server.artwork(kind)
+        found = self._find_art(query, kind)
         if found is None:
             # No artwork: the page hides the frame.
             self._send_error_json(HTTPStatus.NOT_FOUND, "no artwork")
@@ -542,6 +540,18 @@ class Handler(BaseHTTPRequestHandler):
         body, content_type = found
         self._send(HTTPStatus.OK, body, content_type,
                    (("ETag", etag),) if etag else (), cache=cache)
+
+    def _find_art(self, query: dict[str, list[str]], kind: str) -> tuple[bytes, str] | None:
+        """Return the requested picture and its type, or None."""
+        # No library id means the playing title.
+        lookups = (("movieid", self.server.library_artwork),
+                   ("tvshowid", self.server.series_artwork),
+                   ("episodeid", self.server.episode_artwork))
+        for name, lookup in lookups:
+            item = _param(query, name)
+            if item:
+                return lookup(item, kind)
+        return self.server.artwork(kind)
 
     def _serve_static(self, route: str) -> None:
         path, content_type = self.server.static_routes[route]
@@ -603,7 +613,7 @@ class Handler(BaseHTTPRequestHandler):
     def _stream_frames(self, producer: Producer, seen: int) -> None:
         stop     = self.server.stop_event
         # Last payload sent on this connection, the base of the next delta.
-        sent: dict | None = None
+        sent: Snapshot | None = None
         last_beat = time.monotonic()
         # Bound writes to a client that stopped reading (OSError ends the
         # stream); shorter than the heartbeat interval.
@@ -622,8 +632,9 @@ class Handler(BaseHTTPRequestHandler):
                 continue
             seen = snapshot.get("seq", 0)
             last_beat = now
-            payload = dict(snapshot)
+            payload = snapshot.copy()
             payload["control"] = self.server.allow_control
+            frame: Snapshot | DeltaFrame
             if sent is None:
                 kind, frame = "state", payload
             else:

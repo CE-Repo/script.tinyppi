@@ -14,6 +14,7 @@ when the series is opened, then cached alongside.
 
 - ``cache``: the cached lists, their revision and the deferred drops
 - ``common``: the JSON-RPC seam and what the rows share
+- ``entries``: the shapes of the lists, as cached and as sent
 - ``films``, ``series``: the two shelves and starting a title
 - ``progress``: the "continue watching" row
 - ``marks``: seen, unseen and clearing resume points

@@ -9,6 +9,8 @@ description.  The generator imports this outside Kodi, so Kodi modules are
 optional.
 """
 
+from typing import TypedDict
+
 from core.constants import HOME_WINDOW_ID
 
 try:  # pragma: no cover - absent when the skin generator runs this
@@ -77,7 +79,15 @@ PPI_BUTTONS = (1001, 1101, 1201, 1301)
 # Every branch with its buttons in layout order: (control id, label, mode
 # for ui.mode_select).  The mode is None for the Player Process Info button,
 # which opens the overlay.
-BRANCHES = (
+class Branch(TypedDict):
+    """One set of buttons, shown while its condition holds."""
+
+    key: str
+    visible: str
+    buttons: tuple[tuple[int, str, str | None], ...]
+
+
+BRANCHES: tuple[Branch, ...] = (
     {
         "key": "sdr",
         "visible": "String.IsEmpty(%s(TinyPPI.HdrType)) + %s"
@@ -177,7 +187,7 @@ def panel_position(mode: int) -> tuple[int, int]:
             _across(_setting_int("dialog_position_y", 100), ceiling, floor))
 
 
-def branch_for(hdr_type: str | None, hdr10plus_present: str) -> dict:
+def branch_for(hdr_type: str | None, hdr10plus_present: str) -> Branch:
     """Return the branch for the published HDR type and HDR10+ flag.
 
     Mirrors the window files' conditions, so the single-button layout

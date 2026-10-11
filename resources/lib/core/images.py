@@ -23,7 +23,7 @@ import struct
 import threading
 import time
 import zlib
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from typing import NamedTuple
 
 import xbmc
@@ -87,7 +87,7 @@ _log = channel("images")
 
 
 def _log_debug(message: str) -> None:
-    with contextlib.suppress(Exception):
+    with contextlib.suppress(RuntimeError):
         _log(message)
 
 
@@ -202,30 +202,39 @@ class _PngChunks(NamedTuple):
 _Pixel = tuple[int, int, int, int]
 
 
+def _png_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
+    """Yield the ``(type, payload)`` of each chunk after the signature."""
+    pos = len(_PNG_SIGNATURE)
+    while pos < len(data):
+        length = struct.unpack(">I", data[pos:pos + 4])[0]
+        yield data[pos + 4:pos + 8], data[pos + 8:pos + 8 + length]
+        pos += 12 + length
+
+
+def _png_header(payload: bytes) -> tuple[int, int, int, int]:
+    """Return width, height, bit depth and colour type from an IHDR chunk."""
+    (
+        width, height, bit_depth, color_type,
+        compression, filter_method, interlace,
+    ) = struct.unpack(">IIBBBBB", payload)
+    if compression != 0 or filter_method != 0 or interlace != 0:
+        raise ValueError("unsupported PNG format")
+    return width, height, bit_depth, color_type
+
+
 def _read_png_chunks(data: bytes) -> _PngChunks:
     """Return the header, palette, transparency and image data of a PNG."""
     if not data.startswith(_PNG_SIGNATURE):
         raise ValueError("not a PNG")
 
-    pos = len(_PNG_SIGNATURE)
     header = (0, 0, 0, 0)
     palette: list[tuple[int, int, int]] = []
     transparency = b""
     idat = []
 
-    while pos < len(data):
-        length = struct.unpack(">I", data[pos:pos + 4])[0]
-        kind = data[pos + 4:pos + 8]
-        payload = data[pos + 8:pos + 8 + length]
-        pos += 12 + length
+    for kind, payload in _png_chunks(data):
         if kind == b"IHDR":
-            (
-                width, height, bit_depth, color_type,
-                compression, filter_method, interlace,
-            ) = struct.unpack(">IIBBBBB", payload)
-            if compression != 0 or filter_method != 0 or interlace != 0:
-                raise ValueError("unsupported PNG format")
-            header = (width, height, bit_depth, color_type)
+            header = _png_header(payload)
         elif kind == b"PLTE":
             palette = [
                 (payload[i], payload[i + 1], payload[i + 2])
@@ -570,7 +579,8 @@ def prune_cache(media_root: str) -> int:
     return removed
 
 
-def _current_keys(stem: str, sources: dict, current: dict) -> set[str]:
+def _current_keys(stem: str, sources: Mapping[str, Iterable[str]],
+                  current: dict[str, set[str]]) -> set[str]:
     """Return the content keys of the sources named *stem*, once per prune."""
     keys = current.get(stem)
     if keys is None:

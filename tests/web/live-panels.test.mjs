@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { bare, page, settle } from "./harness.mjs";
 
-const SCRIPTS = ["core.js", "readings.js", "live-panels.js"];
+const SCRIPTS = ["core.js", "readings.js", "live-remote.js", "live-panels.js"];
 const START = 1_700_000_000_000;
 
 /* The shapes tests/browser/serve.py serves, which are the add-on's own. */

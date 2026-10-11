@@ -7,26 +7,27 @@ and the transport commands the dashboard may send."""
 import json
 import math
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 
 import xbmc
 from core.log import channel
 from core.utils import cond, info
-from web.values import Unchecked, clean_value, numbers
+from web.payloads import Controls, Track
+from web.values import Json, Unchecked, clean_value, numbers
 
 _log = channel("web")
 
 
 # --- State -----------------------------------------------------------------
 
-def rpc(method: str, params: dict | None = None) -> dict:
+def rpc(method: str, params: Mapping[str, object] | None = None) -> Json:
     """Call Kodi's JSON-RPC and return the answer as a dict ({} on failure)."""
-    request = {"jsonrpc": "2.0", "id": 1, "method": method}
+    request: dict[str, object] = {"jsonrpc": "2.0", "id": 1, "method": method}
     if params:
         request["params"] = params
     try:
         answer = json.loads(xbmc.executeJSONRPC(json.dumps(request)))
-    except Exception as exc:  # Kodi shutting down, or an answer that is no JSON
+    except (RuntimeError, ValueError) as exc:  # Kodi shutting down, or an answer that is no JSON
         _log(f"JSON-RPC {method} failed: {exc}")
         return {}
     return answer if isinstance(answer, dict) else {}
@@ -49,7 +50,7 @@ def chapter_count() -> int:
         return 0
 
 
-def _stream_label(stream: dict, fallback: str) -> str:
+def _stream_label(stream: Json, fallback: str) -> str:
     """Return a track label prefixed with its upper-cased language code.
 
     Only a separate leading token counts as an existing prefix (``eng`` vs.
@@ -68,13 +69,25 @@ def _stream_label(stream: dict, fallback: str) -> str:
     return name or tag or fallback
 
 
-def player_controls() -> dict:
+def _track_list(streams: list[Json] | None) -> list[Track]:
+    """Return a picker's tracks as ``{index, label}``, numbered if unnamed."""
+    return [{"index": stream.get("index", index),
+             "label": clean_value(_stream_label(stream, f"#{index + 1}"))}
+            for index, stream in enumerate(streams or [])]
+
+
+def _current_index(stream: object) -> object:
+    """Return the index of the current track, or -1 for none."""
+    return stream.get("index", -1) if isinstance(stream, dict) else -1
+
+
+def player_controls() -> Controls:
     """Return the controllable player state: tracks, volume, mute, chapters.
 
     Via JSON-RPC, since pickers need full lists with indices.  Only used
     when control is enabled.
     """
-    state: dict = {"audio": [], "subtitle": [], "audio_current": -1,
+    state: Controls = {"audio": [], "subtitle": [], "audio_current": -1,
                    "subtitle_current": -1, "subtitle_on": False,
                    "volume": None, "muted": False, "chapters": 0}
 
@@ -99,23 +112,10 @@ def player_controls() -> dict:
     if not isinstance(properties, dict):
         return state
 
-    for index, stream in enumerate(properties.get("audiostreams") or []):
-        state["audio"].append({
-            "index": stream.get("index", index),
-            "label": clean_value(_stream_label(stream, f"#{index + 1}")),
-        })
-    for index, stream in enumerate(properties.get("subtitles") or []):
-        state["subtitle"].append({
-            "index": stream.get("index", index),
-            "label": clean_value(_stream_label(stream, f"#{index + 1}")),
-        })
-
-    current_audio = properties.get("currentaudiostream") or {}
-    current_sub   = properties.get("currentsubtitle") or {}
-    if isinstance(current_audio, dict):
-        state["audio_current"] = current_audio.get("index", -1)
-    if isinstance(current_sub, dict):
-        state["subtitle_current"] = current_sub.get("index", -1)
+    state["audio"] = _track_list(properties.get("audiostreams"))
+    state["subtitle"] = _track_list(properties.get("subtitles"))
+    state["audio_current"] = _current_index(properties.get("currentaudiostream"))
+    state["subtitle_current"] = _current_index(properties.get("currentsubtitle"))
     state["subtitle_on"] = bool(properties.get("subtitleenabled"))
     return state
 
@@ -137,7 +137,7 @@ def current_track_state() -> dict[str, str]:
     if not isinstance(result, dict):
         return {"audio": "", "audio_id": "", "subtitle": ""}
 
-    def token(stream: dict) -> str:
+    def token(stream: Json) -> str:
         if not isinstance(stream, dict) or stream.get("index") is None:
             return ""
         index = int(stream.get("index", -1))

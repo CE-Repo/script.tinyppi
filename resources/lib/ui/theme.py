@@ -13,7 +13,7 @@ import contextlib
 import json
 import os
 import re
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import xbmc
 import xbmcaddon
@@ -176,8 +176,11 @@ def _notify(addon: xbmcaddon.Addon, message_id: int, icon: str, duration: int) -
     )
 
 
-def _load_legacy_custom() -> dict:
-    """Return the pre-picker HEX colors by setting id, or {}."""
+def _load_legacy_custom() -> dict[str, Any]:
+    """Return the pre-picker HEX colors by setting id, or {}.
+
+    As the JSON file holds them, unchecked.
+    """
     try:
         with open(xbmcvfs.translatePath(_LEGACY_CUSTOM_FILE),
                   encoding="utf-8") as handle:
@@ -187,7 +190,7 @@ def _load_legacy_custom() -> dict:
     return data if isinstance(data, dict) else {}
 
 
-def _pick(palette: tuple, value: str) -> str:
+def _pick(palette: tuple[str, ...], value: str) -> str:
     """Return ``palette[value]``, falling back to index 0 on bad input."""
     try:
         index = int(value)
@@ -267,11 +270,11 @@ def _setting_value(addon: xbmcaddon.Addon, setting_id: str,
 class _ColorSetting(NamedTuple):
     """The choices of one color setting."""
 
-    palette: tuple   # published ARGB per choice
-    names: tuple     # name (or its string id) per choice
-    swatches: tuple  # displayed ARGB per choice
-    index_of: dict   # swatch -> index, to decode a stored value
-    legacy: tuple    # index per pre-picker index
+    palette: tuple[str, ...]         # published ARGB per choice
+    names: tuple[str | int, ...]     # name (or its string id) per choice
+    swatches: tuple[str, ...]        # displayed ARGB per choice
+    index_of: dict[str, int]         # swatch -> index, to decode a stored value
+    legacy: tuple[int, ...]          # index per pre-picker index
     default: int     # default index
 
 
@@ -402,10 +405,10 @@ _THEME_PROPERTIES = (
 )
 
 
-def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
+def _color_setting(palette: tuple[str, ...], setting_id: str) -> _ColorSetting:
     """Build the ``_ColorSetting`` for *setting_id* on *palette*."""
-    names: tuple
-    swatches: tuple
+    names: tuple[str | int, ...]
+    swatches: tuple[str, ...]
     if palette is _BACKGROUND_COLORS:
         names, swatches = _BACKGROUND_NAMES, _BACKGROUND_SWATCHES
         index_of = {swatch: index for index, swatch in enumerate(swatches)}
@@ -416,7 +419,7 @@ def _color_setting(palette: tuple, setting_id: str) -> _ColorSetting:
                     **index_of}
         fallback = _BACKGROUND_DEFAULT
     else:
-        former: tuple
+        former: tuple[str, ...]
         if palette is _DIALOG_FOCUS_TEXT_COLORS:
             names, swatches = _DIALOG_FOCUS_TEXT_NAMES, _DIALOG_FOCUS_TEXT_COLORS
             former = ("FF000000", "FFFFFFFF") + _LEGACY_TEXT[1:]
@@ -493,6 +496,37 @@ def _ask_hex(addon: xbmcaddon.Addon, spec: _ColorSetting, current_rgb: str) -> s
     return _encode(spec, -1, raw)
 
 
+def _picker_tiles(addon: xbmcaddon.Addon, spec: _ColorSetting,
+                  hex_tile: str) -> list[xbmcgui.ListItem]:
+    """Return the picker's tiles: HEX, the default (marked), the rest."""
+    tiles = [xbmcgui.ListItem(addon.getLocalizedString(_HEX_TILE_LABEL),
+                              hex_tile, offscreen=True)]
+    default_mark = addon.getLocalizedString(_DEFAULT_LABEL)
+    order = [spec.default] + [position for position in range(len(spec.swatches))
+                              if position != spec.default]
+    for position in order:
+        name = spec.names[position]
+        if isinstance(name, int):
+            name = addon.getLocalizedString(name)
+        if position == spec.default:
+            name = f"{name} {default_mark}"
+        tiles.append(xbmcgui.ListItem(name, spec.swatches[position], offscreen=True))
+    return tiles
+
+
+def _chosen_value(addon: xbmcaddon.Addon, spec: _ColorSetting, chosen: str,
+                  hex_tile: str, current: str) -> str | None:
+    """Return the value to store for the picked tile, or None to keep it.
+
+    *current* is the RGB the HEX keyboard starts with.
+    """
+    if chosen == hex_tile:
+        return _ask_hex(addon, spec, current)
+    if chosen in spec.swatches:
+        return _encode(spec, spec.swatches.index(chosen))
+    return None
+
+
 def pick_color(setting_id: str, heading_id: str = "") -> None:
     """Show a color setting's palette in Kodi's picker and store the choice.
 
@@ -513,35 +547,18 @@ def pick_color(setting_id: str, heading_id: str = "") -> None:
     index, rgb = _decode(spec, value, legacy_hex)
 
     hex_tile = ("ff" + rgb.lower()) if rgb else _HEX_TILE_EMPTY
-    tiles = [xbmcgui.ListItem(addon.getLocalizedString(_HEX_TILE_LABEL),
-                              hex_tile, offscreen=True)]
-    default_mark = addon.getLocalizedString(_DEFAULT_LABEL)
-    order = [spec.default] + [position for position in range(len(spec.swatches))
-                              if position != spec.default]
-    for position in order:
-        name = spec.names[position]
-        if isinstance(name, int):
-            name = addon.getLocalizedString(name)
-        if position == spec.default:
-            name = f"{name} {default_mark}"
-        tiles.append(xbmcgui.ListItem(name, spec.swatches[position], offscreen=True))
-
     heading = (addon.getLocalizedString(int(heading_id))
                if heading_id.isascii() and heading_id.isdigit() else "")
     chosen = xbmcgui.Dialog().colorpicker(
-        heading, hex_tile if rgb else spec.swatches[index], colorlist=tiles,
+        heading, hex_tile if rgb else spec.swatches[index],
+        colorlist=_picker_tiles(addon, spec, hex_tile),
     )
     if not chosen:
         return
 
-    if chosen == hex_tile:
-        current = rgb or spec.palette[index][2:]
-        new_value = _ask_hex(addon, spec, current)
-        if new_value is None:
-            return
-    elif chosen in spec.swatches:
-        new_value = _encode(spec, spec.swatches.index(chosen))
-    else:
+    new_value = _chosen_value(addon, spec, chosen, hex_tile,
+                              rgb or spec.palette[index][2:])
+    if new_value is None:
         return
 
     addon.setSetting(setting_id, new_value)

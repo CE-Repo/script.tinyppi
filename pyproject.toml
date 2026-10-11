@@ -61,11 +61,15 @@ ignore_missing_imports = true
 warn_unused_ignores = true
 # Every function is annotated and its body checked.  Values of no fixed type
 # say so: ``object`` when only inspected, ``web.values.Unchecked`` for raw
-# request input.  Kodi windows and their stand-ins share
-# ``core.protocols.PropertyTarget``.
+# request input, ``web.values.Json`` for Kodi's JSON-RPC answers and
+# ``info.dvformat.Block`` for parsed side data.  Kodi windows and their
+# stand-ins share ``core.protocols.PropertyTarget``.  Containers name what
+# they hold; the dashboard's payloads are TypedDicts (web/payloads.py,
+# web/library/entries.py).
 check_untyped_defs = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+disallow_any_generics = true
 strict_equality = true
 warn_redundant_casts = true
 extra_checks = true

@@ -204,6 +204,12 @@ def _colored(text: str, color: str) -> str:
     return f"[COLOR={color}]{text}[/COLOR]" if text else text
 
 
+def _changed_cells(before: list[str], current: list[str]) -> list[int]:
+    """Return the indices of the cells of *current* that are new or differ."""
+    return [index for index, cell in enumerate(current)
+            if index >= len(before) or before[index] != cell]
+
+
 def _changed_parts(previous: object, current: str | list[str]) -> list[int]:
     """Return the indices of the parts of *current* that differ from *previous*.
 
@@ -213,9 +219,7 @@ def _changed_parts(previous: object, current: str | list[str]) -> list[int]:
     lined up (different number of readings, or a change of shape).
     """
     if isinstance(current, list):
-        before = previous if isinstance(previous, list) else []
-        return [index for index, cell in enumerate(current)
-                if index >= len(before) or before[index] != cell]
+        return _changed_cells(previous if isinstance(previous, list) else [], current)
     if not isinstance(previous, str):
         return [_WHOLE]
     parts  = _READING_GAP_RE.split(current)
@@ -320,7 +324,7 @@ def highlight_hold(setting_id: str) -> float:
     """
     try:
         milliseconds = settings.addon().getSettingInt(setting_id)
-    except Exception:  # missing or not an integer (Kodi raises TypeError)
+    except (TypeError, ValueError, RuntimeError):  # missing or not an integer
         milliseconds = 0
     return milliseconds / 1000.0 if milliseconds > 0 else DEFAULT_HIGHLIGHT_HOLD
 

@@ -86,7 +86,9 @@ def test_dependencies_name_existing_settings():
 
 
 def test_action_buttons_run_known_commands():
-    commands = set(re.findall(r'command == "(\w+)"', read("main.py"))) | {"overlay", "dialog"}
+    # The keys of main._COMMANDS.
+    commands = set(re.findall(r'^ {4}"(\w+)": +\(\d', read("main.py"), re.MULTILINE))
+    assert {"overlay", "dialog", "pick_color"} <= commands
     wrong = []
     for setting_id, data in ACTIONS:
         match = re.match(r"RunScript\(script\.tinyppi,(\w+)(?:,([^,)]*))?", data)

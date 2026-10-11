@@ -190,7 +190,7 @@ def test_the_addon_is_found_from_the_playing_item(monkeypatch):
 
 
 def test_without_a_playing_item_the_link_is_not_an_addons():
-    # The stub player has no item to ask, like Kodi with nothing playing.
+    # The stub player raises for the item, like Kodi with nothing playing.
     assert mediasource._item_path() == ""
     assert not mediasource._is_addon_item()
     assert mediasource._statable("https://server.example.com/library/film.mkv")

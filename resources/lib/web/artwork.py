@@ -94,9 +94,9 @@ def read_art(path: str) -> bytes | None:
         try:
             data = bytes(handle.readBytes(_MAX_ART))
         finally:
-            with contextlib.suppress(Exception):
+            with contextlib.suppress(RuntimeError, OSError):
                 handle.close()
-    except Exception as exc:  # the VFS raises RuntimeError or worse for a bad path
+    except (RuntimeError, OSError) as exc:  # the VFS raises RuntimeError or worse for a bad path
         # The error repeats the path, so the whole line is redacted.
         _log(redacted(f"artwork {path} unreadable: {exc}"), xbmc.LOGDEBUG)
         return None

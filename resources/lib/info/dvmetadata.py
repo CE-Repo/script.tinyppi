@@ -48,6 +48,11 @@ from info.dvformat import (  # noqa: F401
     SECTION,
     SPACE,
     WIDE,
+    Block,
+    Entry,
+    Pair,
+    Row,
+    Value,
 )
 from info.dvinfo import get_sidedata
 
@@ -65,14 +70,39 @@ def _module_version() -> str:
     """
     try:
         version = xbmcaddon.Addon(_SIDEDATA_ID).getAddonInfo("version")
-    except Exception:  # not installed: Kodi raises RuntimeError
+    except RuntimeError:  # not installed: Kodi raises RuntimeError
         version = ""
     return version or EMPTY
 
 
+# Where each block of a frame came from, by key (``rpu.l2``): LIVE or CACHED.
+Origin = dict[str, str]
+
+
 # --- Sections --------------------------------------------------------------
 
-def _section(rows: list, title: str, entries: Iterable[tuple], state: str = "") -> None:
+def _kept_rows(entries: Iterable[Entry]) -> list[Row]:
+    """Return *entries* as rows, without EMPTY values and outer blank rows."""
+    kept = [
+        entry if len(entry) == 3 else (ROW, entry[0], entry[1])
+        for entry in entries
+    ]
+    kept = [row for row in kept
+            if row[0] == SPACE or (row[2] and row[2] != EMPTY)]
+    return _without_outer_space(kept)
+
+
+def _without_outer_space(rows: list[Row]) -> list[Row]:
+    """Return *rows* without blank rows at either end."""
+    start, stop = 0, len(rows)
+    while start < stop and rows[start][0] == SPACE:
+        start += 1
+    while stop > start and rows[stop - 1][0] == SPACE:
+        stop -= 1
+    return rows[start:stop]
+
+
+def _section(rows: list[Row], title: str, entries: Iterable[Entry], state: str = "") -> None:
     """Append a heading and its entries to *rows*, skipping empty ones.
 
     An entry is a ``(name, value)`` pair or a full ``(kind, name, value)``
@@ -82,16 +112,7 @@ def _section(rows: list, title: str, entries: Iterable[tuple], state: str = "") 
     *state* (CACHED or '') becomes the heading row's value rather than part
     of the title, because the view remembers the viewer's position by title.
     """
-    kept = [
-        entry if len(entry) == 3 else (ROW, entry[0], entry[1])
-        for entry in entries
-    ]
-    kept = [row for row in kept
-            if row[0] == SPACE or (row[2] and row[2] != EMPTY)]
-    while kept and kept[0][0] == SPACE:
-        kept.pop(0)
-    while kept and kept[-1][0] == SPACE:
-        kept.pop()
+    kept = _kept_rows(entries)
     if not kept:
         return
     if rows:
@@ -101,7 +122,7 @@ def _section(rows: list, title: str, entries: Iterable[tuple], state: str = "") 
     rows.extend(kept)
 
 
-def _payload_summary(parsed: dict) -> str:
+def _payload_summary(parsed: Block) -> str:
     """Name the sections the payload carried, e.g. ``config, rpu``, or EMPTY."""
     present = [
         key for key in ("config", "rpu", "hdr10plus", "mdcv", "cll")
@@ -110,7 +131,7 @@ def _payload_summary(parsed: dict) -> str:
     return ", ".join(present) if present else EMPTY
 
 
-def _stream_pairs(parsed: dict, carried: str) -> list:
+def _stream_pairs(parsed: Block, carried: str) -> list[Pair]:
     """Return Kodi's view of the stream and what the raw label delivered.
 
     *carried* names the sections in this frame's own payload, which may
@@ -127,7 +148,7 @@ def _stream_pairs(parsed: dict, carried: str) -> list:
     ]
 
 
-def _config_pairs(config: dict | None) -> list:
+def _config_pairs(config: Block | None) -> list[Pair]:
     """Return the dvcC / dvvC record rows (source profile even after 4/7 -> 8)."""
     config = config or {}
     major = fmt.num(config.get("version_major"))
@@ -145,7 +166,7 @@ def _config_pairs(config: dict | None) -> list:
     ]
 
 
-def _rpu_pairs(rpu: dict | None) -> list:
+def _rpu_pairs(rpu: Block | None) -> list[Pair]:
     """Return the RPU header rows plus the guessed profile and compression.
 
     Compressed DM data is why the source range is often missing.
@@ -218,19 +239,19 @@ class _HeldBlocks:
     """
 
     def __init__(self) -> None:
-        self._blocks: dict = {}
+        self._blocks: dict[str, Block] = {}
         self._source: str | None = None
 
-    def _fill_in(self, current: dict, names: tuple,
-                 prefix: str) -> tuple[dict, dict]:
+    def _fill_in(self, current: Block, names: tuple[str, ...],
+                 prefix: str) -> tuple[Block, Origin]:
         """Fill omitted blocks of *current* and remember present ones.
 
         Also returns each block's origin: LIVE, CACHED, or no entry when
         neither has it.
         """
         held = self._blocks
-        filled: dict = dict(current)
-        origin: dict = {}
+        filled: Block = dict(current)
+        origin: Origin = {}
         for name in names:
             block = current.get(name)
             key   = prefix + name
@@ -242,7 +263,7 @@ class _HeldBlocks:
                 origin[key]  = CACHED
         return filled, origin
 
-    def hold(self, parsed: dict) -> tuple[dict, dict]:
+    def hold(self, parsed: Block) -> tuple[Block, Origin]:
         """Fill *parsed* with the blocks this frame does not repeat.
 
         Keeps sections such as the L2 / L8 trims from blinking out between
@@ -272,7 +293,7 @@ class _HeldBlocks:
 _held = _HeldBlocks()
 
 
-def _state(origin: dict, *keys: str) -> str:
+def _state(origin: Origin, *keys: str) -> str:
     """Return CACHED when every block of a section was held, else ''."""
     seen = [origin[key] for key in keys if key in origin]
     return CACHED if seen and all(state == CACHED for state in seen) else ""
@@ -281,8 +302,8 @@ def _state(origin: dict, *keys: str) -> str:
 # --- Row model -------------------------------------------------------------
 
 def build_scene_rows(
-    parsed: dict | None = None,
-) -> tuple[list[tuple[str, str, str]], dict, dict, str]:
+    parsed: Block | None = None,
+) -> tuple[list[Row], Block, Origin, str]:
     """Return the per-scene rows plus what ``build_static_rows`` needs.
 
     Returns ``(rows, parsed, origin, carried)``.  The scene rows (L1, L2,
@@ -297,12 +318,12 @@ def build_scene_rows(
 
     # Summarise this frame's own payload before held blocks are added.
     carried = _payload_summary(parsed)
-    origin: dict = {}
+    origin: Origin = {}
     if live:
         parsed, origin = _held.hold(parsed)
 
     rpu = parsed.get("rpu")
-    rows: list[tuple[str, str, str]] = []
+    rows: list[Row] = []
 
     # Per-frame blocks first, the most watched (L1, L2, L8) on top.
     _section(rows, "L1 — Frame luminance", levels.l1_pairs(rpu),
@@ -324,7 +345,7 @@ def build_scene_rows(
     return rows, parsed, origin, carried
 
 
-def build_static_rows(parsed: dict, origin: dict, carried: str) -> list[tuple[str, str, str]]:
+def build_static_rows(parsed: Block, origin: Origin, carried: str) -> list[Row]:
     """Return the per-title rows from ``build_scene_rows``'s results.
 
     Source master, colorimetry, L6, L9-L11, L254, L255, static SEIs, RPU
@@ -336,7 +357,7 @@ def build_static_rows(parsed: dict, origin: dict, carried: str) -> list[tuple[st
     scene rows, which may differ from the ones current when this was built.
     """
     rpu = parsed.get("rpu")
-    rows: list[tuple[str, str, str]] = []
+    rows: list[Row] = []
 
     # The grade.  The source range belongs here: it describes the master.
     _section(rows, "Source master", levels.source_pairs(rpu),
@@ -389,7 +410,7 @@ _STATIC_STATE_KEYS = ("rpu.source", "rpu.colorimetry", "rpu.l6", "rpu.l9",
                       "cll", "rpu", "rpu.header", "rpu.data_mapping", "config")
 
 
-def static_signature(parsed: dict, origin: dict, carried: str) -> tuple:
+def static_signature(parsed: Block, origin: Origin, carried: str) -> tuple[object, ...]:
     """Return a comparable value of what ``build_static_rows`` reads.
 
     Lets a caller (ui.dvmetadata's ``_merged_rows``) rebuild the static rows
@@ -424,8 +445,8 @@ def static_signature(parsed: dict, origin: dict, carried: str) -> tuple:
 
 
 def join_rows(
-    scene_rows: list[tuple[str, str, str]], static_rows: list[tuple[str, str, str]],
-) -> list[tuple[str, str, str]]:
+    scene_rows: list[Row], static_rows: list[Row],
+) -> list[Row]:
     """Concatenate scene and static rows, with a blank row between them.
 
     Decided here against the current scene rows, since the two halves may

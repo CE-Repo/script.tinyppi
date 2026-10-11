@@ -9,16 +9,18 @@ involved: the dialog (ui.mode_select), the dashboard (web.vs10) and
 ``RunScript(script.tinyppi,run_mode,<mode>)`` all switch through here.
 """
 
-import json
 import threading
 import time
-from functools import cache
-from typing import Any
 
 import xbmc
 from core import display
 from core.log import log
-from core.utils import PROP_HDR10PLUS_PRESENT, home_window
+from core.vs10_kodi import (
+    hybrid_dv_hdr10plus,
+    is_playing_video,
+    probe_dv_led_setting,
+    vs10_actions_available,
+)
 
 # Dolby Vision driver nodes of CoreELEC 22 (kernel 5.15, Amlogic-ne).  All
 # values match what CoreELEC's Kodi writes in CAMLCodec::OpenDecoder /
@@ -75,9 +77,6 @@ _MODE_SDR8       = "5"
 # How long the driver gets to apply a mode change.
 _DV_OUTPUT_TIMEOUT_MS = 1000
 
-# A setting added together with the native vs10.* actions (SamuriHL/
-# coreelec-xbmc commit 7df0943); if JSON-RPC knows it, the actions exist.
-_VS10_PROBE_SETTING = "coreelec.amlogic.dolbyvision.vs10.dv"
 
 # Failed sysfs writes per thread, so a switch can tell whether its sequence
 # reached the driver (see _apply_mode).  Per thread: staged switches, the
@@ -103,7 +102,7 @@ def delay(ms: int) -> None:
     """Wait *ms* milliseconds, in Kodi's own sleep while Kodi runs."""
     try:
         xbmc.sleep(ms)
-    except Exception:  # Kodi is shutting down
+    except RuntimeError:  # Kodi is shutting down
         time.sleep(ms / 1000)
 
 
@@ -194,14 +193,6 @@ def _wait_for_dv_output_value_change(
     return False
 
 
-def _is_playing_video() -> bool:
-    """Return whether a video plays (needed for native VS10 actions)."""
-    try:
-        return xbmc.Player().isPlayingVideo()
-    except Exception:  # Kodi is shutting down
-        return False
-
-
 def _reset_display_after_switch(name: str, output_before: str | None, via_sysfs: bool) -> None:
     """Re-apply the HDMI output after a VS10 switch (see ``core.display``).
 
@@ -221,7 +212,7 @@ def _reset_display_after_switch(name: str, output_before: str | None, via_sysfs:
     change (this wait is also the settling time of conversion modes).  Only
     kernel 5.15 (CoreELEC 22) has the DRM property; elsewhere it is a no-op.
     """
-    if not _is_playing_video():
+    if not is_playing_video():
         return
 
     dv_before = output_before in _DV_OUTPUT_MODES
@@ -410,7 +401,7 @@ def _needs_sdr_first(name: str) -> bool:
     Only when VS10 is holding an output (not bypass), the output is
     readable, and a video plays.
     """
-    if not _is_playing_video():
+    if not is_playing_video():
         return False
 
     output = _DV_OUTPUT_FORMAT.get(_read(_DV_OUTPUT) or "", "")
@@ -432,79 +423,6 @@ _VS10_ACTION = {
 }
 
 
-def _probe_vs10_actions() -> bool:
-    """Return whether this Kodi build has the native VS10 engine.
-
-    Probes one of its settings over JSON-RPC (added with the ``vs10.*``
-    actions): a result means the actions exist.
-    """
-    request = json.dumps(
-        {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "Settings.GetSettingValue",
-            "params": {"setting": _VS10_PROBE_SETTING},
-        }
-    )
-    try:
-        response = json.loads(xbmc.executeJSONRPC(request))
-    except Exception as e:
-        log(f"VS10 Actions probe failed: {e}", xbmc.LOGWARNING)
-        return False
-    return isinstance(response, dict) and "result" in response
-
-
-@cache
-def _vs10_actions_available() -> bool:
-    """Return the probe result (probed once), logging the chosen path."""
-    available = _probe_vs10_actions()
-    if available:
-        log(
-            "native VS10 Actions available -> preferred during "
-            "playback, with sysfs fallback if they don't take effect",
-            xbmc.LOGINFO,
-        )
-    else:
-        log(
-            "native VS10 Actions not available -> using the "
-            "built-in TinyPPI VS10 (sysfs) path",
-            xbmc.LOGINFO,
-        )
-    return available
-
-
-def _probe_dv_Player_LED_setting() -> int | None:
-    """Return the DV LED setting (0 TV-LED, 1 Player-LED), or None.
-
-    Reads the value of ``coreelec.amlogic.dolbyvisionled``; its mere
-    presence says nothing (checking presence once put TV-LED boxes on the
-    Player-LED output).  None when unreadable, so the caller can try
-    elsewhere.
-    """
-    request = json.dumps(
-        {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "Settings.GetSettingValue",
-            "params": {"setting": "coreelec.amlogic.dolbyvisionled"},
-        }
-    )
-    try:
-        response = json.loads(xbmc.executeJSONRPC(request))
-    except Exception as e:
-        log(f"probe failed: {e}", xbmc.LOGWARNING)
-        return None
-    result = response.get("result") if isinstance(response, dict) else None
-    if not isinstance(result, dict):
-        return None
-    value: Any = result.get("value")  # whatever the setting holds
-    # As a number, so a textual "0" is still TV-LED.
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return 1 if value else 0
-
-
 def _player_led_mode() -> bool:
     """Return whether Dolby Vision runs in Player-LED mode on this box.
 
@@ -512,7 +430,7 @@ def _player_led_mode() -> bool:
     fallback, since it may be stale from an earlier title.  Defaults to
     TV-LED (CoreELEC's default).
     """
-    setting = _probe_dv_Player_LED_setting()
+    setting = probe_dv_led_setting()
     if setting is not None:
         return setting != 0
 
@@ -526,18 +444,6 @@ def _player_led_mode() -> bool:
         return ll_policy not in ("", "0")
 
     return False
-
-
-def _hybrid_dv_hdr10plus() -> bool:
-    """Return whether the stream is a DV + HDR10+ hybrid.
-
-    Uses the properties from ``info.publish.publish_hdr_type``.
-    """
-    home = home_window()
-    return (
-        home.getProperty(PROP_HDR10PLUS_PRESENT) == "1"
-        and "dolby" in home.getProperty("TinyPPI.HdrType").lower()
-    )
 
 
 def set_mode(name: str) -> None:
@@ -554,7 +460,7 @@ def set_mode(name: str) -> None:
         log(f"Unknown mode '{name}'", xbmc.LOGERROR)
         return
 
-    if _hybrid_dv_hdr10plus():
+    if hybrid_dv_hdr10plus():
         log(
             f"'{name}' is being applied to a Dolby Vision title that "
             "also carries HDR10+; the driver is not expected to take a VS10 "
@@ -630,8 +536,8 @@ def _apply_mode(name: str) -> bool:
     """
     sysfs = _MODES[name]
     action = _VS10_ACTION.get(name)
-    if action and _vs10_actions_available():
-        if _is_playing_video():
+    if action and vs10_actions_available():
+        if is_playing_video():
             before = _dv_state()
             xbmc.executebuiltin(f"Action({action})")
             if _wait_for_dv_change(before):
@@ -652,7 +558,7 @@ def _apply_mode(name: str) -> bool:
                 f"apply; using built-in TinyPPI VS10 (sysfs) for '{name}'",
                 xbmc.LOGINFO,
             )
-    elif _vs10_actions_available():
+    elif vs10_actions_available():
         # No native action for this mode (e.g. 'sdr8'); sysfs keeps SDR8.
         log(
             f"'{name}' has no native VS10 action -> using built-in "

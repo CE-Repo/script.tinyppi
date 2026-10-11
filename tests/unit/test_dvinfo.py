@@ -15,7 +15,7 @@ import pytest
 
 import xbmc
 import xbmcgui
-from info import dvinfo
+from info import dvfields, dvinfo
 
 
 def parsed(**blocks):
@@ -42,7 +42,7 @@ P7_FEL = parsed(
 
 
 def test_a_profile_7_fel_frame():
-    info = dvinfo._build_info(P7_FEL, "dolbyvision", "")
+    info = dvfields.build_info(P7_FEL, "dolbyvision", "")
     assert info["hdr_format"] == "dolbyvision"
     assert info["output_mode"] == "Dolby Vision Profile 7.6 FEL"
     assert info["dv_profile"] == "7.6"
@@ -65,7 +65,7 @@ def test_a_profile_7_fel_frame():
 
 def test_a_profile_8_rpu_without_a_configuration_record():
     frame = parsed(rpu={"header": {}, "profile": 8})
-    info = dvinfo._build_info(frame, "", "8.1")
+    info = dvfields.build_info(frame, "", "8.1")
     # The bitstream says DV although the container does not.
     assert info["hdr_format"] == "dolbyvision"
     assert info["dv_profile"] == "8.1"
@@ -75,7 +75,7 @@ def test_a_profile_8_rpu_without_a_configuration_record():
     assert (info["dv_rpu_present"], info["dv_bl_present"], info["dv_el_present"]) == \
         ("true", "true", "false")
     # Without a usable HdrDetail the RPU's own guess stands, with no compatibility id.
-    assert dvinfo._build_info(frame, "", "")["dv_profile"] == "8"
+    assert dvfields.build_info(frame, "", "")["dv_profile"] == "8"
 
 
 @pytest.mark.parametrize(("label", "frame", "token", "mode"), [
@@ -86,7 +86,7 @@ def test_a_profile_8_rpu_without_a_configuration_record():
     ("", parsed(), "", ""),
 ])
 def test_other_hdr_formats(label, frame, token, mode):
-    info = dvinfo._build_info(frame, label, "")
+    info = dvfields.build_info(frame, label, "")
     assert info["hdr_format"] == token
     assert info["output_mode"] == mode
     # The DV rows stay empty outside Dolby Vision.
@@ -94,30 +94,30 @@ def test_other_hdr_formats(label, frame, token, mode):
 
 
 def test_hdr10plus_presence_ignores_a_stripped_payload():
-    assert dvinfo._build_info(parsed(hdr10plus={}), "hdr10", "")["hdr10plus_present"] == ""
+    assert dvfields.build_info(parsed(hdr10plus={}), "hdr10", "")["hdr10plus_present"] == ""
     present = parsed(hdr10plus={"profile": "a"})
-    assert dvinfo._build_info(present, "hdr10", "")["hdr10plus_present"] == "1"
+    assert dvfields.build_info(present, "hdr10", "")["hdr10plus_present"] == "1"
     stripped = parsed(hdr10plus={"profile": "a"}, flags=["hdr10plus-removed"])
-    assert dvinfo._build_info(stripped, "hdr10", "")["hdr10plus_present"] == ""
+    assert dvfields.build_info(stripped, "hdr10", "")["hdr10plus_present"] == ""
 
 
 def test_a_row_with_a_missing_part_stays_empty():
     frame = parsed(cll={"max_cll": 1000, "max_fall": None})
-    assert dvinfo._build_info(frame, "hdr10", "")["hdr10_max_cll_fall"] == ""
+    assert dvfields.build_info(frame, "hdr10", "")["hdr10_max_cll_fall"] == ""
 
 
 @pytest.mark.parametrize(("value", "text"), [
     (1000, "1000"), (1000.0, "1000"), (0.5, "0.5"), (True, ""), (None, ""), ("12", ""),
 ])
 def test_numbers(value, text):
-    assert dvinfo._fmt_num(value) == text
+    assert dvfields._fmt_num(value) == text
 
 
 @pytest.mark.parametrize(("value", "text"), [
     (1000.4, "1000"), (0.0050, "0.005"), (0.00012, "0.0001"), (0, "0"), (None, ""),
 ])
 def test_luminances(value, text):
-    assert dvinfo._fmt_lum(value) == text
+    assert dvfields._fmt_lum(value) == text
 
 
 def test_enhancement_layer_tags_take_the_theme_colour():
@@ -190,24 +190,24 @@ def test_a_failure_while_deriving_is_logged_once(monkeypatch, warned):
 
     def broken(*_args):
         raise KeyError("l1")
-    monkeypatch.setattr(dvinfo, "_build_info", broken)
+    monkeypatch.setattr(dvinfo, "build_info", broken)
     for _ in range(2):
         frame, fields = dvinfo._derive(("{}", "dolbyvision", "", False))
         assert frame["rpu"] == {"profile": 8}
-        assert fields == dvinfo._empty_info()
+        assert fields == dvfields.empty_info()
     assert len(warnings()) == 1
     assert "could not be interpreted" in warnings()[0]
 
 
 def test_hdr10plus_named_by_kodi():
     for label in ("HDR10+", "hdr10plus"):
-        info = dvinfo._build_info(parsed(), label, "")
+        info = dvfields.build_info(parsed(), label, "")
         assert info["hdr_format"] == "hdr10+"
         assert info["output_mode"] == "HDR10+"
 
 
 def test_a_record_without_presence_flags_leaves_them_unknown():
-    info = dvinfo._build_info(parsed(config={"profile": 8, "compat_id": 1}), "", "")
+    info = dvfields.build_info(parsed(config={"profile": 8, "compat_id": 1}), "", "")
     assert info["dv_profile"] == "8.1"
     assert (info["dv_rpu_present"], info["dv_bl_present"], info["dv_el_present"]) == \
         ("", "", "")

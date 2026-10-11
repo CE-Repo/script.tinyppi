@@ -9,6 +9,10 @@ import threading
 
 from core import settings
 
+# A served file: its body, its gzip version (None when not worth it) and
+# its ETag.
+StaticFile = tuple[bytes, bytes | None, str]
+
 # Static files carry a validator rather than a max-age: revalidation costs an
 # empty 304, and an update is never hidden behind a cached copy.
 STATIC_CACHE = "no-cache"
@@ -80,9 +84,9 @@ class StaticFiles:
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        self._files: dict[str, tuple[tuple, tuple]] = {}
+        self._files: dict[str, tuple[tuple[int, int], StaticFile]] = {}
 
-    def get(self, path: str, content_type: str) -> tuple | None:
+    def get(self, path: str, content_type: str) -> StaticFile | None:
         """Return ``(body, gzipped or None, etag)``, or None when missing."""
         try:
             stat = os.stat(path)
