@@ -302,7 +302,8 @@ def test_mode_colours_come_from_the_theme_with_fallbacks():
         "!" + is_true("TinyPPI.Running"), "!" + is_true("TinyPPI.DialogMode")]),
     ("tinyppi", False, "", [
         is_true("TinyPPI.SplashVisible"), is_true("TinyPPI.SplashTinyPPIVisible"),
-        is_true("TinyPPI.Active"), "!" + is_true("TinyPPI.DialogMode")]),
+        is_true("TinyPPI.Active"), "!" + is_true("TinyPPI.DialogMode"),
+        "Window.IsVisible(script-tinyppi-main.xml)"]),
 ])
 def test_each_mode_has_its_own_visibility_condition(mode, suppress, run, parts):
     assert splash._visible_condition(mode, suppress, run).split(" + ") == parts
