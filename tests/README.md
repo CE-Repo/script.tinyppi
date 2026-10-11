@@ -84,7 +84,7 @@ development files.
 | `web/films.test.mjs` | The film wall, its rows and search, when the list is read again (a move during a read, a failed read after one), starting a film and the wall waiting on it |
 | `web/series.test.mjs` | The series shelf, an opened show with its seasons, the way back (search included), the open show read again (also after a move during a read or while it opens), starting an episode |
 | `web/continue.test.mjs` | The continue-watching rows, when they are read again, resuming a title |
-| `web/live-panels.test.mjs` | The now-playing card, the remote and its track pickers, the figures, the event list and the luminance chart (canvas faked) |
+| `web/live-panels.test.mjs` | The now-playing card, the remote and its track pickers (`js/live-remote.js`), the figures, the event list and the luminance chart (canvas faked) |
 | `web/metadata.test.mjs` | The Dolby Vision metadata tab: the idle and L5 cards, blocks and trim tables, readings lit when they move, the report |
 | `web/theme.test.mjs` | The themes and the tint strength: before the first paint (the bar colour too), the choice on the settings tab, what a press keeps |
 | `web/cover-tint.test.mjs` | The adaptive theme's poster tint (canvas and images faked): the colour a poster gives, where it is painted, contrast, one read per poster, a reused `<img>` |
