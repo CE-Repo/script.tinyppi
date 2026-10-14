@@ -12,6 +12,13 @@ import sys
 
 import pytest
 
+# The add-on relies on 3.14's deferred annotations; an older Python fails
+# deep inside an import with a NameError that does not say why.  Checked on
+# import, before the conftests below this one import the add-on.
+if sys.version_info < (3, 14):  # noqa: UP036 - guards against an older Python
+    pytest.exit(f"the tests need Python 3.14 or newer (Kodi 22), "
+                f"not {sys.version.split()[0]}", returncode=4)
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path[:0] = [os.path.join(HERE, "stubs"), os.path.join(ROOT, "resources", "lib")]
