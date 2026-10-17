@@ -36,6 +36,20 @@ class Controls(TypedDict, total=False):
     chapters: int
 
 
+class Chapter(TypedDict):
+    """One chapter of the playing file, placed on the progress bar."""
+
+    # Kodi's one-based number, which ``chapter_goto`` takes.
+    index: int
+    # Where it starts: seconds, a percentage of the length, and a clock
+    # written the way the position is.
+    start: int
+    at: float
+    time: str
+    # The file's name for it; empty when the file names none.
+    name: str
+
+
 class VS10Option(TypedDict):
     mode: str
     label: str
@@ -216,6 +230,10 @@ class PlayingSnapshot(TypedDict):
     art: dict[str, str]
     media: Media
     controls: Controls
+    # The chapters, sent whether or not control is allowed (they are a
+    # reading), and the one the position is in: its index, 0 for none.
+    chapters: list[Chapter]
+    chapter: int
     session: SessionSummary
     # Added by the producer and the routes (see Snapshot).
     library: NotRequired[int]

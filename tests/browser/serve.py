@@ -16,8 +16,9 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path[:0] = [os.path.join(ROOT, "tests", "stubs"), os.path.join(ROOT, "resources", "lib")]
 
+import xbmc  # noqa: E402
 import xbmcaddon  # noqa: E402
-from web import library  # noqa: E402
+from web import library, player  # noqa: E402
 from web import server as web_server  # noqa: E402
 
 TOKEN = "BROWSER1"
@@ -62,6 +63,28 @@ def fake_rpc(method: str, params: dict | None = None) -> dict:
     return {"result": "OK"}
 
 
+# The playing film's chapters as Kodi lists them, for the dots on the bar and
+# a jump to one (web/player.py reads them through the stubs' JSON-RPC).
+CHAPTERS = [
+    {"index": 1, "time": 0, "name": "Opening"},
+    {"index": 2, "time": 300, "name": "Arrival"},
+    {"index": 3, "time": 3600},
+    {"index": 4, "time": 6600, "name": "Credits"},
+]
+
+
+def fake_player(request: dict) -> dict:
+    method = request["method"]
+    if method == "Player.GetActivePlayers":
+        return {"result": [{"playerid": 1, "type": "video"}]}
+    if method == "Player.GetChapters":
+        return {"result": {"chapters": CHAPTERS}}
+    return {"result": "OK"}
+
+
+xbmc.RPC = fake_player
+xbmc.INFO.update({"Player.ChapterCount": "4", "Player.Duration": "02:00:00"})
+
 SNAPSHOT = {
     "playing": True, "paused": True, "title": "Film", "time": "00:10:00",
     "duration": "02:00:00", "hdr_type": "dolbyvision", "output_type": "dolbyvision",
@@ -74,7 +97,9 @@ SNAPSHOT = {
         {"id": "audio", "title": "Audio", "rows": [
             {"id": "audio.32238", "label": "Codec", "value": "TrueHD Atmos 7.1", "detail": ""}]}],
     "metrics": {"cpu": 20, "cpu_temp": 50, "fps_in": 24, "l1": {"max": 1000, "avg": 120},
-                "frame": {"w": 3840, "h": 2160}},
+                "frame": {"w": 3840, "h": 2160}, "progress": 8.3},
+    "chapters": player.chapter_list("02:00:00"),
+    "chapter": 2, "controls": {"chapters": 4},
     "metadata": [{"kind": "row", "name": "L1 max", "value": "1000"}],
     "session": {"seq": 3, "switches": 1, "warnings": 1}, "library": 1, "control": True,
 }

@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""The playing video over JSON-RPC: tracks, volume, chapters, live-TV times
-and the transport commands the dashboard may send."""
+"""The playing video over JSON-RPC: tracks, volume, chapters (the count for
+the keys, the list for the dots on the bar), live-TV times and the transport
+commands the dashboard may send."""
 
 import json
 import math
@@ -12,7 +13,7 @@ from collections.abc import Callable, Mapping
 import xbmc
 from core.log import channel
 from core.utils import cond, info
-from web.payloads import Controls, Track
+from web.payloads import Chapter, Controls, Track
 from web.values import Json, Unchecked, clean_value, numbers
 
 _log = channel("web")
@@ -48,6 +49,99 @@ def chapter_count() -> int:
         return int(info("Player.ChapterCount") or 0)
     except ValueError:
         return 0
+
+
+# --- Chapters --------------------------------------------------------------
+
+# More than any disc carries.  A file claiming more is cut off rather than
+# drawn as a bar of dots.
+_CHAPTER_LIMIT = 200
+
+# A name is a label beside the bar, not a paragraph.
+_CHAPTER_NAME_LIMIT = 80
+
+
+def _whole(value: object) -> int | None:
+    """Return *value* if JSON gave it as a whole number (not a boolean)."""
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
+def _clock_like(total: int, duration: str) -> str:
+    """Return *total* seconds written the way *duration* is.
+
+    Kodi writes ``hh:mm:ss`` for a title of an hour or more and ``mm:ss``
+    below, and a chapter's start reads as part of the same row.
+    """
+    hours, rest = divmod(total, 3600)
+    minutes, secs = divmod(rest, 60)
+    if duration.count(":") >= 2:
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+    return f"{hours * 60 + minutes:02d}:{secs:02d}"
+
+
+def _chapter_entry(entry: object, length: int, duration: str) -> Chapter | None:
+    """Return one of Kodi's chapters placed on *length*, or None if malformed."""
+    if not isinstance(entry, dict):
+        return None
+    index, start = _whole(entry.get("index")), _whole(entry.get("time"))
+    if index is None or start is None or not 0 <= start <= length:
+        return None
+    return {
+        "index": index,
+        "start": start,
+        "at":    round(start * 100 / length, 3),
+        "time":  _clock_like(start, duration),
+        "name":  clean_value(str(entry.get("name") or ""))[:_CHAPTER_NAME_LIMIT],
+    }
+
+
+def _fetch_chapters(player_id: int, duration: str) -> list[Chapter]:
+    """Return the chapters of *player_id*'s file, placed on *duration*."""
+    length = seconds(duration)
+    if not length:
+        return []
+    result = rpc("Player.GetChapters", {"playerid": player_id}).get("result")
+    found = result.get("chapters") if isinstance(result, dict) else None
+    if not isinstance(found, list):
+        return []
+    chapters = [chapter for entry in found[:_CHAPTER_LIMIT]
+                if (chapter := _chapter_entry(entry, length, duration))]
+    # One chapter is the whole file under another name: nothing to mark.
+    return chapters if len(chapters) >= 2 else []
+
+
+def chapter_list(duration: str) -> list[Chapter]:
+    """Return the playing file's chapters, for the dots on the progress bar.
+
+    Player.GetChapters (Kodi 22) names each chapter and says where it
+    starts, in whole seconds.  The count is an InfoLabel and costs nothing,
+    so JSON-RPC is only asked for a file that has chapters to give.
+    """
+    if chapter_count() < 2:
+        return []
+    player_id = video_player_id()
+    if player_id is None:
+        return []
+    return _fetch_chapters(player_id, duration)
+
+
+def current_chapter(chapters: list[Chapter], position: str) -> int:
+    """Return the index of the chapter *position* is in; 0 for none.
+
+    Worked out from the list rather than read from Player.Chapter, so the
+    highlighted dot always agrees with where the dots are drawn: a jump
+    lands on the whole second a chapter is listed at, which can be just
+    short of where Kodi itself counts the chapter as begun.
+    """
+    now = seconds(position)
+    if now is None:
+        return 0
+    current = 0
+    for chapter in chapters:
+        if chapter["start"] > now:
+            break
+        current = chapter["index"]
+    return current
 
 
 def _stream_label(stream: Json, fallback: str) -> str:
@@ -278,6 +372,27 @@ def _chapter(name: str) -> _PlayerCommand:
     return step
 
 
+def _chapter_goto(player_id: int, value: Unchecked) -> bool:
+    """Jump to the start of the chapter numbered *value* (a dot on the bar).
+
+    The number is looked up in the box's own list rather than a time taken
+    from the page, and seeked to as a time rather than a percentage: a
+    percentage of a two-hour film rounds to seconds either side.
+    """
+    number = _number(value, 1, _CHAPTER_LIMIT)
+    if number is None or not number.is_integer():
+        return False
+    for chapter in _fetch_chapters(player_id, info("Player.Duration")):
+        if chapter["index"] == int(number):
+            hours, rest = divmod(chapter["start"], 3600)
+            minutes, secs = divmod(rest, 60)
+            return "result" in rpc("Player.Seek", {
+                "playerid": player_id,
+                "value": {"time": {"hours": hours, "minutes": minutes,
+                                   "seconds": secs, "milliseconds": 0}}})
+    return False
+
+
 def _audio(player_id: int, value: Unchecked) -> bool:
     index = _number(value, 0, 64)
     if index is None:
@@ -320,6 +435,7 @@ _PLAYER_COMMANDS: dict[str, _PlayerCommand] = {
     "seek_percent":     _seek_percent,
     "chapter_previous": _chapter("chapterorbigstepback"),
     "chapter_next":     _chapter("chapterorbigstepforward"),
+    "chapter_goto":     _chapter_goto,
     "audio":            _audio,
     "subtitle":         _subtitle,
 }

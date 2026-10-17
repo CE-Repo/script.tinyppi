@@ -68,6 +68,39 @@ test("the live tab connects and shows the format badges", async () => {
   }
 });
 
+test("the chapters sit on the bar, name themselves and jump", async () => {
+  await page.waitForSelector(".chapter-dot");
+  assert.equal(await page.locator(".chapter-dot").count(), 3, "none at the very start");
+  // The stubs hand out string ids for words (see tests/stubs/xbmcaddon.py).
+  assert.equal(await page.locator("#chapterNow").innerText(), "#32367 · Arrival");
+
+  // Every dot sits on the middle of the fill's run, whatever it is laid over.
+  const bar = await page.locator("#track").boundingBox();
+  const dots = await page.locator(".chapter-dot").evaluateAll((nodes) =>
+    nodes.map((node) => node.getBoundingClientRect().toJSON()));
+  for (const dot of dots) {
+    const middle = dot.y + dot.height / 2;
+    assert.ok(Math.abs(middle - (bar.y + 8 + 6)) <= 1, `dot at ${middle}, bar at ${bar.y}`);
+    assert.ok(dot.x >= bar.x && dot.x + dot.width <= bar.x + bar.width);
+  }
+  assert.ok(await page.locator(".chapter-dot.current").count() === 1);
+
+  const third = dots[1];
+  await page.mouse.move(third.x + third.width / 2, third.y + third.height / 2);
+  await page.waitForSelector("#chapterTip:not(.hidden)");
+  assert.equal(await page.locator("#chapterTip").innerText(), "#32366 · 01:00:00");
+  const tip = await page.locator("#chapterTip").boundingBox();
+  assert.ok(tip.y + tip.height <= bar.y + 8, "the name stands over the bar");
+
+  const [request] = await Promise.all([
+    page.waitForRequest((sent) => sent.method() === "POST" && sent.url().endsWith("/api/command")),
+    page.mouse.click(third.x + third.width / 2, third.y + third.height / 2),
+  ]);
+  assert.deepEqual(JSON.parse(request.postData()), { action: "chapter_goto", value: 3 });
+  await page.mouse.move(0, 0);
+  await page.waitForSelector("#chapterTip.hidden", { state: "attached" });
+});
+
 test("films: the wall, search and clearing it", async () => {
   await tab("films");
   await page.waitForFunction(() => document.querySelectorAll("#filmGrid .film").length === 20);

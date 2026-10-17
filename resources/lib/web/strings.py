@@ -125,6 +125,11 @@ _UI_STRINGS = {
     "runtime_hm":       32362,
     "runtime_m":        32363,
     "runtime_h":        32364,
+    # Chapter dots on the progress bar, and the switch for them.
+    "chapter":          32366,
+    "chapter_of":       32367,
+    "progress_bar":     32368,
+    "chapter_marks":    32369,
 }
 
 

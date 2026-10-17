@@ -7,9 +7,9 @@
    The remote on the now-playing card: the drawer and the key that opens it,
    the transport row and the track pickers.
 
-   Loaded after core.js and before js/live-panels.js, which builds the card
-   and hands the remote its nodes (create); the icons are shared with the
-   rest of the card (icon, setIcon).
+   Loaded after core.js and js/live-chapters.js and before js/live-panels.js,
+   which builds the card and hands the remote its nodes (create); the icons
+   are shared with the rest of the card (icon, setIcon).
 =========================================================================== */
 
 window.TinyPPIRemote = (function () {
@@ -34,8 +34,9 @@ window.TinyPPIRemote = (function () {
     else node.prepend(uiIcon(name));
   }
 
-  /* The remote in *el* (nowCard, drawer, transport, tracks, track, bar);
-     *pageState* is what the drawer's state is remembered under. */
+  /* The remote in *el* (nowCard, drawer, transport, tracks, track, bar, and
+     the chapter dots on the bar from js/live-chapters.js); *pageState* is what
+     the drawer's state is remembered under. */
   function create(el, pageState) {
     const controlToggle = document.createElement("button");
     controlToggle.type = "button";
@@ -56,6 +57,7 @@ window.TinyPPIRemote = (function () {
     el.nowCard.append(controlToggle);
 
     let control = false;
+    let chapterCount = 0;
     let trackKey = "";
     const controlStateKey = pageState + ".controls";
 
@@ -166,20 +168,34 @@ window.TinyPPIRemote = (function () {
       labelControls();
 
       /* A tap anywhere on the bar seeks there, and the arrow keys do the same,
-         so the bar is not a control only a finger can reach. */
+         so the bar is not a control only a finger can reach.  A tap on a
+         chapter's dot is a jump to where that chapter starts: the box looks
+         the time up in its own list, which a spot worked out from a few
+         pixels would miss by seconds either way. */
       el.track.addEventListener("click", (event) => {
         if (!control) return;
         const box = el.track.getBoundingClientRect();
         if (!box.width) return;
+        const chapter = el.chapters.hit(event.clientX);
+        if (chapter) {
+          el.bar.style.width = chapter.at + "%";
+          TinyPPI.command("chapter_goto", chapter.index);
+          return;
+        }
         const where = Math.min(100, Math.max(0,
           (event.clientX - box.left) / box.width * 100));
         el.bar.style.width = where + "%";
         TinyPPI.command("seek_percent", where);
       });
+      /* Page Up and Page Down go a chapter back and on, the way they go a page
+         back and on through a document -- on a file that has chapters to go
+         to; on one that has not, they are left to scroll the page. */
       el.track.addEventListener("keydown", (event) => {
         if (!control) return;
         if (event.key === "ArrowLeft") TinyPPI.command("seek", -10);
         else if (event.key === "ArrowRight") TinyPPI.command("seek", 10);
+        else if (event.key === "PageUp" && chapterCount > 1) TinyPPI.command("chapter_previous");
+        else if (event.key === "PageDown" && chapterCount > 1) TinyPPI.command("chapter_next");
         else return;
         event.preventDefault();
       });
@@ -228,9 +244,9 @@ window.TinyPPIRemote = (function () {
          rather than left to fail.  Dimmed and kept in place: a row that loses
          two keys when the film changes is a row whose buttons move out from
          under the thumb that was aiming at one. */
-      const chapters = Number(controls.chapters) || 0;
+      chapterCount = Number(controls.chapters) || 0;
       for (const key of el.transport.querySelectorAll(".tbtn.chapter")) {
-        key.disabled = chapters < 2;
+        key.disabled = chapterCount < 2;
       }
 
       const mute = el.transport.querySelector(".mute");

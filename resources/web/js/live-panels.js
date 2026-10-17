@@ -13,7 +13,7 @@
    luminance chart goes to the metadata tab and the events to the history tab
    (see js/dashboard.js).
 
-   Loaded after core.js, readings.js and live-remote.js.
+   Loaded after core.js, readings.js, live-chapters.js and live-remote.js.
 
    A page opts in by putting <div id="live"></div> where the panels belong;
    the markup and the drawing are here, the styling is in live-panels.css.  It
@@ -58,8 +58,18 @@
          leaves the column beside it. */
       '<div class="foot">' +
         '<div class="progress">' +
-          '<div class="track" id="track" role="slider" tabindex="0" ' +
-            'aria-valuemin="0" aria-valuemax="100"><i id="bar"></i></div>' +
+          /* Which chapter the position is in, over the bar it is marked on
+             (see js/live-chapters.js). */
+          '<div class="chapter-now hidden" id="chapterNow"></div>' +
+          '<div class="trackwrap">' +
+            '<div class="track" id="track" role="slider" tabindex="0" ' +
+              'aria-valuemin="0" aria-valuemax="100"><i id="bar"></i>' +
+              '<span class="chapter-dots hidden" id="chapterDots" aria-hidden="true"></span>' +
+            '</div>' +
+            /* Only what the label over the bar already says for the
+               chapter playing, so it is kept from a screen reader. */
+            '<span class="chapter-tip hidden" id="chapterTip" aria-hidden="true"></span>' +
+          '</div>' +
           /* Three readings under the bar, not two: how far the title has
              got, when it will be over by the clock on the wall, and how long
              it runs for.  The middle one is centred on the bar rather than on
@@ -119,9 +129,15 @@
 
   const $ = (id) => document.getElementById(id);
 
+  /* Made before the remote, which asks it whether a tap was on a dot.  The
+     switch is the settings tab's, where the page has one. */
+  const chapters = TinyPPIChapters.create({
+    track: $("track"), dots: $("chapterDots"), now: $("chapterNow"),
+    tip: $("chapterTip"), toggle: $("chapterMarks")
+  });
   const remote = TinyPPIRemote.create({
     nowCard: $("nowCard"), drawer: $("controlDrawer"), transport: $("transport"),
-    tracks: $("tracks"), track: $("track"), bar: $("bar")
+    tracks: $("tracks"), track: $("track"), bar: $("bar"), chapters
   }, pageState);
   const uiIcon = TinyPPIRemote.icon;
 
@@ -192,6 +208,7 @@
     const percent = (progress === null || progress === undefined) ? 0 : progress;
     el.bar.style.width = percent + "%";
     el.track.setAttribute("aria-valuenow", Math.round(percent));
+    chapters.render(snapshot, percent);
     el.tElapsed.textContent = snapshot.time || "--:--";
     el.tTotal.textContent = snapshot.duration || "--:--";
     renderFinish(snapshot.finish || "");
@@ -680,7 +697,10 @@
   let resizeTimer = 0;
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(drawCharts, 120);
+    resizeTimer = setTimeout(() => {
+      drawCharts();
+      chapters.relayout();
+    }, 120);
   });
 
   /* --- what a page calls ------------------------------------------------ */
@@ -719,6 +739,7 @@
        next snapshot builds them again (see renderTracks in
        js/live-remote.js). */
     remote.strings(T);
+    chapters.strings();
   }
 
   /* Everything the panels show comes out of one snapshot, and a snapshot that
@@ -740,6 +761,7 @@
         fpsShown = null;
         setFpsTrend(0);
         remote.reset();
+        chapters.reset();
       }
       /* The title that has just ended keeps its samples and its events for a
          while (see SessionLog.end in web/session.py).  While it does, the
@@ -809,6 +831,7 @@
   function draw() {
     drawCharts();
     markMore();
+    chapters.relayout();
   }
 
   window.TinyPPI.panels = { strings, update, events, peak, draw };

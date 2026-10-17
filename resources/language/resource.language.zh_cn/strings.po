@@ -1470,3 +1470,19 @@ msgstr "%s 小时"
 msgctxt "#32365"
 msgid "Dolby Vision"
 msgstr "杜比视界"
+
+msgctxt "#32366"
+msgid "Chapter %s"
+msgstr "第 %s 章"
+
+msgctxt "#32367"
+msgid "Chapter %s of %s"
+msgstr "第 %s 章，共 %s 章"
+
+msgctxt "#32368"
+msgid "Progress bar"
+msgstr "进度条"
+
+msgctxt "#32369"
+msgid "Show chapter markers"
+msgstr "显示章节标记"

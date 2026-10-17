@@ -26,7 +26,7 @@ settings:
 | **Films** | Continue watching (films), recently added films, the unwatched films and the whole film library |
 | **Series** | Continue watching (episodes), recently updated series, the series with unwatched episodes and the whole series library |
 | **History** | The metrics and the events of the title that is playing — or, for ten minutes after the credits, of the one that just ended |
-| **Settings** | The theme, the access token and the two reports |
+| **Settings** | The theme, the access token, the chapter dots on the progress bar and the two reports |
 
 The address remembers the tab (`/#films`, `/#history`, …), so a bookmark or a
 reload comes back to it, and each device reopens the tab it was left on. The
@@ -42,6 +42,10 @@ connection light.
 
 - **Now playing** — the poster, title, year and genre, the file name (when
   *Show file name* is on), elapsed time and progress.
+- **Chapters** — a dot on the progress bar where each chapter starts, the one
+  the position is in drawn larger, and its number and name over the bar
+  ("Chapter 3 of 12 · Arrival"). A pointer over a dot, or a tap on one, names
+  that chapter and says where it starts (see below).
 - **Format badges** — a row for the picture (resolution, HDR format with the
   Dolby Vision profile and layer, a conversion as `DV → HDR10`, IMAX) and a
   row for the sound (codec, Atmos or DTS:X, channel layout), the same badges
@@ -414,6 +418,29 @@ dashboard** off the row is not drawn at all.
 
 The remote sits on the live tab, one press away from every other tab in the
 bar.
+
+## Chapters on the progress bar
+
+A file with two chapters or more gets a dot on the progress bar where each one
+starts. The first chapter of nearly every film starts at the very beginning,
+where there is no boundary to mark, so it gets no dot; the dots the bar has
+passed are cut into its fill, and the one for the chapter that is playing is
+drawn larger. Over the bar stands which chapter that is, of how many, and its
+name when the file names it. Two dots closer than six pixels — some discs carry
+a chapter every few minutes, and a phone is narrow — are drawn as one.
+
+Point at a dot, or tap it on a phone, and it names its chapter and when it
+starts. With the remote allowed a tap on a dot jumps to the start of that
+chapter rather than to the spot that was tapped, and Page Up and Page Down go a
+chapter back and on while the bar has the focus. The jump is asked for by the
+chapter's number: the box looks its time up in its own list, so it lands where
+the chapter starts and not a few seconds either side of it.
+
+The dots are a reading, not a control, so they are there with the remote
+switched off too. The list comes from Kodi's own `Player.GetChapters` — the
+same chapters Kodi's own seek bar marks — and is read once per title, so it
+costs nothing after the first frame. **Show chapter markers** on the settings
+tab takes the dots and the label off the bar, for this device only.
 
 ## Security
 

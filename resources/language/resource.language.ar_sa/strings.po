@@ -1470,3 +1470,19 @@ msgstr "%s س"
 msgctxt "#32365"
 msgid "Dolby Vision"
 msgstr "دولبي فيجن"
+
+msgctxt "#32366"
+msgid "Chapter %s"
+msgstr "الفصل %s"
+
+msgctxt "#32367"
+msgid "Chapter %s of %s"
+msgstr "الفصل %s من %s"
+
+msgctxt "#32368"
+msgid "Progress bar"
+msgstr "شريط التقدم"
+
+msgctxt "#32369"
+msgid "Show chapter markers"
+msgstr "إظهار علامات الفصول"

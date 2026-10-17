@@ -109,6 +109,68 @@ def test_controls_when_allowed(monkeypatch):
     assert asked == [1]
 
 
+CHAPTERS = [
+    {"index": 1, "start": 0, "at": 0.0, "time": "00:00:00", "name": "Opening"},
+    {"index": 2, "start": 300, "at": 4.167, "time": "00:05:00", "name": ""},
+    {"index": 3, "start": 3600, "at": 50.0, "time": "01:00:00", "name": "Finale"},
+]
+
+
+@pytest.fixture
+def chapters(monkeypatch):
+    """Kodi's chapters for whatever plays; records the lengths asked for."""
+    asked = []
+    found = list(CHAPTERS)
+    monkeypatch.setattr(snapshot, "chapter_list", lambda duration: asked.append(duration) or list(found))
+    return asked, found
+
+
+def test_chapters_travel_without_control(chapters):
+    play()
+    shot = SnapshotBuilder().build(control=False)
+    assert shot["chapters"] == CHAPTERS and shot["chapter"] == 2
+    assert chapters[0] == ["02:00:00"]
+
+
+def test_chapters_are_read_once_per_title(chapters, monkeypatch):
+    asked, _found = chapters
+    play()
+    builder = SnapshotBuilder()
+    builder.build()
+    monkeypatch.setattr(builder, "STATIC_INTERVAL", 0.0)
+    builder.build()                                  # same title, chapters known
+    assert asked == ["02:00:00"]
+    play(**{"Player.Filename": "Next.mkv", "Player.Duration": "45:00"})
+    assert builder.build()["chapter"] == 2
+    assert asked == ["02:00:00", "45:00"]
+
+
+def test_chapters_are_asked_for_again_while_there_are_none(chapters, monkeypatch):
+    asked, found = chapters
+    found.clear()
+    play()
+    builder = SnapshotBuilder()
+    assert builder.build()["chapters"] == []
+    builder.build()                                  # within the static interval
+    assert len(asked) == 1
+    monkeypatch.setattr(builder, "STATIC_INTERVAL", 0.0)
+    found.extend(CHAPTERS)
+    assert builder.build()["chapters"] == CHAPTERS
+    assert len(asked) == 2
+
+
+def test_chapters_are_dropped_when_playback_ends(chapters):
+    asked, _found = chapters
+    play()
+    builder = SnapshotBuilder()
+    builder.build()
+    xbmc.CONDITIONS["Player.HasVideo"] = False
+    assert "chapters" not in builder.build()
+    play()
+    builder.build()                                  # the same film again
+    assert len(asked) == 2
+
+
 @pytest.fixture
 def dolby_vision(monkeypatch):
     """Serve a Dolby Vision frame from dvinfo and fake the metadata view's rows."""

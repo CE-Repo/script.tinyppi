@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { page, settle } from "./harness.mjs";
 
-const SCRIPTS = ["core.js", "readings.js", "live-remote.js", "live-panels.js", "metadata.js"];
+const SCRIPTS = ["core.js", "readings.js", "live-chapters.js", "live-remote.js", "live-panels.js", "metadata.js"];
 
 /* The rows as info.dvmetadata builds them: (kind, name, value), and the trim
    tables as a heading row naming the controls over a row per pass. */
