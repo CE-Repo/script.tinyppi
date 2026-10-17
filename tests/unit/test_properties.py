@@ -416,16 +416,32 @@ def test_the_subtitle_codec(codec, shown):
 
 # --- System rows --------------------------------------------------------------
 
-@pytest.mark.parametrize("raw, cores, average", [
-    ("#0: 12.5% #1: 8% #2: 15% #3: 10%", "12 | 08 | 15 | 10", "11%"),
-    ("#0: 1.2.3% #1: 40%", "40", "40%"),            # an unreadable core is skipped
-    ("busy", "busy", ""),
-    ("", "", ""),
+@pytest.fixture
+def fresh_cores(monkeypatch):
+    monkeypatch.setattr(properties, "_last_core_loads", {})
+
+
+@pytest.mark.parametrize("raw, cores, average, bar", [
+    ("#0: 12.5% #1: 8% #2: 15% #3: 10%", "12 | 08 | 15 | 10", "11%", 11.375),
+    ("#0: 1.2.3% #1: 40%", "40", "40%", 40.0),      # an unreadable core is skipped
+    ("#0: nan% #1: nan% #2: nan% #3: nan%", "", "", 0.0),
+    ("#0: nan% #1: 30%", "30", "30%", 30.0),        # never read before: skipped
+    ("busy", "", "", 0.0),                          # never the raw text
+    ("", "", "", 0.0),
 ])
-def test_the_cpu_load(raw, cores, average):
+def test_the_cpu_load(fresh_cores, raw, cores, average, bar):
     xbmc.INFO["System.CpuUsage"] = raw
     assert properties.get_CpuUsageVar() == cores
     assert properties.get_CpuTopUsageVar() == average
+    assert properties.get_CpuTotalProgressVar() == pytest.approx(bar)
+
+
+def test_a_nan_core_keeps_its_last_load(fresh_cores):
+    xbmc.INFO["System.CpuUsage"] = "#0: 25% #1: 40% #2: 33% #3: 34%"
+    assert properties.get_CpuUsageVar() == "25 | 40 | 33 | 34"
+    xbmc.INFO["System.CpuUsage"] = "#0: nan% #1: 50% #2: -nan% #3: inf%"
+    assert properties.get_CpuUsageVar() == "25 | 50 | 33 | 34"
+    assert properties.get_CpuTopUsageVar() == "36%"
 
 
 @pytest.mark.parametrize("raw, percent", [

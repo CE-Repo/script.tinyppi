@@ -213,6 +213,15 @@ def test_the_cpu_temperature_bar_is_set_once_per_value(frame):
     assert bar.percent == pytest.approx(60.0) and len(bar.calls) == 2
 
 
+def test_the_cpu_load_bar_shows_the_average_over_the_cores(frame):
+    xbmc.INFO["System.CpuUsage"] = "#0: 20% #1: 40%"
+    window = xbmcgui.Window(13000)
+    publish.update_static_properties(window, {})
+    assert window.getControl(9101).percent == pytest.approx(30.0)
+    assert window.getProperty("CpuTopUsageVar") == "30%"
+    assert window.getProperty("CpuUsageVar") == "20 | 40"
+
+
 # --- Everything at once -------------------------------------------------------
 
 def test_publish_properties_fills_both_halves(frame):

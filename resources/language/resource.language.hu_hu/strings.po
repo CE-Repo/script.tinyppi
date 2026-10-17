@@ -1004,16 +1004,16 @@ msgid "In / drop / out"
 msgstr "Dobott / kodi fps"
 
 msgctxt "#32249"
-msgid "Processor"
-msgstr "Processzor"
+msgid "CPU cores"
+msgstr "CPU magok"
 
 msgctxt "#32250"
 msgid "Temperature"
 msgstr "Hőmérséklet"
 
 msgctxt "#32251"
-msgid "Memory usage"
-msgstr "Memória használat"
+msgid "CPU / RAM"
+msgstr "CPU / RAM"
 
 msgctxt "#32252"
 msgid "Player cache"

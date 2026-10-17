@@ -1004,16 +1004,16 @@ msgid "In / drop / out"
 msgstr "输入 / 丢帧 / 输出"
 
 msgctxt "#32249"
-msgid "Processor"
-msgstr "处理器"
+msgid "CPU cores"
+msgstr "CPU 核心"
 
 msgctxt "#32250"
 msgid "Temperature"
 msgstr "温度"
 
 msgctxt "#32251"
-msgid "Memory usage"
-msgstr "内存使用"
+msgid "CPU / RAM"
+msgstr "CPU / 内存"
 
 msgctxt "#32252"
 msgid "Player cache"

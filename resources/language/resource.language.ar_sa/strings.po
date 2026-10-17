@@ -1004,16 +1004,16 @@ msgid "In / drop / out"
 msgstr "داخل / مُسقَط / خارج"
 
 msgctxt "#32249"
-msgid "Processor"
-msgstr "المعالج"
+msgid "CPU cores"
+msgstr "أنوية المعالج"
 
 msgctxt "#32250"
 msgid "Temperature"
 msgstr "درجة الحرارة"
 
 msgctxt "#32251"
-msgid "Memory usage"
-msgstr "الذاكرة"
+msgid "CPU / RAM"
+msgstr "المعالج / الذاكرة"
 
 msgctxt "#32252"
 msgid "Player cache"

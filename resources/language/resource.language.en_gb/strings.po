@@ -1004,7 +1004,7 @@ msgid "In / drop / out"
 msgstr ""
 
 msgctxt "#32249"
-msgid "Processor"
+msgid "CPU cores"
 msgstr ""
 
 msgctxt "#32250"
@@ -1012,7 +1012,7 @@ msgid "Temperature"
 msgstr ""
 
 msgctxt "#32251"
-msgid "Memory usage"
+msgid "CPU / RAM"
 msgstr ""
 
 msgctxt "#32252"

@@ -1004,16 +1004,16 @@ msgid "In / drop / out"
 msgstr "In / Drop / Out"
 
 msgctxt "#32249"
-msgid "Processor"
-msgstr "Prozessor"
+msgid "CPU cores"
+msgstr "CPU Kerne"
 
 msgctxt "#32250"
 msgid "Temperature"
 msgstr "Temperatur"
 
 msgctxt "#32251"
-msgid "Memory usage"
-msgstr "Speichernutzung"
+msgid "CPU / RAM"
+msgstr "CPU / RAM"
 
 msgctxt "#32252"
 msgid "Player cache"

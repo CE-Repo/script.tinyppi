@@ -64,9 +64,9 @@ _AUDIO = (
 
 _SYSTEM = (
     (32248, (S("FpsInfoVar"), S("FpsDropVar", " = ", " FPS")), ()),
-    (32249, (S("CpuTopUsageVar", "", " |"), S("CpuUsageVar", " ", "")), ()),
+    (32249, (S("CpuUsageVar"),), ()),
     (32250, (S("CpuTemperature"),), ()),
-    (32251, (S("MemoryUsed"),), ()),
+    (32251, (S("CpuTopUsageVar"), S("MemoryUsed", " | ", "")), ()),
     (32252, (S("PlayerCacheLevel", "", "%"),), ()),
     (32253, (S("VideoQueueLevel", "", "%"), S("VideoQueueDataLevel", " | ", "%")), ()),
     (32254, (S("AudioQueueLevel", "", "%"), S("AudioQueueDataLevel", " | ", "%")), ()),

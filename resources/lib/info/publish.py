@@ -61,6 +61,7 @@ from info.properties import (
     get_ChannelIconVar,
     get_ChannelLayerVar,
     get_CpuTemperatureProgressVar,
+    get_CpuTotalProgressVar,
     get_CpuTopUsageVar,
     get_CpuUsageVar,
     get_DisplayModeVar,
@@ -231,7 +232,7 @@ def _set_progress(window: xbmcgui.Window, published: dict[str, str],
 
 def update_static_properties(window: xbmcgui.Window,
                              published: dict[str, str] | None = None) -> None:
-    """Publish the per-title properties and the CPU temperature bar.
+    """Publish the per-title properties and the CPU temperature and load bars.
 
     For the polling loop's slow cadence.  The progress control is addressed
     by id, which needs the loaded window; before that use
@@ -249,6 +250,7 @@ def update_static_properties(window: xbmcgui.Window,
             published,
             (
                 (9100, get_CpuTemperatureProgressVar()),
+                (9101, get_CpuTotalProgressVar()),
             ),
         )
 
