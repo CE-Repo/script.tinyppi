@@ -68,37 +68,48 @@ test("the live tab connects and shows the format badges", async () => {
   }
 });
 
-test("the chapters sit on the bar, name themselves and jump", async () => {
+test("the chapters ahead sit on the bar, a mouse brings up the rest, a click jumps", async () => {
+  await page.mouse.move(0, 0);
   await page.waitForSelector(".chapter-dot");
-  assert.equal(await page.locator(".chapter-dot").count(), 3, "none at the very start");
+  // Chapter 2 plays at 8.3 %: its own start (4.2 %) is behind the bar, the
+  // first starts at 0 and has none.
+  assert.equal(await page.locator(".chapter-dot").count(), 2, "only the ones ahead");
   // The stubs hand out string ids for words (see tests/stubs/xbmcaddon.py).
   assert.equal(await page.locator("#chapterNow").innerText(), "#32367 · Arrival");
 
   // Every dot sits on the middle of the fill's run, whatever it is laid over.
   const bar = await page.locator("#track").boundingBox();
-  const dots = await page.locator(".chapter-dot").evaluateAll((nodes) =>
+  const boxes = () => page.locator(".chapter-dot").evaluateAll((nodes) =>
     nodes.map((node) => node.getBoundingClientRect().toJSON()));
+  const dots = await boxes();
   for (const dot of dots) {
     const middle = dot.y + dot.height / 2;
     assert.ok(Math.abs(middle - (bar.y + 8 + 6)) <= 1, `dot at ${middle}, bar at ${bar.y}`);
     assert.ok(dot.x >= bar.x && dot.x + dot.width <= bar.x + bar.width);
   }
-  assert.ok(await page.locator(".chapter-dot.current").count() === 1);
 
-  const third = dots[1];
+  const third = dots[0];
   await page.mouse.move(third.x + third.width / 2, third.y + third.height / 2);
+  await page.waitForFunction(() => document.querySelectorAll(".chapter-dot").length === 3);
   await page.waitForSelector("#chapterTip:not(.hidden)");
   assert.equal(await page.locator("#chapterTip").innerText(), "#32366 · 01:00:00");
   const tip = await page.locator("#chapterTip").boundingBox();
   assert.ok(tip.y + tip.height <= bar.y + 8, "the name stands over the bar");
 
+  // The one already seen, now that the mouse has brought it up.
+  const [seen] = await boxes();
+  await page.mouse.move(seen.x + seen.width / 2, seen.y + seen.height / 2);
+  await page.waitForFunction(() => document.querySelector("#chapterTip").textContent.includes("00:05:00"));
+  assert.equal(await page.locator(".chapter-dot.played").count(), 1);
+
   const [request] = await Promise.all([
     page.waitForRequest((sent) => sent.method() === "POST" && sent.url().endsWith("/api/command")),
-    page.mouse.click(third.x + third.width / 2, third.y + third.height / 2),
+    page.mouse.click(seen.x + seen.width / 2, seen.y + seen.height / 2),
   ]);
-  assert.deepEqual(JSON.parse(request.postData()), { action: "chapter_goto", value: 3 });
+  assert.deepEqual(JSON.parse(request.postData()), { action: "chapter_goto", value: 2 });
   await page.mouse.move(0, 0);
   await page.waitForSelector("#chapterTip.hidden", { state: "attached" });
+  await page.waitForFunction(() => document.querySelectorAll(".chapter-dot").length === 2);
 });
 
 test("films: the wall, search and clearing it", async () => {

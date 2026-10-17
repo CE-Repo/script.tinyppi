@@ -2,10 +2,10 @@
 // Copyright (c) 2026 U3knOwn
 
 // The chapters on the progress bar (resources/web/js/live-chapters.js): the
-// dots of the chapters still to come, the chapter the position is in, the name
-// under the pointer, a tap on a dot that jumps to it, Page Up and Page Down,
-// and the switch on the settings tab -- on the real page, through the live
-// panels that host them.
+// dots ahead of the position, every one while a mouse is over the bar, the
+// chapter the position is in, the name under the pointer, a tap on a dot that
+// jumps to it, Page Up and Page Down, and the switch on the settings tab -- on
+// the real page, through the live panels that host them.
 
 import assert from "node:assert/strict";
 import { join, dirname } from "node:path";
@@ -69,62 +69,74 @@ function load(dom, name) {
     .runInContext(dom.getInternalVMContext());
 }
 
-const classes = (node) => ["played", "current"].filter((name) => node.classList.contains(name));
+const lefts = (nodes) => nodes.map((node) => node.style.left);
+const played = (nodes) => nodes.map((node) => node.classList.contains("played"));
 
-test("a dot where each chapter starts, none at the very beginning", (t) => {
+test("a dot where each chapter ahead starts, none behind the position", (t) => {
   const { $, P, dots } = chapters(t);
   assert.ok($("chapterDots").classList.contains("hidden"), "no dots before a title");
   P.update(snap());
   assert.equal($("chapterDots").classList.contains("hidden"), false);
-  assert.deepEqual(dots().map((node) => node.style.left), ["25%", "50.5%", "95%"]);
-  assert.ok(dots().every((node) => node.className.startsWith("chapter-dot")));
-  assert.deepEqual(dots().map(classes), [["played", "current"], [], []]);
+  assert.deepEqual(lefts(dots()), ["50.5%", "95%"], "25 % is behind the bar at 30 %");
+  assert.ok(dots().every((node) => node.className === "chapter-dot"));
+  P.update(snap({ chapter: 0, metrics: { progress: 0 } }));   // nothing seen yet
+  assert.deepEqual(lefts(dots()), ["25%", "50.5%", "95%"], "and none at the very beginning");
 });
 
-test("the dots are built once per list and repainted as the bar moves", (t) => {
+test("the dots are built once and a dot goes as the bar passes it", (t) => {
   const { P, dots } = chapters(t);
   P.update(snap());
   const first = dots()[0];
-  P.update(snap({ metrics: { progress: 51 } }));  // past the next dot, before the box says so
+  P.update(snap({ metrics: { progress: 40 } }));
   assert.equal(dots()[0], first, "the same nodes");
-  assert.deepEqual(dots().map(classes), [["played", "current"], ["played"], []]);
-  P.update(snap({ chapters: CHAPTERS.slice(0, 3) }));
-  assert.notEqual(dots()[0], first, "a new list, new dots");
-  assert.equal(dots().length, 2);
+  P.update(snap({ metrics: { progress: 51 }, chapter: 3 }));
+  assert.deepEqual(lefts(dots()), ["95%"]);
+  P.update(snap({ metrics: { progress: 96 }, chapter: 4 }));
+  assert.equal(dots().length, 0);
 });
 
-test("a chapter that has ended loses its dot", (t) => {
-  const { $, P, dots, mouse, xOf, commands } = chapters(t);
+test("a mouse over the bar shows every chapter, those already seen as well", (t) => {
+  const { $, P, dots, mouse, xOf, commands, window } = chapters(t);
   P.update(snap({ control: true, controls: { chapters: 4 }, chapter: 3, metrics: { progress: 60 } }));
-  assert.deepEqual(dots().map((node) => node.style.left), ["50.5%", "95%"]);
-  assert.deepEqual(dots().map(classes), [["played", "current"], []]);
-
+  assert.deepEqual(lefts(dots()), ["95%"]);
   mouse("pointermove", xOf(25));
   assert.ok($("chapterTip").classList.contains("hidden"), "no dot, no name");
-  mouse("click", xOf(25));
-  assert.equal(commands().at(-1).action, "seek_percent", "and a tap there is a tap on the bar");
 
-  P.update(snap({ chapter: 4, metrics: { progress: 96 } }));
-  assert.deepEqual(dots().map((node) => node.style.left), ["95%"]);
-  P.update(snap({ chapter: 0, metrics: { progress: 0 } }));   // back before the first one
-  assert.equal(dots().length, 3);
+  mouse("pointerenter", xOf(25));
+  assert.deepEqual(lefts(dots()), ["25%", "50.5%", "95%"]);
+  assert.deepEqual(played(dots()), [true, true, false], "the ones behind cut into the fill");
+  mouse("pointermove", xOf(25));
+  assert.equal($("chapterTip").textContent, "Chapter 2 · Arrival · 00:30:00");
+  mouse("click", xOf(25));
+  assert.deepEqual(commands().at(-1), { action: "chapter_goto", value: 2 });
+
+  $("track").dispatchEvent(new window.Event("pointerleave"));
+  assert.deepEqual(lefts(dots()), ["95%"]);
+  assert.ok($("chapterTip").classList.contains("hidden"));
+
+  // A finger is on the bar for the tap alone: it brings none of them up.
+  const touch = new window.Event("pointerenter");
+  Object.defineProperty(touch, "pointerType", { value: "touch" });
+  $("track").dispatchEvent(touch);
+  assert.deepEqual(lefts(dots()), ["95%"]);
+  mouse("click", xOf(25));
+  assert.equal(commands().at(-1).action, "seek_percent", "a tap where no dot is seeks");
 });
 
 test("dots too close to tell apart are drawn as one that answers for both", (t) => {
   const { $, P, dots, box } = chapters(t);
   const close = [...CHAPTERS.slice(0, 3),
                  { index: 4, start: 3650, at: 51, time: "01:00:50", name: "Twin" }];
+  P.update(snap({ chapters: close }));
+  assert.deepEqual(lefts(dots()), ["50.5%"], "51 % is under six pixels from 50.5 % on a 206-pixel bar");
   P.update(snap({ chapters: close, chapter: 3, metrics: { progress: 50.7 } }));
-  assert.equal(dots().length, 1, "51 % is under six pixels from 50.5 % on a 206-pixel bar");
-  assert.deepEqual(dots().map(classes), [["played", "current"]]);
-  P.update(snap({ chapters: close, chapter: 4, metrics: { progress: 52 } }));
-  assert.deepEqual(dots().map(classes), [["played", "current"]], "the twin answers for itself");
+  assert.deepEqual(lefts(dots()), ["51%"], "past the first, the second has a dot of its own");
 
-  P.update(snap({ chapters: close, chapter: 3, metrics: { progress: 50.7 } }));
+  P.update(snap({ chapters: close }));
   box.width = 2006;
   P.draw();                                       // the tab came forward, wider
-  assert.equal(dots().length, 2);
-  assert.equal($("chapterNow").textContent, "Chapter 3 of 4");
+  assert.deepEqual(lefts(dots()), ["50.5%", "51%"]);
+  assert.equal($("chapterNow").textContent, "Chapter 2 of 4 · Arrival");
 });
 
 test("a bar that is not laid out yet draws every dot", (t) => {
@@ -132,9 +144,9 @@ test("a bar that is not laid out yet draws every dot", (t) => {
   const close = [...CHAPTERS.slice(0, 3),
                  { index: 4, start: 3650, at: 51, time: "01:00:50", name: "" }];
   P.update(snap({ chapters: close }));
-  assert.equal(dots().length, 3);
+  assert.equal(dots().length, 2);
   P.update(snap({ chapters: close }));            // still not laid out: asked again
-  assert.equal(dots().length, 3);
+  assert.equal(dots().length, 2);
 });
 
 test("a resize lays the dots out again once it has settled", (t) => {
@@ -142,14 +154,14 @@ test("a resize lays the dots out again once it has settled", (t) => {
   const close = [...CHAPTERS.slice(0, 3),
                  { index: 4, start: 3650, at: 51, time: "01:00:50", name: "" }];
   P.update(snap({ chapters: close }));
-  assert.equal(dots().length, 2);
+  assert.equal(dots().length, 1);
   box.width = 2006;
   P.update(snap({ chapters: close }));
-  assert.equal(dots().length, 2, "the width is only read again after a resize");
+  assert.equal(dots().length, 1, "the width is only read again after a resize");
   window.dispatchEvent(new window.Event("resize"));
   assert.deepEqual([...timers.values()].map((timer) => timer.delay), [120]);
   runTimers();
-  assert.equal(dots().length, 3);
+  assert.equal(dots().length, 2);
 });
 
 test("the chapter the position is in is named over the bar", (t) => {
@@ -198,6 +210,7 @@ test("a pointer over a dot names it, and leaving the bar puts the name away", (t
   P.update(snap());
   assert.ok(tip.classList.contains("hidden"));
 
+  mouse("pointerenter", xOf(25) + 8);
   mouse("pointermove", xOf(25) + 8);
   assert.equal(tip.classList.contains("hidden"), false);
   assert.equal(tip.textContent, "Chapter 2 · Arrival · 00:30:00");
@@ -223,6 +236,7 @@ test("the nearer of two dots in reach is the one named", (t) => {
   box.width = 1006;
   const near = [CHAPTERS[0], { ...CHAPTERS[1], at: 10 }, { ...CHAPTERS[2], at: 11.5 }];
   P.update(snap({ chapters: near }));
+  mouse("pointerenter", xOf(11.5) - 6);
   mouse("pointermove", xOf(11.5) - 6);
   assert.equal($("chapterTip").textContent, "Chapter 3 · 01:00:36");
   mouse("pointermove", xOf(10) + 6);
@@ -234,8 +248,8 @@ test("a tap names the dot it landed on for a while, control or not", (t) => {
   const { $, P, mouse, xOf, timers, runTimers, commands } = chapters(t);
   const tip = $("chapterTip");
   P.update(snap({ control: false }));
-  mouse("click", xOf(25));
-  assert.equal(tip.textContent, "Chapter 2 · Arrival · 00:30:00");
+  mouse("click", xOf(50.5));
+  assert.equal(tip.textContent, "Chapter 3 · 01:00:36");
   assert.ok([...timers.values()].some((timer) => timer.delay === 2000));
   assert.deepEqual(commands(), [], "no control, no jump");
   runTimers();
@@ -280,7 +294,7 @@ test("the switch on the settings tab takes the dots off the bar and is remembere
   const toggle = $("chapterMarks");
   assert.equal(toggle.checked, true, "on until switched off");
   P.update(snap({ control: true, controls: { chapters: 4 } }));
-  mouse("pointermove", xOf(25));
+  mouse("pointermove", xOf(50.5));
   assert.equal($("chapterTip").classList.contains("hidden"), false);
 
   toggle.checked = false;
@@ -290,15 +304,15 @@ test("the switch on the settings tab takes the dots off the bar and is remembere
   assert.ok($("chapterNow").classList.contains("hidden"));
   assert.ok($("chapterTip").classList.contains("hidden"));
   P.update(snap({ control: true, controls: { chapters: 4 } }));
-  mouse("pointermove", xOf(25));
+  mouse("pointermove", xOf(50.5));
   assert.ok($("chapterTip").classList.contains("hidden"), "no dots, no names");
-  mouse("click", xOf(25));
+  mouse("click", xOf(50.5));
   assert.equal(commands().at(-1).action, "seek_percent", "and a tap is a tap on the bar");
 
   toggle.checked = true;
   toggle.dispatchEvent(new window.Event("change"));
   assert.equal(window.localStorage.getItem("tinyppi.chapters"), "1");
-  assert.equal(dots().length, 3);
+  assert.equal(dots().length, 2);
   assert.equal($("chapterNow").classList.contains("hidden"), false);
 });
 
@@ -313,7 +327,7 @@ test("a device that switched the dots off finds them off", (t) => {
 test("when playback ends the dots, the label and the name are put away", (t) => {
   const { $, P, dots, mouse, xOf } = chapters(t);
   P.update(snap());
-  mouse("pointermove", xOf(25));
+  mouse("pointermove", xOf(50.5));
   P.update({ playing: false, groups: [], metrics: {} });
   assert.equal(dots().length, 0);
   assert.ok($("chapterDots").classList.contains("hidden"));
@@ -332,11 +346,12 @@ test("a page without the switch, and a browser that blocks storage", () => {
   el.track.getBoundingClientRect = () => ({ left: 0, width: 106 });
   const marks = window.TinyPPIChapters.create(el);
   marks.render({ chapters: CHAPTERS, chapter: 2 }, 30);
-  assert.equal(el.dots.children.length, 3, "shown when storage cannot say otherwise");
-  assert.deepEqual(JSON.parse(JSON.stringify(marks.hit(3 + 25))), { index: 2, at: 25 });
+  assert.equal(el.dots.children.length, 2, "shown when storage cannot say otherwise");
+  assert.deepEqual(JSON.parse(JSON.stringify(marks.hit(3 + 50.5))), { index: 3, at: 50.5 });
+  assert.equal(marks.hit(3 + 25), null, "behind the position, no dot to hit");
   assert.equal(marks.hit(3 + 75), null);
   marks.reset();
-  assert.equal(marks.hit(3 + 25), null, "no dots, nothing to hit");
+  assert.equal(marks.hit(3 + 50.5), null, "no dots, nothing to hit");
   el.track.getBoundingClientRect = () => ({ left: 0, width: 0 });
   marks.render({ chapters: CHAPTERS, chapter: 2 }, 30);
   assert.equal(marks.hit(3), null, "a bar with no width is hit nowhere");

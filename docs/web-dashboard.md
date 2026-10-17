@@ -42,10 +42,11 @@ connection light.
 
 - **Now playing** — the poster, title, year and genre, the file name (when
   *Show file name* is on), elapsed time and progress.
-- **Chapters** — a dot on the progress bar where each chapter still to come
-  starts, the one the position is in drawn larger, and its number and name
-  over the bar ("Chapter 3 of 12 · Arrival"). A pointer over a dot, or a tap
-  on one, names that chapter and says where it starts (see below).
+- **Chapters** — a dot on the progress bar where each chapter ahead of the
+  position starts, and the number and name of the one playing over the bar
+  ("Chapter 3 of 12 · Arrival"). A mouse over the bar brings up the dots of
+  the chapters already seen as well; pointing at a dot, or tapping one, names
+  that chapter and says where it starts (see below).
 - **Format badges** — a row for the picture (resolution, HDR format with the
   Dolby Vision profile and layer, a conversion as `DV → HDR10`, IMAX) and a
   row for the sound (codec, Atmos or DTS:X, channel layout), the same badges
@@ -421,18 +422,21 @@ bar.
 
 ## Chapters on the progress bar
 
-A file with two chapters or more gets a dot on the progress bar where each one
-starts. The first chapter of nearly every film starts at the very beginning,
-where there is no boundary to mark, so it gets no dot; a chapter that has ended
-loses its dot, so the part of the bar already seen stays clear, and the dot of
-the chapter that is playing is drawn larger. Over the bar stands which chapter that is, of how many, and its
-name when the file names it. Two dots closer than six pixels — some discs carry
-a chapter every few minutes, and a phone is narrow — are drawn as one.
+A file with two chapters or more gets a dot on the progress bar where each
+chapter ahead of the position starts; a dot goes as the bar passes it, so the
+part already seen stays clear. The first chapter of nearly every film starts at
+the very beginning, where there is no boundary to mark, so it never gets one.
+Over the bar stands which chapter is playing, of how many, and its name when
+the file names it. Two dots closer than six pixels — some discs carry a
+chapter every few minutes, and a phone is narrow — are drawn as one.
 
-Point at a dot, or tap it on a phone, and it names its chapter and when it
-starts. With the remote allowed a tap on a dot jumps to the start of that
-chapter rather than to the spot that was tapped, and Page Up and Page Down go a
-chapter back and on while the bar has the focus. The jump is asked for by the
+A mouse over the bar is a mouse about to seek with it, so for as long as it
+stays there every chapter is marked, those already seen as well — cut into the
+fill — and any of them can be gone back to. A finger is on the bar only for the
+tap itself and brings up nothing. Point at a dot, or tap it on a phone, and it
+names its chapter and when it starts. With the remote allowed a tap on a dot
+jumps to the start of that chapter rather than to the spot that was tapped, and
+Page Up and Page Down go a chapter back and on while the bar has the focus. The jump is asked for by the
 chapter's number: the box looks its time up in its own list, so it lands where
 the chapter starts and not a few seconds either side of it.
 

@@ -252,20 +252,13 @@
   margin: -2px 0 0 -2px;
   border-radius: 50%;
   background: var(--accent);
-  transition: background .25s, transform .25s, box-shadow .25s;
+  transition: background .25s;
 }
-/* A chapter that has ended has no dot (see js/live-chapters.js).  One the fill
-   reaches before the box says its chapter began would stand on the fill, in
-   the accent itself; it is cut into it instead, in the colour of the card. */
+/* Behind the position there are dots only while a mouse is over the bar (see
+   js/live-chapters.js).  They would stand on the fill in the accent itself, so
+   they are cut into it instead, in the colour of the card. */
 .chapter-dot.played {
   background: color-mix(in srgb, var(--panel) 80%, transparent);
-}
-/* The chapter the position is in: larger, and in the colour of the text, so it
-   reads on any accent the poster hands the card. */
-.chapter-dot.current {
-  background: var(--text);
-  box-shadow: 0 0 0 1px var(--panel);
-  transform: scale(1.6);
 }
 
 /* "Chapter 3 of 12 · Arrival" over the bar: the number in the accent, the name
