@@ -136,21 +136,32 @@ test("a finger drags the bar, and the box hears once, where it let go", async ()
 
   await touch("touchStart", 0.2);
   for (let step = 1; step <= 10; step++) await touch("touchMove", 0.2 + step * 0.04);
+  // Chromium hands a finger's moves on to the page once a frame, so the last
+  // may still be on its way: wait for the fill to arrive under the finger
+  // rather than read it at once.
+  const fill = () => handset.evaluate(() => parseFloat(document.getElementById("bar").style.width));
+  try {
+    await handset.waitForFunction(() =>
+      Math.abs(parseFloat(document.getElementById("bar").style.width) - 60) < 0.5, null, { timeout: 5000 });
+  } catch {
+    assert.fail(`the fill under the finger, not ${await fill()}`);
+  }
   const held = await handset.evaluate(() => ({
     dots: document.querySelectorAll(".chapter-dot").length,
-    width: parseFloat(document.getElementById("bar").style.width),
     clock: document.getElementById("tElapsed").textContent,
   }));
   assert.equal(held.dots, 3, "every chapter while the finger is on the bar");
-  assert.ok(Math.abs(held.width - 60) < 0.5, `the fill under the finger, not ${held.width}`);
   assert.equal(held.clock, "01:12:00", "and the clock with it");
   assert.deepEqual(sent, [], "nothing is asked of the box mid-drag");
 
+  const asked = handset.waitForRequest((request) =>
+    request.method() === "POST" && request.url().endsWith("/api/command"));
   await touch("touchEnd");
+  const command = JSON.parse((await asked).postData());
+  assert.equal(command.action, "seek_percent");
+  assert.ok(Math.abs(command.value - 60) < 0.5, `seeks to ${command.value}`);
   await handset.waitForFunction(() => document.querySelectorAll(".chapter-dot").length === 2);
-  assert.equal(sent.length, 1);
-  assert.equal(sent[0].action, "seek_percent");
-  assert.ok(Math.abs(sent[0].value - 60) < 0.5, `seeks to ${sent[0].value}`);
+  assert.equal(sent.length, 1, "once");
   assert.deepEqual(errors, []);
   await phone.close();
 });
