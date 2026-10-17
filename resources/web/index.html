@@ -229,8 +229,9 @@
   </section>
 
   <!-- What used to hide behind the key in the top bar: the theme, the access
-       token and the reports, each a card of its own (see js/theme.js and the
-       settings in js/dashboard.js). -->
+       token and the reports, each a card of its own, and the progress bar's
+       chapter dots (see js/theme.js, js/live-chapters.js and the settings in
+       js/dashboard.js). -->
   <section class="tabpanel" id="tab-settings" data-tab="settings" role="tabpanel"
            aria-labelledby="tabbtn-settings">
     <section class="card setcard">
@@ -249,6 +250,18 @@
             <span id="tokenBtnText"></span>
           </button>
         </div>
+      </div>
+    </section>
+
+    <!-- The chapter dots on the progress bar, this device's own choice (see
+         js/live-chapters.js). -->
+    <section class="card setcard">
+      <h2 class="sethead" id="barHead"></h2>
+      <div class="setbody">
+        <label class="setswitch">
+          <span id="chapterMarksText"></span>
+          <input type="checkbox" id="chapterMarks" role="switch" checked>
+        </label>
       </div>
     </section>
 
@@ -320,6 +333,7 @@
 <script src="/js/colour.js"></script>
 <script src="/js/cover-tint.js"></script>
 <script src="/js/readings.js"></script>
+<script src="/js/live-chapters.js"></script>
 <script src="/js/live-remote.js"></script>
 <script src="/js/live-panels.js"></script>
 <script src="/js/metadata.js"></script>

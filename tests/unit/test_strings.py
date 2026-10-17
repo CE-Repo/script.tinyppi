@@ -14,7 +14,7 @@ from web.strings import ui_strings
 
 def test_every_string_comes_from_the_addons_table():
     texts = ui_strings(xbmcaddon.Addon())
-    assert texts["connected"] == "#32274" and texts["runtime_h"] == "#32364"
+    assert texts["connected"] == "#32274" and texts["chapter_marks"] == "#32369"
     assert set(strings._UI_STRINGS) | {"yes", "no"} == set(texts)
 
 

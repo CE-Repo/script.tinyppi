@@ -40,6 +40,8 @@ function applyStrings(strings, hello) {
   $("tokenHead").textContent = strings.token_title;
   $("tokenNote").textContent = strings.token_text;
   $("tokenBtnText").textContent = strings.token_enter;
+  $("barHead").textContent = strings.progress_bar;
+  $("chapterMarksText").textContent = strings.chapter_marks;
   $("reportHead").textContent = strings.copy;
   $("copyBtnText").textContent = strings.report_live;
   $("copyMetaBtnText").textContent = strings.tab_metadata;

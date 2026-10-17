@@ -134,7 +134,153 @@ def test_chapters_need_at_least_two(kodi):
         {"action": "chapterorbigstepforward"}, {"action": "chapterorbigstepback"}]
 
 
-@pytest.mark.parametrize("action", ["playpause", "stop", "seek", "audio", "subtitle", "chapter_next"])
+def _chapters(kodi, *entries, count="3"):
+    """Make Kodi list *entries* as the playing file's chapters."""
+    xbmc.INFO["Player.ChapterCount"] = count
+    kodi.answers["Player.GetChapters"] = {"result": {"chapters": list(entries)}}
+
+
+def test_a_chapter_jump_seeks_to_the_time_the_box_lists(kodi):
+    xbmc.INFO["Player.Duration"] = "02:00:00"
+    _chapters(kodi, {"index": 1, "time": 0}, {"index": 2, "time": 3723},
+              {"index": 3, "time": 5400, "name": "End"})
+    assert player.apply_command("chapter_goto", 2)
+    assert player.apply_command("chapter_goto", "3")
+    assert kodi.sent("Player.Seek") == [
+        {"playerid": 1, "value": {"time": {"hours": 1, "minutes": 2, "seconds": 3,
+                                           "milliseconds": 0}}},
+        {"playerid": 1, "value": {"time": {"hours": 1, "minutes": 30, "seconds": 0,
+                                           "milliseconds": 0}}},
+    ]
+    assert kodi.sent("Player.GetChapters") == [{"playerid": 1}] * 2
+
+
+@pytest.mark.parametrize("value", [None, "x", True, 0, 1.5, 4, 201, float("nan"), "-1"])
+def test_a_chapter_jump_needs_a_chapter_the_box_lists(kodi, value):
+    xbmc.INFO["Player.Duration"] = "02:00:00"
+    _chapters(kodi, {"index": 1, "time": 0}, {"index": 2, "time": 60}, {"index": 3, "time": 120})
+    assert player.apply_command("chapter_goto", value) is False
+    assert kodi.sent("Player.Seek") == []
+
+
+def test_a_chapter_jump_reports_kodis_answer(kodi):
+    xbmc.INFO["Player.Duration"] = "10:00"
+    _chapters(kodi, {"index": 1, "time": 0}, {"index": 2, "time": 60})
+    kodi.answers["Player.Seek"] = {"error": {"code": -32100}}
+    assert player.apply_command("chapter_goto", 2) is False
+
+
+# --- Chapters ------------------------------------------------------------------
+
+def test_the_chapter_list_places_each_chapter_on_the_length(kodi):
+    _chapters(kodi, {"index": 1, "time": 0, "name": "Opening"},
+              {"index": 2, "time": 1800, "name": "  [B]Arrival[/B] "},
+              {"index": 3, "time": 7200})
+    assert player.chapter_list("02:00:00") == [
+        {"index": 1, "start": 0, "at": 0.0, "time": "00:00:00", "name": "Opening"},
+        {"index": 2, "start": 1800, "at": 25.0, "time": "00:30:00", "name": "Arrival"},
+        {"index": 3, "start": 7200, "at": 100.0, "time": "02:00:00", "name": ""},
+    ]
+
+
+def test_a_chapter_under_the_hour_is_written_like_the_position(kodi):
+    _chapters(kodi, {"index": 1, "time": 0}, {"index": 2, "time": 125})
+    assert [chapter["time"] for chapter in player.chapter_list("45:00")] == ["00:00", "02:05"]
+    assert player.chapter_list("45:00")[1]["at"] == 4.63
+
+
+def test_long_names_and_long_lists_are_cut_off(kodi):
+    _chapters(kodi, *({"index": n, "time": n, "name": "x" * 120} for n in range(1, 300)))
+    chapters = player.chapter_list("01:00:00")
+    assert len(chapters) == 200 and len(chapters[0]["name"]) == 80
+
+
+@pytest.mark.parametrize("entry", [
+    "junk", {"time": 10}, {"index": 2}, {"index": True, "time": 10}, {"index": 2, "time": False},
+    {"index": 2, "time": 10.5}, {"index": 2, "time": -1}, {"index": 2, "time": 3601},
+])
+def test_malformed_chapters_are_left_out(kodi, entry):
+    _chapters(kodi, {"index": 1, "time": 0}, {"index": 3, "time": 60}, entry)
+    assert [chapter["index"] for chapter in player.chapter_list("01:00:00")] == [1, 3]
+
+
+@pytest.mark.parametrize("name", [
+    "Chapter 06", "chapter 1", "Chapters 3", "Ch. 3", "Ch3", "Chap 4", "Chapter #7", "Chapter IV",
+    "Kapitel 12", "Kap. 5", "Chapitre 4", "Capítulo 2", "Capitolo 5", "Hoofdstuk 7",
+    "Rozdział 8", "Kapitola 9", "Глава 9", "Κεφάλαιο 3", "6. fejezet", "6. Bölüm", "第6章",
+    "第 12 章", "章节 3", "06", "6", "#6", "00:57:32", "00:57:32.000", "57:32",
+    "Chapter 1 - 00:05:00", "Chapter 2: Chapter 2", "", None,
+])
+def test_a_name_a_tool_made_up_is_no_name(name):
+    assert player._chapter_name(name) == ""
+
+
+@pytest.mark.parametrize(("name", "kept"), [
+    ("Chapter 6: The Hunt", "The Hunt"), ("Chapter 6 - The Hunt", "The Hunt"),
+    ("Chapter 6 The Hunt", "The Hunt"), ("Chapter 6:The Hunt", "The Hunt"),
+    ("Chapter IV: The End", "The End"), ("06. The Hunt", "The Hunt"), ("06 - The Hunt", "The Hunt"),
+    ("1. Advent", "Advent"), ("6. fejezet: Die Jagd", "Die Jagd"), ("第6章：狩猎", "狩猎"),
+])
+def test_a_real_name_behind_a_number_keeps_only_the_name(name, kept):
+    assert player._chapter_name(name) == kept
+
+
+@pytest.mark.parametrize("name", [
+    "Die Ankunft", "Opening Credits", "Chill", "Chic", "Civic", "3 Days Later", "1917",
+    "2001: A Space Odyssey", "The Chapter 6 Story", "Act 1", "Part 2", "Chapter",
+])
+def test_a_real_name_is_kept_as_it_is(name):
+    assert player._chapter_name(name) == name
+
+
+def test_made_up_names_leave_the_chapters_unnamed(kodi):
+    _chapters(kodi, {"index": 1, "time": 0, "name": "Chapter 01"},
+              {"index": 2, "time": 60, "name": "Chapter 02: Arrival"})
+    assert [chapter["name"] for chapter in player.chapter_list("01:00:00")] == ["", "Arrival"]
+
+
+def test_one_chapter_is_no_chapters(kodi):
+    _chapters(kodi, {"index": 1, "time": 0}, "junk")
+    assert player.chapter_list("01:00:00") == []
+
+
+@pytest.mark.parametrize("answer", [{}, {"result": "junk"}, {"result": {"chapters": "junk"}},
+                                    {"error": {"code": -32601}}])
+def test_a_box_that_cannot_list_chapters_lists_none(kodi, answer):
+    xbmc.INFO["Player.ChapterCount"] = "3"
+    kodi.answers["Player.GetChapters"] = answer
+    assert player.chapter_list("01:00:00") == []
+
+
+def test_chapters_are_only_asked_for_when_there_are_some(kodi):
+    xbmc.INFO["Player.ChapterCount"] = "1"
+    assert player.chapter_list("01:00:00") == []
+    xbmc.INFO["Player.ChapterCount"] = "3"
+    kodi.playing = False
+    assert player.chapter_list("01:00:00") == []
+    kodi.playing = True
+    assert player.chapter_list("") == [] and player.chapter_list("00:00") == []
+    assert kodi.sent("Player.GetChapters") == []
+
+
+@pytest.mark.parametrize(("position", "current"), [
+    ("", 0), ("00:00:00", 1), ("00:29:59", 1), ("00:30:00", 2), ("01:59:59", 2), ("02:00:00", 3),
+])
+def test_the_current_chapter_follows_the_position(kodi, position, current):
+    _chapters(kodi, {"index": 1, "time": 0}, {"index": 2, "time": 1800},
+              {"index": 3, "time": 7200})
+    chapters = player.chapter_list("02:00:00")
+    assert player.current_chapter(chapters, position) == current
+
+
+def test_before_the_first_chapter_there_is_none():
+    first = {"index": 1, "start": 60, "at": 1.0, "time": "01:00", "name": ""}
+    assert player.current_chapter([first], "00:30") == 0
+    assert player.current_chapter([], "00:30") == 0
+
+
+@pytest.mark.parametrize("action", ["playpause", "stop", "seek", "audio", "subtitle", "chapter_next",
+                                    "chapter_goto"])
 def test_player_commands_need_a_video(kodi, action):
     kodi.playing = False
     xbmc.INFO["Player.ChapterCount"] = "12"

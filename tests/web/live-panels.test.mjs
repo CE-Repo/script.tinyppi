@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { bare, page, settle } from "./harness.mjs";
 
-const SCRIPTS = ["core.js", "readings.js", "live-remote.js", "live-panels.js"];
+const SCRIPTS = ["core.js", "readings.js", "live-chapters.js", "live-remote.js", "live-panels.js"];
 const START = 1_700_000_000_000;
 
 /* The shapes tests/browser/serve.py serves, which are the add-on's own. */
@@ -354,7 +354,11 @@ test("the controls drawer opens on its toggle and is remembered", (t) => {
 test("a tap on the bar seeks there and the arrow keys step ten seconds", (t) => {
   const { $, P, commands, window } = panels(t);
   const track = $("track");
-  const tap = (clientX) => track.dispatchEvent(new window.MouseEvent("click", { clientX, bubbles: true }));
+  const tap = (clientX) => {
+    for (const type of ["pointerdown", "pointerup", "click"]) {
+      track.dispatchEvent(new window.PointerEvent(type, { clientX, pointerId: 1, button: 0, bubbles: true }));
+    }
+  };
   const key = (name) => {
     const event = new window.KeyboardEvent("keydown", { key: name, cancelable: true });
     track.dispatchEvent(event);

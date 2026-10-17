@@ -1470,3 +1470,19 @@ msgstr ""
 msgctxt "#32365"
 msgid "Dolby Vision"
 msgstr ""
+
+msgctxt "#32366"
+msgid "Chapter %s"
+msgstr ""
+
+msgctxt "#32367"
+msgid "Chapter %s of %s"
+msgstr ""
+
+msgctxt "#32368"
+msgid "Progress bar"
+msgstr ""
+
+msgctxt "#32369"
+msgid "Show chapter markers"
+msgstr ""

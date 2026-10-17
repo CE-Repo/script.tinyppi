@@ -41,6 +41,7 @@ from info.publish import (
     publish_static_properties,
 )
 from web.payloads import (
+    Chapter,
     Controls,
     FrameSize,
     Group,
@@ -51,7 +52,13 @@ from web.payloads import (
     PlayingSnapshot,
     Snapshot,
 )
-from web.player import broadcast_times, current_track_state, player_controls
+from web.player import (
+    broadcast_times,
+    chapter_list,
+    current_chapter,
+    current_track_state,
+    player_controls,
+)
 from web.rows import GROUPS, finish_time, is_dv_source, overlay_rows, render
 from web.session import SessionLog
 from web.values import clean_value, numbers
@@ -260,6 +267,10 @@ class SnapshotBuilder:
         self._track_state: dict[str, str] = {
             "audio": "", "audio_id": "", "subtitle": "",
         }
+        # The title's chapters and the (file, length) they were read for.
+        self._chapters: list[Chapter] = []
+        self._chapters_for: tuple[str, str] | None = None
+        self._chapters_at = 0.0
 
     def _refresh(self) -> None:
         """Recompute the readings into the sink."""
@@ -393,6 +404,22 @@ class SnapshotBuilder:
             self._controls = player_controls()
         return self._controls
 
+    def _chapter_list(self, values: dict[str, str]) -> list[Chapter]:
+        """Return the title's chapters, read again when the title changes.
+
+        Also read again on the static interval while there are none: in the
+        first moments of a file Kodi may not know them yet.  For a file that
+        has none that costs one InfoLabel (see ``chapter_list``).
+        """
+        title = (values.get("Filename", ""), values.get("PlayerDuration", ""))
+        now = time.monotonic()
+        retry = not self._chapters and now - self._chapters_at >= self.STATIC_INTERVAL
+        if title != self._chapters_for or retry:
+            self._chapters_for = title
+            self._chapters_at = now
+            self._chapters = chapter_list(title[1])
+        return self._chapters
+
     def _active_tracks(self) -> dict[str, str]:
         """Return the active tracks from the last static refresh."""
         return self._track_state
@@ -426,6 +453,9 @@ class SnapshotBuilder:
             self._track_state = {
                 "audio": "", "audio_id": "", "subtitle": "",
             }
+            self._chapters = []
+            self._chapters_for = None
+            self._chapters_at = 0.0
             # End the session but keep its figures for the idle page.
             self.session.end()
             idle: IdleSnapshot = {
@@ -455,6 +485,7 @@ class SnapshotBuilder:
         )
         title    = values.get("Title", "")
         position = values.get("PlayerTime", "")
+        chapters = self._chapter_list(values)
 
         # Update the session first, so the totals include this pass.  The
         # file name identifies the session; it is only sent if allowed.
@@ -508,6 +539,8 @@ class SnapshotBuilder:
                 "episode": values.get("Episode", ""),
             },
             "controls":  self._player_controls(control),
+            "chapters":  chapters,
+            "chapter":   current_chapter(chapters, position),
             "session":   self.session.summary(),
         }
         return snapshot

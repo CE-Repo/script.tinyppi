@@ -53,7 +53,9 @@
   font: inherit;
   font-weight: 600;
   font-size: 14px;
-  text-align: left;
+  /* Centred, as the TinyPPI app draws the same keys: a label set against the
+     left of a key twice its width reads as a row of a list, not a button. */
+  text-align: center;
   cursor: pointer;
   transition: border-color .15s, background .15s, transform .08s;
 }

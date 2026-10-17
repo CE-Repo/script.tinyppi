@@ -16,7 +16,7 @@ import { page, settle, source } from "./harness.mjs";
 
 const JS = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "resources", "web", "js");
 const ORDER = ["theme.js", "core.js", "colour.js", "cover-tint.js", "readings.js",
-               "live-remote.js", "live-panels.js", "metadata.js", "dashboard.js", "films.js", "series.js",
+               "live-chapters.js", "live-remote.js", "live-panels.js", "metadata.js", "dashboard.js", "films.js", "series.js",
                "continue.js", "marking.js", "start.js"];
 
 /** Run one of the page's scripts under its own file URL, as harness.mjs

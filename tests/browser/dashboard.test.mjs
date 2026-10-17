@@ -68,6 +68,104 @@ test("the live tab connects and shows the format badges", async () => {
   }
 });
 
+test("the chapters ahead sit on the bar, a mouse brings up the rest, a click jumps", async () => {
+  await page.mouse.move(0, 0);
+  await page.waitForSelector(".chapter-dot");
+  // Chapter 2 plays at 8.3 %: its own start (4.2 %) is behind the bar, the
+  // first starts at 0 and has none.
+  assert.equal(await page.locator(".chapter-dot").count(), 2, "only the ones ahead");
+  // The stubs hand out string ids for words (see tests/stubs/xbmcaddon.py).
+  assert.equal(await page.locator("#chapterNow").innerText(), "#32367 · Arrival");
+
+  // Every dot sits on the middle of the fill's run, whatever it is laid over.
+  const bar = await page.locator("#track").boundingBox();
+  const boxes = () => page.locator(".chapter-dot").evaluateAll((nodes) =>
+    nodes.map((node) => node.getBoundingClientRect().toJSON()));
+  const dots = await boxes();
+  for (const dot of dots) {
+    const middle = dot.y + dot.height / 2;
+    assert.ok(Math.abs(middle - (bar.y + 8 + 6)) <= 1, `dot at ${middle}, bar at ${bar.y}`);
+    assert.ok(dot.x >= bar.x && dot.x + dot.width <= bar.x + bar.width);
+  }
+
+  const third = dots[0];
+  await page.mouse.move(third.x + third.width / 2, third.y + third.height / 2);
+  await page.waitForFunction(() => document.querySelectorAll(".chapter-dot").length === 3);
+  await page.waitForSelector("#chapterTip:not(.hidden)");
+  assert.equal(await page.locator("#chapterTip").innerText(), "#32366 · 01:00:00");
+  const tip = await page.locator("#chapterTip").boundingBox();
+  assert.ok(tip.y + tip.height <= bar.y + 8, "the name stands over the bar");
+
+  // The one already seen, now that the mouse has brought it up.
+  const [seen] = await boxes();
+  await page.mouse.move(seen.x + seen.width / 2, seen.y + seen.height / 2);
+  await page.waitForFunction(() => document.querySelector("#chapterTip").textContent.includes("00:05:00"));
+  assert.equal(await page.locator(".chapter-dot.played").count(), 1);
+
+  const [request] = await Promise.all([
+    page.waitForRequest((sent) => sent.method() === "POST" && sent.url().endsWith("/api/command")),
+    page.mouse.click(seen.x + seen.width / 2, seen.y + seen.height / 2),
+  ]);
+  assert.deepEqual(JSON.parse(request.postData()), { action: "chapter_goto", value: 2 });
+  await page.mouse.move(0, 0);
+  await page.waitForSelector("#chapterTip.hidden", { state: "attached" });
+  await page.waitForFunction(() => document.querySelectorAll(".chapter-dot").length === 2);
+});
+
+test("a finger drags the bar, and the box hears once, where it let go", async () => {
+  // A phone of its own: touch, and a narrow screen.
+  const phone = await browser.newContext({ viewport: { width: 390, height: 844 },
+                                           hasTouch: true, isMobile: true });
+  await phone.addInitScript((token) => localStorage.setItem("tinyppi.token", token), TOKEN);
+  const handset = await phone.newPage();
+  const errors = [];
+  handset.on("pageerror", (error) => errors.push(error.message));
+  const sent = [];
+  handset.on("request", (request) => {
+    if (request.method() === "POST" && request.url().endsWith("/api/command")) {
+      sent.push(JSON.parse(request.postData()));
+    }
+  });
+  await handset.goto(base + "#live");
+  await handset.waitForSelector(".track.seekable");
+  const bar = await handset.locator("#track").boundingBox();
+  const y = bar.y + bar.height / 2;
+  const cdp = await phone.newCDPSession(handset);
+  const touch = (type, at) => cdp.send("Input.dispatchTouchEvent", {
+    type, touchPoints: type === "touchEnd" ? [] : [{ x: bar.x + bar.width * at, y }] });
+
+  await touch("touchStart", 0.2);
+  for (let step = 1; step <= 10; step++) await touch("touchMove", 0.2 + step * 0.04);
+  // Chromium hands a finger's moves on to the page once a frame, so the last
+  // may still be on its way: wait for the fill to arrive under the finger
+  // rather than read it at once.
+  const fill = () => handset.evaluate(() => parseFloat(document.getElementById("bar").style.width));
+  try {
+    await handset.waitForFunction(() =>
+      Math.abs(parseFloat(document.getElementById("bar").style.width) - 60) < 0.5, null, { timeout: 5000 });
+  } catch {
+    assert.fail(`the fill under the finger, not ${await fill()}`);
+  }
+  const held = await handset.evaluate(() => ({
+    dots: document.querySelectorAll(".chapter-dot").length,
+    clock: document.getElementById("tElapsed").textContent,
+  }));
+  assert.equal(held.dots, 3, "every chapter while the finger is on the bar");
+  assert.equal(held.clock, "01:12:00", "and the clock with it");
+  assert.deepEqual(sent, [], "nothing is asked of the box mid-drag");
+
+  const asked = handset.waitForRequest((request) =>
+    request.method() === "POST" && request.url().endsWith("/api/command"));
+  await touch("touchEnd");
+  const command = JSON.parse((await asked).postData());
+  assert.equal(command.action, "seek_percent");
+  assert.ok(Math.abs(command.value - 60) < 0.5, `seeks to ${command.value}`);
+  await handset.waitForFunction(() => document.querySelectorAll(".chapter-dot").length === 2);
+  assert.equal(sent.length, 1, "once");
+  assert.deepEqual(errors, []);
+  await phone.close();
+});
+
 test("films: the wall, search and clearing it", async () => {
   await tab("films");
   await page.waitForFunction(() => document.querySelectorAll("#filmGrid .film").length === 20);

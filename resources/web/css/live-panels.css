@@ -226,6 +226,88 @@
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   transition: width .35s linear;
 }
+
+/* --- Chapters on the bar ------------------------------------------------- */
+
+/* The bar is what the dots and the name over it are placed against. */
+.track { position: relative; }
+.trackwrap { position: relative; }
+
+/* A dot where each chapter starts, laid over the ten pixels the fill runs in.
+   Held three pixels in from either end (the INSET in js/live-chapters.js), so
+   the first and the last are not cut in half by the rounded ends. */
+.chapter-dots {
+  position: absolute;
+  top: 0;
+  left: 3px;
+  right: 3px;
+  height: 10px;
+  pointer-events: none;
+}
+.chapter-dot {
+  position: absolute;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: var(--accent);
+  transition: background .25s;
+}
+/* Behind the position there are dots only while a mouse is over the bar (see
+   js/live-chapters.js).  They stand on the fill, so they take a very light
+   tone of the accent it is painted in: one family with it, and still told
+   apart from it. */
+.chapter-dot.played {
+  background: color-mix(in srgb, var(--accent) 25%, #fff);
+}
+
+/* "Chapter 3 of 12 · Arrival" over the bar, at the left and halfway down
+   between it and the poster and badges above: the number in the accent, the
+   name in the colour of the clocks under it, and one line however long the
+   name.
+
+   Halfway between the drawn edges rather than the laid-out ones.  Above, the
+   foot of the poster's column and of the card's foot leave 22 px; below, the
+   row gap of .progress leaves 7, and a seekable bar draws its outline 8 px
+   down its own padding (see .track.seekable).  So the label is lifted by half
+   of what is left over, and by more over a bare bar with no padding. */
+.chapter-now {
+  margin: -3px 0 3px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chapter-now .chapter-num { color: var(--accent); }
+.progress:has(.track:not(.seekable)) .chapter-now { margin: -7px 0 7px; }
+
+/* The name of the dot under the pointer, or of the one a finger tapped. */
+.chapter-tip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  z-index: 2;
+  max-width: min(320px, 100%);
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+/* Near either end the name runs inward from the dot rather than off the card. */
+.chapter-tip.start { transform: none; }
+.chapter-tip.end { transform: translateX(-100%); }
 .times {
   display: flex;
   justify-content: space-between;
@@ -653,6 +735,13 @@
   border: 0;
   background: none;
   overflow: visible;
+  /* Dragged with a finger: a sideways move is the bar's, an up and down one
+     is still the page's to scroll -- and one the browser takes for a scroll
+     cancels the drag rather than seeking (see js/live-remote.js).  No text
+     is picked up by a mouse dragging across it either. */
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .track.seekable::before {
   content: "";
@@ -673,6 +762,13 @@
   height: 10px;
   box-shadow: none;
 }
+/* Under a finger the fill is where the finger is, not a third of a second
+   behind it on its way there. */
+.track.dragging > i { transition: none; }
+/* The fill of a seekable bar starts a pixel under its outline, which starts
+   under the eight pixels of padding above it. */
+.track.seekable .chapter-dots { top: 9px; }
+.trackwrap:has(.track.seekable) .chapter-tip { bottom: calc(100% - 4px); }
 .track:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 /* --- Track pickers ------------------------------------------------------ */
