@@ -254,8 +254,9 @@
   background: var(--accent);
   transition: background .25s, transform .25s, box-shadow .25s;
 }
-/* Behind the position the dot stands on the fill, in the accent itself; it is
-   cut into it instead, in the colour of the card. */
+/* A chapter that has ended has no dot (see js/live-chapters.js).  One the fill
+   reaches before the box says its chapter began would stand on the fill, in
+   the accent itself; it is cut into it instead, in the colour of the card. */
 .chapter-dot.played {
   background: color-mix(in srgb, var(--panel) 80%, transparent);
 }

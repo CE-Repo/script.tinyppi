@@ -42,10 +42,10 @@ connection light.
 
 - **Now playing** — the poster, title, year and genre, the file name (when
   *Show file name* is on), elapsed time and progress.
-- **Chapters** — a dot on the progress bar where each chapter starts, the one
-  the position is in drawn larger, and its number and name over the bar
-  ("Chapter 3 of 12 · Arrival"). A pointer over a dot, or a tap on one, names
-  that chapter and says where it starts (see below).
+- **Chapters** — a dot on the progress bar where each chapter still to come
+  starts, the one the position is in drawn larger, and its number and name
+  over the bar ("Chapter 3 of 12 · Arrival"). A pointer over a dot, or a tap
+  on one, names that chapter and says where it starts (see below).
 - **Format badges** — a row for the picture (resolution, HDR format with the
   Dolby Vision profile and layer, a conversion as `DV → HDR10`, IMAX) and a
   row for the sound (codec, Atmos or DTS:X, channel layout), the same badges
@@ -423,9 +423,9 @@ bar.
 
 A file with two chapters or more gets a dot on the progress bar where each one
 starts. The first chapter of nearly every film starts at the very beginning,
-where there is no boundary to mark, so it gets no dot; the dots the bar has
-passed are cut into its fill, and the one for the chapter that is playing is
-drawn larger. Over the bar stands which chapter that is, of how many, and its
+where there is no boundary to mark, so it gets no dot; a chapter that has ended
+loses its dot, so the part of the bar already seen stays clear, and the dot of
+the chapter that is playing is drawn larger. Over the bar stands which chapter that is, of how many, and its
 name when the file names it. Two dots closer than six pixels — some discs carry
 a chapter every few minutes, and a phone is narrow — are drawn as one.
 

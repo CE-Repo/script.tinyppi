@@ -2,9 +2,10 @@
 // Copyright (c) 2026 U3knOwn
 
 // The chapters on the progress bar (resources/web/js/live-chapters.js): the
-// dots, the chapter the position is in, the name under the pointer, a tap on a
-// dot that jumps to it, Page Up and Page Down, and the switch on the settings
-// tab -- on the real page, through the live panels that host them.
+// dots of the chapters still to come, the chapter the position is in, the name
+// under the pointer, a tap on a dot that jumps to it, Page Up and Page Down,
+// and the switch on the settings tab -- on the real page, through the live
+// panels that host them.
 
 import assert from "node:assert/strict";
 import { join, dirname } from "node:path";
@@ -84,26 +85,46 @@ test("the dots are built once per list and repainted as the bar moves", (t) => {
   const { P, dots } = chapters(t);
   P.update(snap());
   const first = dots()[0];
-  P.update(snap({ metrics: { progress: 60 }, chapter: 3 }));
+  P.update(snap({ metrics: { progress: 51 } }));  // past the next dot, before the box says so
   assert.equal(dots()[0], first, "the same nodes");
-  assert.deepEqual(dots().map(classes), [["played"], ["played", "current"], []]);
+  assert.deepEqual(dots().map(classes), [["played", "current"], ["played"], []]);
   P.update(snap({ chapters: CHAPTERS.slice(0, 3) }));
   assert.notEqual(dots()[0], first, "a new list, new dots");
   assert.equal(dots().length, 2);
+});
+
+test("a chapter that has ended loses its dot", (t) => {
+  const { $, P, dots, mouse, xOf, commands } = chapters(t);
+  P.update(snap({ control: true, controls: { chapters: 4 }, chapter: 3, metrics: { progress: 60 } }));
+  assert.deepEqual(dots().map((node) => node.style.left), ["50.5%", "95%"]);
+  assert.deepEqual(dots().map(classes), [["played", "current"], []]);
+
+  mouse("pointermove", xOf(25));
+  assert.ok($("chapterTip").classList.contains("hidden"), "no dot, no name");
+  mouse("click", xOf(25));
+  assert.equal(commands().at(-1).action, "seek_percent", "and a tap there is a tap on the bar");
+
+  P.update(snap({ chapter: 4, metrics: { progress: 96 } }));
+  assert.deepEqual(dots().map((node) => node.style.left), ["95%"]);
+  P.update(snap({ chapter: 0, metrics: { progress: 0 } }));   // back before the first one
+  assert.equal(dots().length, 3);
 });
 
 test("dots too close to tell apart are drawn as one that answers for both", (t) => {
   const { $, P, dots, box } = chapters(t);
   const close = [...CHAPTERS.slice(0, 3),
                  { index: 4, start: 3650, at: 51, time: "01:00:50", name: "Twin" }];
+  P.update(snap({ chapters: close, chapter: 3, metrics: { progress: 50.7 } }));
+  assert.equal(dots().length, 1, "51 % is under six pixels from 50.5 % on a 206-pixel bar");
+  assert.deepEqual(dots().map(classes), [["played", "current"]]);
   P.update(snap({ chapters: close, chapter: 4, metrics: { progress: 52 } }));
-  assert.equal(dots().length, 2, "51 % is under six pixels from 50.5 % on a 206-pixel bar");
-  assert.deepEqual(dots().map(classes), [["played"], ["played", "current"]]);
+  assert.deepEqual(dots().map(classes), [["played", "current"]], "the twin answers for itself");
 
+  P.update(snap({ chapters: close, chapter: 3, metrics: { progress: 50.7 } }));
   box.width = 2006;
   P.draw();                                       // the tab came forward, wider
-  assert.equal(dots().length, 3);
-  assert.equal($("chapterNow").textContent, "Chapter 4 of 4 · Twin");
+  assert.equal(dots().length, 2);
+  assert.equal($("chapterNow").textContent, "Chapter 3 of 4");
 });
 
 test("a bar that is not laid out yet draws every dot", (t) => {

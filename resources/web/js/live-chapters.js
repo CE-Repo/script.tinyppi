@@ -4,9 +4,10 @@
 "use strict";
 
 /* ===========================================================================
-   The chapters on the progress bar: a dot where each one starts, the one the
-   position is in drawn larger, its number and name over the bar, the name of
-   any dot under the pointer, and the dot a tap landed on (see hit).
+   The chapters on the progress bar: a dot where each one still to come
+   starts, the one the position is in drawn larger, its number and name over
+   the bar, the name of any dot under the pointer, and the dot a tap landed on
+   (see hit).  Chapters that have ended get no dot.
 
    The add-on sends the list once per title, already placed on the length and
    written the way the position is (see chapter_list in web/player.py), so
@@ -71,9 +72,19 @@ window.TinyPPIChapters = (function () {
       return INSET + chapter.at / 100 * Math.max(0, wide - 2 * INSET);
     }
 
-    /* The dots, built again only when the list or the bar's width changed.
-       The first chapter of nearly every film starts at the very beginning,
-       where there is no boundary to mark, so a chapter at 0 gets no dot.
+    /* The chapter playing and those still to come.  A chapter that has ended
+       is not marked: the bar behind the position is the part already seen,
+       and the dots on it were only ever in the way of the fill.  Before the
+       first chapter has begun every one is still to come. */
+    function upcoming() {
+      const from = chapters.findIndex((entry) => entry.index === current);
+      return from < 0 ? chapters : chapters.slice(from);
+    }
+
+    /* The dots, built again only when the list, the chapter playing or the
+       bar's width changed.  The first chapter of nearly every film starts at
+       the very beginning, where there is no boundary to mark, so a chapter at
+       0 gets no dot.
 
        The width is read when the layout is asked to be redone (see relayout)
        rather than on every snapshot, which would lay the page out five times
@@ -81,14 +92,15 @@ window.TinyPPIChapters = (function () {
        is away has no width at all. */
     function layout() {
       if (laidOut === null || !wide) wide = width();
-      const key = JSON.stringify(chapters) + "@" + Math.round(wide);
+      const marked = upcoming();
+      const key = JSON.stringify(marked) + "@" + Math.round(wide);
       if (laidOut === key) return;
       laidOut = key;
       el.dots.innerHTML = "";
       marks = [];
       owners = new Map();
       let last = null;
-      for (const chapter of chapters) {
+      for (const chapter of marked) {
         if (!(chapter.at > 0)) continue;
         if (last && wide && offset(chapter, wide) - offset(last.chapter, wide) < MIN_GAP) {
           owners.set(chapter.index, last);
@@ -104,8 +116,9 @@ window.TinyPPIChapters = (function () {
       }
     }
 
-    /* Which dots the bar has passed, and which one the position is in.  Run
-       five times a second; a class that is already right is left alone. */
+    /* Which one the position is in, and any the bar has run past before the
+       box has said a new chapter began.  Run five times a second; a class
+       that is already right is left alone. */
     function paint() {
       const owner = owners.get(current);
       for (const mark of marks) {
