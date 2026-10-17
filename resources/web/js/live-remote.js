@@ -34,9 +34,24 @@ window.TinyPPIRemote = (function () {
     else node.prepend(uiIcon(name));
   }
 
-  /* The remote in *el* (nowCard, drawer, transport, tracks, track, bar, and
-     the chapter dots on the bar from js/live-chapters.js); *pageState* is what
-     the drawer's state is remembered under. */
+  /* Where *percent* of *duration* falls, written the way the box writes the
+     position beside it: hh:mm:ss for a title of an hour or more, mm:ss below.
+     Empty for a length that is no clock. */
+  function clockAt(percent, duration) {
+    const parts = duration.split(":").map(Number);
+    if (parts.length < 2 || !parts.every(Number.isFinite)) return "";
+    const at = Math.round(parts.reduce((sum, part) => sum * 60 + part, 0) * percent / 100);
+    const two = (number) => String(number).padStart(2, "0");
+    const hours = Math.floor(at / 3600);
+    const minutes = Math.floor(at % 3600 / 60);
+    const tail = ":" + two(at % 60);
+    return parts.length > 2 ? two(hours) + ":" + two(minutes) + tail : two(hours * 60 + minutes) + tail;
+  }
+
+  /* The remote in *el* (nowCard, drawer, transport, tracks, track, bar, the
+     elapsed clock under it, and the chapter dots on the bar from
+     js/live-chapters.js); *pageState* is what the drawer's state is
+     remembered under. */
   function create(el, pageState) {
     const controlToggle = document.createElement("button");
     controlToggle.type = "button";
@@ -59,6 +74,8 @@ window.TinyPPIRemote = (function () {
     let control = false;
     let chapterCount = 0;
     let trackKey = "";
+    let duration = "";    /* the title's length, for the clock a drag shows   */
+    let drag = null;      /* {id, where, chapter} while a pointer holds the bar */
     const controlStateKey = pageState + ".controls";
 
     function setControlsOpen(open, remember) {
@@ -167,25 +184,40 @@ window.TinyPPIRemote = (function () {
       el.transport.append(keys, rest);
       labelControls();
 
-      /* A tap anywhere on the bar seeks there, and the arrow keys do the same,
-         so the bar is not a control only a finger can reach.  A tap on a
-         chapter's dot is a jump to where that chapter starts: the box looks
-         the time up in its own list, which a spot worked out from a few
-         pixels would miss by seconds either way. */
-      el.track.addEventListener("click", (event) => {
-        if (!control) return;
-        const box = el.track.getBoundingClientRect();
-        if (!box.width) return;
-        const chapter = el.chapters.hit(event.clientX);
-        if (chapter) {
-          el.bar.style.width = chapter.at + "%";
-          TinyPPI.command("chapter_goto", chapter.index);
-          return;
-        }
-        const where = Math.min(100, Math.max(0,
-          (event.clientX - box.left) / box.width * 100));
-        el.bar.style.width = where + "%";
-        TinyPPI.command("seek_percent", where);
+      /* The bar is held and dragged -- by a finger, or a mouse with its button
+         down -- and the box is told where it was let go; a tap is the
+         shortest such drag.  While it is held every chapter is marked and the
+         drag snaps onto a dot it comes close to, and a jump to a dot goes to
+         where that chapter starts: the box looks the time up in its own list,
+         which a spot worked out from a few pixels would miss by seconds either
+         way.  The arrow keys do the same as a drag, so the bar is not a
+         control only a pointer can reach.
+
+         The pointer is captured, so a drag that strays off the thin bar is
+         still the bar's; the stylesheet leaves a finger's vertical swipe to
+         the page, and a swipe the browser takes for a scroll cancels the drag
+         rather than seeking. */
+      el.track.addEventListener("pointerdown", (event) => {
+        if (!control || event.button !== 0) return;
+        if (!el.track.getBoundingClientRect().width) return;
+        drag = { id: event.pointerId };
+        if (el.track.setPointerCapture) el.track.setPointerCapture(event.pointerId);
+        el.track.classList.add("dragging");
+        dragTo(event);
+      });
+      el.track.addEventListener("pointermove", (event) => {
+        if (drag && event.pointerId === drag.id) dragTo(event);
+      });
+      el.track.addEventListener("pointerup", (event) => {
+        if (!drag || event.pointerId !== drag.id) return;
+        dragTo(event);
+        const { chapter, where } = drag;
+        endDrag();
+        if (chapter) TinyPPI.command("chapter_goto", chapter.index);
+        else TinyPPI.command("seek_percent", where);
+      });
+      el.track.addEventListener("pointercancel", (event) => {
+        if (drag && event.pointerId === drag.id) endDrag();
       });
       /* Page Up and Page Down go a chapter back and on, the way they go a page
          back and on through a document -- on a file that has chapters to go
@@ -199,6 +231,29 @@ window.TinyPPIRemote = (function () {
         else return;
         event.preventDefault();
       });
+    }
+
+    /* The bar under a held pointer: the fill, the clock under it and the
+       chapter over it follow the pointer rather than the player -- a bar
+       dragged half an hour on while the clock insists on the old position is
+       a bar nobody can aim -- and come back to the player once it lets go. */
+    function dragTo(event) {
+      const box = el.track.getBoundingClientRect();
+      const raw = Math.min(100, Math.max(0, (event.clientX - box.left) / box.width * 100));
+      el.chapters.drag(raw);
+      const chapter = el.chapters.hit(event.clientX);
+      drag.chapter = chapter;
+      drag.where = chapter ? chapter.at : raw;
+      if (chapter) el.chapters.drag(drag.where);
+      el.bar.style.width = drag.where + "%";
+      const clock = clockAt(drag.where, duration);
+      if (clock) el.elapsed.textContent = clock;
+    }
+
+    function endDrag() {
+      drag = null;
+      el.track.classList.remove("dragging");
+      el.chapters.drag(null);
     }
 
     /* Names the controls that have no writing on them, and the two that carry
@@ -219,8 +274,10 @@ window.TinyPPIRemote = (function () {
     function renderTransport(snapshot) {
       const hadControl = control;
       control = !!snapshot.control;
+      duration = snapshot.duration || "";
       const controls = snapshot.controls || {};
       if (!control) {
+        if (drag) endDrag();
         setControlsOpen(false, false);
         controlToggle.classList.add("hidden");
         el.transport.classList.add("hidden");
@@ -309,6 +366,12 @@ window.TinyPPIRemote = (function () {
 
     return {
       render: renderTransport,
+      /* Where a held pointer has the bar, or null: while it is held the
+         snapshots leave the fill and the clock to it (see renderNow in
+         js/live-panels.js). */
+      held() {
+        return drag ? drag.where : null;
+      },
       /* The toggle's name, the keys' names, and the pickers marked stale so
          the next snapshot builds them in the new language. */
       strings(T) {

@@ -9,8 +9,9 @@
    dot under the pointer, and the dot a tap landed on (see hit).
 
    The bar behind the position is the part already seen and carries no dots,
-   until a pointer comes onto it to seek: then every chapter is marked, those
-   behind as well, so one already seen can be gone back to.
+   until a pointer comes onto it to seek -- a mouse over it, or anything
+   holding it (see drag) -- and then every chapter is marked, those behind as
+   well, so one already seen can be gone back to.
 
    The add-on sends the list once per title, already placed on the length and
    written the way the position is (see chapter_list in web/player.py), so
@@ -32,8 +33,9 @@ window.TinyPPIChapters = (function () {
      a phone; the later one is left out and the earlier answers for both. */
   const MIN_GAP = 6;
 
-  /* How near a pointer has to come to a dot, in pixels, for it to count. */
-  const REACH = 10;
+  /* How near a pointer has to come to a dot, in pixels, for it to count -- to
+     be named, and for a drag to snap onto it. */
+  const REACH = 8;
 
   /* The dots sit this far in from either end of the bar, so the first and
      the last are not cut in half by its rounded ends. */
@@ -59,6 +61,7 @@ window.TinyPPIChapters = (function () {
     let current = 0;      /* the index of the chapter the position is in */
     let progress = 0;
     let peek = false;     /* a mouse is over the bar: every chapter shows   */
+    let dragAt = null;    /* where a held pointer has the bar, or null      */
     let marks = [];       /* {chapter, node}, one per dot drawn            */
     let laidOut = null;   /* the dots and the width they were drawn for     */
     let wide = 0;         /* the bar's width, read when the layout is redone */
@@ -76,9 +79,15 @@ window.TinyPPIChapters = (function () {
     }
 
     /* The chapters to mark: those ahead of the position, or every one while a
-       mouse is over the bar to seek with. */
+       pointer is over the bar to seek with. */
     function marked() {
-      return peek ? chapters : chapters.filter((entry) => entry.at > progress);
+      return peek || dragAt !== null
+        ? chapters : chapters.filter((entry) => entry.at > progress);
+    }
+
+    /* Where the bar stands: under a held pointer while there is one. */
+    function position() {
+      return dragAt === null ? progress : dragAt;
     }
 
     /* The dots, built again only when the chapters to mark or the bar's width
@@ -111,19 +120,30 @@ window.TinyPPIChapters = (function () {
       }
     }
 
-    /* The dots behind the position, which only a mouse over the bar shows, in
-       a light tone of the fill they stand on.  Run five times a second; a class that is already
-       right is left alone. */
+    /* The dots behind the position, which only a pointer over the bar shows,
+       in a light tone of the fill they stand on.  Run five times a second; a
+       class that is already right is left alone. */
     function paint() {
+      const at = position();
       for (const mark of marks) {
-        mark.node.classList.toggle("played", mark.chapter.at <= progress);
+        mark.node.classList.toggle("played", mark.chapter.at <= at);
       }
     }
 
-    /* "Chapter 3 of 12 · Arrival" over the bar.  Nothing before the first
-       chapter has begun, and nothing for a file without chapters. */
+    /* The chapter a drag at *at* is in: the last one started by then. */
+    function chapterAt(at) {
+      let found = null;
+      for (const entry of chapters) if (entry.at <= at) found = entry;
+      return found;
+    }
+
+    /* "Chapter 3 of 12 · Arrival" over the bar: the one playing, or the one
+       under a held pointer.  Nothing before the first chapter has begun, and
+       nothing for a file without chapters. */
     function renderLabel() {
-      const chapter = shown ? chapters.find((entry) => entry.index === current) : null;
+      const playing = dragAt === null
+        ? chapters.find((entry) => entry.index === current) : chapterAt(dragAt);
+      const chapter = shown ? playing : null;
       const total = chapters.length ? chapters[chapters.length - 1].index : 0;
       const counted = chapter
         ? TinyPPI.T.chapter_of.replace("%s", chapter.index).replace("%s", total) : "";
@@ -252,8 +272,15 @@ window.TinyPPIChapters = (function () {
         progress = percent;
         refresh();
       },
-      /* The chapter a tap at *clientX* landed on, as {index, at}, or null:
-         the remote jumps to it rather than to the spot (see live-remote.js). */
+      /* A pointer holds the bar at *percent*, or has let go of it (null):
+         every chapter is marked while it holds, and the label names the one
+         under it (see dragTo in js/live-remote.js). */
+      drag(percent) {
+        dragAt = percent;
+        refresh();
+      },
+      /* The dot a pointer at *clientX* is on, as {index, at}, or null: a drag
+         snaps onto it and the remote jumps to it rather than to the spot. */
       hit(clientX) {
         const mark = near(clientX);
         return mark ? { index: mark.chapter.index, at: mark.chapter.at } : null;

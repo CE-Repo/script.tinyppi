@@ -112,6 +112,49 @@ test("the chapters ahead sit on the bar, a mouse brings up the rest, a click jum
   await page.waitForFunction(() => document.querySelectorAll(".chapter-dot").length === 2);
 });
 
+test("a finger drags the bar, and the box hears once, where it let go", async () => {
+  // A phone of its own: touch, and a narrow screen.
+  const phone = await browser.newContext({ viewport: { width: 390, height: 844 },
+                                           hasTouch: true, isMobile: true });
+  await phone.addInitScript((token) => localStorage.setItem("tinyppi.token", token), TOKEN);
+  const handset = await phone.newPage();
+  const errors = [];
+  handset.on("pageerror", (error) => errors.push(error.message));
+  const sent = [];
+  handset.on("request", (request) => {
+    if (request.method() === "POST" && request.url().endsWith("/api/command")) {
+      sent.push(JSON.parse(request.postData()));
+    }
+  });
+  await handset.goto(base + "#live");
+  await handset.waitForSelector(".track.seekable");
+  const bar = await handset.locator("#track").boundingBox();
+  const y = bar.y + bar.height / 2;
+  const cdp = await phone.newCDPSession(handset);
+  const touch = (type, at) => cdp.send("Input.dispatchTouchEvent", {
+    type, touchPoints: type === "touchEnd" ? [] : [{ x: bar.x + bar.width * at, y }] });
+
+  await touch("touchStart", 0.2);
+  for (let step = 1; step <= 10; step++) await touch("touchMove", 0.2 + step * 0.04);
+  const held = await handset.evaluate(() => ({
+    dots: document.querySelectorAll(".chapter-dot").length,
+    width: parseFloat(document.getElementById("bar").style.width),
+    clock: document.getElementById("tElapsed").textContent,
+  }));
+  assert.equal(held.dots, 3, "every chapter while the finger is on the bar");
+  assert.ok(Math.abs(held.width - 60) < 0.5, `the fill under the finger, not ${held.width}`);
+  assert.equal(held.clock, "01:12:00", "and the clock with it");
+  assert.deepEqual(sent, [], "nothing is asked of the box mid-drag");
+
+  await touch("touchEnd");
+  await handset.waitForFunction(() => document.querySelectorAll(".chapter-dot").length === 2);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].action, "seek_percent");
+  assert.ok(Math.abs(sent[0].value - 60) < 0.5, `seeks to ${sent[0].value}`);
+  assert.deepEqual(errors, []);
+  await phone.close();
+});
+
 test("films: the wall, search and clearing it", async () => {
   await tab("films");
   await page.waitForFunction(() => document.querySelectorAll("#filmGrid .film").length === 20);

@@ -137,7 +137,8 @@
   });
   const remote = TinyPPIRemote.create({
     nowCard: $("nowCard"), drawer: $("controlDrawer"), transport: $("transport"),
-    tracks: $("tracks"), track: $("track"), bar: $("bar"), chapters
+    tracks: $("tracks"), track: $("track"), bar: $("bar"), elapsed: $("tElapsed"),
+    chapters
   }, pageState);
   const uiIcon = TinyPPIRemote.icon;
 
@@ -206,10 +207,15 @@
 
     const progress = (snapshot.metrics || {}).progress;
     const percent = (progress === null || progress === undefined) ? 0 : progress;
-    el.bar.style.width = percent + "%";
-    el.track.setAttribute("aria-valuenow", Math.round(percent));
     chapters.render(snapshot, percent);
-    el.tElapsed.textContent = snapshot.time || "--:--";
+    /* A bar held by a pointer is the pointer's until it lets go (see dragTo
+       in js/live-remote.js): the reading five times a second would drag the
+       fill back out from under it. */
+    if (remote.held() === null) {
+      el.bar.style.width = percent + "%";
+      el.track.setAttribute("aria-valuenow", Math.round(percent));
+      el.tElapsed.textContent = snapshot.time || "--:--";
+    }
     el.tTotal.textContent = snapshot.duration || "--:--";
     renderFinish(snapshot.finish || "");
   }

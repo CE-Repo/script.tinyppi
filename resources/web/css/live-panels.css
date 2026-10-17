@@ -262,9 +262,11 @@
   background: color-mix(in srgb, var(--accent) 25%, #fff);
 }
 
-/* "Chapter 3 of 12 · Arrival" over the bar: the number in the accent, the name
-   in the colour of the clocks under it, and one line however long the name. */
+/* "Chapter 3 of 12 · Arrival" over the bar, centred between it and what is
+   playing: the number in the accent, the name in the colour of the clocks
+   under it, and one line however long the name. */
 .chapter-now {
+  text-align: center;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--muted);
@@ -725,6 +727,13 @@
   border: 0;
   background: none;
   overflow: visible;
+  /* Dragged with a finger: a sideways move is the bar's, an up and down one
+     is still the page's to scroll -- and one the browser takes for a scroll
+     cancels the drag rather than seeking (see js/live-remote.js).  No text
+     is picked up by a mouse dragging across it either. */
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .track.seekable::before {
   content: "";
@@ -745,6 +754,9 @@
   height: 10px;
   box-shadow: none;
 }
+/* Under a finger the fill is where the finger is, not a third of a second
+   behind it on its way there. */
+.track.dragging > i { transition: none; }
 /* The fill of a seekable bar starts a pixel under its outline, which starts
    under the eight pixels of padding above it. */
 .track.seekable .chapter-dots { top: 9px; }

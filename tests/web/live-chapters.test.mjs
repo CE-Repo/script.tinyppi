@@ -58,9 +58,18 @@ function chapters(t, { width = 206, stored, routes = {} } = {}) {
   const dots = () => [...$("chapterDots").children];
   /* Where a dot at *at* % is on the screen: three pixels in from either end. */
   const xOf = (at) => box.left + 3 + at / 100 * (box.width - 6);
+  /* Where *percent* of the bar is, end to end, which is what a drag reads. */
+  const along = (percent) => box.left + box.width * percent / 100;
   const mouse = (type, clientX) =>
     $("track").dispatchEvent(new window.MouseEvent(type, { clientX, bubbles: true }));
-  return { ...view, $, box, timers, runTimers, commands, dots, xOf, mouse,
+  /* A pointer event on the bar, from pointer 1 unless said otherwise. */
+  const pointer = (type, clientX, more = {}) => $("track").dispatchEvent(
+    new window.PointerEvent(type, { clientX, pointerId: 1, button: 0, bubbles: true, ...more }));
+  /* A press and a release in one place, and the click a browser adds. */
+  const tap = (clientX) => {
+    for (const type of ["pointerdown", "pointerup", "click"]) pointer(type, clientX);
+  };
+  return { ...view, $, box, timers, runTimers, commands, dots, xOf, along, mouse, pointer, tap,
            P: window.TinyPPI.panels };
 }
 
@@ -96,7 +105,7 @@ test("the dots are built once and a dot goes as the bar passes it", (t) => {
 });
 
 test("a mouse over the bar shows every chapter, those already seen as well", (t) => {
-  const { $, P, dots, mouse, xOf, commands, window } = chapters(t);
+  const { $, P, dots, mouse, tap, xOf, commands, window } = chapters(t);
   P.update(snap({ control: true, controls: { chapters: 4 }, chapter: 3, metrics: { progress: 60 } }));
   assert.deepEqual(lefts(dots()), ["95%"]);
   mouse("pointermove", xOf(25));
@@ -107,7 +116,7 @@ test("a mouse over the bar shows every chapter, those already seen as well", (t)
   assert.deepEqual(played(dots()), [true, true, false], "the ones behind in a light tone of the accent");
   mouse("pointermove", xOf(25));
   assert.equal($("chapterTip").textContent, "Chapter 2 · Arrival · 00:30:00");
-  mouse("click", xOf(25));
+  tap(xOf(25));
   assert.deepEqual(commands().at(-1), { action: "chapter_goto", value: 2 });
 
   $("track").dispatchEvent(new window.Event("pointerleave"));
@@ -120,7 +129,7 @@ test("a mouse over the bar shows every chapter, those already seen as well", (t)
   $("track").dispatchEvent(touch);
   assert.deepEqual(lefts(dots()), ["95%"]);
   mouse("click", xOf(25));
-  assert.equal(commands().at(-1).action, "seek_percent", "a tap where no dot is seeks");
+  assert.ok($("chapterTip").classList.contains("hidden"), "a tap names no dot it cannot see");
 });
 
 test("dots too close to tell apart are drawn as one that answers for both", (t) => {
@@ -260,14 +269,116 @@ test("a tap names the dot it landed on for a while, control or not", (t) => {
 });
 
 test("with control a tap on a dot jumps to that chapter, anywhere else seeks", (t) => {
-  const { $, P, mouse, xOf, commands, box } = chapters(t);
+  const { $, P, tap, xOf, commands, box } = chapters(t);
   P.update(snap({ control: true, controls: { chapters: 4 } }));
-  mouse("click", xOf(50.5) - 4);
-  assert.deepEqual(commands().at(-1), { action: "chapter_goto", value: 3 });
+  tap(xOf(50.5) - 4);
+  assert.deepEqual(commands(), [{ action: "chapter_goto", value: 3 }], "one command, not two");
   assert.equal($("bar").style.width, "50.5%");
 
-  mouse("click", box.left + box.width / 2 + 30);
+  tap(box.left + box.width / 2 + 30);
   assert.equal(commands().at(-1).action, "seek_percent");
+});
+
+test("a drag holds the bar, brings up every chapter and snaps onto one", (t) => {
+  const { $, P, dots, pointer, xOf, along, commands } = chapters(t, { width: 200 });
+  const track = $("track");
+  const captured = [];
+  track.setPointerCapture = (id) => captured.push(id);
+  P.update(snap({ control: true, controls: { chapters: 4 }, chapter: 3, metrics: { progress: 60 } }));
+  assert.deepEqual(lefts(dots()), ["95%"]);
+
+  pointer("pointerdown", along(70));
+  assert.deepEqual(captured, [1]);
+  assert.ok(track.classList.contains("dragging"), "the fill follows without easing");
+  assert.deepEqual(lefts(dots()), ["25%", "50.5%", "95%"], "every chapter while it is held");
+  assert.equal($("bar").style.width, "70%");
+  assert.equal($("tElapsed").textContent, "01:24:00", "the clock follows the finger");
+  assert.equal($("chapterNow").textContent, "Chapter 3 of 4", "and so does the label");
+
+  // The box goes on reporting where it is; the bar stays under the finger.
+  P.update(snap({ control: true, controls: { chapters: 4 }, chapter: 3, metrics: { progress: 61 },
+                  time: "01:13:12" }));
+  assert.equal($("bar").style.width, "70%");
+  assert.equal($("tElapsed").textContent, "01:24:00");
+
+  pointer("pointermove", xOf(25) + 5);
+  assert.equal($("bar").style.width, "25%", "close to a dot, onto it");
+  assert.equal($("tElapsed").textContent, "00:30:00");
+  assert.equal($("chapterNow").textContent, "Chapter 2 of 4 · Arrival");
+  assert.equal($("chapterTip").textContent, "Chapter 2 · Arrival · 00:30:00");
+  assert.deepEqual(dots().map((node) => node.classList.contains("played")), [true, false, false]);
+
+  pointer("pointermove", xOf(10), { pointerId: 2 });  // another finger moves nothing
+  pointer("pointerup", xOf(10), { pointerId: 2 });
+  assert.equal($("bar").style.width, "25%");
+  assert.deepEqual(commands(), []);
+
+  pointer("pointerup", xOf(25) + 5);
+  assert.deepEqual(commands(), [{ action: "chapter_goto", value: 2 }]);
+  assert.equal(track.classList.contains("dragging"), false);
+  assert.deepEqual(lefts(dots()), ["95%"], "let go, the chapters behind go again");
+  assert.equal($("chapterNow").textContent, "Chapter 3 of 4");
+  P.update(snap({ control: true, controls: { chapters: 4 }, chapter: 2, metrics: { progress: 25 },
+                  time: "00:30:00" }));
+  assert.equal($("bar").style.width, "25%");
+});
+
+test("a drag let go between dots seeks there, and one the browser cancels sends nothing", (t) => {
+  const { $, P, pointer, xOf, along, commands } = chapters(t, { width: 200 });
+  P.update(snap({ control: true, controls: { chapters: 4 }, duration: "45:00" }));
+  pointer("pointerdown", along(40));
+  assert.equal($("tElapsed").textContent, "18:00", "a clock shaped like the length");
+  pointer("pointerup", along(40));
+  assert.deepEqual(commands(), [{ action: "seek_percent", value: 40 }]);
+
+  pointer("pointerdown", xOf(70));
+  pointer("pointercancel", xOf(70), { pointerId: 2 });   // not this drag's
+  pointer("pointercancel", xOf(70));
+  pointer("pointerup", xOf(70));
+  assert.equal(commands().length, 1, "a scroll took it over");
+  P.update(snap({ control: true, controls: { chapters: 4 } }));
+  assert.equal($("bar").style.width, "30%", "and the bar is the box's again");
+});
+
+test("a drag needs control, the main button and a bar with a width", (t) => {
+  const { $, P, pointer, xOf, commands, box } = chapters(t);
+  P.update(snap({ control: false }));
+  pointer("pointerdown", xOf(70));
+  pointer("pointerup", xOf(70));
+  P.update(snap({ control: true, controls: { chapters: 4 } }));
+  pointer("pointerdown", xOf(70), { button: 2 });
+  pointer("pointerup", xOf(70), { button: 2 });
+  pointer("pointermove", xOf(70));
+  box.width = 0;
+  pointer("pointerdown", 0);
+  pointer("pointerup", 0);
+  assert.deepEqual(commands(), []);
+
+  // Control taken away in the middle of a drag ends it.
+  box.width = 206;
+  pointer("pointerdown", xOf(70));
+  P.update(snap({ control: false, duration: "soon" }));
+  pointer("pointerup", xOf(70));
+  assert.deepEqual(commands(), []);
+  assert.equal($("chapterNow").textContent, "Chapter 2 of 4 · Arrival");
+});
+
+test("a drag before the first chapter has begun names none", (t) => {
+  const { $, P, pointer, xOf } = chapters(t);
+  const later = [{ index: 1, start: 600, at: 10, time: "00:10:00", name: "Late" },
+                 { index: 2, start: 3600, at: 50, time: "01:00:00", name: "" }];
+  P.update(snap({ control: true, controls: { chapters: 2 }, chapters: later, chapter: 1,
+                  duration: "soon" }));
+  const clock = $("tElapsed").textContent;
+  pointer("pointerdown", xOf(3));
+  assert.ok($("chapterNow").classList.contains("hidden"));
+  assert.equal($("tElapsed").textContent, clock, "a length that is no clock leaves the clock be");
+  pointer("pointerup", xOf(3));
+  P.update(snap({ control: true, controls: { chapters: 2 }, chapters: later, chapter: 1,
+                  duration: "ab:cd", time: "00:01:00" }));
+  pointer("pointerdown", xOf(3));
+  assert.equal($("tElapsed").textContent, "00:01:00", "nor does one that only looks like one");
+  pointer("pointerup", xOf(3));
 });
 
 test("Page Up and Page Down step a chapter on a file that has them", (t) => {
@@ -290,7 +401,7 @@ test("Page Up and Page Down step a chapter on a file that has them", (t) => {
 });
 
 test("the switch on the settings tab takes the dots off the bar and is remembered", (t) => {
-  const { $, P, dots, mouse, xOf, commands, window } = chapters(t);
+  const { $, P, dots, mouse, tap, xOf, commands, window } = chapters(t);
   const toggle = $("chapterMarks");
   assert.equal(toggle.checked, true, "on until switched off");
   P.update(snap({ control: true, controls: { chapters: 4 } }));
@@ -306,7 +417,7 @@ test("the switch on the settings tab takes the dots off the bar and is remembere
   P.update(snap({ control: true, controls: { chapters: 4 } }));
   mouse("pointermove", xOf(50.5));
   assert.ok($("chapterTip").classList.contains("hidden"), "no dots, no names");
-  mouse("click", xOf(50.5));
+  tap(xOf(50.5));
   assert.equal(commands().at(-1).action, "seek_percent", "and a tap is a tap on the bar");
 
   toggle.checked = true;

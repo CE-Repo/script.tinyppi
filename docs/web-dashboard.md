@@ -392,8 +392,11 @@ The same setting turns on the transport row under the progress bar, in two
 rows of its own: ten seconds, a minute and ten minutes either way on the first,
 and on the second a chapter back, play and pause, quieter, mute, louder, stop
 and a chapter on. Under them sits a picker each for the audio track and the
-subtitles. Tapping the progress bar itself seeks there, and the arrow keys
-nudge it ten seconds when it has the focus.
+subtitles. The progress bar itself is dragged — with a finger, or a mouse
+held down — and the box seeks to where it was let go; a tap is the shortest
+such drag. While it is held the fill, the clock under it and the chapter over
+it follow the finger rather than the player. The arrow keys nudge it ten
+seconds when it has the focus.
 
 The volume steps rather than slides, and that is what lets it reach an
 amplifier. Kodi's own volume is a number inside the Kodi process, and a box
@@ -430,13 +433,15 @@ Over the bar stands which chapter is playing, of how many, and its name when
 the file names it. Two dots closer than six pixels — some discs carry a
 chapter every few minutes, and a phone is narrow — are drawn as one.
 
-A mouse over the bar is a mouse about to seek with it, so for as long as it
-stays there every chapter is marked, those already seen as well — in a light
-tone of the accent — and any of them can be gone back to. A finger is on the bar only for the
-tap itself and brings up nothing. Point at a dot, or tap it on a phone, and it
-names its chapter and when it starts. With the remote allowed a tap on a dot
-jumps to the start of that chapter rather than to the spot that was tapped, and
-Page Up and Page Down go a chapter back and on while the bar has the focus. The jump is asked for by the
+A mouse over the bar is a mouse about to seek with it, and so is a finger
+dragging it: for as long as either is there every chapter is marked, those
+already seen as well — in a light tone of the accent — and any of them can be
+gone back to. A drag that comes close to a dot snaps onto it, and the label
+over the bar names the chapter under the finger. Point at a dot, or tap it on a
+phone, and it names its chapter and when it starts. With the remote allowed a
+drag let go on a dot, or a tap on one, jumps to the start of that chapter
+rather than to the spot, and Page Up and Page Down go a chapter back and on
+while the bar has the focus. The jump is asked for by the
 chapter's number: the box looks its time up in its own list, so it lands where
 the chapter starts and not a few seconds either side of it.
 
