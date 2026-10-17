@@ -430,7 +430,10 @@ chapter ahead of the position starts; a dot goes as the bar passes it, so the
 part already seen stays clear. The first chapter of nearly every film starts at
 the very beginning, where there is no boundary to mark, so it never gets one.
 Over the bar stands which chapter is playing, of how many, and its name when
-the file names it. Two dots closer than six pixels — some discs carry a
+the file names it. A name a ripper or a muxer made up for a disc that named
+none — "Chapter 06", "Kapitel 6", a bare "06", the time it starts — is left
+out, since it says nothing the number does not; and a real name behind such a
+number ("Chapter 6: The Hunt") keeps only the name. Two dots closer than six pixels — some discs carry a
 chapter every few minutes, and a phone is narrow — are drawn as one.
 
 A mouse over the bar is a mouse about to seek with it, and so is a finger

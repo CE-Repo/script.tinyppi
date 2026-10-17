@@ -60,6 +60,32 @@ _CHAPTER_LIMIT = 200
 # A name is a label beside the bar, not a paragraph.
 _CHAPTER_NAME_LIMIT = 80
 
+# The names a ripper or a muxer gives the chapters of a disc that names none
+# (MakeMKV, mkvmerge and the like): a word for "chapter" and a number, in the
+# languages such names turn up in, a bare number, or the time the chapter
+# starts.  They say nothing "Chapter 6 of 13" does not already say.
+_CHAPTER_WORD = (
+    r"(?:chapters?|chap|ch|kapitel|kap|chapitre|cap[ií]tulo|capitolo|cap[ií]tol"
+    r"|hoofdstuk|rozdzia[lł]|kapitola|kapittel|kappale|luku|глава|κεφάλαιο"
+    r"|ch[uư]ơng|章节|章節|الفصل|פרק)"
+    # A Roman numeral only apart from the word, or "Chill" would be one.
+    r"(?:\.?\s*#?\s*\d+|(?:\.\s*|\s+)[ivxlc]+)"
+)
+# Hungarian and Turkish put the number first, Chinese and Japanese round it.
+_CHAPTER_NUMBER_FIRST = r"\d+\.?\s*(?:fejezet|b[oö]l[uü]m)|第\s*\d+\s*[章节節話话回]"
+_MADE_UP_NAME = re.compile(
+    rf"{_CHAPTER_WORD}|{_CHAPTER_NUMBER_FIRST}|#?\d{{1,3}}"
+    r"|\d{1,2}:\d{2}(?::\d{2})?(?:[.,]\d+)?",
+    re.IGNORECASE)
+# A real name behind such a number ("Chapter 6: The Hunt", "06. The Hunt"),
+# which keeps only the name.  A bare number counts only with a mark after
+# it, so "3 Days Later" keeps its 3, and only up to three digits, so a year
+# does too.
+_NUMBERED_NAME = re.compile(
+    rf"(?:(?:{_CHAPTER_WORD}|{_CHAPTER_NUMBER_FIRST})(?:\s*[:.\-–—|·：]\s*|\s+)"
+    r"|#?\d{1,3}\s*[:.\-–—|·：]\s*)(?P<rest>.+)",
+    re.IGNORECASE)
+
 
 def _whole(value: object) -> int | None:
     """Return *value* if JSON gave it as a whole number (not a boolean)."""
@@ -79,6 +105,21 @@ def _clock_like(total: int, duration: str) -> str:
     return f"{hours * 60 + minutes:02d}:{secs:02d}"
 
 
+def _chapter_name(raw: object) -> str:
+    """Return the name a chapter was given, or "" for one a tool made up.
+
+    A real name behind a made-up number loses the number: the label beside
+    the bar already says which chapter it is.
+    """
+    name = clean_value(str(raw or ""))
+    # Asked of the whole name first: "6. fejezet" is made up as it stands,
+    # not a "6." with a name behind it.
+    numbered = None if _MADE_UP_NAME.fullmatch(name) else _NUMBERED_NAME.fullmatch(name)
+    if numbered:
+        name = numbered.group("rest").strip()
+    return "" if _MADE_UP_NAME.fullmatch(name) else name[:_CHAPTER_NAME_LIMIT]
+
+
 def _chapter_entry(entry: object, length: int, duration: str) -> Chapter | None:
     """Return one of Kodi's chapters placed on *length*, or None if malformed."""
     if not isinstance(entry, dict):
@@ -91,7 +132,7 @@ def _chapter_entry(entry: object, length: int, duration: str) -> Chapter | None:
         "start": start,
         "at":    round(start * 100 / length, 3),
         "time":  _clock_like(start, duration),
-        "name":  clean_value(str(entry.get("name") or ""))[:_CHAPTER_NAME_LIMIT],
+        "name":  _chapter_name(entry.get("name")),
     }
 
 

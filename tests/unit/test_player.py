@@ -204,6 +204,41 @@ def test_malformed_chapters_are_left_out(kodi, entry):
     assert [chapter["index"] for chapter in player.chapter_list("01:00:00")] == [1, 3]
 
 
+@pytest.mark.parametrize("name", [
+    "Chapter 06", "chapter 1", "Chapters 3", "Ch. 3", "Ch3", "Chap 4", "Chapter #7", "Chapter IV",
+    "Kapitel 12", "Kap. 5", "Chapitre 4", "Capítulo 2", "Capitolo 5", "Hoofdstuk 7",
+    "Rozdział 8", "Kapitola 9", "Глава 9", "Κεφάλαιο 3", "6. fejezet", "6. Bölüm", "第6章",
+    "第 12 章", "章节 3", "06", "6", "#6", "00:57:32", "00:57:32.000", "57:32",
+    "Chapter 1 - 00:05:00", "Chapter 2: Chapter 2", "", None,
+])
+def test_a_name_a_tool_made_up_is_no_name(name):
+    assert player._chapter_name(name) == ""
+
+
+@pytest.mark.parametrize(("name", "kept"), [
+    ("Chapter 6: The Hunt", "The Hunt"), ("Chapter 6 - The Hunt", "The Hunt"),
+    ("Chapter 6 The Hunt", "The Hunt"), ("Chapter 6:The Hunt", "The Hunt"),
+    ("Chapter IV: The End", "The End"), ("06. The Hunt", "The Hunt"), ("06 - The Hunt", "The Hunt"),
+    ("1. Advent", "Advent"), ("6. fejezet: Die Jagd", "Die Jagd"), ("第6章：狩猎", "狩猎"),
+])
+def test_a_real_name_behind_a_number_keeps_only_the_name(name, kept):
+    assert player._chapter_name(name) == kept
+
+
+@pytest.mark.parametrize("name", [
+    "Die Ankunft", "Opening Credits", "Chill", "Chic", "Civic", "3 Days Later", "1917",
+    "2001: A Space Odyssey", "The Chapter 6 Story", "Act 1", "Part 2", "Chapter",
+])
+def test_a_real_name_is_kept_as_it_is(name):
+    assert player._chapter_name(name) == name
+
+
+def test_made_up_names_leave_the_chapters_unnamed(kodi):
+    _chapters(kodi, {"index": 1, "time": 0, "name": "Chapter 01"},
+              {"index": 2, "time": 60, "name": "Chapter 02: Arrival"})
+    assert [chapter["name"] for chapter in player.chapter_list("01:00:00")] == ["", "Arrival"]
+
+
 def test_one_chapter_is_no_chapters(kodi):
     _chapters(kodi, {"index": 1, "time": 0}, "junk")
     assert player.chapter_list("01:00:00") == []
