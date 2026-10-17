@@ -589,10 +589,24 @@ def _cpu_core_loads(raw: str) -> list[float]:
     return loads
 
 
+# The more cores, the tighter the row, so it still ends within the bars
+# beneath it: up to this many each load keeps its percent sign...
+_CPU_PERCENT_CORES = 5
+# ...and up to this many they are parted by " | " rather than ", ".
+_CPU_PIPED_CORES = 7
+
+
 def get_CpuUsageVar() -> str:
-    """Return the per-core CPU load, e.g. ``12 | 08 | 15 | 10``, or ''."""
+    """Return the per-core CPU load, or ''.
+
+    Up to ``_CPU_PERCENT_CORES`` cores ``12% | 08% | 15% | 10% | 11%``, up to
+    ``_CPU_PIPED_CORES`` ``12 | 08 | 15 | 10 | 11 | 09``, beyond that
+    ``12, 08, 15, 10, 11, 09, 14, 13``.
+    """
     loads = _cpu_core_loads(info("System.CpuUsage"))
-    return " | ".join(f"{int(v):02d}" for v in loads)
+    unit = "%" if len(loads) <= _CPU_PERCENT_CORES else ""
+    separator = " | " if len(loads) <= _CPU_PIPED_CORES else ", "
+    return separator.join(f"{int(v):02d}{unit}" for v in loads)
 
 
 def get_CpuTotalProgressVar() -> float:

@@ -219,7 +219,7 @@ def test_the_cpu_load_bar_shows_the_average_over_the_cores(frame):
     publish.update_static_properties(window, {})
     assert window.getControl(9101).percent == pytest.approx(30.0)
     assert window.getProperty("CpuTopUsageVar") == "30%"
-    assert window.getProperty("CpuUsageVar") == "20 | 40"
+    assert window.getProperty("CpuUsageVar") == "20% | 40%"
 
 
 # --- Everything at once -------------------------------------------------------

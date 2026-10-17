@@ -422,10 +422,10 @@ def fresh_cores(monkeypatch):
 
 
 @pytest.mark.parametrize("raw, cores, average, bar", [
-    ("#0: 12.5% #1: 8% #2: 15% #3: 10%", "12 | 08 | 15 | 10", "11%", 11.375),
-    ("#0: 1.2.3% #1: 40%", "40", "40%", 40.0),      # an unreadable core is skipped
+    ("#0: 12.5% #1: 8% #2: 15% #3: 10%", "12% | 08% | 15% | 10%", "11%", 11.375),
+    ("#0: 1.2.3% #1: 40%", "40%", "40%", 40.0),     # an unreadable core is skipped
     ("#0: nan% #1: nan% #2: nan% #3: nan%", "", "", 0.0),
-    ("#0: nan% #1: 30%", "30", "30%", 30.0),        # never read before: skipped
+    ("#0: nan% #1: 30%", "30%", "30%", 30.0),       # never read before: skipped
     ("busy", "", "", 0.0),                          # never the raw text
     ("", "", "", 0.0),
 ])
@@ -438,10 +438,22 @@ def test_the_cpu_load(fresh_cores, raw, cores, average, bar):
 
 def test_a_nan_core_keeps_its_last_load(fresh_cores):
     xbmc.INFO["System.CpuUsage"] = "#0: 25% #1: 40% #2: 33% #3: 34%"
-    assert properties.get_CpuUsageVar() == "25 | 40 | 33 | 34"
+    assert properties.get_CpuUsageVar() == "25% | 40% | 33% | 34%"
     xbmc.INFO["System.CpuUsage"] = "#0: nan% #1: 50% #2: -nan% #3: inf%"
-    assert properties.get_CpuUsageVar() == "25 | 50 | 33 | 34"
+    assert properties.get_CpuUsageVar() == "25% | 50% | 33% | 34%"
     assert properties.get_CpuTopUsageVar() == "36%"
+
+
+@pytest.mark.parametrize("count, cores", [
+    (4, "10% | 11% | 12% | 13%"),
+    (5, "10% | 11% | 12% | 13% | 14%"),
+    (6, "10 | 11 | 12 | 13 | 14 | 15"),          # more than five: no percent signs
+    (7, "10 | 11 | 12 | 13 | 14 | 15 | 16"),
+    (8, "10, 11, 12, 13, 14, 15, 16, 17"),      # more than seven: commas
+])
+def test_more_cores_get_a_tighter_row(fresh_cores, count, cores):
+    xbmc.INFO["System.CpuUsage"] = " ".join(f"#{n}: {10 + n}%" for n in range(count))
+    assert properties.get_CpuUsageVar() == cores
 
 
 @pytest.mark.parametrize("raw, percent", [
