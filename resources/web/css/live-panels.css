@@ -255,10 +255,11 @@
   transition: background .25s;
 }
 /* Behind the position there are dots only while a mouse is over the bar (see
-   js/live-chapters.js).  They would stand on the fill in the accent itself, so
-   they are cut into it instead, in the colour of the card. */
+   js/live-chapters.js).  They stand on the fill, so they take a very light
+   tone of the accent it is painted in: one family with it, and still told
+   apart from it. */
 .chapter-dot.played {
-  background: color-mix(in srgb, var(--panel) 80%, transparent);
+  background: color-mix(in srgb, var(--accent) 25%, #fff);
 }
 
 /* "Chapter 3 of 12 · Arrival" over the bar: the number in the accent, the name

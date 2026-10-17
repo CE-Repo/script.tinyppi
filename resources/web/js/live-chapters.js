@@ -111,8 +111,8 @@ window.TinyPPIChapters = (function () {
       }
     }
 
-    /* The dots behind the position, which only a mouse over the bar shows,
-       cut into the fill.  Run five times a second; a class that is already
+    /* The dots behind the position, which only a mouse over the bar shows, in
+       a light tone of the fill they stand on.  Run five times a second; a class that is already
        right is left alone. */
     function paint() {
       for (const mark of marks) {

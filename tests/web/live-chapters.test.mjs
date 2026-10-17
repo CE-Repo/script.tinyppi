@@ -104,7 +104,7 @@ test("a mouse over the bar shows every chapter, those already seen as well", (t)
 
   mouse("pointerenter", xOf(25));
   assert.deepEqual(lefts(dots()), ["25%", "50.5%", "95%"]);
-  assert.deepEqual(played(dots()), [true, true, false], "the ones behind cut into the fill");
+  assert.deepEqual(played(dots()), [true, true, false], "the ones behind in a light tone of the accent");
   mouse("pointermove", xOf(25));
   assert.equal($("chapterTip").textContent, "Chapter 2 · Arrival · 00:30:00");
   mouse("click", xOf(25));

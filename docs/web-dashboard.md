@@ -431,8 +431,8 @@ the file names it. Two dots closer than six pixels — some discs carry a
 chapter every few minutes, and a phone is narrow — are drawn as one.
 
 A mouse over the bar is a mouse about to seek with it, so for as long as it
-stays there every chapter is marked, those already seen as well — cut into the
-fill — and any of them can be gone back to. A finger is on the bar only for the
+stays there every chapter is marked, those already seen as well — in a light
+tone of the accent — and any of them can be gone back to. A finger is on the bar only for the
 tap itself and brings up nothing. Point at a dot, or tap it on a phone, and it
 names its chapter and when it starts. With the remote allowed a tap on a dot
 jumps to the start of that chapter rather than to the spot that was tapped, and
