@@ -43,11 +43,12 @@ connection light.
 - **Now playing** — the poster, title, year and genre, the file name (when
   *Show file name* is on), elapsed time and progress.
 - **Overview** — a card under it with the title's slogan and its plot, and
-  under them every rating Kodi's library holds for it, all of it centred. The ratings
+  under them, past a thin rule, every rating Kodi's library holds for it, all
+  of it centred. The ratings
   are a row of small shields, each with its source's mark on the left, on a
   ground of the source's colour, instead of its name, and what it gave on the
   right: first the age rating — a German, American or British one as its
-  board's coloured mark (FSK; the MPA's for films and the TV Parental
+  board's coloured mark ("FSK 12"; the MPA's for films and the TV Parental
   Guidelines' for series, both in the FSK's colours; BBFC), any other written
   out — then a score for each source the scraper or the NFO wrote (IMDb, TMDb, Trakt, TVDB, Metacritic, Rotten Tomatoes; any other gets
   its first letter on a plain plate) with how many voted, your own rating

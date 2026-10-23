@@ -142,10 +142,12 @@ def marks(letters: Lettering) -> list[Mark]:
                   "C13.4 3.7 14.4 3 16 2.8C14.9 2.2 12.6 2.3 11 4.2Z", fill="#00912D"),
         ]),
     ]
+    # The FSK's as it prints them, "FSK 12", on a plate as wide as the
+    # American ones.
     for age, (colour, ink) in fsk.items():
-        found.append(Mark(f"fsk{age}", *square, [
-            Shape(rounded(22, 22, 5), fill=colour),
-            Shape(letters.text(age, 12, 11, 15.6), fill=ink),
+        found.append(Mark(f"fsk{age}", *wide, [
+            Shape(rounded(44, 22, 4), fill=colour),
+            Shape(letters.text(f"FSK {age}", 10.4, 22, 15.2, 0.1), fill=ink),
         ]))
     return found + american(letters) + british(letters)
 

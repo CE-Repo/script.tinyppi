@@ -74,12 +74,12 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   // jsdom tests'; here it is which marks stand there, served and drawn.
   await page.waitForFunction(() => [...document.querySelectorAll("#ratings img")]
     .every((image) => image.complete && image.naturalWidth > 0));
-  // Each as wide as it is drawn: the FSK's square, IMDb's wordmark twice its height.
+  // Each as wide as it is drawn: the FSK's plate and IMDb's wordmark both twice their height.
   const sizes = await page.$$eval("#ratings img", (images) => images.map((image) => {
     const box = image.getBoundingClientRect();
     return Math.round(box.width / box.height * 10) / 10;
   }));
-  assert.deepEqual(sizes, [1, 2]);
+  assert.deepEqual(sizes, [2, 2]);
   const marks = await page.$$eval("#ratings .rating", (nodes) => nodes.map((node) => [
     node.querySelector("img").getAttribute("src"),
     [...node.querySelectorAll(".value")].map((part) => part.textContent).join("")]));
@@ -92,6 +92,8 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   const [now, plot] = await Promise.all(
     ["#nowCard", "#plotCard"].map((selector) => page.locator(selector).boundingBox()));
   assert.ok(plot.y > now.y + now.height - 1, "under the playing card");
+  // A thin rule between the plot and the ratings.
+  assert.equal(await page.$eval("#ratings", (row) => getComputedStyle(row).borderTopWidth), "1px");
   // The slogan and the plot centred, and the ratings under them, centred too.
   assert.deepEqual(await page.$$eval("#tagline, #plotText",
     (nodes) => nodes.map((node) => getComputedStyle(node).textAlign)), ["center", "center"]);

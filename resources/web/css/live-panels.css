@@ -602,6 +602,12 @@
      they are a row of their own, not the last line of the plot. */
   margin-top: 2px;
 }
+/* And a thin rule between the plot and them, where there is a plot: the
+   same hairline a card's heading is ruled off with. */
+.plot .plottext:not(.hidden) + .ratings {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 12px;
+}
 /* A shield: the house on the left, on a ground of its own colour, and what
    it gave on the right, on the panel's -- kantig like the plaques the format
    readings are, rather than round like a button. */
@@ -684,8 +690,8 @@
   height: 20px;
 }
 /* An age rating's mark is the whole badge, as tall as the shields beside
-   it: square for the FSK, round for the BBFC, a plate for the American
-   boards. */
+   it: a plate for the FSK ("FSK 12") and the American boards, a disc for
+   the BBFC. */
 .rating.drawn {
   border: 0;
   border-radius: 5px;
