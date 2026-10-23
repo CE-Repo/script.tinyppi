@@ -7,6 +7,7 @@
 // chart, and what the dashboard reads back (events, peak, draw).
 
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { test } from "node:test";
 import { bare, page, settle } from "./harness.mjs";
 
@@ -162,11 +163,16 @@ test("the panels arrive hidden, with the chart and the events unfolded", (t) => 
 
 test("what is playing: title, show line, file, progress and times", (t) => {
   const { $, P } = panels(t);
-  P.update(snap({ media: { show: "Show", season: "2", episode: "5", year: "2024", genre: "Drama" },
+  P.update(snap({ media: { show: "Show", season: "2", episode: "5", year: "2024", genre: "Drama",
+                           studios: ["A Studio", "Another"] },
                   filename: "/films/Show.S02E05.mkv" }));
   assert.equal($("nowCard").classList.contains("hidden"), false);
   assert.equal($("title").textContent, "Film");
   assert.equal($("meta").textContent, "Show · 2×05  ·  2024  ·  Drama");
+  // The first studio alone, on a line of its own under the genre, with
+  // nothing to say there are more.
+  assert.equal($("meta").nextElementSibling, $("studio"));
+  assert.equal($("studio").textContent, "A Studio");
   assert.equal($("file").textContent, "/films/Show.S02E05.mkv");
   assert.equal($("file").classList.contains("hidden"), false);
   assert.equal($("bar").style.width, "8.4%");
@@ -178,6 +184,7 @@ test("what is playing: title, show line, file, progress and times", (t) => {
                   metrics: metrics({ progress: null }) }));
   assert.equal($("title").textContent, "—");
   assert.equal($("meta").textContent, "Show");
+  assert.equal($("studio").textContent, "");
   assert.ok($("file").classList.contains("hidden"));
   assert.equal($("bar").style.width, "0%");
   assert.equal($("track").getAttribute("aria-valuenow"), "0");
@@ -191,6 +198,300 @@ test("what is playing: title, show line, file, progress and times", (t) => {
   P.update(snap({ metrics: undefined }));
   assert.equal($("meta").textContent, "");
   assert.equal($("bar").style.width, "0%");
+});
+
+test("who directed it stands in the card of what is playing, over its badges", (t) => {
+  const { $, P } = panels(t);
+  P.update(snap({ media: { directors: ["Denis Villeneuve"] } }));
+  // The last line over the badges, the name alone.
+  assert.equal($("director").nextElementSibling, $("formats"));
+  assert.equal($("director").classList.contains("hidden"), false);
+  assert.equal($("director").textContent, "Denis Villeneuve");
+
+  // Only the first of more than one, and nothing to say there are more.
+  P.update(snap({ media: { directors: ["Joel Coen", "Ethan Coen"] } }));
+  assert.equal($("director").textContent, "Joel Coen");
+
+  // Written only when it changes.
+  const written = $("director").firstChild;
+  P.update(snap({ media: { directors: ["Joel Coen"] } }));
+  assert.equal($("director").firstChild, written);
+
+  // None: gone, and the overview no card for it.
+  P.update(snap({ media: { directors: [] } }));
+  assert.ok($("director").classList.contains("hidden"));
+  assert.equal($("director").textContent, "");
+  P.update(snap({ media: { directors: ["Somebody"] } }));
+  assert.ok($("plotCard").classList.contains("hidden"));
+});
+
+test("a long plot is cut to a few lines, and a button lets the rest out", (t) => {
+  const { $, P, window } = panels(t);
+  // jsdom lays nothing out: the plot is given the heights a browser would.
+  const box = { full: 200, shown: 87 };
+  Object.defineProperty($("plotText"), "scrollHeight", { configurable: true, get: () => box.full });
+  Object.defineProperty($("plotText"), "clientHeight", { configurable: true, get: () => box.shown });
+  const button = $("plotMore");
+  P.update(snap({ media: { plot: "A long plot." } }));
+  // Cut, and the button under it says there is more.
+  assert.equal($("plotText").nextElementSibling, button);
+  assert.equal($("plotText").classList.contains("open"), false);
+  assert.equal(button.classList.contains("hidden"), false);
+  assert.equal(button.textContent, "Show more");
+  assert.equal(button.getAttribute("aria-expanded"), "false");
+  assert.equal(button.getAttribute("aria-controls"), "plotText");
+
+  // Let out, and taken back.
+  button.click();
+  assert.ok($("plotText").classList.contains("open"));
+  assert.equal(button.textContent, "Show less");
+  assert.equal(button.getAttribute("aria-expanded"), "true");
+  // Measuring an open plot leaves its button be.
+  box.full = box.shown;
+  window.dispatchEvent(new window.Event("resize"));
+  assert.equal(button.classList.contains("hidden"), false);
+  button.click();
+  assert.equal($("plotText").classList.contains("open"), false);
+  assert.equal(button.textContent, "Show more");
+
+  // The words arrive later, and the button says them.
+  Object.assign(window.TinyPPI.T, { plot_more: "Mehr anzeigen", plot_less: "Weniger anzeigen" });
+  P.strings(window.TinyPPI.T);
+  assert.equal(button.textContent, "Mehr anzeigen");
+
+  // Wide enough for all of it -- after a resize, or once the card opens --
+  // and there is no button; narrower again, and it is back.
+  window.dispatchEvent(new window.Event("resize"));
+  assert.ok(button.classList.contains("hidden"));
+  box.full = 200;
+  $("plotCard").dispatchEvent(new window.Event("toggle"));
+  assert.equal(button.classList.contains("hidden"), false);
+
+  // A new plot starts cut, even after the last was let out.
+  button.click();
+  P.update(snap({ media: { plot: "Another long plot." } }));
+  assert.equal($("plotText").classList.contains("open"), false);
+  assert.equal(button.textContent, "Mehr anzeigen");
+  // The same plot again leaves it as it is.
+  button.click();
+  P.update(snap({ media: { plot: "Another long plot." } }));
+  assert.ok($("plotText").classList.contains("open"));
+
+  // A short one has no button.
+  box.full = 40;
+  box.shown = 40;
+  P.update(snap({ media: { plot: "Short." } }));
+  assert.ok(button.classList.contains("hidden"));
+});
+
+test("the plot card: the plot under what is playing, with its slogan where there is one", (t) => {
+  const { $, P, window } = panels(t);
+  assert.equal($("nowCard").nextElementSibling, $("plotCard"));
+  assert.ok($("plotCard").classList.contains("hidden"));
+  assert.equal($("plotCard").open, true, "it arrives unfolded");
+
+  P.update(snap({ media: { tagline: " Long live the fighters. ",
+                           plot: "Paul joins the Fremen.\nChani does not trust it." } }));
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+  assert.equal($("tagline").textContent, "Long live the fighters.");
+  assert.equal($("plotText").textContent, "Paul joins the Fremen.\nChani does not trust it.");
+  assert.equal($("tagline").classList.contains("hidden"), false);
+  assert.equal($("plotText").classList.contains("hidden"), false);
+
+  // An episode: a plot and no slogan.
+  P.update(snap({ media: { plot: "Episode plot." } }));
+  assert.equal($("tagline").textContent, "");
+  assert.ok($("tagline").classList.contains("hidden"));
+  assert.equal($("plotText").textContent, "Episode plot.");
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+
+  // A slogan and no plot: too little for a card.
+  P.update(snap({ media: { tagline: "Only this." } }));
+  assert.ok($("plotCard").classList.contains("hidden"));
+  assert.ok($("plotText").classList.contains("hidden"));
+
+  // A file the library does not know: neither, and no card.
+  P.update(snap({ media: { tagline: "  ", plot: "" } }));
+  assert.ok($("plotCard").classList.contains("hidden"));
+  P.update(snap());
+  assert.ok($("plotCard").classList.contains("hidden"));
+
+  // Words that stayed the same are not written again.
+  P.update(snap({ media: { plot: "Same." } }));
+  const written = $("plotText").firstChild;
+  P.update(snap({ media: { plot: "Same." } }));
+  assert.equal($("plotText").firstChild, written);
+
+  // Nothing playing puts it away with the rest.
+  P.update({ playing: false });
+  assert.ok($("plotCard").classList.contains("hidden"));
+
+  P.strings({ ...window.TinyPPI.T, plot: "Handlung" });
+  assert.equal($("plotTitle").textContent, "Handlung");
+});
+
+test("the overview card carries every rating as a shield with its mark, under the slogan and the plot", (t) => {
+  const { $, P, window } = panels(t);
+  /* Each shield as [class, what it says, its left, what is written on its right]. */
+  const badges = () => [...$("ratings").children].map((node) => {
+    const side = node.querySelector(".side");
+    const image = side && side.querySelector("img");
+    const drawn = !side ? "" : image
+      ? side.className + " " + image.getAttribute("src")
+      : side.className + ":" + side.textContent;
+    const figures = node.querySelector(".figures");
+    return [node.className, node.querySelector(".said").textContent, drawn,
+            figures ? [...figures.children].map((part) => [part.className, part.textContent]) : []];
+  });
+  const rated = {
+    tagline: "Long live the fighters.", plot: "Paul joins the Fremen.",
+    ratings: [{ source: "imdb", rating: 8.5, votes: 612345 }, { source: "tmdb", rating: 8.2, votes: 0 },
+              { source: "trakt", rating: 8.4, votes: 31902 },
+              { source: "rottentomatoes", rating: 9.2, votes: 0 },
+              { source: "filmaffinity", rating: 8.9, votes: 3 }],
+    userrating: 9, top250: 27, mpaa: "FSK 12", age: "fsk12", age_level: "12" };
+  P.update(snap({ media: rated }));
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+  assert.equal($("ratings").classList.contains("hidden"), false);
+  // Under the slogan and the plot, and the cast where there is one: last.
+  assert.equal($("ratings").nextElementSibling, null);
+  assert.equal($("plotText").nextElementSibling, $("plotMore"));
+  assert.equal($("plotMore").nextElementSibling, $("credits"));
+  assert.equal($("tagline").nextElementSibling, $("plotText"));
+  assert.deepEqual(plain(badges()), [
+    ["rating age", "FSK 12", "side fsk12 plate /ratings/fsk12.svg", [["value", "12"]]],
+    ["rating score", "IMDb 8.5, 612,345 votes", "side imdb /ratings/imdb.svg",
+     [["value", "8.5"], ["note", "612,345"]]],
+    ["rating score", "TMDb 8.2", "side tmdb /ratings/tmdb.svg", [["value", "8.2"]]],
+    ["rating score", "Trakt 8.4, 31,902 votes", "side trakt /ratings/trakt.svg",
+     [["value", "8.4"], ["note", "31,902"]]],
+    ["rating score", "Rotten Tomatoes 9.2", "side rottentomatoes /ratings/rottentomatoes.svg", [["value", "9.2"]]],
+    ["rating score", "Filmaffinity 8.9, 3 votes", "side letter:F", [["value", "8.9"], ["note", "3"]]],
+    ["rating mine", "My rating 9", "side heart:", [["value", "9"]]],
+    ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg", [["value", "#27"]]]]);
+  // Said in words, drawn as marks: the drawing is kept from a screen reader.
+  for (const node of $("ratings").children) {
+    assert.equal(node.getAttribute("role"), "listitem");
+    assert.equal(node.title, node.querySelector(".said").textContent);
+    assert.equal(node.querySelector(".look").getAttribute("aria-hidden"), "true");
+  }
+  assert.equal($("ratings").querySelector("img").alt, "");
+
+  // The same badges again are not built again.
+  const first = $("ratings").firstChild;
+  P.update(snap({ media: { ...rated } }));
+  assert.equal($("ratings").firstChild, first);
+
+  // The words arrive later, and the badges say them.
+  P.strings({ ...window.TinyPPI.T, votes: "%s Stimmen", my_rating: "Eigene Bewertung",
+              top250: "Top 250 · Platz %s" });
+  const said = () => [...$("ratings").children].map((node) => node.querySelector(".said").textContent);
+  assert.deepEqual(said().slice(0, 2), ["FSK 12", "IMDb 8.5, 612,345 Stimmen"]);
+  assert.deepEqual(said().slice(6, 8), ["Eigene Bewertung 9", "Top 250 · Platz 27"]);
+
+  // An age rating no FSK level is read from is written out, with no mark.
+  P.update(snap({ media: { ...rated, ratings: [{ source: "imdb", rating: 7.0, votes: 0 }],
+                           userrating: 0, top250: 0, mpaa: "Rated PG-13 for violence", age: "" } }));
+  assert.deepEqual(plain(badges()), [
+    ["rating age", "Rated PG-13 for violence", "", [["value", "Rated PG-13 for violence"]]],
+    ["rating score", "IMDb 7.0", "side imdb /ratings/imdb.svg", [["value", "7.0"]]]]);
+
+  // Ratings without a plot: the card for them alone, and no slogan.
+  P.update(snap({ media: { tagline: "Only this.", mpaa: "FSK 16", age: "fsk16", age_level: "16" } }));
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+  assert.deepEqual(plain(badges()), [["rating age", "FSK 16", "side fsk16 plate /ratings/fsk16.svg",
+                                      [["value", "16"]]]]);
+
+  assert.ok($("tagline").classList.contains("hidden"));
+  assert.ok($("plotText").classList.contains("hidden"));
+  // An American or a British one wears its own board's mark.
+  for (const [mpaa, age, level] of [["Rated PG-13", "mpa_pg13", "PG-13"], ["TV-MA", "tv_ma", "MA"],
+                                    ["Rated 15", "bbfc_15", "15"]]) {
+    P.update(snap({ media: { plot: "Plot.", mpaa, age, age_level: level } }));
+    assert.deepEqual(plain(badges()),
+                     [["rating age", mpaa, `side ${age} plate /ratings/${age}.svg`, [["value", level]]]]);
+  }
+  // An add-on that sent the mark and not yet the level: the plate alone.
+  P.update(snap({ media: { plot: "Plot.", mpaa: "FSK 6", age: "fsk6" } }));
+  assert.deepEqual(plain(badges()), [["rating age", "FSK 6", "side fsk6 plate /ratings/fsk6.svg", []]]);
+
+  // A plot without ratings: no row of badges.
+  P.update(snap({ media: { plot: "An episode.", ratings: [], userrating: 0, top250: 0, mpaa: "" } }));
+  assert.ok($("ratings").classList.contains("hidden"));
+  assert.equal($("ratings").children.length, 0);
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+
+  // Neither: no card.
+  P.update(snap({ media: { tagline: "Only this.", ratings: [] } }));
+  assert.ok($("plotCard").classList.contains("hidden"));
+
+  // A source with no name is drawn on an empty plate and said by its figure.
+  P.update(snap({ media: { ratings: [{ rating: 5 }] } }));
+  assert.deepEqual(plain(badges()), [["rating score", "5.0", "side letter:", [["value", "5.0"]]]]);
+});
+
+test("the sources MDBList brings wear their own marks and names", (t) => {
+  const { $, P } = panels(t);
+  const sources = [["letterboxd", "Letterboxd"], ["metacriticuser", "Metacritic User Score"],
+                   ["popcorn", "Rotten Tomatoes Popcornmeter"], ["rogerebert", "Roger Ebert"],
+                   ["myanimelist", "MyAnimeList"]];
+  P.update(snap({ media: { plot: "Plot.",
+                           ratings: sources.map(([source]) => ({ source, rating: 7.5, votes: 0 })) } }));
+  const drawn = [...$("ratings").children].map((node) =>
+    [node.querySelector(".said").textContent, node.querySelector("img").getAttribute("src")]);
+  assert.deepEqual(drawn, sources.map(([source, name]) => [name + " 7.5", "/ratings/" + source + ".svg"]));
+  // Each drawn by tools/gen_rating_marks.py and served with the page.
+  for (const [source] of sources) {
+    assert.ok(existsSync(new URL("../../resources/web/ratings/" + source + ".svg", import.meta.url)), source);
+  }
+});
+
+test("the overview card ends with the credits, a line each under the ratings", (t) => {
+  const { $, P, window } = panels(t);
+  const lines = () => [...$("credits").children].map((line) =>
+    [line.className, ...[...line.children].map((part) => part.tagName + " " + part.textContent)]);
+  const credited = {
+    plot: "Paul joins the Fremen.", ratings: [{ source: "imdb", rating: 8.5, votes: 0 }],
+    genres: ["Science Fiction"], directors: ["Denis Villeneuve"],
+    cast: ["Timothée Chalamet", "Zendaya", "Rebecca Ferguson", "Javier Bardem", "Josh Brolin"],
+    cast_more: true, studios: ["Legendary Pictures"]
+  };
+  P.update(snap({ media: credited }));
+  // Over the ratings, the cast, cut with an ellipsis; the genre, the
+  // studio and the director are the card above's.
+  assert.equal($("credits").nextElementSibling, $("ratings"));
+  assert.equal($("credits").classList.contains("hidden"), false);
+  assert.deepEqual(lines(), [
+    ["credit", "DT Cast", "DD Timothée Chalamet, Zendaya, Rebecca Ferguson, Javier Bardem, Josh Brolin, …"]]);
+
+  // The same credits again are not built again.
+  const first = $("credits").firstChild;
+  P.update(snap({ media: { ...credited } }));
+  assert.equal($("credits").firstChild, first);
+
+  // The words arrive later, into the page's table, and the lines are named
+  // in them.
+  Object.assign(window.TinyPPI.T, { cast: "Darsteller" });
+  P.strings(window.TinyPPI.T);
+  assert.deepEqual(lines().map((line) => line[1]), ["DT Darsteller"]);
+
+  // A cast the add-on did not cut ends without one.  A studio or a
+  // director alone is no credit.
+  P.update(snap({ media: { plot: "Plot.", cast: ["Somebody", "Somebody Else"] } }));
+  assert.deepEqual(lines(), [["credit", "DT Darsteller", "DD Somebody, Somebody Else"]]);
+  P.update(snap({ media: { studios: ["A24"], directors: ["Somebody"] } }));
+  assert.ok($("plotCard").classList.contains("hidden"));
+
+  // Credits alone are still an overview.
+  P.update(snap({ media: { cast: ["Somebody"] } }));
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+  assert.ok($("plotText").classList.contains("hidden"));
+  assert.ok($("ratings").classList.contains("hidden"));
+
+  // None at all: no lines.
+  P.update(snap({ media: { plot: "An episode.", genres: ["Drama"] } }));
+  assert.ok($("credits").classList.contains("hidden"));
+  assert.equal($("credits").children.length, 0);
 });
 
 test("the finish clock shows as it arrived and takes its label from the strings", (t) => {
@@ -833,7 +1134,7 @@ test("when playback ends the panels are put away once and the ended title's even
   const picker = $("pick-audio");
 
   P.update({ playing: false, last: { events: 3 } });
-  for (const id of ["nowCard", "tiles", "chartCard"]) {
+  for (const id of ["nowCard", "plotCard", "tiles", "chartCard"]) {
     assert.ok($(id).classList.contains("hidden"), id);
   }
   assert.ok($("tFinish").classList.contains("hidden"));

@@ -27,6 +27,9 @@ PLAYING = {
     "Player.FinishTime": "22:15", "Player.Progress": "8.3",
     "System.CPUTemperature": "55 °C", "VideoPlayer.VideoCodec": "hevc",
     "VideoPlayer.Year": "2021", "VideoPlayer.Genre": "Drama",
+    "VideoPlayer.Tagline": "One night.", "VideoPlayer.Plot": "Somebody does something.",
+    "VideoPlayer.Director": "Somebody / Somebody Else", "VideoPlayer.Studio": "A Studio / Another",
+    "VideoPlayer.Cast": "\n".join(f"Actor {n}" for n in range(1, 13)),
 }
 
 
@@ -60,12 +63,31 @@ def test_a_playing_title():
     assert shot["metrics"]["frame"] == {"w": 3840, "h": 2160}
     assert shot["metrics"]["cpu_temp"] == 55.0 and shot["metrics"]["progress"] == 8.3
     assert shot["media"]["year"] == "2021" and shot["media"]["genre"] == "Drama"
+    assert shot["media"]["tagline"] == "One night."
+    assert shot["media"]["plot"] == "Somebody does something."
+    # Who made it, as names; the cast cut to its leads, and said to have
+    # more.  The genre is only the card above's.
+    assert "genres" not in shot["media"]
+    # The director the first alone, with nothing to say there are more.
+    assert shot["media"]["directors"] == ["Somebody"]
+    assert "directors_more" not in shot["media"]
+    assert shot["media"]["studios"] == ["A Studio"]
+    assert "studios_more" not in shot["media"]
+    assert shot["media"]["cast"] == [f"Actor {n}" for n in range(1, 9)]
+    assert shot["media"]["cast_more"] is True
     assert shot["controls"] == {}
     ids = [group["id"] for group in shot["groups"]]
     assert ids[0] == "video" and len(ids) == len(set(ids))
     for group in shot["groups"]:
         for row in group["rows"]:
             assert row["value"]                       # empty readings read N/A
+
+
+def test_the_genre_is_cut_to_its_first_two():
+    play(**{"VideoPlayer.Genre": "[B]Action[/B] / Adventure / Drama"})
+    assert SnapshotBuilder().build()["media"]["genre"] == "Action / Adventure"
+    play(**{"VideoPlayer.Genre": ""})
+    assert SnapshotBuilder().build()["media"]["genre"] == ""
 
 
 def test_the_filename_respects_its_setting():
@@ -156,6 +178,85 @@ def test_chapters_are_asked_for_again_while_there_are_none(chapters, monkeypatch
     monkeypatch.setattr(builder, "STATIC_INTERVAL", 0.0)
     found.extend(CHAPTERS)
     assert builder.build()["chapters"] == CHAPTERS
+    assert len(asked) == 2
+
+
+@pytest.fixture
+def rated(monkeypatch):
+    """The ratings Kodi gives whatever plays; None while it cannot say yet."""
+    asked = []
+    given = {"found": {"ratings": [{"source": "imdb", "rating": 8.5, "votes": 10}],
+                       "mpaa": "FSK 12", "age": "fsk12", "age_level": "12",
+                       "userrating": 9, "top250": 27, "ids": {"imdb": "tt0111161"}}}
+    monkeypatch.setattr(snapshot, "playing_ratings", lambda: asked.append(1) or given["found"])
+    return asked, given
+
+
+def test_the_ratings_travel_in_the_media_block(rated):
+    play()
+    media = SnapshotBuilder().build()["media"]
+    assert media["ratings"] == [{"source": "imdb", "rating": 8.5, "votes": 10}]
+    assert (media["mpaa"], media["age"], media["age_level"]) == ("FSK 12", "fsk12", "12")
+    assert (media["userrating"], media["top250"]) == (9, 27)
+
+
+def test_mdblist_ratings_lie_over_the_librarys_and_the_ids_stay_behind(rated, monkeypatch):
+    asked = []
+
+    def over(ratings):
+        asked.append(ratings["ids"])
+        merged = ratings.copy()
+        merged["ratings"] = [{"source": "letterboxd", "rating": 8.0, "votes": 3}]
+        return merged
+
+    monkeypatch.setattr(snapshot, "with_mdblist", over)
+    play()
+    media = SnapshotBuilder().build()["media"]
+    assert media["ratings"] == [{"source": "letterboxd", "rating": 8.0, "votes": 3}]
+    assert "ids" not in media
+    assert asked == [{"imdb": "tt0111161"}]
+
+
+def test_the_ratings_are_read_once_per_title_and_not_for_the_session_pass(rated, monkeypatch):
+    asked, _given = rated
+    play()
+    builder = SnapshotBuilder()
+    assert builder.build(detail=False) is None       # nobody watching: no JSON-RPC
+    assert asked == []
+    builder.build()
+    monkeypatch.setattr(builder, "STATIC_INTERVAL", 0.0)
+    builder.build()                                  # same title, Kodi could say
+    assert len(asked) == 1
+    play(**{"Player.Filename": "Next.mkv"})
+    builder.build()
+    assert len(asked) == 2
+
+
+def test_the_ratings_are_asked_for_again_while_kodi_cannot_say(rated, monkeypatch):
+    asked, given = rated
+    found = given["found"]
+    given["found"] = None
+    play()
+    builder = SnapshotBuilder()
+    assert builder.build()["media"]["ratings"] == []
+    builder.build()                                  # within the static interval
+    assert len(asked) == 1
+    monkeypatch.setattr(builder, "STATIC_INTERVAL", 0.0)
+    given["found"] = found
+    assert builder.build()["media"]["mpaa"] == "FSK 12"
+    builder.build()                                  # known now: not asked again
+    assert len(asked) == 2
+
+
+def test_the_ratings_are_dropped_when_playback_ends(rated):
+    asked, _given = rated
+    play()
+    builder = SnapshotBuilder()
+    builder.build()
+    xbmc.CONDITIONS["Player.HasVideo"] = False
+    builder.build()
+    play()
+    builder.build()                                  # the same film again
     assert len(asked) == 2
 
 

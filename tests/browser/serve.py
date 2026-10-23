@@ -96,6 +96,13 @@ SNAPSHOT = {
             {"id": "dv.layer", "label": "Layer", "value": "FEL", "detail": ""}]},
         {"id": "audio", "title": "Audio", "rows": [
             {"id": "audio.32238", "label": "Codec", "value": "TrueHD Atmos 7.1", "detail": ""}]}],
+    "media": {"year": "2021", "genre": "Drama", "show": "", "season": "", "episode": "",
+              "tagline": "One night changes everything.",
+              "plot": "A film about somebody.\nAnd what happens to them.",
+              "ratings": [{"source": "imdb", "rating": 7.9, "votes": 1200}],
+              "mpaa": "FSK 12", "age": "fsk12", "age_level": "12", "userrating": 0,
+              "top250": 0, "directors": ["Somebody"],
+              "cast": ["One Actor", "Another Actor"], "cast_more": True, "studios": ["A Studio"]},
     "metrics": {"cpu": 20, "cpu_temp": 50, "fps_in": 24, "l1": {"max": 1000, "avg": 120},
                 "frame": {"w": 3840, "h": 2160}, "progress": 8.3},
     "chapters": player.chapter_list("02:00:00"),

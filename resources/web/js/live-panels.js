@@ -45,7 +45,11 @@
         '<div class="badges" id="badges"></div>' +
         '<h1 id="title">—</h1>' +
         '<p class="meta" id="meta"></p>' +
+        '<p class="meta studio" id="studio"></p>' +
         '<p class="file mono hidden" id="file"></p>' +
+        /* Who directed it, in the middle of what the lines above leave
+           over (see .now .director). */
+        '<p class="director hidden" id="director"></p>' +
         /* What the picture is and what the sound is, a row each -- the same
            badges the mobile app draws under its title. */
         '<div class="formats" id="formats">' +
@@ -92,6 +96,21 @@
         '</div>' +
       '</div>' +
     '</section>' +
+    /* What the title is about, who is in it and what it has been given,
+       under the card of what is playing: the slogan, the plot and, under
+       them, the cast and the ratings, as the library has them. */
+    '<details class="card hidden" id="plotCard">' +
+      '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
+      '<div class="plot">' +
+        '<p class="tagline hidden" id="tagline"></p>' +
+        '<p class="plottext hidden" id="plotText"></p>' +
+        /* A long plot is cut to a few lines; this lets the rest out. */
+        '<button type="button" class="plotmore hidden" id="plotMore" ' +
+          'aria-controls="plotText" aria-expanded="false"></button>' +
+        '<dl class="credits hidden" id="credits"></dl>' +
+        '<div class="ratings hidden" id="ratings" role="list"></div>' +
+      '</div>' +
+    '</details>' +
     '<details class="card hidden" id="tiles">' +
       '<summary class="panel-toggle"><span id="tilesTitle"></span></summary>' +
       '<div class="tilegrid">' +
@@ -144,8 +163,11 @@
 
   const el = {
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
-    meta: $("meta"), file: $("file"),
+    meta: $("meta"), studio: $("studio"), file: $("file"),
+    director: $("director"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
+    plotCard: $("plotCard"), ratings: $("ratings"), tagline: $("tagline"),
+    plotText: $("plotText"), plotMore: $("plotMore"), credits: $("credits"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
     tFinish: $("tFinish"), tFinishLabel: $("tFinishLabel"),
@@ -169,7 +191,9 @@
   let lastFinish = "";   /* the clock that label belongs in front of         */
   let idleFetched = false;  /* the ended title's events, asked for once      */
   let idleReset = false;    /* the panels have been put away once already    */
+  let plotMedia = {};       /* what the plot card was last drawn from        */
 
+  TinyPPI.bindDisclosure(el.plotCard, pageState + ".plot", true);
   TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
   /* The chart and the events arrive open: each is what a tab of its own is
      for now (the metadata tab and the history tab), and a tab that opens on a
@@ -193,6 +217,9 @@
     if (media.year) parts.push(media.year);
     if (media.genre) parts.push(media.genre);
     el.meta.textContent = parts.join("  ·  ");
+    /* Who made it, the first studio alone, on a line of its own under what
+       kind of film it is. */
+    el.studio.textContent = (media.studios || [])[0] || "";
 
     if (snapshot.filename) {
       el.file.textContent = snapshot.filename;
@@ -204,6 +231,8 @@
     renderArt(snapshot.art || {});
     renderBadges(snapshot);
     renderFormats(snapshot);
+    renderDirector(media);
+    renderPlot(media);
 
     const progress = (snapshot.metrics || {}).progress;
     const percent = (progress === null || progress === undefined) ? 0 : progress;
@@ -239,6 +268,219 @@
     el.tFinishLabel.textContent = finish && finishLabel ? finishLabel + " " : "";
     el.tFinishTime.textContent = finish;
     el.tFinish.classList.toggle("hidden", !finish);
+  }
+
+  /* The card is there for the plot, the ratings and the credits: with none
+     of them it is left out.  The slogan belongs to the plot and goes without it -- a slogan on
+     its own says too little to be worth a card -- and with a plot it is left
+     out where the library has none, which is most episodes.  Written only
+     when the words change: they stand still for the whole title, and a plot
+     is the longest text on the page. */
+  function renderPlot(media) {
+    plotMedia = media;
+    const plot = (media.plot || "").trim();
+    const tagline = plot ? (media.tagline || "").trim() : "";
+    const fresh = el.plotText.textContent !== plot;
+    for (const [node, text] of [[el.tagline, tagline], [el.plotText, plot]]) {
+      if (node.textContent !== text) node.textContent = text;
+      node.classList.toggle("hidden", !text);
+    }
+    const badges = ratingBadges(media, TinyPPI.T);
+    fillRatings(badges);
+    const credits = creditList(media, TinyPPI.T);
+    fillCredits(credits);
+    el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credits.length);
+    /* A new plot starts cut again, and is measured once it is laid out. */
+    if (fresh) {
+      openPlot(false);
+      measurePlot();
+    }
+  }
+
+  /* A plot runs to a few lines (see .plot .plottext) and the button under it
+     lets the rest out and takes it back.  The button is there only where
+     there is more to show: measured when the plot changes, when the card is
+     opened and when the page is resized, since how many lines a plot takes
+     is a matter of how wide it is laid out. */
+  function openPlot(open) {
+    el.plotText.classList.toggle("open", open);
+    el.plotMore.setAttribute("aria-expanded", String(open));
+    el.plotMore.textContent = open ? TinyPPI.T.plot_less : TinyPPI.T.plot_more;
+  }
+
+  function measurePlot() {
+    if (el.plotText.classList.contains("open")) return;
+    const cut = el.plotText.scrollHeight > el.plotText.clientHeight + 1;
+    el.plotMore.classList.toggle("hidden", !cut);
+  }
+
+  el.plotMore.addEventListener("click", () => openPlot(!el.plotText.classList.contains("open")));
+  el.plotCard.addEventListener("toggle", measurePlot);
+  window.addEventListener("resize", measurePlot);
+
+  /* Names as a line: a comma between two, and an ellipsis after the last
+     where there are more than the add-on sends (see _NAMES in
+     web/snapshot.py). */
+  function nameList(names, more) {
+    return names.join(", ") + (more ? ", …" : "");
+  }
+
+  /* Who directed the title: the first name alone, which says what it is
+     where it stands, and gone where the library has none.  Written only when
+     it changes. */
+  function renderDirector(media) {
+    const text = (media.directors || [])[0] || "";
+    if (el.director.textContent !== text) el.director.textContent = text;
+    el.director.classList.toggle("hidden", !text);
+  }
+
+  /* Who is in the title, the leads as the add-on cuts them: the overview's
+     credits.  What kind of film it is, who made it and who directed it
+     stand in the card above. */
+  function creditList(media, T) {
+    const cast = media.cast || [];
+    return cast.length ? [{ label: T.cast, names: nameList(cast, Boolean(media.cast_more)) }] : [];
+  }
+
+  /* What it is over the names, as a description list, so a screen reader
+     says which names are whose.  Built again only when one would say
+     something else. */
+  function fillCredits(credits) {
+    const signature = JSON.stringify(credits);
+    if (el.credits.dataset.signature === signature) return;
+    el.credits.dataset.signature = signature;
+    el.credits.replaceChildren();
+    for (const credit of credits) {
+      const line = document.createElement("div");
+      line.className = "credit";
+      const label = document.createElement("dt");
+      label.textContent = credit.label;
+      const names = document.createElement("dd");
+      names.textContent = credit.names;
+      line.append(label, names);
+      el.credits.append(line);
+    }
+    el.credits.classList.toggle("hidden", !credits.length);
+  }
+
+  /* What a rating's mark is drawn from, and what a screen reader calls the
+     house it is from: brand names, the same in every language.  The marks
+     are the add-on's own drawings in each house's colours (see
+     tools/gen_rating_marks.py); a source none of these names -- an NFO may
+     carry any -- wears a plain circle with its first letter instead. */
+  const RATING_SOURCES = {
+    imdb: "IMDb", tmdb: "TMDb", trakt: "Trakt", tvdb: "TVDB", letterboxd: "Letterboxd",
+    metacritic: "Metacritic", metacriticuser: "Metacritic User Score",
+    rottentomatoes: "Rotten Tomatoes", popcorn: "Rotten Tomatoes Popcornmeter",
+    rogerebert: "Roger Ebert", myanimelist: "MyAnimeList"
+  };
+
+  /* Every rating the library holds for the title (see web/ratings.py), in
+     the order the badges stand: the age rating first -- who the film is for
+     is asked before how good it is -- then a score for each source with how
+     many voted for it, the reader's own and the place in the IMDb Top 250.
+     Each badge says in words what its mark shows, for a screen reader and
+     under a pointer. */
+  function ratingBadges(media, T) {
+    const badges = [];
+    if (media.mpaa) {
+      /* One the add-on could read for its board and level -- FSK, MPA, TV
+         Parental Guidelines, BBFC -- is a shield like the others: the board
+         on the level's colour, the level beside it ("FSK" | "12").  Any other
+         is written as the scraper wrote it. */
+      badges.push(media.age
+        ? { kind: "age", mark: media.age, value: media.age_level || "", said: media.mpaa }
+        : { kind: "age", value: media.mpaa, said: media.mpaa });
+    }
+    for (const entry of media.ratings || []) {
+      const source = entry.source || "";
+      const name = RATING_SOURCES[source] ||
+        source.charAt(0).toUpperCase() + source.slice(1);
+      const value = entry.rating.toFixed(1);
+      const votes = entry.votes ? entry.votes.toLocaleString() : "";
+      badges.push({
+        kind: "score",
+        mark: RATING_SOURCES[source] ? source : "",
+        letter: name.charAt(0),
+        value, note: votes,
+        said: (name + " " + value).trim() +
+          (votes ? ", " + T.votes.replace("%s", votes) : "")
+      });
+    }
+    if (media.userrating) {
+      const value = String(media.userrating);
+      badges.push({ kind: "mine", value, said: T.my_rating + " " + value });
+    }
+    if (media.top250) {
+      badges.push({ kind: "rank", mark: "top250", value: "#" + media.top250,
+                    said: T.top250.replace("%s", media.top250) });
+    }
+    return badges;
+  }
+
+  /* The left of a shield: the drawing for its source on a ground of the
+     house's own colour (see .rating .side in live-panels.css), the reader's
+     heart on the accent, a letter for a source there is no drawing of -- or
+     nothing, for an age rating that is no FSK one and is written out. */
+  function ratingSide(badge) {
+    const side = document.createElement("span");
+    if (badge.mark) {
+      /* An age rating's plate is the whole of the left, edge to edge. */
+      side.className = "side " + badge.mark + (badge.kind === "age" ? " plate" : "");
+      const image = document.createElement("img");
+      /* As wide as it is drawn: the SVG says, and the CSS gives only the
+         height (see .rating .mark). */
+      image.className = "mark";
+      image.src = "/ratings/" + badge.mark + ".svg";
+      image.alt = "";
+      side.append(image);
+      return side;
+    }
+    if (badge.kind === "age") return null;
+    side.className = "side " + (badge.kind === "mine" ? "heart" : "letter");
+    side.textContent = badge.letter || "";
+    return side;
+  }
+
+  /* Built again only when a badge would say something else, which is once a
+     title (see fillRow).  Each is a shield: the house on the left, what it
+     gave on the right.  What a reader is told is the badge's sentence, kept
+     off the screen; what is drawn is kept from the reader, who would
+     otherwise hear "8.5 612,345" with nothing to say what either is. */
+  function fillRatings(badges) {
+    const signature = JSON.stringify(badges);
+    if (el.ratings.dataset.signature === signature) return;
+    el.ratings.dataset.signature = signature;
+    el.ratings.replaceChildren();
+    for (const badge of badges) {
+      const node = document.createElement("span");
+      node.className = "rating " + badge.kind;
+      node.setAttribute("role", "listitem");
+      node.title = badge.said;
+      const said = document.createElement("span");
+      said.className = "said";
+      said.textContent = badge.said;
+      const look = document.createElement("span");
+      look.className = "look";
+      look.setAttribute("aria-hidden", "true");
+      const side = ratingSide(badge);
+      if (side) look.append(side);
+      if (badge.value) {
+        const figures = document.createElement("span");
+        figures.className = "figures";
+        for (const [part, text] of [["value", badge.value], ["note", badge.note]]) {
+          if (!text) continue;
+          const piece = document.createElement("span");
+          piece.className = part;
+          piece.textContent = text;
+          figures.append(piece);
+        }
+        look.append(figures);
+      }
+      node.append(said, look);
+      el.ratings.append(node);
+    }
+    el.ratings.classList.toggle("hidden", !badges.length);
   }
 
   /* The poster is fetched once per film: the add-on sends a tag that changes
@@ -716,6 +958,12 @@
     /* The bar may already be drawn by the time the words for it arrive; the
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
+    $("plotTitle").textContent = T.plot;
+    openPlot(el.plotText.classList.contains("open"));
+    /* The badges carry words of the table too ("612,345 votes"), and the
+       credits their name. */
+    fillRatings(ratingBadges(plotMedia, T));
+    fillCredits(creditList(plotMedia, T));
     $("tilesTitle").textContent = T.metrics;
     $("kSwitches").textContent = T.switches;
     $("kWarnings").textContent = T.warnings;
@@ -759,7 +1007,7 @@
          page is a wall of several hundred posters. */
       if (!idleReset) {
         idleReset = true;
-        const cards = [el.nowCard, el.tiles, el.chartCard];
+        const cards = [el.nowCard, el.plotCard, el.tiles, el.chartCard];
         for (const node of cards) node.classList.add("hidden");
         live = [];
         posterTag = "";

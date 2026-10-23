@@ -169,9 +169,10 @@ const LIBRARY = {
 
 /* --- the frame -------------------------------------------------------- */
 
-test("the frame is rearranged at load: VS10 under the playing card, figures and events on the history tab", (t) => {
+test("the frame is rearranged at load: VS10 under the playing card and its plot, figures and events on the history tab", (t) => {
   const { $ } = open(t);
-  assert.equal($("nowCard").nextElementSibling, $("vs10Card"));
+  assert.equal($("nowCard").nextElementSibling, $("plotCard"));
+  assert.equal($("plotCard").nextElementSibling, $("vs10Card"));
   const events = $("eventsCard");
   const grid = events.querySelector(".tilegrid");
   assert.ok(grid, "the figures moved into the events card");

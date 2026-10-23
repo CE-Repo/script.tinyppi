@@ -68,10 +68,11 @@ const el = {
   markCancel: $("markCancel")
 };
 
-/* Keep VS10 by the playback card.  The figures are the first thing inside the
-   events card, followed by the event list; its old disclosure shell is no
-   longer needed. */
-$("nowCard").after(el.vs10Card);
+/* Keep VS10 by the playback card, under the plot that is the first card
+   after it.  The figures are the first thing inside the events card,
+   followed by the event list; its old disclosure shell is no longer
+   needed. */
+$("plotCard").after(el.vs10Card);
 el.eventsCard.querySelector(".eventswrap").before(el.metricsGrid);
 /* Keep the empty shell in the document because the shared localization code
    still owns its heading node; the hidden attribute cannot be undone by the

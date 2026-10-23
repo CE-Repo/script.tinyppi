@@ -368,6 +368,11 @@ with the access token, which is what you need standing in front of the TV with
 a phone in your hand. It is meant for a home network: **do not forward its port
 to the internet**.
 
+A free [MDBList](https://mdblist.com) API key under **Settings → Dashboard →
+Ratings** has the overview card show what IMDb, TMDb, Trakt, Letterboxd, Rotten
+Tomatoes, Metacritic and more gave a film, rather than only the ratings Kodi's
+scraper wrote, which stay the fallback.
+
 Everything about it — the tabs, the themes, the library, the remote, what it
 costs the box and how it is secured — is described in
 **[docs/web-dashboard.md](docs/web-dashboard.md)**.

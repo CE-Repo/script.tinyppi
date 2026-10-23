@@ -130,6 +130,16 @@ _UI_STRINGS = {
     "chapter_of":       32367,
     "progress_bar":     32368,
     "chapter_marks":    32369,
+    # The overview card under what is playing: its title, and what its
+    # rating marks say to a screen reader.
+    "plot":             32370,
+    "votes":            32371,
+    "my_rating":        32372,
+    "top250":           32373,
+    # And what its credits are called, and the button under a long plot.
+    "cast":             32378,
+    "plot_more":        32381,
+    "plot_less":        32382,
 }
 
 

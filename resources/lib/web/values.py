@@ -56,6 +56,42 @@ def clean_value(value: str) -> str:
     return _SEPARATOR_RE.sub(" | ", _MARKUP_RE.sub("", value)).strip()
 
 
+# Kodi writes a line break into a library text as [CR].
+_LINE_BREAK_RE = re.compile(r"\[CR\]", re.IGNORECASE)
+
+
+def plain_text(value: str) -> str:
+    """Return a library text (a tagline, a plot) without markup.
+
+    Its line breaks are kept; the overlay's separator is not looked for, as
+    a plot is prose and " l " in it is a word.
+    """
+    if not value:
+        return value
+    return _MARKUP_RE.sub("", _LINE_BREAK_RE.sub("\n", value)).strip()
+
+
+# Kodi joins the directors and studios of a list InfoLabel with its item
+# separator (" / ", unless advancedsettings.xml sets another, which is then
+# read as one name) and the cast one name a line.
+_ITEM_RE = re.compile(r" / |\n")
+# A name is a line of a card, not a paragraph; a longer one is cut off.
+_NAME_LIMIT = 80
+
+
+def name_list(value: str, limit: int) -> tuple[list[str], bool]:
+    """Return the first *limit* names a list InfoLabel holds, in Kodi's
+    order -- the cast by billing -- each once, and whether it holds more."""
+    names: list[str] = []
+    for item in _ITEM_RE.split(plain_text(value)):
+        name = item.strip()[:_NAME_LIMIT].rstrip()
+        if name and name not in names:
+            if len(names) == limit:
+                return names, True
+            names.append(name)
+    return names, False
+
+
 def numbers(value: str) -> list[float]:
     """Return every number in a composite reading."""
     if not value or is_status_label(value):

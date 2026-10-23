@@ -573,6 +573,250 @@
   overflow-wrap: anywhere;
 }
 .now .meta:empty { display: none; }
+/* The studio under the year and the genre, as one block with them rather
+   than an item of the column of its own. */
+.now .meta:not(:empty) + .studio { margin-top: -10px; }
+/* Who directed it, in the middle of the slack between the lines above and
+   the badges at the foot: an auto margin either side of it takes all of it,
+   so the badges' own (see .formats) is set aside while it stands there.
+   The name alone, in the muted grey of the lines above it. */
+.now .director {
+  margin: auto 0;
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.now .director:not(.hidden) + .formats { margin-top: 0; }
+
+/* --- The overview: the plot, the cast and the ratings --------------------
+   The card under the one of what is playing, everything in it centred.
+   The slogan first, in the text's own colour and set in italics as the line
+   a poster carries, and the plot as prose, in the muted grey the year and
+   genre are written in.
+   A plot is the one paragraph on the page, so it gets the line height of
+   one; its line breaks are the library's own (see plain_text in
+   web/values.py).  Under them, past a thin rule, the cast as plain lines:
+   what it is called in the text's own colour over the names in the plot's
+   muted grey.  And last, past another, centred as a row of their own, the ratings
+   as small shields, which is what they are: short facts about the film, to
+   be taken in at a glance -- each wearing its house's mark in its house's
+   colours rather than its name, so a row of them is read by colour before
+   a word of it is.
+------------------------------------------------------------------------ */
+
+.plot {
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 10px;
+}
+.ratings {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  /* A little more air over the badges than between the lines above them:
+     they are a row of their own, not the last line of the plot. */
+  margin-top: 2px;
+}
+/* And a thin rule over them, from the cast or from the plot, whichever
+   stands above them: the same hairline a card's heading is ruled off with. */
+.plot .plottext:not(.hidden) ~ .ratings,
+.plot .credits:not(.hidden) + .ratings {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 12px;
+}
+/* A shield: the house on the left, on a ground of its own colour, and what
+   it gave on the right, on the panel's -- kantig like the plaques the format
+   readings are, rather than round like a button. */
+/* Every badge one height, its border inside it, whatever it holds: a
+   shield of figures, a heart, an age rating's mark on its own. */
+.ratings { --badge: 26px; }
+.rating {
+  position: relative;
+  display: inline-flex;
+  box-sizing: border-box;
+  height: var(--badge);
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--panel-2);
+}
+.rating .look {
+  display: inline-flex;
+  align-items: stretch;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--dim);
+}
+.rating .side {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2px;
+}
+/* Each house's ground, the colour its mark is drawn on, so the mark runs
+   into it and the left of the shield reads as one plate. */
+.rating .side.imdb,
+.rating .side.top250 { background: #f5c518; }
+.rating .side.tmdb { background: #0d253f; }
+.rating .side.tvdb { background: #1e2a33; }
+.rating .side.trakt { background: #ed1c24; }
+.rating .side.letterboxd { background: #14181c; }
+.rating .side.metacritic,
+.rating .side.metacriticuser { background: #000; }
+.rating .side.rottentomatoes,
+.rating .side.popcorn { background: #fff; }
+.rating .side.rogerebert { background: #c8102e; }
+.rating .side.myanimelist { background: #2e51a2; }
+/* A source with no drawing: its first letter on a plain plate. */
+.rating .side.letter {
+  min-width: 24px;
+  padding: 0 6px;
+  background: var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+/* The reader's own rating: a heart on the accent, which is what says it is
+   theirs and not a house's. */
+.rating .side.heart {
+  padding: 0 6px;
+  background: var(--accent);
+}
+.rating .side.heart::before {
+  content: "";
+  width: 13px;
+  height: 13px;
+  background: #fff;
+  -webkit-mask: url('/icons/heart.svg') no-repeat center / contain;
+  mask: url('/icons/heart.svg') no-repeat center / contain;
+}
+/* Centred in the height the shield is given, on one line: a long age
+   rating written out is cut at the shield's edge rather than growing it a
+   second line (its whole text is the badge's tooltip). */
+.rating .figures {
+  display: flex;
+  align-items: baseline;
+  align-self: center;
+  gap: 5px;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+/* Tabular figures in the face of the words around them rather than the
+   monospaced one the readings use: that face sits higher on the line, and a
+   badge this small shows it. */
+.rating .value {
+  color: var(--text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.rating .note { font-size: 11px; }
+/* A mark as tall as a line of the shield and as wide as it is drawn: twice
+   its height for the wordmarks, square or round for the rest. */
+.rating .mark {
+  display: block;
+  width: auto;
+  height: 20px;
+}
+/* An age rating's left is its board's name on the colour of the level,
+   drawn edge to edge and as tall as the shield inside its border; the level
+   itself is written on the right, like every other shield's figure. */
+.rating .side.plate { padding: 0; }
+.rating .side.plate .mark { height: calc(var(--badge) - 2px); }
+/* What the badge says aloud: there for a screen reader, not on the screen. */
+.rating .said {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The credits, a line each and centred like everything around them, past
+   the same thin rule from the plot, where there is one. */
+.credits {
+  margin: 0;
+  display: grid;
+  /* More air between two of them than between the lines of one: a long
+     cast runs on over several. */
+  gap: 6px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.plot .plottext:not(.hidden) ~ .credits {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 12px;
+}
+/* What it is called on a line of its own, over the names. */
+.credits dt,
+.credits dd {
+  display: block;
+  margin: 0;
+}
+.credits dt {
+  font-weight: 600;
+  color: var(--text);
+}
+.credits dd {
+  color: var(--muted);
+}
+
+/* The slogan and the plot centred over the cast and the ratings under
+   them, so the card reads as one block down its middle rather than prose
+   with a row of badges hung under it. */
+.plot p {
+  margin: 0;
+  text-align: center;
+  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.plot .tagline {
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+}
+.plot .plottext {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--muted);
+  white-space: pre-line;
+}
+/* Cut to four lines, the last ending in an ellipsis, until the button under
+   it lets the rest out (see openPlot in js/live-panels.js).  A screen reader
+   hears all of it either way. */
+.plot .plottext:not(.open) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+}
+/* The button a quiet word in the accent under the plot's middle, close
+   under it: it belongs to the paragraph rather than standing as a row of
+   its own. */
+.plot .plotmore {
+  justify-self: center;
+  margin-top: -6px;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.plot .plotmore:focus-visible { outline: 2px solid var(--accent); }
 
 /* --- Format badges ------------------------------------------------------
    What the picture is and what the sound is, a row each, drawn the way the

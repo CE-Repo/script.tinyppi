@@ -1486,3 +1486,43 @@ msgstr "Folyamatjelző sáv"
 msgctxt "#32369"
 msgid "Show chapter markers"
 msgstr "Fejezetjelölők megjelenítése"
+
+msgctxt "#32370"
+msgid "Overview"
+msgstr "Áttekintés"
+
+msgctxt "#32371"
+msgid "%s votes"
+msgstr "%s szavazat"
+
+msgctxt "#32372"
+msgid "My rating"
+msgstr "Saját értékelés"
+
+msgctxt "#32373"
+msgid "Top 250 · #%s"
+msgstr "Top 250 · %s. hely"
+
+msgctxt "#32378"
+msgid "Cast"
+msgstr "Szereplők"
+
+msgctxt "#32381"
+msgid "Show more"
+msgstr "Több megjelenítése"
+
+msgctxt "#32382"
+msgid "Show less"
+msgstr "Kevesebb megjelenítése"
+
+msgctxt "#32383"
+msgid "Ratings"
+msgstr "Értékelések"
+
+msgctxt "#32384"
+msgid "MDBList API key"
+msgstr "MDBList API-kulcs"
+
+msgctxt "#32385"
+msgid "With a free key from mdblist.com (Preferences → API), the overview card shows the ratings MDBList gathers for a film: IMDb, TMDb, Trakt, Letterboxd, Rotten Tomatoes, Metacritic and more. To ask, the film's IMDb or TMDb id is sent to MDBList. Left empty, the card shows the ratings Kodi's library holds."
+msgstr "Az mdblist.com ingyenes kulcsával (Preferences → API) az Áttekintés kártya egy filmnél az MDBList által gyűjtött értékeléseket mutatja: IMDb, TMDb, Trakt, Letterboxd, Rotten Tomatoes, Metacritic és mások. Ehhez a film IMDb- vagy TMDb-azonosítója az MDBList-hez kerül. Üresen hagyva a kártya a Kodi médiatárának értékeléseit mutatja."

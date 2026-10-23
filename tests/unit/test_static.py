@@ -52,6 +52,7 @@ def test_only_known_types_directly_in_the_served_folders_are_routed(addon_folder
     web = addon_folder / "resources" / "web"
     style = _write(web / "css" / "site.css")
     logo = _write(web / "icons" / "Logo.SVG")
+    mark = _write(web / "ratings" / "imdb.svg")
     _write(web / "css" / ".hidden.css")
     _write(web / "css" / "notes.txt")
     _write(web / "css" / "old.css" / "inside.css")
@@ -61,10 +62,11 @@ def test_only_known_types_directly_in_the_served_folders_are_routed(addon_folder
     table = static.routes()
 
     served = {route: entry for route, entry in table.items()
-              if route.startswith(("/css/", "/js/", "/icons/", "/fonts/"))}
+              if route.startswith(("/css/", "/js/", "/icons/", "/ratings/", "/fonts/"))}
     assert served == {
         "/css/site.css": (style, "text/css; charset=utf-8"),
         "/icons/Logo.SVG": (logo, "image/svg+xml"),
+        "/ratings/imdb.svg": (mark, "image/svg+xml"),
     }
     # The fixed routes are there whether or not their files exist.
     assert table["/"] == (str(web / "index.html"), HTML)
