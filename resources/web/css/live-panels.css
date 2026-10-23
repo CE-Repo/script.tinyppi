@@ -678,7 +678,8 @@
 .rating .side.myanimelist { background: #2e51a2; }
 /* On the accent, where the reader asked for it in the settings (see the
    rating colours switch in js/live-panels.js): every shield stands on it as
-   the reader's own heart does, its mark in white on it.  What is dark in a
+   the reader's own heart does, its mark in black on it -- the page's
+   themes are all dark ones.  What is dark in a
    mark -- the letters on IMDb's plate, the "m" on Metacritic's circle,
    TMDb's plate -- is left out for the accent to show through (#inkDark in
    index.html); a mark drawn white on a colour has only its white inked
@@ -688,7 +689,8 @@
    it is drawn at all (#inkWhole). */
 .ratings.accented .side,
 .ratings.accented .side.letter { background: var(--accent); }
-.ratings.accented .side.letter { color: #fff; }
+.ratings.accented .side.letter { color: #000; }
+.ratings.accented .side.heart::before { background: #000; }
 .ratings.accented .mark { filter: url(#inkDark); }
 .ratings.accented .side.trakt .mark,
 .ratings.accented .side.popcorn .mark,

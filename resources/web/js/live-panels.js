@@ -401,6 +401,15 @@
      reader's own and the place in the IMDb Top 250.
      Each badge says in words what its mark shows, for a screen reader and
      under a pointer. */
+  /* The board an age rating's mark is from, by its name ("fsk12" is the
+     FSK's). */
+  function boardOf(age) {
+    if (age.startsWith("fsk")) return "FSK";
+    if (age.startsWith("mpa_")) return "MPA";
+    if (age.startsWith("tv_")) return "TV Parental Guidelines";
+    return "BBFC";
+  }
+
   function ratingBadges(media, T) {
     const badges = [];
     if (media.mpaa) {
@@ -409,8 +418,9 @@
          on the level's colour, the level beside it ("FSK" | "12").  Any other
          is written as the scraper wrote it. */
       badges.push(media.age
-        ? { kind: "age", mark: media.age, value: media.age_level || "", said: media.mpaa }
-        : { kind: "age", value: media.mpaa, said: media.mpaa });
+        ? { kind: "age", mark: media.age, value: media.age_level || "", said: media.mpaa,
+            named: boardOf(media.age) }
+        : { kind: "age", value: media.mpaa, said: media.mpaa, named: media.mpaa });
     }
     for (const entry of media.ratings || []) {
       const source = entry.source || "";
@@ -421,16 +431,16 @@
         kind: "score",
         mark: RATING_SOURCES[source] ? source : "",
         letter: name.charAt(0),
-        value, said: (name + " " + value).trim()
+        value, said: (name + " " + value).trim(), named: name
       });
     }
     if (media.userrating) {
       const value = String(media.userrating);
-      badges.push({ kind: "mine", value, said: T.my_rating + " " + value });
+      badges.push({ kind: "mine", value, said: T.my_rating + " " + value, named: T.my_rating });
     }
     if (media.top250) {
       badges.push({ kind: "rank", mark: "top250", value: "#" + media.top250,
-                    said: T.top250.replace("%s", media.top250) });
+                    said: T.top250.replace("%s", media.top250), named: "IMDb Top 250" });
     }
     return badges;
   }
@@ -487,8 +497,8 @@
     catch (_) { /* no storage: the choice holds until the page is closed */ }
   });
 
-  /* A tap -- or a click -- on a shield shows its words over it for a
-     moment; under a pointer its tooltip says them too. */
+  /* A tap -- or a click -- on a shield shows over it for a moment whose it
+     is; under a pointer its tooltip says so too. */
   let tipTimer = 0;
   function tellRating(node) {
     const card = el.ratings.parentElement.getBoundingClientRect();
@@ -518,7 +528,9 @@
       const node = document.createElement("span");
       node.className = "rating " + badge.kind;
       node.setAttribute("role", "listitem");
-      node.title = badge.said;
+      /* Under a pointer, as after a tap, whose it is: what it gave stands
+         on the shield already. */
+      node.title = badge.named;
       const said = document.createElement("span");
       said.className = "said";
       said.textContent = badge.said;

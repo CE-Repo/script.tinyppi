@@ -131,7 +131,11 @@ def marks(letters: Lettering) -> list[Mark]:
             Shape(circle(11, 8.3, 3.1), fill=black),
             Shape("M5.4 17.4C5.4 14.3 7.9 12.4 11 12.4C14.1 12.4 16.6 14.3 16.6 17.4Z", fill=black),
         ]),
-        _named("rogerebert", plate("#C8102E", "EBERT", white, 10.5, 15.3, 0.4)),
+        # Roger Ebert's initials, square like the logos beside it.
+        Mark("rogerebert", *square, [
+            Shape(rounded(22, 22, 4), fill="#C8102E"),
+            Shape(letters.text("RE", 11, 11, 15.2, 0.3), fill=white),
+        ]),
     ]
     for age, (colour, ink) in fsk.items():
         found.append(plate_of("fsk" + age, "FSK", colour, ink, letters))

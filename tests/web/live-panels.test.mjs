@@ -381,9 +381,12 @@ test("the overview card carries every rating as a shield with its mark, under th
   // Said in words, drawn as marks: the drawing is kept from a screen reader.
   for (const node of $("ratings").children) {
     assert.equal(node.getAttribute("role"), "listitem");
-    assert.equal(node.title, node.querySelector(".said").textContent);
     assert.equal(node.querySelector(".look").getAttribute("aria-hidden"), "true");
   }
+  // Under a pointer, whose each is, and not what it gave.
+  assert.deepEqual([...$("ratings").children].map((node) => node.title),
+                   ["FSK", "IMDb", "TMDb", "Trakt", "Rotten Tomatoes", "Filmaffinity", "My rating",
+                    "IMDb Top 250"]);
   assert.equal($("ratings").querySelector("img").alt, "");
 
   // The same badges again are not built again.
@@ -415,11 +418,14 @@ test("the overview card carries every rating as a shield with its mark, under th
   assert.ok($("tagline").classList.contains("hidden"));
   assert.ok($("plotText").classList.contains("hidden"));
   // An American or a British one wears its own board's mark.
-  for (const [mpaa, age, level] of [["Rated PG-13", "mpa_pg13", "PG-13"], ["TV-MA", "tv_ma", "MA"],
-                                    ["Rated 15", "bbfc_15", "15"]]) {
+  for (const [mpaa, age, level, board] of [["Rated PG-13", "mpa_pg13", "PG-13", "MPA"],
+                                           ["TV-MA", "tv_ma", "MA", "TV Parental Guidelines"],
+                                           ["Rated 15", "bbfc_15", "15", "BBFC"]]) {
     P.update(snap({ media: { plot: "Plot.", mpaa, age, age_level: level } }));
     assert.deepEqual(plain(badges()),
                      [["rating age", mpaa, `side ${age} plate /ratings/${age}.svg`, [["value", level]]]]);
+    // Named by its board.
+    assert.equal($("ratings").firstChild.title, board);
   }
   // An add-on that sent the mark and not yet the level: the plate alone.
   P.update(snap({ media: { plot: "Plot.", mpaa: "FSK 6", age: "fsk6" } }));
@@ -477,12 +483,12 @@ test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   trakt.querySelector("img").click();
   assert.equal(pressed, 0);
   assert.equal(tip.classList.contains("hidden"), false);
-  assert.equal(tip.textContent, "Trakt 8.8");
+  assert.equal(tip.textContent, "Trakt");
   assert.deepEqual([tip.style.left, tip.style.top], ["70px", "200px"]);
   assert.deepEqual(timers.delays(), [2000]);
   // Another shield before it is gone: its words, and the moment starts again.
   letterboxd.click();
-  assert.equal(tip.textContent, "Letterboxd 9.0");
+  assert.equal(tip.textContent, "Letterboxd");
   assert.equal(tip.style.left, "145px");
   assert.deepEqual(timers.delays(), [2000]);
   timers.run();
