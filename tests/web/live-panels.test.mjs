@@ -193,7 +193,7 @@ test("what is playing: title, show line, file, progress and times", (t) => {
   assert.equal($("bar").style.width, "0%");
 });
 
-test("the plot card: the slogan and the plot under what is playing, each only where it is", (t) => {
+test("the plot card: the plot under what is playing, with its slogan where there is one", (t) => {
   const { $, P, window } = panels(t);
   assert.equal($("nowCard").nextElementSibling, $("plotCard"));
   assert.ok($("plotCard").classList.contains("hidden"));
@@ -214,10 +214,10 @@ test("the plot card: the slogan and the plot under what is playing, each only wh
   assert.equal($("plotText").textContent, "Episode plot.");
   assert.equal($("plotCard").classList.contains("hidden"), false);
 
-  // A slogan and no plot.
+  // A slogan and no plot: too little for a card.
   P.update(snap({ media: { tagline: "Only this." } }));
+  assert.ok($("plotCard").classList.contains("hidden"));
   assert.ok($("plotText").classList.contains("hidden"));
-  assert.equal($("plotCard").classList.contains("hidden"), false);
 
   // A file the library does not know: neither, and no card.
   P.update(snap({ media: { tagline: "  ", plot: "" } }));

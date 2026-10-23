@@ -42,11 +42,11 @@ connection light.
 
 - **Now playing** — the poster, title, year and genre, the file name (when
   *Show file name* is on), elapsed time and progress.
-- **Plot** — a card under it with the title's slogan and its plot, as Kodi's
-  library has them. Either is left out where the library has none (most
-  episodes have a plot and no slogan), and the card with them where it has
-  neither, as for a file that is not in the library. It folds like the other
-  cards and remembers whether it was open.
+- **Plot** — a card under it with the title's plot, as Kodi's library has
+  it, and its slogan above it where there is one (most episodes have none).
+  Without a plot the card is left out, slogan or not, as it is for a file
+  that is not in the library. It folds like the other cards and remembers
+  whether it was open.
 - **Chapters** — a dot on the progress bar where each chapter ahead of the
   position starts, and the number and name of the one playing over the bar
   ("Chapter 3 of 12 · Arrival"). A mouse over the bar brings up the dots of

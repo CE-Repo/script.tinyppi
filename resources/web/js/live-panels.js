@@ -253,11 +253,11 @@
     el.tFinish.classList.toggle("hidden", !finish);
   }
 
-  /* The slogan and the plot, each left out where the library has none, and
-     the card with them where it has neither -- a file that is not in the
-     library, most episodes' slogan.  Written only when the words change:
-     they stand still for the whole title, and a plot is the longest text on
-     the page. */
+  /* The card is there for the plot: without one it is left out, slogan or
+     not -- a slogan on its own says too little to be worth a card.  With a
+     plot, the slogan above it is left out where the library has none, which
+     is most episodes.  Written only when the words change: they stand still
+     for the whole title, and a plot is the longest text on the page. */
   function renderPlot(media) {
     const tagline = (media.tagline || "").trim();
     const plot = (media.plot || "").trim();
@@ -265,7 +265,7 @@
       if (node.textContent !== text) node.textContent = text;
       node.classList.toggle("hidden", !text);
     }
-    el.plotCard.classList.toggle("hidden", !tagline && !plot);
+    el.plotCard.classList.toggle("hidden", !plot);
   }
 
   /* The poster is fetched once per film: the add-on sends a tag that changes
