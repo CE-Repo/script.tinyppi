@@ -634,7 +634,7 @@
    readings are, rather than round like a button. */
 /* Every badge one height, its border inside it, whatever it holds: a
    shield of figures, a heart, an age rating's mark on its own. */
-.ratings { --badge: 22px; }
+.ratings { --badge: 24px; }
 .rating {
   position: relative;
   display: inline-flex;
@@ -728,7 +728,7 @@
 .rating .mark {
   display: block;
   width: auto;
-  height: 17px;
+  height: 18px;
 }
 /* An age rating's left is its board's name on the colour of the level,
    drawn edge to edge and as tall as the shield inside its border; the level
@@ -789,7 +789,9 @@
   overflow-wrap: break-word;
   overflow-wrap: anywhere;
 }
-/* Like a credit's heading: upright, in the text's own colour. */
+/* Like a credit's heading: upright, in the text's own colour, and as far
+   over the plot as a heading is over its names. */
+.plot .tagline:not(.hidden) + .plottext { margin-top: 4px; }
 .plot .tagline {
   font-size: 13px;
   font-weight: 600;

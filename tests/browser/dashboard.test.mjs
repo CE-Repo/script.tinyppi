@@ -92,7 +92,7 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   // Every badge one height: the age rating's mark and the shields beside it.
   const heights = await page.$$eval("#ratings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
-  assert.deepEqual(heights, heights.map(() => 22));
+  assert.deepEqual(heights, heights.map(() => 24));
   // Switched to greys on the settings tab: every mark without colour, on a
   // plain ground; and back.
   const flip = (on) => page.evaluate((checked) => {
@@ -143,7 +143,7 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   assert.deepEqual(slogan, heading);
   const [sloganBox, plotBox] = await Promise.all(
     ["#tagline", "#plotText"].map((selector) => page.locator(selector).boundingBox()));
-  assert.ok(Math.abs(plotBox.y - (sloganBox.y + sloganBox.height)) <= 1, "the slogan right over the plot");
+  assert.ok(Math.abs(plotBox.y - (sloganBox.y + sloganBox.height) - 4) <= 1, "the slogan a little over the plot");
   const [now, plot] = await Promise.all(
     ["#nowCard", "#plotCard"].map((selector) => page.locator(selector).boundingBox()));
   assert.ok(plot.y > now.y + now.height - 1, "under the playing card");
