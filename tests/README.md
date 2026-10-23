@@ -73,7 +73,7 @@ types allowed, no dependency check against Kodi's repository).
 | `unit/test_library_queries.py` | The library's JSON-RPC queries and rows: films, series, episodes and the continue row, resume points (including NaN and Infinity), ratings, tags that follow every field sent, playing and marking, bad ids that ask Kodi nothing |
 | `unit/test_static.py` | The dashboard's route table and static file cache |
 | `unit/test_strings.py` | The dashboard's UI strings |
-| `unit/test_ratings.py` | The playing title's ratings: known sources first and in order, one source under two names, what is no rating out of ten, vote counts, names cleaned and cut, a film's every kind of rating, an episode with its show's age rating, files outside the library, Kodi not ready yet, answers of the wrong shape |
+| `unit/test_ratings.py` | The playing title's ratings: known sources first and in order, one source under several names, the FSK level of a German age rating, what is no rating out of ten, vote counts, names cleaned and cut, a film's every kind of rating, an episode with its show's age rating, files outside the library, Kodi not ready yet, answers of the wrong shape |
 | `unit/test_values.py` | Text and id helpers shared by the dashboard, a plot's markup and line breaks |
 | `unit/test_dvcomposer.py` | The composer's rows of the Dolby Vision metadata view: curves, polynomial and MMR coefficients |
 | `unit/test_dvformat.py` | Value formatting for the metadata view: numbers, luminances, scaled values and coordinates, missing and non-finite values |
@@ -86,7 +86,7 @@ types allowed, no dependency check against Kodi's repository).
 | `web/films.test.mjs` | The film wall, its rows and search, when the list is read again (a move during a read, a failed read after one), starting a film and the wall waiting on it |
 | `web/series.test.mjs` | The series shelf, an opened show with its seasons, the way back (search included), the open show read again (also after a move during a read or while it opens), starting an episode |
 | `web/continue.test.mjs` | The continue-watching rows, when they are read again, resuming a title |
-| `web/live-panels.test.mjs` | The now-playing card, the plot card under it with its rating badges, the remote and its track pickers (`js/live-remote.js`), the figures, the event list and the luminance chart (canvas faked) |
+| `web/live-panels.test.mjs` | The now-playing card, the overview card under it with its rating marks, the remote and its track pickers (`js/live-remote.js`), the figures, the event list and the luminance chart (canvas faked) |
 | `web/live-chapters.test.mjs` | The chapter dots on the progress bar (`js/live-chapters.js`): only those ahead of the position, every one while a mouse is over the bar (not a finger), none at the start, built once per list, close ones merged, laid out again after a resize; the chapter named over the bar; the name under the pointer or a tap; a tap on a dot jumping to it, a drag holding the bar (every dot, snapping, the clock and label following, one command on release, cancelled by the browser), Page Up and Page Down; the switch on the settings tab and blocked storage |
 | `web/metadata.test.mjs` | The Dolby Vision metadata tab: the idle and L5 cards, blocks and trim tables, readings lit when they move, the report |
 | `web/theme.test.mjs` | The themes and the tint strength: before the first paint (the bar colour too), the choice on the settings tab, what a press keeps |

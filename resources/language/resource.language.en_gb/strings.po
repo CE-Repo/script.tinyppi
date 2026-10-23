@@ -1488,7 +1488,7 @@ msgid "Show chapter markers"
 msgstr ""
 
 msgctxt "#32370"
-msgid "Plot & ratings"
+msgid "Overview"
 msgstr ""
 
 msgctxt "#32371"

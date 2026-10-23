@@ -21,7 +21,7 @@ settings:
 
 | Tab | What is on it |
 |---|---|
-| **Live** | What is playing, its plot and ratings, the transport row, the VS10 output and every reading of the overlay |
+| **Live** | What is playing, its overview (ratings and plot), the transport row, the VS10 output and every reading of the overlay |
 | **Metadata** | The Dolby Vision metadata: the active picture area, the luminance chart and the full list (see below) |
 | **Films** | Continue watching (films), recently added films, the unwatched films and the whole film library |
 | **Series** | Continue watching (episodes), recently updated series, the series with unwatched episodes and the whole series library |
@@ -42,12 +42,16 @@ connection light.
 
 - **Now playing** — the poster, title, year and genre, the file name (when
   *Show file name* is on), elapsed time and progress.
-- **Plot & ratings** — a card under it with every rating Kodi's library
-  holds for the title, then its slogan and its plot. The ratings are a row of
-  badges: a score for each source the scraper or the NFO wrote (IMDb, TMDb,
-  Trakt, TVDB, Metacritic, or whatever else it names) with how many voted,
-  your own rating, the place in the IMDb Top 250 and the age rating. An
-  episode is rated on its own and carries its show's age rating. The slogan
+- **Overview** — a card under it with every rating Kodi's library holds for
+  the title, then its slogan and its plot. The ratings are a row of pills,
+  each wearing its source's mark in the source's colours instead of its name:
+  a score for each source the scraper or the NFO wrote (IMDb, TMDb, Trakt,
+  TVDB, Metacritic, Rotten Tomatoes; any other gets a circle with its first
+  letter) with how many voted, your own rating behind a heart, the place in
+  the IMDb Top 250 and the age rating — a German one as the coloured FSK
+  mark, any other written out. A screen reader hears each pill in words
+  ("IMDb 8.5, 612,345 votes"). An episode is rated on its own and carries
+  its show's age rating. The slogan
   only stands above a plot (most episodes have none). Without a plot the card
   shows the ratings alone, and with neither it is left out, as it is for a
   file that is not in the library. The ratings are read from the library once

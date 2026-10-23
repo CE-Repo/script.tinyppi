@@ -1488,8 +1488,8 @@ msgid "Show chapter markers"
 msgstr "Kapitelmarken anzeigen"
 
 msgctxt "#32370"
-msgid "Plot & ratings"
-msgstr "Handlung & Bewertungen"
+msgid "Overview"
+msgstr "Überblick"
 
 msgctxt "#32371"
 msgid "%s votes"

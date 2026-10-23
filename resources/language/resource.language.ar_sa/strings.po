@@ -1488,8 +1488,8 @@ msgid "Show chapter markers"
 msgstr "إظهار علامات الفصول"
 
 msgctxt "#32370"
-msgid "Plot & ratings"
-msgstr "القصة والتقييمات"
+msgid "Overview"
+msgstr "نظرة عامة"
 
 msgctxt "#32371"
 msgid "%s votes"

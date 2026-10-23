@@ -574,10 +574,12 @@
 }
 .now .meta:empty { display: none; }
 
-/* --- The plot and the ratings ---------------------------------------------
+/* --- The overview: the ratings and the plot ------------------------------
    The card under the one of what is playing.  The ratings along the top as
    pills of the kind the format badges are, which is what they are: short
-   facts about the film, to be taken in at a glance.  Under them the slogan,
+   facts about the film, to be taken in at a glance -- each wearing its
+   house's mark in its house's colours rather than its name, so a row of
+   them is read by colour before a word of it is.  Under them the slogan,
    in the text's own colour and set in italics as the line a poster carries,
    and the plot as prose, in the muted grey the year and genre are written
    in.  A plot is the one paragraph on the page, so it gets the line height
@@ -599,19 +601,26 @@
   margin-bottom: 2px;
 }
 .rating {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 21%, var(--panel-2));
+}
+/* The pill as drawn: the source's mark hugging its left end, the figure in
+   the text's own colour and how many voted in the dim grey beside it. */
+.rating .look {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 4px 10px 4px 4px;
   font-size: 12px;
   line-height: 1.3;
-  padding: 5px 10px;
-  border-radius: 999px;
-  color: var(--muted);
-  background: color-mix(in srgb, var(--accent) 21%, var(--panel-2));
-  max-width: 100%;
+  color: var(--dim);
   overflow-wrap: anywhere;
 }
-.rating .name { font-weight: 600; }
+/* A mark on its own -- the FSK's -- is the whole pill. */
+.rating .look:has(> .mark:only-child) { padding: 4px; }
 /* Tabular figures in the face of the words around them rather than the
    monospaced one the readings use: that face sits higher on the line, and a
    pill this small shows it. */
@@ -620,21 +629,49 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-.rating .note { color: var(--dim); }
-/* A score wears the star the posters on the shelves wear, in the same amber
-   (see .filmrating in dashboard.css); the reader's own wears it in the
-   accent, which is what says it is theirs. */
-.rating.score::before,
-.rating.mine::before {
-  content: "";
+.rating.age .value { padding-left: 6px; }
+.rating .mark {
   flex: none;
-  width: 12px;
-  height: 12px;
-  background: #f4c04f;
-  -webkit-mask: url('/icons/star.svg') no-repeat center / contain;
-  mask: url('/icons/star.svg') no-repeat center / contain;
+  display: block;
+  width: 20px;
+  height: 20px;
 }
-.rating.mine::before { background: var(--accent); }
+.rating .mark.wide { width: 40px; }
+/* A source with no drawing: its first letter in a plain circle. */
+.rating .mark.letter {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+/* The reader's own rating: a heart on the accent, which is what says it is
+   theirs and not a house's. */
+.rating .mark.heart {
+  border-radius: 50%;
+  background: var(--accent);
+  position: relative;
+}
+.rating .mark.heart::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  background: #fff;
+  -webkit-mask: url('/icons/heart.svg') no-repeat center / contain;
+  mask: url('/icons/heart.svg') no-repeat center / contain;
+}
+/* What the badge says aloud: there for a screen reader, not on the screen. */
+.rating .said {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .plot p {
   margin: 0;
   overflow-wrap: break-word;

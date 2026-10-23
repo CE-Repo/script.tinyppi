@@ -24,7 +24,7 @@ MIN_COMPRESS = 600
 
 # Folders of resources/web served by file name, and the served types.  Other
 # types, hidden files and subfolders are never served.
-_SERVED_FOLDERS = ("css", "js", "icons")
+_SERVED_FOLDERS = ("css", "js", "icons", "ratings")
 _SERVED_TYPES = {
     ".css": "text/css; charset=utf-8",
     ".js":  "text/javascript; charset=utf-8",

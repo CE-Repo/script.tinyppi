@@ -276,39 +276,80 @@
     el.plotCard.classList.toggle("hidden", !plot && !badges.length);
   }
 
-  /* What a rating badge calls the house it is from.  Brand names, the same
-     in every language; a source none of these names -- an NFO may carry any
-     -- is written as the library has it. */
+  /* What a rating's mark is drawn from, and what a screen reader calls the
+     house it is from: brand names, the same in every language.  The marks
+     are the add-on's own drawings in each house's colours (see
+     tools/gen_rating_marks.py); a source none of these names -- an NFO may
+     carry any -- wears a plain circle with its first letter instead. */
   const RATING_SOURCES = {
-    imdb: "IMDb", tmdb: "TMDb", trakt: "Trakt", tvdb: "TVDB", metacritic: "Metacritic"
+    imdb: "IMDb", tmdb: "TMDb", trakt: "Trakt", tvdb: "TVDB", metacritic: "Metacritic",
+    rottentomatoes: "Rotten Tomatoes"
   };
+  /* The marks twice as wide as they are tall; the rest are round or square. */
+  const WIDE_MARKS = new Set(["imdb", "tmdb", "tvdb", "top250"]);
 
-  /* Every rating the library holds for the title (see web/ratings.py): a
-     score for each source with how many voted for it, the reader's own, the
-     place in the IMDb Top 250 and the age rating, in that order. */
+  /* Every rating the library holds for the title (see web/ratings.py), in
+     the order the badges stand: a score for each source with how many voted
+     for it, the reader's own, the place in the IMDb Top 250 and the age
+     rating.  Each badge says in words what its mark shows, for a screen
+     reader and under a pointer. */
   function ratingBadges(media, T) {
     const badges = [];
     for (const entry of media.ratings || []) {
       const source = entry.source || "";
+      const name = RATING_SOURCES[source] ||
+        source.charAt(0).toUpperCase() + source.slice(1);
+      const value = entry.rating.toFixed(1);
+      const votes = entry.votes ? entry.votes.toLocaleString() : "";
       badges.push({
         kind: "score",
-        name: RATING_SOURCES[source] || source.charAt(0).toUpperCase() + source.slice(1),
-        value: entry.rating.toFixed(1),
-        note: entry.votes ? T.votes.replace("%s", entry.votes.toLocaleString()) : ""
+        mark: RATING_SOURCES[source] ? source : "",
+        letter: name.charAt(0),
+        value, note: votes,
+        said: (name + " " + value).trim() +
+          (votes ? ", " + T.votes.replace("%s", votes) : "")
       });
     }
     if (media.userrating) {
-      badges.push({ kind: "mine", name: T.my_rating, value: String(media.userrating), note: "" });
+      const value = String(media.userrating);
+      badges.push({ kind: "mine", value, said: T.my_rating + " " + value });
     }
     if (media.top250) {
-      badges.push({ kind: "rank", name: "", value: T.top250.replace("%s", media.top250), note: "" });
+      badges.push({ kind: "rank", mark: "top250", value: "#" + media.top250,
+                    said: T.top250.replace("%s", media.top250) });
     }
-    if (media.mpaa) badges.push({ kind: "age", name: "", value: media.mpaa, note: "" });
+    if (media.mpaa) {
+      /* A German one is the FSK's coloured mark and nothing else; any other
+         is written as the scraper wrote it. */
+      badges.push(media.fsk
+        ? { kind: "age", mark: "fsk" + media.fsk, said: media.mpaa }
+        : { kind: "age", value: media.mpaa, said: media.mpaa });
+    }
     return badges;
   }
 
+  /* A badge's mark: the drawing for its source, the reader's heart, a
+     circle with a letter for a source there is no drawing of -- or none, for
+     an age rating that is no FSK one and is written out instead. */
+  function ratingMark(badge) {
+    if (badge.mark) {
+      const image = document.createElement("img");
+      image.className = "mark" + (WIDE_MARKS.has(badge.mark) ? " wide" : "");
+      image.src = "/ratings/" + badge.mark + ".svg";
+      image.alt = "";
+      return image;
+    }
+    if (badge.kind === "age") return null;
+    const mark = document.createElement("span");
+    mark.className = "mark " + (badge.kind === "mine" ? "heart" : "letter");
+    mark.textContent = badge.letter || "";
+    return mark;
+  }
+
   /* Built again only when a badge would say something else, which is once a
-     title (see fillRow). */
+     title (see fillRow).  What a reader is told is the badge's sentence,
+     kept off the screen; what is drawn is kept from the reader, who would
+     otherwise hear "8.5 612,345" with nothing to say what either is. */
   function fillRatings(badges) {
     const signature = JSON.stringify(badges);
     if (el.ratings.dataset.signature === signature) return;
@@ -318,14 +359,23 @@
       const node = document.createElement("span");
       node.className = "rating " + badge.kind;
       node.setAttribute("role", "listitem");
-      for (const [part, text] of [["name", badge.name], ["value", badge.value],
-                                  ["note", badge.note]]) {
+      node.title = badge.said;
+      const said = document.createElement("span");
+      said.className = "said";
+      said.textContent = badge.said;
+      const look = document.createElement("span");
+      look.className = "look";
+      look.setAttribute("aria-hidden", "true");
+      const mark = ratingMark(badge);
+      if (mark) look.append(mark);
+      for (const [part, text] of [["value", badge.value], ["note", badge.note]]) {
         if (!text) continue;
         const piece = document.createElement("span");
         piece.className = part;
         piece.textContent = text;
-        node.append(piece);
+        look.append(piece);
       }
+      node.append(said, look);
       el.ratings.append(node);
     }
     el.ratings.classList.toggle("hidden", !badges.length);

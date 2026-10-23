@@ -1488,8 +1488,8 @@ msgid "Show chapter markers"
 msgstr "显示章节标记"
 
 msgctxt "#32370"
-msgid "Plot & ratings"
-msgstr "剧情与评分"
+msgid "Overview"
+msgstr "概览"
 
 msgctxt "#32371"
 msgid "%s votes"

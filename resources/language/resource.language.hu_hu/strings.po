@@ -1488,8 +1488,8 @@ msgid "Show chapter markers"
 msgstr "Fejezetjelölők megjelenítése"
 
 msgctxt "#32370"
-msgid "Plot & ratings"
-msgstr "Cselekmény és értékelések"
+msgid "Overview"
+msgstr "Áttekintés"
 
 msgctxt "#32371"
 msgid "%s votes"

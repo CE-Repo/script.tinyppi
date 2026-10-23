@@ -64,5 +64,7 @@ licence and its own copyright:
                              and uses its Python API and JSON-RPC interface.
 
 Trademarks of Dolby Laboratories, DTS / Xperi and IMAX appear in the format
-logos shipped under resources/skins/Default/media/.  See section 4 of
+logos shipped under resources/skins/Default/media/, and those of the rating
+services (IMDb, TMDB, Trakt, TheTVDB, Metacritic, Rotten Tomatoes) and of the
+FSK in the rating marks under resources/web/ratings/.  See section 4 of
 LICENSE-ASSETS.

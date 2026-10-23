@@ -7,7 +7,7 @@ import pytest
 
 import xbmc
 from web import ratings
-from web.ratings import no_ratings, playing_ratings, rating_list
+from web.ratings import fsk_level, no_ratings, playing_ratings, rating_list
 
 IMDB = {"default": True, "rating": 8.54, "votes": 612345}
 TMDB = {"default": False, "rating": 8.2, "votes": 6120}
@@ -53,10 +53,10 @@ def test_known_sources_come_first_in_their_order_and_the_rest_alphabetically():
     found = rating_list({
         "zeta": {"rating": 6.0}, "Trakt": {"rating": 7.9, "votes": 30},
         "themoviedb": TMDB, "alpha": {"rating": 5.0, "votes": 2}, "imdb": IMDB,
-        "tvdb": {"rating": 8.0}, "metacritic": {"rating": 7.7},
+        "tvdb": {"rating": 8.0}, "metacritic": {"rating": 7.7}, "rottentomatoes": {"rating": 9.1},
     })
     assert [entry["source"] for entry in found] == [
-        "imdb", "tmdb", "trakt", "tvdb", "metacritic", "alpha", "zeta"]
+        "imdb", "tmdb", "trakt", "tvdb", "metacritic", "rottentomatoes", "alpha", "zeta"]
     assert found[0] == {"source": "imdb", "rating": 8.5, "votes": 612345}
     assert found[1] == {"source": "tmdb", "rating": 8.2, "votes": 6120}
 
@@ -64,6 +64,14 @@ def test_known_sources_come_first_in_their_order_and_the_rest_alphabetically():
 def test_a_source_under_two_names_is_kept_once_as_it_came_first():
     found = rating_list({"tmdb": {"rating": 7.1}, "themoviedb": {"rating": 9.9}})
     assert found == [{"source": "tmdb", "rating": 7.1, "votes": 0}]
+
+
+@pytest.mark.parametrize(("name", "source"), [
+    ("metascore", "metacritic"), ("tomatometer", "rottentomatoes"),
+    ("tomatometerallcritics", "rottentomatoes"), ("TheMovieDb", "tmdb"),
+])
+def test_the_other_names_a_source_goes_by_are_known(name, source):
+    assert rating_list({name: {"rating": 8.0}})[0]["source"] == source
 
 
 @pytest.mark.parametrize("held", [
@@ -97,6 +105,18 @@ def test_a_list_that_is_no_mapping_is_no_list(value):
     assert rating_list(value) == []
 
 
+# --- The age rating ------------------------------------------------------------------
+
+@pytest.mark.parametrize(("mpaa", "level"), [
+    ("FSK 12", "12"), ("FSK12", "12"), ("fsk 0", "0"), ("FSK ab 16 freigegeben", "16"),
+    ("DE:FSK 18", "18"), ("Germany:6", "6"), ("de: ab 12", "12"), ("Deutschland:16", "16"),
+    ("Rated PG-13", ""), ("12", ""), ("Rated 12", ""), ("FSK 14", ""), ("FSK 120", ""),
+    ("USK 12", ""), ("", ""),
+])
+def test_a_german_age_rating_is_read_for_its_fsk_level(mpaa, level):
+    assert fsk_level(mpaa) == level
+
+
 # --- What is playing ---------------------------------------------------------------
 
 def test_a_film_brings_every_kind_of_rating():
@@ -105,7 +125,7 @@ def test_a_film_brings_every_kind_of_rating():
     assert answer(fake) == {
         "ratings": [{"source": "imdb", "rating": 8.5, "votes": 612345},
                     {"source": "tmdb", "rating": 8.2, "votes": 6120}],
-        "mpaa": "FSK 12", "userrating": 9, "top250": 27,
+        "mpaa": "FSK 12", "fsk": "12", "userrating": 9, "top250": 27,
     }
     assert ("VideoLibrary.GetMovieDetails",
             {"movieid": 12, "properties": ["ratings", "userrating", "mpaa", "top250"]}) in fake.calls
@@ -125,7 +145,7 @@ def test_an_episode_rates_itself_and_takes_its_age_rating_from_its_show():
                          "tvshowid": 3, "mpaa": "ignored"},
                 show={"mpaa": "FSK 16"})
     assert answer(fake) == {"ratings": [{"source": "tvdb", "rating": 8.8, "votes": 40}],
-                            "mpaa": "FSK 16", "userrating": 7, "top250": 0}
+                            "mpaa": "FSK 16", "fsk": "16", "userrating": 7, "top250": 0}
     assert ("VideoLibrary.GetTVShowDetails", {"tvshowid": 3, "properties": ["mpaa"]}) in fake.calls
 
 

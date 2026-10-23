@@ -71,11 +71,13 @@ test("the live tab connects and shows the format badges", async () => {
 test("the ratings, the slogan and the plot stand in a card of their own under the playing one", async () => {
   await page.waitForSelector("#plotCard:not(.hidden)");
   // The stubs' strings are only their ids, so the words of a badge are the
-  // jsdom tests'; here it is which badges stand there, with which figures.
-  const badges = await page.$$eval("#ratings .rating", (nodes) => nodes.map((node) =>
-    [...node.children].filter((part) => !part.classList.contains("note"))
-      .map((part) => part.textContent)));
-  assert.deepEqual(badges, [["IMDb", "7.9"], ["FSK 12"]]);
+  // jsdom tests'; here it is which marks stand there, served and drawn.
+  await page.waitForFunction(() => [...document.querySelectorAll("#ratings img")]
+    .every((image) => image.complete && image.naturalWidth > 0));
+  const marks = await page.$$eval("#ratings .rating", (nodes) => nodes.map((node) => [
+    node.querySelector("img").getAttribute("src"),
+    [...node.querySelectorAll(".value")].map((part) => part.textContent).join("")]));
+  assert.deepEqual(marks, [["/ratings/imdb.svg", "7.9"], ["/ratings/fsk12.svg", ""]]);
   assert.equal(await page.locator("#tagline").innerText(), "One night changes everything.");
   // The plot's own line break, drawn as one.
   assert.equal(await page.locator("#plotText").innerText(),

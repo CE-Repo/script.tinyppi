@@ -7,21 +7,27 @@ Kodi's InfoLabels carry only the default rating.  The library holds one per
 source (``ratings``), the reader's own (``userrating``), the age rating
 (``mpaa``) and the IMDb Top 250 place, so the playing title's library entry
 is read over JSON-RPC, once per title (see ``SnapshotBuilder._rating_info``).
-An episode's age rating is its show's: Kodi keeps it there.
+An episode's age rating is its show's: Kodi keeps it there.  A German one is
+read for its FSK level too, which the page draws as the coloured FSK mark.
 """
 
+import re
 from collections.abc import Mapping
 
 from web.payloads import Rating, Ratings
 from web.player import rpc, video_player_id
 from web.values import Json, clean_value
 
-# Rating sources as Kodi names them, and the name the page knows them by, in
-# the order they are shown.  ``themoviedb`` and ``tmdb`` are one source under
-# two scraper versions' names.  Any other name (an NFO may carry anything)
-# follows these, alphabetically.
+# Rating sources as Kodi names them, and the name the page knows them by (and
+# draws the mark of), in the order they are shown.  One source can go by
+# several names: ``themoviedb`` and ``tmdb`` are two scraper versions', and
+# an NFO writer has its own for Metacritic and Rotten Tomatoes.  Any other
+# name (an NFO may carry anything) follows these, alphabetically.
 _SOURCES = (("imdb", "imdb"), ("themoviedb", "tmdb"), ("tmdb", "tmdb"),
-            ("trakt", "trakt"), ("tvdb", "tvdb"), ("metacritic", "metacritic"))
+            ("trakt", "trakt"), ("tvdb", "tvdb"),
+            ("metacritic", "metacritic"), ("metascore", "metacritic"),
+            ("rottentomatoes", "rottentomatoes"), ("tomatometer", "rottentomatoes"),
+            ("tomatometerallcritics", "rottentomatoes"))
 _ALIASES = dict(_SOURCES)
 # Each name once, tmdb included, so a name outside it sorts after all of them.
 _ORDER = {name: index for index, name in enumerate(dict.fromkeys(_ALIASES.values()))}
@@ -31,13 +37,25 @@ _RATING_LIMIT = 8
 # A source's name is a label on a badge, not a sentence.
 _NAME_LIMIT = 24
 
+# A German age rating, however a scraper or an NFO wrote it: "FSK 12",
+# "FSK ab 16 freigegeben", "DE:FSK 18", "Germany:6".  A bare "12" is not one:
+# the British board writes its ratings the same way.
+_FSK = re.compile(r"(?:\bFSK\s*|^(?:de|ger|germany|deutschland)\s*:\s*(?:FSK\s*)?)"
+                  r"(?:ab\s*)?(0|6|12|16|18)(?!\d)", re.IGNORECASE)
+
 _MOVIE = ("ratings", "userrating", "mpaa", "top250")
 _EPISODE = ("ratings", "userrating", "tvshowid")
 
 
 def no_ratings() -> Ratings:
     """Return the ratings of a title the library knows nothing about."""
-    return {"ratings": [], "mpaa": "", "userrating": 0, "top250": 0}
+    return {"ratings": [], "mpaa": "", "fsk": "", "userrating": 0, "top250": 0}
+
+
+def fsk_level(mpaa: str) -> str:
+    """Return the FSK level an age rating names ("0" to "18"), or ""."""
+    found = _FSK.search(mpaa)
+    return found.group(1) if found else ""
 
 
 def _count(value: object, high: int | None = None) -> int:
@@ -97,9 +115,11 @@ def _details(method: str, id_key: str, item_id: int, properties: tuple[str, ...]
 
 def _collect(details: Json, aged: Json) -> Ratings:
     """Return the ratings of *details*, with the age rating of *aged*."""
+    mpaa = clean_value(str(aged.get("mpaa") or ""))
     return {
         "ratings":    rating_list(details.get("ratings")),
-        "mpaa":       clean_value(str(aged.get("mpaa") or "")),
+        "mpaa":       mpaa,
+        "fsk":        fsk_level(mpaa),
         "userrating": _count(details.get("userrating"), 10),
         "top250":     _count(details.get("top250"), 250),
     }
