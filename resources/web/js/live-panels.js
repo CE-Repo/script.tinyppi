@@ -108,6 +108,10 @@
           '<dl class="credits hidden" id="credits"></dl>' +
         '</div>' +
         '<div class="ratings hidden" id="ratings" role="list"></div>' +
+        /* What a shield says, over it for a moment after a tap: the house a
+           mark is from, which a mark alone does not always tell.  A screen
+           reader hears each shield's words already. */
+        '<span class="ratingtip hidden" id="ratingTip" aria-hidden="true"></span>' +
       '</div>' +
     '</details>' +
     '<details class="card hidden" id="tiles">' +
@@ -164,7 +168,7 @@
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), studio: $("studio"), file: $("file"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
-    plotCard: $("plotCard"), ratings: $("ratings"), tagline: $("tagline"),
+    plotCard: $("plotCard"), ratings: $("ratings"), ratingTip: $("ratingTip"), tagline: $("tagline"),
     plotFold: $("plotFold"), plotText: $("plotText"), credits: $("credits"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
@@ -456,6 +460,25 @@
      gave on the right.  What a reader is told is the badge's sentence, kept
      off the screen; what is drawn is kept from the reader, who would
      otherwise hear "8.5 612,345" with nothing to say what either is. */
+  /* A tap -- or a click -- on a shield shows its words over it for a
+     moment; under a pointer its tooltip says them too. */
+  let tipTimer = 0;
+  function tellRating(node) {
+    const card = el.ratings.parentElement.getBoundingClientRect();
+    const box = node.getBoundingClientRect();
+    el.ratingTip.textContent = node.title;
+    el.ratingTip.style.left = (box.left + box.width / 2 - card.left) + "px";
+    el.ratingTip.style.top = (box.top - card.top) + "px";
+    el.ratingTip.classList.remove("hidden");
+    clearTimeout(tipTimer);
+    tipTimer = setTimeout(() => el.ratingTip.classList.add("hidden"), 2000);
+  }
+
+  el.ratings.addEventListener("click", (event) => {
+    const node = event.target.closest(".rating");
+    if (node) tellRating(node);
+  });
+
   function fillRatings(badges) {
     const signature = JSON.stringify(badges);
     if (el.ratings.dataset.signature === signature) return;

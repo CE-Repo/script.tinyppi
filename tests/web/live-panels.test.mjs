@@ -358,7 +358,7 @@ test("the overview card carries every rating as a shield with its mark, under th
   assert.equal($("plotCard").classList.contains("hidden"), false);
   assert.equal($("ratings").classList.contains("hidden"), false);
   // Under the slogan and the plot, and the credits where there are any: last.
-  assert.equal($("ratings").nextElementSibling, null);
+  assert.equal($("ratings").nextElementSibling, $("ratingTip"));
   assert.equal($("plotFold").nextElementSibling, $("ratings"));
   assert.equal($("plotText").nextElementSibling, $("credits"));
   assert.equal($("tagline").nextElementSibling, $("plotText"));
@@ -447,6 +447,37 @@ test("the sources MDBList brings wear their own marks and names", (t) => {
   for (const [source] of sources) {
     assert.ok(existsSync(new URL("../../resources/web/ratings/" + source + ".svg", import.meta.url)), source);
   }
+});
+
+test("a tap on a rating's shield shows its words over it for a moment", (t) => {
+  const { $, P, window } = panels(t);
+  const timers = heldTimers(window);
+  P.update(snap({ media: { plot: "Plot.", ratings: [{ source: "trakt", rating: 8.8, votes: 0 },
+                                                     { source: "letterboxd", rating: 9.0, votes: 0 }] } }));
+  const tip = $("ratingTip");
+  assert.ok(tip.classList.contains("hidden"));
+  assert.equal(tip.getAttribute("aria-hidden"), "true");
+  // jsdom lays nothing out: the card and the shield are given their boxes.
+  $("ratings").parentElement.getBoundingClientRect = () => ({ left: 10, top: 20 });
+  const [trakt, letterboxd] = $("ratings").children;
+  trakt.getBoundingClientRect = () => ({ left: 50, top: 220, width: 60 });
+  letterboxd.getBoundingClientRect = () => ({ left: 120, top: 220, width: 70 });
+  // A tap on the mark itself is a tap on its shield.
+  trakt.querySelector("img").click();
+  assert.equal(tip.classList.contains("hidden"), false);
+  assert.equal(tip.textContent, "Trakt 8.8");
+  assert.deepEqual([tip.style.left, tip.style.top], ["70px", "200px"]);
+  assert.deepEqual(timers.delays(), [2000]);
+  // Another shield before it is gone: its words, and the moment starts again.
+  letterboxd.click();
+  assert.equal(tip.textContent, "Letterboxd 9.0");
+  assert.equal(tip.style.left, "145px");
+  assert.deepEqual(timers.delays(), [2000]);
+  timers.run();
+  assert.ok(tip.classList.contains("hidden"));
+  // A tap beside the shields shows nothing.
+  $("ratings").click();
+  assert.ok(tip.classList.contains("hidden"));
 });
 
 test("the overview's credits: the directors over the cast, a line each, over the ratings", (t) => {

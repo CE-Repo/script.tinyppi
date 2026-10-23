@@ -594,9 +594,25 @@
 ------------------------------------------------------------------------ */
 
 .plot {
+  position: relative;
   padding: 14px 16px 16px;
   display: grid;
   gap: 10px;
+}
+/* A shield's words over its middle, for a moment after a tap. */
+.ratingtip {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, calc(-100% - 6px));
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--shadow);
 }
 .ratings {
   display: flex;
@@ -618,7 +634,7 @@
    readings are, rather than round like a button. */
 /* Every badge one height, its border inside it, whatever it holds: a
    shield of figures, a heart, an age rating's mark on its own. */
-.ratings { --badge: 26px; }
+.ratings { --badge: 22px; }
 .rating {
   position: relative;
   display: inline-flex;
@@ -626,9 +642,10 @@
   height: var(--badge);
   max-width: 100%;
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: 6px;
   overflow: hidden;
   background: var(--panel-2);
+  cursor: pointer;
 }
 .rating .look {
   display: inline-flex;
@@ -660,7 +677,7 @@
 .rating .side.myanimelist { background: #2e51a2; }
 /* A source with no drawing: its first letter on a plain plate. */
 .rating .side.letter {
-  min-width: 24px;
+  min-width: 20px;
   padding: 0 6px;
   background: var(--line);
   color: var(--muted);
@@ -675,8 +692,8 @@
 }
 .rating .side.heart::before {
   content: "";
-  width: 13px;
-  height: 13px;
+  width: 11px;
+  height: 11px;
   background: #fff;
   -webkit-mask: url('/icons/heart.svg') no-repeat center / contain;
   mask: url('/icons/heart.svg') no-repeat center / contain;
@@ -689,7 +706,7 @@
   align-items: baseline;
   align-self: center;
   gap: 5px;
-  padding: 0 8px;
+  padding: 0 7px;
   white-space: nowrap;
 }
 /* Tabular figures in the face of the words around them rather than the
@@ -705,7 +722,7 @@
 .rating .mark {
   display: block;
   width: auto;
-  height: 20px;
+  height: 17px;
 }
 /* An age rating's left is its board's name on the colour of the level,
    drawn edge to edge and as tall as the shield inside its border; the level

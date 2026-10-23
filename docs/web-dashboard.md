@@ -64,7 +64,9 @@ connection light.
   MDBList gathers for a film (see [Ratings from MDBList](#ratings-from-mdblist))
   — your own rating behind a heart and the place in the IMDb Top 250 (see
   [The IMDb Top 250](#the-imdb-top-250)). A screen reader hears each shield
-  in words ("IMDb 8.5"). An episode is rated on its own and carries its
+  in words ("IMDb 8.5"), and a tap or a click on one shows the same words
+  over it for a moment (a pointer's tooltip says them too), for a mark you
+  do not know. An episode is rated on its own and carries its
   show's age rating. An age rating that names neither its country nor its
   board ("Rated 12", which the TMDb scraper writes with its default prefix)
   is read as the one board that gives that level — "PG-13" is American, "15"

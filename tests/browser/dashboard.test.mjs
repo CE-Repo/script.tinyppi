@@ -92,7 +92,14 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   // Every badge one height: the age rating's mark and the shields beside it.
   const heights = await page.$$eval("#ratings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
-  assert.deepEqual(heights, heights.map(() => 26));
+  assert.deepEqual(heights, heights.map(() => 22));
+  // A tap on one shows its words over it.
+  await page.locator("#ratings .rating").last().click();
+  const [tip, shield] = await Promise.all(
+    ["#ratingTip", "#ratings .rating:last-child"].map((selector) => page.locator(selector).boundingBox()));
+  assert.ok(tip, "the words are shown");
+  assert.ok(tip.y + tip.height <= shield.y, "over the shield");
+  assert.ok(Math.abs(tip.x + tip.width / 2 - (shield.x + shield.width / 2)) <= 1, "over its middle");
   const marks = await page.$$eval("#ratings .rating", (nodes) => nodes.map((node) => [
     node.querySelector("img").getAttribute("src"),
     [...node.querySelectorAll(".value")].map((part) => part.textContent).join("")]));
