@@ -42,8 +42,6 @@ function applyStrings(strings, hello) {
   $("tokenBtnText").textContent = strings.token_enter;
   $("barHead").textContent = strings.progress_bar;
   $("chapterMarksText").textContent = strings.chapter_marks;
-  $("ratingsHead").textContent = strings.ratings;
-  $("ratingColoursText").textContent = strings.rating_colours;
   $("reportHead").textContent = strings.copy;
   $("copyBtnText").textContent = strings.report_live;
   $("copyMetaBtnText").textContent = strings.tab_metadata;

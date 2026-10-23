@@ -25,35 +25,6 @@
 </head>
 
 <body class="dashboard-page">
-<!-- The filters a rating's mark is inked with on the accent (see
-     .ratings.accented in css/live-panels.css): black, the page's themes
-     being dark ones, as opaque as the mark
-     is light past a point, and no more than it is opaque (the composite:
-     its soft edges stay soft) -- a fifth of the way for most, seven tenths for
-     a mark drawn white on a colour, half for TheTVDB's letters on its grey --
-     or, for Rotten Tomatoes, as it is red, and for Metacritic, wholly. -->
-<svg class="filters" width="0" height="0" aria-hidden="true" focusable="false">
-  <filter id="inkDark" color-interpolation-filters="sRGB">
-    <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  4.252 14.304 1.444 0 -4"/>
-    <feComposite in2="SourceGraphic" operator="in"/>
-  </filter>
-  <filter id="inkLight" color-interpolation-filters="sRGB">
-    <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.126 7.152 0.722 0 -7"/>
-    <feComposite in2="SourceGraphic" operator="in"/>
-  </filter>
-  <filter id="inkRed" color-interpolation-filters="sRGB">
-    <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  10 0 0 0 -5"/>
-    <feComposite in2="SourceGraphic" operator="in"/>
-  </filter>
-  <filter id="inkMid" color-interpolation-filters="sRGB">
-    <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.126 7.152 0.722 0 -5"/>
-    <feComposite in2="SourceGraphic" operator="in"/>
-  </filter>
-  <filter id="inkWhole" color-interpolation-filters="sRGB">
-    <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
-    <feComposite in2="SourceGraphic" operator="in"/>
-  </filter>
-</svg>
 
 <header class="topbar">
   <div class="brand">
@@ -290,18 +261,6 @@
         <label class="setswitch">
           <span id="chapterMarksText"></span>
           <input type="checkbox" id="chapterMarks" role="switch" checked>
-        </label>
-      </div>
-    </section>
-
-    <!-- The rating badges' colours, this device's own choice (see
-         js/live-panels.js). -->
-    <section class="card setcard">
-      <h2 class="sethead" id="ratingsHead"></h2>
-      <div class="setbody">
-        <label class="setswitch">
-          <span id="ratingColoursText"></span>
-          <input type="checkbox" id="ratingColours" role="switch" checked>
         </label>
       </div>
     </section>

@@ -110,35 +110,6 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   const heights = await page.$$eval("#ratings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
   assert.deepEqual(heights, heights.map(() => 26));
-  // Switched to the accent on the settings tab: every mark inked, on the
-  // accent's ground; and back.
-  const flip = (on) => page.evaluate((checked) => {
-    const toggle = document.getElementById("ratingColours");
-    toggle.checked = checked;
-    toggle.dispatchEvent(new Event("change"));
-  }, on);
-  const look = () => page.$$eval("#ratings .rating", (nodes) => nodes.map((node) => [
-    getComputedStyle(node.querySelector(".mark")).filter,
-    getComputedStyle(node.querySelector(".side")).backgroundColor]));
-  const coloured = await look();
-  await flip(false);
-  const accented = await look();
-  const accent = await page.$eval("#ratings", (node) => {
-    const probe = node.appendChild(document.createElement("span"));
-    probe.style.background = "var(--accent)";
-    const colour = getComputedStyle(probe).backgroundColor;
-    probe.remove();
-    return colour;
-  });
-  // The FSK's plate has white letters on its green; IMDb's black on yellow.
-  assert.deepEqual(accented.map(([filter]) => filter), ['url("#inkLight")', 'url("#inkDark")']);
-  assert.deepEqual(accented.map(([, ground]) => ground), accented.map(() => accent));
-  assert.notDeepEqual(accented, coloured);
-  // The numbers keep their face: the switch is no "mono" of the readings'.
-  assert.notEqual(await page.$eval("#ratings .value", (node) => getComputedStyle(node).fontFamily),
-                  await page.$eval("#tElapsed", (node) => getComputedStyle(node).fontFamily));
-  await flip(true);
-  assert.deepEqual(await look(), coloured);
   // A tap on one shows its words over it.
   await page.locator("#ratings .rating").last().click();
   const [tip, shield] = await Promise.all(

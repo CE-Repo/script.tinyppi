@@ -1526,7 +1526,3 @@ msgstr "Az mdblist.com ingyenes kulcsával (Preferences → API) az Áttekintés
 msgctxt "#32386"
 msgid "Director"
 msgstr "Rendező"
-
-msgctxt "#32387"
-msgid "Coloured rating badges"
-msgstr "Színes értékelési jelvények"

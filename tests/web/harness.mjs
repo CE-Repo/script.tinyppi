@@ -20,7 +20,7 @@ export function source(name) {
 
 /** Run a classic script in the page under its own file name, so that
  * `npm run coverage` counts its lines. */
-export function run(dom, name) {
+function run(dom, name) {
   const file = join(WEB, "js", name);
   new vm.Script(source(name), { filename: pathToFileURL(file).href })
     .runInContext(dom.getInternalVMContext());

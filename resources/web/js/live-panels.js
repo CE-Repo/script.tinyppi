@@ -489,29 +489,6 @@
      gave on the right.  What a reader is told is the badge's sentence, kept
      off the screen; what is drawn is kept from the reader, who would
      otherwise hear "8.5 612,345" with nothing to say what either is. */
-  /* The shields in their houses' colours, or all on the accent: this
-     device's own choice, made with the switch on the settings tab (see
-     .ratings.accented in css/live-panels.css). */
-  const COLOURS_KEY = "tinyppi.ratingColours";
-  const coloursSwitch = $("ratingColours");
-
-  function storedColours() {
-    try { return localStorage.getItem(COLOURS_KEY) !== "0"; }
-    catch (_) { return true; }
-  }
-
-  function showColours(on) {
-    coloursSwitch.checked = on;
-    el.ratings.classList.toggle("accented", !on);
-  }
-
-  showColours(storedColours());
-  coloursSwitch.addEventListener("change", () => {
-    showColours(coloursSwitch.checked);
-    try { localStorage.setItem(COLOURS_KEY, coloursSwitch.checked ? "1" : "0"); }
-    catch (_) { /* no storage: the choice holds until the page is closed */ }
-  });
-
   /* A tap -- or a click -- on a shield shows over it for a moment whose it
      is; under a pointer its tooltip says so too. */
   let tipTimer = 0;
