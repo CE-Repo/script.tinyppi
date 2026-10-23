@@ -573,6 +573,9 @@
   overflow-wrap: anywhere;
 }
 .now .meta:empty { display: none; }
+/* The studio under the year and the genre, as one block with them rather
+   than an item of the column of its own. */
+.now .meta:not(:empty) + .studio { margin-top: -10px; }
 
 /* --- The overview: the plot, the ratings and the credits -----------------
    The card under the one of what is playing, everything in it centred.

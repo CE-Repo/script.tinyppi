@@ -140,8 +140,6 @@ _UI_STRINGS = {
     "director":         32376,
     "directors":        32377,
     "cast":             32378,
-    "studio":           32379,
-    "studios":          32380,
 }
 
 

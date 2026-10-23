@@ -1514,11 +1514,3 @@ msgstr ""
 msgctxt "#32378"
 msgid "Cast"
 msgstr ""
-
-msgctxt "#32379"
-msgid "Studio"
-msgstr ""
-
-msgctxt "#32380"
-msgid "Studios"
-msgstr ""

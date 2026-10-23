@@ -1514,11 +1514,3 @@ msgstr "Rendezők"
 msgctxt "#32378"
 msgid "Cast"
 msgstr "Szereplők"
-
-msgctxt "#32379"
-msgid "Studio"
-msgstr "Stúdió"
-
-msgctxt "#32380"
-msgid "Studios"
-msgstr "Stúdiók"

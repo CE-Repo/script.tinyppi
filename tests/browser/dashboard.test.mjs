@@ -66,6 +66,13 @@ test("the live tab connects and shows the format badges", async () => {
   for (const badge of ["UHD", "DV P7.6 FEL", "TrueHD Atmos", "Atmos", "7.1"]) {
     assert.ok(badges.includes(badge), `${badge} in ${badges}`);
   }
+  // The studio under the year and the genre, as one block with them: closer
+  // to them than the column's lines are to each other.
+  assert.equal(await page.locator("#studio").innerText(), "A Studio");
+  const [title, meta, studio] = await Promise.all(
+    ["#title", "#meta", "#studio"].map((selector) => page.locator(selector).boundingBox()));
+  const gap = studio.y - (meta.y + meta.height);
+  assert.ok(gap >= 0 && gap < meta.y - (title.y + title.height), `${gap} under the genre`);
 });
 
 test("the ratings, the slogan and the plot stand in a card of their own under the playing one", async () => {

@@ -45,6 +45,7 @@
         '<div class="badges" id="badges"></div>' +
         '<h1 id="title">—</h1>' +
         '<p class="meta" id="meta"></p>' +
+        '<p class="meta studio" id="studio"></p>' +
         '<p class="file mono hidden" id="file"></p>' +
         /* What the picture is and what the sound is, a row each -- the same
            badges the mobile app draws under its title. */
@@ -156,7 +157,7 @@
 
   const el = {
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
-    meta: $("meta"), file: $("file"),
+    meta: $("meta"), studio: $("studio"), file: $("file"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
     plotCard: $("plotCard"), ratings: $("ratings"), tagline: $("tagline"),
     plotText: $("plotText"), credits: $("credits"),
@@ -209,6 +210,9 @@
     if (media.year) parts.push(media.year);
     if (media.genre) parts.push(media.genre);
     el.meta.textContent = parts.join("  ·  ");
+    /* Who made it, on a line of its own under what kind of film it is. */
+    const studios = media.studios || [];
+    el.studio.textContent = studios.length ? nameList(studios, media.studios_more) : "";
 
     if (snapshot.filename) {
       el.file.textContent = snapshot.filename;
@@ -279,15 +283,18 @@
     el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credits.length);
   }
 
-  /* Who made the title, in the order a film's credits are asked about: who
-     directed it, who is in it and who made it -- what kind of film it is
-     stands in the card above.  The first names of each, as the add-on cuts
-     them (see _NAMES in web/snapshot.py), and an ellipsis after them where
-     there are more.  Each under its name for one or for more than one of it
-     ("Studio", "Studios"), and left out where the library has none. */
-  const CREDITS = [
-    ["directors", "director", "directors"], ["cast", "cast", "cast"], ["studios", "studio", "studios"]
-  ];
+  /* Names as a line: a comma between two, and an ellipsis after the last
+     where there are more than the add-on sends (see _NAMES in
+     web/snapshot.py). */
+  function nameList(names, more) {
+    return names.join(", ") + (more ? ", …" : "");
+  }
+
+  /* Who made the title, as a film's credits are asked about: who directed
+     it and who is in it -- what kind of film it is and the studio stand in
+     the card above.  Each under its name for one or for more than one of it
+     ("Director", "Directors"), and left out where the library has none. */
+  const CREDITS = [["directors", "director", "directors"], ["cast", "cast", "cast"]];
 
   function creditList(media, T) {
     const credits = [];
@@ -297,7 +304,7 @@
       const cut = Boolean(media[key + "_more"]);
       credits.push({
         label: names.length === 1 && !cut ? T[one] : T[more],
-        names: names.join(", ") + (cut ? ", …" : "")
+        names: nameList(names, cut)
       });
     }
     return credits;

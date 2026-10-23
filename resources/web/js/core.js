@@ -34,7 +34,6 @@ window.TinyPPI = (function () {
     peak: "Peak", average: "Average", fps: "FPS", switches: "Switches",
     metrics: "Metrics", plot: "Overview", votes: "%s votes", my_rating: "My rating",
     top250: "Top 250 · #%s", director: "Director", directors: "Directors", cast: "Cast",
-    studio: "Studio", studios: "Studios",
     player_cache: "Player cache", audio_track: "Audio track",
     warnings: "Warnings",
     playpause: "Play / pause", stop: "Stop", mute: "Mute",

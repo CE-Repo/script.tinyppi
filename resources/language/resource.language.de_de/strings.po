@@ -1514,11 +1514,3 @@ msgstr "Regie"
 msgctxt "#32378"
 msgid "Cast"
 msgstr "Darsteller"
-
-msgctxt "#32379"
-msgid "Studio"
-msgstr "Studio"
-
-msgctxt "#32380"
-msgid "Studios"
-msgstr "Studios"

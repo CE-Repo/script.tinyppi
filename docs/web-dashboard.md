@@ -40,8 +40,10 @@ nothing happening, handing its room at the foot of the page back to the last
 card, and comes back with the next touch, scroll, key or pointer movement. The top bar carries just the name, the version and the
 connection light.
 
-- **Now playing** — the poster, title, year and genre, the file name (when
-  *Show file name* is on), elapsed time and progress.
+- **Now playing** — the poster, title, year and genre, under them the studio
+  (up to four, ending in "…" where there are more; an episode's is its
+  show's), the file name (when *Show file name* is on), elapsed time and
+  progress.
 - **Overview** — a card under it with the title's slogan and its plot,
   under them, past a thin rule, every rating Kodi's library holds for it, and
   under those, past another, its credits, all of it centred. The ratings
@@ -61,11 +63,11 @@ connection light.
   British — and where more than one does ("12", "18", "PG") as the board of
   the country Kodi's language points to: German, British English or American
   English. The credits are a line each, its name in bold and then the names:
-  the director (up to three), the cast (its first five, in billing order) and
-  the studio (up to four), each ending in "…" where there are more, named for
-  one or for more than one ("Studio", "Studios") and left out where Kodi has
-  none; the genre stands in the card above. An episode's studio is its
-  show's, and its cast its own guests and then the show's. They are
+  the director (up to three) and the cast (its first five, in billing order),
+  each ending in "…" where there are more, named for one or for more than one
+  ("Director", "Directors") and left out where Kodi has none; the genre and
+  the studio stand in the card above. An episode's cast is its own guests
+  and then the show's. They are
   what Kodi knows of whatever plays, so an add-on's stream that names them has
   them too. The slogan only stands above a plot (most episodes have
   none). Without a plot the card shows the ratings and the credits alone, and

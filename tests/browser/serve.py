@@ -102,7 +102,7 @@ SNAPSHOT = {
               "ratings": [{"source": "imdb", "rating": 7.9, "votes": 1200}],
               "mpaa": "FSK 12", "age": "fsk12", "age_level": "12", "userrating": 0,
               "top250": 0, "directors": ["Somebody"], "directors_more": False,
-              "cast": ["One Actor", "Another Actor"], "cast_more": True, "studios": [],
+              "cast": ["One Actor", "Another Actor"], "cast_more": True, "studios": ["A Studio"],
               "studios_more": False},
     "metrics": {"cpu": 20, "cpu_temp": 50, "fps_in": 24, "l1": {"max": 1000, "avg": 120},
                 "frame": {"w": 3840, "h": 2160}, "progress": 8.3},

@@ -1514,11 +1514,3 @@ msgstr "导演"
 msgctxt "#32378"
 msgid "Cast"
 msgstr "演员"
-
-msgctxt "#32379"
-msgid "Studio"
-msgstr "制片公司"
-
-msgctxt "#32380"
-msgid "Studios"
-msgstr "制片公司"

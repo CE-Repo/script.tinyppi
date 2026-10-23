@@ -162,11 +162,15 @@ test("the panels arrive hidden, with the chart and the events unfolded", (t) => 
 
 test("what is playing: title, show line, file, progress and times", (t) => {
   const { $, P } = panels(t);
-  P.update(snap({ media: { show: "Show", season: "2", episode: "5", year: "2024", genre: "Drama" },
+  P.update(snap({ media: { show: "Show", season: "2", episode: "5", year: "2024", genre: "Drama",
+                           studios: ["A Studio", "Another"] },
                   filename: "/films/Show.S02E05.mkv" }));
   assert.equal($("nowCard").classList.contains("hidden"), false);
   assert.equal($("title").textContent, "Film");
   assert.equal($("meta").textContent, "Show · 2×05  ·  2024  ·  Drama");
+  // The studio on a line of its own under the genre.
+  assert.equal($("meta").nextElementSibling, $("studio"));
+  assert.equal($("studio").textContent, "A Studio, Another");
   assert.equal($("file").textContent, "/films/Show.S02E05.mkv");
   assert.equal($("file").classList.contains("hidden"), false);
   assert.equal($("bar").style.width, "8.4%");
@@ -178,6 +182,7 @@ test("what is playing: title, show line, file, progress and times", (t) => {
                   metrics: metrics({ progress: null }) }));
   assert.equal($("title").textContent, "—");
   assert.equal($("meta").textContent, "Show");
+  assert.equal($("studio").textContent, "");
   assert.ok($("file").classList.contains("hidden"));
   assert.equal($("bar").style.width, "0%");
   assert.equal($("track").getAttribute("aria-valuenow"), "0");
@@ -187,6 +192,10 @@ test("what is playing: title, show line, file, progress and times", (t) => {
   // Kodi numbers the specials season 0, and says so as text.
   P.update(snap({ media: { show: "Show", season: "0", episode: "3" } }));
   assert.equal($("meta").textContent, "Show · 0×03");
+
+  // A list the add-on cut ends in an ellipsis.
+  P.update(snap({ media: { studios: ["One", "Two", "Three", "Four"], studios_more: true } }));
+  assert.equal($("studio").textContent, "One, Two, Three, Four, …");
 
   P.update(snap({ metrics: undefined }));
   assert.equal($("meta").textContent, "");
@@ -349,14 +358,13 @@ test("the overview card ends with the credits, a line each under the ratings", (
   };
   P.update(snap({ media: credited }));
   // Under the ratings, in the order they are asked about, named for one or
-  // for more than one; the genre is the card above's.  A list the add-on
-  // cut ends in an ellipsis.
+  // for more than one; the genre and the studio are the card above's.  A
+  // list the add-on cut ends in an ellipsis.
   assert.equal($("ratings").nextElementSibling, $("credits"));
   assert.equal($("credits").classList.contains("hidden"), false);
   assert.deepEqual(lines(), [
     ["credit", "DT Director", "DD Denis Villeneuve"],
-    ["credit", "DT Cast", "DD Timothée Chalamet, Zendaya, Rebecca Ferguson, Javier Bardem, Josh Brolin, …"],
-    ["credit", "DT Studio", "DD Legendary Pictures"]]);
+    ["credit", "DT Cast", "DD Timothée Chalamet, Zendaya, Rebecca Ferguson, Javier Bardem, Josh Brolin, …"]]);
 
   // The same credits again are not built again.
   const first = $("credits").firstChild;
@@ -365,20 +373,19 @@ test("the overview card ends with the credits, a line each under the ratings", (
 
   // The words arrive later, into the page's table, and the lines are named
   // in them.
-  Object.assign(window.TinyPPI.T, { director: "Regie", directors: "Regie", cast: "Darsteller",
-                                    studio: "Studio", studios: "Studios" });
+  Object.assign(window.TinyPPI.T, { director: "Director", directors: "Directors", cast: "Darsteller" });
   P.strings(window.TinyPPI.T);
-  assert.deepEqual(lines().map((line) => line[1]), ["DT Regie", "DT Darsteller", "DT Studio"]);
+  assert.deepEqual(lines().map((line) => line[1]), ["DT Director", "DT Darsteller"]);
 
-  // Three directors and more, two studios; a list the library has none of
-  // is left out.  One name with more behind it is named for more.
+  // Three directors and more, no cast: that line left out.  One name with
+  // more behind it is named for more.  A studio alone is no credit.
   P.update(snap({ media: { plot: "Plot.", directors: ["Joel Coen", "Ethan Coen", "Somebody"],
-                           directors_more: true, cast: [], studios: ["A24", "Working Title"] } }));
-  assert.deepEqual(lines(), [
-    ["credit", "DT Regie", "DD Joel Coen, Ethan Coen, Somebody, …"],
-    ["credit", "DT Studios", "DD A24, Working Title"]]);
-  P.update(snap({ media: { plot: "Plot.", studios: ["A24"], studios_more: true } }));
-  assert.deepEqual(lines(), [["credit", "DT Studios", "DD A24, …"]]);
+                           directors_more: true, cast: [], studios: ["A24"] } }));
+  assert.deepEqual(lines(), [["credit", "DT Directors", "DD Joel Coen, Ethan Coen, Somebody, …"]]);
+  P.update(snap({ media: { plot: "Plot.", directors: ["Somebody"], directors_more: true } }));
+  assert.deepEqual(lines(), [["credit", "DT Directors", "DD Somebody, …"]]);
+  P.update(snap({ media: { studios: ["A24"] } }));
+  assert.ok($("plotCard").classList.contains("hidden"));
 
   // Credits alone are still an overview.
   P.update(snap({ media: { cast: ["Somebody"] } }));

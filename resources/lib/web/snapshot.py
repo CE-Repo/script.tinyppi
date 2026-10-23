@@ -127,13 +127,15 @@ _EXTRA_INFOLABELS = (
     ("Studio",              "VideoPlayer.Studio"),
 )
 
-# How many names of each the overview card's credits keep (see name_list):
-# the cast's leads, not the whole bill.  The page marks a list that has more.
+# How many names of each the page keeps (see name_list): the directors and
+# the cast's leads for the overview card's credits, the studios for the line
+# under the genre.  The page marks a list that has more.
 _NAMES = {"directors": 3, "cast": 5, "studios": 4}
 
 
 def _credits(values: dict[str, str]) -> Credits:
-    """Return who made the playing title, as the overview card lists it.
+    """Return who made the playing title: its directors and cast for the
+    overview card, its studios for the card of what is playing.
 
     An episode's studios are its show's, and its cast its own guests and
     then the show's: Kodi keeps them so.
@@ -144,6 +146,7 @@ def _credits(values: dict[str, str]) -> Credits:
     return {"directors": directors, "directors_more": directors_more,
             "cast": cast, "cast_more": cast_more,
             "studios": studios, "studios_more": studios_more}
+
 
 # Presence flags (true / false / '') as markers; the browser shows icons,
 # copied reports use localized words.
