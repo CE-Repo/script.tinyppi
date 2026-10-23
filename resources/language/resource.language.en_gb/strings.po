@@ -1486,3 +1486,7 @@ msgstr ""
 msgctxt "#32369"
 msgid "Show chapter markers"
 msgstr ""
+
+msgctxt "#32370"
+msgid "Plot"
+msgstr ""

@@ -56,6 +56,21 @@ def clean_value(value: str) -> str:
     return _SEPARATOR_RE.sub(" | ", _MARKUP_RE.sub("", value)).strip()
 
 
+# Kodi writes a line break into a library text as [CR].
+_LINE_BREAK_RE = re.compile(r"\[CR\]", re.IGNORECASE)
+
+
+def plain_text(value: str) -> str:
+    """Return a library text (a tagline, a plot) without markup.
+
+    Its line breaks are kept; the overlay's separator is not looked for, as
+    a plot is prose and " l " in it is a word.
+    """
+    if not value:
+        return value
+    return _MARKUP_RE.sub("", _LINE_BREAK_RE.sub("\n", value)).strip()
+
+
 def numbers(value: str) -> list[float]:
     """Return every number in a composite reading."""
     if not value or is_status_label(value):

@@ -1486,3 +1486,7 @@ msgstr "Fortschrittsbalken"
 msgctxt "#32369"
 msgid "Show chapter markers"
 msgstr "Kapitelmarken anzeigen"
+
+msgctxt "#32370"
+msgid "Plot"
+msgstr "Handlung"

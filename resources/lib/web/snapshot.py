@@ -61,7 +61,7 @@ from web.player import (
 )
 from web.rows import GROUPS, finish_time, is_dv_source, overlay_rows, render
 from web.session import SessionLog
-from web.values import clean_value, numbers
+from web.values import clean_value, numbers, plain_text
 from web.vs10 import vs10_state
 
 # Home property with the source HDR type (from publish_hdr_type).
@@ -115,6 +115,9 @@ _EXTRA_INFOLABELS = (
     ("Show",                "VideoPlayer.TVShowTitle"),
     ("Season",              "VideoPlayer.Season"),
     ("Episode",             "VideoPlayer.Episode"),
+    # The card under it: the slogan and what the title is about.
+    ("Tagline",             "VideoPlayer.Tagline"),
+    ("Plot",                "VideoPlayer.Plot"),
 )
 
 # Presence flags (true / false / '') as markers; the browser shows icons,
@@ -537,6 +540,8 @@ class SnapshotBuilder:
                 "show":    values.get("Show", ""),
                 "season":  values.get("Season", ""),
                 "episode": values.get("Episode", ""),
+                "tagline": plain_text(values.get("Tagline", "")),
+                "plot":    plain_text(values.get("Plot", "")),
             },
             "controls":  self._player_controls(control),
             "chapters":  chapters,

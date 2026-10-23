@@ -130,6 +130,8 @@ _UI_STRINGS = {
     "chapter_of":       32367,
     "progress_bar":     32368,
     "chapter_marks":    32369,
+    # The card of the slogan and the plot, under what is playing.
+    "plot":             32370,
 }
 
 

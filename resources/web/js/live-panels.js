@@ -92,6 +92,15 @@
         '</div>' +
       '</div>' +
     '</section>' +
+    /* What the title is about, under the card of what is playing: the
+       slogan and the plot, as the library has them. */
+    '<details class="card hidden" id="plotCard">' +
+      '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
+      '<div class="plot">' +
+        '<p class="tagline hidden" id="tagline"></p>' +
+        '<p class="plottext hidden" id="plotText"></p>' +
+      '</div>' +
+    '</details>' +
     '<details class="card hidden" id="tiles">' +
       '<summary class="panel-toggle"><span id="tilesTitle"></span></summary>' +
       '<div class="tilegrid">' +
@@ -146,6 +155,7 @@
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), file: $("file"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
+    plotCard: $("plotCard"), tagline: $("tagline"), plotText: $("plotText"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
     tFinish: $("tFinish"), tFinishLabel: $("tFinishLabel"),
@@ -170,6 +180,7 @@
   let idleFetched = false;  /* the ended title's events, asked for once      */
   let idleReset = false;    /* the panels have been put away once already    */
 
+  TinyPPI.bindDisclosure(el.plotCard, pageState + ".plot", true);
   TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
   /* The chart and the events arrive open: each is what a tab of its own is
      for now (the metadata tab and the history tab), and a tab that opens on a
@@ -204,6 +215,7 @@
     renderArt(snapshot.art || {});
     renderBadges(snapshot);
     renderFormats(snapshot);
+    renderPlot(media);
 
     const progress = (snapshot.metrics || {}).progress;
     const percent = (progress === null || progress === undefined) ? 0 : progress;
@@ -239,6 +251,21 @@
     el.tFinishLabel.textContent = finish && finishLabel ? finishLabel + " " : "";
     el.tFinishTime.textContent = finish;
     el.tFinish.classList.toggle("hidden", !finish);
+  }
+
+  /* The slogan and the plot, each left out where the library has none, and
+     the card with them where it has neither -- a file that is not in the
+     library, most episodes' slogan.  Written only when the words change:
+     they stand still for the whole title, and a plot is the longest text on
+     the page. */
+  function renderPlot(media) {
+    const tagline = (media.tagline || "").trim();
+    const plot = (media.plot || "").trim();
+    for (const [node, text] of [[el.tagline, tagline], [el.plotText, plot]]) {
+      if (node.textContent !== text) node.textContent = text;
+      node.classList.toggle("hidden", !text);
+    }
+    el.plotCard.classList.toggle("hidden", !tagline && !plot);
   }
 
   /* The poster is fetched once per film: the add-on sends a tag that changes
@@ -716,6 +743,7 @@
     /* The bar may already be drawn by the time the words for it arrive; the
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
+    $("plotTitle").textContent = T.plot;
     $("tilesTitle").textContent = T.metrics;
     $("kSwitches").textContent = T.switches;
     $("kWarnings").textContent = T.warnings;
@@ -759,7 +787,7 @@
          page is a wall of several hundred posters. */
       if (!idleReset) {
         idleReset = true;
-        const cards = [el.nowCard, el.tiles, el.chartCard];
+        const cards = [el.nowCard, el.plotCard, el.tiles, el.chartCard];
         for (const node of cards) node.classList.add("hidden");
         live = [];
         posterTag = "";

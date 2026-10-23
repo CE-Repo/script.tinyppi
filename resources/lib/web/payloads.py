@@ -129,6 +129,9 @@ class Media(TypedDict):
     show: str
     season: str
     episode: str
+    # The plot card's: the slogan and the summary, as the library has them.
+    tagline: str
+    plot: str
 
 
 # --- The title's history ----------------------------------------------------

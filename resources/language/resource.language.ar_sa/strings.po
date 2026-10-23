@@ -1486,3 +1486,7 @@ msgstr "شريط التقدم"
 msgctxt "#32369"
 msgid "Show chapter markers"
 msgstr "إظهار علامات الفصول"
+
+msgctxt "#32370"
+msgid "Plot"
+msgstr "القصة"

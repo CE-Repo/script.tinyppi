@@ -27,6 +27,7 @@ PLAYING = {
     "Player.FinishTime": "22:15", "Player.Progress": "8.3",
     "System.CPUTemperature": "55 °C", "VideoPlayer.VideoCodec": "hevc",
     "VideoPlayer.Year": "2021", "VideoPlayer.Genre": "Drama",
+    "VideoPlayer.Tagline": "One night.", "VideoPlayer.Plot": "Somebody does something.",
 }
 
 
@@ -60,6 +61,8 @@ def test_a_playing_title():
     assert shot["metrics"]["frame"] == {"w": 3840, "h": 2160}
     assert shot["metrics"]["cpu_temp"] == 55.0 and shot["metrics"]["progress"] == 8.3
     assert shot["media"]["year"] == "2021" and shot["media"]["genre"] == "Drama"
+    assert shot["media"]["tagline"] == "One night."
+    assert shot["media"]["plot"] == "Somebody does something."
     assert shot["controls"] == {}
     ids = [group["id"] for group in shot["groups"]]
     assert ids[0] == "video" and len(ids) == len(set(ids))

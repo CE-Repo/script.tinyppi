@@ -1486,3 +1486,7 @@ msgstr "进度条"
 msgctxt "#32369"
 msgid "Show chapter markers"
 msgstr "显示章节标记"
+
+msgctxt "#32370"
+msgid "Plot"
+msgstr "剧情"

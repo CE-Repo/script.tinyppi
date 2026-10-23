@@ -32,7 +32,7 @@ window.TinyPPI = (function () {
     no_metadata: "No Dolby Vision metadata", no_metadata_text: "",
     idle_title: "Nothing is playing", idle_text: "",
     peak: "Peak", average: "Average", fps: "FPS", switches: "Switches",
-    metrics: "Metrics",
+    metrics: "Metrics", plot: "Plot",
     player_cache: "Player cache", audio_track: "Audio track",
     warnings: "Warnings",
     playpause: "Play / pause", stop: "Stop", mute: "Mute",

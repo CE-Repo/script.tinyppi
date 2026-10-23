@@ -574,6 +574,39 @@
 }
 .now .meta:empty { display: none; }
 
+/* --- The plot -----------------------------------------------------------
+   The card under the one of what is playing: the slogan, in the text's own
+   colour and set in italics as the line a poster carries, and the plot
+   under it as prose, in the muted grey the year and genre are written in.
+   A plot is the one paragraph on the page, so it gets the line height of
+   one; its line breaks are the library's own (see plain_text in
+   web/values.py).
+------------------------------------------------------------------------ */
+
+.plot {
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 10px;
+}
+.plot p {
+  margin: 0;
+  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.plot .tagline {
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+}
+.plot .plottext {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--muted);
+  white-space: pre-line;
+}
+
 /* --- Format badges ------------------------------------------------------
    What the picture is and what the sound is, a row each, drawn the way the
    mobile app draws them: a quiet pill tinted from the card's accent -- the

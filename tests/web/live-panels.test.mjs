@@ -193,6 +193,52 @@ test("what is playing: title, show line, file, progress and times", (t) => {
   assert.equal($("bar").style.width, "0%");
 });
 
+test("the plot card: the slogan and the plot under what is playing, each only where it is", (t) => {
+  const { $, P, window } = panels(t);
+  assert.equal($("nowCard").nextElementSibling, $("plotCard"));
+  assert.ok($("plotCard").classList.contains("hidden"));
+  assert.equal($("plotCard").open, true, "it arrives unfolded");
+
+  P.update(snap({ media: { tagline: " Long live the fighters. ",
+                           plot: "Paul joins the Fremen.\nChani does not trust it." } }));
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+  assert.equal($("tagline").textContent, "Long live the fighters.");
+  assert.equal($("plotText").textContent, "Paul joins the Fremen.\nChani does not trust it.");
+  assert.equal($("tagline").classList.contains("hidden"), false);
+  assert.equal($("plotText").classList.contains("hidden"), false);
+
+  // An episode: a plot and no slogan.
+  P.update(snap({ media: { plot: "Episode plot." } }));
+  assert.equal($("tagline").textContent, "");
+  assert.ok($("tagline").classList.contains("hidden"));
+  assert.equal($("plotText").textContent, "Episode plot.");
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+
+  // A slogan and no plot.
+  P.update(snap({ media: { tagline: "Only this." } }));
+  assert.ok($("plotText").classList.contains("hidden"));
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+
+  // A file the library does not know: neither, and no card.
+  P.update(snap({ media: { tagline: "  ", plot: "" } }));
+  assert.ok($("plotCard").classList.contains("hidden"));
+  P.update(snap());
+  assert.ok($("plotCard").classList.contains("hidden"));
+
+  // Words that stayed the same are not written again.
+  P.update(snap({ media: { plot: "Same." } }));
+  const written = $("plotText").firstChild;
+  P.update(snap({ media: { plot: "Same." } }));
+  assert.equal($("plotText").firstChild, written);
+
+  // Nothing playing puts it away with the rest.
+  P.update({ playing: false });
+  assert.ok($("plotCard").classList.contains("hidden"));
+
+  P.strings({ ...window.TinyPPI.T, plot: "Handlung" });
+  assert.equal($("plotTitle").textContent, "Handlung");
+});
+
 test("the finish clock shows as it arrived and takes its label from the strings", (t) => {
   const { $, P, window } = panels(t);
   P.update(snap({ finish: "23:40" }));
@@ -833,7 +879,7 @@ test("when playback ends the panels are put away once and the ended title's even
   const picker = $("pick-audio");
 
   P.update({ playing: false, last: { events: 3 } });
-  for (const id of ["nowCard", "tiles", "chartCard"]) {
+  for (const id of ["nowCard", "plotCard", "tiles", "chartCard"]) {
     assert.ok($(id).classList.contains("hidden"), id);
   }
   assert.ok($("tFinish").classList.contains("hidden"));

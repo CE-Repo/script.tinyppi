@@ -68,6 +68,17 @@ test("the live tab connects and shows the format badges", async () => {
   }
 });
 
+test("the slogan and the plot stand in a card of their own under the playing one", async () => {
+  await page.waitForSelector("#plotCard:not(.hidden)");
+  assert.equal(await page.locator("#tagline").innerText(), "One night changes everything.");
+  // The plot's own line break, drawn as one.
+  assert.equal(await page.locator("#plotText").innerText(),
+               "A film about somebody.\nAnd what happens to them.");
+  const [now, plot] = await Promise.all(
+    ["#nowCard", "#plotCard"].map((selector) => page.locator(selector).boundingBox()));
+  assert.ok(plot.y > now.y + now.height - 1, "under the playing card");
+});
+
 test("the chapters ahead sit on the bar, a mouse brings up the rest, a click jumps", async () => {
   await page.mouse.move(0, 0);
   await page.waitForSelector(".chapter-dot");

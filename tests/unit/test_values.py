@@ -6,7 +6,7 @@
 import pytest
 
 from info.dvinfo import na_label
-from web.values import clean_value, library_id, numbers
+from web.values import clean_value, library_id, numbers, plain_text
 
 
 @pytest.mark.parametrize(("value", "expected"), [
@@ -28,6 +28,17 @@ def test_library_ids_are_positive_integers_or_zero(value, expected):
 ])
 def test_markup_is_stripped_and_separators_become_pipes(value, expected):
     assert clean_value(value) == expected
+
+
+@pytest.mark.parametrize(("value", "expected"), [
+    ("", ""),
+    ("[I]Long live the fighters.[/I]", "Long live the fighters."),
+    ("First line.[CR]Second line.[cr]", "First line.\nSecond line."),
+    ("Paul l Chani l Jessica", "Paul l Chani l Jessica"),
+    ("  padded  ", "padded"),
+])
+def test_library_texts_lose_markup_and_keep_their_line_breaks(value, expected):
+    assert plain_text(value) == expected
 
 
 @pytest.mark.parametrize(("value", "expected"), [

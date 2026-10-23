@@ -1486,3 +1486,7 @@ msgstr "Folyamatjelző sáv"
 msgctxt "#32369"
 msgid "Show chapter markers"
 msgstr "Fejezetjelölők megjelenítése"
+
+msgctxt "#32370"
+msgid "Plot"
+msgstr "Cselekmény"
