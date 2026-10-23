@@ -1,0 +1,52 @@
+name: Wiki
+
+# The pages under wiki/ are the source of the repository's GitHub wiki: a
+# change to them on main is published there, and the wiki is not edited by
+# hand any more (an edit made there is overwritten by the next publish).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "wiki/**"
+      - ".github/workflows/wiki.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One publish at a time, in order: a later one must not be overtaken.
+concurrency:
+  group: wiki
+  cancel-in-progress: false
+
+env:
+  GIT_CONFIG_COUNT: 1
+  GIT_CONFIG_KEY_0: init.defaultBranch
+  GIT_CONFIG_VALUE_0: main
+
+jobs:
+  publish:
+    name: Publish wiki/ to the GitHub wiki
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      # The wiki is a repository of its own (<repo>.wiki.git). Its pages are
+      # replaced by the folder's, a page gone from the folder is gone from the
+      # wiki, and nothing is committed when nothing changed.
+      - name: Publish
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          wiki="$RUNNER_TEMP/wiki"
+          git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" "$wiki"
+          rsync -a --delete --exclude .git wiki/ "$wiki/"
+          cd "$wiki"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "The wiki already matches wiki/."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "Publish wiki/ from ${GITHUB_SHA::7}"
+          git push
