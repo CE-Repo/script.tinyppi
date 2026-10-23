@@ -1506,3 +1506,11 @@ msgstr "Top 250 · 第 %s 名"
 msgctxt "#32378"
 msgid "Cast"
 msgstr "演员"
+
+msgctxt "#32381"
+msgid "Show more"
+msgstr "显示更多"
+
+msgctxt "#32382"
+msgid "Show less"
+msgstr "收起"

@@ -1506,3 +1506,11 @@ msgstr "أفضل 250 · المرتبة %s"
 msgctxt "#32378"
 msgid "Cast"
 msgstr "طاقم التمثيل"
+
+msgctxt "#32381"
+msgid "Show more"
+msgstr "عرض المزيد"
+
+msgctxt "#32382"
+msgid "Show less"
+msgstr "عرض أقل"

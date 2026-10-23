@@ -1506,3 +1506,11 @@ msgstr "Top 250 · Platz %s"
 msgctxt "#32378"
 msgid "Cast"
 msgstr "Darsteller"
+
+msgctxt "#32381"
+msgid "Show more"
+msgstr "Mehr anzeigen"
+
+msgctxt "#32382"
+msgid "Show less"
+msgstr "Weniger anzeigen"

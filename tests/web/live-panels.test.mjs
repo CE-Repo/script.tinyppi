@@ -224,6 +224,65 @@ test("who directed it stands in the card of what is playing, over its badges", (
   assert.ok($("plotCard").classList.contains("hidden"));
 });
 
+test("a long plot is cut to a few lines, and a button lets the rest out", (t) => {
+  const { $, P, window } = panels(t);
+  // jsdom lays nothing out: the plot is given the heights a browser would.
+  const box = { full: 200, shown: 87 };
+  Object.defineProperty($("plotText"), "scrollHeight", { configurable: true, get: () => box.full });
+  Object.defineProperty($("plotText"), "clientHeight", { configurable: true, get: () => box.shown });
+  const button = $("plotMore");
+  P.update(snap({ media: { plot: "A long plot." } }));
+  // Cut, and the button under it says there is more.
+  assert.equal($("plotText").nextElementSibling, button);
+  assert.equal($("plotText").classList.contains("open"), false);
+  assert.equal(button.classList.contains("hidden"), false);
+  assert.equal(button.textContent, "Show more");
+  assert.equal(button.getAttribute("aria-expanded"), "false");
+  assert.equal(button.getAttribute("aria-controls"), "plotText");
+
+  // Let out, and taken back.
+  button.click();
+  assert.ok($("plotText").classList.contains("open"));
+  assert.equal(button.textContent, "Show less");
+  assert.equal(button.getAttribute("aria-expanded"), "true");
+  // Measuring an open plot leaves its button be.
+  box.full = box.shown;
+  window.dispatchEvent(new window.Event("resize"));
+  assert.equal(button.classList.contains("hidden"), false);
+  button.click();
+  assert.equal($("plotText").classList.contains("open"), false);
+  assert.equal(button.textContent, "Show more");
+
+  // The words arrive later, and the button says them.
+  Object.assign(window.TinyPPI.T, { plot_more: "Mehr anzeigen", plot_less: "Weniger anzeigen" });
+  P.strings(window.TinyPPI.T);
+  assert.equal(button.textContent, "Mehr anzeigen");
+
+  // Wide enough for all of it -- after a resize, or once the card opens --
+  // and there is no button; narrower again, and it is back.
+  window.dispatchEvent(new window.Event("resize"));
+  assert.ok(button.classList.contains("hidden"));
+  box.full = 200;
+  $("plotCard").dispatchEvent(new window.Event("toggle"));
+  assert.equal(button.classList.contains("hidden"), false);
+
+  // A new plot starts cut, even after the last was let out.
+  button.click();
+  P.update(snap({ media: { plot: "Another long plot." } }));
+  assert.equal($("plotText").classList.contains("open"), false);
+  assert.equal(button.textContent, "Mehr anzeigen");
+  // The same plot again leaves it as it is.
+  button.click();
+  P.update(snap({ media: { plot: "Another long plot." } }));
+  assert.ok($("plotText").classList.contains("open"));
+
+  // A short one has no button.
+  box.full = 40;
+  box.shown = 40;
+  P.update(snap({ media: { plot: "Short." } }));
+  assert.ok(button.classList.contains("hidden"));
+});
+
 test("the plot card: the plot under what is playing, with its slogan where there is one", (t) => {
   const { $, P, window } = panels(t);
   assert.equal($("nowCard").nextElementSibling, $("plotCard"));
@@ -295,7 +354,8 @@ test("the overview card carries every rating as a shield with its mark, under th
   assert.equal($("ratings").classList.contains("hidden"), false);
   // Under the slogan and the plot, and the cast where there is one: last.
   assert.equal($("ratings").nextElementSibling, null);
-  assert.equal($("plotText").nextElementSibling, $("credits"));
+  assert.equal($("plotText").nextElementSibling, $("plotMore"));
+  assert.equal($("plotMore").nextElementSibling, $("credits"));
   assert.equal($("tagline").nextElementSibling, $("plotText"));
   assert.deepEqual(plain(badges()), [
     ["rating age", "FSK 12", "side fsk12 plate /ratings/fsk12.svg", [["value", "12"]]],

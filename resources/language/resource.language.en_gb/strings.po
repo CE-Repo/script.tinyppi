@@ -1506,3 +1506,11 @@ msgstr ""
 msgctxt "#32378"
 msgid "Cast"
 msgstr ""
+
+msgctxt "#32381"
+msgid "Show more"
+msgstr ""
+
+msgctxt "#32382"
+msgid "Show less"
+msgstr ""

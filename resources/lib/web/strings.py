@@ -136,8 +136,10 @@ _UI_STRINGS = {
     "votes":            32371,
     "my_rating":        32372,
     "top250":           32373,
-    # And what its credits are called.
+    # And what its credits are called, and the button under a long plot.
     "cast":             32378,
+    "plot_more":        32381,
+    "plot_less":        32382,
 }
 
 

@@ -1506,3 +1506,11 @@ msgstr "Top 250 · %s. hely"
 msgctxt "#32378"
 msgid "Cast"
 msgstr "Szereplők"
+
+msgctxt "#32381"
+msgid "Show more"
+msgstr "Több megjelenítése"
+
+msgctxt "#32382"
+msgid "Show less"
+msgstr "Kevesebb megjelenítése"

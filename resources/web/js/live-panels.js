@@ -104,6 +104,9 @@
       '<div class="plot">' +
         '<p class="tagline hidden" id="tagline"></p>' +
         '<p class="plottext hidden" id="plotText"></p>' +
+        /* A long plot is cut to a few lines; this lets the rest out. */
+        '<button type="button" class="plotmore hidden" id="plotMore" ' +
+          'aria-controls="plotText" aria-expanded="false"></button>' +
         '<dl class="credits hidden" id="credits"></dl>' +
         '<div class="ratings hidden" id="ratings" role="list"></div>' +
       '</div>' +
@@ -164,7 +167,7 @@
     director: $("director"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
     plotCard: $("plotCard"), ratings: $("ratings"), tagline: $("tagline"),
-    plotText: $("plotText"), credits: $("credits"),
+    plotText: $("plotText"), plotMore: $("plotMore"), credits: $("credits"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
     tFinish: $("tFinish"), tFinishLabel: $("tFinishLabel"),
@@ -277,6 +280,7 @@
     plotMedia = media;
     const plot = (media.plot || "").trim();
     const tagline = plot ? (media.tagline || "").trim() : "";
+    const fresh = el.plotText.textContent !== plot;
     for (const [node, text] of [[el.tagline, tagline], [el.plotText, plot]]) {
       if (node.textContent !== text) node.textContent = text;
       node.classList.toggle("hidden", !text);
@@ -286,7 +290,33 @@
     const credits = creditList(media, TinyPPI.T);
     fillCredits(credits);
     el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credits.length);
+    /* A new plot starts cut again, and is measured once it is laid out. */
+    if (fresh) {
+      openPlot(false);
+      measurePlot();
+    }
   }
+
+  /* A plot runs to a few lines (see .plot .plottext) and the button under it
+     lets the rest out and takes it back.  The button is there only where
+     there is more to show: measured when the plot changes, when the card is
+     opened and when the page is resized, since how many lines a plot takes
+     is a matter of how wide it is laid out. */
+  function openPlot(open) {
+    el.plotText.classList.toggle("open", open);
+    el.plotMore.setAttribute("aria-expanded", String(open));
+    el.plotMore.textContent = open ? TinyPPI.T.plot_less : TinyPPI.T.plot_more;
+  }
+
+  function measurePlot() {
+    if (el.plotText.classList.contains("open")) return;
+    const cut = el.plotText.scrollHeight > el.plotText.clientHeight + 1;
+    el.plotMore.classList.toggle("hidden", !cut);
+  }
+
+  el.plotMore.addEventListener("click", () => openPlot(!el.plotText.classList.contains("open")));
+  el.plotCard.addEventListener("toggle", measurePlot);
+  window.addEventListener("resize", measurePlot);
 
   /* Names as a line: a comma between two, and an ellipsis after the last
      where there are more than the add-on sends (see _NAMES in
@@ -927,6 +957,7 @@
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
     $("plotTitle").textContent = T.plot;
+    openPlot(el.plotText.classList.contains("open"));
     /* The badges carry words of the table too ("612,345 votes"), and the
        credits their name. */
     fillRatings(ratingBadges(plotMedia, T));

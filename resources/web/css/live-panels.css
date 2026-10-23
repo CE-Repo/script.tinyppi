@@ -745,7 +745,7 @@
   overflow-wrap: break-word;
   overflow-wrap: anywhere;
 }
-.plot .plottext:not(.hidden) + .credits {
+.plot .plottext:not(.hidden) ~ .credits {
   border-top: 1px solid var(--line-soft);
   padding-top: 12px;
 }
@@ -785,6 +785,33 @@
   color: var(--muted);
   white-space: pre-line;
 }
+/* Cut to four lines, the last ending in an ellipsis, until the button under
+   it lets the rest out (see openPlot in js/live-panels.js).  A screen reader
+   hears all of it either way. */
+.plot .plottext:not(.open) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+}
+/* The button a quiet word in the accent under the plot's middle, close
+   under it: it belongs to the paragraph rather than standing as a row of
+   its own. */
+.plot .plotmore {
+  justify-self: center;
+  margin-top: -6px;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.plot .plotmore:focus-visible { outline: 2px solid var(--accent); }
 
 /* --- Format badges ------------------------------------------------------
    What the picture is and what the sound is, a row each, drawn the way the
