@@ -76,13 +76,13 @@ and nothing here claims any right in them:
   * **Rating source marks** under resources/web/ratings/ (and the same marks
     in the TinyPPI app).  imdb.svg, tmdb.svg, trakt.svg, tvdb.svg,
     letterboxd.svg, metacritic.svg, rottentomatoes.svg, popcorn.svg and
-    myanimelist.svg are those services' own logos, as files supplied to the
-    project under a Creative Commons 4.0 licence; only their markup was
-    tidied and, for the app, converted to vector drawables.  Their copyright
-    and their trademarks stay with their owners, and the terms of their
-    licence, attribution included, apply to you as they do to this project.
-    The rest are simplified marks drawn for this project in the colours of
-    the services and boards they stand for (see tools/gen_rating_marks.py).
+    myanimelist.svg are those services' own logos, their markup tidied and,
+    for the app, converted to vector drawables; IMDb's is its letters alone,
+    and IMDb's and the Popcornmeter's are set on a square.  No licence to
+    them is held or granted here: their copyright and their trademarks stay
+    with their owners.  The rest are simplified marks drawn for this project
+    in the colours of the services and boards they stand for (see
+    tools/gen_rating_marks.py).
     "IMDb" is a trademark of IMDb.com, Inc.; "TMDB" of The Movie Database;
     "Trakt" of Trakt, Inc.; "TheTVDB" of TheTVDB.com; "Letterboxd" of
     Letterboxd Limited; "MyAnimeList" of MyAnimeList Co., Ltd.; "Metacritic"
@@ -94,7 +94,8 @@ and nothing here claims any right in them:
     this project's choosing, not their boards'.  They are used here only to
     name the source of a rating or an age rating, which is nominative use;
     no affiliation with or endorsement by their owners is claimed.  Their
-    lettering is Inter (SIL Open Font License 1.1) turned into outlines.
+    lettering, on the marks drawn for this project, is Inter (SIL Open Font
+    License 1.1) turned into outlines.
 
   * Any icon set incorporated into the interface artwork remains under the
     licence of its own authors, and their attribution requirements continue to
