@@ -788,6 +788,9 @@ dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1
 details.card:not([open]) > :not(summary) { display: none; }
 
 .hidden { display: none !important; }
+/* The filters the page draws with, defined once and taking no room: hidden
+   with display: none, a browser may not draw with them at all. */
+.filters { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

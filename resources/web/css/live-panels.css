@@ -675,12 +675,38 @@
 .rating .side.popcorn { background: #1e88e5; }
 .rating .side.rogerebert { background: #c8102e; }
 .rating .side.myanimelist { background: #2e51a2; }
-/* Monochrome, where the reader asked for it in the settings: every shield
-   in greys, its mark without colour on the plain ground a source with no
-   drawing has (see the rating colours switch in js/live-panels.js). */
-.ratings.mono .side { background: var(--line); }
-.ratings.mono .mark { filter: grayscale(1); }
-.ratings.mono .side.heart::before { background: var(--muted); }
+/* On the accent, where the reader asked for it in the settings (see the
+   rating colours switch in js/live-panels.js): every shield stands on it as
+   the reader's own heart does, its mark in white on it.  What is dark in a
+   mark -- the letters on IMDb's plate, the "m" on Metacritic's circle,
+   TMDb's plate -- is left out for the accent to show through (#inkDark in
+   index.html); a mark drawn white on a colour has only its white inked
+   (#inkLight), or plate and letters would be one, and Rotten Tomatoes' only
+   its red (#inkRed), so its leaf stays apart from the tomato. */
+.ratings.accented .side,
+.ratings.accented .side.letter { background: var(--accent); }
+.ratings.accented .side.letter { color: #fff; }
+.ratings.accented .mark { filter: url(#inkDark); }
+.ratings.accented .side.trakt .mark,
+.ratings.accented .side.rogerebert .mark,
+.ratings.accented .side.myanimelist .mark,
+.ratings.accented .side.fsk12 .mark,
+.ratings.accented .side.fsk16 .mark,
+.ratings.accented .side.fsk18 .mark,
+.ratings.accented .side.mpa_g .mark,
+.ratings.accented .side.mpa_r .mark,
+.ratings.accented .side.mpa_nc17 .mark,
+.ratings.accented .side.tv_y .mark,
+.ratings.accented .side.tv_y7 .mark,
+.ratings.accented .side.tv_g .mark,
+.ratings.accented .side.tv_ma .mark,
+.ratings.accented .side.bbfc_u .mark,
+.ratings.accented .side.bbfc_12a .mark,
+.ratings.accented .side.bbfc_12 .mark,
+.ratings.accented .side.bbfc_15 .mark,
+.ratings.accented .side.bbfc_18 .mark,
+.ratings.accented .side.bbfc_r18 .mark { filter: url(#inkLight); }
+.ratings.accented .side.rottentomatoes .mark { filter: url(#inkRed); }
 /* A source with no drawing: its first letter on a plain plate. */
 .rating .side.letter {
   min-width: 20px;

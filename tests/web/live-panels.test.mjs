@@ -480,38 +480,38 @@ test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   assert.ok(tip.classList.contains("hidden"));
 });
 
-test("the settings' switch draws the rating shields in greys, and is remembered", (t) => {
+test("the settings' switch stands the rating shields on the accent, and is remembered", (t) => {
   const { $, P, window } = panels(t);
   const toggle = $("ratingColours");
   assert.equal(toggle.getAttribute("role"), "switch");
   // In colour until switched off.
   assert.equal(toggle.checked, true);
   P.update(snap({ media: { plot: "Plot.", ratings: [{ source: "metacritic", rating: 7.4, votes: 0 }] } }));
-  assert.equal($("ratings").classList.contains("mono"), false);
+  assert.equal($("ratings").classList.contains("accented"), false);
 
   toggle.checked = false;
   toggle.dispatchEvent(new window.Event("change"));
-  assert.ok($("ratings").classList.contains("mono"));
+  assert.ok($("ratings").classList.contains("accented"));
   assert.equal(window.localStorage.getItem("tinyppi.ratingColours"), "0");
   // New shields keep to it.
   P.update(snap({ media: { plot: "Plot.", ratings: [{ source: "trakt", rating: 8.8, votes: 0 }] } }));
-  assert.ok($("ratings").classList.contains("mono"));
+  assert.ok($("ratings").classList.contains("accented"));
 
   toggle.checked = true;
   toggle.dispatchEvent(new window.Event("change"));
-  assert.equal($("ratings").classList.contains("mono"), false);
+  assert.equal($("ratings").classList.contains("accented"), false);
   assert.equal(window.localStorage.getItem("tinyppi.ratingColours"), "1");
 });
 
-test("a device that chose greys finds them, and one that blocks storage has colours", (t) => {
-  for (const [stored, mono] of [["0", true], [null, false]]) {
+test("a device that chose the accent finds it, and one that blocks storage has colours", (t) => {
+  for (const [stored, accented] of [["0", true], [null, false]]) {
     const view = page({ scripts: [] });
     t.after(() => view.window.close());
     if (stored) view.window.localStorage.setItem("tinyppi.ratingColours", stored);
     for (const name of SCRIPTS) run(view.dom, name);
     const $ = (id) => view.window.document.getElementById(id);
-    assert.equal($("ratings").classList.contains("mono"), mono);
-    assert.equal($("ratingColours").checked, !mono);
+    assert.equal($("ratings").classList.contains("accented"), accented);
+    assert.equal($("ratingColours").checked, !accented);
   }
   const view = page({ scripts: [] });
   t.after(() => view.window.close());
@@ -525,7 +525,7 @@ test("a device that chose greys finds them, and one that blocks storage has colo
   // Switched all the same, for as long as the page is open.
   toggle.checked = false;
   toggle.dispatchEvent(new window.Event("change"));
-  assert.ok(window.document.getElementById("ratings").classList.contains("mono"));
+  assert.ok(window.document.getElementById("ratings").classList.contains("accented"));
 });
 
 test("the overview's credits: the directors over the cast, a line each, over the ratings", (t) => {

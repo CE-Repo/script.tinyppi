@@ -67,8 +67,8 @@ connection light.
   in words ("IMDb 8.5"), and a tap or a click on one shows the same words
   over it for a moment (a pointer's tooltip says them too), for a mark you
   do not know. **Coloured rating badges** on the settings tab (on unless
-  this device switched it off) draws every shield in the page's greys
-  instead: its mark without colour on a plain ground. An episode is rated on its own and carries its
+  this device switched it off) stands every shield on the page's accent
+  instead, its mark in white on it. An episode is rated on its own and carries its
   show's age rating. An age rating that names neither its country nor its
   board ("Rated 12", which the TMDb scraper writes with its default prefix)
   is read as the one board that gives that level — "PG-13" is American, "15"
