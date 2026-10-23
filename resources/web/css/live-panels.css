@@ -713,7 +713,6 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-.rating .note { font-size: 11px; }
 /* A mark as tall as a line of the shield and as wide as it is drawn: twice
    its height for the wordmarks, square or round for the rest. */
 .rating .mark {

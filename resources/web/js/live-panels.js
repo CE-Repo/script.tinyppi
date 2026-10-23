@@ -377,8 +377,8 @@
 
   /* Every rating the library holds for the title (see web/ratings.py), in
      the order the badges stand: the age rating first -- who the film is for
-     is asked before how good it is -- then a score for each source with how
-     many voted for it, the reader's own and the place in the IMDb Top 250.
+     is asked before how good it is -- then a score for each source, the
+     reader's own and the place in the IMDb Top 250.
      Each badge says in words what its mark shows, for a screen reader and
      under a pointer. */
   function ratingBadges(media, T) {
@@ -397,14 +397,11 @@
       const name = RATING_SOURCES[source] ||
         source.charAt(0).toUpperCase() + source.slice(1);
       const value = entry.rating.toFixed(1);
-      const votes = entry.votes ? entry.votes.toLocaleString() : "";
       badges.push({
         kind: "score",
         mark: RATING_SOURCES[source] ? source : "",
         letter: name.charAt(0),
-        value, note: votes,
-        said: (name + " " + value).trim() +
-          (votes ? ", " + T.votes.replace("%s", votes) : "")
+        value, said: (name + " " + value).trim()
       });
     }
     if (media.userrating) {
@@ -468,13 +465,10 @@
       if (badge.value) {
         const figures = document.createElement("span");
         figures.className = "figures";
-        for (const [part, text] of [["value", badge.value], ["note", badge.note]]) {
-          if (!text) continue;
-          const piece = document.createElement("span");
-          piece.className = part;
-          piece.textContent = text;
-          figures.append(piece);
-        }
+        const value = document.createElement("span");
+        value.className = "value";
+        value.textContent = badge.value;
+        figures.append(value);
         look.append(figures);
       }
       node.append(said, look);
@@ -960,7 +954,7 @@
     renderFinish(lastFinish);
     $("plotTitle").textContent = T.plot;
     openPlot(el.plotText.classList.contains("open"));
-    /* The badges carry words of the table too ("612,345 votes"), and the
+    /* The badges carry words of the table too ("My rating"), and the
        credits their name. */
     fillRatings(ratingBadges(plotMedia, T));
     fillCredits(creditList(plotMedia, T));

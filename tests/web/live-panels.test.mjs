@@ -360,13 +360,12 @@ test("the overview card carries every rating as a shield with its mark, under th
   assert.equal($("tagline").nextElementSibling, $("plotText"));
   assert.deepEqual(plain(badges()), [
     ["rating age", "FSK 12", "side fsk12 plate /ratings/fsk12.svg", [["value", "12"]]],
-    ["rating score", "IMDb 8.5, 612,345 votes", "side imdb /ratings/imdb.svg",
-     [["value", "8.5"], ["note", "612,345"]]],
+    // How many voted is not shown, nor said.
+    ["rating score", "IMDb 8.5", "side imdb /ratings/imdb.svg", [["value", "8.5"]]],
     ["rating score", "TMDb 8.2", "side tmdb /ratings/tmdb.svg", [["value", "8.2"]]],
-    ["rating score", "Trakt 8.4, 31,902 votes", "side trakt /ratings/trakt.svg",
-     [["value", "8.4"], ["note", "31,902"]]],
+    ["rating score", "Trakt 8.4", "side trakt /ratings/trakt.svg", [["value", "8.4"]]],
     ["rating score", "Rotten Tomatoes 9.2", "side rottentomatoes /ratings/rottentomatoes.svg", [["value", "9.2"]]],
-    ["rating score", "Filmaffinity 8.9, 3 votes", "side letter:F", [["value", "8.9"], ["note", "3"]]],
+    ["rating score", "Filmaffinity 8.9", "side letter:F", [["value", "8.9"]]],
     ["rating mine", "My rating 9", "side heart:", [["value", "9"]]],
     ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg", [["value", "#27"]]]]);
   // Said in words, drawn as marks: the drawing is kept from a screen reader.
@@ -383,10 +382,10 @@ test("the overview card carries every rating as a shield with its mark, under th
   assert.equal($("ratings").firstChild, first);
 
   // The words arrive later, and the badges say them.
-  P.strings({ ...window.TinyPPI.T, votes: "%s Stimmen", my_rating: "Eigene Bewertung",
+  P.strings({ ...window.TinyPPI.T, my_rating: "Eigene Bewertung",
               top250: "Top 250 · Platz %s" });
   const said = () => [...$("ratings").children].map((node) => node.querySelector(".said").textContent);
-  assert.deepEqual(said().slice(0, 2), ["FSK 12", "IMDb 8.5, 612,345 Stimmen"]);
+  assert.deepEqual(said().slice(0, 2), ["FSK 12", "IMDb 8.5"]);
   assert.deepEqual(said().slice(6, 8), ["Eigene Bewertung 9", "Top 250 · Platz 27"]);
 
   // An age rating no FSK level is read from is written out, with no mark.

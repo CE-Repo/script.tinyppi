@@ -1491,10 +1491,6 @@ msgctxt "#32370"
 msgid "Overview"
 msgstr "概览"
 
-msgctxt "#32371"
-msgid "%s votes"
-msgstr "%s 票"
-
 msgctxt "#32372"
 msgid "My rating"
 msgstr "我的评分"

@@ -133,7 +133,6 @@ _UI_STRINGS = {
     # The overview card under what is playing: its title, and what its
     # rating marks say to a screen reader.
     "plot":             32370,
-    "votes":            32371,
     "my_rating":        32372,
     "top250":           32373,
     # And what its credits are called, and the button under a long plot.

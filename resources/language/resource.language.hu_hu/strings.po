@@ -1491,10 +1491,6 @@ msgctxt "#32370"
 msgid "Overview"
 msgstr "Áttekintés"
 
-msgctxt "#32371"
-msgid "%s votes"
-msgstr "%s szavazat"
-
 msgctxt "#32372"
 msgid "My rating"
 msgstr "Saját értékelés"

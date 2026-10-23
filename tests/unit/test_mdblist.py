@@ -13,7 +13,7 @@ import pytest
 import xbmc
 import xbmcaddon
 from web import mdblist
-from web.mdblist import Lookup, fetch, scores_of, with_mdblist
+from web.mdblist import Chart, Lookup, fetch, fetch_chart, places_of, scores_of, with_mdblist
 from web.ratings import no_ratings
 
 # MDBList's answer for Jaws, as its documentation gives it (cut short).
@@ -309,8 +309,8 @@ def test_mdblists_ratings_come_first_and_the_librarys_stand_beside_them():
 
 
 def test_without_an_answer_the_librarys_ratings_stand():
-    library = held(ratings=[{"source": "tmdb", "rating": 8.1, "votes": 3}])
-    assert with_mdblist(library, Answers(None)) is library
+    library = held(ratings=[{"source": "tmdb", "rating": 8.1, "votes": 3}], top250=27)
+    assert with_mdblist(library, Answers(None)) == library
 
 
 def test_without_a_key_nothing_is_asked(monkeypatch):
@@ -325,3 +325,169 @@ def test_without_a_key_nothing_is_asked(monkeypatch):
     xbmcaddon.SETTINGS["web_mdblist_key"] = "KEY"
     with_mdblist(held(), answers)
     assert answers.asked[-1] == ("", {})
+
+
+# --- The IMDb Top 250 ------------------------------------------------------------------
+
+# MDBList's list, as it answers (cut short): in the chart's order, its rank a
+# thousand times the place.
+CHART = [
+    {"id": 278, "rank": 1000, "title": "The Shawshank Redemption", "imdb_id": "tt0111161",
+     "mediatype": "movie", "release_year": 1994},
+    {"id": 238, "rank": 2000, "title": "The Godfather", "imdb_id": "tt0068646",
+     "mediatype": "movie", "release_year": 1972},
+    {"id": 155, "rank": 3000, "title": "The Dark Knight", "imdb_id": "tt0468569",
+     "mediatype": "movie", "release_year": 2008},
+]
+
+
+def test_the_chart_gives_each_film_its_place():
+    assert places_of(CHART) == {"tt0111161": 1, "tt0068646": 2, "tt0468569": 3}
+
+
+def test_an_entry_of_another_shape_keeps_its_place():
+    answer = [CHART[0], None, {"imdb_id": "nm0000123"}, {"imdb_id": 5}, CHART[2], CHART[0]]
+    assert places_of(answer) == {"tt0111161": 1, "tt0468569": 5}
+
+
+def test_only_the_first_250_are_the_chart():
+    answer = [{"imdb_id": f"tt{place:07d}"} for place in range(1, 260)]
+    places = places_of(answer)
+    assert len(places) == 250 and places["tt0000250"] == 250
+
+
+@pytest.mark.parametrize("answer", [{}, "chart", None, []])
+def test_an_answer_of_another_shape_is_no_chart(answer):
+    assert places_of(answer) == {}
+
+
+def test_the_chart_is_asked_for_without_a_key(monkeypatch):
+    asked = []
+    monkeypatch.setattr(mdblist, "_json", lambda url: asked.append(url) or CHART)
+    places, keep = fetch_chart()
+    assert asked == ["https://mdblist.com/lists/snoak/imdb-top-250-movies/json"]
+    assert places["tt0468569"] == 3 and keep == mdblist._KEPT
+
+
+@pytest.mark.parametrize("failure", [
+    refusal(403), refusal(500), urllib.error.URLError("no route"), TimeoutError(),
+    ValueError("not JSON"), http.client.IncompleteRead(b""),
+])
+def test_a_chart_that_cannot_be_had_is_asked_for_again_soon(monkeypatch, failure):
+    def fail(url):
+        raise failure
+    monkeypatch.setattr(mdblist, "_json", fail)
+    assert fetch_chart() == ({}, mdblist._AGAIN)
+    assert any("IMDb Top 250 could not be had" in line for _level, line in xbmc.LOG)
+
+
+def test_an_empty_chart_is_asked_for_again_soon(monkeypatch):
+    monkeypatch.setattr(mdblist, "_json", lambda url: [])
+    assert fetch_chart() == ({}, mdblist._AGAIN)
+
+
+@pytest.fixture
+def chart(monkeypatch):
+    """A chart that asks only when told to, on a clock the test moves."""
+    clock, started, asked = Clock(), [], []
+    answers = {"found": ({"tt0816692": 17}, mdblist._KEPT)}
+
+    def fake_fetch():
+        asked.append(1)
+        found = answers["found"]
+        if isinstance(found, Exception):
+            raise found
+        return found
+
+    monkeypatch.setattr(mdblist, "fetch_chart", fake_fetch)
+    found = Chart(start=started.append, clock=clock)
+
+    def run():
+        while started:
+            started.pop(0)()
+
+    return found, clock, started, asked, answers, run
+
+
+def test_the_chart_is_asked_for_once_and_kept_for_half_a_day(chart):
+    found, clock, started, asked, _answers, run = chart
+    # Not in yet: the library's place stands.
+    assert found.place("tt0816692") is None
+    assert found.place("tt0816692") is None
+    assert len(started) == 1
+    run()
+    assert found.place("tt0816692") == 17
+    # One that is not in it has no place.
+    assert found.place("tt0000001") == 0
+    assert started == [] and len(asked) == 1
+    clock.now += mdblist._KEPT + 1
+    # Asked for again, the old one standing meanwhile.
+    assert found.place("tt0816692") == 17
+    run()
+    assert len(asked) == 2
+
+
+def test_a_chart_that_could_not_be_had_leaves_the_last_one(chart):
+    found, clock, started, asked, answers, run = chart
+    found.place("tt0816692")
+    run()
+    clock.now += mdblist._KEPT + 1
+    answers["found"] = ({}, mdblist._AGAIN)
+    found.place("tt0816692")
+    run()
+    assert found.place("tt0816692") == 17
+    assert started == []
+    clock.now += mdblist._AGAIN + 1
+    found.place("tt0816692")
+    assert len(started) == 1
+
+
+def test_a_chart_whose_asking_fails_of_itself_is_asked_for_again_soon(chart):
+    found, clock, started, _asked, answers, run = chart
+    answers["found"] = RuntimeError("a fault")
+    found.place("tt1")
+    with pytest.raises(RuntimeError):
+        run()
+    assert found.place("tt1") is None and started == []
+    clock.now += mdblist._AGAIN + 1
+    found.place("tt1")
+    assert len(started) == 1
+
+
+class Places:
+    def __init__(self, place):
+        self.found = place
+        self.asked = []
+
+    def place(self, imdb):
+        self.asked.append(imdb)
+        return self.found
+
+
+def test_the_charts_place_lies_over_the_librarys():
+    library = held(top250=27, ids={"imdb": "tt0816692", "tmdb": "157336"})
+    places = Places(17)
+    merged = with_mdblist(library, Answers(None), places)
+    assert merged["top250"] == 17 and places.asked == ["tt0816692"]
+    assert library["top250"] == 27
+    # A film the chart does not hold is in no Top 250, whatever the library says.
+    assert with_mdblist(library, Answers(None), Places(0))["top250"] == 0
+
+
+def test_until_the_chart_is_in_the_librarys_place_stands():
+    library = held(top250=27, ids={"imdb": "tt0816692"})
+    assert with_mdblist(library, Answers(None), Places(None))["top250"] == 27
+
+
+def test_a_title_without_an_imdb_id_is_not_looked_up():
+    places = Places(17)
+    episode = held(top250=0)
+    assert with_mdblist(episode, Answers(None), places)["top250"] == 0
+    assert with_mdblist(held(ids={"tmdb": "1"}), Answers(None), places)["top250"] == 0
+    assert places.asked == []
+
+
+def test_the_charts_place_stands_beside_mdblists_ratings():
+    xbmcaddon.SETTINGS["web_mdblist_key"] = "KEY"
+    merged = with_mdblist(held(ids={"imdb": "tt0073195"}), Answers(scores_of(JAWS)), Places(5))
+    assert merged["top250"] == 5 and merged["ratings"][0]["source"] == "imdb"
