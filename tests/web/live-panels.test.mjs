@@ -210,13 +210,13 @@ test("who directed it stands in the card of what is playing, over its badges", (
   assert.equal($("director").classList.contains("hidden"), false);
   assert.equal($("director").textContent, "Denis Villeneuve");
 
-  // One the add-on cut ends in an ellipsis.
-  P.update(snap({ media: { directors: ["Joel Coen"], directors_more: true } }));
-  assert.equal($("director").textContent, "Joel Coen, …");
+  // Only the first of more than one, and nothing to say there are more.
+  P.update(snap({ media: { directors: ["Joel Coen", "Ethan Coen"] } }));
+  assert.equal($("director").textContent, "Joel Coen");
 
   // Written only when it changes.
   const written = $("director").firstChild;
-  P.update(snap({ media: { directors: ["Joel Coen"], directors_more: true } }));
+  P.update(snap({ media: { directors: ["Joel Coen"] } }));
   assert.equal($("director").firstChild, written);
 
   // None: gone, and the overview no card for it.

@@ -101,7 +101,7 @@ SNAPSHOT = {
               "plot": "A film about somebody.\nAnd what happens to them.",
               "ratings": [{"source": "imdb", "rating": 7.9, "votes": 1200}],
               "mpaa": "FSK 12", "age": "fsk12", "age_level": "12", "userrating": 0,
-              "top250": 0, "directors": ["Somebody"], "directors_more": False,
+              "top250": 0, "directors": ["Somebody"],
               "cast": ["One Actor", "Another Actor"], "cast_more": True, "studios": ["A Studio"],
               "studios_more": False},
     "metrics": {"cpu": 20, "cpu_temp": 50, "fps_in": 24, "l1": {"max": 1000, "avg": 120},

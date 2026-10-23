@@ -295,12 +295,11 @@
     return names.join(", ") + (more ? ", …" : "");
   }
 
-  /* Who directed the title: the name alone, which says what it is where it
-     stands, and gone where the library has none.  Written only when it
-     changes. */
+  /* Who directed the title: the first name alone, which says what it is
+     where it stands, and gone where the library has none.  Written only when
+     it changes. */
   function renderDirector(media) {
-    const names = media.directors || [];
-    const text = names.length ? nameList(names, Boolean(media.directors_more)) : "";
+    const text = (media.directors || [])[0] || "";
     if (el.director.textContent !== text) el.director.textContent = text;
     el.director.classList.toggle("hidden", !text);
   }

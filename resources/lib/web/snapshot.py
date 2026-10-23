@@ -130,7 +130,8 @@ _EXTRA_INFOLABELS = (
 # How many names of each the page keeps (see name_list): the genres, the
 # studios and the director for the card of what is playing, the cast's leads
 # for the overview card's credits.  The page marks a list that has more, but
-# for the genres, which read as a kind of film rather than a list of names.
+# for the genres, which read as a kind of film rather than a list of names,
+# and the director, who stands for the film alone.
 _NAMES = {"genres": 2, "directors": 1, "cast": 8, "studios": 4}
 
 
@@ -147,10 +148,10 @@ def _credits(values: dict[str, str]) -> Credits:
     An episode's studios are its show's, and its cast its own guests and
     then the show's: Kodi keeps them so.
     """
-    directors, directors_more = name_list(values.get("Director", ""), _NAMES["directors"])
+    directors, _more = name_list(values.get("Director", ""), _NAMES["directors"])
     cast, cast_more = name_list(values.get("Cast", ""), _NAMES["cast"])
     studios, studios_more = name_list(values.get("Studio", ""), _NAMES["studios"])
-    return {"directors": directors, "directors_more": directors_more,
+    return {"directors": directors,
             "cast": cast, "cast_more": cast_more,
             "studios": studios, "studios_more": studios_more}
 
@@ -615,7 +616,6 @@ class SnapshotBuilder:
                 "userrating": ratings["userrating"],
                 "top250":     ratings["top250"],
                 "directors":      credits["directors"],
-                "directors_more": credits["directors_more"],
                 "cast":           credits["cast"],
                 "cast_more":      credits["cast_more"],
                 "studios":        credits["studios"],

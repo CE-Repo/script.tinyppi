@@ -43,9 +43,9 @@ connection light.
 - **Now playing** — the poster, title, year and genre (its first two),
   under them the studio (up to four, ending in "…" where there are more; an
   episode's is its show's), the file name (when *Show file name* is on), the
-  director's name alone (the first, the same way) in the middle of the room
-  left between those lines and the format badges at the foot, elapsed time
-  and progress.
+  director's name alone (only the first, with no "…") in the middle of the
+  room left between those lines and the format badges at the foot, elapsed
+  time and progress.
 - **Overview** — a card under it with the title's slogan and its plot,
   under them, past a thin rule, its cast, and last, past another, every
   rating Kodi's library holds for it, all of it centred. The ratings

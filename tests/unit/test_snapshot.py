@@ -68,7 +68,9 @@ def test_a_playing_title():
     # Who made it, as names; the cast cut to its leads, and said to have
     # more.  The genre is only the card above's.
     assert "genres" not in shot["media"]
-    assert (shot["media"]["directors"], shot["media"]["directors_more"]) == (["Somebody"], True)
+    # The director the first alone, with nothing to say there are more.
+    assert shot["media"]["directors"] == ["Somebody"]
+    assert "directors_more" not in shot["media"]
     assert (shot["media"]["studios"], shot["media"]["studios_more"]) == (["A Studio", "Another"], False)
     assert shot["media"]["cast"] == [f"Actor {n}" for n in range(1, 9)]
     assert shot["media"]["cast_more"] is True
