@@ -218,6 +218,12 @@ MDBList refuses the key (Kodi's log says so, and the key is not sent again
 until it is changed) or while the day's limit is spent. Episodes always show
 the library's: MDBList rates shows, not episodes.
 
+**A rating missing?** Kodi's log has a line for every film MDBList is asked
+for — `TinyPPI [web]: MDBList rated imdb tt0816692: imdb, tmdb, tomatoes, …` —
+naming the houses it rated the film by and, after *no rating from*, those it
+listed without one. A film MDBList could not be asked for, or answered with an
+error, is logged as a warning.
+
 ---
 
 ## Metadata

@@ -27,12 +27,12 @@ library's place stands.
 
 import http.client
 import json
+import math
 import threading
 import time
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping
-from typing import TypeGuard
 from urllib.parse import quote
 
 import xbmc
@@ -84,14 +84,30 @@ class _Spent(Exception):
 
 # The scale each source's own value is on, for one MDBList sends without
 # its score out of 100: Roger Ebert's stars always, the others now and then.
+# Rotten Tomatoes' audience has gone by three names in its answers.
 _SCALES = {"imdb": 10, "metacriticuser": 10, "myanimelist": 10, "letterboxd": 5,
            "rogerebert": 4, "metacritic": 100, "trakt": 100, "tomatoes": 100,
-           "popcorn": 100, "tmdb": 100}
+           "popcorn": 100, "tomatoesaudience": 100, "audience": 100, "tmdb": 100}
 
 
-def _number(value: object) -> TypeGuard[int | float]:
-    """Return whether JSON gave *value* as a number."""
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+def _figure(value: object) -> float | None:
+    """Return *value* as a number, where JSON gave one -- MDBList now and
+    then sends a figure as text ("73") -- or None ("n/a", null, junk)."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        found = float(value)
+    else:
+        try:
+            found = float(str(value).strip()) if isinstance(value, str) else math.nan
+        except ValueError:
+            return None
+    return found if math.isfinite(found) else None
+
+
+def _source(entry: Json) -> str:
+    """Return the name an entry of MDBList's answer gives its source."""
+    return str(entry.get("source") or "").strip().lower()
 
 
 def _out_of_ten(entry: Json) -> float | None:
@@ -101,11 +117,11 @@ def _out_of_ten(entry: Json) -> float | None:
     beside it.  Without the score the value is read on its source's scale;
     a source whose scale is not known is left out rather than guessed at.
     """
-    score, value = entry.get("score"), entry.get("value")
-    if _number(score):
+    score, value = _figure(entry.get("score")), _figure(entry.get("value"))
+    if score is not None:
         return score / 10
-    scale = _SCALES.get(str(entry.get("source") or ""))
-    if scale and _number(value):
+    scale = _SCALES.get(_source(entry))
+    if scale and value is not None:
         return value * 10 / scale
     return None
 
@@ -117,14 +133,26 @@ def scores_of(answer: Json) -> Scores:
     out; a source with no rating for the film comes with nulls.
     """
     found: Scores = {}
-    entries = answer.get("ratings")
-    for entry in entries if isinstance(entries, list) else []:
-        if not isinstance(entry, dict) or entry.get("source") == "mdblist":
-            continue
+    for entry in _entries(answer):
         rating = _out_of_ten(entry)
         if rating is not None:
-            found[str(entry.get("source") or "")] = {"rating": rating, "votes": entry.get("votes")}
+            found[_source(entry)] = {"rating": rating, "votes": entry.get("votes")}
     return found
+
+
+def _entries(answer: Json) -> list[Json]:
+    """Return the entries of one of MDBList's answers, but its own score."""
+    entries = answer.get("ratings")
+    return [entry for entry in (entries if isinstance(entries, list) else [])
+            if isinstance(entry, dict) and _source(entry) != "mdblist"]
+
+
+def _told(provider: str, ident: str, answer: Json, found: Scores) -> None:
+    """Log what MDBList brought for a film, and what of it could not be
+    read, so a rating missing from the card can be traced."""
+    left = sorted({_source(entry) for entry in _entries(answer)} - set(found))
+    _log(f"MDBList rated {provider} {ident}: {', '.join(found) or 'nothing'}"
+         + (f"; no rating from {', '.join(left)}" if left else ""), xbmc.LOGINFO)
 
 
 def _retry_after(error: urllib.error.HTTPError) -> float:
@@ -160,17 +188,23 @@ def fetch(key: str, provider: str, ident: str) -> tuple[Scores, float]:
     """
     url = _URL.format(provider=provider, ident=quote(ident, safe=""), key=quote(key, safe=""))
     try:
-        return scores_of(_answer(url)), _KEPT
+        answer = _answer(url)
     except urllib.error.HTTPError as error:
         if error.code == 401:
             raise _Refused from None
         if error.code == 429:
             raise _Spent(_retry_after(error)) from None
-        _log(f"MDBList answered {error.code} for {provider} {ident}")
+        # Not a debug line: without it a card short of MDBList's ratings
+        # says nothing of why.
+        _log(f"MDBList answered {error.code} for {provider} {ident}", xbmc.LOGWARNING)
         return {}, _KEPT if error.code == 404 else _AGAIN
     except (OSError, ValueError, http.client.HTTPException) as error:
-        _log(f"MDBList could not be asked for {provider} {ident}: {type(error).__name__}")
+        _log(f"MDBList could not be asked for {provider} {ident}: {type(error).__name__}",
+             xbmc.LOGWARNING)
         return {}, _AGAIN
+    found = scores_of(answer)
+    _told(provider, ident, answer, found)
+    return found, _KEPT
 
 
 def places_of(answer: object) -> dict[str, int]:
