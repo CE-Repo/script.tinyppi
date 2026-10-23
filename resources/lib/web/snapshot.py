@@ -127,10 +127,17 @@ _EXTRA_INFOLABELS = (
     ("Studio",              "VideoPlayer.Studio"),
 )
 
-# How many names of each the page keeps (see name_list): the studios and the
-# directors for the card of what is playing, the cast's leads for the
-# overview card's credits.  The page marks a list that has more.
-_NAMES = {"directors": 3, "cast": 5, "studios": 4}
+# How many names of each the page keeps (see name_list): the genres, the
+# studios and the director for the card of what is playing, the cast's leads
+# for the overview card's credits.  The page marks a list that has more, but
+# for the genres, which read as a kind of film rather than a list of names.
+_NAMES = {"genres": 2, "directors": 1, "cast": 8, "studios": 4}
+
+
+def _genre(values: dict[str, str]) -> str:
+    """Return the playing title's first genres, as Kodi writes them."""
+    genres, _more = name_list(values.get("Genre", ""), _NAMES["genres"])
+    return " / ".join(genres)
 
 
 def _credits(values: dict[str, str]) -> Credits:
@@ -595,7 +602,7 @@ class SnapshotBuilder:
             "art":       _art_tags(),
             "media":     {
                 "year":    values.get("Year", ""),
-                "genre":   values.get("Genre", ""),
+                "genre":   _genre(values),
                 "show":    values.get("Show", ""),
                 "season":  values.get("Season", ""),
                 "episode": values.get("Episode", ""),

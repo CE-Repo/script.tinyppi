@@ -1503,14 +1503,6 @@ msgctxt "#32373"
 msgid "Top 250 · #%s"
 msgstr "Top 250 · Platz %s"
 
-msgctxt "#32376"
-msgid "Director"
-msgstr "Regie"
-
-msgctxt "#32377"
-msgid "Directors"
-msgstr "Regie"
-
 msgctxt "#32378"
 msgid "Cast"
 msgstr "Darsteller"

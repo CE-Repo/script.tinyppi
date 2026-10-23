@@ -203,35 +203,26 @@ test("what is playing: title, show line, file, progress and times", (t) => {
 });
 
 test("who directed it stands in the card of what is playing, over its badges", (t) => {
-  const { $, P, window } = panels(t);
-  const said = () => [$("directorTerm").textContent, $("directorNames").textContent];
+  const { $, P } = panels(t);
   P.update(snap({ media: { directors: ["Denis Villeneuve"] } }));
-  // The last line over the badges, named for one.
+  // The last line over the badges, the name alone.
   assert.equal($("director").nextElementSibling, $("formats"));
   assert.equal($("director").classList.contains("hidden"), false);
-  assert.deepEqual(said(), ["Director", "Denis Villeneuve"]);
-  assert.equal($("director").textContent, "Director Denis Villeneuve");
+  assert.equal($("director").textContent, "Denis Villeneuve");
 
-  // Named for more: more than one, or one the add-on cut, with an ellipsis.
-  P.update(snap({ media: { directors: ["Joel Coen", "Ethan Coen", "Somebody"], directors_more: true } }));
-  assert.deepEqual(said(), ["Directors", "Joel Coen, Ethan Coen, Somebody, …"]);
-  P.update(snap({ media: { directors: ["Somebody"], directors_more: true } }));
-  assert.deepEqual(said(), ["Directors", "Somebody, …"]);
+  // One the add-on cut ends in an ellipsis.
+  P.update(snap({ media: { directors: ["Joel Coen"], directors_more: true } }));
+  assert.equal($("director").textContent, "Joel Coen, …");
 
-  // Written only when the words change.
-  const written = $("directorNames").firstChild;
-  P.update(snap({ media: { directors: ["Somebody"], directors_more: true } }));
-  assert.equal($("directorNames").firstChild, written);
-
-  // The words arrive later, into the page's table.
-  Object.assign(window.TinyPPI.T, { director: "Regie", directors: "Regie" });
-  P.strings(window.TinyPPI.T);
-  assert.deepEqual(said(), ["Regie", "Somebody, …"]);
+  // Written only when it changes.
+  const written = $("director").firstChild;
+  P.update(snap({ media: { directors: ["Joel Coen"], directors_more: true } }));
+  assert.equal($("director").firstChild, written);
 
   // None: gone, and the overview no card for it.
   P.update(snap({ media: { directors: [] } }));
   assert.ok($("director").classList.contains("hidden"));
-  assert.equal($("directorNames").textContent, "");
+  assert.equal($("director").textContent, "");
   P.update(snap({ media: { directors: ["Somebody"] } }));
   assert.ok($("plotCard").classList.contains("hidden"));
 });
@@ -305,8 +296,9 @@ test("the overview card carries every rating as a shield with its mark, under th
   P.update(snap({ media: rated }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
   assert.equal($("ratings").classList.contains("hidden"), false);
-  // Under the slogan and the plot.
-  assert.equal($("plotText").nextElementSibling, $("ratings"));
+  // Under the slogan and the plot, and the cast where there is one: last.
+  assert.equal($("ratings").nextElementSibling, null);
+  assert.equal($("plotText").nextElementSibling, $("credits"));
   assert.equal($("tagline").nextElementSibling, $("plotText"));
   assert.deepEqual(plain(badges()), [
     ["rating age", "FSK 12", "side fsk12 plate /ratings/fsk12.svg", [["value", "12"]]],
@@ -391,9 +383,9 @@ test("the overview card ends with the credits, a line each under the ratings", (
     cast_more: true, studios: ["Legendary Pictures"], studios_more: false
   };
   P.update(snap({ media: credited }));
-  // Under the ratings, the cast, cut with an ellipsis; the genre, the
+  // Over the ratings, the cast, cut with an ellipsis; the genre, the
   // studio and the director are the card above's.
-  assert.equal($("ratings").nextElementSibling, $("credits"));
+  assert.equal($("credits").nextElementSibling, $("ratings"));
   assert.equal($("credits").classList.contains("hidden"), false);
   assert.deepEqual(lines(), [
     ["credit", "DT Cast", "DD Timothée Chalamet, Zendaya, Rebecca Ferguson, Javier Bardem, Josh Brolin, …"]]);

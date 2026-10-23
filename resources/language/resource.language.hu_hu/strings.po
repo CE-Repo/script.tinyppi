@@ -1503,14 +1503,6 @@ msgctxt "#32373"
 msgid "Top 250 · #%s"
 msgstr "Top 250 · %s. hely"
 
-msgctxt "#32376"
-msgid "Director"
-msgstr "Rendező"
-
-msgctxt "#32377"
-msgid "Directors"
-msgstr "Rendezők"
-
 msgctxt "#32378"
 msgid "Cast"
 msgstr "Szereplők"

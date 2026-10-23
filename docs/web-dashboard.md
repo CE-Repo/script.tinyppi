@@ -40,14 +40,15 @@ nothing happening, handing its room at the foot of the page back to the last
 card, and comes back with the next touch, scroll, key or pointer movement. The top bar carries just the name, the version and the
 connection light.
 
-- **Now playing** — the poster, title, year and genre, under them the studio
-  (up to four, ending in "…" where there are more; an episode's is its
-  show's), the file name (when *Show file name* is on), the director (up to
-  three, the same way) in the middle of the room left between those lines
-  and the format badges at the foot, elapsed time and progress.
+- **Now playing** — the poster, title, year and genre (its first two),
+  under them the studio (up to four, ending in "…" where there are more; an
+  episode's is its show's), the file name (when *Show file name* is on), the
+  director's name alone (the first, the same way) in the middle of the room
+  left between those lines and the format badges at the foot, elapsed time
+  and progress.
 - **Overview** — a card under it with the title's slogan and its plot,
-  under them, past a thin rule, every rating Kodi's library holds for it, and
-  under those, past another, its cast, all of it centred. The ratings
+  under them, past a thin rule, its cast, and last, past another, every
+  rating Kodi's library holds for it, all of it centred. The ratings
   are a row of small shields, each with its source's mark on the left, on a
   ground of the source's colour, instead of its name, and what it gave on the
   right: first the age rating — a German, American or British one as a
@@ -63,9 +64,9 @@ connection light.
   is read as the one board that gives that level — "PG-13" is American, "15"
   British — and where more than one does ("12", "18", "PG") as the board of
   the country Kodi's language points to: German, British English or American
-  English. The credits are the cast: its name in bold and then its first five
-  names in billing order, ending in "…" where there are more, and left out
-  where Kodi has none; the genre, the studio and the director stand in the
+  English. The cast is its name in bold and then its first eight names in
+  billing order, ending in "…" where there are more, and left out where Kodi
+  has none; the genre, the studio and the director stand in the
   card above. An episode's cast is its own guests and then the show's. They are
   what Kodi knows of whatever plays, so an add-on's stream that names them has
   them too. The slogan only stands above a plot (most episodes have

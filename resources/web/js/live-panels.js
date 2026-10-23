@@ -49,8 +49,7 @@
         '<p class="file mono hidden" id="file"></p>' +
         /* Who directed it, in the middle of what the lines above leave
            over (see .now .director). */
-        '<p class="director hidden" id="director">' +
-          '<span class="term" id="directorTerm"></span> <span id="directorNames"></span></p>' +
+        '<p class="director hidden" id="director"></p>' +
         /* What the picture is and what the sound is, a row each -- the same
            badges the mobile app draws under its title. */
         '<div class="formats" id="formats">' +
@@ -97,16 +96,16 @@
         '</div>' +
       '</div>' +
     '</section>' +
-    /* What the title is about, what it has been given and who made it,
+    /* What the title is about, who is in it and what it has been given,
        under the card of what is playing: the slogan, the plot and, under
-       them, the ratings and the credits, as the library has them. */
+       them, the cast and the ratings, as the library has them. */
     '<details class="card hidden" id="plotCard">' +
       '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
       '<div class="plot">' +
         '<p class="tagline hidden" id="tagline"></p>' +
         '<p class="plottext hidden" id="plotText"></p>' +
-        '<div class="ratings hidden" id="ratings" role="list"></div>' +
         '<dl class="credits hidden" id="credits"></dl>' +
+        '<div class="ratings hidden" id="ratings" role="list"></div>' +
       '</div>' +
     '</details>' +
     '<details class="card hidden" id="tiles">' +
@@ -162,7 +161,7 @@
   const el = {
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), studio: $("studio"), file: $("file"),
-    director: $("director"), directorTerm: $("directorTerm"), directorNames: $("directorNames"),
+    director: $("director"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
     plotCard: $("plotCard"), ratings: $("ratings"), tagline: $("tagline"),
     plotText: $("plotText"), credits: $("credits"),
@@ -229,7 +228,7 @@
     renderArt(snapshot.art || {});
     renderBadges(snapshot);
     renderFormats(snapshot);
-    renderDirector(media, TinyPPI.T);
+    renderDirector(media);
     renderPlot(media);
 
     const progress = (snapshot.metrics || {}).progress;
@@ -296,16 +295,13 @@
     return names.join(", ") + (more ? ", …" : "");
   }
 
-  /* Who directed the title, under its name for one or for more than one
-     ("Director", "Directors") -- a cut list is more than it shows -- and
-     gone where the library has none.  Written only when the words change. */
-  function renderDirector(media, T) {
+  /* Who directed the title: the name alone, which says what it is where it
+     stands, and gone where the library has none.  Written only when it
+     changes. */
+  function renderDirector(media) {
     const names = media.directors || [];
-    const more = Boolean(media.directors_more);
-    const term = names.length === 1 && !more ? T.director : T.directors;
-    const text = names.length ? nameList(names, more) : "";
-    if (el.directorTerm.textContent !== term) el.directorTerm.textContent = term;
-    if (el.directorNames.textContent !== text) el.directorNames.textContent = text;
+    const text = names.length ? nameList(names, Boolean(media.directors_more)) : "";
+    if (el.director.textContent !== text) el.director.textContent = text;
     el.director.classList.toggle("hidden", !text);
   }
 
@@ -935,10 +931,9 @@
     renderFinish(lastFinish);
     $("plotTitle").textContent = T.plot;
     /* The badges carry words of the table too ("612,345 votes"), and the
-       credits and the director their names. */
+       credits their name. */
     fillRatings(ratingBadges(plotMedia, T));
     fillCredits(creditList(plotMedia, T));
-    renderDirector(plotMedia, T);
     $("tilesTitle").textContent = T.metrics;
     $("kSwitches").textContent = T.switches;
     $("kWarnings").textContent = T.warnings;

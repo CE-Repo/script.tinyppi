@@ -28,7 +28,7 @@ PLAYING = {
     "System.CPUTemperature": "55 °C", "VideoPlayer.VideoCodec": "hevc",
     "VideoPlayer.Year": "2021", "VideoPlayer.Genre": "Drama",
     "VideoPlayer.Tagline": "One night.", "VideoPlayer.Plot": "Somebody does something.",
-    "VideoPlayer.Director": "Somebody", "VideoPlayer.Studio": "A Studio / Another",
+    "VideoPlayer.Director": "Somebody / Somebody Else", "VideoPlayer.Studio": "A Studio / Another",
     "VideoPlayer.Cast": "\n".join(f"Actor {n}" for n in range(1, 13)),
 }
 
@@ -68,9 +68,9 @@ def test_a_playing_title():
     # Who made it, as names; the cast cut to its leads, and said to have
     # more.  The genre is only the card above's.
     assert "genres" not in shot["media"]
-    assert (shot["media"]["directors"], shot["media"]["directors_more"]) == (["Somebody"], False)
+    assert (shot["media"]["directors"], shot["media"]["directors_more"]) == (["Somebody"], True)
     assert (shot["media"]["studios"], shot["media"]["studios_more"]) == (["A Studio", "Another"], False)
-    assert shot["media"]["cast"] == [f"Actor {n}" for n in range(1, 6)]
+    assert shot["media"]["cast"] == [f"Actor {n}" for n in range(1, 9)]
     assert shot["media"]["cast_more"] is True
     assert shot["controls"] == {}
     ids = [group["id"] for group in shot["groups"]]
@@ -78,6 +78,13 @@ def test_a_playing_title():
     for group in shot["groups"]:
         for row in group["rows"]:
             assert row["value"]                       # empty readings read N/A
+
+
+def test_the_genre_is_cut_to_its_first_two():
+    play(**{"VideoPlayer.Genre": "[B]Action[/B] / Adventure / Drama"})
+    assert SnapshotBuilder().build()["media"]["genre"] == "Action / Adventure"
+    play(**{"VideoPlayer.Genre": ""})
+    assert SnapshotBuilder().build()["media"]["genre"] == ""
 
 
 def test_the_filename_respects_its_setting():

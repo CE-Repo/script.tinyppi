@@ -74,7 +74,7 @@ test("the live tab connects and shows the format badges", async () => {
   const gap = studio.y - (meta.y + meta.height);
   assert.ok(gap >= 0 && gap < meta.y - (title.y + title.height), `${gap} under the genre`);
   // Who directed it, in the middle between the lines above and the badges.
-  assert.equal(await page.locator("#director").innerText(), "#32376 Somebody");
+  assert.equal(await page.locator("#director").innerText(), "Somebody");
   const [above, director, formats] = await page.$$eval(".now > *:not(.hidden)", (nodes) => {
     const at = nodes.findIndex((node) => node.id === "director");
     return [nodes[at - 1], nodes[at], nodes[at + 1]].map((node) => node.getBoundingClientRect().toJSON());
@@ -112,23 +112,23 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   const [now, plot] = await Promise.all(
     ["#nowCard", "#plotCard"].map((selector) => page.locator(selector).boundingBox()));
   assert.ok(plot.y > now.y + now.height - 1, "under the playing card");
-  // A thin rule between the plot and the ratings.
-  assert.equal(await page.$eval("#ratings", (row) => getComputedStyle(row).borderTopWidth), "1px");
-  // The slogan and the plot centred, and the ratings under them, centred too.
+  // The slogan and the plot centred; under them, past a thin rule each,
+  // the cast and then the ratings, centred too.
   assert.deepEqual(await page.$$eval("#tagline, #plotText",
     (nodes) => nodes.map((node) => getComputedStyle(node).textAlign)), ["center", "center"]);
-  const [text, row, first, last] = await Promise.all(
-    ["#plotText", "#ratings", "#ratings .rating:first-child", "#ratings .rating:last-child"]
+  const [text, credits, row, first, last] = await Promise.all(
+    ["#plotText", "#credits", "#ratings", "#ratings .rating:first-child", "#ratings .rating:last-child"]
       .map((selector) => page.locator(selector).boundingBox()));
-  assert.ok(row.y >= text.y + text.height - 1, "under the plot");
+  assert.ok(credits.y >= text.y + text.height - 1, "the cast under the plot");
+  assert.ok(row.y >= credits.y + credits.height - 1, "the ratings under the cast");
+  for (const selector of ["#credits", "#ratings"]) {
+    assert.equal(await page.$eval(selector, (node) => getComputedStyle(node).borderTopWidth), "1px");
+  }
   const left = first.x - row.x;
   const right = row.x + row.width - (last.x + last.width);
   assert.ok(Math.abs(left - right) <= 2, `centred: ${left} vs ${right}`);
-  // The credits under the ratings, past the same thin rule: a centred line
-  // each, its name set apart from the names in weight and colour.
-  const credits = await page.locator("#credits").boundingBox();
-  assert.ok(credits.y >= row.y + row.height - 1, "under the ratings");
-  assert.equal(await page.$eval("#credits", (list) => getComputedStyle(list).borderTopWidth), "1px");
+  // The cast a centred line, its name set apart from the names in weight
+  // and colour.
   assert.deepEqual(await page.$$eval("#credits .credit", (lines) => lines.map((line) => line.innerText)),
                    ["#32378 One Actor, Another Actor, …"]);
   const [term, names] = await Promise.all(["#credits dt", "#credits dd"].map((selector) =>
