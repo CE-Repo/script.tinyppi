@@ -1491,10 +1491,6 @@ msgctxt "#32370"
 msgid "Overview"
 msgstr "概览"
 
-msgctxt "#32371"
-msgid "%s votes"
-msgstr "%s 票"
-
 msgctxt "#32372"
 msgid "My rating"
 msgstr "我的评分"
@@ -1526,3 +1522,7 @@ msgstr "MDBList API 密钥"
 msgctxt "#32385"
 msgid "With a free key from mdblist.com (Preferences → API), the overview card shows the ratings MDBList gathers for a film: IMDb, TMDb, Trakt, Letterboxd, Rotten Tomatoes, Metacritic and more. To ask, the film's IMDb or TMDb id is sent to MDBList. Left empty, the card shows the ratings Kodi's library holds."
 msgstr "填入 mdblist.com 的免费密钥（Preferences → API）后，概览卡片会为影片显示 MDBList 汇总的评分：IMDb、TMDb、Trakt、Letterboxd、Rotten Tomatoes、Metacritic 等。为此会把影片的 IMDb 或 TMDb 编号发送给 MDBList。留空时，卡片显示 Kodi 媒体库中的评分。"
+
+msgctxt "#32386"
+msgid "Director"
+msgstr "导演"

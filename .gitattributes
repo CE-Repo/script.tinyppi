@@ -11,3 +11,4 @@
 /package-lock.json   export-ignore
 /eslint.config.mjs   export-ignore
 /docs                export-ignore
+/wiki                export-ignore

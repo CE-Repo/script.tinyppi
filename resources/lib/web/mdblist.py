@@ -16,10 +16,18 @@ A film is asked for once, by its IMDb id or else its TMDb one, off the
 thread that builds the snapshot: the card shows the library's ratings until
 the answer is in, and the answer is kept for half a day.  A key MDBList
 refuses is not sent again, and a day's limit spent waits for the day's end.
+
+A film's place in the IMDb Top 250 is read off a public MDBList list that
+follows IMDb's chart, key or no key: scrapers seldom fill the library's, and
+it goes stale the day after it is scraped.  The list says nothing of what is
+playing -- it is the same 250 films for everyone -- and is fetched at most
+twice a day.  Until it is in, and for a film without an IMDb id, the
+library's place stands.
 """
 
 import http.client
 import json
+import re
 import threading
 import time
 import urllib.error
@@ -37,11 +45,14 @@ from web.values import Json
 _log = channel("web")
 
 _URL = "https://api.mdblist.com/{provider}/movie/{ident}?apikey={key}"
+# The IMDb Top 250, in its order; public, and asked for without a key.
+_CHART_URL = "https://mdblist.com/lists/snoak/imdb-top-250-movies/json"
 # The add-on names itself: the front MDBList stands behind turns away
 # Python's own User-Agent (and none at all) with a 403 of its own.
 _AGENT = "script.tinyppi (Kodi add-on)"
 _TIMEOUT = 10.0
-# A film's answer is a few kilobytes; anything past this is not one.
+# A film's answer is a few kilobytes, the chart some forty; anything past
+# this is neither.
 _BIGGEST = 512 * 1024
 
 # How long an answer is kept, a film MDBList does not know included, and how
@@ -112,12 +123,17 @@ def _retry_after(error: urllib.error.HTTPError) -> float:
     return min(max(wait, 60.0), 86400.0)
 
 
-def _answer(url: str) -> Json:
-    """Return MDBList's answer at *url* as a JSON object ({} for another)."""
+def _json(url: str) -> object:
+    """Return MDBList's answer at *url*, read as JSON."""
     request = urllib.request.Request(url, headers={"Accept": "application/json",
                                                    "User-Agent": _AGENT})
     with urllib.request.urlopen(request, timeout=_TIMEOUT) as response:
-        found = json.loads(response.read(_BIGGEST))
+        return json.loads(response.read(_BIGGEST))
+
+
+def _answer(url: str) -> Json:
+    """Return MDBList's answer at *url* as a JSON object ({} for another)."""
+    found = _json(url)
     return found if isinstance(found, dict) else {}
 
 
@@ -142,6 +158,39 @@ def fetch(key: str, provider: str, ident: str) -> tuple[Scores, float]:
     except (OSError, ValueError, http.client.HTTPException) as error:
         _log(f"MDBList could not be asked for {provider} {ident}: {type(error).__name__}")
         return {}, _AGAIN
+
+
+# An IMDb id as Kodi and MDBList keep one: "tt" and its digits.
+_IMDB_ID = re.compile(r"tt\d+")
+
+
+def places_of(answer: object) -> dict[str, int]:
+    """Return the films in the chart, by IMDb id, and the place of each.
+
+    The list comes in the chart's order; an entry of another shape keeps its
+    place, so the ones after it keep theirs.
+    """
+    places: dict[str, int] = {}
+    entries = answer if isinstance(answer, list) else []
+    for place, entry in enumerate(entries[:250], start=1):
+        ident = entry.get("imdb_id") if isinstance(entry, dict) else None
+        if isinstance(ident, str) and _IMDB_ID.fullmatch(ident):
+            places.setdefault(ident, place)
+    return places
+
+
+def fetch_chart() -> tuple[dict[str, int], float]:
+    """Return the IMDb Top 250 and how long to keep it.
+
+    A chart that could not be had, or came empty, is asked for again before
+    long.
+    """
+    try:
+        places = places_of(_json(_CHART_URL))
+    except (OSError, ValueError, http.client.HTTPException) as error:
+        _log(f"MDBList's IMDb Top 250 could not be had: {type(error).__name__}")
+        return {}, _AGAIN
+    return places, _KEPT if places else _AGAIN
 
 
 def _in_background(work: Callable[[], None]) -> None:
@@ -217,7 +266,50 @@ class Lookup:
             return {}, 0.0
 
 
+class Chart:
+    """The IMDb Top 250, and the asking for it."""
+
+    def __init__(self, start: Callable[[Callable[[], None]], None] = _in_background,
+                 clock: Callable[[], float] = time.monotonic) -> None:
+        self._start = start
+        self._clock = clock
+        self._lock = threading.Lock()
+        self._places: dict[str, int] = {}
+        # When it is asked for again; at once, the first time.
+        self._until = 0.0
+        self._asking = False
+
+    def place(self, imdb: str) -> int | None:
+        """Return the film's place in the chart, 0 for none, or None while
+        the chart is not in; asks for it when it is due.
+
+        A chart that could not be had again leaves the last one standing.
+        """
+        with self._lock:
+            due = not self._asking and self._clock() >= self._until
+            self._asking = self._asking or due
+            known = self._places.get(imdb, 0) if self._places else None
+        if due:
+            self._start(self._ask)
+        return known
+
+    def _ask(self) -> None:
+        """Ask for the chart and keep it; free to be asked for again however
+        the asking ends."""
+        try:
+            places, keep = fetch_chart()
+        finally:
+            with self._lock:
+                self._asking = False
+                self._until = self._clock() + _AGAIN
+        with self._lock:
+            self._until = self._clock() + keep
+            if places:
+                self._places = places
+
+
 _LOOKUP = Lookup()
+_CHART = Chart()
 
 
 def _key() -> str:
@@ -229,18 +321,23 @@ def _key() -> str:
         return ""
 
 
-def with_mdblist(ratings: Ratings, lookup: Lookup = _LOOKUP) -> Ratings:
-    """Return *ratings* with MDBList's for the film, where it has any.
+def with_mdblist(ratings: Ratings, lookup: Lookup = _LOOKUP,
+                 chart: Chart = _CHART) -> Ratings:
+    """Return *ratings* with MDBList's for the film, where it has any, and
+    its place in the IMDb Top 250 as the chart has it.
 
     MDBList's come first, and the library's own stand beside them for a
     source MDBList has none from.
     """
-    found = lookup.scores(_key(), ratings["ids"])
-    if not found:
-        return ratings
-    held: Scores = dict(found)
-    for entry in ratings["ratings"]:
-        held.setdefault(entry["source"], {"rating": entry["rating"], "votes": entry["votes"]})
     merged = ratings.copy()
-    merged["ratings"] = rating_list(held)
+    imdb = ratings["ids"].get("imdb")
+    place = chart.place(imdb) if imdb else None
+    if place is not None:
+        merged["top250"] = place
+    found = lookup.scores(_key(), ratings["ids"])
+    if found:
+        held: Scores = dict(found)
+        for entry in ratings["ratings"]:
+            held.setdefault(entry["source"], {"rating": entry["rating"], "votes": entry["votes"]})
+        merged["ratings"] = rating_list(held)
     return merged

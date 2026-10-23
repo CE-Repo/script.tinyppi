@@ -48,6 +48,9 @@ def test_library_texts_lose_markup_and_keep_their_line_breaks(value, expected):
     # said to have more.
     ("Timothée Chalamet\nZendaya\nRebecca Ferguson", 2, (["Timothée Chalamet", "Zendaya"], True)),
     ("Timothée Chalamet\nZendaya", 2, (["Timothée Chalamet", "Zendaya"], False)),
+    # No limit: every name.
+    ("Timothée Chalamet\nZendaya\nRebecca Ferguson", None,
+     (["Timothée Chalamet", "Zendaya", "Rebecca Ferguson"], False)),
     # Markup stripped, blanks and repeats dropped: a repeat is no more.
     ("[B]Legendary[/B] /  / Warner Bros. / Legendary", 2, (["Legendary", "Warner Bros."], False)),
     # A slash within a name is no separator, and nor is another one Kodi

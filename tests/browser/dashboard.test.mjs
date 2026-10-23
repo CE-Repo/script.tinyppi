@@ -73,33 +73,50 @@ test("the live tab connects and shows the format badges", async () => {
     ["#title", "#meta", "#studio"].map((selector) => page.locator(selector).boundingBox()));
   const gap = studio.y - (meta.y + meta.height);
   assert.ok(gap >= 0 && gap < meta.y - (title.y + title.height), `${gap} under the genre`);
-  // Who directed it, in the middle between the lines above and the badges.
-  assert.equal(await page.locator("#director").innerText(), "Somebody");
-  const [above, director, formats] = await page.$$eval(".now > *:not(.hidden)", (nodes) => {
-    const at = nodes.findIndex((node) => node.id === "director");
-    return [nodes[at - 1], nodes[at], nodes[at + 1]].map((node) => node.getBoundingClientRect().toJSON());
-  });
-  const over = director.y - (above.y + above.height);
-  const under = formats.y - (director.y + director.height);
-  assert.ok(Math.abs(over - under) <= 1, `centred: ${over} over, ${under} under`);
+  // Who directed it is the overview's, not this card's.
+  assert.equal(await page.locator("#director").count(), 0);
 });
 
 test("the ratings, the slogan and the plot stand in a card of their own under the playing one", async () => {
   await page.waitForSelector("#plotCard:not(.hidden)");
+  // Folded: the plot cut to five lines -- two of them, here -- and its
+  // credits and ratings hidden under it until a press lets them out.
+  await page.waitForSelector("#plotFold.fold");
+  assert.deepEqual(await page.$eval("#plotText", (node) => {
+    const style = getComputedStyle(node);
+    return [style.webkitLineClamp, style.overflow];
+  }), ["5", "hidden"]);
+  assert.equal(await page.locator("#plotFold").getAttribute("role"), "button");
+  assert.equal(await page.locator("#plotFold").getAttribute("aria-expanded"), "false");
+  for (const selector of ["#credits", "#ratingsHeadline", "#ratings"]) {
+    assert.equal(await page.locator(selector).isVisible(), false, selector + " folded away");
+  }
+  await page.locator("#plotText").click();
+  assert.equal(await page.locator("#plotFold").getAttribute("aria-expanded"), "true");
+  for (const selector of ["#credits", "#ratingsHeadline", "#ratings"]) {
+    assert.equal(await page.locator(selector).isVisible(), true, selector + " let out");
+  }
   // The stubs' strings are only their ids, so the words of a badge are the
   // jsdom tests'; here it is which marks stand there, served and drawn.
   await page.waitForFunction(() => [...document.querySelectorAll("#ratings img")]
     .every((image) => image.complete && image.naturalWidth > 0));
-  // Each as wide as it is drawn: the FSK's plate and IMDb's wordmark.
+  // Each as wide as it is drawn: the FSK's plate and IMDb's square logo.
   const sizes = await page.$$eval("#ratings img", (images) => images.map((image) => {
     const box = image.getBoundingClientRect();
     return Math.round(box.width / box.height * 10) / 10;
   }));
-  assert.deepEqual(sizes, [1.4, 2]);
+  assert.deepEqual(sizes, [1.4, 1]);
   // Every badge one height: the age rating's mark and the shields beside it.
   const heights = await page.$$eval("#ratings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
   assert.deepEqual(heights, heights.map(() => 26));
+  // A tap on one shows its words over it.
+  await page.locator("#ratings .rating").last().click();
+  const [tip, shield] = await Promise.all(
+    ["#ratingTip", "#ratings .rating:last-child"].map((selector) => page.locator(selector).boundingBox()));
+  assert.ok(tip, "the words are shown");
+  assert.ok(tip.y + tip.height <= shield.y, "over the shield");
+  assert.ok(Math.abs(tip.x + tip.width / 2 - (shield.x + shield.width / 2)) <= 1, "over its middle");
   const marks = await page.$$eval("#ratings .rating", (nodes) => nodes.map((node) => [
     node.querySelector("img").getAttribute("src"),
     [...node.querySelectorAll(".value")].map((part) => part.textContent).join("")]));
@@ -109,34 +126,50 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   // The plot's own line break, drawn as one.
   assert.equal(await page.locator("#plotText").innerText(),
                "A film about somebody.\nAnd what happens to them.");
-  // Cut to four lines; two of them leave nothing to let out, so no button.
-  assert.deepEqual(await page.$eval("#plotText", (node) => {
-    const style = getComputedStyle(node);
-    return [style.webkitLineClamp, style.overflow];
-  }), ["4", "hidden"]);
-  assert.equal(await page.locator("#plotMore").isVisible(), false);
+  // The slogan upright, set like a credit's heading, and right over the
+  // plot: the two read as one text.
+  const [slogan, heading] = await Promise.all(["#tagline", "#credits dt"].map((selector) =>
+    page.$eval(selector, (node) => {
+      const style = getComputedStyle(node);
+      return [style.fontStyle, style.fontWeight, style.fontSize, style.color];
+    })));
+  assert.deepEqual(slogan, heading);
+  const [sloganBox, plotBox] = await Promise.all(
+    ["#tagline", "#plotText"].map((selector) => page.locator(selector).boundingBox()));
+  assert.ok(Math.abs(plotBox.y - (sloganBox.y + sloganBox.height) - 4) <= 1, "the slogan a little over the plot");
   const [now, plot] = await Promise.all(
     ["#nowCard", "#plotCard"].map((selector) => page.locator(selector).boundingBox()));
   assert.ok(plot.y > now.y + now.height - 1, "under the playing card");
-  // The slogan and the plot centred; under them, past a thin rule each,
-  // the cast and then the ratings, centred too.
+  // The slogan and the plot centred; on its end the credits, and past a
+  // thin rule the ratings, centred too.
   assert.deepEqual(await page.$$eval("#tagline, #plotText",
     (nodes) => nodes.map((node) => getComputedStyle(node).textAlign)), ["center", "center"]);
   const [text, credits, row, first, last] = await Promise.all(
     ["#plotText", "#credits", "#ratings", "#ratings .rating:first-child", "#ratings .rating:last-child"]
       .map((selector) => page.locator(selector).boundingBox()));
-  assert.ok(credits.y >= text.y + text.height - 1, "the cast under the plot");
-  assert.ok(row.y >= credits.y + credits.height - 1, "the ratings under the cast");
-  for (const selector of ["#credits", "#ratings"]) {
-    assert.equal(await page.$eval(selector, (node) => getComputedStyle(node).borderTopWidth), "1px");
+  assert.ok(credits.y >= text.y + text.height - 1, "the credits under the plot");
+  assert.ok(row.y >= credits.y + credits.height - 1, "the ratings under the credits");
+  // No rule anywhere: the ratings stand under a heading of their own, set
+  // like a credit's, between the credits and the badges.
+  for (const selector of ["#credits", "#ratingsHeadline", "#ratings"]) {
+    assert.equal(await page.$eval(selector, (node) => getComputedStyle(node).borderTopWidth), "0px");
   }
+  const headline = await page.locator("#ratingsHeadline").boundingBox();
+  assert.ok(headline.y >= credits.y + credits.height - 1 && row.y >= headline.y + headline.height - 1,
+            "the heading between the credits and the badges");
+  const [headStyle, termStyle] = await Promise.all(["#ratingsHeadline", "#credits dt"].map((selector) =>
+    page.$eval(selector, (node) => {
+      const style = getComputedStyle(node);
+      return [style.fontWeight, style.fontSize, style.color, style.textAlign];
+    })));
+  assert.deepEqual(headStyle, termStyle);
   const left = first.x - row.x;
   const right = row.x + row.width - (last.x + last.width);
   assert.ok(Math.abs(left - right) <= 2, `centred: ${left} vs ${right}`);
-  // The cast: what it is called over the names, each line centred, and
-  // the name set apart from the names in weight and colour.
+  // The director over the cast: what each is called over the names, each
+  // line centred, and the name set apart from the names in weight and colour.
   assert.deepEqual(await page.$$eval("#credits .credit", (lines) => lines.map((line) => line.innerText)),
-                   ["#32378\nOne Actor, Another Actor, …"]);
+                   ["#32386\nSomebody", "#32378\nOne Actor, Another Actor, …"]);
   const [term, names] = await Promise.all(["#credits dt", "#credits dd"].map((selector) =>
     page.$eval(selector, (node) => {
       const style = getComputedStyle(node);

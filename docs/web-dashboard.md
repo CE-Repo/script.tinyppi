@@ -42,15 +42,18 @@ connection light.
 
 - **Now playing** — the poster, title, year and genre (its first two),
   under them the studio (only the first, with no "…"; an episode's is its
-  show's), the file name (when *Show file name* is on), the
-  director's name alone (only the first, with no "…") in the middle of the
-  room left between those lines and the format badges at the foot, elapsed
-  time and progress.
-- **Overview** — a card under it with the title's slogan and its plot,
-  under them, past a thin rule, its cast, and last, past another, every
-  rating Kodi's library holds for it, all of it centred. A long plot is cut
-  to four lines, and *Show more* under it lets the rest out (*Show less*
-  takes it back); a new title starts cut again. The ratings
+  show's), the file name (when *Show file name* is on), the format badges,
+  elapsed time and progress.
+- **Overview** — a card under it with the title's slogan right over its
+  plot, so the two read as one text, the slogan upright and set like a
+  credit's heading; hanging on the plot's end its directors and then its
+  cast; and last, under the heading Ratings, every rating Kodi's library holds for
+  it, all of it centred. The card starts folded: the plot cut to five
+  lines, and the credits and the ratings hidden under it. A click or tap on
+  the text (or Enter or Space once it has the focus) lets it all out, and
+  another folds it again; a tap on a rating's shield is the shield's. Only
+  a plot that fits its five lines with nothing under it has nothing to fold,
+  and a new title starts folded again. The ratings
   are a row of small shields, each with its source's mark on the left, on a
   ground of the source's colour, instead of its name, and what it gave on the
   right: first the age rating — a German, American or British one as a
@@ -60,21 +63,24 @@ connection light.
   then a score for each source the scraper or the NFO wrote (IMDb, TMDb, Trakt, TVDB, Metacritic, Rotten Tomatoes; any other gets
   its first letter on a plain plate) — or, with an MDBList key, the ones
   MDBList gathers for a film (see [Ratings from MDBList](#ratings-from-mdblist))
-  — with how many voted, your own rating
-  behind a heart and the place in the IMDb Top 250. A screen reader hears each shield in words
-  ("IMDb 8.5, 612,345 votes"). An episode is rated on its own and carries its
+  — your own rating behind a heart and the place in the IMDb Top 250 (see
+  [The IMDb Top 250](#the-imdb-top-250)). A screen reader hears each shield
+  in words ("IMDb 8.5"), and a tap or a click on one shows over it for a
+  moment whose it is ("IMDb"; a pointer's tooltip says so too), for a mark
+  you do not know. An episode is rated on its own and carries its
   show's age rating. An age rating that names neither its country nor its
   board ("Rated 12", which the TMDb scraper writes with its default prefix)
   is read as the one board that gives that level — "PG-13" is American, "15"
   British — and where more than one does ("12", "18", "PG") as the board of
   the country Kodi's language points to: German, British English or American
-  English. The cast is its name in bold on a line of its own, centred over
-  its first eight names in billing order, ending in "…" where there are more, and left out where Kodi
-  has none; the genre, the studio and the director stand in the
-  card above. An episode's cast is its own guests and then the show's. They are
+  English. The director and the cast are each their name in bold on a line
+  of its own, centred over their names (every director, and the cast's
+  first twenty in billing order, ending in "…" where there are more),
+  a clear gap between the two, and left out where Kodi has none; the genre
+  and the studio stand in the card above. An episode's cast is its own guests and then the show's. They are
   what Kodi knows of whatever plays, so an add-on's stream that names them has
   them too. The slogan only stands above a plot (most episodes have
-  none). Without a plot the card shows the ratings and the cast alone, and
+  none). Without a plot the card shows the ratings and the credits alone, and
   with none of them it is left out, as it is for a file that is not in the
   library. The ratings are read from the library once per title, and only
   while a page is open. The card folds like the other cards and remembers
@@ -506,8 +512,8 @@ From the next film on, the card asks MDBList once per film, by the IMDb id the
 library holds (the TMDb one where there is none), and shows the library's
 ratings until the answer is in — a moment after the film starts. Where both
 have a rating from one source, MDBList's is shown; any other the library holds
-stands beside them, and the age rating, your own rating and the Top 250 place
-are the library's as before. Every rating is out of ten, as Kodi has them: a
+stands beside them, and the age rating and your own rating are the library's
+as before. Every rating is out of ten, as Kodi has them: a
 score out of 100 a tenth of it, Roger Ebert's four stars ten. An answer is kept
 for half a day, so a film watched twice costs one request of the day's limit.
 
@@ -516,6 +522,18 @@ not know or cannot be reached for (it is asked again ten minutes on), when
 MDBList refuses the key (Kodi's log says so, and the key is not sent again
 until it is changed) or while the day's limit is spent. An episode always
 shows the library's: MDBList rates shows, not episodes.
+
+## The IMDb Top 250
+
+Scrapers seldom write a film's place in the IMDb Top 250 any more, and one
+they did write is stale the day after. So the place comes from a public
+MDBList list that follows IMDb's chart, key or no key: it is fetched once
+when a film first plays with a page open, then at most twice a day (ten
+minutes on when it could not be had), and is the same 250 films for everyone,
+so it tells nothing of what you watch. A film is looked up in it by the IMDb
+id the library holds; one in the chart wears its place, one that is not wears
+none. Until the list is in, and for a film without an IMDb id, the library's
+place stands. Episodes have none.
 
 ## Security
 

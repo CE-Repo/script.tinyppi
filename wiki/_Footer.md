@@ -1,0 +1,1 @@
+TinyPPI (`script.tinyppi`) · [Source](https://github.com/CE-Repo/script.tinyppi) · [Issues](https://github.com/CE-Repo/script.tinyppi/issues) · Code: AGPL-3.0-or-later · Name, logo and artwork: all rights reserved

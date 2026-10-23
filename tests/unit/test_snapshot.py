@@ -29,7 +29,7 @@ PLAYING = {
     "VideoPlayer.Year": "2021", "VideoPlayer.Genre": "Drama",
     "VideoPlayer.Tagline": "One night.", "VideoPlayer.Plot": "Somebody does something.",
     "VideoPlayer.Director": "Somebody / Somebody Else", "VideoPlayer.Studio": "A Studio / Another",
-    "VideoPlayer.Cast": "\n".join(f"Actor {n}" for n in range(1, 13)),
+    "VideoPlayer.Cast": "\n".join(f"Actor {n}" for n in range(1, 25)),
 }
 
 
@@ -65,15 +65,14 @@ def test_a_playing_title():
     assert shot["media"]["year"] == "2021" and shot["media"]["genre"] == "Drama"
     assert shot["media"]["tagline"] == "One night."
     assert shot["media"]["plot"] == "Somebody does something."
-    # Who made it, as names; the cast cut to its leads, and said to have
-    # more.  The genre is only the card above's.
+    # Who made it, as names; every director and the cast's first twenty,
+    # said to have more.  The genre is only the card above's.
     assert "genres" not in shot["media"]
-    # The director the first alone, with nothing to say there are more.
-    assert shot["media"]["directors"] == ["Somebody"]
+    assert shot["media"]["directors"] == ["Somebody", "Somebody Else"]
     assert "directors_more" not in shot["media"]
     assert shot["media"]["studios"] == ["A Studio"]
     assert "studios_more" not in shot["media"]
-    assert shot["media"]["cast"] == [f"Actor {n}" for n in range(1, 9)]
+    assert shot["media"]["cast"] == [f"Actor {n}" for n in range(1, 21)]
     assert shot["media"]["cast_more"] is True
     assert shot["controls"] == {}
     ids = [group["id"] for group in shot["groups"]]

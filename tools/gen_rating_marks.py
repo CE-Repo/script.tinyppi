@@ -2,14 +2,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Draw the marks the plot card's ratings wear.
+"""Draw the marks the plot card's ratings wear that are not the houses' own.
 
-One mark per rating source the dashboard knows (IMDb, TMDb, Trakt, TVDB,
-Letterboxd, Metacritic and its users, Rotten Tomatoes' critics and its
-Popcornmeter, Roger Ebert, MyAnimeList), the IMDb Top 250, and the age ratings of
-Germany (FSK), the United States (the MPA's for films, the TV Parental
-Guidelines' for television) and Britain (BBFC).  They are simplified marks in
-each house's colours, drawn here, not copies of the houses' own logo files;
+IMDb, TMDB, Trakt, TheTVDB, Letterboxd, Metacritic, Rotten Tomatoes' critics
+and its Popcornmeter and MyAnimeList wear their own logo files, under
+resources/web/ratings/ and converted for the app; this draws none of them.
+It draws Metacritic's users' mark, Roger Ebert's, the IMDb Top 250's and the
+age ratings of Germany (FSK), the United States (the MPA's for films, the TV
+Parental Guidelines' for television) and Britain (BBFC).  They are simplified
+marks in each house's colours, drawn here, not copies of its own logo files;
 they name the source of a rating, which is nominative use (see section 4 of
 LICENSE-ASSETS).  An age rating's mark is the left of its shield: the
 board's name on the colour of the level, the level itself being written on
@@ -119,47 +120,14 @@ def marks(letters: Lettering) -> list[Mark]:
                  if isinstance(ink, str) else ink)
         return Mark(words, *wide, [Shape(rounded(44, 22, 4), fill=colour), shape])
 
-    tmdb_words = Shape(letters.text("TMDB", 11.5, 22, 15.4, 0.3),
-                       gradient=[(0.0, "#90CEA1"), (0.55, "#3CBEC9"), (1.0, "#01B4E4")])
     fsk = {"0": ("#FFFFFF", black), "6": ("#FFD500", black), "12": ("#00A651", white),
            "16": ("#00A0E3", white), "18": ("#E30613", white)}
 
     found = [
-        _named("imdb", plate("#F5C518", "IMDb", black, 12.5, 15.8)),
-        _named("tmdb", plate("#0D253F", "TMDB", tmdb_words, 11.5)),
-        _named("tvdb", plate("#1E2A33", "TVDB", "#6CD491", 11.5, 15.4, 0.3)),
-        _named("top250", plate("#F5C518", "TOP 250", black, 8.4, 14.9, 0.1)),
-        Mark("trakt", *square, [
-            Shape(circle(11, 11, 11), fill="#ED1C24"),
-            Shape(circle(11, 11, 7.2), stroke=white, width=1.6),
-            Shape("M7.6 11.2L10 13.6L14.6 8.8", stroke=white, width=1.9),
-        ]),
-        Mark("metacritic", *square, [
-            Shape(circle(11, 11, 11), fill="#FFCC34"),
-            Shape(letters.text("m", 13, 11, 15.4), fill=black),
-        ]),
-        Mark("rottentomatoes", *square, [
-            Shape(circle(11, 12.2, 9.6), fill="#FA320A"),
-            Shape("M11 4.2C9.4 2.3 7.1 2.2 6 2.8C7.6 3 8.6 3.7 9.3 4.6C7.8 4.4 6.3 4.9 5.4 6"
-                  "C7.1 5.6 9 6 11 7.2C13 6 14.9 5.6 16.6 6C15.7 4.9 14.2 4.4 12.7 4.6"
-                  "C13.4 3.7 14.4 3 16 2.8C14.9 2.2 12.6 2.3 11 4.2Z", fill="#00912D"),
-        ]),
-        # Rotten Tomatoes' audience: a striped tub, popcorn heaped over it.
-        Mark("popcorn", *square, [
-            Shape(circle(7.4, 8.6, 2.5), fill="#FFC72C"),
-            Shape(circle(14.6, 8.6, 2.5), fill="#FFC72C"),
-            Shape(circle(9.2, 6.2, 2.3), fill="#FFD95A"),
-            Shape(circle(12.8, 6.2, 2.3), fill="#FFD95A"),
-            Shape(circle(11, 7.8, 2.8), fill="#FFC72C"),
-            Shape("M5.6 9.6H16.4L14.9 20H7.1Z", fill="#FA320A"),
-            Shape("M8.8 9.6H10.1L10.3 20H9.4Z", fill=white),
-            Shape("M11.9 9.6H13.2L12.6 20H11.7Z", fill=white),
-        ]),
-        # Letterboxd's three dots.
-        Mark("letterboxd", *square, [
-            Shape(circle(5.4, 11, 3.4), fill="#FF8000"),
-            Shape(circle(16.6, 11, 3.4), fill="#40BCF4"),
-            Shape(circle(11, 11, 3.4), fill="#00E054"),
+        # The IMDb Top 250's number alone, square like the logos beside it.
+        Mark("top250", *square, [
+            Shape(rounded(22, 22, 4), fill="#F5C518"),
+            Shape(letters.text("250", 9, 11, 14.3, 0.1), fill=black),
         ]),
         # Metacritic's own circle with a reader on it, for its users' score.
         Mark("metacriticuser", *square, [
@@ -167,8 +135,11 @@ def marks(letters: Lettering) -> list[Mark]:
             Shape(circle(11, 8.3, 3.1), fill=black),
             Shape("M5.4 17.4C5.4 14.3 7.9 12.4 11 12.4C14.1 12.4 16.6 14.3 16.6 17.4Z", fill=black),
         ]),
-        _named("rogerebert", plate("#C8102E", "EBERT", white, 10.5, 15.3, 0.4)),
-        _named("myanimelist", plate("#2E51A2", "MAL", white, 12.5, 15.8, 0.3)),
+        # Roger Ebert's initials, square like the logos beside it.
+        Mark("rogerebert", *square, [
+            Shape(rounded(22, 22, 4), fill="#C8102E"),
+            Shape(letters.text("RE", 11, 11, 15.2, 0.3), fill=white),
+        ]),
     ]
     for age, (colour, ink) in fsk.items():
         found.append(plate_of("fsk" + age, "FSK", colour, ink, letters))
