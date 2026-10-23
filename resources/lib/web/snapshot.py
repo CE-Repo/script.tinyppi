@@ -128,12 +128,11 @@ _EXTRA_INFOLABELS = (
     ("Studio",              "VideoPlayer.Studio"),
 )
 
-# How many names of each the page keeps (see name_list): the genres, the
-# studio and the director for the card of what is playing, the cast's leads
-# for the overview card's credits.  The page marks only the cast as having
-# more: the genres read as a kind of film rather than a list of names, and
-# the studio and the director each stand for the film alone.
-_NAMES = {"genres": 2, "directors": 1, "cast": 8, "studios": 1}
+# How many names of each the page keeps (see name_list): the genres and the
+# studio for the card of what is playing; every director and the whole cast,
+# for the overview card's credits.  The genres read as a kind of film rather
+# than a list of names, and the studio stands for the film alone.
+_NAMES: dict[str, int | None] = {"genres": 2, "directors": None, "cast": None, "studios": 1}
 
 
 def _genre(values: dict[str, str]) -> str:

@@ -79,9 +79,10 @@ _ITEM_RE = re.compile(r" / |\n")
 _NAME_LIMIT = 80
 
 
-def name_list(value: str, limit: int) -> tuple[list[str], bool]:
-    """Return the first *limit* names a list InfoLabel holds, in Kodi's
-    order -- the cast by billing -- each once, and whether it holds more."""
+def name_list(value: str, limit: int | None = None) -> tuple[list[str], bool]:
+    """Return the first *limit* names a list InfoLabel holds (all of them
+    for None), in Kodi's order -- the cast by billing -- each once, and
+    whether it holds more."""
     names: list[str] = []
     for item in _ITEM_RE.split(plain_text(value)):
         name = item.strip()[:_NAME_LIMIT].rstrip()
