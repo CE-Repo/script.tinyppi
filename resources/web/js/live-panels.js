@@ -312,9 +312,9 @@
     return cast.length ? [{ label: T.cast, names: nameList(cast, Boolean(media.cast_more)) }] : [];
   }
 
-  /* A line each, what it is and then the names, as a description list, so
-     a screen reader says which names are whose.  Built again only when one
-     would say something else. */
+  /* What it is over the names, as a description list, so a screen reader
+     says which names are whose.  Built again only when one would say
+     something else. */
   function fillCredits(credits) {
     const signature = JSON.stringify(credits);
     if (el.credits.dataset.signature === signature) return;
@@ -327,9 +327,7 @@
       label.textContent = credit.label;
       const names = document.createElement("dd");
       names.textContent = credit.names;
-      /* A space between them, not a margin: copied out, the line reads
-         "Director Denis Villeneuve" rather than as one word. */
-      line.append(label, " ", names);
+      line.append(label, names);
       el.credits.append(line);
     }
     el.credits.classList.toggle("hidden", !credits.length);

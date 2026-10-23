@@ -127,26 +127,28 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   const left = first.x - row.x;
   const right = row.x + row.width - (last.x + last.width);
   assert.ok(Math.abs(left - right) <= 2, `centred: ${left} vs ${right}`);
-  // The cast a centred line, its name set apart from the names in weight
-  // and colour.
+  // The cast: what it is called over the names, each line centred, and
+  // the name set apart from the names in weight and colour.
   assert.deepEqual(await page.$$eval("#credits .credit", (lines) => lines.map((line) => line.innerText)),
-                   ["#32378 One Actor, Another Actor, …"]);
+                   ["#32378\nOne Actor, Another Actor, …"]);
   const [term, names] = await Promise.all(["#credits dt", "#credits dd"].map((selector) =>
     page.$eval(selector, (node) => {
       const style = getComputedStyle(node);
       return [style.display, style.fontWeight, style.color];
     })));
-  assert.deepEqual([term[0], names[0]], ["inline", "inline"]);
+  assert.deepEqual([term[0], names[0]], ["block", "block"]);
   assert.ok(Number(term[1]) > Number(names[1]), "the name bolder than the names");
   assert.notEqual(term[2], names[2]);
-  const line = await page.locator("#credits .credit").first().boundingBox();
-  const words = await page.$eval("#credits .credit", (node) => {
-    const range = document.createRange();
-    range.selectNodeContents(node);
-    return range.getBoundingClientRect().toJSON();
-  });
-  assert.ok(Math.abs(words.x - line.x - (line.x + line.width - words.x - words.width)) <= 2,
-            "centred");
+  const [over, under] = await Promise.all(["#credits dt", "#credits dd"].map((selector) =>
+    page.$eval(selector, (node) => {
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      return [node.getBoundingClientRect().toJSON(), range.getBoundingClientRect().toJSON()];
+    })));
+  assert.ok(under[0].y >= over[0].y + over[0].height - 1, "the names under what they are");
+  for (const [box, words] of [over, under]) {
+    assert.ok(Math.abs(words.x - box.x - (box.x + box.width - words.x - words.width)) <= 2, "centred");
+  }
 });
 
 test("the chapters ahead sit on the bar, a mouse brings up the rest, a click jumps", async () => {

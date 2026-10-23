@@ -596,9 +596,9 @@
    genre are written in.
    A plot is the one paragraph on the page, so it gets the line height of
    one; its line breaks are the library's own (see plain_text in
-   web/values.py).  Under them, past a thin rule, the cast as a plain line:
-   what it is called in the text's own colour, the names in the plot's muted
-   grey.  And last, past another, centred as a row of their own, the ratings
+   web/values.py).  Under them, past a thin rule, the cast as plain lines:
+   what it is called in the text's own colour over the names in the plot's
+   muted grey.  And last, past another, centred as a row of their own, the ratings
    as small shields, which is what they are: short facts about the film, to
    be taken in at a glance -- each wearing its house's mark in its house's
    colours rather than its name, so a row of them is read by colour before
@@ -749,9 +749,10 @@
   border-top: 1px solid var(--line-soft);
   padding-top: 12px;
 }
+/* What it is called on a line of its own, over the names. */
 .credits dt,
 .credits dd {
-  display: inline;
+  display: block;
   margin: 0;
 }
 .credits dt {

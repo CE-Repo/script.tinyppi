@@ -64,8 +64,8 @@ connection light.
   is read as the one board that gives that level — "PG-13" is American, "15"
   British — and where more than one does ("12", "18", "PG") as the board of
   the country Kodi's language points to: German, British English or American
-  English. The cast is its name in bold and then its first eight names in
-  billing order, ending in "…" where there are more, and left out where Kodi
+  English. The cast is its name in bold on a line of its own, centred over
+  its first eight names in billing order, ending in "…" where there are more, and left out where Kodi
   has none; the genre, the studio and the director stand in the
   card above. An episode's cast is its own guests and then the show's. They are
   what Kodi knows of whatever plays, so an add-on's stream that names them has
