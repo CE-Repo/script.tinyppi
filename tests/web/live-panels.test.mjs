@@ -267,6 +267,7 @@ test("the overview card carries every rating as a shield with its mark, under th
   assert.equal($("plotText").nextElementSibling, $("ratings"));
   assert.equal($("tagline").nextElementSibling, $("plotText"));
   assert.deepEqual(plain(badges()), [
+    ["rating age drawn", "FSK 12", "side fsk12 /ratings/fsk12.svg", []],
     ["rating score", "IMDb 8.5, 612,345 votes", "side imdb /ratings/imdb.svg wide",
      [["value", "8.5"], ["note", "612,345"]]],
     ["rating score", "TMDb 8.2", "side tmdb /ratings/tmdb.svg wide", [["value", "8.2"]]],
@@ -275,8 +276,7 @@ test("the overview card carries every rating as a shield with its mark, under th
     ["rating score", "Rotten Tomatoes 9.2", "side rottentomatoes /ratings/rottentomatoes.svg", [["value", "9.2"]]],
     ["rating score", "Letterboxd 8.9, 3 votes", "side letter:L", [["value", "8.9"], ["note", "3"]]],
     ["rating mine", "My rating 9", "side heart:", [["value", "9"]]],
-    ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg wide", [["value", "#27"]]],
-    ["rating age drawn", "FSK 12", "side fsk12 /ratings/fsk12.svg", []]]);
+    ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg wide", [["value", "#27"]]]]);
   // Said in words, drawn as marks: the drawing is kept from a screen reader.
   for (const node of $("ratings").children) {
     assert.equal(node.getAttribute("role"), "listitem");
@@ -294,13 +294,15 @@ test("the overview card carries every rating as a shield with its mark, under th
   P.strings({ ...window.TinyPPI.T, votes: "%s Stimmen", my_rating: "Eigene Bewertung",
               top250: "Top 250 · Platz %s" });
   const said = () => [...$("ratings").children].map((node) => node.querySelector(".said").textContent);
-  assert.deepEqual(said().slice(0, 1), ["IMDb 8.5, 612,345 Stimmen"]);
-  assert.deepEqual(said().slice(5, 7), ["Eigene Bewertung 9", "Top 250 · Platz 27"]);
+  assert.deepEqual(said().slice(0, 2), ["FSK 12", "IMDb 8.5, 612,345 Stimmen"]);
+  assert.deepEqual(said().slice(6, 8), ["Eigene Bewertung 9", "Top 250 · Platz 27"]);
 
   // An age rating no FSK level is read from is written out, with no mark.
-  P.update(snap({ media: { ...rated, ratings: [], userrating: 0, top250: 0,
-                           mpaa: "Rated PG-13", fsk: "" } }));
-  assert.deepEqual(plain(badges()), [["rating age", "Rated PG-13", "", [["value", "Rated PG-13"]]]]);
+  P.update(snap({ media: { ...rated, ratings: [{ source: "imdb", rating: 7.0, votes: 0 }],
+                           userrating: 0, top250: 0, mpaa: "Rated PG-13", fsk: "" } }));
+  assert.deepEqual(plain(badges()), [
+    ["rating age", "Rated PG-13", "", [["value", "Rated PG-13"]]],
+    ["rating score", "IMDb 7.0", "side imdb /ratings/imdb.svg wide", [["value", "7.0"]]]]);
 
   // Ratings without a plot: the card for them alone, and no slogan.
   P.update(snap({ media: { tagline: "Only this.", mpaa: "FSK 16", fsk: "16" } }));

@@ -289,12 +289,20 @@
   const WIDE_MARKS = new Set(["imdb", "tmdb", "tvdb", "top250"]);
 
   /* Every rating the library holds for the title (see web/ratings.py), in
-     the order the badges stand: a score for each source with how many voted
-     for it, the reader's own, the place in the IMDb Top 250 and the age
-     rating.  Each badge says in words what its mark shows, for a screen
-     reader and under a pointer. */
+     the order the badges stand: the age rating first -- who the film is for
+     is asked before how good it is -- then a score for each source with how
+     many voted for it, the reader's own and the place in the IMDb Top 250.
+     Each badge says in words what its mark shows, for a screen reader and
+     under a pointer. */
   function ratingBadges(media, T) {
     const badges = [];
+    if (media.mpaa) {
+      /* A German one is the FSK's coloured mark and nothing else; any other
+         is written as the scraper wrote it. */
+      badges.push(media.fsk
+        ? { kind: "age", mark: "fsk" + media.fsk, said: media.mpaa }
+        : { kind: "age", value: media.mpaa, said: media.mpaa });
+    }
     for (const entry of media.ratings || []) {
       const source = entry.source || "";
       const name = RATING_SOURCES[source] ||
@@ -317,13 +325,6 @@
     if (media.top250) {
       badges.push({ kind: "rank", mark: "top250", value: "#" + media.top250,
                     said: T.top250.replace("%s", media.top250) });
-    }
-    if (media.mpaa) {
-      /* A German one is the FSK's coloured mark and nothing else; any other
-         is written as the scraper wrote it. */
-      badges.push(media.fsk
-        ? { kind: "age", mark: "fsk" + media.fsk, said: media.mpaa }
-        : { kind: "age", value: media.mpaa, said: media.mpaa });
     }
     return badges;
   }

@@ -77,7 +77,8 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   const marks = await page.$$eval("#ratings .rating", (nodes) => nodes.map((node) => [
     node.querySelector("img").getAttribute("src"),
     [...node.querySelectorAll(".value")].map((part) => part.textContent).join("")]));
-  assert.deepEqual(marks, [["/ratings/imdb.svg", "7.9"], ["/ratings/fsk12.svg", ""]]);
+  // The age rating first.
+  assert.deepEqual(marks, [["/ratings/fsk12.svg", ""], ["/ratings/imdb.svg", "7.9"]]);
   assert.equal(await page.locator("#tagline").innerText(), "One night changes everything.");
   // The plot's own line break, drawn as one.
   assert.equal(await page.locator("#plotText").innerText(),
