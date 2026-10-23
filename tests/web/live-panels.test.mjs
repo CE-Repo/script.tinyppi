@@ -337,6 +337,60 @@ test("the overview card carries every rating as a shield with its mark, under th
   assert.deepEqual(plain(badges()), [["rating score", "5.0", "side letter:", [["value", "5.0"]]]]);
 });
 
+test("the overview card ends with the credits, a line each under the ratings", (t) => {
+  const { $, P, window } = panels(t);
+  const lines = () => [...$("credits").children].map((line) =>
+    [line.className, ...[...line.children].map((part) => part.tagName + " " + part.textContent)]);
+  const credited = {
+    plot: "Paul joins the Fremen.", ratings: [{ source: "imdb", rating: 8.5, votes: 0 }],
+    genres: ["Science Fiction", "Adventure"], directors: ["Denis Villeneuve"],
+    cast: ["Timothée Chalamet", "Zendaya"], studios: ["Legendary Pictures"]
+  };
+  P.update(snap({ media: credited }));
+  // Under the ratings, in the order they are asked about, named for one or
+  // for more than one.
+  assert.equal($("ratings").nextElementSibling, $("credits"));
+  assert.equal($("credits").classList.contains("hidden"), false);
+  assert.deepEqual(lines(), [
+    ["credit", "DT Genres", "DD Science Fiction, Adventure"],
+    ["credit", "DT Director", "DD Denis Villeneuve"],
+    ["credit", "DT Cast", "DD Timothée Chalamet, Zendaya"],
+    ["credit", "DT Studio", "DD Legendary Pictures"]]);
+
+  // The same credits again are not built again.
+  const first = $("credits").firstChild;
+  P.update(snap({ media: { ...credited } }));
+  assert.equal($("credits").firstChild, first);
+
+  // The words arrive later, into the page's table, and the lines are named
+  // in them.
+  Object.assign(window.TinyPPI.T, { genre: "Genre", genres: "Genres", director: "Regie",
+                                    directors: "Regie", cast: "Darsteller", studio: "Studio",
+                                    studios: "Studios" });
+  P.strings(window.TinyPPI.T);
+  assert.deepEqual(lines().map((line) => line[1]), ["DT Genres", "DT Regie", "DT Darsteller", "DT Studio"]);
+
+  // One genre, two directors and studios; a list the library has none of is
+  // left out.
+  P.update(snap({ media: { plot: "Plot.", genres: ["Drama"], directors: ["Joel Coen", "Ethan Coen"],
+                           cast: [], studios: ["A24", "Working Title"] } }));
+  assert.deepEqual(lines(), [
+    ["credit", "DT Genre", "DD Drama"],
+    ["credit", "DT Regie", "DD Joel Coen, Ethan Coen"],
+    ["credit", "DT Studios", "DD A24, Working Title"]]);
+
+  // Credits alone are still an overview.
+  P.update(snap({ media: { cast: ["Somebody"] } }));
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+  assert.ok($("plotText").classList.contains("hidden"));
+  assert.ok($("ratings").classList.contains("hidden"));
+
+  // None at all: no lines.
+  P.update(snap({ media: { plot: "An episode." } }));
+  assert.ok($("credits").classList.contains("hidden"));
+  assert.equal($("credits").children.length, 0);
+});
+
 test("the finish clock shows as it arrived and takes its label from the strings", (t) => {
   const { $, P, window } = panels(t);
   P.update(snap({ finish: "23:40" }));

@@ -574,7 +574,7 @@
 }
 .now .meta:empty { display: none; }
 
-/* --- The overview: the ratings and the plot ------------------------------
+/* --- The overview: the plot, the ratings and the credits -----------------
    The card under the one of what is playing, everything in it centred.
    The slogan first, in the text's own colour and set in italics as the line
    a poster carries, and the plot as prose, in the muted grey the year and
@@ -585,7 +585,9 @@
    as small shields, which is what they are: short facts about the film, to
    be taken in at a glance -- each wearing its house's mark in its house's
    colours rather than its name, so a row of them is read by colour before
-   a word of it is.
+   a word of it is.  Under them, past another rule, the credits as plain
+   lines: what each is called in the text's own colour, the names in the
+   plot's muted grey.
 ------------------------------------------------------------------------ */
 
 .plot {
@@ -711,6 +713,37 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* The credits, a line each and centred like everything above them, past
+   the same thin rule: from the ratings, or from the plot where there are
+   none. */
+.credits {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.plot .plottext:not(.hidden) ~ .credits,
+.plot .ratings:not(.hidden) ~ .credits {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 12px;
+}
+.credits dt,
+.credits dd {
+  display: inline;
+  margin: 0;
+}
+.credits dt {
+  font-weight: 600;
+  color: var(--text);
+}
+.credits dd {
+  color: var(--muted);
 }
 
 /* The slogan and the plot centred over the row of ratings under them, so

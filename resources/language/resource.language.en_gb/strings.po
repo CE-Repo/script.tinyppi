@@ -1502,3 +1502,31 @@ msgstr ""
 msgctxt "#32373"
 msgid "Top 250 · #%s"
 msgstr ""
+
+msgctxt "#32374"
+msgid "Genre"
+msgstr ""
+
+msgctxt "#32375"
+msgid "Genres"
+msgstr ""
+
+msgctxt "#32376"
+msgid "Director"
+msgstr ""
+
+msgctxt "#32377"
+msgid "Directors"
+msgstr ""
+
+msgctxt "#32378"
+msgid "Cast"
+msgstr ""
+
+msgctxt "#32379"
+msgid "Studio"
+msgstr ""
+
+msgctxt "#32380"
+msgid "Studios"
+msgstr ""

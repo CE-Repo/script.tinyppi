@@ -92,15 +92,16 @@
         '</div>' +
       '</div>' +
     '</section>' +
-    /* What the title is about and what it has been given, under the card
-       of what is playing: the slogan, the plot and, under them, the
-       ratings, as the library has them. */
+    /* What the title is about, what it has been given and who made it,
+       under the card of what is playing: the slogan, the plot and, under
+       them, the ratings and the credits, as the library has them. */
     '<details class="card hidden" id="plotCard">' +
       '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
       '<div class="plot">' +
         '<p class="tagline hidden" id="tagline"></p>' +
         '<p class="plottext hidden" id="plotText"></p>' +
         '<div class="ratings hidden" id="ratings" role="list"></div>' +
+        '<dl class="credits hidden" id="credits"></dl>' +
       '</div>' +
     '</details>' +
     '<details class="card hidden" id="tiles">' +
@@ -158,7 +159,7 @@
     meta: $("meta"), file: $("file"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
     plotCard: $("plotCard"), ratings: $("ratings"), tagline: $("tagline"),
-    plotText: $("plotText"),
+    plotText: $("plotText"), credits: $("credits"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
     tFinish: $("tFinish"), tFinishLabel: $("tFinishLabel"),
@@ -257,8 +258,8 @@
     el.tFinish.classList.toggle("hidden", !finish);
   }
 
-  /* The card is there for the plot and the ratings: with neither it is left
-     out.  The slogan belongs to the plot and goes without it -- a slogan on
+  /* The card is there for the plot, the ratings and the credits: with none
+     of them it is left out.  The slogan belongs to the plot and goes without it -- a slogan on
      its own says too little to be worth a card -- and with a plot it is left
      out where the library has none, which is most episodes.  Written only
      when the words change: they stand still for the whole title, and a plot
@@ -273,7 +274,52 @@
     }
     const badges = ratingBadges(media, TinyPPI.T);
     fillRatings(badges);
-    el.plotCard.classList.toggle("hidden", !plot && !badges.length);
+    const credits = creditList(media, TinyPPI.T);
+    fillCredits(credits);
+    el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credits.length);
+  }
+
+  /* Who made the title, in the order a film's credits are asked about:
+     what kind of film it is, who directed it, who is in it -- the leads, as
+     the add-on cuts them (see _NAMES in web/snapshot.py) -- and who made it.
+     Each under its name for one or for more than one of it ("Studio",
+     "Studios"), and left out where the library has none. */
+  const CREDITS = [
+    ["genres", "genre", "genres"], ["directors", "director", "directors"],
+    ["cast", "cast", "cast"], ["studios", "studio", "studios"]
+  ];
+
+  function creditList(media, T) {
+    const credits = [];
+    for (const [key, one, more] of CREDITS) {
+      const names = media[key] || [];
+      if (!names.length) continue;
+      credits.push({ label: names.length === 1 ? T[one] : T[more], names: names.join(", ") });
+    }
+    return credits;
+  }
+
+  /* A line each, what it is and then the names, as a description list, so
+     a screen reader says which names are whose.  Built again only when one
+     would say something else. */
+  function fillCredits(credits) {
+    const signature = JSON.stringify(credits);
+    if (el.credits.dataset.signature === signature) return;
+    el.credits.dataset.signature = signature;
+    el.credits.replaceChildren();
+    for (const credit of credits) {
+      const line = document.createElement("div");
+      line.className = "credit";
+      const label = document.createElement("dt");
+      label.textContent = credit.label;
+      const names = document.createElement("dd");
+      names.textContent = credit.names;
+      /* A space between them, not a margin: copied out, the line reads
+         "Director Denis Villeneuve" rather than as one word. */
+      line.append(label, " ", names);
+      el.credits.append(line);
+    }
+    el.credits.classList.toggle("hidden", !credits.length);
   }
 
   /* What a rating's mark is drawn from, and what a screen reader calls the
@@ -870,8 +916,10 @@
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
     $("plotTitle").textContent = T.plot;
-    /* The badges carry words of the table too ("612,345 votes"). */
+    /* The badges carry words of the table too ("612,345 votes"), and the
+       credits their names. */
     fillRatings(ratingBadges(plotMedia, T));
+    fillCredits(creditList(plotMedia, T));
     $("tilesTitle").textContent = T.metrics;
     $("kSwitches").textContent = T.switches;
     $("kWarnings").textContent = T.warnings;

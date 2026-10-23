@@ -1502,3 +1502,31 @@ msgstr "我的评分"
 msgctxt "#32373"
 msgid "Top 250 · #%s"
 msgstr "Top 250 · 第 %s 名"
+
+msgctxt "#32374"
+msgid "Genre"
+msgstr "类型"
+
+msgctxt "#32375"
+msgid "Genres"
+msgstr "类型"
+
+msgctxt "#32376"
+msgid "Director"
+msgstr "导演"
+
+msgctxt "#32377"
+msgid "Directors"
+msgstr "导演"
+
+msgctxt "#32378"
+msgid "Cast"
+msgstr "演员"
+
+msgctxt "#32379"
+msgid "Studio"
+msgstr "制片公司"
+
+msgctxt "#32380"
+msgid "Studios"
+msgstr "制片公司"

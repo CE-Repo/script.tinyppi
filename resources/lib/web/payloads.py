@@ -156,7 +156,7 @@ class Media(TypedDict):
     season: str
     episode: str
     # The plot card's: the slogan and the summary, as the library has them,
-    # and the ratings (see Ratings).
+    # the ratings (see Ratings) and the credits.
     tagline: str
     plot: str
     ratings: list[Rating]
@@ -165,6 +165,11 @@ class Media(TypedDict):
     age_level: str
     userrating: int
     top250: int
+    # And who made it, as lists of names (see web.values.name_list).
+    genres: list[str]
+    directors: list[str]
+    cast: list[str]
+    studios: list[str]
 
 
 # --- The title's history ----------------------------------------------------

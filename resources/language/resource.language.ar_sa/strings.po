@@ -1502,3 +1502,31 @@ msgstr "تقييمي"
 msgctxt "#32373"
 msgid "Top 250 · #%s"
 msgstr "أفضل 250 · المرتبة %s"
+
+msgctxt "#32374"
+msgid "Genre"
+msgstr "النوع"
+
+msgctxt "#32375"
+msgid "Genres"
+msgstr "الأنواع"
+
+msgctxt "#32376"
+msgid "Director"
+msgstr "المخرج"
+
+msgctxt "#32377"
+msgid "Directors"
+msgstr "المخرجون"
+
+msgctxt "#32378"
+msgid "Cast"
+msgstr "طاقم التمثيل"
+
+msgctxt "#32379"
+msgid "Studio"
+msgstr "الاستوديو"
+
+msgctxt "#32380"
+msgid "Studios"
+msgstr "الاستوديوهات"

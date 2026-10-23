@@ -1502,3 +1502,31 @@ msgstr "Eigene Bewertung"
 msgctxt "#32373"
 msgid "Top 250 · #%s"
 msgstr "Top 250 · Platz %s"
+
+msgctxt "#32374"
+msgid "Genre"
+msgstr "Genre"
+
+msgctxt "#32375"
+msgid "Genres"
+msgstr "Genres"
+
+msgctxt "#32376"
+msgid "Director"
+msgstr "Regie"
+
+msgctxt "#32377"
+msgid "Directors"
+msgstr "Regie"
+
+msgctxt "#32378"
+msgid "Cast"
+msgstr "Darsteller"
+
+msgctxt "#32379"
+msgid "Studio"
+msgstr "Studio"
+
+msgctxt "#32380"
+msgid "Studios"
+msgstr "Studios"

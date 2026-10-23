@@ -6,7 +6,7 @@
 import pytest
 
 from info.dvinfo import na_label
-from web.values import clean_value, library_id, numbers, plain_text
+from web.values import clean_value, library_id, name_list, numbers, plain_text
 
 
 @pytest.mark.parametrize(("value", "expected"), [
@@ -39,6 +39,22 @@ def test_markup_is_stripped_and_separators_become_pipes(value, expected):
 ])
 def test_library_texts_lose_markup_and_keep_their_line_breaks(value, expected):
     assert plain_text(value) == expected
+
+
+@pytest.mark.parametrize(("value", "limit", "expected"), [
+    ("", 4, []),
+    ("Science Fiction / Adventure", 6, ["Science Fiction", "Adventure"]),
+    # The cast one name a line, in billing order, cut to its leads.
+    ("Timothée Chalamet\nZendaya\nRebecca Ferguson", 2, ["Timothée Chalamet", "Zendaya"]),
+    # Markup stripped, blanks and repeats dropped.
+    ("[B]Legendary[/B] /  / Warner Bros. / Legendary", 4, ["Legendary", "Warner Bros."]),
+    # A slash within a name is no separator, and nor is another one Kodi
+    # was told to use instead.
+    ("AC/DC, Queen", 4, ["AC/DC, Queen"]),
+    ("x" * 90, 4, ["x" * 80]),
+])
+def test_list_labels_are_split_into_names(value, limit, expected):
+    assert name_list(value, limit) == expected
 
 
 @pytest.mark.parametrize(("value", "expected"), [

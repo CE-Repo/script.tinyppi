@@ -108,6 +108,29 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   const left = first.x - row.x;
   const right = row.x + row.width - (last.x + last.width);
   assert.ok(Math.abs(left - right) <= 2, `centred: ${left} vs ${right}`);
+  // The credits under the ratings, past the same thin rule: a centred line
+  // each, its name set apart from the names in weight and colour.
+  const credits = await page.locator("#credits").boundingBox();
+  assert.ok(credits.y >= row.y + row.height - 1, "under the ratings");
+  assert.equal(await page.$eval("#credits", (list) => getComputedStyle(list).borderTopWidth), "1px");
+  assert.deepEqual(await page.$$eval("#credits .credit", (lines) => lines.map((line) => line.innerText)),
+                   ["#32374 Drama", "#32376 Somebody", "#32378 One Actor, Another Actor"]);
+  const [term, names] = await Promise.all(["#credits dt", "#credits dd"].map((selector) =>
+    page.$eval(selector, (node) => {
+      const style = getComputedStyle(node);
+      return [style.display, style.fontWeight, style.color];
+    })));
+  assert.deepEqual([term[0], names[0]], ["inline", "inline"]);
+  assert.ok(Number(term[1]) > Number(names[1]), "the name bolder than the names");
+  assert.notEqual(term[2], names[2]);
+  const line = await page.locator("#credits .credit").first().boundingBox();
+  const words = await page.$eval("#credits .credit", (node) => {
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    return range.getBoundingClientRect().toJSON();
+  });
+  assert.ok(Math.abs(words.x - line.x - (line.x + line.width - words.x - words.width)) <= 2,
+            "centred");
 });
 
 test("the chapters ahead sit on the bar, a mouse brings up the rest, a click jumps", async () => {

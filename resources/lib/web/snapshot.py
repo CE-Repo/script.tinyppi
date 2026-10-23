@@ -63,7 +63,7 @@ from web.player import (
 from web.ratings import no_ratings, playing_ratings
 from web.rows import GROUPS, finish_time, is_dv_source, overlay_rows, render
 from web.session import SessionLog
-from web.values import clean_value, numbers, plain_text
+from web.values import clean_value, name_list, numbers, plain_text
 from web.vs10 import vs10_state
 
 # Home property with the source HDR type (from publish_hdr_type).
@@ -117,10 +117,20 @@ _EXTRA_INFOLABELS = (
     ("Show",                "VideoPlayer.TVShowTitle"),
     ("Season",              "VideoPlayer.Season"),
     ("Episode",             "VideoPlayer.Episode"),
-    # The card under it: the slogan and what the title is about.
+    # The card under it: the slogan and what the title is about, and who
+    # made it (see _NAMES).
     ("Tagline",             "VideoPlayer.Tagline"),
     ("Plot",                "VideoPlayer.Plot"),
+    ("Director",            "VideoPlayer.Director"),
+    ("Cast",                "VideoPlayer.Cast"),
+    ("Studio",              "VideoPlayer.Studio"),
 )
+
+# How many names of each the overview card's credits keep (see name_list):
+# the cast's leads, not the whole bill.  An episode's genres and studios are
+# its show's, and its cast its own guests and then the show's: Kodi keeps
+# them so.
+_NAMES = {"genres": 6, "directors": 4, "cast": 8, "studios": 4}
 
 # Presence flags (true / false / '') as markers; the browser shows icons,
 # copied reports use localized words.
@@ -580,6 +590,10 @@ class SnapshotBuilder:
                 "age_level":  ratings["age_level"],
                 "userrating": ratings["userrating"],
                 "top250":     ratings["top250"],
+                "genres":     name_list(values.get("Genre", ""), _NAMES["genres"]),
+                "directors":  name_list(values.get("Director", ""), _NAMES["directors"]),
+                "cast":       name_list(values.get("Cast", ""), _NAMES["cast"]),
+                "studios":    name_list(values.get("Studio", ""), _NAMES["studios"]),
             },
             "controls":  self._player_controls(control),
             "chapters":  chapters,

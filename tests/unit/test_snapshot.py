@@ -28,6 +28,8 @@ PLAYING = {
     "System.CPUTemperature": "55 °C", "VideoPlayer.VideoCodec": "hevc",
     "VideoPlayer.Year": "2021", "VideoPlayer.Genre": "Drama",
     "VideoPlayer.Tagline": "One night.", "VideoPlayer.Plot": "Somebody does something.",
+    "VideoPlayer.Director": "Somebody", "VideoPlayer.Studio": "A Studio / Another",
+    "VideoPlayer.Cast": "\n".join(f"Actor {n}" for n in range(1, 13)),
 }
 
 
@@ -63,6 +65,11 @@ def test_a_playing_title():
     assert shot["media"]["year"] == "2021" and shot["media"]["genre"] == "Drama"
     assert shot["media"]["tagline"] == "One night."
     assert shot["media"]["plot"] == "Somebody does something."
+    # Who made it, as names; the cast cut to its leads.
+    assert shot["media"]["genres"] == ["Drama"]
+    assert shot["media"]["directors"] == ["Somebody"]
+    assert shot["media"]["studios"] == ["A Studio", "Another"]
+    assert shot["media"]["cast"] == [f"Actor {n}" for n in range(1, 9)]
     assert shot["controls"] == {}
     ids = [group["id"] for group in shot["groups"]]
     assert ids[0] == "video" and len(ids) == len(set(ids))
