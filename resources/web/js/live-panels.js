@@ -295,21 +295,27 @@
     const credits = creditList(media, TinyPPI.T);
     fillCredits(credits);
     el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credits.length);
-    /* A new plot starts cut again, and is measured once it is laid out. */
+    /* A new plot starts folded again, and is measured once it is laid out;
+       credits or ratings that arrive later fold under it as they come. */
     if (fresh) {
       openPlot(false);
       measurePlot();
+    } else {
+      foldPlot();
     }
   }
 
-  /* A plot runs to a few lines (see .plot .plottext), its credits hidden
-     with the rest of it, and a press on the text -- a click, a tap, or Enter
-     or Space once it has the focus -- lets the rest out and takes it back.
-     It is pressable only where there is more to show: measured when the
-     plot changes, when the card is opened and when the page is resized,
-     since how many lines a plot takes is a matter of how wide it is laid
-     out.  Pressable, it is a button to a screen reader, and says under a
-     pointer what a press does. */
+  /* A plot is folded to a few lines (see .plot .plottext), its credits
+     and its ratings hidden under it, and a press on the text -- a click, a
+     tap, or Enter or Space once it has the focus -- lets all of it out and
+     takes it back.  It folds wherever there is more than those lines to
+     show: a plot that runs past them, or credits or ratings under it.  How
+     many lines a plot takes is a matter of how wide it is laid out, so it
+     is measured when the plot changes, when the card is opened and when the
+     page is resized.  Pressable, it is a button to a screen reader, and
+     says under a pointer what a press does. */
+  let plotCut = false;
+
   function openPlot(open) {
     el.plotFold.classList.toggle("open", open);
     if (el.plotFold.classList.contains("fold")) {
@@ -319,16 +325,25 @@
   }
 
   function measurePlot() {
-    if (el.plotFold.classList.contains("open")) return;
-    const cut = el.plotText.scrollHeight > el.plotText.clientHeight + 1;
-    el.plotFold.classList.toggle("fold", cut);
-    if (cut) {
+    if (!el.plotFold.classList.contains("open")) {
+      plotCut = el.plotText.scrollHeight > el.plotText.clientHeight + 1;
+    }
+    foldPlot();
+  }
+
+  function foldPlot() {
+    const shown = (node) => !node.classList.contains("hidden");
+    const more = shown(el.plotText) &&
+      (plotCut || shown(el.credits) || shown(el.ratings));
+    el.plotFold.classList.toggle("fold", more);
+    if (more) {
       el.plotFold.setAttribute("role", "button");
       el.plotFold.tabIndex = 0;
     } else {
+      el.plotFold.classList.remove("open");
       for (const name of ["role", "tabindex", "aria-expanded", "title"]) el.plotFold.removeAttribute(name);
     }
-    openPlot(false);
+    openPlot(el.plotFold.classList.contains("open"));
   }
 
   function flipPlot() {

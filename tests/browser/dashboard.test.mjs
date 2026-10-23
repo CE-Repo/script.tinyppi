@@ -79,6 +79,23 @@ test("the live tab connects and shows the format badges", async () => {
 
 test("the ratings, the slogan and the plot stand in a card of their own under the playing one", async () => {
   await page.waitForSelector("#plotCard:not(.hidden)");
+  // Folded: the plot cut to five lines -- two of them, here -- and its
+  // credits and ratings hidden under it until a press lets them out.
+  await page.waitForSelector("#plotFold.fold");
+  assert.deepEqual(await page.$eval("#plotText", (node) => {
+    const style = getComputedStyle(node);
+    return [style.webkitLineClamp, style.overflow];
+  }), ["5", "hidden"]);
+  assert.equal(await page.locator("#plotFold").getAttribute("role"), "button");
+  assert.equal(await page.locator("#plotFold").getAttribute("aria-expanded"), "false");
+  for (const selector of ["#credits", "#ratingsHeadline", "#ratings"]) {
+    assert.equal(await page.locator(selector).isVisible(), false, selector + " folded away");
+  }
+  await page.locator("#plotText").click();
+  assert.equal(await page.locator("#plotFold").getAttribute("aria-expanded"), "true");
+  for (const selector of ["#credits", "#ratingsHeadline", "#ratings"]) {
+    assert.equal(await page.locator(selector).isVisible(), true, selector + " let out");
+  }
   // The stubs' strings are only their ids, so the words of a badge are the
   // jsdom tests'; here it is which marks stand there, served and drawn.
   await page.waitForFunction(() => [...document.querySelectorAll("#ratings img")]
@@ -138,12 +155,6 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   // The plot's own line break, drawn as one.
   assert.equal(await page.locator("#plotText").innerText(),
                "A film about somebody.\nAnd what happens to them.");
-  // Cut to five lines; two of them leave nothing to let out, so nothing to press.
-  assert.deepEqual(await page.$eval("#plotText", (node) => {
-    const style = getComputedStyle(node);
-    return [style.webkitLineClamp, style.overflow];
-  }), ["5", "hidden"]);
-  assert.equal(await page.locator("#plotFold").getAttribute("role"), null);
   // The slogan upright, set like a credit's heading, and right over the
   // plot: the two read as one text.
   const [slogan, heading] = await Promise.all(["#tagline", "#credits dt"].map((selector) =>

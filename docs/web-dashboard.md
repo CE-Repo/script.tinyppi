@@ -48,12 +48,12 @@ connection light.
   plot, so the two read as one text, the slogan upright and set like a
   credit's heading; hanging on the plot's end its directors and then its
   cast; and last, under the heading Ratings, every rating Kodi's library holds for
-  it, all of it centred. A long plot is cut to five lines, the credits
-  and the ratings hidden with the rest of it, and a click or tap on the text
-  (or Enter or Space once it has the focus) lets it all out and takes it
-  back; a tap on a rating's shield is the shield's. Under a plot that fits
-  the credits and the ratings stand as they are, and a new title starts cut
-  again. The ratings
+  it, all of it centred. The card starts folded: the plot cut to five
+  lines, and the credits and the ratings hidden under it. A click or tap on
+  the text (or Enter or Space once it has the focus) lets it all out, and
+  another folds it again; a tap on a rating's shield is the shield's. Only
+  a plot that fits its five lines with nothing under it has nothing to fold,
+  and a new title starts folded again. The ratings
   are a row of small shields, each with its source's mark on the left, on a
   ground of the source's colour, instead of its name, and what it gave on the
   right: first the age rating — a German, American or British one as a

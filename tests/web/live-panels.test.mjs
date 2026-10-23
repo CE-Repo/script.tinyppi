@@ -287,6 +287,30 @@ test("a long plot is cut to a few lines, and a press on it lets the rest out", (
   box.shown = 40;
   P.update(snap({ media: { plot: "Short." } }));
   assert.equal(plot.classList.contains("fold"), false);
+
+  // But a short one with credits under it folds them away: the rest is
+  // what a press lets out, and another takes back.
+  P.update(snap({ media: { plot: "Short and cast.", cast: ["Somebody"] } }));
+  assert.ok(plot.classList.contains("fold"));
+  assert.equal(plot.classList.contains("open"), false);
+  assert.equal(plot.getAttribute("aria-expanded"), "false");
+  plot.click();
+  assert.ok(plot.classList.contains("open"));
+  plot.click();
+  assert.equal(plot.classList.contains("open"), false);
+  // Ratings that arrive later under a short plot fold too, and an open one
+  // stays open as they come.
+  P.update(snap({ media: { plot: "Short and rated." } }));
+  assert.equal(plot.classList.contains("fold"), false);
+  P.update(snap({ media: { plot: "Short and rated.", ratings: [{ source: "imdb", rating: 7.1, votes: 0 }] } }));
+  assert.ok(plot.classList.contains("fold"));
+  plot.click();
+  P.update(snap({ media: { plot: "Short and rated.", ratings: [{ source: "imdb", rating: 7.2, votes: 0 }] } }));
+  assert.ok(plot.classList.contains("open"));
+  // Without a plot there is nothing to fold them under.
+  P.update(snap({ media: { cast: ["Somebody"] } }));
+  assert.equal(plot.classList.contains("fold"), false);
+  assert.equal(plot.classList.contains("open"), false);
 });
 
 test("the plot card: the plot under what is playing, with its slogan where there is one", (t) => {
