@@ -635,7 +635,7 @@
    readings are, rather than round like a button. */
 /* Every badge one height, its border inside it, whatever it holds: a
    shield of figures, a heart, an age rating's mark on its own. */
-.ratings { --badge: 24px; }
+.ratings { --badge: 26px; }
 .rating {
   position: relative;
   display: inline-flex;
@@ -762,7 +762,7 @@
 .rating .mark {
   display: block;
   width: auto;
-  height: 18px;
+  height: 20px;
 }
 /* An age rating's left is its board's name on the colour of the level,
    drawn edge to edge and as tall as the shield inside its border; the level

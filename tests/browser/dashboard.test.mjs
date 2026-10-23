@@ -83,16 +83,16 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   // jsdom tests'; here it is which marks stand there, served and drawn.
   await page.waitForFunction(() => [...document.querySelectorAll("#ratings img")]
     .every((image) => image.complete && image.naturalWidth > 0));
-  // Each as wide as it is drawn: the FSK's plate and IMDb's square logo.
+  // Each as wide as it is drawn: the FSK's plate and IMDb's wordmark.
   const sizes = await page.$$eval("#ratings img", (images) => images.map((image) => {
     const box = image.getBoundingClientRect();
     return Math.round(box.width / box.height * 10) / 10;
   }));
-  assert.deepEqual(sizes, [1.4, 1]);
+  assert.deepEqual(sizes, [1.4, 2]);
   // Every badge one height: the age rating's mark and the shields beside it.
   const heights = await page.$$eval("#ratings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
-  assert.deepEqual(heights, heights.map(() => 24));
+  assert.deepEqual(heights, heights.map(() => 26));
   // Switched to the accent on the settings tab: every mark inked, on the
   // accent's ground; and back.
   const flip = (on) => page.evaluate((checked) => {
