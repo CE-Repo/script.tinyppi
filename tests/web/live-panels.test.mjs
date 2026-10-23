@@ -239,18 +239,19 @@ test("the plot card: the plot under what is playing, with its slogan where there
   assert.equal($("plotTitle").textContent, "Handlung");
 });
 
-test("the overview card carries every rating as its mark, before the slogan and the plot", (t) => {
+test("the overview card carries every rating as a shield with its mark, before the slogan and the plot", (t) => {
   const { $, P, window } = panels(t);
-  /* Each badge as [class, what it says, its mark, what is written beside it]. */
+  /* Each shield as [class, what it says, its left, what is written on its right]. */
   const badges = () => [...$("ratings").children].map((node) => {
-    const look = node.querySelector(".look");
-    const parts = [...look.children];
-    const mark = parts[0] && parts[0].classList.contains("mark") ? parts.shift() : null;
-    const drawn = !mark ? "" : mark.tagName === "IMG"
-      ? mark.getAttribute("src") + (mark.classList.contains("wide") ? " wide" : "")
-      : mark.className + ":" + mark.textContent;
+    const side = node.querySelector(".side");
+    const image = side && side.querySelector("img");
+    const drawn = !side ? "" : image
+      ? side.className + " " + image.getAttribute("src") +
+        (image.classList.contains("wide") ? " wide" : "")
+      : side.className + ":" + side.textContent;
+    const figures = node.querySelector(".figures");
     return [node.className, node.querySelector(".said").textContent, drawn,
-            parts.map((part) => [part.className, part.textContent])];
+            figures ? [...figures.children].map((part) => [part.className, part.textContent]) : []];
   });
   const rated = {
     tagline: "Long live the fighters.", plot: "Paul joins the Fremen.",
@@ -264,16 +265,16 @@ test("the overview card carries every rating as its mark, before the slogan and 
   assert.equal($("ratings").classList.contains("hidden"), false);
   assert.equal($("ratings").nextElementSibling, $("tagline"));
   assert.deepEqual(plain(badges()), [
-    ["rating score", "IMDb 8.5, 612,345 votes", "/ratings/imdb.svg wide",
+    ["rating score", "IMDb 8.5, 612,345 votes", "side imdb /ratings/imdb.svg wide",
      [["value", "8.5"], ["note", "612,345"]]],
-    ["rating score", "TMDb 8.2", "/ratings/tmdb.svg wide", [["value", "8.2"]]],
-    ["rating score", "Trakt 8.4, 31,902 votes", "/ratings/trakt.svg",
+    ["rating score", "TMDb 8.2", "side tmdb /ratings/tmdb.svg wide", [["value", "8.2"]]],
+    ["rating score", "Trakt 8.4, 31,902 votes", "side trakt /ratings/trakt.svg",
      [["value", "8.4"], ["note", "31,902"]]],
-    ["rating score", "Rotten Tomatoes 9.2", "/ratings/rottentomatoes.svg", [["value", "9.2"]]],
-    ["rating score", "Letterboxd 8.9, 3 votes", "mark letter:L", [["value", "8.9"], ["note", "3"]]],
-    ["rating mine", "My rating 9", "mark heart:", [["value", "9"]]],
-    ["rating rank", "Top 250 · #27", "/ratings/top250.svg wide", [["value", "#27"]]],
-    ["rating age", "FSK 12", "/ratings/fsk12.svg", []]]);
+    ["rating score", "Rotten Tomatoes 9.2", "side rottentomatoes /ratings/rottentomatoes.svg", [["value", "9.2"]]],
+    ["rating score", "Letterboxd 8.9, 3 votes", "side letter:L", [["value", "8.9"], ["note", "3"]]],
+    ["rating mine", "My rating 9", "side heart:", [["value", "9"]]],
+    ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg wide", [["value", "#27"]]],
+    ["rating age drawn", "FSK 12", "side fsk12 /ratings/fsk12.svg", []]]);
   // Said in words, drawn as marks: the drawing is kept from a screen reader.
   for (const node of $("ratings").children) {
     assert.equal(node.getAttribute("role"), "listitem");
@@ -302,7 +303,7 @@ test("the overview card carries every rating as its mark, before the slogan and 
   // Ratings without a plot: the card for them alone, and no slogan.
   P.update(snap({ media: { tagline: "Only this.", mpaa: "FSK 16", fsk: "16" } }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
-  assert.deepEqual(plain(badges()), [["rating age", "FSK 16", "/ratings/fsk16.svg", []]]);
+  assert.deepEqual(plain(badges()), [["rating age drawn", "FSK 16", "side fsk16 /ratings/fsk16.svg", []]]);
   assert.ok($("tagline").classList.contains("hidden"));
   assert.ok($("plotText").classList.contains("hidden"));
 
@@ -316,9 +317,9 @@ test("the overview card carries every rating as its mark, before the slogan and 
   P.update(snap({ media: { tagline: "Only this.", ratings: [] } }));
   assert.ok($("plotCard").classList.contains("hidden"));
 
-  // A source with no name is drawn with an empty circle and said by its figure.
+  // A source with no name is drawn on an empty plate and said by its figure.
   P.update(snap({ media: { ratings: [{ rating: 5 }] } }));
-  assert.deepEqual(plain(badges()), [["rating score", "5.0", "mark letter:", [["value", "5.0"]]]]);
+  assert.deepEqual(plain(badges()), [["rating score", "5.0", "side letter:", [["value", "5.0"]]]]);
 });
 
 test("the finish clock shows as it arrived and takes its label from the strings", (t) => {

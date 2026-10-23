@@ -43,8 +43,9 @@ connection light.
 - **Now playing** — the poster, title, year and genre, the file name (when
   *Show file name* is on), elapsed time and progress.
 - **Overview** — a card under it with every rating Kodi's library holds for
-  the title, then its slogan and its plot. The ratings are a row of pills,
-  each wearing its source's mark in the source's colours instead of its name:
+  the title, then its slogan and its plot. The ratings are a row of small
+  shields, each with its source's mark on the left, on a ground of the
+  source's colour, instead of its name, and what it gave on the right:
   a score for each source the scraper or the NFO wrote (IMDb, TMDb, Trakt,
   TVDB, Metacritic, Rotten Tomatoes; any other gets a circle with its first
   letter) with how many voted, your own rating behind a heart, the place in

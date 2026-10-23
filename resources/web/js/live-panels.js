@@ -328,27 +328,31 @@
     return badges;
   }
 
-  /* A badge's mark: the drawing for its source, the reader's heart, a
-     circle with a letter for a source there is no drawing of -- or none, for
-     an age rating that is no FSK one and is written out instead. */
-  function ratingMark(badge) {
+  /* The left of a shield: the drawing for its source on a ground of the
+     house's own colour (see .rating .side in live-panels.css), the reader's
+     heart on the accent, a letter for a source there is no drawing of -- or
+     nothing, for an age rating that is no FSK one and is written out. */
+  function ratingSide(badge) {
+    const side = document.createElement("span");
     if (badge.mark) {
+      side.className = "side " + badge.mark;
       const image = document.createElement("img");
       image.className = "mark" + (WIDE_MARKS.has(badge.mark) ? " wide" : "");
       image.src = "/ratings/" + badge.mark + ".svg";
       image.alt = "";
-      return image;
+      side.append(image);
+      return side;
     }
     if (badge.kind === "age") return null;
-    const mark = document.createElement("span");
-    mark.className = "mark " + (badge.kind === "mine" ? "heart" : "letter");
-    mark.textContent = badge.letter || "";
-    return mark;
+    side.className = "side " + (badge.kind === "mine" ? "heart" : "letter");
+    side.textContent = badge.letter || "";
+    return side;
   }
 
   /* Built again only when a badge would say something else, which is once a
-     title (see fillRow).  What a reader is told is the badge's sentence,
-     kept off the screen; what is drawn is kept from the reader, who would
+     title (see fillRow).  Each is a shield: the house on the left, what it
+     gave on the right.  What a reader is told is the badge's sentence, kept
+     off the screen; what is drawn is kept from the reader, who would
      otherwise hear "8.5 612,345" with nothing to say what either is. */
   function fillRatings(badges) {
     const signature = JSON.stringify(badges);
@@ -357,7 +361,8 @@
     el.ratings.replaceChildren();
     for (const badge of badges) {
       const node = document.createElement("span");
-      node.className = "rating " + badge.kind;
+      /* An FSK mark is the whole badge rather than half of a shield. */
+      node.className = "rating " + badge.kind + (badge.kind === "age" && badge.mark ? " drawn" : "");
       node.setAttribute("role", "listitem");
       node.title = badge.said;
       const said = document.createElement("span");
@@ -366,14 +371,19 @@
       const look = document.createElement("span");
       look.className = "look";
       look.setAttribute("aria-hidden", "true");
-      const mark = ratingMark(badge);
-      if (mark) look.append(mark);
-      for (const [part, text] of [["value", badge.value], ["note", badge.note]]) {
-        if (!text) continue;
-        const piece = document.createElement("span");
-        piece.className = part;
-        piece.textContent = text;
-        look.append(piece);
+      const side = ratingSide(badge);
+      if (side) look.append(side);
+      if (badge.value) {
+        const figures = document.createElement("span");
+        figures.className = "figures";
+        for (const [part, text] of [["value", badge.value], ["note", badge.note]]) {
+          if (!text) continue;
+          const piece = document.createElement("span");
+          piece.className = part;
+          piece.textContent = text;
+          figures.append(piece);
+        }
+        look.append(figures);
       }
       node.append(said, look);
       el.ratings.append(node);
