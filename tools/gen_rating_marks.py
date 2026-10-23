@@ -5,7 +5,8 @@
 """Draw the marks the plot card's ratings wear.
 
 One mark per rating source the dashboard knows (IMDb, TMDb, Trakt, TVDB,
-Metacritic, Rotten Tomatoes), the IMDb Top 250, and the age ratings of
+Letterboxd, Metacritic and its users, Rotten Tomatoes' critics and its
+Popcornmeter, Roger Ebert, MyAnimeList), the IMDb Top 250, and the age ratings of
 Germany (FSK), the United States (the MPA's for films, the TV Parental
 Guidelines' for television) and Britain (BBFC).  They are simplified marks in
 each house's colours, drawn here, not copies of the houses' own logo files;
@@ -143,6 +144,31 @@ def marks(letters: Lettering) -> list[Mark]:
                   "C7.1 5.6 9 6 11 7.2C13 6 14.9 5.6 16.6 6C15.7 4.9 14.2 4.4 12.7 4.6"
                   "C13.4 3.7 14.4 3 16 2.8C14.9 2.2 12.6 2.3 11 4.2Z", fill="#00912D"),
         ]),
+        # Rotten Tomatoes' audience: a striped tub, popcorn heaped over it.
+        Mark("popcorn", *square, [
+            Shape(circle(7.4, 8.6, 2.5), fill="#FFC72C"),
+            Shape(circle(14.6, 8.6, 2.5), fill="#FFC72C"),
+            Shape(circle(9.2, 6.2, 2.3), fill="#FFD95A"),
+            Shape(circle(12.8, 6.2, 2.3), fill="#FFD95A"),
+            Shape(circle(11, 7.8, 2.8), fill="#FFC72C"),
+            Shape("M5.6 9.6H16.4L14.9 20H7.1Z", fill="#FA320A"),
+            Shape("M8.8 9.6H10.1L10.3 20H9.4Z", fill=white),
+            Shape("M11.9 9.6H13.2L12.6 20H11.7Z", fill=white),
+        ]),
+        # Letterboxd's three dots.
+        Mark("letterboxd", *square, [
+            Shape(circle(5.4, 11, 3.4), fill="#FF8000"),
+            Shape(circle(16.6, 11, 3.4), fill="#40BCF4"),
+            Shape(circle(11, 11, 3.4), fill="#00E054"),
+        ]),
+        # Metacritic's own circle with a reader on it, for its users' score.
+        Mark("metacriticuser", *square, [
+            Shape(circle(11, 11, 11), fill="#FFCC34"),
+            Shape(circle(11, 8.3, 3.1), fill=black),
+            Shape("M5.4 17.4C5.4 14.3 7.9 12.4 11 12.4C14.1 12.4 16.6 14.3 16.6 17.4Z", fill=black),
+        ]),
+        _named("rogerebert", plate("#C8102E", "EBERT", white, 10.5, 15.3, 0.4)),
+        _named("myanimelist", plate("#2E51A2", "MAL", white, 12.5, 15.8, 0.3)),
     ]
     for age, (colour, ink) in fsk.items():
         found.append(plate_of("fsk" + age, "FSK", colour, ink, letters))

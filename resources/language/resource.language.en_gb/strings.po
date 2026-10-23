@@ -1514,3 +1514,15 @@ msgstr ""
 msgctxt "#32382"
 msgid "Show less"
 msgstr ""
+
+msgctxt "#32383"
+msgid "Ratings"
+msgstr ""
+
+msgctxt "#32384"
+msgid "MDBList API key"
+msgstr ""
+
+msgctxt "#32385"
+msgid "With a free key from mdblist.com (Preferences → API), the overview card shows the ratings MDBList gathers for a film: IMDb, TMDb, Trakt, Letterboxd, Rotten Tomatoes, Metacritic and more. To ask, the film's IMDb or TMDb id is sent to MDBList. Left empty, the card shows the ratings Kodi's library holds."
+msgstr ""

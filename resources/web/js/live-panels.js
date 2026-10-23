@@ -369,8 +369,10 @@
      tools/gen_rating_marks.py); a source none of these names -- an NFO may
      carry any -- wears a plain circle with its first letter instead. */
   const RATING_SOURCES = {
-    imdb: "IMDb", tmdb: "TMDb", trakt: "Trakt", tvdb: "TVDB", metacritic: "Metacritic",
-    rottentomatoes: "Rotten Tomatoes"
+    imdb: "IMDb", tmdb: "TMDb", trakt: "Trakt", tvdb: "TVDB", letterboxd: "Letterboxd",
+    metacritic: "Metacritic", metacriticuser: "Metacritic User Score",
+    rottentomatoes: "Rotten Tomatoes", popcorn: "Rotten Tomatoes Popcornmeter",
+    rogerebert: "Roger Ebert", myanimelist: "MyAnimeList"
   };
 
   /* Every rating the library holds for the title (see web/ratings.py), in

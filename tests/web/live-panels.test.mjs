@@ -7,6 +7,7 @@
 // chart, and what the dashboard reads back (events, peak, draw).
 
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { test } from "node:test";
 import { bare, page, settle } from "./harness.mjs";
 
@@ -347,7 +348,7 @@ test("the overview card carries every rating as a shield with its mark, under th
     ratings: [{ source: "imdb", rating: 8.5, votes: 612345 }, { source: "tmdb", rating: 8.2, votes: 0 },
               { source: "trakt", rating: 8.4, votes: 31902 },
               { source: "rottentomatoes", rating: 9.2, votes: 0 },
-              { source: "letterboxd", rating: 8.9, votes: 3 }],
+              { source: "filmaffinity", rating: 8.9, votes: 3 }],
     userrating: 9, top250: 27, mpaa: "FSK 12", age: "fsk12", age_level: "12" };
   P.update(snap({ media: rated }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
@@ -365,7 +366,7 @@ test("the overview card carries every rating as a shield with its mark, under th
     ["rating score", "Trakt 8.4, 31,902 votes", "side trakt /ratings/trakt.svg",
      [["value", "8.4"], ["note", "31,902"]]],
     ["rating score", "Rotten Tomatoes 9.2", "side rottentomatoes /ratings/rottentomatoes.svg", [["value", "9.2"]]],
-    ["rating score", "Letterboxd 8.9, 3 votes", "side letter:L", [["value", "8.9"], ["note", "3"]]],
+    ["rating score", "Filmaffinity 8.9, 3 votes", "side letter:F", [["value", "8.9"], ["note", "3"]]],
     ["rating mine", "My rating 9", "side heart:", [["value", "9"]]],
     ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg", [["value", "#27"]]]]);
   // Said in words, drawn as marks: the drawing is kept from a screen reader.
@@ -427,6 +428,22 @@ test("the overview card carries every rating as a shield with its mark, under th
   // A source with no name is drawn on an empty plate and said by its figure.
   P.update(snap({ media: { ratings: [{ rating: 5 }] } }));
   assert.deepEqual(plain(badges()), [["rating score", "5.0", "side letter:", [["value", "5.0"]]]]);
+});
+
+test("the sources MDBList brings wear their own marks and names", (t) => {
+  const { $, P } = panels(t);
+  const sources = [["letterboxd", "Letterboxd"], ["metacriticuser", "Metacritic User Score"],
+                   ["popcorn", "Rotten Tomatoes Popcornmeter"], ["rogerebert", "Roger Ebert"],
+                   ["myanimelist", "MyAnimeList"]];
+  P.update(snap({ media: { plot: "Plot.",
+                           ratings: sources.map(([source]) => ({ source, rating: 7.5, votes: 0 })) } }));
+  const drawn = [...$("ratings").children].map((node) =>
+    [node.querySelector(".said").textContent, node.querySelector("img").getAttribute("src")]);
+  assert.deepEqual(drawn, sources.map(([source, name]) => [name + " 7.5", "/ratings/" + source + ".svg"]));
+  // Each drawn by tools/gen_rating_marks.py and served with the page.
+  for (const [source] of sources) {
+    assert.ok(existsSync(new URL("../../resources/web/ratings/" + source + ".svg", import.meta.url)), source);
+  }
 });
 
 test("the overview card ends with the credits, a line each under the ratings", (t) => {

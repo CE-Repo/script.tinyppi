@@ -156,6 +156,9 @@ class Ratings(TypedDict):
     userrating: int
     # The place in the IMDb Top 250.
     top250: int
+    # A film's IMDb and TMDb ids ("imdb", "tmdb"), for MDBList to be asked
+    # by (see web.mdblist); {} for an episode.  Not sent to the page.
+    ids: dict[str, str]
 
 
 class Media(TypedDict):

@@ -10,7 +10,8 @@ is read over JSON-RPC, once per title (see ``SnapshotBuilder._rating_info``).
 An episode's age rating is its show's: Kodi keeps it there.  A German,
 American or British one is read for its board and level too (see
 ``age_rating``), which the page draws as a shield like the others: the board
-on the level's colour, the level beside it.
+on the level's colour, the level beside it.  A film's IMDb and TMDb ids go
+with them, for MDBList to be asked by (see web.mdblist).
 """
 
 import re
@@ -21,22 +22,27 @@ from web.payloads import Rating, Ratings
 from web.player import rpc, video_player_id
 from web.values import Json, clean_value
 
-# Rating sources as Kodi names them, and the name the page knows them by (and
-# draws the mark of), in the order they are shown.  One source can go by
-# several names: ``themoviedb`` and ``tmdb`` are two scraper versions', and
-# an NFO writer has its own for Metacritic and Rotten Tomatoes.  Any other
-# name (an NFO may carry anything) follows these, alphabetically.
+# Rating sources as Kodi and MDBList name them, and the name the page knows
+# them by (and draws the mark of), in the order they are shown.  One source
+# can go by several names: ``themoviedb`` and ``tmdb`` are two scraper
+# versions', an NFO writer has its own for Metacritic and Rotten Tomatoes,
+# and MDBList calls Rotten Tomatoes' critics ``tomatoes`` and its audience
+# ``popcorn``.  Any other name (an NFO may carry anything) follows these,
+# alphabetically.
 _SOURCES = (("imdb", "imdb"), ("themoviedb", "tmdb"), ("tmdb", "tmdb"),
-            ("trakt", "trakt"), ("tvdb", "tvdb"),
+            ("trakt", "trakt"), ("tvdb", "tvdb"), ("letterboxd", "letterboxd"),
             ("metacritic", "metacritic"), ("metascore", "metacritic"),
+            ("metacriticuser", "metacriticuser"),
             ("rottentomatoes", "rottentomatoes"), ("tomatometer", "rottentomatoes"),
-            ("tomatometerallcritics", "rottentomatoes"))
+            ("tomatometerallcritics", "rottentomatoes"), ("tomatoes", "rottentomatoes"),
+            ("popcorn", "popcorn"), ("popcornmeter", "popcorn"),
+            ("rogerebert", "rogerebert"), ("myanimelist", "myanimelist"))
 _ALIASES = dict(_SOURCES)
 # Each name once, tmdb included, so a name outside it sorts after all of them.
 _ORDER = {name: index for index, name in enumerate(dict.fromkeys(_ALIASES.values()))}
 
-# More than any scraper writes; an NFO with more is cut off.
-_RATING_LIMIT = 8
+# As many as MDBList brings; an NFO with more is cut off.
+_RATING_LIMIT = 10
 # A source's name is a label on a badge, not a sentence.
 _NAME_LIMIT = 24
 
@@ -71,14 +77,14 @@ _AGE = re.compile(
 # board gives.  Kodi's English is British unless it is set to American.
 _HOMES = {"en": "gb", "en-gb": "gb", "en-us": "us"}
 
-_MOVIE = ("ratings", "userrating", "mpaa", "top250")
+_MOVIE = ("ratings", "userrating", "mpaa", "top250", "uniqueid")
 _EPISODE = ("ratings", "userrating", "tvshowid")
 
 
 def no_ratings() -> Ratings:
     """Return the ratings of a title the library knows nothing about."""
     return {"ratings": [], "mpaa": "", "age": "", "age_level": "", "userrating": 0,
-            "top250": 0}
+            "top250": 0, "ids": {}}
 
 
 def home_country() -> str:
@@ -167,8 +173,27 @@ def _details(method: str, id_key: str, item_id: int, properties: tuple[str, ...]
     return _answer(method, {id_key: item_id, "properties": list(properties)}, answer)
 
 
-def _collect(details: Json, aged: Json) -> Ratings:
-    """Return the ratings of *details*, with the age rating of *aged*."""
+# An IMDb id as Kodi keeps one: "tt" and its digits.
+_IMDB_ID = re.compile(r"tt\d+")
+
+
+def film_ids(details: Json) -> dict[str, str]:
+    """Return the ids a film is known by elsewhere -- its IMDb and its TMDb
+    one -- as the library holds them, for MDBList to be asked by."""
+    held = details.get("uniqueid")
+    if not isinstance(held, dict):
+        return {}
+    imdb = str(held.get("imdb") or "").strip()
+    tmdb = str(held.get("tmdb") or "").strip()
+    ids = {"imdb": imdb} if _IMDB_ID.fullmatch(imdb) else {}
+    if tmdb.isdigit() and int(tmdb):
+        ids["tmdb"] = tmdb
+    return ids
+
+
+def _collect(details: Json, aged: Json, ids: dict[str, str] | None = None) -> Ratings:
+    """Return the ratings of *details*, with the age rating of *aged* and
+    the *ids* it is known by elsewhere."""
     mpaa = clean_value(str(aged.get("mpaa") or ""))
     mark, level = age_rating(mpaa, home_country())
     return {
@@ -178,6 +203,7 @@ def _collect(details: Json, aged: Json) -> Ratings:
         "age_level":  level,
         "userrating": _count(details.get("userrating"), 10),
         "top250":     _count(details.get("top250"), 250),
+        "ids":        ids or {},
     }
 
 
@@ -208,7 +234,7 @@ def playing_ratings() -> Ratings | None:
     if item_id and kind == "movie":
         details = _details("VideoLibrary.GetMovieDetails", "movieid", item_id, _MOVIE,
                            "moviedetails")
-        return _collect(details, details)
+        return _collect(details, details, film_ids(details))
     if item_id and kind == "episode":
         return _episode_ratings(item_id)
     return no_ratings()

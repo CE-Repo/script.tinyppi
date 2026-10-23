@@ -187,7 +187,7 @@ def rated(monkeypatch):
     asked = []
     given = {"found": {"ratings": [{"source": "imdb", "rating": 8.5, "votes": 10}],
                        "mpaa": "FSK 12", "age": "fsk12", "age_level": "12",
-                       "userrating": 9, "top250": 27}}
+                       "userrating": 9, "top250": 27, "ids": {"imdb": "tt0111161"}}}
     monkeypatch.setattr(snapshot, "playing_ratings", lambda: asked.append(1) or given["found"])
     return asked, given
 
@@ -198,6 +198,23 @@ def test_the_ratings_travel_in_the_media_block(rated):
     assert media["ratings"] == [{"source": "imdb", "rating": 8.5, "votes": 10}]
     assert (media["mpaa"], media["age"], media["age_level"]) == ("FSK 12", "fsk12", "12")
     assert (media["userrating"], media["top250"]) == (9, 27)
+
+
+def test_mdblist_ratings_lie_over_the_librarys_and_the_ids_stay_behind(rated, monkeypatch):
+    asked = []
+
+    def over(ratings):
+        asked.append(ratings["ids"])
+        merged = ratings.copy()
+        merged["ratings"] = [{"source": "letterboxd", "rating": 8.0, "votes": 3}]
+        return merged
+
+    monkeypatch.setattr(snapshot, "with_mdblist", over)
+    play()
+    media = SnapshotBuilder().build()["media"]
+    assert media["ratings"] == [{"source": "letterboxd", "rating": 8.0, "votes": 3}]
+    assert "ids" not in media
+    assert asked == [{"imdb": "tt0111161"}]
 
 
 def test_the_ratings_are_read_once_per_title_and_not_for_the_session_pass(rated, monkeypatch):

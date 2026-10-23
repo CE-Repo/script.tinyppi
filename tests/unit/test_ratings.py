@@ -61,6 +61,15 @@ def test_known_sources_come_first_in_their_order_and_the_rest_alphabetically():
     assert found[1] == {"source": "tmdb", "rating": 8.2, "votes": 6120}
 
 
+def test_the_sources_mdblist_brings_stand_in_their_order():
+    found = rating_list({name: {"rating": 7.0} for name in (
+        "myanimelist", "rogerebert", "popcorn", "tomatoes", "metacriticuser", "metacritic",
+        "letterboxd", "trakt", "tmdb", "imdb")})
+    assert [entry["source"] for entry in found] == [
+        "imdb", "tmdb", "trakt", "letterboxd", "metacritic", "metacriticuser", "rottentomatoes",
+        "popcorn", "rogerebert", "myanimelist"]
+
+
 def test_a_source_under_two_names_is_kept_once_as_it_came_first():
     found = rating_list({"tmdb": {"rating": 7.1}, "themoviedb": {"rating": 9.9}})
     assert found == [{"source": "tmdb", "rating": 7.1, "votes": 0}]
@@ -69,6 +78,8 @@ def test_a_source_under_two_names_is_kept_once_as_it_came_first():
 @pytest.mark.parametrize(("name", "source"), [
     ("metascore", "metacritic"), ("tomatometer", "rottentomatoes"),
     ("tomatometerallcritics", "rottentomatoes"), ("TheMovieDb", "tmdb"),
+    # MDBList's names for Rotten Tomatoes' critics and audience.
+    ("tomatoes", "rottentomatoes"), ("popcorn", "popcorn"), ("popcornmeter", "popcorn"),
 ])
 def test_the_other_names_a_source_goes_by_are_known(name, source):
     assert rating_list({name: {"rating": 8.0}})[0]["source"] == source
@@ -97,7 +108,7 @@ def test_names_are_cleaned_cut_short_and_a_nameless_source_is_left_out():
 
 def test_a_long_list_is_cut_off():
     found = rating_list({f"source{index:02d}": {"rating": 5.0} for index in range(12)})
-    assert len(found) == 8
+    assert len(found) == 10
 
 
 @pytest.mark.parametrize("value", [None, [], "imdb", 8.5])
@@ -166,14 +177,28 @@ def test_the_home_country_is_the_one_kodis_language_points_to(monkeypatch, langu
 
 def test_a_film_brings_every_kind_of_rating():
     fake = Kodi(details={"ratings": {"imdb": IMDB, "themoviedb": TMDB}, "userrating": 9,
-                         "mpaa": "[B]FSK 12[/B]", "top250": 27})
+                         "mpaa": "[B]FSK 12[/B]", "top250": 27,
+                         "uniqueid": {"imdb": "tt15239678", "tmdb": "693134"}})
     assert answer(fake) == {
         "ratings": [{"source": "imdb", "rating": 8.5, "votes": 612345},
                     {"source": "tmdb", "rating": 8.2, "votes": 6120}],
         "mpaa": "FSK 12", "age": "fsk12", "age_level": "12", "userrating": 9, "top250": 27,
+        "ids": {"imdb": "tt15239678", "tmdb": "693134"},
     }
     assert ("VideoLibrary.GetMovieDetails",
-            {"movieid": 12, "properties": ["ratings", "userrating", "mpaa", "top250"]}) in fake.calls
+            {"movieid": 12, "properties": ["ratings", "userrating", "mpaa", "top250", "uniqueid"]}) in fake.calls
+
+
+@pytest.mark.parametrize(("uniqueid", "ids"), [
+    ({"imdb": "tt0111161", "tmdb": 278}, {"imdb": "tt0111161", "tmdb": "278"}),
+    ({"imdb": " tt0111161 ", "tvdb": "81189"}, {"imdb": "tt0111161"}),
+    ({"tmdb": "278"}, {"tmdb": "278"}),
+    # What is no IMDb or TMDb id is left out.
+    ({"imdb": "0111161", "tmdb": "x278"}, {}), ({"imdb": None, "tmdb": "0"}, {}),
+    ("tt0111161", {}), (None, {}),
+])
+def test_a_film_brings_the_ids_mdblist_is_asked_by(uniqueid, ids):
+    assert answer(Kodi(details={"uniqueid": uniqueid}))["ids"] == ids
 
 
 @pytest.mark.parametrize(("userrating", "top250", "kept"), [
@@ -191,7 +216,7 @@ def test_an_episode_rates_itself_and_takes_its_age_rating_from_its_show():
                 show={"mpaa": "FSK 16"})
     assert answer(fake) == {"ratings": [{"source": "tvdb", "rating": 8.8, "votes": 40}],
                             "mpaa": "FSK 16", "age": "fsk16", "age_level": "16", "userrating": 7,
-                            "top250": 0}
+                            "top250": 0, "ids": {}}
     assert ("VideoLibrary.GetTVShowDetails", {"tvshowid": 3, "properties": ["mpaa"]}) in fake.calls
 
 

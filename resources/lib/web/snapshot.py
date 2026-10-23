@@ -40,6 +40,7 @@ from info.publish import (
     publish_scene_properties,
     publish_static_properties,
 )
+from web.mdblist import with_mdblist
 from web.payloads import (
     Chapter,
     Controls,
@@ -577,7 +578,8 @@ class SnapshotBuilder:
             return None
 
         # Only for a snapshot somebody is watching: it costs JSON-RPC.
-        ratings = self._rating_info(values)
+        # MDBList's for a film, where the reader gave a key and it has any.
+        ratings = with_mdblist(self._rating_info(values))
         credits = _credits(values)
         snapshot: PlayingSnapshot = {
             "seq":       self._sequence,

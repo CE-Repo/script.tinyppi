@@ -58,7 +58,9 @@ connection light.
   level beside it ("FSK" | "12"; "MPA" | "PG-13" for films and "TV" | "MA" for
   series, both in the FSK's colours; "BBFC" | "15"), any other written out —
   then a score for each source the scraper or the NFO wrote (IMDb, TMDb, Trakt, TVDB, Metacritic, Rotten Tomatoes; any other gets
-  its first letter on a plain plate) with how many voted, your own rating
+  its first letter on a plain plate) — or, with an MDBList key, the ones
+  MDBList gathers for a film (see [Ratings from MDBList](#ratings-from-mdblist))
+  — with how many voted, your own rating
   behind a heart and the place in the IMDb Top 250. A screen reader hears each shield in words
   ("IMDb 8.5, 612,345 votes"). An episode is rated on its own and carries its
   show's age rating. An age rating that names neither its country nor its
@@ -489,12 +491,40 @@ same chapters Kodi's own seek bar marks — and is read once per title, so it
 costs nothing after the first frame. **Show chapter markers** on the settings
 tab takes the dots and the label off the bar, for this device only.
 
+## Ratings from MDBList
+
+Kodi's library holds only the ratings its scraper wrote, which for the TMDb
+scraper is often TMDb's alone. [MDBList](https://mdblist.com) gathers what a
+film was given by IMDb, TMDb, Trakt, Letterboxd, Rotten Tomatoes (its critics
+and its Popcornmeter), Metacritic (its critics and its users), Roger Ebert and
+MyAnimeList. With a key from it, the overview card shows those:
+
+1. Sign in at mdblist.com and take the free API key under **Preferences → API**.
+2. Put it in **Settings → Dashboard → Ratings → MDBList API key**.
+
+From the next film on, the card asks MDBList once per film, by the IMDb id the
+library holds (the TMDb one where there is none), and shows the library's
+ratings until the answer is in — a moment after the film starts. Where both
+have a rating from one source, MDBList's is shown; any other the library holds
+stands beside them, and the age rating, your own rating and the Top 250 place
+are the library's as before. Every rating is out of ten, as Kodi has them: a
+score out of 100 a tenth of it, Roger Ebert's four stars ten. An answer is kept
+for half a day, so a film watched twice costs one request of the day's limit.
+
+The library's ratings are shown alone without a key, for a film MDBList does
+not know or cannot be reached for (it is asked again ten minutes on), when
+MDBList refuses the key (Kodi's log says so, and the key is not sent again
+until it is changed) or while the day's limit is spent. An episode always
+shows the library's: MDBList rates shows, not episodes.
+
 ## Security
 
 The dashboard is reachable by anything on the same network while it is on, so:
 
 - It is **off by default** and has to be switched on deliberately.
 - **Do not forward its port to the internet.** It is meant for a home network.
+- The **MDBList API key** goes to mdblist.com only, with the id of the film
+  being asked for, and never to a page; leave it empty and nothing is sent.
 - The **access token** is required for every VS10 switch. Turn on **Require the
   token for reading too** if the network the box is on is shared — the page
   then asks for the token before it shows anything at all.

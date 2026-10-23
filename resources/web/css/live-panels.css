@@ -664,8 +664,13 @@
 .rating .side.tmdb { background: #0d253f; }
 .rating .side.tvdb { background: #1e2a33; }
 .rating .side.trakt { background: #ed1c24; }
-.rating .side.metacritic { background: #000; }
-.rating .side.rottentomatoes { background: #fff; }
+.rating .side.letterboxd { background: #14181c; }
+.rating .side.metacritic,
+.rating .side.metacriticuser { background: #000; }
+.rating .side.rottentomatoes,
+.rating .side.popcorn { background: #fff; }
+.rating .side.rogerebert { background: #c8102e; }
+.rating .side.myanimelist { background: #2e51a2; }
 /* A source with no drawing: its first letter on a plain plate. */
 .rating .side.letter {
   min-width: 24px;
