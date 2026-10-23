@@ -575,16 +575,16 @@
 .now .meta:empty { display: none; }
 
 /* --- The overview: the ratings and the plot ------------------------------
-   The card under the one of what is playing.  The ratings along the top as
-   small shields, which is what they are: short facts about the film, to be
-   taken in at a glance -- each wearing its house's mark in its house's
-   colours rather than its name, so a row of them is read by colour before a
-   word of it is.  Under them the slogan,
-   in the text's own colour and set in italics as the line a poster carries,
-   and the plot as prose, in the muted grey the year and genre are written
-   in.  A plot is the one paragraph on the page, so it gets the line height
-   of one; its line breaks are the library's own (see plain_text in
-   web/values.py).
+   The card under the one of what is playing.  The slogan first, in the
+   text's own colour and set in italics as the line a poster carries, and
+   the plot as prose, in the muted grey the year and genre are written in.
+   A plot is the one paragraph on the page, so it gets the line height of
+   one; its line breaks are the library's own (see plain_text in
+   web/values.py).  Under them, centred as a row of their own, the ratings
+   as small shields, which is what they are: short facts about the film, to
+   be taken in at a glance -- each wearing its house's mark in its house's
+   colours rather than its name, so a row of them is read by colour before
+   a word of it is.
 ------------------------------------------------------------------------ */
 
 .plot {
@@ -595,10 +595,11 @@
 .ratings {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 6px;
-  /* A little more air under the badges than between the lines below them:
-     they are a row of their own, not the first line of the plot. */
-  margin-bottom: 2px;
+  /* A little more air over the badges than between the lines above them:
+     they are a row of their own, not the last line of the plot. */
+  margin-top: 2px;
 }
 /* A shield: the house on the left, on a ground of its own colour, and what
    it gave on the right, on the panel's -- kantig like the plaques the format

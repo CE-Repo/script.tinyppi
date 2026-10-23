@@ -239,7 +239,7 @@ test("the plot card: the plot under what is playing, with its slogan where there
   assert.equal($("plotTitle").textContent, "Handlung");
 });
 
-test("the overview card carries every rating as a shield with its mark, before the slogan and the plot", (t) => {
+test("the overview card carries every rating as a shield with its mark, under the slogan and the plot", (t) => {
   const { $, P, window } = panels(t);
   /* Each shield as [class, what it says, its left, what is written on its right]. */
   const badges = () => [...$("ratings").children].map((node) => {
@@ -263,7 +263,9 @@ test("the overview card carries every rating as a shield with its mark, before t
   P.update(snap({ media: rated }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
   assert.equal($("ratings").classList.contains("hidden"), false);
-  assert.equal($("ratings").nextElementSibling, $("tagline"));
+  // Under the slogan and the plot.
+  assert.equal($("plotText").nextElementSibling, $("ratings"));
+  assert.equal($("tagline").nextElementSibling, $("plotText"));
   assert.deepEqual(plain(badges()), [
     ["rating score", "IMDb 8.5, 612,345 votes", "side imdb /ratings/imdb.svg wide",
      [["value", "8.5"], ["note", "612,345"]]],

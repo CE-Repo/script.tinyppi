@@ -93,14 +93,14 @@
       '</div>' +
     '</section>' +
     /* What the title is about and what it has been given, under the card
-       of what is playing: the ratings, the slogan and the plot, as the
-       library has them. */
+       of what is playing: the slogan, the plot and, under them, the
+       ratings, as the library has them. */
     '<details class="card hidden" id="plotCard">' +
       '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
       '<div class="plot">' +
-        '<div class="ratings hidden" id="ratings" role="list"></div>' +
         '<p class="tagline hidden" id="tagline"></p>' +
         '<p class="plottext hidden" id="plotText"></p>' +
+        '<div class="ratings hidden" id="ratings" role="list"></div>' +
       '</div>' +
     '</details>' +
     '<details class="card hidden" id="tiles">' +

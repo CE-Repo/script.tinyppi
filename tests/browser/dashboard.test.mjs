@@ -85,6 +85,14 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   const [now, plot] = await Promise.all(
     ["#nowCard", "#plotCard"].map((selector) => page.locator(selector).boundingBox()));
   assert.ok(plot.y > now.y + now.height - 1, "under the playing card");
+  // The ratings under the plot, centred in the card.
+  const [text, row, first, last] = await Promise.all(
+    ["#plotText", "#ratings", "#ratings .rating:first-child", "#ratings .rating:last-child"]
+      .map((selector) => page.locator(selector).boundingBox()));
+  assert.ok(row.y >= text.y + text.height - 1, "under the plot");
+  const left = first.x - row.x;
+  const right = row.x + row.width - (last.x + last.width);
+  assert.ok(Math.abs(left - right) <= 2, `centred: ${left} vs ${right}`);
 });
 
 test("the chapters ahead sit on the bar, a mouse brings up the rest, a click jumps", async () => {
