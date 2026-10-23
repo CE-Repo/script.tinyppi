@@ -50,6 +50,21 @@ def test_an_answer_gives_each_rating_out_of_ten():
     }
 
 
+def test_a_value_without_its_score_is_read_on_its_sources_scale():
+    answer = {"ratings": [
+        {"source": "letterboxd", "value": 4.1, "score": None},
+        {"source": "myanimelist", "value": 8.6, "score": None},
+        {"source": "popcorn", "value": 91, "score": None},
+        # A source whose scale is not known is not guessed at.
+        {"source": "newcomer", "value": 7, "score": None},
+    ]}
+    assert scores_of(answer) == {
+        "letterboxd": {"rating": 8.2, "votes": None},
+        "myanimelist": {"rating": 8.6, "votes": None},
+        "popcorn": {"rating": 9.1, "votes": None},
+    }
+
+
 @pytest.mark.parametrize("answer", [
     {}, {"ratings": "none"}, {"ratings": ["imdb", None]},
     {"ratings": [{"source": "imdb", "score": True}, {"source": "rogerebert", "value": False}]},

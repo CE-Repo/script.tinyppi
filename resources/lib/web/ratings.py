@@ -27,8 +27,8 @@ from web.values import Json, clean_value
 # can go by several names: ``themoviedb`` and ``tmdb`` are two scraper
 # versions', an NFO writer has its own for Metacritic and Rotten Tomatoes,
 # and MDBList calls Rotten Tomatoes' critics ``tomatoes`` and its audience
-# ``popcorn``.  Any other name (an NFO may carry anything) follows these,
-# alphabetically.
+# ``popcorn``, which an OMDb-fed scraper calls ``tomatometerallaudience``.
+# Any other name (an NFO may carry anything) follows these, alphabetically.
 _SOURCES = (("imdb", "imdb"), ("themoviedb", "tmdb"), ("tmdb", "tmdb"),
             ("trakt", "trakt"), ("tvdb", "tvdb"), ("letterboxd", "letterboxd"),
             ("metacritic", "metacritic"), ("metascore", "metacritic"),
@@ -36,13 +36,15 @@ _SOURCES = (("imdb", "imdb"), ("themoviedb", "tmdb"), ("tmdb", "tmdb"),
             ("rottentomatoes", "rottentomatoes"), ("tomatometer", "rottentomatoes"),
             ("tomatometerallcritics", "rottentomatoes"), ("tomatoes", "rottentomatoes"),
             ("popcorn", "popcorn"), ("popcornmeter", "popcorn"),
+            ("tomatometerallaudience", "popcorn"),
             ("rogerebert", "rogerebert"), ("myanimelist", "myanimelist"))
 _ALIASES = dict(_SOURCES)
 # Each name once, tmdb included, so a name outside it sorts after all of them.
 _ORDER = {name: index for index, name in enumerate(dict.fromkeys(_ALIASES.values()))}
 
-# As many as MDBList brings; an NFO with more is cut off.
-_RATING_LIMIT = 10
+# Every source named above, and a few more an NFO may carry; one with more
+# still is cut off.
+_RATING_LIMIT = len(_ORDER) + 4
 # A source's name is a label on a badge, not a sentence.
 _SOURCE_NAME_LIMIT = 24
 

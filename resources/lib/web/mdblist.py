@@ -32,6 +32,7 @@ import time
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping
+from typing import TypeGuard
 from urllib.parse import quote
 
 import xbmc
@@ -81,18 +82,31 @@ class _Spent(Exception):
         self.wait = wait
 
 
+# The scale each source's own value is on, for one MDBList sends without
+# its score out of 100: Roger Ebert's stars always, the others now and then.
+_SCALES = {"imdb": 10, "metacriticuser": 10, "myanimelist": 10, "letterboxd": 5,
+           "rogerebert": 4, "metacritic": 100, "trakt": 100, "tomatoes": 100,
+           "popcorn": 100, "tmdb": 100}
+
+
+def _number(value: object) -> TypeGuard[int | float]:
+    """Return whether JSON gave *value* as a number."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
 def _out_of_ten(entry: Json) -> float | None:
     """Return one of MDBList's ratings out of ten, or None for none.
 
     MDBList gives each on its source's own scale and as a score out of 100
-    beside it; Roger Ebert's stars, out of four, come without the score.
+    beside it.  Without the score the value is read on its source's scale;
+    a source whose scale is not known is left out rather than guessed at.
     """
     score, value = entry.get("score"), entry.get("value")
-    if isinstance(score, (int, float)) and not isinstance(score, bool):
+    if _number(score):
         return score / 10
-    if entry.get("source") == "rogerebert" and isinstance(value, (int, float)) \
-            and not isinstance(value, bool):
-        return value * 2.5
+    scale = _SCALES.get(str(entry.get("source") or ""))
+    if scale and _number(value):
+        return value * 10 / scale
     return None
 
 
@@ -314,8 +328,9 @@ _CHART = Chart()
 def api_key() -> str:
     """Return the MDBList API key the reader gave, or "".
 
-    It costs a look at the settings, so the caller reads it once a title
-    (see ``SnapshotBuilder._rating_info``) rather than once a snapshot.
+    It costs a look at the settings, so the caller reads it once a static
+    interval (see ``SnapshotBuilder._mdblist_api_key``) rather than once a
+    snapshot.
     """
     try:
         return settings.addon().getSetting("web_mdblist_key").strip()

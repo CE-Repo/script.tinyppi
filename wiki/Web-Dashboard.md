@@ -205,7 +205,7 @@ Popcornmeter), Metacritic (critics and users), Roger Ebert and MyAnimeList.
 1. Sign in at mdblist.com and take the free API key under **Preferences → API**.
 2. Enter it under **Settings → Dashboard → Ratings → MDBList API key**.
 
-From the next film on, the box asks MDBList once per film — by the IMDb id the
+From then on — the film already playing included — the box asks MDBList once per film — by the IMDb id the
 library holds, else the TMDb one — and the card shows the library's ratings
 until the answer is in. Where both have a rating from one source, MDBList's is
 shown; any other the library holds stands beside them. Every rating is out of

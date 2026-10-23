@@ -231,7 +231,7 @@ def test_the_ratings_are_read_once_per_title_and_not_for_the_session_pass(rated,
     assert len(asked) == 2
 
 
-def test_the_mdblist_key_is_read_with_the_ratings_once_per_title(rated, monkeypatch):
+def test_the_mdblist_key_is_read_once_a_static_interval(rated, monkeypatch):
     read, given = [], []
     monkeypatch.setattr(snapshot, "api_key", lambda: read.append(1) or "KEY")
 
@@ -245,7 +245,9 @@ def test_the_mdblist_key_is_read_with_the_ratings_once_per_title(rated, monkeypa
     builder.build()
     builder.build()
     assert len(read) == 1 and given == ["KEY", "KEY"]
-    play(**{"Player.Filename": "Next.mkv"})
+    # A key given mid-film is read again on the next interval, the same
+    # title still playing.
+    monkeypatch.setattr(builder, "STATIC_INTERVAL", 0.0)
     builder.build()
     assert len(read) == 2
 
