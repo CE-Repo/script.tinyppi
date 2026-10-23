@@ -121,6 +121,28 @@ class MetadataRow(TypedDict):
     cells: NotRequired[list[str]]
 
 
+class Rating(TypedDict):
+    """One source's rating of the playing title, out of ten."""
+
+    # imdb, tmdb, trakt, tvdb, metacritic, or whatever else an NFO names.
+    source: str
+    rating: float
+    # 0 where the library has no count.
+    votes: int
+
+
+class Ratings(TypedDict):
+    """The playing title's ratings (web/ratings.py); empty or 0 where unknown."""
+
+    ratings: list[Rating]
+    # The age rating as the scraper wrote it ("FSK 12", "Rated PG-13").
+    mpaa: str
+    # The reader's own, 1 to 10.
+    userrating: int
+    # The place in the IMDb Top 250.
+    top250: int
+
+
 class Media(TypedDict):
     """The now-playing card's details; empty for non-library files."""
 
@@ -129,9 +151,14 @@ class Media(TypedDict):
     show: str
     season: str
     episode: str
-    # The plot card's: the slogan and the summary, as the library has them.
+    # The plot card's: the slogan and the summary, as the library has them,
+    # and the ratings (see Ratings).
     tagline: str
     plot: str
+    ratings: list[Rating]
+    mpaa: str
+    userrating: int
+    top250: int
 
 
 # --- The title's history ----------------------------------------------------

@@ -1488,5 +1488,17 @@ msgid "Show chapter markers"
 msgstr ""
 
 msgctxt "#32370"
-msgid "Plot"
+msgid "Plot & ratings"
+msgstr ""
+
+msgctxt "#32371"
+msgid "%s votes"
+msgstr ""
+
+msgctxt "#32372"
+msgid "My rating"
+msgstr ""
+
+msgctxt "#32373"
+msgid "Top 250 · #%s"
 msgstr ""

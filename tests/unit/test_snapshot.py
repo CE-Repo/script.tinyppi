@@ -162,6 +162,66 @@ def test_chapters_are_asked_for_again_while_there_are_none(chapters, monkeypatch
     assert len(asked) == 2
 
 
+@pytest.fixture
+def rated(monkeypatch):
+    """The ratings Kodi gives whatever plays; None while it cannot say yet."""
+    asked = []
+    given = {"found": {"ratings": [{"source": "imdb", "rating": 8.5, "votes": 10}],
+                       "mpaa": "FSK 12", "userrating": 9, "top250": 27}}
+    monkeypatch.setattr(snapshot, "playing_ratings", lambda: asked.append(1) or given["found"])
+    return asked, given
+
+
+def test_the_ratings_travel_in_the_media_block(rated):
+    play()
+    media = SnapshotBuilder().build()["media"]
+    assert media["ratings"] == [{"source": "imdb", "rating": 8.5, "votes": 10}]
+    assert (media["mpaa"], media["userrating"], media["top250"]) == ("FSK 12", 9, 27)
+
+
+def test_the_ratings_are_read_once_per_title_and_not_for_the_session_pass(rated, monkeypatch):
+    asked, _given = rated
+    play()
+    builder = SnapshotBuilder()
+    assert builder.build(detail=False) is None       # nobody watching: no JSON-RPC
+    assert asked == []
+    builder.build()
+    monkeypatch.setattr(builder, "STATIC_INTERVAL", 0.0)
+    builder.build()                                  # same title, Kodi could say
+    assert len(asked) == 1
+    play(**{"Player.Filename": "Next.mkv"})
+    builder.build()
+    assert len(asked) == 2
+
+
+def test_the_ratings_are_asked_for_again_while_kodi_cannot_say(rated, monkeypatch):
+    asked, given = rated
+    found = given["found"]
+    given["found"] = None
+    play()
+    builder = SnapshotBuilder()
+    assert builder.build()["media"]["ratings"] == []
+    builder.build()                                  # within the static interval
+    assert len(asked) == 1
+    monkeypatch.setattr(builder, "STATIC_INTERVAL", 0.0)
+    given["found"] = found
+    assert builder.build()["media"]["mpaa"] == "FSK 12"
+    builder.build()                                  # known now: not asked again
+    assert len(asked) == 2
+
+
+def test_the_ratings_are_dropped_when_playback_ends(rated):
+    asked, _given = rated
+    play()
+    builder = SnapshotBuilder()
+    builder.build()
+    xbmc.CONDITIONS["Player.HasVideo"] = False
+    builder.build()
+    play()
+    builder.build()                                  # the same film again
+    assert len(asked) == 2
+
+
 def test_chapters_are_dropped_when_playback_ends(chapters):
     asked, _found = chapters
     play()

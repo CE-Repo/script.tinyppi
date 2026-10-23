@@ -239,6 +239,65 @@ test("the plot card: the plot under what is playing, with its slogan where there
   assert.equal($("plotTitle").textContent, "Handlung");
 });
 
+test("the plot card carries every rating the library holds, before the slogan and the plot", (t) => {
+  const { $, P, window } = panels(t);
+  const badges = () => [...$("ratings").children].map((node) => [
+    node.className, [...node.children].map((part) => [part.className, part.textContent])]);
+  P.update(snap({ media: {
+    tagline: "Long live the fighters.", plot: "Paul joins the Fremen.",
+    ratings: [{ source: "imdb", rating: 8.5, votes: 612345 }, { source: "tmdb", rating: 8.2, votes: 0 },
+              { source: "rotten tomatoes", rating: 9.2, votes: 3 }],
+    userrating: 9, top250: 27, mpaa: "FSK 12" } }));
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+  assert.equal($("ratings").classList.contains("hidden"), false);
+  assert.equal($("ratings").nextElementSibling, $("tagline"));
+  assert.deepEqual(plain(badges()), [
+    ["rating score", [["name", "IMDb"], ["value mono", "8.5"], ["note", "612,345 votes"]]],
+    ["rating score", [["name", "TMDb"], ["value mono", "8.2"]]],
+    ["rating score", [["name", "Rotten tomatoes"], ["value mono", "9.2"], ["note", "3 votes"]]],
+    ["rating mine", [["name", "My rating"], ["value mono", "9"]]],
+    ["rating rank", [["value mono", "Top 250 · #27"]]],
+    ["rating age", [["value mono", "FSK 12"]]]]);
+  assert.deepEqual([...$("ratings").children].map((node) => node.getAttribute("role")),
+                   Array(6).fill("listitem"));
+
+  // The same badges again are not built again.
+  const first = $("ratings").firstChild;
+  P.update(snap({ media: { plot: "Paul joins the Fremen.",
+    ratings: [{ source: "imdb", rating: 8.5, votes: 612345 }, { source: "tmdb", rating: 8.2, votes: 0 },
+              { source: "rotten tomatoes", rating: 9.2, votes: 3 }],
+    userrating: 9, top250: 27, mpaa: "FSK 12" } }));
+  assert.equal($("ratings").firstChild, first);
+
+  // The words arrive later, and the badges are written again in them.
+  P.strings({ ...window.TinyPPI.T, votes: "%s Stimmen", my_rating: "Eigene Bewertung",
+              top250: "Top 250 · Platz %s" });
+  assert.deepEqual(texts($("ratings").children).slice(0, 1), ["IMDb8.5612,345 Stimmen"]);
+  assert.equal($("ratings").children[3].textContent, "Eigene Bewertung9");
+  assert.equal($("ratings").children[4].textContent, "Top 250 · Platz 27");
+
+  // Ratings without a plot: the card for them alone, and no slogan.
+  P.update(snap({ media: { tagline: "Only this.", mpaa: "FSK 16" } }));
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+  assert.deepEqual(texts($("ratings").children), ["FSK 16"]);
+  assert.ok($("tagline").classList.contains("hidden"));
+  assert.ok($("plotText").classList.contains("hidden"));
+
+  // A plot without ratings: no row of badges.
+  P.update(snap({ media: { plot: "An episode.", ratings: [], userrating: 0, top250: 0, mpaa: "" } }));
+  assert.ok($("ratings").classList.contains("hidden"));
+  assert.equal($("ratings").children.length, 0);
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+
+  // Neither: no card.
+  P.update(snap({ media: { tagline: "Only this.", ratings: [] } }));
+  assert.ok($("plotCard").classList.contains("hidden"));
+
+  // A source with no name is drawn with none.
+  P.update(snap({ media: { ratings: [{ rating: 5 }] } }));
+  assert.deepEqual(plain(badges()), [["rating score", [["value mono", "5.0"]]]]);
+});
+
 test("the finish clock shows as it arrived and takes its label from the strings", (t) => {
   const { $, P, window } = panels(t);
   P.update(snap({ finish: "23:40" }));

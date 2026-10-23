@@ -92,11 +92,13 @@
         '</div>' +
       '</div>' +
     '</section>' +
-    /* What the title is about, under the card of what is playing: the
-       slogan and the plot, as the library has them. */
+    /* What the title is about and what it has been given, under the card
+       of what is playing: the ratings, the slogan and the plot, as the
+       library has them. */
     '<details class="card hidden" id="plotCard">' +
       '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
       '<div class="plot">' +
+        '<div class="ratings hidden" id="ratings" role="list"></div>' +
         '<p class="tagline hidden" id="tagline"></p>' +
         '<p class="plottext hidden" id="plotText"></p>' +
       '</div>' +
@@ -155,7 +157,8 @@
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), file: $("file"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
-    plotCard: $("plotCard"), tagline: $("tagline"), plotText: $("plotText"),
+    plotCard: $("plotCard"), ratings: $("ratings"), tagline: $("tagline"),
+    plotText: $("plotText"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
     tFinish: $("tFinish"), tFinishLabel: $("tFinishLabel"),
@@ -179,6 +182,7 @@
   let lastFinish = "";   /* the clock that label belongs in front of         */
   let idleFetched = false;  /* the ended title's events, asked for once      */
   let idleReset = false;    /* the panels have been put away once already    */
+  let plotMedia = {};       /* what the plot card was last drawn from        */
 
   TinyPPI.bindDisclosure(el.plotCard, pageState + ".plot", true);
   TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
@@ -253,19 +257,78 @@
     el.tFinish.classList.toggle("hidden", !finish);
   }
 
-  /* The card is there for the plot: without one it is left out, slogan or
-     not -- a slogan on its own says too little to be worth a card.  With a
-     plot, the slogan above it is left out where the library has none, which
-     is most episodes.  Written only when the words change: they stand still
-     for the whole title, and a plot is the longest text on the page. */
+  /* The card is there for the plot and the ratings: with neither it is left
+     out.  The slogan belongs to the plot and goes without it -- a slogan on
+     its own says too little to be worth a card -- and with a plot it is left
+     out where the library has none, which is most episodes.  Written only
+     when the words change: they stand still for the whole title, and a plot
+     is the longest text on the page. */
   function renderPlot(media) {
-    const tagline = (media.tagline || "").trim();
+    plotMedia = media;
     const plot = (media.plot || "").trim();
+    const tagline = plot ? (media.tagline || "").trim() : "";
     for (const [node, text] of [[el.tagline, tagline], [el.plotText, plot]]) {
       if (node.textContent !== text) node.textContent = text;
       node.classList.toggle("hidden", !text);
     }
-    el.plotCard.classList.toggle("hidden", !plot);
+    const badges = ratingBadges(media, TinyPPI.T);
+    fillRatings(badges);
+    el.plotCard.classList.toggle("hidden", !plot && !badges.length);
+  }
+
+  /* What a rating badge calls the house it is from.  Brand names, the same
+     in every language; a source none of these names -- an NFO may carry any
+     -- is written as the library has it. */
+  const RATING_SOURCES = {
+    imdb: "IMDb", tmdb: "TMDb", trakt: "Trakt", tvdb: "TVDB", metacritic: "Metacritic"
+  };
+
+  /* Every rating the library holds for the title (see web/ratings.py): a
+     score for each source with how many voted for it, the reader's own, the
+     place in the IMDb Top 250 and the age rating, in that order. */
+  function ratingBadges(media, T) {
+    const badges = [];
+    for (const entry of media.ratings || []) {
+      const source = entry.source || "";
+      badges.push({
+        kind: "score",
+        name: RATING_SOURCES[source] || source.charAt(0).toUpperCase() + source.slice(1),
+        value: entry.rating.toFixed(1),
+        note: entry.votes ? T.votes.replace("%s", entry.votes.toLocaleString()) : ""
+      });
+    }
+    if (media.userrating) {
+      badges.push({ kind: "mine", name: T.my_rating, value: String(media.userrating), note: "" });
+    }
+    if (media.top250) {
+      badges.push({ kind: "rank", name: "", value: T.top250.replace("%s", media.top250), note: "" });
+    }
+    if (media.mpaa) badges.push({ kind: "age", name: "", value: media.mpaa, note: "" });
+    return badges;
+  }
+
+  /* Built again only when a badge would say something else, which is once a
+     title (see fillRow). */
+  function fillRatings(badges) {
+    const signature = JSON.stringify(badges);
+    if (el.ratings.dataset.signature === signature) return;
+    el.ratings.dataset.signature = signature;
+    el.ratings.replaceChildren();
+    for (const badge of badges) {
+      const node = document.createElement("span");
+      node.className = "rating " + badge.kind;
+      node.setAttribute("role", "listitem");
+      for (const [part, text] of [["name", badge.name], ["value mono", badge.value],
+                                  ["note", badge.note]]) {
+        if (!text) continue;
+        const piece = document.createElement("span");
+        piece.className = part;
+        piece.textContent = text;
+        node.append(piece);
+      }
+      el.ratings.append(node);
+    }
+    el.ratings.classList.toggle("hidden", !badges.length);
   }
 
   /* The poster is fetched once per film: the add-on sends a tag that changes
@@ -744,6 +807,8 @@
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
     $("plotTitle").textContent = T.plot;
+    /* The badges carry words of the table too ("612,345 votes"). */
+    fillRatings(ratingBadges(plotMedia, T));
     $("tilesTitle").textContent = T.metrics;
     $("kSwitches").textContent = T.switches;
     $("kWarnings").textContent = T.warnings;

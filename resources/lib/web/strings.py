@@ -130,8 +130,11 @@ _UI_STRINGS = {
     "chapter_of":       32367,
     "progress_bar":     32368,
     "chapter_marks":    32369,
-    # The card of the slogan and the plot, under what is playing.
+    # The card of the plot and the ratings, under what is playing.
     "plot":             32370,
+    "votes":            32371,
+    "my_rating":        32372,
+    "top250":           32373,
 }
 
 

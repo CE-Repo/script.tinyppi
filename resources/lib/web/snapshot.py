@@ -50,6 +50,7 @@ from web.payloads import (
     MetadataRow,
     Metrics,
     PlayingSnapshot,
+    Ratings,
     Snapshot,
 )
 from web.player import (
@@ -59,6 +60,7 @@ from web.player import (
     current_track_state,
     player_controls,
 )
+from web.ratings import no_ratings, playing_ratings
 from web.rows import GROUPS, finish_time, is_dv_source, overlay_rows, render
 from web.session import SessionLog
 from web.values import clean_value, numbers, plain_text
@@ -274,6 +276,12 @@ class SnapshotBuilder:
         self._chapters: list[Chapter] = []
         self._chapters_for: tuple[str, str] | None = None
         self._chapters_at = 0.0
+        # The title's ratings, the (file, length) they were read for, and
+        # whether Kodi could say what was playing when they were.
+        self._ratings: Ratings = no_ratings()
+        self._ratings_for: tuple[str, str] | None = None
+        self._ratings_at = 0.0
+        self._ratings_known = False
 
     def _refresh(self) -> None:
         """Recompute the readings into the sink."""
@@ -423,6 +431,24 @@ class SnapshotBuilder:
             self._chapters = chapter_list(title[1])
         return self._chapters
 
+    def _rating_info(self, values: dict[str, str]) -> Ratings:
+        """Return the title's ratings, read once per title.
+
+        Read again on the static interval only while Kodi cannot yet say
+        what is playing (see ``playing_ratings``): a title with no ratings
+        is asked once.
+        """
+        title = (values.get("Filename", ""), values.get("PlayerDuration", ""))
+        now = time.monotonic()
+        retry = not self._ratings_known and now - self._ratings_at >= self.STATIC_INTERVAL
+        if title != self._ratings_for or retry:
+            self._ratings_for = title
+            self._ratings_at = now
+            found = playing_ratings()
+            self._ratings_known = found is not None
+            self._ratings = found if found is not None else no_ratings()
+        return self._ratings
+
     def _active_tracks(self) -> dict[str, str]:
         """Return the active tracks from the last static refresh."""
         return self._track_state
@@ -459,6 +485,10 @@ class SnapshotBuilder:
             self._chapters = []
             self._chapters_for = None
             self._chapters_at = 0.0
+            self._ratings = no_ratings()
+            self._ratings_for = None
+            self._ratings_at = 0.0
+            self._ratings_known = False
             # End the session but keep its figures for the idle page.
             self.session.end()
             idle: IdleSnapshot = {
@@ -514,6 +544,8 @@ class SnapshotBuilder:
         if not detail:
             return None
 
+        # Only for a snapshot somebody is watching: it costs JSON-RPC.
+        ratings = self._rating_info(values)
         snapshot: PlayingSnapshot = {
             "seq":       self._sequence,
             "playing":   True,
@@ -542,6 +574,10 @@ class SnapshotBuilder:
                 "episode": values.get("Episode", ""),
                 "tagline": plain_text(values.get("Tagline", "")),
                 "plot":    plain_text(values.get("Plot", "")),
+                "ratings":    ratings["ratings"],
+                "mpaa":       ratings["mpaa"],
+                "userrating": ratings["userrating"],
+                "top250":     ratings["top250"],
             },
             "controls":  self._player_controls(control),
             "chapters":  chapters,

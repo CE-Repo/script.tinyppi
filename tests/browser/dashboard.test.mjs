@@ -68,8 +68,14 @@ test("the live tab connects and shows the format badges", async () => {
   }
 });
 
-test("the slogan and the plot stand in a card of their own under the playing one", async () => {
+test("the ratings, the slogan and the plot stand in a card of their own under the playing one", async () => {
   await page.waitForSelector("#plotCard:not(.hidden)");
+  // The stubs' strings are only their ids, so the words of a badge are the
+  // jsdom tests'; here it is which badges stand there, with which figures.
+  const badges = await page.$$eval("#ratings .rating", (nodes) => nodes.map((node) =>
+    [...node.children].filter((part) => !part.classList.contains("note"))
+      .map((part) => part.textContent)));
+  assert.deepEqual(badges, [["IMDb", "7.9"], ["FSK 12"]]);
   assert.equal(await page.locator("#tagline").innerText(), "One night changes everything.");
   // The plot's own line break, drawn as one.
   assert.equal(await page.locator("#plotText").innerText(),
