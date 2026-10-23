@@ -577,6 +577,7 @@ class SnapshotBuilder:
                 "ratings":    ratings["ratings"],
                 "mpaa":       ratings["mpaa"],
                 "age":        ratings["age"],
+                "age_level":  ratings["age_level"],
                 "userrating": ratings["userrating"],
                 "top250":     ratings["top250"],
             },

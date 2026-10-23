@@ -258,7 +258,7 @@ test("the overview card carries every rating as a shield with its mark, under th
               { source: "trakt", rating: 8.4, votes: 31902 },
               { source: "rottentomatoes", rating: 9.2, votes: 0 },
               { source: "letterboxd", rating: 8.9, votes: 3 }],
-    userrating: 9, top250: 27, mpaa: "FSK 12", age: "fsk12" };
+    userrating: 9, top250: 27, mpaa: "FSK 12", age: "fsk12", age_level: "12" };
   P.update(snap({ media: rated }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
   assert.equal($("ratings").classList.contains("hidden"), false);
@@ -266,7 +266,7 @@ test("the overview card carries every rating as a shield with its mark, under th
   assert.equal($("plotText").nextElementSibling, $("ratings"));
   assert.equal($("tagline").nextElementSibling, $("plotText"));
   assert.deepEqual(plain(badges()), [
-    ["rating age drawn", "FSK 12", "side fsk12 /ratings/fsk12.svg", []],
+    ["rating age", "FSK 12", "side fsk12 plate /ratings/fsk12.svg", [["value", "12"]]],
     ["rating score", "IMDb 8.5, 612,345 votes", "side imdb /ratings/imdb.svg",
      [["value", "8.5"], ["note", "612,345"]]],
     ["rating score", "TMDb 8.2", "side tmdb /ratings/tmdb.svg", [["value", "8.2"]]],
@@ -304,17 +304,23 @@ test("the overview card carries every rating as a shield with its mark, under th
     ["rating score", "IMDb 7.0", "side imdb /ratings/imdb.svg", [["value", "7.0"]]]]);
 
   // Ratings without a plot: the card for them alone, and no slogan.
-  P.update(snap({ media: { tagline: "Only this.", mpaa: "FSK 16", age: "fsk16" } }));
+  P.update(snap({ media: { tagline: "Only this.", mpaa: "FSK 16", age: "fsk16", age_level: "16" } }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
-  assert.deepEqual(plain(badges()), [["rating age drawn", "FSK 16", "side fsk16 /ratings/fsk16.svg", []]]);
+  assert.deepEqual(plain(badges()), [["rating age", "FSK 16", "side fsk16 plate /ratings/fsk16.svg",
+                                      [["value", "16"]]]]);
 
   assert.ok($("tagline").classList.contains("hidden"));
   assert.ok($("plotText").classList.contains("hidden"));
   // An American or a British one wears its own board's mark.
-  for (const [mpaa, age] of [["Rated PG-13", "mpa_pg13"], ["TV-MA", "tv_ma"], ["Rated 15", "bbfc_15"]]) {
-    P.update(snap({ media: { plot: "Plot.", mpaa, age } }));
-    assert.deepEqual(plain(badges()), [["rating age drawn", mpaa, `side ${age} /ratings/${age}.svg`, []]]);
+  for (const [mpaa, age, level] of [["Rated PG-13", "mpa_pg13", "PG-13"], ["TV-MA", "tv_ma", "MA"],
+                                    ["Rated 15", "bbfc_15", "15"]]) {
+    P.update(snap({ media: { plot: "Plot.", mpaa, age, age_level: level } }));
+    assert.deepEqual(plain(badges()),
+                     [["rating age", mpaa, `side ${age} plate /ratings/${age}.svg`, [["value", level]]]]);
   }
+  // An add-on that sent the mark and not yet the level: the plate alone.
+  P.update(snap({ media: { plot: "Plot.", mpaa: "FSK 6", age: "fsk6" } }));
+  assert.deepEqual(plain(badges()), [["rating age", "FSK 6", "side fsk6 plate /ratings/fsk6.svg", []]]);
 
   // A plot without ratings: no row of badges.
   P.update(snap({ media: { plot: "An episode.", ratings: [], userrating: 0, top250: 0, mpaa: "" } }));

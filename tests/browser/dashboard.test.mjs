@@ -74,12 +74,12 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   // jsdom tests'; here it is which marks stand there, served and drawn.
   await page.waitForFunction(() => [...document.querySelectorAll("#ratings img")]
     .every((image) => image.complete && image.naturalWidth > 0));
-  // Each as wide as it is drawn: the FSK's plate and IMDb's wordmark both twice their height.
+  // Each as wide as it is drawn: the FSK's plate and IMDb's wordmark.
   const sizes = await page.$$eval("#ratings img", (images) => images.map((image) => {
     const box = image.getBoundingClientRect();
     return Math.round(box.width / box.height * 10) / 10;
   }));
-  assert.deepEqual(sizes, [2, 2]);
+  assert.deepEqual(sizes, [1.4, 2]);
   // Every badge one height: the age rating's mark and the shields beside it.
   const heights = await page.$$eval("#ratings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
@@ -88,7 +88,7 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
     node.querySelector("img").getAttribute("src"),
     [...node.querySelectorAll(".value")].map((part) => part.textContent).join("")]));
   // The age rating first.
-  assert.deepEqual(marks, [["/ratings/fsk12.svg", ""], ["/ratings/imdb.svg", "7.9"]]);
+  assert.deepEqual(marks, [["/ratings/fsk12.svg", "12"], ["/ratings/imdb.svg", "7.9"]]);
   assert.equal(await page.locator("#tagline").innerText(), "One night changes everything.");
   // The plot's own line break, drawn as one.
   assert.equal(await page.locator("#plotText").innerText(),

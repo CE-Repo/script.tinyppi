@@ -7,7 +7,7 @@ import pytest
 
 import xbmc
 from web import ratings
-from web.ratings import age_mark, home_country, no_ratings, playing_ratings, rating_list
+from web.ratings import age_rating, home_country, no_ratings, playing_ratings, rating_list
 
 IMDB = {"default": True, "rating": 8.54, "votes": 612345}
 TMDB = {"default": False, "rating": 8.2, "votes": 6120}
@@ -124,7 +124,7 @@ def test_a_list_that_is_no_mapping_is_no_list(value):
     ("Rated PG-13 for violence", ""), ("Rated", ""), ("", ""),
 ])
 def test_an_age_rating_is_read_for_its_board_and_level(mpaa, mark):
-    assert age_mark(mpaa, home="de") == mark
+    assert age_rating(mpaa, home="de")[0] == mark
 
 
 @pytest.mark.parametrize(("mpaa", "home", "mark"), [
@@ -136,7 +136,19 @@ def test_an_age_rating_is_read_for_its_board_and_level(mpaa, mark):
     ("Rated 16", "gb", "fsk16"), ("PG-13", "de", "mpa_pg13"),
 ])
 def test_a_level_more_than_one_board_gives_is_read_as_the_home_one(mpaa, home, mark):
-    assert age_mark(mpaa, home) == mark
+    assert age_rating(mpaa, home)[0] == mark
+
+
+@pytest.mark.parametrize(("mpaa", "level"), [
+    ("FSK ab 16 freigegeben", "16"), ("Rated PG-13", "PG-13"), ("Rated nc-17", "NC-17"),
+    ("TV-MA", "MA"), ("tv-y7", "Y7"), ("UK:12a", "12A"), ("Rated 15", "15"),
+    # Nothing beside no mark: such a one is written out whole.
+    ("FSK 14", ""), ("Rated PG-13 for violence", ""),
+])
+def test_the_level_is_written_beside_the_mark_as_its_board_writes_it(mpaa, level):
+    mark, written = age_rating(mpaa, home="de")
+    assert written == level
+    assert bool(mark) == bool(level)
 
 
 @pytest.mark.parametrize(("language", "home"), [
@@ -158,7 +170,7 @@ def test_a_film_brings_every_kind_of_rating():
     assert answer(fake) == {
         "ratings": [{"source": "imdb", "rating": 8.5, "votes": 612345},
                     {"source": "tmdb", "rating": 8.2, "votes": 6120}],
-        "mpaa": "FSK 12", "age": "fsk12", "userrating": 9, "top250": 27,
+        "mpaa": "FSK 12", "age": "fsk12", "age_level": "12", "userrating": 9, "top250": 27,
     }
     assert ("VideoLibrary.GetMovieDetails",
             {"movieid": 12, "properties": ["ratings", "userrating", "mpaa", "top250"]}) in fake.calls
@@ -178,7 +190,8 @@ def test_an_episode_rates_itself_and_takes_its_age_rating_from_its_show():
                          "tvshowid": 3, "mpaa": "ignored"},
                 show={"mpaa": "FSK 16"})
     assert answer(fake) == {"ratings": [{"source": "tvdb", "rating": 8.8, "votes": 40}],
-                            "mpaa": "FSK 16", "age": "fsk16", "userrating": 7, "top250": 0}
+                            "mpaa": "FSK 16", "age": "fsk16", "age_level": "16", "userrating": 7,
+                            "top250": 0}
     assert ("VideoLibrary.GetTVShowDetails", {"tvshowid": 3, "properties": ["mpaa"]}) in fake.calls
 
 

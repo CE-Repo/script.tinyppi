@@ -296,10 +296,11 @@
     const badges = [];
     if (media.mpaa) {
       /* One the add-on could read for its board and level -- FSK, MPA, TV
-         Parental Guidelines, BBFC -- is that board's coloured mark and
-         nothing else; any other is written as the scraper wrote it. */
+         Parental Guidelines, BBFC -- is a shield like the others: the board
+         on the level's colour, the level beside it ("FSK" | "12").  Any other
+         is written as the scraper wrote it. */
       badges.push(media.age
-        ? { kind: "age", mark: media.age, said: media.mpaa }
+        ? { kind: "age", mark: media.age, value: media.age_level || "", said: media.mpaa }
         : { kind: "age", value: media.mpaa, said: media.mpaa });
     }
     for (const entry of media.ratings || []) {
@@ -335,7 +336,8 @@
   function ratingSide(badge) {
     const side = document.createElement("span");
     if (badge.mark) {
-      side.className = "side " + badge.mark;
+      /* An age rating's plate is the whole of the left, edge to edge. */
+      side.className = "side " + badge.mark + (badge.kind === "age" ? " plate" : "");
       const image = document.createElement("img");
       /* As wide as it is drawn: the SVG says, and the CSS gives only the
          height (see .rating .mark). */
@@ -363,8 +365,7 @@
     el.ratings.replaceChildren();
     for (const badge of badges) {
       const node = document.createElement("span");
-      /* An FSK mark is the whole badge rather than half of a shield. */
-      node.className = "rating " + badge.kind + (badge.kind === "age" && badge.mark ? " drawn" : "");
+      node.className = "rating " + badge.kind;
       node.setAttribute("role", "listitem");
       node.title = badge.said;
       const said = document.createElement("span");

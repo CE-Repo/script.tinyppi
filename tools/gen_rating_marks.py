@@ -10,9 +10,11 @@ Germany (FSK), the United States (the MPA's for films, the TV Parental
 Guidelines' for television) and Britain (BBFC).  They are simplified marks in
 each house's colours, drawn here, not copies of the houses' own logo files;
 they name the source of a rating, which is nominative use (see section 4 of
-LICENSE-ASSETS).  The American ones are drawn in the colours of the FSK's
-levels rather than the MPA's black on white, so a row of them reads the same
-whichever country rated the film.
+LICENSE-ASSETS).  An age rating's mark is the left of its shield: the
+board's name on the colour of the level, the level itself being written on
+the shield's right.  The American boards' are drawn in the colours of the
+FSK's levels rather than the MPA's black on white, so a row of them reads
+the same whichever country rated the film.
 
 The lettering is Inter Black turned into outlines, so a mark looks the same
 whatever fonts the browser or the phone has -- and an Android vector drawable
@@ -142,13 +144,8 @@ def marks(letters: Lettering) -> list[Mark]:
                   "C13.4 3.7 14.4 3 16 2.8C14.9 2.2 12.6 2.3 11 4.2Z", fill="#00912D"),
         ]),
     ]
-    # The FSK's as it prints them, "FSK 12", on a plate as wide as the
-    # American ones.
     for age, (colour, ink) in fsk.items():
-        found.append(Mark(f"fsk{age}", *wide, [
-            Shape(rounded(44, 22, 4), fill=colour),
-            Shape(letters.text(f"FSK {age}", 10.4, 22, 15.2, 0.1), fill=ink),
-        ]))
+        found.append(plate_of("fsk" + age, "FSK", colour, ink, letters))
     return found + american(letters) + british(letters)
 
 
@@ -157,38 +154,44 @@ _ALL, _CHILDREN, _TEENS, _ADULTS, _RESTRICTED = (
     ("#00A651", "#FFFFFF"), ("#FFD500", "#000000"), ("#F7941D", "#000000"),
     ("#E30613", "#FFFFFF"), ("#2E3192", "#FFFFFF"))
 
+# How wide the plate of each board's name is drawn, for its name to fit.
+_BOARD_WIDTHS = {"FSK": 30, "MPA": 32, "TV": 24, "BBFC": 38}
+
+
+def plate_of(name: str, board: str, colour: str, ink: str, letters: Lettering) -> Mark:
+    """Return the left of an age rating's shield: the board's name on the
+    level's colour.
+
+    Square-cornered and full-bleed, as tall as the shield it stands in: the
+    shield rounds its corners, and its right half carries the level itself.
+    """
+    width = _BOARD_WIDTHS[board]
+    size = 9.4 if len(board) > 3 else 10.5
+    return Mark(name, width, 22, [
+        Shape(f"M0 0H{width}V22H0Z", fill=colour),
+        Shape(letters.text(board, size, width / 2, 11 + size * 0.36, 0.2), fill=ink),
+    ])
+
 
 def american(letters: Lettering) -> list[Mark]:
-    """Return the MPA's film ratings and the TV Parental Guidelines'."""
-    found = []
-    for name, words, width, (colour, ink) in (
-            ("mpa_g", "G", 22, _ALL), ("mpa_pg", "PG", 30, _CHILDREN),
-            ("mpa_pg13", "PG-13", 44, _TEENS), ("mpa_r", "R", 22, _ADULTS),
-            ("mpa_nc17", "NC-17", 44, _RESTRICTED)):
-        found.append(Mark(name, width, 22, [
-            Shape(rounded(width, 22, 4), fill=colour),
-            Shape(letters.text(words, 12 if width < 44 else 11.5, width / 2, 15.6), fill=ink),
-        ]))
-    for level, (colour, ink) in (("Y", _ALL), ("Y7", _ALL), ("G", _ALL), ("PG", _CHILDREN),
-                                 ("14", _TEENS), ("MA", _ADULTS)):
-        found.append(Mark(f"tv_{level.lower()}", 34, 22, [
-            Shape(rounded(34, 22, 4), fill=colour),
-            Shape(letters.text("TV", 6.2, 17, 8.6, 0.4), fill=ink),
-            Shape(letters.text(level, 9.2, 17, 17.6), fill=ink),
-        ]))
-    return found
+    """Return the MPA's film ratings and the TV Parental Guidelines', in the
+    FSK's colours rather than the MPA's black on white."""
+    films = [plate_of(name, "MPA", *paint, letters) for name, paint in (
+        ("mpa_g", _ALL), ("mpa_pg", _CHILDREN), ("mpa_pg13", _TEENS), ("mpa_r", _ADULTS),
+        ("mpa_nc17", _RESTRICTED))]
+    television = [plate_of(name, "TV", *paint, letters) for name, paint in (
+        ("tv_y", _ALL), ("tv_y7", _ALL), ("tv_g", _ALL), ("tv_pg", _CHILDREN),
+        ("tv_14", _TEENS), ("tv_ma", _ADULTS))]
+    return films + television
 
 
 def british(letters: Lettering) -> list[Mark]:
-    """Return the BBFC's ratings, as discs in its own colours."""
-    return [Mark(f"bbfc_{words.lower()}", 22, 22, [
-        Shape(circle(11, 11, 11), fill=colour),
-        Shape(letters.text(words, size, 11, 11 + size * 0.36), fill=ink),
-    ]) for words, colour, ink, size in (
-        ("U", "#00A651", "#FFFFFF", 12), ("PG", "#FBB800", "#000000", 10),
-        ("12A", "#F58220", "#FFFFFF", 8.6), ("12", "#F58220", "#FFFFFF", 11),
-        ("15", "#E5007E", "#FFFFFF", 11), ("18", "#E30613", "#FFFFFF", 11),
-        ("R18", "#1D1D6B", "#FFFFFF", 8.6))]
+    """Return the BBFC's ratings, in its own colours."""
+    return [plate_of(name, "BBFC", colour, ink, letters) for name, colour, ink in (
+        ("bbfc_u", "#00A651", "#FFFFFF"), ("bbfc_pg", "#FBB800", "#000000"),
+        ("bbfc_12a", "#F58220", "#FFFFFF"), ("bbfc_12", "#F58220", "#FFFFFF"),
+        ("bbfc_15", "#E5007E", "#FFFFFF"), ("bbfc_18", "#E30613", "#FFFFFF"),
+        ("bbfc_r18", "#1D1D6B", "#FFFFFF"))]
 
 
 def _named(name: str, mark: Mark) -> Mark:

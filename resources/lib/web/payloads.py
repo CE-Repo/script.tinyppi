@@ -135,10 +135,12 @@ class Ratings(TypedDict):
     """The playing title's ratings (web/ratings.py); empty or 0 where unknown."""
 
     ratings: list[Rating]
-    # The age rating as the scraper wrote it ("FSK 12", "Rated PG-13"), and
-    # the mark it is drawn as ("fsk12", "mpa_pg13", "bbfc_15"; "" for none).
+    # The age rating as the scraper wrote it ("FSK 12", "Rated PG-13"), the
+    # mark its shield wears ("fsk12", "mpa_pg13", "bbfc_15"; "" for none) and
+    # the level written beside it ("12", "PG-13", "MA").
     mpaa: str
     age: str
+    age_level: str
     # The reader's own, 1 to 10.
     userrating: int
     # The place in the IMDb Top 250.
@@ -160,6 +162,7 @@ class Media(TypedDict):
     ratings: list[Rating]
     mpaa: str
     age: str
+    age_level: str
     userrating: int
     top250: int
 

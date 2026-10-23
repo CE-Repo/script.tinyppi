@@ -47,10 +47,11 @@ connection light.
   of it centred. The ratings
   are a row of small shields, each with its source's mark on the left, on a
   ground of the source's colour, instead of its name, and what it gave on the
-  right: first the age rating — a German, American or British one as its
-  board's coloured mark ("FSK 12"; the MPA's for films and the TV Parental
-  Guidelines' for series, both in the FSK's colours; BBFC), any other written
-  out — then a score for each source the scraper or the NFO wrote (IMDb, TMDb, Trakt, TVDB, Metacritic, Rotten Tomatoes; any other gets
+  right: first the age rating — a German, American or British one as a
+  shield like the others, its board's name on the colour of the level and the
+  level beside it ("FSK" | "12"; "MPA" | "PG-13" for films and "TV" | "MA" for
+  series, both in the FSK's colours; "BBFC" | "15"), any other written out —
+  then a score for each source the scraper or the NFO wrote (IMDb, TMDb, Trakt, TVDB, Metacritic, Rotten Tomatoes; any other gets
   its first letter on a plain plate) with how many voted, your own rating
   behind a heart and the place in the IMDb Top 250. A screen reader hears each shield in words
   ("IMDb 8.5, 612,345 votes"). An episode is rated on its own and carries its

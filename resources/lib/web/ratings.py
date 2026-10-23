@@ -8,8 +8,9 @@ source (``ratings``), the reader's own (``userrating``), the age rating
 (``mpaa``) and the IMDb Top 250 place, so the playing title's library entry
 is read over JSON-RPC, once per title (see ``SnapshotBuilder._rating_info``).
 An episode's age rating is its show's: Kodi keeps it there.  A German,
-American or British one is read for its level too (see ``age_mark``), which
-the page draws as that board's coloured mark.
+American or British one is read for its board and level too (see
+``age_rating``), which the page draws as a shield like the others: the board
+on the level's colour, the level beside it.
 """
 
 import re
@@ -76,7 +77,8 @@ _EPISODE = ("ratings", "userrating", "tvshowid")
 
 def no_ratings() -> Ratings:
     """Return the ratings of a title the library knows nothing about."""
-    return {"ratings": [], "mpaa": "", "age": "", "userrating": 0, "top250": 0}
+    return {"ratings": [], "mpaa": "", "age": "", "age_level": "", "userrating": 0,
+            "top250": 0}
 
 
 def home_country() -> str:
@@ -85,26 +87,29 @@ def home_country() -> str:
     return "de" if language.startswith("de") else _HOMES.get(language, "")
 
 
-def age_mark(mpaa: str, home: str = "") -> str:
-    """Return the mark an age rating is drawn as ("fsk12", "mpa_pg13"), or "".
+def age_rating(mpaa: str, home: str = "") -> tuple[str, str]:
+    """Return the mark an age rating's shield wears and the level written
+    beside it -- ("fsk12", "12"), ("mpa_pg13", "PG-13"), ("tv_ma", "MA") --
+    or ("", "") for one with no mark, which is written out instead.
 
     A rating that names its country or its board is read as that one's.  One
     that names neither is read as the one board that gives its level -- "PG-13"
     is American, "15" British -- and where more than one does ("12", "18",
-    "PG") as *home*'s, when *home* is among them; otherwise it has no mark and
-    is written out.
+    "PG") as *home*'s, when *home* is among them.
     """
     found = _AGE.match(mpaa)
     if not found:
-        return ""
+        return ("", "")
     level = found["level"].upper()
     named = found["country"] or found["board"]
     if named:
-        return _LEVELS.get(_COUNTRIES.get(named.strip().lower(), ""), {}).get(level, "")
-    boards = [country for country, levels in _LEVELS.items() if level in levels]
-    if len(boards) != 1:
-        boards = [home] if home in boards else []
-    return _LEVELS[boards[0]][level] if boards else ""
+        country = _COUNTRIES.get(named.strip().lower(), "")
+    else:
+        boards = [country for country, levels in _LEVELS.items() if level in levels]
+        country = boards[0] if len(boards) == 1 else (home if home in boards else "")
+    mark = _LEVELS.get(country, {}).get(level, "")
+    # The television board's name is on the mark already: "TV" | "MA".
+    return (mark, level.removeprefix("TV-")) if mark else ("", "")
 
 
 def _count(value: object, high: int | None = None) -> int:
@@ -165,10 +170,12 @@ def _details(method: str, id_key: str, item_id: int, properties: tuple[str, ...]
 def _collect(details: Json, aged: Json) -> Ratings:
     """Return the ratings of *details*, with the age rating of *aged*."""
     mpaa = clean_value(str(aged.get("mpaa") or ""))
+    mark, level = age_rating(mpaa, home_country())
     return {
         "ratings":    rating_list(details.get("ratings")),
         "mpaa":       mpaa,
-        "age":        age_mark(mpaa, home_country()),
+        "age":        mark,
+        "age_level":  level,
         "userrating": _count(details.get("userrating"), 10),
         "top250":     _count(details.get("top250"), 250),
     }

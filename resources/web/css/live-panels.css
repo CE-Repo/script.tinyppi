@@ -698,16 +698,11 @@
   width: auto;
   height: 20px;
 }
-/* An age rating's mark is the whole badge, as tall as the shields beside
-   it: a plate for the FSK ("FSK 12") and the American boards, a disc for
-   the BBFC. */
-.rating.drawn {
-  border: 0;
-  border-radius: 5px;
-  background: none;
-}
-.rating.drawn .side { padding: 0; }
-.rating.drawn .mark { height: var(--badge); }
+/* An age rating's left is its board's name on the colour of the level,
+   drawn edge to edge and as tall as the shield inside its border; the level
+   itself is written on the right, like every other shield's figure. */
+.rating .side.plate { padding: 0; }
+.rating .side.plate .mark { height: calc(var(--badge) - 2px); }
 /* What the badge says aloud: there for a screen reader, not on the screen. */
 .rating .said {
   position: absolute;
