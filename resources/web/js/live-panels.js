@@ -99,21 +99,22 @@
     '<details class="card hidden" id="plotCard">' +
       '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
       '<div class="plot">' +
-        /* The slogan, the plot and its credits read as one text.  A long
-           plot is cut to a few lines, the credits with it; a press on the
-           text lets the rest out and takes it back. */
+        /* The slogan, the plot, its credits and its ratings read as one
+           text.  A long plot is cut to a few lines, the credits and the
+           ratings with it; a press on the text lets the rest out and takes
+           it back. */
         '<div class="plotfold" id="plotFold">' +
           '<p class="tagline hidden" id="tagline"></p>' +
           '<p class="plottext hidden" id="plotText"></p>' +
           '<dl class="credits hidden" id="credits"></dl>' +
+          /* Under the credits, under a heading of their own like a credit's. */
+          '<p class="ratingshead hidden" id="ratingsHeadline"></p>' +
+          '<div class="ratings hidden" id="ratings" role="list" aria-labelledby="ratingsHeadline"></div>' +
+          /* What a shield says, over it for a moment after a tap: the house
+             a mark is from, which a mark alone does not always tell.  A
+             screen reader hears each shield's words already. */
+          '<span class="ratingtip hidden" id="ratingTip" aria-hidden="true"></span>' +
         '</div>' +
-        /* Under the credits, under a heading of their own like a credit's. */
-        '<p class="ratingshead hidden" id="ratingsHeadline"></p>' +
-        '<div class="ratings hidden" id="ratings" role="list" aria-labelledby="ratingsHeadline"></div>' +
-        /* What a shield says, over it for a moment after a tap: the house a
-           mark is from, which a mark alone does not always tell.  A screen
-           reader hears each shield's words already. */
-        '<span class="ratingtip hidden" id="ratingTip" aria-hidden="true"></span>' +
       '</div>' +
     '</details>' +
     '<details class="card hidden" id="tiles">' +
@@ -500,9 +501,12 @@
     tipTimer = setTimeout(() => el.ratingTip.classList.add("hidden"), 2000);
   }
 
+  /* A tap on a shield is the shield's, not one that folds the plot. */
   el.ratings.addEventListener("click", (event) => {
     const node = event.target.closest(".rating");
-    if (node) tellRating(node);
+    if (!node) return;
+    event.stopPropagation();
+    tellRating(node);
   });
 
   function fillRatings(badges) {

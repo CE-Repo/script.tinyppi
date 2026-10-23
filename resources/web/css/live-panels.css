@@ -622,13 +622,13 @@
   line-height: 1.5;
   color: var(--text);
 }
-.plot .plotfold:has(> :not(.hidden)) + .ratingshead { margin-top: 6px; }
+.plotfold > :not(.hidden) ~ .ratingshead { margin-top: 16px; }
 .ratings {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 6px;
-  margin-top: -4px;
+  margin-top: 4px;
 }
 /* A shield: the house on the left, on a ground of its own colour, and what
    it gave on the right, on the panel's -- kantig like the plaques the format
@@ -664,12 +664,12 @@
 }
 /* Each house's ground, the colour its mark is drawn on, so the mark runs
    into it and the left of the shield reads as one plate. */
-.rating .side.imdb,
+.rating .side.imdb { background: #121212; }
 .rating .side.top250 { background: #f5c518; }
 .rating .side.tmdb { background: #0d253f; }
-.rating .side.tvdb { background: #1e2a33; }
-.rating .side.trakt { background: #ed1c24; }
-.rating .side.letterboxd { background: #14181c; }
+.rating .side.tvdb { background: #555; }
+.rating .side.trakt { background: #9f42c6; }
+.rating .side.letterboxd { background: #202830; }
 .rating .side.metacritic,
 .rating .side.metacriticuser { background: #66cc33; }
 .rating .side.rottentomatoes { background: #f9d320; }
@@ -682,13 +682,16 @@
    mark -- the letters on IMDb's plate, the "m" on Metacritic's circle,
    TMDb's plate -- is left out for the accent to show through (#inkDark in
    index.html); a mark drawn white on a colour has only its white inked
-   (#inkLight), or plate and letters would be one, and Rotten Tomatoes' only
-   its red (#inkRed), so its leaf stays apart from the tomato. */
+   (#inkLight), or plate and letters would be one, TheTVDB's only its
+   letters on its grey (#inkMid), Rotten Tomatoes' only its red (#inkRed),
+   so its leaf stays apart from the tomato, and Metacritic's black mark as
+   it is drawn at all (#inkWhole). */
 .ratings.accented .side,
 .ratings.accented .side.letter { background: var(--accent); }
 .ratings.accented .side.letter { color: #fff; }
 .ratings.accented .mark { filter: url(#inkDark); }
 .ratings.accented .side.trakt .mark,
+.ratings.accented .side.popcorn .mark,
 .ratings.accented .side.rogerebert .mark,
 .ratings.accented .side.myanimelist .mark,
 .ratings.accented .side.fsk12 .mark,
@@ -708,6 +711,8 @@
 .ratings.accented .side.bbfc_18 .mark,
 .ratings.accented .side.bbfc_r18 .mark { filter: url(#inkLight); }
 .ratings.accented .side.rottentomatoes .mark { filter: url(#inkRed); }
+.ratings.accented .side.tvdb .mark { filter: url(#inkMid); }
+.ratings.accented .side.metacritic .mark { filter: url(#inkWhole); }
 /* A source with no drawing: its first letter on a plain plate. */
 .rating .side.letter {
   min-width: 20px;
@@ -774,7 +779,7 @@
 
 /* The slogan, the plot and the credits on its end: one block, the slogan
    right over the plot.  Gone where it holds nothing. */
-.plotfold { display: grid; }
+.plotfold { position: relative; display: grid; }
 .plotfold:not(:has(> :not(.hidden))) { display: none; }
 
 /* The credits, a line each and centred like everything around them, a
@@ -792,7 +797,7 @@
   overflow-wrap: anywhere;
 }
 .plot .plottext:not(.hidden) ~ .credits { margin-top: 12px; }
-.plotfold.fold:not(.open) .credits { display: none; }
+.plotfold.fold:not(.open) :is(.credits, .ratingshead, .ratings, .ratingtip) { display: none; }
 /* What it is called on a line of its own, over the names. */
 .credits dt,
 .credits dd {

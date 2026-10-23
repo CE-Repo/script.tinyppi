@@ -218,7 +218,8 @@ test("a long plot is cut to a few lines, and a press on it lets the rest out", (
   const plot = $("plotFold");
   Object.defineProperty(text, "scrollHeight", { configurable: true, get: () => box.full });
   Object.defineProperty(text, "clientHeight", { configurable: true, get: () => box.shown });
-  assert.deepEqual([...plot.children].map((node) => node.id), ["tagline", "plotText", "credits"]);
+  assert.deepEqual([...plot.children].map((node) => node.id),
+                   ["tagline", "plotText", "credits", "ratingsHeadline", "ratings", "ratingTip"]);
   const key = (name) => {
     const event = new window.KeyboardEvent("keydown", { key: name, cancelable: true });
     plot.dispatchEvent(event);
@@ -359,7 +360,8 @@ test("the overview card carries every rating as a shield with its mark, under th
   assert.equal($("ratings").classList.contains("hidden"), false);
   // Under the slogan and the plot, and the credits where there are any: last.
   assert.equal($("ratings").nextElementSibling, $("ratingTip"));
-  assert.equal($("plotFold").nextElementSibling, $("ratingsHeadline"));
+  assert.equal($("ratings").parentElement, $("plotFold"), "folded with the plot");
+  assert.equal($("credits").nextElementSibling, $("ratingsHeadline"));
   assert.equal($("ratingsHeadline").nextElementSibling, $("ratings"));
   assert.equal($("ratingsHeadline").textContent, "Ratings");
   assert.equal($("ratingsHeadline").classList.contains("hidden"), false);
@@ -468,8 +470,12 @@ test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   const [trakt, letterboxd] = $("ratings").children;
   trakt.getBoundingClientRect = () => ({ left: 50, top: 220, width: 60 });
   letterboxd.getBoundingClientRect = () => ({ left: 120, top: 220, width: 70 });
-  // A tap on the mark itself is a tap on its shield.
+  // A tap on the mark itself is a tap on its shield, and the shield's alone:
+  // the plot they fold with does not hear it.
+  let pressed = 0;
+  $("plotFold").addEventListener("click", () => { pressed += 1; });
   trakt.querySelector("img").click();
+  assert.equal(pressed, 0);
   assert.equal(tip.classList.contains("hidden"), false);
   assert.equal(tip.textContent, "Trakt 8.8");
   assert.deepEqual([tip.style.left, tip.style.top], ["70px", "200px"]);
@@ -481,9 +487,10 @@ test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   assert.deepEqual(timers.delays(), [2000]);
   timers.run();
   assert.ok(tip.classList.contains("hidden"));
-  // A tap beside the shields shows nothing.
+  // A tap beside the shields shows nothing, and is the plot's.
   $("ratings").click();
   assert.ok(tip.classList.contains("hidden"));
+  assert.equal(pressed, 1);
 });
 
 test("the settings' switch stands the rating shields on the accent, and is remembered", (t) => {
@@ -548,8 +555,7 @@ test("the overview's credits: the directors over the cast, a line each, over the
   // On the plot's end, over the ratings: the director, then the cast, cut
   // with an ellipsis where an older add-on said there are more.  The genre
   // and the studio are the card above's.
-  assert.equal($("credits").nextElementSibling, null);
-  assert.equal($("credits").parentElement.nextElementSibling, $("ratingsHeadline"));
+  assert.equal($("credits").nextElementSibling, $("ratingsHeadline"));
   assert.equal($("credits").classList.contains("hidden"), false);
   assert.deepEqual(lines(), [
     ["credit", "DT Director", "DD Denis Villeneuve"],
