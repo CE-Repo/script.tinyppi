@@ -281,6 +281,11 @@ test("a long plot is cut to a few lines, and a press on it lets the rest out", (
   plot.click();
   P.update(snap({ media: { plot: "Another long plot." } }));
   assert.ok(plot.classList.contains("open"));
+  // Another title with the same plot -- the next episode, the same film
+  // again under another name -- starts folded all the same.
+  P.update(snap({ title: "Another title", media: { plot: "Another long plot." } }));
+  assert.equal(plot.classList.contains("open"), false);
+  plot.click();
 
   // A short one is nothing to press.
   box.full = 40;

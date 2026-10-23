@@ -236,7 +236,8 @@
     renderArt(snapshot.art || {});
     renderBadges(snapshot);
     renderFormats(snapshot);
-    renderPlot(media);
+    /* Which title this is, for the overview to start folded on a new one. */
+    renderPlot(media, [snapshot.title, media.year, media.season, media.episode].join("|"));
 
     const progress = (snapshot.metrics || {}).progress;
     const percent = (progress === null || progress === undefined) ? 0 : progress;
@@ -280,11 +281,13 @@
      out where the library has none, which is most episodes.  Written only
      when the words change: they stand still for the whole title, and a plot
      is the longest text on the page. */
-  function renderPlot(media) {
+  let plotTitle = null;
+  function renderPlot(media, title) {
     plotMedia = media;
     const plot = (media.plot || "").trim();
     const tagline = plot ? (media.tagline || "").trim() : "";
-    const fresh = el.plotText.textContent !== plot;
+    const fresh = el.plotText.textContent !== plot || title !== plotTitle;
+    plotTitle = title;
     for (const [node, text] of [[el.tagline, tagline], [el.plotText, plot]]) {
       if (node.textContent !== text) node.textContent = text;
       node.classList.toggle("hidden", !text);
@@ -295,7 +298,8 @@
     const credits = creditList(media, TinyPPI.T);
     fillCredits(credits);
     el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credits.length);
-    /* A new plot starts folded again, and is measured once it is laid out;
+    /* A new title, or a new plot, starts folded again, and is measured once
+       it is laid out;
        credits or ratings that arrive later fold under it as they come. */
     if (fresh) {
       openPlot(false);

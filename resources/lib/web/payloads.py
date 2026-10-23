@@ -134,7 +134,7 @@ class Rating(TypedDict):
 class Credits(TypedDict):
     """Who made the playing title, as Kodi orders them (see
     web.values.name_list): every director, the first studio alone, and the
-    whole cast with whether there are more (never, now it is not cut)."""
+    cast's first twenty with whether there are more."""
 
     directors: list[str]
     cast: list[str]
