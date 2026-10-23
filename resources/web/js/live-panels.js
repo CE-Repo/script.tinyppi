@@ -100,9 +100,9 @@
       '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
       '<div class="plot">' +
         /* The slogan, the plot, its credits and its ratings read as one
-           text.  A long plot is cut to a few lines, the credits and the
-           ratings with it; a press on the text lets the rest out and takes
-           it back. */
+           text.  It starts folded -- the plot cut to a few lines, the
+           credits and the ratings hidden -- and a press on the text lets
+           it all out and takes it back. */
         '<div class="plotfold" id="plotFold">' +
           '<p class="tagline hidden" id="tagline"></p>' +
           '<p class="plottext hidden" id="plotText"></p>' +
@@ -299,8 +299,8 @@
     fillCredits(credits);
     el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credits.length);
     /* A new title, or a new plot, starts folded again, and is measured once
-       it is laid out;
-       credits or ratings that arrive later fold under it as they come. */
+       it is laid out; credits or ratings that arrive later fold under it as
+       they come. */
     if (fresh) {
       openPlot(false);
       measurePlot();
@@ -364,13 +364,14 @@
   window.addEventListener("resize", measurePlot);
 
   /* Names as a line: a comma between two, and an ellipsis after the last
-     where an older add-on said there are more than it sends. */
+     where the add-on cut the list (the cast, past its first twenty). */
   function nameList(names, more) {
     return names.join(", ") + (more ? ", …" : "");
   }
 
-  /* Who directed the title and who is in it, every name the add-on sends:
-     the overview's credits, the director over the cast.  What kind of film
+  /* Who directed the title and who is in it, as the add-on sends them --
+     every director, the cast's first twenty: the overview's credits, the
+     director over the cast.  What kind of film
      it is and who made it stand in the card above. */
   function creditList(media, T) {
     const directors = media.directors || [];
