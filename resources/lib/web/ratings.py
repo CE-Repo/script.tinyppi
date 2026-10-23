@@ -44,7 +44,7 @@ _ORDER = {name: index for index, name in enumerate(dict.fromkeys(_ALIASES.values
 # As many as MDBList brings; an NFO with more is cut off.
 _RATING_LIMIT = 10
 # A source's name is a label on a badge, not a sentence.
-_NAME_LIMIT = 24
+_SOURCE_NAME_LIMIT = 24
 
 # The levels each country's boards give, and the mark each is drawn as (see
 # tools/gen_rating_marks.py).  America has two boards, one for films and one
@@ -150,7 +150,7 @@ def rating_list(ratings: object) -> list[Rating]:
         return []
     found: dict[str, Rating] = {}
     for raw, held in ratings.items():
-        key = clean_value(str(raw)).lower()[:_NAME_LIMIT].rstrip()
+        key = clean_value(str(raw)).lower()[:_SOURCE_NAME_LIMIT].rstrip()
         name = _ALIASES.get(key, key)
         entry = _rating(name, held) if name and name not in found else None
         if entry:
@@ -173,8 +173,8 @@ def _details(method: str, id_key: str, item_id: int, properties: tuple[str, ...]
     return _answer(method, {id_key: item_id, "properties": list(properties)}, answer)
 
 
-# An IMDb id as Kodi keeps one: "tt" and its digits.
-_IMDB_ID = re.compile(r"tt\d+")
+# An IMDb id as Kodi and MDBList keep one: "tt" and its digits.
+IMDB_ID = re.compile(r"tt\d+")
 
 
 def film_ids(details: Json) -> dict[str, str]:
@@ -185,7 +185,7 @@ def film_ids(details: Json) -> dict[str, str]:
         return {}
     imdb = str(held.get("imdb") or "").strip()
     tmdb = str(held.get("tmdb") or "").strip()
-    ids = {"imdb": imdb} if _IMDB_ID.fullmatch(imdb) else {}
+    ids = {"imdb": imdb} if IMDB_ID.fullmatch(imdb) else {}
     if tmdb.isdigit() and int(tmdb):
         ids["tmdb"] = tmdb
     return ids

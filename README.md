@@ -375,7 +375,8 @@ scraper wrote, which stay the fallback.
 
 Everything about it — the tabs, the themes, the library, the remote, what it
 costs the box and how it is secured — is described in
-**[docs/web-dashboard.md](docs/web-dashboard.md)**.
+the wiki's **[Web Dashboard](wiki/Web-Dashboard.md)** and
+**[Dashboard Security](wiki/Dashboard-Security.md)** pages.
 
 ---
 

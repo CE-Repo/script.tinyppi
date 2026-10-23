@@ -76,7 +76,7 @@ def plain_text(value: str) -> str:
 # read as one name) and the cast one name a line.
 _ITEM_RE = re.compile(r" / |\n")
 # A name is a line of a card, not a paragraph; a longer one is cut off.
-_NAME_LIMIT = 80
+_CREDIT_NAME_LIMIT = 80
 
 
 def name_list(value: str, limit: int | None = None) -> tuple[list[str], bool]:
@@ -85,7 +85,7 @@ def name_list(value: str, limit: int | None = None) -> tuple[list[str], bool]:
     whether it holds more."""
     names: list[str] = []
     for item in _ITEM_RE.split(plain_text(value)):
-        name = item.strip()[:_NAME_LIMIT].rstrip()
+        name = item.strip()[:_CREDIT_NAME_LIMIT].rstrip()
         if name and name not in names:
             if len(names) == limit:
                 return names, True

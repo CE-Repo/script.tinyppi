@@ -27,7 +27,6 @@ library's place stands.
 
 import http.client
 import json
-import re
 import threading
 import time
 import urllib.error
@@ -39,7 +38,7 @@ import xbmc
 from core import settings
 from core.log import channel
 from web.payloads import Ratings
-from web.ratings import rating_list
+from web.ratings import IMDB_ID, rating_list
 from web.values import Json
 
 _log = channel("web")
@@ -160,10 +159,6 @@ def fetch(key: str, provider: str, ident: str) -> tuple[Scores, float]:
         return {}, _AGAIN
 
 
-# An IMDb id as Kodi and MDBList keep one: "tt" and its digits.
-_IMDB_ID = re.compile(r"tt\d+")
-
-
 def places_of(answer: object) -> dict[str, int]:
     """Return the films in the chart, by IMDb id, and the place of each.
 
@@ -174,7 +169,7 @@ def places_of(answer: object) -> dict[str, int]:
     entries = answer if isinstance(answer, list) else []
     for place, entry in enumerate(entries[:250], start=1):
         ident = entry.get("imdb_id") if isinstance(entry, dict) else None
-        if isinstance(ident, str) and _IMDB_ID.fullmatch(ident):
+        if isinstance(ident, str) and IMDB_ID.fullmatch(ident):
             places.setdefault(ident, place)
     return places
 
@@ -216,12 +211,14 @@ class Lookup:
         """Return MDBList's ratings for the film *ids* name, or None while
         there are none to show; asks for them the first time.
         """
-        if not key or key in self._refused or not ids:
+        if not key or not ids:
             return None
         provider = "imdb" if "imdb" in ids else "tmdb"
         wanted = (key, provider, ids[provider])
         now = self._clock()
         with self._lock:
+            if key in self._refused:
+                return None
             kept = self._kept.get(wanted)
             if kept and now < kept[0]:
                 return kept[1] or None
@@ -257,12 +254,14 @@ class Lookup:
         except _Refused:
             _log("MDBList refused the API key; the library's ratings are shown",
                  xbmc.LOGWARNING)
-            self._refused.add(key)
+            with self._lock:
+                self._refused.add(key)
             return {}, _KEPT
         except _Spent as spent:
             _log(f"MDBList's daily limit is spent; asking again in {int(spent.wait // 60)} min",
                  xbmc.LOGWARNING)
-            self._spent_until = self._clock() + spent.wait
+            with self._lock:
+                self._spent_until = self._clock() + spent.wait
             return {}, 0.0
 
 
@@ -312,8 +311,12 @@ _LOOKUP = Lookup()
 _CHART = Chart()
 
 
-def _key() -> str:
-    """Return the MDBList API key the reader gave, or ""."""
+def api_key() -> str:
+    """Return the MDBList API key the reader gave, or "".
+
+    It costs a look at the settings, so the caller reads it once a title
+    (see ``SnapshotBuilder._rating_info``) rather than once a snapshot.
+    """
     try:
         return settings.addon().getSetting("web_mdblist_key").strip()
     except RuntimeError:
@@ -322,9 +325,11 @@ def _key() -> str:
 
 
 def with_mdblist(ratings: Ratings, lookup: Lookup = _LOOKUP,
-                 chart: Chart = _CHART) -> Ratings:
+                 chart: Chart = _CHART, key: str | None = None) -> Ratings:
     """Return *ratings* with MDBList's for the film, where it has any, and
     its place in the IMDb Top 250 as the chart has it.
+
+    *key* is the API key to ask with; None reads it from the settings.
 
     MDBList's come first, and the library's own stand beside them for a
     source MDBList has none from.
@@ -334,7 +339,7 @@ def with_mdblist(ratings: Ratings, lookup: Lookup = _LOOKUP,
     place = chart.place(imdb) if imdb else None
     if place is not None:
         merged["top250"] = place
-    found = lookup.scores(_key(), ratings["ids"])
+    found = lookup.scores(api_key() if key is None else key, ratings["ids"])
     if found:
         held: Scores = dict(found)
         for entry in ratings["ratings"]:

@@ -327,6 +327,17 @@ def test_without_a_key_nothing_is_asked(monkeypatch):
     assert answers.asked[-1] == ("", {})
 
 
+def test_a_key_given_is_asked_with_and_the_settings_are_not_read(monkeypatch):
+    def unread():
+        raise AssertionError("the settings were read")
+
+    monkeypatch.setattr(mdblist.settings, "addon", unread)
+    answers = Answers(None)
+    with_mdblist(held(ids={"imdb": "tt1"}), answers, key="GIVEN")
+    with_mdblist(held(ids={"imdb": "tt1"}), answers, key="")
+    assert answers.asked == [("GIVEN", {"imdb": "tt1"}), ("", {"imdb": "tt1"})]
+
+
 # --- The IMDb Top 250 ------------------------------------------------------------------
 
 # MDBList's list, as it answers (cut short): in the chart's order, its rank a
