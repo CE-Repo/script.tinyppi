@@ -318,7 +318,7 @@
       const node = document.createElement("span");
       node.className = "rating " + badge.kind;
       node.setAttribute("role", "listitem");
-      for (const [part, text] of [["name", badge.name], ["value mono", badge.value],
+      for (const [part, text] of [["name", badge.name], ["value", badge.value],
                                   ["note", badge.note]]) {
         if (!text) continue;
         const piece = document.createElement("span");

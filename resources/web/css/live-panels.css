@@ -612,7 +612,14 @@
   overflow-wrap: anywhere;
 }
 .rating .name { font-weight: 600; }
-.rating .value { color: var(--text); font-weight: 700; }
+/* Tabular figures in the face of the words around them rather than the
+   monospaced one the readings use: that face sits higher on the line, and a
+   pill this small shows it. */
+.rating .value {
+  color: var(--text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
 .rating .note { color: var(--dim); }
 /* A score wears the star the posters on the shelves wear, in the same amber
    (see .filmrating in dashboard.css); the reader's own wears it in the
@@ -628,8 +635,6 @@
   mask: url('/icons/star.svg') no-repeat center / contain;
 }
 .rating.mine::before { background: var(--accent); }
-.rating.rank .value,
-.rating.age .value { font-family: inherit; }
 .plot p {
   margin: 0;
   overflow-wrap: break-word;

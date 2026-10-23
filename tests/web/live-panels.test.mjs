@@ -252,12 +252,12 @@ test("the plot card carries every rating the library holds, before the slogan an
   assert.equal($("ratings").classList.contains("hidden"), false);
   assert.equal($("ratings").nextElementSibling, $("tagline"));
   assert.deepEqual(plain(badges()), [
-    ["rating score", [["name", "IMDb"], ["value mono", "8.5"], ["note", "612,345 votes"]]],
-    ["rating score", [["name", "TMDb"], ["value mono", "8.2"]]],
-    ["rating score", [["name", "Rotten tomatoes"], ["value mono", "9.2"], ["note", "3 votes"]]],
-    ["rating mine", [["name", "My rating"], ["value mono", "9"]]],
-    ["rating rank", [["value mono", "Top 250 · #27"]]],
-    ["rating age", [["value mono", "FSK 12"]]]]);
+    ["rating score", [["name", "IMDb"], ["value", "8.5"], ["note", "612,345 votes"]]],
+    ["rating score", [["name", "TMDb"], ["value", "8.2"]]],
+    ["rating score", [["name", "Rotten tomatoes"], ["value", "9.2"], ["note", "3 votes"]]],
+    ["rating mine", [["name", "My rating"], ["value", "9"]]],
+    ["rating rank", [["value", "Top 250 · #27"]]],
+    ["rating age", [["value", "FSK 12"]]]]);
   assert.deepEqual([...$("ratings").children].map((node) => node.getAttribute("role")),
                    Array(6).fill("listitem"));
 
@@ -295,7 +295,7 @@ test("the plot card carries every rating the library holds, before the slogan an
 
   // A source with no name is drawn with none.
   P.update(snap({ media: { ratings: [{ rating: 5 }] } }));
-  assert.deepEqual(plain(badges()), [["rating score", [["value mono", "5.0"]]]]);
+  assert.deepEqual(plain(badges()), [["rating score", [["value", "5.0"]]]]);
 });
 
 test("the finish clock shows as it arrived and takes its label from the strings", (t) => {
