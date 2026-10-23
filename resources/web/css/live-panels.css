@@ -575,9 +575,10 @@
 .now .meta:empty { display: none; }
 
 /* --- The overview: the ratings and the plot ------------------------------
-   The card under the one of what is playing.  The slogan first, in the
-   text's own colour and set in italics as the line a poster carries, and
-   the plot as prose, in the muted grey the year and genre are written in.
+   The card under the one of what is playing, everything in it centred.
+   The slogan first, in the text's own colour and set in italics as the line
+   a poster carries, and the plot as prose, in the muted grey the year and
+   genre are written in.
    A plot is the one paragraph on the page, so it gets the line height of
    one; its line breaks are the library's own (see plain_text in
    web/values.py).  Under them, centred as a row of their own, the ratings
@@ -702,8 +703,12 @@
   white-space: nowrap;
 }
 
+/* The slogan and the plot centred over the row of ratings under them, so
+   the card reads as one block down its middle rather than prose with a row
+   of badges hung under it. */
 .plot p {
   margin: 0;
+  text-align: center;
   overflow-wrap: break-word;
   overflow-wrap: anywhere;
 }

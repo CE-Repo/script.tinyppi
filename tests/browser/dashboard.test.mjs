@@ -86,7 +86,9 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   const [now, plot] = await Promise.all(
     ["#nowCard", "#plotCard"].map((selector) => page.locator(selector).boundingBox()));
   assert.ok(plot.y > now.y + now.height - 1, "under the playing card");
-  // The ratings under the plot, centred in the card.
+  // The slogan and the plot centred, and the ratings under them, centred too.
+  assert.deepEqual(await page.$$eval("#tagline, #plotText",
+    (nodes) => nodes.map((node) => getComputedStyle(node).textAlign)), ["center", "center"]);
   const [text, row, first, last] = await Promise.all(
     ["#plotText", "#ratings", "#ratings .rating:first-child", "#ratings .rating:last-child"]
       .map((selector) => page.locator(selector).boundingBox()));

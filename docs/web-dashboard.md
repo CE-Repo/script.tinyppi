@@ -43,7 +43,7 @@ connection light.
 - **Now playing** — the poster, title, year and genre, the file name (when
   *Show file name* is on), elapsed time and progress.
 - **Overview** — a card under it with the title's slogan and its plot, and
-  under them, centred, every rating Kodi's library holds for it. The ratings
+  under them every rating Kodi's library holds for it, all of it centred. The ratings
   are a row of small shields, each with its source's mark on the left, on a
   ground of the source's colour, instead of its name, and what it gave on the
   right: first the age rating — a German one as the coloured FSK mark, any
