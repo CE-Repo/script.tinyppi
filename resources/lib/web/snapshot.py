@@ -128,11 +128,11 @@ _EXTRA_INFOLABELS = (
 )
 
 # How many names of each the page keeps (see name_list): the genres, the
-# studios and the director for the card of what is playing, the cast's leads
-# for the overview card's credits.  The page marks a list that has more, but
-# for the genres, which read as a kind of film rather than a list of names,
-# and the director, who stands for the film alone.
-_NAMES = {"genres": 2, "directors": 1, "cast": 8, "studios": 4}
+# studio and the director for the card of what is playing, the cast's leads
+# for the overview card's credits.  The page marks only the cast as having
+# more: the genres read as a kind of film rather than a list of names, and
+# the studio and the director each stand for the film alone.
+_NAMES = {"genres": 2, "directors": 1, "cast": 8, "studios": 1}
 
 
 def _genre(values: dict[str, str]) -> str:
@@ -150,10 +150,8 @@ def _credits(values: dict[str, str]) -> Credits:
     """
     directors, _more = name_list(values.get("Director", ""), _NAMES["directors"])
     cast, cast_more = name_list(values.get("Cast", ""), _NAMES["cast"])
-    studios, studios_more = name_list(values.get("Studio", ""), _NAMES["studios"])
-    return {"directors": directors,
-            "cast": cast, "cast_more": cast_more,
-            "studios": studios, "studios_more": studios_more}
+    studios, _more = name_list(values.get("Studio", ""), _NAMES["studios"])
+    return {"directors": directors, "cast": cast, "cast_more": cast_more, "studios": studios}
 
 
 # Presence flags (true / false / '') as markers; the browser shows icons,
@@ -619,7 +617,6 @@ class SnapshotBuilder:
                 "cast":           credits["cast"],
                 "cast_more":      credits["cast_more"],
                 "studios":        credits["studios"],
-                "studios_more":   credits["studios_more"],
             },
             "controls":  self._player_controls(control),
             "chapters":  chapters,

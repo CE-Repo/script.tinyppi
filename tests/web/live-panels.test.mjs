@@ -168,9 +168,10 @@ test("what is playing: title, show line, file, progress and times", (t) => {
   assert.equal($("nowCard").classList.contains("hidden"), false);
   assert.equal($("title").textContent, "Film");
   assert.equal($("meta").textContent, "Show · 2×05  ·  2024  ·  Drama");
-  // The studio on a line of its own under the genre.
+  // The first studio alone, on a line of its own under the genre, with
+  // nothing to say there are more.
   assert.equal($("meta").nextElementSibling, $("studio"));
-  assert.equal($("studio").textContent, "A Studio, Another");
+  assert.equal($("studio").textContent, "A Studio");
   assert.equal($("file").textContent, "/films/Show.S02E05.mkv");
   assert.equal($("file").classList.contains("hidden"), false);
   assert.equal($("bar").style.width, "8.4%");
@@ -192,10 +193,6 @@ test("what is playing: title, show line, file, progress and times", (t) => {
   // Kodi numbers the specials season 0, and says so as text.
   P.update(snap({ media: { show: "Show", season: "0", episode: "3" } }));
   assert.equal($("meta").textContent, "Show · 0×03");
-
-  // A list the add-on cut ends in an ellipsis.
-  P.update(snap({ media: { studios: ["One", "Two", "Three", "Four"], studios_more: true } }));
-  assert.equal($("studio").textContent, "One, Two, Three, Four, …");
 
   P.update(snap({ metrics: undefined }));
   assert.equal($("meta").textContent, "");
@@ -380,7 +377,7 @@ test("the overview card ends with the credits, a line each under the ratings", (
     plot: "Paul joins the Fremen.", ratings: [{ source: "imdb", rating: 8.5, votes: 0 }],
     genres: ["Science Fiction"], directors: ["Denis Villeneuve"],
     cast: ["Timothée Chalamet", "Zendaya", "Rebecca Ferguson", "Javier Bardem", "Josh Brolin"],
-    cast_more: true, studios: ["Legendary Pictures"], studios_more: false
+    cast_more: true, studios: ["Legendary Pictures"]
   };
   P.update(snap({ media: credited }));
   // Over the ratings, the cast, cut with an ellipsis; the genre, the

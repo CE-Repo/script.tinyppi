@@ -214,9 +214,9 @@
     if (media.year) parts.push(media.year);
     if (media.genre) parts.push(media.genre);
     el.meta.textContent = parts.join("  ·  ");
-    /* Who made it, on a line of its own under what kind of film it is. */
-    const studios = media.studios || [];
-    el.studio.textContent = studios.length ? nameList(studios, media.studios_more) : "";
+    /* Who made it, the first studio alone, on a line of its own under what
+       kind of film it is. */
+    el.studio.textContent = (media.studios || [])[0] || "";
 
     if (snapshot.filename) {
       el.file.textContent = snapshot.filename;

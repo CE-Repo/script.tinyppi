@@ -132,15 +132,14 @@ class Rating(TypedDict):
 
 
 class Credits(TypedDict):
-    """Who made the playing title: the first names of each list, as Kodi
-    orders them (see web.values.name_list), and whether it has more -- but
-    the director, the first alone."""
+    """Who made the playing title, as Kodi orders them (see
+    web.values.name_list): the first director and the first studio alone,
+    and the cast's leads with whether there are more."""
 
     directors: list[str]
     cast: list[str]
     cast_more: bool
     studios: list[str]
-    studios_more: bool
 
 
 class Ratings(TypedDict):
@@ -182,7 +181,6 @@ class Media(TypedDict):
     cast: list[str]
     cast_more: bool
     studios: list[str]
-    studios_more: bool
 
 
 # --- The title's history ----------------------------------------------------

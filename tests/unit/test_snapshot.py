@@ -71,7 +71,8 @@ def test_a_playing_title():
     # The director the first alone, with nothing to say there are more.
     assert shot["media"]["directors"] == ["Somebody"]
     assert "directors_more" not in shot["media"]
-    assert (shot["media"]["studios"], shot["media"]["studios_more"]) == (["A Studio", "Another"], False)
+    assert shot["media"]["studios"] == ["A Studio"]
+    assert "studios_more" not in shot["media"]
     assert shot["media"]["cast"] == [f"Actor {n}" for n in range(1, 9)]
     assert shot["media"]["cast_more"] is True
     assert shot["controls"] == {}

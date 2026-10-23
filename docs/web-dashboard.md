@@ -41,8 +41,8 @@ card, and comes back with the next touch, scroll, key or pointer movement. The t
 connection light.
 
 - **Now playing** — the poster, title, year and genre (its first two),
-  under them the studio (up to four, ending in "…" where there are more; an
-  episode's is its show's), the file name (when *Show file name* is on), the
+  under them the studio (only the first, with no "…"; an episode's is its
+  show's), the file name (when *Show file name* is on), the
   director's name alone (only the first, with no "…") in the middle of the
   room left between those lines and the format badges at the foot, elapsed
   time and progress.
