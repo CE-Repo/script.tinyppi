@@ -49,8 +49,9 @@ connection light.
 - **Overview** — a card under it with the title's slogan and its plot,
   under them, past a thin rule, its cast, and last, past another, every
   rating Kodi's library holds for it, all of it centred. A long plot is cut
-  to three lines, and *Show more* under it lets the rest out (*Show less*
-  takes it back); a new title starts cut again. The ratings
+  to three lines, and a click or tap on it (or Enter or Space once it has
+  the focus) lets the rest out and takes it back; a new title starts cut
+  again. The ratings
   are a row of small shields, each with its source's mark on the left, on a
   ground of the source's colour, instead of its name, and what it gave on the
   right: first the age rating — a German, American or British one as a

@@ -103,10 +103,9 @@
       '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
       '<div class="plot">' +
         '<p class="tagline hidden" id="tagline"></p>' +
+        /* A long plot is cut to a few lines; a press on it lets the rest
+           out and takes it back. */
         '<p class="plottext hidden" id="plotText"></p>' +
-        /* A long plot is cut to a few lines; this lets the rest out. */
-        '<button type="button" class="plotmore hidden" id="plotMore" ' +
-          'aria-controls="plotText" aria-expanded="false"></button>' +
         '<dl class="credits hidden" id="credits"></dl>' +
         '<div class="ratings hidden" id="ratings" role="list"></div>' +
       '</div>' +
@@ -167,7 +166,7 @@
     director: $("director"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
     plotCard: $("plotCard"), ratings: $("ratings"), tagline: $("tagline"),
-    plotText: $("plotText"), plotMore: $("plotMore"), credits: $("credits"),
+    plotText: $("plotText"), credits: $("credits"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
     tFinish: $("tFinish"), tFinishLabel: $("tFinishLabel"),
@@ -297,24 +296,44 @@
     }
   }
 
-  /* A plot runs to a few lines (see .plot .plottext) and the button under it
-     lets the rest out and takes it back.  The button is there only where
-     there is more to show: measured when the plot changes, when the card is
-     opened and when the page is resized, since how many lines a plot takes
-     is a matter of how wide it is laid out. */
+  /* A plot runs to a few lines (see .plot .plottext), and a press on it --
+     a click, a tap, or Enter or Space once it has the focus -- lets the rest
+     out and takes it back.  It is pressable only where there is more to
+     show: measured when the plot changes, when the card is opened and when
+     the page is resized, since how many lines a plot takes is a matter of
+     how wide it is laid out.  Pressable, it is a button to a screen reader,
+     and says under a pointer what a press does. */
   function openPlot(open) {
     el.plotText.classList.toggle("open", open);
-    el.plotMore.setAttribute("aria-expanded", String(open));
-    el.plotMore.textContent = open ? TinyPPI.T.plot_less : TinyPPI.T.plot_more;
+    if (el.plotText.classList.contains("fold")) {
+      el.plotText.setAttribute("aria-expanded", String(open));
+      el.plotText.title = open ? TinyPPI.T.plot_less : TinyPPI.T.plot_more;
+    }
   }
 
   function measurePlot() {
     if (el.plotText.classList.contains("open")) return;
     const cut = el.plotText.scrollHeight > el.plotText.clientHeight + 1;
-    el.plotMore.classList.toggle("hidden", !cut);
+    el.plotText.classList.toggle("fold", cut);
+    if (cut) {
+      el.plotText.setAttribute("role", "button");
+      el.plotText.tabIndex = 0;
+    } else {
+      for (const name of ["role", "tabindex", "aria-expanded", "title"]) el.plotText.removeAttribute(name);
+    }
+    openPlot(false);
   }
 
-  el.plotMore.addEventListener("click", () => openPlot(!el.plotText.classList.contains("open")));
+  function flipPlot() {
+    if (el.plotText.classList.contains("fold")) openPlot(!el.plotText.classList.contains("open"));
+  }
+
+  el.plotText.addEventListener("click", flipPlot);
+  el.plotText.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    flipPlot();
+  });
   el.plotCard.addEventListener("toggle", measurePlot);
   window.addEventListener("resize", measurePlot);
 
