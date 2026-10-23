@@ -73,6 +73,15 @@ test("the live tab connects and shows the format badges", async () => {
     ["#title", "#meta", "#studio"].map((selector) => page.locator(selector).boundingBox()));
   const gap = studio.y - (meta.y + meta.height);
   assert.ok(gap >= 0 && gap < meta.y - (title.y + title.height), `${gap} under the genre`);
+  // Who directed it, in the middle between the lines above and the badges.
+  assert.equal(await page.locator("#director").innerText(), "#32376 Somebody");
+  const [above, director, formats] = await page.$$eval(".now > *:not(.hidden)", (nodes) => {
+    const at = nodes.findIndex((node) => node.id === "director");
+    return [nodes[at - 1], nodes[at], nodes[at + 1]].map((node) => node.getBoundingClientRect().toJSON());
+  });
+  const over = director.y - (above.y + above.height);
+  const under = formats.y - (director.y + director.height);
+  assert.ok(Math.abs(over - under) <= 1, `centred: ${over} over, ${under} under`);
 });
 
 test("the ratings, the slogan and the plot stand in a card of their own under the playing one", async () => {
@@ -121,7 +130,7 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   assert.ok(credits.y >= row.y + row.height - 1, "under the ratings");
   assert.equal(await page.$eval("#credits", (list) => getComputedStyle(list).borderTopWidth), "1px");
   assert.deepEqual(await page.$$eval("#credits .credit", (lines) => lines.map((line) => line.innerText)),
-                   ["#32376 Somebody", "#32378 One Actor, Another Actor, …"]);
+                   ["#32378 One Actor, Another Actor, …"]);
   const [term, names] = await Promise.all(["#credits dt", "#credits dd"].map((selector) =>
     page.$eval(selector, (node) => {
       const style = getComputedStyle(node);

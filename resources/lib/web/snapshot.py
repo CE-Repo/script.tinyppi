@@ -127,15 +127,15 @@ _EXTRA_INFOLABELS = (
     ("Studio",              "VideoPlayer.Studio"),
 )
 
-# How many names of each the page keeps (see name_list): the directors and
-# the cast's leads for the overview card's credits, the studios for the line
-# under the genre.  The page marks a list that has more.
+# How many names of each the page keeps (see name_list): the studios and the
+# directors for the card of what is playing, the cast's leads for the
+# overview card's credits.  The page marks a list that has more.
 _NAMES = {"directors": 3, "cast": 5, "studios": 4}
 
 
 def _credits(values: dict[str, str]) -> Credits:
-    """Return who made the playing title: its directors and cast for the
-    overview card, its studios for the card of what is playing.
+    """Return who made the playing title: its studios and directors for the
+    card of what is playing, its cast for the overview card.
 
     An episode's studios are its show's, and its cast its own guests and
     then the show's: Kodi keeps them so.

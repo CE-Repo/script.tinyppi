@@ -47,6 +47,10 @@
         '<p class="meta" id="meta"></p>' +
         '<p class="meta studio" id="studio"></p>' +
         '<p class="file mono hidden" id="file"></p>' +
+        /* Who directed it, in the middle of what the lines above leave
+           over (see .now .director). */
+        '<p class="director hidden" id="director">' +
+          '<span class="term" id="directorTerm"></span> <span id="directorNames"></span></p>' +
         /* What the picture is and what the sound is, a row each -- the same
            badges the mobile app draws under its title. */
         '<div class="formats" id="formats">' +
@@ -158,6 +162,7 @@
   const el = {
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), studio: $("studio"), file: $("file"),
+    director: $("director"), directorTerm: $("directorTerm"), directorNames: $("directorNames"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
     plotCard: $("plotCard"), ratings: $("ratings"), tagline: $("tagline"),
     plotText: $("plotText"), credits: $("credits"),
@@ -224,6 +229,7 @@
     renderArt(snapshot.art || {});
     renderBadges(snapshot);
     renderFormats(snapshot);
+    renderDirector(media, TinyPPI.T);
     renderPlot(media);
 
     const progress = (snapshot.metrics || {}).progress;
@@ -290,24 +296,25 @@
     return names.join(", ") + (more ? ", …" : "");
   }
 
-  /* Who made the title, as a film's credits are asked about: who directed
-     it and who is in it -- what kind of film it is and the studio stand in
-     the card above.  Each under its name for one or for more than one of it
-     ("Director", "Directors"), and left out where the library has none. */
-  const CREDITS = [["directors", "director", "directors"], ["cast", "cast", "cast"]];
+  /* Who directed the title, under its name for one or for more than one
+     ("Director", "Directors") -- a cut list is more than it shows -- and
+     gone where the library has none.  Written only when the words change. */
+  function renderDirector(media, T) {
+    const names = media.directors || [];
+    const more = Boolean(media.directors_more);
+    const term = names.length === 1 && !more ? T.director : T.directors;
+    const text = names.length ? nameList(names, more) : "";
+    if (el.directorTerm.textContent !== term) el.directorTerm.textContent = term;
+    if (el.directorNames.textContent !== text) el.directorNames.textContent = text;
+    el.director.classList.toggle("hidden", !text);
+  }
 
+  /* Who is in the title, the leads as the add-on cuts them: the overview's
+     credits.  What kind of film it is, who made it and who directed it
+     stand in the card above. */
   function creditList(media, T) {
-    const credits = [];
-    for (const [key, one, more] of CREDITS) {
-      const names = media[key] || [];
-      if (!names.length) continue;
-      const cut = Boolean(media[key + "_more"]);
-      credits.push({
-        label: names.length === 1 && !cut ? T[one] : T[more],
-        names: nameList(names, cut)
-      });
-    }
-    return credits;
+    const cast = media.cast || [];
+    return cast.length ? [{ label: T.cast, names: nameList(cast, Boolean(media.cast_more)) }] : [];
   }
 
   /* A line each, what it is and then the names, as a description list, so
@@ -928,9 +935,10 @@
     renderFinish(lastFinish);
     $("plotTitle").textContent = T.plot;
     /* The badges carry words of the table too ("612,345 votes"), and the
-       credits their names. */
+       credits and the director their names. */
     fillRatings(ratingBadges(plotMedia, T));
     fillCredits(creditList(plotMedia, T));
+    renderDirector(plotMedia, T);
     $("tilesTitle").textContent = T.metrics;
     $("kSwitches").textContent = T.switches;
     $("kWarnings").textContent = T.warnings;

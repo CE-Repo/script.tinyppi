@@ -42,11 +42,12 @@ connection light.
 
 - **Now playing** — the poster, title, year and genre, under them the studio
   (up to four, ending in "…" where there are more; an episode's is its
-  show's), the file name (when *Show file name* is on), elapsed time and
-  progress.
+  show's), the file name (when *Show file name* is on), the director (up to
+  three, the same way) in the middle of the room left between those lines
+  and the format badges at the foot, elapsed time and progress.
 - **Overview** — a card under it with the title's slogan and its plot,
   under them, past a thin rule, every rating Kodi's library holds for it, and
-  under those, past another, its credits, all of it centred. The ratings
+  under those, past another, its cast, all of it centred. The ratings
   are a row of small shields, each with its source's mark on the left, on a
   ground of the source's colour, instead of its name, and what it gave on the
   right: first the age rating — a German, American or British one as a
@@ -62,15 +63,13 @@ connection light.
   is read as the one board that gives that level — "PG-13" is American, "15"
   British — and where more than one does ("12", "18", "PG") as the board of
   the country Kodi's language points to: German, British English or American
-  English. The credits are a line each, its name in bold and then the names:
-  the director (up to three) and the cast (its first five, in billing order),
-  each ending in "…" where there are more, named for one or for more than one
-  ("Director", "Directors") and left out where Kodi has none; the genre and
-  the studio stand in the card above. An episode's cast is its own guests
-  and then the show's. They are
+  English. The credits are the cast: its name in bold and then its first five
+  names in billing order, ending in "…" where there are more, and left out
+  where Kodi has none; the genre, the studio and the director stand in the
+  card above. An episode's cast is its own guests and then the show's. They are
   what Kodi knows of whatever plays, so an add-on's stream that names them has
   them too. The slogan only stands above a plot (most episodes have
-  none). Without a plot the card shows the ratings and the credits alone, and
+  none). Without a plot the card shows the ratings and the cast alone, and
   with none of them it is left out, as it is for a file that is not in the
   library. The ratings are read from the library once per title, and only
   while a page is open. The card folds like the other cards and remembers

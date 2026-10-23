@@ -576,6 +576,22 @@
 /* The studio under the year and the genre, as one block with them rather
    than an item of the column of its own. */
 .now .meta:not(:empty) + .studio { margin-top: -10px; }
+/* Who directed it, in the middle of the slack between the lines above and
+   the badges at the foot: an auto margin either side of it takes all of it,
+   so the badges' own (see .formats) is set aside while it stands there.
+   What it is in the text's own colour, the names in the muted grey. */
+.now .director {
+  margin: auto 0;
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.now .director:not(.hidden) + .formats { margin-top: 0; }
+.now .director .term {
+  font-weight: 600;
+  color: var(--text);
+}
 
 /* --- The overview: the plot, the ratings and the credits -----------------
    The card under the one of what is playing, everything in it centred.

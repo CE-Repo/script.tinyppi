@@ -202,6 +202,40 @@ test("what is playing: title, show line, file, progress and times", (t) => {
   assert.equal($("bar").style.width, "0%");
 });
 
+test("who directed it stands in the card of what is playing, over its badges", (t) => {
+  const { $, P, window } = panels(t);
+  const said = () => [$("directorTerm").textContent, $("directorNames").textContent];
+  P.update(snap({ media: { directors: ["Denis Villeneuve"] } }));
+  // The last line over the badges, named for one.
+  assert.equal($("director").nextElementSibling, $("formats"));
+  assert.equal($("director").classList.contains("hidden"), false);
+  assert.deepEqual(said(), ["Director", "Denis Villeneuve"]);
+  assert.equal($("director").textContent, "Director Denis Villeneuve");
+
+  // Named for more: more than one, or one the add-on cut, with an ellipsis.
+  P.update(snap({ media: { directors: ["Joel Coen", "Ethan Coen", "Somebody"], directors_more: true } }));
+  assert.deepEqual(said(), ["Directors", "Joel Coen, Ethan Coen, Somebody, …"]);
+  P.update(snap({ media: { directors: ["Somebody"], directors_more: true } }));
+  assert.deepEqual(said(), ["Directors", "Somebody, …"]);
+
+  // Written only when the words change.
+  const written = $("directorNames").firstChild;
+  P.update(snap({ media: { directors: ["Somebody"], directors_more: true } }));
+  assert.equal($("directorNames").firstChild, written);
+
+  // The words arrive later, into the page's table.
+  Object.assign(window.TinyPPI.T, { director: "Regie", directors: "Regie" });
+  P.strings(window.TinyPPI.T);
+  assert.deepEqual(said(), ["Regie", "Somebody, …"]);
+
+  // None: gone, and the overview no card for it.
+  P.update(snap({ media: { directors: [] } }));
+  assert.ok($("director").classList.contains("hidden"));
+  assert.equal($("directorNames").textContent, "");
+  P.update(snap({ media: { directors: ["Somebody"] } }));
+  assert.ok($("plotCard").classList.contains("hidden"));
+});
+
 test("the plot card: the plot under what is playing, with its slogan where there is one", (t) => {
   const { $, P, window } = panels(t);
   assert.equal($("nowCard").nextElementSibling, $("plotCard"));
@@ -357,13 +391,11 @@ test("the overview card ends with the credits, a line each under the ratings", (
     cast_more: true, studios: ["Legendary Pictures"], studios_more: false
   };
   P.update(snap({ media: credited }));
-  // Under the ratings, in the order they are asked about, named for one or
-  // for more than one; the genre and the studio are the card above's.  A
-  // list the add-on cut ends in an ellipsis.
+  // Under the ratings, the cast, cut with an ellipsis; the genre, the
+  // studio and the director are the card above's.
   assert.equal($("ratings").nextElementSibling, $("credits"));
   assert.equal($("credits").classList.contains("hidden"), false);
   assert.deepEqual(lines(), [
-    ["credit", "DT Director", "DD Denis Villeneuve"],
     ["credit", "DT Cast", "DD Timothée Chalamet, Zendaya, Rebecca Ferguson, Javier Bardem, Josh Brolin, …"]]);
 
   // The same credits again are not built again.
@@ -373,18 +405,15 @@ test("the overview card ends with the credits, a line each under the ratings", (
 
   // The words arrive later, into the page's table, and the lines are named
   // in them.
-  Object.assign(window.TinyPPI.T, { director: "Director", directors: "Directors", cast: "Darsteller" });
+  Object.assign(window.TinyPPI.T, { cast: "Darsteller" });
   P.strings(window.TinyPPI.T);
-  assert.deepEqual(lines().map((line) => line[1]), ["DT Director", "DT Darsteller"]);
+  assert.deepEqual(lines().map((line) => line[1]), ["DT Darsteller"]);
 
-  // Three directors and more, no cast: that line left out.  One name with
-  // more behind it is named for more.  A studio alone is no credit.
-  P.update(snap({ media: { plot: "Plot.", directors: ["Joel Coen", "Ethan Coen", "Somebody"],
-                           directors_more: true, cast: [], studios: ["A24"] } }));
-  assert.deepEqual(lines(), [["credit", "DT Directors", "DD Joel Coen, Ethan Coen, Somebody, …"]]);
-  P.update(snap({ media: { plot: "Plot.", directors: ["Somebody"], directors_more: true } }));
-  assert.deepEqual(lines(), [["credit", "DT Directors", "DD Somebody, …"]]);
-  P.update(snap({ media: { studios: ["A24"] } }));
+  // A cast the add-on did not cut ends without one.  A studio or a
+  // director alone is no credit.
+  P.update(snap({ media: { plot: "Plot.", cast: ["Somebody", "Somebody Else"] } }));
+  assert.deepEqual(lines(), [["credit", "DT Darsteller", "DD Somebody, Somebody Else"]]);
+  P.update(snap({ media: { studios: ["A24"], directors: ["Somebody"] } }));
   assert.ok($("plotCard").classList.contains("hidden"));
 
   // Credits alone are still an overview.
