@@ -80,6 +80,10 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
     return Math.round(box.width / box.height * 10) / 10;
   }));
   assert.deepEqual(sizes, [2, 2]);
+  // Every badge one height: the age rating's mark and the shields beside it.
+  const heights = await page.$$eval("#ratings .rating",
+    (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
+  assert.deepEqual(heights, heights.map(() => 26));
   const marks = await page.$$eval("#ratings .rating", (nodes) => nodes.map((node) => [
     node.querySelector("img").getAttribute("src"),
     [...node.querySelectorAll(".value")].map((part) => part.textContent).join("")]));

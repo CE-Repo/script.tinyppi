@@ -611,9 +611,14 @@
 /* A shield: the house on the left, on a ground of its own colour, and what
    it gave on the right, on the panel's -- kantig like the plaques the format
    readings are, rather than round like a button. */
+/* Every badge one height, its border inside it, whatever it holds: a
+   shield of figures, a heart, an age rating's mark on its own. */
+.ratings { --badge: 26px; }
 .rating {
   position: relative;
   display: inline-flex;
+  box-sizing: border-box;
+  height: var(--badge);
   max-width: 100%;
   border: 1px solid var(--line);
   border-radius: 7px;
@@ -666,12 +671,16 @@
   -webkit-mask: url('/icons/heart.svg') no-repeat center / contain;
   mask: url('/icons/heart.svg') no-repeat center / contain;
 }
+/* Centred in the height the shield is given, on one line: a long age
+   rating written out is cut at the shield's edge rather than growing it a
+   second line (its whole text is the badge's tooltip). */
 .rating .figures {
   display: flex;
   align-items: baseline;
+  align-self: center;
   gap: 5px;
-  padding: 4px 8px;
-  overflow-wrap: anywhere;
+  padding: 0 8px;
+  white-space: nowrap;
 }
 /* Tabular figures in the face of the words around them rather than the
    monospaced one the readings use: that face sits higher on the line, and a
@@ -698,7 +707,7 @@
   background: none;
 }
 .rating.drawn .side { padding: 0; }
-.rating.drawn .mark { height: 26px; }
+.rating.drawn .mark { height: var(--badge); }
 /* What the badge says aloud: there for a screen reader, not on the screen. */
 .rating .said {
   position: absolute;
