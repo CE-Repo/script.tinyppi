@@ -42,16 +42,18 @@ def test_library_texts_lose_markup_and_keep_their_line_breaks(value, expected):
 
 
 @pytest.mark.parametrize(("value", "limit", "expected"), [
-    ("", 4, []),
-    ("Science Fiction / Adventure", 6, ["Science Fiction", "Adventure"]),
-    # The cast one name a line, in billing order, cut to its leads.
-    ("Timothée Chalamet\nZendaya\nRebecca Ferguson", 2, ["Timothée Chalamet", "Zendaya"]),
-    # Markup stripped, blanks and repeats dropped.
-    ("[B]Legendary[/B] /  / Warner Bros. / Legendary", 4, ["Legendary", "Warner Bros."]),
+    ("", 4, ([], False)),
+    ("Legendary Pictures / Warner Bros.", 4, (["Legendary Pictures", "Warner Bros."], False)),
+    # The cast one name a line, in billing order, cut to its leads -- and
+    # said to have more.
+    ("Timothée Chalamet\nZendaya\nRebecca Ferguson", 2, (["Timothée Chalamet", "Zendaya"], True)),
+    ("Timothée Chalamet\nZendaya", 2, (["Timothée Chalamet", "Zendaya"], False)),
+    # Markup stripped, blanks and repeats dropped: a repeat is no more.
+    ("[B]Legendary[/B] /  / Warner Bros. / Legendary", 2, (["Legendary", "Warner Bros."], False)),
     # A slash within a name is no separator, and nor is another one Kodi
     # was told to use instead.
-    ("AC/DC, Queen", 4, ["AC/DC, Queen"]),
-    ("x" * 90, 4, ["x" * 80]),
+    ("AC/DC, Queen", 4, (["AC/DC, Queen"], False)),
+    ("x" * 90, 4, (["x" * 80], False)),
 ])
 def test_list_labels_are_split_into_names(value, limit, expected):
     assert name_list(value, limit) == expected

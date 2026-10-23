@@ -279,14 +279,14 @@
     el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credits.length);
   }
 
-  /* Who made the title, in the order a film's credits are asked about:
-     what kind of film it is, who directed it, who is in it -- the leads, as
-     the add-on cuts them (see _NAMES in web/snapshot.py) -- and who made it.
-     Each under its name for one or for more than one of it ("Studio",
-     "Studios"), and left out where the library has none. */
+  /* Who made the title, in the order a film's credits are asked about: who
+     directed it, who is in it and who made it -- what kind of film it is
+     stands in the card above.  The first names of each, as the add-on cuts
+     them (see _NAMES in web/snapshot.py), and an ellipsis after them where
+     there are more.  Each under its name for one or for more than one of it
+     ("Studio", "Studios"), and left out where the library has none. */
   const CREDITS = [
-    ["genres", "genre", "genres"], ["directors", "director", "directors"],
-    ["cast", "cast", "cast"], ["studios", "studio", "studios"]
+    ["directors", "director", "directors"], ["cast", "cast", "cast"], ["studios", "studio", "studios"]
   ];
 
   function creditList(media, T) {
@@ -294,7 +294,11 @@
     for (const [key, one, more] of CREDITS) {
       const names = media[key] || [];
       if (!names.length) continue;
-      credits.push({ label: names.length === 1 ? T[one] : T[more], names: names.join(", ") });
+      const cut = Boolean(media[key + "_more"]);
+      credits.push({
+        label: names.length === 1 && !cut ? T[one] : T[more],
+        names: names.join(", ") + (cut ? ", …" : "")
+      });
     }
     return credits;
   }

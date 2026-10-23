@@ -61,10 +61,11 @@ connection light.
   British — and where more than one does ("12", "18", "PG") as the board of
   the country Kodi's language points to: German, British English or American
   English. The credits are a line each, its name in bold and then the names:
-  the genres, the director, the cast — its first eight, in billing order —
-  and the studio, each named for one or for more than one ("Studio",
-  "Studios") and left out where Kodi has none. An episode's genres and studio
-  are its show's, and its cast its own guests and then the show's. They are
+  the director (up to three), the cast (its first five, in billing order) and
+  the studio (up to four), each ending in "…" where there are more, named for
+  one or for more than one ("Studio", "Studios") and left out where Kodi has
+  none; the genre stands in the card above. An episode's studio is its
+  show's, and its cast its own guests and then the show's. They are
   what Kodi knows of whatever plays, so an add-on's stream that names them has
   them too. The slogan only stands above a plot (most episodes have
   none). Without a plot the card shows the ratings and the credits alone, and

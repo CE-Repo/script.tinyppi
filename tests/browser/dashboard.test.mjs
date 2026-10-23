@@ -114,7 +114,7 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   assert.ok(credits.y >= row.y + row.height - 1, "under the ratings");
   assert.equal(await page.$eval("#credits", (list) => getComputedStyle(list).borderTopWidth), "1px");
   assert.deepEqual(await page.$$eval("#credits .credit", (lines) => lines.map((line) => line.innerText)),
-                   ["#32374 Drama", "#32376 Somebody", "#32378 One Actor, Another Actor"]);
+                   ["#32376 Somebody", "#32378 One Actor, Another Actor, …"]);
   const [term, names] = await Promise.all(["#credits dt", "#credits dd"].map((selector) =>
     page.$eval(selector, (node) => {
       const style = getComputedStyle(node);

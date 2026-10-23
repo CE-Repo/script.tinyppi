@@ -71,25 +71,25 @@ def plain_text(value: str) -> str:
     return _MARKUP_RE.sub("", _LINE_BREAK_RE.sub("\n", value)).strip()
 
 
-# Kodi joins the genres, directors and studios of a list InfoLabel with its
-# item separator (" / ", unless advancedsettings.xml sets another, which is
-# then read as one name) and the cast one name a line.
+# Kodi joins the directors and studios of a list InfoLabel with its item
+# separator (" / ", unless advancedsettings.xml sets another, which is then
+# read as one name) and the cast one name a line.
 _ITEM_RE = re.compile(r" / |\n")
 # A name is a line of a card, not a paragraph; a longer one is cut off.
 _NAME_LIMIT = 80
 
 
-def name_list(value: str, limit: int) -> list[str]:
-    """Return the names a list InfoLabel holds, in Kodi's order -- the cast
-    by billing -- each once and at most *limit* of them."""
+def name_list(value: str, limit: int) -> tuple[list[str], bool]:
+    """Return the first *limit* names a list InfoLabel holds, in Kodi's
+    order -- the cast by billing -- each once, and whether it holds more."""
     names: list[str] = []
     for item in _ITEM_RE.split(plain_text(value)):
         name = item.strip()[:_NAME_LIMIT].rstrip()
         if name and name not in names:
-            names.append(name)
             if len(names) == limit:
-                break
-    return names
+                return names, True
+            names.append(name)
+    return names, False
 
 
 def numbers(value: str) -> list[float]:

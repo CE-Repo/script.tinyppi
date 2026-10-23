@@ -43,6 +43,7 @@ from info.publish import (
 from web.payloads import (
     Chapter,
     Controls,
+    Credits,
     FrameSize,
     Group,
     GroupRow,
@@ -118,7 +119,7 @@ _EXTRA_INFOLABELS = (
     ("Season",              "VideoPlayer.Season"),
     ("Episode",             "VideoPlayer.Episode"),
     # The card under it: the slogan and what the title is about, and who
-    # made it (see _NAMES).
+    # made it (see _credits).  Its genre is the card above's.
     ("Tagline",             "VideoPlayer.Tagline"),
     ("Plot",                "VideoPlayer.Plot"),
     ("Director",            "VideoPlayer.Director"),
@@ -127,10 +128,22 @@ _EXTRA_INFOLABELS = (
 )
 
 # How many names of each the overview card's credits keep (see name_list):
-# the cast's leads, not the whole bill.  An episode's genres and studios are
-# its show's, and its cast its own guests and then the show's: Kodi keeps
-# them so.
-_NAMES = {"genres": 6, "directors": 4, "cast": 8, "studios": 4}
+# the cast's leads, not the whole bill.  The page marks a list that has more.
+_NAMES = {"directors": 3, "cast": 5, "studios": 4}
+
+
+def _credits(values: dict[str, str]) -> Credits:
+    """Return who made the playing title, as the overview card lists it.
+
+    An episode's studios are its show's, and its cast its own guests and
+    then the show's: Kodi keeps them so.
+    """
+    directors, directors_more = name_list(values.get("Director", ""), _NAMES["directors"])
+    cast, cast_more = name_list(values.get("Cast", ""), _NAMES["cast"])
+    studios, studios_more = name_list(values.get("Studio", ""), _NAMES["studios"])
+    return {"directors": directors, "directors_more": directors_more,
+            "cast": cast, "cast_more": cast_more,
+            "studios": studios, "studios_more": studios_more}
 
 # Presence flags (true / false / '') as markers; the browser shows icons,
 # copied reports use localized words.
@@ -556,6 +569,7 @@ class SnapshotBuilder:
 
         # Only for a snapshot somebody is watching: it costs JSON-RPC.
         ratings = self._rating_info(values)
+        credits = _credits(values)
         snapshot: PlayingSnapshot = {
             "seq":       self._sequence,
             "playing":   True,
@@ -590,10 +604,12 @@ class SnapshotBuilder:
                 "age_level":  ratings["age_level"],
                 "userrating": ratings["userrating"],
                 "top250":     ratings["top250"],
-                "genres":     name_list(values.get("Genre", ""), _NAMES["genres"]),
-                "directors":  name_list(values.get("Director", ""), _NAMES["directors"]),
-                "cast":       name_list(values.get("Cast", ""), _NAMES["cast"]),
-                "studios":    name_list(values.get("Studio", ""), _NAMES["studios"]),
+                "directors":      credits["directors"],
+                "directors_more": credits["directors_more"],
+                "cast":           credits["cast"],
+                "cast_more":      credits["cast_more"],
+                "studios":        credits["studios"],
+                "studios_more":   credits["studios_more"],
             },
             "controls":  self._player_controls(control),
             "chapters":  chapters,

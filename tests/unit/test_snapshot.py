@@ -65,11 +65,13 @@ def test_a_playing_title():
     assert shot["media"]["year"] == "2021" and shot["media"]["genre"] == "Drama"
     assert shot["media"]["tagline"] == "One night."
     assert shot["media"]["plot"] == "Somebody does something."
-    # Who made it, as names; the cast cut to its leads.
-    assert shot["media"]["genres"] == ["Drama"]
-    assert shot["media"]["directors"] == ["Somebody"]
-    assert shot["media"]["studios"] == ["A Studio", "Another"]
-    assert shot["media"]["cast"] == [f"Actor {n}" for n in range(1, 9)]
+    # Who made it, as names; the cast cut to its leads, and said to have
+    # more.  The genre is only the card above's.
+    assert "genres" not in shot["media"]
+    assert (shot["media"]["directors"], shot["media"]["directors_more"]) == (["Somebody"], False)
+    assert (shot["media"]["studios"], shot["media"]["studios_more"]) == (["A Studio", "Another"], False)
+    assert shot["media"]["cast"] == [f"Actor {n}" for n in range(1, 6)]
+    assert shot["media"]["cast_more"] is True
     assert shot["controls"] == {}
     ids = [group["id"] for group in shot["groups"]]
     assert ids[0] == "video" and len(ids) == len(set(ids))

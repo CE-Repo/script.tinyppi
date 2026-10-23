@@ -137,8 +137,6 @@ _UI_STRINGS = {
     "my_rating":        32372,
     "top250":           32373,
     # And the names of its credits, for one and for more than one.
-    "genre":            32374,
-    "genres":           32375,
     "director":         32376,
     "directors":        32377,
     "cast":             32378,

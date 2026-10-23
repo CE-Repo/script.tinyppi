@@ -131,6 +131,18 @@ class Rating(TypedDict):
     votes: int
 
 
+class Credits(TypedDict):
+    """Who made the playing title: the first names of each list, as Kodi
+    orders them (see web.values.name_list), and whether it has more."""
+
+    directors: list[str]
+    directors_more: bool
+    cast: list[str]
+    cast_more: bool
+    studios: list[str]
+    studios_more: bool
+
+
 class Ratings(TypedDict):
     """The playing title's ratings (web/ratings.py); empty or 0 where unknown."""
 
@@ -165,11 +177,13 @@ class Media(TypedDict):
     age_level: str
     userrating: int
     top250: int
-    # And who made it, as lists of names (see web.values.name_list).
-    genres: list[str]
+    # And who made it (see Credits).
     directors: list[str]
+    directors_more: bool
     cast: list[str]
+    cast_more: bool
     studios: list[str]
+    studios_more: bool
 
 
 # --- The title's history ----------------------------------------------------

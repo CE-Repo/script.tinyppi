@@ -1503,14 +1503,6 @@ msgctxt "#32373"
 msgid "Top 250 · #%s"
 msgstr ""
 
-msgctxt "#32374"
-msgid "Genre"
-msgstr ""
-
-msgctxt "#32375"
-msgid "Genres"
-msgstr ""
-
 msgctxt "#32376"
 msgid "Director"
 msgstr ""

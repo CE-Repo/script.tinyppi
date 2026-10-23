@@ -1503,14 +1503,6 @@ msgctxt "#32373"
 msgid "Top 250 · #%s"
 msgstr "أفضل 250 · المرتبة %s"
 
-msgctxt "#32374"
-msgid "Genre"
-msgstr "النوع"
-
-msgctxt "#32375"
-msgid "Genres"
-msgstr "الأنواع"
-
 msgctxt "#32376"
 msgid "Director"
 msgstr "المخرج"

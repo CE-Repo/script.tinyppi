@@ -343,18 +343,19 @@ test("the overview card ends with the credits, a line each under the ratings", (
     [line.className, ...[...line.children].map((part) => part.tagName + " " + part.textContent)]);
   const credited = {
     plot: "Paul joins the Fremen.", ratings: [{ source: "imdb", rating: 8.5, votes: 0 }],
-    genres: ["Science Fiction", "Adventure"], directors: ["Denis Villeneuve"],
-    cast: ["Timothée Chalamet", "Zendaya"], studios: ["Legendary Pictures"]
+    genres: ["Science Fiction"], directors: ["Denis Villeneuve"],
+    cast: ["Timothée Chalamet", "Zendaya", "Rebecca Ferguson", "Javier Bardem", "Josh Brolin"],
+    cast_more: true, studios: ["Legendary Pictures"], studios_more: false
   };
   P.update(snap({ media: credited }));
   // Under the ratings, in the order they are asked about, named for one or
-  // for more than one.
+  // for more than one; the genre is the card above's.  A list the add-on
+  // cut ends in an ellipsis.
   assert.equal($("ratings").nextElementSibling, $("credits"));
   assert.equal($("credits").classList.contains("hidden"), false);
   assert.deepEqual(lines(), [
-    ["credit", "DT Genres", "DD Science Fiction, Adventure"],
     ["credit", "DT Director", "DD Denis Villeneuve"],
-    ["credit", "DT Cast", "DD Timothée Chalamet, Zendaya"],
+    ["credit", "DT Cast", "DD Timothée Chalamet, Zendaya, Rebecca Ferguson, Javier Bardem, Josh Brolin, …"],
     ["credit", "DT Studio", "DD Legendary Pictures"]]);
 
   // The same credits again are not built again.
@@ -364,20 +365,20 @@ test("the overview card ends with the credits, a line each under the ratings", (
 
   // The words arrive later, into the page's table, and the lines are named
   // in them.
-  Object.assign(window.TinyPPI.T, { genre: "Genre", genres: "Genres", director: "Regie",
-                                    directors: "Regie", cast: "Darsteller", studio: "Studio",
-                                    studios: "Studios" });
+  Object.assign(window.TinyPPI.T, { director: "Regie", directors: "Regie", cast: "Darsteller",
+                                    studio: "Studio", studios: "Studios" });
   P.strings(window.TinyPPI.T);
-  assert.deepEqual(lines().map((line) => line[1]), ["DT Genres", "DT Regie", "DT Darsteller", "DT Studio"]);
+  assert.deepEqual(lines().map((line) => line[1]), ["DT Regie", "DT Darsteller", "DT Studio"]);
 
-  // One genre, two directors and studios; a list the library has none of is
-  // left out.
-  P.update(snap({ media: { plot: "Plot.", genres: ["Drama"], directors: ["Joel Coen", "Ethan Coen"],
-                           cast: [], studios: ["A24", "Working Title"] } }));
+  // Three directors and more, two studios; a list the library has none of
+  // is left out.  One name with more behind it is named for more.
+  P.update(snap({ media: { plot: "Plot.", directors: ["Joel Coen", "Ethan Coen", "Somebody"],
+                           directors_more: true, cast: [], studios: ["A24", "Working Title"] } }));
   assert.deepEqual(lines(), [
-    ["credit", "DT Genre", "DD Drama"],
-    ["credit", "DT Regie", "DD Joel Coen, Ethan Coen"],
+    ["credit", "DT Regie", "DD Joel Coen, Ethan Coen, Somebody, …"],
     ["credit", "DT Studios", "DD A24, Working Title"]]);
+  P.update(snap({ media: { plot: "Plot.", studios: ["A24"], studios_more: true } }));
+  assert.deepEqual(lines(), [["credit", "DT Studios", "DD A24, …"]]);
 
   // Credits alone are still an overview.
   P.update(snap({ media: { cast: ["Somebody"] } }));
@@ -386,7 +387,7 @@ test("the overview card ends with the credits, a line each under the ratings", (
   assert.ok($("ratings").classList.contains("hidden"));
 
   // None at all: no lines.
-  P.update(snap({ media: { plot: "An episode." } }));
+  P.update(snap({ media: { plot: "An episode.", genres: ["Drama"] } }));
   assert.ok($("credits").classList.contains("hidden"));
   assert.equal($("credits").children.length, 0);
 });
