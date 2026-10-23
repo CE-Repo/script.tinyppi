@@ -1526,3 +1526,7 @@ msgstr "باستخدام مفتاح مجاني من mdblist.com (Preferences ←
 msgctxt "#32386"
 msgid "Director"
 msgstr "المخرج"
+
+msgctxt "#32387"
+msgid "Coloured rating badges"
+msgstr "شارات التقييم الملونة"

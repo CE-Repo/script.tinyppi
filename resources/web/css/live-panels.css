@@ -670,11 +670,17 @@
 .rating .side.trakt { background: #ed1c24; }
 .rating .side.letterboxd { background: #14181c; }
 .rating .side.metacritic,
-.rating .side.metacriticuser { background: #000; }
-.rating .side.rottentomatoes,
-.rating .side.popcorn { background: #fff; }
+.rating .side.metacriticuser { background: #66cc33; }
+.rating .side.rottentomatoes { background: #f9d320; }
+.rating .side.popcorn { background: #1e88e5; }
 .rating .side.rogerebert { background: #c8102e; }
 .rating .side.myanimelist { background: #2e51a2; }
+/* Monochrome, where the reader asked for it in the settings: every shield
+   in greys, its mark without colour on the plain ground a source with no
+   drawing has (see the rating colours switch in js/live-panels.js). */
+.ratings.mono .side { background: var(--line); }
+.ratings.mono .mark { filter: grayscale(1); }
+.ratings.mono .side.heart::before { background: var(--muted); }
 /* A source with no drawing: its first letter on a plain plate. */
 .rating .side.letter {
   min-width: 20px;

@@ -1526,3 +1526,7 @@ msgstr "填入 mdblist.com 的免费密钥（Preferences → API）后，概览�
 msgctxt "#32386"
 msgid "Director"
 msgstr "导演"
+
+msgctxt "#32387"
+msgid "Coloured rating badges"
+msgstr "彩色评分徽章"

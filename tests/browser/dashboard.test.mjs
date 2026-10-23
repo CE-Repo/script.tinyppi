@@ -93,6 +93,24 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   const heights = await page.$$eval("#ratings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
   assert.deepEqual(heights, heights.map(() => 22));
+  // Switched to greys on the settings tab: every mark without colour, on a
+  // plain ground; and back.
+  const flip = (on) => page.evaluate((checked) => {
+    const toggle = document.getElementById("ratingColours");
+    toggle.checked = checked;
+    toggle.dispatchEvent(new Event("change"));
+  }, on);
+  const look = () => page.$$eval("#ratings .rating", (nodes) => nodes.map((node) => [
+    getComputedStyle(node.querySelector(".mark")).filter,
+    getComputedStyle(node.querySelector(".side")).backgroundColor]));
+  const coloured = await look();
+  await flip(false);
+  const greys = await look();
+  assert.deepEqual(greys.map(([filter]) => filter), greys.map(() => "grayscale(1)"));
+  assert.equal(new Set(greys.map(([, ground]) => ground)).size, 1, "one plain ground");
+  assert.notDeepEqual(greys, coloured);
+  await flip(true);
+  assert.deepEqual(await look(), coloured);
   // A tap on one shows its words over it.
   await page.locator("#ratings .rating").last().click();
   const [tip, shield] = await Promise.all(

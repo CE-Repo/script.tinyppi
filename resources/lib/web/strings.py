@@ -130,6 +130,9 @@ _UI_STRINGS = {
     "chapter_of":       32367,
     "progress_bar":     32368,
     "chapter_marks":    32369,
+    # The settings card for the rating badges, and its switch.
+    "ratings":          32383,
+    "rating_colours":   32387,
     # The overview card under what is playing: its title, and what its
     # rating marks say to a screen reader.
     "plot":             32370,

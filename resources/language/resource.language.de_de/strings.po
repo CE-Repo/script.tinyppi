@@ -1526,3 +1526,7 @@ msgstr "Mit einem kostenlosen Schlüssel von mdblist.com (Preferences → API) z
 msgctxt "#32386"
 msgid "Director"
 msgstr "Regisseur"
+
+msgctxt "#32387"
+msgid "Coloured rating badges"
+msgstr "Farbige Bewertungsschilder"

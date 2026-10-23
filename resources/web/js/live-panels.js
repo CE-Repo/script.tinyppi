@@ -460,6 +460,29 @@
      gave on the right.  What a reader is told is the badge's sentence, kept
      off the screen; what is drawn is kept from the reader, who would
      otherwise hear "8.5 612,345" with nothing to say what either is. */
+  /* The shields in their houses' colours, or all in greys: this device's
+     own choice, made with the switch on the settings tab (see .ratings.mono
+     in css/live-panels.css). */
+  const COLOURS_KEY = "tinyppi.ratingColours";
+  const coloursSwitch = $("ratingColours");
+
+  function storedColours() {
+    try { return localStorage.getItem(COLOURS_KEY) !== "0"; }
+    catch (_) { return true; }
+  }
+
+  function showColours(on) {
+    coloursSwitch.checked = on;
+    el.ratings.classList.toggle("mono", !on);
+  }
+
+  showColours(storedColours());
+  coloursSwitch.addEventListener("change", () => {
+    showColours(coloursSwitch.checked);
+    try { localStorage.setItem(COLOURS_KEY, coloursSwitch.checked ? "1" : "0"); }
+    catch (_) { /* no storage: the choice holds until the page is closed */ }
+  });
+
   /* A tap -- or a click -- on a shield shows its words over it for a
      moment; under a pointer its tooltip says them too. */
   let tipTimer = 0;

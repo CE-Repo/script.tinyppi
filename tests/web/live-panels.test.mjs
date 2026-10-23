@@ -9,7 +9,7 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { test } from "node:test";
-import { bare, page, settle } from "./harness.mjs";
+import { bare, page, run, settle } from "./harness.mjs";
 
 const SCRIPTS = ["core.js", "readings.js", "live-chapters.js", "live-remote.js", "live-panels.js"];
 const START = 1_700_000_000_000;
@@ -478,6 +478,54 @@ test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   // A tap beside the shields shows nothing.
   $("ratings").click();
   assert.ok(tip.classList.contains("hidden"));
+});
+
+test("the settings' switch draws the rating shields in greys, and is remembered", (t) => {
+  const { $, P, window } = panels(t);
+  const toggle = $("ratingColours");
+  assert.equal(toggle.getAttribute("role"), "switch");
+  // In colour until switched off.
+  assert.equal(toggle.checked, true);
+  P.update(snap({ media: { plot: "Plot.", ratings: [{ source: "metacritic", rating: 7.4, votes: 0 }] } }));
+  assert.equal($("ratings").classList.contains("mono"), false);
+
+  toggle.checked = false;
+  toggle.dispatchEvent(new window.Event("change"));
+  assert.ok($("ratings").classList.contains("mono"));
+  assert.equal(window.localStorage.getItem("tinyppi.ratingColours"), "0");
+  // New shields keep to it.
+  P.update(snap({ media: { plot: "Plot.", ratings: [{ source: "trakt", rating: 8.8, votes: 0 }] } }));
+  assert.ok($("ratings").classList.contains("mono"));
+
+  toggle.checked = true;
+  toggle.dispatchEvent(new window.Event("change"));
+  assert.equal($("ratings").classList.contains("mono"), false);
+  assert.equal(window.localStorage.getItem("tinyppi.ratingColours"), "1");
+});
+
+test("a device that chose greys finds them, and one that blocks storage has colours", (t) => {
+  for (const [stored, mono] of [["0", true], [null, false]]) {
+    const view = page({ scripts: [] });
+    t.after(() => view.window.close());
+    if (stored) view.window.localStorage.setItem("tinyppi.ratingColours", stored);
+    for (const name of SCRIPTS) run(view.dom, name);
+    const $ = (id) => view.window.document.getElementById(id);
+    assert.equal($("ratings").classList.contains("mono"), mono);
+    assert.equal($("ratingColours").checked, !mono);
+  }
+  const view = page({ scripts: [] });
+  t.after(() => view.window.close());
+  const { window } = view;
+  Object.defineProperty(window, "localStorage", {
+    configurable: true, get() { throw new window.DOMException("blocked", "SecurityError"); }
+  });
+  for (const name of SCRIPTS) run(view.dom, name);
+  const toggle = window.document.getElementById("ratingColours");
+  assert.equal(toggle.checked, true);
+  // Switched all the same, for as long as the page is open.
+  toggle.checked = false;
+  toggle.dispatchEvent(new window.Event("change"));
+  assert.ok(window.document.getElementById("ratings").classList.contains("mono"));
 });
 
 test("the overview's credits: the directors over the cast, a line each, over the ratings", (t) => {

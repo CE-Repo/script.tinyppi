@@ -26,7 +26,7 @@ settings:
 | **Films** | Continue watching (films), recently added films, the unwatched films and the whole film library |
 | **Series** | Continue watching (episodes), recently updated series, the series with unwatched episodes and the whole series library |
 | **History** | The metrics and the events of the title that is playing — or, for ten minutes after the credits, of the one that just ended |
-| **Settings** | The theme, the access token, the chapter dots on the progress bar and the two reports |
+| **Settings** | The theme, the access token, the chapter dots on the progress bar, the rating badges' colours and the two reports |
 
 The address remembers the tab (`/#films`, `/#history`, …), so a bookmark or a
 reload comes back to it, and each device reopens the tab it was left on. The
@@ -66,7 +66,9 @@ connection light.
   [The IMDb Top 250](#the-imdb-top-250)). A screen reader hears each shield
   in words ("IMDb 8.5"), and a tap or a click on one shows the same words
   over it for a moment (a pointer's tooltip says them too), for a mark you
-  do not know. An episode is rated on its own and carries its
+  do not know. **Coloured rating badges** on the settings tab (on unless
+  this device switched it off) draws every shield in the page's greys
+  instead: its mark without colour on a plain ground. An episode is rated on its own and carries its
   show's age rating. An age rating that names neither its country nor its
   board ("Rated 12", which the TMDb scraper writes with its default prefix)
   is read as the one board that gives that level — "PG-13" is American, "15"
