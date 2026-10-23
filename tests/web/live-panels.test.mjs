@@ -359,7 +359,11 @@ test("the overview card carries every rating as a shield with its mark, under th
   assert.equal($("ratings").classList.contains("hidden"), false);
   // Under the slogan and the plot, and the credits where there are any: last.
   assert.equal($("ratings").nextElementSibling, $("ratingTip"));
-  assert.equal($("plotFold").nextElementSibling, $("ratings"));
+  assert.equal($("plotFold").nextElementSibling, $("ratingsHeadline"));
+  assert.equal($("ratingsHeadline").nextElementSibling, $("ratings"));
+  assert.equal($("ratingsHeadline").textContent, "Ratings");
+  assert.equal($("ratingsHeadline").classList.contains("hidden"), false);
+  assert.equal($("ratings").getAttribute("aria-labelledby"), "ratingsHeadline");
   assert.equal($("plotText").nextElementSibling, $("credits"));
   assert.equal($("tagline").nextElementSibling, $("plotText"));
   assert.deepEqual(plain(badges()), [
@@ -387,7 +391,8 @@ test("the overview card carries every rating as a shield with its mark, under th
 
   // The words arrive later, and the badges say them.
   P.strings({ ...window.TinyPPI.T, my_rating: "Eigene Bewertung",
-              top250: "Top 250 · Platz %s" });
+              top250: "Top 250 · Platz %s", ratings: "Bewertungen" });
+  assert.equal($("ratingsHeadline").textContent, "Bewertungen");
   const said = () => [...$("ratings").children].map((node) => node.querySelector(".said").textContent);
   assert.deepEqual(said().slice(0, 2), ["FSK 12", "IMDb 8.5"]);
   assert.deepEqual(said().slice(6, 8), ["Eigene Bewertung 9", "Top 250 · Platz 27"]);
@@ -418,9 +423,10 @@ test("the overview card carries every rating as a shield with its mark, under th
   P.update(snap({ media: { plot: "Plot.", mpaa: "FSK 6", age: "fsk6" } }));
   assert.deepEqual(plain(badges()), [["rating age", "FSK 6", "side fsk6 plate /ratings/fsk6.svg", []]]);
 
-  // A plot without ratings: no row of badges.
+  // A plot without ratings: no row of badges, and no heading over none.
   P.update(snap({ media: { plot: "An episode.", ratings: [], userrating: 0, top250: 0, mpaa: "" } }));
   assert.ok($("ratings").classList.contains("hidden"));
+  assert.ok($("ratingsHeadline").classList.contains("hidden"));
   assert.equal($("ratings").children.length, 0);
   assert.equal($("plotCard").classList.contains("hidden"), false);
 
@@ -543,7 +549,7 @@ test("the overview's credits: the directors over the cast, a line each, over the
   // with an ellipsis where an older add-on said there are more.  The genre
   // and the studio are the card above's.
   assert.equal($("credits").nextElementSibling, null);
-  assert.equal($("credits").parentElement.nextElementSibling, $("ratings"));
+  assert.equal($("credits").parentElement.nextElementSibling, $("ratingsHeadline"));
   assert.equal($("credits").classList.contains("hidden"), false);
   assert.deepEqual(lines(), [
     ["credit", "DT Director", "DD Denis Villeneuve"],

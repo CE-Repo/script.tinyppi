@@ -47,8 +47,8 @@ connection light.
 - **Overview** — a card under it with the title's slogan right over its
   plot, so the two read as one text, the slogan upright and set like a
   credit's heading; hanging on the plot's end its directors and then its
-  cast; and last, past a thin rule, every rating Kodi's library holds for
-  it, all of it centred. A long plot is cut to three lines, the credits
+  cast; and last, under the heading Ratings, every rating Kodi's library holds for
+  it, all of it centred. A long plot is cut to five lines, the credits
   hidden with the rest of it, and a click or tap on the text (or Enter or
   Space once it has the focus) lets it all out and takes it back; under a
   plot that fits the credits stand as they are, and a new title starts cut

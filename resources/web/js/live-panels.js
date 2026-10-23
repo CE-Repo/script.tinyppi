@@ -107,7 +107,9 @@
           '<p class="plottext hidden" id="plotText"></p>' +
           '<dl class="credits hidden" id="credits"></dl>' +
         '</div>' +
-        '<div class="ratings hidden" id="ratings" role="list"></div>' +
+        /* Under the credits, under a heading of their own like a credit's. */
+        '<p class="ratingshead hidden" id="ratingsHeadline"></p>' +
+        '<div class="ratings hidden" id="ratings" role="list" aria-labelledby="ratingsHeadline"></div>' +
         /* What a shield says, over it for a moment after a tap: the house a
            mark is from, which a mark alone does not always tell.  A screen
            reader hears each shield's words already. */
@@ -168,7 +170,7 @@
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), studio: $("studio"), file: $("file"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
-    plotCard: $("plotCard"), ratings: $("ratings"), ratingTip: $("ratingTip"), tagline: $("tagline"),
+    plotCard: $("plotCard"), ratingsHeadline: $("ratingsHeadline"), ratings: $("ratings"), ratingTip: $("ratingTip"), tagline: $("tagline"),
     plotFold: $("plotFold"), plotText: $("plotText"), credits: $("credits"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
@@ -288,6 +290,7 @@
     }
     const badges = ratingBadges(media, TinyPPI.T);
     fillRatings(badges);
+    el.ratingsHeadline.textContent = TinyPPI.T.ratings;
     const credits = creditList(media, TinyPPI.T);
     fillCredits(credits);
     el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credits.length);
@@ -533,6 +536,7 @@
       el.ratings.append(node);
     }
     el.ratings.classList.toggle("hidden", !badges.length);
+    el.ratingsHeadline.classList.toggle("hidden", !badges.length);
   }
 
   /* The poster is fetched once per film: the add-on sends a tag that changes
@@ -1015,6 +1019,7 @@
     /* The badges carry words of the table too ("My rating"), and the
        credits their name. */
     fillRatings(ratingBadges(plotMedia, T));
+    el.ratingsHeadline.textContent = T.ratings;
     fillCredits(creditList(plotMedia, T));
     $("tilesTitle").textContent = T.metrics;
     $("kSwitches").textContent = T.switches;

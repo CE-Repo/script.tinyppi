@@ -138,11 +138,11 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   // The plot's own line break, drawn as one.
   assert.equal(await page.locator("#plotText").innerText(),
                "A film about somebody.\nAnd what happens to them.");
-  // Cut to three lines; two of them leave nothing to let out, so nothing to press.
+  // Cut to five lines; two of them leave nothing to let out, so nothing to press.
   assert.deepEqual(await page.$eval("#plotText", (node) => {
     const style = getComputedStyle(node);
     return [style.webkitLineClamp, style.overflow];
-  }), ["3", "hidden"]);
+  }), ["5", "hidden"]);
   assert.equal(await page.locator("#plotFold").getAttribute("role"), null);
   // The slogan upright, set like a credit's heading, and right over the
   // plot: the two read as one text.
@@ -167,8 +167,20 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
       .map((selector) => page.locator(selector).boundingBox()));
   assert.ok(credits.y >= text.y + text.height - 1, "the credits under the plot");
   assert.ok(row.y >= credits.y + credits.height - 1, "the ratings under the credits");
-  assert.equal(await page.$eval("#credits", (node) => getComputedStyle(node).borderTopWidth), "0px");
-  assert.equal(await page.$eval("#ratings", (node) => getComputedStyle(node).borderTopWidth), "1px");
+  // No rule anywhere: the ratings stand under a heading of their own, set
+  // like a credit's, between the credits and the badges.
+  for (const selector of ["#credits", "#ratingsHeadline", "#ratings"]) {
+    assert.equal(await page.$eval(selector, (node) => getComputedStyle(node).borderTopWidth), "0px");
+  }
+  const headline = await page.locator("#ratingsHeadline").boundingBox();
+  assert.ok(headline.y >= credits.y + credits.height - 1 && row.y >= headline.y + headline.height - 1,
+            "the heading between the credits and the badges");
+  const [headStyle, termStyle] = await Promise.all(["#ratingsHeadline", "#credits dt"].map((selector) =>
+    page.$eval(selector, (node) => {
+      const style = getComputedStyle(node);
+      return [style.fontWeight, style.fontSize, style.color, style.textAlign];
+    })));
+  assert.deepEqual(headStyle, termStyle);
   const left = first.x - row.x;
   const right = row.x + row.width - (last.x + last.width);
   assert.ok(Math.abs(left - right) <= 2, `centred: ${left} vs ${right}`);
