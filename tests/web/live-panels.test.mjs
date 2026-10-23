@@ -200,38 +200,25 @@ test("what is playing: title, show line, file, progress and times", (t) => {
   assert.equal($("bar").style.width, "0%");
 });
 
-test("who directed it stands in the card of what is playing, over its badges", (t) => {
+test("who directed it is not in the card of what is playing", (t) => {
   const { $, P } = panels(t);
+  assert.equal($("director"), null);
   P.update(snap({ media: { directors: ["Denis Villeneuve"] } }));
-  // The last line over the badges, the name alone.
-  assert.equal($("director").nextElementSibling, $("formats"));
-  assert.equal($("director").classList.contains("hidden"), false);
-  assert.equal($("director").textContent, "Denis Villeneuve");
-
-  // Only the first of more than one, and nothing to say there are more.
-  P.update(snap({ media: { directors: ["Joel Coen", "Ethan Coen"] } }));
-  assert.equal($("director").textContent, "Joel Coen");
-
-  // Written only when it changes.
-  const written = $("director").firstChild;
-  P.update(snap({ media: { directors: ["Joel Coen"] } }));
-  assert.equal($("director").firstChild, written);
-
-  // None: gone, and the overview no card for it.
-  P.update(snap({ media: { directors: [] } }));
-  assert.ok($("director").classList.contains("hidden"));
-  assert.equal($("director").textContent, "");
-  P.update(snap({ media: { directors: ["Somebody"] } }));
-  assert.ok($("plotCard").classList.contains("hidden"));
+  // In the overview's credits instead.
+  assert.equal($("nowCard").textContent.includes("Denis Villeneuve"), false);
+  assert.ok($("credits").textContent.includes("Denis Villeneuve"));
 });
 
 test("a long plot is cut to a few lines, and a press on it lets the rest out", (t) => {
   const { $, P, window } = panels(t);
   // jsdom lays nothing out: the plot is given the heights a browser would.
   const box = { full: 200, shown: 87 };
-  const plot = $("plotText");
-  Object.defineProperty(plot, "scrollHeight", { configurable: true, get: () => box.full });
-  Object.defineProperty(plot, "clientHeight", { configurable: true, get: () => box.shown });
+  // The plot is measured; the slogan, the plot and the credits fold as one.
+  const text = $("plotText");
+  const plot = $("plotFold");
+  Object.defineProperty(text, "scrollHeight", { configurable: true, get: () => box.full });
+  Object.defineProperty(text, "clientHeight", { configurable: true, get: () => box.shown });
+  assert.deepEqual([...plot.children].map((node) => node.id), ["tagline", "plotText", "credits"]);
   const key = (name) => {
     const event = new window.KeyboardEvent("keydown", { key: name, cancelable: true });
     plot.dispatchEvent(event);
@@ -370,8 +357,9 @@ test("the overview card carries every rating as a shield with its mark, under th
   P.update(snap({ media: rated }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
   assert.equal($("ratings").classList.contains("hidden"), false);
-  // Under the slogan and the plot, and the cast where there is one: last.
+  // Under the slogan and the plot, and the credits where there are any: last.
   assert.equal($("ratings").nextElementSibling, null);
+  assert.equal($("plotFold").nextElementSibling, $("ratings"));
   assert.equal($("plotText").nextElementSibling, $("credits"));
   assert.equal($("tagline").nextElementSibling, $("plotText"));
   assert.deepEqual(plain(badges()), [
@@ -461,7 +449,7 @@ test("the sources MDBList brings wear their own marks and names", (t) => {
   }
 });
 
-test("the overview card ends with the credits, a line each under the ratings", (t) => {
+test("the overview's credits: the directors over the cast, a line each, over the ratings", (t) => {
   const { $, P, window } = panels(t);
   const lines = () => [...$("credits").children].map((line) =>
     [line.className, ...[...line.children].map((part) => part.tagName + " " + part.textContent)]);
@@ -472,11 +460,14 @@ test("the overview card ends with the credits, a line each under the ratings", (
     cast_more: true, studios: ["Legendary Pictures"]
   };
   P.update(snap({ media: credited }));
-  // Over the ratings, the cast, cut with an ellipsis; the genre, the
-  // studio and the director are the card above's.
-  assert.equal($("credits").nextElementSibling, $("ratings"));
+  // On the plot's end, over the ratings: the director, then the cast, cut
+  // with an ellipsis where an older add-on said there are more.  The genre
+  // and the studio are the card above's.
+  assert.equal($("credits").nextElementSibling, null);
+  assert.equal($("credits").parentElement.nextElementSibling, $("ratings"));
   assert.equal($("credits").classList.contains("hidden"), false);
   assert.deepEqual(lines(), [
+    ["credit", "DT Director", "DD Denis Villeneuve"],
     ["credit", "DT Cast", "DD Timothée Chalamet, Zendaya, Rebecca Ferguson, Javier Bardem, Josh Brolin, …"]]);
 
   // The same credits again are not built again.
@@ -486,16 +477,19 @@ test("the overview card ends with the credits, a line each under the ratings", (
 
   // The words arrive later, into the page's table, and the lines are named
   // in them.
-  Object.assign(window.TinyPPI.T, { cast: "Darsteller" });
+  Object.assign(window.TinyPPI.T, { director: "Regisseur", cast: "Darsteller" });
   P.strings(window.TinyPPI.T);
-  assert.deepEqual(lines().map((line) => line[1]), ["DT Darsteller"]);
+  assert.deepEqual(lines().map((line) => line[1]), ["DT Regisseur", "DT Darsteller"]);
 
-  // A cast the add-on did not cut ends without one.  A studio or a
-  // director alone is no credit.
+  // A cast the add-on did not cut ends without one.  A studio alone is no
+  // credit; a director is one, every one of them named.
   P.update(snap({ media: { plot: "Plot.", cast: ["Somebody", "Somebody Else"] } }));
   assert.deepEqual(lines(), [["credit", "DT Darsteller", "DD Somebody, Somebody Else"]]);
-  P.update(snap({ media: { studios: ["A24"], directors: ["Somebody"] } }));
+  P.update(snap({ media: { studios: ["A24"] } }));
   assert.ok($("plotCard").classList.contains("hidden"));
+  P.update(snap({ media: { directors: ["Joel Coen", "Ethan Coen"] } }));
+  assert.equal($("plotCard").classList.contains("hidden"), false);
+  assert.deepEqual(lines(), [["credit", "DT Regisseur", "DD Joel Coen, Ethan Coen"]]);
 
   // Credits alone are still an overview.
   P.update(snap({ media: { cast: ["Somebody"] } }));

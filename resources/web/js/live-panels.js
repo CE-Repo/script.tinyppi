@@ -47,9 +47,6 @@
         '<p class="meta" id="meta"></p>' +
         '<p class="meta studio" id="studio"></p>' +
         '<p class="file mono hidden" id="file"></p>' +
-        /* Who directed it, in the middle of what the lines above leave
-           over (see .now .director). */
-        '<p class="director hidden" id="director"></p>' +
         /* What the picture is and what the sound is, a row each -- the same
            badges the mobile app draws under its title. */
         '<div class="formats" id="formats">' +
@@ -102,11 +99,14 @@
     '<details class="card hidden" id="plotCard">' +
       '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
       '<div class="plot">' +
-        '<p class="tagline hidden" id="tagline"></p>' +
-        /* A long plot is cut to a few lines; a press on it lets the rest
-           out and takes it back. */
-        '<p class="plottext hidden" id="plotText"></p>' +
-        '<dl class="credits hidden" id="credits"></dl>' +
+        /* The slogan, the plot and its credits read as one text.  A long
+           plot is cut to a few lines, the credits with it; a press on the
+           text lets the rest out and takes it back. */
+        '<div class="plotfold" id="plotFold">' +
+          '<p class="tagline hidden" id="tagline"></p>' +
+          '<p class="plottext hidden" id="plotText"></p>' +
+          '<dl class="credits hidden" id="credits"></dl>' +
+        '</div>' +
         '<div class="ratings hidden" id="ratings" role="list"></div>' +
       '</div>' +
     '</details>' +
@@ -163,10 +163,9 @@
   const el = {
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), studio: $("studio"), file: $("file"),
-    director: $("director"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
     plotCard: $("plotCard"), ratings: $("ratings"), tagline: $("tagline"),
-    plotText: $("plotText"), credits: $("credits"),
+    plotFold: $("plotFold"), plotText: $("plotText"), credits: $("credits"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
     tFinish: $("tFinish"), tFinishLabel: $("tFinishLabel"),
@@ -230,7 +229,6 @@
     renderArt(snapshot.art || {});
     renderBadges(snapshot);
     renderFormats(snapshot);
-    renderDirector(media);
     renderPlot(media);
 
     const progress = (snapshot.metrics || {}).progress;
@@ -296,40 +294,41 @@
     }
   }
 
-  /* A plot runs to a few lines (see .plot .plottext), and a press on it --
-     a click, a tap, or Enter or Space once it has the focus -- lets the rest
-     out and takes it back.  It is pressable only where there is more to
-     show: measured when the plot changes, when the card is opened and when
-     the page is resized, since how many lines a plot takes is a matter of
-     how wide it is laid out.  Pressable, it is a button to a screen reader,
-     and says under a pointer what a press does. */
+  /* A plot runs to a few lines (see .plot .plottext), its credits hidden
+     with the rest of it, and a press on the text -- a click, a tap, or Enter
+     or Space once it has the focus -- lets the rest out and takes it back.
+     It is pressable only where there is more to show: measured when the
+     plot changes, when the card is opened and when the page is resized,
+     since how many lines a plot takes is a matter of how wide it is laid
+     out.  Pressable, it is a button to a screen reader, and says under a
+     pointer what a press does. */
   function openPlot(open) {
-    el.plotText.classList.toggle("open", open);
-    if (el.plotText.classList.contains("fold")) {
-      el.plotText.setAttribute("aria-expanded", String(open));
-      el.plotText.title = open ? TinyPPI.T.plot_less : TinyPPI.T.plot_more;
+    el.plotFold.classList.toggle("open", open);
+    if (el.plotFold.classList.contains("fold")) {
+      el.plotFold.setAttribute("aria-expanded", String(open));
+      el.plotFold.title = open ? TinyPPI.T.plot_less : TinyPPI.T.plot_more;
     }
   }
 
   function measurePlot() {
-    if (el.plotText.classList.contains("open")) return;
+    if (el.plotFold.classList.contains("open")) return;
     const cut = el.plotText.scrollHeight > el.plotText.clientHeight + 1;
-    el.plotText.classList.toggle("fold", cut);
+    el.plotFold.classList.toggle("fold", cut);
     if (cut) {
-      el.plotText.setAttribute("role", "button");
-      el.plotText.tabIndex = 0;
+      el.plotFold.setAttribute("role", "button");
+      el.plotFold.tabIndex = 0;
     } else {
-      for (const name of ["role", "tabindex", "aria-expanded", "title"]) el.plotText.removeAttribute(name);
+      for (const name of ["role", "tabindex", "aria-expanded", "title"]) el.plotFold.removeAttribute(name);
     }
     openPlot(false);
   }
 
   function flipPlot() {
-    if (el.plotText.classList.contains("fold")) openPlot(!el.plotText.classList.contains("open"));
+    if (el.plotFold.classList.contains("fold")) openPlot(!el.plotFold.classList.contains("open"));
   }
 
-  el.plotText.addEventListener("click", flipPlot);
-  el.plotText.addEventListener("keydown", (event) => {
+  el.plotFold.addEventListener("click", flipPlot);
+  el.plotFold.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
     flipPlot();
@@ -338,27 +337,21 @@
   window.addEventListener("resize", measurePlot);
 
   /* Names as a line: a comma between two, and an ellipsis after the last
-     where there are more than the add-on sends (see _NAMES in
-     web/snapshot.py). */
+     where an older add-on said there are more than it sends. */
   function nameList(names, more) {
     return names.join(", ") + (more ? ", …" : "");
   }
 
-  /* Who directed the title: the first name alone, which says what it is
-     where it stands, and gone where the library has none.  Written only when
-     it changes. */
-  function renderDirector(media) {
-    const text = (media.directors || [])[0] || "";
-    if (el.director.textContent !== text) el.director.textContent = text;
-    el.director.classList.toggle("hidden", !text);
-  }
-
-  /* Who is in the title, the leads as the add-on cuts them: the overview's
-     credits.  What kind of film it is, who made it and who directed it
-     stand in the card above. */
+  /* Who directed the title and who is in it, every name the add-on sends:
+     the overview's credits, the director over the cast.  What kind of film
+     it is and who made it stand in the card above. */
   function creditList(media, T) {
+    const directors = media.directors || [];
     const cast = media.cast || [];
-    return cast.length ? [{ label: T.cast, names: nameList(cast, Boolean(media.cast_more)) }] : [];
+    const credits = [];
+    if (directors.length) credits.push({ label: T.director, names: nameList(directors, false) });
+    if (cast.length) credits.push({ label: T.cast, names: nameList(cast, Boolean(media.cast_more)) });
+    return credits;
   }
 
   /* What it is over the names, as a description list, so a screen reader
@@ -972,7 +965,7 @@
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
     $("plotTitle").textContent = T.plot;
-    openPlot(el.plotText.classList.contains("open"));
+    openPlot(el.plotFold.classList.contains("open"));
     /* The badges carry words of the table too ("My rating"), and the
        credits their name. */
     fillRatings(ratingBadges(plotMedia, T));
