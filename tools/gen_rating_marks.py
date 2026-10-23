@@ -124,7 +124,11 @@ def marks(letters: Lettering) -> list[Mark]:
            "16": ("#00A0E3", white), "18": ("#E30613", white)}
 
     found = [
-        _named("top250", plate("#F5C518", "TOP 250", black, 8.4, 14.9, 0.1)),
+        # The IMDb Top 250's number alone, square like the logos beside it.
+        Mark("top250", *square, [
+            Shape(rounded(22, 22, 4), fill="#F5C518"),
+            Shape(letters.text("250", 9, 11, 14.3, 0.1), fill=black),
+        ]),
         # Metacritic's own circle with a reader on it, for its users' score.
         Mark("metacriticuser", *square, [
             Shape(circle(11, 11, 11), fill="#FFCC34"),
