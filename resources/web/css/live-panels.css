@@ -721,7 +721,9 @@
 .credits {
   margin: 0;
   display: grid;
-  gap: 4px;
+  /* More air between two of them than between the lines of one: a long
+     cast runs on over several. */
+  gap: 6px;
   text-align: center;
   font-size: 13px;
   line-height: 1.5;
