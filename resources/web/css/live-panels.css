@@ -676,23 +676,23 @@
   font-variant-numeric: tabular-nums;
 }
 .rating .note { font-size: 11px; }
+/* A mark as tall as a line of the shield and as wide as it is drawn: twice
+   its height for the wordmarks, square or round for the rest. */
 .rating .mark {
   display: block;
-  width: 20px;
+  width: auto;
   height: 20px;
 }
-.rating .mark.wide { width: 40px; }
-/* An FSK mark is the whole badge, as tall as the shields beside it. */
+/* An age rating's mark is the whole badge, as tall as the shields beside
+   it: square for the FSK, round for the BBFC, a plate for the American
+   boards. */
 .rating.drawn {
   border: 0;
   border-radius: 5px;
   background: none;
 }
 .rating.drawn .side { padding: 0; }
-.rating.drawn .mark {
-  width: 26px;
-  height: 26px;
-}
+.rating.drawn .mark { height: 26px; }
 /* What the badge says aloud: there for a screen reader, not on the screen. */
 .rating .said {
   position: absolute;

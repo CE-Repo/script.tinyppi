@@ -46,13 +46,19 @@ connection light.
   under them every rating Kodi's library holds for it, all of it centred. The ratings
   are a row of small shields, each with its source's mark on the left, on a
   ground of the source's colour, instead of its name, and what it gave on the
-  right: first the age rating — a German one as the coloured FSK mark, any
-  other written out — then a score for each source the scraper or the NFO
-  wrote (IMDb, TMDb, Trakt, TVDB, Metacritic, Rotten Tomatoes; any other gets
+  right: first the age rating — a German, American or British one as its
+  board's coloured mark (FSK; the MPA's for films and the TV Parental
+  Guidelines' for series, both in the FSK's colours; BBFC), any other written
+  out — then a score for each source the scraper or the NFO wrote (IMDb, TMDb, Trakt, TVDB, Metacritic, Rotten Tomatoes; any other gets
   its first letter on a plain plate) with how many voted, your own rating
   behind a heart and the place in the IMDb Top 250. A screen reader hears each shield in words
   ("IMDb 8.5, 612,345 votes"). An episode is rated on its own and carries its
-  show's age rating. The slogan only stands above a plot (most episodes have
+  show's age rating. An age rating that names neither its country nor its
+  board ("Rated 12", which the TMDb scraper writes with its default prefix)
+  is read as the one board that gives that level — "PG-13" is American, "15"
+  British — and where more than one does ("12", "18", "PG") as the board of
+  the country Kodi's language points to: German, British English or American
+  English. The slogan only stands above a plot (most episodes have
   none). Without a plot the card shows the ratings alone, and with neither it
   is left out, as it is for a file that is not in the library. The ratings are
   read from the library once per title, and only while a page is open. The

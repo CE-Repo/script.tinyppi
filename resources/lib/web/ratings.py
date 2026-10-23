@@ -7,13 +7,15 @@ Kodi's InfoLabels carry only the default rating.  The library holds one per
 source (``ratings``), the reader's own (``userrating``), the age rating
 (``mpaa``) and the IMDb Top 250 place, so the playing title's library entry
 is read over JSON-RPC, once per title (see ``SnapshotBuilder._rating_info``).
-An episode's age rating is its show's: Kodi keeps it there.  A German one is
-read for its FSK level too, which the page draws as the coloured FSK mark.
+An episode's age rating is its show's: Kodi keeps it there.  A German,
+American or British one is read for its level too (see ``age_mark``), which
+the page draws as that board's coloured mark.
 """
 
 import re
 from collections.abc import Mapping
 
+import xbmc
 from web.payloads import Rating, Ratings
 from web.player import rpc, video_player_id
 from web.values import Json, clean_value
@@ -37,11 +39,36 @@ _RATING_LIMIT = 8
 # A source's name is a label on a badge, not a sentence.
 _NAME_LIMIT = 24
 
-# A German age rating, however a scraper or an NFO wrote it: "FSK 12",
-# "FSK ab 16 freigegeben", "DE:FSK 18", "Germany:6".  A bare "12" is not one:
-# the British board writes its ratings the same way.
-_FSK = re.compile(r"(?:\bFSK\s*|^(?:de|ger|germany|deutschland)\s*:\s*(?:FSK\s*)?)"
-                  r"(?:ab\s*)?(0|6|12|16|18)(?!\d)", re.IGNORECASE)
+# The levels each country's boards give, and the mark each is drawn as (see
+# tools/gen_rating_marks.py).  America has two boards, one for films and one
+# for television, whose levels never share a name.
+_LEVELS = {
+    "de": {"0": "fsk0", "6": "fsk6", "12": "fsk12", "16": "fsk16", "18": "fsk18"},
+    "us": {"G": "mpa_g", "PG": "mpa_pg", "PG-13": "mpa_pg13", "R": "mpa_r",
+           "NC-17": "mpa_nc17", "TV-Y": "tv_y", "TV-Y7": "tv_y7", "TV-G": "tv_g",
+           "TV-PG": "tv_pg", "TV-14": "tv_14", "TV-MA": "tv_ma"},
+    "gb": {"U": "bbfc_u", "PG": "bbfc_pg", "12A": "bbfc_12a", "12": "bbfc_12",
+           "15": "bbfc_15", "18": "bbfc_18", "R18": "bbfc_r18"},
+}
+
+# What names the country in front of a level: an NFO's "DE:" or "GB:", the
+# country written out, or the board itself.
+_COUNTRIES = {
+    "de": "de", "ger": "de", "germany": "de", "deutschland": "de", "fsk": "de",
+    "us": "us", "usa": "us", "united states": "us", "mpa": "us", "mpaa": "us",
+    "gb": "gb", "uk": "gb", "united kingdom": "gb", "great britain": "gb", "bbfc": "gb",
+}
+
+# An age rating however a scraper or an NFO wrote it: "FSK 12", "FSK ab 16
+# freigegeben", "DE:FSK 18", "Germany:6", "Rated PG-13", "TV-MA", "GB:15".
+_AGE = re.compile(
+    r"^\s*(?:(?P<country>[a-z ]+?)\s*:\s*)?(?:rated\s+)?(?:(?P<board>fsk|bbfc|mpaa?)\s*)?"
+    r"(?:ab\s*)?(?P<level>tv-[a-z0-9]+|nc-17|pg-13|r18|12a|[a-z]+|\d+)"
+    r"(?:\s*freigegeben)?\s*$", re.IGNORECASE)
+
+# The country Kodi's language points to, for a level more than one country's
+# board gives.  Kodi's English is British unless it is set to American.
+_HOMES = {"en": "gb", "en-gb": "gb", "en-us": "us"}
 
 _MOVIE = ("ratings", "userrating", "mpaa", "top250")
 _EPISODE = ("ratings", "userrating", "tvshowid")
@@ -49,13 +76,35 @@ _EPISODE = ("ratings", "userrating", "tvshowid")
 
 def no_ratings() -> Ratings:
     """Return the ratings of a title the library knows nothing about."""
-    return {"ratings": [], "mpaa": "", "fsk": "", "userrating": 0, "top250": 0}
+    return {"ratings": [], "mpaa": "", "age": "", "userrating": 0, "top250": 0}
 
 
-def fsk_level(mpaa: str) -> str:
-    """Return the FSK level an age rating names ("0" to "18"), or ""."""
-    found = _FSK.search(mpaa)
-    return found.group(1) if found else ""
+def home_country() -> str:
+    """Return the country Kodi's language points to ("de", "us", "gb"), or ""."""
+    language = xbmc.getLanguage(xbmc.ISO_639_1, True).lower().replace("_", "-")
+    return "de" if language.startswith("de") else _HOMES.get(language, "")
+
+
+def age_mark(mpaa: str, home: str = "") -> str:
+    """Return the mark an age rating is drawn as ("fsk12", "mpa_pg13"), or "".
+
+    A rating that names its country or its board is read as that one's.  One
+    that names neither is read as the one board that gives its level -- "PG-13"
+    is American, "15" British -- and where more than one does ("12", "18",
+    "PG") as *home*'s, when *home* is among them; otherwise it has no mark and
+    is written out.
+    """
+    found = _AGE.match(mpaa)
+    if not found:
+        return ""
+    level = found["level"].upper()
+    named = found["country"] or found["board"]
+    if named:
+        return _LEVELS.get(_COUNTRIES.get(named.strip().lower(), ""), {}).get(level, "")
+    boards = [country for country, levels in _LEVELS.items() if level in levels]
+    if len(boards) != 1:
+        boards = [home] if home in boards else []
+    return _LEVELS[boards[0]][level] if boards else ""
 
 
 def _count(value: object, high: int | None = None) -> int:
@@ -119,7 +168,7 @@ def _collect(details: Json, aged: Json) -> Ratings:
     return {
         "ratings":    rating_list(details.get("ratings")),
         "mpaa":       mpaa,
-        "fsk":        fsk_level(mpaa),
+        "age":        age_mark(mpaa, home_country()),
         "userrating": _count(details.get("userrating"), 10),
         "top250":     _count(details.get("top250"), 250),
     }

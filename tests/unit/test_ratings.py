@@ -7,7 +7,7 @@ import pytest
 
 import xbmc
 from web import ratings
-from web.ratings import fsk_level, no_ratings, playing_ratings, rating_list
+from web.ratings import age_mark, home_country, no_ratings, playing_ratings, rating_list
 
 IMDB = {"default": True, "rating": 8.54, "votes": 612345}
 TMDB = {"default": False, "rating": 8.2, "votes": 6120}
@@ -107,14 +107,47 @@ def test_a_list_that_is_no_mapping_is_no_list(value):
 
 # --- The age rating ------------------------------------------------------------------
 
-@pytest.mark.parametrize(("mpaa", "level"), [
-    ("FSK 12", "12"), ("FSK12", "12"), ("fsk 0", "0"), ("FSK ab 16 freigegeben", "16"),
-    ("DE:FSK 18", "18"), ("Germany:6", "6"), ("de: ab 12", "12"), ("Deutschland:16", "16"),
-    ("Rated PG-13", ""), ("12", ""), ("Rated 12", ""), ("FSK 14", ""), ("FSK 120", ""),
-    ("USK 12", ""), ("", ""),
+@pytest.mark.parametrize(("mpaa", "mark"), [
+    # German, however it is written.
+    ("FSK 12", "fsk12"), ("FSK12", "fsk12"), ("fsk 0", "fsk0"), ("FSK ab 16 freigegeben", "fsk16"),
+    ("DE:FSK 18", "fsk18"), ("Germany:6", "fsk6"), ("de: ab 12", "fsk12"), ("Deutschland:16", "fsk16"),
+    # American films and television, with and without the scraper's prefix.
+    ("Rated PG-13", "mpa_pg13"), ("PG-13", "mpa_pg13"), ("Rated R", "mpa_r"), ("G", "mpa_g"),
+    ("Rated NC-17", "mpa_nc17"), ("US:PG", "mpa_pg"), ("MPAA PG", "mpa_pg"), ("TV-MA", "tv_ma"),
+    ("Rated TV-14", "tv_14"), ("tv-y7", "tv_y7"), ("USA:TV-PG", "tv_pg"),
+    # British.
+    ("Rated 15", "bbfc_15"), ("12A", "bbfc_12a"), ("U", "bbfc_u"), ("R18", "bbfc_r18"),
+    ("GB:12", "bbfc_12"), ("UK:PG", "bbfc_pg"), ("BBFC 18", "bbfc_18"), ("United Kingdom:15", "bbfc_15"),
+    # A level a country's board does not give, a country there are no marks
+    # for, and what is no age rating at all.
+    ("FSK 14", ""), ("FSK 120", ""), ("US:15", ""), ("GB:PG-13", ""), ("FR:12", ""), ("USK 12", ""),
+    ("Rated PG-13 for violence", ""), ("Rated", ""), ("", ""),
 ])
-def test_a_german_age_rating_is_read_for_its_fsk_level(mpaa, level):
-    assert fsk_level(mpaa) == level
+def test_an_age_rating_is_read_for_its_board_and_level(mpaa, mark):
+    assert age_mark(mpaa, home="de") == mark
+
+
+@pytest.mark.parametrize(("mpaa", "home", "mark"), [
+    ("Rated 12", "de", "fsk12"), ("Rated 12", "gb", "bbfc_12"), ("18", "de", "fsk18"),
+    ("Rated PG", "us", "mpa_pg"), ("PG", "gb", "bbfc_pg"),
+    # Neither of the boards that give it is the home one's.
+    ("Rated 12", "us", ""), ("PG", "de", ""), ("12", "", ""),
+    # A level only one board gives is that board's whatever the home.
+    ("Rated 16", "gb", "fsk16"), ("PG-13", "de", "mpa_pg13"),
+])
+def test_a_level_more_than_one_board_gives_is_read_as_the_home_one(mpaa, home, mark):
+    assert age_mark(mpaa, home) == mark
+
+
+@pytest.mark.parametrize(("language", "home"), [
+    ("de-de", "de"), ("de-AT", "de"), ("de", "de"), ("en-gb", "gb"), ("en", "gb"),
+    ("en-US", "us"), ("en_us", "us"), ("en-au", ""), ("fr-fr", ""),
+])
+def test_the_home_country_is_the_one_kodis_language_points_to(monkeypatch, language, home):
+    asked = []
+    monkeypatch.setattr(xbmc, "getLanguage", lambda form, region: asked.append((form, region)) or language)
+    assert home_country() == home
+    assert asked == [(xbmc.ISO_639_1, True)]
 
 
 # --- What is playing ---------------------------------------------------------------
@@ -125,7 +158,7 @@ def test_a_film_brings_every_kind_of_rating():
     assert answer(fake) == {
         "ratings": [{"source": "imdb", "rating": 8.5, "votes": 612345},
                     {"source": "tmdb", "rating": 8.2, "votes": 6120}],
-        "mpaa": "FSK 12", "fsk": "12", "userrating": 9, "top250": 27,
+        "mpaa": "FSK 12", "age": "fsk12", "userrating": 9, "top250": 27,
     }
     assert ("VideoLibrary.GetMovieDetails",
             {"movieid": 12, "properties": ["ratings", "userrating", "mpaa", "top250"]}) in fake.calls
@@ -145,7 +178,7 @@ def test_an_episode_rates_itself_and_takes_its_age_rating_from_its_show():
                          "tvshowid": 3, "mpaa": "ignored"},
                 show={"mpaa": "FSK 16"})
     assert answer(fake) == {"ratings": [{"source": "tvdb", "rating": 8.8, "votes": 40}],
-                            "mpaa": "FSK 16", "fsk": "16", "userrating": 7, "top250": 0}
+                            "mpaa": "FSK 16", "age": "fsk16", "userrating": 7, "top250": 0}
     assert ("VideoLibrary.GetTVShowDetails", {"tvshowid": 3, "properties": ["mpaa"]}) in fake.calls
 
 

@@ -167,7 +167,7 @@ def rated(monkeypatch):
     """The ratings Kodi gives whatever plays; None while it cannot say yet."""
     asked = []
     given = {"found": {"ratings": [{"source": "imdb", "rating": 8.5, "votes": 10}],
-                       "mpaa": "FSK 12", "fsk": "12", "userrating": 9, "top250": 27}}
+                       "mpaa": "FSK 12", "age": "fsk12", "userrating": 9, "top250": 27}}
     monkeypatch.setattr(snapshot, "playing_ratings", lambda: asked.append(1) or given["found"])
     return asked, given
 
@@ -176,7 +176,7 @@ def test_the_ratings_travel_in_the_media_block(rated):
     play()
     media = SnapshotBuilder().build()["media"]
     assert media["ratings"] == [{"source": "imdb", "rating": 8.5, "votes": 10}]
-    assert (media["mpaa"], media["fsk"], media["userrating"], media["top250"]) == ("FSK 12", "12", 9, 27)
+    assert (media["mpaa"], media["age"], media["userrating"], media["top250"]) == ("FSK 12", "fsk12", 9, 27)
 
 
 def test_the_ratings_are_read_once_per_title_and_not_for_the_session_pass(rated, monkeypatch):

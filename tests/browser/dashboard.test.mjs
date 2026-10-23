@@ -74,6 +74,12 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   // jsdom tests'; here it is which marks stand there, served and drawn.
   await page.waitForFunction(() => [...document.querySelectorAll("#ratings img")]
     .every((image) => image.complete && image.naturalWidth > 0));
+  // Each as wide as it is drawn: the FSK's square, IMDb's wordmark twice its height.
+  const sizes = await page.$$eval("#ratings img", (images) => images.map((image) => {
+    const box = image.getBoundingClientRect();
+    return Math.round(box.width / box.height * 10) / 10;
+  }));
+  assert.deepEqual(sizes, [1, 2]);
   const marks = await page.$$eval("#ratings .rating", (nodes) => nodes.map((node) => [
     node.querySelector("img").getAttribute("src"),
     [...node.querySelectorAll(".value")].map((part) => part.textContent).join("")]));

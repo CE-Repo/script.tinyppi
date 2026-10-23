@@ -73,7 +73,7 @@ types allowed, no dependency check against Kodi's repository).
 | `unit/test_library_queries.py` | The library's JSON-RPC queries and rows: films, series, episodes and the continue row, resume points (including NaN and Infinity), ratings, tags that follow every field sent, playing and marking, bad ids that ask Kodi nothing |
 | `unit/test_static.py` | The dashboard's route table and static file cache |
 | `unit/test_strings.py` | The dashboard's UI strings |
-| `unit/test_ratings.py` | The playing title's ratings: known sources first and in order, one source under several names, the FSK level of a German age rating, what is no rating out of ten, vote counts, names cleaned and cut, a film's every kind of rating, an episode with its show's age rating, files outside the library, Kodi not ready yet, answers of the wrong shape |
+| `unit/test_ratings.py` | The playing title's ratings: known sources first and in order, one source under several names, the board and level of a German, American or British age rating (a level two boards give read as the one Kodi's language points to), what is no rating out of ten, vote counts, names cleaned and cut, a film's every kind of rating, an episode with its show's age rating, files outside the library, Kodi not ready yet, answers of the wrong shape |
 | `unit/test_values.py` | Text and id helpers shared by the dashboard, a plot's markup and line breaks |
 | `unit/test_dvcomposer.py` | The composer's rows of the Dolby Vision metadata view: curves, polynomial and MMR coefficients |
 | `unit/test_dvformat.py` | Value formatting for the metadata view: numbers, luminances, scaled values and coordinates, missing and non-finite values |

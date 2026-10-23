@@ -5,10 +5,14 @@
 """Draw the marks the plot card's ratings wear.
 
 One mark per rating source the dashboard knows (IMDb, TMDb, Trakt, TVDB,
-Metacritic, Rotten Tomatoes), the IMDb Top 250 and the five FSK age ratings.
-They are simplified marks in each house's colours, drawn here, not copies of
-the houses' own logo files; they name the source of a rating, which is
-nominative use (see section 4 of LICENSE-ASSETS).
+Metacritic, Rotten Tomatoes), the IMDb Top 250, and the age ratings of
+Germany (FSK), the United States (the MPA's for films, the TV Parental
+Guidelines' for television) and Britain (BBFC).  They are simplified marks in
+each house's colours, drawn here, not copies of the houses' own logo files;
+they name the source of a rating, which is nominative use (see section 4 of
+LICENSE-ASSETS).  The American ones are drawn in the colours of the FSK's
+levels rather than the MPA's black on white, so a row of them reads the same
+whichever country rated the film.
 
 The lettering is Inter Black turned into outlines, so a mark looks the same
 whatever fonts the browser or the phone has -- and an Android vector drawable
@@ -143,7 +147,46 @@ def marks(letters: Lettering) -> list[Mark]:
             Shape(rounded(22, 22, 5), fill=colour),
             Shape(letters.text(age, 12, 11, 15.6), fill=ink),
         ]))
+    return found + american(letters) + british(letters)
+
+
+# The colours of the levels, from all ages to adults only, as the FSK has them.
+_ALL, _CHILDREN, _TEENS, _ADULTS, _RESTRICTED = (
+    ("#00A651", "#FFFFFF"), ("#FFD500", "#000000"), ("#F7941D", "#000000"),
+    ("#E30613", "#FFFFFF"), ("#2E3192", "#FFFFFF"))
+
+
+def american(letters: Lettering) -> list[Mark]:
+    """Return the MPA's film ratings and the TV Parental Guidelines'."""
+    found = []
+    for name, words, width, (colour, ink) in (
+            ("mpa_g", "G", 22, _ALL), ("mpa_pg", "PG", 30, _CHILDREN),
+            ("mpa_pg13", "PG-13", 44, _TEENS), ("mpa_r", "R", 22, _ADULTS),
+            ("mpa_nc17", "NC-17", 44, _RESTRICTED)):
+        found.append(Mark(name, width, 22, [
+            Shape(rounded(width, 22, 4), fill=colour),
+            Shape(letters.text(words, 12 if width < 44 else 11.5, width / 2, 15.6), fill=ink),
+        ]))
+    for level, (colour, ink) in (("Y", _ALL), ("Y7", _ALL), ("G", _ALL), ("PG", _CHILDREN),
+                                 ("14", _TEENS), ("MA", _ADULTS)):
+        found.append(Mark(f"tv_{level.lower()}", 34, 22, [
+            Shape(rounded(34, 22, 4), fill=colour),
+            Shape(letters.text("TV", 6.2, 17, 8.6, 0.4), fill=ink),
+            Shape(letters.text(level, 9.2, 17, 17.6), fill=ink),
+        ]))
     return found
+
+
+def british(letters: Lettering) -> list[Mark]:
+    """Return the BBFC's ratings, as discs in its own colours."""
+    return [Mark(f"bbfc_{words.lower()}", 22, 22, [
+        Shape(circle(11, 11, 11), fill=colour),
+        Shape(letters.text(words, size, 11, 11 + size * 0.36), fill=ink),
+    ]) for words, colour, ink, size in (
+        ("U", "#00A651", "#FFFFFF", 12), ("PG", "#FBB800", "#000000", 10),
+        ("12A", "#F58220", "#FFFFFF", 8.6), ("12", "#F58220", "#FFFFFF", 11),
+        ("15", "#E5007E", "#FFFFFF", 11), ("18", "#E30613", "#FFFFFF", 11),
+        ("R18", "#1D1D6B", "#FFFFFF", 8.6))]
 
 
 def _named(name: str, mark: Mark) -> Mark:

@@ -136,9 +136,9 @@ class Ratings(TypedDict):
 
     ratings: list[Rating]
     # The age rating as the scraper wrote it ("FSK 12", "Rated PG-13"), and
-    # the FSK level it names ("0" to "18"; "" for any other).
+    # the mark it is drawn as ("fsk12", "mpa_pg13", "bbfc_15"; "" for none).
     mpaa: str
-    fsk: str
+    age: str
     # The reader's own, 1 to 10.
     userrating: int
     # The place in the IMDb Top 250.
@@ -159,7 +159,7 @@ class Media(TypedDict):
     plot: str
     ratings: list[Rating]
     mpaa: str
-    fsk: str
+    age: str
     userrating: int
     top250: int
 

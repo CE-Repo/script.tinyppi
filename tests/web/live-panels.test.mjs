@@ -246,8 +246,7 @@ test("the overview card carries every rating as a shield with its mark, under th
     const side = node.querySelector(".side");
     const image = side && side.querySelector("img");
     const drawn = !side ? "" : image
-      ? side.className + " " + image.getAttribute("src") +
-        (image.classList.contains("wide") ? " wide" : "")
+      ? side.className + " " + image.getAttribute("src")
       : side.className + ":" + side.textContent;
     const figures = node.querySelector(".figures");
     return [node.className, node.querySelector(".said").textContent, drawn,
@@ -259,7 +258,7 @@ test("the overview card carries every rating as a shield with its mark, under th
               { source: "trakt", rating: 8.4, votes: 31902 },
               { source: "rottentomatoes", rating: 9.2, votes: 0 },
               { source: "letterboxd", rating: 8.9, votes: 3 }],
-    userrating: 9, top250: 27, mpaa: "FSK 12", fsk: "12" };
+    userrating: 9, top250: 27, mpaa: "FSK 12", age: "fsk12" };
   P.update(snap({ media: rated }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
   assert.equal($("ratings").classList.contains("hidden"), false);
@@ -268,15 +267,15 @@ test("the overview card carries every rating as a shield with its mark, under th
   assert.equal($("tagline").nextElementSibling, $("plotText"));
   assert.deepEqual(plain(badges()), [
     ["rating age drawn", "FSK 12", "side fsk12 /ratings/fsk12.svg", []],
-    ["rating score", "IMDb 8.5, 612,345 votes", "side imdb /ratings/imdb.svg wide",
+    ["rating score", "IMDb 8.5, 612,345 votes", "side imdb /ratings/imdb.svg",
      [["value", "8.5"], ["note", "612,345"]]],
-    ["rating score", "TMDb 8.2", "side tmdb /ratings/tmdb.svg wide", [["value", "8.2"]]],
+    ["rating score", "TMDb 8.2", "side tmdb /ratings/tmdb.svg", [["value", "8.2"]]],
     ["rating score", "Trakt 8.4, 31,902 votes", "side trakt /ratings/trakt.svg",
      [["value", "8.4"], ["note", "31,902"]]],
     ["rating score", "Rotten Tomatoes 9.2", "side rottentomatoes /ratings/rottentomatoes.svg", [["value", "9.2"]]],
     ["rating score", "Letterboxd 8.9, 3 votes", "side letter:L", [["value", "8.9"], ["note", "3"]]],
     ["rating mine", "My rating 9", "side heart:", [["value", "9"]]],
-    ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg wide", [["value", "#27"]]]]);
+    ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg", [["value", "#27"]]]]);
   // Said in words, drawn as marks: the drawing is kept from a screen reader.
   for (const node of $("ratings").children) {
     assert.equal(node.getAttribute("role"), "listitem");
@@ -299,17 +298,23 @@ test("the overview card carries every rating as a shield with its mark, under th
 
   // An age rating no FSK level is read from is written out, with no mark.
   P.update(snap({ media: { ...rated, ratings: [{ source: "imdb", rating: 7.0, votes: 0 }],
-                           userrating: 0, top250: 0, mpaa: "Rated PG-13", fsk: "" } }));
+                           userrating: 0, top250: 0, mpaa: "Rated PG-13 for violence", age: "" } }));
   assert.deepEqual(plain(badges()), [
-    ["rating age", "Rated PG-13", "", [["value", "Rated PG-13"]]],
-    ["rating score", "IMDb 7.0", "side imdb /ratings/imdb.svg wide", [["value", "7.0"]]]]);
+    ["rating age", "Rated PG-13 for violence", "", [["value", "Rated PG-13 for violence"]]],
+    ["rating score", "IMDb 7.0", "side imdb /ratings/imdb.svg", [["value", "7.0"]]]]);
 
   // Ratings without a plot: the card for them alone, and no slogan.
-  P.update(snap({ media: { tagline: "Only this.", mpaa: "FSK 16", fsk: "16" } }));
+  P.update(snap({ media: { tagline: "Only this.", mpaa: "FSK 16", age: "fsk16" } }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
   assert.deepEqual(plain(badges()), [["rating age drawn", "FSK 16", "side fsk16 /ratings/fsk16.svg", []]]);
+
   assert.ok($("tagline").classList.contains("hidden"));
   assert.ok($("plotText").classList.contains("hidden"));
+  // An American or a British one wears its own board's mark.
+  for (const [mpaa, age] of [["Rated PG-13", "mpa_pg13"], ["TV-MA", "tv_ma"], ["Rated 15", "bbfc_15"]]) {
+    P.update(snap({ media: { plot: "Plot.", mpaa, age } }));
+    assert.deepEqual(plain(badges()), [["rating age drawn", mpaa, `side ${age} /ratings/${age}.svg`, []]]);
+  }
 
   // A plot without ratings: no row of badges.
   P.update(snap({ media: { plot: "An episode.", ratings: [], userrating: 0, top250: 0, mpaa: "" } }));

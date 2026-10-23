@@ -285,8 +285,6 @@
     imdb: "IMDb", tmdb: "TMDb", trakt: "Trakt", tvdb: "TVDB", metacritic: "Metacritic",
     rottentomatoes: "Rotten Tomatoes"
   };
-  /* The marks twice as wide as they are tall; the rest are round or square. */
-  const WIDE_MARKS = new Set(["imdb", "tmdb", "tvdb", "top250"]);
 
   /* Every rating the library holds for the title (see web/ratings.py), in
      the order the badges stand: the age rating first -- who the film is for
@@ -297,10 +295,11 @@
   function ratingBadges(media, T) {
     const badges = [];
     if (media.mpaa) {
-      /* A German one is the FSK's coloured mark and nothing else; any other
-         is written as the scraper wrote it. */
-      badges.push(media.fsk
-        ? { kind: "age", mark: "fsk" + media.fsk, said: media.mpaa }
+      /* One the add-on could read for its board and level -- FSK, MPA, TV
+         Parental Guidelines, BBFC -- is that board's coloured mark and
+         nothing else; any other is written as the scraper wrote it. */
+      badges.push(media.age
+        ? { kind: "age", mark: media.age, said: media.mpaa }
         : { kind: "age", value: media.mpaa, said: media.mpaa });
     }
     for (const entry of media.ratings || []) {
@@ -338,7 +337,9 @@
     if (badge.mark) {
       side.className = "side " + badge.mark;
       const image = document.createElement("img");
-      image.className = "mark" + (WIDE_MARKS.has(badge.mark) ? " wide" : "");
+      /* As wide as it is drawn: the SVG says, and the CSS gives only the
+         height (see .rating .mark). */
+      image.className = "mark";
       image.src = "/ratings/" + badge.mark + ".svg";
       image.alt = "";
       side.append(image);

@@ -576,7 +576,7 @@ class SnapshotBuilder:
                 "plot":    plain_text(values.get("Plot", "")),
                 "ratings":    ratings["ratings"],
                 "mpaa":       ratings["mpaa"],
-                "fsk":        ratings["fsk"],
+                "age":        ratings["age"],
                 "userrating": ratings["userrating"],
                 "top250":     ratings["top250"],
             },
