@@ -109,11 +109,11 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   // The plot's own line break, drawn as one.
   assert.equal(await page.locator("#plotText").innerText(),
                "A film about somebody.\nAnd what happens to them.");
-  // Cut to four lines; two of them leave nothing to let out, so no button.
+  // Cut to three lines; two of them leave nothing to let out, so no button.
   assert.deepEqual(await page.$eval("#plotText", (node) => {
     const style = getComputedStyle(node);
     return [style.webkitLineClamp, style.overflow];
-  }), ["4", "hidden"]);
+  }), ["3", "hidden"]);
   assert.equal(await page.locator("#plotMore").isVisible(), false);
   const [now, plot] = await Promise.all(
     ["#nowCard", "#plotCard"].map((selector) => page.locator(selector).boundingBox()));

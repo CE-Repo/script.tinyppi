@@ -789,14 +789,14 @@
   color: var(--muted);
   white-space: pre-line;
 }
-/* Cut to four lines, the last ending in an ellipsis, until the button under
+/* Cut to three lines, the last ending in an ellipsis, until the button under
    it lets the rest out (see openPlot in js/live-panels.js).  A screen reader
    hears all of it either way. */
 .plot .plottext:not(.open) {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
 }
 /* The button a quiet word in the accent under the plot's middle, close
