@@ -109,7 +109,7 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   // Every badge one height: the age rating's mark and the shields beside it.
   const heights = await page.$$eval("#ratings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
-  assert.deepEqual(heights, heights.map(() => 26));
+  assert.deepEqual(heights, heights.map(() => 30));
   // A tap on one shows its words over it.
   await page.locator("#ratings .rating").last().click();
   const [tip, shield] = await Promise.all(
