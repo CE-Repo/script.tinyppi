@@ -210,7 +210,9 @@ From then on — the film already playing included — the box asks MDBList once
 library holds, else the TMDb one — and the card shows the library's ratings
 until the answer is in. Where both have a rating from one source, MDBList's is
 shown; any other the library holds stands beside them. Every rating is out of
-ten: a score out of 100 a tenth of it, Roger Ebert's four stars ten. An answer
+ten: a score out of 100 a tenth of it, Roger Ebert's four stars ten. MDBList's
+own score — made of all the others, the figure its page shows in the coloured
+circle (`score_average`) — stands last of them, with MDBList's mark. An answer
 is kept for half a day.
 
 The library's ratings are shown alone without a key, for a film MDBList does

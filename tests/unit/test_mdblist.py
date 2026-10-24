@@ -17,7 +17,7 @@ from web.mdblist import Chart, Lookup, fetch, fetch_chart, places_of, scores_of,
 from web.ratings import no_ratings, rating_list
 
 # MDBList's answer for Jaws, as its documentation gives it (cut short).
-JAWS = {"title": "Jaws", "ratings": [
+JAWS = {"title": "Jaws", "score": 86, "score_average": 86, "ratings": [
     {"source": "imdb", "value": 8.1, "score": 81, "votes": 673852},
     {"source": "metacritic", "value": 87, "score": 87, "votes": 21},
     {"source": "metacriticuser", "value": None, "score": None, "votes": None},
@@ -47,7 +47,18 @@ def test_an_answer_gives_each_rating_out_of_ten():
         "letterboxd": {"rating": 8.0, "votes": 876082},
         # Four stars of four, with no score beside them.
         "rogerebert": {"rating": 10.0, "votes": None},
+        # Its own, from score_average: not from the entry by its name.
+        "mdblist": {"rating": 8.6, "votes": None},
     }
+
+
+@pytest.mark.parametrize(("average", "found"), [
+    (91, 9.1), ("91", 9.1), (None, None), (0, None), (101, None), ("n/a", None), (True, None),
+])
+def test_mdblists_own_score_is_its_score_average(average, found):
+    answer = {"score": 50, "score_average": average,
+              "ratings": [{"source": "mdblist", "value": None, "score": 68}]}
+    assert scores_of(answer).get("mdblist", {}).get("rating") == found
 
 
 def test_a_value_without_its_score_is_read_on_its_sources_scale():
@@ -88,7 +99,7 @@ def test_what_mdblist_brought_for_a_film_is_logged_with_what_could_not_be_read(m
     fetch("key", "imdb", "tt0073195")
     told = [line for _level, line in xbmc.LOG if "MDBList rated imdb tt0073195" in line]
     assert told == ["TinyPPI [web]: MDBList rated imdb tt0073195: imdb, metacritic, trakt, tomatoes, "
-                    "tmdb, letterboxd, rogerebert; no rating from metacriticuser, myanimelist"]
+                    "tmdb, letterboxd, rogerebert, mdblist; no rating from metacriticuser, myanimelist"]
     monkeypatch.setattr(mdblist, "_answer", lambda url: {"ratings": []})
     fetch("key", "imdb", "tt1")
     assert any(line.endswith("MDBList rated imdb tt1: nothing") for _level, line in xbmc.LOG)
@@ -360,7 +371,7 @@ def test_mdblists_ratings_come_first_and_the_librarys_stand_beside_them():
     assert answers.asked == [("KEY", {"imdb": "tt0073195"})]
     assert [(entry["source"], entry["rating"]) for entry in merged["ratings"]] == [
         ("imdb", 8.1), ("tmdb", 7.6), ("trakt", 7.8), ("letterboxd", 8.0), ("metacritic", 8.7),
-        ("rottentomatoes", 9.7), ("rogerebert", 10.0), ("filmstarts", 8.0)]
+        ("rottentomatoes", 9.7), ("rogerebert", 10.0), ("mdblist", 8.6), ("filmstarts", 8.0)]
     # The rest is the library's.
     assert merged["mpaa"] == "FSK 12"
     assert library["ratings"][0]["rating"] == 8.1

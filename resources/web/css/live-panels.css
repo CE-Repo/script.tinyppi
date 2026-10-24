@@ -677,6 +677,7 @@
 .rating .side.popcorn { background: #1e88e5; }
 .rating .side.rogerebert { background: #c8102e; }
 .rating .side.myanimelist { background: #2e51a2; }
+.rating .side.mdblist { background: #4284ca; }
 /* A source with no drawing: its first letter on a plain plate. */
 .rating .side.letter {
   min-width: 20px;

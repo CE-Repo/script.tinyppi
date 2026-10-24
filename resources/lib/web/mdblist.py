@@ -6,7 +6,8 @@ an API key (``web_mdblist_key``).
 
 MDBList gathers what IMDb, TMDb, Trakt, Letterboxd, Rotten Tomatoes (its
 critics and its audience), Metacritic (its critics and its users), Roger
-Ebert and MyAnimeList gave a film into one answer.  Where it has a rating the
+Ebert and MyAnimeList gave a film into one answer, with its own score made
+of them all (``score_average``, out of 100), shown as MDBList's.  Where it has a rating the
 library has one from too, MDBList's is shown; the library's own stand beside
 them.  Without a key, for a film MDBList does not know or cannot be reached
 for, the library's ratings are shown alone (see web.ratings) -- and always
@@ -127,21 +128,27 @@ def _out_of_ten(entry: Json) -> float | None:
 
 
 def scores_of(answer: Json) -> Scores:
-    """Return the ratings in one of MDBList's answers, by source.
+    """Return the ratings in one of MDBList's answers, by source, and its own
+    score as ``mdblist``.
 
-    Its own score, made of the others, is no rating of its own and is left
-    out; a source with no rating for the film comes with nulls.
+    Its own is read from the answer's ``score_average``, what its page
+    shows, rather than from the entry by its name among the ratings that some
+    answers carry; a source with no rating for the film comes with nulls.
     """
     found: Scores = {}
     for entry in _entries(answer):
         rating = _out_of_ten(entry)
         if rating is not None:
             found[_source(entry)] = {"rating": rating, "votes": entry.get("votes")}
+    average = _figure(answer.get("score_average"))
+    if average is not None and 0 < average <= 100:
+        found["mdblist"] = {"rating": average / 10, "votes": None}
     return found
 
 
 def _entries(answer: Json) -> list[Json]:
-    """Return the entries of one of MDBList's answers, but its own score."""
+    """Return the entries of one of MDBList's answers' ratings, but its own
+    score's (see scores_of)."""
     entries = answer.get("ratings")
     return [entry for entry in (entries if isinstance(entries, list) else [])
             if isinstance(entry, dict) and _source(entry) != "mdblist"]

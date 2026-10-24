@@ -509,7 +509,7 @@ test("the sources MDBList brings wear their own marks and names", (t) => {
   const { $, P } = panels(t);
   const sources = [["letterboxd", "Letterboxd"], ["metacriticuser", "Metacritic User Score"],
                    ["popcorn", "Rotten Tomatoes Popcornmeter"], ["rogerebert", "Roger Ebert"],
-                   ["myanimelist", "MyAnimeList"]];
+                   ["myanimelist", "MyAnimeList"], ["mdblist", "MDBList"]];
   P.update(snap({ media: { plot: "Plot.",
                            ratings: sources.map(([source]) => ({ source, rating: 7.5, votes: 0 })) } }));
   const drawn = [...$("ratings").children].map((node) =>

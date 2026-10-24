@@ -28,7 +28,8 @@ from web.values import Json, clean_value
 # versions', an NFO writer has its own for Metacritic and Rotten Tomatoes,
 # and MDBList calls Rotten Tomatoes' critics ``tomatoes`` and its audience
 # ``popcorn`` (in some of its answers ``tomatoesaudience`` or ``audience``),
-# which an OMDb-fed scraper calls ``tomatometerallaudience``.
+# which an OMDb-fed scraper calls ``tomatometerallaudience``.  MDBList's own
+# score, made of all of theirs, stands last of the known ones.
 # Any other name (an NFO may carry anything) follows these, alphabetically.
 _SOURCES = (("imdb", "imdb"), ("themoviedb", "tmdb"), ("tmdb", "tmdb"),
             ("trakt", "trakt"), ("tvdb", "tvdb"), ("letterboxd", "letterboxd"),
@@ -39,7 +40,8 @@ _SOURCES = (("imdb", "imdb"), ("themoviedb", "tmdb"), ("tmdb", "tmdb"),
             ("popcorn", "popcorn"), ("popcornmeter", "popcorn"),
             ("tomatometerallaudience", "popcorn"), ("tomatoesaudience", "popcorn"),
             ("audience", "popcorn"),
-            ("rogerebert", "rogerebert"), ("myanimelist", "myanimelist"))
+            ("rogerebert", "rogerebert"), ("myanimelist", "myanimelist"),
+            ("mdblist", "mdblist"))
 _ALIASES = dict(_SOURCES)
 # Each name once, tmdb included, so a name outside it sorts after all of them.
 _ORDER = {name: index for index, name in enumerate(dict.fromkeys(_ALIASES.values()))}

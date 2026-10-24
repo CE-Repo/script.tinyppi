@@ -414,7 +414,7 @@
     imdb: "IMDb", tmdb: "TMDb", trakt: "Trakt", tvdb: "TVDB", letterboxd: "Letterboxd",
     metacritic: "Metacritic", metacriticuser: "Metacritic User Score",
     rottentomatoes: "Rotten Tomatoes", popcorn: "Rotten Tomatoes Popcornmeter",
-    rogerebert: "Roger Ebert", myanimelist: "MyAnimeList"
+    rogerebert: "Roger Ebert", myanimelist: "MyAnimeList", mdblist: "MDBList"
   };
   /* What Rotten Tomatoes calls a rating it certified: its critics' and its
      audience's.  A certified one wears a seal on its mark's corner. */

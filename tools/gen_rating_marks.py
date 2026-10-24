@@ -5,7 +5,7 @@
 """Draw the marks the plot card's ratings wear that are not the houses' own.
 
 IMDb, TMDB, Trakt, TheTVDB, Letterboxd, Metacritic, Rotten Tomatoes' critics
-and its Popcornmeter and MyAnimeList wear their own logo files, under
+and its Popcornmeter, MyAnimeList and MDBList wear their own logo files, under
 resources/web/ratings/ and converted for the app; this draws none of them.
 It draws Metacritic's users' mark, Roger Ebert's, the IMDb Top 250's, the
 seal a Rotten Tomatoes rating wears when it is certified (Certified Fresh,
