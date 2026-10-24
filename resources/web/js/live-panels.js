@@ -93,27 +93,29 @@
         '</div>' +
       '</div>' +
     '</section>' +
-    /* What the title is about, who is in it and what it has been given,
-       under the card of what is playing: the slogan, the plot and, under
-       them, the cast and the ratings, as the library has them. */
+    /* What the title has been given, what it is about and who is in it,
+       under the card of what is playing: the ratings, the slogan, the plot
+       and, under them, the cast, as the library has them. */
     '<details class="card hidden" id="plotCard">' +
       '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
       '<div class="plot">' +
-        /* The slogan, the plot, its credits and its ratings read as one
-           text.  It starts folded -- the plot cut to a few lines, the
-           credits and the ratings hidden -- and a press on the text lets
-           it all out and takes it back. */
+        /* The ratings first and never folded away: short facts about the
+           film, taken in at a glance before a word of the plot is read.
+           No heading on the screen -- the houses' marks say what they
+           are -- but one for a screen reader (see strings). */
+        '<div class="ratings hidden" id="ratings" role="list"></div>' +
+        /* What a shield says, over it for a moment after a tap: the house
+           a mark is from, which a mark alone does not always tell.  A
+           screen reader hears each shield's words already. */
+        '<span class="ratingtip hidden" id="ratingTip" aria-hidden="true"></span>' +
+        /* The slogan, the plot and its credits read as one text.  It
+           starts folded -- the plot cut to a few lines, the credits
+           hidden -- and a press on the text lets it all out and takes it
+           back. */
         '<div class="plotfold" id="plotFold">' +
           '<p class="tagline hidden" id="tagline"></p>' +
           '<p class="plottext hidden" id="plotText"></p>' +
           '<dl class="credits hidden" id="credits"></dl>' +
-          /* Under the credits, under a heading of their own like a credit's. */
-          '<p class="ratingshead hidden" id="ratingsHeadline"></p>' +
-          '<div class="ratings hidden" id="ratings" role="list" aria-labelledby="ratingsHeadline"></div>' +
-          /* What a shield says, over it for a moment after a tap: the house
-             a mark is from, which a mark alone does not always tell.  A
-             screen reader hears each shield's words already. */
-          '<span class="ratingtip hidden" id="ratingTip" aria-hidden="true"></span>' +
         '</div>' +
       '</div>' +
     '</details>' +
@@ -171,7 +173,7 @@
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), studio: $("studio"), file: $("file"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
-    plotCard: $("plotCard"), ratingsHeadline: $("ratingsHeadline"), ratings: $("ratings"), ratingTip: $("ratingTip"), tagline: $("tagline"),
+    plotCard: $("plotCard"), ratings: $("ratings"), ratingTip: $("ratingTip"), tagline: $("tagline"),
     plotFold: $("plotFold"), plotText: $("plotText"), credits: $("credits"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
@@ -297,13 +299,13 @@
     }
     const badges = ratingBadges(media, TinyPPI.T);
     fillRatings(badges);
-    el.ratingsHeadline.textContent = TinyPPI.T.ratings;
+    el.ratings.setAttribute("aria-label", TinyPPI.T.ratings);
     const credits = creditList(media, TinyPPI.T);
     fillCredits(credits);
     el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credits.length);
     /* A new title, or a new plot, starts folded again, and is measured once
-       it is laid out; credits or ratings that arrive later fold under it as
-       they come. */
+       it is laid out; credits that arrive later fold under it as they
+       come. */
     if (fresh) {
       openPlot(false);
       measurePlot();
@@ -313,10 +315,10 @@
   }
 
   /* A plot is folded to a few lines (see .plot .plottext), its credits
-     and its ratings hidden under it, and a press on the text -- a click, a
-     tap, or Enter or Space once it has the focus -- lets all of it out and
-     takes it back.  It folds wherever there is more than those lines to
-     show: a plot that runs past them, or credits or ratings under it.  How
+     hidden under it, and a press on the text -- a click, a tap, or Enter
+     or Space once it has the focus -- lets all of it out and takes it
+     back.  It folds wherever there is more than those lines to show: a
+     plot that runs past them, or credits under it.  How
      many lines a plot takes is a matter of how wide it is laid out, so it
      is measured when the plot changes, when the card is opened and once a
      burst of resizes has settled (with the charts, below).  Pressable, it is a button to a screen reader, and
@@ -340,8 +342,7 @@
 
   function foldPlot() {
     const shown = (node) => !node.classList.contains("hidden");
-    const more = shown(el.plotText) &&
-      (plotCut || shown(el.credits) || shown(el.ratings));
+    const more = shown(el.plotText) && (plotCut || shown(el.credits));
     el.plotFold.classList.toggle("fold", more);
     if (more) {
       el.plotFold.setAttribute("role", "button");
@@ -512,10 +513,10 @@
   /* A tap -- or a click -- on a shield shows over it for a moment whose it
      is; under a pointer its tooltip says so too. */
   let tipTimer = 0;
-  /* The tip is placed in the fold it stands in (.plotfold is its
+  /* The tip is placed in the card's body it stands in (.plot is its
      positioned box), wherever the shields sit inside it. */
   function tellRating(node) {
-    const card = el.plotFold.getBoundingClientRect();
+    const card = el.ratingTip.parentElement.getBoundingClientRect();
     const box = node.getBoundingClientRect();
     el.ratingTip.textContent = node.title;
     el.ratingTip.style.left = (box.left + box.width / 2 - card.left) + "px";
@@ -566,7 +567,6 @@
       el.ratings.append(node);
     }
     el.ratings.classList.toggle("hidden", !badges.length);
-    el.ratingsHeadline.classList.toggle("hidden", !badges.length);
   }
 
   /* The poster is fetched once per film: the add-on sends a tag that changes
@@ -1050,7 +1050,7 @@
     /* The badges carry words of the table too ("My rating"), and the
        credits their name. */
     fillRatings(ratingBadges(plotMedia, T));
-    el.ratingsHeadline.textContent = T.ratings;
+    el.ratings.setAttribute("aria-label", T.ratings);
     fillCredits(creditList(plotMedia, T));
     $("tilesTitle").textContent = T.metrics;
     $("kSwitches").textContent = T.switches;

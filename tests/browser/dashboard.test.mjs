@@ -80,7 +80,8 @@ test("the live tab connects and shows the format badges", async () => {
 test("the ratings, the slogan and the plot stand in a card of their own under the playing one", async () => {
   await page.waitForSelector("#plotCard:not(.hidden)");
   // Folded: the plot cut to five lines -- two of them, here -- and its
-  // credits and ratings hidden under it until a press lets them out.
+  // credits hidden under it until a press lets them out.  The ratings
+  // over it are never folded away.
   await page.waitForSelector("#plotFold.fold");
   assert.deepEqual(await page.$eval("#plotText", (node) => {
     const style = getComputedStyle(node);
@@ -88,14 +89,11 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   }), ["5", "hidden"]);
   assert.equal(await page.locator("#plotFold").getAttribute("role"), "button");
   assert.equal(await page.locator("#plotFold").getAttribute("aria-expanded"), "false");
-  for (const selector of ["#credits", "#ratingsHeadline", "#ratings"]) {
-    assert.equal(await page.locator(selector).isVisible(), false, selector + " folded away");
-  }
+  assert.equal(await page.locator("#credits").isVisible(), false, "the credits folded away");
+  assert.equal(await page.locator("#ratings").isVisible(), true, "the ratings shown folded");
   await page.locator("#plotText").click();
   assert.equal(await page.locator("#plotFold").getAttribute("aria-expanded"), "true");
-  for (const selector of ["#credits", "#ratingsHeadline", "#ratings"]) {
-    assert.equal(await page.locator(selector).isVisible(), true, selector + " let out");
-  }
+  assert.equal(await page.locator("#credits").isVisible(), true, "the credits let out");
   // The stubs' strings are only their ids, so the words of a badge are the
   // jsdom tests'; here it is which marks stand there, served and drawn.
   await page.waitForFunction(() => [...document.querySelectorAll("#ratings img")]
@@ -140,29 +138,19 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   const [now, plot] = await Promise.all(
     ["#nowCard", "#plotCard"].map((selector) => page.locator(selector).boundingBox()));
   assert.ok(plot.y > now.y + now.height - 1, "under the playing card");
-  // The slogan and the plot centred; on its end the credits, and past a
-  // thin rule the ratings, centred too.
+  // The ratings first, then the slogan and the plot centred, and on its
+  // end the credits.
   assert.deepEqual(await page.$$eval("#tagline, #plotText",
     (nodes) => nodes.map((node) => getComputedStyle(node).textAlign)), ["center", "center"]);
   const [text, credits, row, first, last] = await Promise.all(
     ["#plotText", "#credits", "#ratings", "#ratings .rating:first-child", "#ratings .rating:last-child"]
       .map((selector) => page.locator(selector).boundingBox()));
   assert.ok(credits.y >= text.y + text.height - 1, "the credits under the plot");
-  assert.ok(row.y >= credits.y + credits.height - 1, "the ratings under the credits");
-  // No rule anywhere: the ratings stand under a heading of their own, set
-  // like a credit's, between the credits and the badges.
-  for (const selector of ["#credits", "#ratingsHeadline", "#ratings"]) {
+  assert.ok(sloganBox.y >= row.y + row.height - 1, "the ratings over the slogan");
+  // No rule anywhere, and no heading on the screen over the badges.
+  for (const selector of ["#credits", "#ratings"]) {
     assert.equal(await page.$eval(selector, (node) => getComputedStyle(node).borderTopWidth), "0px");
   }
-  const headline = await page.locator("#ratingsHeadline").boundingBox();
-  assert.ok(headline.y >= credits.y + credits.height - 1 && row.y >= headline.y + headline.height - 1,
-            "the heading between the credits and the badges");
-  const [headStyle, termStyle] = await Promise.all(["#ratingsHeadline", "#credits dt"].map((selector) =>
-    page.$eval(selector, (node) => {
-      const style = getComputedStyle(node);
-      return [style.fontWeight, style.fontSize, style.color, style.textAlign];
-    })));
-  assert.deepEqual(headStyle, termStyle);
   const left = first.x - row.x;
   const right = row.x + row.width - (last.x + last.width);
   assert.ok(Math.abs(left - right) <= 2, `centred: ${left} vs ${right}`);

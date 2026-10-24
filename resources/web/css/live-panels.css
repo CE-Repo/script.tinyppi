@@ -577,20 +577,20 @@
    than an item of the column of its own. */
 .now .meta:not(:empty) + .studio { margin-top: -10px; }
 
-/* --- The overview: the plot, the cast and the ratings --------------------
+/* --- The overview: the ratings, the plot and the cast --------------------
    The card under the one of what is playing, everything in it centred.
-   The slogan first, set like a credit's heading in the text's own colour,
-   right over the plot so the two read as one text, and the plot as prose,
-   in the muted grey the year and genre are written in.
+   First the ratings, centred as a row of their own and never folded away,
+   as small shields, which is what they are: short facts about the film, to
+   be taken in at a glance -- each wearing its house's mark in its house's
+   colours rather than its name, so a row of them is read by colour before
+   a word of it is.  Then the slogan, set like a credit's heading in the
+   text's own colour, right over the plot so the two read as one text, and
+   the plot as prose, in the muted grey the year and genre are written in.
    A plot is the one paragraph on the page, so it gets the line height of
    one; its line breaks are the library's own (see plain_text in
    web/values.py).  Hanging on its end the director and the cast as plain
    lines: what each is called in the text's own colour over the names in the
-   plot's muted grey.  And last, past a thin rule, centred as a row of their own, the ratings
-   as small shields, which is what they are: short facts about the film, to
-   be taken in at a glance -- each wearing its house's mark in its house's
-   colours rather than its name, so a row of them is read by colour before
-   a word of it is.
+   plot's muted grey.
 ------------------------------------------------------------------------ */
 
 .plot {
@@ -614,21 +614,15 @@
   pointer-events: none;
   box-shadow: var(--shadow);
 }
-/* The ratings' heading, set like a credit's, as far under the credits as
-   the cast is under the director, and the badges close under it. */
-.plot .ratingshead {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--text);
-}
-.plotfold > :not(.hidden) ~ .ratingshead { margin-top: 16px; }
+/* The ratings over the slogan and the plot, with a little more air under
+   them than the card's rows have: a row of their own, not the plot's first
+   line. */
 .ratings {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 6px;
-  margin-top: 4px;
+  margin-bottom: 4px;
 }
 /* A shield: the house on the left, on a plate of its own colour, and what
    it gave on the right -- the whole shield washed in that colour and edged
@@ -806,7 +800,7 @@
   overflow-wrap: anywhere;
 }
 .plot .plottext:not(.hidden) ~ .credits { margin-top: 12px; }
-.plotfold.fold:not(.open) :is(.credits, .ratingshead, .ratings, .ratingtip) { display: none; }
+.plotfold.fold:not(.open) .credits { display: none; }
 /* What it is called on a line of its own, over the names. */
 .credits dt,
 .credits dd {
