@@ -189,6 +189,9 @@ def test_a_film_brings_every_kind_of_rating():
         "ratings": [{"source": "imdb", "rating": 8.5, "votes": 612345},
                     {"source": "tmdb", "rating": 8.2, "votes": 6120}],
         "mpaa": "FSK 12", "age": "fsk12", "age_level": "12", "userrating": 9, "top250": 27,
+        # Looked up by its TMDb id in resources/data/awards.json.
+        "awards": [{"award": "oscar", "won": ["Visual Effects (2025)", "Sound (2025)"], "nominated": 3},
+                   {"award": "globe", "won": [], "nominated": 2}],
         "ids": {"imdb": "tt15239678", "tmdb": "693134"},
     }
     assert ("VideoLibrary.GetMovieDetails",
@@ -218,12 +221,17 @@ def test_an_own_rating_runs_to_ten_and_the_top_list_to_250(userrating, top250, k
 def test_an_episode_rates_itself_and_takes_its_age_rating_from_its_show():
     fake = Kodi(item={"id": 7, "type": "episode"},
                 details={"ratings": {"tvdb": {"rating": 8.8, "votes": 40}}, "userrating": 7,
-                         "tvshowid": 3, "mpaa": "ignored"},
-                show={"mpaa": "FSK 16"})
-    assert answer(fake) == {"ratings": [{"source": "tvdb", "rating": 8.8, "votes": 40}],
-                            "mpaa": "FSK 16", "age": "fsk16", "age_level": "16", "userrating": 7,
-                            "top250": 0, "ids": {}}
-    assert ("VideoLibrary.GetTVShowDetails", {"tvshowid": 3, "properties": ["mpaa"]}) in fake.calls
+                         "tvshowid": 3, "mpaa": "ignored", "uniqueid": {"tmdb": "1399"}},
+                show={"mpaa": "FSK 16", "uniqueid": {"tmdb": "1398"}})
+    found = answer(fake)
+    # The show's awards, by the show's TMDb id: The Sopranos', not by the
+    # episode's.  MDBList is not asked for an episode.
+    assert [award["award"] for award in found.pop("awards")] == ["globe", "emmy"]
+    assert found == {"ratings": [{"source": "tvdb", "rating": 8.8, "votes": 40}],
+                     "mpaa": "FSK 16", "age": "fsk16", "age_level": "16", "userrating": 7,
+                     "top250": 0, "ids": {}}
+    assert ("VideoLibrary.GetTVShowDetails",
+            {"tvshowid": 3, "properties": ["mpaa", "uniqueid"]}) in fake.calls
 
 
 def test_an_episode_without_a_show_has_no_age_rating():

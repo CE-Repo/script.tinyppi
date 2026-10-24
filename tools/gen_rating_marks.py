@@ -9,13 +9,16 @@ and its Popcornmeter, MyAnimeList and MDBList wear their own logo files, under
 resources/web/ratings/ and converted for the app; this draws none of them.
 It draws Metacritic's users' mark, Roger Ebert's, the IMDb Top 250's, the
 seal a Rotten Tomatoes rating wears when it is certified (Certified Fresh,
-Verified Hot) and the age ratings of Germany (FSK), the United States (the MPA's for films, the TV
-Parental Guidelines' for television) and Britain (BBFC).  They are simplified
+Verified Hot), the plates of the big awards (the Academy Awards, the Golden
+Globes, the BAFTAs, the Primetime Emmys) and the age ratings of Germany
+(FSK), the United States (the MPA's for films, the TV Parental Guidelines'
+for television) and Britain (BBFC).  They are simplified
 marks in each house's colours, drawn here, not copies of its own logo files;
 they name the source of a rating, which is nominative use (see section 4 of
 LICENSE-ASSETS).  An age rating's mark is the left of its shield: the
 board's name on the colour of the level, the level itself being written on
-the shield's right.  The American boards' are drawn in the colours of the
+the shield's right.  An award's is the same: its name on its plate, and
+what it won written beside it.  The American boards' are drawn in the colours of the
 FSK's levels rather than the MPA's black on white, so a row of them reads
 the same whichever country rated the film.
 
@@ -151,7 +154,7 @@ def marks(letters: Lettering) -> list[Mark]:
     ]
     for age, (colour, ink) in fsk.items():
         found.append(plate_of("fsk" + age, "FSK", colour, ink, letters))
-    return found + american(letters) + british(letters)
+    return found + american(letters) + british(letters) + awards(letters)
 
 
 # The colours of the levels, from all ages to adults only, as the FSK has them.
@@ -159,8 +162,9 @@ _ALL, _CHILDREN, _TEENS, _ADULTS, _RESTRICTED = (
     ("#00A651", "#FFFFFF"), ("#FFD500", "#000000"), ("#F7941D", "#000000"),
     ("#E30613", "#FFFFFF"), ("#2E3192", "#FFFFFF"))
 
-# How wide the plate of each board's name is drawn, for its name to fit.
-_BOARD_WIDTHS = {"FSK": 30, "MPA": 32, "TV": 24, "BBFC": 38}
+# How wide the plate of each board's or award's name is drawn, for it to fit.
+_BOARD_WIDTHS = {"FSK": 30, "MPA": 32, "TV": 24, "BBFC": 38,
+                 "OSCAR": 44, "GLOBE": 44, "BAFTA": 44, "EMMY": 38}
 
 
 def plate_of(name: str, board: str, colour: str, ink: str, letters: Lettering) -> Mark:
@@ -197,6 +201,16 @@ def british(letters: Lettering) -> list[Mark]:
         ("bbfc_12a", "#F58220", "#FFFFFF"), ("bbfc_12", "#F58220", "#FFFFFF"),
         ("bbfc_15", "#E5007E", "#FFFFFF"), ("bbfc_18", "#E30613", "#FFFFFF"),
         ("bbfc_r18", "#1D1D6B", "#FFFFFF"))]
+
+
+def awards(letters: Lettering) -> list[Mark]:
+    """Return the plates of the big awards: each name on a ground of its
+    own, all four in the statuettes' gold."""
+    return [plate_of(name, words, colour, ink, letters) for name, words, colour, ink in (
+        ("award_oscar", "OSCAR", "#E2B33C", "#000000"),
+        ("award_globe", "GLOBE", "#9C6B1E", "#FFFFFF"),
+        ("award_bafta", "BAFTA", "#141414", "#E2B33C"),
+        ("award_emmy", "EMMY", "#3B2A6B", "#E2B33C"))]
 
 
 def _named(name: str, mark: Mark) -> Mark:

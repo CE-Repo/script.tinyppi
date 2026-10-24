@@ -43,6 +43,15 @@ conditions that come with it:
 Third-party components
 ----------------------
 
+Bundled with TinyPPI:
+
+  awards.json             -- GPL-3.0-or-later, from TheMovieDb Helper
+                             (plugin.video.themoviedb.helper) by jurialmunkey
+                             https://github.com/jurialmunkey/plugin.video.themoviedb.helper
+                             resources/data/awards.json is its awards list cut
+                             to the four the overview card shows; see
+                             tools/gen_awards.py.
+
 The following are *not* bundled with TinyPPI.  They are separate works that
 TinyPPI talks to or depends on at runtime, and each remains under its own
 licence and its own copyright:
@@ -67,6 +76,7 @@ Trademarks of Dolby Laboratories, DTS / Xperi and IMAX appear in the format
 logos shipped under resources/skins/Default/media/, and those of the rating
 services (IMDb, TMDB, Trakt, TheTVDB, Letterboxd, MyAnimeList, Metacritic,
 Rotten Tomatoes, MDBList) and of the
-age rating boards (FSK, MPA, TV Parental Guidelines, BBFC) in the rating marks
+age rating boards (FSK, MPA, TV Parental Guidelines, BBFC) and of the awards
+(Academy Awards / Oscar, Golden Globe, BAFTA, Emmy) in the rating marks
 under resources/web/ratings/.  See section 4 of
 LICENSE-ASSETS.

@@ -134,6 +134,18 @@ class Rating(TypedDict):
     certified: NotRequired[bool]
 
 
+class Award(TypedDict):
+    """One of the big awards the playing title won or was nominated for
+    (see web.awards)."""
+
+    # oscar, globe, bafta or emmy.
+    award: str
+    # What it won, by category and year ("Visual Effects (2015)").
+    won: list[str]
+    # How many more it was nominated for and did not win.
+    nominated: int
+
+
 class Credits(TypedDict):
     """Who made the playing title, as Kodi orders them (see
     web.values.name_list): every director, the first studio alone, and the
@@ -159,6 +171,8 @@ class Ratings(TypedDict):
     userrating: int
     # The place in the IMDb Top 250.
     top250: int
+    # The big awards it won or was nominated for (see web.awards).
+    awards: list[Award]
     # A film's IMDb and TMDb ids ("imdb", "tmdb"), for MDBList to be asked
     # by (see web.mdblist); {} for an episode.  Not sent to the page.
     ids: dict[str, str]
@@ -182,6 +196,7 @@ class Media(TypedDict):
     age_level: str
     userrating: int
     top250: int
+    awards: list[Award]
     # And who made it (see Credits).
     directors: list[str]
     cast: list[str]

@@ -98,12 +98,13 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   // jsdom tests'; here it is which marks stand there, served and drawn.
   await page.waitForFunction(() => [...document.querySelectorAll("#ratings img")]
     .every((image) => image.complete && image.naturalWidth > 0));
-  // Each as wide as it is drawn: the FSK's plate and IMDb's square logo.
+  // Each as wide as it is drawn: the FSK's plate, IMDb's square logo and
+  // the awards' plates.
   const sizes = await page.$$eval("#ratings img", (images) => images.map((image) => {
     const box = image.getBoundingClientRect();
     return Math.round(box.width / box.height * 10) / 10;
   }));
-  assert.deepEqual(sizes, [1.4, 1]);
+  assert.deepEqual(sizes, [1.4, 1, 2, 2]);
   // Every badge one height: the age rating's mark and the shields beside it.
   const heights = await page.$$eval("#ratings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
@@ -118,8 +119,13 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   const marks = await page.$$eval("#ratings .rating", (nodes) => nodes.map((node) => [
     node.querySelector("img").getAttribute("src"),
     [...node.querySelectorAll(".value")].map((part) => part.textContent).join("")]));
-  // The age rating first.
-  assert.deepEqual(marks, [["/ratings/fsk12.svg", "12"], ["/ratings/imdb.svg", "7.9"]]);
+  // The age rating first, the awards last: what was won, then what was
+  // only nominated for.
+  assert.deepEqual(marks, [["/ratings/fsk12.svg", "12"], ["/ratings/imdb.svg", "7.9"],
+                           ["/ratings/award_oscar.svg", "1"], ["/ratings/award_globe.svg", "1"]]);
+  // That one quieter: its plate dimmed.
+  assert.deepEqual(await page.$$eval("#ratings .rating .side", (nodes) =>
+    nodes.map((node) => getComputedStyle(node).opacity)), ["1", "1", "1", "0.6"]);
   assert.equal(await page.locator("#tagline").innerText(), "One night changes everything.");
   // The plot's own line break, drawn as one.
   assert.equal(await page.locator("#plotText").innerText(),

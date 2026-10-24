@@ -11,13 +11,16 @@ An episode's age rating is its show's: Kodi keeps it there.  A German,
 American or British one is read for its board and level too (see
 ``age_rating``), which the page draws as a shield like the others: the board
 on the level's colour, the level beside it.  A film's IMDb and TMDb ids go
-with them, for MDBList to be asked by (see web.mdblist).
+with them, for MDBList to be asked by (see web.mdblist), and the big awards
+a film or an episode's show won or was nominated for, by its TMDb id (see
+web.awards).
 """
 
 import re
 from collections.abc import Mapping
 
 import xbmc
+from web.awards import awards_of
 from web.payloads import Rating, Ratings
 from web.player import rpc, video_player_id
 from web.values import Json, clean_value
@@ -90,7 +93,7 @@ _EPISODE = ("ratings", "userrating", "tvshowid")
 def no_ratings() -> Ratings:
     """Return the ratings of a title the library knows nothing about."""
     return {"ratings": [], "mpaa": "", "age": "", "age_level": "", "userrating": 0,
-            "top250": 0, "ids": {}}
+            "top250": 0, "awards": [], "ids": {}}
 
 
 def home_country() -> str:
@@ -184,8 +187,9 @@ IMDB_ID = re.compile(r"tt\d+")
 
 
 def film_ids(details: Json) -> dict[str, str]:
-    """Return the ids a film is known by elsewhere -- its IMDb and its TMDb
-    one -- as the library holds them, for MDBList to be asked by."""
+    """Return the ids a film -- or a show -- is known by elsewhere: its IMDb
+    and its TMDb one, as the library holds them, for MDBList to be asked by
+    and its awards to be looked up by."""
     held = details.get("uniqueid")
     if not isinstance(held, dict):
         return {}
@@ -197,9 +201,10 @@ def film_ids(details: Json) -> dict[str, str]:
     return ids
 
 
-def _collect(details: Json, aged: Json, ids: dict[str, str] | None = None) -> Ratings:
-    """Return the ratings of *details*, with the age rating of *aged* and
-    the *ids* it is known by elsewhere."""
+def _collect(details: Json, aged: Json, kind: str, ids: dict[str, str] | None = None) -> Ratings:
+    """Return the ratings of *details*, with the age rating and the awards
+    of *aged* -- a title of *kind* ("movie", "tv") -- and the *ids* it is
+    known by elsewhere."""
     mpaa = clean_value(str(aged.get("mpaa") or ""))
     mark, level = age_rating(mpaa, home_country())
     return {
@@ -209,18 +214,19 @@ def _collect(details: Json, aged: Json, ids: dict[str, str] | None = None) -> Ra
         "age_level":  level,
         "userrating": _count(details.get("userrating"), 10),
         "top250":     _count(details.get("top250"), 250),
+        "awards":     awards_of(kind, film_ids(aged).get("tmdb", "")),
         "ids":        ids or {},
     }
 
 
 def _episode_ratings(episode_id: int) -> Ratings:
-    """Return an episode's ratings, with its show's age rating."""
+    """Return an episode's ratings, with its show's age rating and awards."""
     details = _details("VideoLibrary.GetEpisodeDetails", "episodeid", episode_id,
                        _EPISODE, "episodedetails")
     show_id = _count(details.get("tvshowid"))
-    show = _details("VideoLibrary.GetTVShowDetails", "tvshowid", show_id, ("mpaa",),
+    show = _details("VideoLibrary.GetTVShowDetails", "tvshowid", show_id, ("mpaa", "uniqueid"),
                     "tvshowdetails") if show_id else {}
-    return _collect(details, show)
+    return _collect(details, show, "tv")
 
 
 def playing_ratings() -> Ratings | None:
@@ -240,7 +246,7 @@ def playing_ratings() -> Ratings | None:
     if item_id and kind == "movie":
         details = _details("VideoLibrary.GetMovieDetails", "movieid", item_id, _MOVIE,
                            "moviedetails")
-        return _collect(details, details, film_ids(details))
+        return _collect(details, details, "movie", film_ids(details))
     if item_id and kind == "episode":
         return _episode_ratings(item_id)
     return no_ratings()

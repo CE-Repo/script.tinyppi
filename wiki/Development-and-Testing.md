@@ -134,6 +134,7 @@ the CI actions up to date.
 | `unit/test_library_queries.py` | The library's JSON-RPC queries and rows: films, series, episodes and the continue row, resume points (including NaN and Infinity), ratings, tags that follow every field sent, playing and marking, bad ids that ask Kodi nothing |
 | `unit/test_static.py` | The dashboard's route table and static file cache |
 | `unit/test_ratings.py` | The playing title's ratings from the library: sources and their order, the reader's own, the age rating read for its board and level, the Top 250 place, a film's IMDb and TMDb ids |
+| `unit/test_awards.py` | The big awards a title won or was nominated for: their order, a title the list does not hold, junk and a list that cannot be read |
 | `unit/test_mdblist.py` | MDBList's ratings (key refused, daily limit, failures, the cache) and the IMDb Top 250 chart, each asked for off the snapshot's thread, laid over the library's |
 | `unit/test_whatson.py` | WhatsOn's Rotten Tomatoes ratings and certificates (limit spent, failures, the cache), filled in where missing and worn by the ratings shown |
 | `unit/test_strings.py` | The dashboard's UI strings |

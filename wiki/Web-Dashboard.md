@@ -24,6 +24,7 @@ Top 250 place, and — when you give it a key — the ratings MDBList gathers (s
 - [The IMDb Top 250](#the-imdb-top-250)
 - [Ratings from MDBList](#ratings-from-mdblist)
 - [Rotten Tomatoes from WhatsOn](#rotten-tomatoes-from-whatson)
+- [Awards](#awards)
 - [Metadata](#metadata)
 - [History](#history)
 - [Films](#films)
@@ -144,19 +145,23 @@ A card under *Now playing*, everything in it centred:
 - **Director** and **Cast** — each a bold heading over the names: every
   director, and the cast's first **20** in billing order, ending in "…" where
   there are more. An episode's cast is its own guests and then the show's.
-- **Ratings** — under a heading of their own, a row of small shields: first
-  the age rating (FSK, MPA, TV Parental Guidelines, BBFC as a mark on the
-  level's colour; any other written out), then a score for each source — IMDb,
-  TMDB, Trakt, TheTVDB, Letterboxd, Metacritic and its users, Rotten Tomatoes
-  and its Popcornmeter, Roger Ebert (*RE*), MyAnimeList, or the first letter of
-  any other — then your own rating behind a heart and the place in the IMDb
-  Top 250 (*250* | *#17*). How many voted is not shown.
+- **Ratings** — last, past a thin rule, a row of small shields, each washed
+  in its service's colour: first the age rating (FSK, MPA, TV Parental
+  Guidelines, BBFC as a mark on the level's colour; any other written out),
+  then a score for each source — IMDb, TMDB, Trakt, TheTVDB, Letterboxd,
+  Metacritic and its users, Rotten Tomatoes and its Popcornmeter, Roger Ebert
+  (*RE*), MyAnimeList, MDBList, or the first letter of any other — then your
+  own rating behind a heart, the place in the IMDb Top 250 (*250* | *#17*)
+  and the big awards (see [Awards](#awards)). How many voted is not shown.
+  Every score is out of ten, whatever scale its service uses: Roger Ebert's
+  3.5 of 4 stars show as 8.8, Letterboxd's 4.5 of 5 as 9.0.
 
 **Folded from the start.** The card opens folded: the plot cut to **five
-lines**, the director, the cast and the ratings hidden under it. A click or
-tap on the text (or Enter / Space once it has the focus) lets all of it out,
-and another folds it again. Only a plot that fits its five lines with nothing
-under it has nothing to fold. Every new title starts folded again.
+lines**, the director and the cast hidden under it. A click or tap on the text
+(or Enter / Space once it has the focus) lets them out, and another folds them
+again. Only a plot that fits its five lines with nothing under it has nothing
+to fold. Every new title starts folded again. The ratings are never folded
+away.
 
 **Which board is an age rating?** An episode carries its show's age rating.
 One that names neither its country nor its board ("Rated 12", which the TMDb
@@ -193,6 +198,23 @@ for everyone, so fetching it tells nothing of what you watch. A film is looked
 up by the IMDb id the library holds; one in the chart shows its place, one that
 is not shows none. Until the list is in, and for a film without an IMDb id,
 the library's own place stands. Episodes have none.
+
+---
+
+## Awards
+
+The Academy Awards (*OSCAR*), the Golden Globes (*GLOBE*), the BAFTAs and the
+Primetime Emmys stand last among the ratings, each as a plate with a figure
+beside it: how many it **won**, on a gold shield — or, where it won none, how
+many it was **nominated** for, on a quieter grey one. A tap shows what it won
+it for (*Oscar: Visual Effects (2015) · 4 nominated*).
+
+They come with the add-on, from **TheMovieDb Helper**'s awards list
+(`resources/data/awards.json`, written by `tools/gen_awards.py`): **no key, no
+request**. A film is looked up by its TMDb id, an episode by its show's. The
+list holds what was nominated for one of these four, up to the season it was
+last written for; a title it does not hold shows none, and some shows are
+missing from it.
 
 ---
 

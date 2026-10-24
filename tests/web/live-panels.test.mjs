@@ -523,6 +523,35 @@ test("the sources MDBList brings wear their own marks and names", (t) => {
   }
 });
 
+test("the big awards stand last, as plates: what was won, or else what was nominated", (t) => {
+  const { $, P, window } = panels(t);
+  /* Each shield as [class, what it says, its left, its figure, its tooltip]. */
+  const badges = () => [...$("ratings").children].map((node) => [
+    node.className, node.querySelector(".said").textContent,
+    node.querySelector(".side").className + " " + node.querySelector("img").getAttribute("src"),
+    node.querySelector(".value").textContent, node.title]);
+  P.update(snap({ media: { plot: "Plot.", top250: 27, awards: [
+    { award: "oscar", won: ["Visual Effects (2015)"], nominated: 4 },
+    { award: "globe", won: [], nominated: 1 },
+    { award: "bafta", won: ["Film (2015)", "Score (2015)"], nominated: 0 },
+    // One the page has no name for is called as the add-on calls it.
+    { award: "cesar", won: [], nominated: 2 }] } }));
+  assert.deepEqual(plain(badges()), [
+    ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg", "#27", "IMDb Top 250"],
+    ["rating award", "Oscar 1 won", "side award_oscar plate /ratings/award_oscar.svg", "1",
+     "Oscar: Visual Effects (2015) · 4 nominated"],
+    ["rating nominee", "Golden Globe 1 nominated", "side award_globe plate /ratings/award_globe.svg", "1",
+     "Golden Globe · 1 nominated"],
+    ["rating award", "BAFTA 2 won", "side award_bafta plate /ratings/award_bafta.svg", "2",
+     "BAFTA: Film (2015), Score (2015)"],
+    ["rating nominee", "cesar 2 nominated", "side award_cesar plate /ratings/award_cesar.svg", "2",
+     "cesar · 2 nominated"]]);
+  // The words arrive later, and the awards say them.
+  P.strings({ ...window.TinyPPI.T, award_won: "%s gewonnen", award_nominated: "%s nominiert" });
+  assert.equal($("ratings").children[1].querySelector(".said").textContent, "Oscar 1 gewonnen");
+  assert.equal($("ratings").children[1].title, "Oscar: Visual Effects (2015) · 4 nominiert");
+});
+
 test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   const { $, P, window } = panels(t);
   const timers = heldTimers(window);

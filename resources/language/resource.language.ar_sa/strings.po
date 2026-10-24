@@ -1534,3 +1534,11 @@ msgstr "مفتاح WhatsOn API (اختياري)"
 msgctxt "#32388"
 msgid "For every film, the overview card asks WhatsOn (whatson-api.onrender.com, free for non-commercial use) whether Rotten Tomatoes certified it: a seal on the Tomatometer for Certified Fresh, on the Popcornmeter for Verified Hot. Where neither MDBList nor the library has one of the two ratings, WhatsOn's is shown. Without a key WhatsOn answers 40 times an hour and 200 times a day; with a free key from its author (pierrevano.github.io), 200 times an hour and 1,000 a day. To ask, the film's IMDb or TMDb id is sent to WhatsOn, once per film."
 msgstr "لكل فيلم تسأل بطاقة نظرة عامة WhatsOn (whatson-api.onrender.com، مجاني للاستخدام غير التجاري) هل منحه Rotten Tomatoes شهادته: ختم على Tomatometer لشهادة Certified Fresh، وعلى Popcornmeter لشهادة Verified Hot. إذا لم يتوفر أحد التقييمين في MDBList ولا في المكتبة، يُعرض تقييم WhatsOn. بلا مفتاح يجيب WhatsOn ‏40 مرة في الساعة و200 مرة في اليوم، ومع مفتاح مجاني من صاحبه (pierrevano.github.io) ‏200 مرة في الساعة و1000 مرة في اليوم. لذلك يُرسل معرّف الفيلم في IMDb أو TMDb إلى WhatsOn، مرة واحدة لكل فيلم."
+
+msgctxt "#32389"
+msgid "%s won"
+msgstr "فاز بـ %s"
+
+msgctxt "#32390"
+msgid "%s nominated"
+msgstr "%s ترشيحات"

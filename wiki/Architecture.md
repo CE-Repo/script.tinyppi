@@ -130,6 +130,7 @@ script.tinyppi/
 | `producer.py` | One thread building the snapshot for all streams (200 ms while watched, 1 s history-only otherwise). |
 | `snapshot.py` | Builds a snapshot from the overlay's own readings, with the overview's plot, credits and ratings. |
 | `ratings.py` | The playing title's ratings from the library over JSON-RPC: per source, the reader's own, the age rating (read for its board and level) and the IMDb Top 250 place. |
+| `awards.py` | The big awards (Oscars, Golden Globes, BAFTAs, Emmys) a film or an episode's show won or was nominated for, from `resources/data/awards.json` by its TMDb id. |
 | `mdblist.py` | MDBList's ratings for a film (with an API key) and the IMDb Top 250 chart, each fetched off the snapshot's thread and cached. |
 | `whatson.py` | Rotten Tomatoes' Certified Fresh and Verified Hot for a film from WhatsOn (a key optional), and its ratings where MDBList and the library lack them, off the snapshot's thread and cached. |
 | `rows.py` | The dashboard's cards and rows, as the overlay shows them. |

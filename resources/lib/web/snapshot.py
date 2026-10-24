@@ -662,6 +662,7 @@ class SnapshotBuilder:
                 "age_level":  ratings["age_level"],
                 "userrating": ratings["userrating"],
                 "top250":     ratings["top250"],
+                "awards":     ratings["awards"],
                 "directors":      credits["directors"],
                 "cast":           credits["cast"],
                 "cast_more":      credits["cast_more"],

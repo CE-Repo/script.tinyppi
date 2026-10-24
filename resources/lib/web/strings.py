@@ -130,13 +130,16 @@ _UI_STRINGS = {
     "chapter_of":       32367,
     "progress_bar":     32368,
     "chapter_marks":    32369,
-    # The heading over the overview card's ratings.
+    # What a screen reader calls the overview card's row of ratings.
     "ratings":          32383,
     # The overview card under what is playing: its title, and what its
     # rating marks say to a screen reader.
     "plot":             32370,
     "my_rating":        32372,
     "top250":           32373,
+    # What an award's shield says it won or was nominated for, in figures.
+    "award_won":        32389,
+    "award_nominated":  32390,
     # And what its credits are called, and what a press on a long plot does.
     "director":         32386,
     "cast":             32378,

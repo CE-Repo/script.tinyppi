@@ -420,11 +420,14 @@
   /* What Rotten Tomatoes calls a rating it certified: its critics' and its
      audience's.  A certified one wears a seal on its mark's corner. */
   const CERTIFICATES = { rottentomatoes: "Certified Fresh", popcorn: "Verified Hot" };
+  /* The big awards, as the add-on names them (see web/awards.py) and as
+     they are called, untranslated. */
+  const AWARDS = { oscar: "Oscar", globe: "Golden Globe", bafta: "BAFTA", emmy: "Emmy" };
 
   /* Every rating the library holds for the title (see web/ratings.py), in
      the order the badges stand: the age rating first -- who the film is for
      is asked before how good it is -- then a score for each source, the
-     reader's own and the place in the IMDb Top 250.
+     reader's own, the place in the IMDb Top 250 and the big awards.
      Each badge says in words what its mark shows, for a screen reader and
      under a pointer. */
   /* The board an age rating's mark is from, by its name ("fsk12" is the
@@ -471,7 +474,23 @@
       badges.push({ kind: "rank", mark: "top250", value: "#" + media.top250,
                     said: T.top250.replace("%s", media.top250), named: "IMDb Top 250" });
     }
+    for (const award of media.awards || []) badges.push(awardBadge(award, T));
     return badges;
+  }
+
+  /* An award is a plate like an age rating's: its name on its own ground,
+     and beside it how many it won -- or, where it won none, how many it was
+     nominated for, on a quieter shield (see .rating.nominee).  Under a
+     pointer, what it won it for. */
+  function awardBadge(award, T) {
+    const name = AWARDS[award.award] || award.award;
+    const won = award.won.length;
+    const more = award.nominated ? T.award_nominated.replace("%s", award.nominated) : "";
+    const value = String(won || award.nominated);
+    const said = name + " " + (won ? T.award_won.replace("%s", won) : more);
+    const named = won ? [name + ": " + award.won.join(", "), more].filter(Boolean).join(" · ")
+      : name + " · " + more;
+    return { kind: won ? "award" : "nominee", mark: "award_" + award.award, value, said, named };
   }
 
   /* The left of a shield: the drawing for its source on a ground of the
@@ -481,8 +500,10 @@
   function ratingSide(badge) {
     const side = document.createElement("span");
     if (badge.mark) {
-      /* An age rating's plate is the whole of the left, edge to edge. */
-      side.className = "side " + badge.mark + (badge.kind === "age" ? " plate" : "");
+      /* An age rating's plate is the whole of the left, edge to edge, and
+         so is an award's. */
+      const plate = ["age", "award", "nominee"].includes(badge.kind);
+      side.className = "side " + badge.mark + (plate ? " plate" : "");
       const image = document.createElement("img");
       /* As wide as it is drawn: the SVG says, and the CSS gives only the
          height (see .rating .mark). */
