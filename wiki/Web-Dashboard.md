@@ -23,6 +23,7 @@ Top 250 place, and — when you give it a key — the ratings MDBList gathers (s
 - [Overview](#overview)
 - [The IMDb Top 250](#the-imdb-top-250)
 - [Ratings from MDBList](#ratings-from-mdblist)
+- [Rotten Tomatoes from WhatsOn](#rotten-tomatoes-from-whatson)
 - [Metadata](#metadata)
 - [History](#history)
 - [Films](#films)
@@ -209,7 +210,9 @@ From then on — the film already playing included — the box asks MDBList once
 library holds, else the TMDb one — and the card shows the library's ratings
 until the answer is in. Where both have a rating from one source, MDBList's is
 shown; any other the library holds stands beside them. Every rating is out of
-ten: a score out of 100 a tenth of it, Roger Ebert's four stars ten. An answer
+ten: a score out of 100 a tenth of it, Roger Ebert's four stars ten. MDBList's
+own score — made of all the others, the figure its page shows in the coloured
+circle (`score_average`) — stands last of them, with MDBList's mark. An answer
 is kept for half a day.
 
 The library's ratings are shown alone without a key, for a film MDBList does
@@ -223,6 +226,42 @@ for — `TinyPPI [web]: MDBList rated imdb tt0816692: imdb, tmdb, tomatoes, …`
 naming the houses it rated the film by and, after *no rating from*, those it
 listed without one. A film MDBList could not be asked for, or answered with an
 error, is logged as a warning.
+
+---
+
+## Rotten Tomatoes from WhatsOn
+
+Rotten Tomatoes certifies some films: **Certified Fresh** for its critics'
+Tomatometer, **Verified Hot** for its audience's Popcornmeter. Neither the
+library nor MDBList says so, but
+[WhatsOn](https://github.com/pierrevano/whatson-api) — a free service for
+non-commercial use — does, **no key needed**; it is always asked. A certified rating's shield
+wears a small red seal with a tick on the corner of its mark, and its tooltip
+and what a screen reader hears name the certificate ("Rotten Tomatoes ·
+Certified Fresh 9.3").
+
+WhatsOn also fills in what MDBList lacks: it has no Rotten Tomatoes rating
+for some films that Rotten Tomatoes does rate (The Matrix and Interstellar
+among them). Where neither MDBList nor the library has the Tomatometer or the
+Popcornmeter for a film, WhatsOn's is shown; one they have stands.
+
+The box asks WhatsOn for a film (episodes never) once MDBList has answered or
+will not be asked, by the IMDb id the library holds, else the TMDb one, and
+keeps the answer — a film WhatsOn does not know included — for half a day.
+Without a key WhatsOn answers 40 times an hour and 200 times a day, which one
+question per film stays well inside. A free key from its author
+([pierrevano.github.io](https://pierrevano.github.io)) raises that to 200 an
+hour and 1,000 a day: enter it under **Settings → Dashboard → Ratings →
+WhatsOn API key (optional)**. A key WhatsOn does not know is answered as no
+key at all. Should the limit be spent all the same, the box waits as long as
+WhatsOn says; a key given meanwhile is asked with at once. WhatsOn runs on a free host that sleeps when idle, so
+its first answer can take up to a minute; the card shows the ratings it has
+meanwhile.
+
+Kodi's log has a line for every film WhatsOn is asked for —
+`TinyPPI [web]: WhatsOn rated imdb tt0133093: tomatoes (certified), popcorn` —
+or says it does not know the film, could not be reached or answered with an
+error.
 
 ---
 

@@ -2097,6 +2097,17 @@
                         <hidden>true</hidden>
                     </control>
                 </setting>
+                <setting id="web_whatson_key" type="string" label="32387" help="32388">
+                    <level>0</level>
+                    <default></default>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="edit" format="string">
+                        <heading>32387</heading>
+                        <hidden>true</hidden>
+                    </control>
+                </setting>
             </group>
         </category>
     </section>

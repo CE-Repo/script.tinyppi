@@ -75,17 +75,18 @@ and nothing here claims any right in them:
 
   * **Rating source marks** under resources/web/ratings/ (and the same marks
     in the TinyPPI app).  imdb.svg, tmdb.svg, trakt.svg, tvdb.svg,
-    letterboxd.svg, metacritic.svg, rottentomatoes.svg, popcorn.svg and
-    myanimelist.svg are those services' own logos, their markup tidied and,
-    for the app, converted to vector drawables; IMDb's is its letters alone,
-    and IMDb's and the Popcornmeter's are set on a square.  No licence to
+    letterboxd.svg, metacritic.svg, rottentomatoes.svg, popcorn.svg,
+    myanimelist.svg and mdblist.svg are those services' own logos, their
+    markup tidied and, for the app, converted to vector drawables; IMDb's is
+    its letters alone, IMDb's and the Popcornmeter's are set on a square, and
+    MDBList's letter is filled white.  No licence to
     them is held or granted here: their copyright and their trademarks stay
     with their owners.  The rest are simplified marks drawn for this project
     in the colours of the services and boards they stand for (see
     tools/gen_rating_marks.py).
     "IMDb" is a trademark of IMDb.com, Inc.; "TMDB" of The Movie Database;
     "Trakt" of Trakt, Inc.; "TheTVDB" of TheTVDB.com; "Letterboxd" of
-    Letterboxd Limited; "MyAnimeList" of MyAnimeList Co., Ltd.; "Metacritic"
+    Letterboxd Limited; "MyAnimeList" of MyAnimeList Co., Ltd.; "MDBList" of MDBList; "Metacritic"
     of Fandom, Inc.; "Rotten Tomatoes" of Fandango; "FSK" of the Freiwillige
     Selbstkontrolle der Filmwirtschaft GmbH; the film ratings of the Motion
     Picture Association, Inc.; the TV Parental Guidelines of the TV Parental

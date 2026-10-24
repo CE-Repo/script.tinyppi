@@ -249,6 +249,7 @@ The [web dashboard](Web-Dashboard). See also
 | Setting | ID | Default | Values | Description |
 |---|---|---|---|---|
 | **MDBList API key** | `web_mdblist_key` | (empty) | text (hidden) | With a free key from mdblist.com (Preferences → API), the overview card shows the ratings MDBList gathers for a film: IMDb, TMDb, Trakt, Letterboxd, Rotten Tomatoes, Metacritic and more. To ask, the film's IMDb or TMDb id is sent to MDBList. Left empty, the card shows the ratings Kodi's library holds. See [Ratings from MDBList](Web-Dashboard#ratings-from-mdblist). |
+| **WhatsOn API key (optional)** | `web_whatson_key` | (empty) | text (hidden) | For every film, the overview card asks WhatsOn (whatson-api.onrender.com, free for non-commercial use) whether Rotten Tomatoes certified it: a seal on the Tomatometer for Certified Fresh, on the Popcornmeter for Verified Hot. Where neither MDBList nor the library has one of the two ratings, WhatsOn's is shown. Without a key WhatsOn answers 40 times an hour and 200 times a day; with a free key from its author (pierrevano.github.io), 200 times an hour and 1,000 a day. To ask, the film's IMDb or TMDb id is sent to WhatsOn, once per film. See [Rotten Tomatoes from WhatsOn](Web-Dashboard#rotten-tomatoes-from-whatson). |
 
 Changes here are applied to the running server immediately: switching the
 dashboard on or off, changing the port, or changing the token restarts or

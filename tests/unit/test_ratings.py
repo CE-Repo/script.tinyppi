@@ -63,11 +63,11 @@ def test_known_sources_come_first_in_their_order_and_the_rest_alphabetically():
 
 def test_the_sources_mdblist_brings_stand_in_their_order():
     found = rating_list({name: {"rating": 7.0} for name in (
-        "myanimelist", "rogerebert", "popcorn", "tomatoes", "metacriticuser", "metacritic",
-        "letterboxd", "trakt", "tmdb", "imdb")})
+        "mdblist", "myanimelist", "rogerebert", "popcorn", "tomatoes", "metacriticuser",
+        "metacritic", "letterboxd", "trakt", "tmdb", "imdb")})
     assert [entry["source"] for entry in found] == [
         "imdb", "tmdb", "trakt", "letterboxd", "metacritic", "metacriticuser", "rottentomatoes",
-        "popcorn", "rogerebert", "myanimelist"]
+        "popcorn", "rogerebert", "myanimelist", "mdblist"]
 
 
 def test_a_source_under_two_names_is_kept_once_as_it_came_first():
@@ -110,7 +110,7 @@ def test_names_are_cleaned_cut_short_and_a_nameless_source_is_left_out():
 
 def test_every_known_source_and_a_few_more_are_kept_and_a_longer_list_is_cut_off():
     known = ("imdb", "tmdb", "trakt", "tvdb", "letterboxd", "metacritic", "metacriticuser",
-             "rottentomatoes", "popcorn", "rogerebert", "myanimelist")
+             "rottentomatoes", "popcorn", "rogerebert", "myanimelist", "mdblist")
     found = rating_list({name: {"rating": 5.0} for name in (*known, "filmstarts", "kinopoisk")})
     assert [entry["source"] for entry in found] == [*known, "filmstarts", "kinopoisk"]
     found = rating_list({f"source{index:02d}": {"rating": 5.0} for index in range(20)})
