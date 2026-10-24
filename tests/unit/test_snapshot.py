@@ -202,7 +202,7 @@ def test_the_ratings_travel_in_the_media_block(rated):
 def test_mdblist_ratings_lie_over_the_librarys_and_the_ids_stay_behind(rated, monkeypatch):
     asked = []
 
-    def over(ratings):
+    def over(ratings, key):
         asked.append(ratings["ids"])
         merged = ratings.copy()
         merged["ratings"] = [{"source": "letterboxd", "rating": 8.0, "votes": 3}]
@@ -229,6 +229,27 @@ def test_the_ratings_are_read_once_per_title_and_not_for_the_session_pass(rated,
     play(**{"Player.Filename": "Next.mkv"})
     builder.build()
     assert len(asked) == 2
+
+
+def test_the_mdblist_key_is_read_once_a_static_interval(rated, monkeypatch):
+    read, given = [], []
+    monkeypatch.setattr(snapshot, "api_key", lambda: read.append(1) or "KEY")
+
+    def over(ratings, key):
+        given.append(key)
+        return ratings
+
+    monkeypatch.setattr(snapshot, "with_mdblist", over)
+    play()
+    builder = SnapshotBuilder()
+    builder.build()
+    builder.build()
+    assert len(read) == 1 and given == ["KEY", "KEY"]
+    # A key given mid-film is read again on the next interval, the same
+    # title still playing.
+    monkeypatch.setattr(builder, "STATIC_INTERVAL", 0.0)
+    builder.build()
+    assert len(read) == 2
 
 
 def test_the_ratings_are_asked_for_again_while_kodi_cannot_say(rated, monkeypatch):

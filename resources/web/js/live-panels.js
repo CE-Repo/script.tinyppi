@@ -283,6 +283,9 @@
      is the longest text on the page. */
   let plotTitle = null;
   function renderPlot(media, title) {
+    /* A frame that moved nothing of the title carries the very object the
+       last one did (see merge in core.js): there is nothing to draw again. */
+    if (media === plotMedia && title === plotTitle) return;
     plotMedia = media;
     const plot = (media.plot || "").trim();
     const tagline = plot ? (media.tagline || "").trim() : "";
@@ -315,8 +318,8 @@
      takes it back.  It folds wherever there is more than those lines to
      show: a plot that runs past them, or credits or ratings under it.  How
      many lines a plot takes is a matter of how wide it is laid out, so it
-     is measured when the plot changes, when the card is opened and when the
-     page is resized.  Pressable, it is a button to a screen reader, and
+     is measured when the plot changes, when the card is opened and once a
+     burst of resizes has settled (with the charts, below).  Pressable, it is a button to a screen reader, and
      says under a pointer what a press does. */
   let plotCut = false;
 
@@ -361,7 +364,6 @@
     flipPlot();
   });
   el.plotCard.addEventListener("toggle", measurePlot);
-  window.addEventListener("resize", measurePlot);
 
   /* Names as a line: a comma between two, and an ellipsis after the last
      where the add-on cut the list (the cast, past its first twenty). */
@@ -497,8 +499,10 @@
   /* A tap -- or a click -- on a shield shows over it for a moment whose it
      is; under a pointer its tooltip says so too. */
   let tipTimer = 0;
+  /* The tip is placed in the fold it stands in (.plotfold is its
+     positioned box), wherever the shields sit inside it. */
   function tellRating(node) {
-    const card = el.ratings.parentElement.getBoundingClientRect();
+    const card = el.plotFold.getBoundingClientRect();
     const box = node.getBoundingClientRect();
     el.ratingTip.textContent = node.title;
     el.ratingTip.style.left = (box.left + box.width / 2 - card.left) + "px";
@@ -1017,6 +1021,7 @@
     resizeTimer = setTimeout(() => {
       drawCharts();
       chapters.relayout();
+      measurePlot();
     }, 120);
   });
 

@@ -151,6 +151,10 @@ film title) has nowhere to run.
 
 - **Fixed routes.** Only a fixed table of paths is served; no request path is
   ever resolved against the filesystem.
+- **The MDBList API key stays on the box.** It goes to mdblist.com only,
+  with the id of the film being asked for, and never to a page; leave it
+  empty and nothing is sent with it (see
+  [Ratings from MDBList](Web-Dashboard#ratings-from-mdblist)).
 - **File names stay private.** The file path obeys the overlay's **Show file
   name** setting: with it off, the path is not sent to the browser either.
 - **Bounded connections.** One address may hold at most **16** connections

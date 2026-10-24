@@ -27,8 +27,9 @@ from web.values import Json, clean_value
 # can go by several names: ``themoviedb`` and ``tmdb`` are two scraper
 # versions', an NFO writer has its own for Metacritic and Rotten Tomatoes,
 # and MDBList calls Rotten Tomatoes' critics ``tomatoes`` and its audience
-# ``popcorn``.  Any other name (an NFO may carry anything) follows these,
-# alphabetically.
+# ``popcorn`` (in some of its answers ``tomatoesaudience`` or ``audience``),
+# which an OMDb-fed scraper calls ``tomatometerallaudience``.
+# Any other name (an NFO may carry anything) follows these, alphabetically.
 _SOURCES = (("imdb", "imdb"), ("themoviedb", "tmdb"), ("tmdb", "tmdb"),
             ("trakt", "trakt"), ("tvdb", "tvdb"), ("letterboxd", "letterboxd"),
             ("metacritic", "metacritic"), ("metascore", "metacritic"),
@@ -36,15 +37,18 @@ _SOURCES = (("imdb", "imdb"), ("themoviedb", "tmdb"), ("tmdb", "tmdb"),
             ("rottentomatoes", "rottentomatoes"), ("tomatometer", "rottentomatoes"),
             ("tomatometerallcritics", "rottentomatoes"), ("tomatoes", "rottentomatoes"),
             ("popcorn", "popcorn"), ("popcornmeter", "popcorn"),
+            ("tomatometerallaudience", "popcorn"), ("tomatoesaudience", "popcorn"),
+            ("audience", "popcorn"),
             ("rogerebert", "rogerebert"), ("myanimelist", "myanimelist"))
 _ALIASES = dict(_SOURCES)
 # Each name once, tmdb included, so a name outside it sorts after all of them.
 _ORDER = {name: index for index, name in enumerate(dict.fromkeys(_ALIASES.values()))}
 
-# As many as MDBList brings; an NFO with more is cut off.
-_RATING_LIMIT = 10
+# Every source named above, and a few more an NFO may carry; one with more
+# still is cut off.
+_RATING_LIMIT = len(_ORDER) + 4
 # A source's name is a label on a badge, not a sentence.
-_NAME_LIMIT = 24
+_SOURCE_NAME_LIMIT = 24
 
 # The levels each country's boards give, and the mark each is drawn as (see
 # tools/gen_rating_marks.py).  America has two boards, one for films and one
@@ -150,7 +154,7 @@ def rating_list(ratings: object) -> list[Rating]:
         return []
     found: dict[str, Rating] = {}
     for raw, held in ratings.items():
-        key = clean_value(str(raw)).lower()[:_NAME_LIMIT].rstrip()
+        key = clean_value(str(raw)).lower()[:_SOURCE_NAME_LIMIT].rstrip()
         name = _ALIASES.get(key, key)
         entry = _rating(name, held) if name and name not in found else None
         if entry:
@@ -173,8 +177,8 @@ def _details(method: str, id_key: str, item_id: int, properties: tuple[str, ...]
     return _answer(method, {id_key: item_id, "properties": list(properties)}, answer)
 
 
-# An IMDb id as Kodi keeps one: "tt" and its digits.
-_IMDB_ID = re.compile(r"tt\d+")
+# An IMDb id as Kodi and MDBList keep one: "tt" and its digits.
+IMDB_ID = re.compile(r"tt\d+")
 
 
 def film_ids(details: Json) -> dict[str, str]:
@@ -185,7 +189,7 @@ def film_ids(details: Json) -> dict[str, str]:
         return {}
     imdb = str(held.get("imdb") or "").strip()
     tmdb = str(held.get("tmdb") or "").strip()
-    ids = {"imdb": imdb} if _IMDB_ID.fullmatch(imdb) else {}
+    ids = {"imdb": imdb} if IMDB_ID.fullmatch(imdb) else {}
     if tmdb.isdigit() and int(tmdb):
         ids["tmdb"] = tmdb
     return ids

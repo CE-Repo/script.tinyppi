@@ -80,6 +80,8 @@ def test_a_source_under_two_names_is_kept_once_as_it_came_first():
     ("tomatometerallcritics", "rottentomatoes"), ("TheMovieDb", "tmdb"),
     # MDBList's names for Rotten Tomatoes' critics and audience.
     ("tomatoes", "rottentomatoes"), ("popcorn", "popcorn"), ("popcornmeter", "popcorn"),
+    # An OMDb-fed scraper's for the audience.
+    ("tomatometerallaudience", "popcorn"),
 ])
 def test_the_other_names_a_source_goes_by_are_known(name, source):
     assert rating_list({name: {"rating": 8.0}})[0]["source"] == source
@@ -106,9 +108,13 @@ def test_names_are_cleaned_cut_short_and_a_nameless_source_is_left_out():
     assert [entry["source"] for entry in found] == ["rotten tomatoes critics"]
 
 
-def test_a_long_list_is_cut_off():
-    found = rating_list({f"source{index:02d}": {"rating": 5.0} for index in range(12)})
-    assert len(found) == 10
+def test_every_known_source_and_a_few_more_are_kept_and_a_longer_list_is_cut_off():
+    known = ("imdb", "tmdb", "trakt", "tvdb", "letterboxd", "metacritic", "metacriticuser",
+             "rottentomatoes", "popcorn", "rogerebert", "myanimelist")
+    found = rating_list({name: {"rating": 5.0} for name in (*known, "filmstarts", "kinopoisk")})
+    assert [entry["source"] for entry in found] == [*known, "filmstarts", "kinopoisk"]
+    found = rating_list({f"source{index:02d}": {"rating": 5.0} for index in range(20)})
+    assert len(found) == len(known) + 4
 
 
 @pytest.mark.parametrize("value", [None, [], "imdb", 8.5])

@@ -14,7 +14,7 @@ import xbmc
 import xbmcaddon
 from web import mdblist
 from web.mdblist import Chart, Lookup, fetch, fetch_chart, places_of, scores_of, with_mdblist
-from web.ratings import no_ratings
+from web.ratings import no_ratings, rating_list
 
 # MDBList's answer for Jaws, as its documentation gives it (cut short).
 JAWS = {"title": "Jaws", "ratings": [
@@ -50,10 +50,55 @@ def test_an_answer_gives_each_rating_out_of_ten():
     }
 
 
+def test_a_value_without_its_score_is_read_on_its_sources_scale():
+    answer = {"ratings": [
+        {"source": "letterboxd", "value": 4.1, "score": None},
+        {"source": "myanimelist", "value": 8.6, "score": None},
+        {"source": "popcorn", "value": 91, "score": None},
+        # A source whose scale is not known is not guessed at.
+        {"source": "newcomer", "value": 7, "score": None},
+    ]}
+    assert scores_of(answer) == {
+        "letterboxd": {"rating": 8.2, "votes": None},
+        "myanimelist": {"rating": 8.6, "votes": None},
+        "popcorn": {"rating": 9.1, "votes": None},
+    }
+
+
+def test_a_figure_sent_as_text_is_read_and_the_audience_goes_by_any_of_its_names():
+    answer = {"ratings": [
+        {"source": "tomatoes", "value": "73", "score": "73"},
+        {"source": "rogerebert", "value": " 4 ", "score": None},
+        {"source": "Audience", "value": 86, "score": 86},
+        {"source": "tomatoesaudience", "value": 86, "score": None},
+    ]}
+    assert scores_of(answer) == {
+        "tomatoes": {"rating": 7.3, "votes": None},
+        "rogerebert": {"rating": 10.0, "votes": None},
+        "audience": {"rating": 8.6, "votes": None},
+        "tomatoesaudience": {"rating": 8.6, "votes": None},
+    }
+    # Each is drawn as the house it is.
+    assert [entry["source"] for entry in rating_list(scores_of(answer))] == [
+        "rottentomatoes", "popcorn", "rogerebert"]
+
+
+def test_what_mdblist_brought_for_a_film_is_logged_with_what_could_not_be_read(monkeypatch):
+    monkeypatch.setattr(mdblist, "_answer", lambda url: JAWS)
+    fetch("key", "imdb", "tt0073195")
+    told = [line for _level, line in xbmc.LOG if "MDBList rated imdb tt0073195" in line]
+    assert told == ["TinyPPI [web]: MDBList rated imdb tt0073195: imdb, metacritic, trakt, tomatoes, "
+                    "tmdb, letterboxd, rogerebert; no rating from metacriticuser, myanimelist"]
+    monkeypatch.setattr(mdblist, "_answer", lambda url: {"ratings": []})
+    fetch("key", "imdb", "tt1")
+    assert any(line.endswith("MDBList rated imdb tt1: nothing") for _level, line in xbmc.LOG)
+
+
 @pytest.mark.parametrize("answer", [
     {}, {"ratings": "none"}, {"ratings": ["imdb", None]},
     {"ratings": [{"source": "imdb", "score": True}, {"source": "rogerebert", "value": False}]},
-    {"ratings": [{"source": "rogerebert", "value": "4"}]},
+    {"ratings": [{"source": "rogerebert", "value": "n/a"}, {"source": "imdb", "score": "x"},
+                 {"source": "tmdb", "score": "inf"}, {"source": "trakt", "score": [80]}]},
 ])
 def test_an_answer_of_another_shape_has_no_ratings(answer):
     assert scores_of(answer) == {}
@@ -325,6 +370,17 @@ def test_without_a_key_nothing_is_asked(monkeypatch):
     xbmcaddon.SETTINGS["web_mdblist_key"] = "KEY"
     with_mdblist(held(), answers)
     assert answers.asked[-1] == ("", {})
+
+
+def test_a_key_given_is_asked_with_and_the_settings_are_not_read(monkeypatch):
+    def unread():
+        raise AssertionError("the settings were read")
+
+    monkeypatch.setattr(mdblist.settings, "addon", unread)
+    answers = Answers(None)
+    with_mdblist(held(ids={"imdb": "tt1"}), answers, key="GIVEN")
+    with_mdblist(held(ids={"imdb": "tt1"}), answers, key="")
+    assert answers.asked == [("GIVEN", {"imdb": "tt1"}), ("", {"imdb": "tt1"})]
 
 
 # --- The IMDb Top 250 ------------------------------------------------------------------

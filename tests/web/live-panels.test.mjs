@@ -211,6 +211,12 @@ test("who directed it is not in the card of what is playing", (t) => {
 
 test("a long plot is cut to a few lines, and a press on it lets the rest out", (t) => {
   const { $, P, window } = panels(t);
+  // A resize is measured once the burst of them has settled.
+  const timers = heldTimers(window);
+  const resize = () => {
+    window.dispatchEvent(new window.Event("resize"));
+    timers.run();
+  };
   // jsdom lays nothing out: the plot is given the heights a browser would.
   const box = { full: 200, shown: 87 };
   // The plot is measured; the slogan, the plot and the credits fold as one.
@@ -249,7 +255,7 @@ test("a long plot is cut to a few lines, and a press on it lets the rest out", (
   assert.ok(plot.classList.contains("open"));
   // Measuring an open plot leaves it be.
   box.full = box.shown;
-  window.dispatchEvent(new window.Event("resize"));
+  resize();
   assert.ok(plot.classList.contains("fold"));
   plot.click();
   assert.equal(plot.classList.contains("open"), false);
@@ -262,7 +268,7 @@ test("a long plot is cut to a few lines, and a press on it lets the rest out", (
 
   // Wide enough for all of it -- after a resize, or once the card opens --
   // and there is nothing to press; narrower again, and there is.
-  window.dispatchEvent(new window.Event("resize"));
+  resize();
   assert.equal(plot.classList.contains("fold"), false);
   for (const name of ["role", "tabindex", "aria-expanded", "title"]) assert.equal(plot.hasAttribute(name), false);
   plot.click();
@@ -316,6 +322,21 @@ test("a long plot is cut to a few lines, and a press on it lets the rest out", (
   P.update(snap({ media: { cast: ["Somebody"] } }));
   assert.equal(plot.classList.contains("fold"), false);
   assert.equal(plot.classList.contains("open"), false);
+});
+
+test("a frame that moved nothing of the title does not draw the overview again", (t) => {
+  const { $, P } = panels(t);
+  const media = { plot: "Paul joins the Fremen.", directors: ["Denis Villeneuve"] };
+  P.update(snap({ media }));
+  const credits = $("credits").firstElementChild;
+  // The same media, as a delta that left it alone carries it.
+  $("plotText").textContent = "drawn over";
+  P.update(snap({ media }));
+  assert.equal($("plotText").textContent, "drawn over", "nothing was written");
+  assert.equal($("credits").firstElementChild, credits);
+  // The same media under another title is drawn again.
+  P.update(snap({ media, title: "Dune: Part Three" }));
+  assert.equal($("plotText").textContent, "Paul joins the Fremen.");
 });
 
 test("the plot card: the plot under what is playing, with its slogan where there is one", (t) => {

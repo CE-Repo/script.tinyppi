@@ -27,7 +27,7 @@ library's place stands.
 
 import http.client
 import json
-import re
+import math
 import threading
 import time
 import urllib.error
@@ -39,7 +39,7 @@ import xbmc
 from core import settings
 from core.log import channel
 from web.payloads import Ratings
-from web.ratings import rating_list
+from web.ratings import IMDB_ID, rating_list
 from web.values import Json
 
 _log = channel("web")
@@ -82,18 +82,47 @@ class _Spent(Exception):
         self.wait = wait
 
 
+# The scale each source's own value is on, for one MDBList sends without
+# its score out of 100: Roger Ebert's stars always, the others now and then.
+# Rotten Tomatoes' audience has gone by three names in its answers.
+_SCALES = {"imdb": 10, "metacriticuser": 10, "myanimelist": 10, "letterboxd": 5,
+           "rogerebert": 4, "metacritic": 100, "trakt": 100, "tomatoes": 100,
+           "popcorn": 100, "tomatoesaudience": 100, "audience": 100, "tmdb": 100}
+
+
+def _figure(value: object) -> float | None:
+    """Return *value* as a number, where JSON gave one -- MDBList now and
+    then sends a figure as text ("73") -- or None ("n/a", null, junk)."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        found = float(value)
+    else:
+        try:
+            found = float(str(value).strip()) if isinstance(value, str) else math.nan
+        except ValueError:
+            return None
+    return found if math.isfinite(found) else None
+
+
+def _source(entry: Json) -> str:
+    """Return the name an entry of MDBList's answer gives its source."""
+    return str(entry.get("source") or "").strip().lower()
+
+
 def _out_of_ten(entry: Json) -> float | None:
     """Return one of MDBList's ratings out of ten, or None for none.
 
     MDBList gives each on its source's own scale and as a score out of 100
-    beside it; Roger Ebert's stars, out of four, come without the score.
+    beside it.  Without the score the value is read on its source's scale;
+    a source whose scale is not known is left out rather than guessed at.
     """
-    score, value = entry.get("score"), entry.get("value")
-    if isinstance(score, (int, float)) and not isinstance(score, bool):
+    score, value = _figure(entry.get("score")), _figure(entry.get("value"))
+    if score is not None:
         return score / 10
-    if entry.get("source") == "rogerebert" and isinstance(value, (int, float)) \
-            and not isinstance(value, bool):
-        return value * 2.5
+    scale = _SCALES.get(_source(entry))
+    if scale and value is not None:
+        return value * 10 / scale
     return None
 
 
@@ -104,14 +133,26 @@ def scores_of(answer: Json) -> Scores:
     out; a source with no rating for the film comes with nulls.
     """
     found: Scores = {}
-    entries = answer.get("ratings")
-    for entry in entries if isinstance(entries, list) else []:
-        if not isinstance(entry, dict) or entry.get("source") == "mdblist":
-            continue
+    for entry in _entries(answer):
         rating = _out_of_ten(entry)
         if rating is not None:
-            found[str(entry.get("source") or "")] = {"rating": rating, "votes": entry.get("votes")}
+            found[_source(entry)] = {"rating": rating, "votes": entry.get("votes")}
     return found
+
+
+def _entries(answer: Json) -> list[Json]:
+    """Return the entries of one of MDBList's answers, but its own score."""
+    entries = answer.get("ratings")
+    return [entry for entry in (entries if isinstance(entries, list) else [])
+            if isinstance(entry, dict) and _source(entry) != "mdblist"]
+
+
+def _told(provider: str, ident: str, answer: Json, found: Scores) -> None:
+    """Log what MDBList brought for a film, and what of it could not be
+    read, so a rating missing from the card can be traced."""
+    left = sorted({_source(entry) for entry in _entries(answer)} - set(found))
+    _log(f"MDBList rated {provider} {ident}: {', '.join(found) or 'nothing'}"
+         + (f"; no rating from {', '.join(left)}" if left else ""), xbmc.LOGINFO)
 
 
 def _retry_after(error: urllib.error.HTTPError) -> float:
@@ -147,21 +188,23 @@ def fetch(key: str, provider: str, ident: str) -> tuple[Scores, float]:
     """
     url = _URL.format(provider=provider, ident=quote(ident, safe=""), key=quote(key, safe=""))
     try:
-        return scores_of(_answer(url)), _KEPT
+        answer = _answer(url)
     except urllib.error.HTTPError as error:
         if error.code == 401:
             raise _Refused from None
         if error.code == 429:
             raise _Spent(_retry_after(error)) from None
-        _log(f"MDBList answered {error.code} for {provider} {ident}")
+        # Not a debug line: without it a card short of MDBList's ratings
+        # says nothing of why.
+        _log(f"MDBList answered {error.code} for {provider} {ident}", xbmc.LOGWARNING)
         return {}, _KEPT if error.code == 404 else _AGAIN
     except (OSError, ValueError, http.client.HTTPException) as error:
-        _log(f"MDBList could not be asked for {provider} {ident}: {type(error).__name__}")
+        _log(f"MDBList could not be asked for {provider} {ident}: {type(error).__name__}",
+             xbmc.LOGWARNING)
         return {}, _AGAIN
-
-
-# An IMDb id as Kodi and MDBList keep one: "tt" and its digits.
-_IMDB_ID = re.compile(r"tt\d+")
+    found = scores_of(answer)
+    _told(provider, ident, answer, found)
+    return found, _KEPT
 
 
 def places_of(answer: object) -> dict[str, int]:
@@ -174,7 +217,7 @@ def places_of(answer: object) -> dict[str, int]:
     entries = answer if isinstance(answer, list) else []
     for place, entry in enumerate(entries[:250], start=1):
         ident = entry.get("imdb_id") if isinstance(entry, dict) else None
-        if isinstance(ident, str) and _IMDB_ID.fullmatch(ident):
+        if isinstance(ident, str) and IMDB_ID.fullmatch(ident):
             places.setdefault(ident, place)
     return places
 
@@ -216,12 +259,14 @@ class Lookup:
         """Return MDBList's ratings for the film *ids* name, or None while
         there are none to show; asks for them the first time.
         """
-        if not key or key in self._refused or not ids:
+        if not key or not ids:
             return None
         provider = "imdb" if "imdb" in ids else "tmdb"
         wanted = (key, provider, ids[provider])
         now = self._clock()
         with self._lock:
+            if key in self._refused:
+                return None
             kept = self._kept.get(wanted)
             if kept and now < kept[0]:
                 return kept[1] or None
@@ -257,12 +302,14 @@ class Lookup:
         except _Refused:
             _log("MDBList refused the API key; the library's ratings are shown",
                  xbmc.LOGWARNING)
-            self._refused.add(key)
+            with self._lock:
+                self._refused.add(key)
             return {}, _KEPT
         except _Spent as spent:
             _log(f"MDBList's daily limit is spent; asking again in {int(spent.wait // 60)} min",
                  xbmc.LOGWARNING)
-            self._spent_until = self._clock() + spent.wait
+            with self._lock:
+                self._spent_until = self._clock() + spent.wait
             return {}, 0.0
 
 
@@ -312,8 +359,13 @@ _LOOKUP = Lookup()
 _CHART = Chart()
 
 
-def _key() -> str:
-    """Return the MDBList API key the reader gave, or ""."""
+def api_key() -> str:
+    """Return the MDBList API key the reader gave, or "".
+
+    It costs a look at the settings, so the caller reads it once a static
+    interval (see ``SnapshotBuilder._mdblist_api_key``) rather than once a
+    snapshot.
+    """
     try:
         return settings.addon().getSetting("web_mdblist_key").strip()
     except RuntimeError:
@@ -322,9 +374,11 @@ def _key() -> str:
 
 
 def with_mdblist(ratings: Ratings, lookup: Lookup = _LOOKUP,
-                 chart: Chart = _CHART) -> Ratings:
+                 chart: Chart = _CHART, key: str | None = None) -> Ratings:
     """Return *ratings* with MDBList's for the film, where it has any, and
     its place in the IMDb Top 250 as the chart has it.
+
+    *key* is the API key to ask with; None reads it from the settings.
 
     MDBList's come first, and the library's own stand beside them for a
     source MDBList has none from.
@@ -334,7 +388,7 @@ def with_mdblist(ratings: Ratings, lookup: Lookup = _LOOKUP,
     place = chart.place(imdb) if imdb else None
     if place is not None:
         merged["top250"] = place
-    found = lookup.scores(_key(), ratings["ids"])
+    found = lookup.scores(api_key() if key is None else key, ratings["ids"])
     if found:
         held: Scores = dict(found)
         for entry in ratings["ratings"]:

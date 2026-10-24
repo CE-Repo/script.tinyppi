@@ -30,6 +30,7 @@ Top 250 place, and — when you give it a key — the ratings MDBList gathers (s
 - [Continue watching and recently added](#continue-watching-and-recently-added)
 - [Play, resume and watched marks](#play-resume-and-watched-marks)
 - [The remote](#the-remote)
+- [Chapters on the progress bar](#chapters-on-the-progress-bar)
 - [Switching VS10 from the browser](#switching-vs10-from-the-browser)
 - [Settings tab](#settings-tab)
 - [Themes](#themes)
@@ -156,6 +157,15 @@ tap on the text (or Enter / Space once it has the focus) lets all of it out,
 and another folds it again. Only a plot that fits its five lines with nothing
 under it has nothing to fold. Every new title starts folded again.
 
+**Which board is an age rating?** An episode carries its show's age rating.
+One that names neither its country nor its board ("Rated 12", which the TMDb
+scraper writes with its default prefix) is read as the one board that gives
+that level — "PG-13" is American, "15" British — and where more than one does
+("12", "18", "PG") as the board of the country Kodi's language points to:
+German, British English or American English. The credits and the ratings are
+what Kodi knows of whatever plays, so an add-on's stream that names them has
+them too.
+
 **Which service is a mark?** A tap or click on a shield shows its name over it
 for two seconds (*IMDb*, *Trakt*, *FSK*, *IMDb Top 250* …); a mouse pointer
 shows the same as a tooltip. A tap on a shield does not fold the card. A
@@ -195,7 +205,7 @@ Popcornmeter), Metacritic (critics and users), Roger Ebert and MyAnimeList.
 1. Sign in at mdblist.com and take the free API key under **Preferences → API**.
 2. Enter it under **Settings → Dashboard → Ratings → MDBList API key**.
 
-From the next film on, the box asks MDBList once per film — by the IMDb id the
+From then on — the film already playing included — the box asks MDBList once per film — by the IMDb id the
 library holds, else the TMDb one — and the card shows the library's ratings
 until the answer is in. Where both have a rating from one source, MDBList's is
 shown; any other the library holds stands beside them. Every rating is out of
@@ -207,6 +217,12 @@ not know or cannot be reached for (asked again ten minutes later), when
 MDBList refuses the key (Kodi's log says so, and the key is not sent again
 until it is changed) or while the day's limit is spent. Episodes always show
 the library's: MDBList rates shows, not episodes.
+
+**A rating missing?** Kodi's log has a line for every film MDBList is asked
+for — `TinyPPI [web]: MDBList rated imdb tt0816692: imdb, tmdb, tomatoes, …` —
+naming the houses it rated the film by and, after *no rating from*, those it
+listed without one. A film MDBList could not be asked for, or answered with an
+error, is logged as a warning.
 
 ---
 
@@ -287,6 +303,10 @@ underneath.
 the scraped poster is often 2000 px. Kodi already keeps a smaller copy of
 everything it has drawn, so walls are served from Kodi's **texture cache**
 (falling back to the original only when the cache has just been cleared).
+They are served at the size Kodi already holds rather than a smaller one
+still: the cache is keyed by the whole address, so a size nobody asked for
+before is an entry the box has to build — for scraped artwork a fresh
+download of the original — which would make the wall slower, not faster.
 Posters are fetched as they scroll into view, and each crosses the network
 once: its address carries the picture's own tag, so the browser keeps it.
 
@@ -375,7 +395,10 @@ On the Live tab, under the progress bar, in two rows:
 | Second | Previous chapter · Play / Pause · Volume down · Mute · Volume up · Stop · Next chapter |
 
 Under them: a picker for the **audio track** and one for the **subtitles**
-(including *Off*). Tapping the **progress bar** seeks there; with the bar
+(including *Off*). The **progress bar** is dragged — with a finger, or a
+mouse held down — and the box seeks to where it was let go; a tap is the
+shortest such drag. While it is held, the fill, the clock under it and the
+chapter over it follow the finger rather than the player. With the bar
 focused, the arrow keys nudge it 10 s.
 
 - Every button goes through Kodi's JSON-RPC into the running player, and the
@@ -395,6 +418,38 @@ switching from the dashboard** off.
 
 ---
 
+## Chapters on the progress bar
+
+A file with two chapters or more gets a dot on the progress bar where each
+chapter **ahead of the position** starts; a dot goes as the bar passes it, so
+the part already seen stays clear. The first chapter of nearly every film
+starts at the very beginning, where there is no boundary to mark, so it never
+gets one. Two dots closer than six pixels are drawn as one.
+
+Over the bar stands which chapter is playing, of how many, and its name when
+the file names it (*Chapter 3 of 12 · Arrival*). A name a ripper or muxer made
+up — "Chapter 06", "Kapitel 6", a bare "06", the time it starts — is left out,
+since it says nothing the number does not; a real name behind such a number
+("Chapter 6: The Hunt") keeps only the name.
+
+- **Pointing and dragging.** While a mouse is over the bar, or a finger drags
+  it, every chapter is marked, those already seen too (in a light tone of the
+  accent). A drag that comes close to a dot snaps onto it, and the label names
+  the chapter under the finger. Pointing at a dot, or tapping it, names its
+  chapter and when it starts.
+- **Jumping.** With the remote allowed, a drag let go on a dot, or a tap on
+  one, jumps to the start of that chapter rather than to the spot, and
+  Page Up / Page Down go a chapter back and on while the bar has the focus.
+  The jump is asked for by the chapter's number, so it lands where the
+  chapter starts and not a few seconds either side of it.
+- **Always there.** The dots are a reading, not a control, so they are shown
+  with the remote switched off too. They come from Kodi's own
+  `Player.GetChapters` — the chapters Kodi's own seek bar marks — read once
+  per title. **Show chapter markers** on the Settings tab takes the dots and
+  the label off the bar, for that device only.
+
+---
+
 ## Switching VS10 from the browser
 
 With **Allow VS10 switching from the dashboard** on (the default), the Live tab
@@ -407,7 +462,8 @@ native VS10 actions included.
   last one replaces any still waiting.
 - **HDR10+** and **HLG** sources, and **Dolby Vision titles carrying HDR10+**,
   have no VS10 modes; the whole VS10 card, output line included, is hidden for
-  them.
+  them. A stream whose HDR10+ Kodi has stripped for a display that cannot show
+  it keeps its modes: what was removed is no longer in what the decoder is fed.
 - Switching **always** requires the access token, whatever the reading setting
   says.
 
