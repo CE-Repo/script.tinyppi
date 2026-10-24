@@ -235,7 +235,7 @@ Rotten Tomatoes certifies some films: **Certified Fresh** for its critics'
 Tomatometer, **Verified Hot** for its audience's Popcornmeter. Neither the
 library nor MDBList says so, but
 [WhatsOn](https://github.com/pierrevano/whatson-api) — a free service for
-non-commercial use — does, **no key needed**. A certified rating's shield
+non-commercial use — does, **no key needed**; it is always asked. A certified rating's shield
 wears a small red seal with a tick on the corner of its mark, and its tooltip
 and what a screen reader hears name the certificate ("Rotten Tomatoes ·
 Certified Fresh 9.3").
@@ -245,13 +245,16 @@ for some films that Rotten Tomatoes does rate (The Matrix and Interstellar
 among them). Where neither MDBList nor the library has the Tomatometer or the
 Popcornmeter for a film, WhatsOn's is shown; one they have stands.
 
-It is on by default: **Settings → Dashboard → Ratings → Rotten Tomatoes from
-WhatsOn**. The box asks WhatsOn for a film (episodes never) once MDBList has
-answered or will not be asked, by the IMDb id the library holds, else the TMDb
-one, and keeps the answer — a film WhatsOn does not know included — for half a
-day. One question per film stays well inside what WhatsOn allows without a key
-(40 an hour, 200 a day); should the limit be spent all the same, the box waits
-as long as WhatsOn says. WhatsOn runs on a free host that sleeps when idle, so
+The box asks WhatsOn for a film (episodes never) once MDBList has answered or
+will not be asked, by the IMDb id the library holds, else the TMDb one, and
+keeps the answer — a film WhatsOn does not know included — for half a day.
+Without a key WhatsOn answers 40 times an hour and 200 times a day, which one
+question per film stays well inside. A free key from its author
+([pierrevano.github.io](https://pierrevano.github.io)) raises that to 200 an
+hour and 1,000 a day: enter it under **Settings → Dashboard → Ratings →
+WhatsOn API key (optional)**. A key WhatsOn does not know is answered as no
+key at all. Should the limit be spent all the same, the box waits as long as
+WhatsOn says; a key given meanwhile is asked with at once. WhatsOn runs on a free host that sleeps when idle, so
 its first answer can take up to a minute; the card shows the ratings it has
 meanwhile.
 

@@ -131,7 +131,7 @@ script.tinyppi/
 | `snapshot.py` | Builds a snapshot from the overlay's own readings, with the overview's plot, credits and ratings. |
 | `ratings.py` | The playing title's ratings from the library over JSON-RPC: per source, the reader's own, the age rating (read for its board and level) and the IMDb Top 250 place. |
 | `mdblist.py` | MDBList's ratings for a film (with an API key) and the IMDb Top 250 chart, each fetched off the snapshot's thread and cached. |
-| `whatson.py` | Rotten Tomatoes' Certified Fresh and Verified Hot for a film from WhatsOn (no key), and its ratings where MDBList and the library lack them, off the snapshot's thread and cached. |
+| `whatson.py` | Rotten Tomatoes' Certified Fresh and Verified Hot for a film from WhatsOn (a key optional), and its ratings where MDBList and the library lack them, off the snapshot's thread and cached. |
 | `rows.py` | The dashboard's cards and rows, as the overlay shows them. |
 | `session.py` | The playing title's history: chart samples, events, counters. |
 | `player.py` | The playing video over JSON-RPC: tracks, volume, chapters, live-TV times and the remote's commands. |

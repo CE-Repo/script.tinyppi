@@ -219,22 +219,23 @@ def test_mdblist_ratings_lie_over_the_librarys_and_the_ids_stay_behind(rated, mo
 def test_what_the_ratings_can_be_asked_for_by_is_logged_once_a_title(rated, monkeypatch):
     import xbmc
     monkeypatch.setattr(snapshot, "api_key", lambda: "KEY")
-    monkeypatch.setattr(snapshot, "whatson_allowed", lambda: False)
+    monkeypatch.setattr(snapshot, "whatson_key", lambda: "")
     play()
     builder = SnapshotBuilder()
     builder.build()
     builder.build()
     told = [line for _level, line in xbmc.LOG if "Ratings of the playing title" in line]
     assert told == ["TinyPPI [web]: Ratings of the playing title: ids imdb tt0111161; "
-                    "the library's: imdb; MDBList key given, WhatsOn off"]
+                    "the library's: imdb; MDBList key given, WhatsOn key empty"]
     _asked, given = rated
     given["found"] = {**given["found"], "ids": {}, "ratings": []}
     monkeypatch.setattr(snapshot, "api_key", lambda: "")
     monkeypatch.setattr(builder, "STATIC_INTERVAL", 0.0)
-    monkeypatch.setattr(snapshot, "whatson_allowed", lambda: True)
+    monkeypatch.setattr(snapshot, "whatson_key", lambda: "WKEY")
     play(**{"Player.Filename": "Next.mkv"})
     builder.build()
-    assert xbmc.LOG[-1][1].endswith("ids none; the library's: none; MDBList key empty, WhatsOn on")
+    assert xbmc.LOG[-1][1].endswith(
+        "ids none; the library's: none; MDBList key empty, WhatsOn key given")
 
 
 def test_the_ratings_are_read_once_per_title_and_not_for_the_session_pass(rated, monkeypatch):
@@ -276,12 +277,12 @@ def test_the_mdblist_key_is_read_once_a_static_interval(rated, monkeypatch):
 @pytest.fixture
 def whatson(rated, monkeypatch):
     """WhatsOn's filling in, and whether MDBList's answer is on its way."""
-    filled, state = [], {"allowed": True, "asking": False}
-    monkeypatch.setattr(snapshot, "whatson_allowed", lambda: state["allowed"])
+    filled, state = [], {"key": "", "asking": False}
+    monkeypatch.setattr(snapshot, "whatson_key", lambda: state["key"])
     monkeypatch.setattr(snapshot, "asking", lambda key, ids: state["asking"])
 
-    def fill(ratings):
-        filled.append(ratings["ids"])
+    def fill(ratings, key):
+        filled.append((ratings["ids"], key))
         merged = ratings.copy()
         merged["ratings"] = [*ratings["ratings"], {"source": "popcorn", "rating": 8.5, "votes": 1}]
         return merged
@@ -301,15 +302,15 @@ def test_whatson_fills_in_once_mdblists_answer_is_in(whatson, monkeypatch):
     state["asking"] = False
     assert [entry["source"] for entry in builder.build()["media"]["ratings"]] == [
         "imdb", "popcorn"]
-    assert filled == [{"imdb": "tt0111161"}]
+    assert filled == [({"imdb": "tt0111161"}, "")]
 
 
-def test_whatson_is_not_asked_when_the_reader_does_not_allow_it(whatson, monkeypatch):
+def test_whatson_is_asked_with_the_key_given(whatson):
     filled, state = whatson
-    state["allowed"] = False
+    state["key"] = "WKEY"
     play()
-    assert [entry["source"] for entry in SnapshotBuilder().build()["media"]["ratings"]] == ["imdb"]
-    assert filled == []
+    SnapshotBuilder().build()
+    assert filled == [({"imdb": "tt0111161"}, "WKEY")]
 
 
 def test_the_ratings_are_asked_for_again_while_kodi_cannot_say(rated, monkeypatch):

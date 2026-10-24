@@ -2,7 +2,8 @@
 # Copyright (c) 2026 U3knOwn
 
 """Rotten Tomatoes' ratings of the playing film from WhatsOn, and its
-Certified Fresh and Verified Hot (``web_whatson``).
+Certified Fresh and Verified Hot, for every film (``web_whatson_key``
+optional).
 
 MDBList has no Rotten Tomatoes rating for some films (The Matrix,
 Interstellar) that WhatsOn (whatson-api.onrender.com, a free service for
@@ -12,9 +13,11 @@ stands.  WhatsOn alone says whether Rotten Tomatoes certified either -- the
 critics' Certified Fresh, the audience's Verified Hot -- which the rating's
 badge then wears, whoever gave the rating.
 
-WhatsOn is asked without a key, which allows 40 questions an hour and 200 a
-day: for a film only, by its IMDb id or else its TMDb one, once MDBList has
-answered (or will not be asked).  A film is asked for once, off the thread
+WhatsOn is always asked: for a film only, by its IMDb id or else its TMDb
+one, once MDBList has answered (or will not be asked).  Without a key it
+allows 40 questions an hour and 200 a day; the free key a reader may ask its
+author for, 200 an hour and 1,000 a day.  A key it does not know is asked
+with as no key at all.  A film is asked for once, off the thread
 that builds the snapshot, and the answer is kept for half a day, a film
 WhatsOn does not know included.  A spent limit waits for as long as WhatsOn
 says.
@@ -40,6 +43,8 @@ from web.values import Json
 _log = channel("web")
 
 _URL = "https://whatson-api.onrender.com/?{provider}Id={ident}&item_type=movie"
+# Added to the address for a reader who gave a key.
+_KEYED = "&api_key={key}"
 _AGENT = "script.tinyppi (Kodi add-on)"
 # The service sleeps on a free host and takes up to a minute to wake.
 _TIMEOUT = 60.0
@@ -61,8 +66,8 @@ _WANTED = {"rottentomatoes": "tomatoes", "popcorn": "popcorn"}
 
 # Ratings out of ten by name, as web.ratings.rating_list reads them.
 Scores = dict[str, Json]
-# What a film is asked for by: "imdb" or "tmdb", and the id.
-_Wanted = tuple[str, str]
+# What a film is asked for by: the key ("" for none), "imdb" or "tmdb", and the id.
+_Wanted = tuple[str, str, str]
 
 
 class _Spent(Exception):
@@ -145,14 +150,17 @@ def _answer(url: str) -> Json:
     return found if isinstance(found, dict) else {}
 
 
-def fetch(provider: str, ident: str) -> tuple[Scores, float]:
-    """Return a film's Rotten Tomatoes ratings and how long to keep them.
+def fetch(provider: str, ident: str, key: str = "") -> tuple[Scores, float]:
+    """Return a film's Rotten Tomatoes ratings and how long to keep them,
+    asked with *key* where there is one.
 
     Raises _Spent while the limit is spent.  A film WhatsOn does not know
     has none for half a day, and one it could not be reached for none until
     it is asked again.
     """
     url = _URL.format(provider=provider, ident=quote(ident, safe=""))
+    if key:
+        url += _KEYED.format(key=quote(key, safe=""))
     try:
         answer = _answer(url)
     except urllib.error.HTTPError as error:
@@ -188,21 +196,26 @@ class Lookup:
         # When each answer goes stale, and the answer.
         self._kept: dict[_Wanted, tuple[float, Scores]] = {}
         self._asking: set[_Wanted] = set()
-        self._spent_until = 0.0
+        # Until when the limit of each key ("" for none) is spent.
+        self._spent: dict[str, float] = {}
 
-    def scores(self, ids: Mapping[str, str]) -> Scores | None:
+    def scores(self, ids: Mapping[str, str], key: str = "") -> Scores | None:
         """Return WhatsOn's ratings for the film *ids* name, or None while
-        there are none to show; asks for them the first time."""
+        there are none to show; asks for them with *key* the first time.
+
+        A key given while the limit without one is spent is asked with at
+        once.
+        """
         if not ids:
             return None
         provider = "imdb" if "imdb" in ids else "tmdb"
-        wanted = (provider, ids[provider])
+        wanted = (key, provider, ids[provider])
         now = self._clock()
         with self._lock:
             kept = self._kept.get(wanted)
             if kept and now < kept[0]:
                 return kept[1] or None
-            if wanted in self._asking or now < self._spent_until:
+            if wanted in self._asking or now < self._spent.get(key, 0.0):
                 return None
             self._asking.add(wanted)
         self._start(lambda: self._ask(wanted))
@@ -229,37 +242,40 @@ class Lookup:
     def _answer_for(self, wanted: _Wanted) -> tuple[Scores, float]:
         """Return a film's ratings and how long to keep them (0: not at all)."""
         try:
-            return fetch(*wanted)
+            key, provider, ident = wanted
+            return fetch(provider, ident, key)
         except _Spent as spent:
             _log(f"WhatsOn's limit is spent; asking again in {int(spent.wait // 60)} min",
                  xbmc.LOGWARNING)
             with self._lock:
-                self._spent_until = self._clock() + spent.wait
+                self._spent[wanted[0]] = self._clock() + spent.wait
             return {}, 0.0
 
 
 _LOOKUP = Lookup()
 
 
-def allowed() -> bool:
-    """Return whether the reader lets WhatsOn be asked.
+def api_key() -> str:
+    """Return the WhatsOn API key the reader gave, or "" for none.
 
     It costs a look at the settings, so the caller reads it once a static
     interval (see ``SnapshotBuilder._rating_settings``).
     """
     try:
-        return settings.addon().getSettingBool("web_whatson")
+        return settings.addon().getSetting("web_whatson_key").strip()
     except RuntimeError:
-        # The add-on is being updated; what MDBList and the library have will do.
-        return False
+        # The add-on is being updated; WhatsOn is asked without one meanwhile.
+        return ""
 
 
-def with_whatson(ratings: Ratings, lookup: Lookup = _LOOKUP) -> Ratings:
+def with_whatson(ratings: Ratings, lookup: Lookup = _LOOKUP, key: str = "") -> Ratings:
     """Return *ratings* with the Rotten Tomatoes ratings they lack from
     WhatsOn, where it has any, and each of the two marked certified where
     WhatsOn says Rotten Tomatoes certified it; the ones already there stand.
+
+    WhatsOn is asked with *key* where there is one.
     """
-    found = lookup.scores(ratings["ids"])
+    found = lookup.scores(ratings["ids"], key)
     if not found:
         return ratings
     held: Scores = {entry["source"]: {"rating": entry["rating"], "votes": entry["votes"]}

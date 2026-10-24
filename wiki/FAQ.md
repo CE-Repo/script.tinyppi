@@ -89,7 +89,7 @@ box. Posters come from Kodi's own texture cache. Only the overview's ratings
 reach out, from the box: the IMDb Top 250 list (a public MDBList list, the
 same for everyone), if you enter an MDBList API key, MDBList's ratings for
 the playing film and WhatsOn's Rotten Tomatoes certificates, and its ratings
-where they are missing (unless you turn that off). Without internet the card shows the library's ratings.
+where they are missing. Without internet the card shows the library's ratings.
 
 ### Can I open the dashboard from outside my home?
 

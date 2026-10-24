@@ -156,8 +156,8 @@ film title) has nowhere to run.
   empty and nothing is sent with it (see
   [Ratings from MDBList](Web-Dashboard#ratings-from-mdblist)).
 - **WhatsOn gets a film's id only.** The playing film's IMDb or TMDb id goes
-  to whatson-api.onrender.com, once per film, without a key and nothing else;
-  turn it off under **Rotten Tomatoes from WhatsOn** (see
+  to whatson-api.onrender.com, once per film, with the WhatsOn API key if you
+  gave one and nothing else (see
   [Rotten Tomatoes from WhatsOn](Web-Dashboard#rotten-tomatoes-from-whatson)).
 - **File names stay private.** The file path obeys the overlay's **Show file
   name** setting: with it off, the path is not sent to the browser either.

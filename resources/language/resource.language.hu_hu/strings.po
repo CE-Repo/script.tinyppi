@@ -1528,9 +1528,9 @@ msgid "Director"
 msgstr "Rendező"
 
 msgctxt "#32387"
-msgid "Rotten Tomatoes from WhatsOn"
-msgstr "Rotten Tomatoes a WhatsOn-ból"
+msgid "WhatsOn API key (optional)"
+msgstr "WhatsOn API-kulcs (nem kötelező)"
 
 msgctxt "#32388"
-msgid "For a film, the overview card asks WhatsOn (whatson-api.onrender.com, free for non-commercial use, no key needed) whether Rotten Tomatoes certified it: a seal on the Tomatometer for Certified Fresh, on the Popcornmeter for Verified Hot. Where neither MDBList nor the library has one of the two ratings, WhatsOn's is shown. To ask, the film's IMDb or TMDb id is sent to WhatsOn, once per film."
-msgstr "Egy filmnél az Áttekintés kártya megkérdezi a WhatsOn-t (whatson-api.onrender.com, nem kereskedelmi célra ingyenes, kulcs nélkül), kitüntette-e a Rotten Tomatoes: pecsét a Tomatometeren a „Certified Fresh”, a Popcornmeteren a „Verified Hot” jelzésért. Ha a két értékelés egyike sem az MDBList-ben, sem a médiatárban nincs meg, a WhatsOn-é látszik. Ehhez a film IMDb- vagy TMDb-azonosítója a WhatsOn-hoz kerül, filmenként egyszer."
+msgid "For every film, the overview card asks WhatsOn (whatson-api.onrender.com, free for non-commercial use) whether Rotten Tomatoes certified it: a seal on the Tomatometer for Certified Fresh, on the Popcornmeter for Verified Hot. Where neither MDBList nor the library has one of the two ratings, WhatsOn's is shown. Without a key WhatsOn answers 40 times an hour and 200 times a day; with a free key from its author (pierrevano.github.io), 200 times an hour and 1,000 a day. To ask, the film's IMDb or TMDb id is sent to WhatsOn, once per film."
+msgstr "Az Áttekintés kártya minden filmnél megkérdezi a WhatsOn-t (whatson-api.onrender.com, nem kereskedelmi célra ingyenes), kitüntette-e a Rotten Tomatoes: pecsét a Tomatometeren a „Certified Fresh”, a Popcornmeteren a „Verified Hot” jelzésért. Ha a két értékelés egyike sem az MDBList-ben, sem a médiatárban nincs meg, a WhatsOn-é látszik. Kulcs nélkül a WhatsOn óránként 40, naponta 200 kérésre válaszol, a szerzőtől kérhető ingyenes kulccsal (pierrevano.github.io) óránként 200, naponta 1000 kérésre. Ehhez a film IMDb- vagy TMDb-azonosítója a WhatsOn-hoz kerül, filmenként egyszer."

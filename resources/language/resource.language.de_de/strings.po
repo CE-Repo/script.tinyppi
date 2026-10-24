@@ -1528,9 +1528,9 @@ msgid "Director"
 msgstr "Regisseur"
 
 msgctxt "#32387"
-msgid "Rotten Tomatoes from WhatsOn"
-msgstr "Rotten Tomatoes über WhatsOn"
+msgid "WhatsOn API key (optional)"
+msgstr "WhatsOn-API-Schlüssel (optional)"
 
 msgctxt "#32388"
-msgid "For a film, the overview card asks WhatsOn (whatson-api.onrender.com, free for non-commercial use, no key needed) whether Rotten Tomatoes certified it: a seal on the Tomatometer for Certified Fresh, on the Popcornmeter for Verified Hot. Where neither MDBList nor the library has one of the two ratings, WhatsOn's is shown. To ask, the film's IMDb or TMDb id is sent to WhatsOn, once per film."
-msgstr "Für einen Film fragt die Überblick-Karte WhatsOn (whatson-api.onrender.com, kostenlos für nicht-kommerzielle Nutzung, ohne Schlüssel), ob Rotten Tomatoes ihn ausgezeichnet hat: ein Siegel am Tomatometer für „Certified Fresh“, am Popcornmeter für „Verified Hot“. Fehlt eine der beiden Bewertungen bei MDBList und in der Mediathek, wird die von WhatsOn gezeigt. Dafür wird die IMDb- oder TMDb-ID des Films an WhatsOn geschickt, einmal pro Film."
+msgid "For every film, the overview card asks WhatsOn (whatson-api.onrender.com, free for non-commercial use) whether Rotten Tomatoes certified it: a seal on the Tomatometer for Certified Fresh, on the Popcornmeter for Verified Hot. Where neither MDBList nor the library has one of the two ratings, WhatsOn's is shown. Without a key WhatsOn answers 40 times an hour and 200 times a day; with a free key from its author (pierrevano.github.io), 200 times an hour and 1,000 a day. To ask, the film's IMDb or TMDb id is sent to WhatsOn, once per film."
+msgstr "Für jeden Film fragt die Überblick-Karte WhatsOn (whatson-api.onrender.com, kostenlos für nicht-kommerzielle Nutzung), ob Rotten Tomatoes ihn ausgezeichnet hat: ein Siegel am Tomatometer für „Certified Fresh“, am Popcornmeter für „Verified Hot“. Fehlt eine der beiden Bewertungen bei MDBList und in der Mediathek, wird die von WhatsOn gezeigt. Ohne Schlüssel antwortet WhatsOn 40-mal pro Stunde und 200-mal pro Tag, mit einem kostenlosen Schlüssel vom Betreiber (pierrevano.github.io) 200-mal pro Stunde und 1.000-mal pro Tag. Dafür wird die IMDb- oder TMDb-ID des Films an WhatsOn geschickt, einmal pro Film."

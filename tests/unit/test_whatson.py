@@ -14,7 +14,7 @@ import xbmc
 import xbmcaddon
 from web import whatson
 from web.ratings import no_ratings
-from web.whatson import Lookup, allowed, fetch, scores_of, with_whatson
+from web.whatson import Lookup, api_key, fetch, scores_of, with_whatson
 
 # WhatsOn's answer for The Matrix (cut short).
 MATRIX = {"page": 1, "total_pages": 1, "total_results": 1, "results": [{
@@ -97,6 +97,10 @@ def test_a_film_is_asked_for_by_its_id_and_logged(monkeypatch):
     monkeypatch.setattr(whatson, "_answer", lambda url: asked.append(url) or {})
     assert fetch("tmdb", "a b") == ({}, whatson._KEPT)
     assert asked[-1] == "https://whatson-api.onrender.com/?tmdbId=a%20b&item_type=movie"
+    # With a key where the reader gave one.
+    fetch("imdb", "tt1", "a key&more")
+    assert asked[-1] == ("https://whatson-api.onrender.com/?imdbId=tt1&item_type=movie"
+                         "&api_key=a%20key%26more")
     assert any(line.endswith("WhatsOn rated tmdb a b: nothing") for _level, line in xbmc.LOG)
 
 
@@ -181,8 +185,8 @@ def lookup(monkeypatch):
     clock, started, asked = Clock(), [], []
     answers = {"found": ({"tomatoes": {"rating": 8.3, "votes": 209}}, whatson._KEPT)}
 
-    def fake_fetch(provider, ident):
-        asked.append((provider, ident))
+    def fake_fetch(provider, ident, key):
+        asked.append((provider, ident) + ((key,) if key else ()))
         found = answers["found"]
         if isinstance(found, Exception):
             raise found
@@ -239,7 +243,7 @@ def test_a_film_with_no_ratings_there_is_not_asked_for_again_soon(lookup):
 
 
 def test_a_spent_limit_waits_as_long_as_whatson_says(lookup):
-    found, clock, started, _asked, answers, run = lookup
+    found, clock, started, asked, answers, run = lookup
     answers["found"] = whatson._Spent(120.0)
     found.scores({"imdb": "tt1"})
     run()
@@ -247,6 +251,11 @@ def test_a_spent_limit_waits_as_long_as_whatson_says(lookup):
                for _level, line in xbmc.LOG)
     assert found.scores({"imdb": "tt3"}) is None
     assert started == []
+    # A key given meanwhile is asked with at once.
+    found.scores({"imdb": "tt1"}, "KEY")
+    assert len(started) == 1
+    run()
+    assert asked[-1] == ("imdb", "tt1", "KEY")
     clock.now += 121
     found.scores({"imdb": "tt1"})
     assert len(started) == 1
@@ -268,7 +277,7 @@ def test_only_so_many_films_are_kept(lookup, monkeypatch):
     for ident in ("tt1", "tt2", "tt3"):
         found.scores({"imdb": ident})
         run()
-    assert [wanted[1] for wanted in found._kept] == ["tt2", "tt3"]
+    assert [wanted[2] for wanted in found._kept] == ["tt2", "tt3"]
 
 
 def test_the_asking_runs_on_a_thread_of_its_own():
@@ -284,8 +293,8 @@ class Answers:
         self.found = found
         self.asked = []
 
-    def scores(self, ids):
-        self.asked.append(ids)
+    def scores(self, ids, key=""):
+        self.asked.append(ids if not key else (ids, key))
         return self.found
 
 
@@ -341,14 +350,19 @@ def test_without_an_answer_the_ratings_stand():
     assert with_whatson(ratings, Answers(None)) is ratings
 
 
-def test_whatson_is_asked_unless_the_reader_says_not_to(monkeypatch):
-    assert allowed() is True
-    xbmcaddon.SETTINGS["web_whatson"] = "false"
-    assert allowed() is False
-    xbmcaddon.SETTINGS["web_whatson"] = "true"
+def test_whatson_is_asked_with_the_key_given():
+    answers = Answers(None)
+    with_whatson(held("imdb"), answers, key="KEY")
+    assert answers.asked == [({"imdb": "tt0133093"}, "KEY")]
+
+
+def test_the_key_is_the_readers_and_optional(monkeypatch):
+    assert api_key() == ""
+    xbmcaddon.SETTINGS["web_whatson_key"] = "  KEY  "
+    assert api_key() == "KEY"
 
     def updating():
         raise RuntimeError("being updated")
 
     monkeypatch.setattr(whatson.settings, "addon", updating)
-    assert allowed() is False
+    assert api_key() == ""

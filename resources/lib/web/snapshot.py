@@ -68,7 +68,7 @@ from web.rows import GROUPS, finish_time, is_dv_source, overlay_rows, render
 from web.session import SessionLog
 from web.values import clean_value, name_list, numbers, plain_text
 from web.vs10 import vs10_state
-from web.whatson import allowed as whatson_allowed
+from web.whatson import api_key as whatson_key
 from web.whatson import with_whatson
 
 _log = channel("web")
@@ -320,11 +320,11 @@ class SnapshotBuilder:
         self._ratings_for: tuple[str, str] | None = None
         self._ratings_at = 0.0
         self._ratings_known = False
-        # The MDBList API key, whether WhatsOn may be asked, and when they
-        # were read: once a static interval, so a key given mid-film is
-        # asked with within a second.
+        # The MDBList and the WhatsOn API keys and when they were read: once
+        # a static interval, so a key given mid-film is asked with within a
+        # second.
         self._mdblist_key = ""
-        self._whatson = False
+        self._whatson_key = ""
         self._rating_settings_at = 0.0
 
     def _refresh(self) -> None:
@@ -502,17 +502,17 @@ class SnapshotBuilder:
         held = ", ".join(entry["source"] for entry in found["ratings"]) or "none"
         _log(f"Ratings of the playing title: ids {ids}; the library's: {held}; "
              f"MDBList key {'given' if self._mdblist_key else 'empty'}, "
-             f"WhatsOn {'on' if self._whatson else 'off'}", xbmc.LOGINFO)
+             f"WhatsOn key {'given' if self._whatson_key else 'empty'}", xbmc.LOGINFO)
 
-    def _rating_settings(self) -> tuple[str, bool]:
-        """Return the MDBList API key and whether WhatsOn may be asked,
-        read again once a static interval."""
+    def _rating_settings(self) -> tuple[str, str]:
+        """Return the MDBList and the WhatsOn API keys ("" for none), read
+        again once a static interval."""
         now = time.monotonic()
         if now - self._rating_settings_at >= self.STATIC_INTERVAL:
             self._rating_settings_at = now
             self._mdblist_key = api_key()
-            self._whatson = whatson_allowed()
-        return self._mdblist_key, self._whatson
+            self._whatson_key = whatson_key()
+        return self._mdblist_key, self._whatson_key
 
     def _shown_ratings(self, values: dict[str, str]) -> Ratings:
         """Return the title's ratings: the library's, MDBList's over them,
@@ -523,8 +523,8 @@ class SnapshotBuilder:
         """
         key, whatson = self._rating_settings()
         ratings = with_mdblist(self._rating_info(values), key=key)
-        if whatson and not asking(key, ratings["ids"]):
-            ratings = with_whatson(ratings)
+        if not asking(key, ratings["ids"]):
+            ratings = with_whatson(ratings, key=whatson)
         return ratings
 
     def _active_tracks(self) -> dict[str, str]:
@@ -568,7 +568,7 @@ class SnapshotBuilder:
             self._ratings_at = 0.0
             self._ratings_known = False
             self._mdblist_key = ""
-            self._whatson = False
+            self._whatson_key = ""
             self._rating_settings_at = 0.0
             # End the session but keep its figures for the idle page.
             self.session.end()
