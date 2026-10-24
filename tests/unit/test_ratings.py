@@ -189,8 +189,8 @@ def test_a_film_brings_every_kind_of_rating():
         "ratings": [{"source": "imdb", "rating": 8.5, "votes": 612345},
                     {"source": "tmdb", "rating": 8.2, "votes": 6120}],
         "mpaa": "FSK 12", "age": "fsk12", "age_level": "12", "userrating": 9, "top250": 27,
-        # Looked up by its TMDb id in resources/data/awards.json.
-        "awards": [{"award": "oscar", "won": ["Visual Effects (2025)", "Sound (2025)"], "nominated": 3},
+        # Looked up by its ids in resources/data/awards.json.
+        "awards": [{"award": "oscar", "won": ["Sound (2025)", "Visual Effects (2025)"], "nominated": 3},
                    {"award": "globe", "won": [], "nominated": 2}],
         "ids": {"imdb": "tt15239678", "tmdb": "693134"},
     }
