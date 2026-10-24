@@ -30,7 +30,7 @@ add-on from `addon.xml`.
 
    ```bash
    rsync -av --delete --exclude .git --exclude .github --exclude tests \
-         --exclude tools --exclude docs --exclude node_modules \
+         --exclude tools --exclude wiki --exclude node_modules \
          ./ root@coreelec:/storage/.kodi/addons/script.tinyppi/
    ```
 
