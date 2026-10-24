@@ -18,6 +18,7 @@ import time
 import zlib
 
 import xbmc
+from core.log import channel
 from core.utils import (
     PROP_EFFECTIVE_HDR_TYPE,
     PROP_HDR10PLUS_PRESENT,
@@ -69,6 +70,8 @@ from web.values import clean_value, name_list, numbers, plain_text
 from web.vs10 import vs10_state
 from web.whatson import allowed as whatson_allowed
 from web.whatson import with_whatson
+
+_log = channel("web")
 
 # Home property with the source HDR type (from publish_hdr_type).
 _PROP_HDR_TYPE = "TinyPPI.HdrType"
@@ -488,7 +491,18 @@ class SnapshotBuilder:
             found = playing_ratings()
             self._ratings_known = found is not None
             self._ratings = found if found is not None else no_ratings()
+            if found is not None:
+                self._tell_ratings(found)
         return self._ratings
+
+    def _tell_ratings(self, found: Ratings) -> None:
+        """Log, once a title, what its ratings can be asked for by, so a
+        card short of MDBList's or WhatsOn's says why in Kodi's log."""
+        ids = ", ".join(f"{name} {ident}" for name, ident in found["ids"].items()) or "none"
+        held = ", ".join(entry["source"] for entry in found["ratings"]) or "none"
+        _log(f"Ratings of the playing title: ids {ids}; the library's: {held}; "
+             f"MDBList key {'given' if self._mdblist_key else 'empty'}, "
+             f"WhatsOn {'on' if self._whatson else 'off'}", xbmc.LOGINFO)
 
     def _rating_settings(self) -> tuple[str, bool]:
         """Return the MDBList API key and whether WhatsOn may be asked,

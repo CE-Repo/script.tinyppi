@@ -216,6 +216,27 @@ def test_mdblist_ratings_lie_over_the_librarys_and_the_ids_stay_behind(rated, mo
     assert asked == [{"imdb": "tt0111161"}]
 
 
+def test_what_the_ratings_can_be_asked_for_by_is_logged_once_a_title(rated, monkeypatch):
+    import xbmc
+    monkeypatch.setattr(snapshot, "api_key", lambda: "KEY")
+    monkeypatch.setattr(snapshot, "whatson_allowed", lambda: False)
+    play()
+    builder = SnapshotBuilder()
+    builder.build()
+    builder.build()
+    told = [line for _level, line in xbmc.LOG if "Ratings of the playing title" in line]
+    assert told == ["TinyPPI [web]: Ratings of the playing title: ids imdb tt0111161; "
+                    "the library's: imdb; MDBList key given, WhatsOn off"]
+    _asked, given = rated
+    given["found"] = {**given["found"], "ids": {}, "ratings": []}
+    monkeypatch.setattr(snapshot, "api_key", lambda: "")
+    monkeypatch.setattr(builder, "STATIC_INTERVAL", 0.0)
+    monkeypatch.setattr(snapshot, "whatson_allowed", lambda: True)
+    play(**{"Player.Filename": "Next.mkv"})
+    builder.build()
+    assert xbmc.LOG[-1][1].endswith("ids none; the library's: none; MDBList key empty, WhatsOn on")
+
+
 def test_the_ratings_are_read_once_per_title_and_not_for_the_session_pass(rated, monkeypatch):
     asked, _given = rated
     play()
