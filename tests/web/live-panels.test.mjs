@@ -574,12 +574,12 @@ test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   assert.equal(tip.classList.contains("hidden"), false);
   assert.equal(tip.textContent, "Trakt");
   assert.deepEqual([tip.style.left, tip.style.top], ["70px", "200px"]);
-  assert.deepEqual(timers.delays(), [2000]);
+  assert.deepEqual(timers.delays(), [4000]);
   // Another shield before it is gone: its words, and the moment starts again.
   letterboxd.click();
   assert.equal(tip.textContent, "Letterboxd");
   assert.equal(tip.style.left, "145px");
-  assert.deepEqual(timers.delays(), [2000]);
+  assert.deepEqual(timers.delays(), [4000]);
   timers.run();
   assert.ok(tip.classList.contains("hidden"));
   // A tap beside the shields shows nothing, and does not fold the plot.
