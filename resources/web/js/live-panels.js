@@ -542,7 +542,7 @@
     el.ratingTip.style.top = (box.top - card.top) + "px";
     el.ratingTip.classList.remove("hidden");
     clearTimeout(tipTimer);
-    tipTimer = setTimeout(() => el.ratingTip.classList.add("hidden"), 2000);
+    tipTimer = setTimeout(() => el.ratingTip.classList.add("hidden"), 4000);
   }
 
   /* A tap on a shield is the shield's, not one that folds the plot. */

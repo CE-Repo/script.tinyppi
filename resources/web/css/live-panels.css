@@ -620,7 +620,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
 }
 .plotfold:has(> :not(.hidden)) ~ .ratings {
   margin-top: 2px;
@@ -633,7 +633,7 @@
    is.  Its edge is drawn inside it, so every badge stays one height. */
 /* Every badge one height, whatever it holds: a shield of figures, a heart,
    an age rating's mark on its own. */
-.ratings { --badge: 24px; }
+.ratings { --badge: 28px; }
 .rating {
   /* The house's colour; one with no colour of its own -- a source with no
      drawing, an age rating written out -- is washed in the line's. */
@@ -648,9 +648,9 @@
   height: var(--badge);
   /* No narrower than this, so one with a short mark and figure is not a
      sliver. */
-  min-width: 32px;
+  min-width: 38px;
   max-width: 100%;
-  border-radius: 7px;
+  border-radius: 8px;
   overflow: hidden;
   background: color-mix(in srgb, var(--hue) 20%, var(--panel-2));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue) 55%, transparent);
@@ -659,7 +659,7 @@
 .rating .look {
   display: inline-flex;
   align-items: stretch;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.3;
   color: var(--dim);
 }
@@ -672,8 +672,8 @@
   align-items: center;
   justify-content: center;
   margin: 2px;
-  padding: 0 3px;
-  border-radius: 5px;
+  padding: 0 4px;
+  border-radius: 6px;
   background: var(--house);
 }
 /* Each house's colour, the one its mark is drawn on.  An age rating's is
@@ -726,20 +726,20 @@
 .ratings .rating.nominee .side { opacity: .6; }
 /* A source with no drawing: its first letter on a plain plate. */
 .rating .side.letter {
-  min-width: 20px;
+  min-width: 24px;
   padding: 0 6px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
 }
 /* The reader's own rating: a heart on the accent, which is what says it is
    theirs and not a house's. */
 .rating.mine { --house: var(--accent); }
-.rating .side.heart { padding: 0 6px; }
+.rating .side.heart { padding: 0 7px; }
 .rating .side.heart::before {
   content: "";
-  width: 11px;
-  height: 11px;
+  width: 13px;
+  height: 13px;
   background: #fff;
   -webkit-mask: url('/icons/heart.svg') no-repeat center / contain;
   mask: url('/icons/heart.svg') no-repeat center / contain;
@@ -752,11 +752,11 @@
   align-items: baseline;
   align-self: center;
   gap: 5px;
-  padding: 0 8px 0 4px;
+  padding: 0 9px 0 5px;
   white-space: nowrap;
 }
 /* Written out, with no plate before it, the figure keeps its air on both sides. */
-.rating .figures:first-child { padding-left: 8px; }
+.rating .figures:first-child { padding-left: 9px; }
 /* Tabular figures in the face of the words around them rather than the
    monospaced one the readings use: that face sits higher on the line, and a
    badge this small shows it. */
@@ -770,7 +770,7 @@
 .rating .mark {
   display: block;
   width: auto;
-  height: 16px;
+  height: 19px;
 }
 /* An age rating's left is its board's name on the colour of the level,
    drawn edge to edge on its plate; the level itself is written on the
@@ -782,8 +782,8 @@
   position: absolute;
   top: 1px;
   right: 0;
-  width: 9px;
-  height: 9px;
+  width: 11px;
+  height: 11px;
 }
 .rating .side.plate .mark { height: calc(var(--badge) - 4px); }
 /* What the badge says aloud: there for a screen reader, not on the screen. */
