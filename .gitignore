@@ -15,3 +15,6 @@ __pycache__/
 node_modules/
 .coverage
 htmlcov/
+
+# TheTVDB answers kept by tools/gen_awards.py
+.cache/

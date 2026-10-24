@@ -9,15 +9,19 @@ and its Popcornmeter, MyAnimeList and MDBList wear their own logo files, under
 resources/web/ratings/ and converted for the app; this draws none of them.
 It draws Metacritic's users' mark, Roger Ebert's, the IMDb Top 250's, the
 seal a Rotten Tomatoes rating wears when it is certified (Certified Fresh,
-Verified Hot) and the age ratings of Germany (FSK), the United States (the MPA's for films, the TV
-Parental Guidelines' for television) and Britain (BBFC).  They are simplified
+Verified Hot), the plates of the big awards (the Academy Awards, the Golden
+Globes, the BAFTAs, the Primetime Emmys) and the age ratings of Germany
+(FSK), the United States (the MPA's for films, the TV Parental Guidelines'
+for television) and Britain (BBFC).  They are simplified
 marks in each house's colours, drawn here, not copies of its own logo files;
 they name the source of a rating, which is nominative use (see section 4 of
 LICENSE-ASSETS).  An age rating's mark is the left of its shield: the
 board's name on the colour of the level, the level itself being written on
-the shield's right.  The American boards' are drawn in the colours of the
-FSK's levels rather than the MPA's black on white, so a row of them reads
-the same whichever country rated the film.
+the shield's right.  An award's is a drawing of what it hands out, square
+like the logos beside it, with what it won written beside it.  The American
+boards' are drawn in the colours of the FSK's levels rather than the MPA's
+black on white, so a row of them reads the same whichever country rated the
+film.
 
 The lettering is Inter Black turned into outlines, so a mark looks the same
 whatever fonts the browser or the phone has -- and an Android vector drawable
@@ -33,6 +37,7 @@ Development only (``pip install fonttools``).  Run from the repository root:
 """
 
 import argparse
+import math
 import os
 from dataclasses import dataclass, field
 
@@ -76,6 +81,15 @@ def rounded(width: float, height: float, radius: float) -> str:
             f"{_number(width)} {_number(r)}V{_number(height - r)}A{_number(r)} {_number(r)} 0 0 1 "
             f"{_number(width - r)} {_number(height)}H{_number(r)}A{_number(r)} {_number(r)} 0 0 1 "
             f"0 {_number(height - r)}V{_number(r)}A{_number(r)} {_number(r)} 0 0 1 {_number(r)} 0Z")
+
+
+def ellipse(cx: float, cy: float, rx: float, ry: float, turn: float = 0.0) -> str:
+    """Return an ellipse turned by *turn* degrees as path data (two arcs)."""
+    angle = math.radians(turn)
+    dx, dy = rx * math.cos(angle), rx * math.sin(angle)
+    arc = f"A{_number(rx)} {_number(ry)} {_number(turn)} 1 0 "
+    return (f"M{_number(cx - dx)} {_number(cy - dy)}{arc}{_number(cx + dx)} {_number(cy + dy)}"
+            f"{arc}{_number(cx - dx)} {_number(cy - dy)}Z")
 
 
 def circle(cx: float, cy: float, r: float) -> str:
@@ -151,7 +165,7 @@ def marks(letters: Lettering) -> list[Mark]:
     ]
     for age, (colour, ink) in fsk.items():
         found.append(plate_of("fsk" + age, "FSK", colour, ink, letters))
-    return found + american(letters) + british(letters)
+    return found + american(letters) + british(letters) + awards()
 
 
 # The colours of the levels, from all ages to adults only, as the FSK has them.
@@ -197,6 +211,60 @@ def british(letters: Lettering) -> list[Mark]:
         ("bbfc_12a", "#F58220", "#FFFFFF"), ("bbfc_12", "#F58220", "#FFFFFF"),
         ("bbfc_15", "#E5007E", "#FFFFFF"), ("bbfc_18", "#E30613", "#FFFFFF"),
         ("bbfc_r18", "#1D1D6B", "#FFFFFF"))]
+
+
+def awards() -> list[Mark]:
+    """Return the marks of the big awards: each a simplified drawing of what
+    is handed out, square on a ground of its own like the logos beside it --
+    a statuette for the Academy Awards, a ringed globe for the Golden
+    Globes, a theatre mask for the BAFTAs and a winged figure holding up an
+    atom for the Primetime Emmys."""
+    gold, ink, white = "#E2B33C", "#141414", "#FFFFFF"
+
+    def mark(name: str, ground: str, shapes: list[Shape]) -> Mark:
+        return Mark(name, 22, 22, [Shape(rounded(22, 22, 4), fill=ground), *shapes])
+
+    def base(colour: str, top: float, width: float) -> Shape:
+        left = 11 - width / 2
+        return Shape(f"M{_number(left + 0.7)} {_number(top)}H{_number(left + width - 0.7)}"
+                     f"A0.7 0.7 0 0 1 {_number(left + width)} {_number(top + 0.7)}V19.4"
+                     f"A0.7 0.7 0 0 1 {_number(left + width - 0.7)} 20.1H{_number(left + 0.7)}"
+                     f"A0.7 0.7 0 0 1 {_number(left)} 19.4V{_number(top + 0.7)}"
+                     f"A0.7 0.7 0 0 1 {_number(left + 0.7)} {_number(top)}Z", fill=colour)
+
+    oscar = mark("award_oscar", gold, [
+        Shape(circle(11, 2.9, 1.35), fill=ink),
+        Shape("M9.3 4.6H12.7L13.1 5.6L12.2 6.1L12.8 9.9L12.2 15H9.8L9.2 9.9L9.8 6.1L8.9 5.6Z",
+              fill=ink),
+        Shape("M8.6 15.4H13.4L13.8 16.6H8.2Z", fill=ink),
+        base(ink, 17.1, 7.6),
+    ])
+    globe = mark("award_globe", "#9C6B1E", [
+        Shape(circle(11, 8, 5.6), stroke=white, width=1.3),
+        Shape(ellipse(11, 8, 2.3, 5.6), stroke=white, width=1.0),
+        Shape("M5.4 8H16.6", stroke=white, width=1.0),
+        Shape(ellipse(11, 8, 7.4, 2.2, -18), stroke=white, width=1.1),
+        Shape("M10.1 13.5H11.9V16.1H10.1Z", fill=white),
+        base(white, 16.6, 8.4),
+    ])
+    bafta = mark("award_bafta", ink, [
+        # The mask with its eyes and its mouth cut out: drawn the other way
+        # round, so the holes stay holes under the non-zero fill rule.
+        Shape("M4.2 3.6C8.6 2.2 13.4 2.2 17.8 3.6C18.4 10.8 15.6 16.6 11 19.4"
+              "C6.4 16.6 3.6 10.8 4.2 3.6Z"
+              "M7 8.4C7.9 9.4 9.3 9.4 10.2 8.5C9.5 7.3 7.9 7.3 7 8.4Z"
+              "M15 8.4C14.1 7.3 12.5 7.3 11.8 8.5C12.7 9.4 14.1 9.4 15 8.4Z"
+              "M8.4 13.2C9 15.2 9.9 16.1 11 16.1C12.1 16.1 13 15.2 13.6 13.2"
+              "C12 14.4 10 14.4 8.4 13.2Z", fill=gold),
+    ])
+    emmy = mark("award_emmy", "#3B2A6B", [
+        *(Shape(ellipse(11, 3.4, 3.6, 1.3, turn), stroke=gold, width=0.9) for turn in (0, 60, -60)),
+        Shape("M10.3 7H11.7L12 15.3H10Z", fill=gold),
+        Shape("M10.4 8.4L3.8 5.6L6.2 11.8L10.4 10.6Z", fill=gold),
+        Shape("M11.6 8.4L18.2 5.6L15.8 11.8L11.6 10.6Z", fill=gold),
+        base(gold, 16, 7.6),
+    ])
+    return [oscar, globe, bafta, emmy]
 
 
 def _named(name: str, mark: Mark) -> Mark:

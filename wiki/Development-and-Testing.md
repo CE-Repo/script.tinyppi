@@ -134,6 +134,8 @@ the CI actions up to date.
 | `unit/test_library_queries.py` | The library's JSON-RPC queries and rows: films, series, episodes and the continue row, resume points (including NaN and Infinity), ratings, tags that follow every field sent, playing and marking, bad ids that ask Kodi nothing |
 | `unit/test_static.py` | The dashboard's route table and static file cache |
 | `unit/test_ratings.py` | The playing title's ratings from the library: sources and their order, the reader's own, the age rating read for its board and level, the Top 250 place, a film's IMDb and TMDb ids |
+| `unit/test_awards.py` | The big awards a title won or was nominated for: found by its TheTVDB, IMDb or TMDb id, their order, a title the list does not hold, junk and a list that cannot be read |
+| `unit/test_gen_awards.py` | `tools/gen_awards.py` against a pretend TheTVDB: the nominees of the four awards by title, the IMDb and TMDb indexes, TheMovieDb Helper's list read into the same shape |
 | `unit/test_mdblist.py` | MDBList's ratings (key refused, daily limit, failures, the cache) and the IMDb Top 250 chart, each asked for off the snapshot's thread, laid over the library's |
 | `unit/test_whatson.py` | WhatsOn's Rotten Tomatoes ratings and certificates (limit spent, failures, the cache), filled in where missing and worn by the ratings shown |
 | `unit/test_strings.py` | The dashboard's UI strings |
@@ -236,6 +238,18 @@ python3 tools/gen_dialog_media.py   # draws media/dialog/arrow-left.png and arro
 
 Run them from the repository root after changing `dialog_layout.py`, and commit
 the results.
+
+The awards the overview card shows (`resources/data/awards.json`) are read
+from [TheTVDB](https://thetvdb.com)'s API, which needs a key
+([thetvdb.com/api-information](https://thetvdb.com/api-information)) and, for
+some keys, a subscriber PIN. Run it after an awards season; its answers are
+kept in `.cache/tvdb/` (ignored by git), so a run that stopped half way picks
+up where it was:
+
+```bash
+TVDB_API_KEY=... TVDB_PIN=... python3 tools/gen_awards.py
+python3 tools/gen_awards.py --helper   # without a key: TheMovieDb Helper's list, built from TheTVDB's
+```
 
 ---
 

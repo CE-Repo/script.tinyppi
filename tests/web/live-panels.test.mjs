@@ -225,7 +225,7 @@ test("a long plot is cut to a few lines, and a press on it lets the rest out", (
   Object.defineProperty(text, "scrollHeight", { configurable: true, get: () => box.full });
   Object.defineProperty(text, "clientHeight", { configurable: true, get: () => box.shown });
   assert.deepEqual([...plot.children].map((node) => node.id),
-                   ["tagline", "plotText", "credits", "ratingsHeadline", "ratings", "ratingTip"]);
+                   ["tagline", "plotText", "credits"]);
   const key = (name) => {
     const event = new window.KeyboardEvent("keydown", { key: name, cancelable: true });
     plot.dispatchEvent(event);
@@ -309,14 +309,18 @@ test("a long plot is cut to a few lines, and a press on it lets the rest out", (
   assert.ok(plot.classList.contains("open"));
   plot.click();
   assert.equal(plot.classList.contains("open"), false);
-  // Ratings that arrive later under a short plot fold too, and an open one
-  // stays open as they come.
+  // Ratings stand outside the fold and fold nothing: a short plot with them
+  // is still nothing to press.
   P.update(snap({ media: { plot: "Short and rated." } }));
   assert.equal(plot.classList.contains("fold"), false);
   P.update(snap({ media: { plot: "Short and rated.", ratings: [{ source: "imdb", rating: 7.1, votes: 0 }] } }));
+  assert.equal(plot.classList.contains("fold"), false);
+  // Credits that arrive later under it fold, and an open one stays open
+  // as more come.
+  P.update(snap({ media: { plot: "Short and rated.", cast: ["Somebody"] } }));
   assert.ok(plot.classList.contains("fold"));
   plot.click();
-  P.update(snap({ media: { plot: "Short and rated.", ratings: [{ source: "imdb", rating: 7.2, votes: 0 }] } }));
+  P.update(snap({ media: { plot: "Short and rated.", cast: ["Somebody", "Somebody else"] } }));
   assert.ok(plot.classList.contains("open"));
   // Without a plot there is nothing to fold them under.
   P.update(snap({ media: { cast: ["Somebody"] } }));
@@ -409,14 +413,13 @@ test("the overview card carries every rating as a shield with its mark, under th
   P.update(snap({ media: rated }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
   assert.equal($("ratings").classList.contains("hidden"), false);
-  // Under the slogan and the plot, and the credits where there are any: last.
+  // Last, under the slogan, the plot and its credits, and never folded
+  // away with them.
+  assert.equal($("plotFold").nextElementSibling, $("ratings"));
   assert.equal($("ratings").nextElementSibling, $("ratingTip"));
-  assert.equal($("ratings").parentElement, $("plotFold"), "folded with the plot");
-  assert.equal($("credits").nextElementSibling, $("ratingsHeadline"));
-  assert.equal($("ratingsHeadline").nextElementSibling, $("ratings"));
-  assert.equal($("ratingsHeadline").textContent, "Ratings");
-  assert.equal($("ratingsHeadline").classList.contains("hidden"), false);
-  assert.equal($("ratings").getAttribute("aria-labelledby"), "ratingsHeadline");
+  assert.equal($("ratingTip").nextElementSibling, null);
+  // No heading on the screen; named for a screen reader.
+  assert.equal($("ratings").getAttribute("aria-label"), "Ratings");
   assert.equal($("plotText").nextElementSibling, $("credits"));
   assert.equal($("tagline").nextElementSibling, $("plotText"));
   assert.deepEqual(plain(badges()), [
@@ -455,7 +458,7 @@ test("the overview card carries every rating as a shield with its mark, under th
   // The words arrive later, and the badges say them.
   P.strings({ ...window.TinyPPI.T, my_rating: "Eigene Bewertung",
               top250: "Top 250 · Platz %s", ratings: "Bewertungen" });
-  assert.equal($("ratingsHeadline").textContent, "Bewertungen");
+  assert.equal($("ratings").getAttribute("aria-label"), "Bewertungen");
   const said = () => [...$("ratings").children].map((node) => node.querySelector(".said").textContent);
   assert.deepEqual(said().slice(0, 2), ["FSK 12", "IMDb 8.5"]);
   assert.deepEqual(said().slice(7, 9), ["Eigene Bewertung 9", "Top 250 · Platz 27"]);
@@ -489,10 +492,9 @@ test("the overview card carries every rating as a shield with its mark, under th
   P.update(snap({ media: { plot: "Plot.", mpaa: "FSK 6", age: "fsk6" } }));
   assert.deepEqual(plain(badges()), [["rating age", "FSK 6", "side fsk6 plate /ratings/fsk6.svg", []]]);
 
-  // A plot without ratings: no row of badges, and no heading over none.
+  // A plot without ratings: no row of badges.
   P.update(snap({ media: { plot: "An episode.", ratings: [], userrating: 0, top250: 0, mpaa: "" } }));
   assert.ok($("ratings").classList.contains("hidden"));
-  assert.ok($("ratingsHeadline").classList.contains("hidden"));
   assert.equal($("ratings").children.length, 0);
   assert.equal($("plotCard").classList.contains("hidden"), false);
 
@@ -521,6 +523,35 @@ test("the sources MDBList brings wear their own marks and names", (t) => {
   }
 });
 
+test("the big awards stand last, as drawings: what was won, or else what was nominated", (t) => {
+  const { $, P, window } = panels(t);
+  /* Each shield as [class, what it says, its left, its figure, its tooltip]. */
+  const badges = () => [...$("ratings").children].map((node) => [
+    node.className, node.querySelector(".said").textContent,
+    node.querySelector(".side").className + " " + node.querySelector("img").getAttribute("src"),
+    node.querySelector(".value").textContent, node.title]);
+  P.update(snap({ media: { plot: "Plot.", top250: 27, awards: [
+    { award: "oscar", won: ["Visual Effects (2015)"], nominated: 4 },
+    { award: "globe", won: [], nominated: 1 },
+    { award: "bafta", won: ["Film (2015)", "Score (2015)"], nominated: 0 },
+    // One the page has no name for is called as the add-on calls it.
+    { award: "cesar", won: [], nominated: 2 }] } }));
+  assert.deepEqual(plain(badges()), [
+    ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg", "#27", "IMDb Top 250"],
+    ["rating award", "Oscar 1 won", "side award_oscar /ratings/award_oscar.svg", "1",
+     "Oscar: Visual Effects (2015) · 4 nominated"],
+    ["rating nominee", "Golden Globe 1 nominated", "side award_globe /ratings/award_globe.svg", "1",
+     "Golden Globe · 1 nominated"],
+    ["rating award", "BAFTA 2 won", "side award_bafta /ratings/award_bafta.svg", "2",
+     "BAFTA: Film (2015), Score (2015)"],
+    ["rating nominee", "cesar 2 nominated", "side award_cesar /ratings/award_cesar.svg", "2",
+     "cesar · 2 nominated"]]);
+  // The words arrive later, and the awards say them.
+  P.strings({ ...window.TinyPPI.T, award_won: "%s gewonnen", award_nominated: "%s nominiert" });
+  assert.equal($("ratings").children[1].querySelector(".said").textContent, "Oscar 1 gewonnen");
+  assert.equal($("ratings").children[1].title, "Oscar: Visual Effects (2015) · 4 nominiert");
+});
+
 test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   const { $, P, window } = panels(t);
   const timers = heldTimers(window);
@@ -535,7 +566,7 @@ test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   trakt.getBoundingClientRect = () => ({ left: 50, top: 220, width: 60 });
   letterboxd.getBoundingClientRect = () => ({ left: 120, top: 220, width: 70 });
   // A tap on the mark itself is a tap on its shield, and the shield's alone:
-  // the plot they fold with does not hear it.
+  // the plot over them does not hear it.
   let pressed = 0;
   $("plotFold").addEventListener("click", () => { pressed += 1; });
   trakt.querySelector("img").click();
@@ -551,10 +582,10 @@ test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   assert.deepEqual(timers.delays(), [2000]);
   timers.run();
   assert.ok(tip.classList.contains("hidden"));
-  // A tap beside the shields shows nothing, and is the plot's.
+  // A tap beside the shields shows nothing, and does not fold the plot.
   $("ratings").click();
   assert.ok(tip.classList.contains("hidden"));
-  assert.equal(pressed, 1);
+  assert.equal(pressed, 0);
 });
 
 test("the overview's credits: the directors over the cast, a line each, over the ratings", (t) => {
@@ -569,9 +600,9 @@ test("the overview's credits: the directors over the cast, a line each, over the
   };
   P.update(snap({ media: credited }));
   // On the plot's end, over the ratings: the director, then the cast, cut
-  // with an ellipsis where an older add-on said there are more.  The genre
-  // and the studio are the card above's.
-  assert.equal($("credits").nextElementSibling, $("ratingsHeadline"));
+  // with an ellipsis where an older add-on said there are more.  The genre and the
+  // studio are the card above's.
+  assert.equal($("credits").nextElementSibling, null);
   assert.equal($("credits").classList.contains("hidden"), false);
   assert.deepEqual(lines(), [
     ["credit", "DT Director", "DD Denis Villeneuve"],
