@@ -45,12 +45,15 @@ Third-party components
 
 Bundled with TinyPPI:
 
-  awards.json             -- GPL-3.0-or-later, from TheMovieDb Helper
-                             (plugin.video.themoviedb.helper) by jurialmunkey
+  awards.json             -- The awards data is from TheTVDB
+                             https://thetvdb.com
+                             resources/data/awards.json holds the nominees of
+                             the four awards the overview card shows, as
+                             tools/gen_awards.py reads them from TheTVDB's
+                             API -- or, without a key, from the awards list
+                             of TheMovieDb Helper (GPL-3.0-or-later, by
+                             jurialmunkey), which is built from TheTVDB's:
                              https://github.com/jurialmunkey/plugin.video.themoviedb.helper
-                             resources/data/awards.json is its awards list cut
-                             to the four the overview card shows; see
-                             tools/gen_awards.py.
 
 The following are *not* bundled with TinyPPI.  They are separate works that
 TinyPPI talks to or depends on at runtime, and each remains under its own

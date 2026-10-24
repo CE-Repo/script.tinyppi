@@ -12,7 +12,7 @@ American or British one is read for its board and level too (see
 ``age_rating``), which the page draws as a shield like the others: the board
 on the level's colour, the level beside it.  A film's IMDb and TMDb ids go
 with them, for MDBList to be asked by (see web.mdblist), and the big awards
-a film or an episode's show won or was nominated for, by its TMDb id (see
+a film or an episode's show won or was nominated for, by its ids (see
 web.awards).
 """
 
@@ -187,9 +187,8 @@ IMDB_ID = re.compile(r"tt\d+")
 
 
 def film_ids(details: Json) -> dict[str, str]:
-    """Return the ids a film -- or a show -- is known by elsewhere: its IMDb
-    and its TMDb one, as the library holds them, for MDBList to be asked by
-    and its awards to be looked up by."""
+    """Return the ids a film is known by elsewhere -- its IMDb and its TMDb
+    one -- as the library holds them, for MDBList to be asked by."""
     held = details.get("uniqueid")
     if not isinstance(held, dict):
         return {}
@@ -198,6 +197,17 @@ def film_ids(details: Json) -> dict[str, str]:
     ids = {"imdb": imdb} if IMDB_ID.fullmatch(imdb) else {}
     if tmdb.isdigit() and int(tmdb):
         ids["tmdb"] = tmdb
+    return ids
+
+
+def title_ids(details: Json) -> dict[str, str]:
+    """Return the ids a film or a show is known by elsewhere, its TheTVDB
+    one among them, for its awards to be looked up by (see web.awards)."""
+    ids = film_ids(details)
+    held = details.get("uniqueid")
+    tvdb = str(held.get("tvdb") or "").strip() if isinstance(held, dict) else ""
+    if tvdb.isdigit() and int(tvdb):
+        ids["tvdb"] = tvdb
     return ids
 
 
@@ -214,7 +224,7 @@ def _collect(details: Json, aged: Json, kind: str, ids: dict[str, str] | None = 
         "age_level":  level,
         "userrating": _count(details.get("userrating"), 10),
         "top250":     _count(details.get("top250"), 250),
-        "awards":     awards_of(kind, film_ids(aged).get("tmdb", "")),
+        "awards":     awards_of(kind, title_ids(aged)),
         "ids":        ids or {},
     }
 

@@ -5,15 +5,17 @@
 card: the Academy Awards, the Golden Globes, the BAFTAs and the Primetime
 Emmys.
 
-They are read from ``resources/data/awards.json``, by the title's TMDb id --
-a film's own, an episode's show's -- which ``tools/gen_awards.py`` writes
-from TheMovieDb Helper's list (see there).  No key and no request: a title
-the list does not hold has none to show.  The file is read the first time a
-title is looked up, and kept.
+They are read from ``resources/data/awards.json``, which
+``tools/gen_awards.py`` writes from TheTVDB's (see there): the titles by
+their TheTVDB id, found by whichever id the library holds for a film or an
+episode's show -- its TheTVDB id, its IMDb one or its TMDb one.  No key and
+no request: a title the list does not hold has none to show.  The file is
+read the first time a title is looked up, and kept.
 """
 
 import json
 import os
+from collections.abc import Mapping
 from functools import cache
 
 from web.payloads import Award
@@ -56,11 +58,24 @@ def _award(key: str, held: object) -> Award | None:
     return {"award": key, "won": won, "nominated": nominated} if won or nominated else None
 
 
-def awards_of(kind: str, tmdb: str) -> list[Award]:
-    """Return the awards the title of *kind* ("movie", "tv") with TMDb id
-    *tmdb* won or was nominated for, in the order they are shown."""
-    titles = _table().get(kind)
-    held = titles.get(tmdb) if isinstance(titles, dict) and tmdb else None
+def _held(kind: str, ids: Mapping[str, str]) -> object:
+    """Return the list's entry for the title of *kind* that *ids* name: by
+    its TheTVDB id, else by its IMDb or its TMDb one."""
+    table = _table().get(kind)
+    table = table if isinstance(table, dict) else {}
+    titles, tvdb = table.get("titles"), ids.get("tvdb", "")
+    for source in ("imdb", "tmdb"):
+        index, ident = table.get(source), ids.get(source, "")
+        if not tvdb and ident and isinstance(index, dict):
+            tvdb = str(index.get(ident) or "")
+    return titles.get(tvdb) if isinstance(titles, dict) and tvdb else None
+
+
+def awards_of(kind: str, ids: Mapping[str, str]) -> list[Award]:
+    """Return the awards the title of *kind* ("movie", "tv") known by *ids*
+    ("tvdb", "imdb", "tmdb") won or was nominated for, in the order they
+    are shown."""
+    held = _held(kind, ids)
     if not isinstance(held, dict):
         return []
     found = (_award(key, held.get(key)) for key in _ORDER)

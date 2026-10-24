@@ -222,16 +222,22 @@ def test_an_episode_rates_itself_and_takes_its_age_rating_from_its_show():
     fake = Kodi(item={"id": 7, "type": "episode"},
                 details={"ratings": {"tvdb": {"rating": 8.8, "votes": 40}}, "userrating": 7,
                          "tvshowid": 3, "mpaa": "ignored", "uniqueid": {"tmdb": "1399"}},
-                show={"mpaa": "FSK 16", "uniqueid": {"tmdb": "1398"}})
+                show={"mpaa": "FSK 16", "uniqueid": {"tmdb": "1398", "tvdb": "x"}})
     found = answer(fake)
-    # The show's awards, by the show's TMDb id: The Sopranos', not by the
-    # episode's.  MDBList is not asked for an episode.
+    # The show's awards, by the show's ids: The Sopranos', not by the
+    # episode's.  A TheTVDB id that is none is left out.  MDBList is not asked for an episode.
     assert [award["award"] for award in found.pop("awards")] == ["globe", "emmy"]
     assert found == {"ratings": [{"source": "tvdb", "rating": 8.8, "votes": 40}],
                      "mpaa": "FSK 16", "age": "fsk16", "age_level": "16", "userrating": 7,
                      "top250": 0, "ids": {}}
     assert ("VideoLibrary.GetTVShowDetails",
             {"tvshowid": 3, "properties": ["mpaa", "uniqueid"]}) in fake.calls
+
+
+def test_a_show_is_found_for_its_awards_by_its_tvdb_id_first():
+    fake = Kodi(item={"id": 7, "type": "episode"}, details={"tvshowid": 3},
+                show={"uniqueid": {"tvdb": "75299", "tmdb": "1"}})
+    assert [award["award"] for award in answer(fake)["awards"]] == ["globe", "emmy"]
 
 
 def test_an_episode_without_a_show_has_no_age_rating():

@@ -209,12 +209,12 @@ beside it: how many it **won**, on a gold shield — or, where it won none, how
 many it was **nominated** for, on a quieter grey one. A tap shows what it won
 it for (*Oscar: Visual Effects (2015) · 4 nominated*).
 
-They come with the add-on, from **TheMovieDb Helper**'s awards list
+They come with the add-on, from **[TheTVDB](https://thetvdb.com)**
 (`resources/data/awards.json`, written by `tools/gen_awards.py`): **no key, no
-request**. A film is looked up by its TMDb id, an episode by its show's. The
-list holds what was nominated for one of these four, up to the season it was
-last written for; a title it does not hold shows none, and some shows are
-missing from it.
+request** on the box. A film is looked up by the TheTVDB, IMDb or TMDb id the
+library holds, an episode by its show's. The list holds what was nominated
+for one of these four, up to the season it was last written for; a title it
+does not hold shows none.
 
 ---
 
