@@ -47,7 +47,6 @@ script.tinyppi/
 ├── main.py                    Script entry point: argument dispatch, handover
 ├── icon.png, fanart.png       Branding (see LICENSE-ASSETS)
 ├── LICENSE, LICENSE-ASSETS, NOTICE
-├── docs/web-dashboard.md      Pointer to the dashboard's wiki pages
 ├── wiki/                      Source of the GitHub wiki (published by .github/workflows/wiki.yml)
 ├── pyproject.toml             Tooling only: ruff, mypy, pytest, coverage
 ├── requirements-dev.txt       Pinned Python development tools

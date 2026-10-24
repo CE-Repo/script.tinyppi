@@ -28,7 +28,7 @@ _AUTH = "Basic " + base64.b64encode(b"kodi:kodi").decode()
 _DIRECT = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 # Paths of the add-on folder that are no part of the installed add-on.
-_NOT_INSTALLED = ("docs/", "tools/", "tests/", ".git")
+_NOT_INSTALLED = ("docs/", "wiki/", "tools/", "tests/", ".git")
 
 TINYPPI_SETTINGS = f"""<settings version="2">
     <setting id="web_enabled">true</setting>
