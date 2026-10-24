@@ -7,8 +7,9 @@
 IMDb, TMDB, Trakt, TheTVDB, Letterboxd, Metacritic, Rotten Tomatoes' critics
 and its Popcornmeter and MyAnimeList wear their own logo files, under
 resources/web/ratings/ and converted for the app; this draws none of them.
-It draws Metacritic's users' mark, Roger Ebert's, the IMDb Top 250's and the
-age ratings of Germany (FSK), the United States (the MPA's for films, the TV
+It draws Metacritic's users' mark, Roger Ebert's, the IMDb Top 250's, the
+seal a Rotten Tomatoes rating wears when it is certified (Certified Fresh,
+Verified Hot) and the age ratings of Germany (FSK), the United States (the MPA's for films, the TV
 Parental Guidelines' for television) and Britain (BBFC).  They are simplified
 marks in each house's colours, drawn here, not copies of its own logo files;
 they name the source of a rating, which is nominative use (see section 4 of
@@ -134,6 +135,13 @@ def marks(letters: Lettering) -> list[Mark]:
             Shape(circle(11, 11, 11), fill="#FFCC34"),
             Shape(circle(11, 8.3, 3.1), fill=black),
             Shape("M5.4 17.4C5.4 14.3 7.9 12.4 11 12.4C14.1 12.4 16.6 14.3 16.6 17.4Z", fill=black),
+        ]),
+        # The seal on the corner of Rotten Tomatoes' mark when it is certified:
+        # a tick on its red, ringed in white so it stands off any ground.
+        Mark("certified", 12, 12, [
+            Shape(circle(6, 6, 6), fill=white),
+            Shape(circle(6, 6, 4.8), fill="#FA320A"),
+            Shape("M3.6 6.2L5.3 7.9L8.5 4.5", stroke=white, width=1.5),
         ]),
         # Roger Ebert's initials, square like the logos beside it.
         Mark("rogerebert", *square, [

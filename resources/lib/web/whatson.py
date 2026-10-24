@@ -1,20 +1,23 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Rotten Tomatoes' ratings of the playing film from WhatsOn, where neither
-MDBList nor the library has them (``web_whatson``).
+"""Rotten Tomatoes' ratings of the playing film from WhatsOn, and its
+Certified Fresh and Verified Hot (``web_whatson``).
 
 MDBList has no Rotten Tomatoes rating for some films (The Matrix,
 Interstellar) that WhatsOn (whatson-api.onrender.com, a free service for
-non-commercial use) has: the Tomatometer and the Popcornmeter.  It is asked
-without a key, which allows 40 questions an hour and 200 a day, so it is
-asked only for what is missing: for a film, by its IMDb id or else its TMDb
-one, once MDBList has answered (or will not be asked), and only when one of
-the two is not among the ratings to show.
+non-commercial use) has: the Tomatometer and the Popcornmeter.  Where
+neither MDBList nor the library has one, WhatsOn's is shown; one they have
+stands.  WhatsOn alone says whether Rotten Tomatoes certified either -- the
+critics' Certified Fresh, the audience's Verified Hot -- which the rating's
+badge then wears, whoever gave the rating.
 
-A film is asked for once, off the thread that builds the snapshot, and the
-answer is kept for half a day, a film WhatsOn does not know included.  A
-spent limit waits for as long as WhatsOn says.
+WhatsOn is asked without a key, which allows 40 questions an hour and 200 a
+day: for a film only, by its IMDb id or else its TMDb one, once MDBList has
+answered (or will not be asked).  A film is asked for once, off the thread
+that builds the snapshot, and the answer is kept for half a day, a film
+WhatsOn does not know included.  A spent limit waits for as long as WhatsOn
+says.
 """
 
 import http.client
@@ -53,7 +56,7 @@ _SPENT = 3600.0
 _LIMIT = 256
 
 # Rotten Tomatoes' two ratings, as web.ratings names them, and the name each
-# is kept by (MDBList's).  Either missing has WhatsOn asked.
+# is kept by (MDBList's).
 _WANTED = {"rottentomatoes": "tomatoes", "popcorn": "popcorn"}
 
 # Ratings out of ten by name, as web.ratings.rating_list reads them.
@@ -99,16 +102,29 @@ def _film(answer: Json, provider: str, ident: str) -> Json:
 
 
 def scores_of(answer: Json, provider: str, ident: str) -> Scores:
-    """Return the Rotten Tomatoes ratings in one of WhatsOn's answers."""
+    """Return the Rotten Tomatoes ratings in one of WhatsOn's answers, each
+    with whether Rotten Tomatoes certified it.
+
+    A side certified without a rating is kept for the certificate alone
+    (``rating`` None): the rating may come from MDBList.
+    """
     tomatoes = _film(answer, provider, ident).get("rotten_tomatoes")
     if not isinstance(tomatoes, dict):
         return {}
     found: Scores = {}
     for name, side in (("tomatoes", "critics"), ("popcorn", "users")):
         rating = _percent(tomatoes.get(f"{side}_rating"))
-        if rating is not None:
-            found[name] = {"rating": rating, "votes": _count(tomatoes.get(f"{side}_rating_count"))}
+        certified = tomatoes.get(f"{side}_certified") is True
+        if rating is not None or certified:
+            found[name] = {"rating": rating, "votes": _count(tomatoes.get(f"{side}_rating_count")),
+                           "certified": certified}
     return found
+
+
+def _told(found: Scores) -> str:
+    """Return what WhatsOn brought, for the log: "tomatoes (certified), popcorn"."""
+    return ", ".join(name + (" (certified)" if entry["certified"] else "")
+                     for name, entry in found.items()) or "nothing"
 
 
 def _retry_after(error: urllib.error.HTTPError) -> float:
@@ -152,7 +168,7 @@ def fetch(provider: str, ident: str) -> tuple[Scores, float]:
              xbmc.LOGWARNING)
         return {}, _AGAIN
     found = scores_of(answer, provider, ident)
-    _log(f"WhatsOn rated {provider} {ident}: {', '.join(found) or 'nothing'}", xbmc.LOGINFO)
+    _log(f"WhatsOn rated {provider} {ident}: {_told(found)}", xbmc.LOGINFO)
     return found, _KEPT
 
 
@@ -238,26 +254,24 @@ def allowed() -> bool:
         return False
 
 
-def missing(ratings: Ratings) -> bool:
-    """Return whether Rotten Tomatoes' critics or audience are not among
-    *ratings*."""
-    shown = {entry["source"] for entry in ratings["ratings"]}
-    return any(name not in shown for name in _WANTED)
-
-
 def with_whatson(ratings: Ratings, lookup: Lookup = _LOOKUP) -> Ratings:
     """Return *ratings* with the Rotten Tomatoes ratings they lack from
-    WhatsOn, where it has any; the ones already there stand."""
-    if not missing(ratings):
-        return ratings
+    WhatsOn, where it has any, and each of the two marked certified where
+    WhatsOn says Rotten Tomatoes certified it; the ones already there stand.
+    """
     found = lookup.scores(ratings["ids"])
     if not found:
         return ratings
     held: Scores = {entry["source"]: {"rating": entry["rating"], "votes": entry["votes"]}
                     for entry in ratings["ratings"]}
     for source, name in _WANTED.items():
-        if source not in held and name in found:
+        if source not in held and found.get(name, {}).get("rating") is not None:
             held[source] = found[name]
     merged = ratings.copy()
     merged["ratings"] = rating_list(held)
+    certified = {source for source, name in _WANTED.items()
+                 if found.get(name, {}).get("certified")}
+    for entry in merged["ratings"]:
+        if entry["source"] in certified:
+            entry["certified"] = True
     return merged

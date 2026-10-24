@@ -656,6 +656,7 @@
   color: var(--dim);
 }
 .rating .side {
+  position: relative;
   flex: none;
   display: flex;
   align-items: center;
@@ -729,6 +730,15 @@
    drawn edge to edge and as tall as the shield inside its border; the level
    itself is written on the right, like every other shield's figure. */
 .rating .side.plate { padding: 0; }
+/* Rotten Tomatoes' Certified Fresh or Verified Hot: a seal on the mark's
+   corner (see tools/gen_rating_marks.py). */
+.rating .seal {
+  position: absolute;
+  top: 1px;
+  right: 0;
+  width: 10px;
+  height: 10px;
+}
 .rating .side.plate .mark { height: calc(var(--badge) - 2px); }
 /* What the badge says aloud: there for a screen reader, not on the screen. */
 .rating .said {

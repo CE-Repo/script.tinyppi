@@ -402,8 +402,9 @@ test("the overview card carries every rating as a shield with its mark, under th
     tagline: "Long live the fighters.", plot: "Paul joins the Fremen.",
     ratings: [{ source: "imdb", rating: 8.5, votes: 612345 }, { source: "tmdb", rating: 8.2, votes: 0 },
               { source: "trakt", rating: 8.4, votes: 31902 },
-              { source: "rottentomatoes", rating: 9.2, votes: 0 },
-              { source: "filmaffinity", rating: 8.9, votes: 3 }],
+              { source: "rottentomatoes", rating: 9.2, votes: 0, certified: true },
+              { source: "popcorn", rating: 8.8, votes: 0, certified: false },
+              { source: "filmaffinity", rating: 8.9, votes: 3, certified: true }],
     userrating: 9, top250: 27, mpaa: "FSK 12", age: "fsk12", age_level: "12" };
   P.update(snap({ media: rated }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
@@ -424,7 +425,11 @@ test("the overview card carries every rating as a shield with its mark, under th
     ["rating score", "IMDb 8.5", "side imdb /ratings/imdb.svg", [["value", "8.5"]]],
     ["rating score", "TMDb 8.2", "side tmdb /ratings/tmdb.svg", [["value", "8.2"]]],
     ["rating score", "Trakt 8.4", "side trakt /ratings/trakt.svg", [["value", "8.4"]]],
-    ["rating score", "Rotten Tomatoes 9.2", "side rottentomatoes /ratings/rottentomatoes.svg", [["value", "9.2"]]],
+    // Certified Fresh: said, and a seal on the mark.
+    ["rating score", "Rotten Tomatoes · Certified Fresh 9.2", "side rottentomatoes /ratings/rottentomatoes.svg",
+     [["value", "9.2"]]],
+    ["rating score", "Rotten Tomatoes Popcornmeter 8.8", "side popcorn /ratings/popcorn.svg", [["value", "8.8"]]],
+    // Only Rotten Tomatoes certifies.
     ["rating score", "Filmaffinity 8.9", "side letter:F", [["value", "8.9"]]],
     ["rating mine", "My rating 9", "side heart:", [["value", "9"]]],
     ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg", [["value", "#27"]]]]);
@@ -435,9 +440,12 @@ test("the overview card carries every rating as a shield with its mark, under th
   }
   // Under a pointer, whose each is, and not what it gave.
   assert.deepEqual([...$("ratings").children].map((node) => node.title),
-                   ["FSK", "IMDb", "TMDb", "Trakt", "Rotten Tomatoes", "Filmaffinity", "My rating",
-                    "IMDb Top 250"]);
+                   ["FSK", "IMDb", "TMDb", "Trakt", "Rotten Tomatoes · Certified Fresh",
+                    "Rotten Tomatoes Popcornmeter", "Filmaffinity", "My rating", "IMDb Top 250"]);
   assert.equal($("ratings").querySelector("img").alt, "");
+  const seals = [...$("ratings").querySelectorAll(".seal")];
+  assert.deepEqual(seals.map((seal) => [seal.parentElement.className, seal.getAttribute("src"), seal.alt]),
+                   [["side rottentomatoes", "/ratings/certified.svg", ""]]);
 
   // The same badges again are not built again.
   const first = $("ratings").firstChild;
@@ -450,7 +458,7 @@ test("the overview card carries every rating as a shield with its mark, under th
   assert.equal($("ratingsHeadline").textContent, "Bewertungen");
   const said = () => [...$("ratings").children].map((node) => node.querySelector(".said").textContent);
   assert.deepEqual(said().slice(0, 2), ["FSK 12", "IMDb 8.5"]);
-  assert.deepEqual(said().slice(6, 8), ["Eigene Bewertung 9", "Top 250 · Platz 27"]);
+  assert.deepEqual(said().slice(7, 9), ["Eigene Bewertung 9", "Top 250 · Platz 27"]);
 
   // An age rating no FSK level is read from is written out, with no mark.
   P.update(snap({ media: { ...rated, ratings: [{ source: "imdb", rating: 7.0, votes: 0 }],

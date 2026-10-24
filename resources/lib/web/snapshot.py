@@ -502,9 +502,10 @@ class SnapshotBuilder:
 
     def _shown_ratings(self, values: dict[str, str]) -> Ratings:
         """Return the title's ratings: the library's, MDBList's over them,
-        and Rotten Tomatoes' from WhatsOn where both lack them.
+        and from WhatsOn Rotten Tomatoes' certificates and the ratings both
+        lack.
 
-        WhatsOn waits for MDBList's answer, which may bring them.
+        WhatsOn waits for MDBList's answer, which may bring those ratings.
         """
         key, whatson = self._rating_settings()
         ratings = with_mdblist(self._rating_info(values), key=key)

@@ -129,6 +129,9 @@ class Rating(TypedDict):
     rating: float
     # 0 where the library has no count.
     votes: int
+    # Rotten Tomatoes' Certified Fresh (rottentomatoes) or Verified Hot
+    # (popcorn), as WhatsOn has it (see web.whatson); sent only when true.
+    certified: NotRequired[bool]
 
 
 class Credits(TypedDict):

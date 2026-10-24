@@ -416,6 +416,9 @@
     rottentomatoes: "Rotten Tomatoes", popcorn: "Rotten Tomatoes Popcornmeter",
     rogerebert: "Roger Ebert", myanimelist: "MyAnimeList"
   };
+  /* What Rotten Tomatoes calls a rating it certified: its critics' and its
+     audience's.  A certified one wears a seal on its mark's corner. */
+  const CERTIFICATES = { rottentomatoes: "Certified Fresh", popcorn: "Verified Hot" };
 
   /* Every rating the library holds for the title (see web/ratings.py), in
      the order the badges stand: the age rating first -- who the film is for
@@ -449,11 +452,14 @@
       const name = RATING_SOURCES[source] ||
         source.charAt(0).toUpperCase() + source.slice(1);
       const value = entry.rating.toFixed(1);
+      const certificate = (entry.certified && CERTIFICATES[source]) || "";
+      const named = certificate ? name + " · " + certificate : name;
       badges.push({
         kind: "score",
         mark: RATING_SOURCES[source] ? source : "",
         letter: name.charAt(0),
-        value, said: (name + " " + value).trim(), named: name
+        certified: Boolean(certificate),
+        value, said: (named + " " + value).trim(), named
       });
     }
     if (media.userrating) {
@@ -483,6 +489,13 @@
       image.src = "/ratings/" + badge.mark + ".svg";
       image.alt = "";
       side.append(image);
+      if (badge.certified) {
+        const seal = document.createElement("img");
+        seal.className = "seal";
+        seal.src = "/ratings/certified.svg";
+        seal.alt = "";
+        side.append(seal);
+      }
       return side;
     }
     if (badge.kind === "age") return null;

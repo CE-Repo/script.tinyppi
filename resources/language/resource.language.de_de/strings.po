@@ -1528,9 +1528,9 @@ msgid "Director"
 msgstr "Regisseur"
 
 msgctxt "#32387"
-msgid "Fill in Rotten Tomatoes from WhatsOn"
-msgstr "Rotten Tomatoes über WhatsOn ergänzen"
+msgid "Rotten Tomatoes from WhatsOn"
+msgstr "Rotten Tomatoes über WhatsOn"
 
 msgctxt "#32388"
-msgid "Where neither MDBList nor the library has Rotten Tomatoes' Tomatometer or Popcornmeter for a film, the overview card asks WhatsOn (whatson-api.onrender.com, free for non-commercial use, no key needed) for the missing one. To ask, the film's IMDb or TMDb id is sent to WhatsOn, once per film and only when a rating is missing."
-msgstr "Fehlen für einen Film Tomatometer oder Popcornmeter von Rotten Tomatoes bei MDBList und in der Mediathek, fragt die Überblick-Karte WhatsOn (whatson-api.onrender.com, kostenlos für nicht-kommerzielle Nutzung, ohne Schlüssel) nach dem fehlenden Wert. Dafür wird die IMDb- oder TMDb-ID des Films an WhatsOn geschickt, einmal pro Film und nur, wenn eine Bewertung fehlt."
+msgid "For a film, the overview card asks WhatsOn (whatson-api.onrender.com, free for non-commercial use, no key needed) whether Rotten Tomatoes certified it: a seal on the Tomatometer for Certified Fresh, on the Popcornmeter for Verified Hot. Where neither MDBList nor the library has one of the two ratings, WhatsOn's is shown. To ask, the film's IMDb or TMDb id is sent to WhatsOn, once per film."
+msgstr "Für einen Film fragt die Überblick-Karte WhatsOn (whatson-api.onrender.com, kostenlos für nicht-kommerzielle Nutzung, ohne Schlüssel), ob Rotten Tomatoes ihn ausgezeichnet hat: ein Siegel am Tomatometer für „Certified Fresh“, am Popcornmeter für „Verified Hot“. Fehlt eine der beiden Bewertungen bei MDBList und in der Mediathek, wird die von WhatsOn gezeigt. Dafür wird die IMDb- oder TMDb-ID des Films an WhatsOn geschickt, einmal pro Film."

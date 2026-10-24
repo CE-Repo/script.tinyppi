@@ -14,7 +14,7 @@ import xbmc
 import xbmcaddon
 from web import whatson
 from web.ratings import no_ratings
-from web.whatson import Lookup, allowed, fetch, missing, scores_of, with_whatson
+from web.whatson import Lookup, allowed, fetch, scores_of, with_whatson
 
 # WhatsOn's answer for The Matrix (cut short).
 MATRIX = {"page": 1, "total_pages": 1, "total_results": 1, "results": [{
@@ -36,9 +36,17 @@ def refusal(code, headers=None):
 
 def test_an_answer_gives_the_tomatometer_and_the_popcornmeter_out_of_ten():
     assert scores_of(MATRIX, "imdb", "tt0133093") == {
-        "tomatoes": {"rating": 8.3, "votes": 209},
-        "popcorn": {"rating": 8.5, "votes": 167410},
+        "tomatoes": {"rating": 8.3, "votes": 209, "certified": True},
+        "popcorn": {"rating": 8.5, "votes": 167410, "certified": False},
     }
+
+
+def test_a_side_certified_without_a_rating_is_kept_for_its_certificate():
+    answer = {"results": [{"item_type": "movie", "rotten_tomatoes": {
+        "critics_rating": None, "critics_certified": True,
+        "users_rating": None, "users_certified": "yes"}}]}
+    assert scores_of(answer, "imdb", "tt1") == {
+        "tomatoes": {"rating": None, "votes": None, "certified": True}}
 
 
 def test_of_several_films_the_one_the_id_is_its_own_is_taken():
@@ -55,7 +63,8 @@ def test_of_several_films_the_one_the_id_is_its_own_is_taken():
 def test_a_side_without_a_rating_is_left_out():
     answer = {"results": [{"item_type": "movie", "rotten_tomatoes": {
         "critics_rating": None, "users_rating": 91, "users_rating_count": True}}]}
-    assert scores_of(answer, "imdb", "tt1") == {"popcorn": {"rating": 9.1, "votes": None}}
+    assert scores_of(answer, "imdb", "tt1") == {
+        "popcorn": {"rating": 9.1, "votes": None, "certified": False}}
 
 
 @pytest.mark.parametrize("answer", [
@@ -82,7 +91,8 @@ def test_a_film_is_asked_for_by_its_id_and_logged(monkeypatch):
     found, keep = fetch("imdb", "tt0133093")
     assert asked == ["https://whatson-api.onrender.com/?imdbId=tt0133093&item_type=movie"]
     assert set(found) == {"tomatoes", "popcorn"} and keep == whatson._KEPT
-    assert (xbmc.LOGINFO, "TinyPPI [web]: WhatsOn rated imdb tt0133093: tomatoes, popcorn") \
+    assert (xbmc.LOGINFO,
+            "TinyPPI [web]: WhatsOn rated imdb tt0133093: tomatoes (certified), popcorn") \
         in xbmc.LOG
     monkeypatch.setattr(whatson, "_answer", lambda url: asked.append(url) or {})
     assert fetch("tmdb", "a b") == ({}, whatson._KEPT)
@@ -287,20 +297,23 @@ def held(*sources, **extra):
     return ratings
 
 
-def test_a_film_with_both_is_not_asked_for():
+def test_a_film_with_both_keeps_them_and_wears_its_certificates():
     answers = Answers(scores_of(MATRIX, "imdb", "tt0133093"))
     ratings = held("imdb", "rottentomatoes", "popcorn")
-    assert not missing(ratings)
-    assert with_whatson(ratings, answers) is ratings
-    assert answers.asked == []
+    merged = with_whatson(ratings, answers)
+    assert answers.asked == [{"imdb": "tt0133093"}]
+    assert merged["ratings"] == [
+        {"source": "imdb", "rating": 7.0, "votes": 1},
+        {"source": "rottentomatoes", "rating": 7.0, "votes": 1, "certified": True},
+        {"source": "popcorn", "rating": 7.0, "votes": 1}]
+    # The ratings given are left as they were.
+    assert "certified" not in ratings["ratings"][1]
 
 
 def test_what_is_missing_is_filled_in_and_what_is_there_stands():
     answers = Answers(scores_of(MATRIX, "imdb", "tt0133093"))
     ratings = held("imdb", "metacritic", "rottentomatoes", "filmstarts")
-    assert missing(ratings)
     merged = with_whatson(ratings, answers)
-    assert answers.asked == [{"imdb": "tt0133093"}]
     assert [(entry["source"], entry["rating"]) for entry in merged["ratings"]] == [
         ("imdb", 7.0), ("metacritic", 7.0), ("rottentomatoes", 7.0), ("popcorn", 8.5),
         ("filmstarts", 7.0)]
@@ -309,9 +322,18 @@ def test_what_is_missing_is_filled_in_and_what_is_there_stands():
 
 def test_both_are_filled_in_where_neither_is_there():
     merged = with_whatson(held("imdb"), Answers(scores_of(MATRIX, "imdb", "tt0133093")))
-    assert [entry["source"] for entry in merged["ratings"]] == [
-        "imdb", "rottentomatoes", "popcorn"]
-    assert merged["ratings"][1] == {"source": "rottentomatoes", "rating": 8.3, "votes": 209}
+    assert merged["ratings"][1:] == [
+        {"source": "rottentomatoes", "rating": 8.3, "votes": 209, "certified": True},
+        {"source": "popcorn", "rating": 8.5, "votes": 167410}]
+
+
+def test_a_certificate_without_a_rating_is_worn_by_the_rating_shown_only():
+    found = {"tomatoes": {"rating": None, "votes": None, "certified": True},
+             "popcorn": {"rating": None, "votes": None, "certified": True}}
+    merged = with_whatson(held("imdb", "popcorn"), Answers(found))
+    assert merged["ratings"] == [
+        {"source": "imdb", "rating": 7.0, "votes": 1},
+        {"source": "popcorn", "rating": 7.0, "votes": 1, "certified": True}]
 
 
 def test_without_an_answer_the_ratings_stand():
