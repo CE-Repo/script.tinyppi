@@ -641,6 +641,10 @@
   /* The house's colour; one with no colour of its own -- a source with no
      drawing, an age rating written out -- is washed in the line's. */
   --house: var(--line);
+  /* What the shield is washed and edged in: the house's colour, or for a
+     house whose colour is all but black -- which would not show on the
+     dark panel -- the colour its mark is drawn in. */
+  --hue: var(--house);
   position: relative;
   display: inline-flex;
   box-sizing: border-box;
@@ -648,8 +652,8 @@
   max-width: 100%;
   border-radius: 7px;
   overflow: hidden;
-  background: color-mix(in srgb, var(--house) 20%, var(--panel-2));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--house) 55%, transparent);
+  background: color-mix(in srgb, var(--hue) 20%, var(--panel-2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue) 55%, transparent);
   cursor: pointer;
 }
 .rating .look {
@@ -674,12 +678,12 @@
 }
 /* Each house's colour, the one its mark is drawn on.  An age rating's is
    the colour of its level, which its plate is drawn in. */
-.rating:has(.side.imdb) { --house: #121212; }
+.rating:has(.side.imdb) { --house: #121212; --hue: #f5c518; }
 .rating:has(.side.top250) { --house: #f5c518; }
-.rating:has(.side.tmdb) { --house: #0d253f; }
+.rating:has(.side.tmdb) { --house: #0d253f; --hue: #01b4e4; }
 .rating:has(.side.tvdb) { --house: #555; }
 .rating:has(.side.trakt) { --house: #9f42c6; }
-.rating:has(.side.letterboxd) { --house: #202830; }
+.rating:has(.side.letterboxd) { --house: #202830; --hue: #00e054; }
 .rating:has(.side.metacritic),
 .rating:has(.side.metacriticuser) { --house: #66cc33; }
 .rating:has(.side.rottentomatoes) { --house: #f9d320; }
