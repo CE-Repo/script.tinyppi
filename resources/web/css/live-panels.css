@@ -577,20 +577,20 @@
    than an item of the column of its own. */
 .now .meta:not(:empty) + .studio { margin-top: -10px; }
 
-/* --- The overview: the ratings, the plot and the cast --------------------
+/* --- The overview: the plot, the cast and the ratings --------------------
    The card under the one of what is playing, everything in it centred.
-   First the ratings, centred as a row of their own and never folded away,
-   as small shields, which is what they are: short facts about the film, to
-   be taken in at a glance -- each wearing its house's mark in its house's
-   colours rather than its name, so a row of them is read by colour before
-   a word of it is.  Then the slogan, set like a credit's heading in the
-   text's own colour, right over the plot so the two read as one text, and
-   the plot as prose, in the muted grey the year and genre are written in.
+   The slogan first, set like a credit's heading in the text's own colour,
+   right over the plot so the two read as one text, and the plot as prose,
+   in the muted grey the year and genre are written in.
    A plot is the one paragraph on the page, so it gets the line height of
    one; its line breaks are the library's own (see plain_text in
    web/values.py).  Hanging on its end the director and the cast as plain
    lines: what each is called in the text's own colour over the names in the
-   plot's muted grey.
+   plot's muted grey.  And last, past a thin rule, centred as a row of
+   their own and never folded away, the ratings as small shields, which is
+   what they are: short facts about the film, to be taken in at a glance --
+   each wearing its house's mark in its house's colours rather than its
+   name, so a row of them is read by colour before a word of it is.
 ------------------------------------------------------------------------ */
 
 .plot {
@@ -614,15 +614,18 @@
   pointer-events: none;
   box-shadow: var(--shadow);
 }
-/* The ratings over the slogan and the plot, with a little more air under
-   them than the card's rows have: a row of their own, not the plot's first
-   line. */
+/* The ratings under the plot and its credits, past a thin rule: a row of
+   their own, not the plot's last line.  Alone in the card, they need none. */
 .ratings {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 6px;
-  margin-bottom: 4px;
+}
+.plotfold:has(> :not(.hidden)) ~ .ratings {
+  margin-top: 2px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
 }
 /* A shield: the house on the left, on a plate of its own colour, and what
    it gave on the right -- the whole shield washed in that colour and edged

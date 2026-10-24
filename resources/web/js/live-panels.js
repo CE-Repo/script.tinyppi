@@ -93,21 +93,12 @@
         '</div>' +
       '</div>' +
     '</section>' +
-    /* What the title has been given, what it is about and who is in it,
-       under the card of what is playing: the ratings, the slogan, the plot
-       and, under them, the cast, as the library has them. */
+    /* What the title is about, who is in it and what it has been given,
+       under the card of what is playing: the slogan, the plot and, under
+       them, the cast and the ratings, as the library has them. */
     '<details class="card hidden" id="plotCard">' +
       '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
       '<div class="plot">' +
-        /* The ratings first and never folded away: short facts about the
-           film, taken in at a glance before a word of the plot is read.
-           No heading on the screen -- the houses' marks say what they
-           are -- but one for a screen reader (see strings). */
-        '<div class="ratings hidden" id="ratings" role="list"></div>' +
-        /* What a shield says, over it for a moment after a tap: the house
-           a mark is from, which a mark alone does not always tell.  A
-           screen reader hears each shield's words already. */
-        '<span class="ratingtip hidden" id="ratingTip" aria-hidden="true"></span>' +
         /* The slogan, the plot and its credits read as one text.  It
            starts folded -- the plot cut to a few lines, the credits
            hidden -- and a press on the text lets it all out and takes it
@@ -117,6 +108,15 @@
           '<p class="plottext hidden" id="plotText"></p>' +
           '<dl class="credits hidden" id="credits"></dl>' +
         '</div>' +
+        /* The ratings last, past a thin rule, and never folded away:
+           short facts about the film, taken in at a glance.  No heading on
+           the screen -- the houses' marks say what they are -- but one for
+           a screen reader (see strings). */
+        '<div class="ratings hidden" id="ratings" role="list"></div>' +
+        /* What a shield says, over it for a moment after a tap: the house
+           a mark is from, which a mark alone does not always tell.  A
+           screen reader hears each shield's words already. */
+        '<span class="ratingtip hidden" id="ratingTip" aria-hidden="true"></span>' +
       '</div>' +
     '</details>' +
     '<details class="card hidden" id="tiles">' +

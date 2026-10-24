@@ -309,7 +309,7 @@ test("a long plot is cut to a few lines, and a press on it lets the rest out", (
   assert.ok(plot.classList.contains("open"));
   plot.click();
   assert.equal(plot.classList.contains("open"), false);
-  // Ratings stand over the plot and fold nothing: a short plot with them
+  // Ratings stand outside the fold and fold nothing: a short plot with them
   // is still nothing to press.
   P.update(snap({ media: { plot: "Short and rated." } }));
   assert.equal(plot.classList.contains("fold"), false);
@@ -413,10 +413,11 @@ test("the overview card carries every rating as a shield with its mark, under th
   P.update(snap({ media: rated }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
   assert.equal($("ratings").classList.contains("hidden"), false);
-  // First, over the slogan and the plot, and never folded away with them.
-  assert.equal($("ratings").parentElement.firstElementChild, $("ratings"));
+  // Last, under the slogan, the plot and its credits, and never folded
+  // away with them.
+  assert.equal($("plotFold").nextElementSibling, $("ratings"));
   assert.equal($("ratings").nextElementSibling, $("ratingTip"));
-  assert.equal($("ratingTip").nextElementSibling, $("plotFold"));
+  assert.equal($("ratingTip").nextElementSibling, null);
   // No heading on the screen; named for a screen reader.
   assert.equal($("ratings").getAttribute("aria-label"), "Ratings");
   assert.equal($("plotText").nextElementSibling, $("credits"));
@@ -536,7 +537,7 @@ test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   trakt.getBoundingClientRect = () => ({ left: 50, top: 220, width: 60 });
   letterboxd.getBoundingClientRect = () => ({ left: 120, top: 220, width: 70 });
   // A tap on the mark itself is a tap on its shield, and the shield's alone:
-  // the plot under them does not hear it.
+  // the plot over them does not hear it.
   let pressed = 0;
   $("plotFold").addEventListener("click", () => { pressed += 1; });
   trakt.querySelector("img").click();
@@ -558,7 +559,7 @@ test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   assert.equal(pressed, 0);
 });
 
-test("the overview's credits: the directors over the cast, a line each, under the ratings", (t) => {
+test("the overview's credits: the directors over the cast, a line each, over the ratings", (t) => {
   const { $, P, window } = panels(t);
   const lines = () => [...$("credits").children].map((line) =>
     [line.className, ...[...line.children].map((part) => part.tagName + " " + part.textContent)]);
@@ -569,8 +570,8 @@ test("the overview's credits: the directors over the cast, a line each, under th
     cast_more: true, studios: ["Legendary Pictures"]
   };
   P.update(snap({ media: credited }));
-  // On the plot's end, last: the director, then the cast, cut with an
-  // ellipsis where an older add-on said there are more.  The genre and the
+  // On the plot's end, over the ratings: the director, then the cast, cut
+  // with an ellipsis where an older add-on said there are more.  The genre and the
   // studio are the card above's.
   assert.equal($("credits").nextElementSibling, null);
   assert.equal($("credits").classList.contains("hidden"), false);
