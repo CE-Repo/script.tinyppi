@@ -630,22 +630,26 @@
   gap: 6px;
   margin-top: 4px;
 }
-/* A shield: the house on the left, on a ground of its own colour, and what
-   it gave on the right, on the panel's -- kantig like the plaques the format
-   readings are, rather than round like a button. */
-/* Every badge one height, its border inside it, whatever it holds: a
-   shield of figures, a heart, an age rating's mark on its own. */
+/* A shield: the house on the left, on a plate of its own colour, and what
+   it gave on the right -- the whole shield washed in that colour and edged
+   in it, so a row of them reads as the houses' colours before a word of it
+   is.  Its edge is drawn inside it, so every badge stays one height. */
+/* Every badge one height, whatever it holds: a shield of figures, a heart,
+   an age rating's mark on its own. */
 .ratings { --badge: 26px; }
 .rating {
+  /* The house's colour; one with no colour of its own -- a source with no
+     drawing, an age rating written out -- is washed in the line's. */
+  --house: var(--line);
   position: relative;
   display: inline-flex;
   box-sizing: border-box;
   height: var(--badge);
   max-width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 7px;
   overflow: hidden;
-  background: var(--panel-2);
+  background: color-mix(in srgb, var(--house) 20%, var(--panel-2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--house) 55%, transparent);
   cursor: pointer;
 }
 .rating .look {
@@ -655,44 +659,69 @@
   line-height: 1.3;
   color: var(--dim);
 }
+/* The plate the mark is drawn on, set a little in from the shield's edge so
+   the wash shows round it. */
 .rating .side {
   position: relative;
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 2px;
+  margin: 2px;
+  padding: 0 3px;
+  border-radius: 5px;
+  background: var(--house);
 }
-/* Each house's ground, the colour its mark is drawn on, so the mark runs
-   into it and the left of the shield reads as one plate. */
-.rating .side.imdb { background: #121212; }
-.rating .side.top250 { background: #f5c518; }
-.rating .side.tmdb { background: #0d253f; }
-.rating .side.tvdb { background: #555; }
-.rating .side.trakt { background: #9f42c6; }
-.rating .side.letterboxd { background: #202830; }
-.rating .side.metacritic,
-.rating .side.metacriticuser { background: #66cc33; }
-.rating .side.rottentomatoes { background: #f9d320; }
-.rating .side.popcorn { background: #1e88e5; }
-.rating .side.rogerebert { background: #c8102e; }
-.rating .side.myanimelist { background: #2e51a2; }
-.rating .side.mdblist { background: #4284ca; }
+/* Each house's colour, the one its mark is drawn on.  An age rating's is
+   the colour of its level, which its plate is drawn in. */
+.rating:has(.side.imdb) { --house: #121212; }
+.rating:has(.side.top250) { --house: #f5c518; }
+.rating:has(.side.tmdb) { --house: #0d253f; }
+.rating:has(.side.tvdb) { --house: #555; }
+.rating:has(.side.trakt) { --house: #9f42c6; }
+.rating:has(.side.letterboxd) { --house: #202830; }
+.rating:has(.side.metacritic),
+.rating:has(.side.metacriticuser) { --house: #66cc33; }
+.rating:has(.side.rottentomatoes) { --house: #f9d320; }
+.rating:has(.side.popcorn) { --house: #1e88e5; }
+.rating:has(.side.rogerebert) { --house: #c8102e; }
+.rating:has(.side.myanimelist) { --house: #2e51a2; }
+.rating:has(.side.mdblist) { --house: #4284ca; }
+.rating:has(.side.fsk0) { --house: #ffffff; }
+.rating:has(.side.fsk6),
+.rating:has(.side.mpa_pg),
+.rating:has(.side.tv_pg) { --house: #ffd500; }
+.rating:has(.side.fsk12),
+.rating:has(.side.mpa_g),
+.rating:has(.side.tv_y),
+.rating:has(.side.tv_y7),
+.rating:has(.side.tv_g),
+.rating:has(.side.bbfc_u) { --house: #00a651; }
+.rating:has(.side.fsk16) { --house: #00a0e3; }
+.rating:has(.side.fsk18),
+.rating:has(.side.mpa_r),
+.rating:has(.side.tv_ma),
+.rating:has(.side.bbfc_18) { --house: #e30613; }
+.rating:has(.side.mpa_pg13),
+.rating:has(.side.tv_14) { --house: #f7941d; }
+.rating:has(.side.mpa_nc17) { --house: #2e3192; }
+.rating:has(.side.bbfc_pg) { --house: #fbb800; }
+.rating:has(.side.bbfc_12),
+.rating:has(.side.bbfc_12a) { --house: #f58220; }
+.rating:has(.side.bbfc_15) { --house: #e5007e; }
+.rating:has(.side.bbfc_r18) { --house: #1d1d6b; }
 /* A source with no drawing: its first letter on a plain plate. */
 .rating .side.letter {
   min-width: 20px;
   padding: 0 6px;
-  background: var(--line);
   color: var(--muted);
   font-size: 11px;
   font-weight: 800;
 }
 /* The reader's own rating: a heart on the accent, which is what says it is
    theirs and not a house's. */
-.rating .side.heart {
-  padding: 0 6px;
-  background: var(--accent);
-}
+.rating.mine { --house: var(--accent); }
+.rating .side.heart { padding: 0 6px; }
 .rating .side.heart::before {
   content: "";
   width: 11px;
@@ -709,9 +738,11 @@
   align-items: baseline;
   align-self: center;
   gap: 5px;
-  padding: 0 7px;
+  padding: 0 8px 0 4px;
   white-space: nowrap;
 }
+/* Written out, with no plate before it, the figure keeps its air on both sides. */
+.rating .figures:first-child { padding-left: 8px; }
 /* Tabular figures in the face of the words around them rather than the
    monospaced one the readings use: that face sits higher on the line, and a
    badge this small shows it. */
@@ -720,17 +751,17 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-/* A mark as tall as a line of the shield and as wide as it is drawn: twice
-   its height for the wordmarks, square or round for the rest. */
+/* A mark as tall as its plate leaves room for: twice its height for the
+   wordmarks, square or round for the rest. */
 .rating .mark {
   display: block;
   width: auto;
-  height: 20px;
+  height: 18px;
 }
 /* An age rating's left is its board's name on the colour of the level,
-   drawn edge to edge and as tall as the shield inside its border; the level
-   itself is written on the right, like every other shield's figure. */
-.rating .side.plate { padding: 0; }
+   drawn edge to edge on its plate; the level itself is written on the
+   right, like every other shield's figure. */
+.rating .side.plate { padding: 0; overflow: hidden; }
 /* Rotten Tomatoes' Certified Fresh or Verified Hot: a seal on the mark's
    corner (see tools/gen_rating_marks.py). */
 .rating .seal {
@@ -740,7 +771,7 @@
   width: 10px;
   height: 10px;
 }
-.rating .side.plate .mark { height: calc(var(--badge) - 2px); }
+.rating .side.plate .mark { height: calc(var(--badge) - 4px); }
 /* What the badge says aloud: there for a screen reader, not on the screen. */
 .rating .said {
   position: absolute;
