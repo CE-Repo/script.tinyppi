@@ -99,12 +99,12 @@ test("the ratings, the slogan and the plot stand in a card of their own under th
   await page.waitForFunction(() => [...document.querySelectorAll("#ratings img")]
     .every((image) => image.complete && image.naturalWidth > 0));
   // Each as wide as it is drawn: the FSK's plate, IMDb's square logo and
-  // the awards' plates.
+  // the awards' square drawings.
   const sizes = await page.$$eval("#ratings img", (images) => images.map((image) => {
     const box = image.getBoundingClientRect();
     return Math.round(box.width / box.height * 10) / 10;
   }));
-  assert.deepEqual(sizes, [1.4, 1, 2, 2]);
+  assert.deepEqual(sizes, [1.4, 1, 1, 1]);
   // Every badge one height: the age rating's mark and the shields beside it.
   const heights = await page.$$eval("#ratings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));

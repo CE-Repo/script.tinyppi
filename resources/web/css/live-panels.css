@@ -714,8 +714,8 @@
 .rating:has(.side.bbfc_12a) { --house: #f58220; }
 .rating:has(.side.bbfc_15) { --house: #e5007e; }
 .rating:has(.side.bbfc_r18) { --house: #1d1d6b; }
-/* An award's is its plate's; the two on a near-black one are washed and
-   edged in their lettering's gold instead. */
+/* An award's is its mark's ground; the two on a near-black or a deep one
+   are washed and edged in their drawing's gold instead. */
 .rating:has(.side.award_oscar) { --house: #e2b33c; }
 .rating:has(.side.award_globe) { --house: #9c6b1e; }
 .rating:has(.side.award_bafta) { --house: #141414; --hue: #e2b33c; }

@@ -478,8 +478,8 @@
     return badges;
   }
 
-  /* An award is a plate like an age rating's: its name on its own ground,
-     and beside it how many it won -- or, where it won none, how many it was
+  /* An award wears a drawing of what it hands out on its own ground, and
+     beside it how many it won -- or, where it won none, how many it was
      nominated for, on a quieter shield (see .rating.nominee).  Under a
      pointer, what it won it for. */
   function awardBadge(award, T) {
@@ -500,10 +500,8 @@
   function ratingSide(badge) {
     const side = document.createElement("span");
     if (badge.mark) {
-      /* An age rating's plate is the whole of the left, edge to edge, and
-         so is an award's. */
-      const plate = ["age", "award", "nominee"].includes(badge.kind);
-      side.className = "side " + badge.mark + (plate ? " plate" : "");
+      /* An age rating's plate is the whole of the left, edge to edge. */
+      side.className = "side " + badge.mark + (badge.kind === "age" ? " plate" : "");
       const image = document.createElement("img");
       /* As wide as it is drawn: the SVG says, and the CSS gives only the
          height (see .rating .mark). */

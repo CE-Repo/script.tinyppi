@@ -203,9 +203,10 @@ the library's own place stands. Episodes have none.
 
 ## Awards
 
-The Academy Awards (*OSCAR*), the Golden Globes (*GLOBE*), the BAFTAs and the
-Primetime Emmys stand last among the ratings, each as a plate with a figure
-beside it: how many it **won**, on a gold shield — or, where it won none, how
+The Academy Awards, the Golden Globes, the BAFTAs and the Primetime Emmys
+stand last among the ratings, each as a drawing of what it hands out (a
+statuette, a ringed globe, a theatre mask, a winged figure holding an atom)
+with a figure beside it: how many it **won**, on a gold shield — or, where it won none, how
 many it was **nominated** for, on a quieter grey one. A tap shows what it won
 it for (*Oscar: Visual Effects (2015) · 4 nominated*).
 
