@@ -241,6 +241,19 @@ def test_a_film_is_asked_for_once_and_its_answer_kept(lookup):
     assert len(asked) == 2
 
 
+def test_a_film_is_being_asked_for_until_its_answer_is_in(lookup):
+    found, _clock, _started, _asked, answers, run = lookup
+    ids = {"imdb": "tt1"}
+    assert not found.asking("key", ids)
+    found.scores("key", ids)
+    assert found.asking("key", ids) and mdblist.asking("key", ids, found)
+    assert not found.asking("key", {"imdb": "tt2"}) and not found.asking("other", ids)
+    run()
+    assert not found.asking("key", ids)
+    # Without a key or a film, nothing is.
+    assert not found.asking("", ids) and not found.asking("key", {})
+
+
 def test_a_film_without_an_imdb_id_is_asked_for_by_its_tmdb_one(lookup):
     found, _clock, _started, asked, _answers, run = lookup
     found.scores("key", {"tmdb": "578"})

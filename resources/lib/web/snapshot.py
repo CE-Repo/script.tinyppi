@@ -40,7 +40,7 @@ from info.publish import (
     publish_scene_properties,
     publish_static_properties,
 )
-from web.mdblist import api_key, with_mdblist
+from web.mdblist import api_key, asking, with_mdblist
 from web.payloads import (
     Chapter,
     Controls,
@@ -67,6 +67,8 @@ from web.rows import GROUPS, finish_time, is_dv_source, overlay_rows, render
 from web.session import SessionLog
 from web.values import clean_value, name_list, numbers, plain_text
 from web.vs10 import vs10_state
+from web.whatson import allowed as whatson_allowed
+from web.whatson import with_whatson
 
 # Home property with the source HDR type (from publish_hdr_type).
 _PROP_HDR_TYPE = "TinyPPI.HdrType"
@@ -315,10 +317,12 @@ class SnapshotBuilder:
         self._ratings_for: tuple[str, str] | None = None
         self._ratings_at = 0.0
         self._ratings_known = False
-        # The MDBList API key and when it was read: once a static interval,
-        # so a key given mid-film is asked with within a second.
+        # The MDBList API key, whether WhatsOn may be asked, and when they
+        # were read: once a static interval, so a key given mid-film is
+        # asked with within a second.
         self._mdblist_key = ""
-        self._mdblist_key_at = 0.0
+        self._whatson = False
+        self._rating_settings_at = 0.0
 
     def _refresh(self) -> None:
         """Recompute the readings into the sink."""
@@ -486,13 +490,27 @@ class SnapshotBuilder:
             self._ratings = found if found is not None else no_ratings()
         return self._ratings
 
-    def _mdblist_api_key(self) -> str:
-        """Return the MDBList API key, read again once a static interval."""
+    def _rating_settings(self) -> tuple[str, bool]:
+        """Return the MDBList API key and whether WhatsOn may be asked,
+        read again once a static interval."""
         now = time.monotonic()
-        if now - self._mdblist_key_at >= self.STATIC_INTERVAL:
-            self._mdblist_key_at = now
+        if now - self._rating_settings_at >= self.STATIC_INTERVAL:
+            self._rating_settings_at = now
             self._mdblist_key = api_key()
-        return self._mdblist_key
+            self._whatson = whatson_allowed()
+        return self._mdblist_key, self._whatson
+
+    def _shown_ratings(self, values: dict[str, str]) -> Ratings:
+        """Return the title's ratings: the library's, MDBList's over them,
+        and Rotten Tomatoes' from WhatsOn where both lack them.
+
+        WhatsOn waits for MDBList's answer, which may bring them.
+        """
+        key, whatson = self._rating_settings()
+        ratings = with_mdblist(self._rating_info(values), key=key)
+        if whatson and not asking(key, ratings["ids"]):
+            ratings = with_whatson(ratings)
+        return ratings
 
     def _active_tracks(self) -> dict[str, str]:
         """Return the active tracks from the last static refresh."""
@@ -535,7 +553,8 @@ class SnapshotBuilder:
             self._ratings_at = 0.0
             self._ratings_known = False
             self._mdblist_key = ""
-            self._mdblist_key_at = 0.0
+            self._whatson = False
+            self._rating_settings_at = 0.0
             # End the session but keep its figures for the idle page.
             self.session.end()
             idle: IdleSnapshot = {
@@ -592,8 +611,7 @@ class SnapshotBuilder:
             return None
 
         # Only for a snapshot somebody is watching: it costs JSON-RPC.
-        # MDBList's for a film, where the reader gave a key and it has any.
-        ratings = with_mdblist(self._rating_info(values), key=self._mdblist_api_key())
+        ratings = self._shown_ratings(values)
         credits = _credits(values)
         snapshot: PlayingSnapshot = {
             "seq":       self._sequence,

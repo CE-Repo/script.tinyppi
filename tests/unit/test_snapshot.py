@@ -252,6 +252,45 @@ def test_the_mdblist_key_is_read_once_a_static_interval(rated, monkeypatch):
     assert len(read) == 2
 
 
+@pytest.fixture
+def whatson(rated, monkeypatch):
+    """WhatsOn's filling in, and whether MDBList's answer is on its way."""
+    filled, state = [], {"allowed": True, "asking": False}
+    monkeypatch.setattr(snapshot, "whatson_allowed", lambda: state["allowed"])
+    monkeypatch.setattr(snapshot, "asking", lambda key, ids: state["asking"])
+
+    def fill(ratings):
+        filled.append(ratings["ids"])
+        merged = ratings.copy()
+        merged["ratings"] = [*ratings["ratings"], {"source": "popcorn", "rating": 8.5, "votes": 1}]
+        return merged
+
+    monkeypatch.setattr(snapshot, "with_whatson", fill)
+    return filled, state
+
+
+def test_whatson_fills_in_once_mdblists_answer_is_in(whatson, monkeypatch):
+    filled, state = whatson
+    play()
+    builder = SnapshotBuilder()
+    monkeypatch.setattr(builder, "STATIC_INTERVAL", 0.0)
+    state["asking"] = True
+    assert [entry["source"] for entry in builder.build()["media"]["ratings"]] == ["imdb"]
+    assert filled == []
+    state["asking"] = False
+    assert [entry["source"] for entry in builder.build()["media"]["ratings"]] == [
+        "imdb", "popcorn"]
+    assert filled == [{"imdb": "tt0111161"}]
+
+
+def test_whatson_is_not_asked_when_the_reader_does_not_allow_it(whatson, monkeypatch):
+    filled, state = whatson
+    state["allowed"] = False
+    play()
+    assert [entry["source"] for entry in SnapshotBuilder().build()["media"]["ratings"]] == ["imdb"]
+    assert filled == []
+
+
 def test_the_ratings_are_asked_for_again_while_kodi_cannot_say(rated, monkeypatch):
     asked, given = rated
     found = given["found"]

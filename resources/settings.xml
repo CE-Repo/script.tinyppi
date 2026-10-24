@@ -2097,6 +2097,11 @@
                         <hidden>true</hidden>
                     </control>
                 </setting>
+                <setting id="web_whatson" type="boolean" label="32387" help="32388">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle" />
+                </setting>
             </group>
         </category>
     </section>

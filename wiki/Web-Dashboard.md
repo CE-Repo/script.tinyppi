@@ -23,6 +23,7 @@ Top 250 place, and — when you give it a key — the ratings MDBList gathers (s
 - [Overview](#overview)
 - [The IMDb Top 250](#the-imdb-top-250)
 - [Ratings from MDBList](#ratings-from-mdblist)
+- [Rotten Tomatoes from WhatsOn](#rotten-tomatoes-from-whatson)
 - [Metadata](#metadata)
 - [History](#history)
 - [Films](#films)
@@ -223,6 +224,32 @@ for — `TinyPPI [web]: MDBList rated imdb tt0816692: imdb, tmdb, tomatoes, …`
 naming the houses it rated the film by and, after *no rating from*, those it
 listed without one. A film MDBList could not be asked for, or answered with an
 error, is logged as a warning.
+
+---
+
+## Rotten Tomatoes from WhatsOn
+
+MDBList has no Rotten Tomatoes rating for some films that Rotten Tomatoes
+does rate (The Matrix and Interstellar among them). Where neither MDBList nor
+the library has the Tomatometer or the Popcornmeter for a film, the box asks
+[WhatsOn](https://github.com/pierrevano/whatson-api) — a free service for
+non-commercial use — for the missing one, **no key needed**. It is on by
+default: **Settings → Dashboard → Ratings → Fill in Rotten Tomatoes from
+WhatsOn**.
+
+WhatsOn is asked only for what is missing: for a film (episodes never), once
+MDBList has answered or will not be asked, and only when one of the two is not
+among the ratings to show. One that MDBList or the library has stands. A film
+is asked for once, by the IMDb id the library holds, else the TMDb one, and the
+answer — a film WhatsOn does not know included — is kept for half a day. That
+stays well inside what WhatsOn allows without a key (40 questions an hour, 200
+a day); should the limit be spent all the same, the box waits as long as
+WhatsOn says. WhatsOn runs on a free host that sleeps when idle, so its first
+answer can take up to a minute; the card shows the other ratings meanwhile.
+
+Kodi's log has a line for every film WhatsOn is asked for —
+`TinyPPI [web]: WhatsOn rated imdb tt0133093: tomatoes, popcorn` — or says it
+does not know the film, could not be reached or answered with an error.
 
 ---
 

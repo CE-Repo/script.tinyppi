@@ -241,6 +241,12 @@ def _in_background(work: Callable[[], None]) -> None:
     threading.Thread(target=work, name="TinyPPI MDBList", daemon=True).start()
 
 
+def _wanted(key: str, ids: Mapping[str, str]) -> _Wanted:
+    """Return what a film is asked for by: its IMDb id, else its TMDb one."""
+    provider = "imdb" if "imdb" in ids else "tmdb"
+    return (key, provider, ids[provider])
+
+
 class Lookup:
     """MDBList's answers for the films asked for, and the asking."""
 
@@ -261,8 +267,7 @@ class Lookup:
         """
         if not key or not ids:
             return None
-        provider = "imdb" if "imdb" in ids else "tmdb"
-        wanted = (key, provider, ids[provider])
+        wanted = _wanted(key, ids)
         now = self._clock()
         with self._lock:
             if key in self._refused:
@@ -275,6 +280,13 @@ class Lookup:
             self._asking.add(wanted)
         self._start(lambda: self._ask(wanted))
         return None
+
+    def asking(self, key: str, ids: Mapping[str, str]) -> bool:
+        """Return whether MDBList is being asked for the film *ids* name."""
+        if not key or not ids:
+            return False
+        with self._lock:
+            return _wanted(key, ids) in self._asking
 
     def _ask(self, wanted: _Wanted) -> None:
         """Ask MDBList for one film and keep its answer.
@@ -363,7 +375,7 @@ def api_key() -> str:
     """Return the MDBList API key the reader gave, or "".
 
     It costs a look at the settings, so the caller reads it once a static
-    interval (see ``SnapshotBuilder._mdblist_api_key``) rather than once a
+    interval (see ``SnapshotBuilder._rating_settings``) rather than once a
     snapshot.
     """
     try:
@@ -371,6 +383,12 @@ def api_key() -> str:
     except RuntimeError:
         # The add-on is being updated; the library's ratings will do.
         return ""
+
+
+def asking(key: str, ids: Mapping[str, str], lookup: Lookup = _LOOKUP) -> bool:
+    """Return whether MDBList's answer for the film *ids* name is on its
+    way, so what it lacks is not looked for elsewhere before it is in."""
+    return lookup.asking(key, ids)
 
 
 def with_mdblist(ratings: Ratings, lookup: Lookup = _LOOKUP,

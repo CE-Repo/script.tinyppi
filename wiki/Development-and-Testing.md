@@ -135,6 +135,7 @@ the CI actions up to date.
 | `unit/test_static.py` | The dashboard's route table and static file cache |
 | `unit/test_ratings.py` | The playing title's ratings from the library: sources and their order, the reader's own, the age rating read for its board and level, the Top 250 place, a film's IMDb and TMDb ids |
 | `unit/test_mdblist.py` | MDBList's ratings (key refused, daily limit, failures, the cache) and the IMDb Top 250 chart, each asked for off the snapshot's thread, laid over the library's |
+| `unit/test_whatson.py` | WhatsOn's Rotten Tomatoes ratings (limit spent, failures, the cache), asked for only where they are missing and filled in beside the others |
 | `unit/test_strings.py` | The dashboard's UI strings |
 | `unit/test_values.py` | Text and id helpers shared by the dashboard |
 | `unit/test_dvcomposer.py` | The composer's rows of the Dolby Vision metadata view: curves, polynomial and MMR coefficients |
