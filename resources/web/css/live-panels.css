@@ -633,7 +633,7 @@
    is.  Its edge is drawn inside it, so every badge stays one height. */
 /* Every badge one height, whatever it holds: a shield of figures, a heart,
    an age rating's mark on its own. */
-.ratings { --badge: 30px; }
+.ratings { --badge: 24px; }
 .rating {
   /* The house's colour; one with no colour of its own -- a source with no
      drawing, an age rating written out -- is washed in the line's. */
@@ -646,6 +646,9 @@
   display: inline-flex;
   box-sizing: border-box;
   height: var(--badge);
+  /* No narrower than this, so one with a short mark and figure is not a
+     sliver. */
+  min-width: 32px;
   max-width: 100%;
   border-radius: 7px;
   overflow: hidden;
@@ -656,7 +659,7 @@
 .rating .look {
   display: inline-flex;
   align-items: stretch;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.3;
   color: var(--dim);
 }
@@ -716,7 +719,7 @@
   min-width: 20px;
   padding: 0 6px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
 }
 /* The reader's own rating: a heart on the accent, which is what says it is
@@ -725,8 +728,8 @@
 .rating .side.heart { padding: 0 6px; }
 .rating .side.heart::before {
   content: "";
-  width: 13px;
-  height: 13px;
+  width: 11px;
+  height: 11px;
   background: #fff;
   -webkit-mask: url('/icons/heart.svg') no-repeat center / contain;
   mask: url('/icons/heart.svg') no-repeat center / contain;
@@ -757,7 +760,7 @@
 .rating .mark {
   display: block;
   width: auto;
-  height: 22px;
+  height: 16px;
 }
 /* An age rating's left is its board's name on the colour of the level,
    drawn edge to edge on its plate; the level itself is written on the
@@ -769,8 +772,8 @@
   position: absolute;
   top: 1px;
   right: 0;
-  width: 12px;
-  height: 12px;
+  width: 9px;
+  height: 9px;
 }
 .rating .side.plate .mark { height: calc(var(--badge) - 4px); }
 /* What the badge says aloud: there for a screen reader, not on the screen. */
