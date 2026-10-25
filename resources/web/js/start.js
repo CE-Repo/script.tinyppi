@@ -10,7 +10,8 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them is listed below. */
 
-/* global $, el, offerShelves, render, selectTab, storedTab, tabFromAddress */
+/* global $, el, filmTools, offerShelves, render, selectTab, seriesTools, storedTab,
+   tabFromAddress */
 
 /* --- boot --------------------------------------------------------------- */
 
@@ -24,6 +25,7 @@ function applyStrings(strings, hello) {
   $("historyIdleText").textContent = strings.idle_text;
   $("continueFilmsLabel").textContent = strings.continue;
   $("continueSeriesLabel").textContent = strings.continue;
+  $("nextSeriesLabel").textContent = strings.next_up;
   /* The bar is icons alone; each key says what it is to a screen reader and
      under a pointer. */
   const names = {
@@ -63,11 +65,15 @@ function applyStrings(strings, hello) {
   el.markWatched.textContent = strings.mark_watched;
   el.markUnwatched.textContent = strings.mark_unwatched;
   el.markCancel.textContent = strings.cancel;
+  el.markDetails.textContent = strings.details;
+  el.detailsClose.textContent = strings.close;
   $("seriesBackText").textContent = strings.series_back;
   el.seriesBack.setAttribute("aria-label", strings.series_back);
   el.seriesEmpty.textContent = strings.series_empty;
   el.seriesSearch.placeholder = strings.series_search;
   el.seriesSearch.setAttribute("aria-label", strings.series_search);
+  filmTools.strings();
+  seriesTools.strings();
   TinyPPI.panels.strings(strings);
   TinyPPI.metadata.strings(strings);
   $("vs10Title").textContent = strings.vs10;

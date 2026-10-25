@@ -1066,6 +1066,37 @@
 .trackwrap:has(.track.seekable) .chapter-tip { bottom: calc(100% - 4px); }
 .track:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
+/* --- Fine adjustments ---------------------------------------------------
+
+   The two offsets and the tempo, side by side on a wide card and stacked on
+   a phone.  An offset is its caption over a step back, the value and a step
+   on; the value is a key too (it puts the offset back to nothing), so all
+   three share the row out and keep the transport's height. */
+
+.tfine {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.fine {
+  display: grid;
+  grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap);
+  gap: 6px;
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.fine .finelabel {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.fine .finestep { padding: 0; font-size: 17px; }
+.fine .finevalue { padding: 0 4px; }
+.fine-tempo { flex: 1 1 140px; }
+
 /* --- Track pickers ------------------------------------------------------ */
 
 .tracks {

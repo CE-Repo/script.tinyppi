@@ -1542,3 +1542,91 @@ msgstr "%s díj"
 msgctxt "#32390"
 msgid "%s nominated"
 msgstr "%s jelölés"
+
+msgctxt "#32391"
+msgid "Audio offset"
+msgstr "Hangeltolás"
+
+msgctxt "#32392"
+msgid "Subtitle offset"
+msgstr "Felirateltolás"
+
+msgctxt "#32393"
+msgid "Tempo"
+msgstr "Tempó"
+
+msgctxt "#32394"
+msgid "Reset to 0"
+msgstr "Visszaállítás 0-ra"
+
+msgctxt "#32395"
+msgid "Sort by"
+msgstr "Rendezés"
+
+msgctxt "#32396"
+msgid "Title"
+msgstr "Cím"
+
+msgctxt "#32397"
+msgid "Year"
+msgstr "Év"
+
+msgctxt "#32398"
+msgid "Rating"
+msgstr "Értékelés"
+
+msgctxt "#32399"
+msgid "Date added"
+msgstr "Hozzáadás dátuma"
+
+msgctxt "#32400"
+msgid "Runtime"
+msgstr "Játékidő"
+
+msgctxt "#32401"
+msgid "All genres"
+msgstr "Minden műfaj"
+
+msgctxt "#32402"
+msgid "All picture formats"
+msgstr "Minden képformátum"
+
+msgctxt "#32403"
+msgid "All resolutions"
+msgstr "Minden felbontás"
+
+msgctxt "#32404"
+msgid "All audio formats"
+msgstr "Minden hangformátum"
+
+msgctxt "#32405"
+msgid "Next up"
+msgstr "Következik"
+
+msgctxt "#32406"
+msgid "Details"
+msgstr "Részletek"
+
+msgctxt "#32407"
+msgid "Writer"
+msgstr "Forgatókönyv"
+
+msgctxt "#32408"
+msgid "Studio"
+msgstr "Stúdió"
+
+msgctxt "#32409"
+msgid "The details could not be read."
+msgstr "A részleteket nem sikerült beolvasni."
+
+msgctxt "#32410"
+msgid "Genre"
+msgstr "Műfaj"
+
+msgctxt "#32411"
+msgid "Close"
+msgstr "Bezárás"
+
+msgctxt "#32412"
+msgid "No titles match the filter"
+msgstr "Egy cím sem felel meg a szűrőnek"

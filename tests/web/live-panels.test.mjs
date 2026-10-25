@@ -746,7 +746,7 @@ test("the remote is built once and every key sends its command with the token", 
                    ["chapter_previous", "playpause", "volume_down", "mute", "volume_up", "stop", "chapter_next"]);
 
   P.update(snap({ control: true, controls: { chapters: 12 } }));
-  assert.equal($("transport").querySelectorAll(".tbtn").length, 13);
+  assert.equal($("transport").querySelectorAll(".tkeys .tbtn, .tvol .tbtn").length, 13);
   assert.equal($("transport").querySelector(".tbtn"), jumps[0], "built once");
 });
 
@@ -887,6 +887,82 @@ test("track pickers: audio when there is a choice, subtitles with an off switch"
   assert.notEqual($("pick-audio"), kept);
   assert.equal($("pick-audio").previousElementSibling.textContent, "Tonspur");
   assert.equal($("pick-subtitle").options[0].text, "Aus");
+});
+
+test("the offsets step from the reported value, hold it, and reset on the value", (t) => {
+  const { $, P, commands, window } = panels(t);
+  const fine = (kind) => $("transport").querySelector(`.fine[data-kind="${kind}"]`);
+  P.update(snap({ control: true, controls: { audio_delay: -0.05, subtitle_delay: 0.3,
+                                             subtitle_on: false, tempo: 1 } }));
+  const audio = fine("audio_delay");
+  const subs = fine("subtitle_delay");
+  assert.equal(audio.classList.contains("hidden"), false);
+  assert.ok(subs.classList.contains("hidden"), "no subtitles shown, nothing to move");
+  assert.equal(audio.querySelector(".finelabel").textContent, "Audio offset");
+  assert.equal(audio.querySelector(".finevalue").textContent, "\u221250 ms");
+  assert.equal(audio.querySelector(".finevalue").title, "Reset to 0");
+
+  const [minus, value, plus] = audio.querySelectorAll(".tbtn");
+  plus.click();
+  plus.click();
+  assert.equal(value.textContent, "+50 ms");
+  minus.click();
+  assert.equal(value.textContent, "0 ms");
+  // A snapshot from before the presses does not take the value back...
+  P.update(snap({ control: true, controls: { audio_delay: -0.05, subtitle_on: true,
+                                             subtitle_delay: 1.5 } }));
+  assert.equal(value.textContent, "0 ms");
+  assert.equal(subs.classList.contains("hidden"), false);
+  assert.equal(subs.querySelector(".finevalue").textContent, "+1.50 s");
+  // ... once the hold is over it does.
+  window.Date.now = () => START + 5000;
+  P.update(snap({ control: true, controls: { audio_delay: 0.025 } }));
+  assert.equal(value.textContent, "+25 ms");
+  value.click();
+  assert.deepEqual(commands(), [
+    { action: "audio_delay", value: 0 }, { action: "audio_delay", value: 0.05 },
+    { action: "audio_delay", value: 0 }, { action: "audio_delay", value: 0 }]);
+  // Without a reported offset there is no stepper, and a press sends nothing.
+  window.Date.now = () => START + 10000;
+  P.update(snap({ control: true, controls: {} }));
+  assert.ok(audio.classList.contains("hidden"));
+  plus.click();
+  assert.equal(commands().length, 4);
+});
+
+test("an offset stops at Kodi's range", (t) => {
+  const { $, P, commands } = panels(t);
+  P.update(snap({ control: true, controls: { subtitle_delay: -59.95, subtitle_on: true } }));
+  const [minus] = $("transport").querySelectorAll('.fine[data-kind="subtitle_delay"] .tbtn');
+  minus.click();
+  assert.deepEqual(commands(), [{ action: "subtitle_delay", value: -60 }]);
+  assert.equal($("transport").querySelector('.fine[data-kind="subtitle_delay"] .finevalue')
+    .textContent, "\u221260.00 s");
+});
+
+test("the tempo picker follows the player and sends a choice", (t) => {
+  const { $, P, commands, window } = panels(t);
+  P.update(snap({ control: true, controls: { tempo: 1.2 } }));
+  const tempo = $("pick-tempo");
+  assert.deepEqual([...tempo.options].map((option) => option.text),
+                   ["0.8×", "0.9×", "1.0×", "1.1×", "1.2×", "1.5×"]);
+  assert.equal(tempo.value, "1.2");
+  assert.equal(tempo.previousElementSibling.textContent, "Tempo");
+  // A pause reports no tempo: the last one stays.
+  P.update(snap({ control: true, controls: { tempo: null } }));
+  assert.equal(tempo.value, "1.2");
+  // Not moved under a picker that is being used.
+  tempo.focus();
+  P.update(snap({ control: true, controls: { tempo: 1 } }));
+  assert.equal(tempo.value, "1.2");
+  tempo.value = "0.8";
+  tempo.dispatchEvent(new window.Event("change"));
+  assert.deepEqual(commands(), [{ action: "tempo", value: 0.8 }]);
+  // The captions follow new words; one the box has none for is left empty.
+  Object.assign(window.TinyPPI.T, { tempo: "Geschwindigkeit", audio_offset: "" });
+  P.strings(window.TinyPPI.T);
+  assert.equal(tempo.previousElementSibling.textContent, "Geschwindigkeit");
+  assert.equal($("transport").querySelector(".finelabel").textContent, "");
 });
 
 test("the four figures: switches, warnings, cache and the frames that made it out", (t) => {

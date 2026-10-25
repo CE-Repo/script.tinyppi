@@ -1542,3 +1542,91 @@ msgstr "%s gewonnen"
 msgctxt "#32390"
 msgid "%s nominated"
 msgstr "%s nominiert"
+
+msgctxt "#32391"
+msgid "Audio offset"
+msgstr "Audioversatz"
+
+msgctxt "#32392"
+msgid "Subtitle offset"
+msgstr "Untertitelversatz"
+
+msgctxt "#32393"
+msgid "Tempo"
+msgstr "Tempo"
+
+msgctxt "#32394"
+msgid "Reset to 0"
+msgstr "Auf 0 zurücksetzen"
+
+msgctxt "#32395"
+msgid "Sort by"
+msgstr "Sortieren nach"
+
+msgctxt "#32396"
+msgid "Title"
+msgstr "Titel"
+
+msgctxt "#32397"
+msgid "Year"
+msgstr "Jahr"
+
+msgctxt "#32398"
+msgid "Rating"
+msgstr "Bewertung"
+
+msgctxt "#32399"
+msgid "Date added"
+msgstr "Hinzugefügt"
+
+msgctxt "#32400"
+msgid "Runtime"
+msgstr "Laufzeit"
+
+msgctxt "#32401"
+msgid "All genres"
+msgstr "Alle Genres"
+
+msgctxt "#32402"
+msgid "All picture formats"
+msgstr "Alle Bildformate"
+
+msgctxt "#32403"
+msgid "All resolutions"
+msgstr "Alle Auflösungen"
+
+msgctxt "#32404"
+msgid "All audio formats"
+msgstr "Alle Tonformate"
+
+msgctxt "#32405"
+msgid "Next up"
+msgstr "Als Nächstes"
+
+msgctxt "#32406"
+msgid "Details"
+msgstr "Details"
+
+msgctxt "#32407"
+msgid "Writer"
+msgstr "Drehbuch"
+
+msgctxt "#32408"
+msgid "Studio"
+msgstr "Studio"
+
+msgctxt "#32409"
+msgid "The details could not be read."
+msgstr "Die Details konnten nicht gelesen werden."
+
+msgctxt "#32410"
+msgid "Genre"
+msgstr "Genre"
+
+msgctxt "#32411"
+msgid "Close"
+msgstr "Schließen"
+
+msgctxt "#32412"
+msgid "No titles match the filter"
+msgstr "Keine Titel passen zum Filter"

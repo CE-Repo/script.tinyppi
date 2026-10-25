@@ -355,6 +355,16 @@ in the order Kodi files them. A tap opens the [title dialog](#play-resume-and-wa
   corner; neither, no badge.
 - Under the title: the **year** and the **running time**.
 - A **search box** narrows the wall as you type; the cross in it clears it.
+- Under it, the wall can be **sorted** — by title (Kodi's own order), year,
+  rating, date added or running time; a film without the value goes last —
+  and **filtered** by genre, picture format (Dolby Vision, HDR10+, HDR10,
+  HLG, SDR), resolution (4K, 1080p, 720p, SD) and audio format (the first
+  audio track's codec: Dolby TrueHD, DTS-HD MA, Dolby Digital Plus, …). A
+  filter offers only what the library holds and is left out where there is
+  nothing to choose between; the formats come from what Kodi read off the
+  files, so a film it has not scanned yet is under none of them. Kodi does
+  not record Atmos or DTS:X in its library, so the sound is filtered by the
+  codec it rides on. The filters and the search narrow the wall together.
 
 The tab is there **whether or not anything is playing** — lining up what comes
 next from the phone halfway through a film is a fair thing to want. A search
@@ -401,6 +411,8 @@ The same wall for what Kodi knows as **TV shows**, with one level more:
   down you scrolled.
 - A half-watched episode carries the same progress bar, and each row shows the
   episode's running time.
+- The wall sorts as the film wall does (without the running time) and filters
+  by genre.
 
 The seasons arrive folded because a show that ran nine years is several
 hundred rows; folded, it is a dozen lines, and a still inside a folded season
@@ -417,6 +429,7 @@ At the top of the **Films** and **Series** tabs:
 | Row | Contents |
 |---|---|
 | **Continue watching** | Films (respectively episodes) stopped part-way, the last one seen first, up to 30. Read with Kodi's own *in progress* filter. An episode shows its show's poster with the episode under the name. |
+| **Next up** (Series) | The next unwatched episode of each show being watched — its first unseen one in episode order, specials left out — the show watched last first, up to 15. An episode already on *Continue watching* is not repeated. |
 | **Recently added** | The 10 films that arrived last, and the 10 series that gained an episode last (Kodi dates a series by its newest episode), newest first. |
 | **Unwatched films** / **Unwatched series** | Only what is still unwatched: films without a tick, series with an episode waiting. |
 
@@ -437,6 +450,7 @@ A tap on a film, series or episode — on a wall or in a row — opens a dialog:
 | **Clear resume point** | stopped part-way | Forgets where it got to (taking it off *Continue watching*), leaving watched/unwatched as it was. |
 | **Mark as watched** | all | Writes a play count and removes the resume point — as Kodi's context menu does. A series marks every episode. |
 | **Mark as unwatched** | all | Removes the play count. A series marks every episode. |
+| **Details** | all | The title's details from the library: year, running time and age rating, the file's formats, tagline and plot, genres, director, writers, studio, the library's ratings and the cast. |
 
 All of these need the **access token** and **Allow VS10 switching from the
 dashboard**.
@@ -456,8 +470,13 @@ On the Live tab, under the progress bar, in two rows:
 | First | Back and forward by 10 s, 1 min and 10 min |
 | Second | Previous chapter · Play / Pause · Volume down · Mute · Volume up · Stop · Next chapter |
 
-Under them: a picker for the **audio track** and one for the **subtitles**
-(including *Off*). The **progress bar** is dragged — with a finger, or a
+Under them, the **fine adjustments**: the **audio offset** (lip sync, in steps
+of 50 ms within ±10 s), the **subtitle offset** (in Kodi's 100 ms steps, shown
+while subtitles are on) and the **tempo** (0.8× to 1.5×, with the sound kept).
+A tap on an offset's value puts it back to 0. Kodi has no JSON-RPC method for
+the subtitle offset, so it is moved with the same key presses a remote sends,
+and Kodi shows its own slider on the TV for a moment while it moves. Then a
+picker for the **audio track** and one for the **subtitles** (including *Off*). The **progress bar** is dragged — with a finger, or a
 mouse held down — and the box seeks to where it was let go; a tap is the
 shortest such drag. While it is held, the fill, the clock under it and the
 chapter over it follow the finger rather than the player. With the bar

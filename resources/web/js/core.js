@@ -74,7 +74,16 @@ window.TinyPPI = (function () {
     series_failed: "Episodes could not be loaded",
     events: "Events", events_empty: "No events yet",
     ev_mode: "Display mode",
-    range_1m: "1 min", range_10m: "10 min", range_all: "All"
+    range_1m: "1 min", range_10m: "10 min", range_all: "All",
+    audio_offset: "Audio offset", subtitle_offset: "Subtitle offset", tempo: "Tempo",
+    offset_reset: "Reset to 0",
+    sort: "Sort by", sort_title: "Title", sort_year: "Year", sort_rating: "Rating",
+    sort_added: "Date added", sort_runtime: "Runtime",
+    filter_genre: "All genres", filter_video: "All picture formats",
+    filter_resolution: "All resolutions", filter_audio: "All audio formats",
+    filter_empty: "No titles match the filter",
+    next_up: "Next up", details: "Details", writer: "Writer", studio: "Studio",
+    details_failed: "The details could not be read.", genre: "Genre", close: "Close"
   };
 
   const $ = (id) => document.getElementById(id);

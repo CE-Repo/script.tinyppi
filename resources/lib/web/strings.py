@@ -145,6 +145,31 @@ _UI_STRINGS = {
     "cast":             32378,
     "plot_more":        32381,
     "plot_less":        32382,
+    # The remote's fine adjustments.
+    "audio_offset":     32391,
+    "subtitle_offset":  32392,
+    "tempo":            32393,
+    "offset_reset":     32394,
+    # Sorting and filtering the shelves.
+    "sort":             32395,
+    "sort_title":       32396,
+    "sort_year":        32397,
+    "sort_rating":      32398,
+    "sort_added":       32399,
+    "sort_runtime":     32400,
+    "filter_genre":     32401,
+    "filter_video":     32402,
+    "filter_resolution": 32403,
+    "filter_audio":     32404,
+    "filter_empty":     32412,
+    # The next-up row and a title's details.
+    "next_up":          32405,
+    "details":          32406,
+    "writer":           32407,
+    "studio":           32408,
+    "details_failed":   32409,
+    "genre":            32410,
+    "close":            32411,
 }
 
 

@@ -253,6 +253,38 @@
    is already the width of a phone -- and the field is given room on its right
    so a long title does not run under it. */
 .searchbox { position: relative; display: grid; }
+
+/* The search with the order and the filters under it, which wrap onto as many
+   lines as a phone needs.  A filter with nothing to choose between is not
+   drawn (see js/shelf-tools.js). */
+.shelfhead { display: grid; gap: 8px; }
+.shelftools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.shelfpick {
+  appearance: none;
+  flex: 1 1 140px;
+  min-width: 0;
+  min-height: var(--tap);
+  padding: 0 30px 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background-color: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.shelfpick[hidden] { display: none; }
+.shelfpick:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .searchbox .filmsearch { padding-right: 40px; }
 
 /* Drawn rather than lettered: a multiplication sign is a different shape and
@@ -772,3 +804,25 @@
 #markTitle {
   overflow-wrap: anywhere;
 }
+
+/* --- A title's details ------------------------------------------------------ */
+
+/* Text to read rather than keys to press, so it scrolls inside the dialog
+   when a plot and a cast are longer than the screen, with the close key kept
+   in reach at the bottom. */
+#detailsDialog form { max-height: min(80vh, 720px); overflow-y: auto; }
+#detailsTitle { overflow-wrap: anywhere; }
+.detailsmeta:empty, .detailstagline:empty, .detailsplot:empty,
+.detailsformats:empty, .detailsfacts:empty { display: none; }
+.detailsformats { display: flex; flex-wrap: wrap; gap: 6px; }
+.detailstagline { font-style: italic; }
+dialog p.detailsplot { color: var(--text); white-space: pre-line; line-height: 1.5; }
+.detailsfacts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 12px;
+  margin: 0;
+  font-size: 13px;
+}
+.detailsfacts dt { color: var(--dim); font-weight: 700; }
+.detailsfacts dd { margin: 0; overflow-wrap: anywhere; }

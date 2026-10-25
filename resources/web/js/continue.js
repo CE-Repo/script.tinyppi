@@ -3,7 +3,8 @@
 
 "use strict";
 
-/* The "continue watching" rows on the films and series tabs.
+/* The "continue watching" rows on the films and series tabs, and the "next
+   up" row on the series tab.
 
    Part of the dashboard page: a classic script sharing the global scope
    of js/dashboard.js and its other parts (see index.html for the order).
@@ -34,6 +35,7 @@ let continueOffered = true; /* until the box says it offers no shelves     */
 let continueNextTry = 0;   /* not before this, after a failure             */
 let continueFilms = 0;     /* how many films the films row holds           */
 let continueEpisodes = 0;  /* how many episodes the series row holds       */
+let nextEpisodes = 0;      /* how many episodes the next-up row holds      */
 let resuming = 0;          /* the tile a press is waiting on               */
 let resumeReleasing = 0;   /* the timer that gives the row back            */
 
@@ -66,14 +68,18 @@ async function loadContinue() {
     continueShown = true;
     continueNextTry = 0;
     const list = Array.isArray(answer.items) ? answer.items : [];
+    /* An add-on older than the next-up row sends none, and the row is no card. */
+    const next = Array.isArray(answer.next) ? answer.next : [];
     if ((answer.tag || "") !== continueTag ||
         !(el.continueFilmsRow.children.length ||
-          el.continueSeriesRow.children.length)) {
+          el.continueSeriesRow.children.length ||
+          el.nextSeriesRow.children.length)) {
       continueTag = answer.tag || "";
-      buildContinue(list);
+      buildContinue(list, next);
     }
     el.continueFilmsCard.classList.toggle("hidden", continueFilms === 0);
     el.continueSeriesCard.classList.toggle("hidden", continueEpisodes === 0);
+    el.nextSeriesCard.classList.toggle("hidden", nextEpisodes === 0);
   } catch (error) {
     continueRead = false;
     continueNextTry = Date.now() + FILMS_RETRY_MS;
@@ -84,7 +90,7 @@ async function loadContinue() {
   }
 }
 
-function buildContinue(list) {
+function buildContinue(list, next) {
   const films = document.createDocumentFragment();
   const episodes = document.createDocumentFragment();
   continueFilms = 0;
@@ -106,17 +112,29 @@ function buildContinue(list) {
   el.continueFilmsCount.textContent = continueFilms ? String(continueFilms) : "";
   el.continueSeriesCount.textContent =
     continueEpisodes ? String(continueEpisodes) : "";
+
+  /* What comes after: the next unseen episode of each show being watched,
+     drawn like the row above it without the bar -- nothing of it has been
+     seen yet -- and started from its beginning. */
+  const upcoming = document.createDocumentFragment();
+  for (const item of next) upcoming.append(continueTile(item));
+  nextEpisodes = next.length;
+  el.nextSeriesRow.replaceChildren(upcoming);
+  el.nextSeriesRow.scrollLeft = 0;
+  el.nextSeriesCount.textContent = nextEpisodes ? String(nextEpisodes) : "";
 }
 
 /* Both rows off the page, for a box with no shelves to offer. */
 function hideContinue() {
   el.continueFilmsCard.classList.add("hidden");
   el.continueSeriesCard.classList.add("hidden");
+  el.nextSeriesCard.classList.add("hidden");
 }
 
-/* Every tile on either row: a press on one waits for its title on both. */
+/* Every tile on the rows: a press on one waits for its title on all. */
 function continueTiles() {
-  return [...el.continueFilmsRow.children, ...el.continueSeriesRow.children];
+  return [...el.continueFilmsRow.children, ...el.continueSeriesRow.children,
+          ...el.nextSeriesRow.children];
 }
 
 function continueTile(item) {
@@ -174,12 +192,14 @@ function continueTile(item) {
     tile.append(line);
   }
 
+  /* A tile of the next-up row has no resume point to go back to. */
+  const resumable = !!item.resume;
   tile.addEventListener("click", () => ask({
     title: episode ? [item.show, episodeCode(item)].filter(Boolean).join(" \u00b7 ")
                    : item.title,
     body: episode ? { episodeid: item.id } : { movieid: item.id },
-    play: T.films_resume,
-    resumable: true,
+    play: resumable ? T.films_resume : T.films_play,
+    resumable,
     onPlay: (fromStart) => startContinue(item, tile, fromStart)
   }));
   return tile;
