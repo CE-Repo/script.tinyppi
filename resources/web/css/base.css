@@ -13,39 +13,50 @@
    dark room next to a projector, so there is nothing here for a lit one.
 
    The tokens below are the plain dark theme, which is also what a viewer who
-   has never chosen gets.  The other two restate the tokens and nothing else --
-   never a rule -- so a value changed here changes in all three.  js/theme.js
-   puts the chosen one on <html> as data-theme before the first paint. */
+   has never chosen gets.  They are the TinyPPI app's own dark scheme (see
+   ui/theme in the app), so the page a browser opens on a box and the phone
+   held next to it read as one thing: the same ground, the same cards one step
+   up from it, the same hairline round them and the same accent.  The other
+   two themes restate the tokens and nothing else -- never a rule -- so a
+   value changed here changes in all three.  js/theme.js puts the chosen one
+   on <html> as data-theme before the first paint. */
 :root {
-  --bg:        #090b0f;
-  --bg-glow:   #131a23;
-  --panel:     #151a21;
-  --panel-2:   #1c222b;
-  --line:      #2a333f;
-  --line-soft: #202730;
-  --text:      #e8ecf1;
-  --muted:     #d0d5db;
-  --dim:       #aeb3ba;
-  --accent:    #4fc3f7;
+  --bg:        #0f1418;
+  /* What the app calls its surface containers, from the lowest up: a card,
+     a field or a chip on a card, and a tool on a card or a dialog. */
+  --panel:     #171c20;
+  --panel-2:   #1b2024;
+  --panel-3:   #262b2f;
+  --line:      #262b2f;
+  --line-soft: #20262a;
+  --text:      #dfe3e7;
+  --muted:     #c0c7cd;
+  --dim:       #a3abb1;
+  --accent:    #87ceff;
+  /* What is written on the accent, and the tonal ground a heading's tick and
+     a chosen chip wear, with what is written on it. */
+  --on-accent: #00344c;
+  --tonal:     #364955;
+  --on-tonal:  #d1e5f4;
   --accent-2:  #82b1ff;
   --ok:        #81c784;
   --warn:      #ffb74d;
-  --bad:       #ff5252;
+  --bad:       #ffb4ab;
   /* The one scrollbar the page draws itself (see .events in live-panels.css):
      lighter than a line, darker than a reading. */
   --scroll:    #4b535e;
-  /* The lit edge along the top of a card.  A card here is a surface a little
-     above the page, and this is the one pixel that says so: light catches the
-     top of a raised thing.  It is a colour rather than a lightening of the
-     border, because the border goes all the way round and this does not. */
-  --edge:      rgba(255,255,255,.055);
-  --shadow:    0 1px 0 rgba(255,255,255,.03), 0 10px 28px rgba(0,0,0,.42);
-  /* One step further off the page: what floats over it rather than sitting on
-     it -- the toast, the token dialog, the tab bar.  No card uses it at rest, so the page does
-     not shimmer as a cursor crosses it. */
-  --shadow-lift: 0 1px 0 rgba(255,255,255,.05), 0 14px 34px rgba(0,0,0,.5);
-  --radius:    16px;
-  --radius-sm: 11px;
+  /* Cards lie flat on the page, as the app's do: a hairline says where one
+     ends, not a shadow.  What floats over the page -- the toast, a dialog,
+     the tab bar -- still lifts off it. */
+  --shadow:    none;
+  --shadow-lift: 0 2px 6px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.45);
+  /* The app's shape scale: a card, a poster or a key on a card, a text box
+     or a picker, anything worth pressing that is not a key, and a dialog. */
+  --radius:    20px;
+  --radius-sm: 12px;
+  --radius-field: 18px;
+  --radius-pill: 999px;
+  --radius-dialog: 28px;
   --tap:       44px;
   /* The air between two cards, wherever two cards meet.  Four grids lay cards
      out -- main, the two rails, #live and .groups -- and they have to agree,
@@ -53,25 +64,21 @@
      beats a rule that has to win a cascade: the first attempt at this set
      #live from a media query that happened to sit above #live's own
      declaration, and lost. */
-  --gap:       16px;
+  --gap:       17px;
   /* What the foot of the page leaves for the floating tab bar: the bar's own
      height, the air under it and the air between it and the last card. */
   --tabbar-room: 88px;
   /* The page's own face, named so a reading set in the monospaced one can put
      its label back into it without repeating the stack (see .times > .finish
      in live-panels.css). */
-  --font-ui:   system-ui, -apple-system, "Segoe UI", Roboto,
+  --font-ui:   Roboto, "Google Sans", system-ui, -apple-system, "Segoe UI",
                "Helvetica Neue", sans-serif;
-}
-@media (max-width: 620px) {
-  :root { --gap: 10px; }
 }
 
 /* Deeper and bluer than the plain dark one, for a room with nothing else lit
    in it.  The same page, further down. */
 :root[data-theme="midnight"] {
   --bg:        #03050b;
-  --bg-glow:   #0b1324;
   --panel:     #0e1420;
   --panel-2:   #161d2d;
   --line:      #223050;
@@ -85,9 +92,10 @@
   --warn:      #fbbf24;
   --bad:       #f87171;
   --scroll:    #38455f;
-  --edge:      rgba(255,255,255,.045);
-  --shadow:    0 1px 0 rgba(255,255,255,.02), 0 12px 32px rgba(0,0,0,.58);
-  --shadow-lift: 0 1px 0 rgba(255,255,255,.04), 0 16px 40px rgba(0,0,0,.66);
+  --panel-3:   #1f2840;
+  --on-accent: #ffffff;
+  --tonal:     #22305a;
+  --on-tonal:  #dbe4ff;
 }
 
 /* The plain dark theme, with one exception: the now-playing card takes its
@@ -103,7 +111,7 @@
    artwork therefore looks exactly as it does on that theme, which is what is
    true -- there was nothing to take a colour from. */
 :root[data-theme="dark-adaptive"] {
-  --cover-accent-rgb: 79, 195, 247;
+  --cover-accent-rgb: 135, 206, 255;
 }
 
 * { box-sizing: border-box; }
@@ -132,14 +140,7 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
-  /* Two lights rather than one: a wide wash under the top bar, where the page
-     begins, and a narrower one behind the shoulder of the first card.  Both
-     are the same colour at different sizes, which is what keeps the top of the
-     page from reading as a band with an edge to it. */
-  background-image:
-    radial-gradient(140% 52% at 50% -14%, var(--bg-glow) 0%, transparent 62%),
-    radial-gradient(70% 34% at 82% 2%, var(--bg-glow) 0%, transparent 70%);
-  background-attachment: fixed;
+  /* One flat ground, as the app's: what stands out on it is the cards. */
   /* Nothing at the foot: main keeps the room the system's own gesture bar
      needs itself, together with the tab bar's (see main). */
 }
@@ -165,10 +166,7 @@ body {
   gap: 10px;
   padding: 12px 20px;
   padding-top: calc(12px + env(safe-area-inset-top));
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--line-soft);
+  background: var(--bg);
 }
 
 .brand {
@@ -288,12 +286,12 @@ body {
   display: inline-grid;
   place-items: center;
   min-width: var(--tap);
-  min-height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--panel);
-  color: var(--muted);
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: var(--panel-3);
+  color: var(--text);
   font: inherit;
   font-size: 13px;
   cursor: pointer;
@@ -308,11 +306,10 @@ body {
 @media (hover: hover) {
   .iconbtn:hover {
     color: var(--text);
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+    background: color-mix(in srgb, var(--text) 8%, var(--panel-3));
   }
 }
-.iconbtn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+.iconbtn[aria-pressed="true"] { color: var(--on-tonal); background: var(--tonal); }
 
 @media (max-width: 620px) {
   /* Kept after the base .iconbtn rule so the compact mobile size wins the
@@ -389,7 +386,7 @@ main {
    for less of it. */
 @media (max-width: 620px) {
   main {
-    padding: 12px;
+    padding: 14px;
     padding-bottom: calc(var(--tabbar-room) + env(safe-area-inset-bottom));
   }
 }
@@ -471,10 +468,12 @@ main { transition: padding-bottom .3s ease; }
   display: flex;
   gap: 4px;
   max-width: calc(100vw - 24px);
-  padding: 6px;
+  height: 64px;
+  align-items: center;
+  padding: 0 8px;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--panel) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  background: color-mix(in srgb, var(--panel-3) 62%, transparent);
   backdrop-filter: blur(18px) saturate(1.3);
   -webkit-backdrop-filter: blur(18px) saturate(1.3);
   box-shadow: var(--shadow-lift);
@@ -496,24 +495,28 @@ main { transition: padding-bottom .3s ease; }
   border: 0;
   border-radius: 999px;
   background: none;
-  color: var(--muted);
+  color: var(--text);
   font: inherit;
   cursor: pointer;
   transition: color .2s;
 }
+/* Each key a pill a finger tall, and the one in front a wider one filled with
+   the accent, the icon on it in the colour written on the accent -- the
+   app's bar, key for key. */
 .tabicon {
   display: grid;
   place-items: center;
-  width: 58px;
+  width: 52px;
   max-width: 100%;
-  height: 44px;
+  height: 48px;
   border-radius: 999px;
-  transition: background .2s, color .2s;
+  transition: background .2s, color .2s, width .2s;
 }
-.tabicon .ui-icon { width: 22px; height: 22px; }
-.tab.on { color: var(--accent); }
+.tabicon .ui-icon { width: 24px; height: 24px; }
+.tab.on { color: var(--on-accent); }
 .tab.on .tabicon {
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  width: 64px;
+  background: var(--accent);
 }
 @media (hover: hover) {
   .tab:not(.on):hover { color: var(--text); }
@@ -525,11 +528,13 @@ main { transition: padding-bottom .3s ease; }
 /* Six keys and the bar's own edge across a phone: each gives up a little of
    its width before the bar would have to. */
 @media (max-width: 420px) {
-  .tabbar { gap: 2px; padding: 5px; }
-  .tabicon { width: 50px; height: 42px; }
+  .tabbar { gap: 2px; padding: 0 6px; }
+  .tabicon { width: 46px; }
+  .tab.on .tabicon { width: 58px; }
 }
 @media (max-width: 340px) {
-  .tabicon { width: 44px; }
+  .tabicon { width: 40px; }
+  .tab.on .tabicon { width: 50px; }
 }
 
 /* --- Settings ------------------------------------------------------------ */
@@ -544,24 +549,23 @@ main { transition: padding-bottom .3s ease; }
   gap: 10px;
   margin: 0;
   min-height: 46px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--line-soft);
-  color: var(--muted);
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: .13em;
-  text-transform: uppercase;
+  padding: 16px 16px 0;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: .1px;
 }
 /* The accent tick the folding headings carry (see .panel-toggle). */
 .sethead::before {
   content: "";
   flex: none;
   width: 3px;
-  height: 14px;
+  height: 16px;
   border-radius: 999px;
-  background: var(--accent);
+  background: var(--on-tonal);
 }
-.setbody { display: grid; gap: 12px; padding: 16px; }
+.setbody { display: grid; gap: 12px; padding: 12px 16px 16px; }
 .setnote { margin: 0; color: var(--muted); font-size: 13.5px; }
 .setnote:empty { display: none; }
 .setrow {
@@ -581,21 +585,21 @@ main { transition: padding-bottom .3s ease; }
   gap: 9px;
   min-height: var(--tap);
   padding: 0 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel-2);
-  color: var(--text);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--tonal);
+  color: var(--on-tonal);
   font: inherit;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: .1px;
   cursor: pointer;
-  transition: color .15s, border-color .15s, background .15s;
+  transition: color .15s, background .15s;
 }
-.setbtn .ui-icon { width: 18px; height: 18px; color: var(--accent); }
+.setbtn .ui-icon { width: 18px; height: 18px; color: var(--on-tonal); }
 @media (hover: hover) {
   .setbtn:not(:disabled):hover {
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 10%, var(--panel-2));
+    background: color-mix(in srgb, var(--on-tonal) 8%, var(--tonal));
   }
 }
 .setbtn:disabled { opacity: .45; cursor: default; }
@@ -617,51 +621,47 @@ main { transition: padding-bottom .3s ease; }
   appearance: none;
   position: relative;
   flex: none;
-  width: 42px;
-  height: 24px;
+  width: 52px;
+  height: 32px;
   margin: 0;
-  border: 1px solid var(--line);
+  border: 2px solid #8a9297;
   border-radius: 999px;
-  background: var(--panel-2);
+  background: var(--panel-3);
   cursor: pointer;
   transition: background .15s, border-color .15s;
 }
+/* Material's switch: a small grey thumb off, a larger one on the accent on. */
 .setswitch input::before {
   content: "";
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: 6px;
+  left: 6px;
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--muted);
-  transition: transform .15s, background .15s;
+  background: #8a9297;
+  transition: transform .15s, background .15s, width .15s, height .15s, top .15s, left .15s;
 }
 .setswitch input:checked { border-color: var(--accent); background: var(--accent); }
-.setswitch input:checked::before { background: var(--bg); transform: translateX(18px); }
+.setswitch input:checked::before {
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  background: var(--on-accent);
+  transform: translateX(20px);
+}
 .setswitch input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* The app's card: one step up from the page, a hairline round it in the
+   step above that, the corners of its shape scale and no shadow. */
 .card {
   position: relative;
   background: var(--panel);
-  border: 1px solid var(--line-soft);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
-}
-/* The lit top edge, fading out before either corner so it never crosses the
-   border it stops short of.  Above the card's own contents so a panel that
-   paints its own background -- the tile grid, the tinted hero -- does not
-   cover it. */
-.card::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 1px;
-  z-index: 2;
-  background: linear-gradient(90deg,
-    transparent, var(--edge) 16%, var(--edge) 84%, transparent);
-  pointer-events: none;
 }
 
 /* The mount point the live tab gives live-panels.js.  The air between the
@@ -687,14 +687,15 @@ footer {
   /* Over the tab bar rather than under it. */
   bottom: calc(max(var(--tabbar-room) - 12px, 20px) + env(safe-area-inset-bottom));
   transform: translate(-50%, 16px);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  color: var(--text);
-  padding: 11px 18px;
-  border-radius: 999px;
+  /* Material's snackbar: the inverse of the page, light on dark. */
+  background: var(--text);
+  border: 0;
+  color: #2d3135;
+  padding: 14px 18px;
+  border-radius: var(--radius-field);
   box-shadow: var(--shadow-lift);
-  font-size: 13.5px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   opacity: 0;
   pointer-events: none;
   transition: opacity .2s, transform .2s;
@@ -703,51 +704,58 @@ footer {
   text-align: center;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
-#toast.bad { border-color: var(--bad); color: var(--bad); }
+#toast.bad { background: #ffdad6; color: #410002; }
 
 dialog {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--panel);
+  border: 0;
+  border-radius: var(--radius-dialog);
+  background: var(--panel-3);
   color: var(--text);
   padding: 0;
   width: min(400px, calc(100vw - 32px));
   box-shadow: var(--shadow-lift);
 }
 dialog::backdrop { background: rgba(0,0,0,.62); backdrop-filter: blur(3px); }
-dialog form { padding: 20px; display: grid; gap: 12px; }
-dialog h3 { margin: 0; font-size: 16px; }
-dialog p { margin: 0; color: var(--muted); font-size: 13px; }
+dialog form { padding: 24px; display: grid; gap: 16px; }
+dialog h3 { margin: 0; font-size: 22px; font-weight: 400; line-height: 28px; }
+dialog p { margin: 0; color: var(--muted); font-size: 14px; }
 dialog input {
   font: inherit;
   font-size: 18px;
   letter-spacing: .18em;
   text-transform: uppercase;
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: var(--panel-2);
+  padding: 14px 16px;
+  border-radius: var(--radius-field);
+  border: 1px solid #8a9297;
+  background: transparent;
   color: var(--text);
   width: 100%;
 }
 dialog input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.dlgrow { display: flex; gap: 10px; justify-content: flex-end; }
+/* A dialog's own keys are Material's text buttons: the accent, written on
+   nothing; the one that goes ahead is a filled pill. */
+.dlgrow { display: flex; gap: 8px; justify-content: flex-end; }
 .dlgrow button {
   appearance: none;
-  min-height: var(--tap);
-  padding: 0 18px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: var(--panel-2);
-  color: var(--text);
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 0;
+  background: transparent;
+  color: var(--accent);
   font: inherit;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: .1px;
   cursor: pointer;
 }
+@media (hover: hover) {
+  .dlgrow button:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+}
 .dlgrow button[value="ok"] {
+  padding: 0 24px;
   background: var(--accent);
-  border-color: var(--accent);
-  color: #05131c;
+  color: var(--on-accent);
 }
 
 /* --- Shared empty state ------------------------------------------------- */

@@ -97,7 +97,7 @@ the CI actions up to date.
 | `unit/test_vs10_driver.py` | VS10 switching against a simulated Dolby Vision driver (sysfs nodes as files): the write order per mode, TV-LED and Player-LED, bypass releasing the core first, HDR10 <-> DV through SDR, display resets only when the output moved, native actions preferred and their fallback, failed writes reported |
 | `unit/test_server.py` | The HTTP server: the fixed routes, security headers, the token for writing and for untrusted host names, the guessing lockout, the connection caps, tokens and ports, IPv6 and IPv4 on one socket |
 | `unit/test_routes.py` | What the write and library routes accept: bad bodies and lengths, unknown routes, control off, no token, commands and modes, a shelf's own setting, `watched` only as a boolean, library errors as 503, listings by ETag, artwork kinds and ids, the read session cookie |
-| `unit/test_player.py` | The transport commands: only listed actions, seek and track values checked (no NaN, infinity, booleans or out-of-range values reach Kodi), seeking live TV against the broadcast, volume as remote input, chapters; track labels, player state, the EPG times |
+| `unit/test_player.py` | The transport commands: only listed actions, seek and track values checked (no NaN, infinity, booleans or out-of-range values reach Kodi), seeking live TV against the broadcast, volume as remote input, chapters; the audio and subtitle offsets (Kodi's steps and ranges, the subtitle one moved step by step from the offset in force) and the subtitle switch; track labels, player state, the EPG times |
 | `unit/test_access.py` | Which host names count as the home network, which clients do (private, link-local, the box's own IPv6 networks); the lockout table; client addresses (IPv4-mapped as IPv4, IPv6 per /64 beyond the home network) |
 | `unit/test_snapshot.py` | The snapshot: nothing playing, a playing title (times, frame, groups with N/A for empty rows), the file-name setting, the session-only pass, the last title kept, metadata only for DV, controls on the static interval, row and label helpers, artwork; the producer: idle passes, snapshots for watchers with the library revision, settings handed on, failures logged once, waits ending on stop |
 | `unit/test_delta.py` | Delta frames of the event stream, applied as `js/core.js` applies them |
@@ -131,7 +131,7 @@ the CI actions up to date.
 | `unit/test_log.py` | Tagged log lines, the debug switch, credentials taken out of logged paths |
 | `unit/test_publish.py` | The overlay's readings written as window properties: scene and static passes, only changed values, the progress bars |
 | `unit/test_producer.py` | Snapshots handed out without a running producer thread |
-| `unit/test_library_queries.py` | The library's JSON-RPC queries and rows: films, series, episodes and the continue row, resume points (including NaN and Infinity), ratings, tags that follow every field sent, playing and marking, bad ids that ask Kodi nothing |
+| `unit/test_library_queries.py` | The library's JSON-RPC queries and rows: films, series, episodes, the continue and next-up rows, genres and the formats read off the stream details, resume points (including NaN and Infinity), ratings, tags that follow every field sent, playing and marking, bad ids that ask Kodi nothing |
 | `unit/test_static.py` | The dashboard's route table and static file cache |
 | `unit/test_ratings.py` | The playing title's ratings from the library: sources and their order, the reader's own, the age rating read for its board and level, the Top 250 place, a film's IMDb and TMDb ids |
 | `unit/test_awards.py` | The big awards a title won or was nominated for: found by its TheTVDB, IMDb or TMDb id, their order, a title the list does not hold, junk and a list that cannot be read |
@@ -148,6 +148,8 @@ the CI actions up to date.
 | `web/dashboard.test.mjs` | The dashboard's frame: tabs and the bar, the settings tab, idle and playing cards, detail groups, VS10 switching and its lock, the library reads a snapshot sets off, the report |
 | `web/start.test.mjs` | Starting the page: the first tab, the stream, the words before and after `/api/hello` (also an error answer) |
 | `web/marking.test.mjs` | What a press on a film, show or episode asks and what each answer sends, the lists read again afterwards, failures and the token dialog |
+| `unit/test_library_details.py` | One title's details: films, series and episodes, the cast in billing order and cut, the age rating, the formats, unknown kinds and ids |
+| `web/shelves.test.mjs` | The order and the filters over the film and series walls (what each offers, titles without a value last, choices let go), the next-up row and the details view |
 | `web/films.test.mjs` | The film wall, its rows and search, when the list is read again (a move during a read, a failed read after one), starting a film and the wall waiting on it |
 | `web/series.test.mjs` | The series shelf, an opened show with its seasons, the way back (search included), the open show read again (also after a move during a read or while it opens), starting an episode |
 | `web/continue.test.mjs` | The continue-watching rows, when they are read again, resuming a title |

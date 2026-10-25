@@ -221,6 +221,14 @@ class Lookup:
         self._start(lambda: self._ask(wanted))
         return None
 
+    def asking(self, ids: Mapping[str, str], key: str = "") -> bool:
+        """Return whether WhatsOn is being asked for the film *ids* name."""
+        if not ids:
+            return False
+        provider = "imdb" if "imdb" in ids else "tmdb"
+        with self._lock:
+            return (key, provider, ids[provider]) in self._asking
+
     def _ask(self, wanted: _Wanted) -> None:
         """Ask WhatsOn for one film and keep its answer.
 
@@ -266,6 +274,11 @@ def api_key() -> str:
     except RuntimeError:
         # The add-on is being updated; WhatsOn is asked without one meanwhile.
         return ""
+
+
+def asking(ids: Mapping[str, str], key: str = "", lookup: Lookup = _LOOKUP) -> bool:
+    """Return whether WhatsOn's answer for the film *ids* name is on its way."""
+    return lookup.asking(ids, key)
 
 
 def with_whatson(ratings: Ratings, lookup: Lookup = _LOOKUP, key: str = "") -> Ratings:

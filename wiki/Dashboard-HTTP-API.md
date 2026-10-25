@@ -44,7 +44,7 @@ Errors are JSON: `{"error": "<message>"}`.
 | 401 | `token required` | Missing or wrong token (in the header). |
 | 403 | `control disabled` | A write with **Allow VS10 switching** off. |
 | 403 | `library disabled` | The film/series library is switched off (or control is off). |
-| 404 | `no such route`, `no such artwork`, `no artwork`, `no such series` | Unknown path, or nothing to return. |
+| 404 | `no such route`, `no such artwork`, `no artwork`, `no such series`, `no such title` | Unknown path, or nothing to return. |
 | 429 | `too many wrong tokens` (+ `retry_ms`, `Retry-After`) | The address (beyond the home network: its IPv6 /64) is locked out for guessing. |
 | 503 | `too many streams` / `shutting down` (+ `retry_ms`) | All six stream slots are taken, or Kodi is shutting down. |
 | 503 | `library unavailable` | The video database could not be read. |
@@ -97,8 +97,8 @@ While something plays the snapshot contains, among others:
 | `metadata` | The Dolby Vision metadata list (only for Dolby Vision, with **Show the Dolby Vision metadata view** on). |
 | `vs10` | `{"options": [{"mode", "label"}], "output": "…"}` — the switchable modes for this source and the current output. |
 | `art` | Tags of the playing title's artwork (used in `/api/art` URLs). |
-| `media` | `year`, `genre` (its first two), `show`, `season`, `episode`; and for the overview: `tagline`, `plot` (markup stripped, line breaks kept), `ratings` (`[{source, rating, votes}]`, each out of ten, the known sources first), `mpaa` (the age rating as written), `age` and `age_level` (its mark, e.g. `fsk12`, and level, e.g. `12`; empty where it has no mark), `userrating` (1–10, 0 for none), `top250` (0 for none), `directors` (every one), `cast` (its first 20) with `cast_more`, `studios` (the first). |
-| `controls` | What the remote can offer: audio tracks, subtitles, chapters … |
+| `media` | `year`, `genre` (its first two), `show`, `season`, `episode`; and for the overview: `tagline`, `plot` (markup stripped, line breaks kept), `ratings` (`[{source, rating, votes}]`, each out of ten, the known sources first), `mpaa` (the age rating as written), `age` and `age_level` (its mark, e.g. `fsk12`, and level, e.g. `12`; empty where it has no mark), `userrating` (1–10, 0 for none), `top250` (0 for none), `genres` (every one), `directors` (every one), `writers` (every one), `cast` (its first 20) with `cast_more` and `roles` (who each played, `""` where the library names nobody; read off `VideoPlayer.CastAndRole` in Kodi's language), `studios` (the first), and `item` — which library title it is, `{"kind": "movie"|"episode", "id"}`, for its details to be opened by (`/api/details`); `{}` for a file the library does not know. |
+| `controls` | What the remote can offer: audio tracks, subtitles, chapters, the audio and subtitle offsets (`audio_delay`, `subtitle_delay`, seconds; `null` where Kodi reports none) … |
 | `session` | `{seq, switches, warnings}` — when `seq` changes, re-read `/api/history`. |
 | `library` | The library version; when it changes, re-read the shelves. |
 | `control` | Same as in `/api/hello`. |
@@ -171,12 +171,20 @@ nits (null outside Dolby Vision). Event `kind`s: `vs10`, `mode`, `audio`,
 
 The film library: `{"movies": [...], "count": N, "tag": "…"}`. Each film:
 `id`, `title`, `poster` (tag), and when known `year`, `duration` (seconds),
-`watched`, `resume`, `rating`, `added`. The response has an `ETag`; send it
-back as `If-None-Match` to get a cheap `304 Not Modified`.
+`watched`, `resume`, `rating`, `added`, `genres` (up to four), and — once
+Kodi has read the file — `video` (`dv`, `hdr10plus`, `hdr10`, `hlg`, `sdr`),
+for Dolby Vision its `dv_profile` as Kodi's scan found it (`5`, `7 FEL`,
+`7 MEL`, `8.1`, `8.4`, …),
+`resolution` (`2160p`, `1080p`, `720p`, `sd`) and `audio`, the first audio
+track's codec family (`truehd`, `eac3`, `ac3`, `dtshd_ma`, `dtshd_hra`, `dts`,
+`flac`, `pcm`, `aac`, `opus`, `mp3`, `vorbis`). Kodi's stream details carry no
+Atmos or DTS:X flag, so the family is all a filter can go by. The response has
+an `ETag`; send it back as `If-None-Match` to get a cheap `304 Not Modified`.
 
 ### `GET /api/series`
 
-The series library: `{"shows": [...], "count": N, "tag": "…"}`.
+The series library: `{"shows": [...], "count": N, "tag": "…"}`. Each show
+carries its `genres` as a film does.
 
 ### `GET /api/episodes?tvshowid=<id>`
 
@@ -185,8 +193,31 @@ The episodes of one series: `{"tvshowid", "title", "episodes": [...], "count", "
 
 ### `GET /api/continue`
 
-Films and episodes stopped part-way, newest first (up to 30):
-`{"items": [{"kind": "movie" | "episode", ...}], "count", "tag"}`.
+Films and episodes stopped part-way, newest first (up to 30), and with the
+series shelf on, the **next up** row: the next unwatched episode (specials
+left out) of up to 15 shows being watched, the show watched last first —
+`{"items": [{"kind": "movie" | "episode", ...}], "next": [{"kind": "episode",
+"id", "title", "tvshowid", "show", "poster", "thumb", "season", "episode",
+"duration", "rating"}], "count", "tag"}`. An episode already in `items` is not
+repeated in `next`.
+
+### `GET /api/details?movieid=|tvshowid=|episodeid=<id>`
+
+One title's details, read when it is opened: `kind`, `id`, `title`, the
+`ratings` the snapshot's overview would show for the same title — the
+library's, MDBList's over them and WhatsOn's Rotten Tomatoes ratings and
+certificates (a film's answer is waited on for up to four seconds; one that
+takes longer is there on the next read) — and where there are any `mpaa` with
+its `age` mark and `age_level` (an episode's are its show's), `userrating`,
+`top250` and `awards`; and where the library has them `plot`, `tagline`,
+`premiered`, `year`, `duration`, `genres`, `directors`, `writers`, `studios`,
+`countries`, the `cast` (`{"name", "role"}`, the first twenty, `cast_more`
+when there are more) and the file's `video`,
+`dv_profile`, `resolution` and `audio`, and the tags of its pictures for
+`/api/art` — `poster` and `fanart` for a film or a series, `thumb` for an
+episode. An episode adds `show`, `tvshowid`, `season` and
+`episode`; a series its number of `season`s. Each kind needs its shelf's
+setting (`403 library disabled`); an unknown title is `404 no such title`.
 
 ### `GET /api/art?kind=<kind>[&movieid=|&tvshowid=|&episodeid=<id>][&v=<tag>]`
 
@@ -251,6 +282,9 @@ Body: `{"action": "<action>", "value": <value>}`.
 | `chapter_previous` / `chapter_next` | — | Chapter skip; fails without at least two chapters. |
 | `audio` | stream index 0 … 64 | Select an audio track. |
 | `subtitle` | index 0 … 64, or −1 | Select and enable a subtitle; −1 turns subtitles off. |
+| `subtitles` | `true` / `false` | Show or hide the selected subtitle. |
+| `audio_delay` | seconds, −10 … 10 | Set the audio offset (rounded to Kodi's 25 ms steps). |
+| `subtitle_delay` | seconds, −60 … 60 | Set the subtitle offset, in Kodi's 100 ms steps; each step shows Kodi's own slider on the TV for a moment (there is no JSON-RPC method for it). |
 
 ```bash
 curl -X POST -H 'X-TinyPPI-Token: ABCD2345' -H 'Content-Type: application/json' \

@@ -1503,14 +1503,6 @@ msgctxt "#32378"
 msgid "Cast"
 msgstr ""
 
-msgctxt "#32381"
-msgid "Show more"
-msgstr ""
-
-msgctxt "#32382"
-msgid "Show less"
-msgstr ""
-
 msgctxt "#32383"
 msgid "Ratings"
 msgstr ""
@@ -1541,4 +1533,96 @@ msgstr ""
 
 msgctxt "#32390"
 msgid "%s nominated"
+msgstr ""
+
+msgctxt "#32391"
+msgid "Audio offset"
+msgstr ""
+
+msgctxt "#32392"
+msgid "Subtitle offset"
+msgstr ""
+
+msgctxt "#32394"
+msgid "Reset to 0"
+msgstr ""
+
+msgctxt "#32395"
+msgid "Sort by"
+msgstr ""
+
+msgctxt "#32396"
+msgid "Title"
+msgstr ""
+
+msgctxt "#32397"
+msgid "Year"
+msgstr ""
+
+msgctxt "#32398"
+msgid "Rating"
+msgstr ""
+
+msgctxt "#32399"
+msgid "Date added"
+msgstr ""
+
+msgctxt "#32400"
+msgid "Runtime"
+msgstr ""
+
+msgctxt "#32401"
+msgid "All genres"
+msgstr ""
+
+msgctxt "#32402"
+msgid "All picture formats"
+msgstr ""
+
+msgctxt "#32403"
+msgid "All resolutions"
+msgstr ""
+
+msgctxt "#32404"
+msgid "All audio formats"
+msgstr ""
+
+msgctxt "#32405"
+msgid "Next up"
+msgstr ""
+
+msgctxt "#32406"
+msgid "Details"
+msgstr ""
+
+msgctxt "#32407"
+msgid "Writer"
+msgstr ""
+
+msgctxt "#32408"
+msgid "Studio"
+msgstr ""
+
+msgctxt "#32409"
+msgid "The details could not be read."
+msgstr ""
+
+msgctxt "#32410"
+msgid "Genre"
+msgstr ""
+
+msgctxt "#32411"
+msgid "Close"
+msgstr ""
+
+msgctxt "#32412"
+msgid "No titles match the filter"
+msgstr ""
+
+msgctxt "#32413"
+msgid "Ascending"
+msgstr ""
+
+msgctxt "#32414"
+msgid "Descending"
 msgstr ""

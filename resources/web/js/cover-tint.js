@@ -698,6 +698,19 @@ window.TinyPPICover = (function () {
   }
 
   return {
+    /* The accent another title's picture gives, for a page that wears that
+       title's colour rather than what is playing (a title's details): the
+       picture as an <img> already showing it, read once as the playing
+       poster is.  Null off the adaptive theme and for a picture with no
+       colour to read. */
+    accent(url, image) {
+      if (!adaptive() || !url) return Promise.resolve(null);
+      const known = palettes.get(url);
+      const read = known !== undefined ? Promise.resolve(known) : readCover(url, image);
+      return read.then((palette) =>
+        palette ? accentColor(palette, themeColor("--bg", [15, 20, 24])) : null);
+    },
+
     /* What is playing now, from live-panels.js: the now-playing card, the
        address the poster came from and the <img> already showing it -- reading
        the picture the page has anyway is the difference between one decode and

@@ -33,7 +33,7 @@ window.TinyPPI = (function () {
     idle_title: "Nothing is playing", idle_text: "",
     peak: "Peak", average: "Average", fps: "FPS", switches: "Switches",
     metrics: "Metrics", plot: "Overview", my_rating: "My rating",
-    top250: "Top 250 · #%s", award_won: "%s won", award_nominated: "%s nominated", director: "Director", cast: "Cast", plot_more: "Show more", plot_less: "Show less",
+    top250: "Top 250 · #%s", award_won: "%s won", award_nominated: "%s nominated", director: "Director", cast: "Cast",
     player_cache: "Player cache", audio_track: "Audio track",
     warnings: "Warnings",
     playpause: "Play / pause", stop: "Stop", mute: "Mute",
@@ -74,7 +74,17 @@ window.TinyPPI = (function () {
     series_failed: "Episodes could not be loaded",
     events: "Events", events_empty: "No events yet",
     ev_mode: "Display mode",
-    range_1m: "1 min", range_10m: "10 min", range_all: "All"
+    range_1m: "1 min", range_10m: "10 min", range_all: "All",
+    audio_offset: "Audio offset", subtitle_offset: "Subtitle offset",
+    offset_reset: "Reset to 0",
+    sort: "Sort by", sort_title: "Title", sort_year: "Year", sort_rating: "Rating",
+    sort_added: "Date added", sort_runtime: "Runtime",
+    sort_ascending: "Ascending", sort_descending: "Descending",
+    filter_genre: "All genres", filter_video: "All picture formats",
+    filter_resolution: "All resolutions", filter_audio: "All audio formats",
+    filter_empty: "No titles match the filter",
+    next_up: "Next up", details: "Details", writer: "Writer", studio: "Studio",
+    details_failed: "The details could not be read.", genre: "Genre", close: "Close"
   };
 
   const $ = (id) => document.getElementById(id);

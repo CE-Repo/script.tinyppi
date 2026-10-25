@@ -137,10 +137,13 @@
         <span class="filmscount mono" id="filmsCount"></span>
       </summary>
       <div class="filmsbody">
-        <div class="searchbox" id="filmSearchBox">
-          <input class="filmsearch" id="filmSearch" type="search" autocomplete="off"
-                 spellcheck="false" aria-labelledby="filmsLabel">
-          <button class="searchclear hidden" id="filmSearchClear" type="button"></button>
+        <div class="shelfhead">
+          <div class="searchbox" id="filmSearchBox">
+            <input class="filmsearch" id="filmSearch" type="search" autocomplete="off"
+                   spellcheck="false" aria-labelledby="filmsLabel">
+            <button class="searchclear hidden" id="filmSearchClear" type="button"></button>
+          </div>
+          <div class="shelftools" id="filmTools"></div>
         </div>
         <div class="filmgrid" id="filmGrid"></div>
         <p class="filmsempty hidden" id="filmsEmpty"></p>
@@ -160,6 +163,16 @@
       </summary>
       <div class="filmsbody">
         <div class="continuerow" id="continueSeriesRow"></div>
+      </div>
+    </details>
+
+    <details class="card hidden" id="nextSeriesCard">
+      <summary class="panel-toggle">
+        <span id="nextSeriesLabel"></span>
+        <span class="filmscount mono" id="nextSeriesCount"></span>
+      </summary>
+      <div class="filmsbody">
+        <div class="continuerow" id="nextSeriesRow"></div>
       </div>
     </details>
 
@@ -192,10 +205,13 @@
           <span aria-hidden="true">&#8249;</span><span id="seriesBackText"></span>
         </button>
         <h3 class="seriesopen hidden" id="seriesOpen"></h3>
-        <div class="searchbox" id="seriesSearchBox">
-          <input class="filmsearch" id="seriesSearch" type="search" autocomplete="off"
-                 spellcheck="false" aria-labelledby="seriesLabel">
-          <button class="searchclear hidden" id="seriesSearchClear" type="button"></button>
+        <div class="shelfhead" id="seriesSearchBox">
+          <div class="searchbox">
+            <input class="filmsearch" id="seriesSearch" type="search" autocomplete="off"
+                   spellcheck="false" aria-labelledby="seriesLabel">
+            <button class="searchclear hidden" id="seriesSearchClear" type="button"></button>
+          </div>
+          <div class="shelftools" id="seriesTools"></div>
         </div>
         <div class="filmgrid" id="seriesGrid"></div>
         <div class="episodes hidden" id="episodeList"></div>
@@ -314,12 +330,13 @@
   </button>
 </nav>
 
-<!-- What a press on a poster or an episode asks: play it (open it, for a
-     series), or have the box count it as seen or as unseen (see "what a press
-     asks" in js/marking.js). -->
+<!-- What a press on a poster or an episode asks: its details, play it (open
+     it, for a series), or have the box count it as seen or as unseen (see
+     "what a press asks" in js/marking.js). -->
 <dialog id="markDialog"><form method="dialog">
   <h3 id="markTitle"></h3>
   <div class="markoptions">
+    <button value="details" id="markDetails" type="submit"></button>
     <button value="play" id="markPlay" type="submit"></button>
     <button value="restart" id="markRestart" type="submit" hidden></button>
     <button value="watched" id="markWatched" type="submit"></button>
@@ -327,6 +344,35 @@
     <button value="clear" id="markClear" type="submit" hidden></button>
   </div>
   <div class="dlgrow"><button value="cancel" id="markCancel" type="submit"></button></div>
+</form></dialog>
+
+<!-- A title's details, asked for from the question above (see "a title's
+     details" in js/marking.js). -->
+<dialog id="detailsDialog"><form method="dialog">
+  <div class="detailshero" id="detailsHero">
+    <img class="detailsbackdrop" id="detailsBackdrop" alt="">
+    <button class="detailsx" id="detailsX" value="close" type="submit"></button>
+    <div class="detailshead">
+      <img class="detailsposter" id="detailsPoster" alt="">
+      <div class="detailsheading">
+        <h3 id="detailsTitle"></h3>
+        <p class="detailsmeta" id="detailsMeta"></p>
+        <div class="detailsformats" id="detailsFormats"></div>
+      </div>
+    </div>
+  </div>
+  <div class="detailsbody">
+    <div class="markoptions detailsactions">
+      <button value="play" id="detailsPlay" type="submit"></button>
+      <button value="restart" id="detailsRestart" type="submit" hidden></button>
+    </div>
+    <div class="ratings" id="detailsRatings" role="list"></div>
+    <p class="detailstagline" id="detailsTagline"></p>
+    <p class="detailsplot" id="detailsPlot"></p>
+    <dl class="facts detailsfacts" id="detailsFacts"></dl>
+    <div class="castblock detailscast" id="detailsCast"></div>
+  </div>
+  <div class="dlgrow detailsfoot"><button value="close" id="detailsClose" type="submit"></button></div>
 </form></dialog>
 
 <script src="/js/core.js"></script>
@@ -338,6 +384,7 @@
 <script src="/js/live-panels.js"></script>
 <script src="/js/metadata.js"></script>
 <script src="/js/dashboard.js"></script>
+<script src="/js/shelf-tools.js"></script>
 <script src="/js/films.js"></script>
 <script src="/js/series.js"></script>
 <script src="/js/continue.js"></script>

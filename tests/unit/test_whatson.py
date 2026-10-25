@@ -217,6 +217,19 @@ def test_a_film_is_asked_for_once_and_its_answer_kept(lookup):
     assert len(asked) == 2
 
 
+def test_whether_a_film_is_being_asked_for(lookup, monkeypatch):
+    found, _clock, _started, _asked, _answers, run = lookup
+    ids = {"tmdb": "2"}
+    assert found.asking(ids) is False and found.asking({}) is False
+    found.scores(ids, "key")
+    assert found.asking(ids, "key") is True and found.asking(ids) is False
+    run()
+    assert found.asking(ids, "key") is False
+    monkeypatch.setattr(whatson, "_LOOKUP", found)
+    found.scores({"imdb": "tt9"})
+    assert whatson.asking({"imdb": "tt9"}, lookup=found) is True
+
+
 def test_a_film_without_an_imdb_id_is_asked_for_by_its_tmdb_one(lookup):
     found, _clock, _started, asked, _answers, run = lookup
     found.scores({"tmdb": "578"})

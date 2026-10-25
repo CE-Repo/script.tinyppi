@@ -11,9 +11,10 @@
    What it uses from them and what it gives them is listed below. */
 
 /* global ask, continueStale, el, FILMS_RETRY_MS, FILMS_START_MS, newest,
-   ratingBadge, runtime, T */
+   ratingBadge, runtime, shelfTools, T */
 /* exported episodeCode, episodeReleasing, hideSeries, refreshEpisodes,
-   releaseSeries, requestSeries, seriesOffered, seriesStale, startingEpisode */
+   releaseSeries, requestSeries, seriesOffered, seriesStale, seriesTools,
+   startingEpisode */
 
 /* --- the series library -------------------------------------------------- */
 
@@ -42,6 +43,15 @@ let episodesBusy = false;  /* a request for one show's episodes           */
 let startingEpisode = 0;   /* the episode a press is waiting on           */
 let episodeReleasing = 0;  /* the timer that gives the list back          */
 let episodesPutOff = false; /* the open show waits to be read again        */
+let showTiles = new Map(); /* each show's tile on the wall of everything  */
+
+/* The order and the genre over the wall of every show, as on the films. */
+const seriesTools = shelfTools(el.seriesTools, {
+  shelf: "series",
+  sorts: ["title", "year", "rating", "added"],
+  filters: ["genre"],
+  onChange: arrangeSeries
+});
 
 /* Called from the other parts of the page once the series shelf may have moved: the
    next request reads it again. */
@@ -100,8 +110,11 @@ function buildSeries() {
   const wall = document.createDocumentFragment();
   const unseen = document.createDocumentFragment();
   let waiting = 0;
+  showTiles = new Map();
   for (const show of shows) {
-    wall.append(showTile(show, openShowView));
+    const tile = showTile(show, openShowView);
+    showTiles.set(show, tile);
+    wall.append(tile);
     /* A show with an episode still waiting.  One the library has no episode
        count for is left off: nothing says there is anything in it to see. */
     if (!show.watched && show.unseen) {
@@ -123,7 +136,8 @@ function buildSeries() {
   /* The count in the heading, and whatever the search box is narrowing it
      to, the way the film wall does after it is built.  Inside a show the
      heading counts that show's episodes instead, and is left alone. */
-  applySeriesSearch();
+  seriesTools.fill(shows);
+  arrangeSeries();
   /* A shelf that has just been read again is a shelf that may no longer hold
      the show somebody was inside, and where it does not the card comes back to
      the wall.  Where it does, they are left where they were: the shelf is read
@@ -222,11 +236,18 @@ function showTile(show, onOpen) {
   return tile;
 }
 
+/* The wall in the chosen order, as the film wall is (see arrangeFilms in
+   js/films.js). */
+function arrangeSeries() {
+  el.seriesGrid.append(...seriesTools.order(shows).map((show) => showTiles.get(show)));
+  applySeriesSearch();
+}
+
 function applySeriesSearch() {
   const needle = el.seriesSearch.value.trim().toLowerCase();
   let shown = 0;
-  for (const tile of el.seriesGrid.children) {
-    const match = !needle || tile.dataset.key.includes(needle);
+  for (const [show, tile] of showTiles) {
+    const match = (!needle || tile.dataset.key.includes(needle)) && seriesTools.matches(show);
     tile.hidden = !match;
     if (match) shown += 1;
   }
@@ -234,6 +255,8 @@ function applySeriesSearch() {
   if (openShow === null) {
     el.seriesCount.textContent = shown === shows.length
       ? String(shows.length) : shown + " / " + shows.length;
+    el.seriesEmpty.textContent = shows.length && seriesTools.filtering()
+      ? T.filter_empty : T.series_empty;
     el.seriesEmpty.classList.toggle("hidden", shown > 0);
   }
 }

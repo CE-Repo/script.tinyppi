@@ -30,12 +30,12 @@
   align-items: center;
   gap: 10px;
   min-height: 46px;
-  padding: 12px 16px;
-  color: var(--muted);
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: .13em;
-  text-transform: uppercase;
+  padding: 14px 16px;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: .1px;
   cursor: pointer;
   list-style: none;
   user-select: none;
@@ -46,9 +46,9 @@
   content: "";
   flex: none;
   width: 3px;
-  height: 14px;
+  height: 16px;
   border-radius: 999px;
-  background: var(--accent);
+  background: var(--on-tonal);
 }
 .panel-toggle::after {
   content: "";
@@ -63,12 +63,11 @@
   transition: transform .15s ease, color .15s;
 }
 @media (hover: hover) {
-  .panel-toggle:hover { color: var(--text); }
+  .panel-toggle:hover { color: var(--text); background: color-mix(in srgb, var(--text) 4%, transparent); }
   .panel-toggle:hover::after { color: var(--accent); }
 }
-.card[open] > .panel-toggle {
-  border-bottom: 1px solid var(--line-soft);
-}
+/* No rule under an open heading: the app's card runs its heading straight
+   into what it holds. */
 
 /* Opening or closing a card marks its heading with the accent for a moment
    and then lets go of it again.  The colour says the fold has just moved,
@@ -138,9 +137,9 @@
   text-transform: uppercase;
   padding: 5px 10px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 0;
+  color: var(--on-tonal);
+  background: var(--tonal);
   /* A badge is one short phrase and gets one line wherever there is a line to
      give it: the row wraps between badges before it wraps inside one, because
      a flex row breaks on an item that does not fit before it squeezes the
@@ -593,39 +592,59 @@
    name, so a row of them is read by colour before a word of it is.
 ------------------------------------------------------------------------ */
 
-.plot {
-  position: relative;
-  padding: 14px 16px 16px;
-  display: grid;
+/* The overview: a card that is its heading and nothing else, and a key --
+   the accent tick, the name, and an arrow at the far end saying a press
+   goes on to the title's details. */
+.plotopen {
+  appearance: none;
+  display: flex;
+  align-items: center;
   gap: 10px;
-}
-/* A shield's words over its middle, for a moment after a tap. */
-.ratingtip {
-  position: absolute;
-  z-index: 2;
-  transform: translate(-50%, calc(-100% - 6px));
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: var(--text);
-  color: var(--bg);
-  font-size: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 14px 16px;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
   font-weight: 600;
-  white-space: nowrap;
-  pointer-events: none;
-  box-shadow: var(--shadow);
+  line-height: 22px;
+  letter-spacing: .1px;
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s;
 }
-/* The ratings under the plot and its credits, past a thin rule: a row of
-   their own, not the plot's last line.  Alone in the card, they need none. */
+.plotopen::before {
+  content: "";
+  flex: none;
+  width: 3px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--on-tonal);
+}
+.plotopen::after {
+  content: "";
+  margin-left: auto;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  color: var(--dim);
+  transform: rotate(-45deg);
+}
+@media (hover: hover) {
+  .plotopen:hover { background: color-mix(in srgb, var(--text) 4%, var(--panel)); }
+}
+.plotopen:active { background: color-mix(in srgb, var(--text) 8%, var(--panel)); }
+.plotopen:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* The ratings, a centred row of their own over the slogan and the plot, as
+   the app draws them on a title's details page. */
 .ratings {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
-}
-.plotfold:has(> :not(.hidden)) ~ .ratings {
-  margin-top: 2px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
 }
 /* A shield: the house on the left, on a plate of its own colour, and what
    it gave on the right -- the whole shield washed in that colour and edged
@@ -796,78 +815,90 @@
   white-space: nowrap;
 }
 
-/* The slogan, the plot and the credits on its end: one block, the slogan
-   right over the plot.  Gone where it holds nothing. */
-.plotfold { position: relative; display: grid; }
-.plotfold:not(:has(> :not(.hidden))) { display: none; }
+/* --- a title's facts and cast -------------------------------------------
 
-/* The credits, a line each and centred like everything around them, a
-   little way under the plot where there is one.  Under a cut plot they are
-   hidden with the rest of it. */
-.credits {
+   A title's details page's (see factNodes and castParts in
+   js/live-panels.js), as the app draws them.  Each fact its
+   name, small, bold and quiet, over the names. */
+.facts { margin: 0; display: grid; gap: 12px; }
+.facts .fact { display: grid; gap: 2px; }
+.facts dt {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: .5px;
+  color: var(--muted);
+}
+.facts dd { margin: 0; font-size: 16px; line-height: 24px; overflow-wrap: anywhere; }
+
+/* The cast under its heading, a row of cards that scrolls sideways.  Every
+   card the same height: two lines of name and one of role, held open where
+   they are not filled. */
+.castblock { display: grid; gap: 10px; min-width: 0; }
+.casthead { margin: 0; font-size: 16px; font-weight: 700; line-height: 22px; }
+.castrow {
+  display: flex;
+  gap: 10px;
   margin: 0;
+  padding: 0 0 4px;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.castrow li {
+  flex: 0 0 112px;
   display: grid;
-  /* A clear gap between two of them, so each reads as its own. */
-  gap: 16px;
+  grid-template-rows: auto auto auto;
+  justify-items: center;
+  align-content: start;
+  gap: 4px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--panel-2);
   text-align: center;
-  font-size: 13px;
-  line-height: 1.5;
-  overflow-wrap: break-word;
-  overflow-wrap: anywhere;
 }
-.plot .plottext:not(.hidden) ~ .credits { margin-top: 12px; }
-.plotfold.fold:not(.open) .credits { display: none; }
-/* What it is called on a line of its own, over the names. */
-.credits dt,
-.credits dd {
-  display: block;
-  margin: 0;
-}
-.credits dt {
+.castrow .initial {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--tonal);
+  color: var(--on-tonal);
+  font-size: 16px;
   font-weight: 600;
-  color: var(--text);
 }
-.credits dd {
-  color: var(--muted);
-}
-
-/* The slogan and the plot centred over the cast and the ratings under
-   them, so the card reads as one block down its middle rather than prose
-   with a row of badges hung under it. */
-.plot p {
-  margin: 0;
-  text-align: center;
-  overflow-wrap: break-word;
-  overflow-wrap: anywhere;
-}
-/* Like a credit's heading: upright, in the text's own colour, and as far
-   over the plot as a heading is over its names. */
-.plot .tagline:not(.hidden) + .plottext { margin-top: 4px; }
-.plot .tagline {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--text);
-}
-.plot .plottext {
-  font-size: 13.5px;
-  line-height: 1.6;
-  color: var(--muted);
-  white-space: pre-line;
-}
-/* Cut to five lines, the last ending in an ellipsis, until a press on it
-   lets the rest out (see openPlot in js/live-panels.js).  A screen reader
-   hears all of it either way. */
-.plot .plotfold:not(.open) .plottext {
+.castrow strong {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
-  line-clamp: 5;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
+  min-height: 40px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  overflow-wrap: anywhere;
 }
-/* A plot with more to show is pressed to fold and unfold. */
-.plot .plotfold.fold { cursor: pointer; border-radius: 6px; }
-.plot .plotfold.fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.castrow .role {
+  display: block;
+  width: 100%;
+  min-height: 16px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+}
+.castrow li.more {
+  flex-basis: auto;
+  align-content: center;
+  padding: 0 6px;
+  background: none;
+  font-size: 22px;
+  color: var(--muted);
+}
 
 /* --- Format badges ------------------------------------------------------
    What the picture is and what the sound is, a row each, drawn the way the
@@ -899,8 +930,8 @@
   line-height: 1.3;
   padding: 5px 10px;
   border-radius: 999px;
-  color: var(--muted);
-  background: color-mix(in srgb, var(--accent) 21%, var(--panel-2));
+  color: var(--on-tonal);
+  background: var(--tonal);
   max-width: 100%;
   overflow-wrap: anywhere;
 }
@@ -990,8 +1021,8 @@
   min-width: var(--tap);
   padding: 0 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: transparent;
+  border: 1px solid transparent;
+  background: var(--panel-3);
   color: var(--text);
   font: inherit;
   font-size: 13px;
@@ -1002,8 +1033,7 @@
 }
 @media (hover: hover) {
   .tbtn:hover {
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    background: color-mix(in srgb, var(--text) 8%, var(--panel-3));
   }
 }
 .tbtn:active { transform: scale(.96); }
@@ -1015,10 +1045,10 @@
   transform: none;
 }
 @media (hover: hover) {
-  .tbtn:disabled:hover { border-color: var(--line); background: transparent; }
+  .tbtn:disabled:hover { background: var(--panel-3); }
 }
 .tbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.tbtn.mute.on { color: var(--warn); border-color: var(--warn); }
+.tbtn.mute.on { color: var(--on-tonal); background: var(--tonal); }
 
 /* A seekable bar is worth a finger's worth of height, and says so.  The bar
    itself is a pseudo-element inside that padding, so the outline goes there
@@ -1066,6 +1096,39 @@
 .trackwrap:has(.track.seekable) .chapter-tip { bottom: calc(100% - 4px); }
 .track:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
+/* --- Fine adjustments ---------------------------------------------------
+
+   The two offsets, side by side on a wide card and stacked on
+   a phone.  An offset is its caption over a step back, the value and a step
+   on; the value is a key too (it puts the offset back to nothing), so all
+   three share the row out and keep the transport's height. */
+
+.tfine {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.fine {
+  display: grid;
+  grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap);
+  gap: 6px;
+  flex: 1 1 180px;
+  min-width: 0;
+}
+/* The caption centred over its keys, as the app writes it: small, in the
+   quieter text colour, not shouted in capitals. */
+.fine .finelabel {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .4px;
+  line-height: 14px;
+  text-align: center;
+  color: var(--muted);
+}
+.fine .finestep { padding: 0; font-size: 17px; }
+.fine .finevalue { padding: 0 4px; }
+
 /* --- Track pickers ------------------------------------------------------ */
 
 .tracks {
@@ -1075,12 +1138,13 @@
 }
 .pick {
   display: grid;
-  gap: 5px;
+  gap: 6px;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--dim);
+  font-weight: 500;
+  letter-spacing: .4px;
+  line-height: 14px;
+  text-align: center;
+  color: var(--muted);
   flex: 1 1 180px;
   min-width: 0;
 }
@@ -1088,15 +1152,17 @@
   appearance: none;
   width: 100%;
   min-height: var(--tap);
-  padding: 0 34px 0 12px;
+  padding: 0 34px 0 34px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: var(--panel-2);
+  border: 1px solid transparent;
+  background-color: var(--panel-3);
   color: var(--text);
   font: inherit;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: normal;
+  letter-spacing: .1px;
+  text-align: center;
+  text-align-last: center;
   text-transform: none;
   cursor: pointer;
   /* The arrow is drawn rather than fetched: the page loads no image it does
@@ -1109,7 +1175,7 @@
   background-repeat: no-repeat;
 }
 @media (hover: hover) {
-  .pick select:hover { border-color: var(--accent); }
+  .pick select:hover { background-color: color-mix(in srgb, var(--text) 8%, var(--panel-3)); }
 }
 .pick select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 

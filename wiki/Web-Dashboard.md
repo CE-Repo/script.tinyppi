@@ -78,7 +78,7 @@ the screen:
 
 | Tab | Address | What is on it | Shown |
 |---|---|---|---|
-| **Live** | `/#live` | Now playing, the overview (slogan, plot, director, cast, ratings), transport controls, VS10 output and every reading of the overlay | always |
+| **Live** | `/#live` | Now playing, the overview (a key to the playing title's details), transport controls, VS10 output and every reading of the overlay | always |
 | **Metadata** | `/#metadata` | Active picture area, L1 luminance chart, the full Dolby Vision metadata list | only while a Dolby Vision title plays (and **Show the Dolby Vision metadata view** is on) |
 | **Films** | `/#films` | Continue watching (films), recently added, unwatched films, the whole film library | when the film library is offered |
 | **Series** | `/#series` | Continue watching (episodes), recently updated series, series with unwatched episodes, the whole series library | when the series library is offered |
@@ -137,31 +137,26 @@ overlay follows.
 
 ## Overview
 
-A card under *Now playing*, everything in it centred:
+A card under *Now playing* that is nothing but its heading and an arrow — a
+key. A click or tap on it opens the playing title's
+[details page](#play-resume-and-watched-marks): its ratings as shields, the
+slogan and the plot, genre, director, writer and studio, and the cast as a row
+of cards. The page has no play keys there — the title is already playing. The
+card is drawn for a film or an episode the library holds; a file it does not
+know has no details, and no card.
 
-- **Slogan and plot** — the slogan (where the library has one; most episodes
-  have none) right over the plot, so the two read as one text, the slogan set
-  upright and bold like a heading.
-- **Director** and **Cast** — each a bold heading over the names: every
-  director, and the cast's first **20** in billing order, ending in "…" where
-  there are more. An episode's cast is its own guests and then the show's.
-- **Ratings** — last, past a thin rule, a row of small shields, each washed
-  in its service's colour: first the age rating (FSK, MPA, TV Parental
-  Guidelines, BBFC as a mark on the level's colour; any other written out),
-  then a score for each source — IMDb, TMDB, Trakt, TheTVDB, Letterboxd,
-  Metacritic and its users, Rotten Tomatoes and its Popcornmeter, Roger Ebert
-  (*RE*), MyAnimeList, MDBList, or the first letter of any other — then your
-  own rating behind a heart, the place in the IMDb Top 250 (*250* | *#17*)
-  and the big awards (see [Awards](#awards)). How many voted is not shown.
-  Every score is out of ten, whatever scale its service uses: Roger Ebert's
-  3.5 of 4 stars show as 8.8, Letterboxd's 4.5 of 5 as 9.0.
+The shields on the details page:
 
-**Folded from the start.** The card opens folded: the plot cut to **five
-lines**, the director and the cast hidden under it. A click or tap on the text
-(or Enter / Space once it has the focus) lets them out, and another folds them
-again. Only a plot that fits its five lines with nothing under it has nothing
-to fold. Every new title starts folded again. The ratings are never folded
-away.
+- **Ratings** — a centred row of small shields, each washed in its service's
+  colour: first the age rating (FSK, MPA, TV Parental Guidelines, BBFC as a
+  mark on the level's colour; any other written out), then a score for each
+  source — IMDb, TMDB, Trakt, TheTVDB, Letterboxd, Metacritic and its users,
+  Rotten Tomatoes and its Popcornmeter, Roger Ebert (*RE*), MyAnimeList,
+  MDBList, or the first letter of any other — then your own rating behind a
+  heart, the place in the IMDb Top 250 (*250* | *#17*) and the big awards (see
+  [Awards](#awards)). How many voted is not shown. Every score is out of ten,
+  whatever scale its service uses: Roger Ebert's 3.5 of 4 stars show as 8.8,
+  Letterboxd's 4.5 of 5 as 9.0.
 
 **Which board is an age rating?** An episode carries its show's age rating.
 One that names neither its country nor its board ("Rated 12", which the TMDb
@@ -172,10 +167,9 @@ German, British English or American English. The credits and the ratings are
 what Kodi knows of whatever plays, so an add-on's stream that names them has
 them too.
 
-**Which service is a mark?** A tap or click on a shield shows its name over it
-for two seconds (*IMDb*, *Trakt*, *FSK*, *IMDb Top 250* …); a mouse pointer
-shows the same as a tooltip. A tap on a shield does not fold the card. A
-screen reader hears each shield in full (*"IMDb 8.5"*).
+**Which service is a mark?** A mouse pointer over a shield shows its name as a
+tooltip (*IMDb*, *Trakt*, *FSK*, *IMDb Top 250* …). A screen reader hears each
+shield in full (*"IMDb 8.5"*).
 
 The services' marks are their own logos, the age ratings, Metacritic's users,
 Roger Ebert and the Top 250 simplified marks drawn for TinyPPI (see
@@ -355,6 +349,21 @@ in the order Kodi files them. A tap opens the [title dialog](#play-resume-and-wa
   corner; neither, no badge.
 - Under the title: the **year** and the **running time**.
 - A **search box** narrows the wall as you type; the cross in it clears it.
+- Under it, the wall can be **sorted** — by title (Kodi's own order), year,
+  rating, date added or running time, each **ascending or descending** (the
+  arrow key beside the order turns it round; a new order starts the way it
+  reads best — newest, best and latest added first). The order and its way
+  round are kept in the browser for the next visit; a film without the value
+  goes last either way —
+  and **filtered** by genre, picture format (Dolby Vision, HDR10+, HDR10,
+  HLG, SDR — and under Dolby Vision each profile the library holds, such as
+  P5, P7 FEL, P7 MEL or P8.1, where it holds more than one), resolution (4K, 1080p, 720p, SD) and audio format (the first
+  audio track's codec: Dolby TrueHD, DTS-HD MA, Dolby Digital Plus, …). A
+  filter offers only what the library holds and is left out where there is
+  nothing to choose between; the formats come from what Kodi read off the
+  files, so a film it has not scanned yet is under none of them. Kodi does
+  not record Atmos or DTS:X in its library, so the sound is filtered by the
+  codec it rides on. The filters and the search narrow the wall together.
 
 The tab is there **whether or not anything is playing** — lining up what comes
 next from the phone halfway through a film is a fair thing to want. A search
@@ -401,6 +410,8 @@ The same wall for what Kodi knows as **TV shows**, with one level more:
   down you scrolled.
 - A half-watched episode carries the same progress bar, and each row shows the
   episode's running time.
+- The wall sorts as the film wall does (without the running time) and filters
+  by genre.
 
 The seasons arrive folded because a show that ran nine years is several
 hundred rows; folded, it is a dozen lines, and a still inside a folded season
@@ -417,6 +428,7 @@ At the top of the **Films** and **Series** tabs:
 | Row | Contents |
 |---|---|
 | **Continue watching** | Films (respectively episodes) stopped part-way, the last one seen first, up to 30. Read with Kodi's own *in progress* filter. An episode shows its show's poster with the episode under the name. |
+| **Next up** (Series) | The next unwatched episode of each show being watched — its first unseen one in episode order, specials left out — the show watched last first, up to 15. An episode already on *Continue watching* is not repeated. |
 | **Recently added** | The 10 films that arrived last, and the 10 series that gained an episode last (Kodi dates a series by its newest episode), newest first. |
 | **Unwatched films** / **Unwatched series** | Only what is still unwatched: films without a tick, series with an episode waiting. |
 
@@ -431,6 +443,7 @@ A tap on a film, series or episode — on a wall or in a row — opens a dialog:
 
 | Option | Shown for | Effect |
 |---|---|---|
+| **Details** | all | The title's details from the library, under its backdrop (a film's or a series' fanart, an episode's still) with its poster: year and running time, the file's formats, every rating the overview card would show for the title, as its shields (age rating, the library's, MDBList's and Rotten Tomatoes' scores with their certificates, your own, the Top 250 place, the awards), tagline and plot, genres, director, writers, studio, and the cast as a row of cards of one height with who they played — the same layout as the overview card. On a phone it is a page of its own, the whole screen. On the **Dark (adaptive)** theme it wears the accent of the title's own poster rather than of what is playing. Under the heading the question's first answers as keys: **Play** or **Resume**, **Play from the beginning** where there is a point to resume from, **Open** for a series. |
 | **Play** / **Resume** | films, episodes | Starts it on the box; *Resume* where Kodi has a resume point. |
 | **Open** | series | Shows its episodes (a series itself cannot be played). |
 | **Play from the beginning** | stopped part-way | Starts from the top, without the resume question on the TV. |
@@ -456,8 +469,13 @@ On the Live tab, under the progress bar, in two rows:
 | First | Back and forward by 10 s, 1 min and 10 min |
 | Second | Previous chapter · Play / Pause · Volume down · Mute · Volume up · Stop · Next chapter |
 
-Under them: a picker for the **audio track** and one for the **subtitles**
-(including *Off*). The **progress bar** is dragged — with a finger, or a
+Under them, the **fine adjustments**: the **audio offset** (lip sync, in steps
+of 50 ms within ±10 s) and the **subtitle offset** (in Kodi's 100 ms steps,
+shown while subtitles are on).
+A tap on an offset's value puts it back to 0. Kodi has no JSON-RPC method for
+the subtitle offset, so it is moved with the same key presses a remote sends,
+and Kodi shows its own slider on the TV for a moment while it moves. Then a
+picker for the **audio track** and one for the **subtitles** (including *Off*). The **progress bar** is dragged — with a finger, or a
 mouse held down — and the box seeks to where it was let go; a tap is the
 shortest such drag. While it is held, the fill, the clock under it and the
 chapter over it follow the finger rather than the player. With the bar
@@ -550,12 +568,18 @@ A key with nothing to copy is dimmed.
 
 ## Themes
 
-Three themes, all dark — this is watched in the room the projector is in:
+Three themes, all dark — this is watched in the room the projector is in.
+The page is drawn in the **TinyPPI app's** design: its dark palette, cards one
+step up from the page with a hairline round them and 20 px corners, pill-shaped
+chips and buttons, tool keys with 12 px corners on the card's raised ground,
+headings with the accent tick, small centred captions over the keys, Material
+dialogs and the floating tab bar with the open tab as a filled pill. A phone and
+a browser opened on the same box read as one thing.
 
 | Theme | Look |
 |---|---|
 | **Dark** | The plain theme. |
-| **Dark (adaptive)** | What a first visit gets: the same page, with the **now-playing card** taking its color from the poster. The artwork is read region by region, and the one color that stands for it best is drawn across the card as a broad glow — strongest beside the poster, gone well before the card's foot. How much color survives is worked out per film against the contrast the text needs: a dark poster keeps nearly all of it, a bright one is held back. Other cards keep their plain surfaces but take the film's **accent** for headings, badges, buttons and the chart's traces. Intensity: **Subtle**, **Standard** or **Strong**. A title without a poster looks like plain Dark. |
+| **Dark (adaptive)** | What a first visit gets: the same page, with the **now-playing card** taking its color from the poster. The artwork is read region by region, and the one color that stands for it best is drawn across the card as a broad glow — strongest beside the poster, gone well before the card's foot. How much color survives is worked out per film against the contrast the text needs: a dark poster keeps nearly all of it, a bright one is held back. Other cards keep their plain surfaces but take the film's **accent** for headings, badges, buttons and the chart's traces — and every colour drawn from it with it, as the app does: what is written on the accent, the tonal ground of a badge, a chosen chip or a cast card's initial, and what is written on that. A title's details page takes the accent of that title's own poster. Intensity: **Subtle**, **Standard** or **Strong**. A title without a poster looks like plain Dark. |
 | **Midnight** | Deeper and bluer, for a room with nothing else lit. |
 
 The choice is stored **in the browser, per device**, applied before the first

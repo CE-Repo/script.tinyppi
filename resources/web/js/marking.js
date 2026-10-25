@@ -4,14 +4,14 @@
 "use strict";
 
 /* The question a press on a film, show or episode asks: play, play from
-   the start, or mark as watched or unwatched.
+   the start, mark as watched or unwatched, or show its details.
 
    Part of the dashboard page: a classic script sharing the global scope
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global continueStale, control, el, filmsStale, refreshEpisodes,
-   requestContinue, requestFilms, requestSeries, seriesStale, T */
+/* global continueStale, control, el, filmsStale, formatName, refreshEpisodes,
+   requestContinue, requestFilms, requestSeries, runtime, seriesStale, T */
 /* exported ask */
 
 /* --- what a press asks ---------------------------------------------------- */
@@ -27,6 +27,7 @@
    are read again, so what they show is what the library now says. */
 
 let asking = null;         /* what the open question is about              */
+let detailing = null;      /* what the open details are about              */
 
 function ask(question) {
   if (!control || el.markDialog.open) return;
@@ -49,6 +50,7 @@ el.markDialog.addEventListener("close", () => {
   if (answer === "play") question.onPlay(false);
   else if (answer === "restart") question.onPlay(true);
   else if (answer === "clear") clearResume(question.body);
+  else if (answer === "details") showDetails(question);
   else if (answer === "watched" || answer === "unwatched") {
     setWatched(question.body, answer === "watched");
   }
@@ -102,3 +104,109 @@ function reread() {
   requestContinue(true);
   refreshEpisodes();
 }
+
+/* --- a title's details ---------------------------------------------------- */
+
+/* The id a details request named, and the address of one of the title's
+   pictures by that id, or "" where it has none. */
+function detailsArt(body, kind, tag) {
+  if (!tag) return "";
+  const [key] = Object.keys(body);
+  return "/api/art?kind=" + kind + "&" + key + "=" + encodeURIComponent(body[key]) +
+    "&v=" + encodeURIComponent(tag);
+}
+
+/* A picture of the details, or none: a picture the box cannot read leaves
+   the space it would have filled, as a missing one does. */
+function showPicture(image, url) {
+  image.hidden = !url;
+  if (url) image.src = url;
+  else image.removeAttribute("src");
+  image.onerror = () => {
+    image.hidden = true;
+    el.detailsHero.classList.toggle("bare", el.detailsBackdrop.hidden);
+  };
+}
+
+/* Everything the library holds about one title, read when it is asked for
+   (see web/library/details.py): under its backdrop -- a film's or a show's
+   fanart, an episode's still -- the poster, the title and how long it runs
+   with the file's formats; then the ratings, as the overview card draws the
+   playing title's, the slogan and the plot, who made it and who is in it. */
+async function showDetails(question) {
+  const [key] = Object.keys(question.body);
+  let found;
+  try {
+    found = await TinyPPI.getJSON("/api/details?" + key + "=" +
+                                  encodeURIComponent(question.body[key]));
+  } catch (_) {
+    TinyPPI.toast(T.details_failed, true);
+    return;
+  }
+  showPicture(el.detailsBackdrop,
+              detailsArt(question.body, found.fanart ? "fanart" : "thumb",
+                         found.fanart || found.thumb));
+  showPicture(el.detailsPoster, detailsArt(question.body, "poster", found.poster));
+  el.detailsHero.classList.toggle("bare", el.detailsBackdrop.hidden);
+  el.detailsTitle.textContent = question.title;
+  el.detailsMeta.textContent = [found.year ? String(found.year) : "", runtime(found.duration)]
+    .filter(Boolean).join(" \u00b7 ");
+  const formats = document.createDocumentFragment();
+  for (const name of ["video", "resolution", "audio"]) {
+    if (!found[name]) continue;
+    const chip = document.createElement("span");
+    chip.className = "format";
+    chip.textContent = name === "video" && found.dv_profile
+      ? formatName("video", "dv/" + found.dv_profile) : formatName(name, found[name]);
+    formats.append(chip);
+  }
+  el.detailsFormats.replaceChildren(formats);
+  el.detailsRatings.replaceChildren(...TinyPPI.panels.shields(found));
+  el.detailsTagline.textContent = found.tagline || "";
+  el.detailsPlot.textContent = found.plot || "";
+  el.detailsFacts.replaceChildren(...TinyPPI.panels.facts(found));
+  el.detailsCast.replaceChildren(...TinyPPI.panels.cast(found));
+  tintDetails();
+  /* The question's first answers, offered on the page too -- where it was
+     asked from a shelf; the playing title's, opened from the overview, has
+     none to offer. */
+  el.detailsPlay.parentElement.hidden = !question.onPlay;
+  el.detailsPlay.textContent = question.play || "";
+  el.detailsRestart.hidden = !question.resumable;
+  detailing = question;
+  el.detailsDialog.returnValue = "";
+  el.detailsDialog.showModal();
+  el.detailsDialog.querySelector("form").scrollTop = 0;
+}
+
+/* On the adaptive theme the page takes its accent from the title's own
+   picture -- its poster, or an episode's still -- rather than from what is
+   playing (see accent in js/cover-tint.js); a title without a colour wears
+   the theme's own. */
+function tintDetails() {
+  const dialog = el.detailsDialog;
+  dialog.classList.remove("tinted");
+  dialog.style.removeProperty("--cover-accent-rgb");
+  const picture = [el.detailsPoster, el.detailsBackdrop].find((image) => !image.hidden);
+  const cover = window.TinyPPICover;
+  if (!picture || !cover) return;
+  const url = picture.getAttribute("src");
+  cover.accent(url, picture).then((rgb) => {
+    if (!rgb || picture.getAttribute("src") !== url) return;
+    dialog.style.setProperty("--cover-accent-rgb", rgb.join(", "));
+    dialog.classList.add("tinted");
+  });
+}
+
+/* The overview card on the live tab opens the playing title's details (see
+   renderPlot in js/live-panels.js). */
+TinyPPI.openDetails = (item) =>
+  showDetails({ title: item.title, body: { [item.kind + "id"]: item.id } });
+
+el.detailsDialog.addEventListener("close", () => {
+  const answer = el.detailsDialog.returnValue;
+  const question = detailing;
+  detailing = null;
+  if (answer === "play") question.onPlay(false);
+  else if (answer === "restart") question.onPlay(true);
+});

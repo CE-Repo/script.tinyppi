@@ -77,110 +77,31 @@ test("the live tab connects and shows the format badges", async () => {
   assert.equal(await page.locator("#director").count(), 0);
 });
 
-test("the ratings, the slogan and the plot stand in a card of their own under the playing one", async () => {
+test("the overview is a key under the playing card that opens the title's details", async () => {
   await page.waitForSelector("#plotCard:not(.hidden)");
-  // Folded: the plot cut to five lines -- two of them, here -- and its
-  // credits hidden under it until a press lets them out.  The ratings
-  // under it are never folded away.
-  await page.waitForSelector("#plotFold.fold");
-  assert.deepEqual(await page.$eval("#plotText", (node) => {
-    const style = getComputedStyle(node);
-    return [style.webkitLineClamp, style.overflow];
-  }), ["5", "hidden"]);
-  assert.equal(await page.locator("#plotFold").getAttribute("role"), "button");
-  assert.equal(await page.locator("#plotFold").getAttribute("aria-expanded"), "false");
-  assert.equal(await page.locator("#credits").isVisible(), false, "the credits folded away");
-  assert.equal(await page.locator("#ratings").isVisible(), true, "the ratings shown folded");
-  await page.locator("#plotText").click();
-  assert.equal(await page.locator("#plotFold").getAttribute("aria-expanded"), "true");
-  assert.equal(await page.locator("#credits").isVisible(), true, "the credits let out");
-  // The stubs' strings are only their ids, so the words of a badge are the
-  // jsdom tests'; here it is which marks stand there, served and drawn.
-  await page.waitForFunction(() => [...document.querySelectorAll("#ratings img")]
-    .every((image) => image.complete && image.naturalWidth > 0));
-  // Each as wide as it is drawn: the FSK's plate, IMDb's square logo and
-  // the awards' square drawings.
-  const sizes = await page.$$eval("#ratings img", (images) => images.map((image) => {
-    const box = image.getBoundingClientRect();
-    return Math.round(box.width / box.height * 10) / 10;
-  }));
-  assert.deepEqual(sizes, [1.4, 1, 1, 1]);
-  // Every badge one height: the age rating's mark and the shields beside it.
-  const heights = await page.$$eval("#ratings .rating",
-    (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
-  assert.deepEqual(heights, heights.map(() => 28));
-  // A tap on one shows its words over it.
-  await page.locator("#ratings .rating").last().click();
-  const [tip, shield] = await Promise.all(
-    ["#ratingTip", "#ratings .rating:last-child"].map((selector) => page.locator(selector).boundingBox()));
-  assert.ok(tip, "the words are shown");
-  assert.ok(tip.y + tip.height <= shield.y, "over the shield");
-  assert.ok(Math.abs(tip.x + tip.width / 2 - (shield.x + shield.width / 2)) <= 1, "over its middle");
-  const marks = await page.$$eval("#ratings .rating", (nodes) => nodes.map((node) => [
-    node.querySelector("img").getAttribute("src"),
-    [...node.querySelectorAll(".value")].map((part) => part.textContent).join("")]));
-  // The age rating first, the awards last: what was won, then what was
-  // only nominated for.
-  assert.deepEqual(marks, [["/ratings/fsk12.svg", "12"], ["/ratings/imdb.svg", "7.9"],
-                           ["/ratings/award_oscar.svg", "1"], ["/ratings/award_globe.svg", "1"]]);
-  // That one quieter: its plate dimmed.
-  assert.deepEqual(await page.$$eval("#ratings .rating .side", (nodes) =>
-    nodes.map((node) => getComputedStyle(node).opacity)), ["1", "1", "1", "0.6"]);
-  assert.equal(await page.locator("#tagline").innerText(), "One night changes everything.");
-  // The plot's own line break, drawn as one.
-  assert.equal(await page.locator("#plotText").innerText(),
-               "A film about somebody.\nAnd what happens to them.");
-  // The slogan upright, set like a credit's heading, and right over the
-  // plot: the two read as one text.
-  const [slogan, heading] = await Promise.all(["#tagline", "#credits dt"].map((selector) =>
-    page.$eval(selector, (node) => {
-      const style = getComputedStyle(node);
-      return [style.fontStyle, style.fontWeight, style.fontSize, style.color];
-    })));
-  assert.deepEqual(slogan, heading);
-  const [sloganBox, plotBox] = await Promise.all(
-    ["#tagline", "#plotText"].map((selector) => page.locator(selector).boundingBox()));
-  assert.ok(Math.abs(plotBox.y - (sloganBox.y + sloganBox.height) - 4) <= 1, "the slogan a little over the plot");
-  const [now, plot] = await Promise.all(
+  const [now, card] = await Promise.all(
     ["#nowCard", "#plotCard"].map((selector) => page.locator(selector).boundingBox()));
-  assert.ok(plot.y > now.y + now.height - 1, "under the playing card");
-  // The slogan and the plot centred; on its end the credits, and past a
-  // thin rule the ratings, centred too.
-  assert.deepEqual(await page.$$eval("#tagline, #plotText",
-    (nodes) => nodes.map((node) => getComputedStyle(node).textAlign)), ["center", "center"]);
-  const [text, credits, row, first, last] = await Promise.all(
-    ["#plotText", "#credits", "#ratings", "#ratings .rating:first-child", "#ratings .rating:last-child"]
-      .map((selector) => page.locator(selector).boundingBox()));
-  assert.ok(credits.y >= text.y + text.height - 1, "the credits under the plot");
-  assert.ok(row.y >= credits.y + credits.height - 1, "the ratings under the credits");
-  // A thin rule over the ratings, and no heading on the screen.
-  assert.equal(await page.$eval("#ratings", (node) => getComputedStyle(node).borderTopWidth), "1px");
-  assert.equal(await page.$eval("#credits", (node) => getComputedStyle(node).borderTopWidth), "0px");
-  const left = first.x - row.x;
-  const right = row.x + row.width - (last.x + last.width);
-  assert.ok(Math.abs(left - right) <= 2, `centred: ${left} vs ${right}`);
-  // The director over the cast: what each is called over the names, each
-  // line centred, and the name set apart from the names in weight and colour.
-  assert.deepEqual(await page.$$eval("#credits .credit", (lines) => lines.map((line) => line.innerText)),
-                   ["#32386\nSomebody", "#32378\nOne Actor, Another Actor, …"]);
-  const [term, names] = await Promise.all(["#credits dt", "#credits dd"].map((selector) =>
-    page.$eval(selector, (node) => {
-      const style = getComputedStyle(node);
-      return [style.display, style.fontWeight, style.color];
-    })));
-  assert.deepEqual([term[0], names[0]], ["block", "block"]);
-  assert.ok(Number(term[1]) > Number(names[1]), "the name bolder than the names");
-  assert.notEqual(term[2], names[2]);
-  const [over, under] = await Promise.all(["#credits dt", "#credits dd"].map((selector) =>
-    page.$eval(selector, (node) => {
-      const range = document.createRange();
-      range.selectNodeContents(node);
-      return [node.getBoundingClientRect().toJSON(), range.getBoundingClientRect().toJSON()];
-    })));
-  assert.ok(under[0].y >= over[0].y + over[0].height - 1, "the names under what they are");
-  for (const [box, words] of [over, under]) {
-    assert.ok(Math.abs(words.x - box.x - (box.x + box.width - words.x - words.width)) <= 2, "centred");
-  }
+  assert.ok(card.y > now.y + now.height - 1, "under the playing card");
+  // Its heading alone: nothing of the title in it.
+  assert.equal(await page.locator("#plotCard").innerText(), "#32370");
+  await page.locator("#plotCard").click();
+  await page.waitForSelector("#detailsDialog[open]");
+  await page.waitForFunction(() => document.getElementById("detailsPlot").textContent.length > 0);
+  assert.equal(await page.locator("#detailsPlot").innerText(), "A film about somebody.");
+  // The playing title's: nothing to play.
+  assert.equal(await page.locator(".detailsactions").isVisible(), false);
+  // The shields as the details draw them, every one one height.
+  await page.waitForFunction(() => [...document.querySelectorAll("#detailsRatings img")]
+    .every((image) => image.complete && image.naturalWidth > 0));
+  const heights = await page.$$eval("#detailsRatings .rating",
+    (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
+  assert.ok(heights.length && heights.every((height) => height === 28));
+  // The cast cards all one height.
+  const cards = await page.$$eval("#detailsCast li:not(.more)",
+    (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
+  assert.ok(cards.length && cards.every((height) => height === cards[0]));
+  await page.locator("#detailsX").click();
+  await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
 });
 
 test("the chapters ahead sit on the bar, a mouse brings up the rest, a click jumps", async () => {

@@ -21,7 +21,7 @@ class Track(TypedDict):
 
 
 class Controls(TypedDict, total=False):
-    """Tracks, volume, mute and chapters (``player_controls``).
+    """Tracks, volume, mute, chapters and the offsets (``player_controls``).
 
     Empty while the page may not control the player.
     """
@@ -34,6 +34,9 @@ class Controls(TypedDict, total=False):
     volume: object
     muted: bool
     chapters: int
+    # Seconds; None where Kodi says none.
+    audio_delay: float | None
+    subtitle_delay: float | None
 
 
 class Chapter(TypedDict):
@@ -148,13 +151,26 @@ class Award(TypedDict):
 
 class Credits(TypedDict):
     """Who made the playing title, as Kodi orders them (see
-    web.values.name_list): every director, the first studio alone, and the
-    cast's first twenty with whether there are more."""
+    web.values.name_list): every genre, director and writer, the first
+    studio alone, and the cast's first twenty with whether there are more and
+    who each played ("" for a role the library does not know)."""
 
+    genres: list[str]
     directors: list[str]
+    writers: list[str]
     cast: list[str]
+    roles: list[str]
     cast_more: bool
     studios: list[str]
+
+
+class LibraryItem(TypedDict, total=False):
+    """Which library title is playing: "movie" or "episode" and its id, for
+    the page to open its details by; {} for a file the library does not
+    know."""
+
+    kind: str
+    id: int
 
 
 class Ratings(TypedDict):
@@ -176,6 +192,8 @@ class Ratings(TypedDict):
     # A film's IMDb and TMDb ids ("imdb", "tmdb"), for MDBList to be asked
     # by (see web.mdblist); {} for an episode.  Not sent to the page.
     ids: dict[str, str]
+    # Which library title it is, where it is one (see LibraryItem).
+    item: LibraryItem
 
 
 class Media(TypedDict):
@@ -197,9 +215,13 @@ class Media(TypedDict):
     userrating: int
     top250: int
     awards: list[Award]
+    item: LibraryItem
     # And who made it (see Credits).
+    genres: list[str]
     directors: list[str]
+    writers: list[str]
     cast: list[str]
+    roles: list[str]
     cast_more: bool
     studios: list[str]
 

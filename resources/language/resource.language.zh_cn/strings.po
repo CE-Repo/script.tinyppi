@@ -1503,14 +1503,6 @@ msgctxt "#32378"
 msgid "Cast"
 msgstr "演员"
 
-msgctxt "#32381"
-msgid "Show more"
-msgstr "显示更多"
-
-msgctxt "#32382"
-msgid "Show less"
-msgstr "收起"
-
 msgctxt "#32383"
 msgid "Ratings"
 msgstr "评分"
@@ -1542,3 +1534,95 @@ msgstr "获得 %s 项"
 msgctxt "#32390"
 msgid "%s nominated"
 msgstr "%s 项提名"
+
+msgctxt "#32391"
+msgid "Audio offset"
+msgstr "音频偏移"
+
+msgctxt "#32392"
+msgid "Subtitle offset"
+msgstr "字幕偏移"
+
+msgctxt "#32394"
+msgid "Reset to 0"
+msgstr "重置为 0"
+
+msgctxt "#32395"
+msgid "Sort by"
+msgstr "排序方式"
+
+msgctxt "#32396"
+msgid "Title"
+msgstr "标题"
+
+msgctxt "#32397"
+msgid "Year"
+msgstr "年份"
+
+msgctxt "#32398"
+msgid "Rating"
+msgstr "评分"
+
+msgctxt "#32399"
+msgid "Date added"
+msgstr "添加日期"
+
+msgctxt "#32400"
+msgid "Runtime"
+msgstr "时长"
+
+msgctxt "#32401"
+msgid "All genres"
+msgstr "所有类型"
+
+msgctxt "#32402"
+msgid "All picture formats"
+msgstr "所有画面格式"
+
+msgctxt "#32403"
+msgid "All resolutions"
+msgstr "所有分辨率"
+
+msgctxt "#32404"
+msgid "All audio formats"
+msgstr "所有音频格式"
+
+msgctxt "#32405"
+msgid "Next up"
+msgstr "接下来"
+
+msgctxt "#32406"
+msgid "Details"
+msgstr "详情"
+
+msgctxt "#32407"
+msgid "Writer"
+msgstr "编剧"
+
+msgctxt "#32408"
+msgid "Studio"
+msgstr "制片公司"
+
+msgctxt "#32409"
+msgid "The details could not be read."
+msgstr "无法读取详情。"
+
+msgctxt "#32410"
+msgid "Genre"
+msgstr "类型"
+
+msgctxt "#32411"
+msgid "Close"
+msgstr "关闭"
+
+msgctxt "#32412"
+msgid "No titles match the filter"
+msgstr "没有符合筛选条件的标题"
+
+msgctxt "#32413"
+msgid "Ascending"
+msgstr "升序"
+
+msgctxt "#32414"
+msgid "Descending"
+msgstr "降序"

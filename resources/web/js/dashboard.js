@@ -47,10 +47,13 @@ const el = {
   continueFilmsCount: $("continueFilmsCount"),
   continueSeriesCard: $("continueSeriesCard"), continueSeriesRow: $("continueSeriesRow"),
   continueSeriesCount: $("continueSeriesCount"),
+  nextSeriesCard: $("nextSeriesCard"), nextSeriesRow: $("nextSeriesRow"),
+  nextSeriesCount: $("nextSeriesCount"),
   lastCard: $("lastCard"), lastTitle: $("lastTitle"), lastTiles: $("lastTiles"),
   filmsCard: $("filmsCard"), filmGrid: $("filmGrid"),
   filmsCount: $("filmsCount"), filmsEmpty: $("filmsEmpty"),
   filmSearch: $("filmSearch"), filmSearchClear: $("filmSearchClear"),
+  filmTools: $("filmTools"), seriesTools: $("seriesTools"),
   seriesCard: $("seriesCard"), seriesGrid: $("seriesGrid"),
   seriesCount: $("seriesCount"), seriesEmpty: $("seriesEmpty"),
   seriesSearch: $("seriesSearch"), seriesSearchClear: $("seriesSearchClear"),
@@ -65,7 +68,15 @@ const el = {
   markDialog: $("markDialog"), markTitle: $("markTitle"), markPlay: $("markPlay"),
   markRestart: $("markRestart"), markClear: $("markClear"),
   markWatched: $("markWatched"), markUnwatched: $("markUnwatched"),
-  markCancel: $("markCancel")
+  markCancel: $("markCancel"), markDetails: $("markDetails"),
+  detailsDialog: $("detailsDialog"), detailsTitle: $("detailsTitle"),
+  detailsMeta: $("detailsMeta"), detailsFormats: $("detailsFormats"),
+  detailsTagline: $("detailsTagline"), detailsPlot: $("detailsPlot"),
+  detailsFacts: $("detailsFacts"), detailsClose: $("detailsClose"),
+  detailsHero: $("detailsHero"), detailsBackdrop: $("detailsBackdrop"),
+  detailsPoster: $("detailsPoster"), detailsRatings: $("detailsRatings"),
+  detailsCast: $("detailsCast"), detailsX: $("detailsX"),
+  detailsPlay: $("detailsPlay"), detailsRestart: $("detailsRestart")
 };
 
 /* Keep VS10 by the playback card, under the plot that is the first card
@@ -122,6 +133,7 @@ TinyPPI.bindDisclosure(el.unseenSeriesCard, "dashboard.unseenseries", true);
    films tab and the episodes on the series tab, as the app splits them. */
 TinyPPI.bindDisclosure(el.continueFilmsCard, "dashboard.continuefilms", true);
 TinyPPI.bindDisclosure(el.continueSeriesCard, "dashboard.continueseries", true);
+TinyPPI.bindDisclosure(el.nextSeriesCard, "dashboard.nextseries", true);
 /* And what arrived last, under them. */
 TinyPPI.bindDisclosure(el.recentFilmsCard, "dashboard.recentfilms", true);
 TinyPPI.bindDisclosure(el.recentSeriesCard, "dashboard.recentseries", true);
