@@ -93,7 +93,7 @@ _EPISODE = ("ratings", "userrating", "tvshowid")
 def no_ratings() -> Ratings:
     """Return the ratings of a title the library knows nothing about."""
     return {"ratings": [], "mpaa": "", "age": "", "age_level": "", "userrating": 0,
-            "top250": 0, "awards": [], "ids": {}}
+            "top250": 0, "awards": [], "ids": {}, "item": {}}
 
 
 def home_country() -> str:
@@ -226,6 +226,7 @@ def _collect(details: Json, aged: Json, kind: str, ids: dict[str, str] | None = 
         "top250":     _count(details.get("top250"), 250),
         "awards":     awards_of(kind, title_ids(aged)),
         "ids":        ids or {},
+        "item":       {},
     }
 
 
@@ -271,7 +272,10 @@ def playing_ratings() -> Ratings | None:
     if item_id and kind == "movie":
         details = _details("VideoLibrary.GetMovieDetails", "movieid", item_id, _MOVIE,
                            "moviedetails")
-        return _collect(details, details, "movie", film_ids(details))
-    if item_id and kind == "episode":
-        return _episode_ratings(item_id)
-    return no_ratings()
+        found = _collect(details, details, "movie", film_ids(details))
+    elif item_id and kind == "episode":
+        found = _episode_ratings(item_id)
+    else:
+        return no_ratings()
+    found["item"] = {"kind": str(kind), "id": item_id}
+    return found

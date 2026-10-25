@@ -204,76 +204,55 @@ test("who directed it is not in the card of what is playing", (t) => {
   const { $, P } = panels(t);
   assert.equal($("director"), null);
   P.update(snap({ media: { directors: ["Denis Villeneuve"] } }));
-  // In the overview's credits instead.
   assert.equal($("nowCard").textContent.includes("Denis Villeneuve"), false);
-  assert.ok($("credits").textContent.includes("Denis Villeneuve"));
 });
 
-test("a frame that moved nothing of the title does not draw the overview again", (t) => {
-  const { $, P } = panels(t);
-  const media = { plot: "Paul joins the Fremen.", directors: ["Denis Villeneuve"] };
-  P.update(snap({ media }));
-  const credits = $("credits").firstElementChild;
-  // The same media, as a delta that left it alone carries it.
-  $("plotText").textContent = "drawn over";
-  P.update(snap({ media }));
-  assert.equal($("plotText").textContent, "drawn over", "nothing was written");
-  assert.equal($("credits").firstElementChild, credits);
-  // Other media is drawn again.
-  P.update(snap({ media: { ...media } }));
-  assert.equal($("plotText").textContent, "Paul joins the Fremen.");
-});
-
-test("the plot card: the plot under what is playing, with its slogan where there is one", (t) => {
+test("the overview is a key under what is playing that opens the title's details", (t) => {
   const { $, P, window } = panels(t);
-  assert.equal($("nowCard").nextElementSibling, $("plotCard"));
-  assert.ok($("plotCard").classList.contains("hidden"));
-  assert.equal($("plotCard").open, true, "it arrives unfolded");
-
-  P.update(snap({ media: { tagline: " Long live the fighters. ",
-                           plot: "Paul joins the Fremen.\nChani does not trust it." } }));
-  assert.equal($("plotCard").classList.contains("hidden"), false);
-  assert.equal($("tagline").textContent, "Long live the fighters.");
-  assert.equal($("plotText").textContent, "Paul joins the Fremen.\nChani does not trust it.");
-  assert.equal($("tagline").classList.contains("hidden"), false);
-  assert.equal($("plotText").classList.contains("hidden"), false);
-
-  // An episode: a plot and no slogan.
-  P.update(snap({ media: { plot: "Episode plot." } }));
-  assert.equal($("tagline").textContent, "");
-  assert.ok($("tagline").classList.contains("hidden"));
-  assert.equal($("plotText").textContent, "Episode plot.");
-  assert.equal($("plotCard").classList.contains("hidden"), false);
-
-  // A slogan and no plot: too little for a card.
-  P.update(snap({ media: { tagline: "Only this." } }));
-  assert.ok($("plotCard").classList.contains("hidden"));
-  assert.ok($("plotText").classList.contains("hidden"));
-
-  // A file the library does not know: neither, and no card.
-  P.update(snap({ media: { tagline: "  ", plot: "" } }));
-  assert.ok($("plotCard").classList.contains("hidden"));
-  P.update(snap());
-  assert.ok($("plotCard").classList.contains("hidden"));
-
-  // Words that stayed the same are not written again.
-  P.update(snap({ media: { plot: "Same." } }));
-  const written = $("plotText").firstChild;
-  P.update(snap({ media: { plot: "Same." } }));
-  assert.equal($("plotText").firstChild, written);
-
+  const card = $("plotCard");
+  assert.equal($("nowCard").nextElementSibling, card);
+  assert.equal(card.tagName, "BUTTON");
+  assert.ok(card.classList.contains("hidden"));
+  // Nothing of the title in it: its heading alone.
+  P.update(snap({ media: { plot: "Paul joins the Fremen.", item: { kind: "movie", id: 7 } } }));
+  assert.equal(card.classList.contains("hidden"), false);
+  assert.deepEqual([...card.children].map((node) => node.id), ["plotTitle"]);
+  // A press opens the playing title's details, where the page has them.
+  const opened = [];
+  card.click();
+  window.TinyPPI.openDetails = (item) => opened.push(item);
+  card.click();
+  assert.deepEqual(plain(opened), [{ kind: "movie", id: 7, title: "Film" }]);
+  // An episode as well; a file the library does not know, or anything else,
+  // has none.
+  P.update(snap({ media: { item: { kind: "episode", id: 70 } } }));
+  assert.equal(card.classList.contains("hidden"), false);
+  for (const item of [undefined, {}, { kind: "channel", id: 3 }, { kind: "movie", id: 0 }]) {
+    P.update(snap({ media: { plot: "A plot.", item } }));
+    assert.ok(card.classList.contains("hidden"), JSON.stringify(item));
+  }
+  card.click();
+  assert.equal(opened.length, 1);
   // Nothing playing puts it away with the rest.
+  P.update(snap({ media: { item: { kind: "movie", id: 7 } } }));
   P.update({ playing: false });
-  assert.ok($("plotCard").classList.contains("hidden"));
-
-  P.strings({ ...window.TinyPPI.T, plot: "Handlung" });
-  assert.equal($("plotTitle").textContent, "Handlung");
+  assert.ok(card.classList.contains("hidden"));
+  // Named by the strings, and says what a press does.
+  P.strings({ ...window.TinyPPI.T, plot: "Überblick", details: "Details" });
+  assert.equal($("plotTitle").textContent, "Überblick");
+  assert.equal(card.title, "Details");
 });
 
-test("the overview card carries every rating as a shield with its mark, under the slogan and the plot", (t) => {
-  const { $, P, window } = panels(t);
+test("a title's ratings are shields with their marks, said in words", (t) => {
+  const { P, window } = panels(t);
+  const row = window.document.createElement("div");
+  let shown = {};
+  const rate = (media) => {
+    shown = media;
+    row.replaceChildren(...P.shields(media));
+  };
   /* Each shield as [class, what it says, its left, what is written on its right]. */
-  const badges = () => [...$("ratings").children].map((node) => {
+  const badges = () => [...row.children].map((node) => {
     const side = node.querySelector(".side");
     const image = side && side.querySelector("img");
     const drawn = !side ? "" : image
@@ -291,19 +270,7 @@ test("the overview card carries every rating as a shield with its mark, under th
               { source: "popcorn", rating: 8.8, votes: 0, certified: false },
               { source: "filmaffinity", rating: 8.9, votes: 3, certified: true }],
     userrating: 9, top250: 27, mpaa: "FSK 12", age: "fsk12", age_level: "12" };
-  P.update(snap({ media: rated }));
-  assert.equal($("plotCard").classList.contains("hidden"), false);
-  assert.equal($("ratings").classList.contains("hidden"), false);
-  // First, as on a title's details page: then the slogan, the plot, the
-  // facts and the cast.
-  assert.equal($("ratings").previousElementSibling, null);
-  assert.equal($("ratings").nextElementSibling, $("ratingTip"));
-  assert.equal($("ratingTip").nextElementSibling, $("tagline"));
-  // No heading on the screen; named for a screen reader.
-  assert.equal($("ratings").getAttribute("aria-label"), "Ratings");
-  assert.equal($("tagline").nextElementSibling, $("plotText"));
-  assert.equal($("plotText").nextElementSibling, $("credits"));
-  assert.equal($("credits").nextElementSibling, $("castBlock"));
+  rate(rated);
   assert.deepEqual(plain(badges()), [
     ["rating age", "FSK 12", "side fsk12 plate /ratings/fsk12.svg", [["value", "12"]]],
     // How many voted is not shown, nor said.
@@ -319,84 +286,70 @@ test("the overview card carries every rating as a shield with its mark, under th
     ["rating mine", "My rating 9", "side heart:", [["value", "9"]]],
     ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg", [["value", "#27"]]]]);
   // Said in words, drawn as marks: the drawing is kept from a screen reader.
-  for (const node of $("ratings").children) {
+  for (const node of row.children) {
     assert.equal(node.getAttribute("role"), "listitem");
     assert.equal(node.querySelector(".look").getAttribute("aria-hidden"), "true");
   }
   // Under a pointer, whose each is, and not what it gave.
-  assert.deepEqual([...$("ratings").children].map((node) => node.title),
+  assert.deepEqual([...row.children].map((node) => node.title),
                    ["FSK", "IMDb", "TMDb", "Trakt", "Rotten Tomatoes · Certified Fresh",
                     "Rotten Tomatoes Popcornmeter", "Filmaffinity", "My rating", "IMDb Top 250"]);
-  assert.equal($("ratings").querySelector("img").alt, "");
-  const seals = [...$("ratings").querySelectorAll(".seal")];
+  assert.equal(row.querySelector("img").alt, "");
+  const seals = [...row.querySelectorAll(".seal")];
   assert.deepEqual(seals.map((seal) => [seal.parentElement.className, seal.getAttribute("src"), seal.alt]),
                    [["side rottentomatoes", "/ratings/certified.svg", ""]]);
 
-  // The same badges again are not built again.
-  const first = $("ratings").firstChild;
-  P.update(snap({ media: { ...rated } }));
-  assert.equal($("ratings").firstChild, first);
-
   // The words arrive later, and the badges say them.
-  P.strings({ ...window.TinyPPI.T, my_rating: "Eigene Bewertung",
-              top250: "Top 250 · Platz %s", ratings: "Bewertungen" });
-  assert.equal($("ratings").getAttribute("aria-label"), "Bewertungen");
-  const said = () => [...$("ratings").children].map((node) => node.querySelector(".said").textContent);
+  Object.assign(window.TinyPPI.T, { my_rating: "Eigene Bewertung", top250: "Top 250 · Platz %s" });
+  rate(shown);
+  const said = () => [...row.children].map((node) => node.querySelector(".said").textContent);
   assert.deepEqual(said().slice(0, 2), ["FSK 12", "IMDb 8.5"]);
   assert.deepEqual(said().slice(7, 9), ["Eigene Bewertung 9", "Top 250 · Platz 27"]);
 
   // An age rating no FSK level is read from is written out, with no mark.
-  P.update(snap({ media: { ...rated, ratings: [{ source: "imdb", rating: 7.0, votes: 0 }],
-                           userrating: 0, top250: 0, mpaa: "Rated PG-13 for violence", age: "" } }));
+  rate({ ...rated, ratings: [{ source: "imdb", rating: 7.0, votes: 0 }],
+         userrating: 0, top250: 0, mpaa: "Rated PG-13 for violence", age: "" });
   assert.deepEqual(plain(badges()), [
     ["rating age", "Rated PG-13 for violence", "", [["value", "Rated PG-13 for violence"]]],
     ["rating score", "IMDb 7.0", "side imdb /ratings/imdb.svg", [["value", "7.0"]]]]);
 
-  // Ratings without a plot: the card for them alone, and no slogan.
-  P.update(snap({ media: { tagline: "Only this.", mpaa: "FSK 16", age: "fsk16", age_level: "16" } }));
-  assert.equal($("plotCard").classList.contains("hidden"), false);
+  rate({ mpaa: "FSK 16", age: "fsk16", age_level: "16" });
   assert.deepEqual(plain(badges()), [["rating age", "FSK 16", "side fsk16 plate /ratings/fsk16.svg",
                                       [["value", "16"]]]]);
 
-  assert.ok($("tagline").classList.contains("hidden"));
-  assert.ok($("plotText").classList.contains("hidden"));
   // An American or a British one wears its own board's mark.
   for (const [mpaa, age, level, board] of [["Rated PG-13", "mpa_pg13", "PG-13", "MPA"],
                                            ["TV-MA", "tv_ma", "MA", "TV Parental Guidelines"],
                                            ["Rated 15", "bbfc_15", "15", "BBFC"]]) {
-    P.update(snap({ media: { plot: "Plot.", mpaa, age, age_level: level } }));
+    rate({ plot: "Plot.", mpaa, age, age_level: level });
     assert.deepEqual(plain(badges()),
                      [["rating age", mpaa, `side ${age} plate /ratings/${age}.svg`, [["value", level]]]]);
     // Named by its board.
-    assert.equal($("ratings").firstChild.title, board);
+    assert.equal(row.firstChild.title, board);
   }
   // An add-on that sent the mark and not yet the level: the plate alone.
-  P.update(snap({ media: { plot: "Plot.", mpaa: "FSK 6", age: "fsk6" } }));
+  rate({ plot: "Plot.", mpaa: "FSK 6", age: "fsk6" });
   assert.deepEqual(plain(badges()), [["rating age", "FSK 6", "side fsk6 plate /ratings/fsk6.svg", []]]);
 
-  // A plot without ratings: no row of badges.
-  P.update(snap({ media: { plot: "An episode.", ratings: [], userrating: 0, top250: 0, mpaa: "" } }));
-  assert.ok($("ratings").classList.contains("hidden"));
-  assert.equal($("ratings").children.length, 0);
-  assert.equal($("plotCard").classList.contains("hidden"), false);
-
-  // Neither: no card.
-  P.update(snap({ media: { tagline: "Only this.", ratings: [] } }));
-  assert.ok($("plotCard").classList.contains("hidden"));
+  // None at all: no shields.
+  rate({ plot: "An episode.", ratings: [], userrating: 0, top250: 0, mpaa: "" });
+  assert.equal(row.children.length, 0);
 
   // A source with no name is drawn on an empty plate and said by its figure.
-  P.update(snap({ media: { ratings: [{ rating: 5 }] } }));
+  rate({ ratings: [{ rating: 5 }] });
   assert.deepEqual(plain(badges()), [["rating score", "5.0", "side letter:", [["value", "5.0"]]]]);
 });
 
 test("the sources MDBList brings wear their own marks and names", (t) => {
-  const { $, P } = panels(t);
+  const { P, window } = panels(t);
+  const row = window.document.createElement("div");
+  const rate = (media) => row.replaceChildren(...P.shields(media));
   const sources = [["letterboxd", "Letterboxd"], ["metacriticuser", "Metacritic User Score"],
                    ["popcorn", "Rotten Tomatoes Popcornmeter"], ["rogerebert", "Roger Ebert"],
                    ["myanimelist", "MyAnimeList"], ["mdblist", "MDBList"]];
-  P.update(snap({ media: { plot: "Plot.",
-                           ratings: sources.map(([source]) => ({ source, rating: 7.5, votes: 0 })) } }));
-  const drawn = [...$("ratings").children].map((node) =>
+  rate({ plot: "Plot.",
+                           ratings: sources.map(([source]) => ({ source, rating: 7.5, votes: 0 })) });
+  const drawn = [...row.children].map((node) =>
     [node.querySelector(".said").textContent, node.querySelector("img").getAttribute("src")]);
   assert.deepEqual(drawn, sources.map(([source, name]) => [name + " 7.5", "/ratings/" + source + ".svg"]));
   // Each drawn by tools/gen_rating_marks.py and served with the page.
@@ -406,18 +359,24 @@ test("the sources MDBList brings wear their own marks and names", (t) => {
 });
 
 test("the big awards stand last, as drawings: what was won, or else what was nominated", (t) => {
-  const { $, P, window } = panels(t);
+  const { P, window } = panels(t);
+  const row = window.document.createElement("div");
+  let shown = {};
+  const rate = (media) => {
+    shown = media;
+    row.replaceChildren(...P.shields(media));
+  };
   /* Each shield as [class, what it says, its left, its figure, its tooltip]. */
-  const badges = () => [...$("ratings").children].map((node) => [
+  const badges = () => [...row.children].map((node) => [
     node.className, node.querySelector(".said").textContent,
     node.querySelector(".side").className + " " + node.querySelector("img").getAttribute("src"),
     node.querySelector(".value").textContent, node.title]);
-  P.update(snap({ media: { plot: "Plot.", top250: 27, awards: [
+  rate({ plot: "Plot.", top250: 27, awards: [
     { award: "oscar", won: ["Visual Effects (2015)"], nominated: 4 },
     { award: "globe", won: [], nominated: 1 },
     { award: "bafta", won: ["Film (2015)", "Score (2015)"], nominated: 0 },
     // One the page has no name for is called as the add-on calls it.
-    { award: "cesar", won: [], nominated: 2 }] } }));
+    { award: "cesar", won: [], nominated: 2 }] });
   assert.deepEqual(plain(badges()), [
     ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg", "#27", "IMDb Top 250"],
     ["rating award", "Oscar 1 won", "side award_oscar /ratings/award_oscar.svg", "1",
@@ -429,112 +388,10 @@ test("the big awards stand last, as drawings: what was won, or else what was nom
     ["rating nominee", "cesar 2 nominated", "side award_cesar /ratings/award_cesar.svg", "2",
      "cesar · 2 nominated"]]);
   // The words arrive later, and the awards say them.
-  P.strings({ ...window.TinyPPI.T, award_won: "%s gewonnen", award_nominated: "%s nominiert" });
-  assert.equal($("ratings").children[1].querySelector(".said").textContent, "Oscar 1 gewonnen");
-  assert.equal($("ratings").children[1].title, "Oscar: Visual Effects (2015) · 4 nominiert");
-});
-
-test("a tap on a rating's shield shows its words over it for a moment", (t) => {
-  const { $, P, window } = panels(t);
-  const timers = heldTimers(window);
-  P.update(snap({ media: { plot: "Plot.", ratings: [{ source: "trakt", rating: 8.8, votes: 0 },
-                                                     { source: "letterboxd", rating: 9.0, votes: 0 }] } }));
-  const tip = $("ratingTip");
-  assert.ok(tip.classList.contains("hidden"));
-  assert.equal(tip.getAttribute("aria-hidden"), "true");
-  // jsdom lays nothing out: the card and the shield are given their boxes.
-  $("ratings").parentElement.getBoundingClientRect = () => ({ left: 10, top: 20 });
-  const [trakt, letterboxd] = $("ratings").children;
-  trakt.getBoundingClientRect = () => ({ left: 50, top: 220, width: 60 });
-  letterboxd.getBoundingClientRect = () => ({ left: 120, top: 220, width: 70 });
-  // A tap on the mark itself is a tap on its shield, and the shield's alone:
-  // the plot over them does not hear it.
-  let pressed = 0;
-  $("plotText").addEventListener("click", () => { pressed += 1; });
-  trakt.querySelector("img").click();
-  assert.equal(pressed, 0);
-  assert.equal(tip.classList.contains("hidden"), false);
-  assert.equal(tip.textContent, "Trakt");
-  assert.deepEqual([tip.style.left, tip.style.top], ["70px", "200px"]);
-  assert.deepEqual(timers.delays(), [4000]);
-  // Another shield before it is gone: its words, and the moment starts again.
-  letterboxd.click();
-  assert.equal(tip.textContent, "Letterboxd");
-  assert.equal(tip.style.left, "145px");
-  assert.deepEqual(timers.delays(), [4000]);
-  timers.run();
-  assert.ok(tip.classList.contains("hidden"));
-  // A tap beside the shields shows nothing, and does not fold the plot.
-  $("ratings").click();
-  assert.ok(tip.classList.contains("hidden"));
-  assert.equal(pressed, 0);
-});
-
-test("the overview's facts and cast are drawn as a title's details page draws them", (t) => {
-  const { $, P, window } = panels(t);
-  const facts = () => [...$("credits").children].map((fact) =>
-    [fact.className, ...[...fact.children].map((part) => part.tagName + " " + part.textContent)]);
-  const cards = () => [...$("castBlock").querySelectorAll("li")].map((card) =>
-    [card.className, ...[...card.children].map((part) => part.className + ":" + part.textContent)]);
-  const credited = {
-    plot: "Paul joins the Fremen.", ratings: [{ source: "imdb", rating: 8.5, votes: 0 }],
-    genres: ["Science Fiction", "Adventure"], directors: ["Denis Villeneuve"],
-    writers: ["Jon Spaihts"], cast: ["Timothée Chalamet", "Zendaya", "Rebecca Ferguson"],
-    roles: ["Paul Atreides", "Chani"], cast_more: true, studios: ["Legendary Pictures"]
-  };
-  P.update(snap({ media: credited }));
-  // Each fact its name over the names; every genre, director and writer,
-  // and the studio.
-  assert.equal($("credits").classList.contains("hidden"), false);
-  assert.deepEqual(facts(), [
-    ["fact", "DT Genre", "DD Science Fiction, Adventure"],
-    ["fact", "DT Director", "DD Denis Villeneuve"],
-    ["fact", "DT Writer", "DD Jon Spaihts"],
-    ["fact", "DT Studio", "DD Legendary Pictures"]]);
-  // The cast under its heading as a row of cards: the initial, the name and
-  // who they played -- an empty line where the library names no role -- and
-  // an ellipsis where the add-on said there are more.
-  assert.equal($("castBlock").querySelector(".casthead").textContent, "Cast");
-  assert.deepEqual(cards(), [
-    ["", "initial:T", ":Timothée Chalamet", "role:Paul Atreides"],
-    ["", "initial:Z", ":Zendaya", "role:Chani"],
-    ["", "initial:R", ":Rebecca Ferguson", "role:"],
-    ["more"]]);
-  assert.equal($("castBlock").querySelector(".initial").getAttribute("aria-hidden"), "true");
-
-  // The same credits again are not built again.
-  const first = $("credits").firstChild;
-  P.update(snap({ media: { ...credited } }));
-  assert.equal($("credits").firstChild, first);
-
-  // The words arrive later, into the page's table, and the facts and the
-  // cast are named in them.
-  Object.assign(window.TinyPPI.T, { director: "Regisseur", cast: "Darsteller" });
-  P.strings(window.TinyPPI.T);
-  assert.equal(facts()[1][1], "DT Regisseur");
-  assert.equal($("castBlock").querySelector(".casthead").textContent, "Darsteller");
-
-  // An add-on older than the list of genres and the roles: the card above's
-  // two, and nobody's role.
-  P.update(snap({ media: { plot: "Plot.", genre: "Drama / Crime", cast: ["Somebody"] } }));
-  assert.deepEqual(facts(), [["fact", "DT Genre", "DD Drama, Crime"]]);
-  assert.deepEqual(cards(), [["", "initial:S", ":Somebody", "role:"]]);
-  // What kind of film and its studio alone are no overview; somebody
-  // credited is one.
-  P.update(snap({ media: { studios: ["A24"], genres: ["Drama"] } }));
-  assert.ok($("plotCard").classList.contains("hidden"));
-  P.update(snap({ media: { writers: ["Joel Coen", "Ethan Coen"] } }));
-  assert.equal($("plotCard").classList.contains("hidden"), false);
-  assert.deepEqual(facts(), [["fact", "DT Writer", "DD Joel Coen, Ethan Coen"]]);
-  assert.ok($("castBlock").classList.contains("hidden"));
-  assert.ok($("plotText").classList.contains("hidden"));
-  assert.ok($("ratings").classList.contains("hidden"));
-
-  // None at all: no facts and no cast.
-  P.update(snap({ media: { plot: "An episode." } }));
-  assert.ok($("credits").classList.contains("hidden"));
-  assert.equal($("credits").children.length, 0);
-  assert.equal($("castBlock").children.length, 0);
+  Object.assign(window.TinyPPI.T, { award_won: "%s gewonnen", award_nominated: "%s nominiert" });
+  rate(shown);
+  assert.equal(row.children[1].querySelector(".said").textContent, "Oscar 1 gewonnen");
+  assert.equal(row.children[1].title, "Oscar: Visual Effects (2015) · 4 nominiert");
 });
 
 test("the finish clock shows as it arrived and takes its label from the strings", (t) => {

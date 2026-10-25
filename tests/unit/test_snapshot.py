@@ -206,7 +206,7 @@ def rated(monkeypatch):
                        "mpaa": "FSK 12", "age": "fsk12", "age_level": "12",
                        "userrating": 9, "top250": 27,
                        "awards": [{"award": "oscar", "won": ["Best Picture (1995)"], "nominated": 6}],
-                       "ids": {"imdb": "tt0111161"}}}
+                       "ids": {"imdb": "tt0111161"}, "item": {"kind": "movie", "id": 12}}}
     monkeypatch.setattr(snapshot, "playing_ratings", lambda: asked.append(1) or given["found"])
     return asked, given
 
@@ -218,6 +218,8 @@ def test_the_ratings_travel_in_the_media_block(rated):
     assert (media["mpaa"], media["age"], media["age_level"]) == ("FSK 12", "fsk12", "12")
     assert (media["userrating"], media["top250"]) == (9, 27)
     assert media["awards"] == [{"award": "oscar", "won": ["Best Picture (1995)"], "nominated": 6}]
+    # Which library title it is, for the page to open its details by.
+    assert media["item"] == {"kind": "movie", "id": 12}
 
 
 def test_mdblist_ratings_lie_over_the_librarys_and_the_ids_stay_behind(rated, monkeypatch):

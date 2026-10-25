@@ -167,8 +167,11 @@ async function showDetails(question) {
   el.detailsFacts.replaceChildren(...TinyPPI.panels.facts(found));
   el.detailsCast.replaceChildren(...TinyPPI.panels.cast(found));
   tintDetails();
-  /* The question's first answers, offered on the page too. */
-  el.detailsPlay.textContent = question.play;
+  /* The question's first answers, offered on the page too -- where it was
+     asked from a shelf; the playing title's, opened from the overview, has
+     none to offer. */
+  el.detailsPlay.parentElement.hidden = !question.onPlay;
+  el.detailsPlay.textContent = question.play || "";
   el.detailsRestart.hidden = !question.resumable;
   detailing = question;
   el.detailsDialog.returnValue = "";
@@ -194,6 +197,11 @@ function tintDetails() {
     dialog.classList.add("tinted");
   });
 }
+
+/* The overview card on the live tab opens the playing title's details (see
+   renderPlot in js/live-panels.js). */
+TinyPPI.openDetails = (item) =>
+  showDetails({ title: item.title, body: { [item.kind + "id"]: item.id } });
 
 el.detailsDialog.addEventListener("close", () => {
   const answer = el.detailsDialog.returnValue;

@@ -481,3 +481,20 @@ test("on the adaptive theme the details wear their own title's colour, not what 
   assert.equal(dialog.classList.contains("tinted"), false);
 });
 
+
+test("the overview opens the playing title's details, with nothing to play on them", async (t) => {
+  const view = await open(t);
+  view.window.TinyPPI.openDetails({ kind: "movie", id: 1, title: "Alien" });
+  await settle();
+  assert.ok(view.requests.some((request) => request.url === "/api/details?movieid=1"));
+  assert.ok(view.$("detailsDialog").open);
+  assert.equal(view.$("detailsTitle").textContent, "Alien");
+  assert.ok(view.$("detailsPlay").parentElement.hidden);
+  assert.equal(view.$("detailsPlay").textContent, "");
+  closeDetails(view, "close");
+  // Opened from a shelf again, the keys are back.
+  [...view.$("filmGrid").children][0].click();
+  answer(view, "details");
+  await settle();
+  assert.equal(view.$("detailsPlay").parentElement.hidden, false);
+});

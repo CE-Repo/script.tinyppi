@@ -164,6 +164,15 @@ class Credits(TypedDict):
     studios: list[str]
 
 
+class LibraryItem(TypedDict, total=False):
+    """Which library title is playing: "movie" or "episode" and its id, for
+    the page to open its details by; {} for a file the library does not
+    know."""
+
+    kind: str
+    id: int
+
+
 class Ratings(TypedDict):
     """The playing title's ratings (web/ratings.py); empty or 0 where unknown."""
 
@@ -183,6 +192,8 @@ class Ratings(TypedDict):
     # A film's IMDb and TMDb ids ("imdb", "tmdb"), for MDBList to be asked
     # by (see web.mdblist); {} for an episode.  Not sent to the page.
     ids: dict[str, str]
+    # Which library title it is, where it is one (see LibraryItem).
+    item: LibraryItem
 
 
 class Media(TypedDict):
@@ -204,6 +215,7 @@ class Media(TypedDict):
     userrating: int
     top250: int
     awards: list[Award]
+    item: LibraryItem
     # And who made it (see Credits).
     genres: list[str]
     directors: list[str]

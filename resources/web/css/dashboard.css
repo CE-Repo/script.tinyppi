@@ -921,6 +921,7 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
 /* The question's first answers, side by side: play (resume, or open for a
    series) in the accent, and starting over beside it where there is a point
    to resume from. */
+.detailsactions[hidden] { display: none; }
 .detailsactions { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; }
 .detailsactions button {
   min-height: 52px;
@@ -939,8 +940,8 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
 @media (hover: hover) {
   .detailsactions button[value="play"]:hover { background: color-mix(in srgb, var(--on-accent) 8%, var(--accent)); }
 }
-/* The slogan, the plot, the facts and the cast are drawn as the overview
-   card draws them (see "a title's facts and cast" in css/live-panels.css). */
+/* The slogan in italics over the plot, as the app sets them; the facts and
+   the cast are in css/live-panels.css ("a title's facts and cast"). */
 .detailstagline { margin: 0; font-style: italic; font-size: 16px; line-height: 24px; color: var(--muted); }
 dialog p.detailsplot { color: var(--text); white-space: pre-line; line-height: 24px; font-size: 16px; }
 .detailsfoot { padding: 12px 20px 18px; }

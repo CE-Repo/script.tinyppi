@@ -78,7 +78,7 @@ the screen:
 
 | Tab | Address | What is on it | Shown |
 |---|---|---|---|
-| **Live** | `/#live` | Now playing, the overview (ratings, slogan, plot, genre, director, writer, studio, cast), transport controls, VS10 output and every reading of the overlay | always |
+| **Live** | `/#live` | Now playing, the overview (a key to the playing title's details), transport controls, VS10 output and every reading of the overlay | always |
 | **Metadata** | `/#metadata` | Active picture area, L1 luminance chart, the full Dolby Vision metadata list | only while a Dolby Vision title plays (and **Show the Dolby Vision metadata view** is on) |
 | **Films** | `/#films` | Continue watching (films), recently added, unwatched films, the whole film library | when the film library is offered |
 | **Series** | `/#series` | Continue watching (episodes), recently updated series, series with unwatched episodes, the whole series library | when the series library is offered |
@@ -137,29 +137,26 @@ overlay follows.
 
 ## Overview
 
-A card under *Now playing*, laid out exactly as a title's
-[details page](#play-resume-and-watched-marks) is — and as the TinyPPI app draws
-both:
+A card under *Now playing* that is nothing but its heading and an arrow — a
+key. A click or tap on it opens the playing title's
+[details page](#play-resume-and-watched-marks): its ratings as shields, the
+slogan and the plot, genre, director, writer and studio, and the cast as a row
+of cards. The page has no play keys there — the title is already playing. The
+card is drawn for a film or an episode the library holds; a file it does not
+know has no details, and no card.
 
-- **Ratings** — first, a centred row of small shields, each washed in its
-  service's colour: first the age rating (FSK, MPA, TV Parental Guidelines,
-  BBFC as a mark on the level's colour; any other written out), then a score
-  for each source — IMDb, TMDB, Trakt, TheTVDB, Letterboxd, Metacritic and its
-  users, Rotten Tomatoes and its Popcornmeter, Roger Ebert (*RE*), MyAnimeList,
+The shields on the details page:
+
+- **Ratings** — a centred row of small shields, each washed in its service's
+  colour: first the age rating (FSK, MPA, TV Parental Guidelines, BBFC as a
+  mark on the level's colour; any other written out), then a score for each
+  source — IMDb, TMDB, Trakt, TheTVDB, Letterboxd, Metacritic and its users,
+  Rotten Tomatoes and its Popcornmeter, Roger Ebert (*RE*), MyAnimeList,
   MDBList, or the first letter of any other — then your own rating behind a
   heart, the place in the IMDb Top 250 (*250* | *#17*) and the big awards (see
   [Awards](#awards)). How many voted is not shown. Every score is out of ten,
   whatever scale its service uses: Roger Ebert's 3.5 of 4 stars show as 8.8,
   Letterboxd's 4.5 of 5 as 9.0.
-- **Slogan and plot** — the slogan in italics (where the library has one; most
-  episodes have none) right over the whole plot.
-- **Genre**, **Director**, **Writer** and **Studio** — each its name, small and
-  quiet, over the names.
-- **Cast** — under its heading, a row of cards that scrolls sideways: the
-  initial in a circle, the name and who they played, the cast's first **20** in
-  billing order and "…" where there are more. Every card is the same height,
-  whatever its name or role. An episode's cast is its own guests and then the
-  show's.
 
 **Which board is an age rating?** An episode carries its show's age rating.
 One that names neither its country nor its board ("Rated 12", which the TMDb
@@ -170,10 +167,9 @@ German, British English or American English. The credits and the ratings are
 what Kodi knows of whatever plays, so an add-on's stream that names them has
 them too.
 
-**Which service is a mark?** A tap or click on a shield shows its name over it
-for two seconds (*IMDb*, *Trakt*, *FSK*, *IMDb Top 250* …); a mouse pointer
-shows the same as a tooltip. A tap on a shield does not fold the card. A
-screen reader hears each shield in full (*"IMDb 8.5"*).
+**Which service is a mark?** A mouse pointer over a shield shows its name as a
+tooltip (*IMDb*, *Trakt*, *FSK*, *IMDb Top 250* …). A screen reader hears each
+shield in full (*"IMDb 8.5"*).
 
 The services' marks are their own logos, the age ratings, Metacritic's users,
 Roger Ebert and the Top 250 simplified marks drawn for TinyPPI (see

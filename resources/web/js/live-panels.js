@@ -93,28 +93,13 @@
         '</div>' +
       '</div>' +
     '</section>' +
-    /* What the title is about, who is in it and what it has been given,
-       under the card of what is playing -- drawn as a title's details page
-       draws them (see showDetails in js/marking.js): the ratings, the
-       slogan and the plot, what kind of film it is and who made it, and the
-       cast as a row of cards. */
-    '<details class="card hidden" id="plotCard">' +
-      '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
-      '<div class="plot">' +
-        /* The ratings first: short facts about the film, taken in at a
-           glance.  No heading on the screen -- the houses' marks say what
-           they are -- but one for a screen reader (see strings). */
-        '<div class="ratings hidden" id="ratings" role="list"></div>' +
-        /* What a shield says, over it for a moment after a tap: the house
-           a mark is from, which a mark alone does not always tell.  A
-           screen reader hears each shield's words already. */
-        '<span class="ratingtip hidden" id="ratingTip" aria-hidden="true"></span>' +
-        '<p class="tagline hidden" id="tagline"></p>' +
-        '<p class="plottext hidden" id="plotText"></p>' +
-        '<dl class="facts hidden" id="credits"></dl>' +
-        '<div class="castblock hidden" id="castBlock"></div>' +
-      '</div>' +
-    '</details>' +
+    /* The overview: a card that is nothing but its heading, and a key --
+       a press on it opens the playing title's details page (see
+       showDetails in js/marking.js), where what the title is about, who
+       is in it and what it has been given stand. */
+    '<button class="card plotopen hidden" id="plotCard" type="button">' +
+      '<span class="plotopentitle" id="plotTitle"></span>' +
+    '</button>' +
     '<details class="card hidden" id="tiles">' +
       '<summary class="panel-toggle"><span id="tilesTitle"></span></summary>' +
       '<div class="tilegrid">' +
@@ -169,8 +154,7 @@
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), studio: $("studio"), file: $("file"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
-    plotCard: $("plotCard"), ratings: $("ratings"), ratingTip: $("ratingTip"), tagline: $("tagline"),
-    plotText: $("plotText"), credits: $("credits"), castBlock: $("castBlock"),
+    plotCard: $("plotCard"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
     tFinish: $("tFinish"), tFinishLabel: $("tFinishLabel"),
@@ -194,9 +178,8 @@
   let lastFinish = "";   /* the clock that label belongs in front of         */
   let idleFetched = false;  /* the ended title's events, asked for once      */
   let idleReset = false;    /* the panels have been put away once already    */
-  let plotMedia = {};       /* what the plot card was last drawn from        */
+  let plotItem = null;      /* the library title the overview opens         */
 
-  TinyPPI.bindDisclosure(el.plotCard, pageState + ".plot", true);
   TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
   /* The chart and the events arrive open: each is what a tab of its own is
      for now (the metadata tab and the history tab), and a tab that opens on a
@@ -234,8 +217,7 @@
     renderArt(snapshot.art || {});
     renderBadges(snapshot);
     renderFormats(snapshot);
-    /* Which title this is, for the overview to start folded on a new one. */
-    renderPlot(media);
+    renderPlot(media, snapshot.title);
 
     const progress = (snapshot.metrics || {}).progress;
     const percent = (progress === null || progress === undefined) ? 0 : progress;
@@ -273,63 +255,24 @@
     el.tFinish.classList.toggle("hidden", !finish);
   }
 
-  /* The card is there for the plot, the ratings and the credits: with none
-     of them it is left out.  The slogan belongs to the plot and goes without
-     it -- a slogan on its own says too little to be worth a card -- and with
-     a plot it is left out where the library has none, which is most
-     episodes.  Written only when the words change: they stand still for the
-     whole title, and a plot is the longest text on the page. */
-  function renderPlot(media) {
-    /* A frame that moved nothing of the title carries the very object the
-       last one did (see merge in core.js): there is nothing to draw again. */
-    if (media === plotMedia) return;
-    plotMedia = media;
-    const plot = (media.plot || "").trim();
-    const tagline = plot ? (media.tagline || "").trim() : "";
-    for (const [node, text] of [[el.tagline, tagline], [el.plotText, plot]]) {
-      if (node.textContent !== text) node.textContent = text;
-      node.classList.toggle("hidden", !text);
-    }
-    const badges = ratingBadges(media, TinyPPI.T);
-    fillRatings(badges);
-    el.ratings.setAttribute("aria-label", TinyPPI.T.ratings);
-    const credited = fillCredits(media, TinyPPI.T);
-    el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credited);
+  /* The overview is there for a title the library holds -- one whose
+     details can be opened -- and a file it does not know has none. */
+  function renderPlot(media, title) {
+    const item = media.item || {};
+    const known = (item.kind === "movie" || item.kind === "episode") && item.id > 0;
+    plotItem = known ? { kind: item.kind, id: item.id, title } : null;
+    el.plotCard.classList.toggle("hidden", !known);
   }
 
-  /* The playing title's credits as a details page holds them: every
-     genre (or the card above's two, from an add-on older than the list),
-     director, writer and studio, and the cast with who each played. */
-  function playingCredits(media) {
-    const genres = media.genres || (media.genre || "").split(" / ").filter(Boolean);
-    const roles = media.roles || [];
-    return {
-      genres, directors: media.directors, writers: media.writers, studios: media.studios,
-      cast: (media.cast || []).map((name, index) => ({ name, role: roles[index] || "" })),
-      cast_more: media.cast_more
-    };
-  }
-
-  /* The facts and the cast under the plot, built again only when they
-     would say something else; answers whether anybody is credited -- what
-     kind of film it is and its studio alone are no reason for the card. */
-  function fillCredits(media, T) {
-    const credits = playingCredits(media);
-    const signature = JSON.stringify([credits, T.genre, T.director, T.writer, T.studio, T.cast]);
-    if (el.credits.dataset.signature !== signature) {
-      el.credits.dataset.signature = signature;
-      el.credits.replaceChildren(...factNodes(credits, T));
-      el.castBlock.replaceChildren(...castParts(credits, T));
-    }
-    el.credits.classList.toggle("hidden", !el.credits.children.length);
-    el.castBlock.classList.toggle("hidden", !el.castBlock.children.length);
-    return [credits.directors, credits.writers, credits.cast].some((names) => names && names.length);
-  }
+  /* A press on it opens the title's details, where the page has them. */
+  el.plotCard.addEventListener("click", () => {
+    if (plotItem && TinyPPI.openDetails) TinyPPI.openDetails(plotItem);
+  });
 
   /* --- a title's facts and cast ----------------------------------------
 
-     Drawn alike on the overview card and on a title's details page (see
-     showDetails in js/marking.js), as the app draws both: each fact its
+     Drawn on a title's details page (see showDetails in js/marking.js), as
+     the app draws them: each fact its
      name, quieter and small, over the names; and the cast under its
      heading as a row of cards -- the initial in a circle, the name on two
      lines and who they played on one, held open where they are not
@@ -505,45 +448,11 @@
     return side;
   }
 
-  /* Built again only when a badge would say something else, which is once a
-     title (see fillRow).  Each is a shield: the house on the left, what it
-     gave on the right.  What a reader is told is the badge's sentence, kept
-     off the screen; what is drawn is kept from the reader, who would
-     otherwise hear "8.5 612,345" with nothing to say what either is. */
-  /* A tap -- or a click -- on a shield shows over it for a moment whose it
-     is; under a pointer its tooltip says so too. */
-  let tipTimer = 0;
-  /* The tip is placed in the card's body it stands in (.plot is its
-     positioned box), wherever the shields sit inside it. */
-  function tellRating(node) {
-    const card = el.ratingTip.parentElement.getBoundingClientRect();
-    const box = node.getBoundingClientRect();
-    el.ratingTip.textContent = node.title;
-    el.ratingTip.style.left = (box.left + box.width / 2 - card.left) + "px";
-    el.ratingTip.style.top = (box.top - card.top) + "px";
-    el.ratingTip.classList.remove("hidden");
-    clearTimeout(tipTimer);
-    tipTimer = setTimeout(() => el.ratingTip.classList.add("hidden"), 4000);
-  }
-
-  /* A tap on a shield is the shield's, not one that folds the plot. */
-  el.ratings.addEventListener("click", (event) => {
-    const node = event.target.closest(".rating");
-    if (!node) return;
-    event.stopPropagation();
-    tellRating(node);
-  });
-
-  function fillRatings(badges) {
-    const signature = JSON.stringify(badges);
-    if (el.ratings.dataset.signature === signature) return;
-    el.ratings.dataset.signature = signature;
-    el.ratings.replaceChildren(...shieldNodes(badges));
-    el.ratings.classList.toggle("hidden", !badges.length);
-  }
-
-  /* The shields themselves, for the overview card and for a library title's
-     details (see showDetails in js/marking.js). */
+  /* The shields of a library title's details (see showDetails in
+     js/marking.js).  Each is a shield: the house on the left, what it gave
+     on the right.  What a reader is told is the badge's sentence, kept off
+     the screen; what is drawn is kept from the reader, who would otherwise
+     hear "8.5 612,345" with nothing to say what either is. */
   function shieldNodes(badges) {
     const nodes = [];
     for (const badge of badges) {
@@ -1052,11 +961,7 @@
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
     $("plotTitle").textContent = T.plot;
-    /* The badges carry words of the table too ("My rating"), and the
-       facts and the cast their names. */
-    fillRatings(ratingBadges(plotMedia, T));
-    el.ratings.setAttribute("aria-label", T.ratings);
-    fillCredits(plotMedia, T);
+    el.plotCard.title = T.details;
     $("tilesTitle").textContent = T.metrics;
     $("kSwitches").textContent = T.switches;
     $("kWarnings").textContent = T.warnings;
@@ -1181,7 +1086,7 @@
     chapters.relayout();
   }
 
-  /* A library title's ratings as the overview card draws the playing one's. */
+  /* A library title's ratings, as shields. */
   function shields(media) {
     return shieldNodes(ratingBadges(media, TinyPPI.T));
   }

@@ -193,6 +193,8 @@ def test_a_film_brings_every_kind_of_rating():
         "awards": [{"award": "oscar", "won": ["Sound (2025)", "Visual Effects (2025)"], "nominated": 3},
                    {"award": "globe", "won": [], "nominated": 2}],
         "ids": {"imdb": "tt15239678", "tmdb": "693134"},
+        # Which library title it is, for its details page.
+        "item": {"kind": "movie", "id": 12},
     }
     assert ("VideoLibrary.GetMovieDetails",
             {"movieid": 12, "properties": ["ratings", "userrating", "mpaa", "top250", "uniqueid"]}) in fake.calls
@@ -229,7 +231,7 @@ def test_an_episode_rates_itself_and_takes_its_age_rating_from_its_show():
     assert [award["award"] for award in found.pop("awards")] == ["globe", "emmy"]
     assert found == {"ratings": [{"source": "tvdb", "rating": 8.8, "votes": 40}],
                      "mpaa": "FSK 16", "age": "fsk16", "age_level": "16", "userrating": 7,
-                     "top250": 0, "ids": {}}
+                     "top250": 0, "ids": {}, "item": {"kind": "episode", "id": 7}}
     assert ("VideoLibrary.GetTVShowDetails",
             {"tvshowid": 3, "properties": ["mpaa", "uniqueid"]}) in fake.calls
 
@@ -242,7 +244,7 @@ def test_a_show_is_found_for_its_awards_by_its_tvdb_id_first():
 
 def test_an_episode_without_a_show_has_no_age_rating():
     fake = Kodi(item={"id": 7, "type": "episode"}, details={"ratings": {}})
-    assert answer(fake) == no_ratings()
+    assert answer(fake) == {**no_ratings(), "item": {"kind": "episode", "id": 7}}
     assert "VideoLibrary.GetTVShowDetails" not in fake.methods()
 
 
@@ -267,4 +269,5 @@ def test_a_library_answer_of_the_wrong_shape_is_no_ratings(monkeypatch, result):
                "Player.GetItem": {"item": {"id": 1, "type": "movie"}}}
     monkeypatch.setattr(ratings, "rpc", lambda method, params=None: {"result": answers.get(method, result)})
     monkeypatch.setattr(ratings, "video_player_id", lambda: 1)
-    assert playing_ratings() == no_ratings()
+    # Still the library's title, whose details can be opened.
+    assert playing_ratings() == {**no_ratings(), "item": {"kind": "movie", "id": 1}}

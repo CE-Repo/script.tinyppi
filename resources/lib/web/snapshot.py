@@ -692,6 +692,8 @@ class SnapshotBuilder:
                 "userrating": ratings["userrating"],
                 "top250":     ratings["top250"],
                 "awards":     ratings["awards"],
+                # Which library title it is, for its details page.
+                "item":       ratings["item"],
                 "genres":         credits["genres"],
                 "directors":      credits["directors"],
                 "writers":        credits["writers"],
