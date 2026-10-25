@@ -72,7 +72,7 @@ const el = {
   detailsHero: $("detailsHero"), detailsBackdrop: $("detailsBackdrop"),
   detailsPoster: $("detailsPoster"), detailsRatings: $("detailsRatings"),
   detailsCast: $("detailsCast"), detailsX: $("detailsX"),
-  detailsActions: $("detailsActions"), detailsClear: $("detailsClear"),
+  detailsError: $("detailsError"), detailsActions: $("detailsActions"), detailsClear: $("detailsClear"),
   detailsWatched: $("detailsWatched"), detailsUnwatched: $("detailsUnwatched"),
   detailsPlay: $("detailsPlay"), detailsRestart: $("detailsRestart")
 };

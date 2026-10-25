@@ -132,6 +132,8 @@ class Details(TypedDict):
     id: int
     title: str
     ratings: list[Rating]
+    watched: NotRequired[bool]
+    resume: NotRequired[int]
     plot: NotRequired[str]
     tagline: NotRequired[str]
     show: NotRequired[str]

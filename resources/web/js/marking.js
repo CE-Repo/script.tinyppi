@@ -19,7 +19,9 @@ let detailing = null;
 /* Forget where a film or an episode got to, leaving it seen or unseen as it
    was: it leaves the row of things half-watched, and its bar leaves the wall. */
 async function clearResume(body) {
-  if (await post("/api/resume", body)) reread();
+  const ok = await post("/api/resume", body);
+  if (ok) reread();
+  return ok;
 }
 
 /* One of the library writes, answering whether the box took it and saying so
@@ -48,7 +50,9 @@ async function post(route, body) {
 }
 
 async function setWatched(body, watched) {
-  if (await post("/api/watched", Object.assign({ watched }, body))) reread();
+  const ok = await post("/api/watched", Object.assign({ watched }, body));
+  if (ok) reread();
+  return ok;
 }
 
 /* Read everything the write may have moved, at once rather than on the next
@@ -131,14 +135,54 @@ async function showDetails(question) {
   tintDetails();
   /* Library entries expose their actions here; the currently playing title
      opened from the overview is informational. */
-  el.detailsActions.hidden = !control || !question.onPlay;
-  el.detailsPlay.textContent = question.play || "";
+  question.watched = found.watched ?? !!question.watched;
+  question.resumable = found.resume === undefined ? !!question.resumable : found.resume > 0;
+  if (question.onPlay && key !== "tvshowid") question.play = question.resumable ? T.films_resume : T.films_play;
   el.detailsPlay.dataset.kind = key;
-  el.detailsRestart.hidden = !question.resumable;
-  el.detailsClear.hidden = !question.resumable;
+  el.detailsError.hidden = true;
+  renderDetailsActions(question);
   el.detailsDialog.returnValue = "";
   el.detailsDialog.showModal();
   el.detailsDialog.querySelector("form").scrollTop = 0;
+}
+
+/* Actions are updated without rebuilding the page or moving its scroll position. */
+function renderDetailsActions(question) {
+  el.detailsActions.hidden = !control || !question.onPlay;
+  el.detailsPlay.textContent = question.play || "";
+  el.detailsRestart.hidden = !question.resumable;
+  el.detailsClear.hidden = !question.resumable;
+  el.detailsWatched.hidden = !!question.watched;
+  el.detailsUnwatched.hidden = !question.watched;
+  for (const button of el.detailsActions.querySelectorAll("button")) button.disabled = !!question.busy;
+}
+
+for (const button of [el.detailsRestart, el.detailsClear, el.detailsWatched, el.detailsUnwatched]) {
+  button.addEventListener("click", async () => {
+    const question = detailing;
+    if (!question || !question.onPlay || !control || question.busy || button.hidden) return;
+    question.busy = true;
+    el.detailsError.hidden = true;
+    renderDetailsActions(question);
+    if (button.value === "restart") {
+      await question.onPlay(true);
+    } else {
+      const clearing = button.value === "clear";
+      const watched = button.value === "watched";
+      const ok = clearing ? await clearResume(question.body) : await setWatched(question.body, watched);
+      if (ok) {
+        if (clearing) {
+          question.resumable = false;
+          question.play = T.films_play;
+        } else question.watched = watched;
+      } else if (detailing === question) {
+        el.detailsError.textContent = T.mark_failed;
+        el.detailsError.hidden = false;
+      }
+    }
+    question.busy = false;
+    if (detailing === question) renderDetailsActions(question);
+  });
 }
 
 /* On the adaptive theme the page takes its accent from the title's own
@@ -175,9 +219,6 @@ el.detailsDialog.addEventListener("close", () => {
   detailing = null;
   if (!question || !question.onPlay || !control) return;
   if (answer === "play") question.onPlay(false);
-  else if (answer === "restart") question.onPlay(true);
-  else if (answer === "clear") clearResume(question.body);
-  else if (answer === "watched" || answer === "unwatched") setWatched(question.body, answer === "watched");
 });
 
 /* Every way of opening a title leads to its details and actions. */

@@ -138,6 +138,10 @@ const shown = (view, id) => [...view.$(id).children].filter((node) => !node.hidd
 function answer({ window, $ }, value) {
   if (value === "details") return;
   const dialog = $("detailsDialog");
+  if (["restart", "clear", "watched", "unwatched"].includes(value)) {
+    dialog.querySelector('button[value="' + value + '"]').click();
+    return;
+  }
   dialog.returnValue = value;
   dialog.close();
   dialog.dispatchEvent(new window.Event("close"));
@@ -334,7 +338,7 @@ test("details stand under the title's backdrop with its poster, shields, plot, f
     [...node.children].map((part) => part.textContent));
   assert.deepEqual(facts, [["Genre", "Horror, Sci-Fi"],
                            ["Studio", "20th Century Fox"]]);
-  assert.deepEqual(cast(view), ["Director", "RRidley Scott", "SSigourney WeaverRipley", "JJones", "…"]);
+  assert.deepEqual(cast(view), ["Cast", "RRidley ScottDirector", "SSigourney WeaverRipley", "JJones", "…"]);
   assert.equal(view.$("detailsClose"), null);
   assert.equal(view.$("detailsX").getAttribute("aria-label"), "Close");
   // A backdrop the box cannot read leaves the heading on the plain panel.
@@ -349,12 +353,7 @@ const cast = (view) => {
           ...[...block.querySelectorAll("li")].map((card) => card.textContent)];
 };
 
-function closeDetails({ window, $ }, value) {
-  const dialog = $("detailsDialog");
-  dialog.returnValue = value;
-  dialog.close();
-  dialog.dispatchEvent(new window.Event("close"));
-}
+function closeDetails(view, value) { answer(view, value); }
 
 test("the details play, resume or start over, as the question does", async (t) => {
   const films = [{ id: 1, title: "Alien", duration: 7020, resume: 600 }, { id: 2, title: "Brazil" }];

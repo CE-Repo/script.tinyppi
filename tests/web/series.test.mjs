@@ -173,6 +173,10 @@ const rows = (view) => [...view.$("episodeList").querySelectorAll(".episode")];
 function answer({ window, $ }, value) {
   if (value === "details") return;
   const dialog = $("detailsDialog");
+  if (["restart", "clear", "watched", "unwatched"].includes(value)) {
+    dialog.querySelector('button[value="' + value + '"]').click();
+    return;
+  }
   dialog.returnValue = value;
   dialog.close();
   dialog.dispatchEvent(new window.Event("close"));

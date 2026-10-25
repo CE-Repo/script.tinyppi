@@ -117,6 +117,10 @@ function tile({ window }, title) {
 function answer({ window, $ }, value) {
   if (value === "details") return;
   const dialog = $("detailsDialog");
+  if (["restart", "clear", "watched", "unwatched"].includes(value)) {
+    dialog.querySelector('button[value="' + value + '"]').click();
+    return;
+  }
   dialog.returnValue = value;
   dialog.close();
   dialog.dispatchEvent(new window.Event("close"));
@@ -211,12 +215,18 @@ test("marking as watched or unwatched writes it with the token, then reads every
   assert.equal(sent.init.headers["X-TinyPPI-Token"], "T0K3N");
   assert.equal(sent.init.headers["Content-Type"], "application/json");
   assert.deepEqual(reads(view), { library: 2, series: 2, continue: 2, episodes: 0 });
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsWatched").hidden, false);
+  assert.equal(view.$("detailsUnwatched").hidden, true);
+  answer(view, "close");
 
   tile(view, "Film 03").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
 
   await settle();
   answer(view, "watched");
   await settle();
+  assert.equal(view.$("detailsDialog").open, true);
+  answer(view, "close");
   // A series marked either way is every episode of it.
   tile(view, "Show 2").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   await settle();
@@ -226,7 +236,7 @@ test("marking as watched or unwatched writes it with the token, then reads every
                                  ["/api/watched", { watched: true, movieid: 3 }],
                                  ["/api/watched", { watched: true, tvshowid: 2 }]]);
   assert.deepEqual(reads(view), { library: 4, series: 4, continue: 4, episodes: 0 });
-  assert.equal(view.$("detailsDialog").open, false);
+  assert.equal(view.$("detailsDialog").open, true);
 });
 
 test("marking an episode reads the open show again as well", async (t) => {
@@ -252,6 +262,10 @@ test("clearing the resume point forgets where it got to and leaves seen or unsee
   await settle();
   answer(view, "clear");
   await settle();
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsClear").hidden, true);
+  assert.equal(view.$("detailsPlay").textContent, "Play");
+  answer(view, "close");
   // From the continue row: the episode it stands for.
   view.$("continueSeriesRow").firstElementChild.dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   await settle();
@@ -278,8 +292,8 @@ test("cancelling, or a dialog closed with no question or no answer, sends nothin
   assert.deepEqual(reads(view), before);
   tile(view, "Film 01").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   await settle();
-  answer(view, "watched");
-  answer(view, "watched");
+  answer(view, "unwatched");
+  answer(view, "unwatched");
   await settle();
   assert.equal(posts(view).length, 1);
 });
@@ -328,7 +342,7 @@ test("before /api/hello has given any words, the question and its failure are in
   assert.equal(asked(view).play, "Play");
   assert.deepEqual(["detailsWatched", "detailsUnwatched"].map((id) => view.$(id).textContent),
                    ["Mark as watched", "Mark as unwatched"]);
-  answer(view, "watched");
+  answer(view, "unwatched");
   await settle();
   assert.equal(view.$("toast").textContent, "The library could not be updated");
 
@@ -379,4 +393,71 @@ test("a tap and a hold open the same details while scrolling cancels the hold", 
   await settle();
   assert.equal(view.$("detailsDialog").open, true);
   assert.equal(view.$("markDialog"), null);
+});
+
+
+test("status edits stay open, reject duplicates, preserve scroll and leave failures unchanged", async (t) => {
+  const view = await open(t, { routes: { "/api/watched": [500, {}] } });
+  tile(view, "Film 01").click();
+  await settle();
+  const dialog = view.$("detailsDialog");
+  const form = dialog.querySelector("form");
+  form.scrollTop = 123;
+  let release;
+  let gate = new Promise((resolve) => { release = resolve; });
+  const fetch = view.window.fetch;
+  view.window.fetch = async (url, init) => {
+    if (url === "/api/watched") await gate;
+    return fetch(url, init);
+  };
+  view.$("detailsUnwatched").click();
+  await settle();
+  assert.equal(dialog.open, true);
+  assert.ok([...view.$("detailsActions").querySelectorAll("button")].every((button) => button.disabled));
+  view.$("detailsUnwatched").dispatchEvent(new view.window.MouseEvent("click"));
+  release();
+  await settle();
+  assert.equal(posts(view).length, 1);
+  assert.equal(dialog.open, true);
+  assert.equal(view.$("detailsError").hidden, false);
+  assert.equal(view.$("detailsWatched").hidden, true);
+  assert.equal(view.$("detailsUnwatched").disabled, false);
+  assert.equal(form.scrollTop, 123);
+  view.routes["/api/watched"] = [200, {}];
+  view.$("detailsUnwatched").click();
+  await settle();
+  assert.equal(view.$("detailsWatched").hidden, false);
+  assert.equal(view.$("detailsUnwatched").hidden, true);
+  assert.equal(view.$("detailsError").hidden, true);
+  assert.equal(form.scrollTop, 123);
+  gate = new Promise((resolve) => { release = resolve; });
+  view.routes["/api/watched"] = [500, {}];
+  view.$("detailsWatched").click();
+  answer(view, "close");
+  release();
+  await settle();
+  assert.equal(dialog.open, false, "finishing a write must not reopen manually closed details");
+  assert.equal(view.$("detailsError").hidden, true, "a late failure must not change another page");
+});
+
+
+test("the opened title uses the current watched and resume state instead of stale shelf values", async (t) => {
+  const view = await open(t, { routes: { "/api/details": [200, { watched: true, resume: 0 }] } });
+  tile(view, "Film 03").click();
+  await settle();
+  assert.equal(view.$("detailsWatched").hidden, true);
+  assert.equal(view.$("detailsUnwatched").hidden, false);
+  assert.equal(view.$("detailsClear").hidden, true);
+  assert.equal(view.$("detailsPlay").textContent, "Play");
+  answer(view, "close");
+  view.routes["/api/details"] = [200, { watched: false, resume: 600 }];
+  tile(view, "Film 01").click();
+  await settle();
+  assert.equal(view.$("detailsWatched").hidden, false);
+  assert.equal(view.$("detailsUnwatched").hidden, true);
+  assert.equal(view.$("detailsClear").hidden, false);
+  assert.equal(view.$("detailsPlay").textContent, "Resume");
+  answer(view, "restart");
+  await settle();
+  assert.equal(view.$("detailsDialog").open, true);
 });

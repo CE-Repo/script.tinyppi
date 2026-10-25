@@ -1165,3 +1165,18 @@ test("rating names open on click or keyboard, stay inside the viewport and close
   badge.dispatchEvent(new window.Event("blur"));
   assert.equal(closed, 1);
 });
+
+
+test("directors and writers share a Cast row with their functions under their names", (t) => {
+  const { P } = panels(t);
+  const parts = P.cast({
+    directors: ["Alex Director"], writers: ["Sam Writer", "Jo Writer"],
+    cast: [{ name: "An Actor", role: "A Character" }]
+  });
+  assert.equal(parts.length, 4, "one crew row and one actor row with their headings");
+  assert.equal(parts[0].textContent, "Cast");
+  assert.deepEqual([...parts[1].children].map((card) => [
+    card.querySelector("strong").textContent, card.querySelector(".role").textContent
+  ]), [["Alex Director", "Director"], ["Sam Writer", "Writer"], ["Jo Writer", "Writer"]]);
+  assert.equal(parts[3].querySelector(".role").textContent, "A Character");
+});

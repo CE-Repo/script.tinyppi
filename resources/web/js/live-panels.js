@@ -299,15 +299,14 @@
   }
 
   function castParts(credits, T) {
+    const crew = [
+      ...(credits.directors || []).map((name) => ({ name, role: T.director })),
+      ...(credits.writers || []).map((name) => ({ name, role: T.writer }))
+    ];
     return [
-      ...peopleParts(credits.directors, T.director),
-      ...peopleParts(credits.writers, T.writer),
+      ...castCards({ cast: crew }, "Cast"),
       ...castCards(credits, T.cast)
     ];
-  }
-
-  function peopleParts(names, heading) {
-    return castCards({ cast: (names || []).map((name) => ({ name })) }, heading);
   }
 
   function castCards(credits, title) {

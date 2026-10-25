@@ -230,7 +230,7 @@ function showTile(show, onOpen) {
   /* A series is not a thing that can be played, so the first answer opens it
      instead: its episodes are what can be. */
   bindTitle(tile, {
-    title: show.title, body: { tvshowid: show.id },
+    watched: !!show.watched, title: show.title, body: { tvshowid: show.id },
     play: T.series_open, onPlay: () => onOpen(show)
   });
   return tile;
@@ -502,7 +502,7 @@ function episodeRow(episode) {
 
   row.append(frame, meta);
   bindTitle(row, {
-    title: [code, episode.title].filter(Boolean).join(" \u00b7 "),
+    watched: !!episode.watched, title: [code, episode.title].filter(Boolean).join(" \u00b7 "),
     body: { episodeid: episode.id },
     play: episode.resume ? T.films_resume : T.films_play,
     resumable: !!episode.resume,

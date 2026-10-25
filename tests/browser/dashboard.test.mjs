@@ -114,12 +114,14 @@ test("the overview is a key under the playing card that opens the title's detail
           text.scrollHeight <= text.clientHeight && text.scrollWidth <= text.clientWidth)
       }))
     })));
-    assert.equal(rows.length, 3, "director, writer and cast have their own rows");
+    assert.equal(rows.length, 2, "crew share one row above the actors");
+    assert.equal(rows[0].cards.length, 2);
+    assert.deepEqual(await page.locator("#detailsCast .castrow").first().locator(".role").allTextContents(), ["#32386", "#32407"]);
     for (const { cards } of rows) {
       assert.ok(cards.length && cards.every((card) => card.width === 136));
       assert.ok(cards.every((card) => card.height === cards[0].height && card.fits && card.centered));
     }
-    assert.ok(rows[0].cards[0].height < rows[2].cards[0].height, "crew has no empty role slot");
+    assert.ok(rows[0].cards[0].height < rows[1].cards[0].height, "longer actor roles have room to wrap");
     await page.locator("#detailsCast").screenshot({ path: `node_modules/credits-${width}.png` });
   }
   await page.locator("#detailsX").click();
@@ -310,12 +312,19 @@ test("details show all resume actions and marks without clipping on a phone", as
   await page.locator("#filmGrid .film").nth(2).click({ delay: 600 });
   await page.waitForSelector("#detailsDialog[open]");
   assert.equal(await page.locator("#markDialog").count(), 0);
-  for (const id of ["detailsPlay", "detailsRestart", "detailsClear", "detailsWatched", "detailsUnwatched"]) {
+  for (const id of ["detailsPlay", "detailsRestart", "detailsClear", "detailsUnwatched"]) {
     const button = page.locator("#" + id);
     assert.equal(await button.isVisible(), true, id);
     assert.ok(await button.evaluate((node) => node.scrollWidth <= node.clientWidth && node.scrollHeight <= node.clientHeight), id);
   }
+  assert.equal(await page.locator("#detailsWatched").isVisible(), false);
   await page.locator("#detailsActions").screenshot({ path: "node_modules/details-actions-phone.png" });
+  const resumeLabel = await page.locator("#detailsPlay").innerText();
+  await page.locator("#detailsClear").click();
+  await page.waitForFunction(() => document.getElementById("detailsClear").hidden);
+  assert.equal(await page.locator("#detailsDialog").isVisible(), true);
+  assert.equal(await page.locator("#detailsRestart").isVisible(), false);
+  assert.notEqual(await page.locator("#detailsPlay").innerText(), resumeLabel);
   await page.keyboard.press("Escape");
   await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -329,11 +338,15 @@ test("a long press opens details, and marking the film sends the id", async () =
   const [request] = await Promise.all([
     page.waitForRequest((sent) => sent.method() === "POST" && sent.url().endsWith("/api/watched")),
     page.waitForResponse((answer) => answer.url().includes("/api/library")),
-    page.click("#detailsWatched"),
+    page.click("#detailsUnwatched"),
   ]);
   const body = JSON.parse(request.postData());
   assert.equal(typeof body.movieid, "number");
-  assert.equal(typeof body.watched, "boolean");
+  assert.equal(body.watched, false);
+  await page.waitForSelector("#detailsWatched:not([hidden])");
+  assert.equal(await page.locator("#detailsDialog").isVisible(), true);
+  assert.equal(await page.locator("#detailsUnwatched").isVisible(), false);
+  await page.keyboard.press("Escape");
   await page.waitForFunction(() => !document.querySelector("#detailsDialog[open]"));
 });
 

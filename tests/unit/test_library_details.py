@@ -45,7 +45,7 @@ def test_a_films_details(answers):
     assert answers["calls"][0][1]["movieid"] == 4
     assert "art" in answers["calls"][0][1]["properties"]
     assert found == {
-        "kind": "movie", "id": 4, "title": "Heat",
+        "kind": "movie", "id": 4, "title": "Heat", "watched": False, "resume": 0,
         "ratings": [{"source": "imdb", "rating": 8.3, "votes": 700000}],
         "plot": "One\nTwo", "tagline": "A Los Angeles crime saga", "premiered": "1995-12-15",
         "mpaa": "Rated R", "age": "mpa_r", "age_level": "R", "year": 1995,
@@ -79,7 +79,7 @@ def test_a_series_details(answers):
     }}}
     found = library.title_details("tvshow", 7)
     assert found == {"kind": "tvshow", "id": 7, "title": "Show", "ratings": [], "season": 5,
-                     "audio": "ac3"}
+                     "audio": "ac3", "watched": False, "resume": 0}
 
 
 @pytest.mark.parametrize(("kind", "item", "answer"), [
@@ -198,3 +198,18 @@ def test_a_show_is_not_asked_for_by_its_ids(answers, monkeypatch):
     rated = Rated(monkeypatch)
     library.title_details("tvshow", 7)
     assert rated.keys[0] == ("mdblist", "m-key", {})
+
+
+@pytest.mark.parametrize(("kind", "values", "watched", "resume"), [
+    ("movie", {"playcount": 2, "resume": {"position": 600, "total": 3600}}, True, 600),
+    ("episode", {"playcount": 0}, False, 0),
+    ("tvshow", {"episode": 5, "watchedepisodes": 5}, True, 0),
+    ("tvshow", {"episode": 5, "watchedepisodes": 3}, False, 0),
+    ("tvshow", {"episode": 0, "watchedepisodes": 0}, False, 0),
+])
+def test_details_carry_the_state_for_their_actions(answers, kind, values, watched, resume):
+    method, _, key, _ = details_module._KINDS[kind]
+    answers["answers"][method] = {"result": {key: {"title": "A title", **values}}}
+    found = library.title_details(kind, 1)
+    assert found["watched"] is watched
+    assert found["resume"] == resume

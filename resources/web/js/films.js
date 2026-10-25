@@ -307,7 +307,7 @@ function filmTile(film) {
   }
 
   bindTitle(tile, {
-    title: film.title, body: { movieid: film.id },
+    watched: !!film.watched, title: film.title, body: { movieid: film.id },
     play: film.resume ? T.films_resume : T.films_play,
     resumable: !!film.resume,
     onPlay: (fromStart) => startFilm(film, tile, fromStart)
