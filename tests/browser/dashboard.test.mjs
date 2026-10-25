@@ -300,28 +300,44 @@ test("details keep scrolling inside the dialog and rating hints work by click an
   await page.setViewportSize({ width: 1280, height: 900 });
 });
 
-test("a long press opens actions, and marking the film sends the id", async () => {
+test("details show all resume actions and marks without clipping on a phone", async () => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.locator("#filmGrid .film").nth(2).click({ delay: 600 });
+  await page.waitForSelector("#detailsDialog[open]");
+  assert.equal(await page.locator("#markDialog").count(), 0);
+  for (const id of ["detailsPlay", "detailsRestart", "detailsClear", "detailsWatched", "detailsUnwatched"]) {
+    const button = page.locator("#" + id);
+    assert.equal(await button.isVisible(), true, id);
+    assert.ok(await button.evaluate((node) => node.scrollWidth <= node.clientWidth && node.scrollHeight <= node.clientHeight), id);
+  }
+  await page.locator("#detailsActions").screenshot({ path: "node_modules/details-actions-phone.png" });
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
+  await page.setViewportSize({ width: 1280, height: 900 });
+});
+
+test("a long press opens details, and marking the film sends the id", async () => {
   await page.locator("#filmGrid .film").nth(4).click({ delay: 600 });
-  await page.waitForSelector("#markDialog[open]");
+  await page.waitForSelector("#detailsDialog[open]");
   // Listened for before the press: the wall may be read again (the library
   // moved) before the click itself has returned.
   const [request] = await Promise.all([
     page.waitForRequest((sent) => sent.method() === "POST" && sent.url().endsWith("/api/watched")),
     page.waitForResponse((answer) => answer.url().includes("/api/library")),
-    page.click("#markWatched"),
+    page.click("#detailsWatched"),
   ]);
   const body = JSON.parse(request.postData());
   assert.equal(typeof body.movieid, "number");
   assert.equal(typeof body.watched, "boolean");
-  await page.waitForFunction(() => !document.querySelector("#markDialog[open]"));
+  await page.waitForFunction(() => !document.querySelector("#detailsDialog[open]"));
 });
 
 test("cancelling the question sends nothing", async () => {
   const before = posts.length;
   await page.locator("#filmGrid .film").first().click({ delay: 600 });
-  await page.waitForSelector("#markDialog[open]");
-  await page.click("#markCancel");
-  await page.waitForFunction(() => !document.querySelector("#markDialog[open]"));
+  await page.waitForSelector("#detailsDialog[open]");
+  await page.click("#detailsX");
+  await page.waitForFunction(() => !document.querySelector("#detailsDialog[open]"));
   assert.equal(posts.length, before);
 });
 

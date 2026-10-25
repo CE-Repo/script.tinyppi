@@ -65,10 +65,6 @@ const el = {
   unseenFilmsCount: $("unseenFilmsCount"),
   unseenSeriesCard: $("unseenSeriesCard"), unseenSeriesGrid: $("unseenSeriesGrid"),
   unseenSeriesCount: $("unseenSeriesCount"),
-  markDialog: $("markDialog"), markTitle: $("markTitle"), markPlay: $("markPlay"),
-  markRestart: $("markRestart"), markClear: $("markClear"),
-  markWatched: $("markWatched"), markUnwatched: $("markUnwatched"),
-  markCancel: $("markCancel"), markDetails: $("markDetails"),
   detailsDialog: $("detailsDialog"), detailsTitle: $("detailsTitle"),
   detailsMeta: $("detailsMeta"), detailsFormats: $("detailsFormats"),
   detailsTagline: $("detailsTagline"), detailsPlot: $("detailsPlot"),
@@ -76,6 +72,8 @@ const el = {
   detailsHero: $("detailsHero"), detailsBackdrop: $("detailsBackdrop"),
   detailsPoster: $("detailsPoster"), detailsRatings: $("detailsRatings"),
   detailsCast: $("detailsCast"), detailsX: $("detailsX"),
+  detailsActions: $("detailsActions"), detailsClear: $("detailsClear"),
+  detailsWatched: $("detailsWatched"), detailsUnwatched: $("detailsUnwatched"),
   detailsPlay: $("detailsPlay"), detailsRestart: $("detailsRestart")
 };
 

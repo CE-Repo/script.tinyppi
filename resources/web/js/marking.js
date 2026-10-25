@@ -3,8 +3,7 @@
 
 "use strict";
 
-/* The question a press on a film, show or episode asks: play, play from
-   the start, mark as watched or unwatched, or show its details.
+/* Details and library actions for a film, show or episode.
 
    Part of the dashboard page: a classic script sharing the global scope
    of js/dashboard.js and its other parts (see index.html for the order).
@@ -12,49 +11,10 @@
 
 /* global continueStale, control, el, filmsStale, formatName, refreshEpisodes,
    requestContinue, requestFilms, requestSeries, runtime, seriesStale, T */
-/* exported ask, bindTitle */
+/* exported bindTitle */
 
-/* --- what a press asks ---------------------------------------------------- */
-
-/* A press on a film, a series or an episode asks what is wanted of it: to
-   play it (or, for a series, to open it -- a series is not a thing that can
-   be played), or to have the box count it as seen or as unseen.  The last two
-   are written into Kodi's own library (see ``set_watched`` in
-   web/library.py); a series marked either way is every episode of it.
-
-   Written and then read back rather than drawn here: the box drops what it
-   holds the moment it has written, and the walls, the row and the open show
-   are read again, so what they show is what the library now says. */
-
-let asking = null;         /* what the open question is about              */
-let detailing = null;      /* what the open details are about              */
-
-function ask(question) {
-  if (!control || el.markDialog.open) return;
-  asking = question;
-  el.markTitle.textContent = question.title;
-  el.markPlay.textContent = question.play;
-  /* From the beginning, and forgetting where it got to, are answers only for
-     a title that has got somewhere. */
-  el.markRestart.hidden = !question.resumable;
-  el.markClear.hidden = !question.resumable;
-  el.markDialog.returnValue = "";
-  el.markDialog.showModal();
-}
-
-el.markDialog.addEventListener("close", () => {
-  const answer = el.markDialog.returnValue;
-  const question = asking;
-  asking = null;
-  if (!question) return;
-  if (answer === "play") question.onPlay(false);
-  else if (answer === "restart") question.onPlay(true);
-  else if (answer === "clear") clearResume(question.body);
-  else if (answer === "details") showDetails(question);
-  else if (answer === "watched" || answer === "unwatched") {
-    setWatched(question.body, answer === "watched");
-  }
-});
+/* The currently opened title, including a details request still loading. */
+let detailing = null;
 
 /* Forget where a film or an episode got to, leaving it seen or unseen as it
    was: it leaves the row of things half-watched, and its bar leaves the wall. */
@@ -134,6 +94,8 @@ function showPicture(image, url) {
    with the file's formats; then the ratings, as the overview card draws the
    playing title's, the slogan and the plot, who made it and who is in it. */
 async function showDetails(question) {
+  if (detailing) return;
+  detailing = question;
   const [key] = Object.keys(question.body);
   let found;
   try {
@@ -141,7 +103,7 @@ async function showDetails(question) {
                                   encodeURIComponent(question.body[key]));
   } catch (_) {
     TinyPPI.toast(T.details_failed, true);
-    return;
+    found = {};
   }
   showPicture(el.detailsBackdrop,
               detailsArt(question.body, found.fanart ? "fanart" : "thumb",
@@ -167,13 +129,12 @@ async function showDetails(question) {
   el.detailsFacts.replaceChildren(...TinyPPI.panels.facts(found));
   el.detailsCast.replaceChildren(...TinyPPI.panels.cast(found));
   tintDetails();
-  /* The question's first answers, offered on the page too -- where it was
-     asked from a shelf; the playing title's, opened from the overview, has
-     none to offer. */
-  el.detailsPlay.parentElement.hidden = !question.onPlay;
+  /* Library entries expose their actions here; the currently playing title
+     opened from the overview is informational. */
+  el.detailsActions.hidden = !control || !question.onPlay;
   el.detailsPlay.textContent = question.play || "";
   el.detailsRestart.hidden = !question.resumable;
-  detailing = question;
+  el.detailsClear.hidden = !question.resumable;
   el.detailsDialog.returnValue = "";
   el.detailsDialog.showModal();
   el.detailsDialog.querySelector("form").scrollTop = 0;
@@ -211,11 +172,14 @@ el.detailsDialog.addEventListener("close", () => {
   const answer = el.detailsDialog.returnValue;
   const question = detailing;
   detailing = null;
+  if (!question || !question.onPlay || !control) return;
   if (answer === "play") question.onPlay(false);
   else if (answer === "restart") question.onPlay(true);
+  else if (answer === "clear") clearResume(question.body);
+  else if (answer === "watched" || answer === "unwatched") setWatched(question.body, answer === "watched");
 });
 
-/* A short press opens details; holding or using the context menu opens actions. */
+/* Every way of opening a title leads to its details and actions. */
 function bindTitle(tile, question) {
   let timer = null;
   let held = false;
@@ -225,13 +189,13 @@ function bindTitle(tile, question) {
     if (event.button !== 0) return;
     held = false;
     start = [event.clientX, event.clientY];
-    timer = setTimeout(() => { held = true; ask(question); }, 500);
+    timer = setTimeout(() => { held = true; showDetails(question); }, 500);
   });
   tile.addEventListener("pointermove", (event) => {
     if (start && Math.hypot(event.clientX - start[0], event.clientY - start[1]) > 10) cancel();
   });
   for (const name of ["pointerup", "pointercancel", "pointerleave"]) tile.addEventListener(name, cancel);
-  tile.addEventListener("contextmenu", (event) => { event.preventDefault(); cancel(); held = true; ask(question); });
+  tile.addEventListener("contextmenu", (event) => { event.preventDefault(); cancel(); held = true; showDetails(question); });
   tile.addEventListener("click", () => {
     cancel();
     if (!held) showDetails(question);

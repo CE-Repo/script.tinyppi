@@ -76,7 +76,7 @@ const PLAYING = { playing: true, control: true };
  * first idle snapshot is delivered unless *quiet*.  The window is closed when
  * the test ends. */
 async function open(t, { items = ITEMS, routes = {}, token = "", quiet = false } = {}) {
-  const table = {
+  const table = { "/api/details": [200, {}],
     "/api/hello": [200, { version: "2.15.0", strings: STRINGS }],
     "/api/library": [200, { tag: "f1", movies: [] }],
     "/api/series": [200, { tag: "s1", shows: [] }],
@@ -146,7 +146,8 @@ function tile(view, title) {
 
 /** Answer the question that is open, as the dialog's form would. */
 function answer({ window, $ }, value) {
-  const dialog = $("markDialog");
+  if (value === "details") return;
+  const dialog = $("detailsDialog");
   dialog.returnValue = value;
   dialog.close();
   dialog.dispatchEvent(new window.Event("close"));
@@ -155,6 +156,7 @@ function answer({ window, $ }, value) {
 /** Press the tile called *title* and give *value* as the answer. */
 async function press(view, title, value = "play") {
   tile(view, title).dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, value);
   await settle();
 }
@@ -252,18 +254,22 @@ test("a row with nothing on it is no card at all, and its count is blank", async
 test("a press asks to resume, and offers a fresh start and forgetting the point", async (t) => {
   const view = await open(t);
   tile(view, "Film 03").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
-  assert.equal(view.$("markDialog").open, true);
-  assert.equal(view.$("markTitle").textContent, "Film 03");
-  assert.equal(view.$("markPlay").textContent, "Resume");
-  assert.equal(view.$("markRestart").hidden, false);
-  assert.equal(view.$("markClear").hidden, false);
+  await settle();
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsTitle").textContent, "Film 03");
+  assert.equal(view.$("detailsPlay").textContent, "Resume");
+  assert.equal(view.$("detailsRestart").hidden, false);
+  assert.equal(view.$("detailsClear").hidden, false);
   answer(view, "cancel");
 
   tile(view, "Show 2").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
-  assert.equal(view.$("markTitle").textContent, "Show 2 · S01E03");
+
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, "Show 2 · S01E03");
   answer(view, "cancel");
   tile(view, "Pilot").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
-  assert.equal(view.$("markTitle").textContent, "S02E01");
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, "S02E01");
   answer(view, "cancel");
   await settle();
   assert.deepEqual(plays(view), []);
@@ -442,6 +448,7 @@ test("a second title pressed while the first is waiting starts nothing", async (
   // (sent by a script, say) is dropped.
   assert.equal(tile(view, "Show 2").disabled, true);
   tile(view, "Show 2").dispatchEvent(new view.window.MouseEvent("contextmenu", { cancelable: true }));
+  await settle();
   answer(view, "play");
   await settle();
   assert.deepEqual(plays(view), [{ movieid: 3 }]);

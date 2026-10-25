@@ -136,7 +136,8 @@ const shown = (view, id) => [...view.$(id).children].filter((node) => !node.hidd
   .map((node) => node.querySelector(".filmtitle").textContent);
 
 function answer({ window, $ }, value) {
-  const dialog = $("markDialog");
+  if (value === "details") return;
+  const dialog = $("detailsDialog");
   dialog.returnValue = value;
   dialog.close();
   dialog.dispatchEvent(new window.Event("close"));
@@ -291,8 +292,9 @@ test("the next-up row holds each show's next episode and starts it from the top"
   assert.equal(tile.querySelector(".filmresume"), null);
   assert.equal(tile.querySelector("img").getAttribute("src"), "/api/art?kind=poster&episodeid=71&v=ap");
   tile.dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
-  assert.equal(view.$("markPlay").textContent, "Play");
-  assert.ok(view.$("markRestart").hidden && view.$("markClear").hidden);
+  await settle();
+  assert.equal(view.$("detailsPlay").textContent, "Play");
+  assert.ok(view.$("detailsRestart").hidden && view.$("detailsClear").hidden);
   answer(view, "play");
   await settle();
   const sent = view.requests.filter((request) => request.url === "/api/play");
@@ -309,7 +311,7 @@ test("an add-on without the next-up row leaves no card for it", async (t) => {
 test("details stand under the title's backdrop with its poster, shields, plot, facts and cast", async (t) => {
   const view = await open(t);
   [...view.$("filmGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
-  assert.equal(view.$("markDetails").textContent, "Details");
+  await settle();
   answer(view, "details");
   await settle();
   const asked = view.requests.filter((request) => request.url.startsWith("/api/details"));
@@ -361,6 +363,7 @@ test("the details play, resume or start over, as the question does", async (t) =
     .map((request) => JSON.parse(request.init.body));
   const details = async (index) => {
     [...view.$("filmGrid").children][index].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    await settle();
     answer(view, "details");
     await settle();
   };
@@ -383,6 +386,7 @@ test("the details play, resume or start over, as the question does", async (t) =
 test("the details' play is the question's", async (t) => {
   const view = await open(t);
   [...view.$("filmGrid").children][1].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, "details");
   await settle();
   closeDetails(view, "play");
@@ -406,6 +410,7 @@ test("an episode stands under its still, and one without pictures under none", a
 test("a title with little to say leaves its rows out, and a failed read says so", async (t) => {
   const view = await open(t, { routes: { "/api/details": [200, { kind: "tvshow", id: 7, title: "Andor" }] } });
   [...view.$("seriesGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, "details");
   await settle();
   assert.ok(view.requests.some((request) => request.url === "/api/details?tvshowid=7"));
@@ -416,12 +421,15 @@ test("a title with little to say leaves its rows out, and a failed read says so"
   assert.ok(view.$("detailsBackdrop").hidden && view.$("detailsHero").classList.contains("bare"));
   assert.equal(view.$("detailsBackdrop").getAttribute("src"), null);
   view.$("detailsDialog").close();
+  view.$("detailsDialog").dispatchEvent(new view.window.Event("close"));
 
   view.routes["/api/details"] = [404, { error: "no such title" }];
   [...view.$("filmGrid").children][1].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, "details");
   await settle();
-  assert.equal(view.$("detailsDialog").open, false);
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsActions").hidden, false);
   assert.equal(view.$("toast").textContent, "The details could not be read.");
 });
 
@@ -435,11 +443,8 @@ test("on the adaptive theme the details wear their own title's colour, not what 
     return Promise.resolve(answer);
   };
   [...view.$("filmGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   const show = async () => {
-    const markAnswer = view.$("markDialog");
-    markAnswer.returnValue = "details";
-    markAnswer.close();
-    markAnswer.dispatchEvent(new view.window.Event("close"));
     await settle();
   };
   await show();
@@ -448,13 +453,16 @@ test("on the adaptive theme the details wear their own title's colour, not what 
   assert.ok(dialog.classList.contains("tinted"));
   assert.equal(dialog.style.getPropertyValue("--cover-accent-rgb"), "200, 40, 40");
   dialog.close();
+  dialog.dispatchEvent(new view.window.Event("close"));
   // A picture with no colour: the theme's own, and nothing left of the last.
   answer = null;
   [...view.$("filmGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   await show();
   assert.equal(dialog.classList.contains("tinted"), false);
   assert.equal(dialog.style.getPropertyValue("--cover-accent-rgb"), "");
   dialog.close();
+  dialog.dispatchEvent(new view.window.Event("close"));
   // One whose picture moved on before the answer came is not painted.
   answer = [1, 2, 3];
   view.window.TinyPPICover.accent = (url, image) => {
@@ -462,20 +470,25 @@ test("on the adaptive theme the details wear their own title's colour, not what 
     return Promise.resolve(answer);
   };
   [...view.$("filmGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   await show();
   assert.equal(dialog.classList.contains("tinted"), false);
   dialog.close();
+  dialog.dispatchEvent(new view.window.Event("close"));
   // A title with no picture at all asks nothing, and nor does a page
   // without the tint.
   asked.length = 0;
   view.window.TinyPPICover.accent = () => { asked.push(1); return Promise.resolve(answer); };
   view.routes["/api/details"] = [200, { kind: "tvshow", id: 7, title: "Andor" }];
   [...view.$("seriesGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   await show();
   dialog.close();
+  dialog.dispatchEvent(new view.window.Event("close"));
   delete view.window.TinyPPICover;
   view.routes["/api/details"] = [200, { kind: "movie", id: 1, title: "Alien", poster: "p1" }];
   [...view.$("filmGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   await show();
   assert.deepEqual(asked, []);
   assert.equal(dialog.classList.contains("tinted"), false);
@@ -494,6 +507,7 @@ test("the overview opens the playing title's details, with nothing to play on th
   closeDetails(view, "close");
   // Opened from a shelf again, the keys are back.
   [...view.$("filmGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, "details");
   await settle();
   assert.equal(view.$("detailsPlay").parentElement.hidden, false);

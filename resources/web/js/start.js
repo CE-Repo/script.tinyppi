@@ -60,12 +60,9 @@ function applyStrings(strings, hello) {
   $("recentFilmsLabel").textContent = strings.recent;
   $("recentSeriesLabel").textContent = strings.recent;
   $("unseenSeriesLabel").textContent = strings.series_unseen_shows;
-  el.markRestart.textContent = strings.play_from_start;
-  el.markClear.textContent = strings.resume_clear;
-  el.markWatched.textContent = strings.mark_watched;
-  el.markUnwatched.textContent = strings.mark_unwatched;
-  el.markCancel.textContent = strings.cancel;
-  el.markDetails.textContent = strings.details;
+  el.detailsClear.textContent = strings.resume_clear;
+  el.detailsWatched.textContent = strings.mark_watched;
+  el.detailsUnwatched.textContent = strings.mark_unwatched;
   el.detailsRestart.textContent = strings.play_from_start;
   el.detailsX.setAttribute("aria-label", strings.close);
   el.detailsX.title = strings.close;

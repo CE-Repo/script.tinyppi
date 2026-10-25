@@ -923,7 +923,8 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
    series) in the accent, and starting over beside it where there is a point
    to resume from. */
 .detailsactions[hidden] { display: none; }
-.detailsactions { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; }
+.detailsactions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.detailsactions button[value="play"] { grid-column: 1 / -1; }
 .detailsactions button {
   min-height: 52px;
   border-radius: var(--radius-pill);
@@ -931,13 +932,13 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
   font-weight: 500;
   letter-spacing: .1px;
   text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  padding: 12px;
 }
 /* Play in the accent, starting over outlined beside it, as on the app's page. */
 .detailsactions button[value="play"] { background: var(--accent); color: var(--on-accent); }
-.detailsactions button[value="restart"] { border: 1px solid #8a9297; color: var(--accent); }
+.detailsactions button:not([value="play"]) { border: 1px solid #8a9297; color: var(--accent); }
 @media (hover: hover) {
   .detailsactions button[value="play"]:hover { background: color-mix(in srgb, var(--on-accent) 8%, var(--accent)); }
 }
