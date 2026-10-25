@@ -280,7 +280,10 @@
     -webkit-overflow-scrolling: touch;
   }
   .shelftools::-webkit-scrollbar { display: none; }
-  .shelftools > * { flex: none; max-width: none; }
+  /* Named in full so they win over .shelfpick and .shelfway further down,
+     which let a chip shrink to nothing in a row that no longer wraps. */
+  .shelftools > .shelfpick,
+  .shelftools > .shelfway { flex: none; min-width: auto; max-width: none; }
 }
 .shelfpick {
   appearance: none;

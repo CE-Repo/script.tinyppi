@@ -312,7 +312,7 @@ test("a tab with every card taken off says so, with the way back", async (t) => 
 
 test("reset puts one tab back; the settings put every tab back", async (t) => {
   const view = await open(t, { stored: { "tinyppi.cards": {
-    orders: { films: ["filmsCard"], series: ["seriesCard"] },
+    orders: { films: ["filmsCard", "recentFilmsCard"], series: ["seriesCard"] },
     hidden: ["films/recentFilmsCard", "series/unseenSeriesCard"] } } });
   assert.equal(view.$("cardsReset").disabled, false);
   assert.ok(order(view, "filmsCard") < order(view, "recentFilmsCard"));
