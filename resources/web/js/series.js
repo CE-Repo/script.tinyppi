@@ -10,7 +10,7 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global selectTab, showDetails, tintDialog, bindTitle, continueStale, el, FILMS_RETRY_MS, FILMS_START_MS, newest,
+/* global selectTab, showDetails, slideIn, tintDialog, bindTitle, continueStale, el, FILMS_RETRY_MS, FILMS_START_MS, newest,
    ratingBadge, runtime, shelfTools, T */
 /* exported openShowDetails, episodeCode, episodeReleasing, hideSeries, refreshEpisodes,
    releaseSeries, requestSeries, seriesOffered, seriesStale, seriesTools,
@@ -224,7 +224,7 @@ function showTile(show) {
      details they were opened from. */
   const question = {
     watched: !!show.watched, title: show.title, body: { tvshowid: show.id },
-    play: T.series_open, onPlay: () => openShowView(show, question)
+    play: T.series_open, onPlay: () => openShowView(show, question), stays: true
   };
   showQuestions.set(show.id, question);
   bindTitle(tile, question);
@@ -275,7 +275,11 @@ async function openShowView(show, from) {
     openShow = show;
     openedFrom = from;
     buildEpisodes(Array.isArray(answer.episodes) ? answer.episodes : []);
-    if (!el.seasonsDialog.open) el.seasonsDialog.showModal();
+    /* Over the show's page, where it is still open, and at least as tall, so
+       nothing of it shows round the seasons as they slide in. */
+    el.seasonsDialog.style.minHeight = el.detailsDialog.open
+      ? el.detailsDialog.offsetHeight + "px" : "";
+    if (!el.seasonsDialog.open) slideIn(el.seasonsDialog);
     el.seasonsDialog.querySelector("form").scrollTop = 0;
   } catch (_) {
     /* A shelf that has moved under the page -- the show scanned away while
@@ -638,7 +642,8 @@ el.seriesSearchClear.addEventListener("click", () => {
   applySeriesSearch();
   el.seriesSearch.focus();
 });
-/* Closed by the reader -- its key, Escape, back or a pull down -- the
+/* Closed by the reader -- its key, Escape, back, a pull down or a click
+   beside it, sliding out as it goes (see slideOut in js/marking.js) -- the
    seasons give way to the show's details they were opened over.  Not while
    an episode is starting: that is the press closing the dialog itself, and
    the rows it is waiting on are still wanted. */
@@ -646,5 +651,8 @@ el.seasonsDialog.addEventListener("close", () => {
   if (!openShow || startingEpisode) return;
   const back = openedFrom;
   closeShow();
-  showDetails(back);
+  /* Usually the show's page is still open under the seasons, and simply
+     shows again as they slide away; where an episode's took its place, the
+     show's is put back -- drawn from what was read of it, at once. */
+  if (!el.detailsDialog.open) showDetails(back);
 });

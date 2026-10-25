@@ -366,8 +366,13 @@ test("series: a show opens a dialog of its seasons and episodes", async () => {
   await page.waitForSelector("#detailsDialog[open]");
   assert.equal(await page.locator("#markDialog").isVisible(), false);
   await page.click("#detailsPlay");
-  await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
+  // The show's page stays open under its seasons, which slide in over it.
   await page.waitForSelector("#seasonsDialog[open] .seasonfold");
+  assert.equal(await page.locator("#detailsDialog").evaluate((node) => node.open), true);
+  await page.waitForFunction(() => {
+    const seasons = document.getElementById("seasonsDialog");
+    return !seasons.classList.contains("away") && getComputedStyle(seasons).transform === "none";
+  });
   assert.equal(await page.locator(".seasonfold").count(), 2);
   await page.locator(".seasonfold .season").first().click();
   await page.waitForFunction(() => document.querySelector(".seasonepisodes")?.children.length > 0);

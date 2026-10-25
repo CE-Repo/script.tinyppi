@@ -489,6 +489,102 @@ test("the seasons wear the show's backdrop and poster as its details do, or stan
   assert.equal(view.$("seasonsCount").textContent, "");
 });
 
+test("Open keeps the show's page under its seasons, which slide away to it again", async (t) => {
+  const view = await open(t);
+  const details = view.$("detailsDialog");
+  const ask = async (node) => {
+    node.dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    await settle();
+  };
+  const press = (button) => {
+    const click = new view.window.MouseEvent("click", { bubbles: true, cancelable: true });
+    button.dispatchEvent(click);
+    return click.defaultPrevented;
+  };
+  await ask(tile(view, "Andor"));
+  const read = reads(view, "/api/details");
+  assert.equal(press(view.$("detailsPlay")), true, "the page is not put away");
+  await settle();
+  assert.equal(seasonsOpen(view), true);
+  assert.equal(details.open, true);
+  assert.equal(view.$("seasonsDialog").style.minHeight, "0px");
+
+  // Left again: the page under them is simply there, nothing read for it.
+  await closeSeasons(view, { keep: true });
+  assert.equal(details.open, true);
+  assert.equal(view.$("detailsTitle").textContent, "Andor");
+  assert.equal(reads(view, "/api/details"), read);
+
+  // An episode's page comes up in front of the seasons in the show's place.
+  press(view.$("detailsPlay"));
+  await settle();
+  await ask(row(view, "Kassa"));
+  assert.equal(details.open, true);
+  assert.equal(view.$("detailsTitle").textContent, "S01E01 · Kassa");
+  // The close that shut it only to show it again in front answers nothing.
+  details.dispatchEvent(new view.window.Event("close"));
+  assert.deepEqual(plays(view), []);
+  answer(view, "cancel");
+  await settle();
+  assert.equal(details.open, false);
+
+  // Leaving the seasons now puts the show's page back, drawn from what was
+  // read of it rather than asked for again.
+  await closeSeasons(view, { keep: true });
+  assert.equal(details.open, true);
+  assert.equal(view.$("detailsTitle").textContent, "Andor");
+  assert.equal(reads(view, "/api/details"), read + 1);
+  assert.equal(view.$("seasonsDialog").style.minHeight, "0px");
+});
+
+test("the seasons slide in, and slide out by their key or Escape before they close", async (t) => {
+  const view = await open(t);
+  const seasons = view.$("seasonsDialog");
+  const classes = [];
+  const add = seasons.classList.add.bind(seasons.classList);
+  seasons.classList.add = (...names) => { classes.push(...names); add(...names); };
+  await openShow(view, "Andor");
+  // Put off to the side to be laid out, and taken back to slide in.
+  assert.deepEqual(classes, ["away"]);
+  assert.equal(seasons.classList.contains("away"), false);
+
+  const key = new view.window.MouseEvent("click", { bubbles: true, cancelable: true });
+  view.$("seasonsX").dispatchEvent(key);
+  assert.equal(key.defaultPrevented, true);
+  assert.equal(seasons.classList.contains("away"), true);
+  // A second way out while it is going changes nothing.
+  view.$("seasonsX").click();
+  view.clock.tick(249);
+  assert.equal(seasons.open, true);
+  view.clock.tick(1);
+  assert.equal(seasons.open, false);
+  await closeSeasons(view);
+
+  await openShow(view, "Andor");
+  const escape = new view.window.Event("cancel", { cancelable: true });
+  seasons.dispatchEvent(escape);
+  assert.equal(escape.defaultPrevented, true);
+  view.clock.tick(250);
+  assert.equal(seasons.open, false);
+});
+
+test("a press on a title's first answer that does not stay is the form's", async (t) => {
+  const view = await open(t);
+  await openShow(view, "Andor");
+  row(view, "Kassa").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
+  const play = view.$("detailsPlay");
+  // Kept from jsdom's form submission, which it does not carry out.
+  play.addEventListener("click", (event) => event.preventDefault());
+  play.click();
+  assert.deepEqual(plays(view), []);
+  answer(view, "cancel");
+  await settle();
+  // And with nothing open, the key answers nothing at all.
+  play.click();
+  assert.deepEqual(plays(view), []);
+});
+
 test("leaving the seasons goes back to the show's details they were opened over", async (t) => {
   const view = await open(t);
   await openShow(view, "Andor");
@@ -516,12 +612,58 @@ test("a pull down from the top closes the seasons and the details; a short one, 
   assert.equal(seasons.open, true);
   Object.defineProperty(page, "scrollTop", { configurable: true, value: 0 });
   pull(view, seasons, 100, 260);
+  // It slides out first, then closes.
+  assert.equal(seasons.classList.contains("away"), true);
+  assert.equal(seasons.open, true);
+  view.clock.tick(250);
   assert.equal(seasons.open, false);
+  assert.equal(seasons.classList.contains("away"), false);
 
   const details = view.$("detailsDialog");
   details.open = true;
   pull(view, details, 50, 200);
+  view.clock.tick(250);
   assert.equal(details.open, false);
+});
+
+test("a title's page slides in, and out by its key, Escape or a click beside it", async (t) => {
+  const view = await open(t);
+  const details = view.$("detailsDialog");
+  const ask = async () => {
+    tile(view, "Andor").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    await settle();
+    assert.equal(details.open, true);
+    assert.equal(details.classList.contains("away"), false);
+  };
+  const gone = () => {
+    assert.equal(details.classList.contains("away"), true);
+    view.clock.tick(250);
+    assert.equal(details.open, false);
+    details.dispatchEvent(new view.window.Event("close"));
+  };
+
+  await ask();
+  const key = new view.window.MouseEvent("click", { bubbles: true, cancelable: true });
+  view.$("detailsX").dispatchEvent(key);
+  assert.equal(key.defaultPrevented, true);
+  gone();
+
+  await ask();
+  details.dispatchEvent(new view.window.Event("cancel", { cancelable: true }));
+  gone();
+
+  await ask();
+  const beside = (target, from) => {
+    from.dispatchEvent(new view.window.PointerEvent("pointerdown", { bubbles: true }));
+    target.dispatchEvent(new view.window.MouseEvent("click", { bubbles: true }));
+  };
+  // A press on the page itself, or one that began on it and ended beside it,
+  // leaves it where it is.
+  beside(view.$("detailsTitle"), view.$("detailsTitle"));
+  beside(details, view.$("detailsTitle"));
+  assert.equal(details.classList.contains("away"), false);
+  beside(details, details);
+  gone();
 });
 
 test("a show from the unwatched or the recent row opens the same dialog, without scrolling", async (t) => {

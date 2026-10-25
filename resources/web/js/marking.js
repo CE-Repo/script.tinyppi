@@ -11,10 +11,14 @@
 
 /* global continueStale, control, el, filmsStale, formatName, refreshEpisodes,
    requestContinue, requestFilms, requestSeries, runtime, seriesStale, T */
-/* exported bindTitle, showDetails, tintDialog */
+/* exported bindTitle, showDetails, slideIn, tintDialog */
 
 /* The currently opened title, including a details request still loading. */
 let detailing = null;
+/* What the library said about each title asked about, by its address, so a
+   page gone back to is drawn at once rather than after the box answers
+   again.  Forgotten whenever the library is written to (see reread). */
+const detailsRead = new Map();
 
 /* Forget where a film or an episode got to, leaving it seen or unseen as it
    was: it leaves the row of things half-watched, and its bar leaves the wall. */
@@ -60,6 +64,7 @@ async function setWatched(body, watched) {
    the answer somebody just asked for should not wait on the producer's
    cadence to appear. */
 function reread() {
+  detailsRead.clear();
   filmsStale();
   seriesStale();
   continueStale();
@@ -71,6 +76,32 @@ function reread() {
 
 /* --- a title's details ---------------------------------------------------- */
 
+/* How long a page takes to slide in or out (see .away in css/dashboard.css). */
+const SLIDE_MS = 250;
+/* The pages sliding out, each with the timer it closes on. */
+const sliding = new Map();
+
+/* A page -- a title's details, a show's seasons -- slides in from the side
+   as it opens and back out as it is left, the way one page of the app gives
+   way to the next.  Laid out off to the side first, so taking the mark away
+   slides it in rather than putting it straight where it ends. */
+function slideIn(dialog) {
+  dialog.classList.add("away");
+  dialog.showModal();
+  dialog.getBoundingClientRect();
+  dialog.classList.remove("away");
+}
+
+function slideOut(dialog) {
+  if (sliding.has(dialog)) return;
+  dialog.classList.add("away");
+  sliding.set(dialog, setTimeout(() => {
+    sliding.delete(dialog);
+    dialog.close();
+    dialog.classList.remove("away");
+  }, SLIDE_MS));
+}
+
 /* How far a page is pulled down from its top before it is let go of. */
 const PULL_CLOSE_PX = 100;
 
@@ -78,7 +109,7 @@ const PULL_CLOSE_PX = 100;
    away on a phone and the app's own pages are: the details, and a show's
    seasons.  Only from the top -- further down, the same gesture is the page
    scrolling back up. */
-function pullToClose(dialog) {
+function pullToClose(dialog, leave) {
   const page = dialog.querySelector("form");
   let from = null;
   dialog.addEventListener("touchstart", (event) => {
@@ -87,7 +118,7 @@ function pullToClose(dialog) {
   dialog.addEventListener("touchend", (event) => {
     const start = from;
     from = null;
-    if (start !== null && event.changedTouches[0].clientY - start > PULL_CLOSE_PX) dialog.close();
+    if (start !== null && event.changedTouches[0].clientY - start > PULL_CLOSE_PX) leave();
   });
 }
 
@@ -122,16 +153,20 @@ function showPicture(image, url) {
    dialog -- an episode's give way to its show's (see the rows in
    js/continue.js) -- rather than being turned away as a second press is. */
 async function showDetails(question, replace) {
-  if (detailing && !replace) return;
+  /* A show's page under its seasons (see stays) gives way to an episode's. */
+  if (detailing && !replace && !detailing.stays) return;
   detailing = question;
   const [key] = Object.keys(question.body);
-  let found;
-  try {
-    found = await TinyPPI.getJSON("/api/details?" + key + "=" +
-                                  encodeURIComponent(question.body[key]));
-  } catch (_) {
-    TinyPPI.toast(T.details_failed, true);
-    found = {};
+  const address = "/api/details?" + key + "=" + encodeURIComponent(question.body[key]);
+  let found = detailsRead.get(address);
+  if (!found) {
+    try {
+      found = await TinyPPI.getJSON(address);
+      detailsRead.set(address, found);
+    } catch (_) {
+      TinyPPI.toast(T.details_failed, true);
+      found = {};
+    }
   }
   showPicture(el.detailsBackdrop,
               detailsArt(question.body, found.fanart ? "fanart" : "thumb",
@@ -166,7 +201,11 @@ async function showDetails(question, replace) {
   el.detailsError.hidden = true;
   renderDetailsActions(question);
   el.detailsDialog.returnValue = "";
-  if (!el.detailsDialog.open) el.detailsDialog.showModal();
+  /* Open under a show's seasons, the page is shut and shown again, which is
+     what puts it in front of them (see the close below, which lets that
+     pass). */
+  if (el.detailsDialog.open && !replace) el.detailsDialog.close();
+  if (!el.detailsDialog.open) slideIn(el.detailsDialog);
   el.detailsDialog.querySelector("form").scrollTop = 0;
 }
 
@@ -243,14 +282,47 @@ function tintDialog(dialog, pictures) {
 TinyPPI.openDetails = (item) =>
   showDetails({ title: item.title, body: { [item.kind + "id"]: item.id } });
 
-pullToClose(el.detailsDialog);
-pullToClose(el.seasonsDialog);
+/* Every way a reader leaves a page slides it out: its key, Escape and the
+   phone's back gesture (the dialog's cancel), a pull down from its top, and
+   -- on a desktop, where the page stands in the middle of the screen -- a
+   click beside it. */
+for (const [dialog, key] of [[el.detailsDialog, el.detailsX], [el.seasonsDialog, el.seasonsX]]) {
+  key.addEventListener("click", (event) => {
+    event.preventDefault();
+    slideOut(dialog);
+  });
+  dialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    slideOut(dialog);
+  });
+  /* Only a press that began beside the page as well: a row of cards
+     dragged until the pointer is let go out there is no click beside it. */
+  let pressedBeside = false;
+  dialog.addEventListener("pointerdown", (event) => { pressedBeside = event.target === dialog; });
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog && pressedBeside) slideOut(dialog);
+  });
+  pullToClose(dialog, () => slideOut(dialog));
+}
 
 el.detailsDialog.querySelector("form").addEventListener("scroll", () => {
   for (const tip of el.detailsRatings.querySelectorAll(".rating-tip")) tip.hidePopover();
 });
 
+/* A question that *stays* -- a show's, whose seasons open over its page --
+   is answered without the page being put away, so leaving the seasons finds
+   it where it was. */
+el.detailsPlay.addEventListener("click", (event) => {
+  const question = detailing;
+  if (!question || !question.stays || question.busy) return;
+  event.preventDefault();
+  question.onPlay(false);
+});
+
 el.detailsDialog.addEventListener("close", () => {
+  /* Shut only to be shown again in front (see showDetails): nothing was
+     answered. */
+  if (el.detailsDialog.open) return;
   const answer = el.detailsDialog.returnValue;
   const question = detailing;
   detailing = null;

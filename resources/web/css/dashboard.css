@@ -625,7 +625,28 @@
 
 /* One show's seasons are drawn as a title's details are -- the same page,
    the same backdrop, poster and heading -- with the seasons where the plot
-   would be (see "a title's details" below, which both dialogs share). */
+   would be (see "a title's details" below, which both dialogs share).
+
+   They slide in over the show's page, which stays open under them, and slide
+   back out to it, the way one page of the app gives way to the next: from
+   the side and across the whole screen on a phone, a short way and fading
+   on a desktop, where the page stands in the middle of the screen.  The
+   page under them is already dimmed, so they add no shade of their own. */
+#detailsDialog, #seasonsDialog { transition: opacity .25s ease, transform .25s ease; }
+/* Where a page stands before sliding in and after sliding out (see slideIn
+   and slideOut in js/marking.js): a title's details as much as a show's
+   seasons. */
+#detailsDialog.away, #seasonsDialog.away { opacity: 0; transform: translateX(48px); }
+@media (max-width: 620px) {
+  #detailsDialog.away, #seasonsDialog.away { opacity: 1; transform: translateX(100%); }
+}
+html:has(#detailsDialog[open]) #seasonsDialog::backdrop {
+  background: transparent;
+  backdrop-filter: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  #detailsDialog, #seasonsDialog { transition: none; }
+}
 
 /* The episodes themselves: rows rather than a wall.  An episode is chosen by
    its number and its name -- the still is a reminder of which one it was, not
