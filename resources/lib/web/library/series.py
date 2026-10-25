@@ -23,7 +23,7 @@ from web.values import Json, Unchecked, library_id
 # Show properties the tiles need.  A show's ``dateadded`` is its newest
 # episode's, so new episodes put the show on the "recently added" row.
 _SHOW_PROPERTIES = ("title", "year", "art", "episode", "watchedepisodes",
-                    "ratings", "dateadded")
+                    "ratings", "dateadded", "genre")
 
 # Episode properties the episode list needs.
 _EPISODE_PROPERTIES = ("title", "season", "episode", "art", "runtime",
@@ -146,6 +146,9 @@ def _show(row: Json, art: ArtPaths) -> Show | None:
     added = common.added(row.get("dateadded"))
     if added:
         show["added"] = added
+    genres = common.names(row, "genre")
+    if genres:
+        show["genres"] = genres
     return show
 
 

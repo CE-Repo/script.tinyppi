@@ -10,9 +10,10 @@ from web.library.entries import ArtPaths, Film, FilmListing, Films
 from web.values import Json, Unchecked, library_id
 
 # Film properties the tiles need.  ``dateadded`` feeds the "recently added"
-# row (see ``common.added``), read here so the row matches the wall.
+# row (see ``common.added``), read here so the row matches the wall; the
+# genres and the stream details are what the page sorts and filters by.
 _PROPERTIES = ("title", "year", "art", "runtime", "playcount", "resume",
-               "ratings", "dateadded")
+               "ratings", "dateadded", "genre", "streamdetails")
 
 
 def catalogue() -> Films:
@@ -99,6 +100,21 @@ def _describe(film: Film, row: Json) -> None:
     added = common.added(row.get("dateadded"))
     if added:
         film["added"] = added
+    _classify(film, row)
+
+
+def _classify(film: Film, row: Json) -> None:
+    """Add what the page sorts and filters by: genres and formats."""
+    genres = common.names(row, "genre")
+    if genres:
+        film["genres"] = genres
+    found = common.formats(row.get("streamdetails"))
+    if "video" in found:
+        film["video"] = found["video"]
+    if "resolution" in found:
+        film["resolution"] = found["resolution"]
+    if "audio" in found:
+        film["audio"] = found["audio"]
 
 
 def play(movie_id: Unchecked, resume: bool = True) -> bool:
