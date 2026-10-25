@@ -462,15 +462,6 @@ def test_subtitle_delay_reports_a_refused_step(kodi):
     assert len(kodi.sent("Input.ExecuteAction")) == 1        # stops at the first
 
 
-@pytest.mark.parametrize(("value", "ok"), [
-    (1.5, True), ("0.8", True), (1, True), (1.3, False), (2, False), (None, False),
-])
-def test_tempo_from_the_offered_list(kodi, value, ok):
-    assert player.apply_command("tempo", value) is ok
-    expected = [{"playerid": 1, "tempo": float(value)}] if ok else []
-    assert kodi.sent("Player.SetTempo") == expected
-
-
 @pytest.mark.parametrize(("value", "sent"), [(True, ["on"]), (False, ["off"]), (1, []), ("on", [])])
 def test_subtitles_shown_or_hidden(kodi, value, sent):
     assert player.apply_command("subtitles", value) is bool(sent)
@@ -484,19 +475,11 @@ def test_offsets_read_from_their_labels(label, seconds):
     assert player.offset(label) == seconds
 
 
-@pytest.mark.parametrize(("label", "value"), [
-    ("1.00", 1.0), ("1.50", 1.5), ("0.80", 0.8), ("0.00", None), ("2.00", None), ("", None),
-])
-def test_tempo_read_from_the_play_speed(label, value):
-    assert player.tempo(label) == value
-
-
 def test_player_controls_carry_the_fine_adjustments(kodi):
     xbmc.INFO["Player.AudioDelay"] = "-0.050 s"
     xbmc.INFO["Player.SubtitleDelay"] = "0.300 s"
-    xbmc.INFO["Player.PlaySpeed"] = "1.10"
     state = player.player_controls()
-    assert (state["audio_delay"], state["subtitle_delay"], state["tempo"]) == (-0.05, 0.3, 1.1)
+    assert (state["audio_delay"], state["subtitle_delay"]) == (-0.05, 0.3)
     kodi.playing = False
     state = player.player_controls()
-    assert (state["audio_delay"], state["subtitle_delay"], state["tempo"]) == (None, None, None)
+    assert (state["audio_delay"], state["subtitle_delay"]) == (None, None)

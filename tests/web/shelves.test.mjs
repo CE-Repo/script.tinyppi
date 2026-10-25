@@ -95,7 +95,7 @@ const DETAILS = {
 
 const IDLE = { playing: false, control: true };
 
-async function open(t, { routes = {}, token = "" } = {}) {
+async function open(t, { routes = {}, token = "", stored = {}, storage = true } = {}) {
   const table = {
     "/api/hello": [200, { version: "2.20.0", strings: STRINGS }],
     "/api/library": [200, { tag: "f1", movies: FILMS }],
@@ -111,6 +111,10 @@ async function open(t, { routes = {}, token = "" } = {}) {
   fakeClock(window);
   window.scrollTo = () => {};
   window.HTMLElement.prototype.scrollIntoView = () => {};
+  for (const [key, value] of Object.entries(stored)) window.localStorage.setItem(key, value);
+  if (!storage) {
+    Object.defineProperty(window, "localStorage", { get() { throw new Error("blocked"); } });
+  }
   for (const name of ORDER) load(dom, name);
   await settle();
   view.streams.at(-1).emit("state", { ...IDLE, seq: 2 });
@@ -157,6 +161,42 @@ test("the film wall offers every order, and each puts titles without the value l
   }
   assert.ok([...view.$("filmGrid").children].every((node) => posters.includes(node)),
             "the tiles are moved, not made again");
+});
+
+test("each order runs either way, a press turning it, and is kept", async (t) => {
+  const view = await open(t);
+  const way = view.$("filmTools").querySelector(".shelfway");
+  const kept = () => view.window.localStorage.getItem("tinyppi.order.films");
+  assert.equal(way.textContent, "\u2191 Ascending");
+  assert.equal(way.getAttribute("aria-label"), "Ascending");
+  // A new order starts its own way round: the newest first.
+  choose(view, "filmTools", "sort", "year");
+  assert.equal(way.textContent, "\u2193 Descending");
+  assert.ok(way.classList.contains("down"));
+  assert.equal(kept(), "year:down");
+  way.click();
+  assert.deepEqual(order(view, "filmGrid"), ["Alien", "Brazil", "Dune", "Cube", "Eraserhead"]);
+  assert.equal(kept(), "year");
+  // The titles the other way round.
+  choose(view, "filmTools", "sort", "title");
+  way.click();
+  assert.deepEqual(order(view, "filmGrid"), ["Eraserhead", "Dune", "Cube", "Brazil", "Alien"]);
+  assert.equal(kept(), "title:down");
+});
+
+test("a kept order is the wall's on the next visit, and one it does not offer is not", async (t) => {
+  const view = await open(t, { stored: { "tinyppi.order.films": "rating:down",
+                                          "tinyppi.order.series": "runtime" } });
+  assert.equal(pick(view, "filmTools", "sort").value, "rating");
+  assert.deepEqual(order(view, "filmGrid"), ["Alien", "Brazil", "Dune", "Cube", "Eraserhead"]);
+  assert.equal(pick(view, "seriesTools", "sort").value, "title");
+});
+
+test("a browser that keeps nothing still sorts both ways", async (t) => {
+  const view = await open(t, { storage: false });
+  choose(view, "filmTools", "sort", "runtime");
+  view.$("filmTools").querySelector(".shelfway").click();
+  assert.deepEqual(order(view, "filmGrid"), ["Brazil", "Alien", "Cube", "Dune", "Eraserhead"]);
 });
 
 test("the filters offer what the wall holds, in their order, and narrow it with the search", async (t) => {

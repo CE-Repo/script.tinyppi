@@ -118,7 +118,7 @@ SNAPSHOT = {
                 "frame": {"w": 3840, "h": 2160}, "progress": 8.3},
     "chapters": player.chapter_list("02:00:00"),
     "chapter": 2, "controls": {"chapters": 4, "audio_delay": -0.05, "subtitle_delay": 0.0,
-                               "subtitle_on": True, "tempo": 1.0},
+                               "subtitle_on": True},
     "metadata": [{"kind": "row", "name": "L1 max", "value": "1000"}],
     "session": {"seq": 3, "switches": 1, "warnings": 1}, "library": 1, "control": True,
 }

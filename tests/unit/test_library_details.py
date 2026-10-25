@@ -5,12 +5,16 @@
 
 import pytest
 
-from web import library
+from web import library, ratings
+from web.library import details as details_module
 
 
 @pytest.fixture
 def answers(monkeypatch):
-    """Answer the details queries from a dict by method; record the params."""
+    """Answer the details queries from a dict by method; record the params.
+
+    MDBList and WhatsOn have no key, and so are not asked.
+    """
     held = {"answers": {}, "calls": []}
 
     def rpc(method, params=None):
@@ -18,6 +22,9 @@ def answers(monkeypatch):
         return held["answers"].get(method, {"result": "OK"})
 
     monkeypatch.setattr(library.common, "rpc", rpc)
+    monkeypatch.setattr(ratings, "rpc", rpc)
+    monkeypatch.setattr(details_module.mdblist, "api_key", lambda: "")
+    monkeypatch.setattr(details_module.whatson, "api_key", lambda: "")
     return held
 
 
@@ -85,3 +92,109 @@ def test_a_series_details(answers):
 def test_no_details_for_an_unknown_title(answers, kind, item, answer):
     answers["answers"]["VideoLibrary.GetMovieDetails"] = answer
     assert library.title_details(kind, item) is None
+
+
+def test_an_episode_wears_its_shows_age_rating_and_awards(answers, monkeypatch):
+    answers["answers"]["VideoLibrary.GetEpisodeDetails"] = {"result": {"episodedetails": {
+        "title": "Pilot", "tvshowid": 7}}}
+    answers["answers"]["VideoLibrary.GetTVShowDetails"] = {"result": {"tvshowdetails": {
+        "mpaa": "TV-MA", "uniqueid": {"tvdb": "81189"}}}}
+    held = []
+    monkeypatch.setattr(ratings, "awards_of", lambda kind, ids: held.append((kind, ids)) or [
+        {"award": "emmy", "won": ["Drama"], "nominated": 2}])
+    found = library.title_details("episode", 70)
+    assert (found["mpaa"], found["age"], found["age_level"]) == ("TV-MA", "tv_ma", "MA")
+    assert found["awards"] == [{"award": "emmy", "won": ["Drama"], "nominated": 2}]
+    assert held == [("tv", {"tvdb": "81189"})]
+    assert answers["calls"][1] == ("VideoLibrary.GetTVShowDetails",
+                                   {"tvshowid": 7, "properties": ["mpaa", "uniqueid"]})
+
+
+class Rated:
+    """MDBList and WhatsOn as the details see them: each asked for a few
+    looks, then answering."""
+
+    def __init__(self, monkeypatch, mdblist_looks=0, whatson_looks=0):
+        self.looks = {"mdblist": mdblist_looks, "whatson": whatson_looks}
+        self.slept = []
+        self.now = 0.0
+        self.keys = []
+        module = details_module
+        monkeypatch.setattr(module.mdblist, "api_key", lambda: "m-key")
+        monkeypatch.setattr(module.whatson, "api_key", lambda: "w-key")
+        monkeypatch.setattr(module.mdblist, "with_mdblist", self.with_mdblist)
+        monkeypatch.setattr(module.mdblist, "asking", self.mdblist_asking)
+        monkeypatch.setattr(module.whatson, "with_whatson", self.with_whatson)
+        monkeypatch.setattr(module.whatson, "asking", self.whatson_asking)
+        monkeypatch.setattr(module, "_sleep", self.sleep)
+        monkeypatch.setattr(module, "_clock", lambda: self.now)
+
+    def sleep(self, seconds):
+        self.slept.append(seconds)
+        self.now += seconds
+
+    def _asking(self, name):
+        if self.looks[name] > 0:
+            self.looks[name] -= 1
+            return True
+        return False
+
+    def mdblist_asking(self, key, ids):
+        self.keys.append(("mdblist", key, dict(ids)))
+        return self._asking("mdblist")
+
+    def whatson_asking(self, ids, key):
+        self.keys.append(("whatson", key, dict(ids)))
+        return self._asking("whatson")
+
+    def with_mdblist(self, given, key=None):
+        if self.looks["mdblist"]:
+            return given
+        merged = given.copy()
+        merged["ratings"] = [{"source": "metacritic", "rating": 7.6, "votes": 0}] + given["ratings"]
+        merged["top250"] = 115
+        return merged
+
+    def with_whatson(self, given, key=""):
+        if self.looks["whatson"]:
+            return given
+        merged = given.copy()
+        merged["ratings"] = given["ratings"] + [
+            {"source": "rottentomatoes", "rating": 8.8, "votes": 0, "certified": True}]
+        return merged
+
+
+HEAT = {"result": {"moviedetails": {
+    "title": "Heat", "ratings": {"imdb": {"rating": 8.3, "votes": 700000}}, "userrating": 8,
+    "uniqueid": {"imdb": "tt0113277", "tmdb": "949"}}}}
+
+
+def test_a_films_ratings_are_the_now_playing_cards(answers, monkeypatch):
+    answers["answers"]["VideoLibrary.GetMovieDetails"] = HEAT
+    rated = Rated(monkeypatch, mdblist_looks=2, whatson_looks=1)
+    found = library.title_details("movie", 4)
+    assert "uniqueid" in answers["calls"][0][1]["properties"]
+    assert [entry["source"] for entry in found["ratings"]] == ["metacritic", "imdb", "rottentomatoes"]
+    assert found["ratings"][2]["certified"] is True
+    assert (found["userrating"], found["top250"]) == (8, 115)
+    # MDBList first, WhatsOn once it has answered, each with its own key.
+    assert rated.slept == [0.2, 0.2, 0.2]
+    assert rated.keys[0] == ("mdblist", "m-key", {"imdb": "tt0113277", "tmdb": "949"})
+    assert ("whatson", "w-key", {"imdb": "tt0113277", "tmdb": "949"}) in rated.keys
+
+
+def test_a_slow_answer_is_waited_on_for_a_moment_only(answers, monkeypatch):
+    answers["answers"]["VideoLibrary.GetMovieDetails"] = HEAT
+    rated = Rated(monkeypatch, mdblist_looks=1000)
+    found = library.title_details("movie", 4)
+    assert found["ratings"] == [{"source": "imdb", "rating": 8.3, "votes": 700000}]
+    assert sum(rated.slept) == pytest.approx(details_module._RATINGS_WAIT)
+    assert not any(name == "whatson" for name, _key, _ids in rated.keys)
+
+
+def test_a_show_is_not_asked_for_by_its_ids(answers, monkeypatch):
+    answers["answers"]["VideoLibrary.GetTVShowDetails"] = {"result": {"tvshowdetails": {
+        "title": "Dark", "uniqueid": {"imdb": "tt5753856", "tvdb": "334824"}}}}
+    rated = Rated(monkeypatch)
+    library.title_details("tvshow", 7)
+    assert rated.keys[0] == ("mdblist", "m-key", {})

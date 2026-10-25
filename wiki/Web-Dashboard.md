@@ -356,7 +356,11 @@ in the order Kodi files them. A tap opens the [title dialog](#play-resume-and-wa
 - Under the title: the **year** and the **running time**.
 - A **search box** narrows the wall as you type; the cross in it clears it.
 - Under it, the wall can be **sorted** — by title (Kodi's own order), year,
-  rating, date added or running time; a film without the value goes last —
+  rating, date added or running time, each **ascending or descending** (the
+  arrow key beside the order turns it round; a new order starts the way it
+  reads best — newest, best and latest added first). The order and its way
+  round are kept in the browser for the next visit; a film without the value
+  goes last either way —
   and **filtered** by genre, picture format (Dolby Vision, HDR10+, HDR10,
   HLG, SDR — and under Dolby Vision each profile the library holds, such as
   P5, P7 FEL, P7 MEL or P8.1, where it holds more than one), resolution (4K, 1080p, 720p, SD) and audio format (the first
@@ -445,13 +449,13 @@ A tap on a film, series or episode — on a wall or in a row — opens a dialog:
 
 | Option | Shown for | Effect |
 |---|---|---|
+| **Details** | all | The title's details from the library, under its backdrop (a film's or a series' fanart, an episode's still) with its poster: year and running time, the file's formats, every rating the overview card would show for the title, as its shields (age rating, the library's, MDBList's and Rotten Tomatoes' scores with their certificates, your own, the Top 250 place, the awards), tagline and plot, genres, director, writers, studio, and the cast as small cards with who they played. Under the heading the question's first answers as keys: **Play** or **Resume**, **Play from the beginning** where there is a point to resume from, **Open** for a series. |
 | **Play** / **Resume** | films, episodes | Starts it on the box; *Resume* where Kodi has a resume point. |
 | **Open** | series | Shows its episodes (a series itself cannot be played). |
 | **Play from the beginning** | stopped part-way | Starts from the top, without the resume question on the TV. |
 | **Clear resume point** | stopped part-way | Forgets where it got to (taking it off *Continue watching*), leaving watched/unwatched as it was. |
 | **Mark as watched** | all | Writes a play count and removes the resume point — as Kodi's context menu does. A series marks every episode. |
 | **Mark as unwatched** | all | Removes the play count. A series marks every episode. |
-| **Details** | all | The title's details from the library, under its backdrop (a film's or a series' fanart, an episode's still) with its poster: year and running time, the file's formats, the ratings as the overview card's shields (age rating, scores, your own, the Top 250 place), tagline and plot, genres, director, writers, studio, and the cast as small cards with who they played. Under the heading the question's first answers as keys: **Play** or **Resume**, **Play from the beginning** where there is a point to resume from, **Open** for a series. |
 
 All of these need the **access token** and **Allow VS10 switching from the
 dashboard**.
@@ -472,8 +476,8 @@ On the Live tab, under the progress bar, in two rows:
 | Second | Previous chapter · Play / Pause · Volume down · Mute · Volume up · Stop · Next chapter |
 
 Under them, the **fine adjustments**: the **audio offset** (lip sync, in steps
-of 50 ms within ±10 s), the **subtitle offset** (in Kodi's 100 ms steps, shown
-while subtitles are on) and the **tempo** (0.8× to 1.5×, with the sound kept).
+of 50 ms within ±10 s) and the **subtitle offset** (in Kodi's 100 ms steps,
+shown while subtitles are on).
 A tap on an offset's value puts it back to 0. Kodi has no JSON-RPC method for
 the subtitle offset, so it is moved with the same key presses a remote sends,
 and Kodi shows its own slider on the TV for a moment while it moves. Then a
@@ -570,7 +574,13 @@ A key with nothing to copy is dimmed.
 
 ## Themes
 
-Three themes, all dark — this is watched in the room the projector is in:
+Three themes, all dark — this is watched in the room the projector is in.
+The page is drawn in the **TinyPPI app's** design: its dark palette, cards one
+step up from the page with a hairline round them and 20 px corners, pill-shaped
+chips and buttons, tool keys with 12 px corners on the card's raised ground,
+headings with the accent tick, small centred captions over the keys, Material
+dialogs and the floating tab bar with the open tab as a filled pill. A phone and
+a browser opened on the same box read as one thing.
 
 | Theme | Look |
 |---|---|

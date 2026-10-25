@@ -2,9 +2,8 @@
 # Copyright (c) 2026 U3knOwn
 
 """The playing video over JSON-RPC: tracks, volume, chapters (the count for
-the keys, the list for the dots on the bar), the audio and subtitle offsets
-and the tempo, live-TV times and the transport commands the dashboard may
-send."""
+the keys, the list for the dots on the bar), the audio and subtitle
+offsets, live-TV times and the transport commands the dashboard may send."""
 
 import json
 import math
@@ -226,7 +225,7 @@ def player_controls() -> Controls:
     state: Controls = {"audio": [], "subtitle": [], "audio_current": -1,
                    "subtitle_current": -1, "subtitle_on": False,
                    "volume": None, "muted": False, "chapters": 0,
-                   "audio_delay": None, "subtitle_delay": None, "tempo": None}
+                   "audio_delay": None, "subtitle_delay": None}
 
     app = rpc("Application.GetProperties",
                {"properties": ["volume", "muted"]}).get("result") or {}
@@ -243,7 +242,6 @@ def player_controls() -> Controls:
     # InfoLabels, so the fine adjustments cost no JSON-RPC.
     state["audio_delay"] = offset(info("Player.AudioDelay"))
     state["subtitle_delay"] = offset(info("Player.SubtitleDelay"))
-    state["tempo"] = tempo(info("Player.PlaySpeed"))
 
     properties = rpc("Player.GetProperties", {
         "playerid": player_id,
@@ -307,11 +305,6 @@ _AUDIO_DELAY_LIMIT    = 10.0
 _SUBTITLE_DELAY_STEP  = 0.1
 _SUBTITLE_DELAY_LIMIT = 60.0
 
-# The tempos offered: Kodi plays these with the sound pitched back (its own
-# OSD offers the same range), not the fast-forward speeds that mute it.
-TEMPOS = (0.8, 0.9, 1.0, 1.1, 1.2, 1.5)
-_TEMPO_RANGE = (0.75, 1.55)
-
 # An offset as the InfoLabels write it: "-0.125 s".
 _OFFSET = re.compile(r"\s*([-+]?\d+(?:\.\d+)?)\s*s?\s*")
 
@@ -320,20 +313,6 @@ def offset(label: str) -> float | None:
     """Return an offset InfoLabel ("-0.125 s") in seconds, or None."""
     found = _OFFSET.fullmatch(label)
     return round(float(found.group(1)), 3) if found else None
-
-
-def tempo(label: str) -> float | None:
-    """Return the tempo from ``Player.PlaySpeed``, or None.
-
-    The label is the tempo while playing at normal speed and the speed
-    otherwise; a pause (0) or a fast-forward is no tempo.
-    """
-    found = _OFFSET.fullmatch(label)
-    if not found:
-        return None
-    value = float(found.group(1))
-    low, high = _TEMPO_RANGE
-    return round(value, 2) if low <= value <= high else None
 
 
 # --- Live TV ---------------------------------------------------------------
@@ -525,14 +504,6 @@ def _subtitle_delay(player_id: int, value: Unchecked) -> bool:
     return all(_input_action(action) for _ in range(abs(steps)))
 
 
-def _tempo(player_id: int, value: Unchecked) -> bool:
-    """Play at one of ``TEMPOS``."""
-    wanted = _number(value, *_TEMPO_RANGE)
-    if wanted is None or not any(math.isclose(wanted, offered) for offered in TEMPOS):
-        return False
-    return "result" in rpc("Player.SetTempo", {"playerid": player_id, "tempo": wanted})
-
-
 def _subtitles(player_id: int, value: Unchecked) -> bool:
     """Show (true) or hide (false) the selected subtitle."""
     if not isinstance(value, bool):
@@ -569,7 +540,6 @@ _PLAYER_COMMANDS: dict[str, _PlayerCommand] = {
     "subtitles":        _subtitles,
     "audio_delay":      _audio_delay,
     "subtitle_delay":   _subtitle_delay,
-    "tempo":            _tempo,
 }
 
 

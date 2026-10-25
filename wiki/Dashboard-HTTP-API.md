@@ -98,7 +98,7 @@ While something plays the snapshot contains, among others:
 | `vs10` | `{"options": [{"mode", "label"}], "output": "…"}` — the switchable modes for this source and the current output. |
 | `art` | Tags of the playing title's artwork (used in `/api/art` URLs). |
 | `media` | `year`, `genre` (its first two), `show`, `season`, `episode`; and for the overview: `tagline`, `plot` (markup stripped, line breaks kept), `ratings` (`[{source, rating, votes}]`, each out of ten, the known sources first), `mpaa` (the age rating as written), `age` and `age_level` (its mark, e.g. `fsk12`, and level, e.g. `12`; empty where it has no mark), `userrating` (1–10, 0 for none), `top250` (0 for none), `directors` (every one), `cast` (its first 20) with `cast_more`, `studios` (the first). |
-| `controls` | What the remote can offer: audio tracks, subtitles, chapters, the audio and subtitle offsets (`audio_delay`, `subtitle_delay`, seconds) and the `tempo` (`null` where Kodi reports none, e.g. while paused) … |
+| `controls` | What the remote can offer: audio tracks, subtitles, chapters, the audio and subtitle offsets (`audio_delay`, `subtitle_delay`, seconds; `null` where Kodi reports none) … |
 | `session` | `{seq, switches, warnings}` — when `seq` changes, re-read `/api/history`. |
 | `library` | The library version; when it changes, re-read the shelves. |
 | `control` | Same as in `/api/hello`. |
@@ -204,11 +204,15 @@ repeated in `next`.
 ### `GET /api/details?movieid=|tvshowid=|episodeid=<id>`
 
 One title's details, read when it is opened: `kind`, `id`, `title`, the
-library's `ratings` (as in the snapshot's overview), and where the library has
-them `plot`, `tagline`, `premiered`, `mpaa` with its `age` mark and
-`age_level`, `year`, `duration`, `genres`, `directors`, `writers`, `studios`,
+`ratings` the snapshot's overview would show for the same title — the
+library's, MDBList's over them and WhatsOn's Rotten Tomatoes ratings and
+certificates (a film's answer is waited on for up to four seconds; one that
+takes longer is there on the next read) — and where there are any `mpaa` with
+its `age` mark and `age_level` (an episode's are its show's), `userrating`,
+`top250` and `awards`; and where the library has them `plot`, `tagline`,
+`premiered`, `year`, `duration`, `genres`, `directors`, `writers`, `studios`,
 `countries`, the `cast` (`{"name", "role"}`, the first twenty, `cast_more`
-when there are more), `userrating`, `top250` and the file's `video`,
+when there are more) and the file's `video`,
 `dv_profile`, `resolution` and `audio`, and the tags of its pictures for
 `/api/art` — `poster` and `fanart` for a film or a series, `thumb` for an
 episode. An episode adds `show`, `tvshowid`, `season` and
@@ -281,7 +285,6 @@ Body: `{"action": "<action>", "value": <value>}`.
 | `subtitles` | `true` / `false` | Show or hide the selected subtitle. |
 | `audio_delay` | seconds, −10 … 10 | Set the audio offset (rounded to Kodi's 25 ms steps). |
 | `subtitle_delay` | seconds, −60 … 60 | Set the subtitle offset, in Kodi's 100 ms steps; each step shows Kodi's own slider on the TV for a moment (there is no JSON-RPC method for it). |
-| `tempo` | 0.8, 0.9, 1.0, 1.1, 1.2 or 1.5 | Play faster or slower with the sound kept. |
 
 ```bash
 curl -X POST -H 'X-TinyPPI-Token: ABCD2345' -H 'Content-Type: application/json' \

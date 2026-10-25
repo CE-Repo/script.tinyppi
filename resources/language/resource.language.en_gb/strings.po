@@ -1551,10 +1551,6 @@ msgctxt "#32392"
 msgid "Subtitle offset"
 msgstr ""
 
-msgctxt "#32393"
-msgid "Tempo"
-msgstr ""
-
 msgctxt "#32394"
 msgid "Reset to 0"
 msgstr ""
@@ -1629,4 +1625,12 @@ msgstr ""
 
 msgctxt "#32412"
 msgid "No titles match the filter"
+msgstr ""
+
+msgctxt "#32413"
+msgid "Ascending"
+msgstr ""
+
+msgctxt "#32414"
+msgid "Descending"
 msgstr ""

@@ -21,8 +21,7 @@ class Track(TypedDict):
 
 
 class Controls(TypedDict, total=False):
-    """Tracks, volume, mute, chapters, the offsets and the tempo
-    (``player_controls``).
+    """Tracks, volume, mute, chapters and the offsets (``player_controls``).
 
     Empty while the page may not control the player.
     """
@@ -35,10 +34,9 @@ class Controls(TypedDict, total=False):
     volume: object
     muted: bool
     chapters: int
-    # Seconds, and the tempo (1.0 for normal); None where Kodi says none.
+    # Seconds; None where Kodi says none.
     audio_delay: float | None
     subtitle_delay: float | None
-    tempo: float | None
 
 
 class Chapter(TypedDict):

@@ -148,7 +148,6 @@ _UI_STRINGS = {
     # The remote's fine adjustments.
     "audio_offset":     32391,
     "subtitle_offset":  32392,
-    "tempo":            32393,
     "offset_reset":     32394,
     # Sorting and filtering the shelves.
     "sort":             32395,
@@ -157,6 +156,8 @@ _UI_STRINGS = {
     "sort_rating":      32398,
     "sort_added":       32399,
     "sort_runtime":     32400,
+    "sort_ascending":   32413,
+    "sort_descending":  32414,
     "filter_genre":     32401,
     "filter_video":     32402,
     "filter_resolution": 32403,

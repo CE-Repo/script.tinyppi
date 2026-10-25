@@ -330,18 +330,18 @@
   </button>
 </nav>
 
-<!-- What a press on a poster or an episode asks: play it (open it, for a
-     series), or have the box count it as seen or as unseen (see "what a press
-     asks" in js/marking.js). -->
+<!-- What a press on a poster or an episode asks: its details, play it (open
+     it, for a series), or have the box count it as seen or as unseen (see
+     "what a press asks" in js/marking.js). -->
 <dialog id="markDialog"><form method="dialog">
   <h3 id="markTitle"></h3>
   <div class="markoptions">
+    <button value="details" id="markDetails" type="submit"></button>
     <button value="play" id="markPlay" type="submit"></button>
     <button value="restart" id="markRestart" type="submit" hidden></button>
     <button value="watched" id="markWatched" type="submit"></button>
     <button value="unwatched" id="markUnwatched" type="submit"></button>
     <button value="clear" id="markClear" type="submit" hidden></button>
-    <button value="details" id="markDetails" type="submit"></button>
   </div>
   <div class="dlgrow"><button value="cancel" id="markCancel" type="submit"></button></div>
 </form></dialog>

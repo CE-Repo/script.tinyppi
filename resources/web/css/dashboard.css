@@ -47,8 +47,8 @@
   min-height: var(--tap);
   padding: 11px 14px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: transparent;
+  border: 1px solid transparent;
+  background: var(--panel-3);
   color: var(--text);
   font: inherit;
   font-weight: 600;
@@ -61,16 +61,14 @@
 }
 @media (hover: hover) {
   .mode:hover:not(:disabled) {
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    background: color-mix(in srgb, var(--text) 8%, var(--panel-3));
   }
 }
 .mode:active:not(:disabled) { transform: scale(.985); }
 .mode:disabled { opacity: .5; cursor: progress; }
 .mode.busy {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  color: var(--accent);
+  background: var(--tonal);
+  color: var(--on-tonal);
 }
 
 /* --- Detail groups ------------------------------------------------------ */
@@ -230,16 +228,16 @@
 
 .filmsearch {
   appearance: none;
-  min-height: var(--tap);
+  min-height: 56px;
   width: 100%;
   box-sizing: border-box;
-  padding: 8px 12px;
+  padding: 8px 20px;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel-2);
+  border-radius: var(--radius-pill);
+  background: var(--panel);
   color: var(--text);
   font: inherit;
-  font-size: 14px;
+  font-size: 16px;
 }
 .filmsearch::placeholder { color: var(--muted); }
 .filmsearch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -257,24 +255,32 @@
 /* The search with the order and the filters under it, which wrap onto as many
    lines as a phone needs.  A filter with nothing to choose between is not
    drawn (see js/shelf-tools.js). */
-.shelfhead { display: grid; gap: 8px; }
+.shelfhead { display: grid; gap: var(--gap); }
+/* The order and the filters on a card of their own, as the app puts them:
+   a row of chips the shape and colour of the app's. */
 .shelftools {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
 }
 .shelfpick {
   appearance: none;
-  flex: 1 1 140px;
+  flex: 0 1 auto;
   min-width: 0;
-  min-height: var(--tap);
-  padding: 0 30px 0 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
+  max-width: 100%;
+  min-height: 40px;
+  padding: 0 32px 0 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--panel-3);
   background-color: var(--panel-2);
   color: var(--text);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
   background-image:
     linear-gradient(45deg, transparent 50%, var(--muted) 50%),
@@ -283,9 +289,28 @@
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
 }
+.shelfway {
+  appearance: none;
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--panel-3);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .shelfpick:hover, .shelfway:hover { background-color: color-mix(in srgb, var(--text) 8%, var(--panel-2)); }
+}
+.shelfway:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .shelfpick[hidden] { display: none; }
 .shelfpick:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.searchbox .filmsearch { padding-right: 40px; }
+.searchbox .filmsearch { padding-right: 48px; }
 
 /* Drawn rather than lettered: a multiplication sign is a different shape and
    weight in every font a box might have, and this one has to read as a cross
@@ -297,13 +322,13 @@
   appearance: none;
   position: absolute;
   top: 50%;
-  right: 4px;
+  right: 8px;
   transform: translateY(-50%);
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   background: none;
   color: var(--muted);
   cursor: pointer;
@@ -578,19 +603,19 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: var(--tap);
-  padding: 0 12px 0 8px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel-2);
-  color: var(--muted);
+  min-height: 40px;
+  padding: 0 16px 0 10px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--tonal);
+  color: var(--on-tonal);
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
 }
 @media (hover: hover) {
-  .seriesback:hover { color: var(--text); border-color: var(--accent); }
+  .seriesback:hover { background: color-mix(in srgb, var(--on-tonal) 8%, var(--tonal)); }
 }
 .seriesback:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
@@ -777,28 +802,27 @@
    dialog's full width: they are the whole of what it asks, and three side by
    side would cut every name short on a phone.  Playing it comes first and in
    the accent, being what a press on a poster has always been for. */
-.markoptions { display: grid; gap: 8px; }
+/* The answers as the app lists them: a row each, a finger tall, written
+   plainly on the dialog rather than drawn as keys. */
+.markoptions { display: grid; gap: 4px; }
 .markoptions button[hidden] { display: none; }
 .markoptions button {
   appearance: none;
-  min-height: var(--tap);
-  padding: 0 16px;
+  min-height: 52px;
+  padding: 0 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: var(--panel-2);
+  border: 0;
+  background: transparent;
   color: var(--text);
   font: inherit;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: .3px;
   text-align: left;
   cursor: pointer;
 }
-.markoptions button[value="play"] {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #05131c;
-}
 @media (hover: hover) {
-  .markoptions button:hover { border-color: var(--accent); }
+  .markoptions button:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
 }
 .markoptions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 #markTitle {
@@ -812,7 +836,9 @@
    lower edge beside the title and the formats; under it the ratings, the
    plot, the facts and the cast.  It scrolls inside itself when it is longer
    than the screen, with the close key kept at the foot. */
-#detailsDialog { width: min(640px, calc(100vw - 24px)); overflow: hidden; }
+/* On the page's own ground, as the app's details page is, so the cards in it
+   stand up from it the way they do on a screen. */
+#detailsDialog { width: min(640px, calc(100vw - 24px)); overflow: hidden; background: var(--bg); }
 #detailsDialog form {
   padding: 0;
   gap: 0;
@@ -881,8 +907,24 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
 /* The question's first answers, side by side: play (resume, or open for a
    series) in the accent, and starting over beside it where there is a point
    to resume from. */
-.detailsactions { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
-.detailsactions button { text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.detailsactions { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; }
+.detailsactions button {
+  min-height: 52px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: .1px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Play in the accent, starting over outlined beside it, as on the app's page. */
+.detailsactions button[value="play"] { background: var(--accent); color: var(--on-accent); }
+.detailsactions button[value="restart"] { border: 1px solid #8a9297; color: var(--accent); }
+@media (hover: hover) {
+  .detailsactions button[value="play"]:hover { background: color-mix(in srgb, var(--on-accent) 8%, var(--accent)); }
+}
 #detailsRatings { justify-content: flex-start; }
 .detailstagline { font-style: italic; }
 dialog p.detailsplot { color: var(--text); white-space: pre-line; line-height: 1.55; font-size: 14px; }
@@ -907,10 +949,10 @@ dialog p.detailsplot { color: var(--text); white-space: pre-line; line-height: 1
 .detailscast li {
   display: grid;
   gap: 2px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: var(--radius-sm);
-  background: var(--panel-2);
-  border: 1px solid var(--line-soft);
+  background: var(--panel);
+  border: 1px solid var(--line);
   font-size: 13px;
   min-width: 0;
 }

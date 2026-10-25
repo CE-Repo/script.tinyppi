@@ -5,25 +5,39 @@
 
 Read when a title is opened, one query each and not cached: the lists carry
 what a tile needs, this what only one opened title needs.  The ratings are
-the library's own (see ``web.ratings.rating_list``); MDBList and WhatsOn are
-asked only for the playing title.
+the ones the now-playing card shows for the same title: the library's,
+MDBList's over them, WhatsOn's Rotten Tomatoes certificates and what both
+lack, the IMDb Top 250 place and the big awards (see ``web.ratings``).  A
+film MDBList or WhatsOn is being asked for is waited on for a moment; one
+that takes longer has the library's ratings this time and theirs the next,
+from what they keep.
 """
 
+import time
+
+from web import mdblist, whatson
 from web.library import common
 from web.library.entries import Details, Person
-from web.ratings import age_rating, home_country, rating_list
+from web.payloads import Ratings
+from web.ratings import title_ratings
 from web.values import Json, Unchecked, clean_value, library_id, plain_text
 
 # The cast's first twenty in billing order, as on the overview card.
 _CAST_LIMIT = 20
 # A plot is a few paragraphs; a text longer still is cut off.
 _PLOT_LIMIT = 4000
+# How long a details read waits on MDBList and WhatsOn, and how often it
+# looks whether they have answered, in seconds.
+_RATINGS_WAIT = 4.0
+_RATINGS_STEP = 0.2
+_sleep = time.sleep
+_clock = time.monotonic
 
 _FILM = ("title", "plot", "tagline", "genre", "director", "writer", "cast", "studio",
          "country", "mpaa", "year", "runtime", "ratings", "userrating", "top250",
-         "streamdetails", "premiered", "art")
+         "streamdetails", "premiered", "art", "uniqueid")
 _SHOW = ("title", "plot", "genre", "studio", "cast", "mpaa", "year", "ratings",
-         "userrating", "premiered", "episode", "season", "art")
+         "userrating", "premiered", "episode", "season", "art", "uniqueid")
 _EPISODE = ("title", "plot", "showtitle", "tvshowid", "season", "episode", "director",
             "writer", "cast", "firstaired", "runtime", "ratings", "userrating",
             "streamdetails", "art")
@@ -45,8 +59,7 @@ _KINDS = {
 
 # Optional whole numbers and the key each is sent under.
 _NUMBERS = (("year", "year", 1), ("runtime", "duration", 1), ("season", "season", 0),
-            ("episode", "episode", 0), ("tvshowid", "tvshowid", 1),
-            ("userrating", "userrating", 1), ("top250", "top250", 1))
+            ("episode", "episode", 0), ("tvshowid", "tvshowid", 1))
 # Optional lists of names and the key each is sent under (all of them: a
 # details view has room for every genre and director).
 _NAMES = (("genre", "genres"), ("director", "directors"), ("writer", "writers"),
@@ -68,7 +81,8 @@ def details(kind: str, item_id: Unchecked) -> Details | None:
     if not isinstance(row, dict):
         return None
     found: Details = {"kind": kind, "id": wanted, "title": common.clean_title(row),
-                      "ratings": rating_list(row.get("ratings"))}
+                      "ratings": []}
+    _rated(found, _shown(title_ratings(kind, row)))
     _texts(found, row)
     _numbers(found, row)
     _people(found, row)
@@ -83,8 +97,41 @@ _TEXTS = (("plot", "plot", plain_text), ("tagline", "tagline", plain_text),
           ("showtitle", "show", clean_value))
 
 
+def _shown(ratings: Ratings) -> Ratings:
+    """Return *ratings* as the now-playing card shows them (see
+    ``SnapshotBuilder._shown_ratings``), waiting a moment on MDBList and
+    WhatsOn where they are being asked."""
+    mdblist_key, whatson_key = mdblist.api_key(), whatson.api_key()
+    ids = ratings["ids"]
+    deadline = _clock() + _RATINGS_WAIT
+    while True:
+        shown = mdblist.with_mdblist(ratings, key=mdblist_key)
+        waiting = mdblist.asking(mdblist_key, ids)
+        if not waiting:
+            shown = whatson.with_whatson(shown, key=whatson_key)
+            waiting = whatson.asking(ids, whatson_key)
+        if not waiting or _clock() >= deadline:
+            return shown
+        _sleep(_RATINGS_STEP)
+
+
+def _rated(found: Details, ratings: Ratings) -> None:
+    """Add the ratings, the age rating, the reader's own, the Top 250 place
+    and the awards, each only where there is one."""
+    found["ratings"] = ratings["ratings"]
+    if ratings["mpaa"]:
+        found["mpaa"] = ratings["mpaa"]
+        found["age"], found["age_level"] = ratings["age"], ratings["age_level"]
+    if ratings["userrating"]:
+        found["userrating"] = ratings["userrating"]
+    if ratings["top250"]:
+        found["top250"] = ratings["top250"]
+    if ratings["awards"]:
+        found["awards"] = ratings["awards"]
+
+
 def _texts(found: Details, row: Json) -> None:
-    """Add the plot, the tagline, the show, the date and the age rating."""
+    """Add the plot, the tagline, the show and the date."""
     for source, key, clean in _TEXTS:
         text = clean(str(row.get(source) or ""))[:_PLOT_LIMIT]
         if text:
@@ -92,10 +139,6 @@ def _texts(found: Details, row: Json) -> None:
     date = common.added(row.get("premiered") or row.get("firstaired"))
     if date:
         found["premiered"] = date
-    mpaa = clean_value(str(row.get("mpaa") or ""))
-    if mpaa:
-        found["mpaa"] = mpaa
-        found["age"], found["age_level"] = age_rating(mpaa, home_country())
 
 
 def _numbers(found: Details, row: Json) -> None:

@@ -47,6 +47,7 @@ let showTiles = new Map(); /* each show's tile on the wall of everything  */
 
 /* The order and the genre over the wall of every show, as on the films. */
 const seriesTools = shelfTools(el.seriesTools, {
+  shelf: "series",
   sorts: ["title", "year", "rating", "added"],
   filters: ["genre"],
   onChange: arrangeSeries

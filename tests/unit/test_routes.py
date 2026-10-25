@@ -320,7 +320,7 @@ def test_the_token_is_masked_in_the_access_log(dashboard):
 
 @pytest.mark.parametrize(("action", "level"), [
     ("pause", xbmc.LOGINFO), ("seek", xbmc.LOGDEBUG), ("volume", xbmc.LOGDEBUG),
-    ("audio_delay", xbmc.LOGDEBUG), ("subtitle_delay", xbmc.LOGDEBUG), ("tempo", xbmc.LOGINFO),
+    ("audio_delay", xbmc.LOGDEBUG), ("subtitle_delay", xbmc.LOGDEBUG),
 ])
 def test_bursty_commands_are_logged_at_debug(dashboard, monkeypatch, action, level):
     monkeypatch.setattr(routes, "apply_command", lambda action, value=None: True)

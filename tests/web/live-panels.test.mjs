@@ -893,7 +893,7 @@ test("the offsets step from the reported value, hold it, and reset on the value"
   const { $, P, commands, window } = panels(t);
   const fine = (kind) => $("transport").querySelector(`.fine[data-kind="${kind}"]`);
   P.update(snap({ control: true, controls: { audio_delay: -0.05, subtitle_delay: 0.3,
-                                             subtitle_on: false, tempo: 1 } }));
+                                             subtitle_on: false } }));
   const audio = fine("audio_delay");
   const subs = fine("subtitle_delay");
   assert.equal(audio.classList.contains("hidden"), false);
@@ -940,28 +940,13 @@ test("an offset stops at Kodi's range", (t) => {
     .textContent, "\u221260.00 s");
 });
 
-test("the tempo picker follows the player and sends a choice", (t) => {
-  const { $, P, commands, window } = panels(t);
-  P.update(snap({ control: true, controls: { tempo: 1.2 } }));
-  const tempo = $("pick-tempo");
-  assert.deepEqual([...tempo.options].map((option) => option.text),
-                   ["0.8×", "0.9×", "1.0×", "1.1×", "1.2×", "1.5×"]);
-  assert.equal(tempo.value, "1.2");
-  assert.equal(tempo.previousElementSibling.textContent, "Tempo");
-  // A pause reports no tempo: the last one stays.
-  P.update(snap({ control: true, controls: { tempo: null } }));
-  assert.equal(tempo.value, "1.2");
-  // Not moved under a picker that is being used.
-  tempo.focus();
-  P.update(snap({ control: true, controls: { tempo: 1 } }));
-  assert.equal(tempo.value, "1.2");
-  tempo.value = "0.8";
-  tempo.dispatchEvent(new window.Event("change"));
-  assert.deepEqual(commands(), [{ action: "tempo", value: 0.8 }]);
-  // The captions follow new words; one the box has none for is left empty.
-  Object.assign(window.TinyPPI.T, { tempo: "Geschwindigkeit", audio_offset: "" });
+test("the offsets' captions follow new words, and one the box has none for is empty", (t) => {
+  const { $, P, window } = panels(t);
+  P.update(snap({ control: true, controls: { audio_delay: 0 } }));
+  assert.equal($("transport").querySelector(".finelabel").textContent, "Audio offset");
+  assert.equal($("transport").querySelector("#pick-tempo"), null);
+  Object.assign(window.TinyPPI.T, { audio_offset: "" });
   P.strings(window.TinyPPI.T);
-  assert.equal(tempo.previousElementSibling.textContent, "Geschwindigkeit");
   assert.equal($("transport").querySelector(".finelabel").textContent, "");
 });
 

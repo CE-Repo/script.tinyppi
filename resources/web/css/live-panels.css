@@ -30,12 +30,12 @@
   align-items: center;
   gap: 10px;
   min-height: 46px;
-  padding: 12px 16px;
-  color: var(--muted);
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: .13em;
-  text-transform: uppercase;
+  padding: 14px 16px;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: .1px;
   cursor: pointer;
   list-style: none;
   user-select: none;
@@ -46,9 +46,9 @@
   content: "";
   flex: none;
   width: 3px;
-  height: 14px;
+  height: 16px;
   border-radius: 999px;
-  background: var(--accent);
+  background: var(--on-tonal);
 }
 .panel-toggle::after {
   content: "";
@@ -63,12 +63,11 @@
   transition: transform .15s ease, color .15s;
 }
 @media (hover: hover) {
-  .panel-toggle:hover { color: var(--text); }
+  .panel-toggle:hover { color: var(--text); background: color-mix(in srgb, var(--text) 4%, transparent); }
   .panel-toggle:hover::after { color: var(--accent); }
 }
-.card[open] > .panel-toggle {
-  border-bottom: 1px solid var(--line-soft);
-}
+/* No rule under an open heading: the app's card runs its heading straight
+   into what it holds. */
 
 /* Opening or closing a card marks its heading with the accent for a moment
    and then lets go of it again.  The colour says the fold has just moved,
@@ -138,9 +137,9 @@
   text-transform: uppercase;
   padding: 5px 10px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 0;
+  color: var(--on-tonal);
+  background: var(--tonal);
   /* A badge is one short phrase and gets one line wherever there is a line to
      give it: the row wraps between badges before it wraps inside one, because
      a flex row breaks on an item that does not fit before it squeezes the
@@ -899,8 +898,8 @@
   line-height: 1.3;
   padding: 5px 10px;
   border-radius: 999px;
-  color: var(--muted);
-  background: color-mix(in srgb, var(--accent) 21%, var(--panel-2));
+  color: var(--on-tonal);
+  background: var(--tonal);
   max-width: 100%;
   overflow-wrap: anywhere;
 }
@@ -990,8 +989,8 @@
   min-width: var(--tap);
   padding: 0 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: transparent;
+  border: 1px solid transparent;
+  background: var(--panel-3);
   color: var(--text);
   font: inherit;
   font-size: 13px;
@@ -1002,8 +1001,7 @@
 }
 @media (hover: hover) {
   .tbtn:hover {
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    background: color-mix(in srgb, var(--text) 8%, var(--panel-3));
   }
 }
 .tbtn:active { transform: scale(.96); }
@@ -1015,10 +1013,10 @@
   transform: none;
 }
 @media (hover: hover) {
-  .tbtn:disabled:hover { border-color: var(--line); background: transparent; }
+  .tbtn:disabled:hover { background: var(--panel-3); }
 }
 .tbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.tbtn.mute.on { color: var(--warn); border-color: var(--warn); }
+.tbtn.mute.on { color: var(--on-tonal); background: var(--tonal); }
 
 /* A seekable bar is worth a finger's worth of height, and says so.  The bar
    itself is a pseudo-element inside that padding, so the outline goes there
@@ -1068,7 +1066,7 @@
 
 /* --- Fine adjustments ---------------------------------------------------
 
-   The two offsets and the tempo, side by side on a wide card and stacked on
+   The two offsets, side by side on a wide card and stacked on
    a phone.  An offset is its caption over a step back, the value and a step
    on; the value is a key too (it puts the offset back to nothing), so all
    three share the row out and keep the transport's height. */
@@ -1085,17 +1083,19 @@
   flex: 1 1 180px;
   min-width: 0;
 }
+/* The caption centred over its keys, as the app writes it: small, in the
+   quieter text colour, not shouted in capitals. */
 .fine .finelabel {
   grid-column: 1 / -1;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--dim);
+  font-weight: 500;
+  letter-spacing: .4px;
+  line-height: 14px;
+  text-align: center;
+  color: var(--muted);
 }
 .fine .finestep { padding: 0; font-size: 17px; }
 .fine .finevalue { padding: 0 4px; }
-.fine-tempo { flex: 1 1 140px; }
 
 /* --- Track pickers ------------------------------------------------------ */
 
@@ -1106,12 +1106,13 @@
 }
 .pick {
   display: grid;
-  gap: 5px;
+  gap: 6px;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--dim);
+  font-weight: 500;
+  letter-spacing: .4px;
+  line-height: 14px;
+  text-align: center;
+  color: var(--muted);
   flex: 1 1 180px;
   min-width: 0;
 }
@@ -1119,15 +1120,17 @@
   appearance: none;
   width: 100%;
   min-height: var(--tap);
-  padding: 0 34px 0 12px;
+  padding: 0 34px 0 34px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: var(--panel-2);
+  border: 1px solid transparent;
+  background-color: var(--panel-3);
   color: var(--text);
   font: inherit;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: normal;
+  letter-spacing: .1px;
+  text-align: center;
+  text-align-last: center;
   text-transform: none;
   cursor: pointer;
   /* The arrow is drawn rather than fetched: the page loads no image it does
@@ -1140,7 +1143,7 @@
   background-repeat: no-repeat;
 }
 @media (hover: hover) {
-  .pick select:hover { border-color: var(--accent); }
+  .pick select:hover { background-color: color-mix(in srgb, var(--text) 8%, var(--panel-3)); }
 }
 .pick select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 

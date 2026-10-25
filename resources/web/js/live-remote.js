@@ -21,8 +21,6 @@ window.TinyPPIRemote = (function () {
     audio_delay: { step: 0.05, limit: 10, label: "audio_offset" },
     subtitle_delay: { step: 0.1, limit: 60, label: "subtitle_offset" }
   };
-  /* The tempos the box offers (``TEMPOS`` in web/player.py). */
-  const TEMPOS = [0.8, 0.9, 1.0, 1.1, 1.2, 1.5];
   /* How long a pressed value stands against the snapshots: the box reads the
      offsets on its one-second cadence, and a snapshot from before the press
      would put the old value back under the thumb for a moment. */
@@ -262,28 +260,12 @@ window.TinyPPIRemote = (function () {
 
     /* The fine adjustments, a row of their own under the keys: the two
        offsets, each a value between a step back and a step on (the value
-       itself puts it back to nothing), and the tempo.  Built with the row;
+       itself puts it back to nothing).  Built with the row;
        what they show comes from the snapshots (see renderFine). */
     function fineRow() {
       const fine = document.createElement("div");
       fine.className = "tfine";
       for (const kind of Object.keys(OFFSETS)) fine.append(stepper(kind));
-
-      const wrap = document.createElement("label");
-      wrap.className = "pick fine-tempo";
-      const caption = document.createElement("span");
-      caption.dataset.text = "tempo";
-      const select = document.createElement("select");
-      select.id = "pick-tempo";
-      for (const tempo of TEMPOS) {
-        select.append(new Option(tempo.toFixed(1) + "\u00d7", String(tempo)));
-      }
-      select.value = "1";
-      select.addEventListener("change", () => {
-        TinyPPI.command("tempo", Number(select.value));
-      });
-      wrap.append(caption, select);
-      fine.append(wrap);
       return fine;
     }
 
@@ -341,12 +323,6 @@ window.TinyPPIRemote = (function () {
           (kind !== "subtitle_delay" || !!controls.subtitle_on);
         wrap.classList.toggle("hidden", !shown);
         if (offsets[kind] !== null) showOffset(kind);
-      }
-      /* A pause or a fast-forward reports no tempo; the picker keeps the one
-         last played at rather than jumping. */
-      const tempo = el.transport.querySelector("#pick-tempo");
-      if (typeof controls.tempo === "number" && document.activeElement !== tempo) {
-        tempo.value = String(controls.tempo);
       }
     }
 

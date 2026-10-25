@@ -43,38 +43,76 @@ const byProfile = (first, second) =>
 
 /* How each order compares two titles; a title without the value goes last
    whichever way the order runs.  The title order is the box's own (Kodi's
-   sort title, articles ignored), so it is the list as it came. */
+   sort title, articles ignored), so it is the list as it came, A to Z. */
 const SORTS = {
   year: (entry) => entry.year,
   rating: (entry) => entry.rating,
   added: (entry) => entry.added,
   runtime: (entry) => entry.duration
 };
-/* The ones read from the shortest or the oldest first; the others from the
-   newest, the best and the most recently added. */
-const RISING = new Set(["runtime"]);
+/* The orders that start from the newest, the best and the most recently
+   added when they are picked; the titles and the running time start from
+   the first and the shortest.  Either can be turned round. */
+const FALLING = new Set(["year", "rating", "added"]);
+/* Where each wall's order is kept between visits, as "year" or "year:down". */
+const ORDER_KEY = "tinyppi.order.";
 
-/* The sort and the filters for one wall, drawn into *box*: *sorts* names the
-   orders it offers ("title" first), *filters* what it filters by ("genre",
-   "video", "resolution", "audio"), and *onChange* is called with nothing
-   whenever a choice changes.  The choices stand until the page is left; a
-   filter the list no longer offers anything for is put back to "all". */
-function shelfTools(box, { sorts, filters, onChange }) {
+/* The sort and the filters for one wall, drawn into *box*: *shelf* is what
+   its order is kept under, *sorts* names the orders it offers ("title"
+   first), *filters* what it filters by ("genre", "video", "resolution",
+   "audio"), and *onChange* is called with nothing whenever a choice changes.
+   The order and its way round are kept in the browser; the filters stand
+   until the page is left, and one the list no longer offers anything for is
+   put back to "all". */
+function shelfTools(box, { shelf, sorts, filters, onChange }) {
   const pickers = {};
+  let descending = false;
 
-  const picker = (name, label) => {
+  const picker = (key, label, first = () => {}) => {
     const select = document.createElement("select");
     select.className = "shelfpick";
-    select.dataset.name = name;
+    select.dataset.name = key;
     select.dataset.label = label;
-    select.addEventListener("change", onChange);
+    select.addEventListener("change", () => {
+      first();
+      onChange();
+    });
     box.append(select);
-    pickers[name] = select;
+    pickers[key] = select;
     return select;
   };
 
-  const sort = picker("sort", "sort");
+  /* A new order starts its own way round, and both are kept. */
+  const sort = picker("sort", "sort", () => {
+    descending = FALLING.has(sort.value);
+    keep();
+    strings();
+  });
   for (const key of sorts) sort.append(new Option("", key));
+  /* Beside it, which way it runs: an arrow and its name, a press turning it. */
+  const way = document.createElement("button");
+  way.type = "button";
+  way.className = "shelfway";
+  way.addEventListener("click", () => {
+    descending = !descending;
+    keep();
+    strings();
+    onChange();
+  });
+  box.append(way);
+  try {
+    const [kept, down] = (localStorage.getItem(ORDER_KEY + shelf) || "").split(":");
+    if (sorts.includes(kept)) {
+      sort.value = kept;
+      descending = down === "down";
+    }
+  } catch (_) { /* no storage: the box's own order */ }
+
+  function keep() {
+    try { localStorage.setItem(ORDER_KEY + shelf, sort.value + (descending ? ":down" : "")); }
+    catch (_) { /* no storage: kept until the page is left */ }
+  }
+
   for (const name of filters) {
     picker(name, name === "genre" ? "genre" : "filter_" + name).append(new Option("", ""));
   }
@@ -97,6 +135,10 @@ function shelfTools(box, { sorts, filters, onChange }) {
     }
     for (const option of sort.options) option.text = T["sort_" + option.value];
     for (const name of filters) pickers[name].options[0].text = T["filter_" + name];
+    const said = T[descending ? "sort_descending" : "sort_ascending"];
+    way.textContent = (descending ? "\u2193 " : "\u2191 ") + said;
+    way.setAttribute("aria-label", said);
+    way.classList.toggle("down", descending);
   }
 
   /* The choices each filter offers, taken from *list*: the genres in
@@ -133,17 +175,17 @@ function shelfTools(box, { sorts, filters, onChange }) {
       !pickers[name].value || values(entry, name).includes(pickers[name].value));
   }
 
-  /* *list* in the chosen order; the title order is *list* as it stands. */
+  /* *list* in the chosen order and way round; the title order is *list* as
+     it stands, or turned round. */
   function order(list) {
     const value = SORTS[sort.value];
-    if (!value) return list;
-    const rising = RISING.has(sort.value);
+    if (!value) return descending ? [...list].reverse() : list;
     return [...list].sort((first, second) => {
       const one = value(first);
       const two = value(second);
       if (!one || !two) return (one ? 0 : 1) - (two ? 0 : 1);
       const ahead = typeof one === "string" ? one.localeCompare(two) : one - two;
-      return rising ? ahead : -ahead;
+      return descending ? -ahead : ahead;
     });
   }
 

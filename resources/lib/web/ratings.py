@@ -229,14 +229,29 @@ def _collect(details: Json, aged: Json, kind: str, ids: dict[str, str] | None = 
     }
 
 
-def _episode_ratings(episode_id: int) -> Ratings:
-    """Return an episode's ratings, with its show's age rating and awards."""
-    details = _details("VideoLibrary.GetEpisodeDetails", "episodeid", episode_id,
-                       _EPISODE, "episodedetails")
+def title_ratings(kind: str, details: Json) -> Ratings:
+    """Return the ratings of a library title of *kind* (movie, tvshow or
+    episode) from its *details*, as the playing title's are collected.
+
+    A film's and a show's details carry their own age rating, awards and
+    ids (``mpaa``, ``uniqueid``); an episode's are its show's, asked for by
+    its ``tvshowid``.  Only a film is known to MDBList by its ids.
+    """
+    if kind == "movie":
+        return _collect(details, details, "movie", film_ids(details))
+    if kind == "tvshow":
+        return _collect(details, details, "tv")
     show_id = _count(details.get("tvshowid"))
     show = _details("VideoLibrary.GetTVShowDetails", "tvshowid", show_id, ("mpaa", "uniqueid"),
                     "tvshowdetails") if show_id else {}
     return _collect(details, show, "tv")
+
+
+def _episode_ratings(episode_id: int) -> Ratings:
+    """Return an episode's ratings, with its show's age rating and awards."""
+    details = _details("VideoLibrary.GetEpisodeDetails", "episodeid", episode_id,
+                       _EPISODE, "episodedetails")
+    return title_ratings("episode", details)
 
 
 def playing_ratings() -> Ratings | None:

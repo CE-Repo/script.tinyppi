@@ -154,7 +154,7 @@ script.tinyppi/
 | `js/dashboard.js` | Tabs, the bar, dialogs, VS10 buttons, reports. |
 | `js/start.js` | Starts the page: localized strings, the first tab, the stream. |
 | `js/live-panels.js` | The now-playing card, the overview (plot, credits, rating shields, folding), figures, chart and events. |
-| `js/live-remote.js` | The remote on the now-playing card: transport row, the audio and subtitle offsets and the tempo, and the track pickers. |
+| `js/live-remote.js` | The remote on the now-playing card: transport row, the audio and subtitle offsets, and the track pickers. |
 | `js/readings.js` | Format badges and the wording of the history's events. |
 | `js/shelf-tools.js` | The order and the filters (genre, picture, resolution, sound) over the film and series walls. |
 | `js/films.js` | The film wall, its rows and search. |

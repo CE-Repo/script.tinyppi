@@ -57,6 +57,7 @@ let wallTiles = new Map(); /* each film's tile on the wall of everything  */
    js/shelf-tools.js).  The rows above it stay as they are: they are already
    a choice -- what is new, what is unseen -- and a short one. */
 const filmTools = shelfTools(el.filmTools, {
+  shelf: "films",
   sorts: ["title", "year", "rating", "added", "runtime"],
   filters: ["genre", "video", "resolution", "audio"],
   onChange: arrangeFilms

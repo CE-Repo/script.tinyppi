@@ -1551,10 +1551,6 @@ msgctxt "#32392"
 msgid "Subtitle offset"
 msgstr "字幕偏移"
 
-msgctxt "#32393"
-msgid "Tempo"
-msgstr "播放速度"
-
 msgctxt "#32394"
 msgid "Reset to 0"
 msgstr "重置为 0"
@@ -1630,3 +1626,11 @@ msgstr "关闭"
 msgctxt "#32412"
 msgid "No titles match the filter"
 msgstr "没有符合筛选条件的标题"
+
+msgctxt "#32413"
+msgid "Ascending"
+msgstr "升序"
+
+msgctxt "#32414"
+msgid "Descending"
+msgstr "降序"
