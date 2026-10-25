@@ -10,7 +10,7 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global ask, continueStale, el, FILMS_RETRY_MS, FILMS_START_MS, newest,
+/* global bindTitle, continueStale, el, FILMS_RETRY_MS, FILMS_START_MS, newest,
    ratingBadge, runtime, shelfTools, T */
 /* exported episodeCode, episodeReleasing, hideSeries, refreshEpisodes,
    releaseSeries, requestSeries, seriesOffered, seriesStale, seriesTools,
@@ -229,10 +229,10 @@ function showTile(show, onOpen) {
 
   /* A series is not a thing that can be played, so the first answer opens it
      instead: its episodes are what can be. */
-  tile.addEventListener("click", () => ask({
+  bindTitle(tile, {
     title: show.title, body: { tvshowid: show.id },
     play: T.series_open, onPlay: () => onOpen(show)
-  }));
+  });
   return tile;
 }
 
@@ -501,13 +501,13 @@ function episodeRow(episode) {
   meta.append(title);
 
   row.append(frame, meta);
-  row.addEventListener("click", () => ask({
+  bindTitle(row, {
     title: [code, episode.title].filter(Boolean).join(" \u00b7 "),
     body: { episodeid: episode.id },
     play: episode.resume ? T.films_resume : T.films_play,
     resumable: !!episode.resume,
     onPlay: (fromStart) => startEpisode(episode, row, fromStart)
-  }));
+  });
   return row;
 }
 

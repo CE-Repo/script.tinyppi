@@ -142,15 +142,15 @@ const reads = ({ requests }) => Object.fromEntries(
 
 test("a press asks what is wanted, offering a fresh start and forgetting only where there is a point to resume", async (t) => {
   const view = await open(t);
-  tile(view, "Film 01").click();
+  tile(view, "Film 01").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.deepEqual(asked(view), { open: true, title: "Film 01", play: "Play", restart: false, clear: false });
   assert.equal(view.$("markDialog").returnValue, "");
   answer(view, "cancel");
-  tile(view, "Film 03").click();
+  tile(view, "Film 03").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.deepEqual(asked(view), { open: true, title: "Film 03", play: "Resume", restart: true, clear: true });
   answer(view, "cancel");
   // A show is opened rather than played.
-  tile(view, "Show 2").click();
+  tile(view, "Show 2").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.deepEqual(asked(view), { open: true, title: "Show 2", play: "Open", restart: false, clear: false });
   answer(view, "cancel");
   assert.deepEqual(posts(view), []);
@@ -160,15 +160,15 @@ test("nothing is asked once the box will no longer be told what to play", async 
   const view = await open(t);
   const film = tile(view, "Film 01");
   await view.state({ seq: 2, playing: false, control: false });
-  film.click();
+  film.dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(view.$("markDialog").open, false);
   assert.equal(view.$("markTitle").textContent, "");
 });
 
 test("a second press while the question is open does not replace it", async (t) => {
   const view = await open(t);
-  tile(view, "Film 01").click();
-  tile(view, "Film 03").click();
+  tile(view, "Film 01").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  tile(view, "Film 03").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(asked(view).title, "Film 01");
   answer(view, "play");
   await settle();
@@ -177,12 +177,12 @@ test("a second press while the question is open does not replace it", async (t) 
 
 test("play starts the title where it was, and play from the start starts it from the top", async (t) => {
   const view = await open(t, { token: "T0K3N" });
-  tile(view, "Film 03").click();
+  tile(view, "Film 03").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "play");
   await settle();
   // The wall waits on the film until it plays, or until it plainly will not.
   view.clock.tick(4000);
-  tile(view, "Film 03").click();
+  tile(view, "Film 03").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "restart");
   await settle();
   assert.deepEqual(posts(view), [["/api/play", { movieid: 3 }],
@@ -193,7 +193,7 @@ test("marking as watched or unwatched writes it with the token, then reads every
   const view = await open(t, { token: "T0K3N" });
   assert.deepEqual(reads(view), { library: 1, series: 1, continue: 1, episodes: 0 });
 
-  tile(view, "Film 01").click();
+  tile(view, "Film 01").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "unwatched");
   await settle();
   const sent = view.requests.find((request) => request.url === "/api/watched");
@@ -201,11 +201,11 @@ test("marking as watched or unwatched writes it with the token, then reads every
   assert.equal(sent.init.headers["Content-Type"], "application/json");
   assert.deepEqual(reads(view), { library: 2, series: 2, continue: 2, episodes: 0 });
 
-  tile(view, "Film 03").click();
+  tile(view, "Film 03").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "watched");
   await settle();
   // A series marked either way is every episode of it.
-  tile(view, "Show 2").click();
+  tile(view, "Show 2").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "watched");
   await settle();
   assert.deepEqual(posts(view), [["/api/watched", { watched: false, movieid: 1 }],
@@ -217,11 +217,11 @@ test("marking as watched or unwatched writes it with the token, then reads every
 
 test("marking an episode reads the open show again as well", async (t) => {
   const view = await open(t);
-  tile(view, "Show 2").click();
+  tile(view, "Show 2").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "play");
   await settle();
   assert.equal(reads(view).episodes, 1);
-  tile(view, "Episode 2").click();
+  tile(view, "Episode 2").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.deepEqual(asked(view), { open: true, title: "S01E03 · Episode 2", play: "Resume",
                                   restart: true, clear: true });
   answer(view, "watched");
@@ -232,11 +232,11 @@ test("marking an episode reads the open show again as well", async (t) => {
 
 test("clearing the resume point forgets where it got to and leaves seen or unseen alone", async (t) => {
   const view = await open(t);
-  tile(view, "Film 03").click();
+  tile(view, "Film 03").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "clear");
   await settle();
   // From the continue row: the episode it stands for.
-  view.$("continueSeriesRow").firstElementChild.click();
+  view.$("continueSeriesRow").firstElementChild.dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "clear");
   await settle();
   assert.deepEqual(posts(view), [["/api/resume", { movieid: 3 }],
@@ -247,16 +247,16 @@ test("clearing the resume point forgets where it got to and leaves seen or unsee
 test("cancelling, or a dialog closed with no question or no answer, sends nothing", async (t) => {
   const view = await open(t);
   const before = reads(view);
-  tile(view, "Film 01").click();
+  tile(view, "Film 01").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "cancel");
-  tile(view, "Film 01").click();
+  tile(view, "Film 01").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "");
   // Closed again with nothing asked: the last answer is not given twice.
   answer(view, "watched");
   await settle();
   assert.deepEqual(posts(view), []);
   assert.deepEqual(reads(view), before);
-  tile(view, "Film 01").click();
+  tile(view, "Film 01").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "watched");
   answer(view, "watched");
   await settle();
@@ -266,7 +266,7 @@ test("cancelling, or a dialog closed with no question or no answer, sends nothin
 test("a write refused for the token asks for it and reads nothing again", async (t) => {
   const view = await open(t, { routes: { "/api/watched": [401, {}] } });
   const before = reads(view);
-  tile(view, "Film 01").click();
+  tile(view, "Film 01").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "unwatched");
   await settle();
   assert.equal(view.$("toast").textContent, "Wrong or missing token");
@@ -278,7 +278,7 @@ test("a write refused for the token asks for it and reads nothing again", async 
 test("a write that fails, or never reaches the box, says so and reads nothing again", async (t) => {
   const view = await open(t, { routes: { "/api/resume": [500, {}] } });
   const before = reads(view);
-  tile(view, "Film 03").click();
+  tile(view, "Film 03").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "clear");
   await settle();
   assert.equal(view.$("toast").textContent, "Could not be marked");
@@ -288,7 +288,7 @@ test("a write that fails, or never reaches the box, says so and reads nothing ag
   const fetch = view.window.fetch;
   view.window.fetch = (url, init) => (url === "/api/watched"
     ? Promise.reject(new TypeError("Failed to fetch")) : fetch(url, init));
-  tile(view, "Film 03").click();
+  tile(view, "Film 03").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "watched");
   await settle();
   assert.equal(view.$("toast").textContent, "Could not be marked");
@@ -299,7 +299,7 @@ test("a write that fails, or never reaches the box, says so and reads nothing ag
 test("before /api/hello has given any words, the question and its failure are in English", async (t) => {
   const view = await open(t, { routes: {
     "/api/hello": [200, { version: "2.15.0", strings: {} }], "/api/watched": [500, {}] } });
-  tile(view, "Film 01").click();
+  tile(view, "Film 01").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(asked(view).play, "Play");
   assert.deepEqual(["markWatched", "markUnwatched", "markCancel"].map((id) => view.$(id).textContent),
                    ["Mark as watched", "Mark as unwatched", "Cancel"]);
@@ -307,10 +307,33 @@ test("before /api/hello has given any words, the question and its failure are in
   await settle();
   assert.equal(view.$("toast").textContent, "The library could not be updated");
 
-  tile(view, "Film 03").click();
+  tile(view, "Film 03").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.deepEqual(["markRestart", "markClear"].map((id) => view.$(id).textContent),
                    ["Play from the beginning", "Clear resume point"]);
   answer(view, "");
-  tile(view, "Show 2").click();
+  tile(view, "Show 2").dispatchEvent(new view.dom.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(asked(view).play, "Open");
+});
+
+
+test("a tap opens details while a hold opens actions and scrolling cancels the hold", async (t) => {
+  const view = await open(t, { routes: { "/api/details": [200, { plot: "Full details", cast: [] }] } });
+  const film = tile(view, "Film 01");
+  film.click();
+  await settle();
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("markDialog").open, false);
+  view.$("detailsDialog").close();
+  const pointer = (type, x = 0, y = 0) => film.dispatchEvent(new view.window.MouseEvent(type, { button: 0, clientX: x, clientY: y }));
+  pointer("pointerdown");
+  pointer("pointermove", 0, 30);
+  view.clock.tick(600);
+  assert.equal(view.$("markDialog").open, false);
+  pointer("pointerup");
+  pointer("pointerdown");
+  view.clock.tick(500);
+  pointer("pointerup");
+  film.click();
+  assert.equal(view.$("markDialog").open, true);
+  assert.equal(view.$("detailsDialog").open, false);
 });

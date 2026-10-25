@@ -22,8 +22,6 @@ from web.payloads import Ratings
 from web.ratings import title_ratings
 from web.values import Json, Unchecked, clean_value, library_id, plain_text
 
-# The cast's first twenty in billing order, as on the overview card.
-_CAST_LIMIT = 20
 # A plot is a few paragraphs; a text longer still is cut off.
 _PLOT_LIMIT = 4000
 # How long a details read waits on MDBList and WhatsOn, and how often it
@@ -157,8 +155,8 @@ def _people(found: Details, row: Json) -> None:
             found[key] = names  # type: ignore[literal-required]
     cast = _cast(row.get("cast"))
     if cast:
-        found["cast"] = cast[:_CAST_LIMIT]
-        found["cast_more"] = len(cast) > _CAST_LIMIT
+        found["cast"] = cast
+        found["cast_more"] = False
 
 
 def _cast(raw: object) -> list[Person]:

@@ -610,7 +610,7 @@ test("a new library version marks every list unread, and the open show is read a
   assert.deepEqual(counts(), [1, 1, 1, 0]);
   await view.state({ ...PLAYING, library: 1 });
   assert.deepEqual(counts(), [1, 1, 1, 0]);
-  view.$("seriesGrid").querySelector(".film").click();
+  view.$("seriesGrid").querySelector(".film").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "play");
   await settle();
   assert.deepEqual(counts(), [1, 1, 1, 1]);
@@ -625,11 +625,11 @@ test("a playing snapshot gives back the wall, the row and the show a press was w
   const view = open(t, { routes: { ...LIBRARY, "/api/play": [200, {}] } });
   const { $ } = view;
   await view.state(IDLE);
-  $("seriesGrid").querySelector(".film").click();
+  $("seriesGrid").querySelector(".film").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, "play");
   await settle();
   const press = async (tile) => {
-    tile.click();
+    tile.dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
     answer(view, "play");
     await settle();
   };

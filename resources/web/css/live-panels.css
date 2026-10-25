@@ -885,8 +885,8 @@
   width: 100%;
   min-height: 16px;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
   font-size: 12px;
   line-height: 16px;
   color: var(--muted);

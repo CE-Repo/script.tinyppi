@@ -12,7 +12,7 @@
 
 /* global continueStale, control, el, filmsStale, formatName, refreshEpisodes,
    requestContinue, requestFilms, requestSeries, runtime, seriesStale, T */
-/* exported ask */
+/* exported ask, bindTitle */
 
 /* --- what a press asks ---------------------------------------------------- */
 
@@ -210,3 +210,27 @@ el.detailsDialog.addEventListener("close", () => {
   if (answer === "play") question.onPlay(false);
   else if (answer === "restart") question.onPlay(true);
 });
+
+/* A short press opens details; holding or using the context menu opens actions. */
+function bindTitle(tile, question) {
+  let timer = null;
+  let held = false;
+  let start = null;
+  const cancel = () => { clearTimeout(timer); timer = null; };
+  tile.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    held = false;
+    start = [event.clientX, event.clientY];
+    timer = setTimeout(() => { held = true; ask(question); }, 500);
+  });
+  tile.addEventListener("pointermove", (event) => {
+    if (start && Math.hypot(event.clientX - start[0], event.clientY - start[1]) > 10) cancel();
+  });
+  for (const name of ["pointerup", "pointercancel", "pointerleave"]) tile.addEventListener(name, cancel);
+  tile.addEventListener("contextmenu", (event) => { event.preventDefault(); cancel(); held = true; ask(question); });
+  tile.addEventListener("click", () => {
+    cancel();
+    if (!held) showDetails(question);
+    held = false;
+  });
+}

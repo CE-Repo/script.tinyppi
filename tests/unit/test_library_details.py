@@ -67,7 +67,7 @@ def test_an_episodes_details_name_its_show(answers):
     found = library.title_details("episode", 70)
     assert (found["show"], found["tvshowid"], found["season"], found["episode"]) == ("Show", 7, 1, 1)
     assert found["premiered"] == "2008-01-20" and found["userrating"] == 9
-    assert len(found["cast"]) == 20 and found["cast_more"] is True
+    assert len(found["cast"]) == 25 and found["cast_more"] is False
     assert found["cast"][0] == {"name": "Actor 0", "role": ""}
     assert "plot" not in found and "mpaa" not in found and "video" not in found
     assert found["thumb"] == library.common.tag("/t.jpg") and "poster" not in found

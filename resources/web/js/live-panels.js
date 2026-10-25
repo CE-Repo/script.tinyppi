@@ -281,8 +281,7 @@
 
   function factNodes(credits, T) {
     const rows = [
-      [T.genre, credits.genres], [T.director, credits.directors],
-      [T.writer, credits.writers], [T.studio, credits.studios]
+      [T.genre, credits.genres], [T.studio, credits.studios]
     ];
     const nodes = [];
     for (const [heading, names] of rows) {
@@ -300,11 +299,23 @@
   }
 
   function castParts(credits, T) {
+    return [
+      ...peopleParts(credits.directors, T.director),
+      ...peopleParts(credits.writers, T.writer),
+      ...castCards(credits, T.cast)
+    ];
+  }
+
+  function peopleParts(names, heading) {
+    return castCards({ cast: (names || []).map((name) => ({ name })) }, heading);
+  }
+
+  function castCards(credits, title) {
     const cast = credits.cast || [];
     if (!cast.length) return [];
     const heading = document.createElement("h4");
     heading.className = "casthead";
-    heading.textContent = T.cast;
+    heading.textContent = title;
     const row = document.createElement("ul");
     row.className = "castrow";
     for (const person of cast) {

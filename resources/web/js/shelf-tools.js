@@ -22,7 +22,7 @@ const FORMAT_NAMES = {
   video: { dv: "Dolby Vision", hdr10plus: "HDR10+", hdr10: "HDR10", hlg: "HLG",
            sdr: "SDR" },
   resolution: { "2160p": "4K", "1080p": "1080p", "720p": "720p", sd: "SD" },
-  audio: { truehd: "Dolby TrueHD", dtshd_ma: "DTS-HD MA", pcm: "PCM", flac: "FLAC",
+  audio: { atmos: "Dolby Atmos", dtsx: "DTS:X", truehd: "Dolby TrueHD", dtshd_ma: "DTS-HD MA", pcm: "PCM", flac: "FLAC",
            dtshd_hra: "DTS-HD HRA", eac3: "Dolby Digital Plus", dts: "DTS",
            ac3: "Dolby Digital", aac: "AAC", opus: "Opus", vorbis: "Vorbis",
            mp3: "MP3" }

@@ -150,7 +150,7 @@ function answer({ window, $ }, value) {
 
 /** Press the film called *title* and give *value* as the answer. */
 async function press(view, title, value = "play") {
-  tile(view, title).click();
+  tile(view, title).dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, value);
   await settle();
 }
@@ -463,14 +463,14 @@ test("a failure that carries no error at all still counts as a failure", async (
 
 test("a press asks to play a film, or to resume one that got somewhere", async (t) => {
   const view = await open(t);
-  tile(view, "Alien").click();
+  tile(view, "Alien").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(view.$("markDialog").open, true);
   assert.equal(view.$("markTitle").textContent, "Alien");
   assert.equal(view.$("markPlay").textContent, "Play");
   assert.equal(view.$("markRestart").hidden, true);
   answer(view, "cancel");
 
-  tile(view, "Brazil", "unseenFilmGrid").click();
+  tile(view, "Brazil", "unseenFilmGrid").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(view.$("markTitle").textContent, "Brazil");
   assert.equal(view.$("markPlay").textContent, "Resume");
   assert.equal(view.$("markRestart").hidden, false);

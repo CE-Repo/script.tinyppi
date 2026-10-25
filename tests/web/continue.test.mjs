@@ -154,7 +154,7 @@ function answer({ window, $ }, value) {
 
 /** Press the tile called *title* and give *value* as the answer. */
 async function press(view, title, value = "play") {
-  tile(view, title).click();
+  tile(view, title).dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, value);
   await settle();
 }
@@ -251,7 +251,7 @@ test("a row with nothing on it is no card at all, and its count is blank", async
 
 test("a press asks to resume, and offers a fresh start and forgetting the point", async (t) => {
   const view = await open(t);
-  tile(view, "Film 03").click();
+  tile(view, "Film 03").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(view.$("markDialog").open, true);
   assert.equal(view.$("markTitle").textContent, "Film 03");
   assert.equal(view.$("markPlay").textContent, "Resume");
@@ -259,10 +259,10 @@ test("a press asks to resume, and offers a fresh start and forgetting the point"
   assert.equal(view.$("markClear").hidden, false);
   answer(view, "cancel");
 
-  tile(view, "Show 2").click();
+  tile(view, "Show 2").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(view.$("markTitle").textContent, "Show 2 · S01E03");
   answer(view, "cancel");
-  tile(view, "Pilot").click();
+  tile(view, "Pilot").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(view.$("markTitle").textContent, "S02E01");
   answer(view, "cancel");
   await settle();

@@ -179,7 +179,7 @@ function answer({ window, $ }, value) {
 
 /** Press *node* and give *value* as the answer. */
 async function press(view, node, value = "play") {
-  node.click();
+  node.dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   answer(view, value);
   await settle();
 }
@@ -316,7 +316,7 @@ test("the search narrows the shelf by title and year, and clearing it puts it ba
 
 test("a press on a show asks to open it, and opening it lists its seasons folded away", async (t) => {
   const view = await open(t, { token: "T0K3N" });
-  tile(view, "Andor").click();
+  tile(view, "Andor").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(view.$("markDialog").open, true);
   assert.equal(view.$("markTitle").textContent, "Andor");
   assert.equal(view.$("markPlay").textContent, "Open");
@@ -391,22 +391,22 @@ test("episodes are numbered S01E04, E04 without a season, and named by number wh
 test("a press on an episode asks to play it, or to resume one that got somewhere", async (t) => {
   const view = await open(t);
   await openShow(view, "Andor");
-  row(view, "Kassa").click();
+  row(view, "Kassa").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(view.$("markTitle").textContent, "S01E01 · Kassa");
   assert.equal(view.$("markPlay").textContent, "Play");
   assert.equal(view.$("markRestart").hidden, true);
   answer(view, "cancel");
 
-  row(view, "That Would Be Me").click();
+  row(view, "That Would Be Me").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(view.$("markTitle").textContent, "S01E02 · That Would Be Me");
   assert.equal(view.$("markPlay").textContent, "Resume");
   assert.equal(view.$("markRestart").hidden, false);
   answer(view, "cancel");
 
-  row(view, "S02E11").click();
+  row(view, "S02E11").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(view.$("markTitle").textContent, "S02E11");
   answer(view, "cancel");
-  row(view, "Lost reel").click();
+  row(view, "Lost reel").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   assert.equal(view.$("markTitle").textContent, "Lost reel");
   answer(view, "cancel");
   await settle();
