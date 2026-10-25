@@ -58,6 +58,8 @@ const el = {
   seriesCount: $("seriesCount"), seriesEmpty: $("seriesEmpty"),
   seriesSearch: $("seriesSearch"), seriesSearchClear: $("seriesSearchClear"),
   seriesBox: $("seriesSearchBox"), seasonsDialog: $("seasonsDialog"),
+  seasonsHero: $("seasonsHero"), seasonsBackdrop: $("seasonsBackdrop"),
+  seasonsPoster: $("seasonsPoster"),
   seriesOpen: $("seriesOpen"), seasonsCount: $("seasonsCount"),
   seasonsX: $("seasonsX"), episodeList: $("episodeList"),
   recentFilmsCard: $("recentFilmsCard"), recentFilmsRow: $("recentFilmsRow"),

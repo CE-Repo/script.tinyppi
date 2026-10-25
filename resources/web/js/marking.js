@@ -11,7 +11,7 @@
 
 /* global continueStale, control, el, filmsStale, formatName, refreshEpisodes,
    requestContinue, requestFilms, requestSeries, runtime, seriesStale, T */
-/* exported bindTitle, showDetails */
+/* exported bindTitle, showDetails, tintDialog */
 
 /* The currently opened title, including a details request still loading. */
 let detailing = null;
@@ -156,7 +156,7 @@ async function showDetails(question, replace) {
   el.detailsPlot.textContent = found.plot || "";
   el.detailsFacts.replaceChildren(...TinyPPI.panels.facts(found));
   el.detailsCast.replaceChildren(...TinyPPI.panels.cast(found));
-  tintDetails();
+  tintDialog(el.detailsDialog, [el.detailsPoster, el.detailsBackdrop]);
   /* Library entries expose their actions here; the currently playing title
      opened from the overview is informational. */
   question.watched = found.watched ?? !!question.watched;
@@ -222,12 +222,12 @@ el.detailsShow.addEventListener("click", () => {
 /* On the adaptive theme the page takes its accent from the title's own
    picture -- its poster, or an episode's still -- rather than from what is
    playing (see accent in js/cover-tint.js); a title without a colour wears
-   the theme's own. */
-function tintDetails() {
-  const dialog = el.detailsDialog;
+   the theme's own.  *dialog* is the page, *pictures* what it may be read
+   off, first choice first: the details, and a show's seasons. */
+function tintDialog(dialog, pictures) {
   dialog.classList.remove("tinted");
   dialog.style.removeProperty("--cover-accent-rgb");
-  const picture = [el.detailsPoster, el.detailsBackdrop].find((image) => !image.hidden);
+  const picture = pictures.find((image) => !image.hidden);
   const cover = window.TinyPPICover;
   if (!picture || !cover) return;
   const url = picture.getAttribute("src");

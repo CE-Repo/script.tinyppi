@@ -623,49 +623,9 @@
    corner a watched film wears its tick in -- see .filmrating above, where both
    are drawn. */
 
-/* One show's seasons, a dialog of their own over the shelf: the show's name
-   and how many episodes it has across the top, the close key beside them, and
-   the folded seasons under it.  It scrolls inside itself, and on a phone it
-   is the whole screen, as a title's details are. */
-html:has(#seasonsDialog[open]), body:has(#seasonsDialog[open]) {
-  overflow: hidden;
-  overscroll-behavior: none;
-}
-#seasonsDialog { width: min(640px, calc(100vw - 24px)); overflow: hidden; background: var(--bg); }
-#seasonsDialog form {
-  padding: 0 16px calc(16px + env(safe-area-inset-bottom));
-  gap: 8px;
-  max-height: min(88vh, 860px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  align-content: start;
-}
-@media (max-width: 620px) {
-  #seasonsDialog {
-    width: 100vw;
-    max-width: 100vw;
-    height: 100dvh;
-    max-height: 100dvh;
-    margin: 0;
-    border-radius: 0;
-  }
-  #seasonsDialog form { height: 100%; max-height: none; }
-}
-.seasonshead {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 56px;
-  padding: 10px 52px 10px 4px;
-  background: var(--bg);
-}
-#seriesOpen { font-size: 20px; line-height: 1.25; overflow-wrap: anywhere; }
-.seasonstotal { color: var(--muted); font-size: 13px; }
-.seasonstotal:empty { display: none; }
-.seasonshead .detailsx { top: 10px; right: 0; }
+/* One show's seasons are drawn as a title's details are -- the same page,
+   the same backdrop, poster and heading -- with the seasons where the plot
+   would be (see "a title's details" below, which both dialogs share). */
 
 /* The episodes themselves: rows rather than a wall.  An episode is chosen by
    its number and its name -- the still is a reminder of which one it was, not
@@ -875,12 +835,13 @@ html:has(#seasonsDialog[open]), body:has(#seasonsDialog[open]) {
    than the screen, with the close key kept at the foot. */
 /* On the page's own ground, as the app's details page is, so the cards in it
    stand up from it the way they do on a screen. */
-html:has(#detailsDialog[open]), body:has(#detailsDialog[open]) {
+html:has(#detailsDialog[open]), body:has(#detailsDialog[open]),
+html:has(#seasonsDialog[open]), body:has(#seasonsDialog[open]) {
   overflow: hidden;
   overscroll-behavior: none;
 }
-#detailsDialog { width: min(640px, calc(100vw - 24px)); overflow: hidden; background: var(--bg); }
-#detailsDialog form {
+#detailsDialog, #seasonsDialog { width: min(640px, calc(100vw - 24px)); overflow: hidden; background: var(--bg); }
+#detailsDialog form, #seasonsDialog form {
   padding: 0;
   gap: 0;
   max-height: min(88vh, 860px);
@@ -890,7 +851,7 @@ html:has(#detailsDialog[open]), body:has(#detailsDialog[open]) {
 /* On a phone a page of its own, as the app's is: the whole screen, top to
    bottom, with nothing of the shelf showing round it. */
 @media (max-width: 620px) {
-  #detailsDialog {
+  #detailsDialog, #seasonsDialog {
     width: 100vw;
     max-width: 100vw;
     height: 100dvh;
@@ -898,7 +859,7 @@ html:has(#detailsDialog[open]), body:has(#detailsDialog[open]) {
     margin: 0;
     border-radius: 0;
   }
-  #detailsDialog form { height: 100%; max-height: none; align-content: start; }
+  #detailsDialog form, #seasonsDialog form { height: 100%; max-height: none; align-content: start; }
 }
 .detailshero { position: relative; min-height: 200px; display: flex; align-items: flex-end; }
 .detailsbackdrop {
@@ -939,7 +900,7 @@ html:has(#detailsDialog[open]), body:has(#detailsDialog[open]) {
   border: 1px solid var(--line);
 }
 .detailsheading { display: grid; gap: 6px; min-width: 0; padding-bottom: 4px; }
-#detailsTitle { font-size: 20px; line-height: 1.25; overflow-wrap: anywhere; }
+#detailsTitle, #seriesOpen { font-size: 20px; line-height: 1.25; overflow-wrap: anywhere; }
 dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
 .detailsmeta:empty, .detailstagline:empty, .detailsplot:empty,
 .detailsformats:empty, .detailsfacts:empty, .detailscast:empty, #detailsRatings:empty { display: none; }
@@ -1008,8 +969,11 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
 #detailsWatched { --action-icon: url("/icons/watched.svg"); }
 #detailsUnwatched { --action-icon: url("/icons/unwatched.svg"); }
 #detailsShow { --action-icon: url("/icons/tab-series.svg"); }
+/* The tools stay beside the first answer on a phone too, as the app keeps
+   them: the answer takes what the row has left. */
 @media (max-width: 620px) {
-  .detailsactions { flex-direction: column; align-items: stretch; gap: 8px; }
+  .detailsactions { gap: 8px; }
+  .detailstools { gap: 4px; }
 }
 @media (hover: hover) {
   .detailsactions button[value="play"]:hover { background: color-mix(in srgb, var(--on-accent) 8%, var(--accent)); }

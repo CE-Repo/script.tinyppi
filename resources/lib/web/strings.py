@@ -189,6 +189,8 @@ _UI_STRINGS = {
     # The way from an episode to its show, and the remote's card.
     "go_to_show":       32431,
     "player":           32432,
+    # How many episodes the open show has, under its name.
+    "series_episodes":  32433,
 }
 
 

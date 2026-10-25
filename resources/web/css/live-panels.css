@@ -406,10 +406,28 @@
    heading like every folding card's, with the key that folds it at its end
    in place of the plain caret, and the transport row and the pickers under
    it.  The whole heading folds it (see js/live-panels.js). */
-.playerhead::after { display: none; }
-.playerhead .control-toggle {
-  position: static;
-  margin-left: auto;
+/* The key lies over the whole heading, unseen, so the heading answers a
+   press anywhere along it and a keyboard still has a key to reach; what the
+   eye sees is the caret every other folding card carries, turned the same
+   way when the card is open. */
+.playerhead { position: relative; }
+.playerhead .control-toggle,
+.playerhead .control-toggle:hover,
+.playerhead .control-toggle[aria-expanded="true"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.playerhead .control-toggle .control-chevron { display: none; }
+.playerhead .control-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.playercard:has(> .control-drawer.open) > .playerhead::after {
+  transform: rotate(225deg) translate(-2px, -2px);
 }
 .playercard .control-body {
   padding: 0 16px 16px;

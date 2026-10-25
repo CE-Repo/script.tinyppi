@@ -1698,3 +1698,7 @@ msgstr "前往剧集"
 msgctxt "#32432"
 msgid "Player"
 msgstr "播放器"
+
+msgctxt "#32433"
+msgid "%s episodes"
+msgstr "%s 集"

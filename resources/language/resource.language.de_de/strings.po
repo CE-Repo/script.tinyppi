@@ -1698,3 +1698,7 @@ msgstr "Zur Serie"
 msgctxt "#32432"
 msgid "Player"
 msgstr "Player"
+
+msgctxt "#32433"
+msgid "%s episodes"
+msgstr "%s Episoden"

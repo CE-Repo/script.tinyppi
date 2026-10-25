@@ -158,7 +158,8 @@
 :root[data-theme="dark-adaptive"] .card,
 :root[data-theme="dark-adaptive"] .topbar,
 :root[data-theme="dark-adaptive"] .tabbar,
-:root[data-theme="dark-adaptive"] #detailsDialog.tinted {
+:root[data-theme="dark-adaptive"] #detailsDialog.tinted,
+:root[data-theme="dark-adaptive"] #seasonsDialog.tinted {
   --on-accent: color-mix(in srgb, rgb(var(--cover-accent-rgb)) 18%, #000);
   --tonal:     color-mix(in srgb, rgb(var(--cover-accent-rgb)) 26%, var(--panel-3));
   --on-tonal:  color-mix(in srgb, rgb(var(--cover-accent-rgb)) 38%, #fff);
@@ -166,8 +167,10 @@
 
 /* A title's details page wears that title's colour, not what is playing:
    js/marking.js reads it off the title's own picture and marks the page
-   tinted once it has one (see tintDetails). */
-:root[data-theme="dark-adaptive"] #detailsDialog.tinted {
+   tinted once it has one (see tintDialog).  A show's seasons wear the
+   show's, the same way. */
+:root[data-theme="dark-adaptive"] #detailsDialog.tinted,
+:root[data-theme="dark-adaptive"] #seasonsDialog.tinted {
   --accent:   rgb(var(--cover-accent-rgb));
   --accent-2: rgb(var(--cover-accent-rgb));
 }

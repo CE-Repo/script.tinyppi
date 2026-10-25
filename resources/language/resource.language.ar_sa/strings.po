@@ -1698,3 +1698,7 @@ msgstr "الانتقال إلى المسلسل"
 msgctxt "#32432"
 msgid "Player"
 msgstr "المشغّل"
+
+msgctxt "#32433"
+msgid "%s episodes"
+msgstr "%s حلقات"

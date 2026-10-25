@@ -101,7 +101,7 @@ window.TinyPPI = (function () {
     settings_cards_desc: "Long-press or right-click the heading of a card to move the cards on that tab around, remove them or put them back.",
     settings_cards_reset: "Reset all cards",
     settings_cards_reset_desc: "Every card back in its place on every tab, and every removed card shown again.",
-    go_to_show: "Go to series", player: "Player"
+    go_to_show: "Go to series", player: "Player", series_episodes: "%s episodes"
   };
 
   const $ = (id) => document.getElementById(id);

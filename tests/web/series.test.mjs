@@ -371,7 +371,7 @@ test("a press on a show asks to open it, and opening it lists its seasons folded
   assert.equal(seasonsOpen(view), true);
   assert.equal(view.$("seasonsDialog").contains(view.$("episodeList")), true);
   assert.equal(view.$("seriesOpen").textContent, "Andor");
-  assert.equal(view.$("seasonsCount").textContent, "6");
+  assert.equal(view.$("seasonsCount").textContent, "2022 · 6 episodes");
   // The wall stays as it was under the dialog, still counting the shows.
   assert.equal(hidden(view, "seriesGrid"), false);
   assert.equal(hidden(view, "seriesSearchBox"), false);
@@ -464,6 +464,31 @@ test("closing the dialog lets the show go and leaves the wall as it was", async 
   assert.equal(reads(view, "/api/episodes"), 1);
 });
 
+test("the seasons wear the show's backdrop and poster as its details do, or stand bare without them", async (t) => {
+  const view = await open(t, { shows: [{ ...SHOWS[0], fanart: "f 1" }, SHOWS[2]] });
+  await openShow(view, "Andor");
+  const backdrop = view.$("seasonsBackdrop");
+  const poster = view.$("seasonsPoster");
+  assert.equal(backdrop.hidden, false);
+  assert.equal(backdrop.getAttribute("src"), "/api/art?kind=fanart&tvshowid=1&v=f%201");
+  assert.equal(poster.getAttribute("src"), "/api/art?kind=poster&tvshowid=1&v=a1");
+  assert.equal(view.$("seasonsHero").classList.contains("bare"), false);
+  // A backdrop the box cannot read leaves the heading on the plain page.
+  backdrop.dispatchEvent(new view.window.Event("error"));
+  assert.equal(backdrop.hidden, true);
+  assert.equal(view.$("seasonsHero").classList.contains("bare"), true);
+  await closeSeasons(view);
+
+  // Nothing to show at all: no pictures, and no line under the name.
+  view.routes["/api/episodes"] = [200, { episodes: [] }];
+  await openShow(view, "Columbo");
+  assert.equal(view.$("seasonsBackdrop").hidden, true);
+  assert.equal(view.$("seasonsPoster").hidden, true);
+  assert.equal(view.$("seasonsPoster").getAttribute("src"), null);
+  assert.equal(view.$("seasonsHero").classList.contains("bare"), true);
+  assert.equal(view.$("seasonsCount").textContent, "");
+});
+
 test("leaving the seasons goes back to the show's details they were opened over", async (t) => {
   const view = await open(t);
   await openShow(view, "Andor");
@@ -538,7 +563,7 @@ test("an answer without episodes opens an empty show, or empties the open one", 
   await view.moved();
   assert.equal(view.$("seriesOpen").textContent, "Andor");
   assert.equal(view.$("episodeList").children.length, 0);
-  assert.equal(view.$("seasonsCount").textContent, "");
+  assert.equal(view.$("seasonsCount").textContent, "2022");
 
   await closeSeasons(view);
   await openShow(view, "Columbo");
@@ -567,7 +592,7 @@ test("the shelf read again keeps the open show, under the name the shelf now giv
   assert.equal(reads(view, "/api/series"), 2);
   assert.equal(view.$("seriesOpen").textContent, "Andor (2022)");
   assert.equal(seasonsOpen(view), true);
-  assert.equal(view.$("seasonsCount").textContent, "6");
+  assert.equal(view.$("seasonsCount").textContent, "2022 · 6 episodes");
   assert.equal(view.$("seriesCount").textContent, "4");
   assert.equal(titles(view, "seriesGrid")[0], "Andor (2022)");
 });

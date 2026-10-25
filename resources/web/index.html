@@ -365,15 +365,25 @@
 </form></dialog>
 
 <!-- One show's seasons, each folded away with its episodes in it, opened
-     from the show's details (see openShowView in js/series.js).  A press on
-     an episode opens that episode's details over it. -->
+     from the show's details (see openShowView in js/series.js) and drawn the
+     way they are: the show's backdrop, its poster and its name across the
+     top, and the seasons under them.  A press on an episode opens that
+     episode's details over it. -->
 <dialog id="seasonsDialog"><form method="dialog">
-  <div class="seasonshead">
-    <h3 id="seriesOpen"></h3>
-    <span class="seasonstotal mono" id="seasonsCount"></span>
+  <div class="detailshero" id="seasonsHero">
+    <img class="detailsbackdrop" id="seasonsBackdrop" alt="">
     <button class="detailsx" id="seasonsX" value="close" type="submit"></button>
+    <div class="detailshead">
+      <img class="detailsposter" id="seasonsPoster" alt="">
+      <div class="detailsheading">
+        <h3 id="seriesOpen"></h3>
+        <p class="detailsmeta" id="seasonsCount"></p>
+      </div>
+    </div>
   </div>
-  <div class="episodes" id="episodeList"></div>
+  <div class="detailsbody">
+    <div class="episodes" id="episodeList"></div>
+  </div>
 </form></dialog>
 
 <script src="/js/core.js"></script>

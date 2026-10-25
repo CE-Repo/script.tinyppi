@@ -1698,3 +1698,7 @@ msgstr "Ugrás a sorozathoz"
 msgctxt "#32432"
 msgid "Player"
 msgstr "Lejátszó"
+
+msgctxt "#32433"
+msgid "%s episodes"
+msgstr "%s epizód"

@@ -10,7 +10,7 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global selectTab, showDetails, bindTitle, continueStale, el, FILMS_RETRY_MS, FILMS_START_MS, newest,
+/* global selectTab, showDetails, tintDialog, bindTitle, continueStale, el, FILMS_RETRY_MS, FILMS_START_MS, newest,
    ratingBadge, runtime, shelfTools, T */
 /* exported openShowDetails, episodeCode, episodeReleasing, hideSeries, refreshEpisodes,
    releaseSeries, requestSeries, seriesOffered, seriesStale, seriesTools,
@@ -47,6 +47,7 @@ let episodesPutOff = false; /* the open show waits to be read again        */
 let showTiles = new Map(); /* each show's tile on the wall of everything  */
 let openedFrom = null;     /* the details the open show was opened from   */
 let showQuestions = new Map(); /* each show's details question, by its id */
+let episodeCount = 0;      /* how many episodes the open show has          */
 
 /* The order and the genre over the wall of every show, as on the films. */
 const seriesTools = shelfTools(el.seriesTools, {
@@ -154,7 +155,7 @@ function buildSeries() {
   /* The tile it was opened from has been built again, so what the dialog's
      heading names is the show as the shelf now has it. */
   openShow = still;
-  el.seriesOpen.textContent = still.title;
+  drawSeasonsHead();
 }
 
 /* Both series walls off the page, for a box with no series to offer. */
@@ -274,7 +275,6 @@ async function openShowView(show, from) {
     openShow = show;
     openedFrom = from;
     buildEpisodes(Array.isArray(answer.episodes) ? answer.episodes : []);
-    el.seriesOpen.textContent = show.title;
     if (!el.seasonsDialog.open) el.seasonsDialog.showModal();
     el.seasonsDialog.querySelector("form").scrollTop = 0;
   } catch (_) {
@@ -407,7 +407,40 @@ function buildEpisodes(list, unfolded) {
     (fold || rows).append(episodeRow(episode));
   }
   el.episodeList.replaceChildren(rows);
-  el.seasonsCount.textContent = list.length ? String(list.length) : "";
+  episodeCount = list.length;
+  drawSeasonsHead();
+}
+
+/* The head of the dialog, as a title's details have theirs: the open show's
+   backdrop and poster, its name, and under it its year and how many
+   episodes it has.  The page takes its colour off the poster as the details
+   do (see tintDialog in js/marking.js). */
+function drawSeasonsHead() {
+  const show = openShow;
+  seasonPicture(el.seasonsBackdrop, "fanart", show.fanart);
+  seasonPicture(el.seasonsPoster, "poster", show.poster);
+  el.seasonsHero.classList.toggle("bare", el.seasonsBackdrop.hidden);
+  el.seriesOpen.textContent = show.title;
+  el.seasonsCount.textContent = [show.year ? String(show.year) : "",
+    episodeCount ? T.series_episodes.replace("%s", episodeCount) : ""]
+    .filter(Boolean).join(" · ");
+  tintDialog(el.seasonsDialog, [el.seasonsPoster, el.seasonsBackdrop]);
+}
+
+/* One of the show's pictures, or none: one the box cannot read leaves the
+   space it would have filled, as a missing one does. */
+function seasonPicture(image, kind, tag) {
+  image.hidden = !tag;
+  if (tag) {
+    image.src = "/api/art?kind=" + kind + "&tvshowid=" + encodeURIComponent(openShow.id) +
+      "&v=" + encodeURIComponent(tag);
+  } else {
+    image.removeAttribute("src");
+  }
+  image.onerror = () => {
+    image.hidden = true;
+    el.seasonsHero.classList.toggle("bare", el.seasonsBackdrop.hidden);
+  };
 }
 
 function seasonOf(episode) {
