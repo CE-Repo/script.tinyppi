@@ -400,6 +400,22 @@
   outline-offset: 2px;
 }
 
+/* --- The player card ---------------------------------------------------
+
+   The remote on a card of its own under the overview, as the app has it: a
+   heading like every folding card's, with the key that folds it at its end
+   in place of the plain caret, and the transport row and the pickers under
+   it.  The whole heading folds it (see js/live-panels.js). */
+.playerhead::after { display: none; }
+.playerhead .control-toggle {
+  position: static;
+  margin-left: auto;
+}
+.playercard .control-body {
+  padding: 0 16px 16px;
+  border-top: 0;
+}
+
 /* --- Stat tiles --------------------------------------------------------- */
 
 .tilegrid {

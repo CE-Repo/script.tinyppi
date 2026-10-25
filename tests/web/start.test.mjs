@@ -17,7 +17,7 @@ import { page, settle, source } from "./harness.mjs";
 const JS = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "resources", "web", "js");
 const ORDER = ["theme.js", "core.js", "colour.js", "cover-tint.js", "readings.js",
                "live-chapters.js", "live-remote.js", "live-panels.js", "metadata.js", "dashboard.js", "shelf-tools.js", "films.js", "series.js",
-               "continue.js", "marking.js", "start.js"];
+               "continue.js", "marking.js", "cards.js", "start.js"];
 
 /** Run one of the page's scripts under its own file URL, as harness.mjs
  * does, so that the page can be prepared (storage, address) first. */
@@ -70,7 +70,7 @@ const PLACES = [
   ["unseenSeriesLabel", "text", "series_unseen_shows"],
   ["detailsRestart", "text", "play_from_start"], ["detailsClear", "text", "resume_clear"],
   ["detailsWatched", "text", "mark_watched"], ["detailsUnwatched", "text", "mark_unwatched"],
-  ["seriesBackText", "text", "series_back"], ["seriesBack", "aria-label", "series_back"],
+  ["seasonsX", "aria-label", "close"], ["seasonsX", "title", "close"],
   ["seriesEmpty", "text", "series_empty"],
   ["seriesSearch", "placeholder", "series_search"], ["seriesSearch", "aria-label", "series_search"],
   ["vs10Title", "text", "vs10"], ["vs10OutLabel", "text", "output"],

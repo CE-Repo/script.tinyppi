@@ -148,7 +148,12 @@ test("a page without a live mount point gets no panels", () => {
 test("the panels arrive hidden, with the chart and the events unfolded", (t) => {
   const { $ } = panels(t);
   const toggle = $("controlToggle");
-  assert.equal(toggle.parentElement, $("nowCard"));
+  // The key stands in the heading of the player card, which comes after the
+  // overview, with the remote it folds.
+  assert.equal(toggle.parentElement, $("playerHead"));
+  assert.equal($("plotCard").nextElementSibling, $("playerCard"));
+  assert.equal($("controlDrawer").parentElement, $("playerCard"));
+  assert.ok($("playerCard").classList.contains("hidden"));
   assert.ok(toggle.classList.contains("hidden"));
   assert.equal(toggle.getAttribute("aria-expanded"), "false");
   assert.equal(toggle.getAttribute("aria-controls"), "controlDrawer");
@@ -238,8 +243,9 @@ test("the overview is a key under what is playing that opens the title's details
   P.update({ playing: false });
   assert.ok(card.classList.contains("hidden"));
   // Named by the strings, and says what a press does.
-  P.strings({ ...window.TinyPPI.T, plot: "Überblick", details: "Details" });
+  P.strings({ ...window.TinyPPI.T, plot: "Überblick", details: "Details", player: "Wiedergabe" });
   assert.equal($("plotTitle").textContent, "Überblick");
+  assert.equal($("playerTitle").textContent, "Wiedergabe");
   assert.equal(card.title, "Details");
 });
 
@@ -525,6 +531,21 @@ test("the play and mute keys follow the player, the chapter keys need chapters",
   P.update(snap({ control: true, controls: undefined }));
   assert.ok(chapters.every((key) => key.disabled));
   assert.equal(mute.dataset.icon, "volume");
+});
+
+test("the player card shows while the add-on takes orders, and its heading folds it", (t) => {
+  const { $, P } = panels(t);
+  P.update(snap({ control: true }));
+  assert.equal($("playerCard").classList.contains("hidden"), false);
+  $("playerTitle").click();
+  assert.ok($("controlDrawer").classList.contains("open"));
+  $("playerHead").click();
+  assert.equal($("controlDrawer").classList.contains("open"), false);
+  P.update(snap({ control: false }));
+  assert.ok($("playerCard").classList.contains("hidden"));
+  P.update(snap({ control: true }));
+  P.update({ playing: false });
+  assert.ok($("playerCard").classList.contains("hidden"));
 });
 
 test("the controls drawer opens on its toggle and is remembered", (t) => {

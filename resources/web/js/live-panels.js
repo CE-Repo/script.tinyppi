@@ -85,12 +85,6 @@
             '<span id="tTotal">--:--</span>' +
           '</div>' +
         '</div>' +
-        '<div class="control-drawer" id="controlDrawer">' +
-          '<div class="control-body">' +
-            '<div class="transport hidden" id="transport"></div>' +
-            '<div class="tracks hidden" id="tracks"></div>' +
-          '</div>' +
-        '</div>' +
       '</div>' +
     '</section>' +
     /* The overview: a card that is nothing but its heading, and a key --
@@ -100,6 +94,19 @@
     '<button class="card plotopen hidden" id="plotCard" type="button">' +
       '<span class="plotopentitle" id="plotTitle"></span>' +
     '</button>' +
+    /* The remote, a card of its own under the overview as the app's player
+       card is: its heading with the key that folds it, and under that the
+       transport row and the track pickers.  Only while the add-on takes
+       orders (see update). */
+    '<section class="card playercard hidden" id="playerCard">' +
+      '<div class="panel-toggle playerhead" id="playerHead"><span id="playerTitle"></span></div>' +
+      '<div class="control-drawer" id="controlDrawer">' +
+        '<div class="control-body">' +
+          '<div class="transport hidden" id="transport"></div>' +
+          '<div class="tracks hidden" id="tracks"></div>' +
+        '</div>' +
+      '</div>' +
+    '</section>' +
     '<details class="card hidden" id="tiles">' +
       '<summary class="panel-toggle"><span id="tilesTitle"></span></summary>' +
       '<div class="tilegrid">' +
@@ -143,18 +150,23 @@
     track: $("track"), dots: $("chapterDots"), now: $("chapterNow"),
     tip: $("chapterTip"), toggle: $("chapterMarks")
   });
+  /* The key that folds the remote stands in the player card's heading, and
+     the whole heading folds it, as a card's heading does. */
   const remote = TinyPPIRemote.create({
-    nowCard: $("nowCard"), drawer: $("controlDrawer"), transport: $("transport"),
+    nowCard: $("playerHead"), drawer: $("controlDrawer"), transport: $("transport"),
     tracks: $("tracks"), track: $("track"), bar: $("bar"), elapsed: $("tElapsed"),
     chapters
   }, pageState);
   const uiIcon = TinyPPIRemote.icon;
+  $("playerHead").addEventListener("click", (event) => {
+    if (!event.target.closest(".control-toggle")) $("controlToggle").click();
+  });
 
   const el = {
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), studio: $("studio"), file: $("file"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
-    plotCard: $("plotCard"),
+    plotCard: $("plotCard"), playerCard: $("playerCard"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
     tFinish: $("tFinish"), tFinishLabel: $("tFinishLabel"),
@@ -1001,6 +1013,7 @@
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
     $("plotTitle").textContent = T.plot;
+    $("playerTitle").textContent = T.player;
     el.plotCard.title = T.details;
     $("tilesTitle").textContent = T.metrics;
     $("kSwitches").textContent = T.switches;
@@ -1045,7 +1058,7 @@
          page is a wall of several hundred posters. */
       if (!idleReset) {
         idleReset = true;
-        const cards = [el.nowCard, el.plotCard, el.tiles, el.chartCard];
+        const cards = [el.nowCard, el.plotCard, el.playerCard, el.tiles, el.chartCard];
         for (const node of cards) node.classList.add("hidden");
         live = [];
         posterTag = "";
@@ -1076,6 +1089,7 @@
     idleFetched = false;
     idleReset = false;
     el.nowCard.classList.remove("hidden");
+    el.playerCard.classList.toggle("hidden", !snapshot.control);
     renderNow(snapshot);
     remote.render(snapshot);
     renderTiles(snapshot.metrics || {}, snapshot.session);

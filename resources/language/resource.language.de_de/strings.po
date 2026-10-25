@@ -1626,3 +1626,75 @@ msgstr "Aufsteigend"
 msgctxt "#32414"
 msgid "Descending"
 msgstr "Absteigend"
+
+msgctxt "#32415"
+msgid "Arrange cards"
+msgstr "Karten anordnen"
+
+msgctxt "#32416"
+msgid "Move a card with the arrows, or take it off this tab with the eye. Long-press or right-click any card heading to come back here."
+msgstr "Mit den Pfeilen verschiebst du eine Karte, mit dem Auge nimmst du sie von diesem Tab. Ein langer Druck oder ein Rechtsklick auf eine Kartenüberschrift bringt dich wieder hierher."
+
+msgctxt "#32417"
+msgid "Done"
+msgstr "Fertig"
+
+msgctxt "#32418"
+msgid "Reset"
+msgstr "Zurücksetzen"
+
+msgctxt "#32419"
+msgid "Move up"
+msgstr "Nach oben"
+
+msgctxt "#32420"
+msgid "Move down"
+msgstr "Nach unten"
+
+msgctxt "#32421"
+msgid "Remove card"
+msgstr "Karte entfernen"
+
+msgctxt "#32422"
+msgid "Show card again"
+msgstr "Karte wieder anzeigen"
+
+msgctxt "#32423"
+msgid "Hidden"
+msgstr "Ausgeblendet"
+
+msgctxt "#32424"
+msgid "Every card on this tab is hidden."
+msgstr "Alle Karten auf diesem Tab sind ausgeblendet."
+
+msgctxt "#32425"
+msgid "Tabs"
+msgstr "Tabs"
+
+msgctxt "#32426"
+msgid "Choose which tabs appear in the bar. Live and Settings are always there. Some tabs only appear when there is something to show."
+msgstr "Lege fest, welche Tabs in der Leiste erscheinen. Live und Einstellungen sind immer da. Manche Tabs erscheinen nur, wenn es dort etwas zu zeigen gibt."
+
+msgctxt "#32427"
+msgid "Cards"
+msgstr "Karten"
+
+msgctxt "#32428"
+msgid "Long-press or right-click the heading of a card to move the cards on that tab around, remove them or put them back."
+msgstr "Halte die Überschrift einer Karte gedrückt oder klicke sie mit rechts an, um die Karten dieses Tabs zu verschieben, zu entfernen oder zurückzuholen."
+
+msgctxt "#32429"
+msgid "Reset all cards"
+msgstr "Alle Karten zurücksetzen"
+
+msgctxt "#32430"
+msgid "Every card back in its place on every tab, and every removed card shown again."
+msgstr "Jede Karte auf jedem Tab wieder an ihrem Platz, und jede entfernte Karte wieder da."
+
+msgctxt "#32431"
+msgid "Go to series"
+msgstr "Zur Serie"
+
+msgctxt "#32432"
+msgid "Player"
+msgstr "Player"

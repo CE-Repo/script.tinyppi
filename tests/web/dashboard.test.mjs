@@ -17,7 +17,7 @@ import { page, settle, source } from "./harness.mjs";
 const JS = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "resources", "web", "js");
 const ORDER = ["theme.js", "core.js", "colour.js", "cover-tint.js", "readings.js",
                "live-chapters.js", "live-remote.js", "live-panels.js", "metadata.js", "dashboard.js", "shelf-tools.js", "films.js", "series.js",
-               "continue.js", "marking.js", "start.js"];
+               "continue.js", "marking.js", "cards.js", "start.js"];
 
 /** Run one of the page's scripts under its own file URL, as harness.mjs
  * does, so that the page can be prepared (storage, address, timers) first. */
@@ -177,7 +177,8 @@ const LIBRARY = {
 test("the frame is rearranged at load: VS10 under the playing card and its plot, figures and events on the history tab", (t) => {
   const { $ } = open(t);
   assert.equal($("nowCard").nextElementSibling, $("plotCard"));
-  assert.equal($("plotCard").nextElementSibling, $("vs10Card"));
+  assert.equal($("plotCard").nextElementSibling, $("playerCard"));
+  assert.equal($("playerCard").nextElementSibling, $("vs10Card"));
   const events = $("eventsCard");
   const grid = events.querySelector(".tilegrid");
   assert.ok(grid, "the figures moved into the events card");

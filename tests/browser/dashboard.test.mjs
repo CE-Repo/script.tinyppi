@@ -359,7 +359,7 @@ test("cancelling the question sends nothing", async () => {
   assert.equal(posts.length, before);
 });
 
-test("series: a show opens with its seasons and episodes", async () => {
+test("series: a show opens a dialog of its seasons and episodes", async () => {
   await tab("series");
   await page.waitForFunction(() => document.querySelectorAll("#seriesGrid .film").length === 5);
   await page.locator("#seriesGrid .film").nth(1).click();
@@ -367,12 +367,17 @@ test("series: a show opens with its seasons and episodes", async () => {
   assert.equal(await page.locator("#markDialog").isVisible(), false);
   await page.click("#detailsPlay");
   await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
-  await page.waitForSelector(".seasonfold");
+  await page.waitForSelector("#seasonsDialog[open] .seasonfold");
   assert.equal(await page.locator(".seasonfold").count(), 2);
   await page.locator(".seasonfold .season").first().click();
   await page.waitForFunction(() => document.querySelector(".seasonepisodes")?.children.length > 0);
-  await page.click("#seriesBack");
-  await page.waitForFunction(() => document.querySelectorAll(".seasonfold").length === 0);
+  await page.click("#seasonsX");
+  await page.waitForFunction(() => !document.getElementById("seasonsDialog").open &&
+                             document.querySelectorAll(".seasonfold").length === 0);
+  // Leaving the seasons goes back to the show's details.
+  await page.waitForSelector("#detailsDialog[open]");
+  await page.click("#detailsX");
+  await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
 });
 
 test("history: the events are worded for people", async () => {

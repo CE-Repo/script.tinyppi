@@ -18,7 +18,7 @@ import { page, settle, source } from "./harness.mjs";
 const JS = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "resources", "web", "js");
 const ORDER = ["theme.js", "core.js", "colour.js", "cover-tint.js", "readings.js",
                "live-chapters.js", "live-remote.js", "live-panels.js", "metadata.js", "dashboard.js", "shelf-tools.js", "films.js", "series.js",
-               "continue.js", "marking.js", "start.js"];
+               "continue.js", "marking.js", "cards.js", "start.js"];
 
 /** Run one of the page's scripts under its own file URL, as harness.mjs
  * does, so that the page's timers can be replaced first. */
@@ -193,6 +193,31 @@ async function press(view, node, value = "play") {
 /** Open the show called *title* from the wall or row *id*. */
 const openShow = (view, title, id = "seriesGrid") => press(view, tile(view, title, id));
 
+/** Whether the dialog of the open show's seasons is up. */
+const seasonsOpen = (view) => view.$("seasonsDialog").open;
+
+/** Close that dialog, as its key or Escape would, and then -- unless
+ * *keep* -- the show's details it gives way to. */
+async function closeSeasons(view, { keep = false } = {}) {
+  const dialog = view.$("seasonsDialog");
+  dialog.close();
+  dialog.dispatchEvent(new view.window.Event("close"));
+  await settle();
+  if (!keep && view.$("detailsDialog").open) answer(view, "cancel");
+  await settle();
+}
+
+/** A pull on *dialog* from *from* down to *to*, as a finger would. */
+function pull({ window }, dialog, from, to) {
+  const touch = (type, key, y) => {
+    const event = new window.Event(type, { bubbles: true });
+    Object.defineProperty(event, key, { value: [{ clientY: y }] });
+    dialog.dispatchEvent(event);
+  };
+  touch("touchstart", "touches", from);
+  touch("touchend", "changedTouches", to);
+}
+
 const reads = ({ requests }, path) =>
   requests.filter((request) => request.url.replace(/\?.*$/, "") === path).length;
 
@@ -320,7 +345,7 @@ test("the search narrows the shelf by title and year, and clearing it puts it ba
   assert.equal(view.window.document.activeElement, search);
 });
 
-test("a press on a show asks to open it, and opening it lists its seasons folded away", async (t) => {
+test("a press on a show asks to open it, and opening it lists its seasons folded away in a dialog", async (t) => {
   const view = await open(t, { token: "T0K3N" });
   tile(view, "Andor").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
   await settle();
@@ -343,15 +368,14 @@ test("a press on a show asks to open it, and opening it lists its seasons folded
   assert.equal(loose.classList.contains("episode"), true);
   assert.equal(loose.querySelector(".episodetitle").textContent, "Lost reel");
 
-  assert.equal(view.$("seriesCount").textContent, "6");
+  assert.equal(seasonsOpen(view), true);
+  assert.equal(view.$("seasonsDialog").contains(view.$("episodeList")), true);
   assert.equal(view.$("seriesOpen").textContent, "Andor");
-  for (const id of ["episodeList", "seriesBack", "seriesOpen"]) {
-    assert.equal(hidden(view, id), false, id);
-  }
-  for (const id of ["seriesGrid", "seriesSearchBox", "seriesEmpty"]) {
-    assert.equal(hidden(view, id), true, id);
-  }
-  // Opened from the wall itself, nothing is scrolled.
+  assert.equal(view.$("seasonsCount").textContent, "6");
+  // The wall stays as it was under the dialog, still counting the shows.
+  assert.equal(hidden(view, "seriesGrid"), false);
+  assert.equal(hidden(view, "seriesSearchBox"), false);
+  assert.equal(view.$("seriesCount").textContent, "4");
   assert.deepEqual(view.scrolled, []);
 });
 
@@ -426,33 +450,69 @@ test("a press on an episode asks to play it, or to resume one that got somewhere
   assert.deepEqual(plays(view), []);
 });
 
-test("the way back out returns to the wall as it was", async (t) => {
+test("closing the dialog lets the show go and leaves the wall as it was", async (t) => {
   const view = await open(t);
   await openShow(view, "Andor");
-  view.$("seriesBack").click();
+  await closeSeasons(view);
+  assert.equal(seasonsOpen(view), false);
   assert.equal(view.$("episodeList").children.length, 0);
-  for (const id of ["episodeList", "seriesBack", "seriesOpen"]) {
-    assert.equal(hidden(view, id), true, id);
-  }
+  assert.equal(view.$("seasonsCount").textContent, "");
   assert.equal(hidden(view, "seriesGrid"), false);
-  assert.equal(hidden(view, "seriesSearchBox"), false);
   assert.equal(view.$("seriesCount").textContent, "4");
+  // Nothing is read for a show nobody has open.
+  await view.moved();
+  assert.equal(reads(view, "/api/episodes"), 1);
 });
 
-test("a show opened from the unwatched row opens in the series card, unfolded and in view", async (t) => {
+test("leaving the seasons goes back to the show's details they were opened over", async (t) => {
+  const view = await open(t);
+  await openShow(view, "Andor");
+  await closeSeasons(view, { keep: true });
+  assert.equal(seasonsOpen(view), false);
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsTitle").textContent, "Andor");
+  assert.equal(view.$("detailsPlay").textContent, "Open");
+  // And opening it again from there opens the seasons again.
+  answer(view, "play");
+  await settle();
+  assert.equal(seasonsOpen(view), true);
+  assert.equal(reads(view, "/api/episodes"), 2);
+});
+
+test("a pull down from the top closes the seasons and the details; a short one, or one further down, does not", async (t) => {
+  const view = await open(t);
+  await openShow(view, "Andor");
+  const seasons = view.$("seasonsDialog");
+  const page = seasons.querySelector("form");
+  pull(view, seasons, 100, 150);
+  assert.equal(seasons.open, true);
+  Object.defineProperty(page, "scrollTop", { configurable: true, value: 300 });
+  pull(view, seasons, 100, 400);
+  assert.equal(seasons.open, true);
+  Object.defineProperty(page, "scrollTop", { configurable: true, value: 0 });
+  pull(view, seasons, 100, 260);
+  assert.equal(seasons.open, false);
+
+  const details = view.$("detailsDialog");
+  details.open = true;
+  pull(view, details, 50, 200);
+  assert.equal(details.open, false);
+});
+
+test("a show from the unwatched or the recent row opens the same dialog, without scrolling", async (t) => {
   const view = await open(t);
   view.$("seriesCard").open = false;
   await openShow(view, "Dark", "unseenSeriesGrid");
   assert.equal(view.requests.filter((request) => request.url === "/api/episodes?tvshowid=4").length, 1);
   assert.equal(view.$("seriesOpen").textContent, "Dark");
-  assert.equal(view.$("seriesCard").open, true);
-  assert.deepEqual(view.scrolled, [["seriesCard", { behavior: "smooth", block: "start" }]]);
+  assert.equal(seasonsOpen(view), true);
+  assert.equal(view.$("seriesCard").open, false);
 
-  // And so does one from the recent row.
-  view.$("seriesBack").click();
+  await closeSeasons(view);
   await openShow(view, "Babylon 5", "recentSeriesRow");
   assert.equal(view.$("seriesOpen").textContent, "Babylon 5");
-  assert.equal(view.scrolled.length, 2);
+  assert.equal(seasonsOpen(view), true);
+  assert.deepEqual(view.scrolled, []);
 });
 
 test("a show that cannot be opened says so, stays on the wall and has the shelf read again", async (t) => {
@@ -461,9 +521,8 @@ test("a show that cannot be opened says so, stays on the wall and has the shelf 
   await openShow(view, "Andor", "unseenSeriesGrid");
   assert.equal(view.$("toast").textContent, "Episodes could not be loaded");
   assert.equal(view.$("toast").classList.contains("bad"), true);
-  assert.equal(hidden(view, "episodeList"), true);
+  assert.equal(seasonsOpen(view), false);
   assert.equal(hidden(view, "seriesGrid"), false);
-  // Nothing opened, so nothing is unfolded or scrolled to.
   assert.equal(view.$("seriesCard").open, false);
   assert.deepEqual(view.scrolled, []);
 
@@ -479,14 +538,14 @@ test("an answer without episodes opens an empty show, or empties the open one", 
   await view.moved();
   assert.equal(view.$("seriesOpen").textContent, "Andor");
   assert.equal(view.$("episodeList").children.length, 0);
-  assert.equal(view.$("seriesCount").textContent, "0");
+  assert.equal(view.$("seasonsCount").textContent, "");
 
-  view.$("seriesBack").click();
+  await closeSeasons(view);
   await openShow(view, "Columbo");
   assert.equal(view.$("seriesOpen").textContent, "Columbo");
-  assert.equal(hidden(view, "episodeList"), false);
+  assert.equal(seasonsOpen(view), true);
   assert.equal(view.$("episodeList").children.length, 0);
-  assert.equal(view.$("seriesCount").textContent, "0");
+  assert.equal(view.$("seasonsCount").textContent, "");
 });
 
 test("a second show pressed while one is opening is not opened", async (t) => {
@@ -507,21 +566,20 @@ test("the shelf read again keeps the open show, under the name the shelf now giv
   await view.moved();
   assert.equal(reads(view, "/api/series"), 2);
   assert.equal(view.$("seriesOpen").textContent, "Andor (2022)");
-  assert.equal(hidden(view, "episodeList"), false);
-  // The heading still counts the show's episodes, and there is no wall to search.
-  assert.equal(view.$("seriesCount").textContent, "6");
-  assert.equal(hidden(view, "seriesSearchBox"), true);
+  assert.equal(seasonsOpen(view), true);
+  assert.equal(view.$("seasonsCount").textContent, "6");
+  assert.equal(view.$("seriesCount").textContent, "4");
   assert.equal(titles(view, "seriesGrid")[0], "Andor (2022)");
 });
 
-test("a show scanned away under the card takes it back to the wall", async (t) => {
+test("a show scanned away under the dialog closes it", async (t) => {
   const view = await open(t);
   await openShow(view, "Andor");
   view.routes["/api/series"] = [200, { tag: "s2", shows: SHOWS.slice(1) }];
   await view.moved();
-  assert.equal(hidden(view, "episodeList"), true);
+  assert.equal(seasonsOpen(view), false);
+  assert.equal(view.$("episodeList").children.length, 0);
   assert.equal(hidden(view, "seriesGrid"), false);
-  assert.equal(hidden(view, "seriesSearchBox"), false);
   assert.equal(view.$("seriesCount").textContent, "3");
   assert.deepEqual(titles(view, "seriesGrid"), ["Babylon 5", "Columbo", "Dark"]);
 });
@@ -562,10 +620,10 @@ test("an answer about a show that was left in the meantime draws nothing", async
   await openShow(view, "Andor");
   const release = hold(view, "/api/episodes");
   await view.moved();
-  view.$("seriesBack").click();
+  await closeSeasons(view);
   await release();
   assert.equal(view.$("episodeList").children.length, 0);
-  assert.equal(hidden(view, "episodeList"), true);
+  assert.equal(seasonsOpen(view), false);
   assert.equal(view.$("seriesCount").textContent, "4");
 });
 
@@ -583,7 +641,7 @@ test("a show that cannot be read again stays as it was, and the shelf is asked f
   const after = rows(view);
   assert.equal(after.length, before.length);
   assert.ok(after.every((node, index) => node === before[index]));
-  assert.equal(hidden(view, "episodeList"), false);
+  assert.equal(seasonsOpen(view), true);
   assert.equal(view.$("seriesOpen").textContent, "Andor");
   assert.equal(view.$("toast").textContent, "");
   // The shelf read that came back first is no longer taken as current.
@@ -594,12 +652,22 @@ test("a show that cannot be read again stays as it was, and the shelf is asked f
 /** Which tab is in front. */
 const front = (view) => view.window.document.querySelector(".tabpanel.active")?.dataset.tab;
 
-test("an episode that starts takes the page to the live tab", async (t) => {
+test("an episode that starts closes the dialog and takes the page to the live tab", async (t) => {
   const view = await open(t);
   view.window.selectTab("series");
   await openShow(view, "Andor");
   await press(view, row(view, "That Would Be Me"));
+  assert.equal(seasonsOpen(view), false);
   assert.equal(front(view), "live");
+});
+
+test("an episode that will not start leaves the dialog open on the series tab", async (t) => {
+  const view = await open(t, { routes: { "/api/play": [500, {}] } });
+  view.window.selectTab("series");
+  await openShow(view, "Andor");
+  await press(view, row(view, "Kassa"));
+  assert.equal(seasonsOpen(view), true);
+  assert.equal(front(view), "series");
 });
 
 test("the series search and filters sit at the top of the tab", async (t) => {
@@ -670,7 +738,7 @@ test("an episode the box will not play, or cannot be reached for, says so and fr
   assert.equal(view.$("tokenDialog").open, false);
 });
 
-test("under a pressed episode the shelf and the show wait, and are read once it is over", async (t) => {
+test("under a pressed episode the shelf and the show wait; once it is over the shelf is read and the closed show let go", async (t) => {
   const view = await open(t);
   await openShow(view, "Andor");
   const continued = reads(view, "/api/continue");
@@ -679,11 +747,14 @@ test("under a pressed episode the shelf and the show wait, and are read once it 
   assert.equal(reads(view, "/api/series"), 1);
   assert.equal(reads(view, "/api/episodes"), 1);
   assert.equal(reads(view, "/api/continue"), continued + 1);
+  // The rows are still there, pressed, in the closed dialog.
+  assert.equal(row(view, "Kassa").classList.contains("busy"), true);
 
   view.clock.tick(4000);
   await view.state(IDLE);
   assert.equal(reads(view, "/api/series"), 2);
-  assert.equal(reads(view, "/api/episodes"), 2);
+  assert.equal(reads(view, "/api/episodes"), 1);
+  assert.equal(view.$("episodeList").children.length, 0);
 });
 
 test("no other show is opened while an episode is waiting", async (t) => {
@@ -693,13 +764,13 @@ test("no other show is opened while an episode is waiting", async (t) => {
   await openShow(view, "Dark", "unseenSeriesGrid");
   assert.equal(reads(view, "/api/episodes"), 1);
   assert.equal(view.$("seriesOpen").textContent, "Andor");
-  assert.deepEqual(view.scrolled, []);
+  assert.equal(seasonsOpen(view), false);
 
-  // Not even once the way back to the wall has been taken.
-  view.$("seriesBack").click();
+  // Not even once the dialog has been closed again.
+  await closeSeasons(view);
   await openShow(view, "Dark", "unseenSeriesGrid");
   assert.equal(reads(view, "/api/episodes"), 1);
-  assert.equal(hidden(view, "episodeList"), true);
+  assert.equal(seasonsOpen(view), false);
 });
 
 test("a second episode pressed while the first is waiting starts nothing", async (t) => {
@@ -731,10 +802,25 @@ test("a read of the show already on its way when an episode is pressed does not 
   assert.equal(row(view, "One Way Out").disabled, true);
   assert.equal(row(view, "Kassa").classList.contains("busy"), true);
 
-  // The answer that was put off is asked for again once the press is over.
+  // Once the press is over the answer put off is not asked for again: the
+  // episode started, the dialog closed, and the show is let go instead.
   view.clock.tick(4000);
   await settle();
-  assert.equal(reads(view, "/api/episodes"), 3);
+  assert.equal(reads(view, "/api/episodes"), 2);
+  assert.equal(rows(view).length, 0);
+});
+
+test("a read put off under a press that failed is asked for again, the dialog still open", async (t) => {
+  const view = await open(t, { routes: { "/api/play": [500, {}] } });
+  await openShow(view, "Andor");
+  const play = hold(view, "/api/play");
+  view.routes["/api/episodes"] = [200, { tag: "e2", episodes: EPISODES.slice(1) }];
+  await press(view, row(view, "Kassa"));
+  await view.moved();
+  assert.equal(reads(view, "/api/episodes"), 1);
+  await play();
+  await settle();
+  assert.equal(reads(view, "/api/episodes"), 2);
   assert.equal(rows(view).length, EPISODES.length - 1);
   assert.equal(rows(view).some((node) => node.disabled), false);
 });
@@ -748,14 +834,14 @@ test("a shelf read already on its way when an episode is pressed does not close 
   await view.moved();
   await press(view, row(view, "Kassa"));
   await release();
-  assert.equal(hidden(view, "episodeList"), false);
+  assert.equal(rows(view).length, EPISODES.length);
   assert.equal(row(view, "Kassa").classList.contains("busy"), true);
   assert.equal(titles(view, "seriesGrid").length, 4);
 
   view.clock.tick(4000);
   await view.state(IDLE);
   assert.equal(reads(view, "/api/series"), 3);
-  assert.equal(hidden(view, "episodeList"), true);
+  assert.equal(view.$("episodeList").children.length, 0);
   assert.deepEqual(titles(view, "seriesGrid"), ["Babylon 5", "Columbo", "Dark"]);
 });
 
@@ -769,12 +855,12 @@ test("a shelf put off under a press is asked for again when the press fails", as
   const play = hold(view, "/api/play");
   await press(view, row(view, "Kassa"));
   await shelf();
-  assert.equal(hidden(view, "episodeList"), false);
+  assert.equal(seasonsOpen(view), true);
   // Nothing started, so only the move put off says the shelf is unread.
   await play();
   await view.state(IDLE);
   assert.equal(reads(view, "/api/series"), 3);
-  assert.equal(hidden(view, "episodeList"), true);
+  assert.equal(seasonsOpen(view), false);
   assert.deepEqual(titles(view, "seriesGrid"), ["Babylon 5", "Columbo", "Dark"]);
 });
 
@@ -809,13 +895,16 @@ test("a shelf read that fails after the library moved leaves the wall standing",
   assert.equal(reads(view, "/api/series"), 3);
 });
 
-test("the search comes back with the wall when the show is left", async (t) => {
+test("the search stays where it is while a show is open, and keeps what it holds", async (t) => {
   const view = await open(t);
+  const search = view.$("seriesSearch");
+  search.value = "an";
+  search.dispatchEvent(new view.window.Event("input"));
   await openShow(view, "Andor");
-  assert.equal(hidden(view, "seriesSearchBox"), true);
-  view.$("seriesBack").click();
   assert.equal(hidden(view, "seriesSearchBox"), false);
-  assert.equal(hidden(view, "seriesSearch"), false);
+  await closeSeasons(view);
+  assert.equal(search.value, "an");
+  assert.deepEqual(shown(view, "seriesGrid"), ["Andor"]);
 });
 
 test("the shelf is not asked for twice at once, nor again once read, until a title ends", async (t) => {

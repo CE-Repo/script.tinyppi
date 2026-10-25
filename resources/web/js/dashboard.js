@@ -28,8 +28,8 @@
    releaseFilms, releaseSeries, releasing, requestContinue, requestFilms,
    requestSeries, resumeReleasing, resuming, seriesOffered, seriesStale,
    starting, startingEpisode */
-/* exported $, T, control, el, offerShelves, render, selectTab, storedTab,
-   tabFromAddress */
+/* exported $, T, control, el, HIDEABLE_TABS, hiddenTabs, offerShelves, render,
+   selectTab, setTabHidden, storedTab, tabFromAddress */
 
 const $ = TinyPPI.$;
 const T = TinyPPI.T;
@@ -57,8 +57,9 @@ const el = {
   seriesCard: $("seriesCard"), seriesGrid: $("seriesGrid"),
   seriesCount: $("seriesCount"), seriesEmpty: $("seriesEmpty"),
   seriesSearch: $("seriesSearch"), seriesSearchClear: $("seriesSearchClear"),
-  seriesBox: $("seriesSearchBox"), seriesBack: $("seriesBack"),
-  seriesOpen: $("seriesOpen"), episodeList: $("episodeList"),
+  seriesBox: $("seriesSearchBox"), seasonsDialog: $("seasonsDialog"),
+  seriesOpen: $("seriesOpen"), seasonsCount: $("seasonsCount"),
+  seasonsX: $("seasonsX"), episodeList: $("episodeList"),
   recentFilmsCard: $("recentFilmsCard"), recentFilmsRow: $("recentFilmsRow"),
   recentSeriesCard: $("recentSeriesCard"), recentSeriesRow: $("recentSeriesRow"),
   unseenFilmsCard: $("unseenFilmsCard"), unseenFilmGrid: $("unseenFilmGrid"),
@@ -74,14 +75,15 @@ const el = {
   detailsCast: $("detailsCast"), detailsX: $("detailsX"),
   detailsError: $("detailsError"), detailsActions: $("detailsActions"), detailsClear: $("detailsClear"),
   detailsWatched: $("detailsWatched"), detailsUnwatched: $("detailsUnwatched"),
-  detailsPlay: $("detailsPlay"), detailsRestart: $("detailsRestart")
+  detailsPlay: $("detailsPlay"), detailsRestart: $("detailsRestart"),
+  detailsShow: $("detailsShow")
 };
 
-/* Keep VS10 by the playback card, under the plot that is the first card
-   after it.  The figures are the first thing inside the events card,
+/* Keep VS10 by the playback card, under the player card that follows the
+   overview.  The figures are the first thing inside the events card,
    followed by the event list; its old disclosure shell is no longer
    needed. */
-$("plotCard").after(el.vs10Card);
+$("playerCard").after(el.vs10Card);
 el.eventsCard.querySelector(".eventswrap").before(el.metricsGrid);
 /* Keep the empty shell in the document because the shared localization code
    still owns its heading node; the hidden attribute cannot be undone by the
@@ -149,6 +151,27 @@ const scrolls = new Map(); /* how far down each tab was left                 */
    not thrown back to the live one in the moment before the answer. */
 let offered = { films: true, series: true };
 
+/* The tabs the reader took off the bar in the settings (see js/cards.js),
+   which stay off it whatever the box has to show there.  Not the live tab,
+   which is what the page is opened for, and not the settings, which are the
+   only way to put a tab back. */
+const HIDEABLE_TABS = ["metadata", "films", "series", "history"];
+const HIDDEN_TABS_KEY = "tinyppi.hiddentabs";
+const hiddenTabs = new Set((() => {
+  try {
+    return [].concat(JSON.parse(localStorage.getItem(HIDDEN_TABS_KEY)) || [])
+      .filter((name) => HIDEABLE_TABS.includes(name));
+  } catch (_) { return []; }
+})());
+
+function setTabHidden(name, hidden) {
+  if (!HIDEABLE_TABS.includes(name)) return;
+  if (hidden) hiddenTabs.add(name);
+  else hiddenTabs.delete(name);
+  try { localStorage.setItem(HIDDEN_TABS_KEY, JSON.stringify([...hiddenTabs])); } catch (_) {}
+  renderTabs();
+}
+
 /* Whether a tab has anything to show.  The shelves are tabs only on a box
    that will say what it holds and be told what to play, and the metadata tab
    only while a Dolby Vision title is playing -- there is no RPU to read on
@@ -156,6 +179,7 @@ let offered = { films: true, series: true };
    Everything else is always there, with an idle card of its own for when
    nothing is playing. */
 function tabAvailable(name) {
+  if (hiddenTabs.has(name)) return false;
   if (name === "metadata") return state === null || dolbyVision(state);
   if (name === "films") {
     return offered.films && filmsOffered && (state === null || control);

@@ -10,7 +10,7 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them is listed below. */
 
-/* global $, el, filmTools, offerShelves, render, selectTab, seriesTools, storedTab,
+/* global $, cardsStrings, el, filmTools, offerShelves, render, selectTab, seriesTools, storedTab,
    tabFromAddress */
 
 /* --- boot --------------------------------------------------------------- */
@@ -62,7 +62,8 @@ function applyStrings(strings, hello) {
   $("unseenSeriesLabel").textContent = strings.series_unseen_shows;
   for (const [button, label] of [
     [el.detailsRestart, strings.play_from_start], [el.detailsClear, strings.resume_clear],
-    [el.detailsWatched, strings.mark_watched], [el.detailsUnwatched, strings.mark_unwatched]
+    [el.detailsWatched, strings.mark_watched], [el.detailsUnwatched, strings.mark_unwatched],
+    [el.detailsShow, strings.go_to_show]
   ]) {
     button.querySelector(".said").textContent = label;
     button.setAttribute("aria-label", label);
@@ -70,12 +71,13 @@ function applyStrings(strings, hello) {
   }
   el.detailsX.setAttribute("aria-label", strings.close);
   el.detailsX.title = strings.close;
-  $("seriesBackText").textContent = strings.series_back;
-  el.seriesBack.setAttribute("aria-label", strings.series_back);
+  el.seasonsX.setAttribute("aria-label", strings.close);
+  el.seasonsX.title = strings.close;
   el.seriesEmpty.textContent = strings.series_empty;
   el.seriesSearch.placeholder = strings.series_search;
   el.seriesSearch.setAttribute("aria-label", strings.series_search);
   filmTools.strings();
+  cardsStrings();
   seriesTools.strings();
   TinyPPI.panels.strings(strings);
   TinyPPI.metadata.strings(strings);

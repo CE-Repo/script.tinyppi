@@ -437,7 +437,7 @@ main { transition: padding-bottom .3s ease; }
    viewport is centred over the bar as well as under it.  The metrics card
    left behind in #live carries the hidden attribute rather than the class
    (see js/dashboard.js), so both are named. */
-.tabpanel:not(:has(.card:not(.hidden):not([hidden]):not(.idlecard))) {
+.tabpanel:not(:has(.card:not(.hidden):not([hidden]):not(.idlecard):not(.userhidden))) {
   align-content: center;
 }
 
@@ -451,7 +451,7 @@ main { transition: padding-bottom .3s ease; }
 /* A rail with nothing visible in it is no rail.  Said outright, because the
    rail itself never carries .hidden -- the cards inside it do, and an empty
    grid item still takes the panel's gap and leaves a hole where it stood. */
-.rail:not(:has(.card:not(.hidden))) { display: none; }
+.rail:not(:has(.card:not(.hidden):not(.userhidden))) { display: none; }
 
 /* --- Tab bar ------------------------------------------------------------ */
 

@@ -253,7 +253,7 @@
 .searchbox { position: relative; display: grid; }
 
 /* The search with the order and the filters under it, which wrap onto as many
-   lines as a phone needs.  A filter with nothing to choose between is not
+   lines as a wide screen needs and slide sideways on a phone.  A filter with nothing to choose between is not
    drawn (see js/shelf-tools.js). */
 .shelfhead { display: grid; gap: var(--gap); }
 /* The order and the filters on a card of their own, as the app puts them:
@@ -266,6 +266,21 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel);
+}
+/* On a phone the chips are one row that slides sideways under a finger, as
+   the app's do, rather than three or four rows of them pushing the shelf down
+   the screen.  No scrollbar: the chip cut off at the edge is what says there
+   is more. */
+@media (max-width: 620px) {
+  .shelftools {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .shelftools::-webkit-scrollbar { display: none; }
+  .shelftools > * { flex: none; max-width: none; }
 }
 .shelfpick {
   appearance: none;
@@ -360,6 +375,11 @@
      group cards above do. */
   grid-template-columns: repeat(auto-fill, minmax(min(124px, 44%), 1fr));
   gap: 12px;
+}
+/* Three to a row on a phone, as the app's wall has: two posters across a
+   phone is a wall that takes half again as long to scroll past. */
+@media (max-width: 620px) {
+  .filmgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 }
 
 .film {
@@ -600,40 +620,49 @@
    corner a watched film wears its tick in -- see .filmrating above, where both
    are drawn. */
 
-/* The way back to the wall.  Quiet, because it is furniture rather than an
-   offer: what the card is for is the list under it. */
-.seriesback {
-  appearance: none;
-  justify-self: start;
-  display: inline-flex;
+/* One show's seasons, a dialog of their own over the shelf: the show's name
+   and how many episodes it has across the top, the close key beside them, and
+   the folded seasons under it.  It scrolls inside itself, and on a phone it
+   is the whole screen, as a title's details are. */
+html:has(#seasonsDialog[open]), body:has(#seasonsDialog[open]) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+#seasonsDialog { width: min(640px, calc(100vw - 24px)); overflow: hidden; background: var(--bg); }
+#seasonsDialog form {
+  padding: 0 16px calc(16px + env(safe-area-inset-bottom));
+  gap: 8px;
+  max-height: min(88vh, 860px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  align-content: start;
+}
+@media (max-width: 620px) {
+  #seasonsDialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+  }
+  #seasonsDialog form { height: 100%; max-height: none; }
+}
+.seasonshead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 40px;
-  padding: 0 16px 0 10px;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--tonal);
-  color: var(--on-tonal);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
+  gap: 10px;
+  min-height: 56px;
+  padding: 10px 52px 10px 4px;
+  background: var(--bg);
 }
-@media (hover: hover) {
-  .seriesback:hover { background: color-mix(in srgb, var(--on-tonal) 8%, var(--tonal)); }
-}
-.seriesback:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-
-/* The name of the show that is open.  It is already in the heading of the
-   card as a count and nowhere as a name, and a list of episodes with no title
-   over it is a list of episodes of nothing. */
-.seriesopen {
-  margin: 0;
-  color: var(--text);
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.2;
-}
+#seriesOpen { font-size: 20px; line-height: 1.25; overflow-wrap: anywhere; }
+.seasonstotal { color: var(--muted); font-size: 13px; }
+.seasonstotal:empty { display: none; }
+.seasonshead .detailsx { top: 10px; right: 0; }
 
 /* The episodes themselves: rows rather than a wall.  An episode is chosen by
    its number and its name -- the still is a reminder of which one it was, not
@@ -975,6 +1004,7 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
 #detailsClear { --action-icon: url("/icons/resume-clear.svg"); }
 #detailsWatched { --action-icon: url("/icons/watched.svg"); }
 #detailsUnwatched { --action-icon: url("/icons/unwatched.svg"); }
+#detailsShow { --action-icon: url("/icons/tab-series.svg"); }
 @media (max-width: 620px) {
   .detailsactions { flex-direction: column; align-items: stretch; gap: 8px; }
 }
@@ -988,3 +1018,89 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
 dialog p.detailsplot { color: var(--text); white-space: pre-line; line-height: 24px; font-size: 16px; }
 
 #detailsError { color: var(--bad); }
+
+/* --- Arranging the cards -----------------------------------------------------
+
+   A card the reader took off its tab (see js/cards.js).  Said with a class of
+   its own rather than .hidden, which the page's own code puts on and takes
+   off as there is something to show, and which would put it back. */
+.card.userhidden { display: none !important; }
+/* The readings with every one of them taken off are no grid either. */
+.groups:not(:has(> .card:not(.userhidden))) { display: none; }
+
+/* A tab opened for arranging shows the list of its cards and nothing else. */
+.tabpanel.arranging > :not(.arranger) { display: none !important; }
+.tabpanel.arranging { align-content: start; }
+.arranger { display: grid; gap: 4px; padding-bottom: 8px; }
+.arrangehead { display: grid; gap: 10px; padding-bottom: 8px; }
+.arrangehead .setnote { padding: 0 16px; }
+.arrangekeys { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px; }
+.arrangedone { background: var(--accent); color: var(--on-accent); }
+@media (hover: hover) {
+  .arrangedone:not(:disabled):hover { background: color-mix(in srgb, var(--on-accent) 8%, var(--accent)); }
+}
+.arrangelist { display: grid; gap: 8px; padding: 4px 12px 8px; }
+.arrangerow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 56px;
+  padding: 4px 4px 4px 16px;
+  border: 1px solid var(--panel-3);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+}
+.arrangelabel { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.arrangelabel span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-size: 15px;
+}
+.arrangelabel small { color: var(--muted); font-size: 12px; }
+.arrangerow.off .arrangelabel { opacity: .5; }
+.arrangekey {
+  appearance: none;
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.arrangekey::before {
+  content: "";
+  width: 22px;
+  height: 22px;
+  background: currentColor;
+  mask: var(--arrange-icon) center / contain no-repeat;
+}
+.arrange-up { --arrange-icon: url("/icons/chevron-down.svg"); }
+.arrange-up::before { transform: rotate(180deg); }
+.arrange-down { --arrange-icon: url("/icons/chevron-down.svg"); }
+.arrange-hide { --arrange-icon: url("/icons/watched.svg"); }
+.arrange-show { --arrange-icon: url("/icons/unwatched.svg"); }
+.arrangekey:disabled { opacity: .3; cursor: default; }
+.arrangekey:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (hover: hover) {
+  .arrangekey:not(:disabled):hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
+}
+
+/* A tab with every card taken off it: a line saying so, and the way back. */
+.allhidden {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 28px 16px;
+  text-align: center;
+}
+.allhidden p { margin: 0; color: var(--muted); font-size: 14px; }
+
+/* The switches for the tabs on the settings tab, one under the other. */
+.tabswitches { display: grid; gap: 2px; }

@@ -169,6 +169,26 @@ _UI_STRINGS = {
     "details_failed":   32409,
     "genre":            32410,
     "close":            32411,
+    # Arranging the cards on a tab, and the tabs on the bar.
+    "cards_edit":       32415,
+    "cards_edit_hint":  32416,
+    "cards_done":       32417,
+    "cards_reset":      32418,
+    "cards_move_up":    32419,
+    "cards_move_down":  32420,
+    "cards_hide":       32421,
+    "cards_show":       32422,
+    "cards_hidden":     32423,
+    "cards_all_hidden": 32424,
+    "settings_tabs":    32425,
+    "settings_tabs_desc": 32426,
+    "settings_cards":   32427,
+    "settings_cards_desc": 32428,
+    "settings_cards_reset": 32429,
+    "settings_cards_reset_desc": 32430,
+    # The way from an episode to its show, and the remote's card.
+    "go_to_show":       32431,
+    "player":           32432,
 }
 
 

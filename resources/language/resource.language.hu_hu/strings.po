@@ -1626,3 +1626,75 @@ msgstr "Növekvő"
 msgctxt "#32414"
 msgid "Descending"
 msgstr "Csökkenő"
+
+msgctxt "#32415"
+msgid "Arrange cards"
+msgstr "Kártyák elrendezése"
+
+msgctxt "#32416"
+msgid "Move a card with the arrows, or take it off this tab with the eye. Long-press or right-click any card heading to come back here."
+msgstr "A nyilakkal mozgathatsz egy kártyát, a szemmel leveheted erről a fülről. Bármelyik kártya fejlécének hosszú megnyomásával vagy jobb kattintással ide jutsz vissza."
+
+msgctxt "#32417"
+msgid "Done"
+msgstr "Kész"
+
+msgctxt "#32418"
+msgid "Reset"
+msgstr "Visszaállítás"
+
+msgctxt "#32419"
+msgid "Move up"
+msgstr "Feljebb"
+
+msgctxt "#32420"
+msgid "Move down"
+msgstr "Lejjebb"
+
+msgctxt "#32421"
+msgid "Remove card"
+msgstr "Kártya eltávolítása"
+
+msgctxt "#32422"
+msgid "Show card again"
+msgstr "Kártya megjelenítése"
+
+msgctxt "#32423"
+msgid "Hidden"
+msgstr "Rejtett"
+
+msgctxt "#32424"
+msgid "Every card on this tab is hidden."
+msgstr "A fül összes kártyája el van rejtve."
+
+msgctxt "#32425"
+msgid "Tabs"
+msgstr "Fülek"
+
+msgctxt "#32426"
+msgid "Choose which tabs appear in the bar. Live and Settings are always there. Some tabs only appear when there is something to show."
+msgstr "Válaszd ki, mely fülek jelenjenek meg a sávban. A Live és a Beállítások mindig ott vannak. Egyes fülek csak akkor jelennek meg, ha van mit mutatniuk."
+
+msgctxt "#32427"
+msgid "Cards"
+msgstr "Kártyák"
+
+msgctxt "#32428"
+msgid "Long-press or right-click the heading of a card to move the cards on that tab around, remove them or put them back."
+msgstr "Egy kártya fejlécének hosszú megnyomásával vagy jobb kattintással átrendezheted, eltávolíthatod vagy visszahozhatod a fül kártyáit."
+
+msgctxt "#32429"
+msgid "Reset all cards"
+msgstr "Összes kártya visszaállítása"
+
+msgctxt "#32430"
+msgid "Every card back in its place on every tab, and every removed card shown again."
+msgstr "Minden kártya visszakerül a helyére minden fülön, és minden eltávolított kártya újra látható."
+
+msgctxt "#32431"
+msgid "Go to series"
+msgstr "Ugrás a sorozathoz"
+
+msgctxt "#32432"
+msgid "Player"
+msgstr "Lejátszó"

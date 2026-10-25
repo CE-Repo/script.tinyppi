@@ -1626,3 +1626,75 @@ msgstr ""
 msgctxt "#32414"
 msgid "Descending"
 msgstr ""
+
+msgctxt "#32415"
+msgid "Arrange cards"
+msgstr ""
+
+msgctxt "#32416"
+msgid "Move a card with the arrows, or take it off this tab with the eye. Long-press or right-click any card heading to come back here."
+msgstr ""
+
+msgctxt "#32417"
+msgid "Done"
+msgstr ""
+
+msgctxt "#32418"
+msgid "Reset"
+msgstr ""
+
+msgctxt "#32419"
+msgid "Move up"
+msgstr ""
+
+msgctxt "#32420"
+msgid "Move down"
+msgstr ""
+
+msgctxt "#32421"
+msgid "Remove card"
+msgstr ""
+
+msgctxt "#32422"
+msgid "Show card again"
+msgstr ""
+
+msgctxt "#32423"
+msgid "Hidden"
+msgstr ""
+
+msgctxt "#32424"
+msgid "Every card on this tab is hidden."
+msgstr ""
+
+msgctxt "#32425"
+msgid "Tabs"
+msgstr ""
+
+msgctxt "#32426"
+msgid "Choose which tabs appear in the bar. Live and Settings are always there. Some tabs only appear when there is something to show."
+msgstr ""
+
+msgctxt "#32427"
+msgid "Cards"
+msgstr ""
+
+msgctxt "#32428"
+msgid "Long-press or right-click the heading of a card to move the cards on that tab around, remove them or put them back."
+msgstr ""
+
+msgctxt "#32429"
+msgid "Reset all cards"
+msgstr ""
+
+msgctxt "#32430"
+msgid "Every card back in its place on every tab, and every removed card shown again."
+msgstr ""
+
+msgctxt "#32431"
+msgid "Go to series"
+msgstr ""
+
+msgctxt "#32432"
+msgid "Player"
+msgstr ""

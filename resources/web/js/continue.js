@@ -10,7 +10,7 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global selectTab, bindTitle, el, episodeCode, FILMS_RETRY_MS, FILMS_START_MS, filmsStale,
+/* global openShowDetails, selectTab, bindTitle, el, episodeCode, FILMS_RETRY_MS, FILMS_START_MS, filmsStale,
    metaLine, ratingBadge, seriesStale, T */
 /* exported continueStale, hideContinue, releaseContinue, requestContinue,
    resumeReleasing, resuming */
@@ -200,7 +200,10 @@ function continueTile(item) {
     body: episode ? { episodeid: item.id } : { movieid: item.id },
     play: resumable ? T.films_resume : T.films_play,
     resumable,
-    onPlay: (fromStart) => startContinue(item, tile, fromStart)
+    onPlay: (fromStart) => startContinue(item, tile, fromStart),
+    /* An episode offers the way to its show as well, where the box says
+       which show that is. */
+    onShow: episode && item.tvshowid ? () => openShowDetails(item.tvshowid) : null
   });
   return tile;
 }

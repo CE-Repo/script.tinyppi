@@ -18,7 +18,7 @@ import { page, settle, source } from "./harness.mjs";
 const JS = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "resources", "web", "js");
 const ORDER = ["theme.js", "core.js", "colour.js", "cover-tint.js", "readings.js",
                "live-chapters.js", "live-remote.js", "live-panels.js", "metadata.js", "dashboard.js", "shelf-tools.js", "films.js", "series.js",
-               "continue.js", "marking.js", "start.js"];
+               "continue.js", "marking.js", "cards.js", "start.js"];
 
 /** Run one of the page's scripts under its own file URL, as harness.mjs
  * does, so that the page's timers can be replaced first. */
@@ -287,6 +287,48 @@ test("a title resumed from the row takes the page to the live tab", async (t) =>
   view.window.selectTab("films");
   await press(view, "Film 03");
   assert.equal(front(view), "live");
+});
+
+test("an episode on the row offers the way to its show, whose details take its place on the series tab", async (t) => {
+  const view = await open(t, {
+    items: [
+      { kind: "episode", id: 99, title: "Started", show: "Show 2", tvshowid: 5, season: 1,
+        episode: 3, duration: 1000, resume: 100 },
+      { kind: "episode", id: 98, title: "Pilot", tvshowid: 6, resume: 5 },
+      { kind: "movie", id: 3, title: "Film 03", resume: 1800 },
+    ],
+    routes: { "/api/series": [200, { tag: "s1", shows: [{ id: 5, title: "Show 2" }] }] },
+  });
+  const ask = async (node) => {
+    node.dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    await settle();
+  };
+  const [started, pilot] = view.$("continueSeriesRow").children;
+  await ask(started);
+  assert.equal(view.$("detailsShow").hidden, false);
+  view.$("detailsShow").click();
+  await settle();
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsTitle").textContent, "Show 2");
+  assert.equal(view.$("detailsPlay").textContent, "Open");
+  assert.equal(view.$("detailsShow").hidden, true);
+  assert.equal(front(view), "series");
+  answer(view, "cancel");
+  await settle();
+
+  // A show the shelf does not hold: offered, and pressing it changes nothing.
+  await ask(pilot);
+  assert.equal(view.$("detailsShow").hidden, false);
+  const asked = view.$("detailsTitle").textContent;
+  view.$("detailsShow").click();
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, asked);
+  answer(view, "cancel");
+  await settle();
+
+  // A film has no show to go to.
+  await ask(view.$("continueFilmsRow").firstElementChild);
+  assert.equal(view.$("detailsShow").hidden, true);
 });
 
 test("resuming sends the title with the token, and both rows wait on it", async (t) => {

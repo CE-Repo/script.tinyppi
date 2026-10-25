@@ -84,7 +84,24 @@ window.TinyPPI = (function () {
     filter_resolution: "All resolutions", filter_audio: "All audio formats",
     filter_empty: "No titles match the filter",
     next_up: "Next up", details: "Details", writer: "Writer", studio: "Studio",
-    details_failed: "The details could not be read.", genre: "Genre", close: "Close"
+    details_failed: "The details could not be read.", genre: "Genre", close: "Close",
+    cards_edit: "Arrange cards",
+    cards_edit_hint: "Move a card with the arrows, or take it off this tab with the eye. Long-press or right-click any card heading to come back here.",
+    cards_done: "Done",
+    cards_reset: "Reset",
+    cards_move_up: "Move up",
+    cards_move_down: "Move down",
+    cards_hide: "Remove card",
+    cards_show: "Show card again",
+    cards_hidden: "Hidden",
+    cards_all_hidden: "Every card on this tab is hidden.",
+    settings_tabs: "Tabs",
+    settings_tabs_desc: "Choose which tabs appear in the bar. Live and Settings are always there. Some tabs only appear when there is something to show.",
+    settings_cards: "Cards",
+    settings_cards_desc: "Long-press or right-click the heading of a card to move the cards on that tab around, remove them or put them back.",
+    settings_cards_reset: "Reset all cards",
+    settings_cards_reset_desc: "Every card back in its place on every tab, and every removed card shown again.",
+    go_to_show: "Go to series", player: "Player"
   };
 
   const $ = (id) => document.getElementById(id);

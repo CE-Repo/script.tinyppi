@@ -11,7 +11,7 @@
 
 /* global continueStale, control, el, filmsStale, formatName, refreshEpisodes,
    requestContinue, requestFilms, requestSeries, runtime, seriesStale, T */
-/* exported bindTitle */
+/* exported bindTitle, showDetails */
 
 /* The currently opened title, including a details request still loading. */
 let detailing = null;
@@ -71,6 +71,26 @@ function reread() {
 
 /* --- a title's details ---------------------------------------------------- */
 
+/* How far a page is pulled down from its top before it is let go of. */
+const PULL_CLOSE_PX = 100;
+
+/* A pull down from the top of a dialog closes it, the way a page is flicked
+   away on a phone and the app's own pages are: the details, and a show's
+   seasons.  Only from the top -- further down, the same gesture is the page
+   scrolling back up. */
+function pullToClose(dialog) {
+  const page = dialog.querySelector("form");
+  let from = null;
+  dialog.addEventListener("touchstart", (event) => {
+    from = page.scrollTop <= 0 ? event.touches[0].clientY : null;
+  }, { passive: true });
+  dialog.addEventListener("touchend", (event) => {
+    const start = from;
+    from = null;
+    if (start !== null && event.changedTouches[0].clientY - start > PULL_CLOSE_PX) dialog.close();
+  });
+}
+
 /* The id a details request named, and the address of one of the title's
    pictures by that id, or "" where it has none. */
 function detailsArt(body, kind, tag) {
@@ -96,9 +116,13 @@ function showPicture(image, url) {
    (see web/library/details.py): under its backdrop -- a film's or a show's
    fanart, an episode's still -- the poster, the title and how long it runs
    with the file's formats; then the ratings, as the overview card draws the
-   playing title's, the slogan and the plot, who made it and who is in it. */
-async function showDetails(question) {
-  if (detailing) return;
+   playing title's, the slogan and the plot, who made it and who is in it.
+
+   *replace* puts it in place of the details already open, in the same
+   dialog -- an episode's give way to its show's (see the rows in
+   js/continue.js) -- rather than being turned away as a second press is. */
+async function showDetails(question, replace) {
+  if (detailing && !replace) return;
   detailing = question;
   const [key] = Object.keys(question.body);
   let found;
@@ -142,7 +166,7 @@ async function showDetails(question) {
   el.detailsError.hidden = true;
   renderDetailsActions(question);
   el.detailsDialog.returnValue = "";
-  el.detailsDialog.showModal();
+  if (!el.detailsDialog.open) el.detailsDialog.showModal();
   el.detailsDialog.querySelector("form").scrollTop = 0;
 }
 
@@ -154,6 +178,9 @@ function renderDetailsActions(question) {
   el.detailsClear.hidden = !question.resumable;
   el.detailsWatched.hidden = !!question.watched;
   el.detailsUnwatched.hidden = !question.watched;
+  /* The way to the show an episode belongs to, where the question has one
+     (see the rows in js/continue.js). */
+  el.detailsShow.hidden = !question.onShow;
   for (const button of el.detailsActions.querySelectorAll("button")) button.disabled = !!question.busy;
 }
 
@@ -185,6 +212,13 @@ for (const button of [el.detailsRestart, el.detailsClear, el.detailsWatched, el.
   });
 }
 
+/* The episode's show: its details in place of the episode's, on the series
+   tab. */
+el.detailsShow.addEventListener("click", () => {
+  const question = detailing;
+  if (question && question.onShow && !question.busy) question.onShow();
+});
+
 /* On the adaptive theme the page takes its accent from the title's own
    picture -- its poster, or an episode's still -- rather than from what is
    playing (see accent in js/cover-tint.js); a title without a colour wears
@@ -208,6 +242,9 @@ function tintDetails() {
    renderPlot in js/live-panels.js). */
 TinyPPI.openDetails = (item) =>
   showDetails({ title: item.title, body: { [item.kind + "id"]: item.id } });
+
+pullToClose(el.detailsDialog);
+pullToClose(el.seasonsDialog);
 
 el.detailsDialog.querySelector("form").addEventListener("scroll", () => {
   for (const tip of el.detailsRatings.querySelectorAll(".rating-tip")) tip.hidePopover();
