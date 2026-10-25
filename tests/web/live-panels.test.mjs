@@ -218,8 +218,11 @@ test("the overview is a key under what is playing that opens the title's details
   assert.equal($("nowCard").nextElementSibling, card);
   assert.equal(card.tagName, "BUTTON");
   assert.ok(card.classList.contains("hidden"));
-  // Nothing of the title in it: its heading alone.
+  // Not on a box that takes no orders, which hands out no details.
   P.update(snap({ media: { plot: "Paul joins the Fremen.", item: { kind: "movie", id: 7 } } }));
+  assert.ok(card.classList.contains("hidden"));
+  // Nothing of the title in it: its heading alone.
+  P.update(snap({ control: true, media: { plot: "Paul joins the Fremen.", item: { kind: "movie", id: 7 } } }));
   assert.equal(card.classList.contains("hidden"), false);
   assert.deepEqual([...card.children].map((node) => node.id), ["plotTitle"]);
   // A press opens the playing title's details, where the page has them.
@@ -230,10 +233,10 @@ test("the overview is a key under what is playing that opens the title's details
   assert.deepEqual(plain(opened), [{ kind: "movie", id: 7, title: "Film" }]);
   // An episode as well; a file the library does not know, or anything else,
   // has none.
-  P.update(snap({ media: { item: { kind: "episode", id: 70 } } }));
+  P.update(snap({ control: true, media: { item: { kind: "episode", id: 70 } } }));
   assert.equal(card.classList.contains("hidden"), false);
   for (const item of [undefined, {}, { kind: "channel", id: 3 }, { kind: "movie", id: 0 }]) {
-    P.update(snap({ media: { plot: "A plot.", item } }));
+    P.update(snap({ control: true, media: { plot: "A plot.", item } }));
     assert.ok(card.classList.contains("hidden"), JSON.stringify(item));
   }
   card.click();

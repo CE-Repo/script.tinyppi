@@ -196,6 +196,8 @@ The episodes of one series: `{"tvshowid", "title", "episodes": [...], "count", "
 Films and episodes stopped part-way, newest first (up to 30), and with the
 series shelf on, the **next up** row: the next unwatched episode (specials
 left out) of up to 15 shows being watched, the show watched last first —
+An episode in `items` carries its show's `tvshowid`, which is how the page
+offers the way to that show —
 `{"items": [{"kind": "movie" | "episode", ...}], "next": [{"kind": "episode",
 "id", "title", "tvshowid", "show", "poster", "thumb", "season", "episode",
 "duration", "rating"}], "count", "tag"}`. An episode already in `items` is not
@@ -211,13 +213,16 @@ takes longer is there on the next read) — and where there are any `mpaa` with
 its `age` mark and `age_level` (an episode's are its show's), `userrating`,
 `top250` and `awards`; and where the library has them `plot`, `tagline`,
 `premiered`, `year`, `duration`, `genres`, `directors`, `writers`, `studios`,
-`countries`, the `cast` (`{"name", "role"}`, the first twenty, `cast_more`
-when there are more) and the file's `video`,
+`countries`, the `cast` (`{"name", "role"}`, the whole cast in billing order,
+`cast_more` always `false`) and the file's `video`,
 `dv_profile`, `resolution` and `audio`, and the tags of its pictures for
 `/api/art` — `poster` and `fanart` for a film or a series, `thumb` for an
-episode. An episode adds `show`, `tvshowid`, `season` and
-`episode`; a series its number of `season`s. Each kind needs its shelf's
-setting (`403 library disabled`); an unknown title is `404 no such title`.
+episode. Every title has `watched` (a series once every episode is) and
+`resume` (seconds, 0 for none), which the page's keys are drawn from. An
+episode adds `show`, `tvshowid`, `season` and `episode`; a series its number
+of `season`s. Each kind needs its shelf's setting and **Allow VS10 switching
+from the dashboard** (`403 library disabled`); an unknown title is
+`404 no such title`.
 
 ### `GET /api/art?kind=<kind>[&movieid=|&tvshowid=|&episodeid=<id>][&v=<tag>]`
 

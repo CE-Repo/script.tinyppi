@@ -229,7 +229,7 @@
     renderArt(snapshot.art || {});
     renderBadges(snapshot);
     renderFormats(snapshot);
-    renderPlot(media, snapshot.title);
+    renderPlot(media, snapshot.title, !!snapshot.control);
 
     const progress = (snapshot.metrics || {}).progress;
     const percent = (progress === null || progress === undefined) ? 0 : progress;
@@ -268,10 +268,13 @@
   }
 
   /* The overview is there for a title the library holds -- one whose
-     details can be opened -- and a file it does not know has none. */
-  function renderPlot(media, title) {
+     details can be opened -- and a file it does not know has none.  Nor
+     has a box that takes no orders: it does not hand out details either
+     (see _serve_details in web/routes.py), and a key that opens a page
+     saying so would be no key at all. */
+  function renderPlot(media, title, control) {
     const item = media.item || {};
-    const known = (item.kind === "movie" || item.kind === "episode") && item.id > 0;
+    const known = control && (item.kind === "movie" || item.kind === "episode") && item.id > 0;
     plotItem = known ? { kind: item.kind, id: item.id, title } : null;
     el.plotCard.classList.toggle("hidden", !known);
   }

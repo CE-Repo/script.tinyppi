@@ -139,7 +139,7 @@ script.tinyppi/
 | `vs10.py` | The VS10 modes offered on the dashboard and the switcher that applies them one at a time. |
 | `delta.py` | Delta frames between snapshots. |
 | `payloads.py` | The shapes the dashboard sends (snapshots, delta frames, history) as `TypedDict`s. |
-| `library/` | The film and series library: `cache.py` (cached lists, revision, coalesced drops), `films.py`, `series.py`, `progress.py` (continue watching), `marks.py` (watched / resume writes), `common.py` (JSON-RPC and row helpers), `entries.py` (list shapes). |
+| `library/` | The film and series library: `cache.py` (cached lists, revision, coalesced drops), `films.py`, `series.py`, `progress.py` (continue watching and next up), `details.py` (one title's details), `marks.py` (watched / resume writes), `common.py` (JSON-RPC and row helpers), `entries.py` (list shapes). |
 | `artwork.py` | Artwork from Kodi's texture cache first, content type from the bytes. |
 | `static.py` | The page's files, with ETags and gzip. |
 | `strings.py` | The UI strings sent to the page, in Kodi's current language. |
@@ -154,13 +154,14 @@ script.tinyppi/
 | `js/dashboard.js` | Tabs, the bar, dialogs, VS10 buttons, reports. |
 | `js/start.js` | Starts the page: localized strings, the first tab, the stream. |
 | `js/live-panels.js` | The now-playing card, the overview (plot, credits, rating shields, folding), figures, chart and events. |
-| `js/live-remote.js` | The remote on the now-playing card: transport row, the audio and subtitle offsets, and the track pickers. |
+| `js/live-remote.js` | The remote in the player card under the overview: transport row, the audio and subtitle offsets, and the track pickers. |
 | `js/readings.js` | Format badges and the wording of the history's events. |
 | `js/shelf-tools.js` | The order and the filters (genre, picture, resolution, sound) over the film and series walls. |
 | `js/films.js` | The film wall, its rows and search. |
-| `js/series.js` | The series shelf, a show's seasons and episodes. |
+| `js/series.js` | The series shelf, and a show's seasons and episodes in a page of their own over the show's details. |
 | `js/continue.js` | The continue-watching rows and the next-up row. |
-| `js/marking.js` | The question a press on a title asks (play, from the start, watched / unwatched, details), and the details view. |
+| `js/marking.js` | The question a press on a title asks (play, from the start, watched / unwatched, details), the details view, and how the details and seasons pages slide in and out. |
+| `js/cards.js` | Moving and taking off the cards on each tab, and which tabs the bar offers (kept in the browser). |
 | `js/metadata.js` | The Dolby Vision metadata list. |
 | `js/theme.js` | Theme selection and persistence. |
 | `js/cover-tint.js` | Poster color extraction for *Dark (adaptive)*. |

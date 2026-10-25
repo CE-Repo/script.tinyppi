@@ -78,6 +78,17 @@ npx playwright install chromium   # once
 npm run test:browser          # the dashboard in Chromium against the real server
 ```
 
+On **Windows**, `npm run coverage` runs the tests but does not hold them to
+100 %: `cmd` does not expand the `$npm_package_config_coverage` the script
+names. Give the thresholds outright to check what CI checks:
+
+```bash
+node --test --experimental-test-coverage --test-coverage-include="resources/web/js/**" --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 "tests/web/*.test.mjs"
+```
+
+The browser tests start `tests/browser/serve.py` with `python3`; where Python
+goes by another name, as `py` on Windows, set `PYTHON` to it.
+
 CI also runs the official `kodi-addon-checker` (branch *piers*) on the add-on
 as Kodi installs it: `git archive` leaves out every development file marked
 `export-ignore` in `.gitattributes`. Dependabot keeps the pinned tools and

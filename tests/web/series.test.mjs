@@ -568,6 +568,23 @@ test("the seasons slide in, and slide out by their key or Escape before they clo
   assert.equal(seasons.open, false);
 });
 
+test("a title's page asked for again within a minute is drawn from what was read, later it is read again", async (t) => {
+  const view = await open(t);
+  const ask = async () => {
+    tile(view, "Andor").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    await settle();
+    answer(view, "cancel");
+    await settle();
+  };
+  await ask();
+  const read = reads(view, "/api/details");
+  await ask();
+  assert.equal(reads(view, "/api/details"), read);
+  view.clock.tick(60000);
+  await ask();
+  assert.equal(reads(view, "/api/details"), read + 1);
+});
+
 test("a press on a title's first answer that does not stay is the form's", async (t) => {
   const view = await open(t);
   await openShow(view, "Andor");

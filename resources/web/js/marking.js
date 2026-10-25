@@ -15,10 +15,14 @@
 
 /* The currently opened title, including a details request still loading. */
 let detailing = null;
-/* What the library said about each title asked about, by its address, so a
-   page gone back to is drawn at once rather than after the box answers
-   again.  Forgotten whenever the library is written to (see reread). */
+/* What the library said about each title asked about lately, by its
+   address, so a page gone back to is drawn at once rather than after the box
+   answers again.  Only for a minute: the ratings MDBList and WhatsOn were too
+   slow to give the first time are in the answer after that (see
+   web/library/details.py), and a page kept for longer would never show them.
+   Forgotten at once whenever the library is written to (see reread). */
 const detailsRead = new Map();
+const DETAILS_KEEP_MS = 60000;
 
 /* Forget where a film or an episode got to, leaving it seen or unseen as it
    was: it leaves the row of things half-watched, and its bar leaves the wall. */
@@ -86,6 +90,9 @@ const sliding = new Map();
    way to the next.  Laid out off to the side first, so taking the mark away
    slides it in rather than putting it straight where it ends. */
 function slideIn(dialog) {
+  /* One shown again while it was still sliding out stays. */
+  clearTimeout(sliding.get(dialog));
+  sliding.delete(dialog);
   dialog.classList.add("away");
   dialog.showModal();
   dialog.getBoundingClientRect();
@@ -158,11 +165,12 @@ async function showDetails(question, replace) {
   detailing = question;
   const [key] = Object.keys(question.body);
   const address = "/api/details?" + key + "=" + encodeURIComponent(question.body[key]);
-  let found = detailsRead.get(address);
+  const kept = detailsRead.get(address);
+  let found = kept && Date.now() - kept.at < DETAILS_KEEP_MS ? kept.found : null;
   if (!found) {
     try {
       found = await TinyPPI.getJSON(address);
-      detailsRead.set(address, found);
+      detailsRead.set(address, { found, at: Date.now() });
     } catch (_) {
       TinyPPI.toast(T.details_failed, true);
       found = {};

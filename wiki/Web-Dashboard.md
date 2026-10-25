@@ -31,6 +31,8 @@ Top 250 place, and — when you give it a key — the ratings MDBList gathers (s
 - [Series](#series)
 - [Continue watching and recently added](#continue-watching-and-recently-added)
 - [Play, resume and watched marks](#play-resume-and-watched-marks)
+- [The details page](#the-details-page)
+- [Arranging the cards and the tabs](#arranging-the-cards-and-the-tabs)
 - [The remote](#the-remote)
 - [Chapters on the progress bar](#chapters-on-the-progress-bar)
 - [Switching VS10 from the browser](#switching-vs10-from-the-browser)
@@ -78,12 +80,16 @@ the screen:
 
 | Tab | Address | What is on it | Shown |
 |---|---|---|---|
-| **Live** | `/#live` | Now playing, the overview (a key to the playing title's details), transport controls, VS10 output and every reading of the overlay | always |
+| **Live** | `/#live` | Now playing, the overview (a key to the playing title's details), the player card (the remote), VS10 output and every reading of the overlay | always |
 | **Metadata** | `/#metadata` | Active picture area, L1 luminance chart, the full Dolby Vision metadata list | only while a Dolby Vision title plays (and **Show the Dolby Vision metadata view** is on) |
-| **Films** | `/#films` | Continue watching (films), recently added, unwatched films, the whole film library | when the film library is offered |
-| **Series** | `/#series` | Continue watching (episodes), recently updated series, series with unwatched episodes, the whole series library | when the series library is offered |
+| **Films** | `/#films` | The search and the filters, continue watching (films), recently added, unwatched films, the whole film library | when the film library is offered |
+| **Series** | `/#series` | The search and the filters, continue watching (episodes), next up, recently updated series, series with unwatched episodes, the whole series library | when the series library is offered |
 | **History** | `/#history` | Metrics, chart and events of the playing title — or, for ten minutes after the credits, of the one that just ended | always |
-| **Settings** | `/#settings` | Theme, access token, the progress bar's chapter dots, copy report | always |
+| **Settings** | `/#settings` | Theme, access token, the progress bar's chapter dots, copy report, which tabs the bar shows, putting the cards back | always |
+
+Every tab but Live and Settings can be switched off on the Settings tab (see
+[Arranging the cards and the tabs](#arranging-the-cards-and-the-tabs)); a tab
+switched off is not on the bar even when it has something to show.
 
 - The address remembers the tab, so a bookmark or a reload comes back to it,
   and each device reopens the tab it was left on.
@@ -122,7 +128,8 @@ name** is on), elapsed time, progress and the time the title **ends at**.
 HDR static metadata, Dolby Vision, Metadata and System. A reading that just
 moved is highlighted the same way the overlay highlights it.
 
-**The remote** sits on this tab too (see [below](#the-remote)).
+**Player** — the remote, on a card of its own under the overview as in the
+TinyPPI app (see [below](#the-remote)).
 
 With nothing playing the tab says *"Nothing is playing — Start a video on the
 box and everything it carries appears here."*
@@ -142,8 +149,9 @@ key. A click or tap on it opens the playing title's
 [details page](#play-resume-and-watched-marks): its ratings as shields, the
 slogan and the plot, genre, director, writer and studio, and the cast as a row
 of cards. The page has no play keys there — the title is already playing. The
-card is drawn for a film or an episode the library holds; a file it does not
-know has no details, and no card.
+card is drawn for a film or an episode the library holds, on a box that takes
+orders (**Allow VS10 switching from the dashboard**, which the details need);
+a file the library does not know has no details, and no card.
 
 The shields on the details page:
 
@@ -340,7 +348,7 @@ over, which is exactly when they used to be thrown away.
 ## Films
 
 The **film library**: every film in Kodi's video database as a wall of posters,
-in the order Kodi files them. A tap opens the [title dialog](#play-resume-and-watched-marks).
+in the order Kodi files them. A tap opens its [details page](#the-details-page).
 
 - A film left **half-watched** carries a progress bar along the bottom of its
   poster and is **resumed** where it was.
@@ -348,8 +356,10 @@ in the order Kodi files them. A tap opens the [title dialog](#play-resume-and-wa
 - The **IMDb rating** — or **TMDb** where IMDb has none — sits in the opposite
   corner; neither, no badge.
 - Under the title: the **year** and the **running time**.
-- A **search box** narrows the wall as you type; the cross in it clears it.
-- Under it, the wall can be **sorted** — by title (Kodi's own order), year,
+- At the **top of the tab**, as in the app, a **search box** narrows the wall
+  as you type; the cross in it clears it. Typing into it unfolds the wall if it
+  was folded.
+- Under it, on a card of its own, the wall can be **sorted** — by title (Kodi's own order), year,
   rating, date added or running time, each **ascending or descending** (the
   arrow key beside the order turns it round; a new order starts the way it
   reads best — newest, best and latest added first). The order and its way
@@ -363,7 +373,10 @@ in the order Kodi files them. A tap opens the [title dialog](#play-resume-and-wa
   nothing to choose between; the formats come from what Kodi read off the
   files, so a film it has not scanned yet is under none of them. Kodi does
   not record Atmos or DTS:X in its library, so the sound is filtered by the
-  codec it rides on. The filters and the search narrow the wall together.
+  codec it rides on. The filters and the search narrow the wall together. On
+  a phone the order and the filters are one row that slides sideways, as the
+  app's do.
+- On a phone the wall stands **three posters to a row**.
 
 The tab is there **whether or not anything is playing** — lining up what comes
 next from the phone halfway through a film is a fair thing to want. A search
@@ -401,13 +414,18 @@ The same wall for what Kodi knows as **TV shows**, with one level more:
 - Each poster shows how many **episodes are still unwatched**, in the corner a
   watched film wears its tick; a show seen right through wears the tick.
   Ratings as on the film wall.
-- A tap on a series opens the [title dialog](#play-resume-and-watched-marks);
-  **Open** shows its episodes **in the order they were made**, each **season
-  folded** under its own heading (season number, episode count and total
-  running time). *Specials* have their own heading.
-- A tap opens a season; a tap on an episode opens its dialog.
-- The way back to the wall is at the top of the card, one tap away however far
-  down you scrolled.
+- A tap on a series opens its [details page](#the-details-page); **Open**
+  slides its **seasons** in over it, on a page drawn the way the details are —
+  the show's backdrop, poster and name, its year and how many episodes it has —
+  with its episodes **in the order they were made**, each **season folded**
+  under its own heading (season number, episode count and total running time).
+  *Specials* have their own heading.
+- A tap opens a season; a tap on an episode opens its details page in front
+  of the seasons.
+- Leaving the seasons — the close key, Escape, the phone's back gesture, a
+  pull down from the top or a click beside the page — slides them back out to
+  the show's details page they were opened over, exactly as it was. The wall
+  stays as it was underneath, the search included.
 - A half-watched episode carries the same progress bar, and each row shows the
   episode's running time.
 - The wall sorts as the film wall does (without the running time) and filters
@@ -439,20 +457,24 @@ full walls (**Films**, **All series**) follow underneath.
 
 ## Play, resume and watched marks
 
-A tap on a film, series or episode — on a wall or in a row — opens a dialog:
+A tap on a film, series or episode — on a wall or in a row — opens its
+[details page](#the-details-page), with these keys under its heading:
 
 | Option | Shown for | Effect |
 |---|---|---|
 | **Details** | all | The title's details from the library, under its backdrop (a film's or a series' fanart, an episode's still) with its poster: year and running time, the file's formats, every rating the overview card would show for the title, as its shields (age rating, the library's, MDBList's and Rotten Tomatoes' scores with their certificates, your own, the Top 250 place, the awards), tagline and plot, genres, director, writers, studio, and the cast as a row of cards of one height with who they played — the same layout as the overview card. On a phone it is a page of its own, the whole screen. On the **Dark (adaptive)** theme it wears the accent of the title's own poster rather than of what is playing. Under the heading the question's first answers as keys: **Play** or **Resume**, **Play from the beginning** where there is a point to resume from, **Open** for a series. |
 | **Play** / **Resume** | films, episodes | Starts it on the box; *Resume* where Kodi has a resume point. |
-| **Open** | series | Shows its episodes (a series itself cannot be played). |
+| **Open** | series | Slides its seasons in over the page (a series itself cannot be played). |
+| **Go to series** | episodes on *Continue watching* and *Next up* | Puts the episode's show's details page in its place, on the Series tab. |
 | **Play from the beginning** | stopped part-way | Starts from the top, without the resume question on the TV. |
 | **Clear resume point** | stopped part-way | Forgets where it got to (taking it off *Continue watching*), leaving watched/unwatched as it was. |
 | **Mark as watched** | all | Writes a play count and removes the resume point — as Kodi's context menu does. A series marks every episode. |
 | **Mark as unwatched** | all | Removes the play count. A series marks every episode. |
 
 All of these need the **access token** and **Allow VS10 switching from the
-dashboard**.
+dashboard**. Starting a title — **Play**, **Resume** or **Play from the
+beginning** — takes the page to the **Live** tab, where what was just started
+is shown.
 
 Kodi writes where a title got to slightly *after* it reports that playback
 stopped (and announces nothing when it only wrote a resume point), so the
@@ -460,9 +482,54 @@ lists are refreshed a moment after a stop rather than at the stop itself.
 
 ---
 
+## The details page
+
+What the library holds about one title, as a page of its own — on a phone the
+whole screen, on a desktop a page up to 780 px wide in the middle of it. It
+**slides in** from the side as it opens and **back out** as it is left, the
+way one page of the app gives way to the next; a show's seasons slide in over
+its details the same way.
+
+- **Leaving it:** on a desktop the close key on the picture, Escape, or a
+  click beside the page; on a phone — where it has no close key, as in the
+  app — the back gesture or a pull down from its top.
+- **Under the heading:** the keys of the table above — the first answer filling
+  the row, the others as round icons beside it, on a phone too.
+- **Who made it and who is in it** stand as rows of cards that scroll
+  sideways and run out to the edge of the screen. A row fades out at the side
+  it goes on past, so the card there runs out softly rather than being cut
+  off; with a mouse it is dragged. The page shows no scrollbars.
+- A page gone back to within a minute is drawn at once from what was read,
+  rather than after the box answers again.
+
+---
+
+## Arranging the cards and the tabs
+
+As in the TinyPPI app, the cards on the Live, Metadata, Films, Series and
+History tabs can be **moved and taken off**:
+
+- **Long-press** a card's heading — or **right-click** it — and the tab turns
+  into a list of its cards, each with arrows to move it and an eye to take it
+  off the tab or put it back. **Reset** puts the tab back as it was, **Done**
+  returns to it.
+- What is playing stays at the top of the Live tab. On the Live tab the cards
+  under it and the readings move among themselves, each in its own part of
+  the page.
+- A tab with every card taken off says so, with a key back to the list.
+- **Settings → Tabs** switches the Metadata, Films, Series and History tabs
+  on and off the bar. **Settings → Cards → Reset all cards** puts every card
+  back on every tab.
+
+Like the theme, all of this is kept **in the browser, per device**, and never
+sent to the box.
+
+---
+
 ## The remote
 
-On the Live tab, under the progress bar, in two rows:
+On the Live tab, in the **Player** card under the overview (it arrives
+folded; its heading unfolds it), in two rows:
 
 | Row | Buttons |
 |---|---|
@@ -561,6 +628,10 @@ native VS10 actions included.
   forum post: the rows, what the title added up to, and the events. With
   nothing playing it copies the report of the title that just finished.
 - A second key beside it copies the **Dolby Vision metadata list**.
+- **Tabs** — which tabs the bar shows (see
+  [Arranging the cards and the tabs](#arranging-the-cards-and-the-tabs)).
+- **Cards** — how to move the cards, and a key that puts every card back on
+  every tab.
 
 A key with nothing to copy is dimmed.
 
