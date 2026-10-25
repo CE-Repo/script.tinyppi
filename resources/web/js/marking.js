@@ -203,6 +203,10 @@ function tintDetails() {
 TinyPPI.openDetails = (item) =>
   showDetails({ title: item.title, body: { [item.kind + "id"]: item.id } });
 
+el.detailsDialog.querySelector("form").addEventListener("scroll", () => {
+  for (const tip of el.detailsRatings.querySelectorAll(".rating-tip")) tip.hidePopover();
+});
+
 el.detailsDialog.addEventListener("close", () => {
   const answer = el.detailsDialog.returnValue;
   const question = detailing;

@@ -66,6 +66,7 @@ test("the live tab connects and shows the format badges", async () => {
   for (const badge of ["UHD", "DV P7.6 FEL", "TrueHD Atmos", "Atmos", "7.1"]) {
     assert.ok(badges.includes(badge), `${badge} in ${badges}`);
   }
+  assert.equal(await page.locator("#poster").evaluate((node) => getComputedStyle(node).borderWidth), "0px");
   // The studio under the year and the genre, as one block with them: closer
   // to them than the column's lines are to each other.
   assert.equal(await page.locator("#studio").innerText(), "A Studio");
@@ -96,10 +97,31 @@ test("the overview is a key under the playing card that opens the title's detail
   const heights = await page.$$eval("#detailsRatings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
   assert.ok(heights.length && heights.every((height) => height === 28));
-  // The cast cards all one height.
-  const cards = await page.$$eval("#detailsCast li:not(.more)",
-    (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
-  assert.ok(cards.length && cards.every((height) => height === cards[0]));
+  // Verify narrow and wide layouts, including cards beyond the visible edge.
+  for (const width of [390, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    const rows = await page.locator("#detailsCast .castrow").evaluateAll((nodes) => nodes.map((row) => ({
+      cards: [...row.querySelectorAll("li:not(.more)")].map((card) => ({
+        width: card.getBoundingClientRect().width,
+        height: card.getBoundingClientRect().height,
+        centered: (() => {
+          const bounds = card.getBoundingClientRect();
+          const top = card.querySelector(".initial").getBoundingClientRect().top;
+          const last = card.querySelector(".role:not(:empty)") || card.querySelector("strong");
+          return Math.abs((top + last.getBoundingClientRect().bottom) / 2 - (bounds.top + bounds.height / 2)) < 1;
+        })(),
+        fits: [...card.querySelectorAll("strong, .role")].every((text) =>
+          text.scrollHeight <= text.clientHeight && text.scrollWidth <= text.clientWidth)
+      }))
+    })));
+    assert.equal(rows.length, 3, "director, writer and cast have their own rows");
+    for (const { cards } of rows) {
+      assert.ok(cards.length && cards.every((card) => card.width === 136));
+      assert.ok(cards.every((card) => card.height === cards[0].height && card.fits && card.centered));
+    }
+    assert.ok(rows[0].cards[0].height < rows[2].cards[0].height, "crew has no empty role slot");
+    await page.locator("#detailsCast").screenshot({ path: `node_modules/credits-${width}.png` });
+  }
   await page.locator("#detailsX").click();
   await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
 });
@@ -205,6 +227,10 @@ test("a finger drags the bar, and the box hears once, where it let go", async ()
 test("films: the wall, search and clearing it", async () => {
   await tab("films");
   await page.waitForFunction(() => document.querySelectorAll("#filmGrid .film").length === 20);
+  const cover = page.locator("#filmGrid .filmposter").first();
+  const border = await cover.evaluate((node) => getComputedStyle(node).borderColor);
+  await cover.hover();
+  assert.equal(await cover.evaluate((node) => getComputedStyle(node).borderColor), border);
   await page.fill("#filmSearch", "Film 1");
   // "Film 10" to "Film 19"; the titles are numbered with two digits.
   await page.waitForFunction(() =>
@@ -225,6 +251,53 @@ test("a short press opens a film's details without starting playback", async () 
   assert.equal(posts.length, before);
   await page.locator("#detailsX").click();
   await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
+});
+
+test("details keep scrolling inside the dialog and rating hints work by click and keyboard", async () => {
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.locator("#filmGrid .film").nth(4).click();
+    await page.waitForSelector("#detailsDialog[open]");
+    await page.locator("#detailsPlot").evaluate((node) => {
+      node.textContent = Array(80).fill("A long plot paragraph to make the details scroll.").join("\n\n");
+    });
+    const rootY = await page.evaluate(() => window.scrollY);
+    assert.equal(await page.locator("#detailsClose").count(), 0);
+    assert.equal(await page.locator("html").evaluate((node) => getComputedStyle(node).overflowY), "hidden");
+    const badge = page.locator("#detailsRatings .rating:has(.side.imdb)");
+    await badge.click();
+    const tip = page.locator("#detailsRatings .rating-tip:popover-open");
+    await tip.waitFor();
+    assert.equal(await tip.innerText(), "IMDb");
+    const rect = await tip.boundingBox();
+    assert.ok(rect.x >= 0 && rect.x + rect.width <= width);
+    await page.keyboard.press("Escape");
+    assert.equal(await page.locator("#detailsDialog").isVisible(), true);
+    await badge.focus();
+    await page.keyboard.press("Enter");
+    await tip.waitFor();
+    const form = page.locator("#detailsDialog form");
+    const before = await form.evaluate((node) => node.scrollTop);
+    const box = await form.boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.wheel(0, 300);
+    await page.waitForFunction((at) => document.querySelector("#detailsDialog form").scrollTop > at, before);
+    await tip.waitFor({ state: "hidden" });
+    assert.equal(await page.evaluate(() => window.scrollY), rootY);
+    await form.evaluate((node) => { node.scrollTop = node.scrollHeight; });
+    await page.mouse.wheel(0, 600);
+    // Wait for wheel scrolling to reach the compositor before checking the root.
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await page.evaluate(() => window.scrollY), rootY, "no scroll chaining at the end");
+    await page.mouse.move(4, 450);
+    await page.mouse.wheel(0, 300);
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await page.evaluate(() => window.scrollY), rootY, "the backdrop cannot scroll the page");
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
+    assert.notEqual(await page.locator("html").evaluate((node) => getComputedStyle(node).overflowY), "hidden");
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
 });
 
 test("a long press opens actions, and marking the film sends the id", async () => {

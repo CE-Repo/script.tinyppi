@@ -410,9 +410,6 @@
   object-fit: cover;
   display: block;
 }
-@media (hover: hover) {
-  .film:hover .filmposter { border-color: var(--accent); }
-}
 .film:active .filmposter { transform: scale(.985); }
 .film:focus-visible { outline: none; }
 .film:focus-visible .filmposter {
@@ -838,12 +835,17 @@
    than the screen, with the close key kept at the foot. */
 /* On the page's own ground, as the app's details page is, so the cards in it
    stand up from it the way they do on a screen. */
+html:has(#detailsDialog[open]), body:has(#detailsDialog[open]) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
 #detailsDialog { width: min(640px, calc(100vw - 24px)); overflow: hidden; background: var(--bg); }
 #detailsDialog form {
   padding: 0;
   gap: 0;
   max-height: min(88vh, 860px);
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 /* On a phone a page of its own, as the app's is: the whole screen, top to
    bottom, with nothing of the shelf showing round it. */
@@ -857,7 +859,6 @@
     border-radius: 0;
   }
   #detailsDialog form { height: 100%; max-height: none; align-content: start; }
-  .detailsfoot { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
 }
 .detailshero { position: relative; min-height: 200px; display: flex; align-items: flex-end; }
 .detailsbackdrop {
@@ -917,7 +918,7 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
   cursor: pointer;
 }
 .detailsx:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.detailsbody { display: grid; gap: 16px; padding: 16px 20px 4px; }
+.detailsbody { display: grid; gap: 16px; padding: 16px 20px calc(20px + env(safe-area-inset-bottom)); }
 /* The question's first answers, side by side: play (resume, or open for a
    series) in the accent, and starting over beside it where there is a point
    to resume from. */
@@ -944,4 +945,3 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
    the cast are in css/live-panels.css ("a title's facts and cast"). */
 .detailstagline { margin: 0; font-style: italic; font-size: 16px; line-height: 24px; color: var(--muted); }
 dialog p.detailsplot { color: var(--text); white-space: pre-line; line-height: 24px; font-size: 16px; }
-.detailsfoot { padding: 12px 20px 18px; }

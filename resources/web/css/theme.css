@@ -227,6 +227,5 @@
   pointer-events: none;
 }
 :root[data-theme="dark-adaptive"] .art img {
-  border-color: rgba(var(--cover-accent-rgb), .45);
   background: rgba(0, 0, 0, .2);
 }

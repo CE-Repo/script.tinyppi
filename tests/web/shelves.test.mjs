@@ -333,7 +333,7 @@ test("details stand under the title's backdrop with its poster, shields, plot, f
   assert.deepEqual(facts, [["Genre", "Horror, Sci-Fi"],
                            ["Studio", "20th Century Fox"]]);
   assert.deepEqual(cast(view), ["Director", "RRidley Scott", "SSigourney WeaverRipley", "JJones", "…"]);
-  assert.equal(view.$("detailsClose").textContent, "Close");
+  assert.equal(view.$("detailsClose"), null);
   assert.equal(view.$("detailsX").getAttribute("aria-label"), "Close");
   // A backdrop the box cannot read leaves the heading on the plain panel.
   view.$("detailsBackdrop").onerror();
@@ -512,4 +512,17 @@ test("Atmos and DTS:X are named and filter the film shelf", async (t) => {
   assert.deepEqual(shown(view, "filmGrid"), ["Atmos film"]);
   choose(view, "filmTools", "audio", "dtsx");
   assert.deepEqual(shown(view, "filmGrid"), ["DTS film"]);
+});
+
+
+test("scrolling details dismisses the rating popovers", async (t) => {
+  const view = await open(t);
+  [...view.$("filmGrid").children][0].click();
+  await settle();
+  const tips = [...view.$("detailsRatings").querySelectorAll(".rating-tip")];
+  assert.ok(tips.length);
+  let closed = 0;
+  for (const tip of tips) tip.hidePopover = () => { closed++; };
+  view.$("detailsDialog").querySelector("form").dispatchEvent(new view.window.Event("scroll"));
+  assert.equal(closed, tips.length);
 });

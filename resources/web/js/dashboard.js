@@ -72,7 +72,7 @@ const el = {
   detailsDialog: $("detailsDialog"), detailsTitle: $("detailsTitle"),
   detailsMeta: $("detailsMeta"), detailsFormats: $("detailsFormats"),
   detailsTagline: $("detailsTagline"), detailsPlot: $("detailsPlot"),
-  detailsFacts: $("detailsFacts"), detailsClose: $("detailsClose"),
+  detailsFacts: $("detailsFacts"),
   detailsHero: $("detailsHero"), detailsBackdrop: $("detailsBackdrop"),
   detailsPoster: $("detailsPoster"), detailsRatings: $("detailsRatings"),
   detailsCast: $("detailsCast"), detailsX: $("detailsX"),

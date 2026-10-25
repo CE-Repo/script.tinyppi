@@ -1134,3 +1134,34 @@ test("when playback ends the panels are put away once and the ended title's even
   P.update(null);
   assert.ok($("nowCard").classList.contains("hidden"));
 });
+
+
+test("rating names open on click or keyboard, stay inside the viewport and close on blur", (t) => {
+  const { P, window } = panels(t);
+  const [badge] = P.shields({ ratings: [{ source: "imdb", rating: 8.5 }] });
+  window.document.body.append(badge);
+  const tip = badge.querySelector(".rating-tip");
+  assert.equal(badge.tabIndex, 0);
+  assert.equal(badge.getAttribute("aria-describedby"), tip.id);
+  assert.equal(tip.getAttribute("role"), "tooltip");
+  assert.equal(tip.getAttribute("popover"), "auto");
+  assert.equal(tip.textContent, "IMDb");
+  let opened = 0, closed = 0;
+  tip.showPopover = () => { opened++; };
+  tip.hidePopover = () => { closed++; };
+  badge.getBoundingClientRect = () => ({ left: 10, bottom: 20 });
+  tip.getBoundingClientRect = () => ({ width: 100, height: 30 });
+  badge.click();
+  assert.equal(opened, 1);
+  assert.equal(tip.style.left, "10px");
+  assert.equal(tip.style.top, "28px");
+  badge.getBoundingClientRect = () => ({ left: window.innerWidth, bottom: window.innerHeight });
+  badge.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
+  assert.equal(parseFloat(tip.style.left), window.innerWidth - 108);
+  assert.equal(parseFloat(tip.style.top), window.innerHeight - 38);
+  badge.dispatchEvent(new window.KeyboardEvent("keydown", { key: " ", cancelable: true }));
+  badge.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight" }));
+  assert.equal(opened, 3);
+  badge.dispatchEvent(new window.Event("blur"));
+  assert.equal(closed, 1);
+});

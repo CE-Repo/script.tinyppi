@@ -66,7 +66,6 @@ function applyStrings(strings, hello) {
   el.markUnwatched.textContent = strings.mark_unwatched;
   el.markCancel.textContent = strings.cancel;
   el.markDetails.textContent = strings.details;
-  el.detailsClose.textContent = strings.close;
   el.detailsRestart.textContent = strings.play_from_start;
   el.detailsX.setAttribute("aria-label", strings.close);
   el.detailsX.title = strings.close;
