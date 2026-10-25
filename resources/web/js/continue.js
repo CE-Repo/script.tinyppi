@@ -10,7 +10,7 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global bindTitle, el, episodeCode, FILMS_RETRY_MS, FILMS_START_MS, filmsStale,
+/* global selectTab, bindTitle, el, episodeCode, FILMS_RETRY_MS, FILMS_START_MS, filmsStale,
    metaLine, ratingBadge, seriesStale, T */
 /* exported continueStale, hideContinue, releaseContinue, requestContinue,
    resumeReleasing, resuming */
@@ -235,6 +235,7 @@ async function startContinue(item, tile, fromStart) {
       continueRead = false;
       if (item.kind === "episode") seriesStale();
       else filmsStale();
+      selectTab("live");
     }
   } catch (_) {
     failed = true;

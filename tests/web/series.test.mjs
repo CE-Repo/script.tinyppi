@@ -591,6 +591,24 @@ test("a show that cannot be read again stays as it was, and the shelf is asked f
   assert.equal(reads(view, "/api/series"), 3);
 });
 
+/** Which tab is in front. */
+const front = (view) => view.window.document.querySelector(".tabpanel.active")?.dataset.tab;
+
+test("an episode that starts takes the page to the live tab", async (t) => {
+  const view = await open(t);
+  view.window.selectTab("series");
+  await openShow(view, "Andor");
+  await press(view, row(view, "That Would Be Me"));
+  assert.equal(front(view), "live");
+});
+
+test("the series search and filters sit at the top of the tab", async (t) => {
+  const view = await open(t);
+  assert.equal(view.$("tab-series").firstElementChild, view.$("seriesSearchBox"));
+  assert.equal(view.$("seriesCard").contains(view.$("seriesSearch")), false);
+  assert.equal(view.$("seriesSearchBox").contains(view.$("seriesTools")), true);
+});
+
 test("playing an episode sends it with the token, and the list waits on it", async (t) => {
   const view = await open(t, { token: "T0K3N" });
   await openShow(view, "Andor");

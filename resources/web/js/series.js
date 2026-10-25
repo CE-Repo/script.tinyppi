@@ -10,7 +10,7 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global bindTitle, continueStale, el, FILMS_RETRY_MS, FILMS_START_MS, newest,
+/* global selectTab, bindTitle, continueStale, el, FILMS_RETRY_MS, FILMS_START_MS, newest,
    ratingBadge, runtime, shelfTools, T */
 /* exported episodeCode, episodeReleasing, hideSeries, refreshEpisodes,
    releaseSeries, requestSeries, seriesOffered, seriesStale, seriesTools,
@@ -159,6 +159,7 @@ function buildSeries() {
 /* Both series walls off the page, for a box with no series to offer. */
 function hideSeries() {
   el.seriesCard.classList.add("hidden");
+  el.seriesBox.classList.add("hidden");
   el.recentSeriesCard.classList.add("hidden");
   el.unseenSeriesCard.classList.add("hidden");
 }
@@ -561,6 +562,7 @@ async function startEpisode(episode, row, fromStart) {
          count its show's tile wears: the shelf is read again. */
       seriesRead = false;
       continueStale();
+      selectTab("live");
     }
   } catch (_) {
     failed = true;
@@ -589,7 +591,10 @@ function releaseSeries() {
   }
 }
 
-el.seriesSearch.addEventListener("input", applySeriesSearch);
+el.seriesSearch.addEventListener("input", () => {
+  el.seriesCard.open = true;
+  applySeriesSearch();
+});
 el.seriesSearchClear.addEventListener("click", () => {
   el.seriesSearch.value = "";
   applySeriesSearch();

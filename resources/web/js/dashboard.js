@@ -52,7 +52,7 @@ const el = {
   lastCard: $("lastCard"), lastTitle: $("lastTitle"), lastTiles: $("lastTiles"),
   filmsCard: $("filmsCard"), filmGrid: $("filmGrid"),
   filmsCount: $("filmsCount"), filmsEmpty: $("filmsEmpty"),
-  filmSearch: $("filmSearch"), filmSearchClear: $("filmSearchClear"),
+  filmsHead: $("filmsHead"), filmSearch: $("filmSearch"), filmSearchClear: $("filmSearchClear"),
   filmTools: $("filmTools"), seriesTools: $("seriesTools"),
   seriesCard: $("seriesCard"), seriesGrid: $("seriesGrid"),
   seriesCount: $("seriesCount"), seriesEmpty: $("seriesEmpty"),

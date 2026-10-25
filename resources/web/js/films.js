@@ -10,7 +10,7 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global bindTitle, continueStale, el, shelfTools, T */
+/* global bindTitle, continueStale, el, selectTab, shelfTools, T */
 /* exported FILMS_RETRY_MS, FILMS_START_MS, filmTools, filmsOffered, filmsStale,
    hideFilms, metaLine, newest, ratingBadge, releaseFilms, releasing,
    requestFilms, runtime, starting */
@@ -106,6 +106,7 @@ async function loadFilms() {
       buildFilms();
     }
     el.filmsCard.classList.remove("hidden");
+    el.filmsHead.classList.remove("hidden");
     el.recentFilmsCard.classList.toggle("hidden",
                                         !el.recentFilmsRow.children.length);
     el.unseenFilmsCard.classList.toggle("hidden",
@@ -164,6 +165,7 @@ function arrangeFilms() {
 /* Both film walls off the page, for a box with no library to offer. */
 function hideFilms() {
   el.filmsCard.classList.add("hidden");
+  el.filmsHead.classList.add("hidden");
   el.recentFilmsCard.classList.add("hidden");
   el.unseenFilmsCard.classList.add("hidden");
 }
@@ -362,6 +364,8 @@ async function startFilm(film, tile, fromStart) {
          what it said before the press. */
       filmsRead = false;
       continueStale();
+      /* What was started is followed to the live tab, as the app does. */
+      selectTab("live");
     }
   } catch (_) {
     failed = true;
@@ -388,7 +392,12 @@ function releaseFilms() {
   }
 }
 
-el.filmSearch.addEventListener("input", applyFilmSearch);
+/* The search sits at the top of the tab, away from the wall it narrows: a
+   folded wall is opened so what it finds can be seen. */
+el.filmSearch.addEventListener("input", () => {
+  el.filmsCard.open = true;
+  applyFilmSearch();
+});
 /* Emptying the box puts the whole shelf back, and leaves the cursor where
    somebody who meant to search again would want it. */
 el.filmSearchClear.addEventListener("click", () => {

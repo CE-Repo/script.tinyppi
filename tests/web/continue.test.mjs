@@ -279,6 +279,16 @@ test("a press asks to resume, and offers a fresh start and forgetting the point"
   assert.deepEqual(plays(view), []);
 });
 
+/** Which tab is in front. */
+const front = (view) => view.window.document.querySelector(".tabpanel.active")?.dataset.tab;
+
+test("a title resumed from the row takes the page to the live tab", async (t) => {
+  const view = await open(t);
+  view.window.selectTab("films");
+  await press(view, "Film 03");
+  assert.equal(front(view), "live");
+});
+
 test("resuming sends the title with the token, and both rows wait on it", async (t) => {
   const view = await open(t, { token: "T0K3N" });
   await press(view, "Film 03");

@@ -525,6 +525,40 @@ test("a film that comes on gives the walls back at once", async (t) => {
   assert.equal(tile(view, "Alien").classList.contains("busy"), false);
 });
 
+/** Which tab is in front. */
+const front = (view) => view.window.document.querySelector(".tabpanel.active")?.dataset.tab;
+
+test("a film that starts takes the page to the live tab", async (t) => {
+  const view = await open(t);
+  view.window.selectTab("films");
+  assert.equal(front(view), "films");
+  await press(view, "Brazil");
+  assert.equal(front(view), "live");
+  assert.equal(view.window.location.hash, "#live");
+});
+
+test("a film that will not start leaves the page on its shelf", async (t) => {
+  const view = await open(t, { routes: { "/api/play": [500, {}] } });
+  view.window.selectTab("films");
+  await press(view, "Dune");
+  assert.equal(front(view), "films");
+});
+
+test("the search and the filters sit at the top of the tab, and the search unfolds the wall", async (t) => {
+  const view = await open(t);
+  const panel = view.$("tab-films");
+  assert.equal(panel.firstElementChild, view.$("filmsHead"));
+  assert.equal(view.$("filmsCard").contains(view.$("filmSearch")), false);
+  assert.equal(view.$("filmsHead").contains(view.$("filmTools")), true);
+  assert.equal(hidden(view, "filmsHead"), false);
+
+  view.$("filmsCard").open = false;
+  view.$("filmSearch").value = "cube";
+  view.$("filmSearch").dispatchEvent(new view.window.Event("input"));
+  assert.equal(view.$("filmsCard").open, true);
+  assert.deepEqual(shown(view, "filmGrid"), ["Cube"]);
+});
+
 test("a refused token says so, asks for a new one and frees the walls", async (t) => {
   const view = await open(t, { routes: { "/api/play": [401, {}] } });
   await press(view, "Alien");
