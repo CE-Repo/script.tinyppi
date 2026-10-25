@@ -230,6 +230,11 @@ test("films: the wall, search and clearing it", async () => {
   const cover = page.locator("#filmGrid .filmposter").first();
   const border = await cover.evaluate((node) => getComputedStyle(node).borderColor);
   await cover.hover();
+  assert.notEqual(await cover.evaluate((node) => getComputedStyle(node).boxShadow), "none");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.waitForFunction(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector("#filmGrid .filmposter")).transform).m42 < -1);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.waitForFunction(() => getComputedStyle(document.querySelector("#filmGrid .filmposter")).transform === "none");
   assert.equal(await cover.evaluate((node) => getComputedStyle(node).borderColor), border);
   await page.fill("#filmSearch", "Film 1");
   // "Film 10" to "Film 19"; the titles are numbered with two digits.

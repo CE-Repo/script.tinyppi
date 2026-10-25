@@ -60,10 +60,14 @@ function applyStrings(strings, hello) {
   $("recentFilmsLabel").textContent = strings.recent;
   $("recentSeriesLabel").textContent = strings.recent;
   $("unseenSeriesLabel").textContent = strings.series_unseen_shows;
-  el.detailsClear.textContent = strings.resume_clear;
-  el.detailsWatched.textContent = strings.mark_watched;
-  el.detailsUnwatched.textContent = strings.mark_unwatched;
-  el.detailsRestart.textContent = strings.play_from_start;
+  for (const [button, label] of [
+    [el.detailsRestart, strings.play_from_start], [el.detailsClear, strings.resume_clear],
+    [el.detailsWatched, strings.mark_watched], [el.detailsUnwatched, strings.mark_unwatched]
+  ]) {
+    button.querySelector(".said").textContent = label;
+    button.setAttribute("aria-label", label);
+    button.title = label;
+  }
   el.detailsX.setAttribute("aria-label", strings.close);
   el.detailsX.title = strings.close;
   $("seriesBackText").textContent = strings.series_back;

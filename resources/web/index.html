@@ -347,10 +347,12 @@
   <div class="detailsbody">
     <div class="markoptions detailsactions" id="detailsActions">
       <button value="play" id="detailsPlay" type="submit"></button>
-      <button value="restart" id="detailsRestart" type="submit" hidden></button>
-      <button value="clear" id="detailsClear" type="submit" hidden></button>
-      <button value="watched" id="detailsWatched" type="submit"></button>
-      <button value="unwatched" id="detailsUnwatched" type="submit"></button>
+      <div class="detailstools">
+        <button value="restart" id="detailsRestart" type="submit" hidden><span class="said"></span></button>
+        <button value="clear" id="detailsClear" type="submit" hidden><span class="said"></span></button>
+        <button value="watched" id="detailsWatched" type="submit"><span class="said"></span></button>
+        <button value="unwatched" id="detailsUnwatched" type="submit"><span class="said"></span></button>
+      </div>
     </div>
     <div class="ratings" id="detailsRatings" role="list"></div>
     <p class="detailstagline" id="detailsTagline"></p>

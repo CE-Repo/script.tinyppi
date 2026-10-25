@@ -823,7 +823,7 @@
 }
 .rating .side.plate .mark { height: calc(var(--badge) - 4px); }
 /* What the badge says aloud: there for a screen reader, not on the screen. */
-.rating .said {
+.rating .said, .detailstools .said {
   position: absolute;
   width: 1px;
   height: 1px;

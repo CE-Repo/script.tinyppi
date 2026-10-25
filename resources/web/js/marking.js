@@ -133,6 +133,7 @@ async function showDetails(question) {
      opened from the overview is informational. */
   el.detailsActions.hidden = !control || !question.onPlay;
   el.detailsPlay.textContent = question.play || "";
+  el.detailsPlay.dataset.kind = key;
   el.detailsRestart.hidden = !question.resumable;
   el.detailsClear.hidden = !question.resumable;
   el.detailsDialog.returnValue = "";
