@@ -594,6 +594,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def _find_art(self, query: dict[str, list[str]], kind: str) -> tuple[bytes, str] | None:
         """Return the requested picture and its type, or None."""
+        portrait = _param(query, "portrait")
+        if portrait:
+            return artwork.shelf_picture(library.details.portrait_path(portrait))
         # No library id means the playing title.
         lookups = (("movieid", self.server.library_artwork),
                    ("tvshowid", self.server.series_artwork),

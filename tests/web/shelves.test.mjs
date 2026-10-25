@@ -338,7 +338,7 @@ test("details stand under the title's backdrop with its poster, shields, plot, f
     [...node.children].map((part) => part.textContent));
   assert.deepEqual(facts, [["Genre", "Horror, Sci-Fi"],
                            ["Studio", "20th Century Fox"]]);
-  assert.deepEqual(cast(view), ["Cast", "RRidley ScottDirector", "SSigourney WeaverRipley", "JJones", "…"]);
+  assert.deepEqual(cast(view), ["Cast", "SSigourney WeaverRipley", "JJones", "…", "RRidley ScottDirector"]);
   assert.equal(view.$("detailsClose"), null);
   assert.equal(view.$("detailsX").getAttribute("aria-label"), "Close");
   // A backdrop the box cannot read leaves the heading on the plain panel.

@@ -166,6 +166,10 @@ film title) has nowhere to run.
   most **6** live streams run at once. A browser opens six connections per
   host at most, so the caps only ever turn away something that is not a
   browser.
+- **Portrait paths stay on the box.** Cast thumbnails are served through the
+  existing artwork route and its read authorization. The client receives a
+  tag that resolves only to a portrait path supplied by Kodi, not an arbitrary
+  URL or file path. The in-memory lookup is limited to 4096 entries.
 - **Checked artwork tags.** The `v` tag of an artwork URL goes into the
   `ETag` header only if it is a plain hex tag, so no crafted value can add
   headers to the answer.

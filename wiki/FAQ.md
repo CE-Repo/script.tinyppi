@@ -85,11 +85,16 @@ complete switches through SDR, as you would by hand.
 ### Does the web dashboard need internet access?
 
 No. Everything — the page, its icons and the posters — is served by the add-on from the
-box. Posters come from Kodi's own texture cache. Only the overview's ratings
-reach out, from the box: the IMDb Top 250 list (a public MDBList list, the
+box. Posters come from Kodi's own texture cache. The overview's optional
+online ratings are fetched by the box: the IMDb Top 250 list (a public MDBList list, the
 same for everyone), if you enter an MDBList API key, MDBList's ratings for
 the playing film and WhatsOn's Rotten Tomatoes certificates, and its ratings
 where they are missing. Without internet the card shows the library's ratings.
+
+Artwork is served by the box through Kodi's texture cache. A portrait whose
+original is not cached may need an outside connection from the box; a missing
+or unreadable cast photo leaves the person's initial visible. The browser
+never fetches the portrait directly from an outside image service.
 
 ### Can I open the dashboard from outside my home?
 

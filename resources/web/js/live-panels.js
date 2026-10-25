@@ -289,7 +289,7 @@
      Drawn on a title's details page (see showDetails in js/marking.js), as
      the app draws them: each fact its
      name, quieter and small, over the names; and the cast under its
-     heading as a row of cards -- the initial in a circle, the name on two
+     heading as a row of cards -- a large rectangular portrait or initial, the name on two
      lines and who they played on one, held open where they are not
      filled so every card stands the same height -- with an ellipsis where
      the library holds more. */
@@ -319,8 +319,8 @@
       ...(credits.writers || []).map((name) => ({ name, role: T.writer }))
     ];
     return [
-      ...castCards({ cast: crew }, "Cast"),
-      ...castCards(credits, T.cast)
+      ...castCards(credits, T.cast),
+      ...castCards({ cast: crew }, "Cast")
     ];
   }
 
@@ -338,12 +338,24 @@
       initial.className = "initial";
       initial.setAttribute("aria-hidden", "true");
       initial.textContent = person.name.charAt(0).toUpperCase();
+      if (person.thumbnail) {
+        const photo = document.createElement("img");
+        photo.alt = "";
+        photo.loading = "lazy";
+        photo.src = "/api/art?kind=thumb&portrait=" + encodeURIComponent(person.thumbnail) +
+          "&v=" + encodeURIComponent(person.thumbnail);
+        photo.addEventListener("error", () => photo.remove(), { once: true });
+        initial.append(photo);
+      }
       const name = document.createElement("strong");
       name.textContent = person.name;
       const role = document.createElement("span");
       role.className = "role";
       role.textContent = person.role || "";
-      item.append(initial, name, role);
+      const text = document.createElement("div");
+      text.className = "casttext";
+      text.append(name, role);
+      item.append(initial, text);
       row.append(item);
     }
     if (credits.cast_more) {

@@ -213,8 +213,8 @@ takes longer is there on the next read) — and where there are any `mpaa` with
 its `age` mark and `age_level` (an episode's are its show's), `userrating`,
 `top250` and `awards`; and where the library has them `plot`, `tagline`,
 `premiered`, `year`, `duration`, `genres`, `directors`, `writers`, `studios`,
-`countries`, the `cast` (`{"name", "role"}`, the whole cast in billing order,
-`cast_more` always `false`) and the file's `video`,
+`countries`, the `cast` (each entry has `name`, `role` and an optional
+`thumbnail`; the whole cast in billing order, `cast_more` always `false`) and the file's `video`,
 `dv_profile`, `resolution` and `audio`, and the tags of its pictures for
 `/api/art` — `poster` and `fanart` for a film or a series, `thumb` for an
 episode. Every title has `watched` (a series once every episode is) and
@@ -224,13 +224,27 @@ of `season`s. Each kind needs its shelf's setting and **Allow VS10 switching
 from the dashboard** (`403 library disabled`); an unknown title is
 `404 no such title`.
 
-### `GET /api/art?kind=<kind>[&movieid=|&tvshowid=|&episodeid=<id>][&v=<tag>]`
+A cast member's optional `thumbnail` is an opaque portrait tag, not a source
+URL. It is present only when Kodi supplies a non-empty thumbnail path.
+Request `/api/art?kind=thumb&portrait=<thumbnail>&v=<thumbnail>` to load it.
+Clients should keep an initial or another placeholder if the field is absent
+or the image request fails; older servers omit the field.
 
-Artwork: `kind` is `poster`, `fanart` or `thumb`. Without an id, the playing
-title's artwork. With a `v` tag the answer is cacheable for a week
+### `GET /api/art?kind=<kind>[&movieid=|&tvshowid=|&episodeid=<id>][&portrait=<tag>][&v=<tag>]`
+
+Artwork: `kind` is `poster`, `fanart` or `thumb`. Without an id or `portrait`,
+the playing title's artwork. With a `v` tag the answer is cacheable for a week
 (`immutable`); the tag must be plain hex (as the snapshot and the lists give
 it), anything else is ignored and the answer is not cached. Images are served
 from Kodi's texture cache where possible.
+
+For a cast portrait, use `kind=thumb&portrait=<tag>` with the optional `v` tag
+set to the same value. The portrait tag comes from `/api/details`. The server
+resolves only paths Kodi supplied while details were read; callers cannot
+provide a file path or source URL. At most 4096 portrait paths are retained in
+memory. An unknown or evicted tag, or an unreadable image, returns 404; reopen
+the details to register its portraits again. Portraits use the same read
+authorization and cache policy as other artwork.
 
 ---
 

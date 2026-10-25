@@ -1255,9 +1255,22 @@ test("directors and writers share a Cast row with their functions under their na
     cast: [{ name: "An Actor", role: "A Character" }]
   });
   assert.equal(parts.length, 4, "one crew row and one actor row with their headings");
-  assert.equal(parts[0].textContent, "Cast");
-  assert.deepEqual([...parts[1].children].map((card) => [
+  assert.equal(parts[2].textContent, "Cast");
+  assert.deepEqual([...parts[3].children].map((card) => [
     card.querySelector("strong").textContent, card.querySelector(".role").textContent
   ]), [["Alex Director", "Director"], ["Sam Writer", "Writer"], ["Jo Writer", "Writer"]]);
-  assert.equal(parts[3].querySelector(".role").textContent, "A Character");
+  assert.equal(parts[1].querySelector(".role").textContent, "A Character");
+});
+
+
+test("cast portraits load lazily and return to the initial on failure", (t) => {
+  const { P } = panels(t);
+  const row = P.cast({ cast: [{ name: "Actor", thumbnail: "abc123" }, { name: "Other" }] })[1];
+  const photo = row.querySelector("img");
+  assert.equal(photo.getAttribute("src"), "/api/art?kind=thumb&portrait=abc123&v=abc123");
+  assert.equal(photo.loading, "lazy");
+  assert.equal(photo.alt, "");
+  photo.dispatchEvent(new photo.ownerDocument.defaultView.Event("error"));
+  assert.equal(row.querySelector("img"), null);
+  assert.equal(row.querySelector(".initial").textContent, "A");
 });

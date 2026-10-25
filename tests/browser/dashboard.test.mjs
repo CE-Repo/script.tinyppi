@@ -97,6 +97,18 @@ test("the overview is a key under the playing card that opens the title's detail
   const heights = await page.$$eval("#detailsRatings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
   assert.ok(heights.length && heights.every((height) => height === 28));
+  await page.locator("#detailsCast img").scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => {
+    const image = document.querySelector("#detailsCast img");
+    return image?.complete && image.naturalWidth > 0;
+  });
+  assert.equal(await page.locator("#detailsCast .initial img").count(), 1);
+  const portrait = await page.locator("#detailsCast .initial").first().evaluate((node) => ({
+    width: node.getBoundingClientRect().width,
+    height: node.getBoundingClientRect().height,
+    radius: getComputedStyle(node).borderRadius
+  }));
+  assert.deepEqual(portrait, { width: 112, height: 144, radius: "8px" });
   // Verify narrow and wide layouts, including cards beyond the visible edge.
   for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
@@ -104,24 +116,28 @@ test("the overview is a key under the playing card that opens the title's detail
       cards: [...row.querySelectorAll("li:not(.more)")].map((card) => ({
         width: card.getBoundingClientRect().width,
         height: card.getBoundingClientRect().height,
-        centered: (() => {
+        anchored: (() => {
           const bounds = card.getBoundingClientRect();
           const top = card.querySelector(".initial").getBoundingClientRect().top;
+          const picture = card.querySelector(".initial").getBoundingClientRect();
+          const name = card.querySelector("strong").getBoundingClientRect();
           const last = card.querySelector(".role:not(:empty)") || card.querySelector("strong");
-          return Math.abs((top + last.getBoundingClientRect().bottom) / 2 - (bounds.top + bounds.height / 2)) < 1;
+          const textCenter = (name.top + last.getBoundingClientRect().bottom) / 2;
+          return Math.abs(top - bounds.top - 12) < 1 &&
+            Math.abs(textCenter - (picture.bottom + bounds.bottom) / 2) < 1;
         })(),
         fits: [...card.querySelectorAll("strong, .role")].every((text) =>
           text.scrollHeight <= text.clientHeight && text.scrollWidth <= text.clientWidth)
       }))
     })));
-    assert.equal(rows.length, 2, "crew share one row above the actors");
-    assert.equal(rows[0].cards.length, 2);
-    assert.deepEqual(await page.locator("#detailsCast .castrow").first().locator(".role").allTextContents(), ["#32386", "#32407"]);
+    assert.equal(rows.length, 2, "crew share one row below the actors");
+    assert.equal(rows[1].cards.length, 2);
+    assert.deepEqual(await page.locator("#detailsCast .castrow").last().locator(".role").allTextContents(), ["#32386", "#32407"]);
     for (const { cards } of rows) {
       assert.ok(cards.length && cards.every((card) => card.width === 136));
-      assert.ok(cards.every((card) => card.height === cards[0].height && card.fits && card.centered));
+      assert.ok(cards.every((card) => card.height === cards[0].height && card.fits && card.anchored));
     }
-    assert.ok(rows[0].cards[0].height < rows[1].cards[0].height, "longer actor roles have room to wrap");
+    assert.ok(rows.flatMap(({ cards }) => cards).every((card) => card.height < 320), "cards use their content height");
     await page.locator("#detailsCast").screenshot({ path: `node_modules/credits-${width}.png` });
   }
   await page.locator("#detailsX").click();

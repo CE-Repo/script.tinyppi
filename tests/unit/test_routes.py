@@ -761,3 +761,16 @@ def test_a_client_leaving_frees_its_stream_slot(error):
     assert (server.claimed, server.released) == (1, 1)
     assert producer.watching == 0           # unwatched despite the failure
     assert handler.close_connection is True
+
+
+def test_portrait_art_uses_only_registered_paths(monkeypatch):
+    tag = library.details._portrait("/actor.jpg")
+    seen = []
+    monkeypatch.setattr(artwork, "shelf_picture", lambda path: seen.append(path) or (b"photo", "image/jpeg"))
+    srv, close = serve()
+    try:
+        status, _, body = request(srv, f"/api/art?kind=thumb&portrait={tag}", token=TOKEN)
+    finally:
+        close()
+    assert status == 200 and body == b"photo"
+    assert seen == ["/actor.jpg"]

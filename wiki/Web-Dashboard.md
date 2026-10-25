@@ -6,9 +6,11 @@ TV stays untouched. On top of the readings the dashboard has a live luminance
 chart, an event history, a remote, VS10 switching, and the film and series
 library with continue watching.
 
-The page is served entirely by the add-on: nothing is loaded from the
-internet, and it works on a box without any outside connection. Only the
-overview's ratings reach out, from the box rather than the browser: the IMDb
+The page and its images are served entirely by the add-on, so the browser
+needs no connection to an outside image service. Kodi's cached artwork works
+offline; an uncached original may need a connection from the box. A missing
+cast portrait falls back to the person's initial. The overview's ratings
+also reach out from the box rather than the browser: the IMDb
 Top 250 place, and — when you give it a key — the ratings MDBList gathers (see
 [The IMDb Top 250](#the-imdb-top-250) and
 [Ratings from MDBList](#ratings-from-mdblist)).
@@ -499,6 +501,16 @@ its details the same way.
   sideways and run out to the edge of the screen. A row fades out at the side
   it goes on past, so the card there runs out softly rather than being cut
   off; with a mouse it is dragged. The page shows no scrollbars.
+- **Cast cards:** the actors come first under the localized cast heading
+  (*Darsteller* in German). Directors and writers follow in a separate row
+  headed *Cast*, with their functions under their names. A portrait supplied
+  by Kodi appears at the top as a large rectangle with slightly rounded
+  corners. No additional image-service key is needed. Without a picture,
+  or if it cannot be loaded, the initial stands
+  in its place. Names and roles are centred together between the picture's
+  lower edge and the card's bottom. Cards stretch to the same height within
+  a row; their height follows the text rather than a fixed pixel value.
+  Names and roles can wrap. The TinyPPI app uses the same arrangement.
 - A page gone back to within a minute is drawn at once from what was read,
   rather than after the box answers again.
 
@@ -538,7 +550,9 @@ folded; its heading unfolds it), in two rows:
 
 Under them, the **fine adjustments**: the **audio offset** (lip sync, in steps
 of 50 ms within ±10 s) and the **subtitle offset** (in Kodi's 100 ms steps,
-shown while subtitles are on).
+shown while subtitles are on). The two adjustments stand side by side when
+there is room and stack on a narrow card. The TinyPPI app follows the same
+rule, allowing more room when the device's text size is enlarged.
 A tap on an offset's value puts it back to 0. Kodi has no JSON-RPC method for
 the subtitle offset, so it is moved with the same key presses a remote sends,
 and Kodi shows its own slider on the TV for a moment while it moves. Then a

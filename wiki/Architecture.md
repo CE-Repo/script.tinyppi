@@ -139,8 +139,8 @@ script.tinyppi/
 | `vs10.py` | The VS10 modes offered on the dashboard and the switcher that applies them one at a time. |
 | `delta.py` | Delta frames between snapshots. |
 | `payloads.py` | The shapes the dashboard sends (snapshots, delta frames, history) as `TypedDict`s. |
-| `library/` | The film and series library: `cache.py` (cached lists, revision, coalesced drops), `films.py`, `series.py`, `progress.py` (continue watching and next up), `details.py` (one title's details), `marks.py` (watched / resume writes), `common.py` (JSON-RPC and row helpers), `entries.py` (list shapes). |
-| `artwork.py` | Artwork from Kodi's texture cache first, content type from the bytes. |
+| `library/` | The film and series library: `cache.py` (cached lists, revision, coalesced drops), `films.py`, `series.py`, `progress.py` (continue watching and next up), `details.py` (one title's details and a bounded, locked lookup of Kodi-supplied cast portrait paths), `marks.py` (watched / resume writes), `common.py` (JSON-RPC and row helpers), `entries.py` (list shapes). |
+| `artwork.py` | Artwork, including cast portraits, from Kodi's texture cache first, content type from the bytes; `/api/art` resolves portrait tags through the details module. |
 | `static.py` | The page's files, with ETags and gzip. |
 | `strings.py` | The UI strings sent to the page, in Kodi's current language. |
 | `values.py` | Text and id helpers shared by snapshot, player and library: plain library text, name lists. |

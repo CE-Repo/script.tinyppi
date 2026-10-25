@@ -213,3 +213,26 @@ def test_details_carry_the_state_for_their_actions(answers, kind, values, watche
     found = library.title_details(kind, 1)
     assert found["watched"] is watched
     assert found["resume"] == resume
+
+
+def test_cast_portraits_are_optional_and_resolved_only_from_kodi():
+    people = details_module._cast([
+        {"name": "First", "order": 0, "thumbnail": "image://portrait/"},
+        {"name": "Second", "thumbnail": 42},
+        {"name": "Third", "thumbnail": "   "},
+    ])
+    tag = people[0]["thumbnail"]
+    assert details_module.portrait_path(tag) == "image://portrait/"
+    assert details_module.portrait_path("https://arbitrary.example/file") == ""
+    assert "thumbnail" not in people[1] and "thumbnail" not in people[2]
+
+
+def test_portrait_paths_are_bounded(monkeypatch):
+    from collections import OrderedDict
+
+    monkeypatch.setattr(details_module, "_PORTRAITS", OrderedDict())
+    first = details_module._portrait("/first.jpg")
+    for index in range(4096):
+        details_module._portrait(f"/{index}.jpg")
+    assert details_module.portrait_path(first) == ""
+    assert len(details_module._PORTRAITS) == 4096

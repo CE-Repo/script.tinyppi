@@ -54,7 +54,8 @@ def fake_rpc(method: str, params: dict | None = None) -> dict:
         return {"result": {"moviedetails": {
             **film, "plot": "A film about somebody.", "director": ["Stephen Norrington"],
             "writer": ["David S. Goyer"],
-            "cast": [{"name": "Wesley Snipes", "role": "Blade", "order": 0},
+            "cast": [{"name": "Wesley Snipes", "role": "Blade", "order": 0,
+                      "thumbnail": os.path.join(ROOT, "icon.png")},
                      {"name": "Kris Kristofferson", "role": "Abraham Whistler", "order": 1},
                      {"name": "An Actor With A Very Long Name",
                       "role": "A character with a very long complete name", "order": 2}]}}}

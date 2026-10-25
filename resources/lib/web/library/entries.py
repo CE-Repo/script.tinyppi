@@ -119,6 +119,7 @@ class Person(TypedDict):
 
     name: str
     role: str
+    thumbnail: NotRequired[str]
 
 
 class Details(TypedDict):

@@ -14,6 +14,8 @@ from what they keep.
 """
 
 import time
+from collections import OrderedDict
+from threading import Lock
 
 from web import mdblist, whatson
 from web.library import common
@@ -24,6 +26,9 @@ from web.values import Json, Unchecked, clean_value, library_id, plain_text
 
 # A plot is a few paragraphs; a text longer still is cut off.
 _PLOT_LIMIT = 4000
+_PORTRAITS: OrderedDict[str, str] = OrderedDict()
+_PORTRAITS_LOCK = Lock()
+
 # How long a details read waits on MDBList and WhatsOn, and how often it
 # looks whether they have answered, in seconds.
 _RATINGS_WAIT = 4.0
@@ -62,6 +67,23 @@ _NUMBERS = (("year", "year", 1), ("runtime", "duration", 1), ("season", "season"
 # details view has room for every genre and director).
 _NAMES = (("genre", "genres"), ("director", "directors"), ("writer", "writers"),
           ("studio", "studios"), ("country", "countries"))
+
+
+def portrait_path(tag: str) -> str:
+    """Resolve only portrait paths supplied by Kodi, never arbitrary request paths."""
+    with _PORTRAITS_LOCK:
+        return _PORTRAITS.get(tag, "")
+
+
+def _portrait(path: str) -> str:
+    """Keep a bounded set of portrait paths for the authenticated artwork route."""
+    tag = common.tag(path)
+    with _PORTRAITS_LOCK:
+        _PORTRAITS[tag] = path
+        _PORTRAITS.move_to_end(tag)
+        if len(_PORTRAITS) > 4096:
+            _PORTRAITS.popitem(last=False)
+    return tag
 
 
 def details(kind: str, item_id: Unchecked) -> Details | None:
@@ -170,7 +192,11 @@ def _cast(raw: object) -> list[Person]:
     for entry in people:
         name = clean_value(str(entry.get("name") or ""))
         if name:
-            cast.append({"name": name, "role": clean_value(str(entry.get("role") or ""))})
+            person: Person = {"name": name, "role": clean_value(str(entry.get("role") or ""))}
+            thumbnail = common.picture(entry, ("thumbnail",))
+            if thumbnail:
+                person["thumbnail"] = _portrait(thumbnail)
+            cast.append(person)
     return cast
 
 

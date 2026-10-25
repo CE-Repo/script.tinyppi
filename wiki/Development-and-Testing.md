@@ -159,8 +159,8 @@ the CI actions up to date.
 | `web/dashboard.test.mjs` | The dashboard's frame: tabs and the bar, the settings tab, idle and playing cards, detail groups, VS10 switching and its lock, the library reads a snapshot sets off, the report |
 | `web/start.test.mjs` | Starting the page: the first tab, the stream, the words before and after `/api/hello` (also an error answer) |
 | `web/marking.test.mjs` | What a press on a film, show or episode asks and what each answer sends, the lists read again afterwards, failures and the token dialog |
-| `unit/test_library_details.py` | One title's details: films, series and episodes, the cast in billing order and cut, the age rating, the formats, unknown kinds and ids |
-| `web/shelves.test.mjs` | The order and the filters over the film and series walls (what each offers, titles without a value last, choices let go), the next-up row and the details view |
+| `unit/test_library_details.py` | One title's details: films, series and episodes, the cast in billing order, optional portrait tags and bounded path lookup, the age rating, the formats, unknown kinds and ids |
+| `web/shelves.test.mjs` | The order and the filters over the film and series walls (what each offers, titles without a value last, choices let go), the next-up row and the details view, actors before crew |
 | `web/films.test.mjs` | The film wall, its rows and search, when the list is read again (a move during a read, a failed read after one), starting a film and the wall waiting on it |
 | `web/series.test.mjs` | The series shelf, an opened show with its seasons, the way back (search included), the open show read again (also after a move during a read or while it opens), starting an episode |
 | `web/continue.test.mjs` | The continue-watching rows, when they are read again, resuming a title |
@@ -168,7 +168,7 @@ the CI actions up to date.
 | `web/metadata.test.mjs` | The Dolby Vision metadata tab: the idle and L5 cards, blocks and trim tables, readings lit when they move, the report |
 | `web/theme.test.mjs` | The themes and the tint strength: before the first paint (the bar color too), the choice on the settings tab, what a press keeps |
 | `web/cover-tint.test.mjs` | The adaptive theme's poster tint (canvas and images faked): the color a poster gives, where it is painted, contrast, one read per poster, a reused `<img>` |
-| `browser/dashboard.test.mjs` | The dashboard in Chromium against the real server with Kodi faked (`browser/serve.py`), reading behind the token: the stream on its session cookie, no token in any address, the format badges, the film wall and its search, the question a press asks and what marking sends, cancelling, a show's seasons, the history's wording, every tab, no script errors |
+| `browser/dashboard.test.mjs` | The dashboard in Chromium against the real server with Kodi faked (`browser/serve.py`), reading behind the token: the stream on its session cookie, no token in any address, the format badges, the film wall and its search, the question a press asks and what marking sends, cancelling, a show's seasons, the history's wording, every tab, loaded cast portraits, content-sized cards and text centred below the pictures on phone and desktop, no script errors |
 
 The `conftest.py` fixture resets the stubs' settings, properties, InfoLabels,
 conditions, log and JSON-RPC handler before every test.
