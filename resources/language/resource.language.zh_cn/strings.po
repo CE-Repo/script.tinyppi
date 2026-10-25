@@ -1603,29 +1603,9 @@ msgctxt "#32405"
 msgid "Next up"
 msgstr "接下来"
 
-msgctxt "#32406"
-msgid "Details"
-msgstr "详情"
-
-msgctxt "#32407"
-msgid "Writer"
-msgstr "编剧"
-
-msgctxt "#32408"
-msgid "Studio"
-msgstr "制片公司"
-
-msgctxt "#32409"
-msgid "The details could not be read."
-msgstr "无法读取详情。"
-
 msgctxt "#32410"
 msgid "Genre"
 msgstr "类型"
-
-msgctxt "#32411"
-msgid "Close"
-msgstr "关闭"
 
 msgctxt "#32412"
 msgid "No titles match the filter"

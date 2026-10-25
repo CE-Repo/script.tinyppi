@@ -68,11 +68,7 @@ const el = {
   markDialog: $("markDialog"), markTitle: $("markTitle"), markPlay: $("markPlay"),
   markRestart: $("markRestart"), markClear: $("markClear"),
   markWatched: $("markWatched"), markUnwatched: $("markUnwatched"),
-  markCancel: $("markCancel"), markDetails: $("markDetails"),
-  detailsDialog: $("detailsDialog"), detailsTitle: $("detailsTitle"),
-  detailsMeta: $("detailsMeta"), detailsFormats: $("detailsFormats"),
-  detailsTagline: $("detailsTagline"), detailsPlot: $("detailsPlot"),
-  detailsFacts: $("detailsFacts"), detailsClose: $("detailsClose")
+  markCancel: $("markCancel")
 };
 
 /* Keep VS10 by the playback card, under the plot that is the first card

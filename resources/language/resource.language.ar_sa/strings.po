@@ -1603,29 +1603,9 @@ msgctxt "#32405"
 msgid "Next up"
 msgstr "التالي"
 
-msgctxt "#32406"
-msgid "Details"
-msgstr "التفاصيل"
-
-msgctxt "#32407"
-msgid "Writer"
-msgstr "الكاتب"
-
-msgctxt "#32408"
-msgid "Studio"
-msgstr "الاستوديو"
-
-msgctxt "#32409"
-msgid "The details could not be read."
-msgstr "تعذّرت قراءة التفاصيل."
-
 msgctxt "#32410"
 msgid "Genre"
 msgstr "النوع"
-
-msgctxt "#32411"
-msgid "Close"
-msgstr "إغلاق"
 
 msgctxt "#32412"
 msgid "No titles match the filter"

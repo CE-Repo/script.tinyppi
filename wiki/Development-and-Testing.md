@@ -148,8 +148,7 @@ the CI actions up to date.
 | `web/dashboard.test.mjs` | The dashboard's frame: tabs and the bar, the settings tab, idle and playing cards, detail groups, VS10 switching and its lock, the library reads a snapshot sets off, the report |
 | `web/start.test.mjs` | Starting the page: the first tab, the stream, the words before and after `/api/hello` (also an error answer) |
 | `web/marking.test.mjs` | What a press on a film, show or episode asks and what each answer sends, the lists read again afterwards, failures and the token dialog |
-| `unit/test_library_details.py` | One title's details: films, series and episodes, the cast in billing order and cut, the age rating, the formats, unknown kinds and ids |
-| `web/shelves.test.mjs` | The order and the filters over the film and series walls (what each offers, titles without a value last, choices let go), the next-up row and the details view |
+| `web/shelves.test.mjs` | The order and the filters over the film and series walls (what each offers, titles without a value last, choices let go) and the next-up row |
 | `web/films.test.mjs` | The film wall, its rows and search, when the list is read again (a move during a read, a failed read after one), starting a film and the wall waiting on it |
 | `web/series.test.mjs` | The series shelf, an opened show with its seasons, the way back (search included), the open show read again (also after a move during a read or while it opens), starting an episode |
 | `web/continue.test.mjs` | The continue-watching rows, when they are read again, resuming a title |

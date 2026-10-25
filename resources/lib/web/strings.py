@@ -162,14 +162,9 @@ _UI_STRINGS = {
     "filter_resolution": 32403,
     "filter_audio":     32404,
     "filter_empty":     32412,
-    # The next-up row and a title's details.
+    # The next-up row, and what the genre filter is called.
     "next_up":          32405,
-    "details":          32406,
-    "writer":           32407,
-    "studio":           32408,
-    "details_failed":   32409,
     "genre":            32410,
-    "close":            32411,
 }
 
 

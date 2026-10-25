@@ -1603,28 +1603,8 @@ msgctxt "#32405"
 msgid "Next up"
 msgstr ""
 
-msgctxt "#32406"
-msgid "Details"
-msgstr ""
-
-msgctxt "#32407"
-msgid "Writer"
-msgstr ""
-
-msgctxt "#32408"
-msgid "Studio"
-msgstr ""
-
-msgctxt "#32409"
-msgid "The details could not be read."
-msgstr ""
-
 msgctxt "#32410"
 msgid "Genre"
-msgstr ""
-
-msgctxt "#32411"
-msgid "Close"
 msgstr ""
 
 msgctxt "#32412"

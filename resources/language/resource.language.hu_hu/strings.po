@@ -1603,29 +1603,9 @@ msgctxt "#32405"
 msgid "Next up"
 msgstr "Következik"
 
-msgctxt "#32406"
-msgid "Details"
-msgstr "Részletek"
-
-msgctxt "#32407"
-msgid "Writer"
-msgstr "Forgatókönyv"
-
-msgctxt "#32408"
-msgid "Studio"
-msgstr "Stúdió"
-
-msgctxt "#32409"
-msgid "The details could not be read."
-msgstr "A részleteket nem sikerült beolvasni."
-
 msgctxt "#32410"
 msgid "Genre"
 msgstr "Műfaj"
-
-msgctxt "#32411"
-msgid "Close"
-msgstr "Bezárás"
 
 msgctxt "#32412"
 msgid "No titles match the filter"

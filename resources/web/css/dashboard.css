@@ -805,24 +805,3 @@
   overflow-wrap: anywhere;
 }
 
-/* --- A title's details ------------------------------------------------------ */
-
-/* Text to read rather than keys to press, so it scrolls inside the dialog
-   when a plot and a cast are longer than the screen, with the close key kept
-   in reach at the bottom. */
-#detailsDialog form { max-height: min(80vh, 720px); overflow-y: auto; }
-#detailsTitle { overflow-wrap: anywhere; }
-.detailsmeta:empty, .detailstagline:empty, .detailsplot:empty,
-.detailsformats:empty, .detailsfacts:empty { display: none; }
-.detailsformats { display: flex; flex-wrap: wrap; gap: 6px; }
-.detailstagline { font-style: italic; }
-dialog p.detailsplot { color: var(--text); white-space: pre-line; line-height: 1.5; }
-.detailsfacts {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 6px 12px;
-  margin: 0;
-  font-size: 13px;
-}
-.detailsfacts dt { color: var(--dim); font-weight: 700; }
-.detailsfacts dd { margin: 0; overflow-wrap: anywhere; }
