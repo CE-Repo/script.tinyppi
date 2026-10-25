@@ -147,6 +147,31 @@
   --accent-2: rgb(var(--cover-accent-rgb));
 }
 
+/* Every colour that is drawn from the accent follows it, as the app moves
+   all of its accent roles at once: what is written on the accent, the
+   tonal ground a badge, a chosen chip, a cast card's initial and the
+   heading's tick wear, and what is written on that.  Left at the theme's
+   blue, those were the one cold thing on a card the film had coloured.
+   The tonal ground is the raised surface taken a little way to the accent,
+   and what is written on it the accent taken nearly to white, so the hue
+   stays the film's at both ends. */
+:root[data-theme="dark-adaptive"] .card,
+:root[data-theme="dark-adaptive"] .topbar,
+:root[data-theme="dark-adaptive"] .tabbar,
+:root[data-theme="dark-adaptive"] #detailsDialog.tinted {
+  --on-accent: color-mix(in srgb, rgb(var(--cover-accent-rgb)) 18%, #000);
+  --tonal:     color-mix(in srgb, rgb(var(--cover-accent-rgb)) 26%, var(--panel-3));
+  --on-tonal:  color-mix(in srgb, rgb(var(--cover-accent-rgb)) 38%, #fff);
+}
+
+/* A title's details page wears that title's colour, not what is playing:
+   js/marking.js reads it off the title's own picture and marks the page
+   tinted once it has one (see tintDetails). */
+:root[data-theme="dark-adaptive"] #detailsDialog.tinted {
+  --accent:   rgb(var(--cover-accent-rgb));
+  --accent-2: rgb(var(--cover-accent-rgb));
+}
+
 /* The tab bar at the foot of the page is a mark the same way a badge on a
    card is -- the tab in front wears the accent -- so it answers to the film
    too.  It is a sibling of <main> and inherits none of its tint, so

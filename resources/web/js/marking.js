@@ -164,8 +164,9 @@ async function showDetails(question) {
   el.detailsRatings.replaceChildren(...TinyPPI.panels.shields(found));
   el.detailsTagline.textContent = found.tagline || "";
   el.detailsPlot.textContent = found.plot || "";
-  el.detailsFacts.replaceChildren(...facts(found));
-  el.detailsCast.replaceChildren(...castNodes(found));
+  el.detailsFacts.replaceChildren(...TinyPPI.panels.facts(found));
+  el.detailsCast.replaceChildren(...TinyPPI.panels.cast(found));
+  tintDetails();
   /* The question's first answers, offered on the page too. */
   el.detailsPlay.textContent = question.play;
   el.detailsRestart.hidden = !question.resumable;
@@ -175,6 +176,25 @@ async function showDetails(question) {
   el.detailsDialog.querySelector("form").scrollTop = 0;
 }
 
+/* On the adaptive theme the page takes its accent from the title's own
+   picture -- its poster, or an episode's still -- rather than from what is
+   playing (see accent in js/cover-tint.js); a title without a colour wears
+   the theme's own. */
+function tintDetails() {
+  const dialog = el.detailsDialog;
+  dialog.classList.remove("tinted");
+  dialog.style.removeProperty("--cover-accent-rgb");
+  const picture = [el.detailsPoster, el.detailsBackdrop].find((image) => !image.hidden);
+  const cover = window.TinyPPICover;
+  if (!picture || !cover) return;
+  const url = picture.getAttribute("src");
+  cover.accent(url, picture).then((rgb) => {
+    if (!rgb || picture.getAttribute("src") !== url) return;
+    dialog.style.setProperty("--cover-accent-rgb", rgb.join(", "));
+    dialog.classList.add("tinted");
+  });
+}
+
 el.detailsDialog.addEventListener("close", () => {
   const answer = el.detailsDialog.returnValue;
   const question = detailing;
@@ -182,52 +202,3 @@ el.detailsDialog.addEventListener("close", () => {
   if (answer === "play") question.onPlay(false);
   else if (answer === "restart") question.onPlay(true);
 });
-
-/* The rows under the plot, each a heading and its names, left out where the
-   library has nothing for it. */
-function facts(found) {
-  const rows = [
-    [T.genre, found.genres], [T.director, found.directors], [T.writer, found.writers],
-    [T.studio, found.studios]
-  ];
-  const nodes = [];
-  for (const [heading, names] of rows) {
-    if (!names || !names.length) continue;
-    const term = document.createElement("dt");
-    term.textContent = heading;
-    const value = document.createElement("dd");
-    value.textContent = names.join(", ");
-    nodes.push(term, value);
-  }
-  return nodes;
-}
-
-/* The cast, under its heading: each a card of the name and, quieter under
-   it, who they played; an ellipsis where the library holds more. */
-function castNodes(found) {
-  const cast = found.cast || [];
-  if (!cast.length) return [];
-  const heading = document.createElement("li");
-  heading.className = "detailscasthead";
-  heading.textContent = T.cast;
-  const nodes = [heading];
-  for (const person of cast) {
-    const item = document.createElement("li");
-    const name = document.createElement("strong");
-    name.textContent = person.name;
-    item.append(name);
-    if (person.role) {
-      const role = document.createElement("span");
-      role.textContent = person.role;
-      item.append(role);
-    }
-    nodes.push(item);
-  }
-  if (found.cast_more) {
-    const more = document.createElement("li");
-    more.className = "more";
-    more.textContent = "\u2026";
-    nodes.push(more);
-  }
-  return nodes;
-}

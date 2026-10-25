@@ -209,125 +209,6 @@ test("who directed it is not in the card of what is playing", (t) => {
   assert.ok($("credits").textContent.includes("Denis Villeneuve"));
 });
 
-test("a long plot is cut to a few lines, and a press on it lets the rest out", (t) => {
-  const { $, P, window } = panels(t);
-  // A resize is measured once the burst of them has settled.
-  const timers = heldTimers(window);
-  const resize = () => {
-    window.dispatchEvent(new window.Event("resize"));
-    timers.run();
-  };
-  // jsdom lays nothing out: the plot is given the heights a browser would.
-  const box = { full: 200, shown: 87 };
-  // The plot is measured; the slogan, the plot and the credits fold as one.
-  const text = $("plotText");
-  const plot = $("plotFold");
-  Object.defineProperty(text, "scrollHeight", { configurable: true, get: () => box.full });
-  Object.defineProperty(text, "clientHeight", { configurable: true, get: () => box.shown });
-  assert.deepEqual([...plot.children].map((node) => node.id),
-                   ["tagline", "plotText", "credits"]);
-  const key = (name) => {
-    const event = new window.KeyboardEvent("keydown", { key: name, cancelable: true });
-    plot.dispatchEvent(event);
-    return event.defaultPrevented;
-  };
-  P.update(snap({ media: { plot: "A long plot." } }));
-  // Cut, and pressable: a button to a screen reader, saying there is more.
-  assert.equal($("plotMore"), null, "no button of its own");
-  assert.equal(plot.classList.contains("open"), false);
-  assert.ok(plot.classList.contains("fold"));
-  assert.equal(plot.getAttribute("role"), "button");
-  assert.equal(plot.tabIndex, 0);
-  assert.equal(plot.getAttribute("aria-expanded"), "false");
-  assert.equal(plot.title, "Show more");
-
-  // Let out, and taken back: a click, or Enter or Space.
-  plot.click();
-  assert.ok(plot.classList.contains("open"));
-  assert.equal(plot.getAttribute("aria-expanded"), "true");
-  assert.equal(plot.title, "Show less");
-  assert.equal(key("Enter"), true);
-  assert.equal(plot.classList.contains("open"), false);
-  assert.equal(key(" "), true);
-  assert.ok(plot.classList.contains("open"));
-  // Any other key is not a press.
-  assert.equal(key("a"), false);
-  assert.ok(plot.classList.contains("open"));
-  // Measuring an open plot leaves it be.
-  box.full = box.shown;
-  resize();
-  assert.ok(plot.classList.contains("fold"));
-  plot.click();
-  assert.equal(plot.classList.contains("open"), false);
-  assert.equal(plot.title, "Show more");
-
-  // The words arrive later, and the plot says them.
-  Object.assign(window.TinyPPI.T, { plot_more: "Mehr anzeigen", plot_less: "Weniger anzeigen" });
-  P.strings(window.TinyPPI.T);
-  assert.equal(plot.title, "Mehr anzeigen");
-
-  // Wide enough for all of it -- after a resize, or once the card opens --
-  // and there is nothing to press; narrower again, and there is.
-  resize();
-  assert.equal(plot.classList.contains("fold"), false);
-  for (const name of ["role", "tabindex", "aria-expanded", "title"]) assert.equal(plot.hasAttribute(name), false);
-  plot.click();
-  key("Enter");
-  assert.equal(plot.classList.contains("open"), false, "a plot that fits does not fold");
-  box.full = 200;
-  $("plotCard").dispatchEvent(new window.Event("toggle"));
-  assert.ok(plot.classList.contains("fold"));
-
-  // A new plot starts cut, even after the last was let out.
-  plot.click();
-  P.update(snap({ media: { plot: "Another long plot." } }));
-  assert.equal(plot.classList.contains("open"), false);
-  assert.equal(plot.title, "Mehr anzeigen");
-  // The same plot again leaves it as it is.
-  plot.click();
-  P.update(snap({ media: { plot: "Another long plot." } }));
-  assert.ok(plot.classList.contains("open"));
-  // Another title with the same plot -- the next episode, the same film
-  // again under another name -- starts folded all the same.
-  P.update(snap({ title: "Another title", media: { plot: "Another long plot." } }));
-  assert.equal(plot.classList.contains("open"), false);
-  plot.click();
-
-  // A short one is nothing to press.
-  box.full = 40;
-  box.shown = 40;
-  P.update(snap({ media: { plot: "Short." } }));
-  assert.equal(plot.classList.contains("fold"), false);
-
-  // But a short one with credits under it folds them away: the rest is
-  // what a press lets out, and another takes back.
-  P.update(snap({ media: { plot: "Short and cast.", cast: ["Somebody"] } }));
-  assert.ok(plot.classList.contains("fold"));
-  assert.equal(plot.classList.contains("open"), false);
-  assert.equal(plot.getAttribute("aria-expanded"), "false");
-  plot.click();
-  assert.ok(plot.classList.contains("open"));
-  plot.click();
-  assert.equal(plot.classList.contains("open"), false);
-  // Ratings stand outside the fold and fold nothing: a short plot with them
-  // is still nothing to press.
-  P.update(snap({ media: { plot: "Short and rated." } }));
-  assert.equal(plot.classList.contains("fold"), false);
-  P.update(snap({ media: { plot: "Short and rated.", ratings: [{ source: "imdb", rating: 7.1, votes: 0 }] } }));
-  assert.equal(plot.classList.contains("fold"), false);
-  // Credits that arrive later under it fold, and an open one stays open
-  // as more come.
-  P.update(snap({ media: { plot: "Short and rated.", cast: ["Somebody"] } }));
-  assert.ok(plot.classList.contains("fold"));
-  plot.click();
-  P.update(snap({ media: { plot: "Short and rated.", cast: ["Somebody", "Somebody else"] } }));
-  assert.ok(plot.classList.contains("open"));
-  // Without a plot there is nothing to fold them under.
-  P.update(snap({ media: { cast: ["Somebody"] } }));
-  assert.equal(plot.classList.contains("fold"), false);
-  assert.equal(plot.classList.contains("open"), false);
-});
-
 test("a frame that moved nothing of the title does not draw the overview again", (t) => {
   const { $, P } = panels(t);
   const media = { plot: "Paul joins the Fremen.", directors: ["Denis Villeneuve"] };
@@ -338,8 +219,8 @@ test("a frame that moved nothing of the title does not draw the overview again",
   P.update(snap({ media }));
   assert.equal($("plotText").textContent, "drawn over", "nothing was written");
   assert.equal($("credits").firstElementChild, credits);
-  // The same media under another title is drawn again.
-  P.update(snap({ media, title: "Dune: Part Three" }));
+  // Other media is drawn again.
+  P.update(snap({ media: { ...media } }));
   assert.equal($("plotText").textContent, "Paul joins the Fremen.");
 });
 
@@ -413,15 +294,16 @@ test("the overview card carries every rating as a shield with its mark, under th
   P.update(snap({ media: rated }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
   assert.equal($("ratings").classList.contains("hidden"), false);
-  // Last, under the slogan, the plot and its credits, and never folded
-  // away with them.
-  assert.equal($("plotFold").nextElementSibling, $("ratings"));
+  // First, as on a title's details page: then the slogan, the plot, the
+  // facts and the cast.
+  assert.equal($("ratings").previousElementSibling, null);
   assert.equal($("ratings").nextElementSibling, $("ratingTip"));
-  assert.equal($("ratingTip").nextElementSibling, null);
+  assert.equal($("ratingTip").nextElementSibling, $("tagline"));
   // No heading on the screen; named for a screen reader.
   assert.equal($("ratings").getAttribute("aria-label"), "Ratings");
-  assert.equal($("plotText").nextElementSibling, $("credits"));
   assert.equal($("tagline").nextElementSibling, $("plotText"));
+  assert.equal($("plotText").nextElementSibling, $("credits"));
+  assert.equal($("credits").nextElementSibling, $("castBlock"));
   assert.deepEqual(plain(badges()), [
     ["rating age", "FSK 12", "side fsk12 plate /ratings/fsk12.svg", [["value", "12"]]],
     // How many voted is not shown, nor said.
@@ -568,7 +450,7 @@ test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   // A tap on the mark itself is a tap on its shield, and the shield's alone:
   // the plot over them does not hear it.
   let pressed = 0;
-  $("plotFold").addEventListener("click", () => { pressed += 1; });
+  $("plotText").addEventListener("click", () => { pressed += 1; });
   trakt.querySelector("img").click();
   assert.equal(pressed, 0);
   assert.equal(tip.classList.contains("hidden"), false);
@@ -588,57 +470,71 @@ test("a tap on a rating's shield shows its words over it for a moment", (t) => {
   assert.equal(pressed, 0);
 });
 
-test("the overview's credits: the directors over the cast, a line each, over the ratings", (t) => {
+test("the overview's facts and cast are drawn as a title's details page draws them", (t) => {
   const { $, P, window } = panels(t);
-  const lines = () => [...$("credits").children].map((line) =>
-    [line.className, ...[...line.children].map((part) => part.tagName + " " + part.textContent)]);
+  const facts = () => [...$("credits").children].map((fact) =>
+    [fact.className, ...[...fact.children].map((part) => part.tagName + " " + part.textContent)]);
+  const cards = () => [...$("castBlock").querySelectorAll("li")].map((card) =>
+    [card.className, ...[...card.children].map((part) => part.className + ":" + part.textContent)]);
   const credited = {
     plot: "Paul joins the Fremen.", ratings: [{ source: "imdb", rating: 8.5, votes: 0 }],
-    genres: ["Science Fiction"], directors: ["Denis Villeneuve"],
-    cast: ["Timothée Chalamet", "Zendaya", "Rebecca Ferguson", "Javier Bardem", "Josh Brolin"],
-    cast_more: true, studios: ["Legendary Pictures"]
+    genres: ["Science Fiction", "Adventure"], directors: ["Denis Villeneuve"],
+    writers: ["Jon Spaihts"], cast: ["Timothée Chalamet", "Zendaya", "Rebecca Ferguson"],
+    roles: ["Paul Atreides", "Chani"], cast_more: true, studios: ["Legendary Pictures"]
   };
   P.update(snap({ media: credited }));
-  // On the plot's end, over the ratings: the director, then the cast, cut
-  // with an ellipsis where an older add-on said there are more.  The genre and the
-  // studio are the card above's.
-  assert.equal($("credits").nextElementSibling, null);
+  // Each fact its name over the names; every genre, director and writer,
+  // and the studio.
   assert.equal($("credits").classList.contains("hidden"), false);
-  assert.deepEqual(lines(), [
-    ["credit", "DT Director", "DD Denis Villeneuve"],
-    ["credit", "DT Cast", "DD Timothée Chalamet, Zendaya, Rebecca Ferguson, Javier Bardem, Josh Brolin, …"]]);
+  assert.deepEqual(facts(), [
+    ["fact", "DT Genre", "DD Science Fiction, Adventure"],
+    ["fact", "DT Director", "DD Denis Villeneuve"],
+    ["fact", "DT Writer", "DD Jon Spaihts"],
+    ["fact", "DT Studio", "DD Legendary Pictures"]]);
+  // The cast under its heading as a row of cards: the initial, the name and
+  // who they played -- an empty line where the library names no role -- and
+  // an ellipsis where the add-on said there are more.
+  assert.equal($("castBlock").querySelector(".casthead").textContent, "Cast");
+  assert.deepEqual(cards(), [
+    ["", "initial:T", ":Timothée Chalamet", "role:Paul Atreides"],
+    ["", "initial:Z", ":Zendaya", "role:Chani"],
+    ["", "initial:R", ":Rebecca Ferguson", "role:"],
+    ["more"]]);
+  assert.equal($("castBlock").querySelector(".initial").getAttribute("aria-hidden"), "true");
 
   // The same credits again are not built again.
   const first = $("credits").firstChild;
   P.update(snap({ media: { ...credited } }));
   assert.equal($("credits").firstChild, first);
 
-  // The words arrive later, into the page's table, and the lines are named
-  // in them.
+  // The words arrive later, into the page's table, and the facts and the
+  // cast are named in them.
   Object.assign(window.TinyPPI.T, { director: "Regisseur", cast: "Darsteller" });
   P.strings(window.TinyPPI.T);
-  assert.deepEqual(lines().map((line) => line[1]), ["DT Regisseur", "DT Darsteller"]);
+  assert.equal(facts()[1][1], "DT Regisseur");
+  assert.equal($("castBlock").querySelector(".casthead").textContent, "Darsteller");
 
-  // A cast the add-on did not cut ends without one.  A studio alone is no
-  // credit; a director is one, every one of them named.
-  P.update(snap({ media: { plot: "Plot.", cast: ["Somebody", "Somebody Else"] } }));
-  assert.deepEqual(lines(), [["credit", "DT Darsteller", "DD Somebody, Somebody Else"]]);
-  P.update(snap({ media: { studios: ["A24"] } }));
+  // An add-on older than the list of genres and the roles: the card above's
+  // two, and nobody's role.
+  P.update(snap({ media: { plot: "Plot.", genre: "Drama / Crime", cast: ["Somebody"] } }));
+  assert.deepEqual(facts(), [["fact", "DT Genre", "DD Drama, Crime"]]);
+  assert.deepEqual(cards(), [["", "initial:S", ":Somebody", "role:"]]);
+  // What kind of film and its studio alone are no overview; somebody
+  // credited is one.
+  P.update(snap({ media: { studios: ["A24"], genres: ["Drama"] } }));
   assert.ok($("plotCard").classList.contains("hidden"));
-  P.update(snap({ media: { directors: ["Joel Coen", "Ethan Coen"] } }));
+  P.update(snap({ media: { writers: ["Joel Coen", "Ethan Coen"] } }));
   assert.equal($("plotCard").classList.contains("hidden"), false);
-  assert.deepEqual(lines(), [["credit", "DT Regisseur", "DD Joel Coen, Ethan Coen"]]);
-
-  // Credits alone are still an overview.
-  P.update(snap({ media: { cast: ["Somebody"] } }));
-  assert.equal($("plotCard").classList.contains("hidden"), false);
+  assert.deepEqual(facts(), [["fact", "DT Writer", "DD Joel Coen, Ethan Coen"]]);
+  assert.ok($("castBlock").classList.contains("hidden"));
   assert.ok($("plotText").classList.contains("hidden"));
   assert.ok($("ratings").classList.contains("hidden"));
 
-  // None at all: no lines.
-  P.update(snap({ media: { plot: "An episode.", genres: ["Drama"] } }));
+  // None at all: no facts and no cast.
+  P.update(snap({ media: { plot: "An episode." } }));
   assert.ok($("credits").classList.contains("hidden"));
   assert.equal($("credits").children.length, 0);
+  assert.equal($("castBlock").children.length, 0);
 });
 
 test("the finish clock shows as it arrived and takes its label from the strings", (t) => {

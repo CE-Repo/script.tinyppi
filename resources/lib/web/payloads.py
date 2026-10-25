@@ -151,11 +151,15 @@ class Award(TypedDict):
 
 class Credits(TypedDict):
     """Who made the playing title, as Kodi orders them (see
-    web.values.name_list): every director, the first studio alone, and the
-    cast's first twenty with whether there are more."""
+    web.values.name_list): every genre, director and writer, the first
+    studio alone, and the cast's first twenty with whether there are more and
+    who each played ("" for a role the library does not know)."""
 
+    genres: list[str]
     directors: list[str]
+    writers: list[str]
     cast: list[str]
+    roles: list[str]
     cast_more: bool
     studios: list[str]
 
@@ -201,8 +205,11 @@ class Media(TypedDict):
     top250: int
     awards: list[Award]
     # And who made it (see Credits).
+    genres: list[str]
     directors: list[str]
+    writers: list[str]
     cast: list[str]
+    roles: list[str]
     cast_more: bool
     studios: list[str]
 

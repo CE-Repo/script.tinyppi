@@ -94,29 +94,25 @@
       '</div>' +
     '</section>' +
     /* What the title is about, who is in it and what it has been given,
-       under the card of what is playing: the slogan, the plot and, under
-       them, the cast and the ratings, as the library has them. */
+       under the card of what is playing -- drawn as a title's details page
+       draws them (see showDetails in js/marking.js): the ratings, the
+       slogan and the plot, what kind of film it is and who made it, and the
+       cast as a row of cards. */
     '<details class="card hidden" id="plotCard">' +
       '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
       '<div class="plot">' +
-        /* The slogan, the plot and its credits read as one text.  It
-           starts folded -- the plot cut to a few lines, the credits
-           hidden -- and a press on the text lets it all out and takes it
-           back. */
-        '<div class="plotfold" id="plotFold">' +
-          '<p class="tagline hidden" id="tagline"></p>' +
-          '<p class="plottext hidden" id="plotText"></p>' +
-          '<dl class="credits hidden" id="credits"></dl>' +
-        '</div>' +
-        /* The ratings last, past a thin rule, and never folded away:
-           short facts about the film, taken in at a glance.  No heading on
-           the screen -- the houses' marks say what they are -- but one for
-           a screen reader (see strings). */
+        /* The ratings first: short facts about the film, taken in at a
+           glance.  No heading on the screen -- the houses' marks say what
+           they are -- but one for a screen reader (see strings). */
         '<div class="ratings hidden" id="ratings" role="list"></div>' +
         /* What a shield says, over it for a moment after a tap: the house
            a mark is from, which a mark alone does not always tell.  A
            screen reader hears each shield's words already. */
         '<span class="ratingtip hidden" id="ratingTip" aria-hidden="true"></span>' +
+        '<p class="tagline hidden" id="tagline"></p>' +
+        '<p class="plottext hidden" id="plotText"></p>' +
+        '<dl class="facts hidden" id="credits"></dl>' +
+        '<div class="castblock hidden" id="castBlock"></div>' +
       '</div>' +
     '</details>' +
     '<details class="card hidden" id="tiles">' +
@@ -174,7 +170,7 @@
     meta: $("meta"), studio: $("studio"), file: $("file"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
     plotCard: $("plotCard"), ratings: $("ratings"), ratingTip: $("ratingTip"), tagline: $("tagline"),
-    plotFold: $("plotFold"), plotText: $("plotText"), credits: $("credits"),
+    plotText: $("plotText"), credits: $("credits"), castBlock: $("castBlock"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
     tFinish: $("tFinish"), tFinishLabel: $("tFinishLabel"),
@@ -239,7 +235,7 @@
     renderBadges(snapshot);
     renderFormats(snapshot);
     /* Which title this is, for the overview to start folded on a new one. */
-    renderPlot(media, [snapshot.title, media.year, media.season, media.episode].join("|"));
+    renderPlot(media);
 
     const progress = (snapshot.metrics || {}).progress;
     const percent = (progress === null || progress === undefined) ? 0 : progress;
@@ -278,21 +274,18 @@
   }
 
   /* The card is there for the plot, the ratings and the credits: with none
-     of them it is left out.  The slogan belongs to the plot and goes without it -- a slogan on
-     its own says too little to be worth a card -- and with a plot it is left
-     out where the library has none, which is most episodes.  Written only
-     when the words change: they stand still for the whole title, and a plot
-     is the longest text on the page. */
-  let plotTitle = null;
-  function renderPlot(media, title) {
+     of them it is left out.  The slogan belongs to the plot and goes without
+     it -- a slogan on its own says too little to be worth a card -- and with
+     a plot it is left out where the library has none, which is most
+     episodes.  Written only when the words change: they stand still for the
+     whole title, and a plot is the longest text on the page. */
+  function renderPlot(media) {
     /* A frame that moved nothing of the title carries the very object the
        last one did (see merge in core.js): there is nothing to draw again. */
-    if (media === plotMedia && title === plotTitle) return;
+    if (media === plotMedia) return;
     plotMedia = media;
     const plot = (media.plot || "").trim();
     const tagline = plot ? (media.tagline || "").trim() : "";
-    const fresh = el.plotText.textContent !== plot || title !== plotTitle;
-    plotTitle = title;
     for (const [node, text] of [[el.tagline, tagline], [el.plotText, plot]]) {
       if (node.textContent !== text) node.textContent = text;
       node.classList.toggle("hidden", !text);
@@ -300,110 +293,98 @@
     const badges = ratingBadges(media, TinyPPI.T);
     fillRatings(badges);
     el.ratings.setAttribute("aria-label", TinyPPI.T.ratings);
-    const credits = creditList(media, TinyPPI.T);
-    fillCredits(credits);
-    el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credits.length);
-    /* A new title, or a new plot, starts folded again, and is measured once
-       it is laid out; credits that arrive later fold under it as they
-       come. */
-    if (fresh) {
-      openPlot(false);
-      measurePlot();
-    } else {
-      foldPlot();
+    const credited = fillCredits(media, TinyPPI.T);
+    el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credited);
+  }
+
+  /* The playing title's credits as a details page holds them: every
+     genre (or the card above's two, from an add-on older than the list),
+     director, writer and studio, and the cast with who each played. */
+  function playingCredits(media) {
+    const genres = media.genres || (media.genre || "").split(" / ").filter(Boolean);
+    const roles = media.roles || [];
+    return {
+      genres, directors: media.directors, writers: media.writers, studios: media.studios,
+      cast: (media.cast || []).map((name, index) => ({ name, role: roles[index] || "" })),
+      cast_more: media.cast_more
+    };
+  }
+
+  /* The facts and the cast under the plot, built again only when they
+     would say something else; answers whether anybody is credited -- what
+     kind of film it is and its studio alone are no reason for the card. */
+  function fillCredits(media, T) {
+    const credits = playingCredits(media);
+    const signature = JSON.stringify([credits, T.genre, T.director, T.writer, T.studio, T.cast]);
+    if (el.credits.dataset.signature !== signature) {
+      el.credits.dataset.signature = signature;
+      el.credits.replaceChildren(...factNodes(credits, T));
+      el.castBlock.replaceChildren(...castParts(credits, T));
     }
+    el.credits.classList.toggle("hidden", !el.credits.children.length);
+    el.castBlock.classList.toggle("hidden", !el.castBlock.children.length);
+    return [credits.directors, credits.writers, credits.cast].some((names) => names && names.length);
   }
 
-  /* A plot is folded to a few lines (see .plot .plottext), its credits
-     hidden under it, and a press on the text -- a click, a tap, or Enter
-     or Space once it has the focus -- lets all of it out and takes it
-     back.  It folds wherever there is more than those lines to show: a
-     plot that runs past them, or credits under it.  How
-     many lines a plot takes is a matter of how wide it is laid out, so it
-     is measured when the plot changes, when the card is opened and once a
-     burst of resizes has settled (with the charts, below).  Pressable, it is a button to a screen reader, and
-     says under a pointer what a press does. */
-  let plotCut = false;
+  /* --- a title's facts and cast ----------------------------------------
 
-  function openPlot(open) {
-    el.plotFold.classList.toggle("open", open);
-    if (el.plotFold.classList.contains("fold")) {
-      el.plotFold.setAttribute("aria-expanded", String(open));
-      el.plotFold.title = open ? TinyPPI.T.plot_less : TinyPPI.T.plot_more;
+     Drawn alike on the overview card and on a title's details page (see
+     showDetails in js/marking.js), as the app draws both: each fact its
+     name, quieter and small, over the names; and the cast under its
+     heading as a row of cards -- the initial in a circle, the name on two
+     lines and who they played on one, held open where they are not
+     filled so every card stands the same height -- with an ellipsis where
+     the library holds more. */
+
+  function factNodes(credits, T) {
+    const rows = [
+      [T.genre, credits.genres], [T.director, credits.directors],
+      [T.writer, credits.writers], [T.studio, credits.studios]
+    ];
+    const nodes = [];
+    for (const [heading, names] of rows) {
+      if (!names || !names.length) continue;
+      const fact = document.createElement("div");
+      fact.className = "fact";
+      const term = document.createElement("dt");
+      term.textContent = heading;
+      const value = document.createElement("dd");
+      value.textContent = names.join(", ");
+      fact.append(term, value);
+      nodes.push(fact);
     }
+    return nodes;
   }
 
-  function measurePlot() {
-    if (!el.plotFold.classList.contains("open")) {
-      plotCut = el.plotText.scrollHeight > el.plotText.clientHeight + 1;
+  function castParts(credits, T) {
+    const cast = credits.cast || [];
+    if (!cast.length) return [];
+    const heading = document.createElement("h4");
+    heading.className = "casthead";
+    heading.textContent = T.cast;
+    const row = document.createElement("ul");
+    row.className = "castrow";
+    for (const person of cast) {
+      const item = document.createElement("li");
+      const initial = document.createElement("span");
+      initial.className = "initial";
+      initial.setAttribute("aria-hidden", "true");
+      initial.textContent = person.name.charAt(0).toUpperCase();
+      const name = document.createElement("strong");
+      name.textContent = person.name;
+      const role = document.createElement("span");
+      role.className = "role";
+      role.textContent = person.role || "";
+      item.append(initial, name, role);
+      row.append(item);
     }
-    foldPlot();
-  }
-
-  function foldPlot() {
-    const shown = (node) => !node.classList.contains("hidden");
-    const more = shown(el.plotText) && (plotCut || shown(el.credits));
-    el.plotFold.classList.toggle("fold", more);
-    if (more) {
-      el.plotFold.setAttribute("role", "button");
-      el.plotFold.tabIndex = 0;
-    } else {
-      el.plotFold.classList.remove("open");
-      for (const name of ["role", "tabindex", "aria-expanded", "title"]) el.plotFold.removeAttribute(name);
+    if (credits.cast_more) {
+      const more = document.createElement("li");
+      more.className = "more";
+      more.textContent = "\u2026";
+      row.append(more);
     }
-    openPlot(el.plotFold.classList.contains("open"));
-  }
-
-  function flipPlot() {
-    if (el.plotFold.classList.contains("fold")) openPlot(!el.plotFold.classList.contains("open"));
-  }
-
-  el.plotFold.addEventListener("click", flipPlot);
-  el.plotFold.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    flipPlot();
-  });
-  el.plotCard.addEventListener("toggle", measurePlot);
-
-  /* Names as a line: a comma between two, and an ellipsis after the last
-     where the add-on cut the list (the cast, past its first twenty). */
-  function nameList(names, more) {
-    return names.join(", ") + (more ? ", …" : "");
-  }
-
-  /* Who directed the title and who is in it, as the add-on sends them --
-     every director, the cast's first twenty: the overview's credits, the
-     director over the cast.  What kind of film
-     it is and who made it stand in the card above. */
-  function creditList(media, T) {
-    const directors = media.directors || [];
-    const cast = media.cast || [];
-    const credits = [];
-    if (directors.length) credits.push({ label: T.director, names: nameList(directors, false) });
-    if (cast.length) credits.push({ label: T.cast, names: nameList(cast, Boolean(media.cast_more)) });
-    return credits;
-  }
-
-  /* What it is over the names, as a description list, so a screen reader
-     says which names are whose.  Built again only when one would say
-     something else. */
-  function fillCredits(credits) {
-    const signature = JSON.stringify(credits);
-    if (el.credits.dataset.signature === signature) return;
-    el.credits.dataset.signature = signature;
-    el.credits.replaceChildren();
-    for (const credit of credits) {
-      const line = document.createElement("div");
-      line.className = "credit";
-      const label = document.createElement("dt");
-      label.textContent = credit.label;
-      const names = document.createElement("dd");
-      names.textContent = credit.names;
-      line.append(label, names);
-      el.credits.append(line);
-    }
-    el.credits.classList.toggle("hidden", !credits.length);
+    return [heading, row];
   }
 
   /* What a rating's mark is drawn from, and what a screen reader calls the
@@ -1060,7 +1041,6 @@
     resizeTimer = setTimeout(() => {
       drawCharts();
       chapters.relayout();
-      measurePlot();
     }, 120);
   });
 
@@ -1072,12 +1052,11 @@
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
     $("plotTitle").textContent = T.plot;
-    openPlot(el.plotFold.classList.contains("open"));
     /* The badges carry words of the table too ("My rating"), and the
-       credits their name. */
+       facts and the cast their names. */
     fillRatings(ratingBadges(plotMedia, T));
     el.ratings.setAttribute("aria-label", T.ratings);
-    fillCredits(creditList(plotMedia, T));
+    fillCredits(plotMedia, T);
     $("tilesTitle").textContent = T.metrics;
     $("kSwitches").textContent = T.switches;
     $("kWarnings").textContent = T.warnings;
@@ -1207,6 +1186,10 @@
     return shieldNodes(ratingBadges(media, TinyPPI.T));
   }
 
-  window.TinyPPI.panels = { strings, update, events, peak, draw, shields };
+  window.TinyPPI.panels = {
+    strings, update, events, peak, draw, shields,
+    facts: (credits) => factNodes(credits, TinyPPI.T),
+    cast: (credits) => castParts(credits, TinyPPI.T)
+  };
 
 })();

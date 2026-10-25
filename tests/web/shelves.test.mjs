@@ -327,17 +327,25 @@ test("details stand under the title's backdrop with its poster, shields, plot, f
                    ["Rated R", "IMDb 8.5", "Kinopoisk 8.0", "My rating 9", "Top 250 · #51"]);
   assert.equal(view.$("detailsTagline").textContent, "In space no one can hear you scream.");
   assert.equal(view.$("detailsPlot").textContent, "One\nTwo");
-  const facts = [...view.$("detailsFacts").children].map((node) => node.textContent);
-  assert.deepEqual(facts, ["Genre", "Horror, Sci-Fi", "Director", "Ridley Scott",
-                           "Studio", "20th Century Fox"]);
-  assert.deepEqual([...view.$("detailsCast").children].map((node) => node.textContent),
-                   ["Cast", "Sigourney WeaverRipley", "Jones", "…"]);
+  // The facts and the cast as the overview card draws them.
+  const facts = [...view.$("detailsFacts").children].map((node) =>
+    [...node.children].map((part) => part.textContent));
+  assert.deepEqual(facts, [["Genre", "Horror, Sci-Fi"], ["Director", "Ridley Scott"],
+                           ["Studio", "20th Century Fox"]]);
+  assert.deepEqual(cast(view), ["Cast", "SSigourney WeaverRipley", "JJones", "…"]);
   assert.equal(view.$("detailsClose").textContent, "Close");
   assert.equal(view.$("detailsX").getAttribute("aria-label"), "Close");
   // A backdrop the box cannot read leaves the heading on the plain panel.
   view.$("detailsBackdrop").onerror();
   assert.ok(view.$("detailsBackdrop").hidden && view.$("detailsHero").classList.contains("bare"));
 });
+
+/* The details' cast as it reads: its heading, then each card. */
+const cast = (view) => {
+  const block = view.$("detailsCast");
+  return [block.querySelector(".casthead").textContent,
+          ...[...block.querySelectorAll("li")].map((card) => card.textContent)];
+};
 
 function closeDetails({ window, $ }, value) {
   const dialog = $("detailsDialog");
@@ -392,8 +400,7 @@ test("an episode stands under its still, and one without pictures under none", a
   await settle();
   assert.equal(view.$("detailsBackdrop").getAttribute("src"), "/api/art?kind=thumb&episodeid=71&v=t71");
   assert.ok(view.$("detailsPoster").hidden);
-  assert.deepEqual([...view.$("detailsCast").children].map((node) => node.textContent),
-                   ["Cast", "Diego LunaCassian"]);
+  assert.deepEqual(cast(view), ["Cast", "DDiego LunaCassian"]);
 });
 
 test("a title with little to say leaves its rows out, and a failed read says so", async (t) => {
@@ -417,3 +424,60 @@ test("a title with little to say leaves its rows out, and a failed read says so"
   assert.equal(view.$("detailsDialog").open, false);
   assert.equal(view.$("toast").textContent, "The details could not be read.");
 });
+
+test("on the adaptive theme the details wear their own title's colour, not what is playing", async (t) => {
+  const view = await open(t);
+  const dialog = view.$("detailsDialog");
+  const asked = [];
+  let answer = [200, 40, 40];
+  view.window.TinyPPICover.accent = (url, image) => {
+    asked.push([url, image.id]);
+    return Promise.resolve(answer);
+  };
+  [...view.$("filmGrid").children][0].click();
+  const show = async () => {
+    const markAnswer = view.$("markDialog");
+    markAnswer.returnValue = "details";
+    markAnswer.close();
+    markAnswer.dispatchEvent(new view.window.Event("close"));
+    await settle();
+  };
+  await show();
+  // The film's poster is read, and the page wears what it gave.
+  assert.deepEqual(asked, [["/api/art?kind=poster&movieid=1&v=p1", "detailsPoster"]]);
+  assert.ok(dialog.classList.contains("tinted"));
+  assert.equal(dialog.style.getPropertyValue("--cover-accent-rgb"), "200, 40, 40");
+  dialog.close();
+  // A picture with no colour: the theme's own, and nothing left of the last.
+  answer = null;
+  [...view.$("filmGrid").children][0].click();
+  await show();
+  assert.equal(dialog.classList.contains("tinted"), false);
+  assert.equal(dialog.style.getPropertyValue("--cover-accent-rgb"), "");
+  dialog.close();
+  // One whose picture moved on before the answer came is not painted.
+  answer = [1, 2, 3];
+  view.window.TinyPPICover.accent = (url, image) => {
+    image.setAttribute("src", "/elsewhere");
+    return Promise.resolve(answer);
+  };
+  [...view.$("filmGrid").children][0].click();
+  await show();
+  assert.equal(dialog.classList.contains("tinted"), false);
+  dialog.close();
+  // A title with no picture at all asks nothing, and nor does a page
+  // without the tint.
+  asked.length = 0;
+  view.window.TinyPPICover.accent = () => { asked.push(1); return Promise.resolve(answer); };
+  view.routes["/api/details"] = [200, { kind: "tvshow", id: 7, title: "Andor" }];
+  [...view.$("seriesGrid").children][0].click();
+  await show();
+  dialog.close();
+  delete view.window.TinyPPICover;
+  view.routes["/api/details"] = [200, { kind: "movie", id: 1, title: "Alien", poster: "p1" }];
+  [...view.$("filmGrid").children][0].click();
+  await show();
+  assert.deepEqual(asked, []);
+  assert.equal(dialog.classList.contains("tinted"), false);
+});
+

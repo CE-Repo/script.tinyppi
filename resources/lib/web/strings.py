@@ -140,11 +140,9 @@ _UI_STRINGS = {
     # What an award's shield says it won or was nominated for, in figures.
     "award_won":        32389,
     "award_nominated":  32390,
-    # And what its credits are called, and what a press on a long plot does.
+    # And what its credits are called.
     "director":         32386,
     "cast":             32378,
-    "plot_more":        32381,
-    "plot_less":        32382,
     # The remote's fine adjustments.
     "audio_offset":     32391,
     "subtitle_offset":  32392,

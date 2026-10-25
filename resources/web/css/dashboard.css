@@ -845,6 +845,20 @@
   max-height: min(88vh, 860px);
   overflow-y: auto;
 }
+/* On a phone a page of its own, as the app's is: the whole screen, top to
+   bottom, with nothing of the shelf showing round it. */
+@media (max-width: 620px) {
+  #detailsDialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+  }
+  #detailsDialog form { height: 100%; max-height: none; align-content: start; }
+  .detailsfoot { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+}
 .detailshero { position: relative; min-height: 200px; display: flex; align-items: flex-end; }
 .detailsbackdrop {
   position: absolute;
@@ -925,46 +939,8 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
 @media (hover: hover) {
   .detailsactions button[value="play"]:hover { background: color-mix(in srgb, var(--on-accent) 8%, var(--accent)); }
 }
-#detailsRatings { justify-content: flex-start; }
-.detailstagline { font-style: italic; }
-dialog p.detailsplot { color: var(--text); white-space: pre-line; line-height: 1.55; font-size: 14px; }
-.detailsfacts {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 8px 14px;
-  margin: 0;
-  font-size: 13px;
-}
-.detailsfacts dt { color: var(--dim); font-weight: 700; }
-.detailsfacts dd { margin: 0; overflow-wrap: anywhere; }
-/* The cast as a grid of small cards: the name, and who they played under it. */
-.detailscast {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.detailscast li {
-  display: grid;
-  gap: 2px;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  font-size: 13px;
-  min-width: 0;
-}
-.detailscast li strong { font-weight: 650; overflow-wrap: anywhere; }
-.detailscast li span { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
-.detailscast li.detailscasthead {
-  grid-column: 1 / -1;
-  padding: 0;
-  background: none;
-  border: 0;
-  color: var(--dim);
-  font-weight: 700;
-}
-.detailscast li.more { place-items: center; color: var(--muted); }
+/* The slogan, the plot, the facts and the cast are drawn as the overview
+   card draws them (see "a title's facts and cast" in css/live-panels.css). */
+.detailstagline { margin: 0; font-style: italic; font-size: 16px; line-height: 24px; color: var(--muted); }
+dialog p.detailsplot { color: var(--text); white-space: pre-line; line-height: 24px; font-size: 16px; }
 .detailsfoot { padding: 12px 20px 18px; }

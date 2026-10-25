@@ -78,7 +78,7 @@ the screen:
 
 | Tab | Address | What is on it | Shown |
 |---|---|---|---|
-| **Live** | `/#live` | Now playing, the overview (slogan, plot, director, cast, ratings), transport controls, VS10 output and every reading of the overlay | always |
+| **Live** | `/#live` | Now playing, the overview (ratings, slogan, plot, genre, director, writer, studio, cast), transport controls, VS10 output and every reading of the overlay | always |
 | **Metadata** | `/#metadata` | Active picture area, L1 luminance chart, the full Dolby Vision metadata list | only while a Dolby Vision title plays (and **Show the Dolby Vision metadata view** is on) |
 | **Films** | `/#films` | Continue watching (films), recently added, unwatched films, the whole film library | when the film library is offered |
 | **Series** | `/#series` | Continue watching (episodes), recently updated series, series with unwatched episodes, the whole series library | when the series library is offered |
@@ -137,31 +137,29 @@ overlay follows.
 
 ## Overview
 
-A card under *Now playing*, everything in it centred:
+A card under *Now playing*, laid out exactly as a title's
+[details page](#play-resume-and-watched-marks) is — and as the TinyPPI app draws
+both:
 
-- **Slogan and plot** — the slogan (where the library has one; most episodes
-  have none) right over the plot, so the two read as one text, the slogan set
-  upright and bold like a heading.
-- **Director** and **Cast** — each a bold heading over the names: every
-  director, and the cast's first **20** in billing order, ending in "…" where
-  there are more. An episode's cast is its own guests and then the show's.
-- **Ratings** — last, past a thin rule, a row of small shields, each washed
-  in its service's colour: first the age rating (FSK, MPA, TV Parental
-  Guidelines, BBFC as a mark on the level's colour; any other written out),
-  then a score for each source — IMDb, TMDB, Trakt, TheTVDB, Letterboxd,
-  Metacritic and its users, Rotten Tomatoes and its Popcornmeter, Roger Ebert
-  (*RE*), MyAnimeList, MDBList, or the first letter of any other — then your
-  own rating behind a heart, the place in the IMDb Top 250 (*250* | *#17*)
-  and the big awards (see [Awards](#awards)). How many voted is not shown.
-  Every score is out of ten, whatever scale its service uses: Roger Ebert's
-  3.5 of 4 stars show as 8.8, Letterboxd's 4.5 of 5 as 9.0.
-
-**Folded from the start.** The card opens folded: the plot cut to **five
-lines**, the director and the cast hidden under it. A click or tap on the text
-(or Enter / Space once it has the focus) lets them out, and another folds them
-again. Only a plot that fits its five lines with nothing under it has nothing
-to fold. Every new title starts folded again. The ratings are never folded
-away.
+- **Ratings** — first, a centred row of small shields, each washed in its
+  service's colour: first the age rating (FSK, MPA, TV Parental Guidelines,
+  BBFC as a mark on the level's colour; any other written out), then a score
+  for each source — IMDb, TMDB, Trakt, TheTVDB, Letterboxd, Metacritic and its
+  users, Rotten Tomatoes and its Popcornmeter, Roger Ebert (*RE*), MyAnimeList,
+  MDBList, or the first letter of any other — then your own rating behind a
+  heart, the place in the IMDb Top 250 (*250* | *#17*) and the big awards (see
+  [Awards](#awards)). How many voted is not shown. Every score is out of ten,
+  whatever scale its service uses: Roger Ebert's 3.5 of 4 stars show as 8.8,
+  Letterboxd's 4.5 of 5 as 9.0.
+- **Slogan and plot** — the slogan in italics (where the library has one; most
+  episodes have none) right over the whole plot.
+- **Genre**, **Director**, **Writer** and **Studio** — each its name, small and
+  quiet, over the names.
+- **Cast** — under its heading, a row of cards that scrolls sideways: the
+  initial in a circle, the name and who they played, the cast's first **20** in
+  billing order and "…" where there are more. Every card is the same height,
+  whatever its name or role. An episode's cast is its own guests and then the
+  show's.
 
 **Which board is an age rating?** An episode carries its show's age rating.
 One that names neither its country nor its board ("Rated 12", which the TMDb
@@ -449,7 +447,7 @@ A tap on a film, series or episode — on a wall or in a row — opens a dialog:
 
 | Option | Shown for | Effect |
 |---|---|---|
-| **Details** | all | The title's details from the library, under its backdrop (a film's or a series' fanart, an episode's still) with its poster: year and running time, the file's formats, every rating the overview card would show for the title, as its shields (age rating, the library's, MDBList's and Rotten Tomatoes' scores with their certificates, your own, the Top 250 place, the awards), tagline and plot, genres, director, writers, studio, and the cast as small cards with who they played. Under the heading the question's first answers as keys: **Play** or **Resume**, **Play from the beginning** where there is a point to resume from, **Open** for a series. |
+| **Details** | all | The title's details from the library, under its backdrop (a film's or a series' fanart, an episode's still) with its poster: year and running time, the file's formats, every rating the overview card would show for the title, as its shields (age rating, the library's, MDBList's and Rotten Tomatoes' scores with their certificates, your own, the Top 250 place, the awards), tagline and plot, genres, director, writers, studio, and the cast as a row of cards of one height with who they played — the same layout as the overview card. On a phone it is a page of its own, the whole screen. On the **Dark (adaptive)** theme it wears the accent of the title's own poster rather than of what is playing. Under the heading the question's first answers as keys: **Play** or **Resume**, **Play from the beginning** where there is a point to resume from, **Open** for a series. |
 | **Play** / **Resume** | films, episodes | Starts it on the box; *Resume* where Kodi has a resume point. |
 | **Open** | series | Shows its episodes (a series itself cannot be played). |
 | **Play from the beginning** | stopped part-way | Starts from the top, without the resume question on the TV. |
@@ -585,7 +583,7 @@ a browser opened on the same box read as one thing.
 | Theme | Look |
 |---|---|
 | **Dark** | The plain theme. |
-| **Dark (adaptive)** | What a first visit gets: the same page, with the **now-playing card** taking its color from the poster. The artwork is read region by region, and the one color that stands for it best is drawn across the card as a broad glow — strongest beside the poster, gone well before the card's foot. How much color survives is worked out per film against the contrast the text needs: a dark poster keeps nearly all of it, a bright one is held back. Other cards keep their plain surfaces but take the film's **accent** for headings, badges, buttons and the chart's traces. Intensity: **Subtle**, **Standard** or **Strong**. A title without a poster looks like plain Dark. |
+| **Dark (adaptive)** | What a first visit gets: the same page, with the **now-playing card** taking its color from the poster. The artwork is read region by region, and the one color that stands for it best is drawn across the card as a broad glow — strongest beside the poster, gone well before the card's foot. How much color survives is worked out per film against the contrast the text needs: a dark poster keeps nearly all of it, a bright one is held back. Other cards keep their plain surfaces but take the film's **accent** for headings, badges, buttons and the chart's traces — and every colour drawn from it with it, as the app does: what is written on the accent, the tonal ground of a badge, a chosen chip or a cast card's initial, and what is written on that. A title's details page takes the accent of that title's own poster. Intensity: **Subtle**, **Standard** or **Strong**. A title without a poster looks like plain Dark. |
 | **Midnight** | Deeper and bluer, for a room with nothing else lit. |
 
 The choice is stored **in the browser, per device**, applied before the first

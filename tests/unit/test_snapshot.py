@@ -30,6 +30,9 @@ PLAYING = {
     "VideoPlayer.Tagline": "One night.", "VideoPlayer.Plot": "Somebody does something.",
     "VideoPlayer.Director": "Somebody / Somebody Else", "VideoPlayer.Studio": "A Studio / Another",
     "VideoPlayer.Cast": "\n".join(f"Actor {n}" for n in range(1, 25)),
+    "VideoPlayer.CastAndRole": "\n".join(
+        f"Actor {n} #20347 Role {n}" if n != 2 else "Actor 2" for n in range(1, 25)),
+    "VideoPlayer.Writer": "One Writer / Two Writers",
 }
 
 
@@ -65,9 +68,12 @@ def test_a_playing_title():
     assert shot["media"]["year"] == "2021" and shot["media"]["genre"] == "Drama"
     assert shot["media"]["tagline"] == "One night."
     assert shot["media"]["plot"] == "Somebody does something."
-    # Who made it, as names; every director and the cast's first twenty,
-    # said to have more.  The genre is only the card above's.
-    assert "genres" not in shot["media"]
+    # Who made it, as names; every genre, director and writer and the cast's
+    # first twenty, said to have more, with who each played.
+    assert shot["media"]["genres"] == ["Drama"]
+    assert shot["media"]["writers"] == ["One Writer", "Two Writers"]
+    assert shot["media"]["roles"][:3] == ["Role 1", "", "Role 3"]
+    assert len(shot["media"]["roles"]) == 20
     assert shot["media"]["directors"] == ["Somebody", "Somebody Else"]
     assert "directors_more" not in shot["media"]
     assert shot["media"]["studios"] == ["A Studio"]
@@ -80,6 +86,18 @@ def test_a_playing_title():
     for group in shot["groups"]:
         for row in group["rows"]:
             assert row["value"]                       # empty readings read N/A
+
+
+def test_roles_are_read_in_kodis_own_word_for_as(monkeypatch):
+    monkeypatch.setattr(xbmc, "getLocalizedString", lambda string_id: "als")
+    play(**{"VideoPlayer.Cast": "Wesley Snipes\nKris Kristofferson",
+            "VideoPlayer.CastAndRole": "Wesley Snipes als Blade\nKris Kristofferson als Whistler"})
+    assert SnapshotBuilder().build()["media"]["roles"] == ["Blade", "Whistler"]
+    # A Kodi that has no word for it is read as English.
+    monkeypatch.setattr(xbmc, "getLocalizedString", lambda string_id: "")
+    play(**{"VideoPlayer.Cast": "Wesley Snipes\nKris Kristofferson",
+            "VideoPlayer.CastAndRole": "Wesley Snipes as Blade"})
+    assert SnapshotBuilder().build()["media"]["roles"] == ["Blade", ""]
 
 
 def test_the_genre_is_cut_to_its_first_two():
