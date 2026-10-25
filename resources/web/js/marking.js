@@ -10,7 +10,7 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global continueStale, control, el, filmsStale, FORMAT_NAMES, refreshEpisodes,
+/* global continueStale, control, el, filmsStale, formatName, refreshEpisodes,
    requestContinue, requestFilms, requestSeries, runtime, seriesStale, T */
 /* exported ask */
 
@@ -136,7 +136,8 @@ async function showDetails(question) {
     if (!found[name]) continue;
     const chip = document.createElement("span");
     chip.className = "format";
-    chip.textContent = FORMAT_NAMES[name][found[name]] || found[name];
+    chip.textContent = name === "video" && found.dv_profile
+      ? formatName("video", "dv/" + found.dv_profile) : formatName(name, found[name]);
     formats.append(chip);
   }
   el.detailsFormats.replaceChildren(formats);

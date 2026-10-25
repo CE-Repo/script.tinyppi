@@ -358,7 +358,8 @@ in the order Kodi files them. A tap opens the [title dialog](#play-resume-and-wa
 - Under it, the wall can be **sorted** — by title (Kodi's own order), year,
   rating, date added or running time; a film without the value goes last —
   and **filtered** by genre, picture format (Dolby Vision, HDR10+, HDR10,
-  HLG, SDR), resolution (4K, 1080p, 720p, SD) and audio format (the first
+  HLG, SDR — and under Dolby Vision each profile the library holds, such as
+  P5, P7 FEL, P7 MEL or P8.1, where it holds more than one), resolution (4K, 1080p, 720p, SD) and audio format (the first
   audio track's codec: Dolby TrueHD, DTS-HD MA, Dolby Digital Plus, …). A
   filter offers only what the library holds and is left out where there is
   nothing to choose between; the formats come from what Kodi read off the

@@ -31,7 +31,7 @@ def test_a_films_details(answers):
         "cast": [{"name": "Robert De Niro", "role": "Neil", "order": 1},
                  {"name": "Al Pacino", "role": "Vincent", "order": 0},
                  {"name": "", "role": "Nobody", "order": 2}, "junk"],
-        "streamdetails": {"video": [{"hdrtype": "hdr10", "width": 3840}],
+        "streamdetails": {"video": [{"hdrtype": "dolbyvision", "hdrdetail": "7FEL", "width": 3840}],
                           "audio": [{"codec": "dtshd_ma"}]},
     }}}
     found = library.title_details("movie", "4")
@@ -45,7 +45,8 @@ def test_a_films_details(answers):
         "directors": ["Michael Mann"], "studios": ["Warner"], "countries": ["USA"],
         "cast": [{"name": "Al Pacino", "role": "Vincent"},
                  {"name": "Robert De Niro", "role": "Neil"}],
-        "cast_more": False, "video": "hdr10", "resolution": "2160p", "audio": "dtshd_ma"}
+        "cast_more": False, "video": "dv", "dv_profile": "7 FEL", "resolution": "2160p",
+        "audio": "dtshd_ma"}
 
 
 def test_an_episodes_details_name_its_show(answers):

@@ -10,7 +10,7 @@
    What it uses from them and what it gives them is listed below. */
 
 /* global T */
-/* exported FORMAT_NAMES, shelfTools */
+/* exported FORMAT_NAMES, formatName, shelfTools */
 
 /* --- sorting and filtering a wall ----------------------------------------- */
 
@@ -27,6 +27,19 @@ const FORMAT_NAMES = {
            ac3: "Dolby Digital", aac: "AAC", opus: "Opus", vorbis: "Vorbis",
            mp3: "MP3" }
 };
+
+/* What a picture filter's value is called: a grade, or one Dolby Vision
+   profile under it ("dv/8.1"), written the way the playing card writes a
+   profile. */
+function formatName(name, value) {
+  if (name === "video" && value.startsWith("dv/")) return "Dolby Vision P" + value.slice(3);
+  return FORMAT_NAMES[name][value] || value;
+}
+
+/* The profiles a Dolby Vision filter offers, in order: 5, 7, 7 FEL, 7 MEL,
+   8.1, 8.4 -- by number, then by what follows it. */
+const byProfile = (first, second) =>
+  parseFloat(first.slice(3)) - parseFloat(second.slice(3)) || first.localeCompare(second);
 
 /* How each order compares two titles; a title without the value goes last
    whichever way the order runs.  The title order is the box's own (Kodi's
@@ -66,9 +79,15 @@ function shelfTools(box, { sorts, filters, onChange }) {
     picker(name, name === "genre" ? "genre" : "filter_" + name).append(new Option("", ""));
   }
 
-  /* What *entry* is filed under for *name*: every genre, or its one format. */
-  const values = (entry, name) =>
-    name === "genre" ? (entry.genres || []) : (entry[name] ? [entry[name]] : []);
+  /* What *entry* is filed under for *name*: every genre, or its one format --
+     and a Dolby Vision title under its profile as well ("dv/8.1"), so the
+     grade and the profile are both choices the same title answers. */
+  const values = (entry, name) => {
+    if (name === "genre") return entry.genres || [];
+    if (!entry[name]) return [];
+    return name === "video" && entry.dv_profile
+      ? [entry.video, "dv/" + entry.dv_profile] : [entry[name]];
+  };
 
   /* The words, put on again whenever the strings change. */
   function strings() {
@@ -94,8 +113,14 @@ function shelfTools(box, { sorts, filters, onChange }) {
       const offered = named
         ? Object.keys(named).filter((value) => found.has(value))
         : [...found].sort((first, second) => first.localeCompare(second));
+      /* Under Dolby Vision, its profiles -- where there is more than one, as
+         one profile alone is the grade under another name. */
+      const profiles = [...found].filter((value) => value.startsWith("dv/")).sort(byProfile);
+      if (profiles.length > 1) offered.splice(offered.indexOf("dv") + 1, 0, ...profiles);
       select.replaceChildren(new Option("", ""));
-      for (const value of offered) select.append(new Option(named ? named[value] : value, value));
+      for (const value of offered) {
+        select.append(new Option(named ? formatName(name, value) : value, value));
+      }
       select.value = offered.includes(held) ? held : "";
       select.hidden = offered.length < 2;
     }

@@ -20,6 +20,7 @@ class Formats(TypedDict, total=False):
     """A title's formats, where Kodi has read its file (``common.formats``)."""
 
     video: str
+    dv_profile: str
     resolution: str
     audio: str
 
@@ -40,6 +41,7 @@ class Film(TypedDict):
     # For sorting and filtering on the page (see ``common.formats``).
     genres: NotRequired[list[str]]
     video: NotRequired[str]
+    dv_profile: NotRequired[str]
     resolution: NotRequired[str]
     audio: NotRequired[str]
 
@@ -152,6 +154,7 @@ class Details(TypedDict):
     cast: NotRequired[list[Person]]
     cast_more: NotRequired[bool]
     video: NotRequired[str]
+    dv_profile: NotRequired[str]
     resolution: NotRequired[str]
     audio: NotRequired[str]
 

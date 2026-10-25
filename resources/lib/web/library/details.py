@@ -128,6 +128,8 @@ def _formats(found: Details, row: Json) -> None:
     formats = common.formats(row.get("streamdetails"))
     if "video" in formats:
         found["video"] = formats["video"]
+    if "dv_profile" in formats:
+        found["dv_profile"] = formats["dv_profile"]
     if "resolution" in formats:
         found["resolution"] = formats["resolution"]
     if "audio" in formats:

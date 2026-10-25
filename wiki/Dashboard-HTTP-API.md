@@ -173,6 +173,8 @@ The film library: `{"movies": [...], "count": N, "tag": "…"}`. Each film:
 `id`, `title`, `poster` (tag), and when known `year`, `duration` (seconds),
 `watched`, `resume`, `rating`, `added`, `genres` (up to four), and — once
 Kodi has read the file — `video` (`dv`, `hdr10plus`, `hdr10`, `hlg`, `sdr`),
+for Dolby Vision its `dv_profile` as Kodi's scan found it (`5`, `7 FEL`,
+`7 MEL`, `8.1`, `8.4`, …),
 `resolution` (`2160p`, `1080p`, `720p`, `sd`) and `audio`, the first audio
 track's codec family (`truehd`, `eac3`, `ac3`, `dtshd_ma`, `dtshd_hra`, `dts`,
 `flac`, `pcm`, `aac`, `opus`, `mp3`, `vorbis`). Kodi's stream details carry no
@@ -207,7 +209,7 @@ them `plot`, `tagline`, `premiered`, `mpaa` with its `age` mark and
 `age_level`, `year`, `duration`, `genres`, `directors`, `writers`, `studios`,
 `countries`, the `cast` (`{"name", "role"}`, the first twenty, `cast_more`
 when there are more), `userrating`, `top250` and the file's `video`,
-`resolution` and `audio`. An episode adds `show`, `tvshowid`, `season` and
+`dv_profile`, `resolution` and `audio`. An episode adds `show`, `tvshowid`, `season` and
 `episode`; a series its number of `season`s. Each kind needs its shelf's
 setting (`403 library disabled`); an unknown title is `404 no such title`.
 

@@ -111,6 +111,8 @@ def _classify(film: Film, row: Json) -> None:
     found = common.formats(row.get("streamdetails"))
     if "video" in found:
         film["video"] = found["video"]
+    if "dv_profile" in found:
+        film["dv_profile"] = found["dv_profile"]
     if "resolution" in found:
         film["resolution"] = found["resolution"]
     if "audio" in found:

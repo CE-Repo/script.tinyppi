@@ -64,10 +64,11 @@ const FILMS = [
   { id: 1, title: "Alien", year: 1979, duration: 7020, rating: 8.5, added: "2026-09-01 10:00:00",
     genres: ["Horror", "Sci-Fi"], video: "sdr", resolution: "1080p", audio: "dts" },
   { id: 2, title: "Brazil", year: 1985, duration: 8520, rating: 7.9,
-    genres: ["Comedy"], video: "dv", resolution: "2160p", audio: "truehd" },
+    genres: ["Comedy"], video: "dv", dv_profile: "8.1", resolution: "2160p", audio: "truehd" },
   { id: 3, title: "Cube", duration: 5400, added: "2026-09-03 10:00:00",
     genres: ["Sci-Fi"], video: "hdr10", resolution: "2160p", audio: "truehd" },
-  { id: 4, title: "Dune", year: 2021, rating: 6, added: "2026-09-02 10:00:00" },
+  { id: 4, title: "Dune", year: 2021, rating: 6, added: "2026-09-02 10:00:00",
+    video: "dv", dv_profile: "7 FEL" },
   { id: 5, title: "Eraserhead" },
 ];
 
@@ -84,7 +85,7 @@ const NEXT = [
 
 const DETAILS = {
   kind: "movie", id: 1, title: "Alien", year: 1979, duration: 7020, mpaa: "Rated R",
-  video: "sdr", resolution: "1080p", audio: "wma", tagline: "In space no one can hear you scream.",
+  video: "dv", dv_profile: "5", resolution: "1080p", audio: "wma", tagline: "In space no one can hear you scream.",
   plot: "One\nTwo", genres: ["Horror", "Sci-Fi"], directors: ["Ridley Scott"], writers: [],
   studios: ["20th Century Fox"], userrating: 9, top250: 51, cast_more: true,
   cast: [{ name: "Sigourney Weaver", role: "Ripley" }, { name: "Jones", role: "" }],
@@ -162,12 +163,21 @@ test("the filters offer what the wall holds, in their order, and narrow it with 
   assert.deepEqual(options(pick(view, "filmTools", "genre")),
                    [["", "All genres"], ["Comedy", "Comedy"], ["Horror", "Horror"], ["Sci-Fi", "Sci-Fi"]]);
   assert.deepEqual(options(pick(view, "filmTools", "video")),
-                   [["", "All picture formats"], ["dv", "Dolby Vision"], ["hdr10", "HDR10"], ["sdr", "SDR"]]);
+                   [["", "All picture formats"], ["dv", "Dolby Vision"],
+                    ["dv/7 FEL", "Dolby Vision P7 FEL"], ["dv/8.1", "Dolby Vision P8.1"],
+                    ["hdr10", "HDR10"], ["sdr", "SDR"]]);
   assert.deepEqual(options(pick(view, "filmTools", "resolution")),
                    [["", "All resolutions"], ["2160p", "4K"], ["1080p", "1080p"]]);
   assert.deepEqual(options(pick(view, "filmTools", "audio")),
                    [["", "All audio formats"], ["truehd", "Dolby TrueHD"], ["dts", "DTS"]]);
   assert.equal(pick(view, "filmTools", "genre").getAttribute("aria-label"), "Genre");
+
+  // A profile narrows to its films; the grade takes in every profile of it.
+  choose(view, "filmTools", "video", "dv/7 FEL");
+  assert.deepEqual(shown(view, "filmGrid"), ["Dune"]);
+  choose(view, "filmTools", "video", "dv");
+  assert.deepEqual(shown(view, "filmGrid"), ["Brazil", "Dune"]);
+  choose(view, "filmTools", "video", "");
 
   choose(view, "filmTools", "genre", "Sci-Fi");
   assert.deepEqual(shown(view, "filmGrid"), ["Alien", "Cube"]);
@@ -202,6 +212,15 @@ test("a filter with nothing to choose between is not drawn, and a choice the lis
   assert.equal(pick(view, "filmTools", "video").value, "");
   assert.equal(pick(view, "filmTools", "audio").value, "truehd", "still offered, still chosen");
   assert.deepEqual(shown(view, "filmGrid"), ["Cube"]);
+});
+
+test("profiles of one number are told apart by their layer", async (t) => {
+  const view = await open(t, { routes: { "/api/library": [200, { tag: "f9", movies: [
+    { id: 1, title: "One", video: "dv", dv_profile: "7 MEL" },
+    { id: 2, title: "Two", video: "dv", dv_profile: "7 FEL" },
+    { id: 3, title: "Three", video: "dv", dv_profile: "5" }] }] } });
+  assert.deepEqual(options(pick(view, "filmTools", "video")).map(([value]) => value),
+                   ["", "dv", "dv/5", "dv/7 FEL", "dv/7 MEL"]);
 });
 
 test("the series wall sorts and filters by genre the same way", async (t) => {
@@ -258,7 +277,7 @@ test("details are read for the pressed title and drawn as text", async (t) => {
   assert.equal(view.$("detailsTitle").textContent, "Alien");
   assert.equal(view.$("detailsMeta").textContent, "1979 · 1 h 57 min · Rated R");
   assert.deepEqual([...view.$("detailsFormats").children].map((node) => node.textContent),
-                   ["SDR", "1080p", "wma"]);
+                   ["Dolby Vision P5", "1080p", "wma"]);
   assert.equal(view.$("detailsTagline").textContent, "In space no one can hear you scream.");
   assert.equal(view.$("detailsPlot").textContent, "One\nTwo");
   const facts = [...view.$("detailsFacts").children].map((node) => node.textContent);

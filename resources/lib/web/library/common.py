@@ -5,6 +5,7 @@
 
 import json
 import math
+import re
 import zlib
 from collections.abc import Callable, Mapping, Sequence
 
@@ -51,6 +52,11 @@ _AUDIO_CODECS = {"truehd": "truehd", "mlp": "truehd",
                  "dts": "dts", "dca": "dts",
                  "flac": "flac", "pcm": "pcm", "lpcm": "pcm",
                  "aac": "aac", "opus": "opus", "mp3": "mp3", "vorbis": "vorbis"}
+
+# A Dolby Vision profile as Kodi writes it (``hdrdetail``): the profile, the
+# base layer's compatibility after a point for profile 8 ("8.1"), and for
+# profile 7 the enhancement layer a scan found ("7FEL", "7MEL").
+_DV_DETAIL = re.compile(r"\s*(\d{1,2})(?:\.(\d{1,2}))?\s*(FEL|MEL)?\s*", re.IGNORECASE)
 
 # The width from which a video counts as each resolution, widest first.
 # Widths rather than heights, so a scope film's letterbox does not demote it.
@@ -153,15 +159,19 @@ def _first_stream(details: object, kind: str) -> Json:
 def formats(details: object) -> Formats:
     """Return a title's formats from its ``streamdetails``.
 
-    ``video`` (dv, hdr10plus, hdr10, hlg, sdr), ``resolution`` (2160p,
-    1080p, 720p, sd) and ``audio`` (the first track's codec family), each
-    only where Kodi has read the file.  The first audio track is the one a
+    ``video`` (dv, hdr10plus, hdr10, hlg, sdr), for Dolby Vision its
+    ``dv_profile`` (see ``_dv_profile``), ``resolution`` (2160p, 1080p,
+    720p, sd) and ``audio`` (the first track's codec family), each only
+    where Kodi has read the file.  The first audio track is the one a
     title starts with.
     """
     found: Formats = {}
     video = _first_stream(details, "video")
     if video:
         found["video"] = _HDR_TYPES.get(str(video.get("hdrtype") or "").strip().lower(), "sdr")
+        profile = _dv_profile(video.get("hdrdetail")) if found["video"] == "dv" else ""
+        if profile:
+            found["dv_profile"] = profile
         resolution = _resolution(video.get("width"))
         if resolution:
             found["resolution"] = resolution
@@ -169,6 +179,17 @@ def formats(details: object) -> Formats:
     if family:
         found["audio"] = family
     return found
+
+
+def _dv_profile(detail: object) -> str:
+    """Return a Dolby Vision profile as the page names it ("5", "7 FEL",
+    "8.1"), or '' where Kodi wrote none it can read."""
+    found = _DV_DETAIL.fullmatch(str(detail or ""))
+    if not found:
+        return ""
+    profile, compatibility, layer = found.groups()
+    named = str(int(profile)) + (f".{int(compatibility)}" if compatibility else "")
+    return f"{named} {layer.upper()}" if layer else named
 
 
 def _resolution(width: object) -> str:

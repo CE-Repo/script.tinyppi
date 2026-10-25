@@ -770,15 +770,16 @@ def test_a_broken_series_read_leaves_continue_episodes_unrated(kodi):
 
 def test_a_film_carries_its_genres_and_formats(kodi):
     entry = film(kodi, genre=["Drama", "", "Drama", 3, "Sci-Fi", "War", "Crime", "Epic"],
-                 streamdetails={"video": [{"hdrtype": "dolbyvision", "width": 3840}],
+                 streamdetails={"video": [{"hdrtype": "dolbyvision", "hdrdetail": "8.1", "width": 3840}],
                                 "audio": [{"codec": "truehd"}, {"codec": "ac3"}]})
     assert entry["genres"] == ["Drama", "Sci-Fi", "War", "Crime"]   # four, each once
     assert (entry["video"], entry["resolution"], entry["audio"]) == ("dv", "2160p", "truehd")
+    assert entry["dv_profile"] == "8.1"
 
 
 def test_a_film_kodi_has_not_read_has_no_formats(kodi):
     entry = film(kodi, genre="Drama", streamdetails={"video": [], "audio": []})
-    assert not {"genres", "video", "resolution", "audio"} & entry.keys()
+    assert not {"genres", "video", "dv_profile", "resolution", "audio"} & entry.keys()
 
 
 @pytest.mark.parametrize(("details", "found"), [
@@ -791,6 +792,14 @@ def test_a_film_kodi_has_not_read_has_no_formats(kodi):
     ({"audio": [{"codec": "DTSHD_MA"}]}, {"audio": "dtshd_ma"}),
     ({"audio": [{"codec": "eac3"}]}, {"audio": "eac3"}),
     ({"audio": [{"codec": "wma"}]}, {}),
+    ({"video": [{"hdrtype": "dolbyvision", "hdrdetail": "5"}]}, {"video": "dv", "dv_profile": "5"}),
+    ({"video": [{"hdrtype": "dolbyvision", "hdrdetail": "7FEL"}]}, {"video": "dv", "dv_profile": "7 FEL"}),
+    ({"video": [{"hdrtype": "dolbyvision", "hdrdetail": "7 mel"}]}, {"video": "dv", "dv_profile": "7 MEL"}),
+    ({"video": [{"hdrtype": "dolbyvision", "hdrdetail": "08.1"}]}, {"video": "dv", "dv_profile": "8.1"}),
+    ({"video": [{"hdrtype": "dolbyvision", "hdrdetail": ""}]}, {"video": "dv"}),
+    ({"video": [{"hdrtype": "dolbyvision", "hdrdetail": "odd"}]}, {"video": "dv"}),
+    # Kodi writes a detail for Dolby Vision only; one elsewhere is not a profile.
+    ({"video": [{"hdrtype": "hdr10", "hdrdetail": "8.1"}]}, {"video": "hdr10"}),
     ("junk", {}),
     (None, {}),
 ])
