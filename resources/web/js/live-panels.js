@@ -281,8 +281,7 @@
 
   function factNodes(credits, T) {
     const rows = [
-      [T.genre, credits.genres], [T.director, credits.directors],
-      [T.writer, credits.writers], [T.studio, credits.studios]
+      [T.genre, credits.genres], [T.studio, credits.studios]
     ];
     const nodes = [];
     for (const [heading, names] of rows) {
@@ -300,11 +299,22 @@
   }
 
   function castParts(credits, T) {
+    const crew = [
+      ...(credits.directors || []).map((name) => ({ name, role: T.director })),
+      ...(credits.writers || []).map((name) => ({ name, role: T.writer }))
+    ];
+    return [
+      ...castCards({ cast: crew }, "Cast"),
+      ...castCards(credits, T.cast)
+    ];
+  }
+
+  function castCards(credits, title) {
     const cast = credits.cast || [];
     if (!cast.length) return [];
     const heading = document.createElement("h4");
     heading.className = "casthead";
-    heading.textContent = T.cast;
+    heading.textContent = title;
     const row = document.createElement("ul");
     row.className = "castrow";
     for (const person of cast) {
@@ -453,6 +463,36 @@
      on the right.  What a reader is told is the badge's sentence, kept off
      the screen; what is drawn is kept from the reader, who would otherwise
      hear "8.5 612,345" with nothing to say what either is. */
+  let ratingTipId = 0;
+
+  /* A popover stays visible above the dialog and its scrolling content.
+     The native title still supplies the pointer's usual hover hint. */
+  function ratingTip(node, text) {
+    const tip = document.createElement("span");
+    tip.className = "rating-tip";
+    tip.id = "rating-tip-" + (++ratingTipId);
+    tip.setAttribute("popover", "auto");
+    tip.setAttribute("role", "tooltip");
+    tip.textContent = text;
+    node.tabIndex = 0;
+    node.setAttribute("aria-describedby", tip.id);
+    const show = () => {
+      tip.showPopover();
+      const badge = node.getBoundingClientRect();
+      const box = tip.getBoundingClientRect();
+      tip.style.left = Math.max(8, Math.min(badge.left, window.innerWidth - box.width - 8)) + "px";
+      tip.style.top = Math.max(8, Math.min(badge.bottom + 8, window.innerHeight - box.height - 8)) + "px";
+    };
+    node.addEventListener("click", show);
+    node.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      show();
+    });
+    node.addEventListener("blur", () => tip.hidePopover());
+    return tip;
+  }
+
   function shieldNodes(badges) {
     const nodes = [];
     for (const badge of badges) {
@@ -479,7 +519,7 @@
         figures.append(value);
         look.append(figures);
       }
-      node.append(said, look);
+      node.append(said, look, ratingTip(node, badge.named));
       nodes.push(node);
     }
     return nodes;

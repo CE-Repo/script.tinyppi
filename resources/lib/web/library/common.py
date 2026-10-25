@@ -45,7 +45,11 @@ _HDR_TYPES = {"dolbyvision": "dv", "hdr10plus": "hdr10plus", "hdr10+": "hdr10plu
 
 # Kodi's audio codec names and the family the page filters by; any other
 # codec is left out rather than filtered under a wrong name.
-_AUDIO_CODECS = {"truehd": "truehd", "mlp": "truehd",
+_AUDIO_CODECS = {"atmos": "atmos", "truehd_atmos": "atmos",
+                 "eac3_ddp_atmos": "atmos", "eac3_atmos": "atmos",
+                 "dtsx": "dtsx", "dts:x": "dtsx", "dts-x": "dtsx",
+                 "dtshd_ma_x": "dtsx", "dtshd_ma_x_imax": "dtsx",
+                 "truehd": "truehd", "mlp": "truehd",
                  "eac3": "eac3", "ec-3": "eac3", "ac3": "ac3", "ac-3": "ac3",
                  "dtshd_ma": "dtshd_ma", "dtsma": "dtshd_ma",
                  "dtshd_hra": "dtshd_hra", "dtshd": "dtshd_hra",

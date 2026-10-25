@@ -10,7 +10,7 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global ask, el, episodeCode, FILMS_RETRY_MS, FILMS_START_MS, filmsStale,
+/* global bindTitle, el, episodeCode, FILMS_RETRY_MS, FILMS_START_MS, filmsStale,
    metaLine, ratingBadge, seriesStale, T */
 /* exported continueStale, hideContinue, releaseContinue, requestContinue,
    resumeReleasing, resuming */
@@ -194,14 +194,14 @@ function continueTile(item) {
 
   /* A tile of the next-up row has no resume point to go back to. */
   const resumable = !!item.resume;
-  tile.addEventListener("click", () => ask({
+  bindTitle(tile, {
     title: episode ? [item.show, episodeCode(item)].filter(Boolean).join(" \u00b7 ")
                    : item.title,
     body: episode ? { episodeid: item.id } : { movieid: item.id },
     play: resumable ? T.films_resume : T.films_play,
     resumable,
     onPlay: (fromStart) => startContinue(item, tile, fromStart)
-  }));
+  });
   return tile;
 }
 

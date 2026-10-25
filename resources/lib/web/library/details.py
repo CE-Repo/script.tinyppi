@@ -22,8 +22,6 @@ from web.payloads import Ratings
 from web.ratings import title_ratings
 from web.values import Json, Unchecked, clean_value, library_id, plain_text
 
-# The cast's first twenty in billing order, as on the overview card.
-_CAST_LIMIT = 20
 # A plot is a few paragraphs; a text longer still is cut off.
 _PLOT_LIMIT = 4000
 # How long a details read waits on MDBList and WhatsOn, and how often it
@@ -35,12 +33,12 @@ _clock = time.monotonic
 
 _FILM = ("title", "plot", "tagline", "genre", "director", "writer", "cast", "studio",
          "country", "mpaa", "year", "runtime", "ratings", "userrating", "top250",
-         "streamdetails", "premiered", "art", "uniqueid")
+         "streamdetails", "premiered", "art", "uniqueid", "playcount", "resume")
 _SHOW = ("title", "plot", "genre", "studio", "cast", "mpaa", "year", "ratings",
-         "userrating", "premiered", "episode", "season", "art", "uniqueid")
+         "userrating", "premiered", "episode", "season", "art", "uniqueid", "watchedepisodes")
 _EPISODE = ("title", "plot", "showtitle", "tvshowid", "season", "episode", "director",
             "writer", "cast", "firstaired", "runtime", "ratings", "userrating",
-            "streamdetails", "art")
+            "streamdetails", "art", "playcount", "resume")
 
 # The pictures a details view stands under, by kind of title: the art kind
 # the artwork route serves each as and the keys Kodi files it under, best
@@ -85,6 +83,7 @@ def details(kind: str, item_id: Unchecked) -> Details | None:
     _rated(found, _shown(title_ratings(kind, row)))
     _texts(found, row)
     _numbers(found, row)
+    _watching(found, row, kind)
     _people(found, row)
     _formats(found, row)
     _pictures(found, row, _PICTURES[kind])
@@ -157,8 +156,8 @@ def _people(found: Details, row: Json) -> None:
             found[key] = names  # type: ignore[literal-required]
     cast = _cast(row.get("cast"))
     if cast:
-        found["cast"] = cast[:_CAST_LIMIT]
-        found["cast_more"] = len(cast) > _CAST_LIMIT
+        found["cast"] = cast
+        found["cast_more"] = False
 
 
 def _cast(raw: object) -> list[Person]:
@@ -200,3 +199,14 @@ def _formats(found: Details, row: Json) -> None:
         found["resolution"] = formats["resolution"]
     if "audio" in formats:
         found["audio"] = formats["audio"]
+
+
+def _watching(found: Details, row: Json, kind: str) -> None:
+    """Expose the current library state for the actions on the opened page."""
+    if kind == "tvshow":
+        total = common.number(row, "episode", 1) or 0
+        seen = common.number(row, "watchedepisodes", 0) or 0
+        found["watched"] = total > 0 and seen >= total
+    else:
+        found["watched"] = (common.number(row, "playcount", 0) or 0) > 0
+    found["resume"] = common.resume_of(row.get("resume"))

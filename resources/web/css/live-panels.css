@@ -553,7 +553,6 @@
   object-fit: cover;
   object-position: center;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
   background: var(--panel-2);
   display: block;
 }
@@ -674,6 +673,24 @@
   background: color-mix(in srgb, var(--hue) 20%, var(--panel-2));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue) 55%, transparent);
   cursor: pointer;
+}
+.rating:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.rating-tip {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  max-width: min(280px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  box-shadow: var(--shadow-lift);
+  font: 13px/1.4 var(--font-ui);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  pointer-events: none;
 }
 .rating .look {
   display: inline-flex;
@@ -806,7 +823,7 @@
 }
 .rating .side.plate .mark { height: calc(var(--badge) - 4px); }
 /* What the badge says aloud: there for a screen reader, not on the screen. */
-.rating .said {
+.rating .said, .detailstools .said {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -831,13 +848,13 @@
 }
 .facts dd { margin: 0; font-size: 16px; line-height: 24px; overflow-wrap: anywhere; }
 
-/* The cast under its heading, a row of cards that scrolls sideways.  Every
-   card the same height: two lines of name and one of role, held open where
-   they are not filled. */
+/* Each row shares its tallest card; the complete content block is centred
+   in every card. Names and roles remain free to wrap. */
 .castblock { display: grid; gap: 10px; min-width: 0; }
 .casthead { margin: 0; font-size: 16px; font-weight: 700; line-height: 22px; }
 .castrow {
   display: flex;
+  align-items: stretch;
   gap: 10px;
   margin: 0;
   padding: 0 0 4px;
@@ -845,14 +862,18 @@
   overflow-x: auto;
   scrollbar-width: thin;
 }
+.castrow:has(.role:not(:empty)) li { min-height: 152px; }
 .castrow li {
-  flex: 0 0 112px;
-  display: grid;
-  grid-template-rows: auto auto auto;
-  justify-items: center;
-  align-content: start;
-  gap: 4px;
-  padding: 10px;
+  box-sizing: border-box;
+  flex: 0 0 136px;
+  min-width: 0;
+  min-height: 114px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
   border-radius: var(--radius);
   background: var(--panel-2);
   text-align: center;
@@ -860,8 +881,8 @@
 .castrow .initial {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--tonal);
   color: var(--on-tonal);
@@ -869,12 +890,8 @@
   font-weight: 600;
 }
 .castrow strong {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-  min-height: 40px;
+  display: block;
+  width: 100%;
   font-size: 14px;
   font-weight: 600;
   line-height: 20px;
@@ -883,16 +900,18 @@
 .castrow .role {
   display: block;
   width: 100%;
-  min-height: 16px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
   font-size: 12px;
   line-height: 16px;
   color: var(--muted);
 }
+.castrow .role:empty { display: none; }
 .castrow li.more {
-  flex-basis: auto;
+  display: grid;
+  flex-basis: 32px;
+  min-height: 0;
+  width: 32px;
   align-content: center;
   padding: 0 6px;
   background: none;

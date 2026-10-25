@@ -66,6 +66,7 @@ test("the live tab connects and shows the format badges", async () => {
   for (const badge of ["UHD", "DV P7.6 FEL", "TrueHD Atmos", "Atmos", "7.1"]) {
     assert.ok(badges.includes(badge), `${badge} in ${badges}`);
   }
+  assert.equal(await page.locator("#poster").evaluate((node) => getComputedStyle(node).borderWidth), "0px");
   // The studio under the year and the genre, as one block with them: closer
   // to them than the column's lines are to each other.
   assert.equal(await page.locator("#studio").innerText(), "A Studio");
@@ -96,10 +97,33 @@ test("the overview is a key under the playing card that opens the title's detail
   const heights = await page.$$eval("#detailsRatings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
   assert.ok(heights.length && heights.every((height) => height === 28));
-  // The cast cards all one height.
-  const cards = await page.$$eval("#detailsCast li:not(.more)",
-    (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
-  assert.ok(cards.length && cards.every((height) => height === cards[0]));
+  // Verify narrow and wide layouts, including cards beyond the visible edge.
+  for (const width of [390, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    const rows = await page.locator("#detailsCast .castrow").evaluateAll((nodes) => nodes.map((row) => ({
+      cards: [...row.querySelectorAll("li:not(.more)")].map((card) => ({
+        width: card.getBoundingClientRect().width,
+        height: card.getBoundingClientRect().height,
+        centered: (() => {
+          const bounds = card.getBoundingClientRect();
+          const top = card.querySelector(".initial").getBoundingClientRect().top;
+          const last = card.querySelector(".role:not(:empty)") || card.querySelector("strong");
+          return Math.abs((top + last.getBoundingClientRect().bottom) / 2 - (bounds.top + bounds.height / 2)) < 1;
+        })(),
+        fits: [...card.querySelectorAll("strong, .role")].every((text) =>
+          text.scrollHeight <= text.clientHeight && text.scrollWidth <= text.clientWidth)
+      }))
+    })));
+    assert.equal(rows.length, 2, "crew share one row above the actors");
+    assert.equal(rows[0].cards.length, 2);
+    assert.deepEqual(await page.locator("#detailsCast .castrow").first().locator(".role").allTextContents(), ["#32386", "#32407"]);
+    for (const { cards } of rows) {
+      assert.ok(cards.length && cards.every((card) => card.width === 136));
+      assert.ok(cards.every((card) => card.height === cards[0].height && card.fits && card.centered));
+    }
+    assert.ok(rows[0].cards[0].height < rows[1].cards[0].height, "longer actor roles have room to wrap");
+    await page.locator("#detailsCast").screenshot({ path: `node_modules/credits-${width}.png` });
+  }
   await page.locator("#detailsX").click();
   await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
 });
@@ -205,6 +229,15 @@ test("a finger drags the bar, and the box hears once, where it let go", async ()
 test("films: the wall, search and clearing it", async () => {
   await tab("films");
   await page.waitForFunction(() => document.querySelectorAll("#filmGrid .film").length === 20);
+  const cover = page.locator("#filmGrid .filmposter").first();
+  const border = await cover.evaluate((node) => getComputedStyle(node).borderColor);
+  await cover.hover();
+  assert.notEqual(await cover.evaluate((node) => getComputedStyle(node).boxShadow), "none");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.waitForFunction(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector("#filmGrid .filmposter")).transform).m42 < -1);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.waitForFunction(() => getComputedStyle(document.querySelector("#filmGrid .filmposter")).transform === "none");
+  assert.equal(await cover.evaluate((node) => getComputedStyle(node).borderColor), border);
   await page.fill("#filmSearch", "Film 1");
   // "Film 10" to "Film 19"; the titles are numbered with two digits.
   await page.waitForFunction(() =>
@@ -215,28 +248,114 @@ test("films: the wall, search and clearing it", async () => {
   assert.equal(await page.textContent("#filmsCount"), "20");
 });
 
-test("a press on a film asks, and marking it sends the id", async () => {
+test("a short press opens a film's details without starting playback", async () => {
+  const before = posts.length;
   await page.locator("#filmGrid .film").nth(4).click();
-  await page.waitForSelector("#markDialog[open]");
+  await page.waitForSelector("#detailsDialog[open]");
+  assert.equal(await page.locator("#detailsTitle").innerText(), "Film 05");
+  assert.equal(await page.locator("#detailsPlot").innerText(), "A film about somebody.");
+  assert.equal(await page.locator("#markDialog").isVisible(), false);
+  assert.equal(posts.length, before);
+  await page.locator("#detailsX").click();
+  await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
+});
+
+test("details keep scrolling inside the dialog and rating hints work by click and keyboard", async () => {
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.locator("#filmGrid .film").nth(4).click();
+    await page.waitForSelector("#detailsDialog[open]");
+    await page.locator("#detailsPlot").evaluate((node) => {
+      node.textContent = Array(80).fill("A long plot paragraph to make the details scroll.").join("\n\n");
+    });
+    const rootY = await page.evaluate(() => window.scrollY);
+    assert.equal(await page.locator("#detailsClose").count(), 0);
+    assert.equal(await page.locator("html").evaluate((node) => getComputedStyle(node).overflowY), "hidden");
+    const badge = page.locator("#detailsRatings .rating:has(.side.imdb)");
+    await badge.click();
+    const tip = page.locator("#detailsRatings .rating-tip:popover-open");
+    await tip.waitFor();
+    assert.equal(await tip.innerText(), "IMDb");
+    const rect = await tip.boundingBox();
+    assert.ok(rect.x >= 0 && rect.x + rect.width <= width);
+    await page.keyboard.press("Escape");
+    assert.equal(await page.locator("#detailsDialog").isVisible(), true);
+    await badge.focus();
+    await page.keyboard.press("Enter");
+    await tip.waitFor();
+    const form = page.locator("#detailsDialog form");
+    const before = await form.evaluate((node) => node.scrollTop);
+    const box = await form.boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.wheel(0, 300);
+    await page.waitForFunction((at) => document.querySelector("#detailsDialog form").scrollTop > at, before);
+    await tip.waitFor({ state: "hidden" });
+    assert.equal(await page.evaluate(() => window.scrollY), rootY);
+    await form.evaluate((node) => { node.scrollTop = node.scrollHeight; });
+    await page.mouse.wheel(0, 600);
+    // Wait for wheel scrolling to reach the compositor before checking the root.
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await page.evaluate(() => window.scrollY), rootY, "no scroll chaining at the end");
+    await page.mouse.move(4, 450);
+    await page.mouse.wheel(0, 300);
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await page.evaluate(() => window.scrollY), rootY, "the backdrop cannot scroll the page");
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
+    assert.notEqual(await page.locator("html").evaluate((node) => getComputedStyle(node).overflowY), "hidden");
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
+});
+
+test("details show all resume actions and marks without clipping on a phone", async () => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.locator("#filmGrid .film").nth(2).click({ delay: 600 });
+  await page.waitForSelector("#detailsDialog[open]");
+  assert.equal(await page.locator("#markDialog").count(), 0);
+  for (const id of ["detailsPlay", "detailsRestart", "detailsClear", "detailsUnwatched"]) {
+    const button = page.locator("#" + id);
+    assert.equal(await button.isVisible(), true, id);
+    assert.ok(await button.evaluate((node) => node.scrollWidth <= node.clientWidth && node.scrollHeight <= node.clientHeight), id);
+  }
+  assert.equal(await page.locator("#detailsWatched").isVisible(), false);
+  await page.locator("#detailsActions").screenshot({ path: "node_modules/details-actions-phone.png" });
+  const resumeLabel = await page.locator("#detailsPlay").innerText();
+  await page.locator("#detailsClear").click();
+  await page.waitForFunction(() => document.getElementById("detailsClear").hidden);
+  assert.equal(await page.locator("#detailsDialog").isVisible(), true);
+  assert.equal(await page.locator("#detailsRestart").isVisible(), false);
+  assert.notEqual(await page.locator("#detailsPlay").innerText(), resumeLabel);
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
+  await page.setViewportSize({ width: 1280, height: 900 });
+});
+
+test("a long press opens details, and marking the film sends the id", async () => {
+  await page.locator("#filmGrid .film").nth(4).click({ delay: 600 });
+  await page.waitForSelector("#detailsDialog[open]");
   // Listened for before the press: the wall may be read again (the library
   // moved) before the click itself has returned.
   const [request] = await Promise.all([
     page.waitForRequest((sent) => sent.method() === "POST" && sent.url().endsWith("/api/watched")),
     page.waitForResponse((answer) => answer.url().includes("/api/library")),
-    page.click("#markWatched"),
+    page.click("#detailsUnwatched"),
   ]);
   const body = JSON.parse(request.postData());
   assert.equal(typeof body.movieid, "number");
-  assert.equal(typeof body.watched, "boolean");
-  await page.waitForFunction(() => !document.querySelector("#markDialog[open]"));
+  assert.equal(body.watched, false);
+  await page.waitForSelector("#detailsWatched:not([hidden])");
+  assert.equal(await page.locator("#detailsDialog").isVisible(), true);
+  assert.equal(await page.locator("#detailsUnwatched").isVisible(), false);
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => !document.querySelector("#detailsDialog[open]"));
 });
 
 test("cancelling the question sends nothing", async () => {
   const before = posts.length;
-  await page.locator("#filmGrid .film").first().click();
-  await page.waitForSelector("#markDialog[open]");
-  await page.click("#markCancel");
-  await page.waitForFunction(() => !document.querySelector("#markDialog[open]"));
+  await page.locator("#filmGrid .film").first().click({ delay: 600 });
+  await page.waitForSelector("#detailsDialog[open]");
+  await page.click("#detailsX");
+  await page.waitForFunction(() => !document.querySelector("#detailsDialog[open]"));
   assert.equal(posts.length, before);
 });
 
@@ -244,8 +363,10 @@ test("series: a show opens with its seasons and episodes", async () => {
   await tab("series");
   await page.waitForFunction(() => document.querySelectorAll("#seriesGrid .film").length === 5);
   await page.locator("#seriesGrid .film").nth(1).click();
-  await page.waitForSelector("#markDialog[open]");
-  await page.click("#markPlay");
+  await page.waitForSelector("#detailsDialog[open]");
+  assert.equal(await page.locator("#markDialog").isVisible(), false);
+  await page.click("#detailsPlay");
+  await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
   await page.waitForSelector(".seasonfold");
   assert.equal(await page.locator(".seasonfold").count(), 2);
   await page.locator(".seasonfold .season").first().click();

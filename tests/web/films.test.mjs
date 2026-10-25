@@ -77,7 +77,7 @@ const PLAYING = { playing: true, control: true };
  * first idle snapshot is delivered unless *quiet*.  The window is closed when
  * the test ends. */
 async function open(t, { movies = FILMS, routes = {}, token = "", quiet = false } = {}) {
-  const table = {
+  const table = { "/api/details": [200, {}],
     "/api/hello": [200, { version: "2.15.0", strings: STRINGS }],
     "/api/library": [200, { tag: "f1", movies }],
     "/api/series": [200, { tag: "s1", shows: [] }],
@@ -142,7 +142,12 @@ function tile(view, title, id = "filmGrid") {
 
 /** Answer the question that is open, as the dialog's form would. */
 function answer({ window, $ }, value) {
-  const dialog = $("markDialog");
+  if (value === "details") return;
+  const dialog = $("detailsDialog");
+  if (["restart", "clear", "watched", "unwatched"].includes(value)) {
+    dialog.querySelector('button[value="' + value + '"]').click();
+    return;
+  }
   dialog.returnValue = value;
   dialog.close();
   dialog.dispatchEvent(new window.Event("close"));
@@ -150,7 +155,8 @@ function answer({ window, $ }, value) {
 
 /** Press the film called *title* and give *value* as the answer. */
 async function press(view, title, value = "play") {
-  tile(view, title).click();
+  tile(view, title).dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, value);
   await settle();
 }
@@ -463,17 +469,20 @@ test("a failure that carries no error at all still counts as a failure", async (
 
 test("a press asks to play a film, or to resume one that got somewhere", async (t) => {
   const view = await open(t);
-  tile(view, "Alien").click();
-  assert.equal(view.$("markDialog").open, true);
-  assert.equal(view.$("markTitle").textContent, "Alien");
-  assert.equal(view.$("markPlay").textContent, "Play");
-  assert.equal(view.$("markRestart").hidden, true);
+  tile(view, "Alien").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsTitle").textContent, "Alien");
+  assert.equal(view.$("detailsPlay").textContent, "Play");
+  assert.equal(view.$("detailsRestart").hidden, true);
   answer(view, "cancel");
 
-  tile(view, "Brazil", "unseenFilmGrid").click();
-  assert.equal(view.$("markTitle").textContent, "Brazil");
-  assert.equal(view.$("markPlay").textContent, "Resume");
-  assert.equal(view.$("markRestart").hidden, false);
+  tile(view, "Brazil", "unseenFilmGrid").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, "Brazil");
+  assert.equal(view.$("detailsPlay").textContent, "Resume");
+  assert.equal(view.$("detailsRestart").hidden, false);
   answer(view, "cancel");
   await settle();
   assert.deepEqual(plays(view), []);
@@ -561,10 +570,11 @@ test("the wall is not read again under a pressed tile, and is once the press is 
 test("a second film pressed while the first is waiting starts nothing", async (t) => {
   const view = await open(t);
   await press(view, "Alien");
-  // A waiting wall takes no press; a click that reaches a tile all the same
+  // A waiting wall takes no press; a context-menu event that reaches a tile all the same
   // (sent by a script, say) is dropped.
   assert.equal(tile(view, "Dune").disabled, true);
-  tile(view, "Dune").dispatchEvent(new view.window.MouseEvent("click"));
+  tile(view, "Dune").dispatchEvent(new view.window.MouseEvent("contextmenu", { cancelable: true }));
+  await settle();
   answer(view, "play");
   await settle();
   assert.deepEqual(plays(view), [{ movieid: 1 }]);

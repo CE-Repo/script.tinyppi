@@ -330,24 +330,7 @@
   </button>
 </nav>
 
-<!-- What a press on a poster or an episode asks: its details, play it (open
-     it, for a series), or have the box count it as seen or as unseen (see
-     "what a press asks" in js/marking.js). -->
-<dialog id="markDialog"><form method="dialog">
-  <h3 id="markTitle"></h3>
-  <div class="markoptions">
-    <button value="details" id="markDetails" type="submit"></button>
-    <button value="play" id="markPlay" type="submit"></button>
-    <button value="restart" id="markRestart" type="submit" hidden></button>
-    <button value="watched" id="markWatched" type="submit"></button>
-    <button value="unwatched" id="markUnwatched" type="submit"></button>
-    <button value="clear" id="markClear" type="submit" hidden></button>
-  </div>
-  <div class="dlgrow"><button value="cancel" id="markCancel" type="submit"></button></div>
-</form></dialog>
-
-<!-- A title's details, asked for from the question above (see "a title's
-     details" in js/marking.js). -->
+<!-- Library details and the actions available for this title. -->
 <dialog id="detailsDialog"><form method="dialog">
   <div class="detailshero" id="detailsHero">
     <img class="detailsbackdrop" id="detailsBackdrop" alt="">
@@ -362,17 +345,22 @@
     </div>
   </div>
   <div class="detailsbody">
-    <div class="markoptions detailsactions">
+    <div class="markoptions detailsactions" id="detailsActions">
       <button value="play" id="detailsPlay" type="submit"></button>
-      <button value="restart" id="detailsRestart" type="submit" hidden></button>
+      <div class="detailstools">
+        <button value="restart" id="detailsRestart" type="button" hidden><span class="said"></span></button>
+        <button value="clear" id="detailsClear" type="button" hidden><span class="said"></span></button>
+        <button value="watched" id="detailsWatched" type="button"><span class="said"></span></button>
+        <button value="unwatched" id="detailsUnwatched" type="button"><span class="said"></span></button>
+      </div>
     </div>
+    <p id="detailsError" role="status" hidden></p>
     <div class="ratings" id="detailsRatings" role="list"></div>
     <p class="detailstagline" id="detailsTagline"></p>
     <p class="detailsplot" id="detailsPlot"></p>
     <dl class="facts detailsfacts" id="detailsFacts"></dl>
     <div class="castblock detailscast" id="detailsCast"></div>
   </div>
-  <div class="dlgrow detailsfoot"><button value="close" id="detailsClose" type="submit"></button></div>
 </form></dialog>
 
 <script src="/js/core.js"></script>

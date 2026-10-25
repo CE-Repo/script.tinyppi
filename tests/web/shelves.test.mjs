@@ -136,7 +136,12 @@ const shown = (view, id) => [...view.$(id).children].filter((node) => !node.hidd
   .map((node) => node.querySelector(".filmtitle").textContent);
 
 function answer({ window, $ }, value) {
-  const dialog = $("markDialog");
+  if (value === "details") return;
+  const dialog = $("detailsDialog");
+  if (["restart", "clear", "watched", "unwatched"].includes(value)) {
+    dialog.querySelector('button[value="' + value + '"]').click();
+    return;
+  }
   dialog.returnValue = value;
   dialog.close();
   dialog.dispatchEvent(new window.Event("close"));
@@ -290,9 +295,10 @@ test("the next-up row holds each show's next episode and starts it from the top"
   assert.equal(tile.querySelector(".filmtitle").textContent, "Andor");
   assert.equal(tile.querySelector(".filmresume"), null);
   assert.equal(tile.querySelector("img").getAttribute("src"), "/api/art?kind=poster&episodeid=71&v=ap");
-  tile.click();
-  assert.equal(view.$("markPlay").textContent, "Play");
-  assert.ok(view.$("markRestart").hidden && view.$("markClear").hidden);
+  tile.dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
+  assert.equal(view.$("detailsPlay").textContent, "Play");
+  assert.ok(view.$("detailsRestart").hidden && view.$("detailsClear").hidden);
   answer(view, "play");
   await settle();
   const sent = view.requests.filter((request) => request.url === "/api/play");
@@ -308,8 +314,8 @@ test("an add-on without the next-up row leaves no card for it", async (t) => {
 
 test("details stand under the title's backdrop with its poster, shields, plot, facts and cast", async (t) => {
   const view = await open(t);
-  [...view.$("filmGrid").children][0].click();
-  assert.equal(view.$("markDetails").textContent, "Details");
+  [...view.$("filmGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, "details");
   await settle();
   const asked = view.requests.filter((request) => request.url.startsWith("/api/details"));
@@ -330,10 +336,10 @@ test("details stand under the title's backdrop with its poster, shields, plot, f
   // The facts and the cast as the overview card draws them.
   const facts = [...view.$("detailsFacts").children].map((node) =>
     [...node.children].map((part) => part.textContent));
-  assert.deepEqual(facts, [["Genre", "Horror, Sci-Fi"], ["Director", "Ridley Scott"],
+  assert.deepEqual(facts, [["Genre", "Horror, Sci-Fi"],
                            ["Studio", "20th Century Fox"]]);
-  assert.deepEqual(cast(view), ["Cast", "SSigourney WeaverRipley", "JJones", "…"]);
-  assert.equal(view.$("detailsClose").textContent, "Close");
+  assert.deepEqual(cast(view), ["Cast", "RRidley ScottDirector", "SSigourney WeaverRipley", "JJones", "…"]);
+  assert.equal(view.$("detailsClose"), null);
   assert.equal(view.$("detailsX").getAttribute("aria-label"), "Close");
   // A backdrop the box cannot read leaves the heading on the plain panel.
   view.$("detailsBackdrop").onerror();
@@ -347,12 +353,7 @@ const cast = (view) => {
           ...[...block.querySelectorAll("li")].map((card) => card.textContent)];
 };
 
-function closeDetails({ window, $ }, value) {
-  const dialog = $("detailsDialog");
-  dialog.returnValue = value;
-  dialog.close();
-  dialog.dispatchEvent(new window.Event("close"));
-}
+function closeDetails(view, value) { answer(view, value); }
 
 test("the details play, resume or start over, as the question does", async (t) => {
   const films = [{ id: 1, title: "Alien", duration: 7020, resume: 600 }, { id: 2, title: "Brazil" }];
@@ -360,7 +361,8 @@ test("the details play, resume or start over, as the question does", async (t) =
   const played = () => view.requests.filter((request) => request.url === "/api/play")
     .map((request) => JSON.parse(request.init.body));
   const details = async (index) => {
-    [...view.$("filmGrid").children][index].click();
+    [...view.$("filmGrid").children][index].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    await settle();
     answer(view, "details");
     await settle();
   };
@@ -382,7 +384,8 @@ test("the details play, resume or start over, as the question does", async (t) =
 
 test("the details' play is the question's", async (t) => {
   const view = await open(t);
-  [...view.$("filmGrid").children][1].click();
+  [...view.$("filmGrid").children][1].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, "details");
   await settle();
   closeDetails(view, "play");
@@ -405,7 +408,8 @@ test("an episode stands under its still, and one without pictures under none", a
 
 test("a title with little to say leaves its rows out, and a failed read says so", async (t) => {
   const view = await open(t, { routes: { "/api/details": [200, { kind: "tvshow", id: 7, title: "Andor" }] } });
-  [...view.$("seriesGrid").children][0].click();
+  [...view.$("seriesGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, "details");
   await settle();
   assert.ok(view.requests.some((request) => request.url === "/api/details?tvshowid=7"));
@@ -416,12 +420,15 @@ test("a title with little to say leaves its rows out, and a failed read says so"
   assert.ok(view.$("detailsBackdrop").hidden && view.$("detailsHero").classList.contains("bare"));
   assert.equal(view.$("detailsBackdrop").getAttribute("src"), null);
   view.$("detailsDialog").close();
+  view.$("detailsDialog").dispatchEvent(new view.window.Event("close"));
 
   view.routes["/api/details"] = [404, { error: "no such title" }];
-  [...view.$("filmGrid").children][1].click();
+  [...view.$("filmGrid").children][1].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, "details");
   await settle();
-  assert.equal(view.$("detailsDialog").open, false);
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsActions").hidden, false);
   assert.equal(view.$("toast").textContent, "The details could not be read.");
 });
 
@@ -434,12 +441,9 @@ test("on the adaptive theme the details wear their own title's colour, not what 
     asked.push([url, image.id]);
     return Promise.resolve(answer);
   };
-  [...view.$("filmGrid").children][0].click();
+  [...view.$("filmGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   const show = async () => {
-    const markAnswer = view.$("markDialog");
-    markAnswer.returnValue = "details";
-    markAnswer.close();
-    markAnswer.dispatchEvent(new view.window.Event("close"));
     await settle();
   };
   await show();
@@ -448,34 +452,42 @@ test("on the adaptive theme the details wear their own title's colour, not what 
   assert.ok(dialog.classList.contains("tinted"));
   assert.equal(dialog.style.getPropertyValue("--cover-accent-rgb"), "200, 40, 40");
   dialog.close();
+  dialog.dispatchEvent(new view.window.Event("close"));
   // A picture with no colour: the theme's own, and nothing left of the last.
   answer = null;
-  [...view.$("filmGrid").children][0].click();
+  [...view.$("filmGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   await show();
   assert.equal(dialog.classList.contains("tinted"), false);
   assert.equal(dialog.style.getPropertyValue("--cover-accent-rgb"), "");
   dialog.close();
+  dialog.dispatchEvent(new view.window.Event("close"));
   // One whose picture moved on before the answer came is not painted.
   answer = [1, 2, 3];
   view.window.TinyPPICover.accent = (url, image) => {
     image.setAttribute("src", "/elsewhere");
     return Promise.resolve(answer);
   };
-  [...view.$("filmGrid").children][0].click();
+  [...view.$("filmGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   await show();
   assert.equal(dialog.classList.contains("tinted"), false);
   dialog.close();
+  dialog.dispatchEvent(new view.window.Event("close"));
   // A title with no picture at all asks nothing, and nor does a page
   // without the tint.
   asked.length = 0;
   view.window.TinyPPICover.accent = () => { asked.push(1); return Promise.resolve(answer); };
   view.routes["/api/details"] = [200, { kind: "tvshow", id: 7, title: "Andor" }];
-  [...view.$("seriesGrid").children][0].click();
+  [...view.$("seriesGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   await show();
   dialog.close();
+  dialog.dispatchEvent(new view.window.Event("close"));
   delete view.window.TinyPPICover;
   view.routes["/api/details"] = [200, { kind: "movie", id: 1, title: "Alien", poster: "p1" }];
-  [...view.$("filmGrid").children][0].click();
+  [...view.$("filmGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   await show();
   assert.deepEqual(asked, []);
   assert.equal(dialog.classList.contains("tinted"), false);
@@ -493,8 +505,37 @@ test("the overview opens the playing title's details, with nothing to play on th
   assert.equal(view.$("detailsPlay").textContent, "");
   closeDetails(view, "close");
   // Opened from a shelf again, the keys are back.
-  [...view.$("filmGrid").children][0].click();
+  [...view.$("filmGrid").children][0].dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, "details");
   await settle();
   assert.equal(view.$("detailsPlay").parentElement.hidden, false);
+});
+
+
+test("Atmos and DTS:X are named and filter the film shelf", async (t) => {
+  const view = await open(t, { routes: { "/api/library": [200, { tag: "immersive", movies: [
+    { id: 1, title: "Atmos film", audio: "atmos" },
+    { id: 2, title: "DTS film", audio: "dtsx" }
+  ] }] } });
+  assert.deepEqual(options(pick(view, "filmTools", "audio")).map(([value]) => value), ["", "atmos", "dtsx"]);
+  assert.match(pick(view, "filmTools", "audio").textContent, /Dolby Atmos/);
+  assert.match(pick(view, "filmTools", "audio").textContent, /DTS:X/);
+  choose(view, "filmTools", "audio", "atmos");
+  assert.deepEqual(shown(view, "filmGrid"), ["Atmos film"]);
+  choose(view, "filmTools", "audio", "dtsx");
+  assert.deepEqual(shown(view, "filmGrid"), ["DTS film"]);
+});
+
+
+test("scrolling details dismisses the rating popovers", async (t) => {
+  const view = await open(t);
+  [...view.$("filmGrid").children][0].click();
+  await settle();
+  const tips = [...view.$("detailsRatings").querySelectorAll(".rating-tip")];
+  assert.ok(tips.length);
+  let closed = 0;
+  for (const tip of tips) tip.hidePopover = () => { closed++; };
+  view.$("detailsDialog").querySelector("form").dispatchEvent(new view.window.Event("scroll"));
+  assert.equal(closed, tips.length);
 });

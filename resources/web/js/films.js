@@ -10,7 +10,7 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global ask, continueStale, el, shelfTools, T */
+/* global bindTitle, continueStale, el, shelfTools, T */
 /* exported FILMS_RETRY_MS, FILMS_START_MS, filmTools, filmsOffered, filmsStale,
    hideFilms, metaLine, newest, ratingBadge, releaseFilms, releasing,
    requestFilms, runtime, starting */
@@ -306,12 +306,12 @@ function filmTile(film) {
     tile.append(line);
   }
 
-  tile.addEventListener("click", () => ask({
-    title: film.title, body: { movieid: film.id },
+  bindTitle(tile, {
+    watched: !!film.watched, title: film.title, body: { movieid: film.id },
     play: film.resume ? T.films_resume : T.films_play,
     resumable: !!film.resume,
     onPlay: (fromStart) => startFilm(film, tile, fromStart)
-  }));
+  });
   return tile;
 }
 

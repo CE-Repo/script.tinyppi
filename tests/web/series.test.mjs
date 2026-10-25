@@ -87,7 +87,7 @@ const PLAYING = { playing: true, control: true };
  * The window is closed when the test ends. */
 async function open(t, { shows = SHOWS, episodes = EPISODES, routes = {}, token = "",
                          quiet = false } = {}) {
-  const table = {
+  const table = { "/api/details": [200, {}],
     "/api/hello": [200, { version: "2.15.0", strings: STRINGS }],
     "/api/library": [200, { tag: "f1", movies: [] }],
     "/api/series": [200, { tag: "s1", shows }],
@@ -171,7 +171,12 @@ const rows = (view) => [...view.$("episodeList").querySelectorAll(".episode")];
 
 /** Answer the question that is open, as the dialog's form would. */
 function answer({ window, $ }, value) {
-  const dialog = $("markDialog");
+  if (value === "details") return;
+  const dialog = $("detailsDialog");
+  if (["restart", "clear", "watched", "unwatched"].includes(value)) {
+    dialog.querySelector('button[value="' + value + '"]').click();
+    return;
+  }
   dialog.returnValue = value;
   dialog.close();
   dialog.dispatchEvent(new window.Event("close"));
@@ -179,7 +184,8 @@ function answer({ window, $ }, value) {
 
 /** Press *node* and give *value* as the answer. */
 async function press(view, node, value = "play") {
-  node.click();
+  node.dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, value);
   await settle();
 }
@@ -316,11 +322,12 @@ test("the search narrows the shelf by title and year, and clearing it puts it ba
 
 test("a press on a show asks to open it, and opening it lists its seasons folded away", async (t) => {
   const view = await open(t, { token: "T0K3N" });
-  tile(view, "Andor").click();
-  assert.equal(view.$("markDialog").open, true);
-  assert.equal(view.$("markTitle").textContent, "Andor");
-  assert.equal(view.$("markPlay").textContent, "Open");
-  assert.equal(view.$("markRestart").hidden, true);
+  tile(view, "Andor").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsTitle").textContent, "Andor");
+  assert.equal(view.$("detailsPlay").textContent, "Open");
+  assert.equal(view.$("detailsRestart").hidden, true);
   answer(view, "play");
   await settle();
 
@@ -391,23 +398,29 @@ test("episodes are numbered S01E04, E04 without a season, and named by number wh
 test("a press on an episode asks to play it, or to resume one that got somewhere", async (t) => {
   const view = await open(t);
   await openShow(view, "Andor");
-  row(view, "Kassa").click();
-  assert.equal(view.$("markTitle").textContent, "S01E01 · Kassa");
-  assert.equal(view.$("markPlay").textContent, "Play");
-  assert.equal(view.$("markRestart").hidden, true);
+  row(view, "Kassa").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, "S01E01 · Kassa");
+  assert.equal(view.$("detailsPlay").textContent, "Play");
+  assert.equal(view.$("detailsRestart").hidden, true);
   answer(view, "cancel");
 
-  row(view, "That Would Be Me").click();
-  assert.equal(view.$("markTitle").textContent, "S01E02 · That Would Be Me");
-  assert.equal(view.$("markPlay").textContent, "Resume");
-  assert.equal(view.$("markRestart").hidden, false);
+  row(view, "That Would Be Me").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, "S01E02 · That Would Be Me");
+  assert.equal(view.$("detailsPlay").textContent, "Resume");
+  assert.equal(view.$("detailsRestart").hidden, false);
   answer(view, "cancel");
 
-  row(view, "S02E11").click();
-  assert.equal(view.$("markTitle").textContent, "S02E11");
+  row(view, "S02E11").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, "S02E11");
   answer(view, "cancel");
-  row(view, "Lost reel").click();
-  assert.equal(view.$("markTitle").textContent, "Lost reel");
+  row(view, "Lost reel").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, "Lost reel");
   answer(view, "cancel");
   await settle();
   assert.deepEqual(plays(view), []);
@@ -675,10 +688,11 @@ test("a second episode pressed while the first is waiting starts nothing", async
   const view = await open(t);
   await openShow(view, "Andor");
   await press(view, row(view, "Kassa"));
-  // A waiting list takes no press; a click that reaches a row all the same
+  // A waiting list takes no press; a context-menu event that reaches a row all the same
   // (sent by a script, say) is dropped.
   assert.equal(row(view, "One Way Out").disabled, true);
-  row(view, "One Way Out").dispatchEvent(new view.window.MouseEvent("click"));
+  row(view, "One Way Out").dispatchEvent(new view.window.MouseEvent("contextmenu", { cancelable: true }));
+  await settle();
   answer(view, "play");
   await settle();
   assert.deepEqual(plays(view), [{ episodeid: 101 }]);

@@ -60,7 +60,7 @@ function fakeClock(window) {
 /** The dashboard as index.html loads it.  *before* runs on the bare page
  * ahead of the scripts; the window is closed when the test ends. */
 function open(t, { routes = {}, hello = {}, token = "", before, scripts = ORDER } = {}) {
-  const table = { "/api/hello": [200, { version: "2.15.0", strings: {}, ...hello }], ...routes };
+  const table = { "/api/details": [200, {}], "/api/hello": [200, { version: "2.15.0", strings: {}, ...hello }], ...routes };
   const view = page({ scripts: [], routes: table, token });
   const { window, dom } = view;
   t.after(() => window.close());
@@ -111,7 +111,12 @@ const reads = ({ requests }, path) =>
 
 /** Answer the question a press asked, as the dialog's form would. */
 function answer({ window, $ }, value) {
-  const dialog = $("markDialog");
+  if (value === "details") return;
+  const dialog = $("detailsDialog");
+  if (["restart", "clear", "watched", "unwatched"].includes(value)) {
+    dialog.querySelector('button[value="' + value + '"]').click();
+    return;
+  }
   dialog.returnValue = value;
   dialog.close();
   dialog.dispatchEvent(new window.Event("close"));
@@ -358,10 +363,10 @@ test("the bar stays while a finger is down, a dialog is open or one of its keys 
 
   doc.dispatchEvent(new window.Event("pointerdown"));
   doc.dispatchEvent(new window.Event("pointercancel"));
-  $("markDialog").showModal();
+  $("detailsDialog").showModal();
   clock.tick(9000);
   assert.equal(away(), false, "a dialog is open");
-  $("markDialog").close();
+  $("detailsDialog").close();
   clock.tick(3000);
   assert.equal(away(), true);
 
@@ -610,7 +615,8 @@ test("a new library version marks every list unread, and the open show is read a
   assert.deepEqual(counts(), [1, 1, 1, 0]);
   await view.state({ ...PLAYING, library: 1 });
   assert.deepEqual(counts(), [1, 1, 1, 0]);
-  view.$("seriesGrid").querySelector(".film").click();
+  view.$("seriesGrid").querySelector(".film").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, "play");
   await settle();
   assert.deepEqual(counts(), [1, 1, 1, 1]);
@@ -625,11 +631,13 @@ test("a playing snapshot gives back the wall, the row and the show a press was w
   const view = open(t, { routes: { ...LIBRARY, "/api/play": [200, {}] } });
   const { $ } = view;
   await view.state(IDLE);
-  $("seriesGrid").querySelector(".film").click();
+  $("seriesGrid").querySelector(".film").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, "play");
   await settle();
   const press = async (tile) => {
-    tile.click();
+    tile.dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    await settle();
     answer(view, "play");
     await settle();
   };
