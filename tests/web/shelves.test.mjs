@@ -299,6 +299,50 @@ test("details stand under the title's backdrop with its poster, shields, plot, f
   assert.ok(view.$("detailsBackdrop").hidden && view.$("detailsHero").classList.contains("bare"));
 });
 
+function closeDetails({ window, $ }, value) {
+  const dialog = $("detailsDialog");
+  dialog.returnValue = value;
+  dialog.close();
+  dialog.dispatchEvent(new window.Event("close"));
+}
+
+test("the details play, resume or start over, as the question does", async (t) => {
+  const films = [{ id: 1, title: "Alien", duration: 7020, resume: 600 }, { id: 2, title: "Brazil" }];
+  const view = await open(t, { routes: { "/api/library": [200, { tag: "f2", movies: films }] } });
+  const played = () => view.requests.filter((request) => request.url === "/api/play")
+    .map((request) => JSON.parse(request.init.body));
+  const details = async (index) => {
+    [...view.$("filmGrid").children][index].click();
+    answer(view, "details");
+    await settle();
+  };
+  // A film not begun: play alone; closing plays nothing.
+  await details(1);
+  assert.equal(view.$("detailsPlay").textContent, "Play");
+  assert.ok(view.$("detailsRestart").hidden);
+  closeDetails(view, "close");
+  await settle();
+  assert.deepEqual(played(), []);
+  // A film with a point to resume from: resume, or start over.
+  await details(0);
+  assert.equal(view.$("detailsPlay").textContent, "Resume");
+  assert.equal(view.$("detailsRestart").hidden, false);
+  closeDetails(view, "restart");
+  await settle();
+  assert.deepEqual(played(), [{ movieid: 1, resume: false }]);
+});
+
+test("the details' play is the question's", async (t) => {
+  const view = await open(t);
+  [...view.$("filmGrid").children][1].click();
+  answer(view, "details");
+  await settle();
+  closeDetails(view, "play");
+  await settle();
+  const sent = view.requests.filter((request) => request.url === "/api/play");
+  assert.deepEqual(sent.map((request) => JSON.parse(request.init.body)), [{ movieid: 2 }]);
+});
+
 test("an episode stands under its still, and one without pictures under none", async (t) => {
   const view = await open(t, { routes: { "/api/details": [200, {
     kind: "episode", id: 71, title: "Rix Road", thumb: "t71",

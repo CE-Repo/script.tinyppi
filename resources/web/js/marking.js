@@ -27,6 +27,7 @@
    are read again, so what they show is what the library now says. */
 
 let asking = null;         /* what the open question is about              */
+let detailing = null;      /* what the open details are about              */
 
 function ask(question) {
   if (!control || el.markDialog.open) return;
@@ -165,9 +166,22 @@ async function showDetails(question) {
   el.detailsPlot.textContent = found.plot || "";
   el.detailsFacts.replaceChildren(...facts(found));
   el.detailsCast.replaceChildren(...castNodes(found));
+  /* The question's first answers, offered on the page too. */
+  el.detailsPlay.textContent = question.play;
+  el.detailsRestart.hidden = !question.resumable;
+  detailing = question;
+  el.detailsDialog.returnValue = "";
   el.detailsDialog.showModal();
   el.detailsDialog.querySelector("form").scrollTop = 0;
 }
+
+el.detailsDialog.addEventListener("close", () => {
+  const answer = el.detailsDialog.returnValue;
+  const question = detailing;
+  detailing = null;
+  if (answer === "play") question.onPlay(false);
+  else if (answer === "restart") question.onPlay(true);
+});
 
 /* The rows under the plot, each a heading and its names, left out where the
    library has nothing for it. */

@@ -878,6 +878,11 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
 }
 .detailsx:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .detailsbody { display: grid; gap: 16px; padding: 16px 20px 4px; }
+/* The question's first answers, side by side: play (resume, or open for a
+   series) in the accent, and starting over beside it where there is a point
+   to resume from. */
+.detailsactions { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.detailsactions button { text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #detailsRatings { justify-content: flex-start; }
 .detailstagline { font-style: italic; }
 dialog p.detailsplot { color: var(--text); white-space: pre-line; line-height: 1.55; font-size: 14px; }

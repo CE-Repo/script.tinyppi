@@ -75,7 +75,8 @@ const el = {
   detailsFacts: $("detailsFacts"), detailsClose: $("detailsClose"),
   detailsHero: $("detailsHero"), detailsBackdrop: $("detailsBackdrop"),
   detailsPoster: $("detailsPoster"), detailsRatings: $("detailsRatings"),
-  detailsCast: $("detailsCast"), detailsX: $("detailsX")
+  detailsCast: $("detailsCast"), detailsX: $("detailsX"),
+  detailsPlay: $("detailsPlay"), detailsRestart: $("detailsRestart")
 };
 
 /* Keep VS10 by the playback card, under the plot that is the first card
