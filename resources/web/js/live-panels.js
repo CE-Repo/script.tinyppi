@@ -557,7 +557,14 @@
     const signature = JSON.stringify(badges);
     if (el.ratings.dataset.signature === signature) return;
     el.ratings.dataset.signature = signature;
-    el.ratings.replaceChildren();
+    el.ratings.replaceChildren(...shieldNodes(badges));
+    el.ratings.classList.toggle("hidden", !badges.length);
+  }
+
+  /* The shields themselves, for the overview card and for a library title's
+     details (see showDetails in js/marking.js). */
+  function shieldNodes(badges) {
+    const nodes = [];
     for (const badge of badges) {
       const node = document.createElement("span");
       node.className = "rating " + badge.kind;
@@ -583,9 +590,9 @@
         look.append(figures);
       }
       node.append(said, look);
-      el.ratings.append(node);
+      nodes.push(node);
     }
-    el.ratings.classList.toggle("hidden", !badges.length);
+    return nodes;
   }
 
   /* The poster is fetched once per film: the add-on sends a tag that changes
@@ -1195,6 +1202,11 @@
     chapters.relayout();
   }
 
-  window.TinyPPI.panels = { strings, update, events, peak, draw };
+  /* A library title's ratings as the overview card draws the playing one's. */
+  function shields(media) {
+    return shieldNodes(ratingBadges(media, TinyPPI.T));
+  }
+
+  window.TinyPPI.panels = { strings, update, events, peak, draw, shields };
 
 })();

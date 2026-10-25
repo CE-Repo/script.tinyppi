@@ -10,7 +10,7 @@
    What it uses from them and what it gives them is listed below. */
 
 /* global T */
-/* exported FORMAT_NAMES, shelfTools */
+/* exported FORMAT_NAMES, formatName, shelfTools */
 
 /* --- sorting and filtering a wall ----------------------------------------- */
 
@@ -33,7 +33,7 @@ const FORMAT_NAMES = {
    profile. */
 function formatName(name, value) {
   if (name === "video" && value.startsWith("dv/")) return "Dolby Vision P" + value.slice(3);
-  return FORMAT_NAMES[name][value];
+  return FORMAT_NAMES[name][value] || value;
 }
 
 /* The profiles a Dolby Vision filter offers, in order: 5, 7, 7 FEL, 7 MEL,

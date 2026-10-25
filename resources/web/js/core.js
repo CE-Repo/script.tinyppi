@@ -82,7 +82,8 @@ window.TinyPPI = (function () {
     filter_genre: "All genres", filter_video: "All picture formats",
     filter_resolution: "All resolutions", filter_audio: "All audio formats",
     filter_empty: "No titles match the filter",
-    next_up: "Next up", genre: "Genre"
+    next_up: "Next up", details: "Details", writer: "Writer", studio: "Studio",
+    details_failed: "The details could not be read.", genre: "Genre", close: "Close"
   };
 
   const $ = (id) => document.getElementById(id);

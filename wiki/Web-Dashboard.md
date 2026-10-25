@@ -451,6 +451,7 @@ A tap on a film, series or episode — on a wall or in a row — opens a dialog:
 | **Clear resume point** | stopped part-way | Forgets where it got to (taking it off *Continue watching*), leaving watched/unwatched as it was. |
 | **Mark as watched** | all | Writes a play count and removes the resume point — as Kodi's context menu does. A series marks every episode. |
 | **Mark as unwatched** | all | Removes the play count. A series marks every episode. |
+| **Details** | all | The title's details from the library, under its backdrop (a film's or a series' fanart, an episode's still) with its poster: year and running time, the file's formats, the ratings as the overview card's shields (age rating, scores, your own, the Top 250 place), tagline and plot, genres, director, writers, studio, and the cast as small cards with who they played. |
 
 All of these need the **access token** and **Allow VS10 switching from the
 dashboard**.

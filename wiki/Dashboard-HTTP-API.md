@@ -44,7 +44,7 @@ Errors are JSON: `{"error": "<message>"}`.
 | 401 | `token required` | Missing or wrong token (in the header). |
 | 403 | `control disabled` | A write with **Allow VS10 switching** off. |
 | 403 | `library disabled` | The film/series library is switched off (or control is off). |
-| 404 | `no such route`, `no such artwork`, `no artwork`, `no such series` | Unknown path, or nothing to return. |
+| 404 | `no such route`, `no such artwork`, `no artwork`, `no such series`, `no such title` | Unknown path, or nothing to return. |
 | 429 | `too many wrong tokens` (+ `retry_ms`, `Retry-After`) | The address (beyond the home network: its IPv6 /64) is locked out for guessing. |
 | 503 | `too many streams` / `shutting down` (+ `retry_ms`) | All six stream slots are taken, or Kodi is shutting down. |
 | 503 | `library unavailable` | The video database could not be read. |
@@ -200,6 +200,20 @@ left out) of up to 15 shows being watched, the show watched last first —
 "id", "title", "tvshowid", "show", "poster", "thumb", "season", "episode",
 "duration", "rating"}], "count", "tag"}`. An episode already in `items` is not
 repeated in `next`.
+
+### `GET /api/details?movieid=|tvshowid=|episodeid=<id>`
+
+One title's details, read when it is opened: `kind`, `id`, `title`, the
+library's `ratings` (as in the snapshot's overview), and where the library has
+them `plot`, `tagline`, `premiered`, `mpaa` with its `age` mark and
+`age_level`, `year`, `duration`, `genres`, `directors`, `writers`, `studios`,
+`countries`, the `cast` (`{"name", "role"}`, the first twenty, `cast_more`
+when there are more), `userrating`, `top250` and the file's `video`,
+`dv_profile`, `resolution` and `audio`, and the tags of its pictures for
+`/api/art` — `poster` and `fanart` for a film or a series, `thumb` for an
+episode. An episode adds `show`, `tvshowid`, `season` and
+`episode`; a series its number of `season`s. Each kind needs its shelf's
+setting (`403 library disabled`); an unknown title is `404 no such title`.
 
 ### `GET /api/art?kind=<kind>[&movieid=|&tvshowid=|&episodeid=<id>][&v=<tag>]`
 

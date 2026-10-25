@@ -242,6 +242,36 @@ def test_continue_lists_only_the_enabled_shelves(dashboard, monkeypatch):
     assert asked == [{"films": False, "series": True}]
 
 
+def test_details_name_their_kind_by_the_id(dashboard, monkeypatch):
+    asked = []
+    monkeypatch.setattr(library, "title_details",
+                        lambda kind, item: asked.append((kind, item)) or {"kind": kind})
+    for path in ("/api/details?movieid=3", "/api/details?tvshowid=4",
+                 "/api/details?episodeid=5"):
+        assert request(dashboard, path)[0] == 200
+    assert asked == [("movie", "3"), ("tvshow", "4"), ("episode", "5")]
+    assert request(dashboard, "/api/details")[0] == 400
+
+
+def test_details_need_their_shelf_and_control(dashboard, monkeypatch):
+    monkeypatch.setattr(library, "title_details", lambda kind, item: {"kind": kind})
+    dashboard.offer_series = False
+    assert request(dashboard, "/api/details?episodeid=5")[0] == 403
+    assert request(dashboard, "/api/details?movieid=3")[0] == 200
+    dashboard.allow_control = False
+    assert request(dashboard, "/api/details?movieid=3")[0] == 403
+
+
+def test_details_of_an_unknown_title_or_a_broken_read(dashboard, monkeypatch):
+    monkeypatch.setattr(library, "title_details", lambda kind, item: None)
+    assert request(dashboard, "/api/details?movieid=99")[0] == 404
+
+    def broken(kind, item):
+        raise RuntimeError("database locked")
+    monkeypatch.setattr(library, "title_details", broken)
+    assert request(dashboard, "/api/details?movieid=99")[0] == 503
+
+
 # --- Plain reads ----------------------------------------------------------------
 
 def get(srv, path, headers=None):

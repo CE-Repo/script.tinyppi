@@ -2,8 +2,9 @@
 // Copyright (c) 2026 U3knOwn
 
 // The sorting and the filters over the film and series walls
-// (resources/web/js/shelf-tools.js) and the next-up row (continue.js), on
-// the whole page loaded in index.html's order.
+// (resources/web/js/shelf-tools.js), the next-up row (continue.js) and a
+// title's details (marking.js), on the whole page loaded in index.html's
+// order.
 
 import assert from "node:assert/strict";
 import { dirname, join } from "node:path";
@@ -82,6 +83,16 @@ const NEXT = [
     thumb: "at", season: 1, episode: 12, duration: 3000, rating: 8.4, rating_from: "imdb" },
 ];
 
+const DETAILS = {
+  kind: "movie", id: 1, title: "Alien", year: 1979, duration: 7020, mpaa: "Rated R",
+  video: "dv", dv_profile: "5", resolution: "1080p", audio: "wma", tagline: "In space no one can hear you scream.",
+  plot: "One\nTwo", genres: ["Horror", "Sci-Fi"], directors: ["Ridley Scott"], writers: [],
+  studios: ["20th Century Fox"], userrating: 9, top250: 51, cast_more: true,
+  cast: [{ name: "Sigourney Weaver", role: "Ripley" }, { name: "Jones", role: "" }],
+  ratings: [{ source: "imdb", rating: 8.5, votes: 1 }, { source: "kinopoisk", rating: 8, votes: 0 }],
+  age: "mpa_r", age_level: "R", poster: "p1", fanart: "f1",
+};
+
 const IDLE = { playing: false, control: true };
 
 async function open(t, { routes = {}, token = "" } = {}) {
@@ -90,6 +101,7 @@ async function open(t, { routes = {}, token = "" } = {}) {
     "/api/library": [200, { tag: "f1", movies: FILMS }],
     "/api/series": [200, { tag: "s1", shows: SHOWS }],
     "/api/continue": [200, { tag: "c1", items: [], next: NEXT }],
+    "/api/details": [200, DETAILS],
     "/api/play": [200, {}],
     ...routes,
   };
@@ -252,4 +264,72 @@ test("an add-on without the next-up row leaves no card for it", async (t) => {
   const view = await open(t, { routes: { "/api/continue": [200, { tag: "c1", items: [] }] } });
   assert.ok(view.$("nextSeriesCard").classList.contains("hidden"));
   assert.equal(view.$("nextSeriesCount").textContent, "");
+});
+
+test("details stand under the title's backdrop with its poster, shields, plot, facts and cast", async (t) => {
+  const view = await open(t);
+  [...view.$("filmGrid").children][0].click();
+  assert.equal(view.$("markDetails").textContent, "Details");
+  answer(view, "details");
+  await settle();
+  const asked = view.requests.filter((request) => request.url.startsWith("/api/details"));
+  assert.deepEqual(asked.map((request) => request.url), ["/api/details?movieid=1"]);
+  assert.ok(view.$("detailsDialog").open);
+  assert.equal(view.$("detailsBackdrop").getAttribute("src"), "/api/art?kind=fanart&movieid=1&v=f1");
+  assert.equal(view.$("detailsPoster").getAttribute("src"), "/api/art?kind=poster&movieid=1&v=p1");
+  assert.equal(view.$("detailsHero").classList.contains("bare"), false);
+  assert.equal(view.$("detailsTitle").textContent, "Alien");
+  assert.equal(view.$("detailsMeta").textContent, "1979 · 1 h 57 min");
+  assert.deepEqual([...view.$("detailsFormats").children].map((node) => node.textContent),
+                   ["Dolby Vision P5", "1080p", "wma"]);
+  // The ratings as the overview card's shields, the age rating first.
+  assert.deepEqual([...view.$("detailsRatings").querySelectorAll(".said")].map((node) => node.textContent),
+                   ["Rated R", "IMDb 8.5", "Kinopoisk 8.0", "My rating 9", "Top 250 · #51"]);
+  assert.equal(view.$("detailsTagline").textContent, "In space no one can hear you scream.");
+  assert.equal(view.$("detailsPlot").textContent, "One\nTwo");
+  const facts = [...view.$("detailsFacts").children].map((node) => node.textContent);
+  assert.deepEqual(facts, ["Genre", "Horror, Sci-Fi", "Director", "Ridley Scott",
+                           "Studio", "20th Century Fox"]);
+  assert.deepEqual([...view.$("detailsCast").children].map((node) => node.textContent),
+                   ["Cast", "Sigourney WeaverRipley", "Jones", "…"]);
+  assert.equal(view.$("detailsClose").textContent, "Close");
+  assert.equal(view.$("detailsX").getAttribute("aria-label"), "Close");
+  // A backdrop the box cannot read leaves the heading on the plain panel.
+  view.$("detailsBackdrop").onerror();
+  assert.ok(view.$("detailsBackdrop").hidden && view.$("detailsHero").classList.contains("bare"));
+});
+
+test("an episode stands under its still, and one without pictures under none", async (t) => {
+  const view = await open(t, { routes: { "/api/details": [200, {
+    kind: "episode", id: 71, title: "Rix Road", thumb: "t71",
+    cast: [{ name: "Diego Luna", role: "Cassian" }] }] } });
+  [...view.$("nextSeriesRow").children][0].click();
+  answer(view, "details");
+  await settle();
+  assert.equal(view.$("detailsBackdrop").getAttribute("src"), "/api/art?kind=thumb&episodeid=71&v=t71");
+  assert.ok(view.$("detailsPoster").hidden);
+  assert.deepEqual([...view.$("detailsCast").children].map((node) => node.textContent),
+                   ["Cast", "Diego LunaCassian"]);
+});
+
+test("a title with little to say leaves its rows out, and a failed read says so", async (t) => {
+  const view = await open(t, { routes: { "/api/details": [200, { kind: "tvshow", id: 7, title: "Andor" }] } });
+  [...view.$("seriesGrid").children][0].click();
+  answer(view, "details");
+  await settle();
+  assert.ok(view.requests.some((request) => request.url === "/api/details?tvshowid=7"));
+  assert.equal(view.$("detailsMeta").textContent, "");
+  assert.equal(view.$("detailsPlot").textContent, "");
+  assert.equal(view.$("detailsFacts").children.length, 0);
+  assert.equal(view.$("detailsCast").children.length, 0);
+  assert.ok(view.$("detailsBackdrop").hidden && view.$("detailsHero").classList.contains("bare"));
+  assert.equal(view.$("detailsBackdrop").getAttribute("src"), null);
+  view.$("detailsDialog").close();
+
+  view.routes["/api/details"] = [404, { error: "no such title" }];
+  [...view.$("filmGrid").children][1].click();
+  answer(view, "details");
+  await settle();
+  assert.equal(view.$("detailsDialog").open, false);
+  assert.equal(view.$("toast").textContent, "The details could not be read.");
 });

@@ -805,3 +805,119 @@
   overflow-wrap: anywhere;
 }
 
+/* --- A title's details ------------------------------------------------------
+
+   A card of its own rather than the small question box: the title's backdrop
+   across the top, fading into the dialog, with the poster standing on its
+   lower edge beside the title and the formats; under it the ratings, the
+   plot, the facts and the cast.  It scrolls inside itself when it is longer
+   than the screen, with the close key kept at the foot. */
+#detailsDialog { width: min(640px, calc(100vw - 24px)); overflow: hidden; }
+#detailsDialog form {
+  padding: 0;
+  gap: 0;
+  max-height: min(88vh, 860px);
+  overflow-y: auto;
+}
+.detailshero { position: relative; min-height: 200px; display: flex; align-items: flex-end; }
+.detailsbackdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.detailsbackdrop[hidden], .detailsposter[hidden] { display: none; }
+/* Faded into the dialog's own panel, so the heading on it can be read. */
+.detailshero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--panel) 15%, transparent) 0%,
+                              color-mix(in srgb, var(--panel) 55%, transparent) 50%, var(--panel) 100%);
+}
+/* Without a backdrop the heading stands on the plain panel. */
+.detailshero.bare { min-height: 0; padding-top: 44px; }
+.detailshero.bare::after { display: none; }
+.detailshead {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 0 20px 4px;
+  width: 100%;
+}
+.detailsposter {
+  flex: none;
+  width: 104px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lift);
+  border: 1px solid var(--line);
+}
+.detailsheading { display: grid; gap: 6px; min-width: 0; padding-bottom: 4px; }
+#detailsTitle { font-size: 20px; line-height: 1.25; overflow-wrap: anywhere; }
+dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
+.detailsmeta:empty, .detailstagline:empty, .detailsplot:empty,
+.detailsformats:empty, .detailsfacts:empty, .detailscast:empty, #detailsRatings:empty { display: none; }
+.detailsformats { display: flex; flex-wrap: wrap; gap: 6px; }
+/* The close key on the picture, round and on a scrim of its own. */
+.detailsx {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(0, 0, 0, .45) url("/icons/close.svg") center / 18px no-repeat;
+  cursor: pointer;
+}
+.detailsx:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.detailsbody { display: grid; gap: 16px; padding: 16px 20px 4px; }
+#detailsRatings { justify-content: flex-start; }
+.detailstagline { font-style: italic; }
+dialog p.detailsplot { color: var(--text); white-space: pre-line; line-height: 1.55; font-size: 14px; }
+.detailsfacts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 8px 14px;
+  margin: 0;
+  font-size: 13px;
+}
+.detailsfacts dt { color: var(--dim); font-weight: 700; }
+.detailsfacts dd { margin: 0; overflow-wrap: anywhere; }
+/* The cast as a grid of small cards: the name, and who they played under it. */
+.detailscast {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.detailscast li {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--line-soft);
+  font-size: 13px;
+  min-width: 0;
+}
+.detailscast li strong { font-weight: 650; overflow-wrap: anywhere; }
+.detailscast li span { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.detailscast li.detailscasthead {
+  grid-column: 1 / -1;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--dim);
+  font-weight: 700;
+}
+.detailscast li.more { place-items: center; color: var(--muted); }
+.detailsfoot { padding: 12px 20px 18px; }

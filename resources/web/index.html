@@ -341,8 +341,34 @@
     <button value="watched" id="markWatched" type="submit"></button>
     <button value="unwatched" id="markUnwatched" type="submit"></button>
     <button value="clear" id="markClear" type="submit" hidden></button>
+    <button value="details" id="markDetails" type="submit"></button>
   </div>
   <div class="dlgrow"><button value="cancel" id="markCancel" type="submit"></button></div>
+</form></dialog>
+
+<!-- A title's details, asked for from the question above (see "a title's
+     details" in js/marking.js). -->
+<dialog id="detailsDialog"><form method="dialog">
+  <div class="detailshero" id="detailsHero">
+    <img class="detailsbackdrop" id="detailsBackdrop" alt="">
+    <button class="detailsx" id="detailsX" value="close" type="submit"></button>
+    <div class="detailshead">
+      <img class="detailsposter" id="detailsPoster" alt="">
+      <div class="detailsheading">
+        <h3 id="detailsTitle"></h3>
+        <p class="detailsmeta" id="detailsMeta"></p>
+        <div class="detailsformats" id="detailsFormats"></div>
+      </div>
+    </div>
+  </div>
+  <div class="detailsbody">
+    <div class="ratings" id="detailsRatings" role="list"></div>
+    <p class="detailstagline" id="detailsTagline"></p>
+    <p class="detailsplot" id="detailsPlot"></p>
+    <dl class="detailsfacts" id="detailsFacts"></dl>
+    <ul class="detailscast" id="detailsCast"></ul>
+  </div>
+  <div class="dlgrow detailsfoot"><button value="close" id="detailsClose" type="submit"></button></div>
 </form></dialog>
 
 <script src="/js/core.js"></script>

@@ -160,7 +160,7 @@ script.tinyppi/
 | `js/films.js` | The film wall, its rows and search. |
 | `js/series.js` | The series shelf, a show's seasons and episodes. |
 | `js/continue.js` | The continue-watching rows and the next-up row. |
-| `js/marking.js` | The question a press on a title asks (play, from the start, watched / unwatched). |
+| `js/marking.js` | The question a press on a title asks (play, from the start, watched / unwatched, details), and the details view. |
 | `js/metadata.js` | The Dolby Vision metadata list. |
 | `js/theme.js` | Theme selection and persistence. |
 | `js/cover-tint.js` | Poster color extraction for *Dark (adaptive)*. |

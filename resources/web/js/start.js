@@ -65,6 +65,10 @@ function applyStrings(strings, hello) {
   el.markWatched.textContent = strings.mark_watched;
   el.markUnwatched.textContent = strings.mark_unwatched;
   el.markCancel.textContent = strings.cancel;
+  el.markDetails.textContent = strings.details;
+  el.detailsClose.textContent = strings.close;
+  el.detailsX.setAttribute("aria-label", strings.close);
+  el.detailsX.title = strings.close;
   $("seriesBackText").textContent = strings.series_back;
   el.seriesBack.setAttribute("aria-label", strings.series_back);
   el.seriesEmpty.textContent = strings.series_empty;

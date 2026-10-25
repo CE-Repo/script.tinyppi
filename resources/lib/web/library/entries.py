@@ -10,6 +10,8 @@ js/series.js and js/continue.js read them.
 
 from typing import NotRequired, TypedDict
 
+from web.payloads import Rating
+
 # Artwork paths by library id and kind; kept beside a list, never sent.
 ArtPaths = dict[int, dict[str, str]]
 
@@ -110,6 +112,55 @@ class Upcoming(TypedDict):
     duration: NotRequired[int]
     rating: NotRequired[float]
     rating_from: NotRequired[str]
+
+
+class Person(TypedDict):
+    """One of the cast, and the role played ("" where none is known)."""
+
+    name: str
+    role: str
+
+
+class Details(TypedDict):
+    """A title's details (``details.details``), sent as they are.
+
+    ``kind`` is movie, tvshow or episode; anything else only where the
+    library has it.
+    """
+
+    kind: str
+    id: int
+    title: str
+    ratings: list[Rating]
+    plot: NotRequired[str]
+    tagline: NotRequired[str]
+    show: NotRequired[str]
+    premiered: NotRequired[str]
+    mpaa: NotRequired[str]
+    age: NotRequired[str]
+    age_level: NotRequired[str]
+    year: NotRequired[int]
+    duration: NotRequired[int]
+    season: NotRequired[int]
+    episode: NotRequired[int]
+    tvshowid: NotRequired[int]
+    userrating: NotRequired[int]
+    top250: NotRequired[int]
+    genres: NotRequired[list[str]]
+    directors: NotRequired[list[str]]
+    writers: NotRequired[list[str]]
+    studios: NotRequired[list[str]]
+    countries: NotRequired[list[str]]
+    cast: NotRequired[list[Person]]
+    cast_more: NotRequired[bool]
+    # The tags of its pictures (see ``common.tag``), for /api/art.
+    poster: NotRequired[str]
+    fanart: NotRequired[str]
+    thumb: NotRequired[str]
+    video: NotRequired[str]
+    dv_profile: NotRequired[str]
+    resolution: NotRequired[str]
+    audio: NotRequired[str]
 
 
 # What may carry a rating.
