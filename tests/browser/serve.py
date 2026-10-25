@@ -59,6 +59,11 @@ def fake_rpc(method: str, params: dict | None = None) -> dict:
             {"tvshowid": i, "title": f"Show {i}", "year": 2010 + i, "episode": 10,
              "watchedepisodes": i, "art": {}, "dateadded": f"2026-08-{i:02d} 10:00:00"}
             for i in range(1, 6)]}}
+    if method == "VideoLibrary.GetTVShowDetails":
+        show_id = params["tvshowid"]
+        return {"result": {"tvshowdetails": {
+            "title": f"Show {show_id}", "year": 2010 + show_id,
+            "plot": "A series about somebody."}}}
     if method == "VideoLibrary.GetEpisodes" and "filter" in params:
         return {"result": {"episodes": [
             {"episodeid": 99, "title": "Started", "tvshowid": 2, "showtitle": "Show 2",

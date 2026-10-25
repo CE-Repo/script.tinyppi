@@ -675,10 +675,10 @@ test("a second episode pressed while the first is waiting starts nothing", async
   const view = await open(t);
   await openShow(view, "Andor");
   await press(view, row(view, "Kassa"));
-  // A waiting list takes no press; a click that reaches a row all the same
+  // A waiting list takes no press; a context-menu event that reaches a row all the same
   // (sent by a script, say) is dropped.
   assert.equal(row(view, "One Way Out").disabled, true);
-  row(view, "One Way Out").dispatchEvent(new view.window.MouseEvent("click"));
+  row(view, "One Way Out").dispatchEvent(new view.window.MouseEvent("contextmenu", { cancelable: true }));
   answer(view, "play");
   await settle();
   assert.deepEqual(plays(view), [{ episodeid: 101 }]);

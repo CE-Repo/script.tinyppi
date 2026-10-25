@@ -215,8 +215,20 @@ test("films: the wall, search and clearing it", async () => {
   assert.equal(await page.textContent("#filmsCount"), "20");
 });
 
-test("a press on a film asks, and marking it sends the id", async () => {
+test("a short press opens a film's details without starting playback", async () => {
+  const before = posts.length;
   await page.locator("#filmGrid .film").nth(4).click();
+  await page.waitForSelector("#detailsDialog[open]");
+  assert.equal(await page.locator("#detailsTitle").innerText(), "Film 05");
+  assert.equal(await page.locator("#detailsPlot").innerText(), "A film about somebody.");
+  assert.equal(await page.locator("#markDialog").isVisible(), false);
+  assert.equal(posts.length, before);
+  await page.locator("#detailsX").click();
+  await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
+});
+
+test("a long press opens actions, and marking the film sends the id", async () => {
+  await page.locator("#filmGrid .film").nth(4).click({ delay: 600 });
   await page.waitForSelector("#markDialog[open]");
   // Listened for before the press: the wall may be read again (the library
   // moved) before the click itself has returned.
@@ -233,7 +245,7 @@ test("a press on a film asks, and marking it sends the id", async () => {
 
 test("cancelling the question sends nothing", async () => {
   const before = posts.length;
-  await page.locator("#filmGrid .film").first().click();
+  await page.locator("#filmGrid .film").first().click({ delay: 600 });
   await page.waitForSelector("#markDialog[open]");
   await page.click("#markCancel");
   await page.waitForFunction(() => !document.querySelector("#markDialog[open]"));
@@ -244,8 +256,10 @@ test("series: a show opens with its seasons and episodes", async () => {
   await tab("series");
   await page.waitForFunction(() => document.querySelectorAll("#seriesGrid .film").length === 5);
   await page.locator("#seriesGrid .film").nth(1).click();
-  await page.waitForSelector("#markDialog[open]");
-  await page.click("#markPlay");
+  await page.waitForSelector("#detailsDialog[open]");
+  assert.equal(await page.locator("#markDialog").isVisible(), false);
+  await page.click("#detailsPlay");
+  await page.waitForFunction(() => !document.getElementById("detailsDialog").open);
   await page.waitForSelector(".seasonfold");
   assert.equal(await page.locator(".seasonfold").count(), 2);
   await page.locator(".seasonfold .season").first().click();

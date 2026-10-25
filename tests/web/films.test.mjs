@@ -561,10 +561,10 @@ test("the wall is not read again under a pressed tile, and is once the press is 
 test("a second film pressed while the first is waiting starts nothing", async (t) => {
   const view = await open(t);
   await press(view, "Alien");
-  // A waiting wall takes no press; a click that reaches a tile all the same
+  // A waiting wall takes no press; a context-menu event that reaches a tile all the same
   // (sent by a script, say) is dropped.
   assert.equal(tile(view, "Dune").disabled, true);
-  tile(view, "Dune").dispatchEvent(new view.window.MouseEvent("click"));
+  tile(view, "Dune").dispatchEvent(new view.window.MouseEvent("contextmenu", { cancelable: true }));
   answer(view, "play");
   await settle();
   assert.deepEqual(plays(view), [{ movieid: 1 }]);

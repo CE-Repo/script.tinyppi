@@ -438,10 +438,10 @@ test("a read failing with no error at all still counts as a failure", async (t) 
 test("a second title pressed while the first is waiting starts nothing", async (t) => {
   const view = await open(t);
   await press(view, "Film 03");
-  // A waiting row takes no press; a click that reaches a tile all the same
+  // A waiting row takes no press; a context-menu event that reaches a tile all the same
   // (sent by a script, say) is dropped.
   assert.equal(tile(view, "Show 2").disabled, true);
-  tile(view, "Show 2").dispatchEvent(new view.window.MouseEvent("click"));
+  tile(view, "Show 2").dispatchEvent(new view.window.MouseEvent("contextmenu", { cancelable: true }));
   answer(view, "play");
   await settle();
   assert.deepEqual(plays(view), [{ movieid: 3 }]);
