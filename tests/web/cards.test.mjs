@@ -270,6 +270,11 @@ test("moving a card changes where the tab draws it, and is kept for the next vis
   assert.equal(Number(view.$("filmsHead").style.order || 0), 0);
   assert.deepEqual(stored(view).orders.films,
                    ["recentFilmsCard", "filmsCard", "unseenFilmsCard"]);
+  // And down again, past the card it went up over.
+  await pressKey(view, "films", "recentFilmsCard", "down");
+  assert.deepEqual(listed(view, "films"), ["filmsCard", "recentFilmsCard", "unseenFilmsCard"]);
+  await pressKey(view, "films", "filmsCard", "down");
+  await pressKey(view, "films", "filmsCard", "up");
 
   const again = await open(t, { stored: { "tinyppi.cards": stored(view) } });
   assert.ok(order(again, "filmsCard") < order(again, "unseenFilmsCard"));
