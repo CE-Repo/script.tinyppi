@@ -1188,6 +1188,63 @@ test("rating names open on click or keyboard, stay inside the viewport and close
 });
 
 
+test("a row of cards fades out at a side it goes on past, and not at an end it has reached", async (t) => {
+  const { P, window } = panels(t);
+  const row = P.cast({ cast: [{ name: "An Actor" }, { name: "Another" }] })[1];
+  window.document.body.append(row);
+  const at = { left: 0 };
+  Object.defineProperty(row, "scrollWidth", { configurable: true, value: 600 });
+  Object.defineProperty(row, "clientWidth", { configurable: true, value: 300 });
+  Object.defineProperty(row, "scrollLeft", { configurable: true, get: () => at.left });
+  const fades = () => ["fade-start", "fade-end"].filter((name) => row.classList.contains(name));
+  // Measured once it is on the page.
+  await new Promise((resolve) => window.requestAnimationFrame(() => setTimeout(resolve, 0)));
+  assert.deepEqual(fades(), ["fade-end"]);
+  at.left = 150;
+  row.dispatchEvent(new window.Event("scroll"));
+  assert.deepEqual(fades(), ["fade-start", "fade-end"]);
+  at.left = 300;
+  row.dispatchEvent(new window.Event("scroll"));
+  assert.deepEqual(fades(), ["fade-start"]);
+  // A row as wide as its cards, after the phone is turned: no fade at all.
+  Object.defineProperty(row, "scrollWidth", { configurable: true, value: 300 });
+  at.left = 0;
+  window.dispatchEvent(new window.Event("resize"));
+  assert.deepEqual(fades(), []);
+});
+
+test("a mouse drags a row of cards sideways, and its wheel is left to the page", (t) => {
+  const { P, window } = panels(t);
+  const row = P.cast({ cast: [{ name: "An Actor" }, { name: "Another" }] })[1];
+  window.document.body.append(row);
+  const at = { left: 0 };
+  Object.defineProperty(row, "scrollWidth", { configurable: true, value: 600 });
+  Object.defineProperty(row, "clientWidth", { configurable: true, value: 300 });
+  Object.defineProperty(row, "scrollLeft", { configurable: true, get: () => at.left,
+                                             set: (value) => { at.left = value; } });
+  const wheel = new window.WheelEvent("wheel", { deltaY: 120, bubbles: true, cancelable: true });
+  row.dispatchEvent(wheel);
+  assert.equal(wheel.defaultPrevented, false);
+  assert.equal(at.left, 0);
+
+  const pointer = (type, init) => row.dispatchEvent(
+    new window.PointerEvent(type, { bubbles: true, pointerType: "mouse", button: 0, ...init }));
+  // A finger scrolls it itself, and only the main button drags.
+  pointer("pointerdown", { pointerType: "touch", clientX: 200 });
+  pointer("pointermove", { clientX: 100 });
+  pointer("pointerdown", { button: 2, clientX: 200 });
+  pointer("pointermove", { clientX: 100 });
+  assert.equal(at.left, 0);
+  pointer("pointerdown", { clientX: 200 });
+  assert.ok(row.classList.contains("dragging"));
+  pointer("pointermove", { clientX: 80 });
+  assert.equal(at.left, 120);
+  pointer("pointerup", {});
+  assert.equal(row.classList.contains("dragging"), false);
+  pointer("pointermove", { clientX: 0 });
+  assert.equal(at.left, 120);
+});
+
 test("directors and writers share a Cast row with their functions under their names", (t) => {
   const { P } = panels(t);
   const parts = P.cast({

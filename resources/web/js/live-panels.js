@@ -349,8 +349,46 @@
       more.textContent = "\u2026";
       row.append(more);
     }
+    row.addEventListener("scroll", () => fadeRow(row), { passive: true });
+    /* Measured once it is on the page, which is after this returns. */
+    requestAnimationFrame(() => fadeRow(row));
+    mouseScroll(row);
     return [heading, row];
   }
+
+  /* With no scrollbar to take hold of, a mouse drags the row sideways the
+     way a finger does.  The wheel is left to the page. */
+  function mouseScroll(row) {
+    let drag = null;
+    row.addEventListener("pointerdown", (event) => {
+      if (event.pointerType !== "mouse" || event.button !== 0) return;
+      drag = { x: event.clientX, left: row.scrollLeft };
+      row.classList.add("dragging");
+    });
+    row.addEventListener("pointermove", (event) => {
+      if (drag) row.scrollLeft = drag.left - (event.clientX - drag.x);
+    });
+    for (const type of ["pointerup", "pointerleave", "pointercancel"]) {
+      row.addEventListener(type, () => {
+        drag = null;
+        row.classList.remove("dragging");
+      });
+    }
+  }
+
+  /* A row of cards fades out at a side it goes on past, the way the app's
+     filter row does, so the card at the edge runs out softly rather than
+     being cut off -- and the fade says there is more that way.  Nothing at a
+     side the row has reached the end of. */
+  function fadeRow(row) {
+    const end = row.scrollWidth - row.clientWidth;
+    row.classList.toggle("fade-start", row.scrollLeft > 1);
+    row.classList.toggle("fade-end", row.scrollLeft < end - 1);
+  }
+  /* A turned phone is a row of another width. */
+  window.addEventListener("resize", () => {
+    for (const row of document.querySelectorAll(".castrow")) fadeRow(row);
+  });
 
   /* What a rating's mark is drawn from, and what a screen reader calls the
      house it is from: brand names, the same in every language.  The marks

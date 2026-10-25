@@ -896,6 +896,24 @@
   overflow-x: auto;
   scrollbar-width: thin;
 }
+/* Faded out at a side the row goes on past (see fadeRow in
+   js/live-panels.js), as the app's filter row is: the card at the edge runs
+   out softly rather than being cut off. */
+.castrow.fade-start, .castrow.fade-end {
+  --fade-start: 0px;
+  --fade-end: 0px;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-start),
+                                      #000 calc(100% - var(--fade-end)), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 var(--fade-start),
+                              #000 calc(100% - var(--fade-end)), transparent);
+}
+.castrow.fade-start { --fade-start: 64px; }
+/* A mouse drags the row (see mouseScroll in js/live-panels.js). */
+@media (pointer: fine) {
+  .castrow { cursor: grab; user-select: none; }
+  .castrow.dragging { cursor: grabbing; }
+}
+.castrow.fade-end { --fade-end: 64px; }
 .castrow:has(.role:not(:empty)) li { min-height: 152px; }
 .castrow li {
   box-sizing: border-box;
