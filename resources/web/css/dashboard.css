@@ -940,15 +940,7 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
   cursor: pointer;
 }
 .detailsx:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-/* On a phone the page is the whole screen, as the app's is, and like the
-   app's it has no close key: a pull down from its top or the phone's back
-   gesture takes it away (see pullToClose in js/marking.js). */
-@media (max-width: 620px) {
-  .detailsx { display: none; }
-  /* With no key to make room for, a heading without a backdrop starts where
-     the page's margin does. */
-  .detailshero.bare { padding-top: calc(20px + env(safe-area-inset-top)); }
-}
+/* Keep the explicit close button available on touch screens too. */
 .detailsbody { display: grid; gap: 16px; padding: 16px 20px calc(20px + env(safe-area-inset-bottom)); }
 /* The rows of who made it and who is in it run out to the page's edge,
    rather than stopping at the margin the text keeps; the first card still

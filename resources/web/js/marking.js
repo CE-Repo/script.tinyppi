@@ -93,9 +93,11 @@ function slideIn(dialog) {
   /* One shown again while it was still sliding out stays. */
   clearTimeout(sliding.get(dialog));
   sliding.delete(dialog);
-  dialog.classList.add("away");
-  dialog.showModal();
-  dialog.getBoundingClientRect();
+  if (!dialog.open) {
+    dialog.classList.add("away");
+    dialog.showModal();
+    dialog.getBoundingClientRect();
+  }
   dialog.classList.remove("away");
 }
 
@@ -162,6 +164,9 @@ function showPicture(image, url) {
 async function showDetails(question, replace) {
   /* A show's page under its seasons (see stays) gives way to an episode's. */
   if (detailing && !replace && !detailing.stays) return;
+  clearTimeout(sliding.get(el.detailsDialog));
+  sliding.delete(el.detailsDialog);
+  el.detailsDialog.classList.remove("away");
   detailing = question;
   const [key] = Object.keys(question.body);
   const address = "/api/details?" + key + "=" + encodeURIComponent(question.body[key]);
@@ -176,6 +181,7 @@ async function showDetails(question, replace) {
       found = {};
     }
   }
+  if (detailing !== question) return;
   showPicture(el.detailsBackdrop,
               detailsArt(question.body, found.fanart ? "fanart" : "thumb",
                          found.fanart || found.thumb));
@@ -239,6 +245,7 @@ for (const button of [el.detailsRestart, el.detailsClear, el.detailsWatched, el.
     el.detailsError.hidden = true;
     renderDetailsActions(question);
     if (button.value === "restart") {
+      el.detailsDialog.close();
       await question.onPlay(true);
     } else {
       const clearing = button.value === "clear";
@@ -291,7 +298,7 @@ TinyPPI.openDetails = (item) =>
   showDetails({ title: item.title, body: { [item.kind + "id"]: item.id } });
 
 /* Every way a reader leaves a page slides it out: its key, Escape and the
-   phone's back gesture (the dialog's cancel), a pull down from its top, and
+   phone's back gesture (the dialog's cancel), and
    -- on a desktop, where the page stands in the middle of the screen -- a
    click beside it. */
 for (const [dialog, key] of [[el.detailsDialog, el.detailsX], [el.seasonsDialog, el.seasonsX]]) {
@@ -310,7 +317,7 @@ for (const [dialog, key] of [[el.detailsDialog, el.detailsX], [el.seasonsDialog,
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog && pressedBeside) slideOut(dialog);
   });
-  pullToClose(dialog, () => slideOut(dialog));
+  if (dialog === el.seasonsDialog) pullToClose(dialog, () => slideOut(dialog));
 }
 
 el.detailsDialog.querySelector("form").addEventListener("scroll", () => {
