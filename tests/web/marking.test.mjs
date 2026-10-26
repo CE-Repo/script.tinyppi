@@ -459,5 +459,34 @@ test("the opened title uses the current watched and resume state instead of stal
   assert.equal(view.$("detailsPlay").textContent, "Resume");
   answer(view, "restart");
   await settle();
-  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsDialog").open, false);
+});
+
+test("a late details response cannot replace the newer title", async (t) => {
+  const view = await open(t);
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const fetch = view.window.fetch;
+  view.window.fetch = async (url, init) => {
+    if (String(url).includes("movieid=91")) await gate;
+    return fetch(url, init);
+  };
+  const first = view.window.TinyPPI.openDetails({ title: "Old", kind: "movie", id: 91 });
+  await view.window.showDetails({ title: "New", body: { movieid: 92 } }, true);
+  release();
+  await first;
+  assert.equal(view.$("detailsTitle").textContent, "New");
+});
+
+test("reopening a closing page reverses its exit without jumping offscreen", async (t) => {
+  const view = await open(t);
+  tile(view, "Film 01").click();
+  await settle();
+  const dialog = view.$("detailsDialog");
+  view.$("detailsX").click();
+  assert.equal(dialog.classList.contains("away"), true);
+  view.window.slideIn(dialog);
+  assert.equal(dialog.classList.contains("away"), false);
+  view.clock.tick(250);
+  assert.equal(dialog.open, true);
 });

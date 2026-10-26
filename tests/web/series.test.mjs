@@ -617,7 +617,7 @@ test("leaving the seasons goes back to the show's details they were opened over"
   assert.equal(reads(view, "/api/episodes"), 2);
 });
 
-test("a pull down from the top closes the seasons and the details; a short one, or one further down, does not", async (t) => {
+test("a pull closes seasons only; details stay open and scroll normally", async (t) => {
   const view = await open(t);
   await openShow(view, "Andor");
   const seasons = view.$("seasonsDialog");
@@ -640,7 +640,7 @@ test("a pull down from the top closes the seasons and the details; a short one, 
   details.open = true;
   pull(view, details, 50, 200);
   view.clock.tick(250);
-  assert.equal(details.open, false);
+  assert.equal(details.open, true);
 });
 
 test("a title's page slides in, and out by its key, Escape or a click beside it", async (t) => {
