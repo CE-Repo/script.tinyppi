@@ -496,7 +496,7 @@ remain available under it.
 
 ### Optional TMDb person portraits
 
-In the add-on's web settings, enter your own **TMDb API key / read access token**
+In the add-on's web settings, enter your own **TMDb API key**
 to fill missing cast, director and writer portraits in Android and the dashboard.
 Get a credential from https://www.themoviedb.org/settings/api. It stays on Kodi;
 neither the dashboard nor the Android app receives it. Kodi's existing names,

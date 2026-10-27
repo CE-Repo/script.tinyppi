@@ -1720,8 +1720,8 @@ msgid "Description"
 msgstr "Leírás"
 
 msgctxt "#32438"
-msgid "TMDb API key / read access token"
-msgstr "TMDb API-kulcs / olvasási hozzáférési token"
+msgid "TMDb API key"
+msgstr "TMDb API-kulcs"
 
 msgctxt "#32439"
 msgid "Optional: fill missing cast, director and writer portraits from TMDb in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."

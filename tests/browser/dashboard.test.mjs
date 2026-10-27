@@ -158,6 +158,7 @@ test("the overview is a key under the playing card that opens the title's detail
       return [style.fontSize, style.color, style.fontWeight];
     }));
   assert.ok(headingStyles.length > 2);
+  assert.equal(headingStyles[0][0], "18px");
   for (const style of headingStyles) assert.deepEqual(style, headingStyles[0], "details headings match");
   await page.locator("#detailsCast img").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
