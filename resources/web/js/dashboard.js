@@ -71,6 +71,7 @@ const el = {
   detailsDialog: $("detailsDialog"), detailsTitle: $("detailsTitle"),
   detailsMeta: $("detailsMeta"), detailsFormats: $("detailsFormats"),
   detailsTagline: $("detailsTagline"), detailsPlot: $("detailsPlot"),
+  detailsDescription: $("detailsDescription"), detailsDescriptionTitle: $("detailsDescriptionTitle"),
   detailsFacts: $("detailsFacts"),
   detailsHero: $("detailsHero"), detailsBackdrop: $("detailsBackdrop"),
   detailsPoster: $("detailsPoster"), detailsRatings: $("detailsRatings"),

@@ -1706,3 +1706,15 @@ msgstr "%s حلقات"
 msgctxt "#32434"
 msgid "About the episode"
 msgstr "عن الحلقة"
+
+msgctxt "#32435"
+msgid "Awards"
+msgstr "الجوائز"
+
+msgctxt "#32436"
+msgid "Dimmed icons indicate nominations."
+msgstr "تشير الرموز الباهتة إلى الترشيحات."
+
+msgctxt "#32437"
+msgid "Description"
+msgstr "الوصف"

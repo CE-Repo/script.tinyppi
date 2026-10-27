@@ -257,6 +257,32 @@ test("the overview is a key under what is playing that opens the title's details
   assert.equal(card.title, "Details");
 });
 
+test("rating groups separate awards, omit empty sections and explain nominations", (t) => {
+  const { P, window } = panels(t);
+  Object.assign(window.TinyPPI.T, {
+    ratings: "Bewertungen", awards: "Auszeichnungen", award_hint: "Nominierungen sind abgedunkelt."
+  });
+  assert.deepEqual(plain(P.ratingGroups({})), []);
+  const ratings = { ratings: [{ source: "imdb", rating: 8.5 }] };
+  const oscar = { award: "oscar", won: ["Film"], nominated: 0 };
+  const globe = { award: "globe", won: [], nominated: 2 };
+  const onlyRating = P.ratingGroups(ratings);
+  assert.equal(onlyRating.length, 1);
+  assert.equal(onlyRating[0].querySelector("h4").textContent, "Bewertungen");
+  assert.equal(onlyRating[0].querySelector(".ratings").getAttribute("role"), "list");
+  assert.equal(onlyRating[0].querySelector(".ratings").getAttribute("aria-label"), "Bewertungen");
+  const onlyAward = P.ratingGroups({ awards: [oscar] });
+  assert.equal(onlyAward.length, 1);
+  assert.equal(onlyAward[0].querySelector("h4").textContent, "Auszeichnungen");
+  assert.equal(onlyAward[0].querySelector(".ratingnote"), null);
+  const mixed = P.ratingGroups({ ...ratings, awards: [oscar, globe] });
+  assert.deepEqual(plain(mixed.map((node) => node.querySelector("h4").textContent)), ["Bewertungen", "Auszeichnungen"]);
+  assert.equal(mixed[0].querySelectorAll(".rating").length, 1);
+  assert.equal(mixed[1].querySelectorAll(".rating").length, 2);
+  assert.equal(mixed[0].querySelector(".ratingnote"), null);
+  assert.equal(mixed[1].querySelector(".ratingnote").textContent, "Nominierungen sind abgedunkelt.");
+});
+
 test("a title's ratings are shields with their marks, said in words", (t) => {
   const { P, window } = panels(t);
   const row = window.document.createElement("div");

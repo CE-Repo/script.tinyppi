@@ -18,7 +18,7 @@ sys.path[:0] = [os.path.join(ROOT, "tests", "stubs"), os.path.join(ROOT, "resour
 
 import xbmc  # noqa: E402
 import xbmcaddon  # noqa: E402
-from web import library, player  # noqa: E402
+from web import library, player, ratings  # noqa: E402
 from web import server as web_server  # noqa: E402
 
 TOKEN = "BROWSER1"
@@ -52,7 +52,7 @@ def fake_rpc(method: str, params: dict | None = None) -> dict:
     if method == "VideoLibrary.GetMovieDetails":
         film = next(row for row in FILMS if row["movieid"] == params["movieid"])
         return {"result": {"moviedetails": {
-            **film, "plot": "A film about somebody.", "director": ["Stephen Norrington"],
+            **film, "plot": "A film about somebody.", "tagline": "Only a test slogan.", "director": ["Stephen Norrington"],
             "writer": ["David S. Goyer"],
             "cast": [{"name": "Wesley Snipes", "role": "Blade", "order": 0,
                       "thumbnail": os.path.join(ROOT, "icon.png")},
@@ -166,6 +166,12 @@ class Producer:
         return dict(SNAPSHOT, seq=self.seq)
 
 
+def fake_awards(_kind: str, _ids: dict) -> list:
+    # Details and the live snapshot expose the same fixture's awards.
+    return SNAPSHOT["media"]["awards"]
+
+
+ratings.awards_of = fake_awards
 library.common.rpc = fake_rpc
 server = web_server._Server(("127.0.0.1", 0), Producer(), threading.Event(), TOKEN)
 server.refresh_settings()

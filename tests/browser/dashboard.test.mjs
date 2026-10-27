@@ -89,6 +89,23 @@ test("the overview is a key under the playing card that opens the title's detail
   await page.waitForSelector("#detailsDialog[open]");
   await page.waitForFunction(() => document.getElementById("detailsPlot").textContent.length > 0);
   assert.equal(await page.locator("#detailsPlot").innerText(), "A film about somebody.");
+  assert.equal(await page.locator("#detailsDescriptionTitle").innerText(), "#32437");
+  const description = await page.locator("#detailsDescription").evaluate((node) => {
+    const heading = node.querySelector("h4");
+    const tagline = node.querySelector(".detailstagline");
+    const plot = node.querySelector(".detailsplot");
+    return {
+      beforeText: heading.getBoundingClientRect().bottom <= tagline.getBoundingClientRect().top,
+      taglineColor: getComputedStyle(tagline).color,
+      plotColor: getComputedStyle(plot).color,
+      weight: getComputedStyle(tagline).fontWeight,
+      style: getComputedStyle(tagline).fontStyle
+    };
+  });
+  assert.ok(description.beforeText);
+  assert.equal(description.taglineColor, description.plotColor);
+  assert.equal(description.weight, "700");
+  assert.equal(description.style, "italic");
   // The playing title's: nothing to play.
   assert.equal(await page.locator(".detailsactions").isVisible(), false);
   // The shields as the details draw them, every one one height.
@@ -119,6 +136,29 @@ test("the overview is a key under the playing card that opens the title's detail
     assert.equal(badge.nominee, badge.won, badge.award + " keeps its coloured border");
     assert.equal(badge.plate, "0.6", badge.award + " still marks nominations");
   }
+  const groups = page.locator("#detailsRatings .ratinggroup");
+  assert.equal(await groups.count(), 2);
+  assert.deepEqual(await groups.locator("h4").allTextContents(), ["#32383", "#32435"]);
+  assert.equal(await groups.first().locator(".side[class*='award_']").count(), 0);
+  assert.equal(await groups.last().locator(".rating").count(), 2);
+  assert.equal(await groups.last().locator(".ratingnote").innerText(), "#32436");
+  const ratingBox = await groups.first().boundingBox();
+  const awardBox = await groups.last().boundingBox();
+  assert.ok(awardBox.y >= ratingBox.y + ratingBox.height, "awards are below ratings");
+  for (const group of await groups.all()) {
+    const row = group.locator(".ratings");
+    const rowBox = await row.boundingBox();
+    const firstShield = await row.locator(".rating").first().boundingBox();
+    assert.ok(Math.abs(firstShield.x - rowBox.x) < 1, "shields start at the left edge");
+    assert.equal(await group.evaluate((node) => getComputedStyle(node).borderTopWidth), "0px");
+  }
+  const headingStyles = await page.locator("#detailsRatings h4, #detailsDescriptionTitle, #detailsFacts dt, #detailsCast .casthead")
+    .evaluateAll((nodes) => nodes.map((node) => {
+      const style = getComputedStyle(node);
+      return [style.fontSize, style.color, style.fontWeight];
+    }));
+  assert.ok(headingStyles.length > 2);
+  for (const style of headingStyles) assert.deepEqual(style, headingStyles[0], "details headings match");
   await page.locator("#detailsCast img").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
     const image = document.querySelector("#detailsCast img");

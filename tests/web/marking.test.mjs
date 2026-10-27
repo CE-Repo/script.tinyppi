@@ -490,3 +490,19 @@ test("reopening a closing page reverses its exit without jumping offscreen", asy
   view.clock.tick(250);
   assert.equal(dialog.open, true);
 });
+
+for (const [name, details, visible] of [
+  ["plot only", { plot: "Plot." }, true],
+  ["slogan only", { tagline: "Slogan." }, true],
+  ["no description", {}, false]
+]) {
+  test("description section handles " + name, async (t) => {
+    const view = await open(t, { routes: { "/api/details": [200, details] } });
+    tile(view, "Film 01").click();
+    await settle();
+    assert.equal(view.$("detailsDescription").hidden, !visible);
+    assert.equal(view.$("detailsDescriptionTitle").textContent, "Description");
+    assert.equal(view.$("detailsTagline").textContent, details.tagline || "");
+    assert.equal(view.$("detailsPlot").textContent, details.plot || "");
+  });
+}

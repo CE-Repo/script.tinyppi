@@ -200,7 +200,9 @@ async function showDetails(question, replace) {
     formats.append(chip);
   }
   el.detailsFormats.replaceChildren(formats);
-  el.detailsRatings.replaceChildren(...TinyPPI.panels.shields(found));
+  el.detailsRatings.replaceChildren(...TinyPPI.panels.ratingGroups(found));
+  el.detailsDescriptionTitle.textContent = T.description;
+  el.detailsDescription.hidden = !(found.tagline || found.plot);
   el.detailsTagline.textContent = found.tagline || "";
   el.detailsPlot.textContent = found.plot || "";
   el.detailsFacts.replaceChildren(...TinyPPI.panels.facts(found));
