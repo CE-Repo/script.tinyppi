@@ -10,8 +10,8 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global ask, continueStale, el, T */
-/* exported FILMS_RETRY_MS, FILMS_START_MS, filmsOffered, filmsStale,
+/* global bindTitle, continueStale, el, selectTab, shelfTools, T */
+/* exported FILMS_RETRY_MS, FILMS_START_MS, filmTools, filmsOffered, filmsStale,
    hideFilms, metaLine, newest, ratingBadge, releaseFilms, releasing,
    requestFilms, runtime, starting */
 
@@ -51,6 +51,17 @@ let filmsOffered = true;   /* until the box says it offers no library     */
 let filmsNextTry = 0;      /* not before this, after a failure            */
 let starting = 0;          /* the film a press is waiting on              */
 let releasing = 0;         /* the timer that gives the wall back          */
+let wallTiles = new Map(); /* each film's tile on the wall of everything  */
+
+/* The order and the filters over the wall of everything (see
+   js/shelf-tools.js).  The rows above it stay as they are: they are already
+   a choice -- what is new, what is unseen -- and a short one. */
+const filmTools = shelfTools(el.filmTools, {
+  shelf: "films",
+  sorts: ["title", "year", "rating", "added", "runtime"],
+  filters: ["genre", "video", "resolution", "audio"],
+  onChange: arrangeFilms
+});
 
 /* Called from the other parts of the page once the films may have moved: the
    next request reads it again. */
@@ -95,6 +106,7 @@ async function loadFilms() {
       buildFilms();
     }
     el.filmsCard.classList.remove("hidden");
+    el.filmsHead.classList.remove("hidden");
     el.recentFilmsCard.classList.toggle("hidden",
                                         !el.recentFilmsRow.children.length);
     el.unseenFilmsCard.classList.toggle("hidden",
@@ -115,8 +127,11 @@ function buildFilms() {
   const wall = document.createDocumentFragment();
   const unseen = document.createDocumentFragment();
   let waiting = 0;
+  wallTiles = new Map();
   for (const film of films) {
-    wall.append(filmTile(film));
+    const tile = filmTile(film);
+    wallTiles.set(film, tile);
+    wall.append(tile);
     /* A tile of its own on the second wall rather than the same one moved:
        a node stands in one place, and the film is on both. */
     if (!film.watched) {
@@ -135,12 +150,22 @@ function buildFilms() {
   el.recentFilmsRow.replaceChildren(recent);
   el.recentFilmsRow.scrollLeft = 0;
   el.unseenFilmsCount.textContent = waiting ? String(waiting) : "";
+  filmTools.fill(films);
+  arrangeFilms();
+}
+
+/* The wall in the chosen order, narrowed by the filters and the search.  The
+   tiles are moved rather than made again: the posters they hold have already
+   crossed the network. */
+function arrangeFilms() {
+  el.filmGrid.append(...filmTools.order(films).map((film) => wallTiles.get(film)));
   applyFilmSearch();
 }
 
 /* Both film walls off the page, for a box with no library to offer. */
 function hideFilms() {
   el.filmsCard.classList.add("hidden");
+  el.filmsHead.classList.add("hidden");
   el.recentFilmsCard.classList.add("hidden");
   el.unseenFilmsCard.classList.add("hidden");
 }
@@ -283,20 +308,20 @@ function filmTile(film) {
     tile.append(line);
   }
 
-  tile.addEventListener("click", () => ask({
-    title: film.title, body: { movieid: film.id },
+  bindTitle(tile, {
+    watched: !!film.watched, title: film.title, body: { movieid: film.id },
     play: film.resume ? T.films_resume : T.films_play,
     resumable: !!film.resume,
     onPlay: (fromStart) => startFilm(film, tile, fromStart)
-  }));
+  });
   return tile;
 }
 
 function applyFilmSearch() {
   const needle = el.filmSearch.value.trim().toLowerCase();
   let shown = 0;
-  for (const tile of el.filmGrid.children) {
-    const match = !needle || tile.dataset.key.includes(needle);
+  for (const [film, tile] of wallTiles) {
+    const match = (!needle || tile.dataset.key.includes(needle)) && filmTools.matches(film);
     tile.hidden = !match;
     if (match) shown += 1;
   }
@@ -304,7 +329,10 @@ function applyFilmSearch() {
   el.filmsCount.textContent = shown === films.length
     ? String(films.length) : shown + " / " + films.length;
   /* The line that says there is nothing: an empty library, or a search that
-     nothing answers.  Both are the card having no film to offer. */
+     nothing answers.  Both are the card having no film to offer -- unless it
+     is the filters that left nothing, which is worth saying differently. */
+  el.filmsEmpty.textContent = films.length && filmTools.filtering()
+    ? T.filter_empty : T.films_empty;
   el.filmsEmpty.classList.toggle("hidden", shown > 0);
 }
 
@@ -336,6 +364,8 @@ async function startFilm(film, tile, fromStart) {
          what it said before the press. */
       filmsRead = false;
       continueStale();
+      /* What was started is followed to the live tab, as the app does. */
+      selectTab("live");
     }
   } catch (_) {
     failed = true;
@@ -362,7 +392,12 @@ function releaseFilms() {
   }
 }
 
-el.filmSearch.addEventListener("input", applyFilmSearch);
+/* The search sits at the top of the tab, away from the wall it narrows: a
+   folded wall is opened so what it finds can be seen. */
+el.filmSearch.addEventListener("input", () => {
+  el.filmsCard.open = true;
+  applyFilmSearch();
+});
 /* Emptying the box puts the whole shelf back, and leaves the cursor where
    somebody who meant to search again would want it. */
 el.filmSearchClear.addEventListener("click", () => {

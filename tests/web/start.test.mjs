@@ -16,8 +16,8 @@ import { page, settle, source } from "./harness.mjs";
 
 const JS = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "resources", "web", "js");
 const ORDER = ["theme.js", "core.js", "colour.js", "cover-tint.js", "readings.js",
-               "live-chapters.js", "live-remote.js", "live-panels.js", "metadata.js", "dashboard.js", "films.js", "series.js",
-               "continue.js", "marking.js", "start.js"];
+               "live-chapters.js", "live-remote.js", "live-panels.js", "metadata.js", "dashboard.js", "shelf-tools.js", "films.js", "series.js",
+               "continue.js", "marking.js", "cards.js", "start.js"];
 
 /** Run one of the page's scripts under its own file URL, as harness.mjs
  * does, so that the page can be prepared (storage, address) first. */
@@ -68,10 +68,9 @@ const PLACES = [
   ["seriesLabel", "text", "series"], ["unseenFilmsLabel", "text", "films_unseen"],
   ["recentFilmsLabel", "text", "recent"], ["recentSeriesLabel", "text", "recent"],
   ["unseenSeriesLabel", "text", "series_unseen_shows"],
-  ["markRestart", "text", "play_from_start"], ["markClear", "text", "resume_clear"],
-  ["markWatched", "text", "mark_watched"], ["markUnwatched", "text", "mark_unwatched"],
-  ["markCancel", "text", "cancel"],
-  ["seriesBackText", "text", "series_back"], ["seriesBack", "aria-label", "series_back"],
+  ["detailsRestart", "text", "play_from_start"], ["detailsClear", "text", "resume_clear"],
+  ["detailsWatched", "text", "mark_watched"], ["detailsUnwatched", "text", "mark_unwatched"],
+  ["seasonsX", "aria-label", "close"], ["seasonsX", "title", "close"],
   ["seriesEmpty", "text", "series_empty"],
   ["seriesSearch", "placeholder", "series_search"], ["seriesSearch", "aria-label", "series_search"],
   ["vs10Title", "text", "vs10"], ["vs10OutLabel", "text", "output"],
@@ -131,17 +130,17 @@ test("until /api/hello answers, the frame carries the built-in English", (t) => 
   assert.equal($("idleTitle").textContent, "Nothing is playing");
   assert.equal($("historyIdleTitle").textContent, "No events yet");
   assert.equal($("filmSearch").placeholder, "Search films");
-  assert.equal($("markCancel").textContent, "Cancel");
+  assert.equal($("markDialog"), null);
   assert.equal($("tokenHead").textContent, "Access token");
   assert.equal($("vs10Title").textContent, "VS10 output");
   assert.equal($("continueFilmsLabel").textContent, "Continue watching");
   assert.equal($("recentSeriesLabel").textContent, "Recently added");
   assert.equal($("unseenFilmsLabel").textContent, "Unwatched films");
   assert.equal($("unseenSeriesLabel").textContent, "Unwatched series");
-  assert.equal($("markRestart").textContent, "Play from the beginning");
-  assert.equal($("markClear").textContent, "Clear resume point");
-  assert.equal($("markWatched").textContent, "Mark as watched");
-  assert.equal($("markUnwatched").textContent, "Mark as unwatched");
+  assert.equal($("detailsRestart").textContent, "Play from the beginning");
+  assert.equal($("detailsClear").textContent, "Clear resume point");
+  assert.equal($("detailsWatched").textContent, "Mark as watched");
+  assert.equal($("detailsUnwatched").textContent, "Mark as unwatched");
   assert.equal($("version").textContent, "");
   const live = window.document.querySelector('#tabBar .tab[data-tab="live"]');
   assert.equal(live.getAttribute("aria-label"), "Live");

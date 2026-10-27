@@ -28,9 +28,9 @@
   align-items: center;
   gap: 10px;
   min-height: var(--tap);
-  padding: 8px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  border: 1px solid var(--panel-3);
+  border-radius: var(--radius-pill);
   background: var(--panel-2);
   color: var(--text);
   font: inherit;
@@ -40,14 +40,14 @@
   transition: color .12s, border-color .12s, background .12s;
 }
 @media (hover: hover) {
-  .theme-option:hover { border-color: var(--accent); }
+  .theme-option:hover { background: color-mix(in srgb, var(--text) 8%, var(--panel-2)); }
 }
 .theme-option .ui-icon { width: 18px; height: 18px; opacity: .82; }
 .theme-option.selected {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-  color: var(--accent);
-  font-weight: 600;
+  background: var(--tonal);
+  border-color: var(--tonal);
+  color: var(--on-tonal);
+  font-weight: 500;
 }
 .theme-option.selected .ui-icon { opacity: 1; }
 
@@ -61,11 +61,10 @@
 .theme-group-label {
   display: block;
   margin-bottom: 8px;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--dim);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .4px;
+  color: var(--muted);
 }
 .theme-group-options {
   display: grid;
@@ -74,25 +73,25 @@
 }
 .theme-group-option {
   appearance: none;
-  min-height: 38px;
+  min-height: 40px;
   padding: 7px 8px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--muted);
+  border: 1px solid var(--panel-3);
+  border-radius: var(--radius-pill);
+  background: var(--panel-2);
+  color: var(--text);
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
   transition: color .12s, border-color .12s, background .12s;
 }
 @media (hover: hover) {
-  .theme-group-option:hover { color: var(--text); border-color: var(--accent); }
+  .theme-group-option:hover { background: color-mix(in srgb, var(--text) 8%, var(--panel-2)); }
 }
 .theme-group-option[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-  color: var(--accent);
+  background: var(--tonal);
+  border-color: var(--tonal);
+  color: var(--on-tonal);
 }
 .theme-group-option:focus-visible,
 .theme-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -144,6 +143,34 @@
    --warn and --bad are left alone: a paused badge and a failed switch say what
    they say in the colour they always say it in. */
 :root[data-theme="dark-adaptive"] .card {
+  --accent:   rgb(var(--cover-accent-rgb));
+  --accent-2: rgb(var(--cover-accent-rgb));
+}
+
+/* Every colour that is drawn from the accent follows it, as the app moves
+   all of its accent roles at once: what is written on the accent, the
+   tonal ground a badge, a chosen chip, a cast card's initial and the
+   heading's tick wear, and what is written on that.  Left at the theme's
+   blue, those were the one cold thing on a card the film had coloured.
+   The tonal ground is the raised surface taken a little way to the accent,
+   and what is written on it the accent taken nearly to white, so the hue
+   stays the film's at both ends. */
+:root[data-theme="dark-adaptive"] .card,
+:root[data-theme="dark-adaptive"] .topbar,
+:root[data-theme="dark-adaptive"] .tabbar,
+:root[data-theme="dark-adaptive"] #detailsDialog.tinted,
+:root[data-theme="dark-adaptive"] #seasonsDialog.tinted {
+  --on-accent: color-mix(in srgb, rgb(var(--cover-accent-rgb)) 18%, #000);
+  --tonal:     color-mix(in srgb, rgb(var(--cover-accent-rgb)) 26%, var(--panel-3));
+  --on-tonal:  color-mix(in srgb, rgb(var(--cover-accent-rgb)) 38%, #fff);
+}
+
+/* A title's details page wears that title's colour, not what is playing:
+   js/marking.js reads it off the title's own picture and marks the page
+   tinted once it has one (see tintDialog).  A show's seasons wear the
+   show's, the same way. */
+:root[data-theme="dark-adaptive"] #detailsDialog.tinted,
+:root[data-theme="dark-adaptive"] #seasonsDialog.tinted {
   --accent:   rgb(var(--cover-accent-rgb));
   --accent-2: rgb(var(--cover-accent-rgb));
 }
@@ -203,6 +230,5 @@
   pointer-events: none;
 }
 :root[data-theme="dark-adaptive"] .art img {
-  border-color: rgba(var(--cover-accent-rgb), .45);
   background: rgba(0, 0, 0, .2);
 }

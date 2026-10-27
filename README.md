@@ -493,3 +493,20 @@ Third-party attributions are collected in [NOTICE](NOTICE).
 
 Versions up to and including **2.7.6** were released under the MIT license and
 remain available under it.
+
+### Optional TMDb person portraits
+
+In the add-on's web settings, enter your own **TMDb API key**
+to fill missing cast, director and writer portraits in Android and the dashboard.
+Get a credential from https://www.themoviedb.org/settings/api. It stays on Kodi;
+neither the dashboard nor the Android app receives it. Kodi's existing names,
+roles, ordering and portraits are preserved. Matching uses the title's TMDb ID,
+or its IMDb ID; episodes use their show's ID and their season/episode numbers.
+Without a credential, an identified title, a matching person or a connection,
+the existing initial placeholder remains. Results are cached for 24 hours and
+failures for five minutes; TMDb requests have a four-second time budget per
+opened title and never run in the live snapshot loop.
+
+![TMDb](resources/web/ratings/tmdb.svg)
+
+This product uses the TMDB API but is not endorsed or certified by TMDB.

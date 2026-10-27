@@ -85,40 +85,28 @@
             '<span id="tTotal">--:--</span>' +
           '</div>' +
         '</div>' +
-        '<div class="control-drawer" id="controlDrawer">' +
-          '<div class="control-body">' +
-            '<div class="transport hidden" id="transport"></div>' +
-            '<div class="tracks hidden" id="tracks"></div>' +
-          '</div>' +
+      '</div>' +
+    '</section>' +
+    /* The overview: a card that is nothing but its heading, and a key --
+       a press on it opens the playing title's details page (see
+       showDetails in js/marking.js), where what the title is about, who
+       is in it and what it has been given stand. */
+    '<button class="card plotopen hidden" id="plotCard" type="button">' +
+      '<span class="plotopentitle" id="plotTitle"></span>' +
+    '</button>' +
+    /* The remote, a card of its own under the overview as the app's player
+       card is: its heading with the key that folds it, and under that the
+       transport row and the track pickers.  Only while the add-on takes
+       orders (see update). */
+    '<section class="card playercard hidden" id="playerCard">' +
+      '<div class="panel-toggle playerhead" id="playerHead"><span id="playerTitle"></span></div>' +
+      '<div class="control-drawer" id="controlDrawer">' +
+        '<div class="control-body">' +
+          '<div class="transport hidden" id="transport"></div>' +
+          '<div class="tracks hidden" id="tracks"></div>' +
         '</div>' +
       '</div>' +
     '</section>' +
-    /* What the title is about, who is in it and what it has been given,
-       under the card of what is playing: the slogan, the plot and, under
-       them, the cast and the ratings, as the library has them. */
-    '<details class="card hidden" id="plotCard">' +
-      '<summary class="panel-toggle"><span id="plotTitle"></span></summary>' +
-      '<div class="plot">' +
-        /* The slogan, the plot and its credits read as one text.  It
-           starts folded -- the plot cut to a few lines, the credits
-           hidden -- and a press on the text lets it all out and takes it
-           back. */
-        '<div class="plotfold" id="plotFold">' +
-          '<p class="tagline hidden" id="tagline"></p>' +
-          '<p class="plottext hidden" id="plotText"></p>' +
-          '<dl class="credits hidden" id="credits"></dl>' +
-        '</div>' +
-        /* The ratings last, past a thin rule, and never folded away:
-           short facts about the film, taken in at a glance.  No heading on
-           the screen -- the houses' marks say what they are -- but one for
-           a screen reader (see strings). */
-        '<div class="ratings hidden" id="ratings" role="list"></div>' +
-        /* What a shield says, over it for a moment after a tap: the house
-           a mark is from, which a mark alone does not always tell.  A
-           screen reader hears each shield's words already. */
-        '<span class="ratingtip hidden" id="ratingTip" aria-hidden="true"></span>' +
-      '</div>' +
-    '</details>' +
     '<details class="card hidden" id="tiles">' +
       '<summary class="panel-toggle"><span id="tilesTitle"></span></summary>' +
       '<div class="tilegrid">' +
@@ -162,19 +150,23 @@
     track: $("track"), dots: $("chapterDots"), now: $("chapterNow"),
     tip: $("chapterTip"), toggle: $("chapterMarks")
   });
+  /* The key that folds the remote stands in the player card's heading, and
+     the whole heading folds it, as a card's heading does. */
   const remote = TinyPPIRemote.create({
-    nowCard: $("nowCard"), drawer: $("controlDrawer"), transport: $("transport"),
+    nowCard: $("playerHead"), drawer: $("controlDrawer"), transport: $("transport"),
     tracks: $("tracks"), track: $("track"), bar: $("bar"), elapsed: $("tElapsed"),
     chapters
   }, pageState);
   const uiIcon = TinyPPIRemote.icon;
+  $("playerHead").addEventListener("click", (event) => {
+    if (!event.target.closest(".control-toggle")) $("controlToggle").click();
+  });
 
   const el = {
     nowCard: $("nowCard"), badges: $("badges"), title: $("title"),
     meta: $("meta"), studio: $("studio"), file: $("file"),
     pictureBadges: $("pictureBadges"), soundBadges: $("soundBadges"),
-    plotCard: $("plotCard"), ratings: $("ratings"), ratingTip: $("ratingTip"), tagline: $("tagline"),
-    plotFold: $("plotFold"), plotText: $("plotText"), credits: $("credits"),
+    plotCard: $("plotCard"), playerCard: $("playerCard"),
     artBox: $("artBox"), poster: $("poster"),
     track: $("track"), bar: $("bar"), tElapsed: $("tElapsed"),
     tFinish: $("tFinish"), tFinishLabel: $("tFinishLabel"),
@@ -198,9 +190,9 @@
   let lastFinish = "";   /* the clock that label belongs in front of         */
   let idleFetched = false;  /* the ended title's events, asked for once      */
   let idleReset = false;    /* the panels have been put away once already    */
-  let plotMedia = {};       /* what the plot card was last drawn from        */
+  let plotWords = { film: "", episode: "" };
+  let plotItem = null;      /* the library title the overview opens         */
 
-  TinyPPI.bindDisclosure(el.plotCard, pageState + ".plot", true);
   TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
   /* The chart and the events arrive open: each is what a tab of its own is
      for now (the metadata tab and the history tab), and a tab that opens on a
@@ -238,8 +230,7 @@
     renderArt(snapshot.art || {});
     renderBadges(snapshot);
     renderFormats(snapshot);
-    /* Which title this is, for the overview to start folded on a new one. */
-    renderPlot(media, [snapshot.title, media.year, media.season, media.episode].join("|"));
+    renderPlot(media, snapshot.title, !!snapshot.control);
 
     const progress = (snapshot.metrics || {}).progress;
     const percent = (progress === null || progress === undefined) ? 0 : progress;
@@ -277,133 +268,132 @@
     el.tFinish.classList.toggle("hidden", !finish);
   }
 
-  /* The card is there for the plot, the ratings and the credits: with none
-     of them it is left out.  The slogan belongs to the plot and goes without it -- a slogan on
-     its own says too little to be worth a card -- and with a plot it is left
-     out where the library has none, which is most episodes.  Written only
-     when the words change: they stand still for the whole title, and a plot
-     is the longest text on the page. */
-  let plotTitle = null;
-  function renderPlot(media, title) {
-    /* A frame that moved nothing of the title carries the very object the
-       last one did (see merge in core.js): there is nothing to draw again. */
-    if (media === plotMedia && title === plotTitle) return;
-    plotMedia = media;
-    const plot = (media.plot || "").trim();
-    const tagline = plot ? (media.tagline || "").trim() : "";
-    const fresh = el.plotText.textContent !== plot || title !== plotTitle;
-    plotTitle = title;
-    for (const [node, text] of [[el.tagline, tagline], [el.plotText, plot]]) {
-      if (node.textContent !== text) node.textContent = text;
-      node.classList.toggle("hidden", !text);
-    }
-    const badges = ratingBadges(media, TinyPPI.T);
-    fillRatings(badges);
-    el.ratings.setAttribute("aria-label", TinyPPI.T.ratings);
-    const credits = creditList(media, TinyPPI.T);
-    fillCredits(credits);
-    el.plotCard.classList.toggle("hidden", !plot && !badges.length && !credits.length);
-    /* A new title, or a new plot, starts folded again, and is measured once
-       it is laid out; credits that arrive later fold under it as they
-       come. */
-    if (fresh) {
-      openPlot(false);
-      measurePlot();
-    } else {
-      foldPlot();
-    }
+  /* The overview is there for a title the library holds -- one whose
+     details can be opened -- and a file it does not know has none.  Nor
+     has a box that takes no orders: it does not hand out details either
+     (see _serve_details in web/routes.py), and a key that opens a page
+     saying so would be no key at all. */
+  function renderPlot(media, title, control) {
+    const item = media.item || {};
+    const known = control && (item.kind === "movie" || item.kind === "episode") && item.id > 0;
+    plotItem = known ? { kind: item.kind, id: item.id, title } : null;
+    el.plotCard.classList.toggle("hidden", !known);
+    renderPlotTitle();
   }
 
-  /* A plot is folded to a few lines (see .plot .plottext), its credits
-     hidden under it, and a press on the text -- a click, a tap, or Enter
-     or Space once it has the focus -- lets all of it out and takes it
-     back.  It folds wherever there is more than those lines to show: a
-     plot that runs past them, or credits under it.  How
-     many lines a plot takes is a matter of how wide it is laid out, so it
-     is measured when the plot changes, when the card is opened and once a
-     burst of resizes has settled (with the charts, below).  Pressable, it is a button to a screen reader, and
-     says under a pointer what a press does. */
-  let plotCut = false;
-
-  function openPlot(open) {
-    el.plotFold.classList.toggle("open", open);
-    if (el.plotFold.classList.contains("fold")) {
-      el.plotFold.setAttribute("aria-expanded", String(open));
-      el.plotFold.title = open ? TinyPPI.T.plot_less : TinyPPI.T.plot_more;
-    }
+  function renderPlotTitle() {
+    $("plotTitle").textContent = plotItem?.kind === "episode" ? plotWords.episode : plotWords.film;
   }
 
-  function measurePlot() {
-    if (!el.plotFold.classList.contains("open")) {
-      plotCut = el.plotText.scrollHeight > el.plotText.clientHeight + 1;
-    }
-    foldPlot();
-  }
-
-  function foldPlot() {
-    const shown = (node) => !node.classList.contains("hidden");
-    const more = shown(el.plotText) && (plotCut || shown(el.credits));
-    el.plotFold.classList.toggle("fold", more);
-    if (more) {
-      el.plotFold.setAttribute("role", "button");
-      el.plotFold.tabIndex = 0;
-    } else {
-      el.plotFold.classList.remove("open");
-      for (const name of ["role", "tabindex", "aria-expanded", "title"]) el.plotFold.removeAttribute(name);
-    }
-    openPlot(el.plotFold.classList.contains("open"));
-  }
-
-  function flipPlot() {
-    if (el.plotFold.classList.contains("fold")) openPlot(!el.plotFold.classList.contains("open"));
-  }
-
-  el.plotFold.addEventListener("click", flipPlot);
-  el.plotFold.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    flipPlot();
+  /* A press on it opens the title's details, where the page has them. */
+  el.plotCard.addEventListener("click", () => {
+    if (plotItem && TinyPPI.openDetails) TinyPPI.openDetails(plotItem);
   });
-  el.plotCard.addEventListener("toggle", measurePlot);
 
-  /* Names as a line: a comma between two, and an ellipsis after the last
-     where the add-on cut the list (the cast, past its first twenty). */
-  function nameList(names, more) {
-    return names.join(", ") + (more ? ", …" : "");
-  }
+  /* --- a title's facts and cast ----------------------------------------
 
-  /* Who directed the title and who is in it, as the add-on sends them --
-     every director, the cast's first twenty: the overview's credits, the
-     director over the cast.  What kind of film
-     it is and who made it stand in the card above. */
-  function creditList(media, T) {
-    const directors = media.directors || [];
-    const cast = media.cast || [];
-    const credits = [];
-    if (directors.length) credits.push({ label: T.director, names: nameList(directors, false) });
-    if (cast.length) credits.push({ label: T.cast, names: nameList(cast, Boolean(media.cast_more)) });
-    return credits;
-  }
+     Drawn on a title's details page (see showDetails in js/marking.js), as
+     the app draws them: each fact its
+     name, quieter and small, over the names; and the cast under its
+     heading as a row of cards -- a large rectangular portrait or initial, the name on two
+     lines and who they played on one, held open where they are not
+     filled so every card stands the same height -- with an ellipsis where
+     the library holds more. */
 
-  /* What it is over the names, as a description list, so a screen reader
-     says which names are whose.  Built again only when one would say
-     something else. */
-  function fillCredits(credits) {
-    const signature = JSON.stringify(credits);
-    if (el.credits.dataset.signature === signature) return;
-    el.credits.dataset.signature = signature;
-    el.credits.replaceChildren();
-    for (const credit of credits) {
-      const line = document.createElement("div");
-      line.className = "credit";
-      const label = document.createElement("dt");
-      label.textContent = credit.label;
-      const names = document.createElement("dd");
-      names.textContent = credit.names;
-      line.append(label, names);
-      el.credits.append(line);
+  function factNodes(credits, T) {
+    const rows = [
+      [T.genre, credits.genres], [T.studio, credits.studios]
+    ];
+    const nodes = [];
+    for (const [heading, names] of rows) {
+      if (!names || !names.length) continue;
+      const fact = document.createElement("div");
+      fact.className = "fact";
+      const term = document.createElement("dt");
+      term.textContent = heading;
+      const value = document.createElement("dd");
+      value.textContent = names.join(", ");
+      fact.append(term, value);
+      nodes.push(fact);
     }
-    el.credits.classList.toggle("hidden", !credits.length);
+    return nodes;
+  }
+
+  function castParts(credits, T) {
+    const crew = credits.crew ? credits.crew.map((person) => ({
+      ...person, role: person.role === "director" ? T.director : T.writer
+    })) : [
+      ...(credits.directors || []).map((name) => ({ name, role: T.director })),
+      ...(credits.writers || []).map((name) => ({ name, role: T.writer }))
+    ];
+    return [
+      ...castCards(credits, T.cast),
+      ...castCards({ cast: crew }, "Cast")
+    ];
+  }
+
+  function castCards(credits, title) {
+    const cast = credits.cast || [];
+    if (!cast.length) return [];
+    const heading = document.createElement("h4");
+    heading.className = "casthead";
+    heading.textContent = title;
+    const row = document.createElement("ul");
+    row.className = "castrow";
+    for (const person of cast) {
+      const item = document.createElement("li");
+      const initial = document.createElement("span");
+      initial.className = "initial";
+      initial.setAttribute("aria-hidden", "true");
+      initial.textContent = person.name.charAt(0).toUpperCase();
+      if (person.thumbnail) {
+        const photo = document.createElement("img");
+        photo.alt = "";
+        photo.loading = "lazy";
+        photo.src = "/api/art?kind=thumb&portrait=" + encodeURIComponent(person.thumbnail) +
+          "&v=" + encodeURIComponent(person.thumbnail);
+        photo.addEventListener("error", () => photo.remove(), { once: true });
+        initial.append(photo);
+      }
+      const name = document.createElement("strong");
+      name.textContent = person.name;
+      const role = document.createElement("span");
+      role.className = "role";
+      role.textContent = person.role || "";
+      const text = document.createElement("div");
+      text.className = "casttext";
+      text.append(name, role);
+      item.append(initial, text);
+      row.append(item);
+    }
+    if (credits.cast_more) {
+      const more = document.createElement("li");
+      more.className = "more";
+      more.textContent = "\u2026";
+      row.append(more);
+    }
+    mouseScroll(row);
+    return [heading, row];
+  }
+
+  /* With no scrollbar to take hold of, a mouse drags the row sideways the
+     way a finger does.  The wheel is left to the page. */
+  function mouseScroll(row) {
+    let drag = null;
+    row.addEventListener("pointerdown", (event) => {
+      if (event.pointerType !== "mouse" || event.button !== 0) return;
+      drag = { x: event.clientX, left: row.scrollLeft };
+      row.classList.add("dragging");
+    });
+    row.addEventListener("pointermove", (event) => {
+      if (drag) row.scrollLeft = drag.left - (event.clientX - drag.x);
+    });
+    for (const type of ["pointerup", "pointerleave", "pointercancel"]) {
+      row.addEventListener(type, () => {
+        drag = null;
+        row.classList.remove("dragging");
+      });
+    }
   }
 
   /* What a rating's mark is drawn from, and what a screen reader calls the
@@ -524,40 +514,43 @@
     return side;
   }
 
-  /* Built again only when a badge would say something else, which is once a
-     title (see fillRow).  Each is a shield: the house on the left, what it
-     gave on the right.  What a reader is told is the badge's sentence, kept
-     off the screen; what is drawn is kept from the reader, who would
-     otherwise hear "8.5 612,345" with nothing to say what either is. */
-  /* A tap -- or a click -- on a shield shows over it for a moment whose it
-     is; under a pointer its tooltip says so too. */
-  let tipTimer = 0;
-  /* The tip is placed in the card's body it stands in (.plot is its
-     positioned box), wherever the shields sit inside it. */
-  function tellRating(node) {
-    const card = el.ratingTip.parentElement.getBoundingClientRect();
-    const box = node.getBoundingClientRect();
-    el.ratingTip.textContent = node.title;
-    el.ratingTip.style.left = (box.left + box.width / 2 - card.left) + "px";
-    el.ratingTip.style.top = (box.top - card.top) + "px";
-    el.ratingTip.classList.remove("hidden");
-    clearTimeout(tipTimer);
-    tipTimer = setTimeout(() => el.ratingTip.classList.add("hidden"), 4000);
+  /* The shields of a library title's details (see showDetails in
+     js/marking.js).  Each is a shield: the house on the left, what it gave
+     on the right.  What a reader is told is the badge's sentence, kept off
+     the screen; what is drawn is kept from the reader, who would otherwise
+     hear "8.5 612,345" with nothing to say what either is. */
+  let ratingTipId = 0;
+
+  /* A popover stays visible above the dialog and its scrolling content.
+     The native title still supplies the pointer's usual hover hint. */
+  function ratingTip(node, text) {
+    const tip = document.createElement("span");
+    tip.className = "rating-tip";
+    tip.id = "rating-tip-" + (++ratingTipId);
+    tip.setAttribute("popover", "auto");
+    tip.setAttribute("role", "tooltip");
+    tip.textContent = text;
+    node.tabIndex = 0;
+    node.setAttribute("aria-describedby", tip.id);
+    const show = () => {
+      tip.showPopover();
+      const badge = node.getBoundingClientRect();
+      const box = tip.getBoundingClientRect();
+      tip.style.left = Math.max(8, Math.min(badge.left, window.innerWidth - box.width - 8)) + "px";
+      tip.style.top = Math.max(8, Math.min(badge.bottom + 8, window.innerHeight - box.height - 8)) + "px";
+    };
+    node.addEventListener("click", show);
+    node.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      show();
+    });
+    node.addEventListener("blur", () => tip.hidePopover());
+    return tip;
   }
 
-  /* A tap on a shield is the shield's, not one that folds the plot. */
-  el.ratings.addEventListener("click", (event) => {
-    const node = event.target.closest(".rating");
-    if (!node) return;
-    event.stopPropagation();
-    tellRating(node);
-  });
-
-  function fillRatings(badges) {
-    const signature = JSON.stringify(badges);
-    if (el.ratings.dataset.signature === signature) return;
-    el.ratings.dataset.signature = signature;
-    el.ratings.replaceChildren();
+  function shieldNodes(badges) {
+    const nodes = [];
     for (const badge of badges) {
       const node = document.createElement("span");
       node.className = "rating " + badge.kind;
@@ -582,10 +575,10 @@
         figures.append(value);
         look.append(figures);
       }
-      node.append(said, look);
-      el.ratings.append(node);
+      node.append(said, look, ratingTip(node, badge.named));
+      nodes.push(node);
     }
-    el.ratings.classList.toggle("hidden", !badges.length);
+    return nodes;
   }
 
   /* The poster is fetched once per film: the add-on sends a tag that changes
@@ -1053,7 +1046,6 @@
     resizeTimer = setTimeout(() => {
       drawCharts();
       chapters.relayout();
-      measurePlot();
     }, 120);
   });
 
@@ -1064,13 +1056,10 @@
     /* The bar may already be drawn by the time the words for it arrive; the
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
-    $("plotTitle").textContent = T.plot;
-    openPlot(el.plotFold.classList.contains("open"));
-    /* The badges carry words of the table too ("My rating"), and the
-       credits their name. */
-    fillRatings(ratingBadges(plotMedia, T));
-    el.ratings.setAttribute("aria-label", T.ratings);
-    fillCredits(creditList(plotMedia, T));
+    plotWords = { film: T.plot, episode: T.plot_episode };
+    renderPlotTitle();
+    $("playerTitle").textContent = T.player;
+    el.plotCard.title = T.details;
     $("tilesTitle").textContent = T.metrics;
     $("kSwitches").textContent = T.switches;
     $("kWarnings").textContent = T.warnings;
@@ -1114,7 +1103,7 @@
          page is a wall of several hundred posters. */
       if (!idleReset) {
         idleReset = true;
-        const cards = [el.nowCard, el.plotCard, el.tiles, el.chartCard];
+        const cards = [el.nowCard, el.plotCard, el.playerCard, el.tiles, el.chartCard];
         for (const node of cards) node.classList.add("hidden");
         live = [];
         posterTag = "";
@@ -1145,6 +1134,7 @@
     idleFetched = false;
     idleReset = false;
     el.nowCard.classList.remove("hidden");
+    el.playerCard.classList.toggle("hidden", !snapshot.control);
     renderNow(snapshot);
     remote.render(snapshot);
     renderTiles(snapshot.metrics || {}, snapshot.session);
@@ -1195,6 +1185,45 @@
     chapters.relayout();
   }
 
-  window.TinyPPI.panels = { strings, update, events, peak, draw };
+  /* A library title's ratings, as shields. */
+  function shields(media) {
+    return shieldNodes(ratingBadges(media, TinyPPI.T));
+  }
+
+  /* Each group owns its heading and accessible list. Empty groups disappear. */
+  function ratingGroups(media) {
+    const T = TinyPPI.T;
+    const badges = ratingBadges(media, T);
+    const awards = badges.filter((badge) => badge.kind === "award" || badge.kind === "nominee");
+    const ratings = badges.filter((badge) => badge.kind !== "award" && badge.kind !== "nominee");
+    const groups = [];
+    for (const [title, entries] of [[T.ratings, ratings], [T.awards, awards]]) {
+      if (!entries.length) continue;
+      const group = document.createElement("section");
+      group.className = "ratinggroup";
+      const heading = document.createElement("h4");
+      heading.textContent = title;
+      const row = document.createElement("div");
+      row.className = "ratings";
+      row.setAttribute("role", "list");
+      row.setAttribute("aria-label", title);
+      row.append(...shieldNodes(entries));
+      group.append(heading, row);
+      if (entries.some((badge) => badge.kind === "nominee")) {
+        const hint = document.createElement("p");
+        hint.className = "ratingnote";
+        hint.textContent = T.award_hint;
+        group.append(hint);
+      }
+      groups.push(group);
+    }
+    return groups;
+  }
+
+  window.TinyPPI.panels = {
+    strings, update, events, peak, draw, shields, ratingGroups,
+    facts: (credits) => factNodes(credits, TinyPPI.T),
+    cast: (credits) => castParts(credits, TinyPPI.T)
+  };
 
 })();

@@ -18,7 +18,7 @@ sys.path[:0] = [os.path.join(ROOT, "tests", "stubs"), os.path.join(ROOT, "resour
 
 import xbmc  # noqa: E402
 import xbmcaddon  # noqa: E402
-from web import library, player  # noqa: E402
+from web import library, player, ratings  # noqa: E402
 from web import server as web_server  # noqa: E402
 
 TOKEN = "BROWSER1"
@@ -31,7 +31,11 @@ FILMS = [
     {"movieid": i, "title": f"Film {i:02d}", "year": 2000 + i, "art": {},
      "playcount": i % 2, "ratings": {"imdb": {"rating": 5 + i / 10}},
      "runtime": 5400 + 60 * i, "resume": {"position": 1800 if i == 3 else 0, "total": 7200},
-     "dateadded": f"2026-09-{i:02d} 10:00:00"}
+     "dateadded": f"2026-09-{i:02d} 10:00:00",
+     "genre": ["Drama", "Sci-Fi", "Comedy"][i % 3:i % 3 + 1],
+     "streamdetails": {"video": [{"hdrtype": ["dolbyvision", "hdr10", ""][i % 3],
+                                  "width": 3840 if i % 2 else 1920}],
+                       "audio": [{"codec": ["truehd", "eac3", "dtshd_ma"][i % 3]}]}}
     for i in range(1, 21)
 ]
 
@@ -45,11 +49,26 @@ def fake_rpc(method: str, params: dict | None = None) -> dict:
                  "resume": {"position": 1800, "total": 7200},
                  "lastplayed": "2026-10-01 20:00:00", "runtime": 7200}]}}
         return {"result": {"movies": FILMS}}
+    if method == "VideoLibrary.GetMovieDetails":
+        film = next(row for row in FILMS if row["movieid"] == params["movieid"])
+        return {"result": {"moviedetails": {
+            **film, "plot": "A film about somebody.", "tagline": "Only a test slogan.", "director": ["Stephen Norrington"],
+            "writer": ["David S. Goyer"],
+            "cast": [{"name": "Wesley Snipes", "role": "Blade", "order": 0,
+                      "thumbnail": os.path.join(ROOT, "icon.png")},
+                     {"name": "Kris Kristofferson", "role": "Abraham Whistler", "order": 1},
+                     {"name": "An Actor With A Very Long Name",
+                      "role": "A character with a very long complete name", "order": 2}]}}}
     if method == "VideoLibrary.GetTVShows":
         return {"result": {"tvshows": [
             {"tvshowid": i, "title": f"Show {i}", "year": 2010 + i, "episode": 10,
              "watchedepisodes": i, "art": {}, "dateadded": f"2026-08-{i:02d} 10:00:00"}
             for i in range(1, 6)]}}
+    if method == "VideoLibrary.GetTVShowDetails":
+        show_id = params["tvshowid"]
+        return {"result": {"tvshowdetails": {
+            "title": f"Show {show_id}", "year": 2010 + show_id,
+            "plot": "A series about somebody."}}}
     if method == "VideoLibrary.GetEpisodes" and "filter" in params:
         return {"result": {"episodes": [
             {"episodeid": 99, "title": "Started", "tvshowid": 2, "showtitle": "Show 2",
@@ -104,11 +123,13 @@ SNAPSHOT = {
               "top250": 0, "directors": ["Somebody"],
               "awards": [{"award": "oscar", "won": ["Visual Effects (2015)"], "nominated": 4},
                          {"award": "globe", "won": [], "nominated": 1}],
-              "cast": ["One Actor", "Another Actor"], "cast_more": True, "studios": ["A Studio"]},
+              "cast": ["One Actor", "Another Actor"], "cast_more": True, "studios": ["A Studio"],
+              "item": {"kind": "movie", "id": 1}},
     "metrics": {"cpu": 20, "cpu_temp": 50, "fps_in": 24, "l1": {"max": 1000, "avg": 120},
                 "frame": {"w": 3840, "h": 2160}, "progress": 8.3},
     "chapters": player.chapter_list("02:00:00"),
-    "chapter": 2, "controls": {"chapters": 4},
+    "chapter": 2, "controls": {"chapters": 4, "audio_delay": -0.05, "subtitle_delay": 0.0,
+                               "subtitle_on": True},
     "metadata": [{"kind": "row", "name": "L1 max", "value": "1000"}],
     "session": {"seq": 3, "switches": 1, "warnings": 1}, "library": 1, "control": True,
 }
@@ -145,6 +166,12 @@ class Producer:
         return dict(SNAPSHOT, seq=self.seq)
 
 
+def fake_awards(_kind: str, _ids: dict) -> list:
+    # Details and the live snapshot expose the same fixture's awards.
+    return SNAPSHOT["media"]["awards"]
+
+
+ratings.awards_of = fake_awards
 library.common.rpc = fake_rpc
 server = web_server._Server(("127.0.0.1", 0), Producer(), threading.Event(), TOKEN)
 server.refresh_settings()

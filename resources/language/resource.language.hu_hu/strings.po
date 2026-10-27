@@ -1488,8 +1488,8 @@ msgid "Show chapter markers"
 msgstr "Fejezetjelölők megjelenítése"
 
 msgctxt "#32370"
-msgid "Overview"
-msgstr "Áttekintés"
+msgid "About the film"
+msgstr "A filmről"
 
 msgctxt "#32372"
 msgid "My rating"
@@ -1502,14 +1502,6 @@ msgstr "Top 250 · %s. hely"
 msgctxt "#32378"
 msgid "Cast"
 msgstr "Szereplők"
-
-msgctxt "#32381"
-msgid "Show more"
-msgstr "Több megjelenítése"
-
-msgctxt "#32382"
-msgid "Show less"
-msgstr "Kevesebb megjelenítése"
 
 msgctxt "#32383"
 msgid "Ratings"
@@ -1542,3 +1534,195 @@ msgstr "%s díj"
 msgctxt "#32390"
 msgid "%s nominated"
 msgstr "%s jelölés"
+
+msgctxt "#32391"
+msgid "Audio offset"
+msgstr "Hangeltolás"
+
+msgctxt "#32392"
+msgid "Subtitle offset"
+msgstr "Felirateltolás"
+
+msgctxt "#32394"
+msgid "Reset to 0"
+msgstr "Visszaállítás 0-ra"
+
+msgctxt "#32395"
+msgid "Sort by"
+msgstr "Rendezés"
+
+msgctxt "#32396"
+msgid "Title"
+msgstr "Cím"
+
+msgctxt "#32397"
+msgid "Year"
+msgstr "Év"
+
+msgctxt "#32398"
+msgid "Rating"
+msgstr "Értékelés"
+
+msgctxt "#32399"
+msgid "Date added"
+msgstr "Hozzáadás dátuma"
+
+msgctxt "#32400"
+msgid "Runtime"
+msgstr "Játékidő"
+
+msgctxt "#32401"
+msgid "All genres"
+msgstr "Minden műfaj"
+
+msgctxt "#32402"
+msgid "All picture formats"
+msgstr "Minden képformátum"
+
+msgctxt "#32403"
+msgid "All resolutions"
+msgstr "Minden felbontás"
+
+msgctxt "#32404"
+msgid "All audio formats"
+msgstr "Minden hangformátum"
+
+msgctxt "#32405"
+msgid "Next up"
+msgstr "Következik"
+
+msgctxt "#32406"
+msgid "Details"
+msgstr "Részletek"
+
+msgctxt "#32407"
+msgid "Writer"
+msgstr "Forgatókönyv"
+
+msgctxt "#32408"
+msgid "Studio"
+msgstr "Stúdió"
+
+msgctxt "#32409"
+msgid "The details could not be read."
+msgstr "A részleteket nem sikerült beolvasni."
+
+msgctxt "#32410"
+msgid "Genre"
+msgstr "Műfaj"
+
+msgctxt "#32411"
+msgid "Close"
+msgstr "Bezárás"
+
+msgctxt "#32412"
+msgid "No titles match the filter"
+msgstr "Egy cím sem felel meg a szűrőnek"
+
+msgctxt "#32413"
+msgid "Ascending"
+msgstr "Növekvő"
+
+msgctxt "#32414"
+msgid "Descending"
+msgstr "Csökkenő"
+
+msgctxt "#32415"
+msgid "Arrange cards"
+msgstr "Kártyák elrendezése"
+
+msgctxt "#32416"
+msgid "Move a card with the arrows, or take it off this tab with the eye. Long-press or right-click any card heading to come back here."
+msgstr "A nyilakkal mozgathatsz egy kártyát, a szemmel leveheted erről a fülről. Bármelyik kártya fejlécének hosszú megnyomásával vagy jobb kattintással ide jutsz vissza."
+
+msgctxt "#32417"
+msgid "Done"
+msgstr "Kész"
+
+msgctxt "#32418"
+msgid "Reset"
+msgstr "Visszaállítás"
+
+msgctxt "#32419"
+msgid "Move up"
+msgstr "Feljebb"
+
+msgctxt "#32420"
+msgid "Move down"
+msgstr "Lejjebb"
+
+msgctxt "#32421"
+msgid "Remove card"
+msgstr "Kártya eltávolítása"
+
+msgctxt "#32422"
+msgid "Show card again"
+msgstr "Kártya megjelenítése"
+
+msgctxt "#32423"
+msgid "Hidden"
+msgstr "Rejtett"
+
+msgctxt "#32424"
+msgid "Every card on this tab is hidden."
+msgstr "A fül összes kártyája el van rejtve."
+
+msgctxt "#32425"
+msgid "Tabs"
+msgstr "Fülek"
+
+msgctxt "#32426"
+msgid "Choose which tabs appear in the bar. Live and Settings are always there. Some tabs only appear when there is something to show."
+msgstr "Válaszd ki, mely fülek jelenjenek meg a sávban. A Live és a Beállítások mindig ott vannak. Egyes fülek csak akkor jelennek meg, ha van mit mutatniuk."
+
+msgctxt "#32427"
+msgid "Cards"
+msgstr "Kártyák"
+
+msgctxt "#32428"
+msgid "Long-press or right-click the heading of a card to move the cards on that tab around, remove them or put them back."
+msgstr "Egy kártya fejlécének hosszú megnyomásával vagy jobb kattintással átrendezheted, eltávolíthatod vagy visszahozhatod a fül kártyáit."
+
+msgctxt "#32429"
+msgid "Reset all cards"
+msgstr "Összes kártya visszaállítása"
+
+msgctxt "#32430"
+msgid "Every card back in its place on every tab, and every removed card shown again."
+msgstr "Minden kártya visszakerül a helyére minden fülön, és minden eltávolított kártya újra látható."
+
+msgctxt "#32431"
+msgid "Go to series"
+msgstr "Ugrás a sorozathoz"
+
+msgctxt "#32432"
+msgid "Player"
+msgstr "Lejátszó"
+
+msgctxt "#32433"
+msgid "%s episodes"
+msgstr "%s epizód"
+
+msgctxt "#32434"
+msgid "About the episode"
+msgstr "Az epizódról"
+
+msgctxt "#32435"
+msgid "Awards"
+msgstr "Díjak"
+
+msgctxt "#32436"
+msgid "Dimmed icons indicate nominations."
+msgstr "A halványított ikonok jelöléseket mutatnak."
+
+msgctxt "#32437"
+msgid "Description"
+msgstr "Leírás"
+
+msgctxt "#32438"
+msgid "TMDb API key"
+msgstr "TMDb API-kulcs"
+
+msgctxt "#32439"
+msgid "Optional: fill missing cast, director and writer portraits from TMDb in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
+msgstr "Opcionális: a hiányzó szereplői, rendezői és írói portrék pótlása a TMDb-ből az alkalmazásban és az irányítópulton. Adja meg a TMDb API-kulcsát vagy olvasási hozzáférési tokenjét. A Kodi képei elsőbbséget élveznek."

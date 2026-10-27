@@ -30,6 +30,9 @@ PLAYING = {
     "VideoPlayer.Tagline": "One night.", "VideoPlayer.Plot": "Somebody does something.",
     "VideoPlayer.Director": "Somebody / Somebody Else", "VideoPlayer.Studio": "A Studio / Another",
     "VideoPlayer.Cast": "\n".join(f"Actor {n}" for n in range(1, 25)),
+    "VideoPlayer.CastAndRole": "\n".join(
+        f"Actor {n} #20347 Role {n}" if n != 2 else "Actor 2" for n in range(1, 25)),
+    "VideoPlayer.Writer": "One Writer / Two Writers",
 }
 
 
@@ -65,9 +68,12 @@ def test_a_playing_title():
     assert shot["media"]["year"] == "2021" and shot["media"]["genre"] == "Drama"
     assert shot["media"]["tagline"] == "One night."
     assert shot["media"]["plot"] == "Somebody does something."
-    # Who made it, as names; every director and the cast's first twenty,
-    # said to have more.  The genre is only the card above's.
-    assert "genres" not in shot["media"]
+    # Who made it, as names; every genre, director and writer and the cast's
+    # first twenty, said to have more, with who each played.
+    assert shot["media"]["genres"] == ["Drama"]
+    assert shot["media"]["writers"] == ["One Writer", "Two Writers"]
+    assert shot["media"]["roles"][:3] == ["Role 1", "", "Role 3"]
+    assert len(shot["media"]["roles"]) == 20
     assert shot["media"]["directors"] == ["Somebody", "Somebody Else"]
     assert "directors_more" not in shot["media"]
     assert shot["media"]["studios"] == ["A Studio"]
@@ -80,6 +86,18 @@ def test_a_playing_title():
     for group in shot["groups"]:
         for row in group["rows"]:
             assert row["value"]                       # empty readings read N/A
+
+
+def test_roles_are_read_in_kodis_own_word_for_as(monkeypatch):
+    monkeypatch.setattr(xbmc, "getLocalizedString", lambda string_id: "als")
+    play(**{"VideoPlayer.Cast": "Wesley Snipes\nKris Kristofferson",
+            "VideoPlayer.CastAndRole": "Wesley Snipes als Blade\nKris Kristofferson als Whistler"})
+    assert SnapshotBuilder().build()["media"]["roles"] == ["Blade", "Whistler"]
+    # A Kodi that has no word for it is read as English.
+    monkeypatch.setattr(xbmc, "getLocalizedString", lambda string_id: "")
+    play(**{"VideoPlayer.Cast": "Wesley Snipes\nKris Kristofferson",
+            "VideoPlayer.CastAndRole": "Wesley Snipes as Blade"})
+    assert SnapshotBuilder().build()["media"]["roles"] == ["Blade", ""]
 
 
 def test_the_genre_is_cut_to_its_first_two():
@@ -188,7 +206,7 @@ def rated(monkeypatch):
                        "mpaa": "FSK 12", "age": "fsk12", "age_level": "12",
                        "userrating": 9, "top250": 27,
                        "awards": [{"award": "oscar", "won": ["Best Picture (1995)"], "nominated": 6}],
-                       "ids": {"imdb": "tt0111161"}}}
+                       "ids": {"imdb": "tt0111161"}, "item": {"kind": "movie", "id": 12}}}
     monkeypatch.setattr(snapshot, "playing_ratings", lambda: asked.append(1) or given["found"])
     return asked, given
 
@@ -200,6 +218,8 @@ def test_the_ratings_travel_in_the_media_block(rated):
     assert (media["mpaa"], media["age"], media["age_level"]) == ("FSK 12", "fsk12", "12")
     assert (media["userrating"], media["top250"]) == (9, 27)
     assert media["awards"] == [{"award": "oscar", "won": ["Best Picture (1995)"], "nominated": 6}]
+    # Which library title it is, for the page to open its details by.
+    assert media["item"] == {"kind": "movie", "id": 12}
 
 
 def test_mdblist_ratings_lie_over_the_librarys_and_the_ids_stay_behind(rated, monkeypatch):

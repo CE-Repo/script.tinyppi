@@ -1,11 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""The "continue watching" row: partly watched films and episodes."""
+"""The "continue watching" row: partly watched films and episodes; and the
+"next up" row: the next unwatched episode of each show being watched."""
 
 from web.library import cache, common
 from web.library.common import log
-from web.library.entries import ArtPaths, ContinueListing, Continuing, Resumable
+from web.library.entries import ArtPaths, ContinueListing, Continuing, Resumable, Upcoming
 from web.values import Json, clean_value
 
 # Maximum titles on the "continue" row.
@@ -22,6 +23,15 @@ _EPISODE_PROPERTIES = ("title", "showtitle", "tvshowid", "season",
 # On the row an episode shows its show's poster.
 _EPISODE_POSTER_KEYS = ("tvshow.poster", "season.poster", "poster")
 
+# Shows on the "next up" row.  Each costs a query of its own (Kodi has no
+# "next episode" of a show), so the row stays short.
+_NEXT_LIMIT = 15
+# A show's next episode: its first unwatched one in episode order, the
+# specials (season 0) left out, as Kodi's own "next up" lists do.
+_UNWATCHED = {"and": [{"field": "playcount", "operator": "is", "value": "0"},
+                      {"field": "season", "operator": "greaterthan", "value": "0"}]}
+_NEXT_PROPERTIES = ("title", "season", "episode", "art", "runtime")
+
 
 def continuing(films: bool = True, series: bool = True) -> ContinueListing:
     """Return partly watched films and episodes, most recent first.
@@ -33,7 +43,7 @@ def continuing(films: bool = True, series: bool = True) -> ContinueListing:
     items = [entry for entry in held["items"]
              if (films and entry["kind"] == "movie")
              or (series and entry["kind"] == "episode")]
-    return {"items": items, "count": len(items),
+    return {"items": items, "next": held["next"] if series else [], "count": len(items),
             "tag": f"{int(films)}{int(series)}-{held['tag']}"}
 
 
@@ -68,10 +78,74 @@ def _read() -> Continuing:
     # Kodi's timestamps sort correctly as text.
     listing.sort(key=lambda entry: entry.get("lastplayed", ""), reverse=True)
     del listing[_CONTINUE_LIMIT:]
+    # An episode already on the "continue" row is not next up as well.
+    upcoming = _next_up(art, {entry["id"] for entry in listing if entry["kind"] == "episode"})
 
-    log(f"{len(listing)} titles in progress read from the video database")
-    return {"items": listing, "art": art,
-            "tag": f"{len(listing):x}-{common.signature(listing)}"}
+    log(f"{len(listing)} titles in progress and {len(upcoming)} next episodes read "
+        "from the video database")
+    return {"items": listing, "next": upcoming, "art": art,
+            "tag": f"{len(listing):x}-{common.signature([*listing, *upcoming])}"}
+
+
+def _next_up(art: ArtPaths, continuing: set[int]) -> list[Upcoming]:
+    """Return the next episode of each show being watched, the show watched
+    last first, registering their art in *art*.
+
+    Episodes in *continuing* (on the "continue" row) are left out.
+    """
+    answer = common.rpc("VideoLibrary.GetInProgressTVShows", {
+        "properties": ["title", "art", "lastplayed", "ratings"],
+        "sort": {"method": "lastplayed", "order": "descending"},
+        "limits": {"start": 0, "end": _NEXT_LIMIT},
+    })
+    if answer.get("error"):
+        log(f"VideoLibrary.GetInProgressTVShows failed: {answer['error']}")
+    listing: list[Upcoming] = []
+    for show in common.rows_of(answer, "tvshows"):
+        entry = _next_episode(show, art)
+        if entry is not None and entry["id"] not in continuing:
+            listing.append(entry)
+    return listing
+
+
+def _next_episode(show: Json, art: ArtPaths) -> Upcoming | None:
+    """Return *show*'s next unwatched episode, or None (none, or no show)."""
+    show_id = show.get("tvshowid")
+    title = common.clean_title(show)
+    if not isinstance(show_id, int) or show_id <= 0 or not title:
+        return None
+    answer = common.rpc("VideoLibrary.GetEpisodes", {
+        "tvshowid": show_id,
+        "properties": list(_NEXT_PROPERTIES),
+        "filter": _UNWATCHED,
+        "sort": {"method": "episode", "order": "ascending"},
+        "limits": {"start": 0, "end": 1},
+    })
+    rows = common.rows_of(answer, "episodes")
+    episode_id = rows[0].get("episodeid") if rows else None
+    if not isinstance(episode_id, int):
+        return None
+    row = rows[0]
+    poster = common.picture(common.art_of(show), common.POSTER_KEYS)
+    still = common.picture(common.art_of(row), common.EPISODE_PICTURE_KEYS)
+    art[episode_id] = {"poster": poster, "thumb": still}
+    entry: Upcoming = {"kind": "episode", "id": episode_id,
+                       "title": common.clean_title(row), "tvshowid": show_id, "show": title,
+                       "poster": common.tag(poster), "thumb": common.tag(still)}
+    _number_episode(entry, row)
+    # Rated as its show is, as on the "continue" row.
+    common.rate(entry, show.get("ratings"))
+    return entry
+
+
+def _number_episode(entry: Upcoming, row: Json) -> None:
+    """Add an upcoming episode's season, number and length."""
+    if (season := common.number(row, "season", low=0)) is not None:
+        entry["season"] = season
+    if (number := common.number(row, "episode", low=0)) is not None:
+        entry["episode"] = number
+    if (duration := common.number(row, "runtime")) is not None:
+        entry["duration"] = duration
 
 
 def _films() -> list[Resumable]:

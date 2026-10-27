@@ -47,8 +47,8 @@
   min-height: var(--tap);
   padding: 11px 14px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: transparent;
+  border: 1px solid transparent;
+  background: var(--panel-3);
   color: var(--text);
   font: inherit;
   font-weight: 600;
@@ -61,16 +61,14 @@
 }
 @media (hover: hover) {
   .mode:hover:not(:disabled) {
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    background: color-mix(in srgb, var(--text) 8%, var(--panel-3));
   }
 }
 .mode:active:not(:disabled) { transform: scale(.985); }
 .mode:disabled { opacity: .5; cursor: progress; }
 .mode.busy {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  color: var(--accent);
+  background: var(--tonal);
+  color: var(--on-tonal);
 }
 
 /* --- Detail groups ------------------------------------------------------ */
@@ -230,16 +228,16 @@
 
 .filmsearch {
   appearance: none;
-  min-height: var(--tap);
+  min-height: 56px;
   width: 100%;
   box-sizing: border-box;
-  padding: 8px 12px;
+  padding: 8px 20px;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel-2);
+  border-radius: var(--radius-pill);
+  background: var(--panel);
   color: var(--text);
   font: inherit;
-  font-size: 14px;
+  font-size: 16px;
 }
 .filmsearch::placeholder { color: var(--muted); }
 .filmsearch:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -253,7 +251,84 @@
    is already the width of a phone -- and the field is given room on its right
    so a long title does not run under it. */
 .searchbox { position: relative; display: grid; }
-.searchbox .filmsearch { padding-right: 40px; }
+
+/* The search with the order and the filters under it, which wrap onto as many
+   lines as a wide screen needs and slide sideways on a phone.  A filter with nothing to choose between is not
+   drawn (see js/shelf-tools.js). */
+.shelfhead { display: grid; gap: var(--gap); }
+/* The order and the filters on a card of their own, as the app puts them:
+   a row of chips the shape and colour of the app's. */
+.shelftools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+/* On a phone the chips are one row that slides sideways under a finger, as
+   the app's do, rather than three or four rows of them pushing the shelf down
+   the screen.  No scrollbar: the chip cut off at the edge is what says there
+   is more. */
+@media (max-width: 620px) {
+  .shelftools {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .shelftools::-webkit-scrollbar { display: none; }
+  /* Named in full so they win over .shelfpick and .shelfway further down,
+     which let a chip shrink to nothing in a row that no longer wraps. */
+  .shelftools > .shelfpick,
+  .shelftools > .shelfway { flex: none; min-width: auto; max-width: none; }
+}
+.shelfpick {
+  appearance: none;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 0 32px 0 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--panel-3);
+  background-color: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.shelfway {
+  appearance: none;
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--panel-3);
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .shelfpick:hover, .shelfway:hover { background-color: color-mix(in srgb, var(--text) 8%, var(--panel-2)); }
+}
+.shelfway:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.shelfpick[hidden] { display: none; }
+.shelfpick:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.searchbox .filmsearch { padding-right: 48px; }
 
 /* Drawn rather than lettered: a multiplication sign is a different shape and
    weight in every font a box might have, and this one has to read as a cross
@@ -265,13 +340,13 @@
   appearance: none;
   position: absolute;
   top: 50%;
-  right: 4px;
+  right: 8px;
   transform: translateY(-50%);
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   background: none;
   color: var(--muted);
   cursor: pointer;
@@ -303,6 +378,11 @@
      group cards above do. */
   grid-template-columns: repeat(auto-fill, minmax(min(124px, 44%), 1fr));
   gap: 12px;
+}
+/* Three to a row on a phone, as the app's wall has: two posters across a
+   phone is a wall that takes half again as long to scroll past. */
+@media (max-width: 620px) {
+  .filmgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 }
 
 .film {
@@ -345,16 +425,21 @@
   border: 1px solid var(--line-soft);
   background: var(--panel-2);
   overflow: hidden;
-  transition: border-color .15s, transform .08s;
+  transition: transform .22s ease, box-shadow .22s ease;
 }
 .filmposter img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform .28s ease;
 }
 @media (hover: hover) {
-  .film:hover .filmposter { border-color: var(--accent); }
+  .film:hover:not(:disabled) .filmposter { box-shadow: 0 8px 18px rgba(0, 0, 0, .28); }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .film:hover:not(:disabled) .filmposter { transform: translateY(-3px); }
+  .film:hover:not(:disabled) .filmposter img { transform: scale(1.045); }
 }
 .film:active .filmposter { transform: scale(.985); }
 .film:focus-visible { outline: none; }
@@ -538,39 +623,29 @@
    corner a watched film wears its tick in -- see .filmrating above, where both
    are drawn. */
 
-/* The way back to the wall.  Quiet, because it is furniture rather than an
-   offer: what the card is for is the list under it. */
-.seriesback {
-  appearance: none;
-  justify-self: start;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: var(--tap);
-  padding: 0 12px 0 8px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel-2);
-  color: var(--muted);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-@media (hover: hover) {
-  .seriesback:hover { color: var(--text); border-color: var(--accent); }
-}
-.seriesback:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* One show's seasons are drawn as a title's details are -- the same page,
+   the same backdrop, poster and heading -- with the seasons where the plot
+   would be (see "a title's details" below, which both dialogs share).
 
-/* The name of the show that is open.  It is already in the heading of the
-   card as a count and nowhere as a name, and a list of episodes with no title
-   over it is a list of episodes of nothing. */
-.seriesopen {
-  margin: 0;
-  color: var(--text);
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.2;
+   They slide in over the show's page, which stays open under them, and slide
+   back out to it, the way one page of the app gives way to the next: from
+   the side and across the whole screen on a phone, a short way and fading
+   on a desktop, where the page stands in the middle of the screen.  The
+   page under them is already dimmed, so they add no shade of their own. */
+#detailsDialog, #seasonsDialog { transition: opacity .25s ease, transform .25s ease; }
+/* Where a page stands before sliding in and after sliding out (see slideIn
+   and slideOut in js/marking.js): a title's details as much as a show's
+   seasons. */
+#detailsDialog.away, #seasonsDialog.away { opacity: 0; transform: translateX(48px); }
+@media (max-width: 620px) {
+  #detailsDialog.away, #seasonsDialog.away { opacity: 1; transform: translateX(100%); }
+}
+html:has(#detailsDialog[open]) #seasonsDialog::backdrop {
+  background: transparent;
+  backdrop-filter: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  #detailsDialog, #seasonsDialog { transition: none; }
 }
 
 /* The episodes themselves: rows rather than a wall.  An episode is chosen by
@@ -745,30 +820,300 @@
    dialog's full width: they are the whole of what it asks, and three side by
    side would cut every name short on a phone.  Playing it comes first and in
    the accent, being what a press on a poster has always been for. */
-.markoptions { display: grid; gap: 8px; }
+/* The answers as the app lists them: a row each, a finger tall, written
+   plainly on the dialog rather than drawn as keys. */
+.markoptions { display: grid; gap: 4px; }
 .markoptions button[hidden] { display: none; }
 .markoptions button {
   appearance: none;
-  min-height: var(--tap);
-  padding: 0 16px;
+  min-height: 52px;
+  padding: 0 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: var(--panel-2);
+  border: 0;
+  background: transparent;
   color: var(--text);
   font: inherit;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: .3px;
   text-align: left;
   cursor: pointer;
 }
-.markoptions button[value="play"] {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #05131c;
-}
 @media (hover: hover) {
-  .markoptions button:hover { border-color: var(--accent); }
+  .markoptions button:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
 }
 .markoptions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 #markTitle {
   overflow-wrap: anywhere;
 }
+
+/* --- A title's details ------------------------------------------------------
+
+   A card of its own rather than the small question box: the title's backdrop
+   across the top, fading into the dialog, with the poster standing on its
+   lower edge beside the title and the formats; under it the ratings, the
+   plot, the facts and the cast.  It scrolls inside itself when it is longer
+   than the screen, with the close key kept at the foot. */
+/* On the page's own ground, as the app's details page is, so the cards in it
+   stand up from it the way they do on a screen. */
+html:has(#detailsDialog[open]), body:has(#detailsDialog[open]),
+html:has(#seasonsDialog[open]), body:has(#seasonsDialog[open]) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+#detailsDialog, #seasonsDialog { width: min(780px, calc(100vw - 24px)); overflow: hidden; background: var(--bg); }
+#detailsDialog form, #seasonsDialog form {
+  padding: 0;
+  gap: 0;
+  max-height: min(88vh, 860px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* On a phone a page of its own, as the app's is: the whole screen, top to
+   bottom, with nothing of the shelf showing round it. */
+@media (max-width: 620px) {
+  #detailsDialog, #seasonsDialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+  }
+  #detailsDialog form, #seasonsDialog form { height: 100%; max-height: none; align-content: start; }
+}
+.detailshero { position: relative; min-height: 200px; display: flex; align-items: flex-end; }
+.detailsbackdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.detailsbackdrop[hidden], .detailsposter[hidden] { display: none; }
+/* Faded into the dialog's own panel, so the heading on it can be read. */
+.detailshero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--panel) 15%, transparent) 0%,
+                              color-mix(in srgb, var(--panel) 55%, transparent) 50%, var(--panel) 100%);
+}
+/* Without a backdrop the heading stands on the plain panel. */
+.detailshero.bare { min-height: 0; padding-top: 44px; }
+.detailshero.bare::after { display: none; }
+.detailshead {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 0 20px 4px;
+  width: 100%;
+}
+.detailsposter {
+  flex: none;
+  width: 104px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lift);
+  border: 1px solid var(--line);
+}
+.detailsheading { display: grid; gap: 6px; min-width: 0; padding-bottom: 4px; }
+#detailsTitle, #seriesOpen { font-size: 20px; line-height: 1.25; overflow-wrap: anywhere; }
+dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
+.detailsmeta:empty, .detailstagline:empty, .detailsplot:empty,
+.detailsformats:empty, .detailsfacts:empty, .detailscast:empty, #detailsRatings:empty { display: none; }
+.detailsformats { display: flex; flex-wrap: wrap; gap: 6px; }
+/* The close key on the picture, round and on a scrim of its own. */
+.detailsx {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(0, 0, 0, .45) url("/icons/close.svg") center / 18px no-repeat;
+  cursor: pointer;
+}
+.detailsx:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Keep the explicit close button available on touch screens too. */
+.detailsbody { display: grid; gap: 32px; padding: 16px 20px calc(20px + env(safe-area-inset-bottom)); }
+.detailsfacts { gap: 32px; }
+/* The cast grid keeps 8px below each heading, and adds 24px before
+   the next heading to give cast and crew the same 32px section gap. */
+.detailscast .castrow + .casthead { margin-top: 24px; }
+/* The rows of who made it and who is in it run out to the page's edge,
+   rather than stopping at the margin the text keeps; the first card still
+   starts on the margin. Portraits and text stay opaque at both edges. */
+.detailscast .castrow {
+  margin: 0 -20px;
+  padding: 0 20px 4px;
+  scroll-padding-inline: 20px;
+}
+/* No scrollbars on a title's page, as the app has none: the page and its
+   rows still scroll under a finger, a wheel or the keys, and a card cut off
+   at an edge is what says there is more. */
+#detailsDialog form, #seasonsDialog form, .detailscast .castrow { scrollbar-width: none; }
+#detailsDialog form::-webkit-scrollbar,
+#seasonsDialog form::-webkit-scrollbar,
+.detailscast .castrow::-webkit-scrollbar { display: none; }
+/* A clear primary action, with quiet icon tools underneath on small screens. */
+.detailsactions[hidden] { display: none; }
+.detailsactions { display: flex; align-items: center; gap: 12px; }
+.detailsactions button { min-height: 48px; border: 0; font-size: 14px; font-weight: 600; }
+.detailsactions button[value="play"] {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.detailsactions button[value="play"]::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  mask: url("/icons/play.svg") center / contain no-repeat;
+}
+.detailsactions button[data-kind="tvshowid"]::before { mask-image: url("/icons/open.svg"); }
+.detailstools { display: flex; justify-content: center; gap: 8px; }
+.detailstools button {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--panel-2);
+  color: var(--muted);
+}
+.detailstools button::before {
+  content: "";
+  width: 22px;
+  height: 22px;
+  background: currentColor;
+  mask: var(--action-icon) center / contain no-repeat;
+}
+#detailsRestart { --action-icon: url("/icons/replay.svg"); }
+#detailsClear { --action-icon: url("/icons/resume-clear.svg"); }
+#detailsWatched { --action-icon: url("/icons/watched.svg"); }
+#detailsUnwatched { --action-icon: url("/icons/unwatched.svg"); }
+#detailsShow { --action-icon: url("/icons/tab-series.svg"); }
+/* The tools stay beside the first answer on a phone too, as the app keeps
+   them: the answer takes what the row has left. */
+@media (max-width: 620px) {
+  .detailsactions { gap: 8px; }
+  .detailstools { gap: 4px; }
+}
+@media (hover: hover) {
+  .detailsactions button[value="play"]:hover { background: color-mix(in srgb, var(--on-accent) 8%, var(--accent)); }
+  .detailstools button:hover { background: var(--tonal); color: var(--on-tonal); }
+}
+/* The description heading and bold italic slogan over the plot; the facts and
+   the cast are in css/live-panels.css ("a title's facts and cast"). */
+.detailsdescription { display: grid; gap: 8px; min-width: 0; }
+.detailsdescriptiontext { display: grid; gap: 10px; min-width: 0; }
+.detailsdescriptiontext p:empty { display: none; }
+.detailsdescription[hidden] { display: none; }
+.detailsdescription h4 { margin: 0; color: var(--text); font-size: 20px; font-weight: 700; line-height: 26px; }
+.detailstagline { margin: 0; font-style: italic; font-weight: 700; font-size: 16px; line-height: 24px; color: var(--text); }
+dialog p.detailsplot { color: var(--text); white-space: pre-line; line-height: 24px; font-size: 16px; }
+
+#detailsError { color: var(--bad); }
+
+/* --- Arranging the cards -----------------------------------------------------
+
+   A card the reader took off its tab (see js/cards.js).  Said with a class of
+   its own rather than .hidden, which the page's own code puts on and takes
+   off as there is something to show, and which would put it back. */
+.card.userhidden { display: none !important; }
+/* The readings with every one of them taken off are no grid either. */
+.groups:not(:has(> .card:not(.userhidden))) { display: none; }
+
+/* A tab opened for arranging shows the list of its cards and nothing else. */
+.tabpanel.arranging > :not(.arranger) { display: none !important; }
+.tabpanel.arranging { align-content: start; }
+.arranger { display: grid; gap: 4px; padding-bottom: 8px; }
+.arrangehead { display: grid; gap: 10px; padding-bottom: 8px; }
+.arrangehead .setnote { padding: 0 16px; }
+.arrangekeys { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px; }
+.arrangedone { background: var(--accent); color: var(--on-accent); }
+@media (hover: hover) {
+  .arrangedone:not(:disabled):hover { background: color-mix(in srgb, var(--on-accent) 8%, var(--accent)); }
+}
+.arrangelist { display: grid; gap: 8px; padding: 4px 12px 8px; }
+.arrangerow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 56px;
+  padding: 4px 4px 4px 16px;
+  border: 1px solid var(--panel-3);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+}
+.arrangelabel { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.arrangelabel span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-size: 15px;
+}
+.arrangelabel small { color: var(--muted); font-size: 12px; }
+.arrangerow.off .arrangelabel { opacity: .5; }
+.arrangekey {
+  appearance: none;
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.arrangekey::before {
+  content: "";
+  width: 22px;
+  height: 22px;
+  background: currentColor;
+  mask: var(--arrange-icon) center / contain no-repeat;
+}
+.arrange-up { --arrange-icon: url("/icons/chevron-down.svg"); }
+.arrange-up::before { transform: rotate(180deg); }
+.arrange-down { --arrange-icon: url("/icons/chevron-down.svg"); }
+.arrange-hide { --arrange-icon: url("/icons/watched.svg"); }
+.arrange-show { --arrange-icon: url("/icons/unwatched.svg"); }
+.arrangekey:disabled { opacity: .3; cursor: default; }
+.arrangekey:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (hover: hover) {
+  .arrangekey:not(:disabled):hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
+}
+
+/* A tab with every card taken off it: a line saying so, and the way back. */
+.allhidden {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 28px 16px;
+  text-align: center;
+}
+.allhidden p { margin: 0; color: var(--muted); font-size: 14px; }
+
+/* The switches for the tabs on the settings tab, one under the other. */
+.tabswitches { display: grid; gap: 2px; }

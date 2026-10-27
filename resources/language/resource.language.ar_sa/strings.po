@@ -1488,8 +1488,8 @@ msgid "Show chapter markers"
 msgstr "إظهار علامات الفصول"
 
 msgctxt "#32370"
-msgid "Overview"
-msgstr "نظرة عامة"
+msgid "About the film"
+msgstr "عن الفيلم"
 
 msgctxt "#32372"
 msgid "My rating"
@@ -1502,14 +1502,6 @@ msgstr "أفضل 250 · المرتبة %s"
 msgctxt "#32378"
 msgid "Cast"
 msgstr "طاقم التمثيل"
-
-msgctxt "#32381"
-msgid "Show more"
-msgstr "عرض المزيد"
-
-msgctxt "#32382"
-msgid "Show less"
-msgstr "عرض أقل"
 
 msgctxt "#32383"
 msgid "Ratings"
@@ -1542,3 +1534,195 @@ msgstr "فاز بـ %s"
 msgctxt "#32390"
 msgid "%s nominated"
 msgstr "%s ترشيحات"
+
+msgctxt "#32391"
+msgid "Audio offset"
+msgstr "إزاحة الصوت"
+
+msgctxt "#32392"
+msgid "Subtitle offset"
+msgstr "إزاحة الترجمة"
+
+msgctxt "#32394"
+msgid "Reset to 0"
+msgstr "إعادة الضبط إلى 0"
+
+msgctxt "#32395"
+msgid "Sort by"
+msgstr "الترتيب حسب"
+
+msgctxt "#32396"
+msgid "Title"
+msgstr "العنوان"
+
+msgctxt "#32397"
+msgid "Year"
+msgstr "السنة"
+
+msgctxt "#32398"
+msgid "Rating"
+msgstr "التقييم"
+
+msgctxt "#32399"
+msgid "Date added"
+msgstr "تاريخ الإضافة"
+
+msgctxt "#32400"
+msgid "Runtime"
+msgstr "المدة"
+
+msgctxt "#32401"
+msgid "All genres"
+msgstr "كل الأنواع"
+
+msgctxt "#32402"
+msgid "All picture formats"
+msgstr "كل صيغ الصورة"
+
+msgctxt "#32403"
+msgid "All resolutions"
+msgstr "كل الدقات"
+
+msgctxt "#32404"
+msgid "All audio formats"
+msgstr "كل صيغ الصوت"
+
+msgctxt "#32405"
+msgid "Next up"
+msgstr "التالي"
+
+msgctxt "#32406"
+msgid "Details"
+msgstr "التفاصيل"
+
+msgctxt "#32407"
+msgid "Writer"
+msgstr "الكاتب"
+
+msgctxt "#32408"
+msgid "Studio"
+msgstr "الاستوديو"
+
+msgctxt "#32409"
+msgid "The details could not be read."
+msgstr "تعذّرت قراءة التفاصيل."
+
+msgctxt "#32410"
+msgid "Genre"
+msgstr "النوع"
+
+msgctxt "#32411"
+msgid "Close"
+msgstr "إغلاق"
+
+msgctxt "#32412"
+msgid "No titles match the filter"
+msgstr "لا توجد عناوين تطابق التصفية"
+
+msgctxt "#32413"
+msgid "Ascending"
+msgstr "تصاعدي"
+
+msgctxt "#32414"
+msgid "Descending"
+msgstr "تنازلي"
+
+msgctxt "#32415"
+msgid "Arrange cards"
+msgstr "ترتيب البطاقات"
+
+msgctxt "#32416"
+msgid "Move a card with the arrows, or take it off this tab with the eye. Long-press or right-click any card heading to come back here."
+msgstr "حرّك البطاقة بالأسهم، أو أزلها من هذا التبويب بأيقونة العين. اضغط مطولاً أو انقر بزر الفأرة الأيمن على عنوان أي بطاقة للعودة إلى هنا."
+
+msgctxt "#32417"
+msgid "Done"
+msgstr "تم"
+
+msgctxt "#32418"
+msgid "Reset"
+msgstr "إعادة تعيين"
+
+msgctxt "#32419"
+msgid "Move up"
+msgstr "نقل لأعلى"
+
+msgctxt "#32420"
+msgid "Move down"
+msgstr "نقل لأسفل"
+
+msgctxt "#32421"
+msgid "Remove card"
+msgstr "إزالة البطاقة"
+
+msgctxt "#32422"
+msgid "Show card again"
+msgstr "إظهار البطاقة مجدداً"
+
+msgctxt "#32423"
+msgid "Hidden"
+msgstr "مخفية"
+
+msgctxt "#32424"
+msgid "Every card on this tab is hidden."
+msgstr "جميع البطاقات في هذا التبويب مخفية."
+
+msgctxt "#32425"
+msgid "Tabs"
+msgstr "التبويبات"
+
+msgctxt "#32426"
+msgid "Choose which tabs appear in the bar. Live and Settings are always there. Some tabs only appear when there is something to show."
+msgstr "اختر التبويبات التي تظهر في الشريط. يظهر تبويبا البث المباشر والإعدادات دائماً. بعض التبويبات لا تظهر إلا عند وجود ما يُعرض."
+
+msgctxt "#32427"
+msgid "Cards"
+msgstr "البطاقات"
+
+msgctxt "#32428"
+msgid "Long-press or right-click the heading of a card to move the cards on that tab around, remove them or put them back."
+msgstr "اضغط مطولاً أو انقر بزر الفأرة الأيمن على عنوان بطاقة لتحريك بطاقات ذلك التبويب أو إزالتها أو إعادتها."
+
+msgctxt "#32429"
+msgid "Reset all cards"
+msgstr "إعادة تعيين كل البطاقات"
+
+msgctxt "#32430"
+msgid "Every card back in its place on every tab, and every removed card shown again."
+msgstr "تعود كل بطاقة إلى مكانها في كل تبويب، وتظهر كل بطاقة أُزيلت من جديد."
+
+msgctxt "#32431"
+msgid "Go to series"
+msgstr "الانتقال إلى المسلسل"
+
+msgctxt "#32432"
+msgid "Player"
+msgstr "المشغّل"
+
+msgctxt "#32433"
+msgid "%s episodes"
+msgstr "%s حلقات"
+
+msgctxt "#32434"
+msgid "About the episode"
+msgstr "عن الحلقة"
+
+msgctxt "#32435"
+msgid "Awards"
+msgstr "الجوائز"
+
+msgctxt "#32436"
+msgid "Dimmed icons indicate nominations."
+msgstr "تشير الرموز الباهتة إلى الترشيحات."
+
+msgctxt "#32437"
+msgid "Description"
+msgstr "الوصف"
+
+msgctxt "#32438"
+msgid "TMDb API key"
+msgstr "مفتاح TMDb API"
+
+msgctxt "#32439"
+msgid "Optional: fill missing cast, director and writer portraits from TMDb in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
+msgstr "اختياري: إكمال صور الممثلين والمخرجين والكتاب المفقودة من TMDb في التطبيق ولوحة التحكم. أدخل مفتاح API أو رمز الوصول للقراءة. صور Kodi لها الأولوية."

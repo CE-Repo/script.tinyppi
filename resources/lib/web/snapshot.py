@@ -129,16 +129,24 @@ _EXTRA_INFOLABELS = (
     ("Tagline",             "VideoPlayer.Tagline"),
     ("Plot",                "VideoPlayer.Plot"),
     ("Director",            "VideoPlayer.Director"),
+    ("Writer",              "VideoPlayer.Writer"),
     ("Cast",                "VideoPlayer.Cast"),
+    # The cast again, each line "<name> <as> <role>" in Kodi's language.
+    ("CastAndRole",         "VideoPlayer.CastAndRole"),
     ("Studio",              "VideoPlayer.Studio"),
 )
 
 # How many names of each the page keeps (see name_list): the genres and the
-# studio for the card of what is playing; every director and the cast's first
-# twenty, for the overview card's credits, the cast said to have more past
-# them.  The genres read as a kind of film rather than a list of names, and
-# the studio stands for the film alone.
-_NAMES: dict[str, int | None] = {"genres": 2, "directors": None, "cast": 20, "studios": 1}
+# studio for the card of what is playing; every genre, director and writer
+# and the cast's first twenty, for the overview card's credits, the cast said
+# to have more past them.  The card's genres read as a kind of film rather
+# than a list of names, and the studio stands for the film alone.
+_NAMES: dict[str, int | None] = {"genres": 2, "directors": None, "writers": None, "cast": 20,
+                                 "studios": 1}
+# What Kodi puts between a name and its role in VideoPlayer.CastAndRole, and
+# how long a role may be: a line of a card, as a name is.
+_AS = 20347
+_ROLE_LIMIT = 80
 
 
 def _genre(values: dict[str, str]) -> str:
@@ -154,10 +162,31 @@ def _credits(values: dict[str, str]) -> Credits:
     An episode's studios are its show's, and its cast its own guests and
     then the show's: Kodi keeps them so.
     """
+    genres, _more = name_list(values.get("Genre", ""))
     directors, _more = name_list(values.get("Director", ""), _NAMES["directors"])
+    writers, _more = name_list(values.get("Writer", ""), _NAMES["writers"])
     cast, cast_more = name_list(values.get("Cast", ""), _NAMES["cast"])
     studios, _more = name_list(values.get("Studio", ""), _NAMES["studios"])
-    return {"directors": directors, "cast": cast, "cast_more": cast_more, "studios": studios}
+    return {"genres": genres, "directors": directors, "writers": writers, "cast": cast,
+            "roles": _roles(cast, values.get("CastAndRole", "")), "cast_more": cast_more,
+            "studios": studios}
+
+
+def _roles(cast: list[str], label: str) -> list[str]:
+    """Return who each of *cast* played, read off ``VideoPlayer.CastAndRole``
+    ("" for one Kodi names no role for).
+
+    Kodi writes a line a member, the name, its word for "as" and the role --
+    or the name alone without one -- so a line is matched by its name.
+    """
+    joiner = f" {xbmc.getLocalizedString(_AS) or 'as'} "
+    lines = plain_text(label).split("\n")
+    roles = []
+    for name in cast:
+        prefix = name + joiner
+        role = next((line[len(prefix):] for line in lines if line.startswith(prefix)), "")
+        roles.append(role.strip()[:_ROLE_LIMIT].rstrip())
+    return roles
 
 
 # Presence flags (true / false / '') as markers; the browser shows icons,
@@ -663,8 +692,13 @@ class SnapshotBuilder:
                 "userrating": ratings["userrating"],
                 "top250":     ratings["top250"],
                 "awards":     ratings["awards"],
+                # Which library title it is, for its details page.
+                "item":       ratings["item"],
+                "genres":         credits["genres"],
                 "directors":      credits["directors"],
+                "writers":        credits["writers"],
                 "cast":           credits["cast"],
+                "roles":          credits["roles"],
                 "cast_more":      credits["cast_more"],
                 "studios":        credits["studios"],
             },

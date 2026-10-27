@@ -10,8 +10,19 @@ js/series.js and js/continue.js read them.
 
 from typing import NotRequired, TypedDict
 
+from web.payloads import Award, Rating
+
 # Artwork paths by library id and kind; kept beside a list, never sent.
 ArtPaths = dict[int, dict[str, str]]
+
+
+class Formats(TypedDict, total=False):
+    """A title's formats, where Kodi has read its file (``common.formats``)."""
+
+    video: str
+    dv_profile: str
+    resolution: str
+    audio: str
 
 
 class Film(TypedDict):
@@ -27,6 +38,12 @@ class Film(TypedDict):
     rating: NotRequired[float]
     rating_from: NotRequired[str]
     added: NotRequired[str]
+    # For sorting and filtering on the page (see ``common.formats``).
+    genres: NotRequired[list[str]]
+    video: NotRequired[str]
+    dv_profile: NotRequired[str]
+    resolution: NotRequired[str]
+    audio: NotRequired[str]
 
 
 class Show(TypedDict):
@@ -43,6 +60,7 @@ class Show(TypedDict):
     rating: NotRequired[float]
     rating_from: NotRequired[str]
     added: NotRequired[str]
+    genres: NotRequired[list[str]]
 
 
 class Episode(TypedDict):
@@ -78,8 +96,81 @@ class Resumable(TypedDict):
     rating_from: NotRequired[str]
 
 
+class Upcoming(TypedDict):
+    """An entry of the "next up" row: the next unwatched episode of a show
+    being watched."""
+
+    kind: str
+    id: int
+    title: str
+    tvshowid: int
+    show: str
+    poster: str
+    thumb: str
+    season: NotRequired[int]
+    episode: NotRequired[int]
+    duration: NotRequired[int]
+    rating: NotRequired[float]
+    rating_from: NotRequired[str]
+
+
+class Person(TypedDict):
+    """One of the cast, and the role played ("" where none is known)."""
+
+    name: str
+    role: str
+    thumbnail: NotRequired[str]
+
+
+class Details(TypedDict):
+    """A title's details (``details.details``), sent as they are.
+
+    ``kind`` is movie, tvshow or episode; anything else only where the
+    library has it.
+    """
+
+    kind: str
+    id: int
+    title: str
+    ratings: list[Rating]
+    watched: NotRequired[bool]
+    resume: NotRequired[int]
+    plot: NotRequired[str]
+    tagline: NotRequired[str]
+    show: NotRequired[str]
+    premiered: NotRequired[str]
+    mpaa: NotRequired[str]
+    age: NotRequired[str]
+    age_level: NotRequired[str]
+    year: NotRequired[int]
+    duration: NotRequired[int]
+    season: NotRequired[int]
+    episode: NotRequired[int]
+    tvshowid: NotRequired[int]
+    userrating: NotRequired[int]
+    top250: NotRequired[int]
+    awards: NotRequired[list[Award]]
+    genres: NotRequired[list[str]]
+    directors: NotRequired[list[str]]
+    writers: NotRequired[list[str]]
+    studios: NotRequired[list[str]]
+    countries: NotRequired[list[str]]
+    cast: NotRequired[list[Person]]
+    # Regie/Drehbuch roles use stable codes: director or writer.
+    crew: NotRequired[list[Person]]
+    cast_more: NotRequired[bool]
+    # The tags of its pictures (see ``common.tag``), for /api/art.
+    poster: NotRequired[str]
+    fanart: NotRequired[str]
+    thumb: NotRequired[str]
+    video: NotRequired[str]
+    dv_profile: NotRequired[str]
+    resolution: NotRequired[str]
+    audio: NotRequired[str]
+
+
 # What may carry a rating.
-Rated = Film | Show | Resumable
+Rated = Film | Show | Resumable | Upcoming
 
 
 # --- As cached (``cache.lists``) ---------------------------------------------
@@ -108,9 +199,11 @@ class Episodes(TypedDict):
 
 
 class Continuing(TypedDict):
-    """The "continue" row, most recently played first."""
+    """The "continue" row, most recently played first, and the "next up"
+    row (``next``), the show watched last first."""
 
     items: list[Resumable]
+    next: list[Upcoming]
     art: ArtPaths
     tag: str
 
@@ -139,6 +232,7 @@ class EpisodeListing(TypedDict):
 
 class ContinueListing(TypedDict):
     items: list[Resumable]
+    next: list[Upcoming]
     count: int
     tag: str
 

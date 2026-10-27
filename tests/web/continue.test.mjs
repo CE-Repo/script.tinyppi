@@ -17,8 +17,8 @@ import { page, settle, source } from "./harness.mjs";
 
 const JS = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "resources", "web", "js");
 const ORDER = ["theme.js", "core.js", "colour.js", "cover-tint.js", "readings.js",
-               "live-chapters.js", "live-remote.js", "live-panels.js", "metadata.js", "dashboard.js", "films.js", "series.js",
-               "continue.js", "marking.js", "start.js"];
+               "live-chapters.js", "live-remote.js", "live-panels.js", "metadata.js", "dashboard.js", "shelf-tools.js", "films.js", "series.js",
+               "continue.js", "marking.js", "cards.js", "start.js"];
 
 /** Run one of the page's scripts under its own file URL, as harness.mjs
  * does, so that the page's timers can be replaced first. */
@@ -76,7 +76,7 @@ const PLAYING = { playing: true, control: true };
  * first idle snapshot is delivered unless *quiet*.  The window is closed when
  * the test ends. */
 async function open(t, { items = ITEMS, routes = {}, token = "", quiet = false } = {}) {
-  const table = {
+  const table = { "/api/details": [200, {}],
     "/api/hello": [200, { version: "2.15.0", strings: STRINGS }],
     "/api/library": [200, { tag: "f1", movies: [] }],
     "/api/series": [200, { tag: "s1", shows: [] }],
@@ -146,7 +146,12 @@ function tile(view, title) {
 
 /** Answer the question that is open, as the dialog's form would. */
 function answer({ window, $ }, value) {
-  const dialog = $("markDialog");
+  if (value === "details") return;
+  const dialog = $("detailsDialog");
+  if (["restart", "clear", "watched", "unwatched"].includes(value)) {
+    dialog.querySelector('button[value="' + value + '"]').click();
+    return;
+  }
   dialog.returnValue = value;
   dialog.close();
   dialog.dispatchEvent(new window.Event("close"));
@@ -154,7 +159,8 @@ function answer({ window, $ }, value) {
 
 /** Press the tile called *title* and give *value* as the answer. */
 async function press(view, title, value = "play") {
-  tile(view, title).click();
+  tile(view, title).dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, value);
   await settle();
 }
@@ -251,22 +257,78 @@ test("a row with nothing on it is no card at all, and its count is blank", async
 
 test("a press asks to resume, and offers a fresh start and forgetting the point", async (t) => {
   const view = await open(t);
-  tile(view, "Film 03").click();
-  assert.equal(view.$("markDialog").open, true);
-  assert.equal(view.$("markTitle").textContent, "Film 03");
-  assert.equal(view.$("markPlay").textContent, "Resume");
-  assert.equal(view.$("markRestart").hidden, false);
-  assert.equal(view.$("markClear").hidden, false);
+  tile(view, "Film 03").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsTitle").textContent, "Film 03");
+  assert.equal(view.$("detailsPlay").textContent, "Resume");
+  assert.equal(view.$("detailsRestart").hidden, false);
+  assert.equal(view.$("detailsClear").hidden, false);
   answer(view, "cancel");
 
-  tile(view, "Show 2").click();
-  assert.equal(view.$("markTitle").textContent, "Show 2 · S01E03");
+  tile(view, "Show 2").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, "Show 2 · S01E03");
   answer(view, "cancel");
-  tile(view, "Pilot").click();
-  assert.equal(view.$("markTitle").textContent, "S02E01");
+  tile(view, "Pilot").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, "S02E01");
   answer(view, "cancel");
   await settle();
   assert.deepEqual(plays(view), []);
+});
+
+/** Which tab is in front. */
+const front = (view) => view.window.document.querySelector(".tabpanel.active")?.dataset.tab;
+
+test("a title resumed from the row takes the page to the live tab", async (t) => {
+  const view = await open(t);
+  view.window.selectTab("films");
+  await press(view, "Film 03");
+  assert.equal(front(view), "live");
+});
+
+test("an episode on the row offers the way to its show, whose details take its place on the series tab", async (t) => {
+  const view = await open(t, {
+    items: [
+      { kind: "episode", id: 99, title: "Started", show: "Show 2", tvshowid: 5, season: 1,
+        episode: 3, duration: 1000, resume: 100 },
+      { kind: "episode", id: 98, title: "Pilot", tvshowid: 6, resume: 5 },
+      { kind: "movie", id: 3, title: "Film 03", resume: 1800 },
+    ],
+    routes: { "/api/series": [200, { tag: "s1", shows: [{ id: 5, title: "Show 2" }] }] },
+  });
+  const ask = async (node) => {
+    node.dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    await settle();
+  };
+  const [started, pilot] = view.$("continueSeriesRow").children;
+  await ask(started);
+  assert.equal(view.$("detailsShow").hidden, false);
+  view.$("detailsShow").click();
+  await settle();
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsTitle").textContent, "Show 2");
+  assert.equal(view.$("detailsPlay").textContent, "Open");
+  assert.equal(view.$("detailsShow").hidden, true);
+  assert.equal(front(view), "series");
+  answer(view, "cancel");
+  await settle();
+
+  // A show the shelf does not hold: offered, and pressing it changes nothing.
+  await ask(pilot);
+  assert.equal(view.$("detailsShow").hidden, false);
+  const asked = view.$("detailsTitle").textContent;
+  view.$("detailsShow").click();
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, asked);
+  answer(view, "cancel");
+  await settle();
+
+  // A film has no show to go to.
+  await ask(view.$("continueFilmsRow").firstElementChild);
+  assert.equal(view.$("detailsShow").hidden, true);
 });
 
 test("resuming sends the title with the token, and both rows wait on it", async (t) => {
@@ -438,10 +500,11 @@ test("a read failing with no error at all still counts as a failure", async (t) 
 test("a second title pressed while the first is waiting starts nothing", async (t) => {
   const view = await open(t);
   await press(view, "Film 03");
-  // A waiting row takes no press; a click that reaches a tile all the same
+  // A waiting row takes no press; a context-menu event that reaches a tile all the same
   // (sent by a script, say) is dropped.
   assert.equal(tile(view, "Show 2").disabled, true);
-  tile(view, "Show 2").dispatchEvent(new view.window.MouseEvent("click"));
+  tile(view, "Show 2").dispatchEvent(new view.window.MouseEvent("contextmenu", { cancelable: true }));
+  await settle();
   answer(view, "play");
   await settle();
   assert.deepEqual(plays(view), [{ movieid: 3 }]);

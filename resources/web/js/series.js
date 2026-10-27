@@ -10,20 +10,22 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global ask, continueStale, el, FILMS_RETRY_MS, FILMS_START_MS, newest,
-   ratingBadge, runtime, T */
-/* exported episodeCode, episodeReleasing, hideSeries, refreshEpisodes,
-   releaseSeries, requestSeries, seriesOffered, seriesStale, startingEpisode */
+/* global selectTab, showDetails, slideIn, tintDialog, bindTitle, continueStale, el, FILMS_RETRY_MS, FILMS_START_MS, newest,
+   ratingBadge, runtime, shelfTools, T */
+/* exported openShowDetails, episodeCode, episodeReleasing, hideSeries, refreshEpisodes,
+   releaseSeries, requestSeries, seriesOffered, seriesStale, seriesTools,
+   startingEpisode */
 
 /* --- the series library -------------------------------------------------- */
 
 /* The same shelf as the films, with one floor more.
 
    A series is not a thing that can be put on -- an episode is -- so a press on
-   a poster does not start anything: the wall gives way to that show's
-   episodes, and a press on one of those starts it.  The way back out is a
-   button at the top of the card, where it is one press away however far down
-   a forty-episode show somebody has scrolled.
+   a poster does not start anything: its details offer to open it, and opening
+   it brings up a dialog of its seasons, each folded away with its episodes in
+   it.  A press on one of those opens the episode's details over the dialog,
+   and playing it closes both and goes to the live tab.  The wall stays where
+   it was underneath, so closing the dialog is the way back to it.
 
    The episodes of a show are asked for when the show is opened and not before.
    A house with ninety series in it would otherwise be sent every episode of
@@ -37,11 +39,23 @@ let seriesRead = false;    /* the shelf has been read since it last moved */
 let seriesShown = false;   /* the shelf has been read at least once       */
 let seriesOffered = true;  /* until the box says it offers no series      */
 let seriesNextTry = 0;     /* not before this, after a failure            */
-let openShow = null;       /* the show whose episodes are on the card     */
+let openShow = null;       /* the show whose seasons the dialog shows     */
 let episodesBusy = false;  /* a request for one show's episodes           */
 let startingEpisode = 0;   /* the episode a press is waiting on           */
 let episodeReleasing = 0;  /* the timer that gives the list back          */
 let episodesPutOff = false; /* the open show waits to be read again        */
+let showTiles = new Map(); /* each show's tile on the wall of everything  */
+let openedFrom = null;     /* the details the open show was opened from   */
+let showQuestions = new Map(); /* each show's details question, by its id */
+let episodeCount = 0;      /* how many episodes the open show has          */
+
+/* The order and the genre over the wall of every show, as on the films. */
+const seriesTools = shelfTools(el.seriesTools, {
+  shelf: "series",
+  sorts: ["title", "year", "rating", "added"],
+  filters: ["genre"],
+  onChange: arrangeSeries
+});
 
 /* Called from the other parts of the page once the series shelf may have moved: the
    next request reads it again. */
@@ -79,12 +93,11 @@ async function loadSeries() {
       buildSeries();
     }
     el.seriesCard.classList.remove("hidden");
+    el.seriesBox.classList.remove("hidden");
     el.recentSeriesCard.classList.toggle("hidden",
                                          !el.recentSeriesRow.children.length);
     el.unseenSeriesCard.classList.toggle("hidden",
                                          !el.unseenSeriesGrid.children.length);
-    /* Away only inside a show, where there is no wall to narrow. */
-    el.seriesBox.classList.toggle("hidden", openShow !== null);
   } catch (error) {
     seriesRead = false;
     seriesNextTry = Date.now() + FILMS_RETRY_MS;
@@ -100,12 +113,16 @@ function buildSeries() {
   const wall = document.createDocumentFragment();
   const unseen = document.createDocumentFragment();
   let waiting = 0;
+  showTiles = new Map();
+  showQuestions = new Map();
   for (const show of shows) {
-    wall.append(showTile(show, openShowView));
+    const tile = showTile(show);
+    showTiles.set(show, tile);
+    wall.append(tile);
     /* A show with an episode still waiting.  One the library has no episode
        count for is left off: nothing says there is anything in it to see. */
     if (!show.watched && show.unseen) {
-      unseen.append(showTile(show, openFromUnseen));
+      unseen.append(showTile(show));
       waiting += 1;
     }
   }
@@ -114,54 +131,42 @@ function buildSeries() {
   el.unseenSeriesGrid.scrollLeft = 0;
   /* A show on this row is one that gained an episode lately (a show's date is
      its newest episode's, see _SHOW_PROPERTIES in web/library.py); it opens
-     in the series card, the way one on the unwatched wall does. */
+     the same dialog of seasons the walls do. */
   const recent = document.createDocumentFragment();
-  for (const show of newest(shows)) recent.append(showTile(show, openFromUnseen));
+  for (const show of newest(shows)) recent.append(showTile(show));
   el.recentSeriesRow.replaceChildren(recent);
   el.recentSeriesRow.scrollLeft = 0;
   el.unseenSeriesCount.textContent = waiting ? String(waiting) : "";
   /* The count in the heading, and whatever the search box is narrowing it
-     to, the way the film wall does after it is built.  Inside a show the
-     heading counts that show's episodes instead, and is left alone. */
-  applySeriesSearch();
+     to, the way the film wall does after it is built. */
+  seriesTools.fill(shows);
+  arrangeSeries();
   /* A shelf that has just been read again is a shelf that may no longer hold
-     the show somebody was inside, and where it does not the card comes back to
-     the wall.  Where it does, they are left where they were: the shelf is read
-     again every time an episode ends now, and a card that threw whoever was
-     watching a series back out to the wall each time would be a card nobody
-     could watch a series from. */
+     the show somebody has open, and where it does not the dialog closes.
+     Where it does, it is left open: the shelf is read again every time an
+     episode ends, and a dialog that closed under whoever was choosing the
+     next one each time would be a dialog nobody could watch a series from. */
   if (!openShow) return;
   const still = shows.find((show) => show.id === openShow.id);
   if (!still) {
     closeShow();
     return;
   }
-  /* The tile it was opened from has been built again, so what the card's
+  /* The tile it was opened from has been built again, so what the dialog's
      heading names is the show as the shelf now has it. */
   openShow = still;
-  el.seriesOpen.textContent = still.title;
+  drawSeasonsHead();
 }
 
 /* Both series walls off the page, for a box with no series to offer. */
 function hideSeries() {
   el.seriesCard.classList.add("hidden");
+  el.seriesBox.classList.add("hidden");
   el.recentSeriesCard.classList.add("hidden");
   el.unseenSeriesCard.classList.add("hidden");
 }
 
-/* A show opened from the wall of unwatched ones opens in the series card
-   further down the same tab, where its episodes are listed -- one list of
-   episodes on the page, and one way back out of it -- and that card is
-   unfolded and brought into view, because the press happened somewhere
-   else. */
-async function openFromUnseen(show) {
-  await openShowView(show);
-  if (!openShow || openShow.id !== show.id) return;
-  el.seriesCard.open = true;
-  el.seriesCard.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function showTile(show, onOpen) {
+function showTile(show) {
   const tile = document.createElement("button");
   tile.type = "button";
   tile.className = "film";
@@ -214,49 +219,68 @@ function showTile(show, onOpen) {
   }
 
   /* A series is not a thing that can be played, so the first answer opens it
-     instead: its episodes are what can be. */
-  tile.addEventListener("click", () => ask({
-    title: show.title, body: { tvshowid: show.id },
-    play: T.series_open, onPlay: () => onOpen(show)
-  }));
+     instead: its seasons, and the episodes in them, are what can be.  The
+     question is kept with the show, so leaving the seasons goes back to the
+     details they were opened from. */
+  const question = {
+    watched: !!show.watched, title: show.title, body: { tvshowid: show.id },
+    play: T.series_open, onPlay: () => openShowView(show, question), stays: true
+  };
+  showQuestions.set(show.id, question);
+  bindTitle(tile, question);
   return tile;
+}
+
+/* The details of the show with *id*, in place of the episode's details that
+   asked for them, on the series tab -- where its seasons open from.  Nothing
+   for a show the shelf does not hold. */
+function openShowDetails(id) {
+  const question = showQuestions.get(id);
+  if (!question) return;
+  selectTab("series");
+  showDetails(question, true);
+}
+
+/* The wall in the chosen order, as the film wall is (see arrangeFilms in
+   js/films.js). */
+function arrangeSeries() {
+  el.seriesGrid.append(...seriesTools.order(shows).map((show) => showTiles.get(show)));
+  applySeriesSearch();
 }
 
 function applySeriesSearch() {
   const needle = el.seriesSearch.value.trim().toLowerCase();
   let shown = 0;
-  for (const tile of el.seriesGrid.children) {
-    const match = !needle || tile.dataset.key.includes(needle);
+  for (const [show, tile] of showTiles) {
+    const match = (!needle || tile.dataset.key.includes(needle)) && seriesTools.matches(show);
     tile.hidden = !match;
     if (match) shown += 1;
   }
   el.seriesSearchClear.classList.toggle("hidden", el.seriesSearch.value === "");
-  if (openShow === null) {
-    el.seriesCount.textContent = shown === shows.length
-      ? String(shows.length) : shown + " / " + shows.length;
-    el.seriesEmpty.classList.toggle("hidden", shown > 0);
-  }
+  el.seriesCount.textContent = shown === shows.length
+    ? String(shows.length) : shown + " / " + shows.length;
+  el.seriesEmpty.textContent = shows.length && seriesTools.filtering()
+    ? T.filter_empty : T.series_empty;
+  el.seriesEmpty.classList.toggle("hidden", shown > 0);
 }
 
 /* --- one show ------------------------------------------------------------ */
 
-async function openShowView(show) {
+async function openShowView(show, from) {
   if (episodesBusy || startingEpisode) return;
   episodesBusy = true;
   try {
     const answer = await TinyPPI.getJSON(
       "/api/episodes?tvshowid=" + encodeURIComponent(show.id));
     openShow = show;
+    openedFrom = from;
     buildEpisodes(Array.isArray(answer.episodes) ? answer.episodes : []);
-    el.seriesGrid.classList.add("hidden");
-    el.seriesBox.classList.add("hidden");
-    el.episodeList.classList.remove("hidden");
-    el.seriesBack.classList.remove("hidden");
-    el.seriesOpen.classList.remove("hidden");
-    el.seriesOpen.textContent = show.title;
-    /* The line about an empty shelf belongs to the wall, and the wall is not
-       what is being looked at. */
-    el.seriesEmpty.classList.add("hidden");
+    /* Over the show's page, where it is still open, and at least as tall, so
+       nothing of it shows round the seasons as they slide in. */
+    el.seasonsDialog.style.minHeight = el.detailsDialog.open
+      ? el.detailsDialog.offsetHeight + "px" : "";
+    if (!el.seasonsDialog.open) slideIn(el.seasonsDialog);
+    el.seasonsDialog.querySelector("form").scrollTop = 0;
   } catch (_) {
     /* A shelf that has moved under the page -- the show scanned away while
        this was open -- reads the same as a box that cannot answer, and the
@@ -296,6 +320,12 @@ async function refreshEpisodes() {
     episodesPutOff = true;
     return;
   }
+  /* The dialog was closed under a started episode: nobody is looking at the
+     show any more, so it is let go rather than read. */
+  if (!el.seasonsDialog.open) {
+    closeShow();
+    return;
+  }
   episodesBusy = true;
   try {
     const answer = await TinyPPI.getJSON(
@@ -331,7 +361,7 @@ function readEpisodesPutOff() {
   }
 }
 
-/* Which seasons are open on the card right now, by number. */
+/* Which seasons are open in the dialog right now, by number. */
 function unfoldedSeasons() {
   const open = new Set();
   for (const fold of el.episodeList.querySelectorAll(".seasonfold[open]")) {
@@ -381,7 +411,40 @@ function buildEpisodes(list, unfolded) {
     (fold || rows).append(episodeRow(episode));
   }
   el.episodeList.replaceChildren(rows);
-  el.seriesCount.textContent = String(list.length);
+  episodeCount = list.length;
+  drawSeasonsHead();
+}
+
+/* The head of the dialog, as a title's details have theirs: the open show's
+   backdrop and poster, its name, and under it its year and how many
+   episodes it has.  The page takes its colour off the poster as the details
+   do (see tintDialog in js/marking.js). */
+function drawSeasonsHead() {
+  const show = openShow;
+  seasonPicture(el.seasonsBackdrop, "fanart", show.fanart);
+  seasonPicture(el.seasonsPoster, "poster", show.poster);
+  el.seasonsHero.classList.toggle("bare", el.seasonsBackdrop.hidden);
+  el.seriesOpen.textContent = show.title;
+  el.seasonsCount.textContent = [show.year ? String(show.year) : "",
+    episodeCount ? T.series_episodes.replace("%s", episodeCount) : ""]
+    .filter(Boolean).join(" · ");
+  tintDialog(el.seasonsDialog, [el.seasonsPoster, el.seasonsBackdrop]);
+}
+
+/* One of the show's pictures, or none: one the box cannot read leaves the
+   space it would have filled, as a missing one does. */
+function seasonPicture(image, kind, tag) {
+  image.hidden = !tag;
+  if (tag) {
+    image.src = "/api/art?kind=" + kind + "&tvshowid=" + encodeURIComponent(openShow.id) +
+      "&v=" + encodeURIComponent(tag);
+  } else {
+    image.removeAttribute("src");
+  }
+  image.onerror = () => {
+    image.hidden = true;
+    el.seasonsHero.classList.toggle("bare", el.seasonsBackdrop.hidden);
+  };
 }
 
 function seasonOf(episode) {
@@ -478,13 +541,13 @@ function episodeRow(episode) {
   meta.append(title);
 
   row.append(frame, meta);
-  row.addEventListener("click", () => ask({
-    title: [code, episode.title].filter(Boolean).join(" \u00b7 "),
+  bindTitle(row, {
+    watched: !!episode.watched, title: [code, episode.title].filter(Boolean).join(" \u00b7 "),
     body: { episodeid: episode.id },
     play: episode.resume ? T.films_resume : T.films_play,
     resumable: !!episode.resume,
     onPlay: (fromStart) => startEpisode(episode, row, fromStart)
-  }));
+  });
   return row;
 }
 
@@ -498,15 +561,14 @@ function episodeCode(episode) {
   return season + number;
 }
 
+/* The dialog closed, by its key, by Escape or by the page: the show is no
+   longer open, and nothing is read for it again. */
 function closeShow() {
   openShow = null;
+  openedFrom = null;
   el.episodeList.replaceChildren();
-  el.episodeList.classList.add("hidden");
-  el.seriesBack.classList.add("hidden");
-  el.seriesOpen.classList.add("hidden");
-  el.seriesGrid.classList.remove("hidden");
-  el.seriesBox.classList.remove("hidden");
-  applySeriesSearch();
+  el.seasonsCount.textContent = "";
+  if (el.seasonsDialog.open) el.seasonsDialog.close();
 }
 
 async function startEpisode(episode, row, fromStart) {
@@ -538,6 +600,11 @@ async function startEpisode(episode, row, fromStart) {
          count its show's tile wears: the shelf is read again. */
       seriesRead = false;
       continueStale();
+      /* Closed rather than let go: the rows stay as they are, pressed, until
+         the episode is on (see releaseSeries), and the show is let go the
+         next time it would be read (see refreshEpisodes). */
+      el.seasonsDialog.close();
+      selectTab("live");
     }
   } catch (_) {
     failed = true;
@@ -566,10 +633,26 @@ function releaseSeries() {
   }
 }
 
-el.seriesSearch.addEventListener("input", applySeriesSearch);
+el.seriesSearch.addEventListener("input", () => {
+  el.seriesCard.open = true;
+  applySeriesSearch();
+});
 el.seriesSearchClear.addEventListener("click", () => {
   el.seriesSearch.value = "";
   applySeriesSearch();
   el.seriesSearch.focus();
 });
-el.seriesBack.addEventListener("click", closeShow);
+/* Closed by the reader -- its key, Escape, back, a pull down or a click
+   beside it, sliding out as it goes (see slideOut in js/marking.js) -- the
+   seasons give way to the show's details they were opened over.  Not while
+   an episode is starting: that is the press closing the dialog itself, and
+   the rows it is waiting on are still wanted. */
+el.seasonsDialog.addEventListener("close", () => {
+  if (!openShow || startingEpisode) return;
+  const back = openedFrom;
+  closeShow();
+  /* Usually the show's page is still open under the seasons, and simply
+     shows again as they slide away; where an episode's took its place, the
+     show's is put back -- drawn from what was read of it, at once. */
+  if (!el.detailsDialog.open) showDetails(back);
+});

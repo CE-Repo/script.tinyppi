@@ -17,8 +17,8 @@ import { page, settle, source } from "./harness.mjs";
 
 const JS = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "resources", "web", "js");
 const ORDER = ["theme.js", "core.js", "colour.js", "cover-tint.js", "readings.js",
-               "live-chapters.js", "live-remote.js", "live-panels.js", "metadata.js", "dashboard.js", "films.js", "series.js",
-               "continue.js", "marking.js", "start.js"];
+               "live-chapters.js", "live-remote.js", "live-panels.js", "metadata.js", "dashboard.js", "shelf-tools.js", "films.js", "series.js",
+               "continue.js", "marking.js", "cards.js", "start.js"];
 
 /** Run one of the page's scripts under its own file URL, as harness.mjs
  * does, so that the page's timers can be replaced first. */
@@ -77,7 +77,7 @@ const PLAYING = { playing: true, control: true };
  * first idle snapshot is delivered unless *quiet*.  The window is closed when
  * the test ends. */
 async function open(t, { movies = FILMS, routes = {}, token = "", quiet = false } = {}) {
-  const table = {
+  const table = { "/api/details": [200, {}],
     "/api/hello": [200, { version: "2.15.0", strings: STRINGS }],
     "/api/library": [200, { tag: "f1", movies }],
     "/api/series": [200, { tag: "s1", shows: [] }],
@@ -142,7 +142,12 @@ function tile(view, title, id = "filmGrid") {
 
 /** Answer the question that is open, as the dialog's form would. */
 function answer({ window, $ }, value) {
-  const dialog = $("markDialog");
+  if (value === "details") return;
+  const dialog = $("detailsDialog");
+  if (["restart", "clear", "watched", "unwatched"].includes(value)) {
+    dialog.querySelector('button[value="' + value + '"]').click();
+    return;
+  }
   dialog.returnValue = value;
   dialog.close();
   dialog.dispatchEvent(new window.Event("close"));
@@ -150,7 +155,8 @@ function answer({ window, $ }, value) {
 
 /** Press the film called *title* and give *value* as the answer. */
 async function press(view, title, value = "play") {
-  tile(view, title).click();
+  tile(view, title).dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
   answer(view, value);
   await settle();
 }
@@ -463,17 +469,20 @@ test("a failure that carries no error at all still counts as a failure", async (
 
 test("a press asks to play a film, or to resume one that got somewhere", async (t) => {
   const view = await open(t);
-  tile(view, "Alien").click();
-  assert.equal(view.$("markDialog").open, true);
-  assert.equal(view.$("markTitle").textContent, "Alien");
-  assert.equal(view.$("markPlay").textContent, "Play");
-  assert.equal(view.$("markRestart").hidden, true);
+  tile(view, "Alien").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsTitle").textContent, "Alien");
+  assert.equal(view.$("detailsPlay").textContent, "Play");
+  assert.equal(view.$("detailsRestart").hidden, true);
   answer(view, "cancel");
 
-  tile(view, "Brazil", "unseenFilmGrid").click();
-  assert.equal(view.$("markTitle").textContent, "Brazil");
-  assert.equal(view.$("markPlay").textContent, "Resume");
-  assert.equal(view.$("markRestart").hidden, false);
+  tile(view, "Brazil", "unseenFilmGrid").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, "Brazil");
+  assert.equal(view.$("detailsPlay").textContent, "Resume");
+  assert.equal(view.$("detailsRestart").hidden, false);
   answer(view, "cancel");
   await settle();
   assert.deepEqual(plays(view), []);
@@ -514,6 +523,40 @@ test("a film that comes on gives the walls back at once", async (t) => {
   await view.state(PLAYING);
   assert.equal(everyTile(view).some((node) => node.disabled), false);
   assert.equal(tile(view, "Alien").classList.contains("busy"), false);
+});
+
+/** Which tab is in front. */
+const front = (view) => view.window.document.querySelector(".tabpanel.active")?.dataset.tab;
+
+test("a film that starts takes the page to the live tab", async (t) => {
+  const view = await open(t);
+  view.window.selectTab("films");
+  assert.equal(front(view), "films");
+  await press(view, "Brazil");
+  assert.equal(front(view), "live");
+  assert.equal(view.window.location.hash, "#live");
+});
+
+test("a film that will not start leaves the page on its shelf", async (t) => {
+  const view = await open(t, { routes: { "/api/play": [500, {}] } });
+  view.window.selectTab("films");
+  await press(view, "Dune");
+  assert.equal(front(view), "films");
+});
+
+test("the search and the filters sit at the top of the tab, and the search unfolds the wall", async (t) => {
+  const view = await open(t);
+  const panel = view.$("tab-films");
+  assert.equal(panel.firstElementChild, view.$("filmsHead"));
+  assert.equal(view.$("filmsCard").contains(view.$("filmSearch")), false);
+  assert.equal(view.$("filmsHead").contains(view.$("filmTools")), true);
+  assert.equal(hidden(view, "filmsHead"), false);
+
+  view.$("filmsCard").open = false;
+  view.$("filmSearch").value = "cube";
+  view.$("filmSearch").dispatchEvent(new view.window.Event("input"));
+  assert.equal(view.$("filmsCard").open, true);
+  assert.deepEqual(shown(view, "filmGrid"), ["Cube"]);
 });
 
 test("a refused token says so, asks for a new one and frees the walls", async (t) => {
@@ -561,10 +604,11 @@ test("the wall is not read again under a pressed tile, and is once the press is 
 test("a second film pressed while the first is waiting starts nothing", async (t) => {
   const view = await open(t);
   await press(view, "Alien");
-  // A waiting wall takes no press; a click that reaches a tile all the same
+  // A waiting wall takes no press; a context-menu event that reaches a tile all the same
   // (sent by a script, say) is dropped.
   assert.equal(tile(view, "Dune").disabled, true);
-  tile(view, "Dune").dispatchEvent(new view.window.MouseEvent("click"));
+  tile(view, "Dune").dispatchEvent(new view.window.MouseEvent("contextmenu", { cancelable: true }));
+  await settle();
   answer(view, "play");
   await settle();
   assert.deepEqual(plays(view), [{ movieid: 1 }]);

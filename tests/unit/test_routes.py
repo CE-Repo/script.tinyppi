@@ -242,6 +242,36 @@ def test_continue_lists_only_the_enabled_shelves(dashboard, monkeypatch):
     assert asked == [{"films": False, "series": True}]
 
 
+def test_details_name_their_kind_by_the_id(dashboard, monkeypatch):
+    asked = []
+    monkeypatch.setattr(library, "title_details",
+                        lambda kind, item: asked.append((kind, item)) or {"kind": kind})
+    for path in ("/api/details?movieid=3", "/api/details?tvshowid=4",
+                 "/api/details?episodeid=5"):
+        assert request(dashboard, path)[0] == 200
+    assert asked == [("movie", "3"), ("tvshow", "4"), ("episode", "5")]
+    assert request(dashboard, "/api/details")[0] == 400
+
+
+def test_details_need_their_shelf_and_control(dashboard, monkeypatch):
+    monkeypatch.setattr(library, "title_details", lambda kind, item: {"kind": kind})
+    dashboard.offer_series = False
+    assert request(dashboard, "/api/details?episodeid=5")[0] == 403
+    assert request(dashboard, "/api/details?movieid=3")[0] == 200
+    dashboard.allow_control = False
+    assert request(dashboard, "/api/details?movieid=3")[0] == 403
+
+
+def test_details_of_an_unknown_title_or_a_broken_read(dashboard, monkeypatch):
+    monkeypatch.setattr(library, "title_details", lambda kind, item: None)
+    assert request(dashboard, "/api/details?movieid=99")[0] == 404
+
+    def broken(kind, item):
+        raise RuntimeError("database locked")
+    monkeypatch.setattr(library, "title_details", broken)
+    assert request(dashboard, "/api/details?movieid=99")[0] == 503
+
+
 # --- Plain reads ----------------------------------------------------------------
 
 def get(srv, path, headers=None):
@@ -290,6 +320,7 @@ def test_the_token_is_masked_in_the_access_log(dashboard):
 
 @pytest.mark.parametrize(("action", "level"), [
     ("pause", xbmc.LOGINFO), ("seek", xbmc.LOGDEBUG), ("volume", xbmc.LOGDEBUG),
+    ("audio_delay", xbmc.LOGDEBUG), ("subtitle_delay", xbmc.LOGDEBUG),
 ])
 def test_bursty_commands_are_logged_at_debug(dashboard, monkeypatch, action, level):
     monkeypatch.setattr(routes, "apply_command", lambda action, value=None: True)
@@ -730,3 +761,16 @@ def test_a_client_leaving_frees_its_stream_slot(error):
     assert (server.claimed, server.released) == (1, 1)
     assert producer.watching == 0           # unwatched despite the failure
     assert handler.close_connection is True
+
+
+def test_portrait_art_uses_only_registered_paths(monkeypatch):
+    tag = library.details._portrait("/actor.jpg")
+    seen = []
+    monkeypatch.setattr(artwork, "shelf_picture", lambda path: seen.append(path) or (b"photo", "image/jpeg"))
+    srv, close = serve()
+    try:
+        status, _, body = request(srv, f"/api/art?kind=thumb&portrait={tag}", token=TOKEN)
+    finally:
+        close()
+    assert status == 200 and body == b"photo"
+    assert seen == ["/actor.jpg"]
