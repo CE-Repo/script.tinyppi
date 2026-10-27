@@ -267,6 +267,12 @@ function offerShelves(hello) {
   renderTabs();
 }
 
+/* Whether the box hands out a title's details: a film's with the film shelf,
+   an episode's with the series shelf (see _serve_details in web/routes.py).
+   The overview card asks before it offers its key (see renderPlot in
+   js/live-panels.js). */
+TinyPPI.detailsOffered = (kind) => (kind === "movie" ? offered.films : offered.series);
+
 el.tabBar.addEventListener("click", (event) => {
   const button = event.target.closest(".tab");
   if (button) selectTab(button.dataset.tab, true);

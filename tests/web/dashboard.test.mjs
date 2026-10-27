@@ -245,6 +245,17 @@ test("each tab comes back where it was left, and a press on the tab in front goe
   assert.deepEqual(scrolled.at(-1), { top: 0, behavior: "smooth" });
 });
 
+test("the overview offers a playing title's details only where its shelf is offered", async (t) => {
+  const view = open(t, { hello: { library: false, series: true } });
+  await view.state({ ...PLAYING, media: { item: { kind: "movie", id: 7 } } });
+  await view.state({ ...PLAYING, seq: 2, media: { item: { kind: "movie", id: 7 } } });
+  assert.equal(view.window.TinyPPI.detailsOffered("movie"), false);
+  assert.equal(view.window.TinyPPI.detailsOffered("episode"), true);
+  assert.ok(hidden(view.$("plotCard")));
+  await view.state({ ...PLAYING, seq: 3, media: { item: { kind: "episode", id: 70 } } });
+  assert.equal(hidden(view.$("plotCard")), false);
+});
+
 test("the arrow keys walk the keys on offer, wrapping round at either end", async (t) => {
   const view = open(t);
   await view.state({ ...IDLE, control: false });

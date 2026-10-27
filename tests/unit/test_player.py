@@ -4,6 +4,8 @@
 """Player state and the dashboard's transport commands (web/player.py)."""
 
 import math
+import threading
+import time
 
 import pytest
 
@@ -460,6 +462,32 @@ def test_subtitle_delay_reports_a_refused_step(kodi):
     kodi.answers["Input.ExecuteAction"] = {"error": {"code": -32100}}
     assert player.apply_command("subtitle_delay", 1) is False
     assert len(kodi.sent("Input.ExecuteAction")) == 1        # stops at the first
+
+
+def test_subtitle_delay_moves_one_at_a_time(kodi, monkeypatch):
+    """Two taps at once: the second steps from where the first left the
+    offset, not from where both found it."""
+    xbmc.INFO["Player.SubtitleDelay"] = "0.000 s"
+    steps: list[str] = []
+    others: list[threading.Thread] = []
+
+    def step(action):
+        if not others:
+            # The second tap arrives while the first is still moving.
+            others.append(threading.Thread(
+                target=player.apply_command, args=("subtitle_delay", 0.2)))
+            others[0].start()
+            time.sleep(0.05)
+        steps.append(action)
+        moved = player.offset(xbmc.INFO["Player.SubtitleDelay"]) + 0.1
+        xbmc.INFO["Player.SubtitleDelay"] = f"{moved:.3f} s"
+        return True
+
+    monkeypatch.setattr(player, "_input_action", step)
+    assert player.apply_command("subtitle_delay", 0.1)
+    others[0].join(2)
+    assert steps == ["subtitledelayplus"] * 2
+    assert xbmc.INFO["Player.SubtitleDelay"] == "0.200 s"
 
 
 @pytest.mark.parametrize(("value", "sent"), [(True, ["on"]), (False, ["off"]), (1, []), ("on", [])])

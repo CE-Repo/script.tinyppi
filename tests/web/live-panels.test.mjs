@@ -246,6 +246,13 @@ test("the overview is a key under what is playing that opens the title's details
   }
   card.click();
   assert.equal(opened.length, 1);
+  // Nor where the box hands out no details of the kind: its shelf is off.
+  window.TinyPPI.detailsOffered = (kind) => kind === "episode";
+  P.update(snap({ control: true, media: { item: { kind: "movie", id: 7 } } }));
+  assert.ok(card.classList.contains("hidden"));
+  P.update(snap({ control: true, media: { item: { kind: "episode", id: 70 } } }));
+  assert.equal(card.classList.contains("hidden"), false);
+  delete window.TinyPPI.detailsOffered;
   // Nothing playing puts it away with the rest.
   P.update(snap({ media: { item: { kind: "movie", id: 7 } } }));
   P.update({ playing: false });

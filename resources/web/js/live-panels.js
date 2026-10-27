@@ -272,10 +272,12 @@
      details can be opened -- and a file it does not know has none.  Nor
      has a box that takes no orders: it does not hand out details either
      (see _serve_details in web/routes.py), and a key that opens a page
-     saying so would be no key at all. */
+     saying so would be no key at all -- nor has one whose shelf for the
+     title is switched off (see detailsOffered in js/dashboard.js). */
   function renderPlot(media, title, control) {
     const item = media.item || {};
-    const known = control && (item.kind === "movie" || item.kind === "episode") && item.id > 0;
+    const known = control && (item.kind === "movie" || item.kind === "episode") && item.id > 0 &&
+      (!TinyPPI.detailsOffered || TinyPPI.detailsOffered(item.kind));
     plotItem = known ? { kind: item.kind, id: item.id, title } : null;
     el.plotCard.classList.toggle("hidden", !known);
     renderPlotTitle();
