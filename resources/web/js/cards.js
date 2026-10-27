@@ -56,7 +56,14 @@ let arranging = null;      /* the tab whose cards are being arranged         */
 function readLayout() {
   try {
     const stored = Object(JSON.parse(localStorage.getItem(CARDS_KEY)));
-    return { orders: Object(stored.orders), hidden: new Set([].concat(stored.hidden || [])) };
+    /* Each tab's order a list of names, and nothing that is not one: an
+       order that is something else would stop every tab being drawn. */
+    const named = (list) => list.filter((id) => typeof id === "string");
+    const orders = {};
+    for (const [name, order] of Object.entries(Object(stored.orders))) {
+      if (Array.isArray(order)) orders[name] = named(order);
+    }
+    return { orders, hidden: new Set(named([].concat(stored.hidden || []))) };
   } catch (_) {
     return { orders: {}, hidden: new Set() };
   }
@@ -463,11 +470,16 @@ function cardsStrings() {
    everything that moved together: the observer hands over a whole snapshot's
    worth of changes at a time. */
 const ownNode = (node) => node.nodeType === 1 && !!node.closest(".arrangecard");
+const cardGrids = new Set(Object.values(CARD_GRIDS).flatMap((grids) => grids()));
+/* Only a card itself coming, going or changing its class: what changes inside
+   one -- a reading every second, a poster lit -- moves no card. */
+const aboutCards = (record) =>
+  cardGrids.has(record.type === "childList" ? record.target : record.target.parentElement);
 const cardWatch = new MutationObserver((records) => {
   /* What this file draws itself -- the arranging list, the line on a tab
      with nothing left on it -- is no card coming or going, and redrawing for
      it would draw it again for ever. */
-  const theirs = records.some((record) => !(ownNode(record.target) ||
+  const theirs = records.some((record) => aboutCards(record) && !(ownNode(record.target) ||
     (record.type === "childList" &&
      [...record.addedNodes, ...record.removedNodes].every(ownNode) &&
      record.addedNodes.length + record.removedNodes.length > 0)));

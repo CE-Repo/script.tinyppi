@@ -23,6 +23,26 @@ let detailing = null;
    Forgotten at once whenever the library is written to (see reread). */
 const detailsRead = new Map();
 const DETAILS_KEEP_MS = 60000;
+/* How many details reads are out.  The box may wait a few seconds on
+   MDBList, WhatsOn and TMDb before it answers (see web/library/details.py),
+   and the page says it is on its way rather than sitting still (see
+   .detailsloading in css/dashboard.css). */
+let detailsLoading = 0;
+
+/* Keep what a details read answered, letting go of the answers too old to be
+   drawn again, so a long visit does not hold every title it ever opened. */
+function keepDetails(address, found) {
+  const now = Date.now();
+  for (const [held, kept] of detailsRead) {
+    if (now - kept.at >= DETAILS_KEEP_MS) detailsRead.delete(held);
+  }
+  detailsRead.set(address, { found, at: now });
+}
+
+function waitingForDetails(by) {
+  detailsLoading += by;
+  document.documentElement.classList.toggle("detailsloading", detailsLoading > 0);
+}
 
 /* Forget where a film or an episode got to, leaving it seen or unseen as it
    was: it leaves the row of things half-watched, and its bar leaves the wall. */
@@ -173,12 +193,15 @@ async function showDetails(question, replace) {
   const kept = detailsRead.get(address);
   let found = kept && Date.now() - kept.at < DETAILS_KEEP_MS ? kept.found : null;
   if (!found) {
+    waitingForDetails(1);
     try {
       found = await TinyPPI.getJSON(address);
-      detailsRead.set(address, { found, at: Date.now() });
+      keepDetails(address, found);
     } catch (_) {
       TinyPPI.toast(T.details_failed, true);
       found = {};
+    } finally {
+      waitingForDetails(-1);
     }
   }
   if (detailing !== question) return;

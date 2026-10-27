@@ -305,6 +305,10 @@ _AUDIO_DELAY_STEP     = 0.025
 _AUDIO_DELAY_LIMIT    = 10.0
 _SUBTITLE_DELAY_STEP  = 0.1
 _SUBTITLE_DELAY_LIMIT = 60.0
+# The most steps one subtitle request moves: a minute's worth, from either
+# end of the range back to none.  A move from one end to the other (1200
+# keys, each showing Kodi's slider) stops half-way; the next tap goes on.
+_SUBTITLE_DELAY_MAX_STEPS = 600
 # One subtitle move at a time: each works out its steps from the offset in
 # force, and two taps read at once would both step from the same offset.
 _SUBTITLE_DELAY_LOCK = Lock()
@@ -507,6 +511,7 @@ def _subtitle_delay(player_id: int, value: Unchecked) -> bool:
         if current is None:
             return False
         steps = round((target - current) / _SUBTITLE_DELAY_STEP)
+        steps = max(-_SUBTITLE_DELAY_MAX_STEPS, min(_SUBTITLE_DELAY_MAX_STEPS, steps))
         action = "subtitledelayplus" if steps > 0 else "subtitledelayminus"
         return all(_input_action(action) for _ in range(abs(steps)))
 

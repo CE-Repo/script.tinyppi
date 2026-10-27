@@ -148,6 +148,14 @@ test("storage that is broken, blocked or holds something else leaves every card 
   assert.equal(odd.$("cardsReset").disabled, true);
   assert.equal(offered(odd).includes("films"), false);
 
+  // An order that is no list, and names that are no names, are let go of;
+  // the rest stands.
+  const mixed = await open(t, { stored: { "tinyppi.cards": {
+    orders: { films: "filmsCard", series: ["seriesCard", 3] }, hidden: [4, "films/filmsCard"] } } });
+  assert.ok(mixed.$("filmsCard").classList.contains("userhidden"));
+  await arrange(mixed, "recentFilmsCard");
+  assert.equal(listed(mixed, "films").length, 3);
+
   // Storage that will not be written to: the page goes on, unremembered.
   const full = await open(t);
   full.window.Storage.prototype.setItem = () => { throw new Error("quota"); };

@@ -13,7 +13,7 @@ import xbmc
 from core.log import channel
 from web import player
 from web.library import cache
-from web.library.entries import Formats, Rated
+from web.library.entries import Details, Film, Formats, Rated
 from web.values import Json, clean_value
 
 # Every query of the library goes through here, so the tests answer them
@@ -183,6 +183,13 @@ def formats(details: object) -> Formats:
     if family:
         found["audio"] = family
     return found
+
+
+def add_formats(entry: Film | Details, details: object) -> None:
+    """Add the formats of *details* (see ``formats``) to a film's tile or a
+    title's details, each only where Kodi has read it."""
+    for key, value in formats(details).items():
+        entry[key] = value  # type: ignore[literal-required]
 
 
 def _dv_profile(detail: object) -> str:

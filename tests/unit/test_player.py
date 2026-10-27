@@ -464,6 +464,14 @@ def test_subtitle_delay_reports_a_refused_step(kodi):
     assert len(kodi.sent("Input.ExecuteAction")) == 1        # stops at the first
 
 
+@pytest.mark.parametrize(("current", "target", "action"), [
+    ("-60.000 s", 60, "subtitledelayplus"), ("60.000 s", -60, "subtitledelayminus")])
+def test_subtitle_delay_moves_at_most_a_minute_at_once(kodi, current, target, action):
+    xbmc.INFO["Player.SubtitleDelay"] = current
+    assert player.apply_command("subtitle_delay", target)
+    assert [params["action"] for params in kodi.sent("Input.ExecuteAction")] == [action] * 600
+
+
 def test_subtitle_delay_moves_one_at_a_time(kodi, monkeypatch):
     """Two taps at once: the second steps from where the first left the
     offset, not from where both found it."""

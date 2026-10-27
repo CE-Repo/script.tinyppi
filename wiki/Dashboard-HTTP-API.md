@@ -224,8 +224,8 @@ of `season`s. Each kind needs its shelf's setting and **Allow VS10 switching
 from the dashboard** (`403 library disabled`); an unknown title is
 `404 no such title`.
 
-A cast member's optional `thumbnail` is an opaque portrait tag, not a source
-URL. It is present only when Kodi supplies a non-empty thumbnail path.
+A cast member's optional `thumbnail` is an opaque portrait tag (16 hex
+digits), not a source URL. It is present only when Kodi supplies a non-empty thumbnail path.
 Request `/api/art?kind=thumb&portrait=<thumbnail>&v=<thumbnail>` to load it.
 Clients should keep an initial or another placeholder if the field is absent
 or the image request fails; older servers omit the field.
@@ -303,7 +303,7 @@ Body: `{"action": "<action>", "value": <value>}`.
 | `subtitle` | index 0 … 64, or −1 | Select and enable a subtitle; −1 turns subtitles off. |
 | `subtitles` | `true` / `false` | Show or hide the selected subtitle. |
 | `audio_delay` | seconds, −10 … 10 | Set the audio offset (rounded to Kodi's 25 ms steps). |
-| `subtitle_delay` | seconds, −60 … 60 | Set the subtitle offset, in Kodi's 100 ms steps; each step shows Kodi's own slider on the TV for a moment (there is no JSON-RPC method for it). |
+| `subtitle_delay` | seconds, −60 … 60 | Set the subtitle offset, in Kodi's 100 ms steps; each step shows Kodi's own slider on the TV for a moment (there is no JSON-RPC method for it). One request moves at most 60 s; requests run one after another. |
 
 ```bash
 curl -X POST -H 'X-TinyPPI-Token: ABCD2345' -H 'Content-Type: application/json' \
