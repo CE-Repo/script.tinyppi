@@ -61,6 +61,7 @@ from web.player import (
     chapter_list,
     current_chapter,
     current_track_state,
+    is_live_tv,
     player_controls,
 )
 from web.ratings import no_ratings, playing_ratings
@@ -692,8 +693,9 @@ class SnapshotBuilder:
                 "userrating": ratings["userrating"],
                 "top250":     ratings["top250"],
                 "awards":     ratings["awards"],
-                # Which library title it is, for its details page.
-                "item":       ratings["item"],
+                # Which library title it is, for its details page; a live
+                # channel is a broadcast, for the overview to be named so.
+                "item":       ratings["item"] or ({"kind": "broadcast"} if is_live_tv() else {}),
                 "genres":         credits["genres"],
                 "directors":      credits["directors"],
                 "writers":        credits["writers"],

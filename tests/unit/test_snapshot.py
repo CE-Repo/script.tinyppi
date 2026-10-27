@@ -222,6 +222,20 @@ def test_the_ratings_travel_in_the_media_block(rated):
     assert media["item"] == {"kind": "movie", "id": 12}
 
 
+def test_a_live_channel_is_a_broadcast_and_a_library_title_stays_one(rated):
+    play()
+    xbmc.CONDITIONS["PVR.IsPlayingTV"] = True
+    # A title the library holds is that title, whatever plays it.
+    assert SnapshotBuilder().build()["media"]["item"] == {"kind": "movie", "id": 12}
+    _, given = rated
+    given["found"] = dict(given["found"], item={})
+    # Anything else on a live channel is a broadcast, for the overview to be
+    # named so; anything else again is nothing the page can name.
+    assert SnapshotBuilder().build()["media"]["item"] == {"kind": "broadcast"}
+    xbmc.CONDITIONS["PVR.IsPlayingTV"] = False
+    assert SnapshotBuilder().build()["media"]["item"] == {}
+
+
 def test_mdblist_ratings_lie_over_the_librarys_and_the_ids_stay_behind(rated, monkeypatch):
     asked = []
 

@@ -160,7 +160,9 @@ else — a **live TV** broadcast, a file the library does not know, or a box tha
 hands out no details — it shows what the snapshot says of what is playing: the
 plot from the EPG or the file's tags, the ratings, and who made it and is in it,
 each of the cast with who they played. Where the snapshot says nothing of it
-either, there is no card. The TinyPPI app follows the same rule.
+either, there is no card. The TinyPPI app follows the same rule. The card is
+named for what plays: *About the film*, *About the episode*, or for a live
+channel *About the programme*.
 
 The shields on the details page:
 

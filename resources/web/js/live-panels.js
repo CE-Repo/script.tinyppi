@@ -190,7 +190,7 @@
   let lastFinish = "";   /* the clock that label belongs in front of         */
   let idleFetched = false;  /* the ended title's events, asked for once      */
   let idleReset = false;    /* the panels have been put away once already    */
-  let plotWords = { film: "", episode: "" };
+  let plotWords = { film: "", episode: "", broadcast: "" };
   let plotItem = null;      /* the library title the overview opens         */
 
   TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
@@ -292,8 +292,12 @@
       ["directors", "writers", "cast"].some((key) => (media[key] || []).length > 0);
   }
 
+  /* Named for what is playing: a film, an episode, or a live channel's
+     programme. */
   function renderPlotTitle() {
-    $("plotTitle").textContent = plotItem?.kind === "episode" ? plotWords.episode : plotWords.film;
+    const kind = plotItem?.kind;
+    $("plotTitle").textContent = kind === "episode" ? plotWords.episode
+      : kind === "broadcast" ? plotWords.broadcast : plotWords.film;
   }
 
   /* A press on it opens the title's details, where the page has them. */
@@ -1069,7 +1073,7 @@
     /* The bar may already be drawn by the time the words for it arrive; the
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
-    plotWords = { film: T.plot, episode: T.plot_episode };
+    plotWords = { film: T.plot, episode: T.plot_episode, broadcast: T.plot_broadcast };
     renderPlotTitle();
     $("playerTitle").textContent = T.player;
     el.plotCard.title = T.details;

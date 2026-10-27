@@ -265,6 +265,11 @@ test("the overview is a key under what is playing that opens the title's details
   assert.equal(opened.length, 1);
   assert.deepEqual(plain(told), [{ kind: "movie", title: "Film", art,
     media: { plot: "Paul joins the Fremen.", item: { kind: "movie", id: 7 } } }]);
+  // A live channel's is its programme's.
+  P.update(snap({ art, media: { plot: "News at nine.", item: { kind: "broadcast" } } }));
+  assert.equal($("plotTitle").textContent, "About the programme");
+  P.strings({ ...window.TinyPPI.T, plot_broadcast: "Über die Sendung" });
+  assert.equal($("plotTitle").textContent, "Über die Sendung");
   // Without art in the snapshot, none is handed on.
   P.update(snap({ art: undefined, media: { plot: "News at nine." } }));
   card.click();
