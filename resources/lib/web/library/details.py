@@ -17,7 +17,7 @@ import time
 from collections import OrderedDict
 from threading import Lock
 
-from web import mdblist, whatson
+from web import mdblist, tmdb, whatson
 from web.library import common
 from web.library.entries import Details, Person
 from web.payloads import Ratings
@@ -70,7 +70,7 @@ _NAMES = (("genre", "genres"), ("director", "directors"), ("writer", "writers"),
 
 
 def portrait_path(tag: str) -> str:
-    """Resolve only portrait paths supplied by Kodi, never arbitrary request paths."""
+    """Resolve only registered Kodi/TMDb portraits, never arbitrary request paths."""
     with _PORTRAITS_LOCK:
         return _PORTRAITS.get(tag, "")
 
@@ -107,6 +107,7 @@ def details(kind: str, item_id: Unchecked) -> Details | None:
     _numbers(found, row)
     _watching(found, row, kind)
     _people(found, row)
+    _missing_portraits(found, row, kind)
     _formats(found, row)
     _pictures(found, row, _PICTURES[kind])
     return found
@@ -198,6 +199,42 @@ def _cast(raw: object) -> list[Person]:
                 person["thumbnail"] = _portrait(thumbnail)
             cast.append(person)
     return cast
+
+
+def _missing_portraits(found: Details, row: Json, kind: str) -> None:
+    """Keep Kodi's names and roles, filling missing images from title credits."""
+    key = tmdb.api_key()
+    if not key:
+        return
+    cast = found.get("cast", [])
+    crew = _crew(found)
+    if crew:
+        found["crew"] = crew
+    if not crew and all(person.get("thumbnail") for person in cast):
+        return
+    answer = tmdb.credits(kind, row, key)
+    cast_images = tmdb.portraits(answer, "cast")
+    cast_images.update(tmdb.portraits(answer, "guest_stars"))
+    _fill_portraits(cast, cast_images)
+    for role in ("director", "writer"):
+        _fill_portraits([person for person in crew if person["role"] == role],
+                        tmdb.portraits(answer, "crew", role))
+
+
+def _crew(found: Details) -> list[Person]:
+    return [
+        {"name": name, "role": role}
+        for names, role in ((found.get("directors", []), "director"),
+                            (found.get("writers", []), "writer"))
+        for name in names
+    ]
+
+
+def _fill_portraits(people: list[Person], images: dict[str, str]) -> None:
+    for person in people:
+        path = images.get(person["name"].strip().casefold())
+        if not person.get("thumbnail") and path:
+            person["thumbnail"] = _portrait(path)
 
 
 def _pictures(found: Details, row: Json,

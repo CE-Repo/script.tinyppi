@@ -1718,3 +1718,11 @@ msgstr "暗淡的图标表示提名。"
 msgctxt "#32437"
 msgid "Description"
 msgstr "简介"
+
+msgctxt "#32438"
+msgid "TMDb API key / read access token"
+msgstr "TMDb API 密钥 / 只读访问令牌"
+
+msgctxt "#32439"
+msgid "Optional: fill missing cast, director and writer portraits from TMDb in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
+msgstr "可选：通过 TMDb 补充应用和仪表板中缺少的演员、导演及编剧照片。输入 TMDb API 密钥或只读访问令牌。优先使用 Kodi 照片。"
