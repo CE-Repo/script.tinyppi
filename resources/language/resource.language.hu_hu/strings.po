@@ -1488,8 +1488,8 @@ msgid "Show chapter markers"
 msgstr "Fejezetjelölők megjelenítése"
 
 msgctxt "#32370"
-msgid "Overview"
-msgstr "Áttekintés"
+msgid "About the film"
+msgstr "A filmről"
 
 msgctxt "#32372"
 msgid "My rating"
@@ -1702,3 +1702,7 @@ msgstr "Lejátszó"
 msgctxt "#32433"
 msgid "%s episodes"
 msgstr "%s epizód"
+
+msgctxt "#32434"
+msgid "About the episode"
+msgstr "Az epizódról"

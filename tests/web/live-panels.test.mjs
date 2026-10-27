@@ -221,9 +221,11 @@ test("the overview is a key under what is playing that opens the title's details
   // Not on a box that takes no orders, which hands out no details.
   P.update(snap({ media: { plot: "Paul joins the Fremen.", item: { kind: "movie", id: 7 } } }));
   assert.ok(card.classList.contains("hidden"));
-  // Nothing of the title in it: its heading alone.
+  P.strings({ ...window.TinyPPI.T, plot: "Über den Film", plot_episode: "Über die Folge", details: "Details", player: "Wiedergabe" });
+  // Its heading follows the playing content.
   P.update(snap({ control: true, media: { plot: "Paul joins the Fremen.", item: { kind: "movie", id: 7 } } }));
   assert.equal(card.classList.contains("hidden"), false);
+  assert.equal($("plotTitle").textContent, "Über den Film");
   assert.deepEqual([...card.children].map((node) => node.id), ["plotTitle"]);
   // A press opens the playing title's details, where the page has them.
   const opened = [];
@@ -235,6 +237,9 @@ test("the overview is a key under what is playing that opens the title's details
   // has none.
   P.update(snap({ control: true, media: { item: { kind: "episode", id: 70 } } }));
   assert.equal(card.classList.contains("hidden"), false);
+  assert.equal($("plotTitle").textContent, "Über die Folge");
+  P.strings({ ...window.TinyPPI.T, plot: "About the film", plot_episode: "About the episode" });
+  assert.equal($("plotTitle").textContent, "About the episode");
   for (const item of [undefined, {}, { kind: "channel", id: 3 }, { kind: "movie", id: 0 }]) {
     P.update(snap({ control: true, media: { plot: "A plot.", item } }));
     assert.ok(card.classList.contains("hidden"), JSON.stringify(item));
@@ -246,8 +251,8 @@ test("the overview is a key under what is playing that opens the title's details
   P.update({ playing: false });
   assert.ok(card.classList.contains("hidden"));
   // Named by the strings, and says what a press does.
-  P.strings({ ...window.TinyPPI.T, plot: "Überblick", details: "Details", player: "Wiedergabe" });
-  assert.equal($("plotTitle").textContent, "Überblick");
+  P.strings({ ...window.TinyPPI.T, plot: "Über den Film", plot_episode: "Über die Folge", details: "Details", player: "Wiedergabe" });
+  assert.equal($("plotTitle").textContent, "Über den Film");
   assert.equal($("playerTitle").textContent, "Wiedergabe");
   assert.equal(card.title, "Details");
 });

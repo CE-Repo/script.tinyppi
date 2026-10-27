@@ -83,7 +83,7 @@ test("the overview is a key under the playing card that opens the title's detail
   const [now, card] = await Promise.all(
     ["#nowCard", "#plotCard"].map((selector) => page.locator(selector).boundingBox()));
   assert.ok(card.y > now.y + now.height - 1, "under the playing card");
-  // Its heading alone: nothing of the title in it.
+  // Its content-specific heading alone.
   assert.equal(await page.locator("#plotCard").innerText(), "#32370");
   await page.locator("#plotCard").click();
   await page.waitForSelector("#detailsDialog[open]");

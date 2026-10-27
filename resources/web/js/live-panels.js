@@ -190,6 +190,7 @@
   let lastFinish = "";   /* the clock that label belongs in front of         */
   let idleFetched = false;  /* the ended title's events, asked for once      */
   let idleReset = false;    /* the panels have been put away once already    */
+  let plotWords = { film: "", episode: "" };
   let plotItem = null;      /* the library title the overview opens         */
 
   TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
@@ -277,6 +278,11 @@
     const known = control && (item.kind === "movie" || item.kind === "episode") && item.id > 0;
     plotItem = known ? { kind: item.kind, id: item.id, title } : null;
     el.plotCard.classList.toggle("hidden", !known);
+    renderPlotTitle();
+  }
+
+  function renderPlotTitle() {
+    $("plotTitle").textContent = plotItem?.kind === "episode" ? plotWords.episode : plotWords.film;
   }
 
   /* A press on it opens the title's details, where the page has them. */
@@ -1048,7 +1054,8 @@
     /* The bar may already be drawn by the time the words for it arrive; the
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
-    $("plotTitle").textContent = T.plot;
+    plotWords = { film: T.plot, episode: T.plot_episode };
+    renderPlotTitle();
     $("playerTitle").textContent = T.player;
     el.plotCard.title = T.details;
     $("tilesTitle").textContent = T.metrics;

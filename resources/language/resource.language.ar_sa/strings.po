@@ -1488,8 +1488,8 @@ msgid "Show chapter markers"
 msgstr "إظهار علامات الفصول"
 
 msgctxt "#32370"
-msgid "Overview"
-msgstr "نظرة عامة"
+msgid "About the film"
+msgstr "عن الفيلم"
 
 msgctxt "#32372"
 msgid "My rating"
@@ -1702,3 +1702,7 @@ msgstr "المشغّل"
 msgctxt "#32433"
 msgid "%s episodes"
 msgstr "%s حلقات"
+
+msgctxt "#32434"
+msgid "About the episode"
+msgstr "عن الحلقة"

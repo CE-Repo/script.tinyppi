@@ -1488,7 +1488,7 @@ msgid "Show chapter markers"
 msgstr ""
 
 msgctxt "#32370"
-msgid "Overview"
+msgid "About the film"
 msgstr ""
 
 msgctxt "#32372"
@@ -1701,4 +1701,8 @@ msgstr ""
 
 msgctxt "#32433"
 msgid "%s episodes"
+msgstr ""
+
+msgctxt "#32434"
+msgid "About the episode"
 msgstr ""
