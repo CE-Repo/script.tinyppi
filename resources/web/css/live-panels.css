@@ -751,7 +751,7 @@
 .rating:has(.side.imdb) { --house: #121212; --hue: #f5c518; }
 .rating:has(.side.top250) { --house: #f5c518; }
 .rating:has(.side.tmdb) { --house: #0d253f; --hue: #01b4e4; }
-.rating:has(.side.tvdb) { --house: #555; }
+.rating:has(.side.tvdb) { --house: #555; --hue: #6cd591; }
 .rating:has(.side.trakt) { --house: #9f42c6; }
 .rating:has(.side.letterboxd) { --house: #202830; --hue: #00e054; }
 .rating:has(.side.metacritic),
@@ -759,9 +759,9 @@
 .rating:has(.side.rottentomatoes) { --house: #f9d320; }
 .rating:has(.side.popcorn) { --house: #1e88e5; }
 .rating:has(.side.rogerebert) { --house: #c8102e; }
-.rating:has(.side.myanimelist) { --house: #2e51a2; }
+.rating:has(.side.myanimelist) { --house: #2e51a2; --hue: #7298f0; }
 .rating:has(.side.mdblist) { --house: #4284ca; }
-.rating:has(.side.fsk0) { --house: #ffffff; }
+.rating:has(.side.fsk0) { --house: #ffffff; --hue: #8a8a8a; }
 .rating:has(.side.fsk6),
 .rating:has(.side.mpa_pg),
 .rating:has(.side.tv_pg) { --house: #ffd500; }
@@ -778,21 +778,19 @@
 .rating:has(.side.bbfc_18) { --house: #e30613; }
 .rating:has(.side.mpa_pg13),
 .rating:has(.side.tv_14) { --house: #f7941d; }
-.rating:has(.side.mpa_nc17) { --house: #2e3192; }
+.rating:has(.side.mpa_nc17) { --house: #2e3192; --hue: #8a8fec; }
 .rating:has(.side.bbfc_pg) { --house: #fbb800; }
 .rating:has(.side.bbfc_12),
 .rating:has(.side.bbfc_12a) { --house: #f58220; }
 .rating:has(.side.bbfc_15) { --house: #e5007e; }
-.rating:has(.side.bbfc_r18) { --house: #1d1d6b; }
-/* An award's is its mark's ground; the two on a near-black or a deep one
-   are washed and edged in their drawing's gold instead. */
+.rating:has(.side.bbfc_r18) { --house: #1d1d6b; --hue: #8a8fec; }
+/* Dark award plates use a brighter gold for the shield's wash and edge. */
 .rating:has(.side.award_oscar) { --house: #e2b33c; }
-.rating:has(.side.award_globe) { --house: #9c6b1e; }
+.rating:has(.side.award_globe) { --house: #9c6b1e; --hue: #e2b33c; }
 .rating:has(.side.award_bafta) { --house: #141414; --hue: #e2b33c; }
 .rating:has(.side.award_emmy) { --house: #3b2a6b; --hue: #e2b33c; }
-/* One it was only nominated for, on a quieter shield: the line's wash and
-   the plate dimmed, so a row tells what it won from what it did not. */
-.ratings .rating.nominee { --hue: var(--line); }
+/* Nominations keep their coloured edge; the dimmed plate distinguishes
+   them from wins. */
 .ratings .rating.nominee .side { opacity: .6; }
 /* A source with no drawing: its first letter on a plain plate. */
 .rating .side.letter {

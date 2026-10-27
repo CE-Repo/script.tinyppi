@@ -97,6 +97,28 @@ test("the overview is a key under the playing card that opens the title's detail
   const heights = await page.$$eval("#detailsRatings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
   assert.ok(heights.length && heights.every((height) => height === 28));
+  // Nominations retain the award colour at the edge; their plate stays dimmer.
+  const awardEdges = await page.evaluate(() => {
+    const row = document.createElement("div");
+    row.className = "ratings";
+    document.body.append(row);
+    const result = ["oscar", "globe", "bafta", "emmy"].map((award) => {
+      const badge = document.createElement("span");
+      badge.className = "rating award";
+      badge.innerHTML = '<span class="side award_' + award + '"></span>';
+      row.append(badge);
+      const won = getComputedStyle(badge).boxShadow;
+      badge.className = "rating nominee";
+      return { award, won, nominee: getComputedStyle(badge).boxShadow,
+        plate: getComputedStyle(badge.firstChild).opacity };
+    });
+    row.remove();
+    return result;
+  });
+  for (const badge of awardEdges) {
+    assert.equal(badge.nominee, badge.won, badge.award + " keeps its coloured border");
+    assert.equal(badge.plate, "0.6", badge.award + " still marks nominations");
+  }
   await page.locator("#detailsCast img").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
     const image = document.querySelector("#detailsCast img");
