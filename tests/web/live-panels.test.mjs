@@ -218,8 +218,9 @@ test("the overview is a key under what is playing that opens the title's details
   assert.equal($("nowCard").nextElementSibling, card);
   assert.equal(card.tagName, "BUTTON");
   assert.ok(card.classList.contains("hidden"));
-  // Not on a box that takes no orders, which hands out no details.
-  P.update(snap({ media: { plot: "Paul joins the Fremen.", item: { kind: "movie", id: 7 } } }));
+  // A box that takes no orders hands out no details: with nothing in the
+  // snapshot to show instead, there is no card.
+  P.update(snap({ media: { item: { kind: "movie", id: 7 } } }));
   assert.ok(card.classList.contains("hidden"));
   P.strings({ ...window.TinyPPI.T, plot: "Über den Film", plot_episode: "Über die Folge", details: "Details", player: "Wiedergabe" });
   // Its heading follows the playing content.
@@ -234,18 +235,44 @@ test("the overview is a key under what is playing that opens the title's details
   card.click();
   assert.deepEqual(plain(opened), [{ kind: "movie", id: 7, title: "Film" }]);
   // An episode as well; a file the library does not know, or anything else,
-  // has none.
+  // has none -- with nothing in the snapshot to show either.
   P.update(snap({ control: true, media: { item: { kind: "episode", id: 70 } } }));
   assert.equal(card.classList.contains("hidden"), false);
   assert.equal($("plotTitle").textContent, "Über die Folge");
   P.strings({ ...window.TinyPPI.T, plot: "About the film", plot_episode: "About the episode" });
   assert.equal($("plotTitle").textContent, "About the episode");
   for (const item of [undefined, {}, { kind: "channel", id: 3 }, { kind: "movie", id: 0 }]) {
-    P.update(snap({ control: true, media: { plot: "A plot.", item } }));
+    P.update(snap({ control: true, media: { plot: "  ", directors: [], item } }));
     assert.ok(card.classList.contains("hidden"), JSON.stringify(item));
   }
   card.click();
   assert.equal(opened.length, 1);
+  // A broadcast, a file the library does not know, or a box that hands out
+  // no details: the snapshot's own plot, ratings or credits open a page drawn
+  // from them, under the playing title's pictures.
+  const told = [];
+  window.TinyPPI.openSnapshotDetails = (item) => told.push(item);
+  const art = { poster: "p1", fanart: "f1" };
+  for (const media of [{ plot: "News at nine." }, { ratings: [{ source: "imdb", rating: 7.1 }] },
+                       { directors: ["Ridley Scott"] }, { writers: ["Hampton Fancher"] },
+                       { cast: ["Harrison Ford"] }]) {
+    P.update(snap({ control: true, art, media }));
+    assert.equal(card.classList.contains("hidden"), false, JSON.stringify(media));
+  }
+  P.update(snap({ art, media: { plot: "Paul joins the Fremen.", item: { kind: "movie", id: 7 } } }));
+  assert.equal(card.classList.contains("hidden"), false);
+  card.click();
+  assert.equal(opened.length, 1);
+  assert.deepEqual(plain(told), [{ kind: "movie", title: "Film", art,
+    media: { plot: "Paul joins the Fremen.", item: { kind: "movie", id: 7 } } }]);
+  // Without art in the snapshot, none is handed on.
+  P.update(snap({ art: undefined, media: { plot: "News at nine." } }));
+  card.click();
+  assert.deepEqual(plain(told.at(-1).art), {});
+  // An older page without the opener does nothing.
+  delete window.TinyPPI.openSnapshotDetails;
+  card.click();
+  assert.equal(told.length, 2);
   // Nor where the box hands out no details of the kind: its shelf is off.
   window.TinyPPI.detailsOffered = (kind) => kind === "episode";
   P.update(snap({ control: true, media: { item: { kind: "movie", id: 7 } } }));

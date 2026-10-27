@@ -150,12 +150,17 @@ A card under *Now playing* that is nothing but its heading and an arrow — a
 key. A click or tap on it opens the playing title's
 [details page](#play-resume-and-watched-marks): its ratings as shields, the
 slogan and the plot, genre, director, writer and studio, and the cast as a row
-of cards. The page has no play keys there — the title is already playing. The
-card is drawn for a film or an episode the library holds, on a box that takes
-orders (**Allow VS10 switching from the dashboard**, which the details need)
-and whose shelf for the title is on — the film shelf for a film, the series
-shelf for an episode, as `/api/hello` says; a file the library does not know
-has no details, and no card. The TinyPPI app follows the same rule.
+of cards. The page has no play keys there — the title is already playing.
+
+For a film or an episode the library holds, on a box that takes orders
+(**Allow VS10 switching from the dashboard**) and whose shelf for the title is
+on — the film shelf for a film, the series shelf for an episode, as
+`/api/hello` says — the page is the library's (`/api/details`). For anything
+else — a **live TV** broadcast, a file the library does not know, or a box that
+hands out no details — it shows what the snapshot says of what is playing: the
+plot from the EPG or the file's tags, the ratings, and who made it and is in it,
+each of the cast with who they played. Where the snapshot says nothing of it
+either, there is no card. The TinyPPI app follows the same rule.
 
 The shields on the details page:
 

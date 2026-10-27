@@ -929,8 +929,11 @@ html:has(#seasonsDialog[open]), body:has(#seasonsDialog[open]) {
   background: linear-gradient(to bottom, color-mix(in srgb, var(--panel) 15%, transparent) 0%,
                               color-mix(in srgb, var(--panel) 55%, transparent) 50%, var(--panel) 100%);
 }
-/* Without a backdrop the heading stands on the plain panel. */
-.detailshero.bare { min-height: 0; padding-top: 44px; }
+/* Without a backdrop the heading stands on the plain panel.  As tall as the
+   heading and no less (min-height: auto, not 0): the page is a grid, and a
+   page taller than the screen would otherwise squeeze the heading off its
+   top. */
+.detailshero.bare { min-height: auto; padding-top: 44px; }
 .detailshero.bare::after { display: none; }
 .detailshead {
   position: relative;
