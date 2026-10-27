@@ -74,7 +74,7 @@ Start-up information for the page. No token, no player state.
 |---|---|
 | `auth_read` | Whether *this request* would need the token to read (setting, client beyond the home network, or untrusted host). |
 | `control` | **Allow VS10 switching from the dashboard**. |
-| `library` / `series` | Whether the film / series shelves are offered (each needs its setting **and** `control`). |
+| `library` / `series` | Whether the film / series shelves are offered (each needs its setting **and** `control`), and with them a film's / an episode's or show's details (`/api/details`). The dashboard and the TinyPPI app hide a shelf that is off, and the overview's key to the details of a title on it. |
 | `interval_ms` | How often a watched snapshot is rebuilt (200 ms). |
 
 ### `GET /api/state`

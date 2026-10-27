@@ -159,6 +159,11 @@ film title) has nowhere to run.
   to whatson-api.onrender.com, once per film, with the WhatsOn API key if you
   gave one and nothing else (see
   [Rotten Tomatoes from WhatsOn](Web-Dashboard#rotten-tomatoes-from-whatson)).
+- **The TMDb API key stays on the box.** With one set, opening a title's
+  details sends the title's TMDb or IMDb id to api.themoviedb.org, with the
+  key, to read its credits; a page only ever gets opaque portrait tags,
+  never the key or an image address, and `/api/art` serves only portraits
+  registered that way. Leave it empty and nothing is sent.
 - **File names stay private.** The file path obeys the overlay's **Show file
   name** setting: with it off, the path is not sent to the browser either.
 - **Bounded connections.** One address may hold at most **16** connections
