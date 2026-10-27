@@ -201,6 +201,8 @@ async function showDetails(question, replace) {
   }
   el.detailsFormats.replaceChildren(formats);
   el.detailsRatings.replaceChildren(...TinyPPI.panels.ratingGroups(found));
+  el.detailsDescriptionTitle.textContent = T.description;
+  el.detailsDescription.hidden = !(found.tagline || found.plot);
   el.detailsTagline.textContent = found.tagline || "";
   el.detailsPlot.textContent = found.plot || "";
   el.detailsFacts.replaceChildren(...TinyPPI.panels.facts(found));

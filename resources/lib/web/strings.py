@@ -134,6 +134,7 @@ _UI_STRINGS = {
     "ratings":          32383,
     "awards":           32435,
     "award_hint":       32436,
+    "description":      32437,
     # The overview card under what is playing: its title, and what its
     # rating marks say to a screen reader.
     "plot":             32370,

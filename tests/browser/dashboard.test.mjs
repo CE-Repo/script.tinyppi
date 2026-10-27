@@ -89,6 +89,23 @@ test("the overview is a key under the playing card that opens the title's detail
   await page.waitForSelector("#detailsDialog[open]");
   await page.waitForFunction(() => document.getElementById("detailsPlot").textContent.length > 0);
   assert.equal(await page.locator("#detailsPlot").innerText(), "A film about somebody.");
+  assert.equal(await page.locator("#detailsDescriptionTitle").innerText(), "#32437");
+  const description = await page.locator("#detailsDescription").evaluate((node) => {
+    const heading = node.querySelector("h4");
+    const tagline = node.querySelector(".detailstagline");
+    const plot = node.querySelector(".detailsplot");
+    return {
+      beforeText: heading.getBoundingClientRect().bottom <= tagline.getBoundingClientRect().top,
+      taglineColor: getComputedStyle(tagline).color,
+      plotColor: getComputedStyle(plot).color,
+      weight: getComputedStyle(tagline).fontWeight,
+      style: getComputedStyle(tagline).fontStyle
+    };
+  });
+  assert.ok(description.beforeText);
+  assert.equal(description.taglineColor, description.plotColor);
+  assert.equal(description.weight, "700");
+  assert.equal(description.style, "italic");
   // The playing title's: nothing to play.
   assert.equal(await page.locator(".detailsactions").isVisible(), false);
   // The shields as the details draw them, every one one height.
@@ -135,7 +152,7 @@ test("the overview is a key under the playing card that opens the title's detail
     assert.ok(Math.abs(firstShield.x - rowBox.x) < 1, "shields start at the left edge");
     assert.equal(await group.evaluate((node) => getComputedStyle(node).borderTopWidth), "0px");
   }
-  const headingStyles = await page.locator("#detailsRatings h4, #detailsFacts dt, #detailsCast .casthead")
+  const headingStyles = await page.locator("#detailsRatings h4, #detailsDescriptionTitle, #detailsFacts dt, #detailsCast .casthead")
     .evaluateAll((nodes) => nodes.map((node) => {
       const style = getComputedStyle(node);
       return [style.fontSize, style.color, style.fontWeight];

@@ -1714,3 +1714,7 @@ msgstr "奖项"
 msgctxt "#32436"
 msgid "Dimmed icons indicate nominations."
 msgstr "暗淡的图标表示提名。"
+
+msgctxt "#32437"
+msgid "Description"
+msgstr "简介"

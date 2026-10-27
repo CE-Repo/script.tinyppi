@@ -52,7 +52,7 @@ def fake_rpc(method: str, params: dict | None = None) -> dict:
     if method == "VideoLibrary.GetMovieDetails":
         film = next(row for row in FILMS if row["movieid"] == params["movieid"])
         return {"result": {"moviedetails": {
-            **film, "plot": "A film about somebody.", "director": ["Stephen Norrington"],
+            **film, "plot": "A film about somebody.", "tagline": "Only a test slogan.", "director": ["Stephen Norrington"],
             "writer": ["David S. Goyer"],
             "cast": [{"name": "Wesley Snipes", "role": "Blade", "order": 0,
                       "thumbnail": os.path.join(ROOT, "icon.png")},
