@@ -1020,7 +1020,7 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
    the cast are in css/live-panels.css ("a title's facts and cast"). */
 .detailsdescription { display: grid; gap: 10px; min-width: 0; }
 .detailsdescription[hidden] { display: none; }
-.detailsdescription h4 { margin: 0; color: var(--text); font-size: 18px; font-weight: 700; line-height: 24px; }
+.detailsdescription h4 { margin: 0; color: var(--text); font-size: 20px; font-weight: 700; line-height: 26px; }
 .detailstagline { margin: 0; font-style: italic; font-weight: 700; font-size: 16px; line-height: 24px; color: var(--text); }
 dialog p.detailsplot { color: var(--text); white-space: pre-line; line-height: 24px; font-size: 16px; }
 
