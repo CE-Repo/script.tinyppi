@@ -18,7 +18,7 @@ sys.path[:0] = [os.path.join(ROOT, "tests", "stubs"), os.path.join(ROOT, "resour
 
 import xbmc  # noqa: E402
 import xbmcaddon  # noqa: E402
-from web import library, player  # noqa: E402
+from web import library, player, ratings  # noqa: E402
 from web import server as web_server  # noqa: E402
 
 TOKEN = "BROWSER1"
@@ -166,6 +166,12 @@ class Producer:
         return dict(SNAPSHOT, seq=self.seq)
 
 
+def fake_awards(_kind: str, _ids: dict) -> list:
+    # Details and the live snapshot expose the same fixture's awards.
+    return SNAPSHOT["media"]["awards"]
+
+
+ratings.awards_of = fake_awards
 library.common.rpc = fake_rpc
 server = web_server._Server(("127.0.0.1", 0), Producer(), threading.Event(), TOKEN)
 server.refresh_settings()
