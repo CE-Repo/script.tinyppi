@@ -1503,14 +1503,6 @@ msgctxt "#32378"
 msgid "Cast"
 msgstr "演员"
 
-msgctxt "#32381"
-msgid "Show more"
-msgstr "显示更多"
-
-msgctxt "#32382"
-msgid "Show less"
-msgstr "收起"
-
 msgctxt "#32383"
 msgid "Ratings"
 msgstr "评分"
@@ -1542,3 +1534,171 @@ msgstr "获得 %s 项"
 msgctxt "#32390"
 msgid "%s nominated"
 msgstr "%s 项提名"
+
+msgctxt "#32391"
+msgid "Audio offset"
+msgstr "音频偏移"
+
+msgctxt "#32392"
+msgid "Subtitle offset"
+msgstr "字幕偏移"
+
+msgctxt "#32394"
+msgid "Reset to 0"
+msgstr "重置为 0"
+
+msgctxt "#32395"
+msgid "Sort by"
+msgstr "排序方式"
+
+msgctxt "#32396"
+msgid "Title"
+msgstr "标题"
+
+msgctxt "#32397"
+msgid "Year"
+msgstr "年份"
+
+msgctxt "#32398"
+msgid "Rating"
+msgstr "评分"
+
+msgctxt "#32399"
+msgid "Date added"
+msgstr "添加日期"
+
+msgctxt "#32400"
+msgid "Runtime"
+msgstr "时长"
+
+msgctxt "#32401"
+msgid "All genres"
+msgstr "所有类型"
+
+msgctxt "#32402"
+msgid "All picture formats"
+msgstr "所有画面格式"
+
+msgctxt "#32403"
+msgid "All resolutions"
+msgstr "所有分辨率"
+
+msgctxt "#32404"
+msgid "All audio formats"
+msgstr "所有音频格式"
+
+msgctxt "#32405"
+msgid "Next up"
+msgstr "接下来"
+
+msgctxt "#32406"
+msgid "Details"
+msgstr "详情"
+
+msgctxt "#32407"
+msgid "Writer"
+msgstr "编剧"
+
+msgctxt "#32408"
+msgid "Studio"
+msgstr "制片公司"
+
+msgctxt "#32409"
+msgid "The details could not be read."
+msgstr "无法读取详情。"
+
+msgctxt "#32410"
+msgid "Genre"
+msgstr "类型"
+
+msgctxt "#32411"
+msgid "Close"
+msgstr "关闭"
+
+msgctxt "#32412"
+msgid "No titles match the filter"
+msgstr "没有符合筛选条件的标题"
+
+msgctxt "#32413"
+msgid "Ascending"
+msgstr "升序"
+
+msgctxt "#32414"
+msgid "Descending"
+msgstr "降序"
+
+msgctxt "#32415"
+msgid "Arrange cards"
+msgstr "排列卡片"
+
+msgctxt "#32416"
+msgid "Move a card with the arrows, or take it off this tab with the eye. Long-press or right-click any card heading to come back here."
+msgstr "用箭头移动卡片，或用眼睛图标将其从此标签页移除。长按或右键单击任意卡片标题即可回到这里。"
+
+msgctxt "#32417"
+msgid "Done"
+msgstr "完成"
+
+msgctxt "#32418"
+msgid "Reset"
+msgstr "重置"
+
+msgctxt "#32419"
+msgid "Move up"
+msgstr "上移"
+
+msgctxt "#32420"
+msgid "Move down"
+msgstr "下移"
+
+msgctxt "#32421"
+msgid "Remove card"
+msgstr "移除卡片"
+
+msgctxt "#32422"
+msgid "Show card again"
+msgstr "重新显示卡片"
+
+msgctxt "#32423"
+msgid "Hidden"
+msgstr "已隐藏"
+
+msgctxt "#32424"
+msgid "Every card on this tab is hidden."
+msgstr "此标签页上的所有卡片均已隐藏。"
+
+msgctxt "#32425"
+msgid "Tabs"
+msgstr "标签页"
+
+msgctxt "#32426"
+msgid "Choose which tabs appear in the bar. Live and Settings are always there. Some tabs only appear when there is something to show."
+msgstr "选择栏中显示哪些标签页。直播和设置始终显示。部分标签页仅在有内容可显示时出现。"
+
+msgctxt "#32427"
+msgid "Cards"
+msgstr "卡片"
+
+msgctxt "#32428"
+msgid "Long-press or right-click the heading of a card to move the cards on that tab around, remove them or put them back."
+msgstr "长按或右键单击卡片标题，即可移动、移除或恢复该标签页上的卡片。"
+
+msgctxt "#32429"
+msgid "Reset all cards"
+msgstr "重置所有卡片"
+
+msgctxt "#32430"
+msgid "Every card back in its place on every tab, and every removed card shown again."
+msgstr "每个标签页上的每张卡片都回到原位，所有已移除的卡片重新显示。"
+
+msgctxt "#32431"
+msgid "Go to series"
+msgstr "前往剧集"
+
+msgctxt "#32432"
+msgid "Player"
+msgstr "播放器"
+
+msgctxt "#32433"
+msgid "%s episodes"
+msgstr "%s 集"

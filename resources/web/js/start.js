@@ -10,7 +10,8 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them is listed below. */
 
-/* global $, el, offerShelves, render, selectTab, storedTab, tabFromAddress */
+/* global $, cardsStrings, el, filmTools, offerShelves, render, selectTab, seriesTools, storedTab,
+   tabFromAddress */
 
 /* --- boot --------------------------------------------------------------- */
 
@@ -24,6 +25,7 @@ function applyStrings(strings, hello) {
   $("historyIdleText").textContent = strings.idle_text;
   $("continueFilmsLabel").textContent = strings.continue;
   $("continueSeriesLabel").textContent = strings.continue;
+  $("nextSeriesLabel").textContent = strings.next_up;
   /* The bar is icons alone; each key says what it is to a screen reader and
      under a pointer. */
   const names = {
@@ -58,16 +60,25 @@ function applyStrings(strings, hello) {
   $("recentFilmsLabel").textContent = strings.recent;
   $("recentSeriesLabel").textContent = strings.recent;
   $("unseenSeriesLabel").textContent = strings.series_unseen_shows;
-  el.markRestart.textContent = strings.play_from_start;
-  el.markClear.textContent = strings.resume_clear;
-  el.markWatched.textContent = strings.mark_watched;
-  el.markUnwatched.textContent = strings.mark_unwatched;
-  el.markCancel.textContent = strings.cancel;
-  $("seriesBackText").textContent = strings.series_back;
-  el.seriesBack.setAttribute("aria-label", strings.series_back);
+  for (const [button, label] of [
+    [el.detailsRestart, strings.play_from_start], [el.detailsClear, strings.resume_clear],
+    [el.detailsWatched, strings.mark_watched], [el.detailsUnwatched, strings.mark_unwatched],
+    [el.detailsShow, strings.go_to_show]
+  ]) {
+    button.querySelector(".said").textContent = label;
+    button.setAttribute("aria-label", label);
+    button.title = label;
+  }
+  el.detailsX.setAttribute("aria-label", strings.close);
+  el.detailsX.title = strings.close;
+  el.seasonsX.setAttribute("aria-label", strings.close);
+  el.seasonsX.title = strings.close;
   el.seriesEmpty.textContent = strings.series_empty;
   el.seriesSearch.placeholder = strings.series_search;
   el.seriesSearch.setAttribute("aria-label", strings.series_search);
+  filmTools.strings();
+  cardsStrings();
+  seriesTools.strings();
   TinyPPI.panels.strings(strings);
   TinyPPI.metadata.strings(strings);
   $("vs10Title").textContent = strings.vs10;

@@ -604,3 +604,29 @@ test("a page with neither a card nor a main area has nothing to paint", async ()
   assert.deepEqual(Object.keys(painted(card)), PAINTED);
   assert.equal(tints.length, 2);
 });
+
+test("another title's picture gives its own accent, on the adaptive theme alone", async (t) => {
+  const view = tinted();
+  t.after(() => view.window.close());
+  const image = view.canvas.poster(96, 144, BLUE);
+  image.src = "/other";
+  const accent = await view.window.TinyPPICover.accent("/other", image);
+  assert.equal(accent.length, 3);
+  assert.ok(accent[2] > accent[0], "the blue poster's own colour");
+  // Read once, as the playing poster is.
+  const contexts = view.canvas.log.contexts;
+  await view.window.TinyPPICover.accent("/other", image);
+  assert.equal(view.canvas.log.contexts, contexts);
+  // No address, or another theme: nothing.
+  assert.equal(await view.window.TinyPPICover.accent("", image), null);
+  await view.set("data-theme", "dark");
+  assert.equal(await view.window.TinyPPICover.accent("/other", image), null);
+  // A picture with nothing in it gives none.
+  await view.set("data-theme", "dark-adaptive");
+  const blank = view.canvas.poster(96, 144, BLUE, { loading: true });
+  blank.src = "/gone";
+  const read = view.window.TinyPPICover.accent("/gone", blank);
+  view.canvas.arrive(blank, { failed: true });
+  assert.equal(await read, null);
+});
+

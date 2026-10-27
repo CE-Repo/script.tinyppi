@@ -5,6 +5,7 @@
 
 import json
 import math
+import re
 import zlib
 from collections.abc import Callable, Mapping, Sequence
 
@@ -12,7 +13,7 @@ import xbmc
 from core.log import channel
 from web import player
 from web.library import cache
-from web.library.entries import Rated
+from web.library.entries import Formats, Rated
 from web.values import Json, clean_value
 
 # Every query of the library goes through here, so the tests answer them
@@ -33,6 +34,37 @@ EPISODE_PICTURE_KEYS = ("thumb", "season.poster", "tvshow.poster")
 _RATING_SOURCES = (("imdb", "imdb"),
                    ("themoviedb", "tmdb"),
                    ("tmdb", "tmdb"))
+
+# A list of names (genres, studios) is a few labels on a tile or a line of
+# the details, not a paragraph.
+_NAME_LIMIT = 4
+
+# Kodi's HDR types (``streamdetails``) and the format the page filters by.
+_HDR_TYPES = {"dolbyvision": "dv", "hdr10plus": "hdr10plus", "hdr10+": "hdr10plus",
+              "hdr10": "hdr10", "hlg": "hlg"}
+
+# Kodi's audio codec names and the family the page filters by; any other
+# codec is left out rather than filtered under a wrong name.
+_AUDIO_CODECS = {"atmos": "atmos", "truehd_atmos": "atmos",
+                 "eac3_ddp_atmos": "atmos", "eac3_atmos": "atmos",
+                 "dtsx": "dtsx", "dts:x": "dtsx", "dts-x": "dtsx",
+                 "dtshd_ma_x": "dtsx", "dtshd_ma_x_imax": "dtsx",
+                 "truehd": "truehd", "mlp": "truehd",
+                 "eac3": "eac3", "ec-3": "eac3", "ac3": "ac3", "ac-3": "ac3",
+                 "dtshd_ma": "dtshd_ma", "dtsma": "dtshd_ma",
+                 "dtshd_hra": "dtshd_hra", "dtshd": "dtshd_hra",
+                 "dts": "dts", "dca": "dts",
+                 "flac": "flac", "pcm": "pcm", "lpcm": "pcm",
+                 "aac": "aac", "opus": "opus", "mp3": "mp3", "vorbis": "vorbis"}
+
+# A Dolby Vision profile as Kodi writes it (``hdrdetail``): the profile, the
+# base layer's compatibility after a point for profile 8 ("8.1"), and for
+# profile 7 the enhancement layer a scan found ("7FEL", "7MEL").
+_DV_DETAIL = re.compile(r"\s*(\d{1,2})(?:\.(\d{1,2}))?\s*(FEL|MEL)?\s*", re.IGNORECASE)
+
+# The width from which a video counts as each resolution, widest first.
+# Widths rather than heights, so a scope film's letterbox does not demote it.
+_RESOLUTIONS = ((3200, "2160p"), (1700, "1080p"), (1100, "720p"), (1, "sd"))
 
 # Bump when an art URL starts returning a different picture: responses are
 # cached as immutable, so only a new tag replaces them (see web/artwork.py).
@@ -102,6 +134,79 @@ def rate(entry: Rated, ratings: object) -> None:
         entry["rating"] = round(value, 1)
         entry["rating_from"] = name
         return
+
+
+def names(row: Json, key: str, limit: int | None = _NAME_LIMIT) -> list[str]:
+    """Return *row*'s list of names under *key* (genres, studios), cleaned.
+
+    Names repeated or empty are left out; *limit* cuts the list (None keeps
+    it whole).
+    """
+    found = row.get(key)
+    if not isinstance(found, list):
+        return []
+    kept: list[str] = []
+    for raw in found:
+        name = clean_value(str(raw)) if isinstance(raw, str) else ""
+        if name and name not in kept:
+            kept.append(name)
+    return kept if limit is None else kept[:limit]
+
+
+def _first_stream(details: object, kind: str) -> Json:
+    """Return the first stream of *kind* in a row's ``streamdetails``, or {}."""
+    streams = details.get(kind) if isinstance(details, dict) else None
+    first = streams[0] if isinstance(streams, list) and streams else None
+    return first if isinstance(first, dict) else {}
+
+
+def formats(details: object) -> Formats:
+    """Return a title's formats from its ``streamdetails``.
+
+    ``video`` (dv, hdr10plus, hdr10, hlg, sdr), for Dolby Vision its
+    ``dv_profile`` (see ``_dv_profile``), ``resolution`` (2160p, 1080p,
+    720p, sd) and ``audio`` (the first track's codec family), each only
+    where Kodi has read the file.  The first audio track is the one a
+    title starts with.
+    """
+    found: Formats = {}
+    video = _first_stream(details, "video")
+    if video:
+        found["video"] = _HDR_TYPES.get(str(video.get("hdrtype") or "").strip().lower(), "sdr")
+        profile = _dv_profile(video.get("hdrdetail")) if found["video"] == "dv" else ""
+        if profile:
+            found["dv_profile"] = profile
+        resolution = _resolution(video.get("width"))
+        if resolution:
+            found["resolution"] = resolution
+    family = _audio_family(_first_stream(details, "audio").get("codec"))
+    if family:
+        found["audio"] = family
+    return found
+
+
+def _dv_profile(detail: object) -> str:
+    """Return a Dolby Vision profile as the page names it ("5", "7 FEL",
+    "8.1"), or '' where Kodi wrote none it can read."""
+    found = _DV_DETAIL.fullmatch(str(detail or ""))
+    if not found:
+        return ""
+    profile, compatibility, layer = found.groups()
+    named = str(int(profile)) + (f".{int(compatibility)}" if compatibility else "")
+    return f"{named} {layer.upper()}" if layer else named
+
+
+def _resolution(width: object) -> str:
+    """Return the resolution a video *width* counts as, or ''."""
+    if not isinstance(width, int) or isinstance(width, bool):
+        return ""
+    return next((name for low, name in _RESOLUTIONS if width >= low), "")
+
+
+def _audio_family(codec: object) -> str:
+    """Return the family of Kodi's audio *codec* name, or ''."""
+    name = str(codec or "").strip().lower()
+    return _AUDIO_CODECS.get(name) or ("pcm" if name.startswith("pcm") else "")
 
 
 def resume_of(resume: object) -> int:

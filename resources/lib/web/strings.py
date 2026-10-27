@@ -140,11 +140,57 @@ _UI_STRINGS = {
     # What an award's shield says it won or was nominated for, in figures.
     "award_won":        32389,
     "award_nominated":  32390,
-    # And what its credits are called, and what a press on a long plot does.
+    # And what its credits are called.
     "director":         32386,
     "cast":             32378,
-    "plot_more":        32381,
-    "plot_less":        32382,
+    # The remote's fine adjustments.
+    "audio_offset":     32391,
+    "subtitle_offset":  32392,
+    "offset_reset":     32394,
+    # Sorting and filtering the shelves.
+    "sort":             32395,
+    "sort_title":       32396,
+    "sort_year":        32397,
+    "sort_rating":      32398,
+    "sort_added":       32399,
+    "sort_runtime":     32400,
+    "sort_ascending":   32413,
+    "sort_descending":  32414,
+    "filter_genre":     32401,
+    "filter_video":     32402,
+    "filter_resolution": 32403,
+    "filter_audio":     32404,
+    "filter_empty":     32412,
+    # The next-up row and a title's details.
+    "next_up":          32405,
+    "details":          32406,
+    "writer":           32407,
+    "studio":           32408,
+    "details_failed":   32409,
+    "genre":            32410,
+    "close":            32411,
+    # Arranging the cards on a tab, and the tabs on the bar.
+    "cards_edit":       32415,
+    "cards_edit_hint":  32416,
+    "cards_done":       32417,
+    "cards_reset":      32418,
+    "cards_move_up":    32419,
+    "cards_move_down":  32420,
+    "cards_hide":       32421,
+    "cards_show":       32422,
+    "cards_hidden":     32423,
+    "cards_all_hidden": 32424,
+    "settings_tabs":    32425,
+    "settings_tabs_desc": 32426,
+    "settings_cards":   32427,
+    "settings_cards_desc": 32428,
+    "settings_cards_reset": 32429,
+    "settings_cards_reset_desc": 32430,
+    # The way from an episode to its show, and the remote's card.
+    "go_to_show":       32431,
+    "player":           32432,
+    # How many episodes the open show has, under its name.
+    "series_episodes":  32433,
 }
 
 

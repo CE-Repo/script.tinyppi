@@ -27,7 +27,7 @@ with one `<summary lang="…">` and `<description lang="…">` per language.
 
 ## The string files
 
-Each file holds **366 strings**:
+Each file holds **424 strings**:
 
 ```po
 msgctxt "#32000"
@@ -59,32 +59,23 @@ colors the settings start out on — *White*, *Light blue*, *Charcoal*,
 
 ## How the IDs are arranged
 
-The IDs are grouped by where a string is used. Every area has a block of its
-own, and each block starts on a multiple of ten with **at least 50 free IDs**
-in front of the next one, so a new string can join its area without the other
-strings being renumbered. Every category of the settings dialog counts as an
-area of its own.
+The IDs run up from **32000** in three areas, one after the other.
+A string used in several places keeps the ID of the area it was added for —
+the dashboard, for example, reuses the overlay's labels for its readings, and
+a few settings sit among the dashboard's strings because they arrived with it.
 
-| Block | Area | In use | Free |
-|---|---|---|---|
-| 32000 – 32089 | Settings: **General** | 32000 – 32030 (31) | 59 |
-| 32090 – 32189 | Settings: **TinyPPI overlay** | 32090 – 32135 (46) | 54 |
-| 32190 – 32269 | Settings: **DV metadata** | 32190 – 32210 (21) | 59 |
-| 32270 – 32369 | Settings: **Codec logos** | 32270 – 32315 (46) | 54 |
-| 32370 – 32439 | Settings: **VS10 dialog** | 32370 – 32389 (20) | 50 |
-| 32440 – 32509 | Settings: **Channels** | 32440 – 32454 (15) | 55 |
-| 32510 – 32589 | Settings: **Dashboard**, with the *Show address and token* dialog | 32510 – 32533 (24) | 56 |
-| 32590 – 32659 | **Color picker**: *(Default)*, the HEX tile and its messages, the translated color names | 32590 – 32601 (12) | 58 |
-| 32660 – 32769 | **TinyPPI overlay**: start-up messages and every label of the overlay | 32660 – 32716 (57) | 53 |
-| 32770 – 32829 | **Dolby Vision metadata view** | 32770 – 32771 (2) | 58 |
-| 32830 – 32999 | **Web dashboard** | 32830 – 32921 (92) | 78 |
+| IDs | Area |
+|---|---|
+| 32000 – 32200 | The **settings dialog**, category by category: General, TinyPPI overlay, DV metadata, codec logos, VS10 dialog, channels, the dashboard and the color picker |
+| 32201 – 32273 | What the add-on's own code shows: the color picker and its color names, the **overlay**'s start-up messages and labels, and the **Dolby Vision metadata view** |
+| 32274 – 32433 | The **web dashboard** (sent to the page by `resources/lib/web/strings.py`), with the dashboard's ratings settings (MDBList and WhatsOn keys) |
 
-Within a block the strings follow the order in which they are used: the
-settings as the settings dialog lists them, the overlay labels from top to
-bottom, the dashboard's in the order of its string table. A string used in several places sits in the block where it appears
-first — the dashboard, for example, reuses the overlay's labels for its
-readings. Everything stays within **32000 – 32999**, the range Kodi reserves
-for scripts.
+A new string takes the next free ID after the last one in use, which today is
+the dashboard's area at the end of the file. The few IDs left free where a
+string was dropped (32371, 32374 – 32377, 32379 – 32382, 32393) are not
+reused, so a translation made for an older version never shows a string
+under the wrong ID. Everything stays within
+**32000 – 32999**, the range Kodi reserves for scripts.
 
 ---
 

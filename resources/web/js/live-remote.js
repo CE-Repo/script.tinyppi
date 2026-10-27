@@ -5,7 +5,7 @@
 
 /* ===========================================================================
    The remote on the now-playing card: the drawer and the key that opens it,
-   the transport row and the track pickers.
+   the transport row, the fine adjustments and the track pickers.
 
    Loaded after core.js and js/live-chapters.js and before js/live-panels.js,
    which builds the card and hands the remote its nodes (create); the icons
@@ -13,6 +13,29 @@
 =========================================================================== */
 
 window.TinyPPIRemote = (function () {
+
+  /* How far a press moves each offset: Kodi's own step for the subtitles, and
+     two of its 25 ms steps for the sound, which would otherwise take forty
+     presses to move a second.  Kodi's ranges bound them (see web/player.py). */
+  const OFFSETS = {
+    audio_delay: { step: 0.05, limit: 10, label: "audio_offset" },
+    subtitle_delay: { step: 0.1, limit: 60, label: "subtitle_offset" }
+  };
+  /* How long a pressed value stands against the snapshots: the box reads the
+     offsets on its one-second cadence, and a snapshot from before the press
+     would put the old value back under the thumb for a moment. */
+  const HOLD_MS = 2000;
+
+  /* An offset as the stepper writes it: milliseconds below a second, seconds
+     with two decimals above, always signed so that "early" and "late" cannot
+     be mistaken for one another. */
+  function offsetText(seconds) {
+    const ms = Math.round(seconds * 1000);
+    if (ms === 0) return "0 ms";
+    const sign = ms > 0 ? "+" : "\u2212";
+    const size = Math.abs(ms);
+    return sign + (size < 1000 ? size + " ms" : (size / 1000).toFixed(2) + " s");
+  }
 
   function uiIcon(name) {
     const image = document.createElement("img");
@@ -75,6 +98,8 @@ window.TinyPPIRemote = (function () {
     let chapterCount = 0;
     let trackKey = "";
     let duration = "";    /* the title's length, for the clock a drag shows   */
+    const offsets = { audio_delay: null, subtitle_delay: null };
+    const heldUntil = { audio_delay: 0, subtitle_delay: 0 };
     let drag = null;      /* {id, where, chapter} while a pointer holds the bar */
     const controlStateKey = pageState + ".controls";
 
@@ -181,7 +206,7 @@ window.TinyPPIRemote = (function () {
         imageButton("chapter-next", "chapter_next",
                     () => TinyPPI.command("chapter_next"), "chapter")
       );
-      el.transport.append(keys, rest);
+      el.transport.append(keys, rest, fineRow());
       labelControls();
 
       /* The bar is held and dragged -- by a finger, or a mouse with its button
@@ -233,6 +258,74 @@ window.TinyPPIRemote = (function () {
       });
     }
 
+    /* The fine adjustments, a row of their own under the keys: the two
+       offsets, each a value between a step back and a step on (the value
+       itself puts it back to nothing).  Built with the row;
+       what they show comes from the snapshots (see renderFine). */
+    function fineRow() {
+      const fine = document.createElement("div");
+      fine.className = "tfine";
+      for (const kind of Object.keys(OFFSETS)) fine.append(stepper(kind));
+      return fine;
+    }
+
+    function stepper(kind) {
+      const { step, label } = OFFSETS[kind];
+      const wrap = document.createElement("div");
+      wrap.className = "fine hidden";
+      wrap.dataset.kind = kind;
+      const caption = document.createElement("span");
+      caption.className = "finelabel";
+      caption.dataset.text = label;
+      const key = (sign, by) => {
+        const node = document.createElement("button");
+        node.type = "button";
+        node.className = "tbtn finestep";
+        node.textContent = sign;
+        node.addEventListener("click", () => setOffset(kind, offsets[kind] + by));
+        return node;
+      };
+      const value = document.createElement("button");
+      value.type = "button";
+      value.className = "tbtn finevalue mono";
+      value.dataset.label = "offset_reset";
+      value.addEventListener("click", () => setOffset(kind, 0));
+      wrap.append(caption, key("\u2212", -step), value, key("+", step));
+      return wrap;
+    }
+
+    /* Shown at once and sent; the snapshots catch up within the hold. */
+    function setOffset(kind, seconds) {
+      if (offsets[kind] === null) return;
+      const { limit } = OFFSETS[kind];
+      const next = Math.min(limit, Math.max(-limit, Math.round(seconds * 1000) / 1000));
+      offsets[kind] = next;
+      heldUntil[kind] = Date.now() + HOLD_MS;
+      showOffset(kind);
+      TinyPPI.command(kind, next);
+    }
+
+    function showOffset(kind) {
+      const wrap = el.transport.querySelector('.fine[data-kind="' + kind + '"]');
+      wrap.querySelector(".finevalue").textContent = offsetText(offsets[kind]);
+    }
+
+    /* An offset Kodi does not report (an older add-on, nothing playing) has
+       no stepper; the subtitles' only while there are subtitles to move. */
+    function renderFine(controls) {
+      for (const kind of Object.keys(OFFSETS)) {
+        if (Date.now() >= heldUntil[kind]) {
+          const reported = controls[kind];
+          offsets[kind] = typeof reported === "number" ? reported : null;
+        }
+        const wrap = el.transport.querySelector('.fine[data-kind="' + kind + '"]');
+        const shown = offsets[kind] !== null &&
+          (kind !== "subtitle_delay" || !!controls.subtitle_on);
+        wrap.classList.toggle("hidden", !shown);
+        if (offsets[kind] !== null) showOffset(kind);
+      }
+    }
+
     /* The bar under a held pointer: the fill, the clock under it and the
        chapter over it follow the pointer rather than the player -- a bar
        dragged half an hour on while the clock insists on the old position is
@@ -268,6 +361,9 @@ window.TinyPPIRemote = (function () {
         if (!name) continue;
         node.setAttribute("aria-label", name);
         if (node.tagName === "BUTTON") node.title = name;
+      }
+      for (const node of el.transport.querySelectorAll("[data-text]")) {
+        node.textContent = TinyPPI.T[node.dataset.text] || "";
       }
     }
 
@@ -311,6 +407,7 @@ window.TinyPPIRemote = (function () {
         mute.classList.toggle("on", !!controls.muted);
         setButtonIcon(mute, controls.muted ? "volume-muted" : "volume");
       }
+      renderFine(controls);
       renderTracks(controls);
     }
 

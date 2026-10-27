@@ -15,7 +15,8 @@ class Kodi:
     """Answer the library's JSON-RPC calls from ``answers``; record every call.
 
     Answers are keyed by method, with " (in progress)" appended for the
-    filtered reads of the "continue" row.  An answer may be a callable taking
+    filtered reads of the "continue" row and " (next)" for a show's next
+    episode on the "next up" row.  An answer may be a callable taking
     the params.  Anything unset answers "OK" (no rows for the readers).
     """
 
@@ -26,7 +27,8 @@ class Kodi:
     def __call__(self, method, params=None):
         params = params or {}
         self.calls.append((method, params))
-        key = method + (" (in progress)" if "filter" in params else "")
+        key = method + (" (next)" if "tvshowid" in params and "filter" in params
+                        else " (in progress)" if "filter" in params else "")
         answer = self.answers.get(key, {"result": "OK"})
         return answer(params) if callable(answer) else answer
 
@@ -97,7 +99,8 @@ def test_answers_without_rows_are_empty_lists(kodi):
 def test_failed_continue_reads_are_logged_and_give_an_empty_row(kodi):
     kodi.answers["VideoLibrary.GetMovies (in progress)"] = {"error": {"code": 1}}
     kodi.answers["VideoLibrary.GetEpisodes (in progress)"] = {"error": {"code": 2}}
-    assert library.continuing() == {"items": [], "count": 0, "tag": "11-0-00000000"}
+    assert library.continuing() == {"items": [], "next": [], "count": 0,
+                                    "tag": "11-0-00000000"}
     lines = logged()
     assert any("GetMovies (in progress) failed" in line for line in lines)
     assert any("GetEpisodes (in progress) failed" in line for line in lines)
@@ -124,7 +127,7 @@ def test_film_rows_without_an_id_or_title_are_left_out(kodi):
     assert library.art_path(99, "poster") == ""
     assert kodi.sent("VideoLibrary.GetMovies") == [{
         "properties": ["title", "year", "art", "runtime", "playcount", "resume", "ratings",
-                       "dateadded"],
+                       "dateadded", "genre", "streamdetails"],
         "sort": {"method": "sorttitle", "order": "ascending", "ignorearticle": True}}]
     assert "2 films read from the video database" in info_lines()[-1]
 
@@ -734,7 +737,7 @@ def test_the_continue_row_is_most_recent_first_and_capped(kodi, monkeypatch):
         ("movie", 2), ("episode", 3), ("movie", 1)]
     assert library.continuing(films=False)["items"] == [row["items"][1]]
     assert library.continuing(films=False)["tag"].startswith("01-3-")
-    assert any("3 titles in progress read" in line for line in logged())
+    assert any("3 titles in progress and 0 next episodes read" in line for line in logged())
 
 
 @pytest.mark.parametrize("total", [float("nan"), float("inf")])
@@ -761,3 +764,124 @@ def test_a_broken_series_read_leaves_continue_episodes_unrated(kodi):
     assert len(kodi.sent("VideoLibrary.GetTVShows")) == 1
     assert any("reading the series for their ratings failed: database locked" in line
                for line in logged())
+
+
+# --- Sorting and filtering fields ----------------------------------------------
+
+def test_a_film_carries_its_genres_and_formats(kodi):
+    entry = film(kodi, genre=["Drama", "", "Drama", 3, "Sci-Fi", "War", "Crime", "Epic"],
+                 streamdetails={"video": [{"hdrtype": "dolbyvision", "hdrdetail": "8.1", "width": 3840}],
+                                "audio": [{"codec": "truehd"}, {"codec": "ac3"}]})
+    assert entry["genres"] == ["Drama", "Sci-Fi", "War", "Crime"]   # four, each once
+    assert (entry["video"], entry["resolution"], entry["audio"]) == ("dv", "2160p", "truehd")
+    assert entry["dv_profile"] == "8.1"
+
+
+def test_a_film_kodi_has_not_read_has_no_formats(kodi):
+    entry = film(kodi, genre="Drama", streamdetails={"video": [], "audio": []})
+    assert not {"genres", "video", "dv_profile", "resolution", "audio"} & entry.keys()
+
+
+@pytest.mark.parametrize(("details", "found"), [
+    ({"video": [{"hdrtype": "", "width": 1920}]}, {"video": "sdr", "resolution": "1080p"}),
+    ({"video": [{"hdrtype": "HDR10", "width": 1280}]}, {"video": "hdr10", "resolution": "720p"}),
+    ({"video": [{"hdrtype": "hlg", "width": 720}]}, {"video": "hlg", "resolution": "sd"}),
+    ({"video": [{"hdrtype": "hdr10plus", "width": 0}]}, {"video": "hdr10plus"}),
+    ({"video": [{"hdrtype": "unknown", "width": True}]}, {"video": "sdr"}),
+    ({"video": ["junk"], "audio": [{"codec": "pcm_s24le"}]}, {"audio": "pcm"}),
+    ({"audio": [{"codec": "DTSHD_MA"}]}, {"audio": "dtshd_ma"}),
+    ({"audio": [{"codec": "eac3"}]}, {"audio": "eac3"}),
+    ({"audio": [{"codec": "truehd_atmos"}]}, {"audio": "atmos"}),
+    ({"audio": [{"codec": "eac3_ddp_atmos"}]}, {"audio": "atmos"}),
+    ({"audio": [{"codec": "dtshd_ma_x"}]}, {"audio": "dtsx"}),
+    ({"audio": [{"codec": "dtshd_ma_x_imax"}]}, {"audio": "dtsx"}),
+    ({"audio": [{"codec": "wma"}]}, {}),
+    ({"video": [{"hdrtype": "dolbyvision", "hdrdetail": "5"}]}, {"video": "dv", "dv_profile": "5"}),
+    ({"video": [{"hdrtype": "dolbyvision", "hdrdetail": "7FEL"}]}, {"video": "dv", "dv_profile": "7 FEL"}),
+    ({"video": [{"hdrtype": "dolbyvision", "hdrdetail": "7 mel"}]}, {"video": "dv", "dv_profile": "7 MEL"}),
+    ({"video": [{"hdrtype": "dolbyvision", "hdrdetail": "08.1"}]}, {"video": "dv", "dv_profile": "8.1"}),
+    ({"video": [{"hdrtype": "dolbyvision", "hdrdetail": ""}]}, {"video": "dv"}),
+    ({"video": [{"hdrtype": "dolbyvision", "hdrdetail": "odd"}]}, {"video": "dv"}),
+    # Kodi writes a detail for Dolby Vision only; one elsewhere is not a profile.
+    ({"video": [{"hdrtype": "hdr10", "hdrdetail": "8.1"}]}, {"video": "hdr10"}),
+    ("junk", {}),
+    (None, {}),
+])
+def test_formats_from_the_stream_details(details, found):
+    assert library.common.formats(details) == found
+
+
+def test_a_series_carries_its_genres(kodi):
+    kodi.rows("VideoLibrary.GetTVShows", "tvshows",
+              [{"tvshowid": 7, "title": "Show", "genre": ["Comedy"]}, {"tvshowid": 8, "title": "Bare"}])
+    first, second = library.shows()["shows"]
+    assert first["genres"] == ["Comedy"] and "genres" not in second
+    assert "genre" in kodi.sent("VideoLibrary.GetTVShows")[0]["properties"]
+
+
+@pytest.mark.parametrize(("raw", "limit", "kept"), [
+    (["A", "B", "C", "D", "E"], None, ["A", "B", "C", "D", "E"]),
+    (["A", "B", "C"], 2, ["A", "B"]),
+    ("A", 2, []),
+])
+def test_name_lists(raw, limit, kept):
+    assert library.common.names({"names": raw}, "names", limit) == kept
+
+
+# --- Next up -------------------------------------------------------------------
+
+def next_up(kodi, shows, episodes):
+    """Answer the in-progress shows with *shows* and each show's next episode
+    from *episodes* (by show id)."""
+    kodi.rows("VideoLibrary.GetInProgressTVShows", "tvshows", shows)
+    kodi.answers["VideoLibrary.GetEpisodes (next)"] = lambda params: {
+        "result": {"episodes": episodes.get(params["tvshowid"], [])}}
+
+
+def test_next_up_lists_each_shows_next_episode(kodi):
+    next_up(kodi, [
+        {"tvshowid": 7, "title": "Show", "art": {"poster": "/p.jpg"},
+         "ratings": {"imdb": {"rating": 8.04}}},
+        {"tvshowid": 8, "title": "Done"},                  # nothing left to watch
+        {"tvshowid": 0, "title": "No id"},
+        {"tvshowid": 9, "title": ""},
+    ], {7: [{"episodeid": 70, "title": "Pilot", "season": 1, "episode": 2, "runtime": 1500,
+             "art": {"thumb": "/t.jpg"}}],
+        8: [{"title": "No id"}]})
+    listing = library.continuing()
+    assert listing["next"] == [{
+        "kind": "episode", "id": 70, "title": "Pilot", "tvshowid": 7, "show": "Show",
+        "poster": library.common.tag("/p.jpg"), "thumb": library.common.tag("/t.jpg"),
+        "season": 1, "episode": 2, "duration": 1500, "rating": 8.0, "rating_from": "imdb"}]
+    [query] = kodi.sent("VideoLibrary.GetInProgressTVShows")
+    assert query["sort"] == {"method": "lastplayed", "order": "descending"}
+    asked = [params for params in kodi.sent("VideoLibrary.GetEpisodes") if "tvshowid" in params]
+    assert [params["tvshowid"] for params in asked] == [7, 8]
+    assert asked[0]["limits"] == {"start": 0, "end": 1}
+    # Its still is known to the artwork route, as the continue row's are.
+    assert library.episode_art_path(70, "thumb") == "/t.jpg"
+    assert library.episode_art_path(70, "poster") == "/p.jpg"
+
+
+def test_next_up_leaves_out_an_episode_already_in_progress(kodi):
+    kodi.answers["VideoLibrary.GetEpisodes (in progress)"] = {"result": {"episodes": [
+        {"episodeid": 70, "title": "Pilot", "runtime": 1500, "tvshowid": 7,
+         "resume": {"position": 60, "total": 1500}}]}}
+    next_up(kodi, [{"tvshowid": 7, "title": "Show"}, {"tvshowid": 8, "title": "Other"}],
+            {7: [{"episodeid": 70, "title": "Pilot"}], 8: [{"episodeid": 80, "title": "Two"}]})
+    listing = library.continuing()
+    assert [entry["id"] for entry in listing["items"]] == [70]
+    assert [entry["id"] for entry in listing["next"]] == [80]
+    assert listing["next"][0]["title"] == "Two" and "season" not in listing["next"][0]
+
+
+def test_next_up_is_only_sent_with_the_series_shelf(kodi):
+    next_up(kodi, [{"tvshowid": 7, "title": "Show"}], {7: [{"episodeid": 70, "title": "Pilot"}]})
+    assert library.continuing(series=False)["next"] == []
+    assert len(library.continuing()["next"]) == 1
+
+
+def test_a_failed_next_up_read_is_logged(kodi):
+    kodi.answers["VideoLibrary.GetInProgressTVShows"] = {"error": {"code": 3}}
+    assert library.continuing()["next"] == []
+    assert any("VideoLibrary.GetInProgressTVShows failed" in line for line in logged())

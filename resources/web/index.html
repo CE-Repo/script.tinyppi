@@ -102,6 +102,17 @@
        js/marking.js). -->
   <section class="tabpanel" id="tab-films" data-tab="films" role="tabpanel"
            aria-labelledby="tabbtn-films">
+    <!-- The search at the top of the tab and the order and the filters on a
+         card under it, as the app has them; they narrow the wall below. -->
+    <div class="shelfhead shelftop hidden" id="filmsHead">
+      <div class="searchbox" id="filmSearchBox">
+        <input class="filmsearch" id="filmSearch" type="search" autocomplete="off"
+               spellcheck="false" aria-labelledby="filmsLabel">
+        <button class="searchclear hidden" id="filmSearchClear" type="button"></button>
+      </div>
+      <div class="shelftools" id="filmTools"></div>
+    </div>
+
     <details class="card hidden" id="continueFilmsCard">
       <summary class="panel-toggle">
         <span id="continueFilmsLabel"></span>
@@ -137,11 +148,6 @@
         <span class="filmscount mono" id="filmsCount"></span>
       </summary>
       <div class="filmsbody">
-        <div class="searchbox" id="filmSearchBox">
-          <input class="filmsearch" id="filmSearch" type="search" autocomplete="off"
-                 spellcheck="false" aria-labelledby="filmsLabel">
-          <button class="searchclear hidden" id="filmSearchClear" type="button"></button>
-        </div>
         <div class="filmgrid" id="filmGrid"></div>
         <p class="filmsempty hidden" id="filmsEmpty"></p>
       </div>
@@ -149,10 +155,20 @@
   </section>
 
   <!-- And the series: the same four cards, except that a series is not a
-       thing that can be played -- a press opens the show, the wall gives way
-       to its episodes, and a press on one of those starts it. -->
+       thing that can be played -- a press opens the show, its seasons open in
+       a dialog of their own (#seasonsDialog), and a press on an episode there
+       starts it. -->
   <section class="tabpanel" id="tab-series" data-tab="series" role="tabpanel"
            aria-labelledby="tabbtn-series">
+    <div class="shelfhead shelftop hidden" id="seriesSearchBox">
+      <div class="searchbox">
+        <input class="filmsearch" id="seriesSearch" type="search" autocomplete="off"
+               spellcheck="false" aria-labelledby="seriesLabel">
+        <button class="searchclear hidden" id="seriesSearchClear" type="button"></button>
+      </div>
+      <div class="shelftools" id="seriesTools"></div>
+    </div>
+
     <details class="card hidden" id="continueSeriesCard">
       <summary class="panel-toggle">
         <span id="continueSeriesLabel"></span>
@@ -160,6 +176,16 @@
       </summary>
       <div class="filmsbody">
         <div class="continuerow" id="continueSeriesRow"></div>
+      </div>
+    </details>
+
+    <details class="card hidden" id="nextSeriesCard">
+      <summary class="panel-toggle">
+        <span id="nextSeriesLabel"></span>
+        <span class="filmscount mono" id="nextSeriesCount"></span>
+      </summary>
+      <div class="filmsbody">
+        <div class="continuerow" id="nextSeriesRow"></div>
       </div>
     </details>
 
@@ -188,17 +214,7 @@
         <span class="filmscount mono" id="seriesCount"></span>
       </summary>
       <div class="filmsbody">
-        <button class="seriesback hidden" id="seriesBack" type="button">
-          <span aria-hidden="true">&#8249;</span><span id="seriesBackText"></span>
-        </button>
-        <h3 class="seriesopen hidden" id="seriesOpen"></h3>
-        <div class="searchbox" id="seriesSearchBox">
-          <input class="filmsearch" id="seriesSearch" type="search" autocomplete="off"
-                 spellcheck="false" aria-labelledby="seriesLabel">
-          <button class="searchclear hidden" id="seriesSearchClear" type="button"></button>
-        </div>
         <div class="filmgrid" id="seriesGrid"></div>
-        <div class="episodes hidden" id="episodeList"></div>
         <p class="filmsempty hidden" id="seriesEmpty"></p>
       </div>
     </details>
@@ -314,19 +330,60 @@
   </button>
 </nav>
 
-<!-- What a press on a poster or an episode asks: play it (open it, for a
-     series), or have the box count it as seen or as unseen (see "what a press
-     asks" in js/marking.js). -->
-<dialog id="markDialog"><form method="dialog">
-  <h3 id="markTitle"></h3>
-  <div class="markoptions">
-    <button value="play" id="markPlay" type="submit"></button>
-    <button value="restart" id="markRestart" type="submit" hidden></button>
-    <button value="watched" id="markWatched" type="submit"></button>
-    <button value="unwatched" id="markUnwatched" type="submit"></button>
-    <button value="clear" id="markClear" type="submit" hidden></button>
+<!-- Library details and the actions available for this title. -->
+<dialog id="detailsDialog"><form method="dialog">
+  <div class="detailshero" id="detailsHero">
+    <img class="detailsbackdrop" id="detailsBackdrop" alt="">
+    <button class="detailsx" id="detailsX" value="close" type="submit"></button>
+    <div class="detailshead">
+      <img class="detailsposter" id="detailsPoster" alt="">
+      <div class="detailsheading">
+        <h3 id="detailsTitle"></h3>
+        <p class="detailsmeta" id="detailsMeta"></p>
+        <div class="detailsformats" id="detailsFormats"></div>
+      </div>
+    </div>
   </div>
-  <div class="dlgrow"><button value="cancel" id="markCancel" type="submit"></button></div>
+  <div class="detailsbody">
+    <div class="markoptions detailsactions" id="detailsActions">
+      <button value="play" id="detailsPlay" type="submit"></button>
+      <div class="detailstools">
+        <button value="restart" id="detailsRestart" type="button" hidden><span class="said"></span></button>
+        <button value="clear" id="detailsClear" type="button" hidden><span class="said"></span></button>
+        <button value="watched" id="detailsWatched" type="button"><span class="said"></span></button>
+        <button value="unwatched" id="detailsUnwatched" type="button"><span class="said"></span></button>
+        <button value="show" id="detailsShow" type="button" hidden><span class="said"></span></button>
+      </div>
+    </div>
+    <p id="detailsError" role="status" hidden></p>
+    <div class="ratings" id="detailsRatings" role="list"></div>
+    <p class="detailstagline" id="detailsTagline"></p>
+    <p class="detailsplot" id="detailsPlot"></p>
+    <dl class="facts detailsfacts" id="detailsFacts"></dl>
+    <div class="castblock detailscast" id="detailsCast"></div>
+  </div>
+</form></dialog>
+
+<!-- One show's seasons, each folded away with its episodes in it, opened
+     from the show's details (see openShowView in js/series.js) and drawn the
+     way they are: the show's backdrop, its poster and its name across the
+     top, and the seasons under them.  A press on an episode opens that
+     episode's details over it. -->
+<dialog id="seasonsDialog"><form method="dialog">
+  <div class="detailshero" id="seasonsHero">
+    <img class="detailsbackdrop" id="seasonsBackdrop" alt="">
+    <button class="detailsx" id="seasonsX" value="close" type="submit"></button>
+    <div class="detailshead">
+      <img class="detailsposter" id="seasonsPoster" alt="">
+      <div class="detailsheading">
+        <h3 id="seriesOpen"></h3>
+        <p class="detailsmeta" id="seasonsCount"></p>
+      </div>
+    </div>
+  </div>
+  <div class="detailsbody">
+    <div class="episodes" id="episodeList"></div>
+  </div>
 </form></dialog>
 
 <script src="/js/core.js"></script>
@@ -338,10 +395,12 @@
 <script src="/js/live-panels.js"></script>
 <script src="/js/metadata.js"></script>
 <script src="/js/dashboard.js"></script>
+<script src="/js/shelf-tools.js"></script>
 <script src="/js/films.js"></script>
 <script src="/js/series.js"></script>
 <script src="/js/continue.js"></script>
 <script src="/js/marking.js"></script>
+<script src="/js/cards.js"></script>
 <script src="/js/start.js"></script>
 </body>
 </html>
