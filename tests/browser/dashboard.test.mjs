@@ -128,6 +128,20 @@ test("the overview is a key under the playing card that opens the title's detail
   const ratingBox = await groups.first().boundingBox();
   const awardBox = await groups.last().boundingBox();
   assert.ok(awardBox.y >= ratingBox.y + ratingBox.height, "awards are below ratings");
+  for (const group of await groups.all()) {
+    const row = group.locator(".ratings");
+    const rowBox = await row.boundingBox();
+    const firstShield = await row.locator(".rating").first().boundingBox();
+    assert.ok(Math.abs(firstShield.x - rowBox.x) < 1, "shields start at the left edge");
+    assert.equal(await group.evaluate((node) => getComputedStyle(node).borderTopWidth), "0px");
+  }
+  const headingStyles = await page.locator("#detailsRatings h4, #detailsFacts dt, #detailsCast .casthead")
+    .evaluateAll((nodes) => nodes.map((node) => {
+      const style = getComputedStyle(node);
+      return [style.fontSize, style.color, style.fontWeight];
+    }));
+  assert.ok(headingStyles.length > 2);
+  for (const style of headingStyles) assert.deepEqual(style, headingStyles[0], "details headings match");
   await page.locator("#detailsCast img").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
     const image = document.querySelector("#detailsCast img");
