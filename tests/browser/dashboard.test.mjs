@@ -108,7 +108,7 @@ test("the overview is a key under the playing card that opens the title's detail
     height: node.getBoundingClientRect().height,
     radius: getComputedStyle(node).borderRadius
   }));
-  assert.deepEqual(portrait, { width: 112, height: 144, radius: "8px" });
+  assert.deepEqual(portrait, { width: 160, height: 160, radius: "8px" });
   // Verify narrow and wide layouts, including cards beyond the visible edge.
   for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
@@ -122,9 +122,11 @@ test("the overview is a key under the playing card that opens the title's detail
           const picture = card.querySelector(".initial").getBoundingClientRect();
           const name = card.querySelector("strong").getBoundingClientRect();
           const last = card.querySelector(".role:not(:empty)") || card.querySelector("strong");
-          const textCenter = (name.top + last.getBoundingClientRect().bottom) / 2;
-          return Math.abs(top - bounds.top - 12) < 1 &&
-            Math.abs(textCenter - (picture.bottom + bounds.bottom) / 2) < 1;
+          return Math.abs(top - bounds.top) < 1 &&
+            Math.abs(name.top - picture.bottom - 12) < 1 &&
+            Math.abs(name.left - bounds.left) < 1 &&
+            Math.abs(last.getBoundingClientRect().left - bounds.left) < 1 &&
+            getComputedStyle(card).backgroundColor === "rgba(0, 0, 0, 0)";
         })(),
         fits: [...card.querySelectorAll("strong, .role")].every((text) =>
           text.scrollHeight <= text.clientHeight && text.scrollWidth <= text.clientWidth)
@@ -134,7 +136,7 @@ test("the overview is a key under the playing card that opens the title's detail
     assert.equal(rows[1].cards.length, 2);
     assert.deepEqual(await page.locator("#detailsCast .castrow").last().locator(".role").allTextContents(), ["#32386", "#32407"]);
     for (const { cards } of rows) {
-      assert.ok(cards.length && cards.every((card) => card.width === 136));
+      assert.ok(cards.length && cards.every((card) => card.width === 160));
       assert.ok(cards.every((card) => card.height === cards[0].height && card.fits && card.anchored));
     }
     assert.ok(rows.flatMap(({ cards }) => cards).every((card) => card.height < 320), "cards use their content height");

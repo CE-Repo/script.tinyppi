@@ -882,14 +882,14 @@
 }
 .facts dd { margin: 0; font-size: 16px; line-height: 24px; overflow-wrap: anywhere; }
 
-/* Each row shares its tallest card; the complete content block is centred
-   in every card. Names and roles remain free to wrap. */
-.castblock { display: grid; gap: 10px; min-width: 0; }
+/* Square portraits with left-aligned names and roles, on the page itself.
+   Names and roles remain free to wrap. */
+.castblock { display: grid; gap: 12px; min-width: 0; }
 .casthead { margin: 0; font-size: 16px; font-weight: 700; line-height: 22px; }
 .castrow {
   display: flex;
   align-items: stretch;
-  gap: 10px;
+  gap: 12px;
   margin: 0;
   padding: 0 0 4px;
   list-style: none;
@@ -916,16 +916,13 @@
 .castrow.fade-end { --fade-end: 64px; }
 .castrow li {
   box-sizing: border-box;
-  flex: 0 0 136px;
+  flex: 0 0 160px;
   min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: center;
-  padding: 12px 12px 0;
-  border-radius: var(--radius);
-  background: var(--panel-2);
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
 }
 .castrow .initial img {
   position: absolute;
@@ -939,8 +936,8 @@
   overflow: hidden;
   display: grid;
   place-items: center;
-  width: 112px;
-  height: 144px;
+  width: 160px;
+  height: 160px;
   flex-shrink: 0;
   border-radius: 8px;
   background: var(--tonal);
@@ -953,16 +950,16 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  justify-content: center;
-  gap: 6px;
+  justify-content: flex-start;
+  gap: 4px;
   width: 100%;
-  padding: 12px 0;
+  padding: 12px 0 0;
 }
 .castrow strong {
   display: block;
   width: 100%;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 20px;
   overflow-wrap: anywhere;
 }
