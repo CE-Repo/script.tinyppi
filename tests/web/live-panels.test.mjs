@@ -221,9 +221,11 @@ test("the overview is a key under what is playing that opens the title's details
   // Not on a box that takes no orders, which hands out no details.
   P.update(snap({ media: { plot: "Paul joins the Fremen.", item: { kind: "movie", id: 7 } } }));
   assert.ok(card.classList.contains("hidden"));
-  // Nothing of the title in it: its heading alone.
+  P.strings({ ...window.TinyPPI.T, plot: "Über den Film", plot_episode: "Über die Folge", details: "Details", player: "Wiedergabe" });
+  // Its heading follows the playing content.
   P.update(snap({ control: true, media: { plot: "Paul joins the Fremen.", item: { kind: "movie", id: 7 } } }));
   assert.equal(card.classList.contains("hidden"), false);
+  assert.equal($("plotTitle").textContent, "Über den Film");
   assert.deepEqual([...card.children].map((node) => node.id), ["plotTitle"]);
   // A press opens the playing title's details, where the page has them.
   const opened = [];
@@ -235,6 +237,9 @@ test("the overview is a key under what is playing that opens the title's details
   // has none.
   P.update(snap({ control: true, media: { item: { kind: "episode", id: 70 } } }));
   assert.equal(card.classList.contains("hidden"), false);
+  assert.equal($("plotTitle").textContent, "Über die Folge");
+  P.strings({ ...window.TinyPPI.T, plot: "About the film", plot_episode: "About the episode" });
+  assert.equal($("plotTitle").textContent, "About the episode");
   for (const item of [undefined, {}, { kind: "channel", id: 3 }, { kind: "movie", id: 0 }]) {
     P.update(snap({ control: true, media: { plot: "A plot.", item } }));
     assert.ok(card.classList.contains("hidden"), JSON.stringify(item));
@@ -246,8 +251,8 @@ test("the overview is a key under what is playing that opens the title's details
   P.update({ playing: false });
   assert.ok(card.classList.contains("hidden"));
   // Named by the strings, and says what a press does.
-  P.strings({ ...window.TinyPPI.T, plot: "Überblick", details: "Details", player: "Wiedergabe" });
-  assert.equal($("plotTitle").textContent, "Überblick");
+  P.strings({ ...window.TinyPPI.T, plot: "Über den Film", plot_episode: "Über die Folge", details: "Details", player: "Wiedergabe" });
+  assert.equal($("plotTitle").textContent, "Über den Film");
   assert.equal($("playerTitle").textContent, "Wiedergabe");
   assert.equal(card.title, "Details");
 });
@@ -1191,7 +1196,7 @@ test("rating names open on click or keyboard, stay inside the viewport and close
 });
 
 
-test("a row of cards fades out at a side it goes on past, and not at an end it has reached", async (t) => {
+test("a row of cards stays opaque at the start middle and end of scrolling", async (t) => {
   const { P, window } = panels(t);
   const row = P.cast({ cast: [{ name: "An Actor" }, { name: "Another" }] })[1];
   window.document.body.append(row);
@@ -1200,15 +1205,14 @@ test("a row of cards fades out at a side it goes on past, and not at an end it h
   Object.defineProperty(row, "clientWidth", { configurable: true, value: 300 });
   Object.defineProperty(row, "scrollLeft", { configurable: true, get: () => at.left });
   const fades = () => ["fade-start", "fade-end"].filter((name) => row.classList.contains(name));
-  // Measured once it is on the page.
   await new Promise((resolve) => window.requestAnimationFrame(() => setTimeout(resolve, 0)));
-  assert.deepEqual(fades(), ["fade-end"]);
+  assert.deepEqual(fades(), []);
   at.left = 150;
   row.dispatchEvent(new window.Event("scroll"));
-  assert.deepEqual(fades(), ["fade-start", "fade-end"]);
+  assert.deepEqual(fades(), []);
   at.left = 300;
   row.dispatchEvent(new window.Event("scroll"));
-  assert.deepEqual(fades(), ["fade-start"]);
+  assert.deepEqual(fades(), []);
   // A row as wide as its cards, after the phone is turned: no fade at all.
   Object.defineProperty(row, "scrollWidth", { configurable: true, value: 300 });
   at.left = 0;

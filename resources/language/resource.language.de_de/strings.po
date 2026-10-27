@@ -1488,8 +1488,8 @@ msgid "Show chapter markers"
 msgstr "Kapitelmarken anzeigen"
 
 msgctxt "#32370"
-msgid "Overview"
-msgstr "Überblick"
+msgid "About the film"
+msgstr "Über den Film"
 
 msgctxt "#32372"
 msgid "My rating"
@@ -1702,3 +1702,7 @@ msgstr "Player"
 msgctxt "#32433"
 msgid "%s episodes"
 msgstr "%s Episoden"
+
+msgctxt "#32434"
+msgid "About the episode"
+msgstr "Über die Folge"

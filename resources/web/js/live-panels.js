@@ -190,6 +190,7 @@
   let lastFinish = "";   /* the clock that label belongs in front of         */
   let idleFetched = false;  /* the ended title's events, asked for once      */
   let idleReset = false;    /* the panels have been put away once already    */
+  let plotWords = { film: "", episode: "" };
   let plotItem = null;      /* the library title the overview opens         */
 
   TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
@@ -277,6 +278,11 @@
     const known = control && (item.kind === "movie" || item.kind === "episode") && item.id > 0;
     plotItem = known ? { kind: item.kind, id: item.id, title } : null;
     el.plotCard.classList.toggle("hidden", !known);
+    renderPlotTitle();
+  }
+
+  function renderPlotTitle() {
+    $("plotTitle").textContent = plotItem?.kind === "episode" ? plotWords.episode : plotWords.film;
   }
 
   /* A press on it opens the title's details, where the page has them. */
@@ -364,9 +370,6 @@
       more.textContent = "\u2026";
       row.append(more);
     }
-    row.addEventListener("scroll", () => fadeRow(row), { passive: true });
-    /* Measured once it is on the page, which is after this returns. */
-    requestAnimationFrame(() => fadeRow(row));
     mouseScroll(row);
     return [heading, row];
   }
@@ -390,20 +393,6 @@
       });
     }
   }
-
-  /* A row of cards fades out at a side it goes on past, the way the app's
-     filter row does, so the card at the edge runs out softly rather than
-     being cut off -- and the fade says there is more that way.  Nothing at a
-     side the row has reached the end of. */
-  function fadeRow(row) {
-    const end = row.scrollWidth - row.clientWidth;
-    row.classList.toggle("fade-start", row.scrollLeft > 1);
-    row.classList.toggle("fade-end", row.scrollLeft < end - 1);
-  }
-  /* A turned phone is a row of another width. */
-  window.addEventListener("resize", () => {
-    for (const row of document.querySelectorAll(".castrow")) fadeRow(row);
-  });
 
   /* What a rating's mark is drawn from, and what a screen reader calls the
      house it is from: brand names, the same in every language.  The marks
@@ -1065,7 +1054,8 @@
     /* The bar may already be drawn by the time the words for it arrive; the
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
-    $("plotTitle").textContent = T.plot;
+    plotWords = { film: T.plot, episode: T.plot_episode };
+    renderPlotTitle();
     $("playerTitle").textContent = T.player;
     el.plotCard.title = T.details;
     $("tilesTitle").textContent = T.metrics;

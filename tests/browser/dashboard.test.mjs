@@ -83,7 +83,7 @@ test("the overview is a key under the playing card that opens the title's detail
   const [now, card] = await Promise.all(
     ["#nowCard", "#plotCard"].map((selector) => page.locator(selector).boundingBox()));
   assert.ok(card.y > now.y + now.height - 1, "under the playing card");
-  // Its heading alone: nothing of the title in it.
+  // Its content-specific heading alone.
   assert.equal(await page.locator("#plotCard").innerText(), "#32370");
   await page.locator("#plotCard").click();
   await page.waitForSelector("#detailsDialog[open]");
@@ -97,6 +97,28 @@ test("the overview is a key under the playing card that opens the title's detail
   const heights = await page.$$eval("#detailsRatings .rating",
     (nodes) => nodes.map((node) => node.getBoundingClientRect().height));
   assert.ok(heights.length && heights.every((height) => height === 28));
+  // Nominations retain the award colour at the edge; their plate stays dimmer.
+  const awardEdges = await page.evaluate(() => {
+    const row = document.createElement("div");
+    row.className = "ratings";
+    document.body.append(row);
+    const result = ["oscar", "globe", "bafta", "emmy"].map((award) => {
+      const badge = document.createElement("span");
+      badge.className = "rating award";
+      badge.innerHTML = '<span class="side award_' + award + '"></span>';
+      row.append(badge);
+      const won = getComputedStyle(badge).boxShadow;
+      badge.className = "rating nominee";
+      return { award, won, nominee: getComputedStyle(badge).boxShadow,
+        plate: getComputedStyle(badge.firstChild).opacity };
+    });
+    row.remove();
+    return result;
+  });
+  for (const badge of awardEdges) {
+    assert.equal(badge.nominee, badge.won, badge.award + " keeps its coloured border");
+    assert.equal(badge.plate, "0.6", badge.award + " still marks nominations");
+  }
   await page.locator("#detailsCast img").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
     const image = document.querySelector("#detailsCast img");
@@ -108,11 +130,12 @@ test("the overview is a key under the playing card that opens the title's detail
     height: node.getBoundingClientRect().height,
     radius: getComputedStyle(node).borderRadius
   }));
-  assert.deepEqual(portrait, { width: 112, height: 144, radius: "8px" });
+  assert.deepEqual(portrait, { width: 160, height: 160, radius: "8px" });
   // Verify narrow and wide layouts, including cards beyond the visible edge.
   for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     const rows = await page.locator("#detailsCast .castrow").evaluateAll((nodes) => nodes.map((row) => ({
+      mask: getComputedStyle(row).maskImage,
       cards: [...row.querySelectorAll("li:not(.more)")].map((card) => ({
         width: card.getBoundingClientRect().width,
         height: card.getBoundingClientRect().height,
@@ -122,9 +145,11 @@ test("the overview is a key under the playing card that opens the title's detail
           const picture = card.querySelector(".initial").getBoundingClientRect();
           const name = card.querySelector("strong").getBoundingClientRect();
           const last = card.querySelector(".role:not(:empty)") || card.querySelector("strong");
-          const textCenter = (name.top + last.getBoundingClientRect().bottom) / 2;
-          return Math.abs(top - bounds.top - 12) < 1 &&
-            Math.abs(textCenter - (picture.bottom + bounds.bottom) / 2) < 1;
+          return Math.abs(top - bounds.top) < 1 &&
+            Math.abs(name.top - picture.bottom - 12) < 1 &&
+            Math.abs(name.left - bounds.left) < 1 &&
+            Math.abs(last.getBoundingClientRect().left - bounds.left) < 1 &&
+            getComputedStyle(card).backgroundColor === "rgba(0, 0, 0, 0)";
         })(),
         fits: [...card.querySelectorAll("strong, .role")].every((text) =>
           text.scrollHeight <= text.clientHeight && text.scrollWidth <= text.clientWidth)
@@ -133,8 +158,9 @@ test("the overview is a key under the playing card that opens the title's detail
     assert.equal(rows.length, 2, "crew share one row below the actors");
     assert.equal(rows[1].cards.length, 2);
     assert.deepEqual(await page.locator("#detailsCast .castrow").last().locator(".role").allTextContents(), ["#32386", "#32407"]);
-    for (const { cards } of rows) {
-      assert.ok(cards.length && cards.every((card) => card.width === 136));
+    for (const { cards, mask } of rows) {
+      assert.equal(mask, "none", "credit rows have no edge fade");
+      assert.ok(cards.length && cards.every((card) => card.width === 160));
       assert.ok(cards.every((card) => card.height === cards[0].height && card.fits && card.anchored));
     }
     assert.ok(rows.flatMap(({ cards }) => cards).every((card) => card.height < 320), "cards use their content height");

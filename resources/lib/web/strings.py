@@ -135,6 +135,7 @@ _UI_STRINGS = {
     # The overview card under what is playing: its title, and what its
     # rating marks say to a screen reader.
     "plot":             32370,
+    "plot_episode":     32434,
     "my_rating":        32372,
     "top250":           32373,
     # What an award's shield says it won or was nominated for, in figures.

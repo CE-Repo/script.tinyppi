@@ -1488,8 +1488,8 @@ msgid "Show chapter markers"
 msgstr "显示章节标记"
 
 msgctxt "#32370"
-msgid "Overview"
-msgstr "概览"
+msgid "About the film"
+msgstr "关于电影"
 
 msgctxt "#32372"
 msgid "My rating"
@@ -1702,3 +1702,7 @@ msgstr "播放器"
 msgctxt "#32433"
 msgid "%s episodes"
 msgstr "%s 集"
+
+msgctxt "#32434"
+msgid "About the episode"
+msgstr "关于剧集"
