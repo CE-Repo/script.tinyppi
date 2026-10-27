@@ -68,7 +68,7 @@ a few settings sit among the dashboard's strings because they arrived with it.
 |---|---|
 | 32000 – 32200 | The **settings dialog**, category by category: General, TinyPPI overlay, DV metadata, codec logos, VS10 dialog, channels, the dashboard and the color picker |
 | 32201 – 32273 | What the add-on's own code shows: the color picker and its color names, the **overlay**'s start-up messages and labels, and the **Dolby Vision metadata view** |
-| 32274 – 32433 | The **web dashboard** (sent to the page by `resources/lib/web/strings.py`), with the dashboard's ratings settings (MDBList and WhatsOn keys) |
+| 32274 – 32440 | The **web dashboard** (sent to the page by `resources/lib/web/strings.py`), with the dashboard's ratings and portrait settings (MDBList, WhatsOn and TMDb keys) |
 
 A new string takes the next free ID after the last one in use, which today is
 the dashboard's area at the end of the file. The few IDs left free where a

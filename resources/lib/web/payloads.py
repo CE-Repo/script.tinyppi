@@ -166,8 +166,8 @@ class Credits(TypedDict):
 
 class LibraryItem(TypedDict, total=False):
     """Which library title is playing: "movie" or "episode" and its id, for
-    the page to open its details by; {} for a file the library does not
-    know."""
+    the page to open its details by; "broadcast" without an id for a live
+    channel; {} for a file the library does not know."""
 
     kind: str
     id: int

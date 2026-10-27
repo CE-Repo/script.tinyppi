@@ -190,7 +190,7 @@
   let lastFinish = "";   /* the clock that label belongs in front of         */
   let idleFetched = false;  /* the ended title's events, asked for once      */
   let idleReset = false;    /* the panels have been put away once already    */
-  let plotWords = { film: "", episode: "" };
+  let plotWords = { film: "", episode: "", broadcast: "" };
   let plotItem = null;      /* the library title the overview opens         */
 
   TinyPPI.bindDisclosure(el.tiles, pageState + ".metrics", false);
@@ -230,7 +230,7 @@
     renderArt(snapshot.art || {});
     renderBadges(snapshot);
     renderFormats(snapshot);
-    renderPlot(media, snapshot.title, !!snapshot.control);
+    renderPlot(media, snapshot.title, !!snapshot.control, snapshot.art || {});
 
     const progress = (snapshot.metrics || {}).progress;
     const percent = (progress === null || progress === undefined) ? 0 : progress;
@@ -268,26 +268,43 @@
     el.tFinish.classList.toggle("hidden", !finish);
   }
 
-  /* The overview is there for a title the library holds -- one whose
-     details can be opened -- and a file it does not know has none.  Nor
-     has a box that takes no orders: it does not hand out details either
-     (see _serve_details in web/routes.py), and a key that opens a page
-     saying so would be no key at all. */
-  function renderPlot(media, title, control) {
+  /* The overview opens the playing title's details.  For a title the
+     library holds they are the library's (see _serve_details in
+     web/routes.py) -- on a box that takes orders and whose shelf for the
+     title is on (see detailsOffered in js/dashboard.js), as the box hands
+     them out nowhere else.  For anything else -- a broadcast, a file the
+     library does not know, or a box that hands out no details -- they are
+     what the snapshot says of it: the plot, the ratings and the credits,
+     where it says any (see showSnapshotDetails in js/marking.js). */
+  function renderPlot(media, title, control, art) {
     const item = media.item || {};
-    const known = control && (item.kind === "movie" || item.kind === "episode") && item.id > 0;
-    plotItem = known ? { kind: item.kind, id: item.id, title } : null;
-    el.plotCard.classList.toggle("hidden", !known);
+    const known = control && (item.kind === "movie" || item.kind === "episode") && item.id > 0 &&
+      (!TinyPPI.detailsOffered || TinyPPI.detailsOffered(item.kind));
+    if (known) plotItem = { kind: item.kind, id: item.id, title };
+    else plotItem = told(media) ? { kind: item.kind, title, media, art } : null;
+    el.plotCard.classList.toggle("hidden", !plotItem);
     renderPlotTitle();
   }
 
+  /* Whether the snapshot says anything a details page could show. */
+  function told(media) {
+    return !!(media.plot || "").trim() || ratingBadges(media, TinyPPI.T).length > 0 ||
+      ["directors", "writers", "cast"].some((key) => (media[key] || []).length > 0);
+  }
+
+  /* Named for what is playing: a film, an episode, or a live channel's
+     programme. */
   function renderPlotTitle() {
-    $("plotTitle").textContent = plotItem?.kind === "episode" ? plotWords.episode : plotWords.film;
+    const kind = plotItem?.kind;
+    $("plotTitle").textContent = kind === "episode" ? plotWords.episode
+      : kind === "broadcast" ? plotWords.broadcast : plotWords.film;
   }
 
   /* A press on it opens the title's details, where the page has them. */
   el.plotCard.addEventListener("click", () => {
-    if (plotItem && TinyPPI.openDetails) TinyPPI.openDetails(plotItem);
+    if (!plotItem) return;
+    const open = plotItem.media ? TinyPPI.openSnapshotDetails : TinyPPI.openDetails;
+    if (open) open(plotItem);
   });
 
   /* --- a title's facts and cast ----------------------------------------
@@ -1056,7 +1073,7 @@
     /* The bar may already be drawn by the time the words for it arrive; the
        reading is there either way, and this puts the label in front of it. */
     renderFinish(lastFinish);
-    plotWords = { film: T.plot, episode: T.plot_episode };
+    plotWords = { film: T.plot, episode: T.plot_episode, broadcast: T.plot_broadcast };
     renderPlotTitle();
     $("playerTitle").textContent = T.player;
     el.plotCard.title = T.details;

@@ -74,7 +74,7 @@ Start-up information for the page. No token, no player state.
 |---|---|
 | `auth_read` | Whether *this request* would need the token to read (setting, client beyond the home network, or untrusted host). |
 | `control` | **Allow VS10 switching from the dashboard**. |
-| `library` / `series` | Whether the film / series shelves are offered (each needs its setting **and** `control`). |
+| `library` / `series` | Whether the film / series shelves are offered (each needs its setting **and** `control`), and with them a film's / an episode's or show's details (`/api/details`). The dashboard and the TinyPPI app hide a shelf that is off, and the overview's key to the details of a title on it. |
 | `interval_ms` | How often a watched snapshot is rebuilt (200 ms). |
 
 ### `GET /api/state`
@@ -97,7 +97,7 @@ While something plays the snapshot contains, among others:
 | `metadata` | The Dolby Vision metadata list (only for Dolby Vision, with **Show the Dolby Vision metadata view** on). |
 | `vs10` | `{"options": [{"mode", "label"}], "output": "…"}` — the switchable modes for this source and the current output. |
 | `art` | Tags of the playing title's artwork (used in `/api/art` URLs). |
-| `media` | `year`, `genre` (its first two), `show`, `season`, `episode`; and for the overview: `tagline`, `plot` (markup stripped, line breaks kept), `ratings` (`[{source, rating, votes}]`, each out of ten, the known sources first), `mpaa` (the age rating as written), `age` and `age_level` (its mark, e.g. `fsk12`, and level, e.g. `12`; empty where it has no mark), `userrating` (1–10, 0 for none), `top250` (0 for none), `genres` (every one), `directors` (every one), `writers` (every one), `cast` (its first 20) with `cast_more` and `roles` (who each played, `""` where the library names nobody; read off `VideoPlayer.CastAndRole` in Kodi's language), `studios` (the first), and `item` — which library title it is, `{"kind": "movie"|"episode", "id"}`, for its details to be opened by (`/api/details`); `{}` for a file the library does not know. |
+| `media` | `year`, `genre` (its first two), `show`, `season`, `episode`; and for the overview: `tagline`, `plot` (markup stripped, line breaks kept), `ratings` (`[{source, rating, votes}]`, each out of ten, the known sources first), `mpaa` (the age rating as written), `age` and `age_level` (its mark, e.g. `fsk12`, and level, e.g. `12`; empty where it has no mark), `userrating` (1–10, 0 for none), `top250` (0 for none), `genres` (every one), `directors` (every one), `writers` (every one), `cast` (its first 20) with `cast_more` and `roles` (who each played, `""` where the library names nobody; read off `VideoPlayer.CastAndRole` in Kodi's language), `studios` (the first), and `item` — which library title it is, `{"kind": "movie"|"episode", "id"}`, for its details to be opened by (`/api/details`); `{"kind": "broadcast"}` (no id) for a live TV or radio channel; `{}` for a file the library does not know. |
 | `controls` | What the remote can offer: audio tracks, subtitles, chapters, the audio and subtitle offsets (`audio_delay`, `subtitle_delay`, seconds; `null` where Kodi reports none) … |
 | `session` | `{seq, switches, warnings}` — when `seq` changes, re-read `/api/history`. |
 | `library` | The library version; when it changes, re-read the shelves. |
@@ -224,8 +224,8 @@ of `season`s. Each kind needs its shelf's setting and **Allow VS10 switching
 from the dashboard** (`403 library disabled`); an unknown title is
 `404 no such title`.
 
-A cast member's optional `thumbnail` is an opaque portrait tag, not a source
-URL. It is present only when Kodi supplies a non-empty thumbnail path.
+A cast member's optional `thumbnail` is an opaque portrait tag (16 hex
+digits), not a source URL. It is present only when Kodi supplies a non-empty thumbnail path.
 Request `/api/art?kind=thumb&portrait=<thumbnail>&v=<thumbnail>` to load it.
 Clients should keep an initial or another placeholder if the field is absent
 or the image request fails; older servers omit the field.
@@ -303,7 +303,7 @@ Body: `{"action": "<action>", "value": <value>}`.
 | `subtitle` | index 0 … 64, or −1 | Select and enable a subtitle; −1 turns subtitles off. |
 | `subtitles` | `true` / `false` | Show or hide the selected subtitle. |
 | `audio_delay` | seconds, −10 … 10 | Set the audio offset (rounded to Kodi's 25 ms steps). |
-| `subtitle_delay` | seconds, −60 … 60 | Set the subtitle offset, in Kodi's 100 ms steps; each step shows Kodi's own slider on the TV for a moment (there is no JSON-RPC method for it). |
+| `subtitle_delay` | seconds, −60 … 60 | Set the subtitle offset, in Kodi's 100 ms steps; each step shows Kodi's own slider on the TV for a moment (there is no JSON-RPC method for it). One request moves at most 60 s; requests run one after another. |
 
 ```bash
 curl -X POST -H 'X-TinyPPI-Token: ABCD2345' -H 'Content-Type: application/json' \

@@ -13,6 +13,7 @@ that takes longer has the library's ratings this time and theirs the next,
 from what they keep.
 """
 
+import hashlib
 import time
 from collections import OrderedDict
 from threading import Lock
@@ -76,8 +77,13 @@ def portrait_path(tag: str) -> str:
 
 
 def _portrait(path: str) -> str:
-    """Keep a bounded set of portrait paths for the authenticated artwork route."""
-    tag = common.tag(path)
+    """Keep a bounded set of portrait paths for the authenticated artwork route.
+
+    Tagged by 64 bits of the path rather than the shelves' 32 (``common.tag``):
+    the tag is the only key a portrait is found by, and among thousands of
+    them a 32-bit one would now and then hand out somebody else's face.
+    """
+    tag = hashlib.blake2b(path.encode("utf-8", "replace"), digest_size=8).hexdigest()
     with _PORTRAITS_LOCK:
         _PORTRAITS[tag] = path
         _PORTRAITS.move_to_end(tag)
@@ -108,7 +114,7 @@ def details(kind: str, item_id: Unchecked) -> Details | None:
     _watching(found, row, kind)
     _people(found, row)
     _missing_portraits(found, row, kind)
-    _formats(found, row)
+    common.add_formats(found, row.get("streamdetails"))
     _pictures(found, row, _PICTURES[kind])
     return found
 
@@ -249,19 +255,6 @@ def _pictures(found: Details, row: Json,
         path = common.picture(pictures, keys)
         if path:
             found[kind] = common.tag(path)  # type: ignore[literal-required]
-
-
-def _formats(found: Details, row: Json) -> None:
-    """Add the formats of a film's or an episode's file."""
-    formats = common.formats(row.get("streamdetails"))
-    if "video" in formats:
-        found["video"] = formats["video"]
-    if "dv_profile" in formats:
-        found["dv_profile"] = formats["dv_profile"]
-    if "resolution" in formats:
-        found["resolution"] = formats["resolution"]
-    if "audio" in formats:
-        found["audio"] = formats["audio"]
 
 
 def _watching(found: Details, row: Json, kind: str) -> None:

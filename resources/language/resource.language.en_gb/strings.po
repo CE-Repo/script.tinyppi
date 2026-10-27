@@ -1726,3 +1726,7 @@ msgstr ""
 msgctxt "#32439"
 msgid "Optional: fill missing cast, director and writer portraits from TMDb in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
 msgstr ""
+
+msgctxt "#32440"
+msgid "About the programme"
+msgstr ""

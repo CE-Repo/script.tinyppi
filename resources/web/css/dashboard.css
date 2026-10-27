@@ -640,6 +640,36 @@
 @media (max-width: 620px) {
   #detailsDialog.away, #seasonsDialog.away { opacity: 1; transform: translateX(100%); }
 }
+/* A title's details on their way (see waitingForDetails in js/marking.js):
+   the box may wait a few seconds on the rating services, so a bar runs
+   along the top of the window -- shown only after a moment, so an answer
+   that comes at once does not flash it.  Drawn on a show's open seasons as
+   well, which stand over the page (an episode's details are asked from
+   there). */
+html.detailsloading { cursor: progress; }
+html.detailsloading body::before,
+html.detailsloading #seasonsDialog[open]::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 1000;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent) 0 0 / 40% 100% no-repeat;
+  opacity: 0;
+  animation: detailsloading 1.2s linear 0.2s infinite;
+}
+@keyframes detailsloading {
+  from { opacity: 1; background-position: -70% 0; }
+  to   { opacity: 1; background-position: 170% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.detailsloading body::before,
+  html.detailsloading #seasonsDialog[open]::before {
+    animation: none;
+    opacity: 1;
+    background-size: 100% 100%;
+  }
+}
 html:has(#detailsDialog[open]) #seasonsDialog::backdrop {
   background: transparent;
   backdrop-filter: none;
@@ -899,8 +929,11 @@ html:has(#seasonsDialog[open]), body:has(#seasonsDialog[open]) {
   background: linear-gradient(to bottom, color-mix(in srgb, var(--panel) 15%, transparent) 0%,
                               color-mix(in srgb, var(--panel) 55%, transparent) 50%, var(--panel) 100%);
 }
-/* Without a backdrop the heading stands on the plain panel. */
-.detailshero.bare { min-height: 0; padding-top: 44px; }
+/* Without a backdrop the heading stands on the plain panel.  As tall as the
+   heading and no less (min-height: auto, not 0): the page is a grid, and a
+   page taller than the screen would otherwise squeeze the heading off its
+   top. */
+.detailshero.bare { min-height: auto; padding-top: 44px; }
 .detailshero.bare::after { display: none; }
 .detailshead {
   position: relative;

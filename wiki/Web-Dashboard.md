@@ -150,10 +150,19 @@ A card under *Now playing* that is nothing but its heading and an arrow — a
 key. A click or tap on it opens the playing title's
 [details page](#play-resume-and-watched-marks): its ratings as shields, the
 slogan and the plot, genre, director, writer and studio, and the cast as a row
-of cards. The page has no play keys there — the title is already playing. The
-card is drawn for a film or an episode the library holds, on a box that takes
-orders (**Allow VS10 switching from the dashboard**, which the details need);
-a file the library does not know has no details, and no card.
+of cards. The page has no play keys there — the title is already playing.
+
+For a film or an episode the library holds, on a box that takes orders
+(**Allow VS10 switching from the dashboard**) and whose shelf for the title is
+on — the film shelf for a film, the series shelf for an episode, as
+`/api/hello` says — the page is the library's (`/api/details`). For anything
+else — a **live TV** broadcast, a file the library does not know, or a box that
+hands out no details — it shows what the snapshot says of what is playing: the
+plot from the EPG or the file's tags, the ratings, and who made it and is in it,
+each of the cast with who they played. Where the snapshot says nothing of it
+either, there is no card. The TinyPPI app follows the same rule. The card is
+named for what plays: *About the film*, *About the episode*, or for a live
+channel *About the programme*.
 
 The shields on the details page:
 
@@ -505,12 +514,17 @@ its details the same way.
   (*Darsteller* in German). Directors and writers follow in a separate row
   headed *Cast*, with their functions under their names. A portrait supplied
   by Kodi appears at the top as a large rectangle with slightly rounded
-  corners. No additional image-service key is needed. Without a picture,
+  corners. Where Kodi has none, an optional **TMDb API key** (see
+  [Settings Reference](Settings-Reference)) fills it from the title's own
+  credits on TMDb; without the key nothing is asked. Without a picture,
   or if it cannot be loaded, the initial stands
   in its place. Names and roles are centred together between the picture's
   lower edge and the card's bottom. Cards stretch to the same height within
   a row; their height follows the text rather than a fixed pixel value.
   Names and roles can wrap. The TinyPPI app uses the same arrangement.
+- **While it is read** a thin bar runs along the top of the window (and the
+  pointer shows it is busy): the box may wait a few seconds on MDBList,
+  WhatsOn and TMDb before it answers.
 - A page gone back to within a minute is drawn at once from what was read,
   rather than after the box answers again.
 

@@ -576,9 +576,21 @@ test("a title's page asked for again within a minute is drawn from what was read
     answer(view, "cancel");
     await settle();
   };
-  await ask();
+  // While the box is asked, the page says so; drawn from what was read, it
+  // has nothing to wait for.
+  const root = view.window.document.documentElement;
+  tile(view, "Andor").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  assert.equal(root.classList.contains("detailsloading"), true);
+  await settle();
+  assert.equal(root.classList.contains("detailsloading"), false);
+  answer(view, "cancel");
+  await settle();
   const read = reads(view, "/api/details");
-  await ask();
+  tile(view, "Andor").dispatchEvent(new view.window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  assert.equal(root.classList.contains("detailsloading"), false);
+  await settle();
+  answer(view, "cancel");
+  await settle();
   assert.equal(reads(view, "/api/details"), read);
   view.clock.tick(60000);
   await ask();

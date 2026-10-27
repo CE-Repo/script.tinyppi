@@ -478,6 +478,41 @@ test("a late details response cannot replace the newer title", async (t) => {
   assert.equal(view.$("detailsTitle").textContent, "New");
 });
 
+test("a broadcast's details are drawn from the snapshot, asking the box nothing", async (t) => {
+  const view = await open(t);
+  const asked = view.requests.filter((request) => request.url.startsWith("/api/details")).length;
+  await view.window.TinyPPI.openSnapshotDetails({
+    title: "Tagesschau", art: { poster: "p1" },
+    media: { plot: "Die Nachrichten.", year: 2026, genres: ["News"],
+             directors: ["Ann Regie"], cast: ["Jens Riewa", "Judith Rakers"], roles: ["Sprecher"],
+             ratings: [{ source: "imdb", rating: 6.5 }] } });
+  await settle();
+  assert.equal(view.requests.filter((request) => request.url.startsWith("/api/details")).length, asked);
+  assert.equal(view.$("detailsDialog").open, true);
+  assert.equal(view.$("detailsTitle").textContent, "Tagesschau");
+  assert.equal(view.$("detailsMeta").textContent, "2026");
+  assert.equal(view.$("detailsPlot").textContent, "Die Nachrichten.");
+  // The playing title's pictures, asked for without an id.
+  assert.equal(view.$("detailsPoster").getAttribute("src"), "/api/art?kind=poster&v=p1");
+  assert.equal(view.$("detailsBackdrop").hidden, true);
+  // Each of the cast with who they played, "" where the snapshot says nobody.
+  const cast = [...view.$("detailsCast").querySelectorAll(".castrow li")].map((item) =>
+    [item.querySelector("strong").textContent, item.querySelector(".role").textContent]);
+  assert.deepEqual(cast.slice(0, 2), [["Jens Riewa", "Sprecher"], ["Judith Rakers", ""]]);
+  assert.ok(view.$("detailsRatings").children.length > 0);
+  // Already playing: no keys to play or mark it.
+  assert.equal(view.$("detailsActions").hidden, true);
+});
+
+test("a snapshot that names no cast, roles or pictures still draws its page", async (t) => {
+  const view = await open(t);
+  await view.window.TinyPPI.openSnapshotDetails({ title: "Kanal 1", art: {}, media: { plot: "Live." } });
+  await settle();
+  assert.equal(view.$("detailsPlot").textContent, "Live.");
+  assert.equal(view.$("detailsPoster").hidden, true);
+  assert.equal(view.$("detailsCast").children.length, 0);
+});
+
 test("reopening a closing page reverses its exit without jumping offscreen", async (t) => {
   const view = await open(t);
   tile(view, "Film 01").click();

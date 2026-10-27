@@ -222,6 +222,8 @@ def test_cast_portraits_are_optional_and_resolved_only_from_kodi():
         {"name": "Third", "thumbnail": "   "},
     ])
     tag = people[0]["thumbnail"]
+    # 64 bits, as long as an artwork tag may be (see _ART_TAG in web/routes.py).
+    assert len(tag) == 16 and int(tag, 16) >= 0
     assert details_module.portrait_path(tag) == "image://portrait/"
     assert details_module.portrait_path("https://arbitrary.example/file") == ""
     assert "thumbnail" not in people[1] and "thumbnail" not in people[2]

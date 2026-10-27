@@ -23,6 +23,26 @@ let detailing = null;
    Forgotten at once whenever the library is written to (see reread). */
 const detailsRead = new Map();
 const DETAILS_KEEP_MS = 60000;
+/* How many details reads are out.  The box may wait a few seconds on
+   MDBList, WhatsOn and TMDb before it answers (see web/library/details.py),
+   and the page says it is on its way rather than sitting still (see
+   .detailsloading in css/dashboard.css). */
+let detailsLoading = 0;
+
+/* Keep what a details read answered, letting go of the answers too old to be
+   drawn again, so a long visit does not hold every title it ever opened. */
+function keepDetails(address, found) {
+  const now = Date.now();
+  for (const [held, kept] of detailsRead) {
+    if (now - kept.at >= DETAILS_KEEP_MS) detailsRead.delete(held);
+  }
+  detailsRead.set(address, { found, at: now });
+}
+
+function waitingForDetails(by) {
+  detailsLoading += by;
+  document.documentElement.classList.toggle("detailsloading", detailsLoading > 0);
+}
 
 /* Forget where a film or an episode got to, leaving it seen or unseen as it
    was: it leaves the row of things half-watched, and its bar leaves the wall. */
@@ -132,12 +152,13 @@ function pullToClose(dialog, leave) {
 }
 
 /* The id a details request named, and the address of one of the title's
-   pictures by that id, or "" where it has none. */
+   pictures by that id, or "" where it has none.  Without an id, the playing
+   title's (see showSnapshotDetails). */
 function detailsArt(body, kind, tag) {
   if (!tag) return "";
   const [key] = Object.keys(body);
-  return "/api/art?kind=" + kind + "&" + key + "=" + encodeURIComponent(body[key]) +
-    "&v=" + encodeURIComponent(tag);
+  const named = key ? "&" + key + "=" + encodeURIComponent(body[key]) : "";
+  return "/api/art?kind=" + kind + named + "&v=" + encodeURIComponent(tag);
 }
 
 /* A picture of the details, or none: a picture the box cannot read leaves
@@ -171,14 +192,18 @@ async function showDetails(question, replace) {
   const [key] = Object.keys(question.body);
   const address = "/api/details?" + key + "=" + encodeURIComponent(question.body[key]);
   const kept = detailsRead.get(address);
-  let found = kept && Date.now() - kept.at < DETAILS_KEEP_MS ? kept.found : null;
+  let found = question.found ||
+    (kept && Date.now() - kept.at < DETAILS_KEEP_MS ? kept.found : null);
   if (!found) {
+    waitingForDetails(1);
     try {
       found = await TinyPPI.getJSON(address);
-      detailsRead.set(address, { found, at: Date.now() });
+      keepDetails(address, found);
     } catch (_) {
       TinyPPI.toast(T.details_failed, true);
       found = {};
+    } finally {
+      waitingForDetails(-1);
     }
   }
   if (detailing !== question) return;
@@ -213,7 +238,7 @@ async function showDetails(question, replace) {
   question.watched = found.watched ?? !!question.watched;
   question.resumable = found.resume === undefined ? !!question.resumable : found.resume > 0;
   if (question.onPlay && key !== "tvshowid") question.play = question.resumable ? T.films_resume : T.films_play;
-  el.detailsPlay.dataset.kind = key;
+  el.detailsPlay.dataset.kind = key || "";
   el.detailsError.hidden = true;
   renderDetailsActions(question);
   el.detailsDialog.returnValue = "";
@@ -298,6 +323,21 @@ function tintDialog(dialog, pictures) {
    renderPlot in js/live-panels.js). */
 TinyPPI.openDetails = (item) =>
   showDetails({ title: item.title, body: { [item.kind + "id"]: item.id } });
+
+/* The details of a playing title the box hands out none for -- a broadcast,
+   a file the library does not know -- drawn from what the snapshot says of
+   it, with nothing to ask: the plot, the ratings and the credits, each of
+   the cast with who they played, under the playing title's own pictures.
+   No keys under the heading: it is already playing. */
+function showSnapshotDetails({ title, media, art }) {
+  const roles = media.roles || [];
+  const found = Object.assign({}, media, {
+    cast: (media.cast || []).map((name, index) => ({ name, role: roles[index] || "" })),
+    poster: art.poster || "", fanart: art.fanart || ""
+  });
+  showDetails({ title, body: {}, found });
+}
+TinyPPI.openSnapshotDetails = showSnapshotDetails;
 
 /* Every way a reader leaves a page slides it out: its key, Escape and the
    phone's back gesture (the dialog's cancel), and

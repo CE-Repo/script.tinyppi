@@ -9,6 +9,7 @@ import json
 import math
 import re
 from collections.abc import Callable, Mapping
+from threading import Lock
 
 import xbmc
 from core.log import channel
@@ -304,6 +305,13 @@ _AUDIO_DELAY_STEP     = 0.025
 _AUDIO_DELAY_LIMIT    = 10.0
 _SUBTITLE_DELAY_STEP  = 0.1
 _SUBTITLE_DELAY_LIMIT = 60.0
+# The most steps one subtitle request moves: a minute's worth, from either
+# end of the range back to none.  A move from one end to the other (1200
+# keys, each showing Kodi's slider) stops half-way; the next tap goes on.
+_SUBTITLE_DELAY_MAX_STEPS = 600
+# One subtitle move at a time: each works out its steps from the offset in
+# force, and two taps read at once would both step from the same offset.
+_SUBTITLE_DELAY_LOCK = Lock()
 
 # An offset as the InfoLabels write it: "-0.125 s".
 _OFFSET = re.compile(r"\s*([-+]?\d+(?:\.\d+)?)\s*s?\s*")
@@ -496,12 +504,16 @@ def _subtitle_delay(player_id: int, value: Unchecked) -> bool:
     Worked out from the offset in force, which only the InfoLabel tells.
     """
     target = _number(value, -_SUBTITLE_DELAY_LIMIT, _SUBTITLE_DELAY_LIMIT)
-    current = offset(info("Player.SubtitleDelay"))
-    if target is None or current is None:
+    if target is None:
         return False
-    steps = round((target - current) / _SUBTITLE_DELAY_STEP)
-    action = "subtitledelayplus" if steps > 0 else "subtitledelayminus"
-    return all(_input_action(action) for _ in range(abs(steps)))
+    with _SUBTITLE_DELAY_LOCK:
+        current = offset(info("Player.SubtitleDelay"))
+        if current is None:
+            return False
+        steps = round((target - current) / _SUBTITLE_DELAY_STEP)
+        steps = max(-_SUBTITLE_DELAY_MAX_STEPS, min(_SUBTITLE_DELAY_MAX_STEPS, steps))
+        action = "subtitledelayplus" if steps > 0 else "subtitledelayminus"
+        return all(_input_action(action) for _ in range(abs(steps)))
 
 
 def _subtitles(player_id: int, value: Unchecked) -> bool:

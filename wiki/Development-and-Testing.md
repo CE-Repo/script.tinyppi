@@ -158,13 +158,13 @@ the CI actions up to date.
 | `web/readings.test.mjs` | The now-playing card's format badges (grade, resolution by coded width, IMAX/Atmos/DTS:X marks, the DV profile and layer, conversions) and the history's events (names with fallbacks, values, trends, switch totals) |
 | `web/dashboard.test.mjs` | The dashboard's frame: tabs and the bar, the settings tab, idle and playing cards, detail groups, VS10 switching and its lock, the library reads a snapshot sets off, the report |
 | `web/start.test.mjs` | Starting the page: the first tab, the stream, the words before and after `/api/hello` (also an error answer) |
-| `web/marking.test.mjs` | What a press on a film, show or episode asks and what each answer sends, the lists read again afterwards, failures and the token dialog |
+| `web/marking.test.mjs` | What a press on a film, show or episode asks and what each answer sends, the lists read again afterwards, failures and the token dialog; a playing title's details drawn from the snapshot (a broadcast) |
 | `unit/test_library_details.py` | One title's details: films, series and episodes, the cast in billing order, optional portrait tags and bounded path lookup, the age rating, the formats, unknown kinds and ids |
 | `web/shelves.test.mjs` | The order and the filters over the film and series walls (what each offers, titles without a value last, choices let go), the next-up row and the details view, actors before crew |
 | `web/films.test.mjs` | The film wall, its rows and search, when the list is read again (a move during a read, a failed read after one), starting a film and the wall waiting on it |
 | `web/series.test.mjs` | The series shelf, an opened show with its seasons, the way back (search included), the open show read again (also after a move during a read or while it opens), starting an episode |
 | `web/continue.test.mjs` | The continue-watching rows, when they are read again, resuming a title |
-| `web/live-panels.test.mjs` | The now-playing card, the overview (plot, credits, rating shields and their tooltips, folding), the remote and its track pickers (`js/live-remote.js`), the figures, the event list and the luminance chart (canvas faked) |
+| `web/live-panels.test.mjs` | The now-playing card, the overview (a key to the library's details, or to the snapshot's for a broadcast; rating shields and their tooltips, credits), the remote and its track pickers (`js/live-remote.js`), the figures, the event list and the luminance chart (canvas faked) |
 | `web/metadata.test.mjs` | The Dolby Vision metadata tab: the idle and L5 cards, blocks and trim tables, readings lit when they move, the report |
 | `web/theme.test.mjs` | The themes and the tint strength: before the first paint (the bar color too), the choice on the settings tab, what a press keeps |
 | `web/cover-tint.test.mjs` | The adaptive theme's poster tint (canvas and images faked): the color a poster gives, where it is painted, contrast, one read per poster, a reused `<img>` |

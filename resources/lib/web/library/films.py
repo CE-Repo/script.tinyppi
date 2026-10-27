@@ -108,15 +108,7 @@ def _classify(film: Film, row: Json) -> None:
     genres = common.names(row, "genre")
     if genres:
         film["genres"] = genres
-    found = common.formats(row.get("streamdetails"))
-    if "video" in found:
-        film["video"] = found["video"]
-    if "dv_profile" in found:
-        film["dv_profile"] = found["dv_profile"]
-    if "resolution" in found:
-        film["resolution"] = found["resolution"]
-    if "audio" in found:
-        film["audio"] = found["audio"]
+    common.add_formats(film, row.get("streamdetails"))
 
 
 def play(movie_id: Unchecked, resume: bool = True) -> bool:
