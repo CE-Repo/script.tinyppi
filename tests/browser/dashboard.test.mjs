@@ -113,6 +113,7 @@ test("the overview is a key under the playing card that opens the title's detail
   for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     const rows = await page.locator("#detailsCast .castrow").evaluateAll((nodes) => nodes.map((row) => ({
+      mask: getComputedStyle(row).maskImage,
       cards: [...row.querySelectorAll("li:not(.more)")].map((card) => ({
         width: card.getBoundingClientRect().width,
         height: card.getBoundingClientRect().height,
@@ -135,7 +136,8 @@ test("the overview is a key under the playing card that opens the title's detail
     assert.equal(rows.length, 2, "crew share one row below the actors");
     assert.equal(rows[1].cards.length, 2);
     assert.deepEqual(await page.locator("#detailsCast .castrow").last().locator(".role").allTextContents(), ["#32386", "#32407"]);
-    for (const { cards } of rows) {
+    for (const { cards, mask } of rows) {
+      assert.equal(mask, "none", "credit rows have no edge fade");
       assert.ok(cards.length && cards.every((card) => card.width === 160));
       assert.ok(cards.every((card) => card.height === cards[0].height && card.fits && card.anchored));
     }

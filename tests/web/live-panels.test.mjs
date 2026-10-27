@@ -1191,7 +1191,7 @@ test("rating names open on click or keyboard, stay inside the viewport and close
 });
 
 
-test("a row of cards fades out at a side it goes on past, and not at an end it has reached", async (t) => {
+test("a row of cards stays opaque at the start middle and end of scrolling", async (t) => {
   const { P, window } = panels(t);
   const row = P.cast({ cast: [{ name: "An Actor" }, { name: "Another" }] })[1];
   window.document.body.append(row);
@@ -1200,15 +1200,14 @@ test("a row of cards fades out at a side it goes on past, and not at an end it h
   Object.defineProperty(row, "clientWidth", { configurable: true, value: 300 });
   Object.defineProperty(row, "scrollLeft", { configurable: true, get: () => at.left });
   const fades = () => ["fade-start", "fade-end"].filter((name) => row.classList.contains(name));
-  // Measured once it is on the page.
   await new Promise((resolve) => window.requestAnimationFrame(() => setTimeout(resolve, 0)));
-  assert.deepEqual(fades(), ["fade-end"]);
+  assert.deepEqual(fades(), []);
   at.left = 150;
   row.dispatchEvent(new window.Event("scroll"));
-  assert.deepEqual(fades(), ["fade-start", "fade-end"]);
+  assert.deepEqual(fades(), []);
   at.left = 300;
   row.dispatchEvent(new window.Event("scroll"));
-  assert.deepEqual(fades(), ["fade-start"]);
+  assert.deepEqual(fades(), []);
   // A row as wide as its cards, after the phone is turned: no fade at all.
   Object.defineProperty(row, "scrollWidth", { configurable: true, value: 300 });
   at.left = 0;

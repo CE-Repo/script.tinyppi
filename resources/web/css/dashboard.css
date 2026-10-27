@@ -944,8 +944,7 @@ dialog p.detailsmeta { color: var(--muted); font-size: 13px; }
 .detailsbody { display: grid; gap: 16px; padding: 16px 20px calc(20px + env(safe-area-inset-bottom)); }
 /* The rows of who made it and who is in it run out to the page's edge,
    rather than stopping at the margin the text keeps; the first card still
-   starts on the margin, and the row fades out at the edge it goes on past
-   (see fadeRow in js/live-panels.js). */
+   starts on the margin. Portraits and text stay opaque at both edges. */
 .detailscast .castrow {
   margin: 0 -20px;
   padding: 0 20px 4px;
