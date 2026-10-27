@@ -1304,3 +1304,18 @@ test("cast portraits load lazily and return to the initial on failure", (t) => {
   assert.equal(row.querySelector("img"), null);
   assert.equal(row.querySelector(".initial").textContent, "A");
 });
+
+test("enriched crew retains portraits and localizes role codes", (t) => {
+  const { P } = panels(t);
+  const parts = P.cast({
+    directors: ["Legacy Director"], writers: ["Legacy Writer"],
+    crew: [{ name: "Director", role: "director", thumbnail: "director-tag" },
+      { name: "Writer", role: "writer", thumbnail: "writer-tag" }]
+  });
+  assert.equal(parts.length, 2);
+  assert.deepEqual([...parts[1].children].map((card) => [
+    card.querySelector("strong").textContent, card.querySelector(".role").textContent,
+    card.querySelector("img").getAttribute("src")
+  ]), [["Director", "Director", "/api/art?kind=thumb&portrait=director-tag&v=director-tag"],
+    ["Writer", "Writer", "/api/art?kind=thumb&portrait=writer-tag&v=writer-tag"]]);
+});

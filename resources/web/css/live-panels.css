@@ -682,7 +682,7 @@
 /* Details separate ratings and awards without imposing a fixed shield width. */
 .ratinggroups { display: grid; gap: 24px; min-width: 0; }
 .ratinggroup { display: grid; gap: 12px; min-width: 0; }
-.ratinggroup h4 { margin: 0; color: var(--text); font-size: 16px; font-weight: 700; line-height: 22px; }
+.ratinggroup h4 { margin: 0; color: var(--text); font-size: 20px; font-weight: 700; line-height: 26px; }
 .ratingnote { margin: 0; color: var(--dim); font-size: 12px; line-height: 1.6; }
 /* A shield: the house on the left, on a plate of its own colour, and what
    it gave on the right -- the whole shield washed in that colour and edged
@@ -877,9 +877,9 @@
 .facts { margin: 0; display: grid; gap: 12px; }
 .facts .fact { display: grid; gap: 2px; }
 .facts dt {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 700;
-  line-height: 22px;
+  line-height: 26px;
   color: var(--text);
 }
 .facts dd { margin: 0; font-size: 16px; line-height: 24px; overflow-wrap: anywhere; }
@@ -887,7 +887,7 @@
 /* Square portraits with left-aligned names and roles, on the page itself.
    Names and roles remain free to wrap. */
 .castblock { display: grid; gap: 12px; min-width: 0; }
-.casthead { margin: 0; font-size: 16px; font-weight: 700; line-height: 22px; }
+.casthead { margin: 0; font-size: 20px; font-weight: 700; line-height: 26px; }
 .castrow {
   display: flex;
   align-items: stretch;

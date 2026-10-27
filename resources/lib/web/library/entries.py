@@ -156,6 +156,8 @@ class Details(TypedDict):
     studios: NotRequired[list[str]]
     countries: NotRequired[list[str]]
     cast: NotRequired[list[Person]]
+    # Regie/Drehbuch roles use stable codes: director or writer.
+    crew: NotRequired[list[Person]]
     cast_more: NotRequired[bool]
     # The tags of its pictures (see ``common.tag``), for /api/art.
     poster: NotRequired[str]

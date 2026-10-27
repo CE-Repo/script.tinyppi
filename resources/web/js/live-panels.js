@@ -320,7 +320,9 @@
   }
 
   function castParts(credits, T) {
-    const crew = [
+    const crew = credits.crew ? credits.crew.map((person) => ({
+      ...person, role: person.role === "director" ? T.director : T.writer
+    })) : [
       ...(credits.directors || []).map((name) => ({ name, role: T.director })),
       ...(credits.writers || []).map((name) => ({ name, role: T.writer }))
     ];
