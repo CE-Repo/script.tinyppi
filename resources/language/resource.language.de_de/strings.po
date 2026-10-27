@@ -1706,3 +1706,11 @@ msgstr "%s Episoden"
 msgctxt "#32434"
 msgid "About the episode"
 msgstr "Über die Folge"
+
+msgctxt "#32435"
+msgid "Awards"
+msgstr "Auszeichnungen"
+
+msgctxt "#32436"
+msgid "Dimmed icons indicate nominations."
+msgstr "Abgedunkelte Symbole kennzeichnen Nominierungen."

@@ -132,6 +132,8 @@ _UI_STRINGS = {
     "chapter_marks":    32369,
     # What a screen reader calls the overview card's row of ratings.
     "ratings":          32383,
+    "awards":           32435,
+    "award_hint":       32436,
     # The overview card under what is playing: its title, and what its
     # rating marks say to a screen reader.
     "plot":             32370,

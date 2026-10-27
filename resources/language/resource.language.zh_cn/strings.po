@@ -1706,3 +1706,11 @@ msgstr "%s 集"
 msgctxt "#32434"
 msgid "About the episode"
 msgstr "关于剧集"
+
+msgctxt "#32435"
+msgid "Awards"
+msgstr "奖项"
+
+msgctxt "#32436"
+msgid "Dimmed icons indicate nominations."
+msgstr "暗淡的图标表示提名。"

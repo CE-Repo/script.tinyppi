@@ -1188,8 +1188,38 @@
     return shieldNodes(ratingBadges(media, TinyPPI.T));
   }
 
+  /* Each group owns its heading and accessible list. Empty groups disappear. */
+  function ratingGroups(media) {
+    const T = TinyPPI.T;
+    const badges = ratingBadges(media, T);
+    const awards = badges.filter((badge) => badge.kind === "award" || badge.kind === "nominee");
+    const ratings = badges.filter((badge) => badge.kind !== "award" && badge.kind !== "nominee");
+    const groups = [];
+    for (const [title, entries] of [[T.ratings, ratings], [T.awards, awards]]) {
+      if (!entries.length) continue;
+      const group = document.createElement("section");
+      group.className = "ratinggroup";
+      const heading = document.createElement("h4");
+      heading.textContent = title;
+      const row = document.createElement("div");
+      row.className = "ratings";
+      row.setAttribute("role", "list");
+      row.setAttribute("aria-label", title);
+      row.append(...shieldNodes(entries));
+      group.append(heading, row);
+      if (entries.some((badge) => badge.kind === "nominee")) {
+        const hint = document.createElement("p");
+        hint.className = "ratingnote";
+        hint.textContent = T.award_hint;
+        group.append(hint);
+      }
+      groups.push(group);
+    }
+    return groups;
+  }
+
   window.TinyPPI.panels = {
-    strings, update, events, peak, draw, shields,
+    strings, update, events, peak, draw, shields, ratingGroups,
     facts: (credits) => factNodes(credits, TinyPPI.T),
     cast: (credits) => castParts(credits, TinyPPI.T)
   };

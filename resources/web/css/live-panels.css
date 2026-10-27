@@ -679,6 +679,12 @@
   justify-content: center;
   gap: 8px;
 }
+/* Details separate ratings and awards without imposing a fixed shield width. */
+.ratinggroups { display: grid; gap: 24px; min-width: 0; }
+.ratinggroup { display: grid; gap: 12px; min-width: 0; }
+.ratinggroup + .ratinggroup { padding-top: 20px; border-top: 1px solid var(--line); }
+.ratinggroup h4 { margin: 0; color: var(--text); font-size: 16px; font-weight: 700; line-height: 22px; }
+.ratingnote { margin: 0; color: var(--dim); font-size: 12px; line-height: 1.6; }
 /* A shield: the house on the left, on a plate of its own colour, and what
    it gave on the right -- the whole shield washed in that colour and edged
    in it, so a row of them reads as the houses' colours before a word of it

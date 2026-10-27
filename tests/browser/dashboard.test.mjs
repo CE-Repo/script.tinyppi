@@ -119,6 +119,15 @@ test("the overview is a key under the playing card that opens the title's detail
     assert.equal(badge.nominee, badge.won, badge.award + " keeps its coloured border");
     assert.equal(badge.plate, "0.6", badge.award + " still marks nominations");
   }
+  const groups = page.locator("#detailsRatings .ratinggroup");
+  assert.equal(await groups.count(), 2);
+  assert.deepEqual(await groups.locator("h4").allTextContents(), ["#32383", "#32435"]);
+  assert.equal(await groups.first().locator(".side[class*='award_']").count(), 0);
+  assert.equal(await groups.last().locator(".rating").count(), 2);
+  assert.equal(await groups.last().locator(".ratingnote").innerText(), "#32436");
+  const ratingBox = await groups.first().boundingBox();
+  const awardBox = await groups.last().boundingBox();
+  assert.ok(awardBox.y >= ratingBox.y + ratingBox.height, "awards are below ratings");
   await page.locator("#detailsCast img").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
     const image = document.querySelector("#detailsCast img");

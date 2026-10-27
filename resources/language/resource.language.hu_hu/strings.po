@@ -1706,3 +1706,11 @@ msgstr "%s epizód"
 msgctxt "#32434"
 msgid "About the episode"
 msgstr "Az epizódról"
+
+msgctxt "#32435"
+msgid "Awards"
+msgstr "Díjak"
+
+msgctxt "#32436"
+msgid "Dimmed icons indicate nominations."
+msgstr "A halványított ikonok jelöléseket mutatnak."
