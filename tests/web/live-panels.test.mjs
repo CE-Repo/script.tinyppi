@@ -233,7 +233,7 @@ test("the overview is a key under what is playing that opens the title's details
   card.click();
   window.TinyPPI.openDetails = (item) => opened.push(item);
   card.click();
-  assert.deepEqual(plain(opened), [{ kind: "movie", id: 7, title: "Film" }]);
+  assert.deepEqual(plain(opened), [{ kind: "movie", id: 7, title: "Film", playing: "movie:7" }]);
   // An episode as well; a file the library does not know, or anything else,
   // has none -- with nothing in the snapshot to show either.
   P.update(snap({ control: true, media: { item: { kind: "episode", id: 70 } } }));
@@ -263,7 +263,7 @@ test("the overview is a key under what is playing that opens the title's details
   assert.equal(card.classList.contains("hidden"), false);
   card.click();
   assert.equal(opened.length, 1);
-  assert.deepEqual(plain(told), [{ kind: "movie", title: "Film", art,
+  assert.deepEqual(plain(told), [{ kind: "movie", title: "Film", art, playing: "movie:7",
     media: { plot: "Paul joins the Fremen.", item: { kind: "movie", id: 7 } } }]);
   // A live channel's is its programme's.
   P.update(snap({ art, media: { plot: "News at nine.", item: { kind: "broadcast" } } }));

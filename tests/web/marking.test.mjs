@@ -513,6 +513,59 @@ test("a snapshot that names no cast, roles or pictures still draws its page", as
   assert.equal(view.$("detailsCast").children.length, 0);
 });
 
+test("the playing title's details close once it stops or another starts", async (t) => {
+  const view = await open(t);
+  const heat = { seq: 2, playing: true, control: true, title: "Heat",
+                 media: { plot: "Heat.", item: { kind: "movie", id: 2 } } };
+  await view.state(heat);
+  view.$("plotCard").click();
+  await settle();
+  assert.equal(view.$("detailsDialog").open, true);
+
+  // Paused, it is still the same title.
+  await view.state({ ...heat, seq: 3, paused: true });
+  view.clock.tick(1000);
+  assert.equal(view.$("detailsDialog").open, true);
+
+  // Another title in its place.
+  await view.state({ ...heat, seq: 4, media: { plot: "x", item: { kind: "movie", id: 1 } } });
+  view.clock.tick(1000);
+  assert.equal(view.$("detailsDialog").open, false);
+
+  // A broadcast's, known by its name, once another without one plays.
+  const news = { seq: 5, playing: true, control: true, title: "Tagesschau", media: { plot: "News." } };
+  await view.state(news);
+  view.$("plotCard").click();
+  await settle();
+  assert.equal(view.$("detailsDialog").open, true);
+  await view.state({ seq: 6, playing: true, control: true });
+  view.clock.tick(1000);
+  assert.equal(view.$("detailsDialog").open, false);
+
+  // A page still being read when the title stops never opens.
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const fetch = view.window.fetch;
+  view.window.fetch = async (url, init) => {
+    if (String(url).includes("movieid=5")) await gate;
+    return fetch(url, init);
+  };
+  await view.state({ ...heat, seq: 7, media: { item: { kind: "movie", id: 5 } } });
+  const reading = view.window.TinyPPI.openDetails({ title: "Ronin", kind: "movie", id: 5, playing: "movie:5" });
+  await view.state({ seq: 8, playing: false, control: true });
+  release();
+  await reading;
+  assert.equal(view.$("detailsDialog").open, false);
+
+  // Details opened from a shelf are not about what is playing.
+  await view.state({ ...heat, seq: 9 });
+  tile(view, "Film 01").click();
+  await settle();
+  await view.state({ seq: 10, playing: false, control: true });
+  view.clock.tick(1000);
+  assert.equal(view.$("detailsDialog").open, true);
+});
+
 test("reopening a closing page reverses its exit without jumping offscreen", async (t) => {
   const view = await open(t);
   tile(view, "Film 01").click();

@@ -280,10 +280,22 @@
     const item = media.item || {};
     const known = control && (item.kind === "movie" || item.kind === "episode") && item.id > 0 &&
       (!TinyPPI.detailsOffered || TinyPPI.detailsOffered(item.kind));
-    if (known) plotItem = { kind: item.kind, id: item.id, title };
-    else plotItem = told(media) ? { kind: item.kind, title, media, art } : null;
+    const playing = playingKey({ playing: true, title, media });
+    if (known) plotItem = { kind: item.kind, id: item.id, title, playing };
+    else plotItem = told(media) ? { kind: item.kind, title, media, art, playing } : null;
     el.plotCard.classList.toggle("hidden", !plotItem);
     renderPlotTitle();
+  }
+
+  /* Which title a snapshot says is playing, or null for none: one the
+     library holds by its id, anything else -- a broadcast, a loose file --
+     by its name.  The details opened from the overview are about that title
+     and close once it is no longer playing (see notePlaying in
+     js/marking.js). */
+  function playingKey(snapshot) {
+    if (!snapshot.playing) return null;
+    const item = (snapshot.media || {}).item || {};
+    return item.id > 0 ? item.kind + ":" + item.id : "title:" + (snapshot.title || "");
   }
 
   /* Whether the snapshot says anything a details page could show. */
@@ -1238,7 +1250,7 @@
   }
 
   window.TinyPPI.panels = {
-    strings, update, events, peak, draw, shields, ratingGroups,
+    strings, update, events, peak, draw, shields, ratingGroups, playingKey,
     facts: (credits) => factNodes(credits, TinyPPI.T),
     cast: (credits) => castParts(credits, TinyPPI.T)
   };
