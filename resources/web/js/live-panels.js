@@ -339,15 +339,16 @@
   function factNodes(credits, T) {
     const money = [[T.budget, credits.budget], [T.revenue, credits.revenue]]
       .filter(([, amount]) => amount > 0);
+    const made = credits.revenue - credits.budget;
     const rows = [
       [T.genre, credits.genres], [T.studio, credits.studios], [T.country, credits.countries],
       [T.cinema, credits.cinema && [cinemaDay(credits.cinema) +
         (credits.cinema_country ? " (" + credits.cinema_country + ")" : "")]],
       [money.map(([heading]) => heading).join("/"),
        [money.map(([, amount]) => dollars(amount)).join("/")].filter(Boolean)],
-      /* What it took less what it cost, where both are known: a loss below
-         nothing. */
-      [T.profit, money.length === 2 && [dollars(credits.revenue - credits.budget)]]
+      /* What it took less what it cost, where both are known: its profit,
+         or what it lost under that name. */
+      [made < 0 ? T.loss : T.profit, money.length === 2 && made !== 0 && [dollars(Math.abs(made))]]
     ];
     const nodes = [];
     for (const [heading, names] of rows) {

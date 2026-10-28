@@ -1862,3 +1862,7 @@ msgstr "Vezető hangvágó"
 msgctxt "#32473"
 msgid "Profit"
 msgstr "Nyereség"
+
+msgctxt "#32474"
+msgid "Loss"
+msgstr "Veszteség"

@@ -1862,3 +1862,7 @@ msgstr "مشرف مونتاج الصوت"
 msgctxt "#32473"
 msgid "Profit"
 msgstr "الربح"
+
+msgctxt "#32474"
+msgid "Loss"
+msgstr "الخسارة"

@@ -1862,3 +1862,7 @@ msgstr ""
 msgctxt "#32473"
 msgid "Profit"
 msgstr ""
+
+msgctxt "#32474"
+msgid "Loss"
+msgstr ""

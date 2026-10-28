@@ -1862,3 +1862,7 @@ msgstr "声音剪辑总监"
 msgctxt "#32473"
 msgid "Profit"
 msgstr "利润"
+
+msgctxt "#32474"
+msgid "Loss"
+msgstr "亏损"

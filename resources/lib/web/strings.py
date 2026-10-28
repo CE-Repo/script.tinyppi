@@ -179,6 +179,7 @@ _UI_STRINGS = {
     "revenue":          32443,
     "country":          32444,
     "profit":           32473,
+    "loss":             32474,
     # The heading over the directors and writers on a details page.
     "crew":             32445,
     "close":            32411,

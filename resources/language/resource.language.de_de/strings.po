@@ -1862,3 +1862,7 @@ msgstr "Supervising Sound Editor"
 msgctxt "#32473"
 msgid "Profit"
 msgstr "Profit"
+
+msgctxt "#32474"
+msgid "Loss"
+msgstr "Verlust"
