@@ -115,18 +115,20 @@ def test_movie_show_and_episode_paths(monkeypatch):
     paths = []
     monkeypatch.setattr(tmdb, '_get', lambda path, *args: paths.append(path) or {'cast': []})
     monkeypatch.setattr(tmdb.common, 'rpc', lambda *args: {'result': {'tvshowdetails': {'uniqueid': {'tmdb': '99'}}}})
-    for kind, row in [('movie', {'uniqueid': {'tmdb': '1'}}),
-                      ('tvshow', {'uniqueid': {'tmdb': '2'}}),
+    # A film's credits come with its own facts, in one request.
+    assert tmdb.lookup('movie', {'uniqueid': {'tmdb': '1'}}, 'key') == {'cast': []}
+    for kind, row in [('tvshow', {'uniqueid': {'tmdb': '2'}}),
                       ('episode', {'tvshowid': 3, 'season': 0, 'episode': 1})]:
-        assert tmdb.credits(kind, row, 'key') == {'cast': []}
-    assert paths == ['movie/1/credits', 'tv/2/credits', 'tv/99/season/0/episode/1/credits']
-    assert tmdb.credits('episode', {}, 'key') == {}
-    assert tmdb.credits('episode', {'tvshowid': 3}, 'key') == {}
-    assert tmdb.credits('episode', {'tvshowid': 3, 'season': 1}, 'key') == {}
-    assert tmdb.credits('movie', {}, 'key') == {}
+        assert tmdb.lookup(kind, row, 'key') == {'credits': {'cast': []}}
+    assert paths == ['movie/1?append_to_response=credits,release_dates',
+                     'tv/2/credits', 'tv/99/season/0/episode/1/credits']
+    assert tmdb.lookup('episode', {}, 'key') == {}
+    assert tmdb.lookup('episode', {'tvshowid': 3}, 'key') == {}
+    assert tmdb.lookup('episode', {'tvshowid': 3, 'season': 1}, 'key') == {}
+    assert tmdb.lookup('movie', {}, 'key') == {}
     for answer in [{}, {'result': 'bad'}, {'result': {'tvshowdetails': 'bad'}}]:
         monkeypatch.setattr(tmdb.common, 'rpc', lambda *args, answer=answer: answer)
-        assert tmdb.credits('episode', {'tvshowid': 3}, 'key') == {}
+        assert tmdb.lookup('episode', {'tvshowid': 3}, 'key') == {}
 
 
 def test_role_matching_safe_paths_and_ambiguous_names():
@@ -144,29 +146,88 @@ def test_role_matching_safe_paths_and_ambiguous_names():
     assert tmdb.portraits({'cast': 'bad'}, 'cast') == {}
 
 
+def test_person_ids_are_matched_like_portraits():
+    answer = {'cast': [{'name': 'Zendaya', 'id': 505710}, {'name': 'Zendaya', 'id': 505710},
+                       {'name': 'Twin', 'id': 1}, {'name': 'Twin', 'id': 2},
+                       {'name': 'No id'}, {'name': 'Bad', 'id': '3/x'}, {'name': '', 'id': 4}],
+              'crew': [{'name': 'Denis', 'id': 137427, 'job': 'Director'},
+                       {'name': 'Camera', 'id': 9, 'job': 'Camera'}]}
+    assert tmdb.people(answer, 'cast') == {'zendaya': 505710}
+    assert tmdb.people(answer, 'crew', 'director') == {'denis': 137427}
+
+
+@pytest.mark.parametrize(('value', 'expected'), [
+    (165000000, 165000000), (0, 0), (-5, 0), (True, 0), ('100', 0), (None, 0), (1.5, 0)])
+def test_money(value, expected):
+    assert tmdb.money({'budget': value}, 'budget') == expected
+
+
+def test_cinema_prefers_the_home_countrys_first_run():
+    def country(code, *releases):
+        return {'iso_3166_1': code, 'release_dates': [
+            {'type': kind, 'release_date': date} for kind, date in releases]}
+    answer = {'release_date': '2021-09-15', 'release_dates': {'results': [
+        country('US', (3, '2021-10-22T00:00:00.000Z')),
+        country('DE', (1, '2021-09-03T00:00:00.000Z'), (4, '2021-09-01T00:00:00.000Z'),
+                (3, '2021-09-16T00:00:00.000Z'), (2, '2021-09-14T00:00:00.000Z'),
+                (3, 'soon')),
+        'bad']}}
+    assert tmdb.cinema(answer, 'de') == '2021-09-14'
+    assert tmdb.cinema(answer, 'us') == '2021-10-22'
+    # No run there, or no country to look for: the primary release date.
+    assert tmdb.cinema(answer, 'fr') == '2021-09-15'
+    assert tmdb.cinema(answer, '') == '2021-09-15'
+    assert tmdb.cinema({'release_dates': 'bad', 'release_date': 'x'}, 'de') == ''
+    assert tmdb.cinema({}, 'de') == ''
+
+
 def test_enrichment_preserves_kodi_data_and_registers_only_missing_portraits(monkeypatch):
     monkeypatch.setattr(tmdb, 'api_key', lambda: 'key')
+    monkeypatch.setattr(details_module, 'home_country', lambda: 'de')
     calls = []
-    answer = {'cast': [{'name': 'Actor', 'profile_path': '/actor.jpg'},
-                       {'name': 'Already', 'profile_path': '/replace.jpg'}],
-              'guest_stars': [{'name': 'Guest', 'profile_path': '/guest.jpg'}],
-              'crew': [{'name': 'Director', 'job': 'Director', 'profile_path': '/director.jpg'},
-                       {'name': 'Writer', 'department': 'Writing', 'profile_path': '/writer.jpg'}]}
-    monkeypatch.setattr(tmdb, 'credits', lambda *args: calls.append(args) or answer)
+    credits = {'cast': [{'name': 'Actor', 'profile_path': '/actor.jpg', 'id': 11},
+                        {'name': 'Already', 'profile_path': '/replace.jpg', 'id': 12}],
+               'guest_stars': [{'name': 'Guest', 'profile_path': '/guest.jpg', 'id': 13}],
+               'crew': [{'name': 'Director', 'job': 'Director', 'profile_path': '/director.jpg', 'id': 14},
+                        {'name': 'Writer', 'department': 'Writing', 'profile_path': '/writer.jpg'}]}
+    answer = {'credits': credits, 'budget': 165000000, 'revenue': 0,
+              'release_date': '2021-09-15'}
+    monkeypatch.setattr(tmdb, 'lookup', lambda *args: calls.append(args) or answer)
     found = {'directors': ['Director', 'Unknown'], 'writers': ['Writer'], 'cast': [
         {'name': ' ACTOR ', 'role': 'Hero'}, {'name': 'Already', 'role': '', 'thumbnail': 'kodi'},
         {'name': 'Guest', 'role': 'Guest'}, {'name': 'Unknown', 'role': ''}]}
-    details_module._missing_portraits(found, {}, 'movie')
+    details_module._from_tmdb(found, {}, 'movie')
     assert len(calls) == 1
     assert found['cast'][1]['thumbnail'] == 'kodi'
     assert found['cast'][0]['role'] == 'Hero' and found['cast'][0]['name'] == ' ACTOR '
     for person, image in [(found['cast'][0], 'actor'), (found['cast'][2], 'guest'),
                           (found['crew'][0], 'director'), (found['crew'][2], 'writer')]:
         assert details_module.portrait_path(person['thumbnail']) == f'https://image.tmdb.org/t/p/w185/{image}.jpg'
+    # Each one TMDb names gets their id, Kodi's portrait or not.
+    assert [person.get('tmdb') for person in found['cast']] == [11, 12, 13, None]
+    assert [person.get('tmdb') for person in found['crew']] == [14, None, None]
     assert found['crew'][1] == {'name': 'Unknown', 'role': 'director'}
-    for data in [{}, {'cast': [{'name': 'Already', 'role': '', 'thumbnail': 'kodi'}]}]:
-        details_module._missing_portraits(data, {}, 'movie')
+    # The film's facts, where TMDb knows them.
+    assert found['budget'] == 165000000 and 'revenue' not in found
+    assert found['cinema'] == '2021-09-15'
+    # Nobody to look for, and no film's facts to ask for: nothing is asked.
+    for kind in ['tvshow', 'episode']:
+        details_module._from_tmdb({}, {}, kind)
     assert len(calls) == 1
-    cast_only = {'cast': [{'name': 'Unknown', 'role': ''}]}
-    details_module._missing_portraits(cast_only, {}, 'movie')
-    assert len(calls) == 2 and 'crew' not in cast_only
+    show = {'cast': [{'name': 'Actor', 'role': ''}]}
+    details_module._from_tmdb(show, {}, 'tvshow')
+    assert len(calls) == 2 and 'crew' not in show and show['cast'][0]['tmdb'] == 11
+    assert 'budget' not in show
+    # A film TMDb does not know keeps what Kodi has.
+    answer.clear()
+    film = {'cast': [{'name': 'Actor', 'role': ''}]}
+    details_module._from_tmdb(film, {}, 'movie')
+    assert film == {'cast': [{'name': 'Actor', 'role': ''}]}
+
+
+def test_no_key_asks_nothing(monkeypatch):
+    monkeypatch.setattr(tmdb, 'api_key', lambda: '')
+    monkeypatch.setattr(tmdb, 'lookup', lambda *args: pytest.fail('asked'))
+    found = {'directors': ['Director']}
+    details_module._from_tmdb(found, {}, 'movie')
+    assert 'crew' not in found

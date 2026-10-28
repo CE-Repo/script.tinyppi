@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2026 U3knOwn
 
-"""Optional title-credit portraits from TMDb, used only by the details view.
+"""Optional title credits and film facts from TMDb, used only by the details view.
 
 Kodi's names, roles and portraits take precedence. Never search people by name:
-match only members of the identified title's credits, and only unambiguous names.
+match only members of the identified title's credits, and only unambiguous names,
+for their portraits and their TMDb person ids (the clients link to their pages).
+A film's budget, takings and cinema release come in the same request.
 The API credential stays on Kodi; clients receive opaque artwork tags.
 """
 
@@ -14,6 +16,7 @@ import re
 import time
 import urllib.request
 from collections import OrderedDict
+from collections.abc import Callable
 from threading import Lock
 from urllib.parse import urlencode
 
@@ -26,6 +29,9 @@ _LOCK = Lock()
 _LIMIT = 256
 _BIGGEST = 2 * 1024 * 1024
 _PROFILE = re.compile(r"/[A-Za-z0-9_-]+\.(?:jpg|png)")
+_DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
+# TMDb's release types that are a run in cinemas: limited and wide.
+_THEATRICAL = (2, 3)
 
 
 def api_key() -> str:
@@ -96,8 +102,9 @@ def _ident(value: object) -> int | None:
     return int(text) if re.fullmatch(r"[0-9]{1,10}", text) and int(text) > 0 else None
 
 
-def credits(kind: str, row: Json, key: str) -> Json:
-    """Read movie/show credits, or the exact episode's credits (including specials)."""
+def lookup(kind: str, row: Json, key: str) -> Json:
+    """Read the title's credits under ``credits`` -- an episode's own, specials
+    included -- and, for a film, its own facts beside them in the same request."""
     deadline = time.monotonic() + 4.0
     title = row
     if kind == "episode":
@@ -113,27 +120,77 @@ def credits(kind: str, row: Json, key: str) -> Json:
     ident = _title_id(title, kind, key, deadline)
     if ident is None:
         return {}
-    path = f"movie/{ident}" if kind == "movie" else f"tv/{ident}"
+    if kind == "movie":
+        return _get(f"movie/{ident}?append_to_response=credits,release_dates", key, deadline)
+    path = f"tv/{ident}"
     if kind == "episode":
         season = common.number(row, "season", low=0)
         episode = common.number(row, "episode", low=0)
         if season is None or episode is None:
             return {}
         path += f"/season/{season}/episode/{episode}"
-    return _get(path + "/credits", key, deadline)
+    return {"credits": _get(path + "/credits", key, deadline)}
 
 
 def portraits(answer: Json, group: str, role: str = "") -> dict[str, str]:
     """Map normalized names to safe image URLs; reject ambiguous names."""
-    found: dict[str, set[str]] = {}
+    return _unique(answer, group, role, _profile)
+
+
+def people(answer: Json, group: str, role: str = "") -> dict[str, int]:
+    """Map normalized names to TMDb person ids; reject ambiguous names."""
+    return _unique(answer, group, role, lambda person: _ident(person.get("id")))
+
+
+def money(answer: Json, field: str) -> int:
+    """Return a film's ``budget`` or ``revenue`` in US dollars, or 0 for unknown."""
+    value = answer.get(field)
+    return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else 0
+
+
+def cinema(answer: Json, home: str) -> str:
+    """Return the day a film first ran in cinemas at *home* ("de"), as YYYY-MM-DD.
+
+    Where TMDb has no cinema run for that country -- or Kodi's language names
+    none -- its primary release date instead; "" where it has neither.
+    """
+    dates = _theatrical(answer, home)
+    return min(dates) if dates else _date(answer.get("release_date"))
+
+
+def _theatrical(answer: Json, home: str) -> list[str]:
+    countries = answer.get("release_dates")
+    found = []
+    for country in _members(countries if isinstance(countries, dict) else {}, "results"):
+        if not home or str(country.get("iso_3166_1") or "").lower() != home:
+            continue
+        found += [_date(release.get("release_date"))
+                  for release in _members(country, "release_dates")
+                  if release.get("type") in _THEATRICAL]
+    return [date for date in found if date]
+
+
+def _date(value: object) -> str:
+    text = str(value or "")[:10]
+    return text if _DATE.fullmatch(text) else ""
+
+
+def _profile(person: Json) -> str | None:
+    profile = str(person.get("profile_path") or "")
+    return "https://image.tmdb.org/t/p/w185" + profile if _PROFILE.fullmatch(profile) else None
+
+
+def _unique[T](answer: Json, group: str, role: str,
+               value: Callable[[Json], T | None]) -> dict[str, T]:
+    found: dict[str, set[T]] = {}
     for person in _members(answer, group):
         if not _role(person, role):
             continue
         name = str(person.get("name") or "").strip().casefold()
-        profile = str(person.get("profile_path") or "")
-        if name and _PROFILE.fullmatch(profile):
-            found.setdefault(name, set()).add("https://image.tmdb.org/t/p/w185" + profile)
-    return {name: next(iter(paths)) for name, paths in found.items() if len(paths) == 1}
+        held = value(person)
+        if name and held is not None:
+            found.setdefault(name, set()).add(held)
+    return {name: next(iter(values)) for name, values in found.items() if len(values) == 1}
 
 
 def _members(answer: Json, group: str) -> list[Json]:

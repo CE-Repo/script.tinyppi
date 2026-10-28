@@ -1315,6 +1315,52 @@ test("a mouse drags a row of cards sideways, and its wheel is left to the page",
   assert.equal(row.classList.contains("dragging"), false);
   pointer("pointermove", { clientX: 0 });
   assert.equal(at.left, 120);
+  // The click a drag ends with opens no page; a press that hardly moved does.
+  const click = () => row.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }));
+  assert.equal(click(), false);
+  pointer("pointerdown", { clientX: 200 });
+  pointer("pointermove", { clientX: 197 });
+  pointer("pointerup", {});
+  assert.equal(click(), true);
+  // A finger's tap is never a drag.
+  pointer("pointerdown", { clientX: 200 });
+  pointer("pointermove", { clientX: 100 });
+  pointer("pointerup", {});
+  pointer("pointerdown", { pointerType: "touch", clientX: 200 });
+  assert.equal(click(), true);
+});
+
+test("each card leads to the person's page on TMDb, or to a search for their name", (t) => {
+  const { P } = panels(t);
+  const row = P.cast({ cast: [{ name: "Zendaya", role: "Chani", tmdb: 505710 },
+                              { name: "Jean Dupont & Söhne", role: "" }] })[1];
+  const links = [...row.querySelectorAll("a.castlink")];
+  assert.deepEqual(links.map((link) => link.getAttribute("href")), [
+    "https://www.themoviedb.org/person/505710",
+    "https://www.themoviedb.org/search/person?query=Jean%20Dupont%20%26%20S%C3%B6hne"]);
+  for (const link of links) {
+    assert.equal(link.target, "_blank");
+    assert.equal(link.rel, "noopener noreferrer");
+    assert.equal(link.draggable, false);
+    assert.deepEqual([...link.children].map((node) => node.className), ["initial", "casttext"]);
+  }
+});
+
+test("a film's cinema release, budget and takings follow its names, in the reader's own writing", (t) => {
+  const { P, window } = panels(t);
+  Object.assign(window.TinyPPI.T, { cinema: "Kinostart", budget: "Budget", revenue: "Einspielergebnis" });
+  const facts = (credits) => plain(P.facts(credits).map((node) =>
+    [node.querySelector("dt").textContent, node.querySelector("dd").textContent]));
+  const money = new Intl.NumberFormat(undefined, {
+    style: "currency", currency: "USD", notation: "compact", maximumSignificantDigits: 3 });
+  assert.deepEqual(facts({ genres: ["Sci-Fi"], cinema: "2021-09-16", budget: 165000000, revenue: 402027830 }), [
+    ["Genre", "Sci-Fi"],
+    ["Kinostart", new Date(2021, 8, 16).toLocaleDateString(undefined, { dateStyle: "medium" })],
+    ["Budget", money.format(165000000)],
+    ["Einspielergebnis", money.format(402027830)]]);
+  // Only what is known; a day that is no day is written as it came.
+  assert.deepEqual(facts({ cinema: "soon", budget: 0 }), [["Kinostart", "soon"]]);
+  assert.deepEqual(facts({}), []);
 });
 
 test("directors and writers share a Cast row with their functions under their names", (t) => {

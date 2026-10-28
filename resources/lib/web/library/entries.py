@@ -120,6 +120,9 @@ class Person(TypedDict):
     name: str
     role: str
     thumbnail: NotRequired[str]
+    # The person's TMDb id, for a link to their page; only where TMDb's
+    # credits of the title name them unambiguously.
+    tmdb: NotRequired[int]
 
 
 class Details(TypedDict):
@@ -139,6 +142,11 @@ class Details(TypedDict):
     tagline: NotRequired[str]
     show: NotRequired[str]
     premiered: NotRequired[str]
+    # A film's from TMDb: budget and takings in US dollars, and the day it
+    # first ran in cinemas (YYYY-MM-DD) in the country Kodi's language names.
+    budget: NotRequired[int]
+    revenue: NotRequired[int]
+    cinema: NotRequired[str]
     mpaa: NotRequired[str]
     age: NotRequired[str]
     age_level: NotRequired[str]

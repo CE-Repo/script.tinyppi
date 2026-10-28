@@ -913,6 +913,24 @@
   align-items: flex-start;
   text-align: left;
 }
+/* The whole card is the link to the person's page (see personPage in
+   js/live-panels.js), looking like the card it was. */
+.castrow .castlink {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+  -webkit-user-drag: none;
+}
+.castrow .castlink:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (hover: hover) {
+  .castrow .castlink:hover .initial { filter: brightness(1.12); }
+  .castrow .castlink:hover strong { text-decoration: underline; }
+}
 .castrow .initial img {
   position: absolute;
   inset: 0;

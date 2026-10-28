@@ -22,7 +22,7 @@ from web import mdblist, tmdb, whatson
 from web.library import common
 from web.library.entries import Details, Person
 from web.payloads import Ratings
-from web.ratings import title_ratings
+from web.ratings import home_country, title_ratings
 from web.values import Json, Unchecked, clean_value, library_id, plain_text
 
 # A plot is a few paragraphs; a text longer still is cut off.
@@ -113,7 +113,7 @@ def details(kind: str, item_id: Unchecked) -> Details | None:
     _numbers(found, row)
     _watching(found, row, kind)
     _people(found, row)
-    _missing_portraits(found, row, kind)
+    _from_tmdb(found, row, kind)
     common.add_formats(found, row.get("streamdetails"))
     _pictures(found, row, _PICTURES[kind])
     return found
@@ -207,8 +207,10 @@ def _cast(raw: object) -> list[Person]:
     return cast
 
 
-def _missing_portraits(found: Details, row: Json, kind: str) -> None:
-    """Keep Kodi's names and roles, filling missing images from title credits."""
+def _from_tmdb(found: Details, row: Json, kind: str) -> None:
+    """Keep Kodi's names and roles, filling missing images from title credits
+    and giving each person found there their TMDb id; add a film's budget,
+    takings and cinema release."""
     key = tmdb.api_key()
     if not key:
         return
@@ -216,15 +218,19 @@ def _missing_portraits(found: Details, row: Json, kind: str) -> None:
     crew = _crew(found)
     if crew:
         found["crew"] = crew
-    if not crew and all(person.get("thumbnail") for person in cast):
+    if cast or crew or kind == "movie":
+        answer = tmdb.lookup(kind, row, key)
+        _credited(cast, crew, answer.get("credits"))
+        if kind == "movie":
+            _film_facts(found, answer)
+
+
+def _credited(cast: list[Person], crew: list[Person], credits: object) -> None:
+    if not isinstance(credits, dict):
         return
-    answer = tmdb.credits(kind, row, key)
-    cast_images = tmdb.portraits(answer, "cast")
-    cast_images.update(tmdb.portraits(answer, "guest_stars"))
-    _fill_portraits(cast, cast_images)
+    _match(cast, credits, ("cast", "guest_stars"), "")
     for role in ("director", "writer"):
-        _fill_portraits([person for person in crew if person["role"] == role],
-                        tmdb.portraits(answer, "crew", role))
+        _match([person for person in crew if person["role"] == role], credits, ("crew",), role)
 
 
 def _crew(found: Details) -> list[Person]:
@@ -236,11 +242,30 @@ def _crew(found: Details) -> list[Person]:
     ]
 
 
-def _fill_portraits(people: list[Person], images: dict[str, str]) -> None:
+def _match(people: list[Person], credits: Json, groups: tuple[str, ...], role: str) -> None:
+    images: dict[str, str] = {}
+    ids: dict[str, int] = {}
+    for group in groups:
+        images.update(tmdb.portraits(credits, group, role))
+        ids.update(tmdb.people(credits, group, role))
     for person in people:
-        path = images.get(person["name"].strip().casefold())
+        name = person["name"].strip().casefold()
+        path = images.get(name)
         if not person.get("thumbnail") and path:
             person["thumbnail"] = _portrait(path)
+        if name in ids:
+            person["tmdb"] = ids[name]
+
+
+def _film_facts(found: Details, answer: Json) -> None:
+    """Add the budget and the takings (US dollars) and the cinema release."""
+    for field in ("budget", "revenue"):
+        value = tmdb.money(answer, field)
+        if value:
+            found[field] = value
+    date = tmdb.cinema(answer, home_country())
+    if date:
+        found["cinema"] = date
 
 
 def _pictures(found: Details, row: Json,

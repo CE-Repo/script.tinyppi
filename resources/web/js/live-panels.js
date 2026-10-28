@@ -37,6 +37,8 @@
 
   /* How often a longer range is fetched again while it is on screen. */
   const HISTORY_REFRESH = 5000;
+  /* How far, in pixels, a mouse may move on a row of cards and still click. */
+  const DRAG_SLOP = 5;
 
   host.innerHTML =
     '<section class="card hero" id="nowCard">' +
@@ -329,9 +331,15 @@
      filled so every card stands the same height -- with an ellipsis where
      the library holds more. */
 
+  /* A film's facts from TMDb (see _film_facts in web/library/details.py)
+     follow the names: when it first ran in cinemas, what it cost and what it
+     took, in the reader's own way of writing a day and a sum of dollars. */
   function factNodes(credits, T) {
     const rows = [
-      [T.genre, credits.genres], [T.studio, credits.studios]
+      [T.genre, credits.genres], [T.studio, credits.studios],
+      [T.cinema, credits.cinema && [cinemaDay(credits.cinema)]],
+      [T.budget, credits.budget && [dollars(credits.budget)]],
+      [T.revenue, credits.revenue && [dollars(credits.revenue)]]
     ];
     const nodes = [];
     for (const [heading, names] of rows) {
@@ -346,6 +354,29 @@
       nodes.push(fact);
     }
     return nodes;
+  }
+
+  /* "2021-09-16" as the reader writes a day; the day itself where it is no
+     day at all. */
+  function cinemaDay(day) {
+    const date = new Date(day + "T00:00:00");
+    return isNaN(date) ? day : date.toLocaleDateString(undefined, { dateStyle: "medium" });
+  }
+
+  /* Whole US dollars, short: "165 Mio. $", "$165M". */
+  function dollars(amount) {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency", currency: "USD", notation: "compact", maximumSignificantDigits: 3
+    }).format(amount);
+  }
+
+  /* A person's page on TMDb, with everything they have made: by their id
+     where TMDb's credits of the title named them (see web/tmdb.py), and
+     otherwise TMDb's search for their name. */
+  function personPage(person) {
+    return person.tmdb > 0
+      ? "https://www.themoviedb.org/person/" + encodeURIComponent(person.tmdb)
+      : "https://www.themoviedb.org/search/person?query=" + encodeURIComponent(person.name);
   }
 
   function castParts(credits, T) {
@@ -392,7 +423,15 @@
       const text = document.createElement("div");
       text.className = "casttext";
       text.append(name, role);
-      item.append(initial, text);
+      /* The card is the way to the person's page on TMDb. */
+      const link = document.createElement("a");
+      link.className = "castlink";
+      link.href = personPage(person);
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.draggable = false;
+      link.append(initial, text);
+      item.append(link);
       row.append(item);
     }
     if (credits.cast_more) {
@@ -406,17 +445,25 @@
   }
 
   /* With no scrollbar to take hold of, a mouse drags the row sideways the
-     way a finger does.  The wheel is left to the page. */
+     way a finger does.  The wheel is left to the page.  A drag that moved
+     the row is no click on the card it ended on. */
   function mouseScroll(row) {
     let drag = null;
+    let dragged = false;
     row.addEventListener("pointerdown", (event) => {
+      dragged = false;
       if (event.pointerType !== "mouse" || event.button !== 0) return;
       drag = { x: event.clientX, left: row.scrollLeft };
       row.classList.add("dragging");
     });
     row.addEventListener("pointermove", (event) => {
-      if (drag) row.scrollLeft = drag.left - (event.clientX - drag.x);
+      if (!drag) return;
+      if (Math.abs(event.clientX - drag.x) > DRAG_SLOP) dragged = true;
+      row.scrollLeft = drag.left - (event.clientX - drag.x);
     });
+    row.addEventListener("click", (event) => {
+      if (dragged) event.preventDefault();
+    }, true);
     for (const type of ["pointerup", "pointerleave", "pointercancel"]) {
       row.addEventListener(type, () => {
         drag = null;

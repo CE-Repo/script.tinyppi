@@ -1724,9 +1724,21 @@ msgid "TMDb API key"
 msgstr "مفتاح TMDb API"
 
 msgctxt "#32439"
-msgid "Optional: fill missing cast, director and writer portraits from TMDb in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
+msgid "Optional: fill missing cast, director and writer portraits from TMDb, link each person to their TMDb page and show a film's cinema release, budget and box office, in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
 msgstr "اختياري: إكمال صور الممثلين والمخرجين والكتاب المفقودة من TMDb في التطبيق ولوحة التحكم. أدخل مفتاح API أو رمز الوصول للقراءة. صور Kodi لها الأولوية."
 
 msgctxt "#32440"
 msgid "About the programme"
 msgstr "عن البرنامج"
+
+msgctxt "#32441"
+msgid "In cinemas"
+msgstr "العرض في السينما"
+
+msgctxt "#32442"
+msgid "Budget"
+msgstr "الميزانية"
+
+msgctxt "#32443"
+msgid "Box office"
+msgstr "الإيرادات"
