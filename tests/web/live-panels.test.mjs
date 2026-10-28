@@ -1400,12 +1400,15 @@ test("enriched crew retains portraits and localizes role codes", (t) => {
   const parts = P.cast({
     directors: ["Legacy Director"], writers: ["Legacy Writer"],
     crew: [{ name: "Director", role: "director", thumbnail: "director-tag" },
-      { name: "Writer", role: "writer", thumbnail: "writer-tag" }]
+      { name: "Writer", role: "writer", thumbnail: "writer-tag" },
+      { name: "Hans Zimmer", role: "Filmmusik", thumbnail: "music-tag" }]
   });
   assert.equal(parts.length, 2);
   assert.deepEqual([...parts[1].children].map((card) => [
     card.querySelector("strong").textContent, card.querySelector(".role").textContent,
     card.querySelector("img").getAttribute("src")
   ]), [["Director", "Director", "/api/art?kind=thumb&portrait=director-tag&v=director-tag"],
-    ["Writer", "Writer", "/api/art?kind=thumb&portrait=writer-tag&v=writer-tag"]]);
+    ["Writer", "Writer", "/api/art?kind=thumb&portrait=writer-tag&v=writer-tag"],
+    // The rest of the crew under the jobs the box words for them.
+    ["Hans Zimmer", "Filmmusik", "/api/art?kind=thumb&portrait=music-tag&v=music-tag"]]);
 });

@@ -210,18 +210,19 @@ def test_enrichment_preserves_kodi_data_and_registers_only_missing_portraits(mon
     # The film's facts, where TMDb knows them.
     assert found['budget'] == 165000000 and 'revenue' not in found
     assert found['cinema'] == '2021-09-15'
-    # Nobody to look for, and no film's facts to ask for: nothing is asked.
-    for kind in ['tvshow', 'episode']:
-        details_module._from_tmdb({}, {}, kind)
-    assert len(calls) == 1
+    # A show has no film's facts.
     show = {'cast': [{'name': 'Actor', 'role': ''}]}
     details_module._from_tmdb(show, {}, 'tvshow')
-    assert len(calls) == 2 and 'crew' not in show and show['cast'][0]['tmdb'] == 11
-    assert 'budget' not in show
+    assert len(calls) == 2 and show['cast'][0]['tmdb'] == 11
+    # The rest of the crew TMDb names, Kodi's or not.
+    assert 'budget' not in show and show['crew'] == [
+        {'name': 'Director', 'role': '#32386', 'thumbnail': show['crew'][0]['thumbnail'], 'tmdb': 14}]
     # A film TMDb does not know keeps what Kodi has.
     answer.clear()
     film = {'cast': [{'name': 'Actor', 'role': ''}]}
     details_module._from_tmdb(film, {}, 'movie')
+    assert film == {'cast': [{'name': 'Actor', 'role': ''}]}
+    details_module._from_tmdb(film, {}, 'tvshow')
     assert film == {'cast': [{'name': 'Actor', 'role': ''}]}
 
 
@@ -231,3 +232,36 @@ def test_no_key_asks_nothing(monkeypatch):
     found = {'directors': ['Director']}
     details_module._from_tmdb(found, {}, 'movie')
     assert 'crew' not in found
+
+
+def test_the_whole_crew_by_department_once_each_with_every_job(monkeypatch):
+    monkeypatch.setattr(tmdb, 'api_key', lambda: 'key')
+    credits = {'crew': [
+        {'name': 'Hans Zimmer', 'job': 'Original Music Composer', 'department': 'Sound', 'id': 947},
+        {'name': 'Denis Villeneuve', 'job': 'Producer', 'department': 'Production', 'id': 137427},
+        {'name': 'Denis Villeneuve', 'job': 'Director', 'department': 'Directing', 'id': 137427},
+        {'name': 'Greig Fraser', 'job': 'Director of Photography', 'department': 'Camera',
+         'id': 1, 'profile_path': '/greig.jpg'},
+        {'name': 'Mary Parent', 'job': 'Producer', 'department': 'Production', 'id': 2},
+        {'name': 'Mary Parent', 'job': 'Producer', 'department': 'Production', 'id': 2},
+        {'name': 'Mary Parent', 'job': 'Best Boy Grip', 'department': 'Odd', 'id': 2},
+        {'name': 'Nobody', 'job': '', 'department': 'Crew'},
+        {'name': '', 'job': 'Editor', 'department': 'Editing'},
+        {'name': 'Joe Walker', 'job': 'Editor', 'department': 'Editing', 'id': 3}]}
+    monkeypatch.setattr(tmdb, 'lookup', lambda *args: {'credits': credits})
+    found = {'directors': ['Denis Villeneuve']}
+    details_module._from_tmdb(found, {}, 'tvshow')
+    # Kodi's director as Kodi has him, then everyone else department by
+    # department, each once with every job in the add-on's words.
+    assert [(person['name'], person['role'], person.get('tmdb')) for person in found['crew']] == [
+        ('Denis Villeneuve', 'director', 137427),
+        ('Mary Parent', '#32446, Best Boy Grip', 2),
+        ('Hans Zimmer', '#32451', 947),
+        ('Greig Fraser', '#32453', 1),
+        ('Joe Walker', '#32454', 3)]
+    assert details_module.portrait_path(found['crew'][3]['thumbnail']) == \
+        'https://image.tmdb.org/t/p/w185/greig.jpg'
+    # A job string Kodi cannot find is said as TMDb wrote it.
+    monkeypatch.setattr(details_module.settings.addon().__class__, 'getLocalizedString',
+                        lambda self, string_id: '')
+    assert details_module._job('Editor') == 'Editor'

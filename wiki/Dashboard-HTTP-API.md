@@ -231,8 +231,11 @@ Clients should keep an initial or another placeholder if the field is absent
 or the image request fails; older servers omit the field.
 
 With a TMDb key set (**TMDb API key**), the details also carry what TMDb's
-credits of the title say: a portrait for a member of the cast or `crew`
-(`[{name, role: "director"|"writer"}]`) Kodi has none for, and a member's
+credits of the title say: the `crew` — Kodi's directors and writers
+(`{name, role: "director"|"writer"}`), then everyone else TMDb's credits name,
+department by department, once each with all their jobs as `role`
+(`"Producer, Screenplay"`, in Kodi's language where the add-on knows the
+job) — a portrait for a member of the cast or crew Kodi has none for, and a member's
 `tmdb` — their TMDb person id, for a link to
 `https://www.themoviedb.org/person/<tmdb>` — where the credits name them
 unambiguously. A film adds, where TMDb knows them, its `budget` and `revenue`

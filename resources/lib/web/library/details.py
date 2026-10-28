@@ -18,6 +18,7 @@ import time
 from collections import OrderedDict
 from threading import Lock
 
+from core import settings
 from web import mdblist, tmdb, whatson
 from web.library import common
 from web.library.entries import Details, Person
@@ -68,6 +69,21 @@ _NUMBERS = (("year", "year", 1), ("runtime", "duration", 1), ("season", "season"
 # details view has room for every genre and director).
 _NAMES = (("genre", "genres"), ("director", "directors"), ("writer", "writers"),
           ("studio", "studios"), ("country", "countries"))
+
+
+# The crew's jobs as TMDb names them, and the strings the add-on says them
+# in; any other job is shown as TMDb wrote it.
+_JOBS = {
+    "Director": 32386, "Writer": 32407, "Producer": 32446, "Executive Producer": 32447,
+    "Co-Producer": 32448, "Associate Producer": 32449, "Line Producer": 32450,
+    "Original Music Composer": 32451, "Music": 32452, "Director of Photography": 32453,
+    "Editor": 32454, "Casting": 32455, "Production Design": 32456, "Art Direction": 32457,
+    "Set Decoration": 32458, "Costume Design": 32459, "Makeup Artist": 32460,
+    "Visual Effects Supervisor": 32461, "Sound Designer": 32462, "Stunt Coordinator": 32463,
+    "Screenplay": 32464, "Novel": 32465, "Story": 32466, "Characters": 32467,
+    "Creator": 32468, "Teleplay": 32469, "Assistant Director": 32470,
+    "Script Supervisor": 32471, "Supervising Sound Editor": 32472,
+}
 
 
 def portrait_path(tag: str) -> str:
@@ -209,28 +225,56 @@ def _cast(raw: object) -> list[Person]:
 
 def _from_tmdb(found: Details, row: Json, kind: str) -> None:
     """Keep Kodi's names and roles, filling missing images from title credits
-    and giving each person found there their TMDb id; add a film's budget,
-    takings and cinema release."""
+    and giving each person found there their TMDb id; add the rest of the
+    crew TMDb names, and a film's budget, takings and cinema release."""
     key = tmdb.api_key()
     if not key:
         return
     cast = found.get("cast", [])
     crew = _crew(found)
+    answer = tmdb.lookup(kind, row, key)
+    credits = answer.get("credits")
+    if isinstance(credits, dict):
+        _credited(cast, crew, credits)
+        crew += _more_crew(crew, credits)
     if crew:
         found["crew"] = crew
-    if cast or crew or kind == "movie":
-        answer = tmdb.lookup(kind, row, key)
-        _credited(cast, crew, answer.get("credits"))
-        if kind == "movie":
-            _film_facts(found, answer)
+    if kind == "movie":
+        _film_facts(found, answer)
 
 
-def _credited(cast: list[Person], crew: list[Person], credits: object) -> None:
-    if not isinstance(credits, dict):
-        return
+def _credited(cast: list[Person], crew: list[Person], credits: Json) -> None:
     _match(cast, credits, ("cast", "guest_stars"), "")
     for role in ("director", "writer"):
         _match([person for person in crew if person["role"] == role], credits, ("crew",), role)
+
+
+def _more_crew(listed: list[Person], credits: Json) -> list[Person]:
+    """Everyone else behind the camera, once each with all their jobs, in
+    Kodi's language where the add-on knows the job ("Producer, Screenplay").
+
+    Those Kodi already lists as director or writer stay as they are.
+    """
+    known = {person["name"].strip().casefold() for person in listed}
+    jobs: dict[str, tuple[str, list[str]]] = {}
+    for member in tmdb.crew(credits):
+        name = clean_value(str(member.get("name") or ""))
+        job = clean_value(str(member.get("job") or ""))
+        key = name.strip().casefold()
+        if name and job and key not in known:
+            held = jobs.setdefault(key, (name, []))[1]
+            if job not in held:
+                held.append(job)
+    more: list[Person] = [{"name": name, "role": ", ".join(map(_job, held))}
+                          for name, held in jobs.values()]
+    _match(more, credits, ("crew",), "")
+    return more
+
+
+def _job(job: str) -> str:
+    """A TMDb job as Kodi's language says it, or as TMDb wrote it."""
+    string_id = _JOBS.get(job)
+    return (settings.addon().getLocalizedString(string_id) or job) if string_id else job
 
 
 def _crew(found: Details) -> list[Person]:

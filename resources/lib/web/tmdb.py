@@ -32,6 +32,10 @@ _PROFILE = re.compile(r"/[A-Za-z0-9_-]+\.(?:jpg|png)")
 _DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 # TMDb's release types that are a run in cinemas: limited and wide.
 _THEATRICAL = (2, 3)
+# The order the crew's departments stand in, the ones a reader looks for
+# first; any other comes after these.
+_DEPARTMENTS = ("Directing", "Writing", "Production", "Sound", "Camera", "Editing", "Art",
+                "Costume & Make-Up", "Visual Effects", "Crew", "Lighting")
 
 
 def api_key() -> str:
@@ -140,6 +144,15 @@ def portraits(answer: Json, group: str, role: str = "") -> dict[str, str]:
 def people(answer: Json, group: str, role: str = "") -> dict[str, int]:
     """Map normalized names to TMDb person ids; reject ambiguous names."""
     return _unique(answer, group, role, lambda person: _ident(person.get("id")))
+
+
+def crew(answer: Json) -> list[Json]:
+    """Return the whole crew, department by department, TMDb's order within each."""
+    def rank(person: Json) -> int:
+        department = person.get("department")
+        return _DEPARTMENTS.index(department) if department in _DEPARTMENTS \
+            else len(_DEPARTMENTS)
+    return sorted(_members(answer, "crew"), key=rank)
 
 
 def money(answer: Json, field: str) -> int:

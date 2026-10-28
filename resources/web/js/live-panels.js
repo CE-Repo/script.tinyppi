@@ -384,8 +384,12 @@
   }
 
   function castParts(credits, T) {
+    /* Kodi's directors and writers by their codes, everyone else TMDb names
+       under their jobs as the add-on words them (see _more_crew in
+       web/library/details.py). */
+    const codes = { director: T.director, writer: T.writer };
     const crew = credits.crew ? credits.crew.map((person) => ({
-      ...person, role: person.role === "director" ? T.director : T.writer
+      ...person, role: codes[person.role] || person.role
     })) : [
       ...(credits.directors || []).map((name) => ({ name, role: T.director })),
       ...(credits.writers || []).map((name) => ({ name, role: T.writer }))

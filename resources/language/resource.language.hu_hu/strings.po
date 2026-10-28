@@ -1750,3 +1750,111 @@ msgstr "Gyártó ország"
 msgctxt "#32445"
 msgid "Crew"
 msgstr "Stáb"
+
+msgctxt "#32446"
+msgid "Producer"
+msgstr "Producer"
+
+msgctxt "#32447"
+msgid "Executive Producer"
+msgstr "Vezető producer"
+
+msgctxt "#32448"
+msgid "Co-Producer"
+msgstr "Társproducer"
+
+msgctxt "#32449"
+msgid "Associate Producer"
+msgstr "Társult producer"
+
+msgctxt "#32450"
+msgid "Line Producer"
+msgstr "Gyártásvezető"
+
+msgctxt "#32451"
+msgid "Original Music Composer"
+msgstr "Zeneszerző"
+
+msgctxt "#32452"
+msgid "Music"
+msgstr "Zene"
+
+msgctxt "#32453"
+msgid "Director of Photography"
+msgstr "Operatőr"
+
+msgctxt "#32454"
+msgid "Editor"
+msgstr "Vágó"
+
+msgctxt "#32455"
+msgid "Casting"
+msgstr "Szereposztás"
+
+msgctxt "#32456"
+msgid "Production Design"
+msgstr "Díszlettervező"
+
+msgctxt "#32457"
+msgid "Art Direction"
+msgstr "Művészeti vezető"
+
+msgctxt "#32458"
+msgid "Set Decoration"
+msgstr "Díszletberendező"
+
+msgctxt "#32459"
+msgid "Costume Design"
+msgstr "Jelmeztervező"
+
+msgctxt "#32460"
+msgid "Makeup Artist"
+msgstr "Sminkes"
+
+msgctxt "#32461"
+msgid "Visual Effects Supervisor"
+msgstr "Vizuális effektus-felügyelő"
+
+msgctxt "#32462"
+msgid "Sound Designer"
+msgstr "Hangtervező"
+
+msgctxt "#32463"
+msgid "Stunt Coordinator"
+msgstr "Kaszkadőr-koordinátor"
+
+msgctxt "#32464"
+msgid "Screenplay"
+msgstr "Forgatókönyv"
+
+msgctxt "#32465"
+msgid "Novel"
+msgstr "Regény"
+
+msgctxt "#32466"
+msgid "Story"
+msgstr "Történet"
+
+msgctxt "#32467"
+msgid "Characters"
+msgstr "Karakterek"
+
+msgctxt "#32468"
+msgid "Creator"
+msgstr "Alkotó"
+
+msgctxt "#32469"
+msgid "Teleplay"
+msgstr "Televíziós forgatókönyv"
+
+msgctxt "#32470"
+msgid "Assistant Director"
+msgstr "Rendezőasszisztens"
+
+msgctxt "#32471"
+msgid "Script Supervisor"
+msgstr "Szkriptfelelős"
+
+msgctxt "#32472"
+msgid "Supervising Sound Editor"
+msgstr "Vezető hangvágó"
