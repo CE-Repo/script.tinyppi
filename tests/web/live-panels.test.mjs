@@ -233,7 +233,7 @@ test("the overview is a key under what is playing that opens the title's details
   card.click();
   window.TinyPPI.openDetails = (item) => opened.push(item);
   card.click();
-  assert.deepEqual(plain(opened), [{ kind: "movie", id: 7, title: "Film" }]);
+  assert.deepEqual(plain(opened), [{ kind: "movie", id: 7, title: "Film", playing: "movie:7" }]);
   // An episode as well; a file the library does not know, or anything else,
   // has none -- with nothing in the snapshot to show either.
   P.update(snap({ control: true, media: { item: { kind: "episode", id: 70 } } }));
@@ -263,7 +263,7 @@ test("the overview is a key under what is playing that opens the title's details
   assert.equal(card.classList.contains("hidden"), false);
   card.click();
   assert.equal(opened.length, 1);
-  assert.deepEqual(plain(told), [{ kind: "movie", title: "Film", art,
+  assert.deepEqual(plain(told), [{ kind: "movie", title: "Film", art, playing: "movie:7",
     media: { plot: "Paul joins the Fremen.", item: { kind: "movie", id: 7 } } }]);
   // A live channel's is its programme's.
   P.update(snap({ art, media: { plot: "News at nine.", item: { kind: "broadcast" } } }));
@@ -1315,6 +1315,65 @@ test("a mouse drags a row of cards sideways, and its wheel is left to the page",
   assert.equal(row.classList.contains("dragging"), false);
   pointer("pointermove", { clientX: 0 });
   assert.equal(at.left, 120);
+  // The click a drag ends with opens no page; a press that hardly moved does.
+  const click = () => row.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }));
+  assert.equal(click(), false);
+  pointer("pointerdown", { clientX: 200 });
+  pointer("pointermove", { clientX: 197 });
+  pointer("pointerup", {});
+  assert.equal(click(), true);
+  // A finger's tap is never a drag.
+  pointer("pointerdown", { clientX: 200 });
+  pointer("pointermove", { clientX: 100 });
+  pointer("pointerup", {});
+  pointer("pointerdown", { pointerType: "touch", clientX: 200 });
+  assert.equal(click(), true);
+});
+
+test("each card leads to the person's page on TMDb, or to a search for their name", (t) => {
+  const { P } = panels(t);
+  const row = P.cast({ cast: [{ name: "Zendaya", role: "Chani", tmdb: 505710 },
+                              { name: "Jean Dupont & Söhne", role: "" }] })[1];
+  const links = [...row.querySelectorAll("a.castlink")];
+  assert.deepEqual(links.map((link) => link.getAttribute("href")), [
+    "https://www.themoviedb.org/person/505710",
+    "https://www.themoviedb.org/search/person?query=Jean%20Dupont%20%26%20S%C3%B6hne"]);
+  for (const link of links) {
+    assert.equal(link.target, "_blank");
+    assert.equal(link.rel, "noopener noreferrer");
+    assert.equal(link.draggable, false);
+    assert.deepEqual([...link.children].map((node) => node.className), ["initial", "casttext"]);
+  }
+});
+
+test("a film's cinema release, budget and takings follow its names, in the reader's own writing", (t) => {
+  const { P, window } = panels(t);
+  Object.assign(window.TinyPPI.T, { cinema: "Kinostart", budget: "Budget", revenue: "Eingespielt",
+                                    profit: "Profit", loss: "Verlust" });
+  const facts = (credits) => plain(P.facts(credits).map((node) =>
+    [node.querySelector("dt").textContent, node.querySelector("dd").textContent]));
+  const money = new Intl.NumberFormat(undefined, {
+    style: "currency", currency: "USD", notation: "compact", maximumSignificantDigits: 3 });
+  // What it cost and what it took share a line.
+  const day = new Date(2021, 8, 16).toLocaleDateString(undefined, { dateStyle: "medium" });
+  assert.deepEqual(facts({ genres: ["Sci-Fi"], cinema: "2021-09-16", cinema_country: "DE",
+                           budget: 165000000, revenue: 402027830 }), [
+    ["Genre", "Sci-Fi"],
+    ["Kinostart", day + " (DE)"],
+    ["Budget/Eingespielt", money.format(165000000) + "/" + money.format(402027830)],
+    // And what it made, or lost, where both are known.
+    ["Profit", money.format(237027830)]]);
+  // A film that took less than it cost made a loss, said as one.
+  assert.deepEqual(facts({ budget: 100000000, revenue: 50000000 }).at(-1), ["Verlust", money.format(50000000)]);
+  // To the dollar what it cost: neither.
+  assert.deepEqual(facts({ budget: 100000000, revenue: 100000000 }).map(([heading]) => heading), ["Budget/Eingespielt"]);
+  // A day from no country in particular stands alone.
+  assert.deepEqual(facts({ cinema: "2021-09-16" }), [["Kinostart", day]]);
+  // Whichever of the two is known; a day that is no day is written as it came.
+  assert.deepEqual(facts({ budget: 165000000 }), [["Budget", money.format(165000000)]]);
+  assert.deepEqual(facts({ revenue: 402027830, budget: 0 }), [["Eingespielt", money.format(402027830)]]);
+  assert.deepEqual(facts({ cinema: "soon" }), [["Kinostart", "soon"]]);
+  assert.deepEqual(facts({}), []);
 });
 
 test("directors and writers share a Cast row with their functions under their names", (t) => {
@@ -1324,7 +1383,10 @@ test("directors and writers share a Cast row with their functions under their na
     cast: [{ name: "An Actor", role: "A Character" }]
   });
   assert.equal(parts.length, 4, "one crew row and one actor row with their headings");
-  assert.equal(parts[2].textContent, "Cast");
+  // Each heading says how many stand under it.
+  assert.equal(parts[0].textContent, "Cast (1)");
+  assert.equal(parts[2].textContent, "Crew (3)");
+  assert.equal(parts[2].querySelector(".count").textContent, " (3)");
   assert.deepEqual([...parts[3].children].map((card) => [
     card.querySelector("strong").textContent, card.querySelector(".role").textContent
   ]), [["Alex Director", "Director"], ["Sam Writer", "Writer"], ["Jo Writer", "Writer"]]);
@@ -1341,7 +1403,27 @@ test("cast portraits load lazily and return to the initial on failure", (t) => {
   assert.equal(photo.alt, "");
   photo.dispatchEvent(new photo.ownerDocument.defaultView.Event("error"));
   assert.equal(row.querySelector("img"), null);
-  assert.equal(row.querySelector(".initial").textContent, "A");
+  // Without it, the figure on the person's own colour stays.
+  assert.ok(row.querySelector(".initial .figure"));
+
+});
+
+test("a person without a portrait stands on a colour of their own, the one the app gives them", (t) => {
+  const { P } = panels(t);
+  const row = P.cast({ cast: [{ name: "Actor" }, { name: "Rebecca Ferguson" }, { name: "Léa Seydoux" },
+                              { name: "Actor" }] })[1];
+  const pictures = [...row.querySelectorAll(".initial")];
+  // Picked by the name as the app picks it, a name whose hash is negative
+  // included; the same name, the same colour.
+  assert.deepEqual(pictures.map((node) => node.style.background), [
+    "linear-gradient(135deg, rgb(11, 61, 46), rgb(60, 168, 122))",
+    "linear-gradient(135deg, rgb(43, 16, 85), rgb(213, 51, 105))",
+    "linear-gradient(135deg, rgb(11, 61, 46), rgb(60, 168, 122))",
+    "linear-gradient(135deg, rgb(11, 61, 46), rgb(60, 168, 122))"]);
+  const figure = pictures[0].querySelector("svg.figure");
+  assert.equal(figure.getAttribute("viewBox"), "0 0 300 300");
+  assert.deepEqual([...figure.children].map((node) => node.tagName), ["circle", "ellipse"]);
+  assert.equal(pictures[0].textContent, "");
 });
 
 test("enriched crew retains portraits and localizes role codes", (t) => {
@@ -1349,12 +1431,15 @@ test("enriched crew retains portraits and localizes role codes", (t) => {
   const parts = P.cast({
     directors: ["Legacy Director"], writers: ["Legacy Writer"],
     crew: [{ name: "Director", role: "director", thumbnail: "director-tag" },
-      { name: "Writer", role: "writer", thumbnail: "writer-tag" }]
+      { name: "Writer", role: "writer", thumbnail: "writer-tag" },
+      { name: "Hans Zimmer", role: "Filmmusik", thumbnail: "music-tag" }]
   });
   assert.equal(parts.length, 2);
   assert.deepEqual([...parts[1].children].map((card) => [
     card.querySelector("strong").textContent, card.querySelector(".role").textContent,
     card.querySelector("img").getAttribute("src")
   ]), [["Director", "Director", "/api/art?kind=thumb&portrait=director-tag&v=director-tag"],
-    ["Writer", "Writer", "/api/art?kind=thumb&portrait=writer-tag&v=writer-tag"]]);
+    ["Writer", "Writer", "/api/art?kind=thumb&portrait=writer-tag&v=writer-tag"],
+    // The rest of the crew under the jobs the box words for them.
+    ["Hans Zimmer", "Filmmusik", "/api/art?kind=thumb&portrait=music-tag&v=music-tag"]]);
 });

@@ -322,22 +322,34 @@ function tintDialog(dialog, pictures) {
 /* The overview card on the live tab opens the playing title's details (see
    renderPlot in js/live-panels.js). */
 TinyPPI.openDetails = (item) =>
-  showDetails({ title: item.title, body: { [item.kind + "id"]: item.id } });
+  showDetails({ title: item.title, body: { [item.kind + "id"]: item.id }, playing: item.playing });
 
 /* The details of a playing title the box hands out none for -- a broadcast,
    a file the library does not know -- drawn from what the snapshot says of
    it, with nothing to ask: the plot, the ratings and the credits, each of
    the cast with who they played, under the playing title's own pictures.
    No keys under the heading: it is already playing. */
-function showSnapshotDetails({ title, media, art }) {
+function showSnapshotDetails({ title, media, art, playing }) {
   const roles = media.roles || [];
   const found = Object.assign({}, media, {
     cast: (media.cast || []).map((name, index) => ({ name, role: roles[index] || "" })),
     poster: art.poster || "", fanart: art.fanart || ""
   });
-  showDetails({ title, body: {}, found });
+  showDetails({ title, body: {}, found, playing });
 }
 TinyPPI.openSnapshotDetails = showSnapshotDetails;
+
+/* The playing title's details, opened from the overview card, go once it is
+   no longer playing: stopped, or another title started in its place.
+   Details opened from a shelf carry no *playing* and are left alone; a page
+   still being read is let go of, so it never opens (see showDetails). */
+TinyPPI.notePlaying = (snapshot) => {
+  const question = detailing;
+  if (!question || !question.playing) return;
+  if (TinyPPI.panels.playingKey(snapshot) === question.playing) return;
+  if (el.detailsDialog.open) slideOut(el.detailsDialog);
+  else detailing = null;
+};
 
 /* Every way a reader leaves a page slides it out: its key, Escape and the
    phone's back gesture (the dialog's cancel), and

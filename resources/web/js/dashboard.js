@@ -381,6 +381,8 @@ function render(next) {
      luminance chart on the metadata tab and the events on the history tab. */
   TinyPPI.panels.update(next);
   TinyPPI.metadata.render(next);
+  /* The playing title's details close with it (see js/marking.js). */
+  if (TinyPPI.notePlaying) TinyPPI.notePlaying(next);
   /* The former metrics card disappeared while idle; preserve that behaviour
      now that its grid lives inside the event card, which may hold the events
      of the title that just ended. */

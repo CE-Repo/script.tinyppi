@@ -1724,9 +1724,145 @@ msgid "TMDb API key"
 msgstr "مفتاح TMDb API"
 
 msgctxt "#32439"
-msgid "Optional: fill missing cast, director and writer portraits from TMDb in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
+msgid "Optional: fill missing cast, director and writer portraits from TMDb, link each person to their TMDb page and show a film's cinema release, budget and box office, in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
 msgstr "اختياري: إكمال صور الممثلين والمخرجين والكتاب المفقودة من TMDb في التطبيق ولوحة التحكم. أدخل مفتاح API أو رمز الوصول للقراءة. صور Kodi لها الأولوية."
 
 msgctxt "#32440"
 msgid "About the programme"
 msgstr "عن البرنامج"
+
+msgctxt "#32441"
+msgid "In cinemas"
+msgstr "العرض في السينما"
+
+msgctxt "#32442"
+msgid "Budget"
+msgstr "الميزانية"
+
+msgctxt "#32443"
+msgid "Box office"
+msgstr "الإيرادات"
+
+msgctxt "#32444"
+msgid "Production country"
+msgstr "بلد الإنتاج"
+
+msgctxt "#32445"
+msgid "Crew"
+msgstr "فريق العمل"
+
+msgctxt "#32446"
+msgid "Producer"
+msgstr "منتج"
+
+msgctxt "#32447"
+msgid "Executive Producer"
+msgstr "منتج منفذ"
+
+msgctxt "#32448"
+msgid "Co-Producer"
+msgstr "منتج مشارك"
+
+msgctxt "#32449"
+msgid "Associate Producer"
+msgstr "منتج مساعد"
+
+msgctxt "#32450"
+msgid "Line Producer"
+msgstr "مدير الإنتاج"
+
+msgctxt "#32451"
+msgid "Original Music Composer"
+msgstr "مؤلف الموسيقى"
+
+msgctxt "#32452"
+msgid "Music"
+msgstr "الموسيقى"
+
+msgctxt "#32453"
+msgid "Director of Photography"
+msgstr "مدير التصوير"
+
+msgctxt "#32454"
+msgid "Editor"
+msgstr "المونتاج"
+
+msgctxt "#32455"
+msgid "Casting"
+msgstr "اختيار الممثلين"
+
+msgctxt "#32456"
+msgid "Production Design"
+msgstr "تصميم الإنتاج"
+
+msgctxt "#32457"
+msgid "Art Direction"
+msgstr "الإدارة الفنية"
+
+msgctxt "#32458"
+msgid "Set Decoration"
+msgstr "ديكور المواقع"
+
+msgctxt "#32459"
+msgid "Costume Design"
+msgstr "تصميم الأزياء"
+
+msgctxt "#32460"
+msgid "Makeup Artist"
+msgstr "فنان المكياج"
+
+msgctxt "#32461"
+msgid "Visual Effects Supervisor"
+msgstr "مشرف المؤثرات البصرية"
+
+msgctxt "#32462"
+msgid "Sound Designer"
+msgstr "مصمم الصوت"
+
+msgctxt "#32463"
+msgid "Stunt Coordinator"
+msgstr "منسق المشاهد الخطرة"
+
+msgctxt "#32464"
+msgid "Screenplay"
+msgstr "السيناريو"
+
+msgctxt "#32465"
+msgid "Novel"
+msgstr "الرواية"
+
+msgctxt "#32466"
+msgid "Story"
+msgstr "القصة"
+
+msgctxt "#32467"
+msgid "Characters"
+msgstr "الشخصيات"
+
+msgctxt "#32468"
+msgid "Creator"
+msgstr "المبتكر"
+
+msgctxt "#32469"
+msgid "Teleplay"
+msgstr "سيناريو تلفزيوني"
+
+msgctxt "#32470"
+msgid "Assistant Director"
+msgstr "مساعد المخرج"
+
+msgctxt "#32471"
+msgid "Script Supervisor"
+msgstr "مشرف النص"
+
+msgctxt "#32472"
+msgid "Supervising Sound Editor"
+msgstr "مشرف مونتاج الصوت"
+
+msgctxt "#32473"
+msgid "Profit"
+msgstr "الربح"
+
+msgctxt "#32474"
+msgid "Loss"
+msgstr "الخسارة"

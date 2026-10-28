@@ -230,6 +230,20 @@ Request `/api/art?kind=thumb&portrait=<thumbnail>&v=<thumbnail>` to load it.
 Clients should keep an initial or another placeholder if the field is absent
 or the image request fails; older servers omit the field.
 
+With a TMDb key set (**TMDb API key**), the details also carry what TMDb's
+credits of the title say: the `crew` — Kodi's directors and writers
+(`{name, role: "director"|"writer"}`), then everyone else TMDb's credits name,
+department by department, once each with all their jobs as `role`
+(`"Producer, Screenplay"`, in Kodi's language where the add-on knows the
+job) — a portrait for a member of the cast or crew Kodi has none for, and a member's
+`tmdb` — their TMDb person id, for a link to
+`https://www.themoviedb.org/person/<tmdb>` — where the credits name them
+unambiguously. A film adds, where TMDb knows them, its `budget` and `revenue`
+(whole US dollars) and `cinema`, the day it first ran in cinemas
+(`YYYY-MM-DD`) in the country Kodi's language points to, else its earliest
+cinema run anywhere, with `cinema_country` the country's code (`"DE"`); else
+its primary release date, without a country. Older servers, or a title TMDb does not know, omit them.
+
 ### `GET /api/art?kind=<kind>[&movieid=|&tvshowid=|&episodeid=<id>][&portrait=<tag>][&v=<tag>]`
 
 Artwork: `kind` is `poster`, `fanart` or `thumb`. Without an id or `portrait`,

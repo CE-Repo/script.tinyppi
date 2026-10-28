@@ -1724,9 +1724,145 @@ msgid "TMDb API key"
 msgstr "TMDb API 密钥"
 
 msgctxt "#32439"
-msgid "Optional: fill missing cast, director and writer portraits from TMDb in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
+msgid "Optional: fill missing cast, director and writer portraits from TMDb, link each person to their TMDb page and show a film's cinema release, budget and box office, in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
 msgstr "可选：通过 TMDb 补充应用和仪表板中缺少的演员、导演及编剧照片。输入 TMDb API 密钥或只读访问令牌。优先使用 Kodi 照片。"
 
 msgctxt "#32440"
 msgid "About the programme"
 msgstr "关于节目"
+
+msgctxt "#32441"
+msgid "In cinemas"
+msgstr "上映日期"
+
+msgctxt "#32442"
+msgid "Budget"
+msgstr "预算"
+
+msgctxt "#32443"
+msgid "Box office"
+msgstr "票房"
+
+msgctxt "#32444"
+msgid "Production country"
+msgstr "制片国家"
+
+msgctxt "#32445"
+msgid "Crew"
+msgstr "制作团队"
+
+msgctxt "#32446"
+msgid "Producer"
+msgstr "制片人"
+
+msgctxt "#32447"
+msgid "Executive Producer"
+msgstr "执行制片人"
+
+msgctxt "#32448"
+msgid "Co-Producer"
+msgstr "联合制片人"
+
+msgctxt "#32449"
+msgid "Associate Producer"
+msgstr "助理制片人"
+
+msgctxt "#32450"
+msgid "Line Producer"
+msgstr "制片主任"
+
+msgctxt "#32451"
+msgid "Original Music Composer"
+msgstr "原创音乐"
+
+msgctxt "#32452"
+msgid "Music"
+msgstr "音乐"
+
+msgctxt "#32453"
+msgid "Director of Photography"
+msgstr "摄影指导"
+
+msgctxt "#32454"
+msgid "Editor"
+msgstr "剪辑"
+
+msgctxt "#32455"
+msgid "Casting"
+msgstr "选角"
+
+msgctxt "#32456"
+msgid "Production Design"
+msgstr "美术设计"
+
+msgctxt "#32457"
+msgid "Art Direction"
+msgstr "艺术指导"
+
+msgctxt "#32458"
+msgid "Set Decoration"
+msgstr "布景"
+
+msgctxt "#32459"
+msgid "Costume Design"
+msgstr "服装设计"
+
+msgctxt "#32460"
+msgid "Makeup Artist"
+msgstr "化妆师"
+
+msgctxt "#32461"
+msgid "Visual Effects Supervisor"
+msgstr "视觉特效总监"
+
+msgctxt "#32462"
+msgid "Sound Designer"
+msgstr "声音设计"
+
+msgctxt "#32463"
+msgid "Stunt Coordinator"
+msgstr "特技协调"
+
+msgctxt "#32464"
+msgid "Screenplay"
+msgstr "编剧"
+
+msgctxt "#32465"
+msgid "Novel"
+msgstr "原著小说"
+
+msgctxt "#32466"
+msgid "Story"
+msgstr "故事"
+
+msgctxt "#32467"
+msgid "Characters"
+msgstr "角色创作"
+
+msgctxt "#32468"
+msgid "Creator"
+msgstr "创作者"
+
+msgctxt "#32469"
+msgid "Teleplay"
+msgstr "电视剧本"
+
+msgctxt "#32470"
+msgid "Assistant Director"
+msgstr "副导演"
+
+msgctxt "#32471"
+msgid "Script Supervisor"
+msgstr "场记"
+
+msgctxt "#32472"
+msgid "Supervising Sound Editor"
+msgstr "声音剪辑总监"
+
+msgctxt "#32473"
+msgid "Profit"
+msgstr "利润"
+
+msgctxt "#32474"
+msgid "Loss"
+msgstr "亏损"

@@ -171,7 +171,7 @@ test("the overview is a key under the playing card that opens the title's detail
     height: node.getBoundingClientRect().height,
     radius: getComputedStyle(node).borderRadius
   }));
-  assert.deepEqual(portrait, { width: 160, height: 160, radius: "8px" });
+  assert.deepEqual(portrait, { width: 144, height: 144, radius: "8px" });
   // Verify narrow and wide layouts, including cards beyond the visible edge.
   for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
@@ -201,7 +201,7 @@ test("the overview is a key under the playing card that opens the title's detail
     assert.deepEqual(await page.locator("#detailsCast .castrow").last().locator(".role").allTextContents(), ["#32386", "#32407"]);
     for (const { cards, mask } of rows) {
       assert.equal(mask, "none", "credit rows have no edge fade");
-      assert.ok(cards.length && cards.every((card) => card.width === 160));
+      assert.ok(cards.length && cards.every((card) => card.width === 144));
       assert.ok(cards.every((card) => card.height === cards[0].height && card.fits && card.anchored));
     }
     assert.ok(rows.flatMap(({ cards }) => cards).every((card) => card.height < 320), "cards use their content height");

@@ -37,6 +37,8 @@
 
   /* How often a longer range is fetched again while it is on screen. */
   const HISTORY_REFRESH = 5000;
+  /* How far, in pixels, a mouse may move on a row of cards and still click. */
+  const DRAG_SLOP = 5;
 
   host.innerHTML =
     '<section class="card hero" id="nowCard">' +
@@ -280,10 +282,22 @@
     const item = media.item || {};
     const known = control && (item.kind === "movie" || item.kind === "episode") && item.id > 0 &&
       (!TinyPPI.detailsOffered || TinyPPI.detailsOffered(item.kind));
-    if (known) plotItem = { kind: item.kind, id: item.id, title };
-    else plotItem = told(media) ? { kind: item.kind, title, media, art } : null;
+    const playing = playingKey({ playing: true, title, media });
+    if (known) plotItem = { kind: item.kind, id: item.id, title, playing };
+    else plotItem = told(media) ? { kind: item.kind, title, media, art, playing } : null;
     el.plotCard.classList.toggle("hidden", !plotItem);
     renderPlotTitle();
+  }
+
+  /* Which title a snapshot says is playing, or null for none: one the
+     library holds by its id, anything else -- a broadcast, a loose file --
+     by its name.  The details opened from the overview are about that title
+     and close once it is no longer playing (see notePlaying in
+     js/marking.js). */
+  function playingKey(snapshot) {
+    if (!snapshot.playing) return null;
+    const item = (snapshot.media || {}).item || {};
+    return item.id > 0 ? item.kind + ":" + item.id : "title:" + (snapshot.title || "");
   }
 
   /* Whether the snapshot says anything a details page could show. */
@@ -312,14 +326,29 @@
      Drawn on a title's details page (see showDetails in js/marking.js), as
      the app draws them: each fact its
      name, quieter and small, over the names; and the cast under its
-     heading as a row of cards -- a large rectangular portrait or initial, the name on two
+     heading as a row of cards -- a large square portrait or a figure on a colour of its own, the name on two
      lines and who they played on one, held open where they are not
      filled so every card stands the same height -- with an ellipsis where
      the library holds more. */
 
+  /* A film's facts from TMDb (see _film_facts in web/library/details.py)
+     follow the names: when it first ran in cinemas and where ("(DE)"), and
+     what it cost and what it took on one line -- "Budget/Box office" over "$165M/$402M",
+     or whichever of the two is known -- in the reader's own way of writing
+     a day and a sum of dollars. */
   function factNodes(credits, T) {
+    const money = [[T.budget, credits.budget], [T.revenue, credits.revenue]]
+      .filter(([, amount]) => amount > 0);
+    const made = credits.revenue - credits.budget;
     const rows = [
-      [T.genre, credits.genres], [T.studio, credits.studios]
+      [T.genre, credits.genres], [T.studio, credits.studios], [T.country, credits.countries],
+      [T.cinema, credits.cinema && [cinemaDay(credits.cinema) +
+        (credits.cinema_country ? " (" + credits.cinema_country + ")" : "")]],
+      [money.map(([heading]) => heading).join("/"),
+       [money.map(([, amount]) => dollars(amount)).join("/")].filter(Boolean)],
+      /* What it took less what it cost, where both are known: its profit,
+         or what it lost under that name. */
+      [made < 0 ? T.loss : T.profit, money.length === 2 && made !== 0 && [dollars(Math.abs(made))]]
     ];
     const nodes = [];
     for (const [heading, names] of rows) {
@@ -336,25 +365,95 @@
     return nodes;
   }
 
+  /* "2021-09-16" as the reader writes a day; the day itself where it is no
+     day at all. */
+  function cinemaDay(day) {
+    const date = new Date(day + "T00:00:00");
+    return isNaN(date) ? day : date.toLocaleDateString(undefined, { dateStyle: "medium" });
+  }
+
+  /* Whole US dollars, short: "165 Mio. $", "$165M". */
+  function dollars(amount) {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency", currency: "USD", notation: "compact", maximumSignificantDigits: 3
+    }).format(amount);
+  }
+
+  /* The colours a person without a portrait stands on, two to a gradient,
+     the app's own (see PLACEHOLDER_COLOURS in the app's DetailsDialog.kt). */
+  const PLACEHOLDER_COLOURS = [
+    ["#1D3557", "#E63946"], ["#0B3D2E", "#3CA87A"], ["#2B1055", "#D53369"],
+    ["#3A1C08", "#F4A259"], ["#0F2027", "#2C7A99"], ["#42275A", "#B06AB3"],
+    ["#141E30", "#4A7AB0"], ["#5C2A09", "#E0B050"], ["#1F1C2C", "#928DAB"],
+    ["#093028", "#3CA87A"], ["#3E0E12", "#C0392B"], ["#16222A", "#4A8BA3"]
+  ];
+
+  /* Each person always on the same pair, picked by their name the way the
+     app picks it (Java's String.hashCode), so the app and the page agree. */
+  function placeholder(name) {
+    let hash = 0;
+    for (let i = 0; i < name.length; i += 1) hash = (Math.imul(31, hash) + name.charCodeAt(i)) | 0;
+    const count = PLACEHOLDER_COLOURS.length;
+    const [from, to] = PLACEHOLDER_COLOURS[((hash % count) + count) % count];
+    return "linear-gradient(135deg, " + from + ", " + to + ")";
+  }
+
+  /* A head and shoulders in pale outline, the same shape at any size. */
+  function personFigure() {
+    const NS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("class", "figure");
+    svg.setAttribute("viewBox", "0 0 300 300");
+    const head = document.createElementNS(NS, "circle");
+    head.setAttribute("cx", "150");
+    head.setAttribute("cy", "118");
+    head.setAttribute("r", "58");
+    const shoulders = document.createElementNS(NS, "ellipse");
+    shoulders.setAttribute("cx", "150");
+    shoulders.setAttribute("cy", "290");
+    shoulders.setAttribute("rx", "105");
+    shoulders.setAttribute("ry", "92");
+    svg.append(head, shoulders);
+    return svg;
+  }
+
+  /* A person's page on TMDb, with everything they have made: by their id
+     where TMDb's credits of the title named them (see web/tmdb.py), and
+     otherwise TMDb's search for their name. */
+  function personPage(person) {
+    return person.tmdb > 0
+      ? "https://www.themoviedb.org/person/" + encodeURIComponent(person.tmdb)
+      : "https://www.themoviedb.org/search/person?query=" + encodeURIComponent(person.name);
+  }
+
   function castParts(credits, T) {
+    /* Kodi's directors and writers by their codes, everyone else TMDb names
+       under their jobs as the add-on words them (see _more_crew in
+       web/library/details.py). */
+    const codes = { director: T.director, writer: T.writer };
     const crew = credits.crew ? credits.crew.map((person) => ({
-      ...person, role: person.role === "director" ? T.director : T.writer
+      ...person, role: codes[person.role] || person.role
     })) : [
       ...(credits.directors || []).map((name) => ({ name, role: T.director })),
       ...(credits.writers || []).map((name) => ({ name, role: T.writer }))
     ];
     return [
       ...castCards(credits, T.cast),
-      ...castCards({ cast: crew }, "Cast")
+      ...castCards({ cast: crew }, T.crew)
     ];
   }
 
   function castCards(credits, title) {
     const cast = credits.cast || [];
     if (!cast.length) return [];
+    /* How many there are, beside the heading: "Cast (24)", "(20+)" where
+       the library holds more than the row shows. */
     const heading = document.createElement("h4");
     heading.className = "casthead";
-    heading.textContent = title;
+    const count = document.createElement("span");
+    count.className = "count";
+    count.textContent = " (" + cast.length + (credits.cast_more ? "+" : "") + ")";
+    heading.append(title, count);
     const row = document.createElement("ul");
     row.className = "castrow";
     for (const person of cast) {
@@ -362,7 +461,10 @@
       const initial = document.createElement("span");
       initial.className = "initial";
       initial.setAttribute("aria-hidden", "true");
-      initial.textContent = person.name.charAt(0).toUpperCase();
+      /* Under the portrait, and in its place where there is none or it
+         cannot be read: a figure on a colour of the person's own. */
+      initial.style.background = placeholder(person.name);
+      initial.append(personFigure());
       if (person.thumbnail) {
         const photo = document.createElement("img");
         photo.alt = "";
@@ -380,7 +482,15 @@
       const text = document.createElement("div");
       text.className = "casttext";
       text.append(name, role);
-      item.append(initial, text);
+      /* The card is the way to the person's page on TMDb. */
+      const link = document.createElement("a");
+      link.className = "castlink";
+      link.href = personPage(person);
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.draggable = false;
+      link.append(initial, text);
+      item.append(link);
       row.append(item);
     }
     if (credits.cast_more) {
@@ -394,17 +504,25 @@
   }
 
   /* With no scrollbar to take hold of, a mouse drags the row sideways the
-     way a finger does.  The wheel is left to the page. */
+     way a finger does.  The wheel is left to the page.  A drag that moved
+     the row is no click on the card it ended on. */
   function mouseScroll(row) {
     let drag = null;
+    let dragged = false;
     row.addEventListener("pointerdown", (event) => {
+      dragged = false;
       if (event.pointerType !== "mouse" || event.button !== 0) return;
       drag = { x: event.clientX, left: row.scrollLeft };
       row.classList.add("dragging");
     });
     row.addEventListener("pointermove", (event) => {
-      if (drag) row.scrollLeft = drag.left - (event.clientX - drag.x);
+      if (!drag) return;
+      if (Math.abs(event.clientX - drag.x) > DRAG_SLOP) dragged = true;
+      row.scrollLeft = drag.left - (event.clientX - drag.x);
     });
+    row.addEventListener("click", (event) => {
+      if (dragged) event.preventDefault();
+    }, true);
     for (const type of ["pointerup", "pointerleave", "pointercancel"]) {
       row.addEventListener(type, () => {
         drag = null;
@@ -1238,7 +1356,7 @@
   }
 
   window.TinyPPI.panels = {
-    strings, update, events, peak, draw, shields, ratingGroups,
+    strings, update, events, peak, draw, shields, ratingGroups, playingKey,
     facts: (credits) => factNodes(credits, TinyPPI.T),
     cast: (credits) => castParts(credits, TinyPPI.T)
   };

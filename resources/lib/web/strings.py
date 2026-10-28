@@ -173,6 +173,15 @@ _UI_STRINGS = {
     "studio":           32408,
     "details_failed":   32409,
     "genre":            32410,
+    # A film's facts from TMDb on its details page.
+    "cinema":           32441,
+    "budget":           32442,
+    "revenue":          32443,
+    "country":          32444,
+    "profit":           32473,
+    "loss":             32474,
+    # The heading over the directors and writers on a details page.
+    "crew":             32445,
     "close":            32411,
     # Arranging the cards on a tab, and the tabs on the bar.
     "cards_edit":       32415,

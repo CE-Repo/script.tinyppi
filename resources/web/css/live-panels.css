@@ -888,6 +888,7 @@
    Names and roles remain free to wrap. */
 .castblock { display: grid; gap: 8px; min-width: 0; }
 .casthead { margin: 0; font-size: 20px; font-weight: 700; line-height: 26px; }
+.casthead .count { font-weight: 400; color: var(--muted); }
 .castrow {
   display: flex;
   align-items: stretch;
@@ -905,13 +906,38 @@
 }
 .castrow li {
   box-sizing: border-box;
-  flex: 0 0 160px;
+  flex: 0 0 144px;
   min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
   text-align: left;
+}
+/* The whole card is the link to the person's page (see personPage in
+   js/live-panels.js), looking like the card it was. */
+.castrow .castlink {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+  -webkit-user-drag: none;
+}
+.castrow .castlink:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (hover: hover) {
+  .castrow .castlink:hover .initial { filter: brightness(1.12); }
+  .castrow .castlink:hover strong { text-decoration: underline; }
+}
+.castrow .initial .figure {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: rgb(255 255 255 / 0.55);
 }
 .castrow .initial img {
   position: absolute;
@@ -925,8 +951,8 @@
   overflow: hidden;
   display: grid;
   place-items: center;
-  width: 160px;
-  height: 160px;
+  width: 144px;
+  height: 144px;
   flex-shrink: 0;
   border-radius: 8px;
   background: var(--tonal);

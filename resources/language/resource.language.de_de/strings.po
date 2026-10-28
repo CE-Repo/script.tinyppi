@@ -1724,9 +1724,145 @@ msgid "TMDb API key"
 msgstr "TMDb API-Schlüssel"
 
 msgctxt "#32439"
-msgid "Optional: fill missing cast, director and writer portraits from TMDb in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
-msgstr "Optional: Fehlende Bilder von Darstellern, Regisseuren und Drehbuchautoren in App und Dashboard über TMDb ergänzen. TMDb API-Schlüssel oder Lesezugriffstoken eingeben. Kodi-Bilder haben Vorrang."
+msgid "Optional: fill missing cast, director and writer portraits from TMDb, link each person to their TMDb page and show a film's cinema release, budget and box office, in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
+msgstr "Optional: Fehlende Bilder von Darstellern, Regisseuren und Drehbuchautoren über TMDb ergänzen, jede Person mit ihrer TMDb-Seite verknüpfen und bei Filmen Kinostart, Budget und Eingespieltes zeigen, in App und Dashboard. TMDb API-Schlüssel oder Lesezugriffstoken eingeben. Kodi-Bilder haben Vorrang."
 
 msgctxt "#32440"
 msgid "About the programme"
 msgstr "Über die Sendung"
+
+msgctxt "#32441"
+msgid "In cinemas"
+msgstr "Kinostart"
+
+msgctxt "#32442"
+msgid "Budget"
+msgstr "Budget"
+
+msgctxt "#32443"
+msgid "Box office"
+msgstr "Eingespielt"
+
+msgctxt "#32444"
+msgid "Production country"
+msgstr "Produktionsland"
+
+msgctxt "#32445"
+msgid "Crew"
+msgstr "Filmteam"
+
+msgctxt "#32446"
+msgid "Producer"
+msgstr "Produzent"
+
+msgctxt "#32447"
+msgid "Executive Producer"
+msgstr "Ausführender Produzent"
+
+msgctxt "#32448"
+msgid "Co-Producer"
+msgstr "Koproduzent"
+
+msgctxt "#32449"
+msgid "Associate Producer"
+msgstr "Associate Producer"
+
+msgctxt "#32450"
+msgid "Line Producer"
+msgstr "Herstellungsleitung"
+
+msgctxt "#32451"
+msgid "Original Music Composer"
+msgstr "Filmmusik"
+
+msgctxt "#32452"
+msgid "Music"
+msgstr "Musik"
+
+msgctxt "#32453"
+msgid "Director of Photography"
+msgstr "Kamera"
+
+msgctxt "#32454"
+msgid "Editor"
+msgstr "Schnitt"
+
+msgctxt "#32455"
+msgid "Casting"
+msgstr "Casting"
+
+msgctxt "#32456"
+msgid "Production Design"
+msgstr "Szenenbild"
+
+msgctxt "#32457"
+msgid "Art Direction"
+msgstr "Art Direction"
+
+msgctxt "#32458"
+msgid "Set Decoration"
+msgstr "Set-Dekoration"
+
+msgctxt "#32459"
+msgid "Costume Design"
+msgstr "Kostümbild"
+
+msgctxt "#32460"
+msgid "Makeup Artist"
+msgstr "Maske"
+
+msgctxt "#32461"
+msgid "Visual Effects Supervisor"
+msgstr "VFX-Supervisor"
+
+msgctxt "#32462"
+msgid "Sound Designer"
+msgstr "Sounddesign"
+
+msgctxt "#32463"
+msgid "Stunt Coordinator"
+msgstr "Stuntkoordination"
+
+msgctxt "#32464"
+msgid "Screenplay"
+msgstr "Drehbuch"
+
+msgctxt "#32465"
+msgid "Novel"
+msgstr "Romanvorlage"
+
+msgctxt "#32466"
+msgid "Story"
+msgstr "Geschichte"
+
+msgctxt "#32467"
+msgid "Characters"
+msgstr "Figuren"
+
+msgctxt "#32468"
+msgid "Creator"
+msgstr "Idee"
+
+msgctxt "#32469"
+msgid "Teleplay"
+msgstr "Fernsehdrehbuch"
+
+msgctxt "#32470"
+msgid "Assistant Director"
+msgstr "Regieassistenz"
+
+msgctxt "#32471"
+msgid "Script Supervisor"
+msgstr "Continuity"
+
+msgctxt "#32472"
+msgid "Supervising Sound Editor"
+msgstr "Supervising Sound Editor"
+
+msgctxt "#32473"
+msgid "Profit"
+msgstr "Profit"
+
+msgctxt "#32474"
+msgid "Loss"
+msgstr "Verlust"
