@@ -171,14 +171,17 @@ def test_cinema_prefers_the_home_countrys_first_run():
         country('DE', (1, '2021-09-03T00:00:00.000Z'), (4, '2021-09-01T00:00:00.000Z'),
                 (3, '2021-09-16T00:00:00.000Z'), (2, '2021-09-14T00:00:00.000Z'),
                 (3, 'soon')),
+        country('FR', (1, '2021-09-01T00:00:00.000Z')), country('XYZ', (3, '2021-01-01')),
         'bad']}}
-    assert tmdb.cinema(answer, 'de') == '2021-09-14'
-    assert tmdb.cinema(answer, 'us') == '2021-10-22'
-    # No run there, or no country to look for: the primary release date.
-    assert tmdb.cinema(answer, 'fr') == '2021-09-15'
-    assert tmdb.cinema(answer, '') == '2021-09-15'
-    assert tmdb.cinema({'release_dates': 'bad', 'release_date': 'x'}, 'de') == ''
-    assert tmdb.cinema({}, 'de') == ''
+    assert tmdb.cinema(answer, 'de') == ('2021-09-14', 'DE')
+    assert tmdb.cinema(answer, 'us') == ('2021-10-22', 'US')
+    # No run there, or no country to look for: the earliest run anywhere.
+    assert tmdb.cinema(answer, 'fr') == ('2021-09-14', 'DE')
+    assert tmdb.cinema(answer, '') == ('2021-09-14', 'DE')
+    # No run at all: the primary release date, from no country in particular.
+    assert tmdb.cinema({'release_date': '2021-09-15'}, 'de') == ('2021-09-15', '')
+    assert tmdb.cinema({'release_dates': 'bad', 'release_date': 'x'}, 'de') == ('', '')
+    assert tmdb.cinema({}, 'de') == ('', '')
 
 
 def test_enrichment_preserves_kodi_data_and_registers_only_missing_portraits(monkeypatch):
@@ -192,6 +195,11 @@ def test_enrichment_preserves_kodi_data_and_registers_only_missing_portraits(mon
                         {'name': 'Writer', 'department': 'Writing', 'profile_path': '/writer.jpg'}]}
     answer = {'credits': credits, 'budget': 165000000, 'revenue': 0,
               'release_date': '2021-09-15'}
+    film = {}
+    monkeypatch.setattr(tmdb, 'lookup', lambda *args: {'release_dates': {'results': [
+        {'iso_3166_1': 'DE', 'release_dates': [{'type': 3, 'release_date': '2021-09-16'}]}]}})
+    details_module._from_tmdb(film, {}, 'movie')
+    assert film == {'cinema': '2021-09-16', 'cinema_country': 'DE'}
     monkeypatch.setattr(tmdb, 'lookup', lambda *args: calls.append(args) or answer)
     found = {'directors': ['Director', 'Unknown'], 'writers': ['Writer'], 'cast': [
         {'name': ' ACTOR ', 'role': 'Hero'}, {'name': 'Already', 'role': '', 'thumbnail': 'kodi'},
@@ -209,7 +217,7 @@ def test_enrichment_preserves_kodi_data_and_registers_only_missing_portraits(mon
     assert found['crew'][1] == {'name': 'Unknown', 'role': 'director'}
     # The film's facts, where TMDb knows them.
     assert found['budget'] == 165000000 and 'revenue' not in found
-    assert found['cinema'] == '2021-09-15'
+    assert found['cinema'] == '2021-09-15' and 'cinema_country' not in found
     # A show has no film's facts.
     show = {'cast': [{'name': 'Actor', 'role': ''}]}
     details_module._from_tmdb(show, {}, 'tvshow')

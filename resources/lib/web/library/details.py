@@ -302,14 +302,17 @@ def _match(people: list[Person], credits: Json, groups: tuple[str, ...], role: s
 
 
 def _film_facts(found: Details, answer: Json) -> None:
-    """Add the budget and the takings (US dollars) and the cinema release."""
+    """Add the budget and the takings (US dollars) and the cinema release,
+    with the country it is that of."""
     for field in ("budget", "revenue"):
         value = tmdb.money(answer, field)
         if value:
             found[field] = value
-    date = tmdb.cinema(answer, home_country())
+    date, country = tmdb.cinema(answer, home_country())
     if date:
         found["cinema"] = date
+    if date and country:
+        found["cinema_country"] = country
 
 
 def _pictures(found: Details, row: Json,

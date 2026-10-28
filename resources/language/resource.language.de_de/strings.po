@@ -1858,3 +1858,7 @@ msgstr "Continuity"
 msgctxt "#32472"
 msgid "Supervising Sound Editor"
 msgstr "Supervising Sound Editor"
+
+msgctxt "#32473"
+msgid "Profit"
+msgstr "Profit"

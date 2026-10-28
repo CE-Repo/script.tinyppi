@@ -1348,16 +1348,24 @@ test("each card leads to the person's page on TMDb, or to a search for their nam
 
 test("a film's cinema release, budget and takings follow its names, in the reader's own writing", (t) => {
   const { P, window } = panels(t);
-  Object.assign(window.TinyPPI.T, { cinema: "Kinostart", budget: "Budget", revenue: "Eingespielt" });
+  Object.assign(window.TinyPPI.T, { cinema: "Kinostart", budget: "Budget", revenue: "Eingespielt",
+                                    profit: "Profit" });
   const facts = (credits) => plain(P.facts(credits).map((node) =>
     [node.querySelector("dt").textContent, node.querySelector("dd").textContent]));
   const money = new Intl.NumberFormat(undefined, {
     style: "currency", currency: "USD", notation: "compact", maximumSignificantDigits: 3 });
   // What it cost and what it took share a line.
-  assert.deepEqual(facts({ genres: ["Sci-Fi"], cinema: "2021-09-16", budget: 165000000, revenue: 402027830 }), [
+  const day = new Date(2021, 8, 16).toLocaleDateString(undefined, { dateStyle: "medium" });
+  assert.deepEqual(facts({ genres: ["Sci-Fi"], cinema: "2021-09-16", cinema_country: "DE",
+                           budget: 165000000, revenue: 402027830 }), [
     ["Genre", "Sci-Fi"],
-    ["Kinostart", new Date(2021, 8, 16).toLocaleDateString(undefined, { dateStyle: "medium" })],
-    ["Budget/Eingespielt", money.format(165000000) + "/" + money.format(402027830)]]);
+    ["Kinostart", day + " (DE)"],
+    ["Budget/Eingespielt", money.format(165000000) + "/" + money.format(402027830)],
+    // And what it made, or lost, where both are known.
+    ["Profit", money.format(237027830)]]);
+  assert.deepEqual(facts({ budget: 200000000, revenue: 150000000 }).at(-1), ["Profit", money.format(-50000000)]);
+  // A day from no country in particular stands alone.
+  assert.deepEqual(facts({ cinema: "2021-09-16" }), [["Kinostart", day]]);
   // Whichever of the two is known; a day that is no day is written as it came.
   assert.deepEqual(facts({ budget: 165000000 }), [["Budget", money.format(165000000)]]);
   assert.deepEqual(facts({ revenue: 402027830, budget: 0 }), [["Eingespielt", money.format(402027830)]]);

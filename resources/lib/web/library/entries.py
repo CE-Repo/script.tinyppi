@@ -147,6 +147,9 @@ class Details(TypedDict):
     budget: NotRequired[int]
     revenue: NotRequired[int]
     cinema: NotRequired[str]
+    # The country that day is the first in cinemas of ("DE", "US"); absent
+    # where it is TMDb's primary release date instead.
+    cinema_country: NotRequired[str]
     mpaa: NotRequired[str]
     age: NotRequired[str]
     age_level: NotRequired[str]

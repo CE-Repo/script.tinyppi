@@ -240,8 +240,9 @@ job) — a portrait for a member of the cast or crew Kodi has none for, and a me
 `https://www.themoviedb.org/person/<tmdb>` — where the credits name them
 unambiguously. A film adds, where TMDb knows them, its `budget` and `revenue`
 (whole US dollars) and `cinema`, the day it first ran in cinemas
-(`YYYY-MM-DD`) in the country Kodi's language points to, else its primary
-release date. Older servers, or a title TMDb does not know, omit them.
+(`YYYY-MM-DD`) in the country Kodi's language points to, else its earliest
+cinema run anywhere, with `cinema_country` the country's code (`"DE"`); else
+its primary release date, without a country. Older servers, or a title TMDb does not know, omit them.
 
 ### `GET /api/art?kind=<kind>[&movieid=|&tvshowid=|&episodeid=<id>][&portrait=<tag>][&v=<tag>]`
 

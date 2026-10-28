@@ -30,6 +30,7 @@ _LIMIT = 256
 _BIGGEST = 2 * 1024 * 1024
 _PROFILE = re.compile(r"/[A-Za-z0-9_-]+\.(?:jpg|png)")
 _DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
+_COUNTRY = re.compile(r"[A-Z]{2}")
 # TMDb's release types that are a run in cinemas: limited and wide.
 _THEATRICAL = (2, 3)
 # The order the crew's departments stand in, the ones a reader looks for
@@ -161,26 +162,34 @@ def money(answer: Json, field: str) -> int:
     return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else 0
 
 
-def cinema(answer: Json, home: str) -> str:
-    """Return the day a film first ran in cinemas at *home* ("de"), as YYYY-MM-DD.
+def cinema(answer: Json, home: str) -> tuple[str, str]:
+    """Return the day a film first ran in cinemas, as YYYY-MM-DD, and where ("DE").
 
-    Where TMDb has no cinema run for that country -- or Kodi's language names
-    none -- its primary release date instead; "" where it has neither.
+    At *home* ("de") where TMDb has a cinema run there; else the earliest run
+    anywhere; else its primary release date, with no country. ("", "") where
+    it has none of them.
     """
-    dates = _theatrical(answer, home)
-    return min(dates) if dates else _date(answer.get("release_date"))
+    runs = _theatrical(answer)
+    if home.upper() in runs:
+        return runs[home.upper()], home.upper()
+    if runs:
+        return min((date, country) for country, date in runs.items())
+    return _date(answer.get("release_date")), ""
 
 
-def _theatrical(answer: Json, home: str) -> list[str]:
+def _theatrical(answer: Json) -> dict[str, str]:
+    """The first day in cinemas in each country TMDb has one for, by country code."""
     countries = answer.get("release_dates")
-    found = []
+    runs: dict[str, str] = {}
     for country in _members(countries if isinstance(countries, dict) else {}, "results"):
-        if not home or str(country.get("iso_3166_1") or "").lower() != home:
-            continue
-        found += [_date(release.get("release_date"))
-                  for release in _members(country, "release_dates")
-                  if release.get("type") in _THEATRICAL]
-    return [date for date in found if date]
+        code = str(country.get("iso_3166_1") or "").upper()
+        dates = [_date(release.get("release_date"))
+                 for release in _members(country, "release_dates")
+                 if release.get("type") in _THEATRICAL]
+        dates = [date for date in dates if date]
+        if _COUNTRY.fullmatch(code) and dates:
+            runs[code] = min(dates)
+    return runs
 
 
 def _date(value: object) -> str:
