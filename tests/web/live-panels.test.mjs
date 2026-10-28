@@ -1392,7 +1392,27 @@ test("cast portraits load lazily and return to the initial on failure", (t) => {
   assert.equal(photo.alt, "");
   photo.dispatchEvent(new photo.ownerDocument.defaultView.Event("error"));
   assert.equal(row.querySelector("img"), null);
-  assert.equal(row.querySelector(".initial").textContent, "A");
+  // Without it, the figure on the person's own colour stays.
+  assert.ok(row.querySelector(".initial .figure"));
+
+});
+
+test("a person without a portrait stands on a colour of their own, the one the app gives them", (t) => {
+  const { P } = panels(t);
+  const row = P.cast({ cast: [{ name: "Actor" }, { name: "Rebecca Ferguson" }, { name: "Léa Seydoux" },
+                              { name: "Actor" }] })[1];
+  const pictures = [...row.querySelectorAll(".initial")];
+  // Picked by the name as the app picks it, a name whose hash is negative
+  // included; the same name, the same colour.
+  assert.deepEqual(pictures.map((node) => node.style.background), [
+    "linear-gradient(135deg, rgb(11, 61, 46), rgb(60, 168, 122))",
+    "linear-gradient(135deg, rgb(43, 16, 85), rgb(213, 51, 105))",
+    "linear-gradient(135deg, rgb(11, 61, 46), rgb(60, 168, 122))",
+    "linear-gradient(135deg, rgb(11, 61, 46), rgb(60, 168, 122))"]);
+  const figure = pictures[0].querySelector("svg.figure");
+  assert.equal(figure.getAttribute("viewBox"), "0 0 300 300");
+  assert.deepEqual([...figure.children].map((node) => node.tagName), ["circle", "ellipse"]);
+  assert.equal(pictures[0].textContent, "");
 });
 
 test("enriched crew retains portraits and localizes role codes", (t) => {

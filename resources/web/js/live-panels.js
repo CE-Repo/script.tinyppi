@@ -326,7 +326,7 @@
      Drawn on a title's details page (see showDetails in js/marking.js), as
      the app draws them: each fact its
      name, quieter and small, over the names; and the cast under its
-     heading as a row of cards -- a large rectangular portrait or initial, the name on two
+     heading as a row of cards -- a large square portrait or a figure on a colour of its own, the name on two
      lines and who they played on one, held open where they are not
      filled so every card stands the same height -- with an ellipsis where
      the library holds more. */
@@ -374,6 +374,44 @@
     }).format(amount);
   }
 
+  /* The colours a person without a portrait stands on, two to a gradient,
+     the app's own (see PLACEHOLDER_COLOURS in the app's DetailsDialog.kt). */
+  const PLACEHOLDER_COLOURS = [
+    ["#1D3557", "#E63946"], ["#0B3D2E", "#3CA87A"], ["#2B1055", "#D53369"],
+    ["#3A1C08", "#F4A259"], ["#0F2027", "#2C7A99"], ["#42275A", "#B06AB3"],
+    ["#141E30", "#4A7AB0"], ["#5C2A09", "#E0B050"], ["#1F1C2C", "#928DAB"],
+    ["#093028", "#3CA87A"], ["#3E0E12", "#C0392B"], ["#16222A", "#4A8BA3"]
+  ];
+
+  /* Each person always on the same pair, picked by their name the way the
+     app picks it (Java's String.hashCode), so the app and the page agree. */
+  function placeholder(name) {
+    let hash = 0;
+    for (let i = 0; i < name.length; i += 1) hash = (Math.imul(31, hash) + name.charCodeAt(i)) | 0;
+    const count = PLACEHOLDER_COLOURS.length;
+    const [from, to] = PLACEHOLDER_COLOURS[((hash % count) + count) % count];
+    return "linear-gradient(135deg, " + from + ", " + to + ")";
+  }
+
+  /* A head and shoulders in pale outline, the same shape at any size. */
+  function personFigure() {
+    const NS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("class", "figure");
+    svg.setAttribute("viewBox", "0 0 300 300");
+    const head = document.createElementNS(NS, "circle");
+    head.setAttribute("cx", "150");
+    head.setAttribute("cy", "118");
+    head.setAttribute("r", "58");
+    const shoulders = document.createElementNS(NS, "ellipse");
+    shoulders.setAttribute("cx", "150");
+    shoulders.setAttribute("cy", "290");
+    shoulders.setAttribute("rx", "105");
+    shoulders.setAttribute("ry", "92");
+    svg.append(head, shoulders);
+    return svg;
+  }
+
   /* A person's page on TMDb, with everything they have made: by their id
      where TMDb's credits of the title named them (see web/tmdb.py), and
      otherwise TMDb's search for their name. */
@@ -418,7 +456,10 @@
       const initial = document.createElement("span");
       initial.className = "initial";
       initial.setAttribute("aria-hidden", "true");
-      initial.textContent = person.name.charAt(0).toUpperCase();
+      /* Under the portrait, and in its place where there is none or it
+         cannot be read: a figure on a colour of the person's own. */
+      initial.style.background = placeholder(person.name);
+      initial.append(personFigure());
       if (person.thumbnail) {
         const photo = document.createElement("img");
         photo.alt = "";

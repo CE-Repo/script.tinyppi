@@ -340,7 +340,7 @@ test("details stand under the title's backdrop with its poster, shields, plot, f
                            ["Studio", "20th Century Fox"],
                            ["Production country", "United Kingdom, USA"]]);
   // More in the library than the row shows: the count says so.
-  assert.deepEqual(cast(view), ["Cast (2+)", "SSigourney WeaverRipley", "JJones", "…", "RRidley ScottDirector"]);
+  assert.deepEqual(cast(view), ["Cast (2+)", "Sigourney WeaverRipley", "Jones", "…", "Ridley ScottDirector"]);
   assert.equal(view.$("detailsClose"), null);
   assert.equal(view.$("detailsX").getAttribute("aria-label"), "Close");
   // A backdrop the box cannot read leaves the heading on the plain panel.
@@ -405,7 +405,7 @@ test("an episode stands under its still, and one without pictures under none", a
   await settle();
   assert.equal(view.$("detailsBackdrop").getAttribute("src"), "/api/art?kind=thumb&episodeid=71&v=t71");
   assert.ok(view.$("detailsPoster").hidden);
-  assert.deepEqual(cast(view), ["Cast (1)", "DDiego LunaCassian"]);
+  assert.deepEqual(cast(view), ["Cast (1)", "Diego LunaCassian"]);
 });
 
 test("a title with little to say leaves its rows out, and a failed read says so", async (t) => {
