@@ -332,14 +332,18 @@
      the library holds more. */
 
   /* A film's facts from TMDb (see _film_facts in web/library/details.py)
-     follow the names: when it first ran in cinemas, what it cost and what it
-     took, in the reader's own way of writing a day and a sum of dollars. */
+     follow the names: when it first ran in cinemas, and what it cost and
+     what it took on one line -- "Budget/Box office" over "$165M/$402M",
+     or whichever of the two is known -- in the reader's own way of writing
+     a day and a sum of dollars. */
   function factNodes(credits, T) {
+    const money = [[T.budget, credits.budget], [T.revenue, credits.revenue]]
+      .filter(([, amount]) => amount > 0);
     const rows = [
       [T.genre, credits.genres], [T.studio, credits.studios],
       [T.cinema, credits.cinema && [cinemaDay(credits.cinema)]],
-      [T.budget, credits.budget && [dollars(credits.budget)]],
-      [T.revenue, credits.revenue && [dollars(credits.revenue)]]
+      [money.map(([heading]) => heading).join("/"),
+       [money.map(([, amount]) => dollars(amount)).join("/")].filter(Boolean)]
     ];
     const nodes = [];
     for (const [heading, names] of rows) {

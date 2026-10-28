@@ -1725,7 +1725,7 @@ msgstr "TMDb API-Schlüssel"
 
 msgctxt "#32439"
 msgid "Optional: fill missing cast, director and writer portraits from TMDb, link each person to their TMDb page and show a film's cinema release, budget and box office, in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
-msgstr "Optional: Fehlende Bilder von Darstellern, Regisseuren und Drehbuchautoren über TMDb ergänzen, jede Person mit ihrer TMDb-Seite verknüpfen und bei Filmen Kinostart, Budget und Einspielergebnis zeigen, in App und Dashboard. TMDb API-Schlüssel oder Lesezugriffstoken eingeben. Kodi-Bilder haben Vorrang."
+msgstr "Optional: Fehlende Bilder von Darstellern, Regisseuren und Drehbuchautoren über TMDb ergänzen, jede Person mit ihrer TMDb-Seite verknüpfen und bei Filmen Kinostart, Budget und Eingespieltes zeigen, in App und Dashboard. TMDb API-Schlüssel oder Lesezugriffstoken eingeben. Kodi-Bilder haben Vorrang."
 
 msgctxt "#32440"
 msgid "About the programme"
@@ -1741,4 +1741,4 @@ msgstr "Budget"
 
 msgctxt "#32443"
 msgid "Box office"
-msgstr "Einspielergebnis"
+msgstr "Eingespielt"

@@ -1348,18 +1348,20 @@ test("each card leads to the person's page on TMDb, or to a search for their nam
 
 test("a film's cinema release, budget and takings follow its names, in the reader's own writing", (t) => {
   const { P, window } = panels(t);
-  Object.assign(window.TinyPPI.T, { cinema: "Kinostart", budget: "Budget", revenue: "Einspielergebnis" });
+  Object.assign(window.TinyPPI.T, { cinema: "Kinostart", budget: "Budget", revenue: "Eingespielt" });
   const facts = (credits) => plain(P.facts(credits).map((node) =>
     [node.querySelector("dt").textContent, node.querySelector("dd").textContent]));
   const money = new Intl.NumberFormat(undefined, {
     style: "currency", currency: "USD", notation: "compact", maximumSignificantDigits: 3 });
+  // What it cost and what it took share a line.
   assert.deepEqual(facts({ genres: ["Sci-Fi"], cinema: "2021-09-16", budget: 165000000, revenue: 402027830 }), [
     ["Genre", "Sci-Fi"],
     ["Kinostart", new Date(2021, 8, 16).toLocaleDateString(undefined, { dateStyle: "medium" })],
-    ["Budget", money.format(165000000)],
-    ["Einspielergebnis", money.format(402027830)]]);
-  // Only what is known; a day that is no day is written as it came.
-  assert.deepEqual(facts({ cinema: "soon", budget: 0 }), [["Kinostart", "soon"]]);
+    ["Budget/Eingespielt", money.format(165000000) + "/" + money.format(402027830)]]);
+  // Whichever of the two is known; a day that is no day is written as it came.
+  assert.deepEqual(facts({ budget: 165000000 }), [["Budget", money.format(165000000)]]);
+  assert.deepEqual(facts({ revenue: 402027830, budget: 0 }), [["Eingespielt", money.format(402027830)]]);
+  assert.deepEqual(facts({ cinema: "soon" }), [["Kinostart", "soon"]]);
   assert.deepEqual(facts({}), []);
 });
 
