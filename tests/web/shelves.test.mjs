@@ -87,7 +87,7 @@ const DETAILS = {
   kind: "movie", id: 1, title: "Alien", year: 1979, duration: 7020, mpaa: "Rated R",
   video: "dv", dv_profile: "5", resolution: "1080p", audio: "wma", tagline: "In space no one can hear you scream.",
   plot: "One\nTwo", genres: ["Horror", "Sci-Fi"], directors: ["Ridley Scott"], writers: [],
-  studios: ["20th Century Fox"], userrating: 9, top250: 51, cast_more: true,
+  studios: ["20th Century Fox"], countries: ["United Kingdom", "USA"], userrating: 9, top250: 51, cast_more: true,
   cast: [{ name: "Sigourney Weaver", role: "Ripley" }, { name: "Jones", role: "" }],
   ratings: [{ source: "imdb", rating: 8.5, votes: 1 }, { source: "kinopoisk", rating: 8, votes: 0 }],
   age: "mpa_r", age_level: "R", poster: "p1", fanart: "f1",
@@ -337,8 +337,10 @@ test("details stand under the title's backdrop with its poster, shields, plot, f
   const facts = [...view.$("detailsFacts").children].map((node) =>
     [...node.children].map((part) => part.textContent));
   assert.deepEqual(facts, [["Genre", "Horror, Sci-Fi"],
-                           ["Studio", "20th Century Fox"]]);
-  assert.deepEqual(cast(view), ["Cast", "SSigourney WeaverRipley", "JJones", "…", "RRidley ScottDirector"]);
+                           ["Studio", "20th Century Fox"],
+                           ["Production country", "United Kingdom, USA"]]);
+  // More in the library than the row shows: the count says so.
+  assert.deepEqual(cast(view), ["Cast (2+)", "SSigourney WeaverRipley", "JJones", "…", "RRidley ScottDirector"]);
   assert.equal(view.$("detailsClose"), null);
   assert.equal(view.$("detailsX").getAttribute("aria-label"), "Close");
   // A backdrop the box cannot read leaves the heading on the plain panel.
@@ -403,7 +405,7 @@ test("an episode stands under its still, and one without pictures under none", a
   await settle();
   assert.equal(view.$("detailsBackdrop").getAttribute("src"), "/api/art?kind=thumb&episodeid=71&v=t71");
   assert.ok(view.$("detailsPoster").hidden);
-  assert.deepEqual(cast(view), ["Cast", "DDiego LunaCassian"]);
+  assert.deepEqual(cast(view), ["Cast (1)", "DDiego LunaCassian"]);
 });
 
 test("a title with little to say leaves its rows out, and a failed read says so", async (t) => {

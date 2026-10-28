@@ -1742,3 +1742,11 @@ msgstr "Budget"
 msgctxt "#32443"
 msgid "Box office"
 msgstr "Eingespielt"
+
+msgctxt "#32444"
+msgid "Production country"
+msgstr "Produktionsland"
+
+msgctxt "#32445"
+msgid "Crew"
+msgstr "Filmteam"

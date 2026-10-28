@@ -1372,7 +1372,10 @@ test("directors and writers share a Cast row with their functions under their na
     cast: [{ name: "An Actor", role: "A Character" }]
   });
   assert.equal(parts.length, 4, "one crew row and one actor row with their headings");
-  assert.equal(parts[2].textContent, "Cast");
+  // Each heading says how many stand under it.
+  assert.equal(parts[0].textContent, "Cast (1)");
+  assert.equal(parts[2].textContent, "Crew (3)");
+  assert.equal(parts[2].querySelector(".count").textContent, " (3)");
   assert.deepEqual([...parts[3].children].map((card) => [
     card.querySelector("strong").textContent, card.querySelector(".role").textContent
   ]), [["Alex Director", "Director"], ["Sam Writer", "Writer"], ["Jo Writer", "Writer"]]);

@@ -86,6 +86,7 @@ window.TinyPPI = (function () {
     next_up: "Next up", details: "Details", writer: "Writer", studio: "Studio",
     details_failed: "The details could not be read.", genre: "Genre", close: "Close",
     cinema: "In cinemas", budget: "Budget", revenue: "Box office",
+    country: "Production country", crew: "Crew",
     cards_edit: "Arrange cards",
     cards_edit_hint: "Move a card with the arrows, or take it off this tab with the eye. Long-press or right-click any card heading to come back here.",
     cards_done: "Done",

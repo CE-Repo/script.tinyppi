@@ -340,7 +340,7 @@
     const money = [[T.budget, credits.budget], [T.revenue, credits.revenue]]
       .filter(([, amount]) => amount > 0);
     const rows = [
-      [T.genre, credits.genres], [T.studio, credits.studios],
+      [T.genre, credits.genres], [T.studio, credits.studios], [T.country, credits.countries],
       [T.cinema, credits.cinema && [cinemaDay(credits.cinema)]],
       [money.map(([heading]) => heading).join("/"),
        [money.map(([, amount]) => dollars(amount)).join("/")].filter(Boolean)]
@@ -392,16 +392,21 @@
     ];
     return [
       ...castCards(credits, T.cast),
-      ...castCards({ cast: crew }, "Cast")
+      ...castCards({ cast: crew }, T.crew)
     ];
   }
 
   function castCards(credits, title) {
     const cast = credits.cast || [];
     if (!cast.length) return [];
+    /* How many there are, beside the heading: "Cast (24)", "(20+)" where
+       the library holds more than the row shows. */
     const heading = document.createElement("h4");
     heading.className = "casthead";
-    heading.textContent = title;
+    const count = document.createElement("span");
+    count.className = "count";
+    count.textContent = " (" + cast.length + (credits.cast_more ? "+" : "") + ")";
+    heading.append(title, count);
     const row = document.createElement("ul");
     row.className = "castrow";
     for (const person of cast) {

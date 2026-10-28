@@ -1742,3 +1742,11 @@ msgstr "预算"
 msgctxt "#32443"
 msgid "Box office"
 msgstr "票房"
+
+msgctxt "#32444"
+msgid "Production country"
+msgstr "制片国家"
+
+msgctxt "#32445"
+msgid "Crew"
+msgstr "制作团队"

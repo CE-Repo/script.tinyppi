@@ -177,6 +177,9 @@ _UI_STRINGS = {
     "cinema":           32441,
     "budget":           32442,
     "revenue":          32443,
+    "country":          32444,
+    # The heading over the directors and writers on a details page.
+    "crew":             32445,
     "close":            32411,
     # Arranging the cards on a tab, and the tabs on the bar.
     "cards_edit":       32415,
