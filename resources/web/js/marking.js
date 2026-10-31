@@ -258,6 +258,7 @@ async function showDetails(question, replace) {
    (see openShowDetails) -- or, where its shelf has not been drawn, its page
    alone. */
 function openRelated(item) {
+  detailsTrail.push(detailing);
   if (item.kind === "tvshow" && showQuestion(item.id)) {
     openShowDetails(item.id);
     return;
@@ -265,6 +266,19 @@ function openRelated(item) {
   const key = item.kind === "tvshow" ? "tvshowid" : "movieid";
   const question = key === "movieid" ? filmQuestion(item.id) : undefined;
   showDetails(question || { title: item.title, body: { [key]: item.id } }, true);
+}
+
+/* The pages the open page was led on to from (see openRelated), the last on
+   top, so leaving a page led on to goes back to the one before it rather
+   than closing the details; let go of once they close. */
+const detailsTrail = [];
+
+/* Back, Escape or the close key: the page the open one was led on to from,
+   as it was, with its keys; on the first page, the details slide away. */
+function leaveDetails() {
+  const previous = detailsTrail.pop();
+  if (previous) showDetails(previous, true);
+  else slideOut(el.detailsDialog);
 }
 
 /* Actions are updated without rebuilding the page or moving its scroll position. */
@@ -371,15 +385,18 @@ TinyPPI.notePlaying = (snapshot) => {
 /* Every way a reader leaves a page slides it out: its key, Escape and the
    phone's back gesture (the dialog's cancel), and
    -- on a desktop, where the page stands in the middle of the screen -- a
-   click beside it. */
-for (const [dialog, key] of [[el.detailsDialog, el.detailsX], [el.seasonsDialog, el.seasonsX]]) {
+   click beside it.  The first three, on a title's page led on to from
+   another, go back to that one instead (see leaveDetails); a click beside
+   the page closes it, whatever it was led on to from. */
+for (const [dialog, key, leave] of [[el.detailsDialog, el.detailsX, leaveDetails],
+                                    [el.seasonsDialog, el.seasonsX, () => slideOut(el.seasonsDialog)]]) {
   key.addEventListener("click", (event) => {
     event.preventDefault();
-    slideOut(dialog);
+    leave();
   });
   dialog.addEventListener("cancel", (event) => {
     event.preventDefault();
-    slideOut(dialog);
+    leave();
   });
   /* Only a press that began beside the page as well: a row of cards
      dragged until the pointer is let go out there is no click beside it. */
@@ -409,6 +426,7 @@ el.detailsDialog.addEventListener("close", () => {
   /* Shut only to be shown again in front (see showDetails): nothing was
      answered. */
   if (el.detailsDialog.open) return;
+  detailsTrail.length = 0;
   const answer = el.detailsDialog.returnValue;
   const question = detailing;
   detailing = null;

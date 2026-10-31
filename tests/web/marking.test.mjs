@@ -622,7 +622,31 @@ test("a title's series and recommendations open the library's own pages, with th
   await opening("Film 03");
   assert.deepEqual(asked(view), { open: true, title: "Film 03", play: "Resume",
                                   restart: true, clear: true });
+  // Back, Escape and the close key go back to the page it was led on from,
+  // with that one's keys, and close the details only from there.
+  const cancel = () => view.$("detailsDialog").dispatchEvent(new view.window.Event("cancel", { cancelable: true }));
+  cancel();
+  await settle();
+  assert.deepEqual(asked(view), { open: true, title: "Film 01", play: "Play",
+                                  restart: false, clear: false });
+  card("Film 03").click();
+  await settle();
+  view.$("detailsX").click();
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, "Film 01");
+  cancel();
+  view.clock.tick(1000);
+  assert.equal(view.$("detailsDialog").open, false);
+  view.$("detailsDialog").dispatchEvent(new view.window.Event("close"));
+  // A page closed some other way lets go of its trail: opened again, back closes it.
+  await opening("Film 03");
   answer(view, "close");
+  tile(view, "Film 03").click();
+  await settle();
+  cancel();
+  view.clock.tick(1000);
+  assert.equal(view.$("detailsDialog").open, false);
+  view.$("detailsDialog").dispatchEvent(new view.window.Event("close"));
   // One the wall does not hold: its page, with nothing to press.
   await opening("Not on the wall");
   assert.equal(view.$("detailsTitle").textContent, "Not on the wall");
