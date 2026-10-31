@@ -28,6 +28,12 @@ _CACHE: OrderedDict[tuple[str, str], tuple[float, Json]] = OrderedDict()
 _LOCK = Lock()
 _LIMIT = 256
 _BIGGEST = 2 * 1024 * 1024
+# The time one details view gives TMDb in all, shared by its requests.
+_BUDGET = 4.0
+# A request that timed out with less than this left of the view's budget says
+# nothing of TMDb, only of the requests before it, so its empty answer is not
+# kept: the next view asks again.
+_FAIR_TRY = 2.0
 _PROFILE = re.compile(r"/[A-Za-z0-9_-]+\.(?:jpg|png)")
 _DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 _COUNTRY = re.compile(r"[A-Z]{2}")
@@ -72,9 +78,12 @@ def _get(path: str, key: str, deadline: float) -> Json:
         if held is not None and held[0] > time.monotonic():
             _CACHE.move_to_end(wanted)
             return held[1]
+    allowed = deadline - time.monotonic()
     try:
         answer = _read(path, key, deadline)
-    except (OSError, ValueError, http.client.HTTPException):
+    except (OSError, ValueError, http.client.HTTPException) as error:
+        if _timed_out(error) and allowed < _FAIR_TRY:
+            return {}
         # Missing credentials, rate limits and outages must not hide Kodi's data.
         answer = {}
     with _LOCK:
@@ -83,6 +92,12 @@ def _get(path: str, key: str, deadline: float) -> Json:
         if len(_CACHE) > _LIMIT:
             _CACHE.popitem(last=False)
     return answer
+
+
+def _timed_out(error: Exception) -> bool:
+    """Return whether *error* is a timeout, also one urllib wraps while connecting."""
+    return (isinstance(error, TimeoutError)
+            or isinstance(getattr(error, "reason", None), TimeoutError))
 
 
 def _title_id(row: Json, kind: str, key: str, deadline: float) -> int | None:
@@ -110,7 +125,7 @@ def _ident(value: object) -> int | None:
 def lookup(kind: str, row: Json, key: str) -> Json:
     """Read the title's credits under ``credits`` -- an episode's own, specials
     included -- and, for a film, its own facts beside them in the same request."""
-    deadline = time.monotonic() + 4.0
+    deadline = time.monotonic() + _BUDGET
     title = row
     if kind == "episode":
         show = common.number(row, "tvshowid", low=1)
