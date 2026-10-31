@@ -348,7 +348,8 @@
        [money.map(([, amount]) => dollars(amount)).join("/")].filter(Boolean)],
       /* What it took less what it cost, where both are known: its profit,
          or what it lost under that name. */
-      [made < 0 ? T.loss : T.profit, money.length === 2 && made !== 0 && [dollars(Math.abs(made))]]
+      [made < 0 ? T.loss : T.profit, money.length === 2 && made !== 0 && [dollars(Math.abs(made))]],
+      ...showFacts(credits, T)
     ];
     const nodes = [];
     for (const [heading, names] of rows) {
@@ -363,6 +364,28 @@
       nodes.push(fact);
     }
     return nodes;
+  }
+
+  /* A show's run on TMDb (see _show_state in web/library/details.py): its
+     state, who airs it, how many seasons and episodes there are in all --
+     "Seasons/Episodes" over "5/62", where TMDb knows both -- and the next
+     episode to air and the last aired, "S03E01 · Its title · 16 Jan 2027". */
+  function showFacts(credits, T) {
+    const sized = credits.tmdb_seasons > 0 && credits.tmdb_episodes > 0;
+    return [
+      [T.status, credits.status && [T["status_" + credits.status] || credits.status]],
+      [T.network, credits.networks],
+      [T.seasons_episodes, sized && [credits.tmdb_seasons + "/" + credits.tmdb_episodes]],
+      [T.next_episode, credits.next_episode && [airing(credits.next_episode)]],
+      [T.last_episode, credits.last_episode && [airing(credits.last_episode)]]
+    ];
+  }
+
+  function airing(episode) {
+    const code = "S" + String(episode.season).padStart(2, "0") +
+      "E" + String(episode.episode).padStart(2, "0");
+    return [code, episode.title, episode.date && cinemaDay(episode.date)]
+      .filter(Boolean).join(" \u00b7 ");
   }
 
   /* "2021-09-16" as the reader writes a day; the day itself where it is no
@@ -501,6 +524,110 @@
     }
     mouseScroll(row);
     return [heading, row];
+  }
+
+  /* Where a title's page leads on to (see _collection and _recommended in
+     web/library/details.py): the film series it is part of, under the
+     series' name, and the titles of the library TMDb recommends after it --
+     each a poster card with its name and year, as the cast's portraits are.
+     A title the library holds opens its own page (*open*, see openRelated
+     in js/marking.js); one it does not, its page on TMDb.  The title the
+     page is about stands in its series, marked, and leads nowhere. */
+  function relatedParts(found, T, open) {
+    const collection = found.collection;
+    return [
+      ...relatedRow(collection ? collection.name : "", collection ? collection.parts : [], T, open),
+      ...relatedRow(T.recommended, found.recommended || [], T, open)
+    ];
+  }
+
+  function relatedRow(title, titles, T, open) {
+    if (!titles.length) return [];
+    const heading = document.createElement("h4");
+    heading.className = "casthead";
+    const count = document.createElement("span");
+    count.className = "count";
+    count.textContent = " (" + titles.length + ")";
+    heading.append(title, count);
+    const row = document.createElement("ul");
+    row.className = "castrow posterrow";
+    for (const item of titles) {
+      const entry = document.createElement("li");
+      entry.append(relatedCard(item, T, open));
+      row.append(entry);
+    }
+    mouseScroll(row);
+    return [heading, row];
+  }
+
+  function relatedCard(item, T, open) {
+    const picture = document.createElement("span");
+    picture.className = "initial";
+    picture.setAttribute("aria-hidden", "true");
+    picture.style.background = placeholder(item.title);
+    const address = relatedPoster(item);
+    if (address) {
+      const poster = document.createElement("img");
+      poster.alt = "";
+      poster.loading = "lazy";
+      poster.src = address;
+      poster.addEventListener("error", () => poster.remove(), { once: true });
+      picture.append(poster);
+    }
+    const mark = item.current ? T.this_film : item.id ? "" : "TMDb";
+    if (mark) {
+      const badge = document.createElement("span");
+      badge.className = "posterbadge";
+      badge.textContent = mark;
+      picture.append(badge);
+    }
+    const name = document.createElement("strong");
+    name.textContent = item.title;
+    const year = document.createElement("span");
+    year.className = "role";
+    year.textContent = item.year ? String(item.year) : "";
+    const text = document.createElement("div");
+    text.className = "casttext";
+    text.append(name, year);
+    let card;
+    if (item.current) {
+      card = document.createElement("div");
+      card.className = "castlink current";
+      card.setAttribute("aria-current", "page");
+    } else if (item.id) {
+      card = document.createElement("button");
+      card.type = "button";
+      card.className = "castlink";
+      card.addEventListener("click", (event) => {
+        if (!event.defaultPrevented) open(item);
+      });
+    } else {
+      card = document.createElement("a");
+      card.className = "castlink";
+      card.href = "https://www.themoviedb.org/" + (item.kind === "tvshow" ? "tv/" : "movie/") +
+        encodeURIComponent(item.tmdb);
+      card.target = "_blank";
+      card.rel = "noopener noreferrer";
+      card.title = T.on_tmdb;
+      card.draggable = false;
+    }
+    card.append(picture, text);
+    return card;
+  }
+
+  /* A related title's poster: the library's own through its id, else
+     TMDb's through the add-on (see portrait_path in
+     web/library/details.py); "" where there is neither. */
+  function relatedPoster(item) {
+    if (item.id && item.poster) {
+      return "/api/art?kind=poster&" + (item.kind === "tvshow" ? "tvshowid=" : "movieid=") +
+        encodeURIComponent(item.id) + "&v=" + encodeURIComponent(item.poster);
+    }
+    if (!item.id && item.portrait) {
+      return "/api/art?kind=poster&portrait=" + encodeURIComponent(item.portrait) +
+        "&v=" + encodeURIComponent(item.portrait);
+    }
+    return "";
   }
 
   /* With no scrollbar to take hold of, a mouse drags the row sideways the
@@ -1358,7 +1485,8 @@
   window.TinyPPI.panels = {
     strings, update, events, peak, draw, shields, ratingGroups, playingKey,
     facts: (credits) => factNodes(credits, TinyPPI.T),
-    cast: (credits) => castParts(credits, TinyPPI.T)
+    cast: (credits) => castParts(credits, TinyPPI.T),
+    related: (found, open) => relatedParts(found, TinyPPI.T, open)
   };
 
 })();

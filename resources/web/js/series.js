@@ -12,7 +12,7 @@
 
 /* global selectTab, showDetails, slideIn, tintDialog, bindTitle, continueStale, el, FILMS_RETRY_MS, FILMS_START_MS, newest,
    ratingBadge, runtime, shelfTools, T */
-/* exported openShowDetails, episodeCode, episodeReleasing, hideSeries, refreshEpisodes,
+/* exported openShowDetails, showQuestion, episodeCode, episodeReleasing, hideSeries, refreshEpisodes,
    releaseSeries, requestSeries, seriesOffered, seriesStale, seriesTools,
    startingEpisode */
 
@@ -231,14 +231,21 @@ function showTile(show) {
   return tile;
 }
 
+/* The details question of the show with *id* on the shelf (see filmQuestion
+   in js/films.js); undefined for one it does not hold yet. */
+function showQuestion(id) {
+  return showQuestions.get(id);
+}
+
 /* The details of the show with *id*, in place of the episode's details that
    asked for them, on the series tab -- where its seasons open from.  Nothing
-   for a show the shelf does not hold. */
-function openShowDetails(id) {
+   for a show the shelf does not hold.  *turn* is the way the page turns to
+   it, where it was led on to (see turnPage in js/marking.js). */
+function openShowDetails(id, turn) {
   const question = showQuestions.get(id);
   if (!question) return;
   selectTab("series");
-  showDetails(question, true);
+  showDetails(question, true, turn);
 }
 
 /* The wall in the chosen order, as the film wall is (see arrangeFilms in

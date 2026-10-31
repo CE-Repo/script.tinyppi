@@ -127,7 +127,7 @@ def test_film_rows_without_an_id_or_title_are_left_out(kodi):
     assert library.art_path(99, "poster") == ""
     assert kodi.sent("VideoLibrary.GetMovies") == [{
         "properties": ["title", "year", "art", "runtime", "playcount", "resume", "ratings",
-                       "dateadded", "genre", "streamdetails"],
+                       "dateadded", "genre", "streamdetails", "uniqueid"],
         "sort": {"method": "sorttitle", "order": "ascending", "ignorearticle": True}}]
     assert "2 films read from the video database" in info_lines()[-1]
 

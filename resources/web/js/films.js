@@ -11,7 +11,7 @@
    What it uses from them and what it gives them is listed below. */
 
 /* global bindTitle, continueStale, el, selectTab, shelfTools, T */
-/* exported FILMS_RETRY_MS, FILMS_START_MS, filmTools, filmsOffered, filmsStale,
+/* exported FILMS_RETRY_MS, FILMS_START_MS, filmQuestion, filmTools, filmsOffered, filmsStale,
    hideFilms, metaLine, newest, ratingBadge, releaseFilms, releasing,
    requestFilms, runtime, starting */
 
@@ -52,6 +52,7 @@ let filmsNextTry = 0;      /* not before this, after a failure            */
 let starting = 0;          /* the film a press is waiting on              */
 let releasing = 0;         /* the timer that gives the wall back          */
 let wallTiles = new Map(); /* each film's tile on the wall of everything  */
+let filmQuestions = new Map(); /* each film's details question, by its id */
 
 /* The order and the filters over the wall of everything (see
    js/shelf-tools.js).  The rows above it stay as they are: they are already
@@ -128,6 +129,7 @@ function buildFilms() {
   const unseen = document.createDocumentFragment();
   let waiting = 0;
   wallTiles = new Map();
+  filmQuestions = new Map();
   for (const film of films) {
     const tile = filmTile(film);
     wallTiles.set(film, tile);
@@ -308,13 +310,24 @@ function filmTile(film) {
     tile.append(line);
   }
 
-  bindTitle(tile, {
+  const question = {
     watched: !!film.watched, title: film.title, body: { movieid: film.id },
     play: film.resume ? T.films_resume : T.films_play,
     resumable: !!film.resume,
     onPlay: (fromStart) => startFilm(film, tile, fromStart)
-  });
+  };
+  /* The wall's own, which is drawn first, is the one another page leads to
+     (see filmQuestion). */
+  if (!filmQuestions.has(film.id)) filmQuestions.set(film.id, question);
+  bindTitle(tile, question);
   return tile;
+}
+
+/* The details question of the film with *id* on the wall, with its actions,
+   for another title's page to lead to (see openRelated in js/marking.js);
+   undefined for a film the wall does not hold yet. */
+function filmQuestion(id) {
+  return filmQuestions.get(id);
 }
 
 function applyFilmSearch() {

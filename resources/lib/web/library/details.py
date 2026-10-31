@@ -20,14 +20,16 @@ from threading import Lock
 
 from core import settings
 from web import mdblist, tmdb, whatson
-from web.library import common
-from web.library.entries import Details, Person
+from web.library import common, films, series
+from web.library.entries import Airing, Details, Film, Person, Related, Show
 from web.payloads import Ratings
 from web.ratings import home_country, title_ratings
 from web.values import Json, Unchecked, clean_value, library_id, plain_text
 
 # A plot is a few paragraphs; a text longer still is cut off.
 _PLOT_LIMIT = 4000
+# How many of the library's titles a details page recommends at most.
+_RECOMMENDED = 20
 _PORTRAITS: OrderedDict[str, str] = OrderedDict()
 _PORTRAITS_LOCK = Lock()
 
@@ -226,7 +228,8 @@ def _cast(raw: object) -> list[Person]:
 def _from_tmdb(found: Details, row: Json, kind: str) -> None:
     """Keep Kodi's names and roles, filling missing images from title credits
     and giving each person found there their TMDb id; add the rest of the
-    crew TMDb names, and a film's budget, takings and cinema release."""
+    crew TMDb names, a film's budget, takings, cinema release and series, a
+    show's state, and the library's titles TMDb recommends after either."""
     key = tmdb.api_key()
     if not key:
         return
@@ -241,6 +244,100 @@ def _from_tmdb(found: Details, row: Json, kind: str) -> None:
         found["crew"] = crew
     if kind == "movie":
         _film_facts(found, answer)
+        _collection(found, answer)
+        _recommended(found, answer, "movie")
+    elif kind == "tvshow":
+        _show_state(found, answer)
+        _recommended(found, answer, "tvshow")
+
+
+def _held(kind: str, ident: int, title: Film | Show) -> Related:
+    """A title of the library, as a details page leads on to it."""
+    related: Related = {"kind": kind, "tmdb": ident, "id": title["id"], "title": title["title"]}
+    if "year" in title:
+        related["year"] = title["year"]
+    if title["poster"]:
+        related["poster"] = title["poster"]
+    return related
+
+
+def _collection(found: Details, answer: Json) -> None:
+    """Add the film's series: each film in it the library holds as the
+    library has it, the others as TMDb names them, with TMDb's poster.
+
+    Not for a "series" of the one film.
+    """
+    name, parts = tmdb.collection(answer)
+    name = clean_value(name)
+    if not name or len(parts) < 2:
+        return
+    held = films.by_tmdb()
+    listed: list[Related] = []
+    for part in parts:
+        ident = part["id"]
+        film = held.get(ident)
+        if film is not None:
+            related = _held("movie", ident, film)
+        else:
+            related = {"kind": "movie", "tmdb": ident, "title": clean_value(part["title"])}
+            if "date" in part:
+                related["year"] = int(part["date"][:4])
+            if "poster" in part:
+                related["portrait"] = _portrait(part["poster"])
+        if part["current"]:
+            related["current"] = True
+        listed.append(related)
+    found["collection"] = {"name": name, "parts": listed}
+
+
+def _recommended(found: Details, answer: Json, kind: str) -> None:
+    """Add the titles of the library TMDb recommends after this one, of its
+    kind (the library is looked into only where TMDb recommends any)."""
+    idents = tmdb.recommended(answer)
+    if not idents:
+        return
+    held: dict[int, Film] | dict[int, Show] = \
+        films.by_tmdb() if kind == "movie" else series.by_tmdb()
+    picks: list[Related] = []
+    seen = {found.get("id")}
+    for ident in idents:
+        title = held.get(ident)
+        if title is None or title["id"] in seen:
+            continue
+        seen.add(title["id"])
+        picks.append(_held(kind, ident, title))
+        if len(picks) == _RECOMMENDED:
+            break
+    if picks:
+        found["recommended"] = picks
+
+
+def _show_state(found: Details, answer: Json) -> None:
+    """Add a show's state, its networks, its size and its episodes either
+    side of today, as TMDb has them."""
+    state = tmdb.show_state(answer)
+    if "status" in state:
+        found["status"] = state["status"]
+    networks = [name for name in map(clean_value, state.get("networks", [])) if name]
+    if networks:
+        found["networks"] = networks
+    if "seasons" in state:
+        found["tmdb_seasons"] = state["seasons"]
+    if "episodes" in state:
+        found["tmdb_episodes"] = state["episodes"]
+    for name, key in (("next", "next_episode"), ("last", "last_episode")):
+        if name in state:
+            found[key] = _airing(state[name])  # type: ignore[literal-required]
+
+
+def _airing(state: Json) -> Airing:
+    airing: Airing = {"season": state["season"], "episode": state["episode"]}
+    if "date" in state:
+        airing["date"] = state["date"]
+    title = clean_value(state.get("title", ""))
+    if title:
+        airing["title"] = title
+    return airing
 
 
 def _credited(cast: list[Person], crew: list[Person], credits: Json) -> None:

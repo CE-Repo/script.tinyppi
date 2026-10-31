@@ -9,8 +9,9 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global continueStale, control, el, filmsStale, formatName, refreshEpisodes,
-   requestContinue, requestFilms, requestSeries, runtime, seriesStale, T */
+/* global continueStale, control, el, filmQuestion, filmsStale, formatName, openShowDetails,
+   refreshEpisodes, requestContinue, requestFilms, requestSeries, runtime, seriesStale,
+   showQuestion, T */
 /* exported bindTitle, showDetails, slideIn, tintDialog */
 
 /* The currently opened title, including a details request still loading. */
@@ -100,8 +101,9 @@ function reread() {
 
 /* --- a title's details ---------------------------------------------------- */
 
-/* How long a page takes to slide in or out (see .away in css/dashboard.css). */
-const SLIDE_MS = 250;
+/* How long a page takes to slide in or out, or to turn to the next (see
+   .away and .turning in css/dashboard.css) -- as long as the app's take. */
+const SLIDE_MS = 380;
 /* The pages sliding out, each with the timer it closes on. */
 const sliding = new Map();
 
@@ -182,7 +184,7 @@ function showPicture(image, url) {
    *replace* puts it in place of the details already open, in the same
    dialog -- an episode's give way to its show's (see the rows in
    js/continue.js) -- rather than being turned away as a second press is. */
-async function showDetails(question, replace) {
+async function showDetails(question, replace, turn) {
   /* A show's page under its seasons (see stays) gives way to an episode's. */
   if (detailing && !replace && !detailing.stays) return;
   clearTimeout(sliding.get(el.detailsDialog));
@@ -207,6 +209,7 @@ async function showDetails(question, replace) {
     }
   }
   if (detailing !== question) return;
+  if (turn) turnPage(turn);
   showPicture(el.detailsBackdrop,
               detailsArt(question.body, found.fanart ? "fanart" : "thumb",
                          found.fanart || found.thumb));
@@ -232,6 +235,7 @@ async function showDetails(question, replace) {
   el.detailsPlot.textContent = found.plot || "";
   el.detailsFacts.replaceChildren(...TinyPPI.panels.facts(found));
   el.detailsCast.replaceChildren(...TinyPPI.panels.cast(found));
+  el.detailsRelated.replaceChildren(...TinyPPI.panels.related(found, openRelated));
   tintDialog(el.detailsDialog, [el.detailsPoster, el.detailsBackdrop]);
   /* Library entries expose their actions here; the currently playing title
      opened from the overview is informational. */
@@ -247,7 +251,71 @@ async function showDetails(question, replace) {
      pass). */
   if (el.detailsDialog.open && !replace) el.detailsDialog.close();
   if (!el.detailsDialog.open) slideIn(el.detailsDialog);
-  el.detailsDialog.querySelector("form").scrollTop = 0;
+  /* A page gone back to is where it was left; any other starts at its top. */
+  el.detailsDialog.querySelector("form").scrollTop = turn === "back" ? question.scroll || 0 : 0;
+}
+
+/* The page turning away, while one title's page gives way to another's. */
+let turning = null;
+
+/* One title's page turning to another's, as the app's pages do: going
+   *forward* -- to a title the page leads on to -- the new page slides in
+   from the side over the old one, which moves a quarter of the way and
+   dims; going *back*, the page on top slides away over the one under it.
+   The old page is a copy left standing over the dialog for the turn (see
+   .pageghost in css/dashboard.css), at the place it was scrolled to, while
+   the dialog itself already holds the new one. */
+function turnPage(direction) {
+  endTurn();
+  const form = el.detailsDialog.querySelector("form");
+  const ghost = form.cloneNode(true);
+  for (const node of [ghost, ...ghost.querySelectorAll("[id]")]) node.removeAttribute("id");
+  ghost.classList.add("pageghost");
+  ghost.inert = true;
+  ghost.setAttribute("aria-hidden", "true");
+  el.detailsDialog.append(ghost);
+  ghost.scrollTop = form.scrollTop;
+  el.detailsDialog.classList.add("turning", "turn" + direction);
+  turning = { ghost, timer: setTimeout(endTurn, SLIDE_MS) };
+}
+
+function endTurn() {
+  if (!turning) return;
+  clearTimeout(turning.timer);
+  turning.ghost.remove();
+  el.detailsDialog.classList.remove("turning", "turnforward", "turnback");
+  turning = null;
+}
+
+/* A title of the library another title's page leads on to (see related in
+   js/live-panels.js): its own page in place of this one, with the actions
+   its shelf gives it -- a show's on the series tab, where its seasons open
+   (see openShowDetails) -- or, where its shelf has not been drawn, its page
+   alone. */
+function openRelated(item) {
+  /* Where the page was scrolled to, for coming back to it. */
+  detailing.scroll = el.detailsDialog.querySelector("form").scrollTop;
+  detailsTrail.push(detailing);
+  if (item.kind === "tvshow" && showQuestion(item.id)) {
+    openShowDetails(item.id, "forward");
+    return;
+  }
+  const key = item.kind === "tvshow" ? "tvshowid" : "movieid";
+  const question = key === "movieid" ? filmQuestion(item.id) : undefined;
+  showDetails(question || { title: item.title, body: { [key]: item.id } }, true, "forward");
+}
+
+/* The pages the open page was led on to from (see openRelated), the last on
+   top, so leaving a page led on to goes back to the one before it rather
+   than closing the details; let go of once they close. */
+const detailsTrail = [];
+
+/* Back, Escape or the close key: the page the open one was led on to from,
+   as it was, with its keys; on the first page, the details slide away. */
+function leaveDetails() {
+  const previous = detailsTrail.pop();
+  if (previous) showDetails(previous, true, "back");
+  else slideOut(el.detailsDialog);
 }
 
 /* Actions are updated without rebuilding the page or moving its scroll position. */
@@ -354,15 +422,18 @@ TinyPPI.notePlaying = (snapshot) => {
 /* Every way a reader leaves a page slides it out: its key, Escape and the
    phone's back gesture (the dialog's cancel), and
    -- on a desktop, where the page stands in the middle of the screen -- a
-   click beside it. */
-for (const [dialog, key] of [[el.detailsDialog, el.detailsX], [el.seasonsDialog, el.seasonsX]]) {
+   click beside it.  The first three, on a title's page led on to from
+   another, go back to that one instead (see leaveDetails); a click beside
+   the page closes it, whatever it was led on to from. */
+for (const [dialog, key, leave] of [[el.detailsDialog, el.detailsX, leaveDetails],
+                                    [el.seasonsDialog, el.seasonsX, () => slideOut(el.seasonsDialog)]]) {
   key.addEventListener("click", (event) => {
     event.preventDefault();
-    slideOut(dialog);
+    leave();
   });
   dialog.addEventListener("cancel", (event) => {
     event.preventDefault();
-    slideOut(dialog);
+    leave();
   });
   /* Only a press that began beside the page as well: a row of cards
      dragged until the pointer is let go out there is no click beside it. */
@@ -392,6 +463,8 @@ el.detailsDialog.addEventListener("close", () => {
   /* Shut only to be shown again in front (see showDetails): nothing was
      answered. */
   if (el.detailsDialog.open) return;
+  detailsTrail.length = 0;
+  endTurn();
   const answer = el.detailsDialog.returnValue;
   const question = detailing;
   detailing = null;

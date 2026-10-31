@@ -11,9 +11,10 @@ from web.values import Json, Unchecked, library_id
 
 # Film properties the tiles need.  ``dateadded`` feeds the "recently added"
 # row (see ``common.added``), read here so the row matches the wall; the
-# genres and the stream details are what the page sorts and filters by.
+# genres and the stream details are what the page sorts and filters by; the
+# ids find a film again from TMDb's side (see ``by_tmdb``).
 _PROPERTIES = ("title", "year", "art", "runtime", "playcount", "resume",
-               "ratings", "dateadded", "genre", "streamdetails")
+               "ratings", "dateadded", "genre", "streamdetails", "uniqueid")
 
 
 def catalogue() -> Films:
@@ -29,6 +30,11 @@ def movies() -> FilmListing:
     held = catalogue()
     return {"movies": held["movies"], "count": len(held["movies"]),
             "tag": held["tag"]}
+
+
+def by_tmdb() -> dict[int, Film]:
+    """Return the library's films by their TMDb ids."""
+    return catalogue()["tmdb"]
 
 
 def art_path(movie_id: int, kind: str) -> str:
@@ -49,17 +55,21 @@ def read() -> Films:
     if error:
         # No database, or one being upgraded: debug only, the page retries.
         log(f"VideoLibrary.GetMovies failed: {error}")
-        return {"movies": [], "art": {}, "tag": "none"}
+        return {"movies": [], "art": {}, "tmdb": {}, "tag": "none"}
 
     films: list[Film] = []
     art: ArtPaths = {}
+    known: dict[int, Film] = {}
     for row in common.rows_of(answer, "movies"):
         film = _film(row, art)
         if film is not None:
             films.append(film)
+            ident = common.tmdb_id(row)
+            if ident is not None:
+                known.setdefault(ident, film)
 
     log(f"{len(films)} films read from the video database", xbmc.LOGINFO)
-    return {"movies": films, "art": art,
+    return {"movies": films, "art": art, "tmdb": known,
             "tag": f"{len(films):x}-{common.signature(films)}"}
 
 

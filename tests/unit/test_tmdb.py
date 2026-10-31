@@ -87,6 +87,45 @@ def test_failures_are_negative_cached(monkeypatch, error):
     assert next(iter(tmdb._CACHE.values()))[0] == 300
 
 
+@pytest.mark.parametrize(('error', 'allowed', 'kept'), [
+    # A timeout with a fair share of the budget is TMDb's: kept like any failure.
+    (TimeoutError(), 4, True),
+    (urllib.error.URLError(TimeoutError()), 2, True),
+    # One with the budget spent on earlier requests is the view's: asked again.
+    (TimeoutError(), 0, False),
+    (TimeoutError(), 1.5, False),
+    (urllib.error.URLError(TimeoutError()), 1, False),
+    # Any other failure is kept however little time was left.
+    (urllib.error.URLError('refused'), 1, True),
+    (ValueError(), 0, True),
+])
+def test_a_timeout_on_a_spent_budget_is_not_negative_cached(monkeypatch, error, allowed, kept):
+    calls = []
+    def read(*args):
+        calls.append(args)
+        raise error
+    monkeypatch.setattr(tmdb, '_read', read)
+    monkeypatch.setattr(tmdb.time, 'monotonic', lambda: 0)
+    assert tmdb._get('movie/1/credits', 'key', allowed) == {}
+    assert bool(tmdb._CACHE) is kept
+    assert tmdb._get('movie/1/credits', 'key', allowed) == {}
+    assert len(calls) == (1 if kept else 2)
+
+
+def test_a_slow_first_request_leaves_the_second_uncached(monkeypatch):
+    """The film's own request, starved by a slow ``find``, is tried again next view."""
+    now = [0.0]
+    def opened(request, timeout):
+        if 'find/' in request.full_url:
+            now[0] += 3.5
+            return io.BytesIO(b'{"movie_results": [{"id": 7}]}')
+        raise TimeoutError
+    monkeypatch.setattr(tmdb.urllib.request, 'urlopen', opened)
+    monkeypatch.setattr(tmdb.time, 'monotonic', lambda: now[0])
+    assert tmdb.lookup('movie', {'uniqueid': {'imdb': 'tt1'}}, 'key') == {}
+    assert [path for _, path in tmdb._CACHE] == ['find/tt1?external_source=imdb_id']
+
+
 @pytest.mark.parametrize(('value', 'expected'), [('12', 12), (12, 12), ('0', None),
     (None, None), (True, None), (-1, None), ('12/credits', None), ('1.0', None)])
 def test_ids(value, expected):
@@ -117,11 +156,13 @@ def test_movie_show_and_episode_paths(monkeypatch):
     monkeypatch.setattr(tmdb.common, 'rpc', lambda *args: {'result': {'tvshowdetails': {'uniqueid': {'tmdb': '99'}}}})
     # A film's credits come with its own facts, in one request.
     assert tmdb.lookup('movie', {'uniqueid': {'tmdb': '1'}}, 'key') == {'cast': []}
-    for kind, row in [('tvshow', {'uniqueid': {'tmdb': '2'}}),
-                      ('episode', {'tvshowid': 3, 'season': 0, 'episode': 1})]:
-        assert tmdb.lookup(kind, row, 'key') == {'credits': {'cast': []}}
-    assert paths == ['movie/1?append_to_response=credits,release_dates',
-                     'tv/2/credits', 'tv/99/season/0/episode/1/credits']
+    # A show's credits, state and recommendations come in one request too.
+    assert tmdb.lookup('tvshow', {'uniqueid': {'tmdb': '2'}}, 'key') == {'cast': []}
+    assert tmdb.lookup('episode', {'tvshowid': 3, 'season': 0, 'episode': 1},
+                       'key') == {'credits': {'cast': []}}
+    assert paths == ['movie/1?append_to_response=credits,release_dates,recommendations',
+                     'tv/2?append_to_response=credits,recommendations',
+                     'tv/99/season/0/episode/1/credits']
     assert tmdb.lookup('episode', {}, 'key') == {}
     assert tmdb.lookup('episode', {'tvshowid': 3}, 'key') == {}
     assert tmdb.lookup('episode', {'tvshowid': 3, 'season': 1}, 'key') == {}

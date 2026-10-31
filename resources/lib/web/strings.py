@@ -180,6 +180,22 @@ _UI_STRINGS = {
     "country":          32444,
     "profit":           32473,
     "loss":             32474,
+    # Where a details page leads on to (see the related titles in
+    # web/library/details.py), and a show's state on TMDb.
+    "this_film":        32475,
+    "recommended":      32476,
+    "status":           32477,
+    "status_returning": 32478,
+    "status_ended":     32479,
+    "status_canceled":  32480,
+    "status_production": 32481,
+    "status_planned":   32482,
+    "status_pilot":     32483,
+    "network":          32484,
+    "next_episode":     32485,
+    "last_episode":     32486,
+    "seasons_episodes": 32487,
+    "on_tmdb":          32488,
     # The heading over the directors and writers on a details page.
     "crew":             32445,
     "close":            32411,

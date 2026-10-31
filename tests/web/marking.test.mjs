@@ -575,7 +575,7 @@ test("reopening a closing page reverses its exit without jumping offscreen", asy
   assert.equal(dialog.classList.contains("away"), true);
   view.window.slideIn(dialog);
   assert.equal(dialog.classList.contains("away"), false);
-  view.clock.tick(250);
+  view.clock.tick(380);
   assert.equal(dialog.open, true);
 });
 
@@ -594,3 +594,101 @@ for (const [name, details, visible] of [
     assert.equal(view.$("detailsPlot").textContent, details.plot || "");
   });
 }
+
+test("a title's series and recommendations open the library's own pages, with their actions", async (t) => {
+  const view = await open(t);
+  const related = {
+    collection: { name: "The series", parts: [
+      { kind: "movie", tmdb: 1, id: 1, title: "Film 01", current: true },
+      { kind: "movie", tmdb: 3, id: 3, title: "Film 03" },
+      { kind: "movie", tmdb: 77, id: 77, title: "Not on the wall" }] },
+    recommended: [{ kind: "tvshow", tmdb: 2, id: 2, title: "Show 2" },
+                  { kind: "tvshow", tmdb: 55, id: 55, title: "Not on the shelf" }] };
+  const fetch = view.window.fetch;
+  view.window.fetch = async (url, init) => {
+    const answer = await fetch(url, init);
+    if (!String(url).includes("movieid=1&") && !String(url).endsWith("movieid=1")) return answer;
+    return { ...answer, json: async () => related };
+  };
+  const card = (title) => [...view.$("detailsRelated").querySelectorAll("button.castlink")]
+    .find((node) => node.querySelector("strong").textContent === title);
+  const opening = async (title) => {
+    tile(view, "Film 01").click();
+    await settle();
+    card(title).click();
+    await settle();
+  };
+  // The page turns forward to the one it leads on to: the old page a copy
+  // over the dialog, with no ids of its own, until the turn is over.
+  const form = view.$("detailsDialog").querySelector("form");
+  tile(view, "Film 01").click();
+  await settle();
+  form.scrollTop = 120;
+  card("Film 03").click();
+  await settle();
+  const dialog = view.$("detailsDialog");
+  assert.ok(dialog.classList.contains("turning") && dialog.classList.contains("turnforward"));
+  const ghost = dialog.querySelector(".pageghost");
+  assert.equal(ghost.querySelectorAll("[id]").length + (ghost.id ? 1 : 0), 0);
+  assert.equal(ghost.inert, true);
+  assert.equal(form.scrollTop, 0);
+  view.clock.tick(400);
+  assert.equal(dialog.querySelector(".pageghost"), null);
+  assert.ok(!dialog.classList.contains("turning"));
+  // Back turns the other way, to the page where it was left; a turn begun
+  // while another is still going ends that one first.
+  dialog.dispatchEvent(new view.window.Event("cancel", { cancelable: true }));
+  await settle();
+  assert.ok(dialog.classList.contains("turnback"));
+  assert.equal(form.scrollTop, 120);
+  card("Film 03").click();
+  await settle();
+  assert.equal(dialog.querySelectorAll(".pageghost").length, 1);
+  assert.ok(dialog.classList.contains("turnforward") && !dialog.classList.contains("turnback"));
+  // Closed mid-turn, the copy goes with it.
+  answer(view, "close");
+  assert.equal(dialog.querySelector(".pageghost"), null);
+  // A film of the wall: its page with its own actions.
+  await opening("Film 03");
+  assert.deepEqual(asked(view), { open: true, title: "Film 03", play: "Resume",
+                                  restart: true, clear: true });
+  // Back, Escape and the close key go back to the page it was led on from,
+  // with that one's keys, and close the details only from there.
+  const cancel = () => view.$("detailsDialog").dispatchEvent(new view.window.Event("cancel", { cancelable: true }));
+  cancel();
+  await settle();
+  assert.deepEqual(asked(view), { open: true, title: "Film 01", play: "Play",
+                                  restart: false, clear: false });
+  card("Film 03").click();
+  await settle();
+  view.$("detailsX").click();
+  await settle();
+  assert.equal(view.$("detailsTitle").textContent, "Film 01");
+  cancel();
+  view.clock.tick(1000);
+  assert.equal(view.$("detailsDialog").open, false);
+  view.$("detailsDialog").dispatchEvent(new view.window.Event("close"));
+  // A page closed some other way lets go of its trail: opened again, back closes it.
+  await opening("Film 03");
+  answer(view, "close");
+  tile(view, "Film 03").click();
+  await settle();
+  cancel();
+  view.clock.tick(1000);
+  assert.equal(view.$("detailsDialog").open, false);
+  view.$("detailsDialog").dispatchEvent(new view.window.Event("close"));
+  // One the wall does not hold: its page, with nothing to press.
+  await opening("Not on the wall");
+  assert.equal(view.$("detailsTitle").textContent, "Not on the wall");
+  assert.equal(view.$("detailsActions").hidden, true);
+  assert.ok(view.requests.some((request) => request.url === "/api/details?movieid=77"));
+  answer(view, "close");
+  // A show of the shelf: its page on the series tab, where its seasons open.
+  await opening("Show 2");
+  assert.equal(view.$("detailsTitle").textContent, "Show 2");
+  assert.equal(view.$("detailsPlay").textContent, "Open");
+  answer(view, "close");
+  await opening("Not on the shelf");
+  assert.equal(view.$("detailsTitle").textContent, "Not on the shelf");
+  assert.ok(view.requests.some((request) => request.url === "/api/details?tvshowid=55"));
+});

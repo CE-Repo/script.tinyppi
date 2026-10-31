@@ -1724,8 +1724,8 @@ msgid "TMDb API key"
 msgstr "TMDb API-Schlüssel"
 
 msgctxt "#32439"
-msgid "Optional: fill missing cast, director and writer portraits from TMDb, link each person to their TMDb page and show a film's cinema release, budget and box office, in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
-msgstr "Optional: Fehlende Bilder von Darstellern, Regisseuren und Drehbuchautoren über TMDb ergänzen, jede Person mit ihrer TMDb-Seite verknüpfen und bei Filmen Kinostart, Budget und Eingespieltes zeigen, in App und Dashboard. TMDb API-Schlüssel oder Lesezugriffstoken eingeben. Kodi-Bilder haben Vorrang."
+msgid "Optional: fill missing cast, director and writer portraits from TMDb, link each person to their TMDb page, show a film's cinema release, budget, box office and film series, a series' status, and recommendations from your own library, in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
+msgstr "Optional: Fehlende Bilder von Darstellern, Regisseuren und Drehbuchautoren über TMDb ergänzen, jede Person mit ihrer TMDb-Seite verknüpfen, bei Filmen Kinostart, Budget, Eingespieltes und Filmreihe sowie bei Serien den Status und Empfehlungen aus der eigenen Bibliothek zeigen, in App und Dashboard. TMDb API-Schlüssel oder Lesezugriffstoken eingeben. Kodi-Bilder haben Vorrang."
 
 msgctxt "#32440"
 msgid "About the programme"
@@ -1866,3 +1866,59 @@ msgstr "Profit"
 msgctxt "#32474"
 msgid "Loss"
 msgstr "Verlust"
+
+msgctxt "#32475"
+msgid "This film"
+msgstr "Dieser Film"
+
+msgctxt "#32476"
+msgid "More like this in your library"
+msgstr "Mehr davon in deiner Bibliothek"
+
+msgctxt "#32477"
+msgid "Status"
+msgstr "Status"
+
+msgctxt "#32478"
+msgid "Returning series"
+msgstr "Wird fortgesetzt"
+
+msgctxt "#32479"
+msgid "Ended"
+msgstr "Beendet"
+
+msgctxt "#32480"
+msgid "Canceled"
+msgstr "Abgesetzt"
+
+msgctxt "#32481"
+msgid "In production"
+msgstr "In Produktion"
+
+msgctxt "#32482"
+msgid "Planned"
+msgstr "Geplant"
+
+msgctxt "#32483"
+msgid "Pilot"
+msgstr "Pilotfolge"
+
+msgctxt "#32484"
+msgid "Network"
+msgstr "Sender"
+
+msgctxt "#32485"
+msgid "Next episode"
+msgstr "Nächste Folge"
+
+msgctxt "#32486"
+msgid "Last episode"
+msgstr "Letzte Folge"
+
+msgctxt "#32487"
+msgid "Seasons/Episodes"
+msgstr "Staffeln/Folgen"
+
+msgctxt "#32488"
+msgid "Not in your library – opens TMDb"
+msgstr "Nicht in deiner Bibliothek – öffnet TMDb"

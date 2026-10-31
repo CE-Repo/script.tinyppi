@@ -75,7 +75,7 @@ const el = {
   detailsFacts: $("detailsFacts"),
   detailsHero: $("detailsHero"), detailsBackdrop: $("detailsBackdrop"),
   detailsPoster: $("detailsPoster"), detailsRatings: $("detailsRatings"),
-  detailsCast: $("detailsCast"), detailsX: $("detailsX"),
+  detailsCast: $("detailsCast"), detailsRelated: $("detailsRelated"), detailsX: $("detailsX"),
   detailsError: $("detailsError"), detailsActions: $("detailsActions"), detailsClear: $("detailsClear"),
   detailsWatched: $("detailsWatched"), detailsUnwatched: $("detailsUnwatched"),
   detailsPlay: $("detailsPlay"), detailsRestart: $("detailsRestart"),

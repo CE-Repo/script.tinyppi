@@ -125,6 +125,41 @@ class Person(TypedDict):
     tmdb: NotRequired[int]
 
 
+class Related(TypedDict):
+    """A title a details page leads on to (``kind`` movie or tvshow).
+
+    One the library holds carries its library ``id`` and the tag of its
+    poster, as a tile does; one it does not, TMDb's poster as a ``portrait``
+    tag (see ``details.portrait_path``), and the clients open its TMDb page.
+    """
+
+    kind: str
+    tmdb: int
+    title: str
+    year: NotRequired[int]
+    id: NotRequired[int]
+    poster: NotRequired[str]
+    portrait: NotRequired[str]
+    # The title the page is about, in its own film series.
+    current: NotRequired[bool]
+
+
+class Collection(TypedDict):
+    """The film series a film belongs to on TMDb, in release order."""
+
+    name: str
+    parts: list[Related]
+
+
+class Airing(TypedDict):
+    """An episode of a show TMDb dates: the next to air or the last aired."""
+
+    season: int
+    episode: int
+    date: NotRequired[str]
+    title: NotRequired[str]
+
+
 class Details(TypedDict):
     """A title's details (``details.details``), sent as they are.
 
@@ -150,6 +185,20 @@ class Details(TypedDict):
     # The country that day is the first in cinemas of ("DE", "US"); absent
     # where it is TMDb's primary release date instead.
     cinema_country: NotRequired[str]
+    # A film's series on TMDb, with this film among its parts.
+    collection: NotRequired[Collection]
+    # Titles of the library TMDb recommends after this one, of its kind.
+    recommended: NotRequired[list[Related]]
+    # A show's state on TMDb: returning, ended, canceled, production,
+    # planned or pilot; who airs it; how many seasons and episodes there
+    # are in all (the library may hold fewer); and the episodes either
+    # side of today.
+    status: NotRequired[str]
+    networks: NotRequired[list[str]]
+    tmdb_seasons: NotRequired[int]
+    tmdb_episodes: NotRequired[int]
+    next_episode: NotRequired[Airing]
+    last_episode: NotRequired[Airing]
     mpaa: NotRequired[str]
     age: NotRequired[str]
     age_level: NotRequired[str]
@@ -187,16 +236,22 @@ Rated = Film | Show | Resumable | Upcoming
 # --- As cached (``cache.lists``) ---------------------------------------------
 
 class Films(TypedDict):
-    """The film list; ``tag`` changes only with it (for 304 answers)."""
+    """The film list; ``tag`` changes only with it (for 304 answers).
+
+    ``tmdb`` finds a film by the TMDb id Kodi's scraper filed it under (for
+    the series and recommendations on a details page); never sent.
+    """
 
     movies: list[Film]
     art: ArtPaths
+    tmdb: dict[int, Film]
     tag: str
 
 
 class Shows(TypedDict):
     shows: list[Show]
     art: ArtPaths
+    tmdb: dict[int, Show]
     tag: str
 
 

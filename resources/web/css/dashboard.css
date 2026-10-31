@@ -632,7 +632,13 @@
    the side and across the whole screen on a phone, a short way and fading
    on a desktop, where the page stands in the middle of the screen.  The
    page under them is already dimmed, so they add no shade of their own. */
-#detailsDialog, #seasonsDialog { transition: opacity .25s ease, transform .25s ease; }
+#detailsDialog, #seasonsDialog {
+  --page-turn: .38s cubic-bezier(.2, 0, 0, 1);
+  transition: opacity var(--page-turn), transform var(--page-turn);
+}
+/* The shade under a page comes and goes with it, rather than at once. */
+#detailsDialog::backdrop, #seasonsDialog::backdrop { transition: opacity .38s cubic-bezier(.2, 0, 0, 1); }
+#detailsDialog.away::backdrop, #seasonsDialog.away::backdrop { opacity: 0; }
 /* Where a page stands before sliding in and after sliding out (see slideIn
    and slideOut in js/marking.js): a title's details as much as a show's
    seasons. */
@@ -675,7 +681,40 @@ html:has(#detailsDialog[open]) #seasonsDialog::backdrop {
   backdrop-filter: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  #detailsDialog, #seasonsDialog { transition: none; }
+  #detailsDialog, #seasonsDialog,
+  #detailsDialog::backdrop, #seasonsDialog::backdrop { transition: none; }
+}
+
+/* One title's page turning to another's (see turnPage in js/marking.js):
+   the old page, a copy standing over the dialog, and the new one in the
+   dialog's own form.  Going forward the new page slides in from the side
+   on top, the old one moving a quarter of the way and dimming under it;
+   going back the old page slides away on top, the one under it coming
+   back from a quarter of the way.  Each on the page's own ground, so the
+   one on top hides the one under it. */
+#detailsDialog form.pageghost {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  max-height: none;
+  height: auto;
+  overflow: hidden;
+  background: inherit;
+  pointer-events: none;
+}
+#detailsDialog.turning > form:not(.pageghost) { position: relative; z-index: 1; background: inherit; }
+#detailsDialog.turnback form.pageghost { z-index: 2; }
+#detailsDialog.turnforward > form:not(.pageghost) { animation: turn-in var(--page-turn) both; }
+#detailsDialog.turnforward form.pageghost { animation: turn-under var(--page-turn) both; }
+#detailsDialog.turnback form.pageghost { animation: turn-out var(--page-turn) both; }
+#detailsDialog.turnback > form:not(.pageghost) { animation: turn-over var(--page-turn) both; }
+@keyframes turn-in { from { transform: translateX(100%); } }
+@keyframes turn-under { to { transform: translateX(-25%); opacity: .6; } }
+@keyframes turn-out { to { transform: translateX(100%); } }
+@keyframes turn-over { from { transform: translateX(-25%); opacity: .6; } }
+@media (prefers-reduced-motion: reduce) {
+  #detailsDialog form.pageghost { display: none; }
+  #detailsDialog.turning > form { animation: none; }
 }
 
 /* The episodes themselves: rows rather than a wall.  An episode is chosen by

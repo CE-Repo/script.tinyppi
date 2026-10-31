@@ -1724,8 +1724,8 @@ msgid "TMDb API key"
 msgstr "TMDb API 密钥"
 
 msgctxt "#32439"
-msgid "Optional: fill missing cast, director and writer portraits from TMDb, link each person to their TMDb page and show a film's cinema release, budget and box office, in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
-msgstr "可选：通过 TMDb 补充应用和仪表板中缺少的演员、导演及编剧照片。输入 TMDb API 密钥或只读访问令牌。优先使用 Kodi 照片。"
+msgid "Optional: fill missing cast, director and writer portraits from TMDb, link each person to their TMDb page, show a film's cinema release, budget, box office and film series, a series' status, and recommendations from your own library, in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
+msgstr "可选：通过 TMDb 补充应用和仪表板中缺少的演员、导演及编剧照片，并显示电影系列、剧集状态以及来自你媒体库的推荐。输入 TMDb API 密钥或只读访问令牌。优先使用 Kodi 照片。"
 
 msgctxt "#32440"
 msgid "About the programme"
@@ -1866,3 +1866,59 @@ msgstr "利润"
 msgctxt "#32474"
 msgid "Loss"
 msgstr "亏损"
+
+msgctxt "#32475"
+msgid "This film"
+msgstr "本片"
+
+msgctxt "#32476"
+msgid "More like this in your library"
+msgstr "媒体库中的类似内容"
+
+msgctxt "#32477"
+msgid "Status"
+msgstr "状态"
+
+msgctxt "#32478"
+msgid "Returning series"
+msgstr "连载中"
+
+msgctxt "#32479"
+msgid "Ended"
+msgstr "已完结"
+
+msgctxt "#32480"
+msgid "Canceled"
+msgstr "已取消"
+
+msgctxt "#32481"
+msgid "In production"
+msgstr "制作中"
+
+msgctxt "#32482"
+msgid "Planned"
+msgstr "计划中"
+
+msgctxt "#32483"
+msgid "Pilot"
+msgstr "试播集"
+
+msgctxt "#32484"
+msgid "Network"
+msgstr "播出平台"
+
+msgctxt "#32485"
+msgid "Next episode"
+msgstr "下一集"
+
+msgctxt "#32486"
+msgid "Last episode"
+msgstr "最新一集"
+
+msgctxt "#32487"
+msgid "Seasons/Episodes"
+msgstr "季/集"
+
+msgctxt "#32488"
+msgid "Not in your library – opens TMDb"
+msgstr "不在你的媒体库中 – 在 TMDb 中打开"
