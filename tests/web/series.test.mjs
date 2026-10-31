@@ -554,7 +554,7 @@ test("the seasons slide in, and slide out by their key or Escape before they clo
   assert.equal(seasons.classList.contains("away"), true);
   // A second way out while it is going changes nothing.
   view.$("seasonsX").click();
-  view.clock.tick(249);
+  view.clock.tick(379);
   assert.equal(seasons.open, true);
   view.clock.tick(1);
   assert.equal(seasons.open, false);
@@ -564,7 +564,7 @@ test("the seasons slide in, and slide out by their key or Escape before they clo
   const escape = new view.window.Event("cancel", { cancelable: true });
   seasons.dispatchEvent(escape);
   assert.equal(escape.defaultPrevented, true);
-  view.clock.tick(250);
+  view.clock.tick(380);
   assert.equal(seasons.open, false);
 });
 
@@ -644,14 +644,14 @@ test("a pull closes seasons only; details stay open and scroll normally", async 
   // It slides out first, then closes.
   assert.equal(seasons.classList.contains("away"), true);
   assert.equal(seasons.open, true);
-  view.clock.tick(250);
+  view.clock.tick(380);
   assert.equal(seasons.open, false);
   assert.equal(seasons.classList.contains("away"), false);
 
   const details = view.$("detailsDialog");
   details.open = true;
   pull(view, details, 50, 200);
-  view.clock.tick(250);
+  view.clock.tick(380);
   assert.equal(details.open, true);
 });
 
@@ -666,7 +666,7 @@ test("a title's page slides in, and out by its key, Escape or a click beside it"
   };
   const gone = () => {
     assert.equal(details.classList.contains("away"), true);
-    view.clock.tick(250);
+    view.clock.tick(380);
     assert.equal(details.open, false);
     details.dispatchEvent(new view.window.Event("close"));
   };

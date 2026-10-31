@@ -531,8 +531,10 @@ its details the same way.
   own details page** in place of this one, with its keys — a series' on the
   Series tab; a title the library does not hold opens **its page on TMDb**.
   **Back**, Escape or the close key on a page opened this way go back to the
-  page it was opened from, as it was; only on the first page do they close
-  the details.
+  page it was opened from, as it was and where it was scrolled to; only on
+  the first page do they close the details. The pages **turn** as the app's
+  do: the new one slides in from the side over the old one, and going back
+  it slides away over the one under it.
 - **A series' state** (with the key) stands among its facts: whether it
   goes on, ended or was cancelled, who airs it, how many seasons and episodes
   there are in all, and the next episode to air and the last aired, with

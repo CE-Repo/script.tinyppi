@@ -575,7 +575,7 @@ test("reopening a closing page reverses its exit without jumping offscreen", asy
   assert.equal(dialog.classList.contains("away"), true);
   view.window.slideIn(dialog);
   assert.equal(dialog.classList.contains("away"), false);
-  view.clock.tick(250);
+  view.clock.tick(380);
   assert.equal(dialog.open, true);
 });
 
@@ -618,6 +618,36 @@ test("a title's series and recommendations open the library's own pages, with th
     card(title).click();
     await settle();
   };
+  // The page turns forward to the one it leads on to: the old page a copy
+  // over the dialog, with no ids of its own, until the turn is over.
+  const form = view.$("detailsDialog").querySelector("form");
+  tile(view, "Film 01").click();
+  await settle();
+  form.scrollTop = 120;
+  card("Film 03").click();
+  await settle();
+  const dialog = view.$("detailsDialog");
+  assert.ok(dialog.classList.contains("turning") && dialog.classList.contains("turnforward"));
+  const ghost = dialog.querySelector(".pageghost");
+  assert.equal(ghost.querySelectorAll("[id]").length + (ghost.id ? 1 : 0), 0);
+  assert.equal(ghost.inert, true);
+  assert.equal(form.scrollTop, 0);
+  view.clock.tick(400);
+  assert.equal(dialog.querySelector(".pageghost"), null);
+  assert.ok(!dialog.classList.contains("turning"));
+  // Back turns the other way, to the page where it was left; a turn begun
+  // while another is still going ends that one first.
+  dialog.dispatchEvent(new view.window.Event("cancel", { cancelable: true }));
+  await settle();
+  assert.ok(dialog.classList.contains("turnback"));
+  assert.equal(form.scrollTop, 120);
+  card("Film 03").click();
+  await settle();
+  assert.equal(dialog.querySelectorAll(".pageghost").length, 1);
+  assert.ok(dialog.classList.contains("turnforward") && !dialog.classList.contains("turnback"));
+  // Closed mid-turn, the copy goes with it.
+  answer(view, "close");
+  assert.equal(dialog.querySelector(".pageghost"), null);
   // A film of the wall: its page with its own actions.
   await opening("Film 03");
   assert.deepEqual(asked(view), { open: true, title: "Film 03", play: "Resume",

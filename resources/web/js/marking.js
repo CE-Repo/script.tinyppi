@@ -101,8 +101,9 @@ function reread() {
 
 /* --- a title's details ---------------------------------------------------- */
 
-/* How long a page takes to slide in or out (see .away in css/dashboard.css). */
-const SLIDE_MS = 250;
+/* How long a page takes to slide in or out, or to turn to the next (see
+   .away and .turning in css/dashboard.css) -- as long as the app's take. */
+const SLIDE_MS = 380;
 /* The pages sliding out, each with the timer it closes on. */
 const sliding = new Map();
 
@@ -183,7 +184,7 @@ function showPicture(image, url) {
    *replace* puts it in place of the details already open, in the same
    dialog -- an episode's give way to its show's (see the rows in
    js/continue.js) -- rather than being turned away as a second press is. */
-async function showDetails(question, replace) {
+async function showDetails(question, replace, turn) {
   /* A show's page under its seasons (see stays) gives way to an episode's. */
   if (detailing && !replace && !detailing.stays) return;
   clearTimeout(sliding.get(el.detailsDialog));
@@ -208,6 +209,7 @@ async function showDetails(question, replace) {
     }
   }
   if (detailing !== question) return;
+  if (turn) turnPage(turn);
   showPicture(el.detailsBackdrop,
               detailsArt(question.body, found.fanart ? "fanart" : "thumb",
                          found.fanart || found.thumb));
@@ -249,7 +251,40 @@ async function showDetails(question, replace) {
      pass). */
   if (el.detailsDialog.open && !replace) el.detailsDialog.close();
   if (!el.detailsDialog.open) slideIn(el.detailsDialog);
-  el.detailsDialog.querySelector("form").scrollTop = 0;
+  /* A page gone back to is where it was left; any other starts at its top. */
+  el.detailsDialog.querySelector("form").scrollTop = turn === "back" ? question.scroll || 0 : 0;
+}
+
+/* The page turning away, while one title's page gives way to another's. */
+let turning = null;
+
+/* One title's page turning to another's, as the app's pages do: going
+   *forward* -- to a title the page leads on to -- the new page slides in
+   from the side over the old one, which moves a quarter of the way and
+   dims; going *back*, the page on top slides away over the one under it.
+   The old page is a copy left standing over the dialog for the turn (see
+   .pageghost in css/dashboard.css), at the place it was scrolled to, while
+   the dialog itself already holds the new one. */
+function turnPage(direction) {
+  endTurn();
+  const form = el.detailsDialog.querySelector("form");
+  const ghost = form.cloneNode(true);
+  for (const node of [ghost, ...ghost.querySelectorAll("[id]")]) node.removeAttribute("id");
+  ghost.classList.add("pageghost");
+  ghost.inert = true;
+  ghost.setAttribute("aria-hidden", "true");
+  el.detailsDialog.append(ghost);
+  ghost.scrollTop = form.scrollTop;
+  el.detailsDialog.classList.add("turning", "turn" + direction);
+  turning = { ghost, timer: setTimeout(endTurn, SLIDE_MS) };
+}
+
+function endTurn() {
+  if (!turning) return;
+  clearTimeout(turning.timer);
+  turning.ghost.remove();
+  el.detailsDialog.classList.remove("turning", "turnforward", "turnback");
+  turning = null;
 }
 
 /* A title of the library another title's page leads on to (see related in
@@ -258,14 +293,16 @@ async function showDetails(question, replace) {
    (see openShowDetails) -- or, where its shelf has not been drawn, its page
    alone. */
 function openRelated(item) {
+  /* Where the page was scrolled to, for coming back to it. */
+  detailing.scroll = el.detailsDialog.querySelector("form").scrollTop;
   detailsTrail.push(detailing);
   if (item.kind === "tvshow" && showQuestion(item.id)) {
-    openShowDetails(item.id);
+    openShowDetails(item.id, "forward");
     return;
   }
   const key = item.kind === "tvshow" ? "tvshowid" : "movieid";
   const question = key === "movieid" ? filmQuestion(item.id) : undefined;
-  showDetails(question || { title: item.title, body: { [key]: item.id } }, true);
+  showDetails(question || { title: item.title, body: { [key]: item.id } }, true, "forward");
 }
 
 /* The pages the open page was led on to from (see openRelated), the last on
@@ -277,7 +314,7 @@ const detailsTrail = [];
    as it was, with its keys; on the first page, the details slide away. */
 function leaveDetails() {
   const previous = detailsTrail.pop();
-  if (previous) showDetails(previous, true);
+  if (previous) showDetails(previous, true, "back");
   else slideOut(el.detailsDialog);
 }
 
@@ -427,6 +464,7 @@ el.detailsDialog.addEventListener("close", () => {
      answered. */
   if (el.detailsDialog.open) return;
   detailsTrail.length = 0;
+  endTurn();
   const answer = el.detailsDialog.returnValue;
   const question = detailing;
   detailing = null;
