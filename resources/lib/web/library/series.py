@@ -21,9 +21,10 @@ from web.library.entries import (
 from web.values import Json, Unchecked, library_id
 
 # Show properties the tiles need.  A show's ``dateadded`` is its newest
-# episode's, so new episodes put the show on the "recently added" row.
+# episode's, so new episodes put the show on the "recently added" row; the
+# ids find a show again from TMDb's side (see ``by_tmdb``).
 _SHOW_PROPERTIES = ("title", "year", "art", "episode", "watchedepisodes",
-                    "ratings", "dateadded", "genre")
+                    "ratings", "dateadded", "genre", "uniqueid")
 
 # Episode properties the episode list needs.
 _EPISODE_PROPERTIES = ("title", "season", "episode", "art", "runtime",
@@ -70,6 +71,11 @@ def episodes(show_id: Unchecked) -> EpisodeListing | None:
             "tag": held["tag"]}
 
 
+def by_tmdb() -> dict[int, Show]:
+    """Return the library's shows by their TMDb ids."""
+    return catalogue()["tmdb"]
+
+
 def show_art_path(show_id: Unchecked, kind: str) -> str:
     """Return a show's raw artwork path, or ''."""
     entry = catalogue()["art"].get(library_id(show_id)) or {}
@@ -105,17 +111,21 @@ def read_shows() -> Shows:
     error = answer.get("error")
     if error:
         log(f"VideoLibrary.GetTVShows failed: {error}")
-        return {"shows": [], "art": {}, "tag": "none"}
+        return {"shows": [], "art": {}, "tmdb": {}, "tag": "none"}
 
     series: list[Show] = []
     art: ArtPaths = {}
+    known: dict[int, Show] = {}
     for row in common.rows_of(answer, "tvshows"):
         show = _show(row, art)
         if show is not None:
             series.append(show)
+            ident = common.tmdb_id(row)
+            if ident is not None:
+                known.setdefault(ident, show)
 
     log(f"{len(series)} series read from the video database", xbmc.LOGINFO)
-    return {"shows": series, "art": art,
+    return {"shows": series, "art": art, "tmdb": known,
             "tag": f"{len(series):x}-{common.signature(series)}"}
 
 

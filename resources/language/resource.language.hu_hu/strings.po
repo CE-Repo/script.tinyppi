@@ -1724,8 +1724,8 @@ msgid "TMDb API key"
 msgstr "TMDb API-kulcs"
 
 msgctxt "#32439"
-msgid "Optional: fill missing cast, director and writer portraits from TMDb, link each person to their TMDb page and show a film's cinema release, budget and box office, in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
-msgstr "Opcionális: a hiányzó szereplői, rendezői és írói portrék pótlása a TMDb-ből az alkalmazásban és az irányítópulton. Adja meg a TMDb API-kulcsát vagy olvasási hozzáférési tokenjét. A Kodi képei elsőbbséget élveznek."
+msgid "Optional: fill missing cast, director and writer portraits from TMDb, link each person to their TMDb page, show a film's cinema release, budget, box office and film series, a series' status, and recommendations from your own library, in the app and dashboard. Enter your TMDb API key or API read access token. Kodi portraits take priority."
+msgstr "Opcionális: a hiányzó szereplői, rendezői és írói portrék pótlása a TMDb-ből, filmeknél a filmsorozat, sorozatoknál az állapot, valamint ajánlások a saját könyvtárból, az alkalmazásban és az irányítópulton. Adja meg a TMDb API-kulcsát vagy olvasási hozzáférési tokenjét. A Kodi képei elsőbbséget élveznek."
 
 msgctxt "#32440"
 msgid "About the programme"
@@ -1866,3 +1866,59 @@ msgstr "Nyereség"
 msgctxt "#32474"
 msgid "Loss"
 msgstr "Veszteség"
+
+msgctxt "#32475"
+msgid "This film"
+msgstr "Ez a film"
+
+msgctxt "#32476"
+msgid "More like this in your library"
+msgstr "Hasonlók a könyvtáradban"
+
+msgctxt "#32477"
+msgid "Status"
+msgstr "Állapot"
+
+msgctxt "#32478"
+msgid "Returning series"
+msgstr "Folytatódik"
+
+msgctxt "#32479"
+msgid "Ended"
+msgstr "Befejeződött"
+
+msgctxt "#32480"
+msgid "Canceled"
+msgstr "Elkaszálva"
+
+msgctxt "#32481"
+msgid "In production"
+msgstr "Gyártás alatt"
+
+msgctxt "#32482"
+msgid "Planned"
+msgstr "Tervezett"
+
+msgctxt "#32483"
+msgid "Pilot"
+msgstr "Pilot"
+
+msgctxt "#32484"
+msgid "Network"
+msgstr "Csatorna"
+
+msgctxt "#32485"
+msgid "Next episode"
+msgstr "Következő epizód"
+
+msgctxt "#32486"
+msgid "Last episode"
+msgstr "Utolsó epizód"
+
+msgctxt "#32487"
+msgid "Seasons/Episodes"
+msgstr "Évadok/epizódok"
+
+msgctxt "#32488"
+msgid "Not in your library – opens TMDb"
+msgstr "Nincs a könyvtáradban – a TMDb-n nyílik meg"

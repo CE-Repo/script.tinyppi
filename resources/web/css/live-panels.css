@@ -988,6 +988,38 @@
   color: var(--muted);
 }
 .castrow .role:empty { display: none; }
+/* A title's page leads on to others (see relatedParts in js/live-panels.js):
+   poster cards, as tall as a poster is, in the cast's row.  A card the
+   library holds is a key, one on TMDb a link, the page's own title neither. */
+.posterrow .initial { height: 216px; }
+.posterrow button.castlink {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.posterrow .castlink.current { cursor: default; }
+.posterrow .castlink.current:hover .initial { filter: none; }
+.posterrow .castlink.current:hover strong { text-decoration: none; }
+.posterrow .castlink.current .initial { outline: 2px solid var(--accent); outline-offset: -2px; }
+.posterrow .posterbadge {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  max-width: calc(100% - 12px);
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 0.65);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .castrow li.more {
   display: grid;
   flex-basis: 32px;

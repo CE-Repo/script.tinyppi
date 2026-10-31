@@ -12,7 +12,7 @@
 
 /* global selectTab, showDetails, slideIn, tintDialog, bindTitle, continueStale, el, FILMS_RETRY_MS, FILMS_START_MS, newest,
    ratingBadge, runtime, shelfTools, T */
-/* exported openShowDetails, episodeCode, episodeReleasing, hideSeries, refreshEpisodes,
+/* exported openShowDetails, showQuestion, episodeCode, episodeReleasing, hideSeries, refreshEpisodes,
    releaseSeries, requestSeries, seriesOffered, seriesStale, seriesTools,
    startingEpisode */
 
@@ -229,6 +229,12 @@ function showTile(show) {
   showQuestions.set(show.id, question);
   bindTitle(tile, question);
   return tile;
+}
+
+/* The details question of the show with *id* on the shelf (see filmQuestion
+   in js/films.js); undefined for one it does not hold yet. */
+function showQuestion(id) {
+  return showQuestions.get(id);
 }
 
 /* The details of the show with *id*, in place of the episode's details that

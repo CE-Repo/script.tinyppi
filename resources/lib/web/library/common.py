@@ -81,6 +81,13 @@ def rows_of(answer: Json, key: str) -> list[Json]:
     return [row for row in rows if isinstance(row, dict)]
 
 
+def tmdb_id(row: Json) -> int | None:
+    """Return the TMDb id Kodi's scraper filed *row* under, or None."""
+    ids = row.get("uniqueid")
+    text = str(ids.get("tmdb")) if isinstance(ids, dict) else ""
+    return int(text) if re.fullmatch(r"[0-9]{1,10}", text) and int(text) > 0 else None
+
+
 def clean_title(row: Json) -> str:
     """Return a row's title (or label) as shown, or ''."""
     return clean_value(str(row.get("title") or row.get("label") or ""))

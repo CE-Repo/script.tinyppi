@@ -594,3 +594,47 @@ for (const [name, details, visible] of [
     assert.equal(view.$("detailsPlot").textContent, details.plot || "");
   });
 }
+
+test("a title's series and recommendations open the library's own pages, with their actions", async (t) => {
+  const view = await open(t);
+  const related = {
+    collection: { name: "The series", parts: [
+      { kind: "movie", tmdb: 1, id: 1, title: "Film 01", current: true },
+      { kind: "movie", tmdb: 3, id: 3, title: "Film 03" },
+      { kind: "movie", tmdb: 77, id: 77, title: "Not on the wall" }] },
+    recommended: [{ kind: "tvshow", tmdb: 2, id: 2, title: "Show 2" },
+                  { kind: "tvshow", tmdb: 55, id: 55, title: "Not on the shelf" }] };
+  const fetch = view.window.fetch;
+  view.window.fetch = async (url, init) => {
+    const answer = await fetch(url, init);
+    if (!String(url).includes("movieid=1&") && !String(url).endsWith("movieid=1")) return answer;
+    return { ...answer, json: async () => related };
+  };
+  const card = (title) => [...view.$("detailsRelated").querySelectorAll("button.castlink")]
+    .find((node) => node.querySelector("strong").textContent === title);
+  const opening = async (title) => {
+    tile(view, "Film 01").click();
+    await settle();
+    card(title).click();
+    await settle();
+  };
+  // A film of the wall: its page with its own actions.
+  await opening("Film 03");
+  assert.deepEqual(asked(view), { open: true, title: "Film 03", play: "Resume",
+                                  restart: true, clear: true });
+  answer(view, "close");
+  // One the wall does not hold: its page, with nothing to press.
+  await opening("Not on the wall");
+  assert.equal(view.$("detailsTitle").textContent, "Not on the wall");
+  assert.equal(view.$("detailsActions").hidden, true);
+  assert.ok(view.requests.some((request) => request.url === "/api/details?movieid=77"));
+  answer(view, "close");
+  // A show of the shelf: its page on the series tab, where its seasons open.
+  await opening("Show 2");
+  assert.equal(view.$("detailsTitle").textContent, "Show 2");
+  assert.equal(view.$("detailsPlay").textContent, "Open");
+  answer(view, "close");
+  await opening("Not on the shelf");
+  assert.equal(view.$("detailsTitle").textContent, "Not on the shelf");
+  assert.ok(view.requests.some((request) => request.url === "/api/details?tvshowid=55"));
+});

@@ -9,8 +9,9 @@
    of js/dashboard.js and its other parts (see index.html for the order).
    What it uses from them and what it gives them is listed below. */
 
-/* global continueStale, control, el, filmsStale, formatName, refreshEpisodes,
-   requestContinue, requestFilms, requestSeries, runtime, seriesStale, T */
+/* global continueStale, control, el, filmQuestion, filmsStale, formatName, openShowDetails,
+   refreshEpisodes, requestContinue, requestFilms, requestSeries, runtime, seriesStale,
+   showQuestion, T */
 /* exported bindTitle, showDetails, slideIn, tintDialog */
 
 /* The currently opened title, including a details request still loading. */
@@ -232,6 +233,7 @@ async function showDetails(question, replace) {
   el.detailsPlot.textContent = found.plot || "";
   el.detailsFacts.replaceChildren(...TinyPPI.panels.facts(found));
   el.detailsCast.replaceChildren(...TinyPPI.panels.cast(found));
+  el.detailsRelated.replaceChildren(...TinyPPI.panels.related(found, openRelated));
   tintDialog(el.detailsDialog, [el.detailsPoster, el.detailsBackdrop]);
   /* Library entries expose their actions here; the currently playing title
      opened from the overview is informational. */
@@ -248,6 +250,21 @@ async function showDetails(question, replace) {
   if (el.detailsDialog.open && !replace) el.detailsDialog.close();
   if (!el.detailsDialog.open) slideIn(el.detailsDialog);
   el.detailsDialog.querySelector("form").scrollTop = 0;
+}
+
+/* A title of the library another title's page leads on to (see related in
+   js/live-panels.js): its own page in place of this one, with the actions
+   its shelf gives it -- a show's on the series tab, where its seasons open
+   (see openShowDetails) -- or, where its shelf has not been drawn, its page
+   alone. */
+function openRelated(item) {
+  if (item.kind === "tvshow" && showQuestion(item.id)) {
+    openShowDetails(item.id);
+    return;
+  }
+  const key = item.kind === "tvshow" ? "tvshowid" : "movieid";
+  const question = key === "movieid" ? filmQuestion(item.id) : undefined;
+  showDetails(question || { title: item.title, body: { [key]: item.id } }, true);
 }
 
 /* Actions are updated without rebuilding the page or moving its scroll position. */

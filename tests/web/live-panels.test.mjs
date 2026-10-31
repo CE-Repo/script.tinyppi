@@ -1443,3 +1443,79 @@ test("enriched crew retains portraits and localizes role codes", (t) => {
     // The rest of the crew under the jobs the box words for them.
     ["Hans Zimmer", "Filmmusik", "/api/art?kind=thumb&portrait=music-tag&v=music-tag"]]);
 });
+
+test("a show's state, network, size and episodes either side of today follow its names", (t) => {
+  const { P, window } = panels(t);
+  Object.assign(window.TinyPPI.T, { status: "Status", status_returning: "Wird fortgesetzt",
+                                    network: "Sender", seasons_episodes: "Staffeln/Folgen",
+                                    next_episode: "Nächste Folge", last_episode: "Letzte Folge" });
+  const facts = (credits) => plain(P.facts(credits).map((node) =>
+    [node.querySelector("dt").textContent, node.querySelector("dd").textContent]));
+  const day = new Date(2027, 0, 16).toLocaleDateString(undefined, { dateStyle: "medium" });
+  assert.deepEqual(facts({
+    status: "returning", networks: ["Apple TV+", "Other"], tmdb_seasons: 2, tmdb_episodes: 19,
+    next_episode: { season: 3, episode: 1, date: "2027-01-16", title: "Hello" },
+    last_episode: { season: 12, episode: 110 } }), [
+    ["Status", "Wird fortgesetzt"], ["Sender", "Apple TV+, Other"], ["Staffeln/Folgen", "2/19"],
+    ["Nächste Folge", "S03E01 · Hello · " + day], ["Letzte Folge", "S12E110"]]);
+  // A state the page has no words for is written as it came; a size known
+  // only in part is not given.
+  assert.deepEqual(facts({ status: "rumoured", tmdb_seasons: 2 }), [["Status", "rumoured"]]);
+});
+
+test("a film's series and the library's recommendations are rows of posters", (t) => {
+  const { P, window } = panels(t);
+  Object.assign(window.TinyPPI.T, { this_film: "Dieser Film", recommended: "Mehr davon",
+                                    on_tmdb: "Öffnet TMDb" });
+  const opened = [];
+  const parts = P.related({
+    collection: { name: "Dune Filmreihe", parts: [
+      { kind: "movie", tmdb: 1, id: 11, title: "Dune", year: 2021, poster: "p11" },
+      { kind: "movie", tmdb: 2, id: 12, title: "Dune: Part Two", current: true },
+      { kind: "movie", tmdb: 3, title: "Dune: Part Three", year: 2026, portrait: "t3" },
+      { kind: "movie", tmdb: 4, title: "Dune Messiah" }] },
+    recommended: [{ kind: "tvshow", tmdb: 9, id: 19, title: "Andor", poster: "p19" },
+                  { kind: "tvshow", tmdb: 8, id: 18, title: "Other" }]
+  }, (item) => opened.push(item.id));
+  assert.deepEqual(texts(parts.filter((node) => node.tagName === "H4")),
+                   ["Dune Filmreihe (4)", "Mehr davon (2)"]);
+  const [series, picks] = parts.filter((node) => node.tagName === "UL");
+  assert.equal(series.className, "castrow posterrow");
+  const cards = [...series.querySelectorAll(".castlink")];
+  assert.deepEqual(cards.map((card) => card.tagName), ["BUTTON", "DIV", "A", "A"]);
+  assert.deepEqual(cards.map((card) => card.querySelector("img")?.getAttribute("src") ?? null), [
+    "/api/art?kind=poster&movieid=11&v=p11", null,
+    "/api/art?kind=poster&portrait=t3&v=t3", null]);
+  assert.deepEqual(cards.map((card) => card.querySelector(".posterbadge")?.textContent ?? null),
+                   [null, "Dieser Film", "TMDb", "TMDb"]);
+  assert.deepEqual(cards.map((card) => card.querySelector(".role").textContent),
+                   ["2021", "", "2026", ""]);
+  // The page's own film is marked and leads nowhere.
+  assert.equal(cards[1].getAttribute("aria-current"), "page");
+  // One the library does not hold opens on TMDb.
+  assert.equal(cards[2].getAttribute("href"), "https://www.themoviedb.org/movie/3");
+  assert.equal(cards[2].target, "_blank");
+  assert.equal(cards[2].rel, "noopener noreferrer");
+  assert.equal(cards[2].title, "Öffnet TMDb");
+  // One it holds opens its own page.
+  cards[0].click();
+  const [andor, other] = [...picks.querySelectorAll(".castlink")];
+  assert.equal(andor.querySelector("img").getAttribute("src"), "/api/art?kind=poster&tvshowid=19&v=p19");
+  assert.equal(other.querySelector("img"), null);
+  andor.click();
+  assert.deepEqual(opened, [11, 19]);
+  // A poster that cannot be read leaves the colour under it.
+  const poster = cards[0].querySelector("img");
+  poster.dispatchEvent(new window.Event("error"));
+  assert.equal(cards[0].querySelector("img"), null);
+  // A press that ended a drag of the row opens nothing.
+  const press = new window.MouseEvent("click", { bubbles: true, cancelable: true });
+  press.preventDefault();
+  cards[0].dispatchEvent(press);
+  assert.deepEqual(opened, [11, 19]);
+  // A show on TMDb leads to its page there; nothing to lead to draws nothing.
+  const [, row] = P.related({ recommended: [{ kind: "tvshow", tmdb: 5, title: "Away" }] }, () => {});
+  assert.equal(row.querySelector("a").getAttribute("href"), "https://www.themoviedb.org/tv/5");
+  assert.equal(P.related({}, () => {}).length, 0);
+  assert.equal(P.related({ collection: { name: "Empty", parts: [] } }, () => {}).length, 0);
+});

@@ -156,11 +156,13 @@ def test_movie_show_and_episode_paths(monkeypatch):
     monkeypatch.setattr(tmdb.common, 'rpc', lambda *args: {'result': {'tvshowdetails': {'uniqueid': {'tmdb': '99'}}}})
     # A film's credits come with its own facts, in one request.
     assert tmdb.lookup('movie', {'uniqueid': {'tmdb': '1'}}, 'key') == {'cast': []}
-    for kind, row in [('tvshow', {'uniqueid': {'tmdb': '2'}}),
-                      ('episode', {'tvshowid': 3, 'season': 0, 'episode': 1})]:
-        assert tmdb.lookup(kind, row, 'key') == {'credits': {'cast': []}}
-    assert paths == ['movie/1?append_to_response=credits,release_dates',
-                     'tv/2/credits', 'tv/99/season/0/episode/1/credits']
+    # A show's credits, state and recommendations come in one request too.
+    assert tmdb.lookup('tvshow', {'uniqueid': {'tmdb': '2'}}, 'key') == {'cast': []}
+    assert tmdb.lookup('episode', {'tvshowid': 3, 'season': 0, 'episode': 1},
+                       'key') == {'credits': {'cast': []}}
+    assert paths == ['movie/1?append_to_response=credits,release_dates,recommendations',
+                     'tv/2?append_to_response=credits,recommendations',
+                     'tv/99/season/0/episode/1/credits']
     assert tmdb.lookup('episode', {}, 'key') == {}
     assert tmdb.lookup('episode', {'tvshowid': 3}, 'key') == {}
     assert tmdb.lookup('episode', {'tvshowid': 3, 'season': 1}, 'key') == {}

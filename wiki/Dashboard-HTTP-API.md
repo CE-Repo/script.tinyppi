@@ -244,6 +244,29 @@ unambiguously. A film adds, where TMDb knows them, its `budget` and `revenue`
 cinema run anywhere, with `cinema_country` the country's code (`"DE"`); else
 its primary release date, without a country. Older servers, or a title TMDb does not know, omit them.
 
+Also with the key, a film and a series lead on to other titles, each a
+*related title* — `{kind: "movie"|"tvshow", tmdb, title, year?}` with, for one
+the library holds, its library `id` and its `poster` tag (for
+`/api/art?kind=poster&movieid=|tvshowid=<id>&v=<poster>`), and for one it does
+not, an optional `portrait` tag for TMDb's poster
+(`/api/art?kind=poster&portrait=<portrait>&v=<portrait>`). A client opens a held
+title's own details, and any other's page on TMDb
+(`https://www.themoviedb.org/movie/<tmdb>` or `…/tv/<tmdb>`):
+
+- `collection` (films) — `{name, parts}`: the film series it belongs to on
+  TMDb, named in Kodi's language, its films in release order (undated ones
+  last), the film itself among them with `current: true`. Absent for a film
+  in no series, or in a "series" of one.
+- `recommended` (films and series) — up to 20 titles **of the library**, of
+  the same kind, that TMDb recommends after this one, best first. A
+  recommendation the library does not hold is left out.
+
+A series adds its state on TMDb, each only where TMDb has it: `status`
+(`returning`, `ended`, `canceled`, `production`, `planned` or `pilot`),
+`networks` (names), `tmdb_seasons` and `tmdb_episodes` (how many there are in
+all; the library may hold fewer), and `next_episode` and `last_episode` —
+`{season, episode, date?, title?}`, the next to air and the last aired.
+
 ### `GET /api/art?kind=<kind>[&movieid=|&tvshowid=|&episodeid=<id>][&portrait=<tag>][&v=<tag>]`
 
 Artwork: `kind` is `poster`, `fanart` or `thumb`. Without an id or `portrait`,
@@ -252,7 +275,8 @@ the playing title's artwork. With a `v` tag the answer is cacheable for a week
 it), anything else is ignored and the answer is not cached. Images are served
 from Kodi's texture cache where possible.
 
-For a cast portrait, use `kind=thumb&portrait=<tag>` with the optional `v` tag
+For a cast portrait, use `kind=thumb&portrait=<tag>` (and for a related
+title's TMDb poster `kind=poster&portrait=<tag>`) with the optional `v` tag
 set to the same value. The portrait tag comes from `/api/details`. The server
 resolves only paths Kodi supplied while details were read; callers cannot
 provide a file path or source URL. At most 4096 portrait paths are retained in
