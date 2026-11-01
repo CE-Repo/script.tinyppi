@@ -1,9 +1,9 @@
 # Development tooling only; Kodi installs the add-on from addon.xml.
 #   python3 -m pip install -r requirements-dev.txt
-pytest==9.1.1
+pytest==9.2.0
 pytest-cov==7.1.0
-ruff==0.17.0
-mypy==2.4.0
+ruff==0.17.3
+mypy==2.4.1
 # Cyclomatic complexity (radon), held to the limits in .github/workflows/ci.yml.
 xenon==0.9.3
 # Typed stand-ins for Kodi's modules, for mypy (the tests use tests/stubs).
