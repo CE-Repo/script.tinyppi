@@ -16,6 +16,7 @@ from core.constants import HOME_WINDOW_ID
 from core.helpers import fps_display_texts
 from core.protocols import PropertyTarget
 from core.utils import (
+    PROP_DV_CONVERTED,
     PROP_HDR10PLUS_PRESENT,
     clean,
     home_window,
@@ -26,6 +27,7 @@ from core.utils import (
 from info.dvinfo import (
     get_cm_version,
     get_dv_bl_present,
+    get_dv_converted,
     get_dv_el_present,
     get_dv_el_type,
     get_dv_profile,
@@ -200,6 +202,9 @@ def publish_hdr_type(home: PropertyTarget | None = None,
     ST 2094-40 payload next to its RPU: a hybrid grade VS10 cannot convert,
     so the dialog and dashboard offer no modes for it.
 
+    ``TinyPPI.DvConverted`` marks a Dolby Vision profile the decoder
+    converts (4/7 -> 8.1 on S5), shown by the Converting icon.
+
     *published* is the polling loop's record; without it every call writes.
     """
     hdr_type = get_hdr_format()
@@ -215,6 +220,7 @@ def publish_hdr_type(home: PropertyTarget | None = None,
             ("TinyPPI.HdrType", hdr_type),
             ("TinyPPI.EffectiveHdrType", _effective_hdr_type(hdr_type)),
             (PROP_HDR10PLUS_PRESENT, get_hdr10plus_present()),
+            (PROP_DV_CONVERTED, get_dv_converted()),
         ),
     )
 

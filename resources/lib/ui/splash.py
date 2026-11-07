@@ -29,7 +29,7 @@ from core.constants import HOME_WINDOW_ID
 from core.log import channel
 from core.protocols import PropertyTarget
 from core.utils import PROP_ACTIVE, PROP_DIALOG_MODE, PROP_RUNNING, info
-from info.dvinfo import get_dv_el_type_raw, get_hdr_format
+from info.dvinfo import get_dv_converted, get_dv_el_type_raw, get_hdr_format
 from info.properties import output_hdr_token
 from ui.splash_logos import (
     current_logos,
@@ -358,6 +358,7 @@ class _Controller:
         # Source format and layer, the output they were read for, the next
         # re-read, and the published badge state.
         self.hdr_type = self.el_type = ""
+        self.dv_converted = False
         self.has_audio = True
         self.format_gamut: str | None = None
         self.format_due = 0.0
@@ -441,6 +442,7 @@ class _Controller:
         if not self.hdr_type or gamut != self.format_gamut or now >= self.format_due:
             self.hdr_type = get_hdr_format()
             self.el_type = get_dv_el_type_raw() if "dolby" in self.hdr_type else ""
+            self.dv_converted = get_dv_converted() == "true"
             self.has_audio = video_has_audio(self.player)
             self.format_gamut = gamut
             self.format_due = now + _FORMAT_INTERVAL
@@ -448,7 +450,8 @@ class _Controller:
     def _publish_converting(self, gamut: str) -> None:
         """Publish the badge state (``PROP_CONVERTING``) when it changed."""
         # Updated every poll; the badge's condition follows it.
-        now_converting = "true" if is_converting(self.hdr_type, gamut) else "false"
+        converting = is_converting(self.hdr_type, gamut, self.dv_converted)
+        now_converting = "true" if converting else "false"
         if now_converting != self.converting:
             self.converting = now_converting
             self.home.setProperty(PROP_CONVERTING, self.converting)
@@ -484,7 +487,8 @@ class _Controller:
                 for mode in _MODE_PROP_PREFIX
             }
             self.themed = True
-        layer_token = dv_layer_token(hdr_token, self.hdr_type, self.el_type)
+        layer_token = dv_layer_token(hdr_token, self.hdr_type, self.el_type,
+                                     self.dv_converted)
         for mode in modes:
             # A mode without logos draws nothing this poll.
             mode_settings = self.config.modes[mode]

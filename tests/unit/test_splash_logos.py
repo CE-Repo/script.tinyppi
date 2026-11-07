@@ -38,6 +38,11 @@ def test_a_conversion_is_told_from_the_output(source, gamut, converting):
     assert logos.is_converting(source, gamut) is converting
 
 
+def test_a_dolby_vision_profile_conversion_counts():
+    # Profile 7 -> 8.1 on S5 leaves the output DV; only the flag shows it.
+    assert logos.is_converting("dolbyvision", "DV-STD", dv_converted=True) is True
+
+
 @pytest.mark.parametrize(("output", "source", "el_type", "pill"), [
     ("dolbyvision", "dolbyvision", "fel", "fel"),
     ("dolbyvision", "dolbyvision", "MEL", "mel"),
@@ -48,6 +53,11 @@ def test_a_conversion_is_told_from_the_output(source, gamut, converting):
 ])
 def test_the_layer_pill_follows_the_output(output, source, el_type, pill):
     assert logos.dv_layer_token(output, source, el_type) == pill
+
+
+def test_a_profile_converted_to_8_1_has_no_layer_pill_colour():
+    # P7 FEL converted to 8.1 on S5: the enhancement layer never reaches the TV.
+    assert logos.dv_layer_token("dolbyvision", "dolbyvision", "FEL", dv_converted=True) == "other"
 
 
 def test_logos_for_the_output_and_codec(monkeypatch):

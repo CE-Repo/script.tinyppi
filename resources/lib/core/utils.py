@@ -37,6 +37,10 @@ PROP_EFFECTIVE_HDR_TYPE = "TinyPPI.EffectiveHdrType"
 # convert with VS10 (issue #71), so the dialog and dashboard hide the modes.
 PROP_HDR10PLUS_PRESENT = "TinyPPI.Hdr10PlusPresent"
 
+# "true" while the decoder converts the Dolby Vision profile (4/7 -> 8.1 on
+# S5 / S928X, the enhancement layer dropped); drives the Converting icon.
+PROP_DV_CONVERTED = "TinyPPI.DvConverted"
+
 
 # Per-pass read caches, one per thread (the overlay and the metadata view
 # refresh from different threads).  ``None`` outside a pass, where every read

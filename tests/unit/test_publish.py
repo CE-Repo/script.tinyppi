@@ -142,6 +142,15 @@ def test_hdr10_plus_is_published_without_the_plus(frame, monkeypatch):
     assert home.getProperty("TinyPPI.HdrType") == "hdr10plus"
     assert home.getProperty("TinyPPI.EffectiveHdrType") == "hdr10plus"
     assert home.getProperty("TinyPPI.Hdr10PlusPresent") == "1"
+    assert home.getProperty("TinyPPI.DvConverted") == ""
+
+
+def test_a_dolby_vision_profile_conversion_is_published(frame, monkeypatch):
+    frame["hdr_format"] = "dolbyvision"
+    frame["dv_converted"] = "true"
+    monkeypatch.setattr(publish, "get_ModeVar", lambda: "")
+    publish.publish_hdr_type()
+    assert xbmcgui.Window(10000).getProperty("TinyPPI.DvConverted") == "true"
 
 
 @pytest.mark.parametrize("source, mode, keep, effective", [
