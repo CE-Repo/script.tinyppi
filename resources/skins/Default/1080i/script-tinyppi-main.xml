@@ -544,7 +544,7 @@
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>
-                        <visible>[String.IsEmpty(Window(10000).Property(TinyPPI.HdrType)) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg)] + String.Contains(Player.Process(amlogic.eoft_gamut),DV)</visible>
+                        <visible>[String.IsEmpty(Window(10000).Property(TinyPPI.HdrType)) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10) | String.IsEqual(Window(10000).Property(TinyPPI.HdrType),hdr10plus) | String.Contains(Window(10000).Property(TinyPPI.HdrType),hlg) | String.IsEqual(Window(10000).Property(TinyPPI.DvConverted),true)] + String.Contains(Player.Process(amlogic.eoft_gamut),DV)</visible>
                     </control>
                     <control type="label">
                         <left>280</left>
