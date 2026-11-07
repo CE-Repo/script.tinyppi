@@ -101,6 +101,14 @@ def test_hdr10plus_presence_ignores_a_stripped_payload():
     assert dvfields.build_info(stripped, "hdr10", "")["hdr10plus_present"] == ""
 
 
+def test_a_profile_conversion_is_read_from_the_flags():
+    converted = parsed(rpu={"profile": 7}, flags=["converted"])
+    assert dvfields.build_info(converted, "dolbyvision", "")["dv_converted"] == "true"
+    assert dvfields.build_info(parsed(rpu={"profile": 7}), "dolbyvision", "")["dv_converted"] == ""
+    # Only a Dolby Vision source is converted this way.
+    assert dvfields.build_info(parsed(flags=["converted"]), "hdr10", "")["dv_converted"] == ""
+
+
 def test_a_row_with_a_missing_part_stays_empty():
     frame = parsed(cll={"max_cll": 1000, "max_fall": None})
     assert dvfields.build_info(frame, "hdr10", "")["hdr10_max_cll_fall"] == ""

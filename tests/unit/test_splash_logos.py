@@ -38,6 +38,11 @@ def test_a_conversion_is_told_from_the_output(source, gamut, converting):
     assert logos.is_converting(source, gamut) is converting
 
 
+def test_a_dolby_vision_profile_conversion_counts():
+    # Profile 7 -> 8.1 on S5 leaves the output DV; only the flag shows it.
+    assert logos.is_converting("dolbyvision", "DV-STD", dv_converted=True) is True
+
+
 @pytest.mark.parametrize(("output", "source", "el_type", "pill"), [
     ("dolbyvision", "dolbyvision", "fel", "fel"),
     ("dolbyvision", "dolbyvision", "MEL", "mel"),

@@ -466,7 +466,7 @@ class Kodi:
         self.windows = {}
         self.addon = xbmcaddon.Addon()
         self.gamut = "SDR BT709"
-        self.hdr_type = self.el_type = ""
+        self.hdr_type = self.el_type = self.dv_converted = ""
         self.logos = ("codecs/SDR.png", "audio/aac.png")
         self.has_audio = True
         self.format_reads, self.el_reads, self.themes = [], 0, 0
@@ -482,6 +482,7 @@ class Kodi:
             monotonic=lambda: self.clock, monotonic_ns=lambda: int(self.clock * 1e9)))
         monkeypatch.setattr(splash, "get_hdr_format", self._hdr_format)
         monkeypatch.setattr(splash, "get_dv_el_type_raw", self._el_type)
+        monkeypatch.setattr(splash, "get_dv_converted", lambda: self.dv_converted)
         monkeypatch.setattr(splash, "current_logos", lambda token: self.logos)
         monkeypatch.setattr(splash, "video_has_audio", lambda player: self.has_audio)
         monkeypatch.setattr(splash, "apply_theme", self._apply_theme)
@@ -759,6 +760,16 @@ def test_the_conversion_badge_follows_the_output(kodi):
     # Shown as DV, the panel has a pill; as HDR10, none.
     assert textures(first)[-1] == media("common/pill.png")
     assert media("common/pill.png") not in textures(second)
+
+
+def test_the_conversion_badge_shows_a_dolby_vision_profile_conversion(kodi):
+    # Profile 7 converted to 8.1 (S5): DV in, DV out, only the flag tells.
+    use(splash_show_on_osd=True)
+    kodi.gamut, kodi.hdr_type, kodi.dv_converted = "DV-STD BT2020", "dolbyvision", "true"
+    kodi.stop_at(2)
+    kodi.run()
+
+    assert ("set", CONVERTING, "true") in kodi.events
 
 
 @pytest.mark.parametrize(("gamut", "source", "el_type", "pill"), [
