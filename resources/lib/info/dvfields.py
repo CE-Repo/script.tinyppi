@@ -34,6 +34,7 @@ FIELDS = (
     "dv_el_type",
     "bit_depth",
     "hdr10plus_present",
+    "dv_converted",
 )
 
 # Enhancement-layer types that get a tag (coloured by info.dvinfo).
@@ -259,17 +260,30 @@ def build_info(parsed: Block, hdr_label: str, hdr_detail: str) -> dict[str, str]
     info["hdr_format"]  = token
     info["output_mode"] = _output_mode(token, profile, el_type, hdr10plus)
 
-    # HDR10+ still reaching the decoder.  On a DV source this is a hybrid
-    # grade the driver cannot convert with VS10.  A payload Kodi stripped
-    # (``hdr10plus-removed``) no longer counts.
-    if hdr10plus and "hdr10plus-removed" not in (parsed.get("flags") or []):
-        info["hdr10plus_present"] = "1"
+    _flag_fields(info, parsed, token)
 
     if token == "dolbyvision":
         _dolby_vision_fields(info, parsed, profile, el_type)
     _rpu_fields(info, rpu or {})
     _static_fields(info, mdcv, cll)
     return info
+
+
+def _flag_fields(info: dict[str, str], parsed: Block, token: str) -> None:
+    """Fill the fields that depend on the decoder's side-data flags."""
+    flags = parsed.get("flags") or []
+
+    # HDR10+ still reaching the decoder.  On a DV source this is a hybrid
+    # grade the driver cannot convert with VS10.  A payload Kodi stripped
+    # (``hdr10plus-removed``) no longer counts.
+    if parsed.get("hdr10plus") and "hdr10plus-removed" not in flags:
+        info["hdr10plus_present"] = "1"
+
+    # Dolby Vision the decoder re-encodes on the fly: CoreELEC converts
+    # profile 4/7 to 8.1 on S5 (S928X) and drops the enhancement layer.  The
+    # other fields still describe the source, so this flag is the only sign.
+    if token == "dolbyvision" and "converted" in flags:
+        info["dv_converted"] = "true"
 
 
 def _dolby_vision_fields(info: dict[str, str], parsed: Block, profile: str,

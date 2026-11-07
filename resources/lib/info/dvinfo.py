@@ -79,7 +79,7 @@ _MAPPING_TTL = 1.0
 # display is only in frames with uncompressed DM data; without the latch the
 # MDL row would flip to L6 every other frame.  HDR10+ presence is a property
 # of the title (hybrid grade or not), so it is latched too.
-_STATIC_FIELDS = ("source_mdl", "hdr10plus_present")
+_STATIC_FIELDS = ("source_mdl", "hdr10plus_present", "dv_converted")
 
 # Problems already logged ("import", "derive"): each is logged once.
 _warned: set[str] = set()
@@ -381,6 +381,15 @@ def get_hdr10plus_present() -> str:
     per title (see ``_STATIC_FIELDS``).
     """
     return _raw("hdr10plus_present")
+
+
+def get_dv_converted() -> str:
+    """Return ``true`` when the decoder converts the DV profile, else ''.
+
+    Set from the ``converted`` side-data flag (profile 4/7 -> 8.1 on S5).
+    Latched per title (see ``_STATIC_FIELDS``).
+    """
+    return _raw("dv_converted")
 
 
 def get_output_mode() -> str:

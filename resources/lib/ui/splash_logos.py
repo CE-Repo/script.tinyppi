@@ -47,13 +47,17 @@ def video_has_audio(player: xbmc.Player) -> bool:
         return True
 
 
-def is_converting(hdr_type: str, gamut: str) -> bool:
+def is_converting(hdr_type: str, gamut: str, dv_converted: bool = False) -> bool:
     """Return whether the output *gamut* shows a conversion.
 
     Mirrors the check-circle condition in script-tinyppi-main.xml: non-DV
     source output as DV, HDR/DV output as SDR, or SDR/DV output as HDR10.
     *hdr_type* comes from the side data, so this works without the overlay.
+    *dv_converted* is the side data's ``converted`` flag: a DV profile the
+    decoder converts (4/7 -> 8.1 on S5), which the gamut cannot show.
     """
+    if dv_converted:
+        return True
     gamut = gamut.upper()
     parts = gamut.split()
     mode = parts[0] if parts else ""
@@ -69,16 +73,18 @@ def is_converting(hdr_type: str, gamut: str) -> bool:
     return bool(sdr_or_dv_source and mode == "HDR10")
 
 
-def dv_layer_token(hdr_token: str, hdr_type: str, el_type: str) -> str:
+def dv_layer_token(hdr_token: str, hdr_type: str, el_type: str,
+                   dv_converted: bool = False) -> str:
     """Return the DV pill token for the output: fel, mel, other or ''.
 
     Based on the actual output (*hdr_token*): '' when it is not DV, 'other'
-    for non-DV sources converted to DV and other profiles, else the source's
-    enhancement layer (*el_type*).
+    for non-DV sources converted to DV, other profiles and a profile the
+    decoder converts to 8.1 (*dv_converted*, the enhancement layer dropped),
+    else the source's enhancement layer (*el_type*).
     """
     if hdr_token != "dolbyvision":
         return ""
-    if "dolby" not in hdr_type:
+    if "dolby" not in hdr_type or dv_converted:
         return "other"
     el_type = el_type.upper()
     if el_type == "FEL":
