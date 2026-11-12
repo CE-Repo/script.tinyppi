@@ -295,10 +295,8 @@ python3 tools/gen_awards.py --helper   # without a key: TheMovieDb Helper's list
 ## Releasing
 
 1. Bump `version` in `addon.xml`.
-2. Replace the `<news>` entry in `addon.xml` — it holds the **latest version
-   only**.
-3. Make sure CI is green (and ideally run the Kodi 22 suite).
-4. Commit as *"Bump version to x.y.z"*, tag, and publish the ZIP to the
+2. Make sure CI is green (and ideally run the Kodi 22 suite).
+3. Commit as *"Bump version to x.y.z"*, tag, and publish the ZIP to the
    repository.
 
 ---
