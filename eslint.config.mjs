@@ -3,8 +3,9 @@
 
 // Lint for the dashboard's scripts (resources/web/js).  They are classic
 // scripts loaded in order by index.html and share one global scope:
-// core.js, theme.js, colour.js, cover-tint.js, readings.js, live-chapters.js
-// and live-remote.js each publish one global object.
+// core.js, theme.js, colour.js, cover-tint.js, readings.js, live-chapters.js,
+// live-remote.js, live-details.js and live-charts.js each publish one global
+// object.
 
 import js from "@eslint/js";
 import globals from "globals";
@@ -20,8 +21,10 @@ export default [
         ...globals.browser,
         TinyPPI: "writable",
         TinyPPIChapters: "writable",
+        TinyPPICharts: "writable",
         TinyPPIColour: "writable",
         TinyPPICover: "writable",
+        TinyPPIDetails: "writable",
         TinyPPIReadings: "writable",
         TinyPPIRemote: "writable",
         TinyPPITheme: "writable",

@@ -14,7 +14,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import vm from "node:vm";
 import { bare, page, source } from "./harness.mjs";
 
-const SCRIPTS = ["core.js", "readings.js", "live-chapters.js", "live-remote.js", "live-panels.js"];
+const SCRIPTS = ["core.js", "readings.js", "live-chapters.js", "live-remote.js", "live-details.js", "live-charts.js", "live-panels.js"];
 const JS = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "resources", "web", "js");
 
 const CHAPTERS = [

@@ -4,14 +4,16 @@
 // The live panels (resources/web/js/live-panels.js): the now-playing card
 // with its poster, badges and progress, the remote and its track pickers,
 // the four figures, the event list fetched from /api/history, the luminance
-// chart, and what the dashboard reads back (events, peak, draw).
+// chart (js/live-charts.js), a title's facts, cast and rating shields
+// (js/live-details.js), and what the dashboard reads back (events, peak,
+// draw).
 
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { test } from "node:test";
 import { bare, page, settle } from "./harness.mjs";
 
-const SCRIPTS = ["core.js", "readings.js", "live-chapters.js", "live-remote.js", "live-panels.js"];
+const SCRIPTS = ["core.js", "readings.js", "live-chapters.js", "live-remote.js", "live-details.js", "live-charts.js", "live-panels.js"];
 const START = 1_700_000_000_000;
 
 /* The shapes tests/browser/serve.py serves, which are the add-on's own. */
@@ -44,9 +46,9 @@ const HISTORY = {
 const snap = (over = {}) => ({ ...SNAPSHOT, ...over });
 const metrics = (over = {}) => ({ ...SNAPSHOT.metrics, ...over });
 
-/* Where the chart puts a reading, from the margins drawLuminance uses on a
-   300 x 150 box: 34 px left, 6 right, 8 top, 6 bottom, four decades above
-   0.01 nits on a log axis. */
+/* Where the chart puts a reading, from the margins drawLuminance
+   (js/live-charts.js) uses on a 300 x 150 box: 34 px left, 6 right, 8 top,
+   6 bottom, four decades above 0.01 nits on a log axis. */
 const yOf = (nits) => 8 + 136 * (1 - (Math.log10(nits) + 2) / 6);
 const xOf = (age, span) => 34 + 260 * (1 - Math.min(1, age / span));
 
