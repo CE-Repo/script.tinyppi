@@ -28,7 +28,7 @@ about what runs on the box. For the build and test workflow see
 
 | Extension point | Library | Role |
 |---|---|---|
-| `xbmc.service` | `resources/lib/service/monitor.py` | Long-lived background service, started with Kodi |
+| `xbmc.service` | `resources/lib/service/start.py` | Long-lived background service, started with Kodi (runs `service/monitor.py`) |
 | `xbmc.python.script` | `main.py` | The launchable script (`RunAddon` / `RunScript`) |
 
 Dependencies: `xbmc.python` 3.1.0 and `script.module.sidedata` 1.6.0.
@@ -43,7 +43,7 @@ them as **window properties**; the skin files only lay them out.
 
 ```
 script.tinyppi/
-├── addon.xml                  Add-on manifest (version, dependencies, news)
+├── addon.xml                  Add-on manifest (version, dependencies)
 ├── main.py                    Script entry point: argument dispatch, handover
 ├── icon.png, fanart.png       Branding (see LICENSE-ASSETS)
 ├── LICENSE, LICENSE-ASSETS, NOTICE
@@ -103,6 +103,13 @@ script.tinyppi/
 | `mediasource.py` | The *Media source* row: release type, container and size, or the stream transport. |
 | `imax.py` | IMAX / IMAX Enhanced detection by release name and title lists. |
 
+### `resources/lib/service/`
+
+| Module | Purpose |
+|---|---|
+| `start.py` | The service's entry point named in `addon.xml`: puts `resources/lib` on the path and runs `monitor.py`. Kept this small for Kodi's add-on checker. |
+| `monitor.py` | The service itself: keeps a Kodi monitor alive for the session to react to notifications, opens views handed over by `main.py`, runs the splash and owns the web dashboard. |
+
 ### `resources/lib/ui/`
 
 | Module | Purpose |
@@ -133,6 +140,7 @@ script.tinyppi/
 | `awards.py` | The big awards (Oscars, Golden Globes, BAFTAs, Emmys) a film or an episode's show won or was nominated for, from `resources/data/awards.json` (TheTVDB's, see `tools/gen_awards.py`) by its TheTVDB, IMDb or TMDb id. |
 | `mdblist.py` | MDBList's ratings for a film (with an API key) and the IMDb Top 250 chart, each fetched off the snapshot's thread and cached. |
 | `whatson.py` | Rotten Tomatoes' Certified Fresh and Verified Hot for a film from WhatsOn (a key optional), and its ratings where MDBList and the library lack them, off the snapshot's thread and cached. |
+| `tmdb.py` | Optional credits and facts from TMDb for the details view only: portraits and person ids for unambiguous members of the identified title's credits (Kodi's names, roles and portraits take precedence), a film's budget, takings, cinema release and series, a show's state, and recommendations. Cached, within a time budget per view; the API credential stays on Kodi and clients receive opaque artwork tags. |
 | `rows.py` | The dashboard's cards and rows, as the overlay shows them. |
 | `session.py` | The playing title's history: chart samples, events, counters. |
 | `player.py` | The playing video over JSON-RPC: tracks, volume, chapters, live-TV times and the remote's commands. |
@@ -153,7 +161,9 @@ script.tinyppi/
 | `js/core.js` | Connection, token (header only) and read session, SSE stream and delta application, foldable panels. |
 | `js/dashboard.js` | Tabs, the bar, dialogs, VS10 buttons, reports. |
 | `js/start.js` | Starts the page: localized strings, the first tab, the stream. |
-| `js/live-panels.js` | The now-playing card, the overview (plot, credits, rating shields, folding), figures, chart and events. |
+| `js/live-panels.js` | The now-playing card, the overview's key, figures and events; builds the cards and hands out the two below through `TinyPPI.panels`. |
+| `js/live-details.js` | What a title's details page is drawn from: facts, cast and crew cards, related titles, rating shields and awards. |
+| `js/live-charts.js` | The luminance chart with its ranges, and the history it is drawn from (`/api/history`). |
 | `js/live-remote.js` | The remote in the player card under the overview: transport row, the audio and subtitle offsets, and the track pickers. |
 | `js/readings.js` | Format badges and the wording of the history's events. |
 | `js/shelf-tools.js` | The order and the filters (genre, picture, resolution, sound) over the film and series walls. |
@@ -187,7 +197,7 @@ Kodi runs each add-on invocation in its own Python interpreter.
 
 | Interpreter | Lifetime | Runs |
 |---|---|---|
-| **Service** (`monitor.py`) | whole Kodi session | `KodiMonitor`, views handed over by launches, the codec-logo controller, the web dashboard |
+| **Service** (`start.py` → `monitor.py`) | whole Kodi session | `KodiMonitor`, views handed over by launches, the codec-logo controller, the web dashboard |
 | **Script** (`main.py`) | one launch | argument dispatch; normally just the handover |
 
 Threads inside the service:

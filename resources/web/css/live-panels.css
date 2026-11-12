@@ -872,7 +872,7 @@
 /* --- a title's facts and cast -------------------------------------------
 
    A title's details page's (see factNodes and castParts in
-   js/live-panels.js), as the app draws them.  Each fact its
+   js/live-details.js), as the app draws them.  Each fact its
    name as a bold section heading over the names. */
 .facts { margin: 0; display: grid; gap: 12px; }
 .facts .fact { display: grid; gap: 2px; }
@@ -899,7 +899,7 @@
   overflow-x: auto;
   scrollbar-width: thin;
 }
-/* A mouse drags the row (see mouseScroll in js/live-panels.js). */
+/* A mouse drags the row (see mouseScroll in js/live-details.js). */
 @media (pointer: fine) {
   .castrow { cursor: grab; user-select: none; }
   .castrow.dragging { cursor: grabbing; }
@@ -915,7 +915,7 @@
   text-align: left;
 }
 /* The whole card is the link to the person's page (see personPage in
-   js/live-panels.js), looking like the card it was. */
+   js/live-details.js), looking like the card it was. */
 .castrow .castlink {
   display: flex;
   flex: 1;
@@ -988,7 +988,7 @@
   color: var(--muted);
 }
 .castrow .role:empty { display: none; }
-/* A title's page leads on to others (see relatedParts in js/live-panels.js):
+/* A title's page leads on to others (see relatedParts in js/live-details.js):
    poster cards, as tall as a poster is, in the cast's row.  A card the
    library holds is a key, one on TMDb a link, the page's own title neither. */
 .posterrow .initial { height: 216px; }
