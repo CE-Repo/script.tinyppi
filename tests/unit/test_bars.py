@@ -34,12 +34,12 @@ def measured(rows):
 # --- The capture size ---------------------------------------------------------
 
 @pytest.mark.parametrize(("aspect", "size"), [
-    (0.0, (640, 360)),                      # unknown: 16:9
-    (1.7778, (640, 360)),
-    (2.39, (640, 268)),                     # an encode cropped to the picture
-    (1.3333, (640, 480)),
-    (0.5, (640, 640)),                      # held to a sane height
-    (10.0, (640, 180)),
+    (0.0, (480, 270)),                      # unknown: 16:9
+    (1.7778, (480, 270)),
+    (2.39, (480, 200)),                     # an encode cropped to the picture
+    (1.3333, (480, 360)),
+    (0.5, (480, 480)),                      # held to a sane height
+    (10.0, (480, 136)),
 ])
 def test_the_capture_follows_the_videos_ratio(aspect, size):
     assert bars.capture_size(aspect) == size
@@ -179,7 +179,7 @@ def test_a_dark_frame_without_a_flat_border_proves_nothing():
 
 SCOPE = (0, 0, 46, 46)
 FULL  = (0, 0, 0, 0)
-HOLD  = bars.CONFIRM_SECONDS
+HOLD  = bars.CONFIRM_SECONDS + 0.01     # clear of float rounding
 
 
 def confirmed(tracker, measured, at=0.0):
@@ -192,7 +192,6 @@ def test_bars_stand_once_they_lasted():
     tracker = BarTracker()
     tracker.update(SCOPE, 10.0)
     assert tracker.bars is None and tracker.pending
-    assert tracker.confirms_in(10.1) == pytest.approx(HOLD - 0.1)
     tracker.update(SCOPE, 10.0 + HOLD / 2)                  # too soon, however many frames
     tracker.update(SCOPE, 10.0 + HOLD / 2)
     assert tracker.bars is None
@@ -200,15 +199,13 @@ def test_bars_stand_once_they_lasted():
     assert tracker.bars == SCOPE and not tracker.pending
 
 
-def test_an_odd_measurement_has_to_last_longer():
+def test_a_measurement_can_be_given_a_longer_hold():
     tracker = BarTracker()
-    title_card = (0, 0, 60, 60)
-    tracker.update(title_card, 0.0, hold=bars.ODD_CONFIRM_SECONDS)
-    tracker.update(title_card, 1.0, hold=bars.ODD_CONFIRM_SECONDS)
+    tracker.update(SCOPE, 0.0, hold=bars.DARK_CONFIRM_SECONDS)
+    tracker.update(SCOPE, bars.DARK_CONFIRM_SECONDS / 2)
     assert tracker.bars is None
-    assert tracker.confirms_in(1.0) == pytest.approx(bars.ODD_CONFIRM_SECONDS - 1.0)
-    tracker.update(title_card, bars.ODD_CONFIRM_SECONDS, hold=bars.ODD_CONFIRM_SECONDS)
-    assert tracker.bars == title_card
+    tracker.update(SCOPE, bars.DARK_CONFIRM_SECONDS)
+    assert tracker.bars == SCOPE
 
 
 def test_frames_that_prove_nothing_change_nothing():

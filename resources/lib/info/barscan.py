@@ -3,7 +3,7 @@
 
 """Measure the black bars of the playing video, all through playback.
 
-One thread in the service captures a small frame of the video five times a
+One thread in the service captures a small frame of the video twenty times a
 second (``xbmc.RenderCapture``), has ``info.bars`` measure it and publishes
 the confirmed bars as a Home-window property, in coded pixels and in the
 RPU's ``L | R | T | B`` notation.  ``info.properties`` reads it for the
@@ -29,7 +29,6 @@ from core.utils import PROP_MEASURED_BARS, coded_frame, home_window
 from info.bars import (
     CONFIRM_SECONDS,
     DARK_CONFIRM_SECONDS,
-    ODD_CONFIRM_SECONDS,
     Bars,
     BarTracker,
     capture_size,
@@ -43,11 +42,13 @@ from info.bars import (
 from info.framing import FOLLOW_INTERVAL, FramingWatch
 from info.properties import is_standard_ar
 
-# Seconds between two frames, and the shortest pause before the frame that
-# confirms a new measurement.  A change of framing to a standard ratio shows
-# within half a second (``bars.CONFIRM_SECONDS`` after it was first seen).
-SCAN_INTERVAL    = 0.2
-CONFIRM_INTERVAL = 0.05
+# Seconds from one frame to the next: twenty a second.  A change of framing
+# shows ``bars.CONFIRM_SECONDS`` after it was first seen, about a sixth of a
+# second after it happened.
+SCAN_INTERVAL = 0.05
+# The shortest pause between two passes, so a slow pass leaves the
+# interpreter to Kodi's other add-ons.
+_MIN_PAUSE    = 0.005
 
 # How long one frame may take.  Kodi builds without the capture changes hold
 # the interpreter lock for this long, stalling every Python add-on.
@@ -55,24 +56,23 @@ _FRAME_TIMEOUT_MS = 300
 
 # Frames in a row that may fail before the scanner backs off, and for how
 # long.  A new title tries again at once.
-_FAILURE_LIMIT = 3
+_FAILURE_LIMIT = 10
 _RETRY_AFTER   = 60.0
 
 
 _log = channel("bars")
 
 
-def _hold(measured: Bars | None, size: tuple[int, int]) -> float:
-    """Return how long *measured* has to last before it counts.
+def _known(measured: Bars | None, size: tuple[int, int]) -> Bars | None:
+    """Return *measured* when it is a framing films are made in, else None.
 
-    The full frame and a standard film ratio count quickly.  Any other
-    ratio is more often a title card or a fade than a film's framing.
+    That is the full frame or bars that leave a standard ratio.  Anything
+    else is a title card, a fade or a logo far more often than a picture,
+    so it proves nothing.
     """
     if measured is None or not has_bars(measured):
-        return CONFIRM_SECONDS
-    if is_standard_ar(picture_ratio(measured, size)):
-        return CONFIRM_SECONDS
-    return ODD_CONFIRM_SECONDS
+        return measured
+    return measured if is_standard_ar(picture_ratio(measured, size)) else None
 
 
 def _dark_bars(image: bytearray, size: tuple[int, int]) -> Bars | None:
@@ -82,10 +82,7 @@ def _dark_bars(image: bytearray, size: tuple[int, int]) -> Bars | None:
     scene.  The dark measurement is the weaker proof, so it only counts
     when it makes a standard film ratio.
     """
-    found = measure_dark(image, *size)
-    if found is None or not is_standard_ar(picture_ratio(found, size)):
-        return None
-    return found
+    return _known(measure_dark(image, *size), size)
 
 
 class BarScanner(threading.Thread):
@@ -117,25 +114,18 @@ class BarScanner(threading.Thread):
 
     def run(self) -> None:
         self._idle()
-        while not self._stopping.wait(self._pause()):
+        pause = SCAN_INTERVAL
+        while not self._stopping.wait(pause):
+            started = time.monotonic()
             try:
                 self._scan()
                 self._follow_framing()
             except Exception as exc:
                 self._report(str(exc))
+            # The pass's own time counts towards the interval.
+            pause = max(_MIN_PAUSE, SCAN_INTERVAL - (time.monotonic() - started))
         self._idle()
         self._framing.clear()
-
-    def _pause(self) -> float:
-        """Return the seconds until the next frame.
-
-        A measurement that waits to be confirmed gets its frame as soon as
-        it can count.
-        """
-        if not self._tracker.pending:
-            return SCAN_INTERVAL
-        wait = self._tracker.confirms_in(time.monotonic())
-        return min(max(wait, CONFIRM_INTERVAL), SCAN_INTERVAL)
 
     def _follow_framing(self) -> None:
         """Run the framing watch when its next pass is due."""
@@ -169,8 +159,8 @@ class BarScanner(threading.Thread):
             return
 
         size = (width, height)
-        measured = measure(image, width, height)
-        hold = _hold(measured, size)
+        measured = _known(measure(image, width, height), size)
+        hold = CONFIRM_SECONDS
         if measured is None and self._tracker.bars is None:
             measured = _dark_bars(image, size)
             hold = DARK_CONFIRM_SECONDS

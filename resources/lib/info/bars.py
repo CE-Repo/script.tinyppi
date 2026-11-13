@@ -11,9 +11,9 @@ what a run of frames proves.
 A dark frame cannot tell a black bar from dark picture, so a frame only
 counts when both edges of an axis are plainly lit and sit at the same
 distance from the frame's border.  A title card, a logo or credits on black
-look like a small picture; they are told apart by bars on all four sides, a
-shape no film has, or by not lasting.  Any such frame says nothing and the
-last confirmed bars stand.
+look like a small picture; they are told apart by bars on all four sides or
+a shape no film has, and the scanner only takes ratios films are made in.
+Any such frame says nothing and the last confirmed bars stand.
 
 A title that opens on a minute of black would show nothing for as long.
 ``measure_dark`` reads such frames: a bar is one flat value, while a film's
@@ -46,11 +46,10 @@ _ABOVE_BAR   = 2
 _SOME_LIT  = 1
 _SOLID_LIT = 25
 
-# Seconds a measurement has to last before the bars change.  One that makes
-# a standard film ratio counts quickly; an odd one, which a title card or a
-# fade usually is, has to last far longer.
-CONFIRM_SECONDS     = 0.25
-ODD_CONFIRM_SECONDS = 2.0
+# Seconds a measurement has to last before the bars change: three frames at
+# the scanner's pace, a little short of two intervals so that a frame a
+# moment early still counts.
+CONFIRM_SECONDS = 0.09
 # For a measurement of a dark frame (``measure_dark``).
 DARK_CONFIRM_SECONDS = 1.0
 
@@ -60,13 +59,13 @@ DARK_CONFIRM_SECONDS = 1.0
 _NARROWEST = 1.15
 _WIDEST    = 2.85
 
-# The capture: wide enough to tell 2.35:1 from 2.39:1 (four rows apart at
-# 360), small enough to read in a few milliseconds.  The height follows the
+# The capture: as small as still tells 2.35:1 from 2.39:1 (three rows apart
+# at 270), so it can be read twenty times a second.  The height follows the
 # video's own ratio so the frame is not distorted.
-CAPTURE_WIDTH      = 640
-_DEFAULT_HEIGHT    = 360
-_MIN_HEIGHT        = 180
-_MAX_HEIGHT        = 640
+CAPTURE_WIDTH      = 480
+_DEFAULT_HEIGHT    = 270
+_MIN_HEIGHT        = 136
+_MAX_HEIGHT        = 480
 
 
 def capture_size(aspect: float) -> tuple[int, int]:
@@ -252,10 +251,6 @@ class BarTracker:
     def pending(self) -> bool:
         """Return whether a measurement waits for a frame to confirm it."""
         return self._candidate is not None
-
-    def confirms_in(self, now: float) -> float:
-        """Return the seconds until the waiting measurement can be confirmed."""
-        return max(0.0, self._since + self._hold - now)
 
     def reset(self) -> None:
         """Forget everything (a new title)."""

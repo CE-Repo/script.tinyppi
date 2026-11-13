@@ -87,19 +87,21 @@ reads as its 16:9 frame. TinyPPI therefore finds the bars in the picture
 itself, **for every format, Dolby Vision with L5 included**. This is always
 on and has no setting:
 
-- A small frame of the video (640 pixels wide, without OSD, subtitles or the
-  overlay) is captured **five times a second, all through playback**, whether or
+- A small frame of the video (480 pixels wide, without OSD, subtitles or the
+  overlay) is captured **twenty times a second, all through playback**, whether or
   not the overlay is open.
 - A frame only counts when the picture's edges are plainly lit and the bars
-  on both sides are the same size. The measurement then has to **last a
-  quarter of a second** before the reading changes, so a change of framing
-  shows within half a second.
+  on both sides are the same size. **Three frames in a row** have to agree
+  before the reading changes, so a change of framing shows after about a
+  sixth of a second.
 - **A title card, a logo or credits on black are not a picture.** Lit
   content with black on all four sides is ignored (a film is letterboxed or
   pillarboxed, not both), and so is a band no film is shaped like (wider
-  than about 2.85:1 or narrower than 1.15:1). A ratio that is not a standard
-  film ratio — 2.62:1, say — has to last **two seconds** before it is
-  shown.
+  than about 2.85:1 or narrower than 1.15:1).
+- **Only ratios films are made in count**: the full frame, or bars that
+  leave 1.33, 1.37, 1.43, 1.66, 1.78, 1.85, 1.90, 2.00, 2.20, 2.35, 2.39,
+  2.55 or 2.76:1 (within 2 %). Anything else — 2.62:1, say — is ignored
+  however long it lasts, and the last confirmed value stands.
 - **A title that opens on black** is measured from its black: a bar is one
   flat value, while a film's black usually carries grain or sits a little
   above it. Until a title has its first confirmed bars, a dark frame whose
@@ -325,7 +327,7 @@ Every color is listed in [Colors and Themes](Colors-and-Themes).
 | Scene readings (L1, L5, bitrates, FPS, queues, changed-value highlight, layout) | every 100 ms |
 | Per-title facts and CPU statistics | every 1 s |
 | Side data parsing | only when the payload changes, shared by all readers |
-| Black bars measured from the picture | every 200 ms while a video plays, overlay open or not |
+| Black bars measured from the picture | every 50 ms while a video plays, overlay open or not |
 
 All readings of one refresh are taken in a single pass, and a window property
 is only written when its value actually changed, so an idle refresh costs
