@@ -108,6 +108,8 @@ let libraryAt = null;      /* which version of the shelves are on the page  */
 
 /* Only the two per-frame L1 summaries use the transient change colour. */
 const FLASH_ROWS = new Set(["metadata.32269", "metadata.32270"]);
+/* The aspect ratio's row: its IMAX mark is lit while an IMAX scene plays. */
+const ASPECT_ROW = "video.32223";
 const DEFAULT_OPEN_GROUPS = new Set([
   "video", "audio", "processing", "dv", "system", "metadata"
 ]);
@@ -444,6 +446,7 @@ function render(next) {
 
   renderVs10(next.vs10 || {});
   renderGroups(ordered(next.groups || []));
+  lightImaxMark(next.metrics || {});
   updateCopy();
 }
 
@@ -701,6 +704,14 @@ function renderRows(container, group) {
       rowNodes.delete(id);
     }
   }
+}
+
+/* The IMAX mark behind the aspect ratio takes the change colour for as long
+   as the film shows one of its IMAX scenes (see is_imax_scene in
+   info/properties.py), not for a moment as a changed reading does. */
+function lightImaxMark(metrics) {
+  const node = rowNodes.get(ASPECT_ROW);
+  if (node) node.element.classList.toggle("lit", Boolean(metrics.imax_scene));
 }
 
 /* A changed L1 summary flashes briefly, then fades back to the normal colour. */

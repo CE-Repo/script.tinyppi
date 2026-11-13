@@ -64,6 +64,7 @@ def test_a_playing_title():
         True, "Film", "00:10:00", "02:00:00")
     assert shot["finish"] == "22:15"
     assert shot["metrics"]["frame"] == {"w": 3840, "h": 2160}
+    assert shot["metrics"]["imax_scene"] is False
     assert shot["metrics"]["cpu_temp"] == 55.0 and shot["metrics"]["progress"] == 8.3
     assert shot["media"]["year"] == "2021" and shot["media"]["genre"] == "Drama"
     assert shot["media"]["tagline"] == "One night."

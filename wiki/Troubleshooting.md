@@ -16,6 +16,7 @@ line there — then look up your symptom below.
 - [Codec logos do not appear](#codec-logos-do-not-appear)
 - [The channel graphic does not appear](#the-channel-graphic-does-not-appear)
 - [IMAX badge missing or wrong](#imax-badge-missing-or-wrong)
+- [The measured aspect ratio is missing or stuck](#the-measured-aspect-ratio-is-missing-or-stuck)
 - [The web dashboard cannot be reached](#the-web-dashboard-cannot-be-reached)
 - [The dashboard asks for a token / says wrong token](#the-dashboard-asks-for-a-token--says-wrong-token)
 - [Too many connections](#too-many-connections)
@@ -201,6 +202,32 @@ See [IMAX Detection](IMAX-Detection). The log states how many titles were
 loaded (`IMAX: N titles known, M of them IMAX Enhanced`). Add missing titles to
 your own `imax_titles.txt`; for a wrong match, check that the entry is not too
 short (add the year if it is a remake).
+
+---
+
+## The measured aspect ratio is missing or stuck
+
+See [Measured aspect ratio](The-TinyPPI-Overlay#measured-aspect-ratio). With
+debug logging on, the `TinyPPI [bars]` lines tell what happens:
+
+| Log line | Meaning |
+|---|---|
+| `this Kodi build cannot capture the video; …` | The build has no video capture for add-ons (anything but a canary build). The ratio is shown as without the setting. Logged once per session. |
+| `no frames from the video capture; trying again every 60 s` | The capture exists but delivered nothing three times in a row. The last confirmed value stays; the next title tries again at once. |
+| `bars: 0 \| 0 \| 276 \| 276` | Newly confirmed bars (left, right, top, bottom, in coded pixels). `bars: none` when they are dropped (new title, playback end, setting off). |
+| `measuring failed: …` | An unexpected error; logged once per distinct message. |
+
+- **Nothing changes at all**: is **Measure the aspect ratio from the
+  picture** on (it is off by default), and does the log name a build that
+  cannot capture?
+- **The value stays through a dark scene**: intended — a dark frame cannot
+  prove where the picture ends.
+- **The value stays although the framing changed in a bright scene**: the
+  bars above and below (or left and right) have to be the same size, so a
+  picture that is not centred in its frame is never confirmed.
+- **Dolby Vision**: the measured bars come ahead of L5 in the **Aspect
+  ratio** row; the **L5 Active Area** row keeps showing the RPU's values, so
+  the two can differ for a moment.
 
 ---
 

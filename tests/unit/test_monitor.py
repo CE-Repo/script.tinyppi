@@ -277,9 +277,17 @@ def run_service(monkeypatch, moved=0, broken=(), listed=False):
         events.append(("running", home.getProperty(PROP_SERVICE)))
         return True
 
+    class Scanner:
+        start = step("scanner started")
+        stop = step("scanner stopped")
+
+        def join(self, timeout=None):
+            events.append(("scanner joined", timeout))
+
     home = xbmcgui.Window(10000)
     started = []
     monkeypatch.setattr(service, "WebDashboard", Dashboard)
+    monkeypatch.setattr(service, "BarScanner", Scanner)
     monkeypatch.setattr(service, "migrate_legacy_colors", step("colors", moved))
     monkeypatch.setattr(service, "apply_theme", step("theme"))
     monkeypatch.setattr(threading, "Thread", lambda target, args=(), **_kwargs:
@@ -297,8 +305,9 @@ def run_service(monkeypatch, moved=0, broken=(), listed=False):
 @pytest.mark.parametrize("listed", [False, True])
 def test_the_service_starts_everything_and_stops_the_dashboard_at_shutdown(monkeypatch, listed):
     events, started = run_service(monkeypatch, listed=listed)
-    assert events == ["colors", "theme", "dashboard applied", ("running", "1"),
-                      "dashboard stopped", ("final", True)]
+    assert events == ["colors", "theme", "dashboard applied", "scanner started",
+                      ("running", "1"), "dashboard stopped", ("final", True),
+                      "scanner stopped", ("scanner joined", service._SCANNER_STOP)]
     assert xbmcgui.Window(10000).getProperty(PROP_SERVICE) == ""   # no handovers any more
     [(target, (monitor,))] = started
     assert target.__name__ == "_warm_up" and type(monitor).__name__ == "KodiMonitor"
@@ -313,8 +322,9 @@ def test_the_service_reports_carried_over_colors(monkeypatch):
 
 
 def test_failing_startup_and_shutdown_steps_never_stop_the_service(monkeypatch):
-    events, started = run_service(monkeypatch, broken={"colors", "theme", "dashboard stopped"})
-    assert events == ["dashboard applied", ("running", "1")]
+    events, started = run_service(monkeypatch, broken={"colors", "theme", "dashboard stopped",
+                                                       "scanner stopped"})
+    assert events == ["dashboard applied", "scanner started", ("running", "1")]
     assert xbmcgui.Window(10000).getProperty(PROP_SERVICE) == ""
     assert len(started) == 1
     problems = [entry for entry in xbmc.LOG if entry[0] >= xbmc.LOGWARNING]
@@ -324,6 +334,8 @@ def test_failing_startup_and_shutdown_steps_never_stop_the_service(monkeypatch):
         (xbmc.LOGWARNING, "TinyPPI [service]: apply_theme at startup failed: theme broke"),
         (xbmc.LOGERROR,
          "TinyPPI [service]: stopping the web dashboard failed: dashboard stopped broke"),
+        (xbmc.LOGERROR,
+         "TinyPPI [service]: stopping the bar scanner failed: scanner stopped broke"),
     ]
 
 

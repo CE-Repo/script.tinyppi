@@ -27,12 +27,15 @@ from core.memo import KeyedMemo
 from core.utils import (
     clean,
     cond,
+    declared_bars,
     first_float,
     home_window,
     info,
     is_effective_dv,
+    measured_offsets,
     parse_offsets,
     picture_aspect_ratio,
+    widest_aspect,
 )
 from info.dvinfo import (
     get_bit_depth,
@@ -134,7 +137,7 @@ def get_VideoResolutionVar() -> str:
 # Standard aspect ratios a computed ratio snaps to.  Pixel-exact RPU offsets
 # still land slightly off (a 2.39 film would read 2.40); ratios beyond the
 # tolerance are shown as computed.
-_STANDARD_ARS = (
+STANDARD_ARS = (
     1.33, 1.37, 1.43, 1.66, 1.78, 1.85, 1.90, 2.00, 2.20, 2.35, 2.39, 2.55, 2.76,
 )
 _AR_SNAP_TOLERANCE = 0.02           # relative to the standard ratio
@@ -142,7 +145,7 @@ _AR_SNAP_TOLERANCE = 0.02           # relative to the standard ratio
 
 def _snapped_ar(ratio: float) -> str:
     """Format an aspect ratio to two decimals, snapping to a standard one."""
-    closest = min(_STANDARD_ARS, key=lambda standard: abs(standard - ratio))
+    closest = min(STANDARD_ARS, key=lambda standard: abs(standard - ratio))
     if abs(closest - ratio) <= closest * _AR_SNAP_TOLERANCE:
         ratio = closest
     return f"{ratio:.2f}"
@@ -152,26 +155,74 @@ def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
     """Return the display aspect ratio of the picture inside the black bars.
 
     Kodi's ``videodar`` describes the coded frame, so a letterboxed 2.39 film
-    reads 1.78; scaling by the RPU's active-area offsets gives the visible
-    ratio.  Falls back to Kodi's value when the bars are unknown, or when
-    they are all zero outside Dolby Vision (there they are only dvinfo's
-    placeholder).  In Dolby Vision all-zero is a real "no crop".  *is_dv* may
-    pass in an already-read state.
+    reads 1.78; scaling by the black bars gives the visible ratio.  The bars
+    come from, in this order:
+
+    - the bars measured from the picture (``info.barscan``), once a frame
+      has confirmed them.  Only there with the setting on, on a build that
+      can capture the video;
+    - the RPU's active-area offsets, when they declare bars;
+    - all-zero offsets in Dolby Vision, a real "no crop".  Outside Dolby
+      Vision they are only dvinfo's placeholder.
+
+    Without any of these the ratio is Kodi's.  *is_dv* may pass in an
+    already-read state.
     """
     raw = clean(info("Player.Process(videodar)"))
 
-    bars = parse_offsets(l5_offsets)
-    if bars is None:
-        return raw
-
-    if not any(bars):
-        if is_dv is None:
-            is_dv = is_effective_dv()
-        if not is_dv:
+    offsets = measured_offsets()
+    if not offsets:
+        if declared_bars(l5_offsets) is None and not _is_real_no_crop(l5_offsets, is_dv):
             return raw
+        offsets = l5_offsets
 
-    ratio = picture_aspect_ratio(l5_offsets)
+    ratio = picture_aspect_ratio(offsets)
     return _snapped_ar(ratio) if ratio is not None else raw
+
+
+def _is_real_no_crop(l5_offsets: str, is_dv: bool | None) -> bool:
+    """Return whether all-zero offsets mean a picture that fills the frame."""
+    if parse_offsets(l5_offsets) is None:
+        return False
+    return is_effective_dv() if is_dv is None else is_dv
+
+
+# The colours of the IMAX mark behind the aspect ratio (see ui.theme): the
+# accent colour, and the changed-value colour while an IMAX scene plays.
+_ACCENT_COLOR  = "TinyPPI.AccentColor"
+_CHANGED_COLOR = "TinyPPI.OutputChangedColor"
+
+# An IMAX scene is at least this much taller than the film's regular
+# framing: 2.39 -> 1.90 and 2.20 -> 1.78 are a fifth apart, two neighbouring
+# standard ratios (2.35 and 2.39) a fiftieth.
+_IMAX_SCENE_BELOW = 0.9
+
+
+def is_imax_scene(aspect: str) -> bool:
+    """Return whether an IMAX film is showing one of its IMAX scenes.
+
+    True while the picture (*aspect*, as shown in the row) is clearly taller
+    than the widest framing the title has shown so far.  A film that never
+    changes its framing has no such scene.
+    """
+    current = first_float(aspect)
+    widest  = widest_aspect()
+    if current is None or widest is None:
+        return False
+    return current < widest * _IMAX_SCENE_BELOW and is_known_imax_title()
+
+
+def get_ImaxColorVar(aspect: str) -> str:
+    """Return the colour of the IMAX mark: lit during an IMAX scene.
+
+    The changed-value colour for as long as the scene lasts, the accent
+    colour otherwise.
+    """
+    home   = home_window()
+    accent = home.getProperty(_ACCENT_COLOR)
+    if not is_imax_scene(aspect):
+        return accent
+    return home.getProperty(_CHANGED_COLOR) or accent
 
 
 def get_ImaxVar() -> str:

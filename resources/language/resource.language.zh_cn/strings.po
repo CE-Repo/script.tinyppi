@@ -1922,3 +1922,11 @@ msgstr "季/集"
 msgctxt "#32488"
 msgid "Not in your library – opens TMDb"
 msgstr "不在你的媒体库中 – 在 TMDb 中打开"
+
+msgctxt "#32489"
+msgid "Measure the aspect ratio from the picture"
+msgstr "从画面测量宽高比"
+
+msgctxt "#32490"
+msgid "For canary builds: finds the black bars in the picture itself and shows the aspect ratio inside them, live, also where Dolby Vision L5 metadata is present. The L5 row is not affected. Needs a CoreELEC build that can capture the video; on other builds nothing changes. A dark scene keeps the last confirmed value."
+msgstr "适用于 canary 版本：在画面中查找黑边，并实时显示黑边内的宽高比，即使存在杜比视界 L5 元数据也是如此。L5 行不受影响。需要能够捕获视频的 CoreELEC 版本；在其他版本上不会有任何变化。暗场景中保留最后确认的值。"

@@ -36,7 +36,7 @@ from info.dvinfo import (
     get_l5_offsets,
     na_label,
 )
-from info.properties import output_hdr_token
+from info.properties import is_imax_scene, output_hdr_token
 from info.publish import (
     publish_scene_properties,
     publish_static_properties,
@@ -408,6 +408,7 @@ class SnapshotBuilder:
             "bars": bars if len(bars) == 4 else None,
             "frame": self._frame(),
             "aspect":   _first_number(values.get("AspectRatioVar", "")),
+            "imax_scene": is_imax_scene(values.get("AspectRatioVar", "")),
             "fps_in":   _nth(fps, 0),
             "fps_drop": _nth(fps, 1),
             "fps_out":  _first_number(values.get("FpsDropVar", "")),

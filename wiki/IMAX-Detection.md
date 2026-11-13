@@ -9,7 +9,12 @@ expanded aspect ratio. The mark appears as:
 - an IMAX badge on the [web dashboard](Web-Dashboard).
 
 The mark describes the **film**, not the current frame, so it stays for the
-whole runtime.
+whole runtime. The switch between framings shows separately, in the
+**Aspect ratio** row: from the Dolby Vision L5 metadata, or
+[measured from the picture](The-TinyPPI-Overlay#measured-aspect-ratio) where
+there is none. While such a film shows one of its taller IMAX scenes, the
+mark on the overlay and the web dashboard is
+[lit in the *Changed values* color](The-TinyPPI-Overlay#the-imax-mark-during-an-imax-scene).
 
 ---
 

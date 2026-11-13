@@ -69,6 +69,7 @@ from info.properties import (
     get_DisplayModeVar,
     get_DoviTunnelVar,
     get_GamutVar,
+    get_ImaxColorVar,
     get_ImaxVar,
     get_ModeVar,
     get_SubtitleCodecVar,
@@ -284,6 +285,7 @@ def _publish_scene_properties(window: PropertyTarget, published: dict[str, str])
     # Active-area offsets of the current frame, the row's icon, and the
     # aspect ratio inside the bars.
     l5_offsets          = get_l5_offsets()
+    aspect_ratio        = get_AspectRatioVar(l5_offsets)
     l5_icon_visible     = (
         "true" if l5_offsets and not is_status_label(l5_offsets) else "false"
     )
@@ -308,7 +310,9 @@ def _publish_scene_properties(window: PropertyTarget, published: dict[str, str])
         window,
         published,
         (
-            ("AspectRatioVar", get_AspectRatioVar(l5_offsets)),
+            ("AspectRatioVar", aspect_ratio),
+            # The IMAX mark behind it, lit while an IMAX scene plays.
+            ("ImaxColorVar", get_ImaxColorVar(aspect_ratio)),
             ("DoviLevel5OffsetsVar", separated(l5_offsets)),
             ("DoviLevel5OffsetsIconVisible", l5_icon_visible),
             ("DoviCmVersionVar", get_cm_version()),
