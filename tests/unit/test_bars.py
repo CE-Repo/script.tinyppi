@@ -376,5 +376,13 @@ def test_bars_scale_to_the_coded_frame():
     assert bars.scaled((80, 80, 0, 0), (640, 360), (1920, 1080)) == (240, 240, 0, 0)
 
 
+def test_bars_a_captured_line_apart_scale_to_equal_ones():
+    # 276 coded rows are 34.5 lines of a 270-line capture: 35 above, 34 below.
+    assert bars.scaled((0, 0, 35, 34), (480, 270), (3840, 2160)) == (0, 0, 276, 276)
+    assert bars.scaled((30, 31, 0, 0), (480, 270), (1920, 1080)) == (122, 122, 0, 0)
+    # Further apart they are what was measured.
+    assert bars.scaled((0, 0, 36, 34), (480, 270), (3840, 2160)) == (0, 0, 288, 272)
+
+
 def test_bars_are_written_like_l5_offsets():
     assert bars.format_offsets((0, 0, 276, 276)) == "0 | 0 | 276 | 276"
