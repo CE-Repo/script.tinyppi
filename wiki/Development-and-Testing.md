@@ -118,7 +118,7 @@ the CI actions up to date.
 | `unit/test_properties.py` | The language codes of the audio and subtitle rows: unmapped codes as reported, untagged tracks as UNK, no audio track as N/A; the audio rows read N/A without a codec |
 | `unit/test_modules.py` | Every module imports; the small state holders behave |
 | `unit/test_bars.py` | Black bars from a captured frame: letterbox, pillarbox, limited-range black, frames that prove nothing (black, dark with a bright object, a dim edge, a subtitle in the bar, bars of different size); two agreeing frames to confirm or change; scaling to coded pixels |
-| `unit/test_barscan.py` | The bar scanner: bars published in coded pixels, held through dark scenes, cleared on a new title, with L5 present, without video or with the setting off; a build without the capture found out once; missing frames backing off; the thread stopping cleanly |
+| `unit/test_barscan.py` | The bar scanner: bars published in coded pixels, held through dark scenes, cleared on a new title, with L5 present, idle without video; the quick confirming frame and the framing watch's own pace; a build without the capture found out once; missing frames backing off; the thread stopping cleanly |
 | `unit/test_framing.py` | The widest framing of a title: a ratio counts once it has lasted, stray readings do not, a new title starts over |
 | `unit/test_imax.py` | IMAX by name: listed titles at the end of the film part, years on remakes, spelling variants, the IMAX tag, Enhanced, names from paths and Kodi's titles |
 | `unit/test_mediasource.py` | The media source row: release types, containers, sizes, streaming protocols, PVR, discs, addon links never stat'd |

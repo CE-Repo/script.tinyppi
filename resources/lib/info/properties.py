@@ -159,8 +159,8 @@ def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
     come from, in this order:
 
     - the bars measured from the picture (``info.barscan``), once a frame
-      has confirmed them.  Only there with the setting on, on a build that
-      can capture the video;
+      has confirmed them.  Only there on a build that can capture the
+      video;
     - the RPU's active-area offsets, when they declare bars;
     - all-zero offsets in Dolby Vision, a real "no crop".  Outside Dolby
       Vision they are only dvinfo's placeholder.

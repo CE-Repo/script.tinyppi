@@ -3,14 +3,14 @@
 
 """Measure the black bars of the playing video, all through playback.
 
-One thread in the service captures a small frame of the video twice a
+One thread in the service captures a small frame of the video five times a
 second (``xbmc.RenderCapture``), has ``info.bars`` measure it and publishes
 the confirmed bars as a Home-window property, in coded pixels and in the
 RPU's ``L | R | T | B`` notation.  ``info.properties`` reads it for the
 aspect ratio, ahead of the bars Dolby Vision declares in L5, in whichever
 interpreter the overlay runs.  The L5 readings themselves are not touched.
 
-It runs while a video plays, whether or not a view is open, so the reading
+It runs whenever a video plays, whether or not a view is open, so the reading
 is right the moment the overlay opens and a dark scene has a confirmed value
 to fall back on.
 
@@ -24,15 +24,16 @@ import threading
 import time
 
 import xbmc
-from core import settings
 from core.log import channel
 from core.utils import PROP_MEASURED_BARS, coded_frame, home_window
 from info.bars import BarTracker, capture_size, format_offsets, measure, scaled
-from info.framing import FramingWatch
+from info.framing import FOLLOW_INTERVAL, FramingWatch
 
-# Seconds between two frames.  The reading follows a change of framing
-# within about a second (``bars.CONFIRM_FRAMES`` frames have to agree).
-SCAN_INTERVAL = 0.5
+# Seconds between two frames, and before the frame that confirms or rejects
+# a new measurement (``bars.CONFIRM_FRAMES`` frames have to agree).  A
+# change of framing shows within a quarter of a second.
+SCAN_INTERVAL    = 0.2
+CONFIRM_INTERVAL = 0.05
 
 # How long one frame may take.  Kodi builds without the capture changes hold
 # the interpreter lock for this long, stalling every Python add-on.
@@ -42,8 +43,6 @@ _FRAME_TIMEOUT_MS = 300
 # long.  A new title tries again at once.
 _FAILURE_LIMIT = 3
 _RETRY_AFTER   = 60.0
-
-_SETTING = "measure_aspect_ratio"
 
 
 _log = channel("bars")
@@ -58,7 +57,9 @@ class BarScanner(threading.Thread):
         self._tracker = BarTracker()
         # Rides along on this thread: the widest framing of the title, for
         # the IMAX mark (see info.framing).  It needs no capture.
+        # It keeps its own, slower pace.
         self._framing = FramingWatch()
+        self._framing_due = 0.0
         self._capture: xbmc.RenderCapture | None = None
         # False once this Kodi build has shown that it cannot capture video.
         self._supported = True
@@ -76,17 +77,32 @@ class BarScanner(threading.Thread):
 
     def run(self) -> None:
         self._idle()
-        while not self._stopping.wait(SCAN_INTERVAL):
+        while not self._stopping.wait(self._pause()):
             try:
                 self._scan()
-                self._framing.follow()
+                self._follow_framing()
             except Exception as exc:
                 self._report(str(exc))
         self._idle()
         self._framing.clear()
 
+    def _pause(self) -> float:
+        """Return the seconds until the next frame.
+
+        A measurement that differs from the confirmed bars is checked
+        against the next frame at once.
+        """
+        return CONFIRM_INTERVAL if self._tracker.pending else SCAN_INTERVAL
+
+    def _follow_framing(self) -> None:
+        """Run the framing watch when its next pass is due."""
+        now = time.monotonic()
+        if now >= self._framing_due:
+            self._framing_due = now + FOLLOW_INTERVAL
+            self._framing.follow()
+
     def _report(self, error: str) -> None:
-        """Log a failing pass once, not twice a second."""
+        """Log a failing pass once, not on every pass."""
         if error != self._last_error:
             self._last_error = error
             _log(f"measuring failed: {error}", xbmc.LOGWARNING)
@@ -113,14 +129,11 @@ class BarScanner(threading.Thread):
         self._publish_bars((width, height))
 
     def _wanted(self) -> bool:
-        """Return whether there is a picture to measure and a use for it.
+        """Return whether there is a picture to measure.
 
-        With the setting on every video is measured, Dolby Vision with L5
-        included.
+        Every video is measured, Dolby Vision with L5 included.
         """
-        if not self._supported or not settings.addon().getSettingBool(_SETTING):
-            return False
-        return xbmc.getCondVisibility("Player.HasVideo")
+        return self._supported and xbmc.getCondVisibility("Player.HasVideo")
 
     def _follow_title(self) -> None:
         """Start over when another title plays."""

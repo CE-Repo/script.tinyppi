@@ -136,6 +136,11 @@ class BarTracker:
         self._candidate: Bars | None = None
         self._seen = 0
 
+    @property
+    def pending(self) -> bool:
+        """Return whether a measurement waits for a frame to confirm it."""
+        return self._candidate is not None
+
     def reset(self) -> None:
         """Forget everything (a new title)."""
         self.bars = None

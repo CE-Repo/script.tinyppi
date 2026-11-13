@@ -83,16 +83,18 @@ frames of a title the layout may switch once from SDR to the right one.
 
 Dolby Vision declares its black bars in the RPU (L5). Everything else —
 HDR10, HDR10+, HLG, SDR — carries no such information, so a letterboxed film
-reads as its 16:9 frame. With **Measure the aspect ratio from the picture**
-on (*General*, off by default), TinyPPI finds the bars in the picture itself,
-**for every format, Dolby Vision with L5 included**:
+reads as its 16:9 frame. TinyPPI therefore finds the bars in the picture
+itself, **for every format, Dolby Vision with L5 included**. This is always
+on and has no setting:
 
 - A small frame of the video (640 pixels wide, without OSD, subtitles or the
-  overlay) is captured **twice a second, all through playback**, whether or
+  overlay) is captured **five times a second, all through playback**, whether or
   not the overlay is open.
 - A frame only counts when the picture's edges are plainly lit and the bars
   on both sides are the same size. **Two** such frames have to agree before
-  the reading changes, so a change of framing shows after about a second.
+  the reading changes. A frame that measures something new is checked
+  against the next one right away, so a change of framing shows within a
+  quarter of a second.
 - **A dark scene proves nothing**: black bars cannot be told from dark
   picture. The last confirmed value stands until a brighter frame confirms
   or replaces it — the reading holds rather than guesses. The same goes for a
@@ -108,8 +110,8 @@ on (*General*, off by default), TinyPPI finds the bars in the picture itself,
 video layer — at the time of writing the
 [canary builds](https://github.com/ce-canary/canary). On any other build the
 add-on notices once per session that no capture is available, logs
-`this Kodi build cannot capture the video`, and the row behaves exactly as
-with the setting off: L5 where present, Kodi's ratio otherwise.
+`this Kodi build cannot capture the video`, and the row shows the ratio
+from L5 where present, Kodi's otherwise.
 
 The **L5 Active Area** row is not affected: it only ever shows what the RPU
 carries, and so does the L5 letterbox on the web dashboard.
@@ -312,7 +314,7 @@ Every color is listed in [Colors and Themes](Colors-and-Themes).
 | Scene readings (L1, L5, bitrates, FPS, queues, changed-value highlight, layout) | every 100 ms |
 | Per-title facts and CPU statistics | every 1 s |
 | Side data parsing | only when the payload changes, shared by all readers |
-| Black bars measured from the picture (when enabled) | every 500 ms while a video plays, overlay open or not |
+| Black bars measured from the picture | every 200 ms while a video plays (50 ms to confirm a change), overlay open or not |
 
 All readings of one refresh are taken in a single pass, and a window property
 is only written when its value actually changed, so an idle refresh costs

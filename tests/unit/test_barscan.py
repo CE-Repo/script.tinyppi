@@ -46,10 +46,9 @@ class Capture:
 
 @pytest.fixture
 def canary(monkeypatch):
-    """A canary build playing a UHD film, the setting on."""
+    """A canary build playing a UHD film."""
     Capture.frames, Capture.requests, Capture.made = [], [], 0
     monkeypatch.setattr(xbmc, "RenderCapture", Capture)
-    xbmcaddon.SETTINGS["measure_aspect_ratio"] = "true"
     xbmc.CONDITIONS["Player.HasVideo"] = True
     xbmc.INFO.update({"Player.FilenameAndPath": "/films/a.mkv",
                       "Player.Process(videowidth)": "3840",
@@ -126,14 +125,10 @@ def test_another_title_starts_over(canary):
 
 # --- When there is nothing to measure -----------------------------------------
 
-@pytest.mark.parametrize("reason", ["setting off", "no video"])
-def test_the_scanner_idles_and_clears_its_bars(canary, reason):
+def test_the_scanner_idles_and_clears_its_bars_without_a_video(canary):
     scanner = BarScanner()
     scan(scanner, SCOPE, SCOPE)
-    if reason == "setting off":
-        xbmcaddon.SETTINGS["measure_aspect_ratio"] = "false"
-    else:
-        xbmc.CONDITIONS["Player.HasVideo"] = False
+    xbmc.CONDITIONS["Player.HasVideo"] = False
     scan(scanner)
     scan(scanner)
     assert bars() == ""
@@ -141,10 +136,36 @@ def test_the_scanner_idles_and_clears_its_bars(canary, reason):
     assert scanner._capture is None
 
 
-def test_the_setting_is_off_by_default(canary):
-    del xbmcaddon.SETTINGS["measure_aspect_ratio"]
-    scan(BarScanner())
-    assert canary.made == 0
+def test_it_measures_without_any_setting(canary):
+    assert "measure_aspect_ratio" not in xbmcaddon.SETTINGS
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE)
+    assert bars() == "0 | 0 | 276 | 276"
+
+
+def test_a_new_measurement_is_checked_against_the_next_frame_at_once(canary):
+    scanner = BarScanner()
+    assert scanner._pause() == barscan.SCAN_INTERVAL
+    scan(scanner, SCOPE)                                    # unconfirmed
+    assert scanner._pause() == barscan.CONFIRM_INTERVAL
+    scan(scanner, SCOPE)                                    # confirmed
+    assert scanner._pause() == barscan.SCAN_INTERVAL
+    scan(scanner, DARK)                                     # proves nothing
+    assert scanner._pause() == barscan.SCAN_INTERVAL
+    scan(scanner, FULL)                                     # the framing opens up
+    assert scanner._pause() == barscan.CONFIRM_INTERVAL
+
+
+def test_the_framing_watch_keeps_its_own_pace(canary, monkeypatch):
+    scanner = BarScanner()
+    followed = []
+    monkeypatch.setattr(scanner._framing, "follow", lambda: followed.append(1))
+    clock = [100.0]
+    monkeypatch.setattr(barscan.time, "monotonic", lambda: clock[0])
+    for _pass in range(6):                                  # 0.2 s apart
+        scanner._follow_framing()
+        clock[0] += 0.2
+    assert len(followed) == 2                               # at 0 s and 0.6 s
 
 
 def test_dolby_vision_with_l5_is_measured_too(canary):
@@ -158,7 +179,6 @@ def test_dolby_vision_with_l5_is_measured_too(canary):
 
 def test_a_build_that_cannot_capture_is_found_out_once(canary, monkeypatch):
     monkeypatch.undo()                                      # the stub: stock Kodi
-    xbmcaddon.SETTINGS["measure_aspect_ratio"] = "true"
     xbmc.CONDITIONS["Player.HasVideo"] = True
     scanner = BarScanner()
     scanner._scan()
@@ -205,6 +225,8 @@ def test_a_frame_of_the_wrong_size_counts_as_missing(canary):
 def test_the_thread_clears_stale_bars_and_stops(canary, monkeypatch):
     xbmcgui.Window(10000).setProperty(PROP_MEASURED_BARS, "0 | 0 | 1 | 1")   # an earlier session
     monkeypatch.setattr(barscan, "SCAN_INTERVAL", 0.001)
+    monkeypatch.setattr(barscan, "CONFIRM_INTERVAL", 0.001)
+    monkeypatch.setattr(barscan, "FOLLOW_INTERVAL", 0.0)
     scanner = BarScanner()
     followed = []
     monkeypatch.setattr(scanner._framing, "follow", lambda: followed.append(bars()))
