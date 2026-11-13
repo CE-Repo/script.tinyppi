@@ -94,7 +94,8 @@ The **awards list** (`resources/data/awards.json`) is from
 [TheTVDB](https://thetvdb.com), read from its API by `tools/gen_awards.py` —
 or, without a key, from the awards list of TheMovieDb Helper
 (plugin.video.themoviedb.helper by jurialmunkey, GPL-3.0-or-later), which is
-built from TheTVDB's — and cut to the four awards shown.
+built from TheTVDB's, or from [Wikidata](https://www.wikidata.org) (CC0) —
+and cut to the four awards shown.
 
 All of them are used only to name the source of a rating or an age rating
 (nominative use); no affiliation with or endorsement by their owners is
