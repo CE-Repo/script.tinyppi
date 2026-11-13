@@ -60,10 +60,12 @@ The Hunger Games Catching Fire               # US Blu-ray; UHD and some regional
 Interstellar
 Joker Folie a Deux
 The Lion King 2019                           # Full-frame 1.78:1 for the entire runtime
+The Mandalorian and Grogu @enhanced          # VAR on UHD, BD and digital; Disney+ IMAX Enhanced
 Mission Impossible Fallout
 Mission Impossible The Final Reckoning
 Mojin The Lost Legend
 Nope
+The Odyssey 2026                             # Full-frame 1.78:1 on UHD and BD; streaming is fixed 2.39:1
 Oppenheimer
 Project Hail Mary                            # UHD uses 2.39:1 and 1.78:1
 Sinners 2025
@@ -111,6 +113,7 @@ Iron Man 2008 @enhanced                      # Disney+ IMAX Enhanced only
 Lightyear @enhanced                          # Disney+ IMAX Enhanced only
 The Marvels @enhanced                        # Disney+ IMAX Enhanced only
 Shang Chi and the Legend of the Ten Rings @enhanced  # Disney+ IMAX Enhanced only
+Spider Man Brand New Day @enhanced           # Sony Pictures Core IMAX Enhanced
 Spider Man Far from Home @enhanced           # Sony Pictures Core IMAX Enhanced
 Spider Man No Way Home @enhanced             # Sony Pictures Core IMAX Enhanced
 Thor Love and Thunder @enhanced              # Disney+ IMAX Enhanced only
@@ -132,6 +135,7 @@ Aufbruch zum Mond                            # First Man
 Conjuring 4 Das letzte Kapitel               # The Conjuring Last Rites
 Der König der Löwen 2019                     # The Lion King (2019)
 Die Fantastischen Vier Erste Schritte @enhanced  # The Fantastic Four First Steps
+Die Odyssee 2026                             # The Odyssey (2026)
 Die Tribute von Panem Catching Fire          # The Hunger Games Catching Fire
 Drachenzähmen leicht gemacht 2025            # How to Train Your Dragon (2025)
 The First Avenger Civil War @enhanced        # Captain America Civil War
