@@ -95,7 +95,7 @@ def test_scene_readings_of_a_dv_frame(frame):
     publish.publish_scene_properties(sink)
     assert sink.values["AspectRatioVar"] == "2.39"
     assert sink.values["AspectFormatVar"] == "Scope"
-    assert sink.values["ImaxColorVar"] == ""        # no theme published here
+    assert sink.values["ImaxVar"] == ""             # no IMAX film
     assert sink.values["DoviLevel5OffsetsVar"] == "0 l 0 l 140 l 140"
     assert sink.values["DoviLevel5OffsetsIconVisible"] == "true"
     assert sink.values["DoviRpuMdlVar"] == "1000 l 0.005"

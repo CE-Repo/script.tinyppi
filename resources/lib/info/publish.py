@@ -72,7 +72,6 @@ from info.properties import (
     get_DisplayModeVar,
     get_DoviTunnelVar,
     get_GamutVar,
-    get_ImaxColorVar,
     get_ImaxVar,
     get_ModeVar,
     get_SubtitleCodecVar,
@@ -328,8 +327,8 @@ def _publish_scene_properties(window: PropertyTarget, published: dict[str, str])
             ("AspectRatioVar", aspect_ratio),
             # The format's common name behind it (Scope, 16:9, ...).
             ("AspectFormatVar", get_AspectFormatVar(aspect_ratio)),
-            # The IMAX mark behind it, lit while an IMAX scene plays.
-            ("ImaxColorVar", get_ImaxColorVar(aspect_ratio)),
+            # Or the IMAX mark, while an IMAX scene plays.
+            ("ImaxVar", get_ImaxVar(aspect_ratio)),
             ("ActiveAreaLabelVar", active_area_label),
             ("DoviLevel5OffsetsVar", separated(active_area)),
             ("DoviLevel5OffsetsIconVisible", l5_icon_visible),
@@ -392,7 +391,6 @@ def _publish_static_properties(window: PropertyTarget, published: dict[str, str]
             ("VideoPixelFormatVar", get_VideoPixelFormatVar()),
             ("DisplayModeVar", get_DisplayModeVar()),
             ("VideoResolutionVar", get_VideoResolutionVar()),
-            ("ImaxVar", get_ImaxVar()),
             ("VideoBitrateMBVar", get_VideoBitrateMBVar()),
             ("VideoLiveBitrateVar", get_VideoLiveBitrateVar()),
             ("VideoCodecVar", get_VideoCodecVar()),

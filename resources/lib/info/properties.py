@@ -212,52 +212,39 @@ def _is_real_no_crop(l5_offsets: str, is_dv: bool | None) -> bool:
     return is_effective_dv() if is_dv is None else is_dv
 
 
-# The colours of the IMAX mark behind the aspect ratio (see ui.theme): the
-# accent colour, and the changed-value colour while an IMAX scene plays.
-_ACCENT_COLOR  = "TinyPPI.AccentColor"
-_CHANGED_COLOR = "TinyPPI.OutputChangedColor"
-
 # An IMAX scene is at least this much taller than the film's regular
 # framing: 2.39 -> 1.90 and 2.20 -> 1.78 are a fifth apart, two neighbouring
 # standard ratios (2.35 and 2.39) a fiftieth.
 _IMAX_SCENE_BELOW = 0.9
+# The widest picture IMAX itself is shown in (1.90:1; 1.78 and 1.43 are
+# taller), with the room the snapping leaves.
+_IMAX_WIDEST = 1.92
 
 
 def is_imax_scene(aspect: str) -> bool:
     """Return whether an IMAX film is showing one of its IMAX scenes.
 
-    True while the picture (*aspect*, as shown in the row) is clearly taller
-    than the widest framing the title has shown so far.  A film that never
-    changes its framing has no such scene.
+    True while the picture (*aspect*, as shown in the row) has one of
+    IMAX's own ratios, 1.90:1 or taller, or is clearly taller than the
+    widest framing the title has shown so far.  The film's regular framing
+    (2.39:1, say) is no IMAX scene.
     """
     current = first_float(aspect)
-    widest  = widest_aspect()
-    if current is None or widest is None:
+    if current is None or not is_known_imax_title():
         return False
-    return current < widest * _IMAX_SCENE_BELOW and is_known_imax_title()
+    widest = widest_aspect()
+    return current <= _IMAX_WIDEST or (
+        widest is not None and current < widest * _IMAX_SCENE_BELOW)
 
 
-def get_ImaxColorVar(aspect: str) -> str:
-    """Return the colour of the IMAX mark: lit during an IMAX scene.
+def get_ImaxVar(aspect: str) -> str:
+    """Return ``IMAX Enhanced``, ``IMAX`` or '' for the picture on screen.
 
-    The changed-value colour for as long as the scene lasts, the accent
-    colour otherwise.
+    The film is recognised by release name or title list (see
+    ``info.imax``); the mark shows only while it plays one of its IMAX
+    scenes (see ``is_imax_scene``), not during its regular framing.
     """
-    home   = home_window()
-    accent = home.getProperty(_ACCENT_COLOR)
     if not is_imax_scene(aspect):
-        return accent
-    return home.getProperty(_CHANGED_COLOR) or accent
-
-
-def get_ImaxVar() -> str:
-    """Return ``IMAX Enhanced``, ``IMAX`` or '' for the playing film.
-
-    Recognised by release name or title list (see ``info.imax``) and shown
-    for the whole runtime: the badge describes the film, not the current
-    framing.
-    """
-    if not is_known_imax_title():
         return ""
     return "IMAX Enhanced" if is_enhanced_title() else "IMAX"
 
@@ -285,11 +272,11 @@ def get_AspectFormatVar(aspect: str) -> str:
     """Return the common name of the format with ratio *aspect*, or ''.
 
     *aspect* is the ratio as shown in the row; only one that snapped to a
-    standard ratio has a name.  A recognised IMAX film shows its IMAX mark
-    in the same place instead (see ``get_ImaxVar``).
+    standard ratio has a name.  An IMAX scene shows the IMAX mark in the
+    same place instead (see ``get_ImaxVar``).
     """
     name = _AR_FORMATS.get(aspect)
-    if name is None or is_known_imax_title():
+    if name is None or is_imax_scene(aspect):
         return ""
     return localized(name) if isinstance(name, int) else name
 

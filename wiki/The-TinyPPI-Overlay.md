@@ -75,7 +75,7 @@ frames of a title the layout may switch once from SDR to the right one.
 | **Video stream** | `3840x2160p 23.976FPS` | The decoded stream: width × height, scan type and frame rate. |
 | **Pixel format** | `10-bit (YUV 4:2:2)` | The output pixel format of the Amlogic video path (`amlogic.pixformat`). The detail `(DV Tunnel)` appears when the Dolby Vision driver runs tunnelled IPT (`dolby_vision_mode` = 1) over an 8-bit RGB link — the TV-LED Dolby Vision carriage. |
 | **Bit depth** | `12-bit` | The *source* bit depth: 12-bit for a Dolby Vision full enhancement layer (FEL), 10-bit for any other HDR format, 8-bit for SDR. |
-| **Aspect ratio** | `2.39:1 (IMAX)` | The aspect ratio of the **visible picture**. Kodi reports the coded frame (a letterboxed 2.39 film reads 1.78); TinyPPI computes the ratio inside the black bars and snaps it to the nearest standard ratio within 2 %. The bars come from the Dolby Vision RPU (L5), or, with **Measure the aspect ratio from the picture** on, from the picture itself for every format (see [Measured aspect ratio](#measured-aspect-ratio)). Detail: the format's common name when the ratio is a standard one — `4:3` (1.33), `Academy` (1.37), `European widescreen` (1.66), `16:9` (1.78), `Cinema widescreen` (1.85), `Univisium` (2.00), `70 mm` (2.20), `Scope` (2.35 and 2.39), `CinemaScope` (2.55), `Ultra Panavision` (2.76) — or, in its place, `IMAX` or `IMAX Enhanced` for a recognised film (see [IMAX Detection](IMAX-Detection)), lit in the *Changed values* color [while an IMAX scene plays](#the-imax-mark-during-an-imax-scene). |
+| **Aspect ratio** | `2.39:1 (IMAX)` | The aspect ratio of the **visible picture**. Kodi reports the coded frame (a letterboxed 2.39 film reads 1.78); TinyPPI computes the ratio inside the black bars and snaps it to the nearest standard ratio within 2 %. The bars come from the Dolby Vision RPU (L5), or, with **Measure the aspect ratio from the picture** on, from the picture itself for every format (see [Measured aspect ratio](#measured-aspect-ratio)). Detail: the format's common name when the ratio is a standard one — `4:3` (1.33), `Academy` (1.37), `European widescreen` (1.66), `16:9` (1.78), `Cinema widescreen` (1.85), `Univisium` (2.00), `70 mm` (2.20), `Scope` (2.35 and 2.39), `CinemaScope` (2.55), `Ultra Panavision` (2.76) — or, in its place, `IMAX` or `IMAX Enhanced` [while a recognised film plays an IMAX scene](#the-imax-mark-during-an-imax-scene) (see [IMAX Detection](IMAX-Detection)). |
 | **Decoder** | `AML-H.265 (HW)` | Decoder family (`AML-` Amlogic hardware decoder, `FF-` FFmpeg) and codec, with `HW`/`SW` as detail. |
 | **Decode method** | `Hardware` | Whether the video is decoded in hardware or software. |
 
@@ -263,24 +263,24 @@ metadata view has its own pair under **Settings → DV metadata**.
 
 ### The IMAX mark during an IMAX scene
 
-The `(IMAX)` / `(IMAX Enhanced)` mark behind the aspect ratio uses the same
-color, but not the duration: it is lit **for as long as an IMAX scene
-lasts** and returns to the accent color when the film goes back to its
-regular framing.
+The `(IMAX)` / `(IMAX Enhanced)` mark behind the aspect ratio shows **only
+while a recognised IMAX film plays one of its IMAX scenes**. During the
+film's regular framing (2.39:1, say) the row names that format instead —
+`2.39:1 (Scope)`.
 
-- TinyPPI follows the aspect ratio all through playback, overlay open or
-  not, and remembers the **widest** one the title has shown for at least
-  one second — the film's regular framing (2.39:1, say). A ratio that is
-  not a standard film ratio has to last three seconds, so a stray reading
-  during a fade or a studio logo is not taken for it.
-- While the picture is clearly taller than that (1.78:1 or 1.90:1 against
-  2.39:1), the mark is lit.
-- A film that never changes its framing has no IMAX scene and the mark stays
-  in the accent color. So does a film that opens with an IMAX scene, until
-  it has shown its regular framing once.
+- An IMAX scene is a picture in one of IMAX's own ratios: **1.90:1 or
+  taller** (1.90, 1.78, 1.43). A film that is 1.90:1 all through shows the
+  mark all through.
+- A picture clearly taller than the title's regular framing counts too.
+  For that TinyPPI follows the aspect ratio all through playback, overlay
+  open or not, and remembers the **widest** one the title has shown for at
+  least one second. A ratio that is not a standard film ratio has to last
+  three seconds, so a stray reading during a fade or a studio logo is not
+  taken for it.
 - The aspect ratio comes from the [measured bars](#measured-aspect-ratio)
-  or from L5; without either it never changes and the mark is never lit.
-- The [web dashboard](Web-Dashboard) lights the mark in its **Aspect
+  or from L5. Without either the row shows Kodi's coded frame (1.78:1 for a
+  letterboxed film), so the mark stays for the whole runtime.
+- The [web dashboard](Web-Dashboard) shows the mark in its **Aspect
   ratio** row the same way.
 
 ---

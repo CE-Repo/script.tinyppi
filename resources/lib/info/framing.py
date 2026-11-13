@@ -4,10 +4,10 @@
 """Remember the widest picture of the playing title.
 
 An IMAX film switches between its regular framing (2.39:1, say) and taller
-IMAX scenes (1.78:1 or 1.90:1).  Which of the two is on screen can only be
+IMAX scenes (1.78:1 or 1.90:1).  Which of the two is on screen is best
 told against the other, so the service follows the aspect ratio all through
 playback and publishes the widest one seen as a Home-window property.
-``info.properties`` lights the IMAX mark while the picture is taller than
+``info.properties`` shows the IMAX mark while the picture is taller than
 that.
 
 It has to run whether or not a view is open: the overlay is usually opened
