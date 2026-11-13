@@ -167,6 +167,49 @@ def test_a_soft_edge_counts_from_its_first_lit_row():
     assert measured(rows) == (0, 0, 11, 11)
 
 
+# --- Bars the title has shown before ------------------------------------------
+
+def again(rows, earlier=(0, 0, 12, 12)):
+    return bars.shows_again(bars.line_counts(image(rows), WIDTH, SIZE), WIDTH, SIZE, earlier)
+
+
+def dim_edge(rows, edge_rows):
+    """Darken the picture in *edge_rows*."""
+    for y in edge_rows:
+        rows[y] = [0] * WIDTH
+    return rows
+
+
+def test_earlier_bars_show_again_with_one_lit_edge():
+    dark_top = dim_edge(picture(top=12, bottom=12), range(12, 40))
+    assert measured(dark_top) is None                       # no proof of new bars
+    assert again(dark_top)
+    assert again(dim_edge(picture(top=12, bottom=12), range(60, 88)))   # a dark bottom
+    assert again(picture(top=12, bottom=12))
+
+
+def test_earlier_bars_need_an_edge_and_black():
+    both_dark = dim_edge(picture(top=12, bottom=12), [*range(12, 40), *range(60, 88)])
+    assert not again(both_dark)                             # the picture could be anything
+    assert not again(picture(level=0))                      # a black frame
+    assert not again(picture())                             # picture in the bars
+    assert not again(picture(top=6, bottom=12))
+    assert not again(dim_edge(picture(top=12, bottom=12), range(12, 40)), (0, 0, 20, 20))
+
+
+def test_earlier_bars_need_the_picture_to_run_on_along_the_other_axis():
+    assert not again(picture(left=60, right=60, top=12, bottom=12))     # a title card
+
+
+def test_earlier_pillar_bars_show_again_too():
+    rows = picture(left=24, right=24)
+    for y in range(SIZE):
+        rows[y][24:80] = [0] * 56                           # dark on the left
+    assert again(rows, (24, 24, 0, 0))
+    assert not again(rows, (0, 0, 0, 0))                    # the full frame proves itself
+    assert not again(rows, (24, 24, 12, 12))
+
+
 # --- A dark frame -------------------------------------------------------------
 
 def dark_film(top=12, bottom=12, left=0, right=0, bar=16, black=19):
@@ -280,6 +323,19 @@ def test_a_stray_measurement_is_dropped():
     tracker.update((0, 0, 20, 20), 2.0)                     # another candidate takes over
     tracker.update((0, 0, 20, 20), 2.0 + HOLD)
     assert tracker.bars == (0, 0, 20, 20)
+
+
+def test_the_tracker_remembers_the_framings_of_its_title():
+    tracker = BarTracker()
+    confirmed(tracker, SCOPE)
+    assert tracker.shown == [SCOPE] and tracker.earlier() == []
+    confirmed(tracker, FULL, at=1.0)
+    assert tracker.earlier() == [SCOPE]
+    confirmed(tracker, (0, 0, 47, 46), at=2.0)              # the same to within a pixel
+    assert tracker.bars == SCOPE and tracker.shown == [SCOPE, FULL]
+    assert tracker.earlier() == [FULL]
+    tracker.reset()
+    assert tracker.shown == []
 
 
 def test_a_reset_forgets_bars_and_candidate():

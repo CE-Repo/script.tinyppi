@@ -204,6 +204,32 @@ def test_a_dark_frame_does_not_change_confirmed_bars(canary):
     assert bars() == "0 | 0 | 0 | 0" and not scanner._tracker.pending
 
 
+def dark_topped(top=35):
+    """A letterboxed picture whose upper half is dark."""
+    black, lit = bytes((0, 0, 0, 255)) * WIDTH, bytes((200, 200, 200, 255)) * WIDTH
+    return bytearray(black * (HEIGHT // 2) + lit * (HEIGHT // 2 - top) + black * top)
+
+
+def test_a_framing_the_title_showed_before_returns_on_less_proof(canary):
+    scanner = BarScanner()
+    scan(scanner, dark_topped(), dark_topped(), dark_topped())
+    assert bars() == ""                                     # no proof of new bars
+    scan(scanner, SCOPE, SCOPE, FULL, FULL)                 # the film, then an IMAX scene
+    assert bars() == "0 | 0 | 0 | 0"
+    scan(scanner, DARK, DARK, DARK)                         # shows nothing again
+    assert bars() == "0 | 0 | 0 | 0"
+    scan(scanner, dark_topped(), dark_topped())             # back, on a dark-topped shot
+    assert bars() == "0 | 0 | 280 | 280"
+
+
+def test_another_titles_framings_are_not_remembered(canary):
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE)
+    xbmc.INFO["Player.FilenameAndPath"] = "/films/b.mkv"
+    scan(scanner, FULL, FULL, dark_topped(), dark_topped(), dark_topped())
+    assert bars() == "0 | 0 | 0 | 0"
+
+
 def test_a_ratio_no_film_is_made_in_is_ignored(canary):
     scanner = BarScanner()
     scan(scanner, SCOPE, SCOPE)

@@ -31,13 +31,15 @@ from info.bars import (
     DARK_CONFIRM_SECONDS,
     Bars,
     BarTracker,
+    bars_of,
     capture_size,
     format_offsets,
     has_bars,
-    measure,
+    line_counts,
     measure_dark,
     picture_ratio,
     scaled,
+    shows_again,
 )
 from info.framing import FOLLOW_INTERVAL, FramingWatch
 from info.properties import is_standard_ar
@@ -159,13 +161,23 @@ class BarScanner(threading.Thread):
             return
 
         size = (width, height)
-        measured = _known(measure(image, width, height), size)
-        hold = CONFIRM_SECONDS
-        if measured is None and self._tracker.bars is None:
-            measured = _dark_bars(image, size)
-            hold = DARK_CONFIRM_SECONDS
+        measured, hold = self._measure(image, size)
         self._tracker.update(measured, time.monotonic(), hold)
         self._publish_bars(size)
+
+    def _measure(self, image: bytearray, size: tuple[int, int]) -> tuple[Bars | None, float]:
+        """Return the bars a frame shows and how long they have to last."""
+        lines = line_counts(image, *size)
+        measured = _known(bars_of(lines, *size), size)
+        if measured is not None:
+            return measured, CONFIRM_SECONDS
+        # A framing the title has shown before needs less proof.
+        for bars in self._tracker.earlier():
+            if shows_again(lines, *size, bars):
+                return bars, CONFIRM_SECONDS
+        if self._tracker.bars is None:
+            return _dark_bars(image, size), DARK_CONFIRM_SECONDS
+        return None, CONFIRM_SECONDS
 
     def _wanted(self) -> bool:
         """Return whether there is a picture to measure.

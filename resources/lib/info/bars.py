@@ -22,6 +22,11 @@ A title that opens on a minute of black would show nothing for as long.
 black is rarely as black or as even.  It is the weaker proof, so the scanner
 only asks it until a title has its first confirmed bars.
 
+A film that changes its framing (IMAX scenes) returns to bars it has shown
+before.  Those need less proof: ``shows_again`` takes the earlier bars for
+shown when they are black and the picture is lit at one of their edges, so a
+scene with a dark top or bottom does not hold the change back.
+
 Free of Kodi imports; ``info.barscan`` feeds it the frames.
 """
 
@@ -29,6 +34,9 @@ import functools
 
 # Left, right, top, bottom, in pixels of the frame they were measured in.
 Bars = tuple[int, int, int, int]
+
+# The lit pixels of each row and of each column of a frame.
+Lines = tuple[list[int], list[int]]
 
 # The capture is 8-bit BGRA.  Black is 0 in full range and 16 in limited
 # range; a channel has to be clearly above both to count as lit.
@@ -140,7 +148,17 @@ def measure(image: bytes | bytearray, width: int, height: int) -> Bars | None:
 
     None when the frame does not prove them (see ``_axis_bars``).
     """
-    return _measured(lit_map(image, width * height), width, height)
+    return bars_of(line_counts(image, width, height), width, height)
+
+
+def line_counts(image: bytes | bytearray, width: int, height: int,
+                above: int = LIT_ABOVE) -> Lines:
+    """Return the lit pixels of each row and each column of a BGRA frame."""
+    lit = lit_map(image, width * height, above)
+    rows = [lit.count(1, start, start + width)
+            for start in range(0, width * height, width)]
+    columns = [lit[column::width].count(1) for column in range(width)]
+    return rows, columns
 
 
 def measure_dark(image: bytes | bytearray, width: int, height: int) -> Bars | None:
@@ -164,7 +182,8 @@ def measure_dark(image: bytes | bytearray, width: int, height: int) -> Bars | No
         level = _flat_level(colours)
         if level is None:
             continue
-        found = _measured(lit_map(image, width * height, level + _ABOVE_BAR), width, height)
+        lines = line_counts(image, width, height, level + _ABOVE_BAR)
+        found = bars_of(lines, width, height)
         if found is not None and has_bars(found):
             return found
     return None
@@ -178,11 +197,9 @@ def _flat_level(colours: bytes) -> int | None:
     return high
 
 
-def _measured(lit: bytes, width: int, height: int) -> Bars | None:
-    """Return the bars a map of lit pixels proves, or None."""
-    rows = [lit.count(1, start, start + width)
-            for start in range(0, width * height, width)]
-    columns = [lit[column::width].count(1) for column in range(width)]
+def bars_of(lines: Lines, width: int, height: int) -> Bars | None:
+    """Return the bars the lit pixels of a frame's *lines* prove, or None."""
+    rows, columns = lines
     vertical = _axis_bars(rows, width)
     horizontal = _axis_bars(columns, height)
 
@@ -197,6 +214,51 @@ def _measured(lit: bytes, width: int, height: int) -> Bars | None:
 
     found = (*horizontal, *vertical)
     return found if _is_picture(found, width, height) else None
+
+
+def shows_again(lines: Lines, width: int, height: int, earlier: Bars) -> bool:
+    """Return whether a frame shows the *earlier* bars of its title again.
+
+    Bars the title has shown before need less proof than new ones: they have
+    to be black, the picture has to be lit right at one of them (not at
+    both, so a dark top or bottom does not matter) and to run on along the
+    other axis.  Only for bars on one axis; the full frame proves itself.
+    """
+    axis = _barred_axis(lines, width, height, earlier)
+    if axis is None:
+        return False
+    barred, across, before, after, other, length = axis
+
+    some = max(1, across * _SOME_LIT // 100)
+    first = _first(barred, some)
+    last  = _first(barred[::-1], some)
+    if first is None or last is None:
+        return False
+    # Black bars, to within the line the scaler blurs ...
+    if first < before - 1 or last < after - 1:
+        return False
+    # ... and picture right at one of them.
+    if first > before + 1 and last > after + 1:
+        return False
+    return _unbarred(other, length, boxed=True) is not None
+
+
+def _barred_axis(lines: Lines, width: int, height: int, bars: Bars,
+                 ) -> tuple[list[int], int, int, int, list[int], int] | None:
+    """Return the one axis *bars* lie on, or None when it is not just one.
+
+    As the lines of that axis and their length, the bar before and after
+    the picture, and the lines of the other axis and their length.
+    """
+    rows, columns = lines
+    left, right, top, bottom = bars
+    letterboxed = max(top, bottom) > _edge_slack(height)
+    pillarboxed = max(left, right) > _edge_slack(width)
+    if letterboxed and not pillarboxed:
+        return rows, width, top, bottom, columns, height
+    if pillarboxed and not letterboxed:
+        return columns, height, left, right, rows, width
+    return None
 
 
 def _unbarred(counts: list[int], across: int, boxed: bool) -> tuple[int, int] | None:
@@ -273,6 +335,8 @@ class BarTracker:
 
     def __init__(self) -> None:
         self.bars: Bars | None = None
+        # Every framing confirmed for this title, the current one included.
+        self.shown: list[Bars] = []
         self._candidate: Bars | None = None
         self._since = 0.0
         self._hold = 0.0
@@ -285,7 +349,12 @@ class BarTracker:
     def reset(self) -> None:
         """Forget everything (a new title)."""
         self.bars = None
+        self.shown = []
         self._candidate = None
+
+    def earlier(self) -> list[Bars]:
+        """Return the framings the title has shown other than the current."""
+        return [bars for bars in self.shown if bars != self.bars]
 
     def update(self, measured: Bars | None, now: float,
                hold: float = CONFIRM_SECONDS) -> None:
@@ -305,8 +374,16 @@ class BarTracker:
             self._hold = hold
             return
         if now - self._since >= self._hold:
-            self.bars = self._candidate
+            self.bars = self._adopted(self._candidate)
             self._candidate = None
+
+    def _adopted(self, confirmed: Bars) -> Bars:
+        """Return *confirmed* as the title showed it before, or note it."""
+        for bars in self.shown:
+            if _same(bars, confirmed):
+                return bars
+        self.shown.append(confirmed)
+        return confirmed
 
 
 def scaled(bars: Bars, measured_in: tuple[int, int], target: tuple[int, int]) -> Bars:

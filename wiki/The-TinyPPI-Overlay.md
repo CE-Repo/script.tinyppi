@@ -97,6 +97,11 @@ on and has no setting:
   **Three frames in a row** have to agree
   before the reading changes, so a change of framing shows after about a
   sixth of a second.
+- **A framing the title has shown before returns on less proof.** A film
+  with IMAX scenes keeps going back to the same bars. Once they have been
+  confirmed, a later frame shows them again when they are black and the
+  picture is lit right at *one* of them — a shot with a dark top or bottom
+  no longer holds the change back.
 - **A title card, a logo or credits on black are not a picture.** Lit
   content with black on all four sides is ignored (a film is letterboxed or
   pillarboxed, not both), and so is a band no film is shaped like (wider
