@@ -1928,8 +1928,8 @@ msgid "Measure the active area from the picture"
 msgstr "Aktiven Bereich aus dem Bild messen"
 
 msgctxt "#32490"
-msgid "Show the black bars measured from the picture in the \"Active Area\" row instead of the L5 values from the RPU. Needs a CoreELEC canary build; without a measurement the row falls back to \"L5 Active Area\" with the RPU's values."
-msgstr "Zeigt in der Zeile „Aktiver Bereich“ die aus dem Bild gemessenen schwarzen Balken statt der L5-Werte aus der RPU. Benötigt einen CoreELEC-Canary-Build; ohne Messwerte wird automatisch „L5 aktiver Bereich“ mit den RPU-Werten angezeigt."
+msgid "When the L5 values from the RPU are 0 | 0 | 0 | 0, show the black bars measured from the picture in an \"Active Area\" row instead. L5 values that declare bars always come first. Needs a CoreELEC canary build; without a measurement the row stays \"L5 Active Area\" with the RPU's values."
+msgstr "Wenn die L5-Werte aus der RPU 0 | 0 | 0 | 0 sind, werden stattdessen die aus dem Bild gemessenen schwarzen Balken in der Zeile „Aktiver Bereich“ angezeigt. L5-Werte, die Balken angeben, haben immer Vorrang. Benötigt einen CoreELEC-Canary-Build; ohne Messwerte bleibt die Zeile „L5 aktiver Bereich“ mit den RPU-Werten."
 
 msgctxt "#32491"
 msgid "Active Area"

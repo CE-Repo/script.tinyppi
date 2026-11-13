@@ -1928,8 +1928,8 @@ msgid "Measure the active area from the picture"
 msgstr "从画面测量有效区域"
 
 msgctxt "#32490"
-msgid "Show the black bars measured from the picture in the \"Active Area\" row instead of the L5 values from the RPU. Needs a CoreELEC canary build; without a measurement the row falls back to \"L5 Active Area\" with the RPU's values."
-msgstr "在“有效区域”一行显示从画面测量的黑边，而不是 RPU 中的 L5 值。需要 CoreELEC Canary 版本；无法测量时自动显示“L5 有效区域”及 RPU 的值。"
+msgid "When the L5 values from the RPU are 0 | 0 | 0 | 0, show the black bars measured from the picture in an \"Active Area\" row instead. L5 values that declare bars always come first. Needs a CoreELEC canary build; without a measurement the row stays \"L5 Active Area\" with the RPU's values."
+msgstr "当 RPU 中的 L5 值为 0 | 0 | 0 | 0 时，改为在“有效区域”一行显示从画面测量的黑边。声明了黑边的 L5 值始终优先。需要 CoreELEC Canary 版本；无法测量时该行仍为“L5 有效区域”并显示 RPU 的值。"
 
 msgctxt "#32491"
 msgid "Active Area"

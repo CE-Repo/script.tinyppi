@@ -122,13 +122,15 @@ def test_the_offsets_icon_hides_for_a_status_label(frame):
 
 
 def test_the_active_area_row_shows_l5_without_a_measurement(frame):
+    frame["l5_offsets"] = "0 | 0 | 0 | 0"
     sink = Sink()
     publish.publish_scene_properties(sink)
     assert sink.values["ActiveAreaLabelVar"] == "#32271"       # L5 Active Area
-    assert sink.values["DoviLevel5OffsetsVar"] == "0 l 0 l 140 l 140"
+    assert sink.values["DoviLevel5OffsetsVar"] == "0 l 0 l 0 l 0"
 
 
-def test_the_active_area_row_shows_the_measured_bars(frame):
+def test_the_active_area_row_shows_the_measured_bars_where_l5_has_none(frame):
+    frame["l5_offsets"] = "0 | 0 | 0 | 0"
     xbmcgui.Window(10000).setProperty("TinyPPI.MeasuredBars", "0 | 0 | 138 | 138")
     sink = Sink()
     publish.publish_scene_properties(sink)
@@ -137,13 +139,22 @@ def test_the_active_area_row_shows_the_measured_bars(frame):
     assert sink.values["DoviLevel5OffsetsIconVisible"] == "true"
 
 
+def test_the_active_area_row_prefers_the_bars_l5_declares(frame):
+    xbmcgui.Window(10000).setProperty("TinyPPI.MeasuredBars", "0 | 0 | 138 | 138")
+    sink = Sink()
+    publish.publish_scene_properties(sink)
+    assert sink.values["ActiveAreaLabelVar"] == "#32271"
+    assert sink.values["DoviLevel5OffsetsVar"] == "0 l 0 l 140 l 140"
+
+
 def test_the_active_area_row_keeps_l5_with_the_setting_off(frame):
+    frame["l5_offsets"] = "0 | 0 | 0 | 0"
     xbmcgui.Window(10000).setProperty("TinyPPI.MeasuredBars", "0 | 0 | 138 | 138")
     xbmcaddon.SETTINGS["measured_active_area"] = "false"
     sink = Sink()
     publish.publish_scene_properties(sink)
     assert sink.values["ActiveAreaLabelVar"] == "#32271"
-    assert sink.values["DoviLevel5OffsetsVar"] == "0 l 0 l 140 l 140"
+    assert sink.values["DoviLevel5OffsetsVar"] == "0 l 0 l 0 l 0"
 
 
 def test_an_idle_scene_tick_writes_nothing(frame):

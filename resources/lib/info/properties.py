@@ -190,12 +190,14 @@ def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
 def get_active_area(l5_offsets: str) -> tuple[str, bool]:
     """Return the active-area offsets to show and whether they are measured.
 
-    With ``measured_active_area`` on (the default) these are the bars
-    measured from the picture (``info.barscan``).  Only a build that can
-    capture the video has them; without them, or with the setting off, the
-    RPU's *l5_offsets* are shown as before.
+    Bars the RPU declares in *l5_offsets* always come first.  Only where
+    L5 is all zeros, and with ``measured_active_area`` on (the default),
+    the bars measured from the picture (``info.barscan``) stand in.  Only a
+    build that can capture the video has them; without them the zeros of
+    L5 are shown as before.
     """
-    if settings.addon().getSetting("measured_active_area") != "false":
+    if (parse_offsets(l5_offsets) == (0, 0, 0, 0)
+            and settings.addon().getSetting("measured_active_area") != "false"):
         offsets = measured_offsets()
         if parse_offsets(offsets) is not None:
             return offsets, True

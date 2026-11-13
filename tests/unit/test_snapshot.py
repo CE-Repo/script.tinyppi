@@ -430,6 +430,7 @@ def test_a_dolby_vision_title(dolby_vision):
 
 
 def test_a_dolby_vision_title_with_measured_bars(dolby_vision):
+    dvinfo._snapshot()[0]["l5_offsets"] = "0 | 0 | 0 | 0"       # L5 declares none
     xbmcgui.Window(10000).setProperty("TinyPPI.MeasuredBars", "0 | 0 | 138 | 138")
     play()
     shot = SnapshotBuilder().build()
@@ -440,7 +441,8 @@ def test_a_dolby_vision_title_with_measured_bars(dolby_vision):
     assert (row["label"], row["value"]) == ("#32491", "0 | 0 | 138 | 138")
 
 
-def test_a_dolby_vision_title_without_measured_bars_reads_l5(dolby_vision):
+def test_a_dolby_vision_title_reads_the_bars_l5_declares(dolby_vision):
+    xbmcgui.Window(10000).setProperty("TinyPPI.MeasuredBars", "0 | 0 | 138 | 138")
     play()
     shot = SnapshotBuilder().build()
     metadata = next(group for group in shot["groups"] if group["id"] == "metadata")

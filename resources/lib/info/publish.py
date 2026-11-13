@@ -294,8 +294,8 @@ def _publish_scene_properties(window: PropertyTarget, published: dict[str, str])
     # aspect ratio inside the bars.
     l5_offsets          = get_l5_offsets()
     aspect_ratio        = get_AspectRatioVar(l5_offsets)
-    # The row shows the measured bars where the build has them, else L5,
-    # and is labelled after the one it shows.
+    # The row shows L5; where that is all zeros, the measured bars if the
+    # build has them.  It is labelled after the one it shows.
     active_area, measured = get_active_area(l5_offsets)
     active_area_label   = localized(
         _MEASURED_AREA_LABEL if measured else _L5_AREA_LABEL
