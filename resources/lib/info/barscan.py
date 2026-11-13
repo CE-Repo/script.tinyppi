@@ -10,9 +10,11 @@ RPU's ``L | R | T | B`` notation.  ``info.properties`` reads it for the
 aspect ratio, ahead of the bars Dolby Vision declares in L5, in whichever
 interpreter the overlay runs.  The L5 readings themselves are not touched.
 
-It runs whenever a video plays, whether or not a view is open, so the reading
-is right the moment the overlay opens and a dark scene has a confirmed value
-to fall back on.
+It is a setting, off by default: the capture gets in the way of other
+add-ons that capture the video, such as Hyperion.  With it on, it runs
+whenever a video plays, whether or not a view is open, so the reading is
+right the moment the overlay opens and a dark scene has a confirmed value to
+fall back on.
 
 The capture only delivers video on CoreELEC builds that serve it from the
 Amlogic video layer (the canary builds).  Elsewhere the scanner finds that
@@ -25,6 +27,7 @@ import threading
 import time
 
 import xbmc
+from core import settings
 from core.log import channel
 from core.utils import PROP_CAN_MEASURE, PROP_MEASURED_BARS, coded_frame, home_window
 from info.bars import (
@@ -66,6 +69,9 @@ _FRAME_TIMEOUT_MS = 300
 # long.  A new title tries again at once.
 _FAILURE_LIMIT = 10
 _RETRY_AFTER   = 60.0
+
+# The setting that turns the measuring on; off by default.
+_SETTING = "measure_aspect_ratio"
 
 
 _log = channel("bars")
@@ -159,6 +165,9 @@ class BarScanner(threading.Thread):
     def _scan(self) -> None:
         if not self._wanted():
             self._idle()
+            if not self._enabled():
+                # Nothing is measured: the framing shown is not a measured one.
+                self._tell_capable(False)
             return
         self._follow_title()
         if xbmc.getCondVisibility("Player.Paused") or time.monotonic() < self._retry_at:
@@ -248,11 +257,18 @@ class BarScanner(threading.Thread):
         return found if found is not None and crops(current, found) else None
 
     def _wanted(self) -> bool:
-        """Return whether there is a picture to measure.
+        """Return whether there is a picture to measure and a use for it.
 
-        Every video is measured, Dolby Vision with L5 included.
+        With the setting on every video is measured, Dolby Vision with L5
+        included.
         """
-        return self._supported and xbmc.getCondVisibility("Player.HasVideo")
+        return (self._supported and self._enabled()
+                and xbmc.getCondVisibility("Player.HasVideo"))
+
+    @staticmethod
+    def _enabled() -> bool:
+        """Return whether the setting is on."""
+        return settings.addon().getSettingBool(_SETTING)
 
     def _follow_title(self) -> None:
         """Start over when another title plays."""

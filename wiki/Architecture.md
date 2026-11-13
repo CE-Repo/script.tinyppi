@@ -104,7 +104,7 @@ script.tinyppi/
 | `imax.py` | IMAX / IMAX Enhanced detection by release name and title lists. |
 | `bars.py` | Black bars measured from one captured frame, and `BarTracker`, which decides what a run of frames proves. Free of Kodi imports. |
 | `framing.py` | The widest aspect ratio the playing title has shown, followed on the bar scanner's thread and published as `TinyPPI.WidestAspect`; `properties.py` lights the IMAX mark while the picture is taller. |
-| `barscan.py` | The service thread that captures the video (`xbmc.RenderCapture`), feeds `bars.py` and publishes the confirmed bars as the Home property `TinyPPI.MeasuredBars`; idle on builds that cannot capture. |
+| `barscan.py` | The service thread that captures the video (`xbmc.RenderCapture`), feeds `bars.py` and publishes the confirmed bars as the Home property `TinyPPI.MeasuredBars`; idle with the `measure_aspect_ratio` setting off (the default) and on builds that cannot capture. |
 
 ### `resources/lib/service/`
 
@@ -218,7 +218,7 @@ Threads inside the service:
 | Dashboard producer | 200 ms watched / 1 s idle | snapshots, session history |
 | HTTP request threads | per connection | routes, SSE streams |
 | VS10 mode switcher | per request | applies dashboard switches one at a time |
-| Bar scanner | 50 ms | captures a video frame and measures the black bars while a video plays; every 500 ms it follows the title's widest aspect ratio for the IMAX mark |
+| Bar scanner | 50 ms | with `measure_aspect_ratio` on, captures a video frame and measures the black bars while a video plays; every 500 ms it follows the title's widest aspect ratio for the IMAX mark |
 
 ---
 
