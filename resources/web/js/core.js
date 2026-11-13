@@ -43,7 +43,7 @@ window.TinyPPI = (function () {
     description: "Description", ratings: "Ratings", awards: "Awards", award_hint: "Dimmed icons indicate nominations.",
     volume_down: "Volume down", volume_up: "Volume up",
     temperature: "Temperature", processor: "Processor", subtitles: "Subtitles", off: "Off",
-    chart: "Frame luminance", active_area: "Active picture", vs10: "VS10 output",
+    chart: "Frame luminance", active_area: "Active picture", active_area_measured: "Active picture", vs10: "VS10 output",
     output: "Output", copy: "Copy report", copied: "Copied",
     controls: "Playback controls",
     token_title: "Access token", token_text: "", save: "Save", cancel: "Cancel",
