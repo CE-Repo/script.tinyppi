@@ -1,0 +1,64 @@
+name: Awards
+
+# Runs tools/gen_awards.py by hand (Actions > Awards > Run workflow), after an
+# awards season, and opens a pull request with the new
+# resources/data/awards.json. It needs the repository secret TVDB_API_KEY
+# and, for a key that asks for one, TVDB_PIN (Settings > Secrets and
+# variables > Actions), and "Allow GitHub Actions to create and approve pull
+# requests" (Settings > Actions > General).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: awards
+  cancel-in-progress: true
+
+env:
+  GIT_CONFIG_COUNT: 1
+  GIT_CONFIG_KEY_0: init.defaultBranch
+  GIT_CONFIG_VALUE_0: main
+  BRANCH: awards-update
+
+jobs:
+  update:
+    name: Update awards.json from TheTVDB
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.14"
+      - name: Generate
+        env:
+          TVDB_API_KEY: ${{ secrets.TVDB_API_KEY }}
+          TVDB_PIN: ${{ secrets.TVDB_PIN }}
+        run: python tools/gen_awards.py | tee "$RUNNER_TEMP/summary.txt"
+      # The branch is the same every run and is replaced, so a pull request
+      # still open from an earlier run is brought up to date rather than
+      # joined by a second one. Nothing is pushed when nothing changed.
+      - name: Open the pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet -- resources/data/awards.json; then
+            echo "awards.json is already up to date." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          summary="$(sed "s|$GITHUB_WORKSPACE/||" "$RUNNER_TEMP/summary.txt")"
+          git switch -C "$BRANCH"
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -m "Update the awards from TheTVDB" -- resources/data/awards.json
+          git push --force origin "$BRANCH"
+          if [ -n "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')" ]; then
+            echo "The open pull request was updated: $summary" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          gh pr create --base "$GITHUB_REF_NAME" --head "$BRANCH" \
+            --title "Update the awards from TheTVDB" \
+            --body "Written by \`tools/gen_awards.py\` in the Awards workflow: $summary." \
+            | tee -a "$GITHUB_STEP_SUMMARY"
