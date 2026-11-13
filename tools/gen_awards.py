@@ -35,16 +35,26 @@ matches a film to TMDb by its name and year and keeps no IMDb id:
 
     python3 tools/gen_awards.py --helper [awards.json]
 
-Development only: the add-on reads the file and asks TheTVDB nothing.
+Without a key, too, ``--wikidata`` writes it from Wikidata (wikidata.org,
+CC0), which anyone may ask and which is kept up to date by hand: what a film
+or a show won and was nominated for, and what somebody won or was nominated
+for for their work on it, with the title's IMDb, TMDb and TheTVDB ids.  It
+holds fewer nominations than TheTVDB does, and names a category its own way:
+
+    python3 tools/gen_awards.py --wikidata
+
+Development only: the add-on reads the file and asks nobody anything.
 """
 
 import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
@@ -64,7 +74,21 @@ AWARDS = {"academy awards": "oscar", "golden globe awards": "globe",
 # TheTVDB's names for the other databases a title's remote ids are from.
 REMOTE = {"imdb": "imdb", "themoviedb.com": "tmdb"}
 
+
+WIKIDATA = "https://query.wikidata.org/sparql"
+WIKIDATA_SOURCE = "Wikidata (https://www.wikidata.org), by tools/gen_awards.py --wikidata"
+# Wikidata's items for the awards shown; a category is an instance, a
+# subclass or a part of one.  The BAFTAs are two there, film and television.
+FAMILIES = {"Q19020": "oscar", "Q1011547": "globe", "Q732997": "bafta", "Q1369077": "bafta",
+            "Q1044427": "emmy"}
+# What a category's name there starts with, which the plot card's shield says.
+_AWARD_PREFIX = re.compile(r"^(Academy|Golden Globe|BAFTA( TV)?|British Academy( Film| Television)?"
+                           r"|Primetime Emmy) Award for ")
+# Wikidata's classes of what the plot card knows as a film and as a show.
+_KINDS = {"movie": "Q11424", "tv": "Q5398426"}
+
 Json = dict
+Ask = Callable[[str], list[dict[str, str]]]
 Get = Callable[[str], object]
 
 
@@ -210,6 +234,152 @@ def from_helper(source: Json) -> dict:
     return out
 
 
+def ask_wikidata(query: str) -> list[dict[str, str]]:
+    """Return the rows of Wikidata's answer to a SPARQL *query*, each the
+    value of its variables; an item is its id (``Q42``)."""
+    request = urllib.request.Request(
+        WIKIDATA, data=urllib.parse.urlencode({"query": query}).encode(),
+        headers={"Accept": "application/sparql-results+json",
+                 "User-Agent": "gen_awards.py (Kodi add-on development script)"})
+    rows = Tvdb._send(request).get("results", {}).get("bindings", [])
+    prefix = "http://www.wikidata.org/entity/"
+    return [{name: cell["value"].removeprefix(prefix) for name, cell in row.items()}
+            for row in rows]
+
+
+def _batches(items: Iterable[str], size: int) -> Iterable[list[str]]:
+    held = sorted(set(items), key=lambda item: int(item[1:]))
+    for start in range(0, len(held), size):
+        yield held[start:start + size]
+
+
+def _values(items: Iterable[str]) -> str:
+    return " ".join("wd:" + item for item in items)
+
+
+def wikidata_categories(ask: Ask) -> dict[str, tuple[str, str]]:
+    """Return Wikidata's categories of the awards shown: by item, the award
+    and the category's name without the award's."""
+    rows = ask("SELECT ?cat ?fam ?name WHERE { VALUES ?fam { %s } "
+               "?cat wdt:P31|wdt:P279|wdt:P361 ?fam . ?cat rdfs:label ?name . "
+               'FILTER(LANG(?name) = "en") }' % _values(FAMILIES))
+    found: dict[str, tuple[str, str]] = {}
+    for row in rows:
+        name = _AWARD_PREFIX.sub("", row["name"]).strip()
+        # A ceremony ("79th British Academy Film Awards") is part of the
+        # award as well, and no category.
+        if name and not re.search(r"\b(19|20)\d\d\b|^\d+(st|nd|rd|th)\b", name):
+            found.setdefault(row["cat"], (FAMILIES[row["fam"]], name))
+    return found
+
+
+def wikidata_statements(ask: Ask,
+                        categories: Iterable[str]) -> Iterable[tuple[str, str, str, bool]]:
+    """Yield what Wikidata holds of *categories*: the item it is said of or,
+    of somebody's, the work it was for; the category; the year; and whether
+    it was won rather than a nomination."""
+    for batch in _batches(categories, 15):
+        for prop, won in (("P166", True), ("P1411", False)):
+            rows = ask("SELECT ?item ?work ?cat ?date WHERE { VALUES ?cat { %s } "
+                       "?item p:%s ?said . ?said ps:%s ?cat . "
+                       "OPTIONAL { ?said pq:P1686 ?work } OPTIONAL { ?said pq:P585 ?date } }"
+                       % (_values(batch), prop, prop))
+            for row in rows:
+                item = row.get("work") or row["item"]
+                year = row.get("date", "")[:4]
+                # A year before the first of these awards is a slip there.
+                year = year if year.isdigit() and int(year) >= 1927 else ""
+                if re.fullmatch(r"Q\d+", item):
+                    yield item, row["cat"], year, won
+
+
+def wikidata_titles(ask: Ask, items: Iterable[str]) -> dict[str, tuple[str, dict[str, str]]]:
+    """Return which of *items* are films and shows: by item, the kind and
+    the ids it is known by ("tvdb", "imdb", "tmdb").  An episode is its
+    show; anything else, somebody alone above all, is left out."""
+    found: dict[str, tuple[str, dict[str, str]]] = {}
+    shows: dict[str, str] = {}
+    for batch in _batches(items, 200):
+        rows = ask("SELECT ?item ?movie ?tv ?show ?imdb ?tmdbmovie ?tmdbtv ?tvdbmovie ?tvdbtv "
+                   "WHERE { VALUES ?item { %s } "
+                   "OPTIONAL { ?item wdt:P31/wdt:P279* wd:%s . BIND(1 AS ?movie) } "
+                   "OPTIONAL { ?item wdt:P31/wdt:P279* wd:%s . BIND(1 AS ?tv) } "
+                   "OPTIONAL { ?item wdt:P179 ?show } OPTIONAL { ?item wdt:P345 ?imdb } "
+                   "OPTIONAL { ?item wdt:P4947 ?tmdbmovie } OPTIONAL { ?item wdt:P4983 ?tmdbtv } "
+                   "OPTIONAL { ?item wdt:P12196 ?tvdbmovie } OPTIONAL { ?item wdt:P4835 ?tvdbtv } }"
+                   % (_values(batch), _KINDS["movie"], _KINDS["tv"]))
+        for row in rows:
+            kind = "tv" if row.get("tv") or row.get("tmdbtv") else \
+                "movie" if row.get("movie") or row.get("tmdbmovie") else ""
+            if not kind:
+                if re.fullmatch(r"Q\d+", row.get("show", "")):
+                    shows.setdefault(row["item"], row["show"])
+                continue
+            ids = {"tvdb": row.get("tvdb" + kind, ""), "imdb": row.get("imdb", ""),
+                   "tmdb": row.get("tmdb" + kind, "")}
+            held = found.setdefault(row["item"], (kind, {}))[1]
+            for name, ident in ids.items():
+                if ident and name not in held:
+                    held[name] = ident
+    if shows:
+        of_show = wikidata_titles(ask, set(shows.values()) - set(found))
+        for episode, show in shows.items():
+            if (show in found or show in of_show) and episode not in found:
+                found[episode] = (found.get(show) or of_show[show])
+    return found
+
+
+def _held(wins: set[tuple[str, str]], nominated: set[tuple[str, str]]) -> list:
+    """Return one award of a title as the file holds it: what it won, and
+    how many more it was nominated for.  Wikidata says some of it twice,
+    once with its year and once without, which counts once."""
+    def dated(found: set[tuple[str, str]], others: set[tuple[str, str]]) -> set[tuple[str, str]]:
+        named = {name for name, year in found | others if year}
+        return {(name, year) for name, year in found if year or name not in named}
+    wins = dated(wins, set())
+    won = {name for name, year in wins if not year}
+    more = {(name, year) for name, year in dated(nominated, wins) - wins if name not in won}
+    labels = sorted((f"{name} ({year})" if year else name for name, year in wins),
+                    key=lambda label: (label[-5:-1], label))
+    return [labels, len(more)]
+
+
+def from_wikidata(ask: Ask) -> dict:
+    """Return the awards as Wikidata holds them, in this file's shape.  A
+    title is held by its TheTVDB id where Wikidata knows it, else by its
+    Wikidata item, and found by its IMDb and TMDb ids either way."""
+    categories = wikidata_categories(ask)
+    missing = set(FAMILIES.values()) - {award for award, _ in categories.values()}
+    if missing:
+        sys.exit("Wikidata has no category of: " + ", ".join(sorted(missing)))
+    said = list(wikidata_statements(ask, categories))
+    known = wikidata_titles(ask, {item for item, _, _, _ in said})
+    # By kind, title and award: what it won and what it was up for, each a
+    # category and a year once, however many of its makers it is said of.
+    seen: dict[str, dict[str, dict[str, tuple[set, set]]]] = {"movie": {}, "tv": {}}
+    index: dict[str, dict[str, dict[str, str]]] = {kind: {"imdb": {}, "tmdb": {}} for kind in seen}
+    for item, category, year, won in said:
+        if item not in known:
+            continue
+        kind, ids = known[item]
+        key = ids.get("tvdb") or item
+        award, name = categories[category]
+        seen[kind].setdefault(key, {}).setdefault(award, (set(), set()))[not won].add((name, year))
+        for source in ("imdb", "tmdb"):
+            if ids.get(source):
+                index[kind][source].setdefault(ids[source], key)
+    out: dict = {"source": WIKIDATA_SOURCE}
+    for kind, titles in seen.items():
+        order = sorted(titles, key=lambda key: (not key.isdigit(), int(key.lstrip("Q"))))
+        held = {key: {award: _held(*titles[key][award])
+                      for award in AWARDS.values() if award in titles[key]} for key in order}
+        out[kind] = {"titles": held,
+                     **{source: {ident: key for ident, key in sorted(found.items())
+                                 if key in held}
+                        for source, found in index[kind].items()}}
+    return out
+
+
 def remote_ids(get: Get, kind: str, tvdb: str) -> dict[str, str]:
     """Return the IMDb and TMDb ids TheTVDB holds for one title."""
     path = "/movies" if kind == "movie" else "/series"
@@ -245,8 +415,12 @@ def main() -> None:
     parser.add_argument("--helper", nargs="?", const=HELPER, metavar="FILE",
                         help="write it from TheMovieDb Helper's list "
                              "(a file, or its own on GitHub)")
+    parser.add_argument("--wikidata", action="store_true",
+                        help="write it from Wikidata, which asks for no key")
     args = parser.parse_args()
-    if args.helper:
+    if args.wikidata:
+        data = from_wikidata(ask_wikidata)
+    elif args.helper:
         if os.path.exists(args.helper):
             with open(args.helper, encoding="utf-8") as handle:
                 data = from_helper(json.load(handle))
@@ -257,7 +431,7 @@ def main() -> None:
         key = os.environ.get("TVDB_API_KEY", "")
         if not key:
             sys.exit("Set TVDB_API_KEY (and TVDB_PIN, where the key asks for one), "
-                     "or use --helper.")
+                     "or use --wikidata or --helper.")
         tvdb = Tvdb(key, os.environ.get("TVDB_PIN", ""), args.cache)
         data = indexed(collect(nominees(tvdb.get)),
                        lambda kind, ident: remote_ids(tvdb.get, kind, ident))

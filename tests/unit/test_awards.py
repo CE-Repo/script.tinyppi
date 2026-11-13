@@ -33,8 +33,7 @@ def films(titles, imdb=None, tmdb=None):
 
 def test_the_shipped_list_holds_interstellar():
     assert awards_of("movie", INTERSTELLAR) == [
-        {"award": "oscar", "won": ["Visual Effects (2015)"], "nominated": 4},
-        {"award": "globe", "won": [], "nominated": 1}]
+        {"award": "oscar", "won": ["Best Visual Effects (2015)"], "nominated": 4}]
 
 
 def test_a_title_is_found_by_its_tvdb_id_then_its_imdb_one_then_its_tmdb_one(table):

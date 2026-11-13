@@ -93,3 +93,70 @@ def test_the_moviedb_helpers_list_is_read_into_the_same_shape():
         "titles": {"131079": {"oscar": [["Visual Effects (2015)"], 2], "globe": [[], 1]}},
         "imdb": {}, "tmdb": {"157336": "131079"}}
     assert data["tv"] == {"titles": {}, "imdb": {}, "tmdb": {}}
+
+
+# Wikidata as the script sees it: the rows of each query, picked by what the
+# query asks for.
+WIKIDATA = {
+    "?cat ?fam ?name": [
+        {"cat": "Q11", "fam": "Q19020", "name": "Academy Award for Best Visual Effects"},
+        {"cat": "Q12", "fam": "Q19020", "name": "Academy Award for Best Actor"},
+        {"cat": "Q41", "fam": "Q1044427", "name": "Primetime Emmy Award for Outstanding Drama Series"},
+        {"cat": "Q21", "fam": "Q1011547", "name": "Golden Globe Award for Best Original Score"},
+        {"cat": "Q31", "fam": "Q732997", "name": "BAFTA Award for Best Film"},
+        # A ceremony is part of the award too, and no category.
+        {"cat": "Q39", "fam": "Q732997", "name": "79th British Academy Film Awards"}],
+    "p:P166": [
+        {"item": "Q100", "cat": "Q11", "date": "2015-02-22T00:00:00Z"},
+        # Said again without its year, and of an actor for the film.
+        {"item": "Q100", "cat": "Q11"},
+        {"item": "Q900", "work": "Q100", "cat": "Q12", "date": "2015-02-22T00:00:00Z"},
+        # Somebody alone, with no film, is no title's.
+        {"item": "Q900", "cat": "Q12", "date": "2001-01-01T00:00:00Z"},
+        {"item": "Q200", "cat": "Q41", "date": "2013-01-01T00:00:00Z"},
+        # An episode's is its show's; a year before the awards is a slip.
+        {"item": "Q201", "cat": "Q41", "date": "0914-01-01T00:00:00Z"}],
+    "p:P1411": [
+        # What it won is no further nomination; the others are, each once.
+        {"item": "Q100", "cat": "Q11", "date": "2015-02-22T00:00:00Z"},
+        {"item": "Q100", "cat": "Q21", "date": "2015-01-11T00:00:00Z"},
+        {"item": "Q901", "work": "Q100", "cat": "Q21", "date": "2015-01-11T00:00:00Z"},
+        {"item": "Q300", "cat": "Q31", "date": "2015-01-01T00:00:00Z"},
+        {"item": "Q200", "cat": "Q41", "date": "2014-01-01T00:00:00Z"}],
+    "?item ?movie": [
+        {"item": "Q100", "movie": "1", "imdb": "tt0816692", "tmdbmovie": "157336",
+         "tvdbmovie": "131079"},
+        {"item": "Q200", "tv": "1", "imdb": "tt0903747", "tmdbtv": "1396", "tvdbtv": "81189"},
+        {"item": "Q201", "show": "Q200"},
+        # A film Wikidata holds no TheTVDB id of is held by its item.
+        {"item": "Q300", "movie": "1", "imdb": "tt0000300"},
+        {"item": "Q900"}, {"item": "Q901"}],
+}
+
+
+def ask(query):
+    asked = [rows for marker, rows in WIKIDATA.items() if marker in query]
+    assert len(asked) == 1, query
+    wanted = {item for item in query.replace("wd:", " ").split() if item.startswith("Q")}
+    # Only what the query names is answered: a category's statements, an
+    # item's ids.
+    named = "fam" if "?fam" in query else "cat" if "?said" in query else "item"
+    return [row for row in asked[0] if row[named] in wanted]
+
+
+def test_wikidatas_awards_are_read_into_the_same_shape():
+    data = gen.from_wikidata(ask)
+    assert data["source"] == gen.WIKIDATA_SOURCE
+    assert data["movie"] == {
+        "titles": {"131079": {"oscar": [["Best Actor (2015)", "Best Visual Effects (2015)"], 0],
+                              "globe": [[], 1]},
+                   "Q300": {"bafta": [[], 1]}},
+        "imdb": {"tt0000300": "Q300", "tt0816692": "131079"}, "tmdb": {"157336": "131079"}}
+    assert data["tv"] == {
+        "titles": {"81189": {"emmy": [["Outstanding Drama Series (2013)"], 1]}},
+        "imdb": {"tt0903747": "81189"}, "tmdb": {"1396": "81189"}}
+
+
+def test_an_award_missing_from_wikidata_stops_the_run():
+    with pytest.raises(SystemExit, match="bafta, emmy, globe"):
+        gen.from_wikidata(lambda query: WIKIDATA["?cat ?fam ?name"][:2] if "?fam" in query else [])

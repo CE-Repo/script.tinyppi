@@ -6,9 +6,9 @@ card: the Academy Awards, the Golden Globes, the BAFTAs and the Primetime
 Emmys.
 
 They are read from ``resources/data/awards.json``, which
-``tools/gen_awards.py`` writes from TheTVDB's (see there): the titles by
-their TheTVDB id, found by whichever id the library holds for a film or an
-episode's show -- its TheTVDB id, its IMDb one or its TMDb one.  No key and
+``tools/gen_awards.py`` writes from Wikidata's or TheTVDB's (see there): the
+titles by their TheTVDB id, found by whichever id the library holds for a
+film or an episode's show -- its TheTVDB id, its IMDb one or its TMDb one.  No key and
 no request: a title the list does not hold has none to show.  The file is
 read the first time a title is looked up, and kept.
 """
