@@ -1923,18 +1923,6 @@ msgctxt "#32488"
 msgid "Not in your library – opens TMDb"
 msgstr "ليس في مكتبتك – يُفتح في TMDb"
 
-msgctxt "#32489"
-msgid "Measure the active area from the picture"
-msgstr "قياس المنطقة النشطة من الصورة"
-
-msgctxt "#32490"
-msgid "When the L5 values from the RPU are 0 | 0 | 0 | 0, show the black bars measured from the picture in an \"Active Area\" row instead. L5 values that declare bars always come first. Needs a CoreELEC canary build; without a measurement the row stays \"L5 Active Area\" with the RPU's values."
-msgstr "عندما تكون قيم L5 من RPU هي 0 | 0 | 0 | 0، تُعرض بدلاً منها الأشرطة السوداء المقاسة من الصورة في صف «المنطقة النشطة». قيم L5 التي تحدد أشرطة لها الأولوية دائماً. يتطلب إصدار CoreELEC Canary؛ عند تعذر القياس يبقى الصف «منطقة L5 النشطة» بقيم RPU."
-
-msgctxt "#32491"
-msgid "Active Area"
-msgstr "المنطقة النشطة"
-
 msgctxt "#32492"
 msgid "European widescreen"
 msgstr "شاشة عريضة أوروبية"
