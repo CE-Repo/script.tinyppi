@@ -287,6 +287,12 @@ def test_the_measured_bars_come_from_the_home_window():
     assert utils.measured_offsets() == "0 | 0 | 276 | 276"
 
 
+def test_the_widest_aspect_comes_from_the_home_window():
+    assert utils.widest_aspect() is None
+    xbmcgui.Window(10000).setProperty(utils.PROP_WIDEST_ASPECT, "2.39")
+    assert utils.widest_aspect() == 2.39
+
+
 # --- Window properties --------------------------------------------------------
 
 def test_a_batch_of_properties_is_published():

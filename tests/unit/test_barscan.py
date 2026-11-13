@@ -8,7 +8,7 @@ import pytest
 import xbmc
 import xbmcaddon
 import xbmcgui
-from core.utils import PROP_MEASURED_BARS
+from core.utils import PROP_MEASURED_BARS, PROP_WIDEST_ASPECT
 from info import barscan, properties
 from info.barscan import BarScanner
 
@@ -203,6 +203,9 @@ def test_the_thread_clears_stale_bars_and_stops(canary, monkeypatch):
     xbmcgui.Window(10000).setProperty(PROP_MEASURED_BARS, "0 | 0 | 1 | 1")   # an earlier session
     monkeypatch.setattr(barscan, "SCAN_INTERVAL", 0.001)
     scanner = BarScanner()
+    followed = []
+    monkeypatch.setattr(scanner._framing, "follow", lambda: followed.append(bars()))
+    xbmcgui.Window(10000).setProperty(PROP_WIDEST_ASPECT, "2.39")
     seen = []
     scans = scanner._scan
 
@@ -217,7 +220,9 @@ def test_the_thread_clears_stale_bars_and_stops(canary, monkeypatch):
     scanner.join(5)
     assert not scanner.is_alive()
     assert seen == ["", "", "0 | 0 | 276 | 276"]
+    assert followed == ["", "0 | 0 | 276 | 276", "0 | 0 | 276 | 276"]   # after each scan
     assert bars() == ""                                     # nothing left behind
+    assert xbmcgui.Window(10000).getProperty(PROP_WIDEST_ASPECT) == ""
 
 
 def test_a_failing_pass_is_logged_once_and_the_thread_goes_on(monkeypatch):

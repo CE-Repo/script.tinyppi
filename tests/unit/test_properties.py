@@ -184,6 +184,47 @@ def test_measured_bars_that_leave_no_picture_fall_back_to_kodi():
     assert properties.get_AspectRatioVar("N/A") == "1.78"
 
 
+# --- The IMAX mark's colour ---------------------------------------------------
+
+def imax_film(monkeypatch, known=True, widest="2.39"):
+    monkeypatch.setattr(properties, "is_known_imax_title", lambda: known)
+    home = xbmcgui.Window(10000)
+    home.setProperty("TinyPPI.WidestAspect", widest)
+    home.setProperty("TinyPPI.AccentColor", "FFACCE47")
+    home.setProperty("TinyPPI.OutputChangedColor", "FF82B1FF")
+
+
+@pytest.mark.parametrize("aspect, lit", [
+    ("1.78", True),                                 # the picture opened up
+    ("1.90", True),
+    ("2.39", False),                                # the regular framing
+    ("2.35", False),                                # a neighbouring ratio is no scene
+    ("", False),
+])
+def test_the_imax_mark_is_lit_while_the_picture_is_taller(monkeypatch, aspect, lit):
+    imax_film(monkeypatch)
+    assert properties.is_imax_scene(aspect) is lit
+    assert properties.get_ImaxColorVar(aspect) == ("FF82B1FF" if lit else "FFACCE47")
+
+
+def test_no_imax_scene_without_a_change_of_framing(monkeypatch):
+    imax_film(monkeypatch, widest="")               # nothing has lasted yet
+    assert properties.get_ImaxColorVar("1.78") == "FFACCE47"
+    imax_film(monkeypatch, widest="1.78")           # the same all through
+    assert properties.get_ImaxColorVar("1.78") == "FFACCE47"
+
+
+def test_only_an_imax_film_has_imax_scenes(monkeypatch):
+    imax_film(monkeypatch, known=False)
+    assert properties.get_ImaxColorVar("1.78") == "FFACCE47"
+
+
+def test_the_lit_mark_falls_back_to_the_accent_colour(monkeypatch):
+    imax_film(monkeypatch)
+    xbmcgui.Window(10000).setProperty("TinyPPI.OutputChangedColor", "")
+    assert properties.get_ImaxColorVar("1.78") == "FFACCE47"
+
+
 @pytest.mark.parametrize("known, enhanced, shown", [
     (False, True, ""), (True, False, "IMAX"), (True, True, "IMAX Enhanced"),
 ])

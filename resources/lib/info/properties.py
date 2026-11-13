@@ -35,6 +35,7 @@ from core.utils import (
     measured_offsets,
     parse_offsets,
     picture_aspect_ratio,
+    widest_aspect,
 )
 from info.dvinfo import (
     get_bit_depth,
@@ -185,6 +186,44 @@ def _is_real_no_crop(l5_offsets: str, is_dv: bool | None) -> bool:
     if parse_offsets(l5_offsets) is None:
         return False
     return is_effective_dv() if is_dv is None else is_dv
+
+
+# The colours of the IMAX mark behind the aspect ratio (see ui.theme): the
+# accent colour, and the changed-value colour while an IMAX scene plays.
+_ACCENT_COLOR  = "TinyPPI.AccentColor"
+_CHANGED_COLOR = "TinyPPI.OutputChangedColor"
+
+# An IMAX scene is at least this much taller than the film's regular
+# framing: 2.39 -> 1.90 and 2.20 -> 1.78 are a fifth apart, two neighbouring
+# standard ratios (2.35 and 2.39) a fiftieth.
+_IMAX_SCENE_BELOW = 0.9
+
+
+def is_imax_scene(aspect: str) -> bool:
+    """Return whether an IMAX film is showing one of its IMAX scenes.
+
+    True while the picture (*aspect*, as shown in the row) is clearly taller
+    than the widest framing the title has shown so far.  A film that never
+    changes its framing has no such scene.
+    """
+    current = first_float(aspect)
+    widest  = widest_aspect()
+    if current is None or widest is None:
+        return False
+    return current < widest * _IMAX_SCENE_BELOW and is_known_imax_title()
+
+
+def get_ImaxColorVar(aspect: str) -> str:
+    """Return the colour of the IMAX mark: lit during an IMAX scene.
+
+    The changed-value colour for as long as the scene lasts, the accent
+    colour otherwise.
+    """
+    home   = home_window()
+    accent = home.getProperty(_ACCENT_COLOR)
+    if not is_imax_scene(aspect):
+        return accent
+    return home.getProperty(_CHANGED_COLOR) or accent
 
 
 def get_ImaxVar() -> str:

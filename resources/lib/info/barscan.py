@@ -29,6 +29,7 @@ from core.log import channel
 from core.utils import PROP_MEASURED_BARS, coded_frame, declared_bars, home_window
 from info.bars import BarTracker, capture_size, format_offsets, measure, scaled
 from info.dvinfo import get_l5_offsets
+from info.framing import FramingWatch
 
 # Seconds between two frames.  The reading follows a change of framing
 # within about a second (``bars.CONFIRM_FRAMES`` frames have to agree).
@@ -56,6 +57,9 @@ class BarScanner(threading.Thread):
         super().__init__(name="TinyPPI-bars", daemon=True)
         self._stopping = threading.Event()
         self._tracker = BarTracker()
+        # Rides along on this thread: the widest framing of the title, for
+        # the IMAX mark (see info.framing).  It needs no capture.
+        self._framing = FramingWatch()
         self._capture: xbmc.RenderCapture | None = None
         # False once this Kodi build has shown that it cannot capture video.
         self._supported = True
@@ -76,9 +80,11 @@ class BarScanner(threading.Thread):
         while not self._stopping.wait(SCAN_INTERVAL):
             try:
                 self._scan()
+                self._framing.follow()
             except Exception as exc:
                 self._report(str(exc))
         self._idle()
+        self._framing.clear()
 
     def _report(self, error: str) -> None:
         """Log a failing pass once, not twice a second."""

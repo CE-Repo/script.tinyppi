@@ -45,6 +45,10 @@ PROP_DV_CONVERTED = "TinyPPI.DvConverted"
 # pixels; empty while nothing is confirmed (see info.barscan).
 PROP_MEASURED_BARS = "TinyPPI.MeasuredBars"
 
+# The widest aspect ratio the playing title has shown so far, e.g. ``2.39``;
+# empty until one has lasted (see info.framing).
+PROP_WIDEST_ASPECT = "TinyPPI.WidestAspect"
+
 
 # Per-pass read caches, one per thread (the overlay and the metadata view
 # refresh from different threads).  ``None`` outside a pass, where every read
@@ -366,6 +370,11 @@ def declared_bars(offsets: str) -> tuple[int, int, int, int] | None:
 def measured_offsets() -> str:
     """Return the bars measured from the picture, or '' (see info.barscan)."""
     return home_window().getProperty(PROP_MEASURED_BARS)
+
+
+def widest_aspect() -> float | None:
+    """Return the widest aspect ratio of the title so far (see info.framing)."""
+    return first_float(home_window().getProperty(PROP_WIDEST_ASPECT))
 
 
 def coded_frame() -> tuple[int, int] | None:

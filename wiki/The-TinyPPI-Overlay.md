@@ -75,7 +75,7 @@ frames of a title the layout may switch once from SDR to the right one.
 | **Video stream** | `3840x2160p 23.976FPS` | The decoded stream: width × height, scan type and frame rate. |
 | **Pixel format** | `10-bit (YUV 4:2:2)` | The output pixel format of the Amlogic video path (`amlogic.pixformat`). The detail `(DV Tunnel)` appears when the Dolby Vision driver runs tunnelled IPT (`dolby_vision_mode` = 1) over an 8-bit RGB link — the TV-LED Dolby Vision carriage. |
 | **Bit depth** | `12-bit` | The *source* bit depth: 12-bit for a Dolby Vision full enhancement layer (FEL), 10-bit for any other HDR format, 8-bit for SDR. |
-| **Aspect ratio** | `2.39:1 (IMAX)` | The aspect ratio of the **visible picture**. Kodi reports the coded frame (a letterboxed 2.39 film reads 1.78); TinyPPI computes the ratio inside the black bars and snaps it to the nearest standard ratio within 2 %. The bars come from the Dolby Vision RPU (L5) when it declares them, otherwise from the picture itself with **Measure the aspect ratio from the picture** on (see [Measured aspect ratio](#measured-aspect-ratio)). Detail: `IMAX` or `IMAX Enhanced` for a recognised film (see [IMAX Detection](IMAX-Detection)). |
+| **Aspect ratio** | `2.39:1 (IMAX)` | The aspect ratio of the **visible picture**. Kodi reports the coded frame (a letterboxed 2.39 film reads 1.78); TinyPPI computes the ratio inside the black bars and snaps it to the nearest standard ratio within 2 %. The bars come from the Dolby Vision RPU (L5) when it declares them, otherwise from the picture itself with **Measure the aspect ratio from the picture** on (see [Measured aspect ratio](#measured-aspect-ratio)). Detail: `IMAX` or `IMAX Enhanced` for a recognised film (see [IMAX Detection](IMAX-Detection)), lit in the *Changed values* color [while an IMAX scene plays](#the-imax-mark-during-an-imax-scene). |
 | **Decoder** | `AML-H.265 (HW)` | Decoder family (`AML-` Amlogic hardware decoder, `FF-` FFmpeg) and codec, with `HW`/`SW` as detail. |
 | **Decode method** | `Hardware` | Whether the video is decoded in hardware or software. |
 
@@ -221,6 +221,25 @@ is, so no change is missed; a short duration only makes it harder to see.
 
 Both settings live under **Settings → TinyPPI overlay → Changed values**; the
 metadata view has its own pair under **Settings → DV metadata**.
+
+### The IMAX mark during an IMAX scene
+
+The `(IMAX)` / `(IMAX Enhanced)` mark behind the aspect ratio uses the same
+color, but not the duration: it is lit **for as long as an IMAX scene
+lasts** and returns to the accent color when the film goes back to its
+regular framing.
+
+- TinyPPI follows the aspect ratio all through playback, overlay open or
+  not, and remembers the **widest** one the title has shown for at least
+  three seconds — the film's regular framing (2.39:1, say).
+- While the picture is clearly taller than that (1.78:1 or 1.90:1 against
+  2.39:1), the mark is lit.
+- A film that never changes its framing has no IMAX scene and the mark stays
+  in the accent color. So does a film that opens with an IMAX scene, until
+  it has shown its regular framing once.
+- The aspect ratio comes from L5 or from the
+  [measured bars](#measured-aspect-ratio); without either it never changes
+  and the mark is never lit.
 
 ---
 
