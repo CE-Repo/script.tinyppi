@@ -11,9 +11,10 @@ expanded aspect ratio. The mark appears as:
 The mark behind the aspect ratio follows the **picture**: it shows only
 [while the film plays one of its IMAX scenes](The-TinyPPI-Overlay#the-imax-mark-during-an-imax-scene)
 and gives way to the format's name (`Scope`, say) during the regular
-framing. That needs a build that
+framing. That needs a known framing: a build that
 [measures the bars](The-TinyPPI-Overlay#measured-aspect-ratio) (the CoreELEC
-canary builds); on any other build the mark stays for the whole runtime.
+canary builds), or bars declared by the Dolby Vision L5 metadata. Without
+either the mark stays for the whole runtime.
 
 ---
 

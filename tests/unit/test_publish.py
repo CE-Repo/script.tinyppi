@@ -94,7 +94,7 @@ def test_scene_readings_of_a_dv_frame(frame):
     sink = Sink()
     publish.publish_scene_properties(sink)
     assert sink.values["AspectRatioVar"] == "2.39"
-    assert sink.values["AspectFormatVar"] == ""     # not a build that measures
+    assert sink.values["AspectFormatVar"] == "Scope"        # L5 declares the bars
     assert sink.values["ImaxVar"] == ""             # no IMAX film
     assert sink.values["DoviLevel5OffsetsVar"] == "0 l 0 l 140 l 140"
     assert sink.values["DoviLevel5OffsetsIconVisible"] == "true"
@@ -113,6 +113,16 @@ def test_the_hdr10_panel_borrows_l6_while_it_replaces_the_dv_one(frame):
     publish.publish_scene_properties(sink)
     assert sink.values["Hdr10MdlVar"] == "1000 l 0.005"
     assert sink.values["Hdr10MaxCllFallVar"] == "1000 l 400"
+
+
+def test_a_ratio_that_is_only_the_coded_frame_gets_no_format_name(frame):
+    xbmc.INFO.update({"Player.Process(videowidth)": "1920",
+                      "Player.Process(videoheight)": "1080",
+                      "Player.Process(videodar)": "1.78"})
+    frame["l5_offsets"] = "0 | 0 | 0 | 0"           # no bars declared, none measured
+    sink = Sink()
+    publish.publish_scene_properties(sink)
+    assert (sink.values["AspectRatioVar"], sink.values["AspectFormatVar"]) == ("1.78", "")
 
 
 def test_the_offsets_icon_hides_for_a_status_label(frame):

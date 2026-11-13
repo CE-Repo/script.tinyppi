@@ -86,6 +86,7 @@ from info.properties import (
     get_VideoLiveBitrateVar,
     get_VideoPixelFormatVar,
     get_VideoResolutionVar,
+    is_framing_known,
     output_mode_from_videoplayer,
     separated,
     with_unit,
@@ -294,6 +295,8 @@ def _publish_scene_properties(window: PropertyTarget, published: dict[str, str])
     # aspect ratio inside the bars.
     l5_offsets          = get_l5_offsets()
     aspect_ratio        = get_AspectRatioVar(l5_offsets)
+    # Measured or declared by L5; if not, the ratio is only the coded frame.
+    framing_known       = is_framing_known(l5_offsets)
     # The row shows L5; where that is all zeros, the measured bars if the
     # build has them.  It is labelled after the one it shows.
     active_area, measured = get_active_area(l5_offsets)
@@ -326,9 +329,9 @@ def _publish_scene_properties(window: PropertyTarget, published: dict[str, str])
         (
             ("AspectRatioVar", aspect_ratio),
             # The format's common name behind it (Scope, 16:9, ...).
-            ("AspectFormatVar", get_AspectFormatVar(aspect_ratio)),
+            ("AspectFormatVar", get_AspectFormatVar(aspect_ratio, framing_known)),
             # Or the IMAX mark, while an IMAX scene plays.
-            ("ImaxVar", get_ImaxVar(aspect_ratio)),
+            ("ImaxVar", get_ImaxVar(aspect_ratio, framing_known)),
             ("ActiveAreaLabelVar", active_area_label),
             ("DoviLevel5OffsetsVar", separated(active_area)),
             ("DoviLevel5OffsetsIconVisible", l5_icon_visible),

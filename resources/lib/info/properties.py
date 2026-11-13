@@ -222,6 +222,17 @@ _IMAX_SCENE_BELOW = 0.9
 _IMAX_WIDEST = 1.92
 
 
+def is_framing_known(l5_offsets: str) -> bool:
+    """Return whether the aspect ratio shown is that of the picture.
+
+    It is on a build that measures the bars, and where the RPU's
+    *l5_offsets* declare them.  Otherwise the ratio is Kodi's coded frame
+    (all-zero offsets included: they are often just a missing L5), which
+    says nothing about the framing on screen.
+    """
+    return can_measure() or declared_bars(l5_offsets) is not None
+
+
 def is_imax_scene(aspect: str) -> bool:
     """Return whether an IMAX film is showing one of its IMAX scenes.
 
@@ -238,17 +249,18 @@ def is_imax_scene(aspect: str) -> bool:
         widest is not None and current < widest * _IMAX_SCENE_BELOW)
 
 
-def get_ImaxVar(aspect: str) -> str:
+def get_ImaxVar(aspect: str, framing_known: bool) -> str:
     """Return ``IMAX Enhanced``, ``IMAX`` or '' for the picture on screen.
 
     The film is recognised by release name or title list (see
     ``info.imax``); the mark shows only while it plays one of its IMAX
     scenes (see ``is_imax_scene``), not during its regular framing.
 
-    On a build that cannot measure the bars the framing is not known, so
-    the mark describes the film and stays for the whole runtime.
+    Where the framing is not known (*framing_known*, see
+    ``is_framing_known``) the mark describes the film and stays for the
+    whole runtime.
     """
-    if not is_known_imax_title() or (can_measure() and not is_imax_scene(aspect)):
+    if not is_known_imax_title() or (framing_known and not is_imax_scene(aspect)):
         return ""
     return "IMAX Enhanced" if is_enhanced_title() else "IMAX"
 
@@ -272,18 +284,19 @@ _AR_FORMATS: dict[str, str | int] = {
 }
 
 
-def get_AspectFormatVar(aspect: str) -> str:
+def get_AspectFormatVar(aspect: str, framing_known: bool) -> str:
     """Return the common name of the format with ratio *aspect*, or ''.
 
     *aspect* is the ratio as shown in the row; only one that snapped to a
     standard ratio has a name.  An IMAX scene shows the IMAX mark in the
     same place instead (see ``get_ImaxVar``).
 
-    Only on a build that measures the bars: elsewhere the ratio is often
-    just Kodi's coded frame, and naming that would be a guess.
+    Only where the framing is known (*framing_known*, see
+    ``is_framing_known``): elsewhere the ratio is just Kodi's coded frame,
+    and naming that would be a guess.
     """
     name = _AR_FORMATS.get(aspect)
-    if name is None or not can_measure() or is_imax_scene(aspect):
+    if name is None or not framing_known or is_imax_scene(aspect):
         return ""
     return localized(name) if isinstance(name, int) else name
 

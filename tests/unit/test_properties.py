@@ -210,27 +210,38 @@ def test_measured_bars_that_leave_no_picture_fall_back_to_kodi():
 
 # --- The IMAX mark ------------------------------------------------------------
 
-def imax_film(monkeypatch, known=True, widest="2.39", enhanced=False, canary=True):
+def imax_film(monkeypatch, known=True, widest="2.39", enhanced=False):
     monkeypatch.setattr(properties, "is_known_imax_title", lambda: known)
     monkeypatch.setattr(properties, "is_enhanced_title", lambda: enhanced)
     xbmcgui.Window(10000).setProperty("TinyPPI.WidestAspect", widest)
+
+
+@pytest.mark.parametrize("canary, l5, known", [
+    (True, "N/A", True),                            # measured from the picture
+    (True, "0 | 0 | 0 | 0", True),
+    (False, "0 | 0 | 276 | 276", True),             # declared by L5
+    (False, "0 | 0 | 0 | 0", False),                # often just a missing L5
+    (False, "N/A", False),
+])
+def test_the_framing_is_known_when_measured_or_declared(canary, l5, known):
     xbmcgui.Window(10000).setProperty("TinyPPI.CanMeasure", "1" if canary else "")
+    assert properties.is_framing_known(l5) is known
 
 
 @pytest.mark.parametrize("known, enhanced, shown", [
     (False, True, ""), (True, False, "IMAX"), (True, True, "IMAX Enhanced"),
 ])
-def test_a_build_that_cannot_measure_marks_the_film_all_through(
+def test_a_film_of_unknown_framing_is_marked_all_through(
         monkeypatch, known, enhanced, shown):
-    imax_film(monkeypatch, known=known, enhanced=enhanced, canary=False)
-    assert properties.get_ImaxVar("2.39") == shown
-    assert properties.get_ImaxVar("1.78") == shown
+    imax_film(monkeypatch, known=known, enhanced=enhanced)
+    assert properties.get_ImaxVar("2.39", False) == shown
+    assert properties.get_ImaxVar("1.78", False) == shown
 
 
 @pytest.mark.parametrize("aspect", ["1.78", "2.39", "1.33"])
-def test_a_build_that_cannot_measure_names_no_format(monkeypatch, aspect):
-    imax_film(monkeypatch, known=False, canary=False)
-    assert properties.get_AspectFormatVar(aspect) == ""
+def test_an_unknown_framing_is_given_no_format_name(monkeypatch, aspect):
+    imax_film(monkeypatch, known=False)
+    assert properties.get_AspectFormatVar(aspect, False) == ""
 
 
 @pytest.mark.parametrize("aspect, scene", [
@@ -244,20 +255,20 @@ def test_a_build_that_cannot_measure_names_no_format(monkeypatch, aspect):
 def test_the_imax_mark_shows_only_during_an_imax_scene(monkeypatch, aspect, scene):
     imax_film(monkeypatch)
     assert properties.is_imax_scene(aspect) is scene
-    assert properties.get_ImaxVar(aspect) == ("IMAX" if scene else "")
+    assert properties.get_ImaxVar(aspect, True) == ("IMAX" if scene else "")
 
 
 def test_an_imax_enhanced_film_is_marked_as_such(monkeypatch):
     imax_film(monkeypatch, enhanced=True)
-    assert properties.get_ImaxVar("1.90") == "IMAX Enhanced"
-    assert properties.get_ImaxVar("2.39") == ""
+    assert properties.get_ImaxVar("1.90", True) == "IMAX Enhanced"
+    assert properties.get_ImaxVar("2.39", True) == ""
 
 
 @pytest.mark.parametrize("widest", ["", "1.90"])
 def test_a_film_in_imax_all_through_is_one_imax_scene(monkeypatch, widest):
     imax_film(monkeypatch, widest=widest)           # no other framing shown
-    assert properties.get_ImaxVar("1.90") == "IMAX"
-    assert properties.get_ImaxVar("2.39") == ""
+    assert properties.get_ImaxVar("1.90", True) == "IMAX"
+    assert properties.get_ImaxVar("2.39", True) == ""
 
 
 def test_a_picture_clearly_taller_than_the_regular_framing_is_a_scene(monkeypatch):
@@ -268,13 +279,13 @@ def test_a_picture_clearly_taller_than_the_regular_framing_is_a_scene(monkeypatc
 
 def test_only_an_imax_film_has_imax_scenes(monkeypatch):
     imax_film(monkeypatch, known=False)
-    assert properties.get_ImaxVar("1.78") == ""
+    assert properties.get_ImaxVar("1.78", True) == ""
 
 
 def test_the_regular_framing_of_an_imax_film_is_named_after_its_format(monkeypatch):
     imax_film(monkeypatch)
-    assert properties.get_AspectFormatVar("2.39") == "Scope"
-    assert properties.get_AspectFormatVar("1.78") == ""     # the IMAX mark's place
+    assert properties.get_AspectFormatVar("2.39", True) == "Scope"
+    assert properties.get_AspectFormatVar("1.78", True) == ""     # the IMAX mark's place
 
 
 @pytest.mark.parametrize("aspect, shown", [
@@ -286,8 +297,7 @@ def test_the_regular_framing_of_an_imax_film_is_named_after_its_format(monkeypat
 ])
 def test_a_standard_ratio_is_named_after_its_format(monkeypatch, aspect, shown):
     monkeypatch.setattr(properties, "is_known_imax_title", lambda: False)
-    xbmcgui.Window(10000).setProperty("TinyPPI.CanMeasure", "1")
-    assert properties.get_AspectFormatVar(aspect) == shown
+    assert properties.get_AspectFormatVar(aspect, True) == shown
 
 
 @pytest.mark.parametrize("raw, shown", [
