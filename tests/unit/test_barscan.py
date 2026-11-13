@@ -144,10 +144,10 @@ def test_the_scanner_idles_and_clears_its_bars(canary, monkeypatch, reason):
     assert scanner._capture is None
 
 
-def test_the_setting_is_off_by_default(canary):
+def test_the_setting_is_on_by_default(canary):
     del xbmcaddon.SETTINGS["measure_aspect_ratio"]
     scan(BarScanner())
-    assert canary.made == 0
+    assert canary.made == 1
 
 
 # --- Builds without the capture -----------------------------------------------

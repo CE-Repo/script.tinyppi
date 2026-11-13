@@ -84,7 +84,7 @@ frames of a title the layout may switch once from SDR to the right one.
 Dolby Vision declares its black bars in the RPU (L5). Everything else —
 HDR10, HDR10+, HLG, SDR, and Dolby Vision whose L5 is all zero — carries no
 such information, so a letterboxed film reads as its 16:9 frame. With
-**Measure the aspect ratio from the picture** on (*General*, off by default),
+**Measure the aspect ratio from the picture** on (*General*, on by default),
 TinyPPI finds the bars in the picture itself:
 
 - A small frame of the video (640 pixels wide, without OSD, subtitles or the
