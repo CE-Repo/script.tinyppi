@@ -222,6 +222,32 @@ def test_a_framing_the_title_showed_before_returns_on_less_proof(canary):
     assert bars() == "0 | 0 | 280 | 280"
 
 
+def dim_centre():
+    """A letterboxed shot that is dark at both of its edges."""
+    black, lit = bytes((0, 0, 0, 255)) * WIDTH, bytes((200, 200, 200, 255)) * WIDTH
+    return bytearray(black * 100 + lit * 70 + black * 100)
+
+
+def test_after_an_imax_scene_black_where_the_bars_were_is_enough(canary):
+    scanner = BarScanner()
+    scan(scanner, dim_centre(), dim_centre(), dim_centre())
+    assert bars() == ""                                     # no framing shown yet
+    scan(scanner, SCOPE, SCOPE, dim_centre(), dim_centre())
+    assert bars() == "0 | 0 | 280 | 280"                    # nothing to go back to
+    scan(scanner, FULL, FULL)                               # an IMAX scene
+    assert bars() == "0 | 0 | 0 | 0"
+    scan(scanner, dim_centre(), dim_centre())               # no longer seen: back
+    assert bars() == "0 | 0 | 280 | 280"
+    scan(scanner, FULL, FULL)                               # and lit there again
+    assert bars() == "0 | 0 | 0 | 0"
+
+
+def test_a_black_frame_in_an_imax_scene_changes_nothing(canary):
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE, FULL, FULL, DARK, DARK, DARK)
+    assert bars() == "0 | 0 | 0 | 0"
+
+
 def test_another_titles_framings_are_not_remembered(canary):
     scanner = BarScanner()
     scan(scanner, SCOPE, SCOPE)

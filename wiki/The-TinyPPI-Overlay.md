@@ -102,6 +102,12 @@ on and has no setting:
   confirmed, a later frame shows them again when they are black and the
   picture is lit right at *one* of them — a shot with a dark top or bottom
   no longer holds the change back.
+- **After a taller picture, black where the bars were is enough.** While an
+  IMAX scene fills the frame and a later frame shows picture but nothing
+  where the title's previous bars were, the reading goes back to that
+  previous framing. A dark IMAX shot that leaves those areas black
+  therefore reads as the regular framing until something lights them again;
+  a completely black frame changes nothing.
 - **A title card, a logo or credits on black are not a picture.** Lit
   content with black on all four sides is ignored (a film is letterboxed or
   pillarboxed, not both), and so is a band no film is shaped like (wider

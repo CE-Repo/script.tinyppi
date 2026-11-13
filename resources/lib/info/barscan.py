@@ -31,8 +31,10 @@ from info.bars import (
     DARK_CONFIRM_SECONDS,
     Bars,
     BarTracker,
+    Lines,
     bars_of,
     capture_size,
+    crops,
     format_offsets,
     has_bars,
     line_counts,
@@ -171,13 +173,31 @@ class BarScanner(threading.Thread):
         measured = _known(bars_of(lines, *size), size)
         if measured is not None:
             return measured, CONFIRM_SECONDS
-        # A framing the title has shown before needs less proof.
-        for bars in self._tracker.earlier():
-            if shows_again(lines, *size, bars):
-                return bars, CONFIRM_SECONDS
+        returned = self._returned(lines, size)
+        if returned is not None:
+            return returned, CONFIRM_SECONDS
         if self._tracker.bars is None:
             return _dark_bars(image, size), DARK_CONFIRM_SECONDS
         return None, CONFIRM_SECONDS
+
+    def _returned(self, lines: Lines, size: tuple[int, int]) -> Bars | None:
+        """Return the earlier framing of the title a frame is back at, or None.
+
+        A framing the title has shown before needs less proof: a lit edge
+        at its bars.  After a taller picture (an IMAX scene) not even that:
+        once nothing shows where the bars were, the last such framing is
+        taken, as the taller picture is no longer seen.
+        """
+        earlier = self._tracker.earlier()
+        for bars in earlier:
+            if shows_again(lines, *size, bars):
+                return bars
+        current = self._tracker.bars
+        for bars in earlier:
+            if current is not None and crops(bars, current) \
+                    and shows_again(lines, *size, bars, lit_edge=False):
+                return bars
+        return None
 
     def _wanted(self) -> bool:
         """Return whether there is a picture to measure.

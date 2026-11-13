@@ -216,13 +216,18 @@ def bars_of(lines: Lines, width: int, height: int) -> Bars | None:
     return found if _is_picture(found, width, height) else None
 
 
-def shows_again(lines: Lines, width: int, height: int, earlier: Bars) -> bool:
+def shows_again(lines: Lines, width: int, height: int, earlier: Bars,
+                lit_edge: bool = True) -> bool:
     """Return whether a frame shows the *earlier* bars of its title again.
 
     Bars the title has shown before need less proof than new ones: they have
     to be black, the picture has to be lit right at one of them (not at
     both, so a dark top or bottom does not matter) and to run on along the
     other axis.  Only for bars on one axis; the full frame proves itself.
+
+    Without *lit_edge* black bars and any picture between them are enough.
+    That is for a picture that has been taller (an IMAX scene): once
+    nothing shows where the bars were, the title is taken to be back.
     """
     axis = _barred_axis(lines, width, height, earlier)
     if axis is None:
@@ -237,6 +242,8 @@ def shows_again(lines: Lines, width: int, height: int, earlier: Bars) -> bool:
     # Black bars, to within the line the scaler blurs ...
     if first < before - 1 or last < after - 1:
         return False
+    if not lit_edge:
+        return True
     # ... and picture right at one of them.
     if first > before + 1 and last > after + 1:
         return False
@@ -313,6 +320,11 @@ def picture_ratio(bars: Bars, size: tuple[int, int]) -> float:
     return (width - left - right) / max(1, height - top - bottom)
 
 
+def crops(bars: Bars, other: Bars) -> bool:
+    """Return whether *bars* leave less picture than *other* on no side more."""
+    return bars != other and all(bar >= than for bar, than in zip(bars, other, strict=True))
+
+
 def has_bars(bars: Bars) -> bool:
     """Return whether *bars* crop the frame at all."""
     return max(bars) > 1
@@ -353,8 +365,11 @@ class BarTracker:
         self._candidate = None
 
     def earlier(self) -> list[Bars]:
-        """Return the framings the title has shown other than the current."""
-        return [bars for bars in self.shown if bars != self.bars]
+        """Return the framings the title has shown other than the current.
+
+        The one it showed last comes first.
+        """
+        return [bars for bars in reversed(self.shown) if bars != self.bars]
 
     def update(self, measured: Bars | None, now: float,
                hold: float = CONFIRM_SECONDS) -> None:
@@ -381,8 +396,10 @@ class BarTracker:
         """Return *confirmed* as the title showed it before, or note it."""
         for bars in self.shown:
             if _same(bars, confirmed):
-                return bars
-        self.shown.append(confirmed)
+                confirmed = bars
+                self.shown.remove(bars)
+                break
+        self.shown.append(confirmed)                # the last shown at the end
         return confirmed
 
 

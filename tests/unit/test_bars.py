@@ -197,6 +197,25 @@ def test_earlier_bars_need_an_edge_and_black():
     assert not again(dim_edge(picture(top=12, bottom=12), range(12, 40)), (0, 0, 20, 20))
 
 
+def test_without_the_lit_edge_black_bars_and_any_picture_are_enough():
+    both_dark = dim_edge(picture(top=12, bottom=12), [*range(12, 40), *range(60, 88)])
+    lenient = bars.line_counts(image(both_dark), WIDTH, SIZE)
+    assert bars.shows_again(lenient, WIDTH, SIZE, (0, 0, 12, 12), lit_edge=False)
+    small = bars.line_counts(image(picture(left=60, right=60, top=30, bottom=30)), WIDTH, SIZE)
+    assert bars.shows_again(small, WIDTH, SIZE, (0, 0, 12, 12), lit_edge=False)
+    for rows in (picture(level=0), picture(), picture(top=6, bottom=12)):
+        lines = bars.line_counts(image(rows), WIDTH, SIZE)
+        assert not bars.shows_again(lines, WIDTH, SIZE, (0, 0, 12, 12), lit_edge=False)
+
+
+def test_bars_that_crop_a_taller_picture():
+    assert bars.crops((0, 0, 46, 46), (0, 0, 0, 0))
+    assert bars.crops((0, 0, 46, 46), (0, 0, 9, 9))
+    assert not bars.crops((0, 0, 0, 0), (0, 0, 46, 46))
+    assert not bars.crops((0, 0, 46, 46), (0, 0, 46, 46))
+    assert not bars.crops((0, 0, 46, 46), (60, 60, 0, 0))
+
+
 def test_earlier_bars_need_the_picture_to_run_on_along_the_other_axis():
     assert not again(picture(left=60, right=60, top=12, bottom=12))     # a title card
 
@@ -332,8 +351,10 @@ def test_the_tracker_remembers_the_framings_of_its_title():
     confirmed(tracker, FULL, at=1.0)
     assert tracker.earlier() == [SCOPE]
     confirmed(tracker, (0, 0, 47, 46), at=2.0)              # the same to within a pixel
-    assert tracker.bars == SCOPE and tracker.shown == [SCOPE, FULL]
+    assert tracker.bars == SCOPE and tracker.shown == [FULL, SCOPE]
     assert tracker.earlier() == [FULL]
+    confirmed(tracker, (0, 0, 9, 9), at=3.0)
+    assert tracker.earlier() == [SCOPE, FULL]               # the last shown first
     tracker.reset()
     assert tracker.shown == []
 
