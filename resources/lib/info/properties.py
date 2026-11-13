@@ -137,7 +137,7 @@ def get_VideoResolutionVar() -> str:
 # Standard aspect ratios a computed ratio snaps to.  Pixel-exact RPU offsets
 # still land slightly off (a 2.39 film would read 2.40); ratios beyond the
 # tolerance are shown as computed.
-_STANDARD_ARS = (
+STANDARD_ARS = (
     1.33, 1.37, 1.43, 1.66, 1.78, 1.85, 1.90, 2.00, 2.20, 2.35, 2.39, 2.55, 2.76,
 )
 _AR_SNAP_TOLERANCE = 0.02           # relative to the standard ratio
@@ -145,7 +145,7 @@ _AR_SNAP_TOLERANCE = 0.02           # relative to the standard ratio
 
 def _snapped_ar(ratio: float) -> str:
     """Format an aspect ratio to two decimals, snapping to a standard one."""
-    closest = min(_STANDARD_ARS, key=lambda standard: abs(standard - ratio))
+    closest = min(STANDARD_ARS, key=lambda standard: abs(standard - ratio))
     if abs(closest - ratio) <= closest * _AR_SNAP_TOLERANCE:
         ratio = closest
     return f"{ratio:.2f}"

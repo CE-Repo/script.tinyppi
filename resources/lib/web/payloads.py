@@ -88,6 +88,8 @@ class Metrics(TypedDict, total=False):
     bars: list[float] | None
     frame: FrameSize | None
     aspect: float | None
+    # An IMAX film is showing one of its taller IMAX scenes.
+    imax_scene: bool
     fps_in: float | None
     fps_drop: float | None
     fps_out: float | None

@@ -9,7 +9,7 @@ import xbmc
 import xbmcgui
 from core.utils import PROP_WIDEST_ASPECT
 from info import framing
-from info.framing import SETTLE_PASSES, FramingWatch, WidestRatio
+from info.framing import ODD_SETTLE_PASSES, SETTLE_PASSES, FramingWatch, WidestRatio
 
 
 def lasting(ratios, ratio, passes=SETTLE_PASSES):
@@ -43,6 +43,15 @@ def test_a_stray_reading_does_not_count():
     lasting(ratios, 2.76, SETTLE_PASSES - 1)                # a fade, a studio logo
     ratios.note(2.39)
     assert ratios.widest == 2.39
+
+
+def test_an_odd_ratio_has_to_last_longer():
+    ratios = WidestRatio()
+    lasting(ratios, 2.39)
+    lasting(ratios, 2.47, ODD_SETTLE_PASSES - 1)            # no film ratio
+    assert ratios.widest == 2.39
+    ratios.note(2.47)
+    assert ratios.widest == 2.47                            # a film framed like that
 
 
 def test_an_unknown_ratio_is_never_the_widest():

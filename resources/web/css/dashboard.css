@@ -157,7 +157,9 @@
   overflow-wrap: anywhere;
   transition: color .45s ease-out;
 }
-.row .d { color: var(--dim); font-size: 12.5px; }
+.row .d { color: var(--dim); font-size: 12.5px; transition: color .45s ease-out; }
+/* The IMAX mark while an IMAX scene plays (see lightImaxMark). */
+.row.lit .d { color: var(--accent-2); }
 .row.changed .v { color: var(--accent-2); transition: none; }
 
 .empty p { max-width: 42ch; }

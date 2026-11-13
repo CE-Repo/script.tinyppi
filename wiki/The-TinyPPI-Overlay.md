@@ -231,7 +231,9 @@ regular framing.
 
 - TinyPPI follows the aspect ratio all through playback, overlay open or
   not, and remembers the **widest** one the title has shown for at least
-  three seconds — the film's regular framing (2.39:1, say).
+  one second — the film's regular framing (2.39:1, say). A ratio that is
+  not a standard film ratio has to last three seconds, so a stray reading
+  during a fade or a studio logo is not taken for it.
 - While the picture is clearly taller than that (1.78:1 or 1.90:1 against
   2.39:1), the mark is lit.
 - A film that never changes its framing has no IMAX scene and the mark stays
@@ -240,6 +242,8 @@ regular framing.
 - The aspect ratio comes from L5 or from the
   [measured bars](#measured-aspect-ratio); without either it never changes
   and the mark is never lit.
+- The [web dashboard](Web-Dashboard) lights the mark in its **Aspect
+  ratio** row the same way.
 
 ---
 

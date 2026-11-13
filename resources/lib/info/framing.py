@@ -17,12 +17,14 @@ in the middle of a film and must know the regular framing by then.
 import xbmc
 from core.utils import PROP_WIDEST_ASPECT, first_float, home_window
 from info.dvinfo import get_l5_offsets
-from info.properties import get_AspectRatioVar
+from info.properties import STANDARD_ARS, get_AspectRatioVar
 
-# Passes in a row a ratio has to last before it counts (three seconds at
-# the scanner's pace), so a stray reading during a fade or a studio logo
-# does not become the film's regular framing.
-SETTLE_PASSES = 6
+# Passes in a row a ratio has to last before it counts, so a stray reading
+# during a fade or a studio logo does not become the film's regular framing.
+# A standard film ratio counts after one second at the scanner's pace; an
+# odd one, which a stray reading usually is, only after three.
+SETTLE_PASSES     = 2
+ODD_SETTLE_PASSES = 6
 
 
 class WidestRatio:
@@ -46,10 +48,15 @@ class WidestRatio:
             self._held = 1
             return
         self._held += 1
-        if ratio is None or self._held < SETTLE_PASSES:
+        if ratio is None or self._held < self._passes_needed(ratio):
             return
         if self.widest is None or ratio > self.widest:
             self.widest = ratio
+
+    @staticmethod
+    def _passes_needed(ratio: float) -> int:
+        """Return how long *ratio* has to last before it counts."""
+        return SETTLE_PASSES if ratio in STANDARD_ARS else ODD_SETTLE_PASSES
 
 
 class FramingWatch:
