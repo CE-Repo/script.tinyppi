@@ -91,11 +91,11 @@ TinyPPI app) are not TinyPPI's either:
   lettering is Inter (SIL Open Font License 1.1) turned into outlines.
 
 The **awards list** (`resources/data/awards.json`) is from
-[TheTVDB](https://thetvdb.com), read from its API by `tools/gen_awards.py` —
-or, without a key, from the awards list of TheMovieDb Helper
-(plugin.video.themoviedb.helper by jurialmunkey, GPL-3.0-or-later), which is
-built from TheTVDB's, or from [Wikidata](https://www.wikidata.org) (CC0) —
-and cut to the four awards shown.
+[Wikidata](https://www.wikidata.org) (CC0), read by `tools/gen_awards.py
+--wikidata` and cut to the four awards shown. The script can also write it
+from [TheTVDB](https://thetvdb.com)'s API, with a key, or from the awards
+list of TheMovieDb Helper (plugin.video.themoviedb.helper by jurialmunkey,
+GPL-3.0-or-later), which is built from TheTVDB's.
 
 All of them are used only to name the source of a rating or an age rating
 (nominative use); no affiliation with or endorsement by their owners is

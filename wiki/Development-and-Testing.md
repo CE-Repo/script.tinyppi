@@ -256,15 +256,18 @@ Run them from the repository root after changing `dialog_layout.py`, and commit
 the results.
 
 The awards the overview card shows (`resources/data/awards.json`) are read
-from [TheTVDB](https://thetvdb.com)'s API, which needs a key
+from [Wikidata](https://www.wikidata.org), which asks for no key. The
+**Awards** workflow (`.github/workflows/awards.yml`) runs the script on the
+1st of each month, or by hand from the Actions tab, and opens a pull request
+when the file changed. The script can also read them from
+[TheTVDB](https://thetvdb.com)'s API, which needs a key
 ([thetvdb.com/api-information](https://thetvdb.com/api-information)) and, for
-some keys, a subscriber PIN. Run it after an awards season; its answers are
-kept in `.cache/tvdb/` (ignored by git), so a run that stopped half way picks
-up where it was:
+some keys, a subscriber PIN; its answers are kept in `.cache/tvdb/` (ignored
+by git), so a run that stopped half way picks up where it was:
 
 ```bash
+python3 tools/gen_awards.py --wikidata # Wikidata's, without a key: what the workflow runs
 TVDB_API_KEY=... TVDB_PIN=... python3 tools/gen_awards.py
-python3 tools/gen_awards.py --wikidata # without a key: Wikidata's, with fewer nominations and its own category names
 python3 tools/gen_awards.py --helper   # without a key: TheMovieDb Helper's list, built from TheTVDB's
 ```
 

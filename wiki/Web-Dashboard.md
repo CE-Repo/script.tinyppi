@@ -221,9 +221,9 @@ stand last among the ratings, each as a drawing of what it hands out (a
 statuette, a ringed globe, a theatre mask, a winged figure holding an atom)
 with a figure beside it: how many it **won**, on a gold shield — or, where it won none, how
 many it was **nominated** for, on a quieter grey one. A tap shows what it won
-it for (*Oscar: Visual Effects (2015) · 4 nominated*).
+it for (*Oscar: Best Visual Effects (2015) · 4 nominated*).
 
-They come with the add-on, from **[TheTVDB](https://thetvdb.com)**
+They come with the add-on, from **[Wikidata](https://www.wikidata.org)**
 (`resources/data/awards.json`, written by `tools/gen_awards.py`): **no key, no
 request** on the box. A film is looked up by the TheTVDB, IMDb or TMDb id the
 library holds, an episode by its show's. The list holds what was nominated

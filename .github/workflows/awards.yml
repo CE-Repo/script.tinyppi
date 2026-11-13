@@ -1,11 +1,11 @@
 name: Awards
 
-# Runs tools/gen_awards.py once a month, or by hand (Actions > Awards > Run
-# workflow), and opens a pull request with the new
-# resources/data/awards.json when TheTVDB's awards changed. It needs the
-# repository secret TVDB_API_KEY and, for a key that asks for one, TVDB_PIN
-# (Settings > Secrets and variables > Actions), and "Allow GitHub Actions to
-# create and approve pull requests" (Settings > Actions > General).
+# Runs tools/gen_awards.py --wikidata once a month, or by hand (Actions >
+# Awards > Run workflow), and opens a pull request with the new
+# resources/data/awards.json when Wikidata's awards changed. Wikidata asks
+# for no key, so there is no secret to set; the pull request needs "Allow
+# GitHub Actions to create and approve pull requests" (Settings > Actions >
+# General).
 on:
   # The 1st of each month, 04:17 UTC: off the hour, when GitHub's scheduled
   # runs are delayed least.
@@ -29,18 +29,20 @@ env:
 
 jobs:
   update:
-    name: Update awards.json from TheTVDB
+    name: Update awards.json from Wikidata
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: "3.14"
+      # pipefail: a run Wikidata cut short fails here rather than going on
+      # to open a pull request.
       - name: Generate
-        env:
-          TVDB_API_KEY: ${{ secrets.TVDB_API_KEY }}
-          TVDB_PIN: ${{ secrets.TVDB_PIN }}
-        run: python tools/gen_awards.py | tee "$RUNNER_TEMP/summary.txt"
+        shell: bash
+        run: |
+          set -o pipefail
+          python tools/gen_awards.py --wikidata | tee "$RUNNER_TEMP/summary.txt"
       # The branch is the same every run and is replaced, so a pull request
       # still open from an earlier run is brought up to date rather than
       # joined by a second one. Nothing is pushed when nothing changed.
@@ -56,13 +58,13 @@ jobs:
           git switch -C "$BRANCH"
           git -c user.name="github-actions[bot]" \
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-              commit -m "Update the awards from TheTVDB" -- resources/data/awards.json
+              commit -m "Update the awards from Wikidata" -- resources/data/awards.json
           git push --force origin "$BRANCH"
           if [ -n "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')" ]; then
             echo "The open pull request was updated: $summary" | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           gh pr create --base "$GITHUB_REF_NAME" --head "$BRANCH" \
-            --title "Update the awards from TheTVDB" \
+            --title "Update the awards from Wikidata" \
             --body "Written by \`tools/gen_awards.py\` in the Awards workflow: $summary." \
             | tee -a "$GITHUB_STEP_SUMMARY"
