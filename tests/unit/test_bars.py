@@ -323,6 +323,31 @@ def test_a_pixel_of_jitter_keeps_the_confirmed_bars():
     assert tracker.bars == SCOPE
 
 
+def test_each_edge_settles_on_what_most_frames_measure():
+    tracker = BarTracker()
+    confirmed(tracker, (0, 0, 68, 69))                      # a blurred edge, a line early
+    for frame in range(3):
+        tracker.update((0, 0, 69, 69), 1.0 + frame)
+    assert tracker.bars == (0, 0, 69, 69)
+    assert tracker.shown == [(0, 0, 69, 69)]                # the same framing, not a new one
+    tracker.update((0, 0, 68, 70), 5.0)                     # a frame or two do not move it
+    tracker.update((0, 0, 69, 70), 6.0)
+    assert tracker.bars == (0, 0, 69, 69)
+
+
+def test_the_count_starts_over_with_a_new_framing():
+    tracker = BarTracker()
+    confirmed(tracker, SCOPE)
+    for frame in range(5):
+        tracker.update((0, 0, 46, 46), 1.0 + frame)
+    confirmed(tracker, FULL, at=10.0)
+    confirmed(tracker, (0, 0, 47, 46), at=20.0)             # back, a line off
+    assert tracker.bars == SCOPE                            # as the title showed it before
+    for frame in range(3):
+        tracker.update((0, 0, 47, 46), 30.0 + frame)
+    assert tracker.bars == (0, 0, 47, 46)                   # outvoted from the start
+
+
 def test_a_change_of_framing_has_to_last_too():
     tracker = BarTracker()
     confirmed(tracker, SCOPE)

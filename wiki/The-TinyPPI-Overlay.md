@@ -112,6 +112,12 @@ on and has no setting:
   centred, so bars that measure differently are split evenly: `0 | 0 | 260 | 260`,
   not `0 | 0 | 264 | 256`. A line of the capture is four rows of a UHD frame,
   so the usual bars of 276 or 280 rows are measured to the pixel.
+- **Every edge is the value most frames have measured.** The scaler blurs a
+  bar's edge, so a single frame can read it a line early or late, depending
+  on what the picture shows there. The reading therefore keeps counting and
+  settles on the most frequent value, so a title ends up with the same bars
+  whichever frame confirmed them first. It can move by a line in the first
+  seconds after a title or a new framing starts.
 - **A title card, a logo or credits on black are not a picture.** Lit
   content with black on all four sides is ignored (a film is letterboxed or
   pillarboxed, not both), and so is a band no film is shaped like (wider

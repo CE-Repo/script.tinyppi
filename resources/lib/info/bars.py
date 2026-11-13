@@ -344,6 +344,11 @@ class BarTracker:
     count against it, a frame that measures something else starts over.  A
     measurement within a pixel of the confirmed bars keeps them, so the
     reading does not flicker.
+
+    Such a measurement still counts: the scaler blurs a bar's edge, so a
+    frame reads it a line early or late with what the picture shows there.
+    Every edge is the value most frames have measured, so a title settles
+    on the same bars whichever frame confirmed them first.
     """
 
     def __init__(self) -> None:
@@ -353,6 +358,8 @@ class BarTracker:
         self._candidate: Bars | None = None
         self._since = 0.0
         self._hold = 0.0
+        # How often each edge of the confirmed bars measured which value.
+        self._votes: list[dict[int, int]] = [{}, {}, {}, {}]
 
     @property
     def pending(self) -> bool:
@@ -364,6 +371,7 @@ class BarTracker:
         self.bars = None
         self.shown = []
         self._candidate = None
+        self._votes = [{}, {}, {}, {}]
 
     def earlier(self) -> list[Bars]:
         """Return the framings the title has shown other than the current.
@@ -383,6 +391,7 @@ class BarTracker:
             return
         if self.bars is not None and _same(measured, self.bars):
             self._candidate = None
+            self._refine(measured, self.bars)
             return
         if self._candidate is None or not _same(measured, self._candidate):
             self._candidate = measured
@@ -392,6 +401,19 @@ class BarTracker:
         if now - self._since >= self._hold:
             self.bars = self._adopted(self._candidate)
             self._candidate = None
+            # The two frames that confirmed them have measured them.
+            self._votes = [{edge: 2} for edge in self.bars]
+
+    def _refine(self, measured: Bars, confirmed: Bars) -> None:
+        """Count *measured* and move each edge to its most measured value."""
+        refined = []
+        for votes, edge, current in zip(self._votes, measured, confirmed, strict=True):
+            votes[edge] = votes.get(edge, 0) + 1
+            # The confirmed value stands until another has more frames.
+            refined.append(edge if votes[edge] > votes.get(current, 0) else current)
+        if tuple(refined) != confirmed:
+            left, right, top, bottom = refined
+            self.bars = self.shown[self.shown.index(confirmed)] = (left, right, top, bottom)
 
     def _adopted(self, confirmed: Bars) -> Bars:
         """Return *confirmed* as the title showed it before, or note it."""
