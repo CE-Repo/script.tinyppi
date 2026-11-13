@@ -1934,3 +1934,11 @@ msgstr "Ha az RPU L5-értékei 0 | 0 | 0 | 0, helyettük a képből mért fekete
 msgctxt "#32491"
 msgid "Active Area"
 msgstr "Aktív képterület"
+
+msgctxt "#32492"
+msgid "European widescreen"
+msgstr "Európai szélesvásznú"
+
+msgctxt "#32493"
+msgid "Cinema widescreen"
+msgstr "Mozi szélesvásznú"

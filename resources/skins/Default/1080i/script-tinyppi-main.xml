@@ -424,7 +424,7 @@
                         <left>240</left>
                         <top>150</top>
                         <width>380</width>
-                        <label>$INFO[Window.Property(AspectRatioVar),,:1][COLOR $INFO[Window.Property(ImaxColorVar)]]$INFO[Window.Property(ImaxVar), (,)][/COLOR]</label>
+                        <label>$INFO[Window.Property(AspectRatioVar),,:1][COLOR $INFO[Window.Property(ImaxColorVar)]]$INFO[Window.Property(AspectFormatVar), (,)]$INFO[Window.Property(ImaxVar), (,)][/COLOR]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>

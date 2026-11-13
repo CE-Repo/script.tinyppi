@@ -258,6 +258,23 @@ def test_the_imax_badge(monkeypatch, known, enhanced, shown):
     assert properties.get_ImaxVar() == shown
 
 
+@pytest.mark.parametrize("aspect, shown", [
+    ("1.33", "4:3"), ("1.37", "Academy"), ("1.66", "#32492"), ("1.78", "16:9"),
+    ("1.85", "#32493"), ("2.00", "Univisium"), ("2.20", "70 mm"), ("2.35", "Scope"),
+    ("2.39", "Scope"), ("2.55", "CinemaScope"), ("2.76", "Ultra Panavision"),
+    ("1.43", ""), ("1.90", ""),                     # IMAX's own: the IMAX mark's
+    ("2.10", ""), ("", ""),                         # no standard ratio, no name
+])
+def test_a_standard_ratio_is_named_after_its_format(monkeypatch, aspect, shown):
+    monkeypatch.setattr(properties, "is_known_imax_title", lambda: False)
+    assert properties.get_AspectFormatVar(aspect) == shown
+
+
+def test_an_imax_film_keeps_its_imax_mark_instead_of_a_format_name(monkeypatch):
+    monkeypatch.setattr(properties, "is_known_imax_title", lambda: True)
+    assert properties.get_AspectFormatVar("2.39") == ""
+
+
 @pytest.mark.parametrize("raw, shown", [
     ("25,000", "25 Mb/s"), ("24500", "24.5 Mb/s"), ("", ""), ("n/a", ""),
 ])

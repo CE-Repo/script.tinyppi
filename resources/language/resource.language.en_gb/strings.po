@@ -1934,3 +1934,11 @@ msgstr ""
 msgctxt "#32491"
 msgid "Active Area"
 msgstr ""
+
+msgctxt "#32492"
+msgid "European widescreen"
+msgstr ""
+
+msgctxt "#32493"
+msgid "Cinema widescreen"
+msgstr ""

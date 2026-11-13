@@ -51,6 +51,7 @@ from info.dvinfo import (
 from info.mediasource import get_MediaSourceVar
 from info.properties import (
     get_active_area,
+    get_AspectFormatVar,
     get_AspectRatioVar,
     get_AudioBitDepthVar,
     get_AudioBitrateKBVar,
@@ -325,6 +326,8 @@ def _publish_scene_properties(window: PropertyTarget, published: dict[str, str])
         published,
         (
             ("AspectRatioVar", aspect_ratio),
+            # The format's common name behind it (Scope, 16:9, ...).
+            ("AspectFormatVar", get_AspectFormatVar(aspect_ratio)),
             # The IMAX mark behind it, lit while an IMAX scene plays.
             ("ImaxColorVar", get_ImaxColorVar(aspect_ratio)),
             ("ActiveAreaLabelVar", active_area_label),

@@ -1934,3 +1934,11 @@ msgstr "当 RPU 中的 L5 值为 0 | 0 | 0 | 0 时，改为在“有效区域”
 msgctxt "#32491"
 msgid "Active Area"
 msgstr "有效区域"
+
+msgctxt "#32492"
+msgid "European widescreen"
+msgstr "欧洲宽银幕"
+
+msgctxt "#32493"
+msgid "Cinema widescreen"
+msgstr "影院宽银幕"

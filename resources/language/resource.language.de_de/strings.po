@@ -1934,3 +1934,11 @@ msgstr "Wenn die L5-Werte aus der RPU 0 | 0 | 0 | 0 sind, werden stattdessen die
 msgctxt "#32491"
 msgid "Active Area"
 msgstr "Aktiver Bereich"
+
+msgctxt "#32492"
+msgid "European widescreen"
+msgstr "Europäisches Breitbild"
+
+msgctxt "#32493"
+msgid "Cinema widescreen"
+msgstr "Kino-Breitbild"

@@ -33,6 +33,7 @@ from core.utils import (
     home_window,
     info,
     is_effective_dv,
+    localized,
     measured_offsets,
     parse_offsets,
     picture_aspect_ratio,
@@ -259,6 +260,38 @@ def get_ImaxVar() -> str:
     if not is_known_imax_title():
         return ""
     return "IMAX Enhanced" if is_enhanced_title() else "IMAX"
+
+
+# What a standard aspect ratio is commonly called: a name, or the id of a
+# translated one.  1.43 and 1.90 are missing on purpose: they are IMAX's
+# ratios, the IMAX mark says so for a recognised film, and calling any other
+# film "IMAX" would light the IMAX badge of the dashboard and the app.
+_AR_FORMATS: dict[str, str | int] = {
+    "1.33": "4:3",
+    "1.37": "Academy",
+    "1.66": 32492,                  # European widescreen
+    "1.78": "16:9",
+    "1.85": 32493,                  # Cinema widescreen
+    "2.00": "Univisium",
+    "2.20": "70 mm",
+    "2.35": "Scope",
+    "2.39": "Scope",
+    "2.55": "CinemaScope",
+    "2.76": "Ultra Panavision",
+}
+
+
+def get_AspectFormatVar(aspect: str) -> str:
+    """Return the common name of the format with ratio *aspect*, or ''.
+
+    *aspect* is the ratio as shown in the row; only one that snapped to a
+    standard ratio has a name.  A recognised IMAX film shows its IMAX mark
+    in the same place instead (see ``get_ImaxVar``).
+    """
+    name = _AR_FORMATS.get(aspect)
+    if name is None or is_known_imax_title():
+        return ""
+    return localized(name) if isinstance(name, int) else name
 
 
 def get_VideoBitrateMBVar() -> str:

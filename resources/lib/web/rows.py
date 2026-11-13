@@ -31,7 +31,9 @@ _VIDEO = (
     (32220, (S("VideoResolutionVar"),), ()),
     (32221, (S("VideoPixelFormatVar"),), (S("DoviTunnelVar", "(", ")"),)),
     (32222, (S("VideoBitDepthVar"),), ()),
-    (32223, (S("AspectRatioVar", "", ":1"),), (S("ImaxVar", "(", ")"),)),
+    # The format's name, or the IMAX mark of an IMAX film: never both.
+    (32223, (S("AspectRatioVar", "", ":1"),),
+            (S("AspectFormatVar", "(", ")"), S("ImaxVar", "(", ")"))),
     (32224, (S("VideoDecoderNameVar"), S("VideoCodecVar")),
             (S("VideoDecoderVar", "(", ")"),)),
     (32225, (S("VideoDecoderLongVar"),), ()),

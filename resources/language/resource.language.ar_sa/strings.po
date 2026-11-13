@@ -1934,3 +1934,11 @@ msgstr "عندما تكون قيم L5 من RPU هي 0 | 0 | 0 | 0، تُعرض �
 msgctxt "#32491"
 msgid "Active Area"
 msgstr "المنطقة النشطة"
+
+msgctxt "#32492"
+msgid "European widescreen"
+msgstr "شاشة عريضة أوروبية"
+
+msgctxt "#32493"
+msgid "Cinema widescreen"
+msgstr "شاشة عريضة سينمائية"
