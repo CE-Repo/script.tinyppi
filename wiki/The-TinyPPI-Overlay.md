@@ -140,8 +140,11 @@ add-on notices once per session that no capture is available, logs
 `this Kodi build cannot capture the video`, and the row shows the ratio
 from L5 where present, Kodi's otherwise.
 
-The **L5 Active Area** row is not affected: it only ever shows what the RPU
-carries, and so does the L5 letterbox on the web dashboard.
+The active-area row follows the measurement too. With **Measure the active
+area from the picture** on (the default) it reads **Active Area** and shows the
+measured bars; without a measurement (another build, or nothing confirmed yet)
+or with the setting off it reads **L5 Active Area** and shows what the RPU
+carries. The letterbox on the web dashboard does the same.
 
 ---
 
@@ -234,7 +237,7 @@ Shown for Dolby Vision sources, next to the Dolby Vision panel.
 | **RPU MaxCLL/FALL** | `1000 l 400 cd/m²` | MaxCLL / MaxFALL from the RPU's L6 block (label **L6 MaxCLL/FALL**). |
 | **L1 Lum Min/Max/Ø** | `0.01 l 812 l 96 cd/m²` | The current frame's minimum, maximum and average luminance (L1), converted to nits. Changes with every scene. |
 | **L1 PQ Min/Max/Ø** | `62 l 3076 l 1795 12-bit` | The same L1 values as raw 12-bit PQ codes. |
-| **L5 Active Area** | `0 l 0 l 276 l 276` | The active-area offsets (left, right, top, bottom) the RPU declares — the black bars. With **Show L5 offsets icon** on, an `lrtb` icon marks the order. Changes on IMAX titles whose framing opens up. |
+| **Active Area** / **L5 Active Area** | `0 l 0 l 276 l 276` | The active-area offsets (left, right, top, bottom) — the black bars. **Active Area**: measured from the picture (canary builds, **Measure the active area from the picture** on). **L5 Active Area**: what the RPU declares, shown whenever there is no measurement. With **Show L5 offsets icon** on, an `lrtb` icon marks the order. Changes on IMAX titles whose framing opens up. |
 
 ---
 

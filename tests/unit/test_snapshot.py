@@ -417,6 +417,7 @@ def test_a_dolby_vision_title(dolby_vision):
     assert shot["hdr_type"] == "dolbyvision"
     assert shot["metrics"]["l1"] == {"min": 0.01, "max": 1000.0, "avg": 92.0}
     assert shot["metrics"]["bars"] == [0.0, 0.0, 276.0, 276.0]
+    assert shot["metrics"]["bars_measured"] is False
     ids = [group["id"] for group in shot["groups"]]
     assert "hdr" not in ids and ids.count("metadata") == 1
     # The static and the RPU readings form one Metadata card.
@@ -426,6 +427,25 @@ def test_a_dolby_vision_title(dolby_vision):
     dv = next(group for group in shot["groups"] if group["id"] == "dv")
     flags = next(row for row in dv["rows"] if row["id"] == "dv.32262")
     assert flags["value"] == "✔ | ✔"
+
+
+def test_a_dolby_vision_title_with_measured_bars(dolby_vision):
+    xbmcgui.Window(10000).setProperty("TinyPPI.MeasuredBars", "0 | 0 | 138 | 138")
+    play()
+    shot = SnapshotBuilder().build()
+    assert shot["metrics"]["bars"] == [0.0, 0.0, 138.0, 138.0]
+    assert shot["metrics"]["bars_measured"] is True
+    metadata = next(group for group in shot["groups"] if group["id"] == "metadata")
+    row = next(row for row in metadata["rows"] if row["id"] == "metadata.32271")
+    assert (row["label"], row["value"]) == ("#32491", "0 | 0 | 138 | 138")
+
+
+def test_a_dolby_vision_title_without_measured_bars_reads_l5(dolby_vision):
+    play()
+    shot = SnapshotBuilder().build()
+    metadata = next(group for group in shot["groups"] if group["id"] == "metadata")
+    row = next(row for row in metadata["rows"] if row["id"] == "metadata.32271")
+    assert (row["label"], row["value"]) == ("#32271", "0 | 0 | 276 | 276")
 
 
 def test_dolby_vision_metadata_rows(dolby_vision):

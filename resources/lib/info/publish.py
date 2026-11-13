@@ -21,6 +21,7 @@ from core.utils import (
     clean,
     home_window,
     info,
+    localized,
     read_pass,
     set_changed_properties,
 )
@@ -49,6 +50,7 @@ from info.dvinfo import (
 )
 from info.mediasource import get_MediaSourceVar
 from info.properties import (
+    get_active_area,
     get_AspectRatioVar,
     get_AudioBitDepthVar,
     get_AudioBitrateKBVar,
@@ -262,6 +264,12 @@ def update_static_properties(window: xbmcgui.Window,
         )
 
 
+# The active-area row's label: "L5 Active Area" for the RPU's offsets,
+# "Active Area" for the bars measured from the picture.
+_L5_AREA_LABEL       = 32271
+_MEASURED_AREA_LABEL = 32491
+
+
 def publish_scene_properties(window: PropertyTarget,
                              published: dict[str, str] | None = None) -> None:
     """Publish the Dolby Vision / HDR10 readings that change per scene.
@@ -286,8 +294,14 @@ def _publish_scene_properties(window: PropertyTarget, published: dict[str, str])
     # aspect ratio inside the bars.
     l5_offsets          = get_l5_offsets()
     aspect_ratio        = get_AspectRatioVar(l5_offsets)
+    # The row shows the measured bars where the build has them, else L5,
+    # and is labelled after the one it shows.
+    active_area, measured = get_active_area(l5_offsets)
+    active_area_label   = localized(
+        _MEASURED_AREA_LABEL if measured else _L5_AREA_LABEL
+    )
     l5_icon_visible     = (
-        "true" if l5_offsets and not is_status_label(l5_offsets) else "false"
+        "true" if active_area and not is_status_label(active_area) else "false"
     )
     # L1 frame luminance in nits and as PQ code words.
     l1_fll              = with_unit(separated(get_l1_nits()), unit)
@@ -313,7 +327,8 @@ def _publish_scene_properties(window: PropertyTarget, published: dict[str, str])
             ("AspectRatioVar", aspect_ratio),
             # The IMAX mark behind it, lit while an IMAX scene plays.
             ("ImaxColorVar", get_ImaxColorVar(aspect_ratio)),
-            ("DoviLevel5OffsetsVar", separated(l5_offsets)),
+            ("ActiveAreaLabelVar", active_area_label),
+            ("DoviLevel5OffsetsVar", separated(active_area)),
             ("DoviLevel5OffsetsIconVisible", l5_icon_visible),
             ("DoviCmVersionVar", get_cm_version()),
             ("DoviStructureVar", get_structure()),

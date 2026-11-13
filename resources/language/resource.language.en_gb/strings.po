@@ -1922,3 +1922,15 @@ msgstr ""
 msgctxt "#32488"
 msgid "Not in your library – opens TMDb"
 msgstr ""
+
+msgctxt "#32489"
+msgid "Measure the active area from the picture"
+msgstr ""
+
+msgctxt "#32490"
+msgid "Show the black bars measured from the picture in the \"Active Area\" row instead of the L5 values from the RPU. Needs a CoreELEC canary build; without a measurement the row falls back to \"L5 Active Area\" with the RPU's values."
+msgstr ""
+
+msgctxt "#32491"
+msgid "Active Area"
+msgstr ""

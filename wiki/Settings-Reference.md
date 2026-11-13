@@ -37,6 +37,7 @@ Launch behaviour, overlay content and position.
 | **Auto-hide** | `auto_hide` | 0 | 0 – 30 | Automatically hides the TinyPPI overlay after the selected time (in seconds). 0 = off. Does not apply to the VS10 dialog. |
 | **Show file name** | `filename` | Off | On / Off | Show the currently playing file name in TinyPPI. |
 | **Show L5 offsets icon** | `show_l5_icon` | On | On / Off | Show the L5 offsets icon (lrtb) next to the L5 values. |
+| **Measure the active area from the picture** | `measured_active_area` | On | On / Off | Show the black bars measured from the picture in the **Active Area** row instead of the L5 values from the RPU. Needs a CoreELEC canary build; without a measurement the row falls back to **L5 Active Area** with the RPU's values. |
 | **Brightness unit** | `unit_type` | cd/m² | `0` cd/m²<br>`1` nits<br>`2` Hidden | Choose the unit shown for the L6 brightness values. |
 | **Horizontal offset (SDR only)** | `offset_x` | 0 % | 0 – 100 % | Shifts the overlay to the right from its default position. 100% is the maximum shift that keeps the content on screen. |
 | **Vertical offset** | `offset_y` | 0 % | 0 – 100 % | Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen. |

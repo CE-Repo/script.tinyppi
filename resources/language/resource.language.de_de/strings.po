@@ -1922,3 +1922,15 @@ msgstr "Staffeln/Folgen"
 msgctxt "#32488"
 msgid "Not in your library – opens TMDb"
 msgstr "Nicht in deiner Bibliothek – öffnet TMDb"
+
+msgctxt "#32489"
+msgid "Measure the active area from the picture"
+msgstr "Aktiven Bereich aus dem Bild messen"
+
+msgctxt "#32490"
+msgid "Show the black bars measured from the picture in the \"Active Area\" row instead of the L5 values from the RPU. Needs a CoreELEC canary build; without a measurement the row falls back to \"L5 Active Area\" with the RPU's values."
+msgstr "Zeigt in der Zeile „Aktiver Bereich“ die aus dem Bild gemessenen schwarzen Balken statt der L5-Werte aus der RPU. Benötigt einen CoreELEC-Canary-Build; ohne Messwerte wird automatisch „L5 aktiver Bereich“ mit den RPU-Werten angezeigt."
+
+msgctxt "#32491"
+msgid "Active Area"
+msgstr "Aktiver Bereich"

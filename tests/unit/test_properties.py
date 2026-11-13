@@ -6,6 +6,7 @@
 import pytest
 
 import xbmc
+import xbmcaddon
 import xbmcgui
 from info import properties
 
@@ -176,6 +177,23 @@ def test_measured_bars_come_first(l5, is_dv, shown):
     frame()
     measured("0 | 0 | 138 | 138")
     assert properties.get_AspectRatioVar(l5, is_dv=is_dv) == shown
+
+
+def test_the_active_area_is_the_measured_one_by_default():
+    measured("0 | 0 | 138 | 138")
+    assert properties.get_active_area("0 | 0 | 140 | 140") == ("0 | 0 | 138 | 138", True)
+
+
+@pytest.mark.parametrize("bars", ["", "garbage"])
+def test_the_active_area_falls_back_to_l5_without_a_measurement(bars):
+    measured(bars)                                  # a build that cannot capture
+    assert properties.get_active_area("0 | 0 | 140 | 140") == ("0 | 0 | 140 | 140", False)
+
+
+def test_the_active_area_is_l5_with_the_setting_off():
+    measured("0 | 0 | 138 | 138")
+    xbmcaddon.SETTINGS["measured_active_area"] = "false"
+    assert properties.get_active_area("0 | 0 | 140 | 140") == ("0 | 0 | 140 | 140", False)
 
 
 def test_measured_bars_that_leave_no_picture_fall_back_to_kodi():
