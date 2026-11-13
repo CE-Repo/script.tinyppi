@@ -3,14 +3,14 @@
 
 """Measure the black bars of the playing video, all through playback.
 
-One thread in the service captures a small frame of the video twice a
+One thread in the service captures a small frame of the video twenty times a
 second (``xbmc.RenderCapture``), has ``info.bars`` measure it and publishes
 the confirmed bars as a Home-window property, in coded pixels and in the
 RPU's ``L | R | T | B`` notation.  ``info.properties`` reads it for the
 aspect ratio, ahead of the bars Dolby Vision declares in L5, in whichever
 interpreter the overlay runs.  The L5 readings themselves are not touched.
 
-It runs while a video plays, whether or not a view is open, so the reading
+It runs whenever a video plays, whether or not a view is open, so the reading
 is right the moment the overlay opens and a dark scene has a confirmed value
 to fall back on.
 
@@ -24,15 +24,35 @@ import threading
 import time
 
 import xbmc
-from core import settings
 from core.log import channel
 from core.utils import PROP_MEASURED_BARS, coded_frame, home_window
-from info.bars import BarTracker, capture_size, format_offsets, measure, scaled
-from info.framing import FramingWatch
+from info.bars import (
+    CONFIRM_SECONDS,
+    DARK_CONFIRM_SECONDS,
+    Bars,
+    BarTracker,
+    Lines,
+    bars_of,
+    capture_size,
+    crops,
+    format_offsets,
+    has_bars,
+    line_counts,
+    measure_dark,
+    picture_ratio,
+    scaled,
+    shows_again,
+)
+from info.framing import FOLLOW_INTERVAL, FramingWatch
+from info.properties import is_standard_ar
 
-# Seconds between two frames.  The reading follows a change of framing
-# within about a second (``bars.CONFIRM_FRAMES`` frames have to agree).
-SCAN_INTERVAL = 0.5
+# Seconds from one frame to the next: twenty a second.  A change of framing
+# shows ``bars.CONFIRM_SECONDS`` after it was first seen, about a sixth of a
+# second after it happened.
+SCAN_INTERVAL = 0.05
+# The shortest pause between two passes, so a slow pass leaves the
+# interpreter to Kodi's other add-ons.
+_MIN_PAUSE    = 0.005
 
 # How long one frame may take.  Kodi builds without the capture changes hold
 # the interpreter lock for this long, stalling every Python add-on.
@@ -40,13 +60,33 @@ _FRAME_TIMEOUT_MS = 300
 
 # Frames in a row that may fail before the scanner backs off, and for how
 # long.  A new title tries again at once.
-_FAILURE_LIMIT = 3
+_FAILURE_LIMIT = 10
 _RETRY_AFTER   = 60.0
-
-_SETTING = "measure_aspect_ratio"
 
 
 _log = channel("bars")
+
+
+def _known(measured: Bars | None, size: tuple[int, int]) -> Bars | None:
+    """Return *measured* when it is a framing films are made in, else None.
+
+    That is the full frame or bars that leave a standard ratio.  Anything
+    else is a title card, a fade or a logo far more often than a picture,
+    so it proves nothing.
+    """
+    if measured is None or not has_bars(measured):
+        return measured
+    return measured if is_standard_ar(picture_ratio(measured, size)) else None
+
+
+def _dark_bars(image: bytearray, size: tuple[int, int]) -> Bars | None:
+    """Return the bars of a dark frame at the start of a title.
+
+    A film that opens on black would show nothing until its first bright
+    scene.  The dark measurement is the weaker proof, so it only counts
+    when it makes a standard film ratio.
+    """
+    return _known(measure_dark(image, *size), size)
 
 
 class BarScanner(threading.Thread):
@@ -58,7 +98,9 @@ class BarScanner(threading.Thread):
         self._tracker = BarTracker()
         # Rides along on this thread: the widest framing of the title, for
         # the IMAX mark (see info.framing).  It needs no capture.
+        # It keeps its own, slower pace.
         self._framing = FramingWatch()
+        self._framing_due = 0.0
         self._capture: xbmc.RenderCapture | None = None
         # False once this Kodi build has shown that it cannot capture video.
         self._supported = True
@@ -76,17 +118,28 @@ class BarScanner(threading.Thread):
 
     def run(self) -> None:
         self._idle()
-        while not self._stopping.wait(SCAN_INTERVAL):
+        pause = SCAN_INTERVAL
+        while not self._stopping.wait(pause):
+            started = time.monotonic()
             try:
                 self._scan()
-                self._framing.follow()
+                self._follow_framing()
             except Exception as exc:
                 self._report(str(exc))
+            # The pass's own time counts towards the interval.
+            pause = max(_MIN_PAUSE, SCAN_INTERVAL - (time.monotonic() - started))
         self._idle()
         self._framing.clear()
 
+    def _follow_framing(self) -> None:
+        """Run the framing watch when its next pass is due."""
+        now = time.monotonic()
+        if now >= self._framing_due:
+            self._framing_due = now + FOLLOW_INTERVAL
+            self._framing.follow()
+
     def _report(self, error: str) -> None:
-        """Log a failing pass once, not twice a second."""
+        """Log a failing pass once, not on every pass."""
         if error != self._last_error:
             self._last_error = error
             _log(f"measuring failed: {error}", xbmc.LOGWARNING)
@@ -109,18 +162,49 @@ class BarScanner(threading.Thread):
         if image is None:
             return
 
-        self._tracker.update(measure(image, width, height))
-        self._publish_bars((width, height))
+        size = (width, height)
+        measured, hold = self._measure(image, size)
+        self._tracker.update(measured, time.monotonic(), hold)
+        self._publish_bars(size)
+
+    def _measure(self, image: bytearray, size: tuple[int, int]) -> tuple[Bars | None, float]:
+        """Return the bars a frame shows and how long they have to last."""
+        lines = line_counts(image, *size)
+        measured = _known(bars_of(lines, *size), size)
+        if measured is not None:
+            return measured, CONFIRM_SECONDS
+        returned = self._returned(lines, size)
+        if returned is not None:
+            return returned, CONFIRM_SECONDS
+        if self._tracker.bars is None:
+            return _dark_bars(image, size), DARK_CONFIRM_SECONDS
+        return None, CONFIRM_SECONDS
+
+    def _returned(self, lines: Lines, size: tuple[int, int]) -> Bars | None:
+        """Return the earlier framing of the title a frame is back at, or None.
+
+        A framing the title has shown before needs less proof: a lit edge
+        at its bars.  After a taller picture (an IMAX scene) not even that:
+        once nothing shows where the bars were, the last such framing is
+        taken, as the taller picture is no longer seen.
+        """
+        earlier = self._tracker.earlier()
+        for bars in earlier:
+            if shows_again(lines, *size, bars):
+                return bars
+        current = self._tracker.bars
+        for bars in earlier:
+            if current is not None and crops(bars, current) \
+                    and shows_again(lines, *size, bars, lit_edge=False):
+                return bars
+        return None
 
     def _wanted(self) -> bool:
-        """Return whether there is a picture to measure and a use for it.
+        """Return whether there is a picture to measure.
 
-        With the setting on every video is measured, Dolby Vision with L5
-        included.
+        Every video is measured, Dolby Vision with L5 included.
         """
-        if not self._supported or not settings.addon().getSettingBool(_SETTING):
-            return False
-        return xbmc.getCondVisibility("Player.HasVideo")
+        return self._supported and xbmc.getCondVisibility("Player.HasVideo")
 
     def _follow_title(self) -> None:
         """Start over when another title plays."""

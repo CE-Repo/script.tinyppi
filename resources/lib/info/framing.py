@@ -19,10 +19,13 @@ from core.utils import PROP_WIDEST_ASPECT, first_float, home_window
 from info.dvinfo import get_l5_offsets
 from info.properties import STANDARD_ARS, get_AspectRatioVar
 
+# Seconds between two passes (the bar scanner's thread keeps this pace).
+FOLLOW_INTERVAL = 0.5
+
 # Passes in a row a ratio has to last before it counts, so a stray reading
 # during a fade or a studio logo does not become the film's regular framing.
-# A standard film ratio counts after one second at the scanner's pace; an
-# odd one, which a stray reading usually is, only after three.
+# A standard film ratio counts after one second; an odd one, which a stray
+# reading usually is, only after three.
 SETTLE_PASSES     = 2
 ODD_SETTLE_PASSES = 6
 

@@ -143,6 +143,12 @@ STANDARD_ARS = (
 _AR_SNAP_TOLERANCE = 0.02           # relative to the standard ratio
 
 
+def is_standard_ar(ratio: float) -> bool:
+    """Return whether *ratio* is a standard one, within the tolerance."""
+    closest = min(STANDARD_ARS, key=lambda standard: abs(standard - ratio))
+    return abs(closest - ratio) <= closest * _AR_SNAP_TOLERANCE
+
+
 def _snapped_ar(ratio: float) -> str:
     """Format an aspect ratio to two decimals, snapping to a standard one."""
     closest = min(STANDARD_ARS, key=lambda standard: abs(standard - ratio))
@@ -159,8 +165,8 @@ def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
     come from, in this order:
 
     - the bars measured from the picture (``info.barscan``), once a frame
-      has confirmed them.  Only there with the setting on, on a build that
-      can capture the video;
+      has confirmed them.  Only there on a build that can capture the
+      video;
     - the RPU's active-area offsets, when they declare bars;
     - all-zero offsets in Dolby Vision, a real "no crop".  Outside Dolby
       Vision they are only dvinfo's placeholder.

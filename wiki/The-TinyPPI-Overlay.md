@@ -83,21 +83,50 @@ frames of a title the layout may switch once from SDR to the right one.
 
 Dolby Vision declares its black bars in the RPU (L5). Everything else —
 HDR10, HDR10+, HLG, SDR — carries no such information, so a letterboxed film
-reads as its 16:9 frame. With **Measure the aspect ratio from the picture**
-on (*General*, off by default), TinyPPI finds the bars in the picture itself,
-**for every format, Dolby Vision with L5 included**:
+reads as its 16:9 frame. TinyPPI therefore finds the bars in the picture
+itself, **for every format, Dolby Vision with L5 included**. This is always
+on and has no setting:
 
-- A small frame of the video (640 pixels wide, without OSD, subtitles or the
-  overlay) is captured **twice a second, all through playback**, whether or
+- A small frame of the video (480 pixels wide, without OSD, subtitles or the
+  overlay) is captured **twenty times a second, all through playback**, whether or
   not the overlay is open.
 - A frame only counts when the picture's edges are plainly lit and the bars
-  on both sides are the same size. **Two** such frames have to agree before
-  the reading changes, so a change of framing shows after about a second.
-- **A dark scene proves nothing**: black bars cannot be told from dark
+  on both sides are the same size. The bars of one axis are enough: a
+  scene that is dark on one side still shows its bars above and below, as
+  long as the picture is seen across three quarters of the width.
+  **Three frames in a row** have to agree
+  before the reading changes, so a change of framing shows after about a
+  sixth of a second.
+- **A framing the title has shown before returns on less proof.** A film
+  with IMAX scenes keeps going back to the same bars. Once they have been
+  confirmed, a later frame shows them again when they are black and the
+  picture is lit right at *one* of them — a shot with a dark top or bottom
+  no longer holds the change back.
+- **After a taller picture, black where the bars were is enough.** While an
+  IMAX scene fills the frame and a later frame shows picture but nothing
+  where the title's previous bars were, the reading goes back to that
+  previous framing. A dark IMAX shot that leaves those areas black
+  therefore reads as the regular framing until something lights them again;
+  a completely black frame changes nothing.
+- **A title card, a logo or credits on black are not a picture.** Lit
+  content with black on all four sides is ignored (a film is letterboxed or
+  pillarboxed, not both), and so is a band no film is shaped like (wider
+  than about 2.85:1 or narrower than 1.15:1).
+- **Only ratios films are made in count**: the full frame, or bars that
+  leave 1.33, 1.37, 1.43, 1.66, 1.78, 1.85, 1.90, 2.00, 2.20, 2.35, 2.39,
+  2.55 or 2.76:1 (within 2 %). Anything else — 2.62:1, say — is ignored
+  however long it lasts, and the last confirmed value stands.
+- **A title that opens on black** is measured from its black: a bar is one
+  flat value, while a film's black usually carries grain or sits a little
+  above it. Until a title has its first confirmed bars, a dark frame whose
+  outermost lines are flat counts too, if it makes a standard film ratio
+  and lasts a second. Where the film's black is as flat as its bars, the
+  reading still waits for the first bright scene.
+- Later on, **a dark scene proves nothing**: black bars cannot be told from dark
   picture. The last confirmed value stands until a brighter frame confirms
   or replaces it — the reading holds rather than guesses. The same goes for a
   subtitle burned into a bar.
-- The measured bars come first, ahead of L5. Until two bright frames have
+- The measured bars come first, ahead of L5. Until bright frames have
   confirmed them — at the start of a title — the row shows the ratio from
   L5 where there is one, and Kodi's otherwise.
 - In Dolby Vision this means that a change of framing during a dark scene
@@ -108,8 +137,8 @@ on (*General*, off by default), TinyPPI finds the bars in the picture itself,
 video layer — at the time of writing the
 [canary builds](https://github.com/ce-canary/canary). On any other build the
 add-on notices once per session that no capture is available, logs
-`this Kodi build cannot capture the video`, and the row behaves exactly as
-with the setting off: L5 where present, Kodi's ratio otherwise.
+`this Kodi build cannot capture the video`, and the row shows the ratio
+from L5 where present, Kodi's otherwise.
 
 The **L5 Active Area** row is not affected: it only ever shows what the RPU
 carries, and so does the L5 letterbox on the web dashboard.
@@ -312,7 +341,7 @@ Every color is listed in [Colors and Themes](Colors-and-Themes).
 | Scene readings (L1, L5, bitrates, FPS, queues, changed-value highlight, layout) | every 100 ms |
 | Per-title facts and CPU statistics | every 1 s |
 | Side data parsing | only when the payload changes, shared by all readers |
-| Black bars measured from the picture (when enabled) | every 500 ms while a video plays, overlay open or not |
+| Black bars measured from the picture | every 50 ms while a video plays, overlay open or not |
 
 All readings of one refresh are taken in a single pass, and a window property
 is only written when its value actually changed, so an idle refresh costs

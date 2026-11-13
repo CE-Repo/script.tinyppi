@@ -212,19 +212,23 @@ debug logging on, the `TinyPPI [bars]` lines tell what happens:
 
 | Log line | Meaning |
 |---|---|
-| `this Kodi build cannot capture the video; …` | The build has no video capture for add-ons (anything but a canary build). The ratio is shown as without the setting. Logged once per session. |
-| `no frames from the video capture; trying again every 60 s` | The capture exists but delivered nothing three times in a row. The last confirmed value stays; the next title tries again at once. |
-| `bars: 0 \| 0 \| 276 \| 276` | Newly confirmed bars (left, right, top, bottom, in coded pixels). `bars: none` when they are dropped (new title, playback end, setting off). |
+| `this Kodi build cannot capture the video; …` | The build has no video capture for add-ons (anything but a canary build). The ratio comes from L5 where present and from Kodi otherwise. Logged once per session. |
+| `no frames from the video capture; trying again every 60 s` | The capture exists but delivered nothing ten times in a row. The last confirmed value stays; the next title tries again at once. |
+| `bars: 0 \| 0 \| 276 \| 276` | Newly confirmed bars (left, right, top, bottom, in coded pixels). `bars: none` when they are dropped (new title, playback end). |
 | `measuring failed: …` | An unexpected error; logged once per distinct message. |
 
-- **Nothing changes at all**: is **Measure the aspect ratio from the
-  picture** on (it is off by default), and does the log name a build that
-  cannot capture?
+- **Nothing changes at all**: does the log name a build that cannot
+  capture? The measuring is always on and has no setting.
 - **The value stays through a dark scene**: intended — a dark frame cannot
   prove where the picture ends.
 - **The value stays although the framing changed in a bright scene**: the
   bars above and below (or left and right) have to be the same size, so a
   picture that is not centred in its frame is never confirmed.
+- **The value does not follow an unusual framing**: only the full frame
+  and standard film ratios are taken from the picture (see the list under
+  [Measured aspect ratio](The-TinyPPI-Overlay#measured-aspect-ratio)); any
+  other measurement is ignored, since a title card or a fade usually
+  measures like that.
 - **Dolby Vision**: the measured bars come ahead of L5 in the **Aspect
   ratio** row; the **L5 Active Area** row keeps showing the RPU's values, so
   the two can differ for a moment.
