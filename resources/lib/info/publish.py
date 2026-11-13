@@ -21,7 +21,6 @@ from core.utils import (
     clean,
     home_window,
     info,
-    localized,
     read_pass,
     set_changed_properties,
 )
@@ -50,7 +49,6 @@ from info.dvinfo import (
 )
 from info.mediasource import get_MediaSourceVar
 from info.properties import (
-    get_active_area,
     get_AspectFormatVar,
     get_AspectRatioVar,
     get_AudioBitDepthVar,
@@ -265,12 +263,6 @@ def update_static_properties(window: xbmcgui.Window,
         )
 
 
-# The active-area row's label: "L5 Active Area" for the RPU's offsets,
-# "Active Area" for the bars measured from the picture.
-_L5_AREA_LABEL       = 32271
-_MEASURED_AREA_LABEL = 32491
-
-
 def publish_scene_properties(window: PropertyTarget,
                              published: dict[str, str] | None = None) -> None:
     """Publish the Dolby Vision / HDR10 readings that change per scene.
@@ -297,14 +289,8 @@ def _publish_scene_properties(window: PropertyTarget, published: dict[str, str])
     aspect_ratio        = get_AspectRatioVar(l5_offsets)
     # Measured or declared by L5; if not, the ratio is only the coded frame.
     framing_known       = is_framing_known(l5_offsets)
-    # The row shows L5; where that is all zeros, the measured bars if the
-    # build has them.  It is labelled after the one it shows.
-    active_area, measured = get_active_area(l5_offsets)
-    active_area_label   = localized(
-        _MEASURED_AREA_LABEL if measured else _L5_AREA_LABEL
-    )
     l5_icon_visible     = (
-        "true" if active_area and not is_status_label(active_area) else "false"
+        "true" if l5_offsets and not is_status_label(l5_offsets) else "false"
     )
     # L1 frame luminance in nits and as PQ code words.
     l1_fll              = with_unit(separated(get_l1_nits()), unit)
@@ -332,8 +318,7 @@ def _publish_scene_properties(window: PropertyTarget, published: dict[str, str])
             ("AspectFormatVar", get_AspectFormatVar(aspect_ratio, framing_known)),
             # Or the IMAX mark, while an IMAX scene plays.
             ("ImaxVar", get_ImaxVar(aspect_ratio, framing_known)),
-            ("ActiveAreaLabelVar", active_area_label),
-            ("DoviLevel5OffsetsVar", separated(active_area)),
+            ("DoviLevel5OffsetsVar", separated(l5_offsets)),
             ("DoviLevel5OffsetsIconVisible", l5_icon_visible),
             ("DoviCmVersionVar", get_cm_version()),
             ("DoviStructureVar", get_structure()),

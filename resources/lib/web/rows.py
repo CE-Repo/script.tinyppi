@@ -79,10 +79,6 @@ _HDR_STATIC = (
     (32257, (S("Hdr10MaxCllFallVar"),), ()),
 )
 
-# The active-area row.  Its label follows what it shows: the RPU's L5
-# offsets, or the bars measured from the picture (see ``row_label``).
-ACTIVE_AREA_ROW = 32271
-
 # Dolby Vision stream facts: profile, versions and layers.
 _DOLBY_VISION = (
     (32261, (S("DoviProfileNumberVar"),), ()),
@@ -100,7 +96,7 @@ _DV_METADATA = (
     (32267, (S("DoviLevel6RpuMaxCllFallVar"),), ()),
     (32269, (S("DoviLevel1FllVar"),), ()),
     (32270, (S("DoviLevel1PqVar"),), ()),
-    (ACTIVE_AREA_ROW, (S("DoviLevel5OffsetsVar"),), ()),
+    (32271, (S("DoviLevel5OffsetsVar"),), ()),
 )
 
 
@@ -156,14 +152,6 @@ def render(segments: Iterable[tuple[str, str, str]], values: dict[str, str]) -> 
         if value:
             out.append(f"{prefix}{value}{suffix}")
     return "".join(out).strip()
-
-
-def row_label(label_id: int, values: dict[str, str]) -> str:
-    """Return a row's label, as the overlay prints it for *values*."""
-    if label_id == ACTIVE_AREA_ROW:
-        # Published with the value (see info.publish).
-        return values.get("ActiveAreaLabelVar") or localized(label_id)
-    return localized(label_id)
 
 
 def _label(string_id: int) -> str:

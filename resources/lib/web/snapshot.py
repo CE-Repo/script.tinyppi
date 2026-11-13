@@ -36,7 +36,7 @@ from info.dvinfo import (
     get_l5_offsets,
     na_label,
 )
-from info.properties import get_active_area, output_hdr_token
+from info.properties import output_hdr_token
 from info.publish import (
     publish_scene_properties,
     publish_static_properties,
@@ -65,7 +65,7 @@ from web.player import (
     player_controls,
 )
 from web.ratings import no_ratings, playing_ratings
-from web.rows import GROUPS, finish_time, is_dv_source, overlay_rows, render, row_label
+from web.rows import GROUPS, finish_time, is_dv_source, overlay_rows, render
 from web.session import SessionLog
 from web.values import clean_value, name_list, numbers, plain_text
 from web.vs10 import vs10_state
@@ -396,18 +396,16 @@ class SnapshotBuilder:
         ``_value_or``), so they are only passed for DV and when not padding.
         """
         raw_nits = get_l1_nits()
-        raw_bars, measured = get_active_area(get_l5_offsets())
+        raw_bars = get_l5_offsets()
         nits = numbers(raw_nits) if is_dv and raw_nits != L1_EMPTY else []
         bars = numbers(raw_bars) if is_dv and raw_bars != L5_EMPTY else []
         # FpsInfoVar is "input - drop" (see core.helpers.fps_display_texts).
         fps  = numbers(values.get("FpsInfoVar", ""))
         return {
             "l1": {"min": _nth(nits, 0), "max": _nth(nits, 1), "avg": _nth(nits, 2)},
-            # The active area's bars (left | right | top | bottom) and the
-            # coded frame, so the page can draw the letterbox; measured from
-            # the picture or, if not, the RPU's L5.
+            # L5 bars (left | right | top | bottom) and the coded frame, so
+            # the page can draw the letterbox.
             "bars": bars if len(bars) == 4 else None,
-            "bars_measured": measured and len(bars) == 4,
             "frame": self._frame(),
             "aspect":   _first_number(values.get("AspectRatioVar", "")),
             "fps_in":   _nth(fps, 0),
@@ -457,7 +455,7 @@ class SnapshotBuilder:
                 value = render(segments, values)
                 rendered.append({
                     "id":     f"{group_id}.{label_id}",
-                    "label":  row_label(label_id, values),
+                    "label":  localized(label_id),
                     "value":  value,
                     "detail": render(detail, values) if value else "",
                 })

@@ -86,8 +86,6 @@ class Metrics(TypedDict, total=False):
 
     l1: L1
     bars: list[float] | None
-    # The bars are measured from the picture, not the RPU's L5.
-    bars_measured: bool
     frame: FrameSize | None
     aspect: float | None
     fps_in: float | None

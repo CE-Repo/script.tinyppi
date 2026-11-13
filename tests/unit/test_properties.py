@@ -6,7 +6,6 @@
 import pytest
 
 import xbmc
-import xbmcaddon
 import xbmcgui
 from info import properties
 
@@ -177,29 +176,6 @@ def test_measured_bars_come_first(l5, is_dv, shown):
     frame()
     measured("0 | 0 | 138 | 138")
     assert properties.get_AspectRatioVar(l5, is_dv=is_dv) == shown
-
-
-def test_the_active_area_is_measured_where_l5_is_all_zeros():
-    measured("0 | 0 | 138 | 138")
-    assert properties.get_active_area("0 | 0 | 0 | 0") == ("0 | 0 | 138 | 138", True)
-
-
-@pytest.mark.parametrize("l5", ["0 | 0 | 140 | 140", "0 | 2 | 0 | 0", "N/A"])
-def test_the_active_area_is_l5_whenever_it_is_not_all_zeros(l5):
-    measured("0 | 0 | 138 | 138")
-    assert properties.get_active_area(l5) == (l5, False)
-
-
-@pytest.mark.parametrize("bars", ["", "garbage"])
-def test_the_active_area_falls_back_to_l5_without_a_measurement(bars):
-    measured(bars)                                  # a build that cannot capture
-    assert properties.get_active_area("0 | 0 | 0 | 0") == ("0 | 0 | 0 | 0", False)
-
-
-def test_the_active_area_is_l5_with_the_setting_off():
-    measured("0 | 0 | 138 | 138")
-    xbmcaddon.SETTINGS["measured_active_area"] = "false"
-    assert properties.get_active_area("0 | 0 | 0 | 0") == ("0 | 0 | 0 | 0", False)
 
 
 def test_measured_bars_that_leave_no_picture_fall_back_to_kodi():

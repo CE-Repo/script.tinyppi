@@ -1995,10 +1995,10 @@
                         <aligny>top</aligny>
                     </control>
 
-                    <!-- Active Area: measured from the picture, or L5 -->
+                    <!-- L5 Active Area -->
                     <control type="label">
                         <top>240</top>
-                        <label>$INFO[Window.Property(ActiveAreaLabelVar),,:]</label>
+                        <label>$ADDON[script.tinyppi 32271]:</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>

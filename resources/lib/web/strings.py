@@ -20,7 +20,6 @@ _UI_STRINGS = {
     "fps":           32055,   # FPS
     "chart":         32281,
     "active_area":   32271,   # L5 Active Area
-    "active_area_measured": 32491,   # Active Area (measured from the picture)
     "vs10":          32282,
     "metadata":      32080,   # Dolby Vision metadata view
     "metadata_section": 32264,  # Metadata
