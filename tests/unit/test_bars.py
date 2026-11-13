@@ -376,12 +376,12 @@ def test_bars_scale_to_the_coded_frame():
     assert bars.scaled((80, 80, 0, 0), (640, 360), (1920, 1080)) == (240, 240, 0, 0)
 
 
-def test_bars_a_captured_line_apart_scale_to_equal_ones():
+def test_the_bars_of_an_axis_scale_to_equal_ones():
     # 207 coded rows are 51.75 lines of a 540-line capture: 52 above, 51 below.
     assert bars.scaled((0, 0, 52, 51), (960, 540), (3840, 2160)) == (0, 0, 206, 206)
     assert bars.scaled((60, 61, 0, 0), (960, 540), (1920, 1080)) == (121, 121, 0, 0)
-    # Further apart they are what was measured.
-    assert bars.scaled((0, 0, 53, 51), (960, 540), (3840, 2160)) == (0, 0, 212, 204)
+    # Further apart too: never 264 above and 256 below.
+    assert bars.scaled((0, 0, 66, 64), (960, 540), (3840, 2160)) == (0, 0, 260, 260)
     # The usual bars fall on whole lines of the capture.
     assert bars.scaled((0, 0, 69, 69), (960, 540), (3840, 2160)) == (0, 0, 276, 276)
 

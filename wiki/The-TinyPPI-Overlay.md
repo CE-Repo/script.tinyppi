@@ -108,10 +108,9 @@ on and has no setting:
   previous framing. A dark IMAX shot that leaves those areas black
   therefore reads as the regular framing until something lights them again;
   a completely black frame changes nothing.
-- **Bars a captured line apart are shown as equal.** The picture is centred,
-  so a bar edge that falls inside a line of the small capture (276 rows of a
-  UHD film at 2.20:1 are 51.75 lines) is split evenly: `0 | 0 | 206 | 206`,
-  not `0 | 0 | 208 | 204`. A line of the capture is four rows of a UHD frame,
+- **The two bars of an axis are always shown as equal.** The picture is
+  centred, so bars that measure differently are split evenly: `0 | 0 | 260 | 260`,
+  not `0 | 0 | 264 | 256`. A line of the capture is four rows of a UHD frame,
   so the usual bars of 276 or 280 rows are measured to the pixel.
 - **A title card, a logo or credits on black are not a picture.** Lit
   content with black on all four sides is ignored (a film is letterboxed or

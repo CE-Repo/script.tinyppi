@@ -405,15 +405,14 @@ class BarTracker:
 
 
 def _centred(before: int, after: int) -> tuple[float, float]:
-    """Return the two bars of an axis as equal ones when a line apart.
+    """Return the two bars of an axis as two equal ones.
 
-    The picture is centred (see ``_axis_bars``), so bars that differ by one
-    captured line are an edge that falls inside a line: a UHD film's 207
-    rows (2.20:1) are 51.75 lines of the capture and can measure 52 and
-    51.  Half the sum is the bar; scaled it would read 208 and 204.
+    The picture is centred (see ``_axis_bars``), so bars that differ are an
+    edge that falls inside a line of the capture, or one the scaler has
+    blurred into the next.  Half the sum is the bar: 66 and 64 lines of a
+    540-line capture are 65 each, 260 rows of a UHD frame and not 264 and
+    256.
     """
-    if abs(before - after) != 1:
-        return before, after
     half = (before + after) / 2
     return half, half
 
@@ -421,7 +420,7 @@ def _centred(before: int, after: int) -> tuple[float, float]:
 def scaled(bars: Bars, measured_in: tuple[int, int], target: tuple[int, int]) -> Bars:
     """Return *bars* measured in a frame of one size as pixels of another.
 
-    Bars a captured line apart come out equal (see ``_centred``).
+    The two bars of an axis always come out equal (see ``_centred``).
     """
     from_w, from_h = measured_in
     to_w, to_h = target
