@@ -105,9 +105,15 @@ on and has no setting:
 - **After a taller picture, black where the bars were is enough.** While an
   IMAX scene fills the frame and a later frame shows picture but nothing
   where the title's previous bars were, the reading goes back to that
-  previous framing. A dark IMAX shot that leaves those areas black
-  therefore reads as the regular framing until something lights them again;
-  a completely black frame changes nothing.
+  previous framing. "Nothing" is the flat black of the bars: a dark IMAX
+  shot still has its grain there and keeps reading as the IMAX scene; a
+  completely black frame changes nothing.
+- **A film that opens up in the dark is followed too.** A dark IMAX scene
+  lights nothing where the bars were, but the picture there is no longer
+  their flat black. TinyPPI remembers the black of the title's bars (0 or
+  16, as the frame shows it) and takes anything above it for picture. This
+  is the weaker proof: it only counts for a framing that is taller than the
+  current one, makes a standard film ratio, and lasts half a second.
 - **The two bars of an axis are always shown as equal.** The picture is
   centred, so bars that measure differently are split evenly: `0 | 0 | 260 | 260`,
   not `0 | 0 | 264 | 256`. A line of the capture is four rows of a UHD frame,
@@ -132,8 +138,8 @@ on and has no setting:
   outermost lines are flat counts too, if it makes a standard film ratio
   and lasts a second. Where the film's black is as flat as its bars, the
   reading still waits for the first bright scene.
-- Later on, **a dark scene proves nothing**: black bars cannot be told from dark
-  picture. The last confirmed value stands until a brighter frame confirms
+- Later on, **a dark scene proves no new bars**: black bars cannot be told
+  from black picture, so only a taller picture is taken from one (see above). The last confirmed value stands until a brighter frame confirms
   or replaces it — the reading holds rather than guesses. The same goes for a
   subtitle burned into a bar.
 - The measured bars come first, ahead of L5. Until bright frames have

@@ -250,6 +250,65 @@ def test_after_an_imax_scene_black_where_the_bars_were_is_enough(canary):
     assert bars() == "0 | 0 | 0 | 0"
 
 
+def dim_picture(top=0, level=12, centre=200):
+    """A dark shot: grain far below what counts as lit, a lit band in the middle.
+
+    Above *top* lines (as in ``frame``) and below as many the frame is the
+    flat black of bars.
+    """
+    top *= 2
+    black = bytes((0, 0, 0, 255)) * WIDTH
+    dim, lit = bytes((level, level, level, 255)) * WIDTH, bytes((centre, centre, centre, 255)) * WIDTH
+    rows = HEIGHT - 2 * top
+    return bytearray(black * top + dim * (rows // 2 - 70) + lit * 140
+                     + dim * (rows - rows // 2 - 70) + black * top)
+
+
+def test_a_film_that_opens_up_in_the_dark_is_followed(canary):
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE)
+    scan(scanner, *[dim_picture()] * 4)                     # an IMAX scene, too dark to light
+    assert bars() == "0 | 0 | 280 | 280"                    # the weaker proof has to last
+    scan(scanner, *[dim_picture()] * 2)
+    assert bars() == "0 | 0 | 0 | 0"
+
+
+def test_a_dark_shot_inside_the_bars_opens_nothing_up(canary):
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE)
+    scan(scanner, *[dim_picture(top=35)] * SECOND)          # dark, but still letterboxed
+    assert bars() == "0 | 0 | 280 | 280" and not scanner._tracker.pending
+    scan(scanner, *[dim_picture(top=20)] * SECOND)          # 2.11:1, no film ratio
+    assert bars() == "0 | 0 | 280 | 280" and not scanner._tracker.pending
+
+
+def test_a_dark_imax_shot_is_not_taken_for_the_regular_framing(canary):
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE, FULL, FULL)
+    scan(scanner, *[dim_picture()] * SECOND)                # dark where the bars were, not black
+    assert bars() == "0 | 0 | 0 | 0"
+    scan(scanner, dim_picture(top=35), dim_picture(top=35))  # black there: back
+    assert bars() == "0 | 0 | 280 | 280"
+
+
+def test_a_fade_through_grey_is_not_the_black_of_the_bars(canary):
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE)
+    scan(scanner, *[frame(level=20)] * SECOND)              # one flat dark grey all over
+    assert scanner._black == 0                              # the bars' black stands
+    assert bars() == "0 | 0 | 0 | 0"                        # and grey is picture
+
+
+def test_without_a_black_seen_a_dark_frame_proves_nothing(canary):
+    scanner = BarScanner()
+    lit_border = frame()
+    scan(scanner, lit_border, lit_border)                   # the full frame, no black in it
+    assert bars() == "0 | 0 | 0 | 0" and scanner._black is None
+    noisy = bytearray(bytes((3, 9, 5, 255)) * (WIDTH * HEIGHT))     # no flat border either
+    scan(scanner, *[noisy] * SECOND)
+    assert bars() == "0 | 0 | 0 | 0" and not scanner._tracker.pending
+
+
 def test_a_black_frame_in_an_imax_scene_changes_nothing(canary):
     scanner = BarScanner()
     scan(scanner, SCOPE, SCOPE, FULL, FULL, DARK, DARK, DARK)

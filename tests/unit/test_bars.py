@@ -394,6 +394,18 @@ def test_a_reset_forgets_bars_and_candidate():
     assert tracker.bars is None
 
 
+def test_the_black_of_a_frame_is_its_flat_border():
+    def picture(border, inside=120, width=8, height=6):
+        row = bytes((border, border, border, 255)) * width
+        lit = bytes((inside, inside, inside, 255)) * width
+        return bytearray(row + lit * (height - 2) + row)
+    assert bars.black_level(picture(16), 8) == 16           # limited range
+    assert bars.black_level(picture(0), 8) == 0
+    assert bars.black_level(picture(120), 8) is None        # lit to the border
+    rows, _columns = bars.dim_lines(picture(16, inside=19), 8, 6, 16)
+    assert rows == [0, 8, 8, 8, 8, 0]                       # all that the bars are not
+
+
 # --- Into coded pixels --------------------------------------------------------
 
 def test_bars_scale_to_the_coded_frame():

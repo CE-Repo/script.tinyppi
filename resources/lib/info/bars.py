@@ -66,6 +66,8 @@ _SPAN_OF_BOXED = 75
 CONFIRM_SECONDS = 0.09
 # For a measurement of a dark frame (``measure_dark``).
 DARK_CONFIRM_SECONDS = 1.0
+# For a taller picture found in a dark frame (``dim_lines``).
+DIM_CONFIRM_SECONDS = 0.5
 
 # The picture ratios bars can leave: Academy to Ultra Panavision, with some
 # room.  A lit band outside of it (a horizon in a dark scene, a line of
@@ -171,23 +173,50 @@ def measure_dark(image: bytes | bytearray, width: int, height: int) -> Bars | No
     where the picture ends.  None when the frame has no such border, when
     its black is as flat as the bars, or when no bars come of it.
     """
-    row = width * 4
-    last = row - 4
-    top_and_bottom = image[:row] + image[-row:]
-    borders = (
-        # The first and last row, then the first and last column, colours only.
-        b"".join(top_and_bottom[channel::4] for channel in range(3)),
-        b"".join(image[start + channel::row] for start in (0, last) for channel in range(3)),
-    )
-    for colours in borders:
-        level = _flat_level(colours)
+    for level in _border_levels(image, width):
         if level is None:
             continue
-        lines = line_counts(image, width, height, level + _ABOVE_BAR)
-        found = bars_of(lines, width, height)
+        found = bars_of(dim_lines(image, width, height, level), width, height)
         if found is not None and has_bars(found):
             return found
     return None
+
+
+def _border_levels(image: bytes | bytearray, width: int) -> tuple[int | None, int | None]:
+    """Return the flat black of a frame's border rows and of its border columns.
+
+    None for a pair of borders that is not one flat, dark value.
+    """
+    row = width * 4
+    last = row - 4
+    top_and_bottom = image[:row] + image[-row:]
+    return (
+        # The first and last row, then the first and last column, colours only.
+        _flat_level(b"".join(top_and_bottom[channel::4] for channel in range(3))),
+        _flat_level(b"".join(image[start + channel::row]
+                             for start in (0, last) for channel in range(3))),
+    )
+
+
+def black_level(image: bytes | bytearray, width: int) -> int | None:
+    """Return the black a frame's bars are made of, or None without any.
+
+    The value of its border rows or columns when they are one flat, dark
+    value: black is 0 in full range and 16 in limited range, and only the
+    frame can say which.
+    """
+    levels = [level for level in _border_levels(image, width) if level is not None]
+    return min(levels) if levels else None
+
+
+def dim_lines(image: bytes | bytearray, width: int, height: int, black: int) -> Lines:
+    """Return the pixels above *black* of each row and column of a frame.
+
+    Everything a bar is not counts: a dark scene is far below what
+    ``line_counts`` takes for lit, but its grain and its lifted black are
+    still above the one flat value of a bar.
+    """
+    return line_counts(image, width, height, black + _ABOVE_BAR)
 
 
 def _flat_level(colours: bytes) -> int | None:
