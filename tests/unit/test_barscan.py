@@ -46,10 +46,9 @@ class Capture:
 
 @pytest.fixture
 def canary(monkeypatch):
-    """A canary build playing a UHD film without L5, the setting on."""
+    """A canary build playing a UHD film, the setting on."""
     Capture.frames, Capture.requests, Capture.made = [], [], 0
     monkeypatch.setattr(xbmc, "RenderCapture", Capture)
-    monkeypatch.setattr(barscan, "get_l5_offsets", lambda: "0 | 0 | 0 | 0")
     xbmcaddon.SETTINGS["measure_aspect_ratio"] = "true"
     xbmc.CONDITIONS["Player.HasVideo"] = True
     xbmc.INFO.update({"Player.FilenameAndPath": "/films/a.mkv",
@@ -127,16 +126,14 @@ def test_another_title_starts_over(canary):
 
 # --- When there is nothing to measure -----------------------------------------
 
-@pytest.mark.parametrize("reason", ["setting off", "no video", "L5 declares the bars"])
-def test_the_scanner_idles_and_clears_its_bars(canary, monkeypatch, reason):
+@pytest.mark.parametrize("reason", ["setting off", "no video"])
+def test_the_scanner_idles_and_clears_its_bars(canary, reason):
     scanner = BarScanner()
     scan(scanner, SCOPE, SCOPE)
     if reason == "setting off":
         xbmcaddon.SETTINGS["measure_aspect_ratio"] = "false"
-    elif reason == "no video":
-        xbmc.CONDITIONS["Player.HasVideo"] = False
     else:
-        monkeypatch.setattr(barscan, "get_l5_offsets", lambda: "0 | 0 | 276 | 276")
+        xbmc.CONDITIONS["Player.HasVideo"] = False
     scan(scanner)
     scan(scanner)
     assert bars() == ""
@@ -144,10 +141,17 @@ def test_the_scanner_idles_and_clears_its_bars(canary, monkeypatch, reason):
     assert scanner._capture is None
 
 
-def test_the_setting_is_on_by_default(canary):
+def test_the_setting_is_off_by_default(canary):
     del xbmcaddon.SETTINGS["measure_aspect_ratio"]
     scan(BarScanner())
-    assert canary.made == 1
+    assert canary.made == 0
+
+
+def test_dolby_vision_with_l5_is_measured_too(canary):
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE)
+    assert properties.get_AspectRatioVar("0 | 0 | 0 | 0", is_dv=True) == "2.39"
+    assert properties.get_AspectRatioVar("0 | 0 | 40 | 40", is_dv=True) == "2.39"
 
 
 # --- Builds without the capture -----------------------------------------------
@@ -156,7 +160,6 @@ def test_a_build_that_cannot_capture_is_found_out_once(canary, monkeypatch):
     monkeypatch.undo()                                      # the stub: stock Kodi
     xbmcaddon.SETTINGS["measure_aspect_ratio"] = "true"
     xbmc.CONDITIONS["Player.HasVideo"] = True
-    monkeypatch.setattr(barscan, "get_l5_offsets", lambda: "0 | 0 | 0 | 0")
     scanner = BarScanner()
     scanner._scan()
     assert info_lines() == ["TinyPPI [bars]: this Kodi build cannot capture the video; "

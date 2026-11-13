@@ -158,9 +158,10 @@ def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
     reads 1.78; scaling by the black bars gives the visible ratio.  The bars
     come from, in this order:
 
+    - the bars measured from the picture (``info.barscan``), once a frame
+      has confirmed them.  Only there with the setting on, on a build that
+      can capture the video;
     - the RPU's active-area offsets, when they declare bars;
-    - the bars measured from the picture (``info.barscan``), when there are
-      any: every format without L5, and Dolby Vision whose L5 is all zero;
     - all-zero offsets in Dolby Vision, a real "no crop".  Outside Dolby
       Vision they are only dvinfo's placeholder.
 
@@ -169,13 +170,11 @@ def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
     """
     raw = clean(info("Player.Process(videodar)"))
 
-    offsets = l5_offsets
-    if declared_bars(l5_offsets) is None:
-        measured = measured_offsets()
-        if measured:
-            offsets = measured
-        elif not _is_real_no_crop(l5_offsets, is_dv):
+    offsets = measured_offsets()
+    if not offsets:
+        if declared_bars(l5_offsets) is None and not _is_real_no_crop(l5_offsets, is_dv):
             return raw
+        offsets = l5_offsets
 
     ratio = picture_aspect_ratio(offsets)
     return _snapped_ar(ratio) if ratio is not None else raw

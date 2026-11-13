@@ -170,9 +170,9 @@ def measured(offsets):
     ("N/A", False, "2.39"),                         # no L5: the measured bars
     ("0 | 0 | 0 | 0", False, "2.39"),               # dvinfo's placeholder
     ("0 | 0 | 0 | 0", True, "2.39"),                # Dolby Vision without bars in L5
-    ("0 | 0 | 20 | 20", True, "1.85"),              # declared bars win
+    ("0 | 0 | 20 | 20", True, "2.39"),              # ahead of the bars L5 declares
 ])
-def test_measured_bars_stand_in_where_l5_declares_none(l5, is_dv, shown):
+def test_measured_bars_come_first(l5, is_dv, shown):
     frame()
     measured("0 | 0 | 138 | 138")
     assert properties.get_AspectRatioVar(l5, is_dv=is_dv) == shown

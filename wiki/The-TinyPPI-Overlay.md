@@ -75,17 +75,17 @@ frames of a title the layout may switch once from SDR to the right one.
 | **Video stream** | `3840x2160p 23.976FPS` | The decoded stream: width × height, scan type and frame rate. |
 | **Pixel format** | `10-bit (YUV 4:2:2)` | The output pixel format of the Amlogic video path (`amlogic.pixformat`). The detail `(DV Tunnel)` appears when the Dolby Vision driver runs tunnelled IPT (`dolby_vision_mode` = 1) over an 8-bit RGB link — the TV-LED Dolby Vision carriage. |
 | **Bit depth** | `12-bit` | The *source* bit depth: 12-bit for a Dolby Vision full enhancement layer (FEL), 10-bit for any other HDR format, 8-bit for SDR. |
-| **Aspect ratio** | `2.39:1 (IMAX)` | The aspect ratio of the **visible picture**. Kodi reports the coded frame (a letterboxed 2.39 film reads 1.78); TinyPPI computes the ratio inside the black bars and snaps it to the nearest standard ratio within 2 %. The bars come from the Dolby Vision RPU (L5) when it declares them, otherwise from the picture itself with **Measure the aspect ratio from the picture** on (see [Measured aspect ratio](#measured-aspect-ratio)). Detail: `IMAX` or `IMAX Enhanced` for a recognised film (see [IMAX Detection](IMAX-Detection)), lit in the *Changed values* color [while an IMAX scene plays](#the-imax-mark-during-an-imax-scene). |
+| **Aspect ratio** | `2.39:1 (IMAX)` | The aspect ratio of the **visible picture**. Kodi reports the coded frame (a letterboxed 2.39 film reads 1.78); TinyPPI computes the ratio inside the black bars and snaps it to the nearest standard ratio within 2 %. The bars come from the Dolby Vision RPU (L5), or, with **Measure the aspect ratio from the picture** on, from the picture itself for every format (see [Measured aspect ratio](#measured-aspect-ratio)). Detail: `IMAX` or `IMAX Enhanced` for a recognised film (see [IMAX Detection](IMAX-Detection)), lit in the *Changed values* color [while an IMAX scene plays](#the-imax-mark-during-an-imax-scene). |
 | **Decoder** | `AML-H.265 (HW)` | Decoder family (`AML-` Amlogic hardware decoder, `FF-` FFmpeg) and codec, with `HW`/`SW` as detail. |
 | **Decode method** | `Hardware` | Whether the video is decoded in hardware or software. |
 
 ### Measured aspect ratio
 
 Dolby Vision declares its black bars in the RPU (L5). Everything else —
-HDR10, HDR10+, HLG, SDR, and Dolby Vision whose L5 is all zero — carries no
-such information, so a letterboxed film reads as its 16:9 frame. With
-**Measure the aspect ratio from the picture** on (*General*, on by default),
-TinyPPI finds the bars in the picture itself:
+HDR10, HDR10+, HLG, SDR — carries no such information, so a letterboxed film
+reads as its 16:9 frame. With **Measure the aspect ratio from the picture**
+on (*General*, off by default), TinyPPI finds the bars in the picture itself,
+**for every format, Dolby Vision with L5 included**:
 
 - A small frame of the video (640 pixels wide, without OSD, subtitles or the
   overlay) is captured **twice a second, all through playback**, whether or
@@ -97,10 +97,12 @@ TinyPPI finds the bars in the picture itself:
   picture. The last confirmed value stands until a brighter frame confirms
   or replaces it — the reading holds rather than guesses. The same goes for a
   subtitle burned into a bar.
-- Bars the RPU declares always win; while they are present nothing is
-  captured.
-- A new title starts without a value; until the first two bright frames the
-  row shows Kodi's ratio.
+- The measured bars come first, ahead of L5. Until two bright frames have
+  confirmed them — at the start of a title — the row shows the ratio from
+  L5 where there is one, and Kodi's otherwise.
+- In Dolby Vision this means that a change of framing during a dark scene
+  shows only once a brighter frame confirms it, where L5 alone would show
+  it at once.
 
 **This needs a CoreELEC build that can capture the video** from the Amlogic
 video layer — at the time of writing the
@@ -110,7 +112,7 @@ add-on notices once per session that no capture is available, logs
 with the setting off: L5 where present, Kodi's ratio otherwise.
 
 The **L5 Active Area** row is not affected: it only ever shows what the RPU
-carries.
+carries, and so does the L5 letterbox on the web dashboard.
 
 ---
 
@@ -239,9 +241,8 @@ regular framing.
 - A film that never changes its framing has no IMAX scene and the mark stays
   in the accent color. So does a film that opens with an IMAX scene, until
   it has shown its regular framing once.
-- The aspect ratio comes from L5 or from the
-  [measured bars](#measured-aspect-ratio); without either it never changes
-  and the mark is never lit.
+- The aspect ratio comes from the [measured bars](#measured-aspect-ratio)
+  or from L5; without either it never changes and the mark is never lit.
 - The [web dashboard](Web-Dashboard) lights the mark in its **Aspect
   ratio** row the same way.
 

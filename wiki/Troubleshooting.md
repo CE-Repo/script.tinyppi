@@ -214,19 +214,20 @@ debug logging on, the `TinyPPI [bars]` lines tell what happens:
 |---|---|
 | `this Kodi build cannot capture the video; …` | The build has no video capture for add-ons (anything but a canary build). The ratio is shown as without the setting. Logged once per session. |
 | `no frames from the video capture; trying again every 60 s` | The capture exists but delivered nothing three times in a row. The last confirmed value stays; the next title tries again at once. |
-| `bars: 0 \| 0 \| 276 \| 276` | Newly confirmed bars (left, right, top, bottom, in coded pixels). `bars: none` when they are dropped (new title, playback end, setting off, L5 present). |
+| `bars: 0 \| 0 \| 276 \| 276` | Newly confirmed bars (left, right, top, bottom, in coded pixels). `bars: none` when they are dropped (new title, playback end, setting off). |
 | `measuring failed: …` | An unexpected error; logged once per distinct message. |
 
 - **Nothing changes at all**: is **Measure the aspect ratio from the
-  picture** still on (it is by default), and does the log name a build that
+  picture** on (it is off by default), and does the log name a build that
   cannot capture?
 - **The value stays through a dark scene**: intended — a dark frame cannot
   prove where the picture ends.
 - **The value stays although the framing changed in a bright scene**: the
   bars above and below (or left and right) have to be the same size, so a
   picture that is not centred in its frame is never confirmed.
-- **Dolby Vision**: bars declared in L5 are used as they are and nothing is
-  measured.
+- **Dolby Vision**: the measured bars come ahead of L5 in the **Aspect
+  ratio** row; the **L5 Active Area** row keeps showing the RPU's values, so
+  the two can differ for a moment.
 
 ---
 

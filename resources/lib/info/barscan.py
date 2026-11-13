@@ -7,8 +7,8 @@ One thread in the service captures a small frame of the video twice a
 second (``xbmc.RenderCapture``), has ``info.bars`` measure it and publishes
 the confirmed bars as a Home-window property, in coded pixels and in the
 RPU's ``L | R | T | B`` notation.  ``info.properties`` reads it for the
-aspect ratio wherever Dolby Vision declares no bars of its own, in whichever
-interpreter the overlay runs.
+aspect ratio, ahead of the bars Dolby Vision declares in L5, in whichever
+interpreter the overlay runs.  The L5 readings themselves are not touched.
 
 It runs while a video plays, whether or not a view is open, so the reading
 is right the moment the overlay opens and a dark scene has a confirmed value
@@ -26,9 +26,8 @@ import time
 import xbmc
 from core import settings
 from core.log import channel
-from core.utils import PROP_MEASURED_BARS, coded_frame, declared_bars, home_window
+from core.utils import PROP_MEASURED_BARS, coded_frame, home_window
 from info.bars import BarTracker, capture_size, format_offsets, measure, scaled
-from info.dvinfo import get_l5_offsets
 from info.framing import FramingWatch
 
 # Seconds between two frames.  The reading follows a change of framing
@@ -116,14 +115,12 @@ class BarScanner(threading.Thread):
     def _wanted(self) -> bool:
         """Return whether there is a picture to measure and a use for it.
 
-        Not while Dolby Vision declares its bars: they are exact and need
-        no capture.
+        With the setting on every video is measured, Dolby Vision with L5
+        included.
         """
         if not self._supported or not settings.addon().getSettingBool(_SETTING):
             return False
-        if not xbmc.getCondVisibility("Player.HasVideo"):
-            return False
-        return declared_bars(get_l5_offsets()) is None
+        return xbmc.getCondVisibility("Player.HasVideo")
 
     def _follow_title(self) -> None:
         """Start over when another title plays."""

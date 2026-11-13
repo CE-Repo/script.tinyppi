@@ -288,7 +288,7 @@ def run() -> None:
 
     threading.Thread(target=_warm_up, args=(monitor,), daemon=True).start()
 
-    # Measures the black bars while a video plays (idle on builds that cannot capture).
+    # Measures the black bars while a video plays (off unless enabled).
     scanner = BarScanner()
     scanner.start()
 

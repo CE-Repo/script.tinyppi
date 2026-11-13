@@ -51,10 +51,11 @@ Yes. Map one key to `NotifyAll(script.tinyppi,open_overlay)` and another to
 
 Kodi reports the coded frame (a letterboxed 2.39:1 film in a 16:9 frame reads
 1.78). For Dolby Vision, TinyPPI uses the RPU's L5 active area to compute the
-ratio of the *visible* picture. Without L5 data it shows Kodi's value — unless
-**Measure the aspect ratio from the picture** is on and your CoreELEC build
-can capture the video, in which case the bars are measured from the picture
-(see [Measured aspect ratio](The-TinyPPI-Overlay#measured-aspect-ratio)).
+ratio of the *visible* picture. Without L5 data it shows Kodi's value. With
+**Measure the aspect ratio from the picture** on and a CoreELEC build that
+can capture the video, the bars are measured from the picture instead, for
+every format (see
+[Measured aspect ratio](The-TinyPPI-Overlay#measured-aspect-ratio)).
 
 ### Why does the measured aspect ratio not change in a dark scene?
 

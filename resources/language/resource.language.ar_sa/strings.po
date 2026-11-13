@@ -1928,5 +1928,5 @@ msgid "Measure the aspect ratio from the picture"
 msgstr "قياس نسبة العرض إلى الارتفاع من الصورة"
 
 msgctxt "#32490"
-msgid "Finds the black bars in the picture itself and shows the aspect ratio inside them, live, for everything without Dolby Vision L5 metadata. Needs a CoreELEC build that can capture the video (canary builds); on other builds nothing changes. A dark scene keeps the last confirmed value."
-msgstr "يبحث عن الأشرطة السوداء في الصورة نفسها ويعرض نسبة العرض إلى الارتفاع بينها مباشرةً، لكل ما لا يحمل بيانات Dolby Vision L5. يتطلب إصدار CoreELEC قادرًا على التقاط الفيديو (إصدارات canary)؛ ولا يتغير شيء في الإصدارات الأخرى. في المشاهد المظلمة تبقى آخر قيمة مؤكدة."
+msgid "For canary builds: finds the black bars in the picture itself and shows the aspect ratio inside them, live, also where Dolby Vision L5 metadata is present. The L5 row is not affected. Needs a CoreELEC build that can capture the video; on other builds nothing changes. A dark scene keeps the last confirmed value."
+msgstr "لإصدارات canary: يبحث عن الأشرطة السوداء في الصورة نفسها ويعرض نسبة العرض إلى الارتفاع بينها مباشرةً، حتى مع وجود بيانات Dolby Vision L5. لا يتأثر صف L5. يتطلب إصدار CoreELEC قادرًا على التقاط الفيديو؛ ولا يتغير شيء في الإصدارات الأخرى. في المشاهد المظلمة تبقى آخر قيمة مؤكدة."
