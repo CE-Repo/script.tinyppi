@@ -8,15 +8,20 @@ import pytest
 import xbmc
 import xbmcaddon
 import xbmcgui
-from core.utils import PROP_MEASURED_BARS, PROP_WIDEST_ASPECT
+from core.utils import PROP_MEASURED_BARS, PROP_WIDEST_ASPECT, can_measure
 from info import barscan, properties
 from info.barscan import BarScanner
 
-WIDTH, HEIGHT = 480, 270
+WIDTH, HEIGHT = 960, 540
 
 
 def frame(top=0, bottom=0, level=200):
-    """A 480 x 270 BGRA frame with a lit picture between two bars."""
+    """A 960 x 540 BGRA frame with a lit picture between two bars.
+
+    The bars are given in lines of a frame half that size, eight to a UHD
+    frame's row.
+    """
+    top, bottom = top * 2, bottom * 2
     black, lit = bytes((0, 0, 0, 255)) * WIDTH, bytes((level, level, level, 255)) * WIDTH
     return bytearray(black * top + lit * (HEIGHT - top - bottom) + black * bottom)
 
@@ -27,8 +32,8 @@ SCOPE, FULL, DARK = frame(35, 35), frame(), frame(level=0)
 def title_card():
     """A lit title in the middle of a black frame."""
     black = bytes((0, 0, 0, 255)) * WIDTH
-    line = bytes((0, 0, 0, 255)) * 140 + bytes((40, 160, 255, 255)) * 200 + bytes((0, 0, 0, 255)) * 140
-    return bytearray(black * 95 + line * 80 + black * 95)
+    line = bytes((0, 0, 0, 255)) * 280 + bytes((40, 160, 255, 255)) * 400 + bytes((0, 0, 0, 255)) * 280
+    return bytearray(black * 190 + line * 160 + black * 190)
 
 
 def black_opening(top=35, black=20):
@@ -36,10 +41,11 @@ def black_opening(top=35, black=20):
     bar = bytes((16, 16, 16, 255)) * WIDTH
     dark = bytes((black, black, black, 255))
     plain = dark * WIDTH
-    titled = dark * 140 + bytes((40, 160, 255, 255)) * 200 + dark * 140
+    titled = dark * 280 + bytes((40, 160, 255, 255)) * 400 + dark * 280
+    top *= 2
     rows = HEIGHT - 2 * top
-    return bytearray(bar * top + plain * (rows // 2 - 20) + titled * 40
-                     + plain * (rows - rows // 2 - 20) + bar * top)
+    return bytearray(bar * top + plain * (rows // 2 - 40) + titled * 80
+                     + plain * (rows - rows // 2 - 40) + bar * top)
 
 
 def odd_letterbox():
@@ -112,8 +118,9 @@ def test_two_frames_confirm_the_bars_in_coded_pixels(canary):
     scan(scanner, SCOPE)
     assert bars() == "0 | 0 | 280 | 280"
     assert properties.get_AspectRatioVar("N/A") == "2.39"
-    assert canary.requests == [(480, 270, False)] * 2       # the video only
+    assert canary.requests == [(960, 540, False)] * 2       # the video only
     assert canary.made == 1                                 # one capture, kept
+    assert can_measure()                                    # frames arrive
 
 
 def test_a_dark_scene_keeps_the_confirmed_bars(canary):
@@ -207,6 +214,7 @@ def test_a_dark_frame_does_not_change_confirmed_bars(canary):
 def dark_topped(top=35):
     """A letterboxed picture whose upper half is dark."""
     black, lit = bytes((0, 0, 0, 255)) * WIDTH, bytes((200, 200, 200, 255)) * WIDTH
+    top *= 2
     return bytearray(black * (HEIGHT // 2) + lit * (HEIGHT // 2 - top) + black * top)
 
 
@@ -225,7 +233,7 @@ def test_a_framing_the_title_showed_before_returns_on_less_proof(canary):
 def dim_centre():
     """A letterboxed shot that is dark at both of its edges."""
     black, lit = bytes((0, 0, 0, 255)) * WIDTH, bytes((200, 200, 200, 255)) * WIDTH
-    return bytearray(black * 100 + lit * 70 + black * 100)
+    return bytearray(black * 200 + lit * 140 + black * 200)
 
 
 def test_after_an_imax_scene_black_where_the_bars_were_is_enough(canary):
@@ -240,6 +248,65 @@ def test_after_an_imax_scene_black_where_the_bars_were_is_enough(canary):
     assert bars() == "0 | 0 | 280 | 280"
     scan(scanner, FULL, FULL)                               # and lit there again
     assert bars() == "0 | 0 | 0 | 0"
+
+
+def dim_picture(top=0, level=12, centre=200):
+    """A dark shot: grain far below what counts as lit, a lit band in the middle.
+
+    Above *top* lines (as in ``frame``) and below as many the frame is the
+    flat black of bars.
+    """
+    top *= 2
+    black = bytes((0, 0, 0, 255)) * WIDTH
+    dim, lit = bytes((level, level, level, 255)) * WIDTH, bytes((centre, centre, centre, 255)) * WIDTH
+    rows = HEIGHT - 2 * top
+    return bytearray(black * top + dim * (rows // 2 - 70) + lit * 140
+                     + dim * (rows - rows // 2 - 70) + black * top)
+
+
+def test_a_film_that_opens_up_in_the_dark_is_followed(canary):
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE)
+    scan(scanner, *[dim_picture()] * 4)                     # an IMAX scene, too dark to light
+    assert bars() == "0 | 0 | 280 | 280"                    # the weaker proof has to last
+    scan(scanner, *[dim_picture()] * 2)
+    assert bars() == "0 | 0 | 0 | 0"
+
+
+def test_a_dark_shot_inside_the_bars_opens_nothing_up(canary):
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE)
+    scan(scanner, *[dim_picture(top=35)] * SECOND)          # dark, but still letterboxed
+    assert bars() == "0 | 0 | 280 | 280" and not scanner._tracker.pending
+    scan(scanner, *[dim_picture(top=20)] * SECOND)          # 2.11:1, no film ratio
+    assert bars() == "0 | 0 | 280 | 280" and not scanner._tracker.pending
+
+
+def test_a_dark_imax_shot_is_not_taken_for_the_regular_framing(canary):
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE, FULL, FULL)
+    scan(scanner, *[dim_picture()] * SECOND)                # dark where the bars were, not black
+    assert bars() == "0 | 0 | 0 | 0"
+    scan(scanner, dim_picture(top=35), dim_picture(top=35))  # black there: back
+    assert bars() == "0 | 0 | 280 | 280"
+
+
+def test_a_fade_through_grey_is_not_the_black_of_the_bars(canary):
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE)
+    scan(scanner, *[frame(level=20)] * SECOND)              # one flat dark grey all over
+    assert scanner._black == 0                              # the bars' black stands
+    assert bars() == "0 | 0 | 0 | 0"                        # and grey is picture
+
+
+def test_without_a_black_seen_a_dark_frame_proves_nothing(canary):
+    scanner = BarScanner()
+    lit_border = frame()
+    scan(scanner, lit_border, lit_border)                   # the full frame, no black in it
+    assert bars() == "0 | 0 | 0 | 0" and scanner._black is None
+    noisy = bytearray(bytes((3, 9, 5, 255)) * (WIDTH * HEIGHT))     # no flat border either
+    scan(scanner, *[noisy] * SECOND)
+    assert bars() == "0 | 0 | 0 | 0" and not scanner._tracker.pending
 
 
 def test_a_black_frame_in_an_imax_scene_changes_nothing(canary):
@@ -296,7 +363,7 @@ def test_a_build_that_cannot_capture_is_found_out_once(canary, monkeypatch):
     scanner._scan()
     scanner._scan()
     assert len(info_lines()) == 1
-    assert bars() == ""
+    assert bars() == "" and not can_measure()
     xbmc.INFO.update({"Player.Process(videowidth)": "1920", "Player.Process(videoheight)": "1080",
                       "Player.Process(videodar)": "1.78"})
     assert properties.get_AspectRatioVar("N/A") == "1.78"   # as before the feature
@@ -325,7 +392,7 @@ def test_missing_frames_back_the_scanner_off(canary):
 def test_a_frame_of_the_wrong_size_counts_as_missing(canary):
     scanner = BarScanner()
     scan(scanner, bytearray(16))
-    assert scanner._failures == 1 and bars() == ""
+    assert scanner._failures == 1 and bars() == "" and not can_measure()
 
 
 # --- The thread ---------------------------------------------------------------
@@ -338,11 +405,13 @@ def test_the_thread_clears_stale_bars_and_stops(canary, monkeypatch):
     followed = []
     monkeypatch.setattr(scanner._framing, "follow", lambda: followed.append(bars()))
     xbmcgui.Window(10000).setProperty(PROP_WIDEST_ASPECT, "2.39")
-    seen = []
+    seen, capable = [], []
+    xbmcgui.Window(10000).setProperty("TinyPPI.CanMeasure", "1")            # an earlier session
     scans = scanner._scan
 
     def stop_after_three():
         seen.append(bars())
+        capable.append(can_measure())
         Capture.frames.append(SCOPE)
         scans()
         CLOCK[0] += STEP
@@ -354,7 +423,8 @@ def test_the_thread_clears_stale_bars_and_stops(canary, monkeypatch):
     assert not scanner.is_alive()
     assert seen == ["", "", "0 | 0 | 280 | 280"]
     assert followed == ["", "0 | 0 | 280 | 280", "0 | 0 | 280 | 280"]   # after each scan
-    assert bars() == ""                                     # nothing left behind
+    assert capable == [False, True, True]                   # only once a frame arrived
+    assert bars() == "" and not can_measure()               # nothing left behind
     assert xbmcgui.Window(10000).getProperty(PROP_WIDEST_ASPECT) == ""
 
 

@@ -305,7 +305,7 @@ error.
 
 Only while a Dolby Vision title plays.
 
-- **Active picture area** — the L5 active area the RPU declares, drawn to scale
+- **Active picture area** — the L5 active area the RPU declares (**L5 Active Area**) or, where L5 is all zeros, the active area measured from the picture (**Active Area**), drawn to scale
   inside the coded frame: the letterbox as the stream describes it, changing
   with the scene on an IMAX Enhanced title.
 - **Frame luminance (L1)** — the peak and frame average on a logarithmic scale,

@@ -581,31 +581,6 @@ test("only the two per-frame L1 summaries flash when they change, and the flash 
   assert.deepEqual(flashing(), []);
 });
 
-test("the IMAX mark is lit for as long as an IMAX scene plays", async (t) => {
-  const view = open(t);
-  const { $ } = view;
-  const snapshot = (value, scene) => ({ ...PLAYING, metrics: scene === undefined ? undefined : { imax_scene: scene },
-    groups: [{ id: "video", title: "Video", rows: [
-      { id: "video.32220", label: "Video stream", value: "2160p", detail: "" },
-      { id: "video.32223", label: "Aspect ratio", value, detail: "(IMAX)" }] }] });
-  const lit = () => [...$("groups").querySelectorAll(".row.lit")].map((row) => row.querySelector(".k").textContent);
-
-  await view.state(snapshot("2.39:1", false));
-  assert.deepEqual(lit(), []);
-  await view.state(snapshot("1.78:1", true));
-  assert.deepEqual(lit(), ["Aspect ratio"]);
-  await view.state(snapshot("1.78:1", true));
-  assert.deepEqual(lit(), ["Aspect ratio"], "it stays lit, unlike a changed reading");
-  await view.state(snapshot("2.39:1", false));
-  assert.deepEqual(lit(), []);
-  // A snapshot without metrics, or without the row, lights nothing.
-  await view.state(snapshot("1.78:1", true));
-  await view.state(snapshot("1.78:1"));
-  assert.deepEqual(lit(), []);
-  await view.state({ ...PLAYING, metrics: { imax_scene: true }, groups: [] });
-  assert.deepEqual(lit(), []);
-});
-
 /* --- the library ------------------------------------------------------ */
 
 test("a box that will not be told what to play shows no shelves and reads none", async (t) => {

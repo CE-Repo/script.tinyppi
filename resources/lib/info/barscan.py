@@ -3,7 +3,7 @@
 
 """Measure the black bars of the playing video, all through playback.
 
-One thread in the service captures a small frame of the video twenty times a
+One thread in the service captures a small frame of the video ten times a
 second (``xbmc.RenderCapture``), has ``info.bars`` measure it and publishes
 the confirmed bars as a Home-window property, in coded pixels and in the
 RPU's ``L | R | T | B`` notation.  ``info.properties`` reads it for the
@@ -17,7 +17,8 @@ to fall back on.
 The capture only delivers video on CoreELEC builds that serve it from the
 Amlogic video layer (the canary builds).  Elsewhere the scanner finds that
 out once and stays idle: the property is never set and the aspect ratio is
-Kodi's, as before.
+Kodi's, as before.  A second property says that frames arrive, so the
+overlay knows whether the framing it shows is a measured one.
 """
 
 import threading
@@ -25,16 +26,19 @@ import time
 
 import xbmc
 from core.log import channel
-from core.utils import PROP_MEASURED_BARS, coded_frame, home_window
+from core.utils import PROP_CAN_MEASURE, PROP_MEASURED_BARS, coded_frame, home_window
 from info.bars import (
     CONFIRM_SECONDS,
     DARK_CONFIRM_SECONDS,
+    DIM_CONFIRM_SECONDS,
     Bars,
     BarTracker,
     Lines,
     bars_of,
+    black_level,
     capture_size,
     crops,
+    dim_lines,
     format_offsets,
     has_bars,
     line_counts,
@@ -46,10 +50,10 @@ from info.bars import (
 from info.framing import FOLLOW_INTERVAL, FramingWatch
 from info.properties import is_standard_ar
 
-# Seconds from one frame to the next: twenty a second.  A change of framing
-# shows ``bars.CONFIRM_SECONDS`` after it was first seen, about a sixth of a
-# second after it happened.
-SCAN_INTERVAL = 0.05
+# Seconds from one frame to the next: ten a second.  A change of framing
+# shows with the frame after the one it was first seen in, a tenth to a
+# fifth of a second after it happened.
+SCAN_INTERVAL = 0.1
 # The shortest pause between two passes, so a slow pass leaves the
 # interpreter to Kodi's other add-ons.
 _MIN_PAUSE    = 0.005
@@ -109,7 +113,11 @@ class BarScanner(threading.Thread):
         # The title being measured, and what the property holds (None: not
         # known, so the first pass clears what an earlier session left).
         self._source = ""
+        # The black the title's bars are made of (see ``_dim``).
+        self._black: int | None = None
         self._published: str | None = None
+        # What the can-measure property holds (None: not known).
+        self._capable: bool | None = None
         self._last_error = ""
 
     def stop(self) -> None:
@@ -118,6 +126,7 @@ class BarScanner(threading.Thread):
 
     def run(self) -> None:
         self._idle()
+        self._tell_capable(False)                   # until a frame arrives
         pause = SCAN_INTERVAL
         while not self._stopping.wait(pause):
             started = time.monotonic()
@@ -129,6 +138,7 @@ class BarScanner(threading.Thread):
             # The pass's own time counts towards the interval.
             pause = max(_MIN_PAUSE, SCAN_INTERVAL - (time.monotonic() - started))
         self._idle()
+        self._tell_capable(False)
         self._framing.clear()
 
     def _follow_framing(self) -> None:
@@ -169,24 +179,48 @@ class BarScanner(threading.Thread):
 
     def _measure(self, image: bytearray, size: tuple[int, int]) -> tuple[Bars | None, float]:
         """Return the bars a frame shows and how long they have to last."""
+        self._note_black(image, size[0])
         lines = line_counts(image, *size)
         measured = _known(bars_of(lines, *size), size)
         if measured is not None:
             return measured, CONFIRM_SECONDS
-        returned = self._returned(lines, size)
-        if returned is not None:
-            return returned, CONFIRM_SECONDS
         if self._tracker.bars is None:
             return _dark_bars(image, size), DARK_CONFIRM_SECONDS
-        return None, CONFIRM_SECONDS
+        dim = self._dim(image, size)
+        returned = self._returned(lines, dim, size)
+        if returned is not None:
+            return returned, CONFIRM_SECONDS
+        return self._opened(dim, size), DIM_CONFIRM_SECONDS
 
-    def _returned(self, lines: Lines, size: tuple[int, int]) -> Bars | None:
+    def _note_black(self, image: bytearray, width: int) -> None:
+        """Remember the black the title's bars are made of.
+
+        The lowest a frame's flat border has been in this title, so a fade
+        through grey does not pass for it.
+        """
+        black = black_level(image, width)
+        if black is not None and (self._black is None or black < self._black):
+            self._black = black
+
+    def _dim(self, image: bytearray, size: tuple[int, int]) -> Lines | None:
+        """Return what a frame shows above the black of the title's bars.
+
+        A dark scene lights nothing by ``line_counts``, yet it is not the
+        flat black of a bar.  None while no frame has shown that black.
+        """
+        if self._black is None:
+            return None
+        return dim_lines(image, *size, self._black)
+
+    def _returned(self, lines: Lines, dim: Lines | None,
+                  size: tuple[int, int]) -> Bars | None:
         """Return the earlier framing of the title a frame is back at, or None.
 
         A framing the title has shown before needs less proof: a lit edge
         at its bars.  After a taller picture (an IMAX scene) not even that:
         once nothing shows where the bars were, the last such framing is
-        taken, as the taller picture is no longer seen.
+        taken, as the taller picture is no longer seen.  Nothing at all,
+        that is (*dim*): a dark IMAX shot still has its grain there.
         """
         earlier = self._tracker.earlier()
         for bars in earlier:
@@ -195,9 +229,23 @@ class BarScanner(threading.Thread):
         current = self._tracker.bars
         for bars in earlier:
             if current is not None and crops(bars, current) \
-                    and shows_again(lines, *size, bars, lit_edge=False):
+                    and shows_again(dim or lines, *size, bars, lit_edge=False):
                 return bars
         return None
+
+    def _opened(self, dim: Lines | None, size: tuple[int, int]) -> Bars | None:
+        """Return the taller framing a dark frame shows, or None.
+
+        A film that opens up into an IMAX scene in the dark lights nothing
+        where its bars were, but the picture there is no longer their flat
+        black.  Only a framing that leaves more picture than the confirmed
+        one, and one films are made in.
+        """
+        current = self._tracker.bars
+        if dim is None or current is None:
+            return None
+        found = _known(bars_of(dim, *size), size)
+        return found if found is not None and crops(current, found) else None
 
     def _wanted(self) -> bool:
         """Return whether there is a picture to measure.
@@ -220,6 +268,7 @@ class BarScanner(threading.Thread):
         self._failures = 0
         self._retry_at = 0.0
         self._source = ""
+        self._black = None
         self._publish("")
 
     # --- Capturing ----------------------------------------------------------
@@ -233,6 +282,7 @@ class BarScanner(threading.Thread):
             capture.capture(width, height, composite=False)
         except TypeError:
             self._supported = False
+            self._tell_capable(False)
             _log("this Kodi build cannot capture the video; the aspect ratio "
                  "is shown as Kodi reports it", xbmc.LOGINFO)
             return None
@@ -242,6 +292,7 @@ class BarScanner(threading.Thread):
             self._failed()
             return None
         self._failures = 0
+        self._tell_capable(True)
         return image
 
     def _failed(self) -> None:
@@ -263,6 +314,12 @@ class BarScanner(threading.Thread):
         if bars is None or coded is None:
             return
         self._publish(format_offsets(scaled(bars, captured, coded)))
+
+    def _tell_capable(self, capable: bool) -> None:
+        """Say whether this build delivers frames, when that changes."""
+        if capable != self._capable:
+            self._capable = capable
+            home_window().setProperty(PROP_CAN_MEASURE, "1" if capable else "")
 
     def _publish(self, value: str) -> None:
         """Write the property when it changes."""

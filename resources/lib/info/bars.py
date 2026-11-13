@@ -60,12 +60,14 @@ _SOLID_LIT = 25
 # count as free of bars while the other axis has proven ones.
 _SPAN_OF_BOXED = 75
 
-# Seconds a measurement has to last before the bars change: three frames at
-# the scanner's pace, a little short of two intervals so that a frame a
+# Seconds a measurement has to last before the bars change: two frames at
+# the scanner's pace, a little short of one interval so that a frame a
 # moment early still counts.
 CONFIRM_SECONDS = 0.09
 # For a measurement of a dark frame (``measure_dark``).
 DARK_CONFIRM_SECONDS = 1.0
+# For a taller picture found in a dark frame (``dim_lines``).
+DIM_CONFIRM_SECONDS = 0.5
 
 # The picture ratios bars can leave: Academy to Ultra Panavision, with some
 # room.  A lit band outside of it (a horizon in a dark scene, a line of
@@ -73,13 +75,14 @@ DARK_CONFIRM_SECONDS = 1.0
 _NARROWEST = 1.15
 _WIDEST    = 2.85
 
-# The capture: as small as still tells 2.35:1 from 2.39:1 (three rows apart
-# at 270), so it can be read twenty times a second.  The height follows the
-# video's own ratio so the frame is not distorted.
-CAPTURE_WIDTH      = 480
-_DEFAULT_HEIGHT    = 270
-_MIN_HEIGHT        = 136
-_MAX_HEIGHT        = 480
+# The capture: a line of it is four of a UHD frame, so the usual bars (276
+# or 280 rows) are measured to the pixel, and it can still be read ten times
+# a second.  The height follows the video's own ratio so the frame is not
+# distorted.
+CAPTURE_WIDTH      = 960
+_DEFAULT_HEIGHT    = 540
+_MIN_HEIGHT        = 272
+_MAX_HEIGHT        = 960
 
 
 def capture_size(aspect: float) -> tuple[int, int]:
@@ -170,23 +173,50 @@ def measure_dark(image: bytes | bytearray, width: int, height: int) -> Bars | No
     where the picture ends.  None when the frame has no such border, when
     its black is as flat as the bars, or when no bars come of it.
     """
-    row = width * 4
-    last = row - 4
-    top_and_bottom = image[:row] + image[-row:]
-    borders = (
-        # The first and last row, then the first and last column, colours only.
-        b"".join(top_and_bottom[channel::4] for channel in range(3)),
-        b"".join(image[start + channel::row] for start in (0, last) for channel in range(3)),
-    )
-    for colours in borders:
-        level = _flat_level(colours)
+    for level in _border_levels(image, width):
         if level is None:
             continue
-        lines = line_counts(image, width, height, level + _ABOVE_BAR)
-        found = bars_of(lines, width, height)
+        found = bars_of(dim_lines(image, width, height, level), width, height)
         if found is not None and has_bars(found):
             return found
     return None
+
+
+def _border_levels(image: bytes | bytearray, width: int) -> tuple[int | None, int | None]:
+    """Return the flat black of a frame's border rows and of its border columns.
+
+    None for a pair of borders that is not one flat, dark value.
+    """
+    row = width * 4
+    last = row - 4
+    top_and_bottom = image[:row] + image[-row:]
+    return (
+        # The first and last row, then the first and last column, colours only.
+        _flat_level(b"".join(top_and_bottom[channel::4] for channel in range(3))),
+        _flat_level(b"".join(image[start + channel::row]
+                             for start in (0, last) for channel in range(3))),
+    )
+
+
+def black_level(image: bytes | bytearray, width: int) -> int | None:
+    """Return the black a frame's bars are made of, or None without any.
+
+    The value of its border rows or columns when they are one flat, dark
+    value: black is 0 in full range and 16 in limited range, and only the
+    frame can say which.
+    """
+    levels = [level for level in _border_levels(image, width) if level is not None]
+    return min(levels) if levels else None
+
+
+def dim_lines(image: bytes | bytearray, width: int, height: int, black: int) -> Lines:
+    """Return the pixels above *black* of each row and column of a frame.
+
+    Everything a bar is not counts: a dark scene is far below what
+    ``line_counts`` takes for lit, but its grain and its lifted black are
+    still above the one flat value of a bar.
+    """
+    return line_counts(image, width, height, black + _ABOVE_BAR)
 
 
 def _flat_level(colours: bytes) -> int | None:
@@ -343,6 +373,11 @@ class BarTracker:
     count against it, a frame that measures something else starts over.  A
     measurement within a pixel of the confirmed bars keeps them, so the
     reading does not flicker.
+
+    Such a measurement still counts: the scaler blurs a bar's edge, so a
+    frame reads it a line early or late with what the picture shows there.
+    Every edge is the value most frames have measured, so a title settles
+    on the same bars whichever frame confirmed them first.
     """
 
     def __init__(self) -> None:
@@ -352,6 +387,8 @@ class BarTracker:
         self._candidate: Bars | None = None
         self._since = 0.0
         self._hold = 0.0
+        # How often each edge of the confirmed bars measured which value.
+        self._votes: list[dict[int, int]] = [{}, {}, {}, {}]
 
     @property
     def pending(self) -> bool:
@@ -363,6 +400,7 @@ class BarTracker:
         self.bars = None
         self.shown = []
         self._candidate = None
+        self._votes = [{}, {}, {}, {}]
 
     def earlier(self) -> list[Bars]:
         """Return the framings the title has shown other than the current.
@@ -382,6 +420,7 @@ class BarTracker:
             return
         if self.bars is not None and _same(measured, self.bars):
             self._candidate = None
+            self._refine(measured, self.bars)
             return
         if self._candidate is None or not _same(measured, self._candidate):
             self._candidate = measured
@@ -391,6 +430,19 @@ class BarTracker:
         if now - self._since >= self._hold:
             self.bars = self._adopted(self._candidate)
             self._candidate = None
+            # The two frames that confirmed them have measured them.
+            self._votes = [{edge: 2} for edge in self.bars]
+
+    def _refine(self, measured: Bars, confirmed: Bars) -> None:
+        """Count *measured* and move each edge to its most measured value."""
+        refined = []
+        for votes, edge, current in zip(self._votes, measured, confirmed, strict=True):
+            votes[edge] = votes.get(edge, 0) + 1
+            # The confirmed value stands until another has more frames.
+            refined.append(edge if votes[edge] > votes.get(current, 0) else current)
+        if tuple(refined) != confirmed:
+            left, right, top, bottom = refined
+            self.bars = self.shown[self.shown.index(confirmed)] = (left, right, top, bottom)
 
     def _adopted(self, confirmed: Bars) -> Bars:
         """Return *confirmed* as the title showed it before, or note it."""
@@ -403,11 +455,28 @@ class BarTracker:
         return confirmed
 
 
+def _centred(before: int, after: int) -> tuple[float, float]:
+    """Return the two bars of an axis as two equal ones.
+
+    The picture is centred (see ``_axis_bars``), so bars that differ are an
+    edge that falls inside a line of the capture, or one the scaler has
+    blurred into the next.  Half the sum is the bar: 66 and 64 lines of a
+    540-line capture are 65 each, 260 rows of a UHD frame and not 264 and
+    256.
+    """
+    half = (before + after) / 2
+    return half, half
+
+
 def scaled(bars: Bars, measured_in: tuple[int, int], target: tuple[int, int]) -> Bars:
-    """Return *bars* measured in a frame of one size as pixels of another."""
+    """Return *bars* measured in a frame of one size as pixels of another.
+
+    The two bars of an axis always come out equal (see ``_centred``).
+    """
     from_w, from_h = measured_in
     to_w, to_h = target
-    left, right, top, bottom = bars
+    left, right = _centred(*bars[:2])
+    top, bottom = _centred(*bars[2:])
     return (round(left * to_w / from_w), round(right * to_w / from_w),
             round(top * to_h / from_h), round(bottom * to_h / from_h))
 

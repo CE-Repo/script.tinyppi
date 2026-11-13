@@ -424,7 +424,7 @@
                         <left>240</left>
                         <top>150</top>
                         <width>380</width>
-                        <label>$INFO[Window.Property(AspectRatioVar),,:1][COLOR $INFO[Window.Property(ImaxColorVar)]]$INFO[Window.Property(ImaxVar), (,)][/COLOR]</label>
+                        <label>$INFO[Window.Property(AspectRatioVar),,:1][COLOR $INFO[Window(10000).Property(TinyPPI.AccentColor)]]$INFO[Window.Property(AspectFormatVar), (,)]$INFO[Window.Property(ImaxVar), (,)][/COLOR]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>
@@ -1995,10 +1995,10 @@
                         <aligny>top</aligny>
                     </control>
 
-                    <!-- L5 Active Area -->
+                    <!-- Active Area: measured from the picture, or L5 -->
                     <control type="label">
                         <top>240</top>
-                        <label>$ADDON[script.tinyppi 32271]:</label>
+                        <label>$INFO[Window.Property(ActiveAreaLabelVar),,:]</label>
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.DescriptionColor)]</textcolor>
                         <aligny>top</aligny>

@@ -45,6 +45,10 @@ PROP_DV_CONVERTED = "TinyPPI.DvConverted"
 # pixels; empty while nothing is confirmed (see info.barscan).
 PROP_MEASURED_BARS = "TinyPPI.MeasuredBars"
 
+# "1" once this Kodi build has delivered a frame of the video, so the bars
+# can be measured at all (the CoreELEC canary builds; see info.barscan).
+PROP_CAN_MEASURE = "TinyPPI.CanMeasure"
+
 # The widest aspect ratio the playing title has shown so far, e.g. ``2.39``;
 # empty until one has lasted (see info.framing).
 PROP_WIDEST_ASPECT = "TinyPPI.WidestAspect"
@@ -370,6 +374,11 @@ def declared_bars(offsets: str) -> tuple[int, int, int, int] | None:
 def measured_offsets() -> str:
     """Return the bars measured from the picture, or '' (see info.barscan)."""
     return home_window().getProperty(PROP_MEASURED_BARS)
+
+
+def can_measure() -> bool:
+    """Return whether this build measures the bars (see info.barscan)."""
+    return home_window().getProperty(PROP_CAN_MEASURE) == "1"
 
 
 def widest_aspect() -> float | None:

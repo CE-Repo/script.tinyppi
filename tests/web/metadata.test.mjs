@@ -412,6 +412,22 @@ test("nothing listed is nothing to copy", async (t) => {
   assert.deepEqual(written, []);
 });
 
+test("the active picture card is named after the bars it draws", (t) => {
+  const { $, M, window } = metadataTab(t);
+  const T = window.TinyPPI.T;
+  M.strings({ ...T, active_area: "L5 Active Area", active_area_measured: "Active Area" });
+  const metrics = { bars: [0, 0, 138, 138], frame: { w: 1920, h: 1080 } };
+  M.render({ playing: true, metrics: { ...metrics, bars_measured: true } });
+  assert.equal($("frameTitle").textContent, "Active Area");
+  /* No measurement (another build, or the setting off): L5 again. */
+  M.render({ playing: true, metrics: { ...metrics, bars_measured: false } });
+  assert.equal($("frameTitle").textContent, "L5 Active Area");
+  /* A page that has not been told the measured name keeps the one it has. */
+  M.strings({ ...T, active_area: "L5 Active Area", active_area_measured: "" });
+  M.render({ playing: true, metrics: { ...metrics, bars_measured: true } });
+  assert.equal($("frameTitle").textContent, "L5 Active Area");
+});
+
 test("the strings title the cards and write the idle card again", (t) => {
   const { $, M, window } = metadataTab(t);
   const T = window.TinyPPI.T;

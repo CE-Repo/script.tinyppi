@@ -75,7 +75,7 @@ frames of a title the layout may switch once from SDR to the right one.
 | **Video stream** | `3840x2160p 23.976FPS` | The decoded stream: width × height, scan type and frame rate. |
 | **Pixel format** | `10-bit (YUV 4:2:2)` | The output pixel format of the Amlogic video path (`amlogic.pixformat`). The detail `(DV Tunnel)` appears when the Dolby Vision driver runs tunnelled IPT (`dolby_vision_mode` = 1) over an 8-bit RGB link — the TV-LED Dolby Vision carriage. |
 | **Bit depth** | `12-bit` | The *source* bit depth: 12-bit for a Dolby Vision full enhancement layer (FEL), 10-bit for any other HDR format, 8-bit for SDR. |
-| **Aspect ratio** | `2.39:1 (IMAX)` | The aspect ratio of the **visible picture**. Kodi reports the coded frame (a letterboxed 2.39 film reads 1.78); TinyPPI computes the ratio inside the black bars and snaps it to the nearest standard ratio within 2 %. The bars come from the Dolby Vision RPU (L5), or, with **Measure the aspect ratio from the picture** on, from the picture itself for every format (see [Measured aspect ratio](#measured-aspect-ratio)). Detail: `IMAX` or `IMAX Enhanced` for a recognised film (see [IMAX Detection](IMAX-Detection)), lit in the *Changed values* color [while an IMAX scene plays](#the-imax-mark-during-an-imax-scene). |
+| **Aspect ratio** | `2.39:1 (IMAX)` | The aspect ratio of the **visible picture**. Kodi reports the coded frame (a letterboxed 2.39 film reads 1.78); TinyPPI computes the ratio inside the black bars and snaps it to the nearest standard ratio within 2 %. The bars come from the Dolby Vision RPU (L5), or, with **Measure the aspect ratio from the picture** on, from the picture itself for every format (see [Measured aspect ratio](#measured-aspect-ratio)). Detail, where the framing is known (measured on a CoreELEC canary build, or bars declared by L5): the format's common name when the ratio is a standard one — `4:3` (1.33), `Academy` (1.37), `European widescreen` (1.66), `16:9` (1.78), `Cinema widescreen` (1.85), `Univisium` (2.00), `70 mm` (2.20), `Scope` (2.35 and 2.39), `CinemaScope` (2.55), `Ultra Panavision` (2.76) — or, in its place, `IMAX` or `IMAX Enhanced` [while a recognised film plays an IMAX scene](#the-imax-mark-during-an-imax-scene) (see [IMAX Detection](IMAX-Detection)). Where it is not known there is no format name, and `IMAX` / `IMAX Enhanced` stays for the whole runtime of a recognised film. |
 | **Decoder** | `AML-H.265 (HW)` | Decoder family (`AML-` Amlogic hardware decoder, `FF-` FFmpeg) and codec, with `HW`/`SW` as detail. |
 | **Decode method** | `Hardware` | Whether the video is decoded in hardware or software. |
 
@@ -87,16 +87,16 @@ reads as its 16:9 frame. TinyPPI therefore finds the bars in the picture
 itself, **for every format, Dolby Vision with L5 included**. This is always
 on and has no setting:
 
-- A small frame of the video (480 pixels wide, without OSD, subtitles or the
-  overlay) is captured **twenty times a second, all through playback**, whether or
+- A small frame of the video (960 pixels wide, without OSD, subtitles or the
+  overlay) is captured **ten times a second, all through playback**, whether or
   not the overlay is open.
 - A frame only counts when the picture's edges are plainly lit and the bars
   on both sides are the same size. The bars of one axis are enough: a
   scene that is dark on one side still shows its bars above and below, as
   long as the picture is seen across three quarters of the width.
-  **Three frames in a row** have to agree
-  before the reading changes, so a change of framing shows after about a
-  sixth of a second.
+  **Two frames in a row** have to agree
+  before the reading changes, so a change of framing shows after a tenth to
+  a fifth of a second.
 - **A framing the title has shown before returns on less proof.** A film
   with IMAX scenes keeps going back to the same bars. Once they have been
   confirmed, a later frame shows them again when they are black and the
@@ -105,9 +105,25 @@ on and has no setting:
 - **After a taller picture, black where the bars were is enough.** While an
   IMAX scene fills the frame and a later frame shows picture but nothing
   where the title's previous bars were, the reading goes back to that
-  previous framing. A dark IMAX shot that leaves those areas black
-  therefore reads as the regular framing until something lights them again;
-  a completely black frame changes nothing.
+  previous framing. "Nothing" is the flat black of the bars: a dark IMAX
+  shot still has its grain there and keeps reading as the IMAX scene; a
+  completely black frame changes nothing.
+- **A film that opens up in the dark is followed too.** A dark IMAX scene
+  lights nothing where the bars were, but the picture there is no longer
+  their flat black. TinyPPI remembers the black of the title's bars (0 or
+  16, as the frame shows it) and takes anything above it for picture. This
+  is the weaker proof: it only counts for a framing that is taller than the
+  current one, makes a standard film ratio, and lasts half a second.
+- **The two bars of an axis are always shown as equal.** The picture is
+  centred, so bars that measure differently are split evenly: `0 | 0 | 260 | 260`,
+  not `0 | 0 | 264 | 256`. A line of the capture is four rows of a UHD frame,
+  so the usual bars of 276 or 280 rows are measured to the pixel.
+- **Every edge is the value most frames have measured.** The scaler blurs a
+  bar's edge, so a single frame can read it a line early or late, depending
+  on what the picture shows there. The reading therefore keeps counting and
+  settles on the most frequent value, so a title ends up with the same bars
+  whichever frame confirmed them first. It can move by a line in the first
+  seconds after a title or a new framing starts.
 - **A title card, a logo or credits on black are not a picture.** Lit
   content with black on all four sides is ignored (a film is letterboxed or
   pillarboxed, not both), and so is a band no film is shaped like (wider
@@ -122,8 +138,8 @@ on and has no setting:
   outermost lines are flat counts too, if it makes a standard film ratio
   and lasts a second. Where the film's black is as flat as its bars, the
   reading still waits for the first bright scene.
-- Later on, **a dark scene proves nothing**: black bars cannot be told from dark
-  picture. The last confirmed value stands until a brighter frame confirms
+- Later on, **a dark scene proves no new bars**: black bars cannot be told
+  from black picture, so only a taller picture is taken from one (see above). The last confirmed value stands until a brighter frame confirms
   or replaces it — the reading holds rather than guesses. The same goes for a
   subtitle burned into a bar.
 - The measured bars come first, ahead of L5. Until bright frames have
@@ -140,8 +156,12 @@ add-on notices once per session that no capture is available, logs
 `this Kodi build cannot capture the video`, and the row shows the ratio
 from L5 where present, Kodi's otherwise.
 
-The **L5 Active Area** row is not affected: it only ever shows what the RPU
-carries, and so does the L5 letterbox on the web dashboard.
+The active-area row prefers L5: bars the RPU declares are always shown as
+**L5 Active Area**. Only where L5 is `0 | 0 | 0 | 0`, and with **Measure the
+active area from the picture** on (the default), the row reads **Active Area**
+and shows the measured bars; without a measurement (another build, or nothing
+confirmed yet) or with the setting off it stays **L5 Active Area**. The
+letterbox on the web dashboard does the same.
 
 ---
 
@@ -234,7 +254,7 @@ Shown for Dolby Vision sources, next to the Dolby Vision panel.
 | **RPU MaxCLL/FALL** | `1000 l 400 cd/m²` | MaxCLL / MaxFALL from the RPU's L6 block (label **L6 MaxCLL/FALL**). |
 | **L1 Lum Min/Max/Ø** | `0.01 l 812 l 96 cd/m²` | The current frame's minimum, maximum and average luminance (L1), converted to nits. Changes with every scene. |
 | **L1 PQ Min/Max/Ø** | `62 l 3076 l 1795 12-bit` | The same L1 values as raw 12-bit PQ codes. |
-| **L5 Active Area** | `0 l 0 l 276 l 276` | The active-area offsets (left, right, top, bottom) the RPU declares — the black bars. With **Show L5 offsets icon** on, an `lrtb` icon marks the order. Changes on IMAX titles whose framing opens up. |
+| **Active Area** / **L5 Active Area** | `0 l 0 l 276 l 276` | The active-area offsets (left, right, top, bottom) — the black bars. **L5 Active Area**: what the RPU declares, always shown when it declares bars. **Active Area**: measured from the picture, only where L5 is all zeros (canary builds, **Measure the active area from the picture** on). With **Show L5 offsets icon** on, an `lrtb` icon marks the order. Changes on IMAX titles whose framing opens up. |
 
 ---
 
@@ -255,24 +275,28 @@ metadata view has its own pair under **Settings → DV metadata**.
 
 ### The IMAX mark during an IMAX scene
 
-The `(IMAX)` / `(IMAX Enhanced)` mark behind the aspect ratio uses the same
-color, but not the duration: it is lit **for as long as an IMAX scene
-lasts** and returns to the accent color when the film goes back to its
-regular framing.
+The `(IMAX)` / `(IMAX Enhanced)` mark behind the aspect ratio shows **only
+while a recognised IMAX film plays one of its IMAX scenes**. During the
+film's regular framing (2.39:1, say) the row names that format instead —
+`2.39:1 (Scope)`.
 
-- TinyPPI follows the aspect ratio all through playback, overlay open or
-  not, and remembers the **widest** one the title has shown for at least
-  one second — the film's regular framing (2.39:1, say). A ratio that is
-  not a standard film ratio has to last three seconds, so a stray reading
-  during a fade or a studio logo is not taken for it.
-- While the picture is clearly taller than that (1.78:1 or 1.90:1 against
-  2.39:1), the mark is lit.
-- A film that never changes its framing has no IMAX scene and the mark stays
-  in the accent color. So does a film that opens with an IMAX scene, until
-  it has shown its regular framing once.
-- The aspect ratio comes from the [measured bars](#measured-aspect-ratio)
-  or from L5; without either it never changes and the mark is never lit.
-- The [web dashboard](Web-Dashboard) lights the mark in its **Aspect
+- An IMAX scene is a picture in one of IMAX's own ratios: **1.90:1 or
+  taller** (1.90, 1.78, 1.43). A film that is 1.90:1 all through shows the
+  mark all through.
+- A picture clearly taller than the title's regular framing counts too.
+  For that TinyPPI follows the aspect ratio all through playback, overlay
+  open or not, and remembers the **widest** one the title has shown for at
+  least one second. A ratio that is not a standard film ratio has to last
+  three seconds, so a stray reading during a fade or a studio logo is not
+  taken for it.
+- **Only where the framing is known**: on a build that measures the bars
+  (the CoreELEC canary builds; see
+  [Measured aspect ratio](#measured-aspect-ratio)), or while the RPU's L5
+  declares bars. Otherwise the row shows Kodi's coded frame — also for an
+  L5 of `0 | 0 | 0 | 0`, which is often just a missing one — so the mark
+  describes the film and stays for the whole runtime, and no format name
+  is shown.
+- The [web dashboard](Web-Dashboard) shows the mark in its **Aspect
   ratio** row the same way.
 
 ---

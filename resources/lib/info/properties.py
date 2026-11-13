@@ -10,6 +10,7 @@ subtitles and system.
 import math
 import re
 
+from core import settings
 from core.helpers import format_fps, normalize_fps
 from core.maps import (
     AUDIO_CODEC_MAP,
@@ -25,6 +26,7 @@ from core.maps import (
 )
 from core.memo import KeyedMemo
 from core.utils import (
+    can_measure,
     clean,
     cond,
     declared_bars,
@@ -32,6 +34,7 @@ from core.utils import (
     home_window,
     info,
     is_effective_dv,
+    localized,
     measured_offsets,
     parse_offsets,
     picture_aspect_ratio,
@@ -186,6 +189,23 @@ def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
     return _snapped_ar(ratio) if ratio is not None else raw
 
 
+def get_active_area(l5_offsets: str) -> tuple[str, bool]:
+    """Return the active-area offsets to show and whether they are measured.
+
+    Bars the RPU declares in *l5_offsets* always come first.  Only where
+    L5 is all zeros, and with ``measured_active_area`` on (the default),
+    the bars measured from the picture (``info.barscan``) stand in.  Only a
+    build that can capture the video has them; without them the zeros of
+    L5 are shown as before.
+    """
+    if (parse_offsets(l5_offsets) == (0, 0, 0, 0)
+            and settings.addon().getSetting("measured_active_area") != "false"):
+        offsets = measured_offsets()
+        if parse_offsets(offsets) is not None:
+            return offsets, True
+    return l5_offsets, False
+
+
 def _is_real_no_crop(l5_offsets: str, is_dv: bool | None) -> bool:
     """Return whether all-zero offsets mean a picture that fills the frame."""
     if parse_offsets(l5_offsets) is None:
@@ -193,54 +213,92 @@ def _is_real_no_crop(l5_offsets: str, is_dv: bool | None) -> bool:
     return is_effective_dv() if is_dv is None else is_dv
 
 
-# The colours of the IMAX mark behind the aspect ratio (see ui.theme): the
-# accent colour, and the changed-value colour while an IMAX scene plays.
-_ACCENT_COLOR  = "TinyPPI.AccentColor"
-_CHANGED_COLOR = "TinyPPI.OutputChangedColor"
-
 # An IMAX scene is at least this much taller than the film's regular
 # framing: 2.39 -> 1.90 and 2.20 -> 1.78 are a fifth apart, two neighbouring
 # standard ratios (2.35 and 2.39) a fiftieth.
 _IMAX_SCENE_BELOW = 0.9
+# The widest picture IMAX itself is shown in (1.90:1; 1.78 and 1.43 are
+# taller), with the room the snapping leaves.
+_IMAX_WIDEST = 1.92
+
+
+def is_framing_known(l5_offsets: str) -> bool:
+    """Return whether the aspect ratio shown is that of the picture.
+
+    It is on a build that measures the bars, and where the RPU's
+    *l5_offsets* declare them.  Otherwise the ratio is Kodi's coded frame
+    (all-zero offsets included: they are often just a missing L5), which
+    says nothing about the framing on screen.
+    """
+    return can_measure() or declared_bars(l5_offsets) is not None
 
 
 def is_imax_scene(aspect: str) -> bool:
     """Return whether an IMAX film is showing one of its IMAX scenes.
 
-    True while the picture (*aspect*, as shown in the row) is clearly taller
-    than the widest framing the title has shown so far.  A film that never
-    changes its framing has no such scene.
+    True while the picture (*aspect*, as shown in the row) has one of
+    IMAX's own ratios, 1.90:1 or taller, or is clearly taller than the
+    widest framing the title has shown so far.  The film's regular framing
+    (2.39:1, say) is no IMAX scene.
     """
     current = first_float(aspect)
-    widest  = widest_aspect()
-    if current is None or widest is None:
+    if current is None or not is_known_imax_title():
         return False
-    return current < widest * _IMAX_SCENE_BELOW and is_known_imax_title()
+    widest = widest_aspect()
+    return current <= _IMAX_WIDEST or (
+        widest is not None and current < widest * _IMAX_SCENE_BELOW)
 
 
-def get_ImaxColorVar(aspect: str) -> str:
-    """Return the colour of the IMAX mark: lit during an IMAX scene.
+def get_ImaxVar(aspect: str, framing_known: bool) -> str:
+    """Return ``IMAX Enhanced``, ``IMAX`` or '' for the picture on screen.
 
-    The changed-value colour for as long as the scene lasts, the accent
-    colour otherwise.
+    The film is recognised by release name or title list (see
+    ``info.imax``); the mark shows only while it plays one of its IMAX
+    scenes (see ``is_imax_scene``), not during its regular framing.
+
+    Where the framing is not known (*framing_known*, see
+    ``is_framing_known``) the mark describes the film and stays for the
+    whole runtime.
     """
-    home   = home_window()
-    accent = home.getProperty(_ACCENT_COLOR)
-    if not is_imax_scene(aspect):
-        return accent
-    return home.getProperty(_CHANGED_COLOR) or accent
-
-
-def get_ImaxVar() -> str:
-    """Return ``IMAX Enhanced``, ``IMAX`` or '' for the playing film.
-
-    Recognised by release name or title list (see ``info.imax``) and shown
-    for the whole runtime: the badge describes the film, not the current
-    framing.
-    """
-    if not is_known_imax_title():
+    if not is_known_imax_title() or (framing_known and not is_imax_scene(aspect)):
         return ""
     return "IMAX Enhanced" if is_enhanced_title() else "IMAX"
+
+
+# What a standard aspect ratio is commonly called: a name, or the id of a
+# translated one.  1.43 and 1.90 are missing on purpose: they are IMAX's
+# ratios, the IMAX mark says so for a recognised film, and calling any other
+# film "IMAX" would light the IMAX badge of the dashboard and the app.
+_AR_FORMATS: dict[str, str | int] = {
+    "1.33": "4:3",
+    "1.37": "Academy",
+    "1.66": 32492,                  # European widescreen
+    "1.78": "16:9",
+    "1.85": 32493,                  # Cinema widescreen
+    "2.00": "Univisium",
+    "2.20": "70 mm",
+    "2.35": "Scope",
+    "2.39": "Scope",
+    "2.55": "CinemaScope",
+    "2.76": "Ultra Panavision",
+}
+
+
+def get_AspectFormatVar(aspect: str, framing_known: bool) -> str:
+    """Return the common name of the format with ratio *aspect*, or ''.
+
+    *aspect* is the ratio as shown in the row; only one that snapped to a
+    standard ratio has a name.  An IMAX scene shows the IMAX mark in the
+    same place instead (see ``get_ImaxVar``).
+
+    Only where the framing is known (*framing_known*, see
+    ``is_framing_known``): elsewhere the ratio is just Kodi's coded frame,
+    and naming that would be a guess.
+    """
+    name = _AR_FORMATS.get(aspect)
+    if name is None or not framing_known or is_imax_scene(aspect):
+        return ""
+    return localized(name) if isinstance(name, int) else name
 
 
 def get_VideoBitrateMBVar() -> str:

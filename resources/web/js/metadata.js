@@ -29,6 +29,7 @@ TinyPPI.metadata = (function () {
   TinyPPI.bindDisclosure(el.frameCard, "metadata.l5", false);
   TinyPPI.bindDisclosure(el.listCard, "metadata.details", true);
 
+  let words = T;        /* the strings in force (see strings)                       */
   let state = null;
   let signature = "";   /* the list's shape, so nodes are rebuilt only when it moves */
   let live = [];        /* {node, index, field} for every reading that changes      */
@@ -88,6 +89,7 @@ TinyPPI.metadata = (function () {
       return;
     }
     el.frameCard.classList.remove("hidden");
+    frameTitle(metrics);
     const [left, right, top, bottom] = bars;
     const box = el.frameActive.parentElement;
     box.style.aspectRatio = frame.w + " / " + frame.h;
@@ -97,6 +99,13 @@ TinyPPI.metadata = (function () {
     el.frameNote.textContent =
       frame.w + "×" + frame.h + "   L " + left + "  R " + right +
       "  T " + top + "  B " + bottom;
+  }
+
+  /* The card is named after the bars it draws: measured from the picture, or
+     the RPU's L5. */
+  function frameTitle(metrics) {
+    $("frameTitle").textContent =
+      (metrics.bars_measured && words.active_area_measured) || words.active_area;
   }
 
   function build(rows) {
@@ -330,7 +339,8 @@ TinyPPI.metadata = (function () {
   /* --- strings ------------------------------------------------------------ */
 
   function strings(T) {
-    $("frameTitle").textContent = T.active_area;
+    words = T;
+    frameTitle(((state || {}).metrics) || {});
     $("metadataTitle").textContent = T.metadata_section;
     /* The idle card is written by render(); one drawn before the words arrived
        is written again with them. */

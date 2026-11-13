@@ -34,12 +34,12 @@ def measured(rows):
 # --- The capture size ---------------------------------------------------------
 
 @pytest.mark.parametrize(("aspect", "size"), [
-    (0.0, (480, 270)),                      # unknown: 16:9
-    (1.7778, (480, 270)),
-    (2.39, (480, 200)),                     # an encode cropped to the picture
-    (1.3333, (480, 360)),
-    (0.5, (480, 480)),                      # held to a sane height
-    (10.0, (480, 136)),
+    (0.0, (960, 540)),                      # unknown: 16:9
+    (1.7778, (960, 540)),
+    (2.39, (960, 402)),                     # an encode cropped to the picture
+    (1.3333, (960, 720)),
+    (0.5, (960, 960)),                      # held to a sane height
+    (10.0, (960, 272)),
 ])
 def test_the_capture_follows_the_videos_ratio(aspect, size):
     assert bars.capture_size(aspect) == size
@@ -323,6 +323,31 @@ def test_a_pixel_of_jitter_keeps_the_confirmed_bars():
     assert tracker.bars == SCOPE
 
 
+def test_each_edge_settles_on_what_most_frames_measure():
+    tracker = BarTracker()
+    confirmed(tracker, (0, 0, 68, 69))                      # a blurred edge, a line early
+    for frame in range(3):
+        tracker.update((0, 0, 69, 69), 1.0 + frame)
+    assert tracker.bars == (0, 0, 69, 69)
+    assert tracker.shown == [(0, 0, 69, 69)]                # the same framing, not a new one
+    tracker.update((0, 0, 68, 70), 5.0)                     # a frame or two do not move it
+    tracker.update((0, 0, 69, 70), 6.0)
+    assert tracker.bars == (0, 0, 69, 69)
+
+
+def test_the_count_starts_over_with_a_new_framing():
+    tracker = BarTracker()
+    confirmed(tracker, SCOPE)
+    for frame in range(5):
+        tracker.update((0, 0, 46, 46), 1.0 + frame)
+    confirmed(tracker, FULL, at=10.0)
+    confirmed(tracker, (0, 0, 47, 46), at=20.0)             # back, a line off
+    assert tracker.bars == SCOPE                            # as the title showed it before
+    for frame in range(3):
+        tracker.update((0, 0, 47, 46), 30.0 + frame)
+    assert tracker.bars == (0, 0, 47, 46)                   # outvoted from the start
+
+
 def test_a_change_of_framing_has_to_last_too():
     tracker = BarTracker()
     confirmed(tracker, SCOPE)
@@ -369,11 +394,33 @@ def test_a_reset_forgets_bars_and_candidate():
     assert tracker.bars is None
 
 
+def test_the_black_of_a_frame_is_its_flat_border():
+    def picture(border, inside=120, width=8, height=6):
+        row = bytes((border, border, border, 255)) * width
+        lit = bytes((inside, inside, inside, 255)) * width
+        return bytearray(row + lit * (height - 2) + row)
+    assert bars.black_level(picture(16), 8) == 16           # limited range
+    assert bars.black_level(picture(0), 8) == 0
+    assert bars.black_level(picture(120), 8) is None        # lit to the border
+    rows, _columns = bars.dim_lines(picture(16, inside=19), 8, 6, 16)
+    assert rows == [0, 8, 8, 8, 8, 0]                       # all that the bars are not
+
+
 # --- Into coded pixels --------------------------------------------------------
 
 def test_bars_scale_to_the_coded_frame():
     assert bars.scaled((0, 0, 46, 46), (640, 360), (3840, 2160)) == (0, 0, 276, 276)
     assert bars.scaled((80, 80, 0, 0), (640, 360), (1920, 1080)) == (240, 240, 0, 0)
+
+
+def test_the_bars_of_an_axis_scale_to_equal_ones():
+    # 207 coded rows are 51.75 lines of a 540-line capture: 52 above, 51 below.
+    assert bars.scaled((0, 0, 52, 51), (960, 540), (3840, 2160)) == (0, 0, 206, 206)
+    assert bars.scaled((60, 61, 0, 0), (960, 540), (1920, 1080)) == (121, 121, 0, 0)
+    # Further apart too: never 264 above and 256 below.
+    assert bars.scaled((0, 0, 66, 64), (960, 540), (3840, 2160)) == (0, 0, 260, 260)
+    # The usual bars fall on whole lines of the capture.
+    assert bars.scaled((0, 0, 69, 69), (960, 540), (3840, 2160)) == (0, 0, 276, 276)
 
 
 def test_bars_are_written_like_l5_offsets():

@@ -64,7 +64,6 @@ def test_a_playing_title():
         True, "Film", "00:10:00", "02:00:00")
     assert shot["finish"] == "22:15"
     assert shot["metrics"]["frame"] == {"w": 3840, "h": 2160}
-    assert shot["metrics"]["imax_scene"] is False
     assert shot["metrics"]["cpu_temp"] == 55.0 and shot["metrics"]["progress"] == 8.3
     assert shot["media"]["year"] == "2021" and shot["media"]["genre"] == "Drama"
     assert shot["media"]["tagline"] == "One night."
@@ -417,6 +416,7 @@ def test_a_dolby_vision_title(dolby_vision):
     assert shot["hdr_type"] == "dolbyvision"
     assert shot["metrics"]["l1"] == {"min": 0.01, "max": 1000.0, "avg": 92.0}
     assert shot["metrics"]["bars"] == [0.0, 0.0, 276.0, 276.0]
+    assert shot["metrics"]["bars_measured"] is False
     ids = [group["id"] for group in shot["groups"]]
     assert "hdr" not in ids and ids.count("metadata") == 1
     # The static and the RPU readings form one Metadata card.
@@ -426,6 +426,27 @@ def test_a_dolby_vision_title(dolby_vision):
     dv = next(group for group in shot["groups"] if group["id"] == "dv")
     flags = next(row for row in dv["rows"] if row["id"] == "dv.32262")
     assert flags["value"] == "✔ | ✔"
+
+
+def test_a_dolby_vision_title_with_measured_bars(dolby_vision):
+    dvinfo._snapshot()[0]["l5_offsets"] = "0 | 0 | 0 | 0"       # L5 declares none
+    xbmcgui.Window(10000).setProperty("TinyPPI.MeasuredBars", "0 | 0 | 138 | 138")
+    play()
+    shot = SnapshotBuilder().build()
+    assert shot["metrics"]["bars"] == [0.0, 0.0, 138.0, 138.0]
+    assert shot["metrics"]["bars_measured"] is True
+    metadata = next(group for group in shot["groups"] if group["id"] == "metadata")
+    row = next(row for row in metadata["rows"] if row["id"] == "metadata.32271")
+    assert (row["label"], row["value"]) == ("#32491", "0 | 0 | 138 | 138")
+
+
+def test_a_dolby_vision_title_reads_the_bars_l5_declares(dolby_vision):
+    xbmcgui.Window(10000).setProperty("TinyPPI.MeasuredBars", "0 | 0 | 138 | 138")
+    play()
+    shot = SnapshotBuilder().build()
+    metadata = next(group for group in shot["groups"] if group["id"] == "metadata")
+    row = next(row for row in metadata["rows"] if row["id"] == "metadata.32271")
+    assert (row["label"], row["value"]) == ("#32271", "0 | 0 | 276 | 276")
 
 
 def test_dolby_vision_metadata_rows(dolby_vision):
