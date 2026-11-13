@@ -10,7 +10,9 @@ what a run of frames proves.
 
 A dark frame cannot tell a black bar from dark picture, so a frame only
 counts when both edges of an axis are plainly lit and sit at the same
-distance from the frame's border.  A title card, a logo or credits on black
+distance from the frame's border.  One such axis is enough when the picture
+is seen to run on along the other, so a scene with a dark side still shows
+its bars.  A title card, a logo or credits on black
 look like a small picture; they are told apart by bars on all four sides or
 a shape no film has, and the scanner only takes ratios films are made in.
 Any such frame says nothing and the last confirmed bars stand.
@@ -45,6 +47,10 @@ _ABOVE_BAR   = 2
 # object, or a subtitle burned into a bar, does not reach.
 _SOME_LIT  = 1
 _SOLID_LIT = 25
+
+# Share of an axis, in percent, that lit picture has to span for the axis to
+# count as free of bars while the other axis has proven ones.
+_SPAN_OF_BOXED = 75
 
 # Seconds a measurement has to last before the bars change: three frames at
 # the scanner's pace, a little short of two intervals so that a frame a
@@ -176,17 +182,41 @@ def _measured(lit: bytes, width: int, height: int) -> Bars | None:
     """Return the bars a map of lit pixels proves, or None."""
     rows = [lit.count(1, start, start + width)
             for start in range(0, width * height, width)]
-    vertical = _axis_bars(rows, width)
-    if vertical is None:
-        return None
-
     columns = [lit[column::width].count(1) for column in range(width)]
+    vertical = _axis_bars(rows, width)
     horizontal = _axis_bars(columns, height)
-    if horizontal is None:
+
+    # One axis is enough when the picture is seen to run on along the other:
+    # a scene with a dark side still shows its bars above and below.
+    if vertical is None and horizontal is not None:
+        vertical = _unbarred(rows, width, boxed=max(horizontal) > _edge_slack(width))
+    elif horizontal is None and vertical is not None:
+        horizontal = _unbarred(columns, height, boxed=max(vertical) > _edge_slack(height))
+    if vertical is None or horizontal is None:
         return None
 
     found = (*horizontal, *vertical)
     return found if _is_picture(found, width, height) else None
+
+
+def _unbarred(counts: list[int], across: int, boxed: bool) -> tuple[int, int] | None:
+    """Return ``(0, 0)`` when an axis without proven bars has none, else None.
+
+    That is when lit picture reaches both borders of the frame.  Where the
+    other axis has proven bars (*boxed*), most of the way is enough: a film
+    has bars on one axis only, so a dark side is picture, not a bar.
+    """
+    some = max(1, across * _SOME_LIT // 100)
+    lines = len(counts)
+    before = _first(counts, some)
+    after  = _first(counts[::-1], some)
+    if before is None or after is None:
+        return None
+    if before <= 1 and after <= 1:
+        return 0, 0
+    if boxed and lines - before - after >= lines * _SPAN_OF_BOXED // 100:
+        return 0, 0
+    return None
 
 
 def _is_picture(bars: Bars, width: int, height: int) -> bool:

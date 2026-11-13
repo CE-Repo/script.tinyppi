@@ -95,7 +95,7 @@ def test_a_subtitle_in_the_bar_proves_nothing():
 
 def test_bars_of_different_size_prove_nothing():
     assert measured(picture(top=12, bottom=20)) is None
-    assert measured(picture(left=5, right=20)) is None
+    assert measured(picture(left=5, right=60)) is None
 
 
 def test_lit_content_with_black_on_all_sides_is_no_picture():
@@ -118,11 +118,40 @@ def test_the_ratio_of_the_picture_inside_the_bars():
     assert not bars.has_bars((0, 0, 1, 0)) and bars.has_bars((0, 0, 46, 46))
 
 
-def test_a_dark_side_of_the_picture_proves_nothing():
-    rows = picture()
-    for y in range(SIZE):
-        if not 40 <= y < 50:
-            rows[y][:20] = [0] * 20                         # lit on the left in ten rows only
+def dark_on_the_right(rows, top, bottom, lit_until, glint=None):
+    """Darken the right of the picture, but for a glint at one column."""
+    for y in range(top, SIZE - bottom):
+        rows[y][lit_until:] = [0] * (WIDTH - lit_until)
+        if glint is not None and 40 <= y < 50:
+            rows[y][glint] = 200
+    return rows
+
+
+def test_a_dark_side_of_a_letterboxed_picture_still_shows_its_bars():
+    # A cockpit: bright on the left, dark on the right but for a few lights.
+    rows = dark_on_the_right(picture(top=12, bottom=12), 12, 12, lit_until=120, glint=170)
+    assert measured(rows) == (0, 0, 12, 12)
+    rows = dark_on_the_right(picture(top=12, bottom=12), 12, 12, lit_until=120, glint=199)
+    assert measured(rows) == (0, 0, 12, 12)
+
+
+def test_a_picture_lit_on_one_half_only_proves_nothing():
+    rows = dark_on_the_right(picture(top=12, bottom=12), 12, 12, lit_until=120)
+    assert measured(rows) is None
+
+
+def test_a_dark_side_of_a_full_frame_needs_light_at_the_border():
+    rows = dark_on_the_right(picture(), 0, 0, lit_until=120, glint=199)
+    assert measured(rows) == (0, 0, 0, 0)
+    rows = dark_on_the_right(picture(), 0, 0, lit_until=120, glint=170)
+    assert measured(rows) is None                           # could be anything
+
+
+def test_a_subtitle_in_the_bar_is_not_taken_for_a_full_frame():
+    rows = picture(top=12, bottom=12)
+    rows[99][40:55] = [255] * 15                            # at the very border
+    assert measured(rows) is None
+    rows[3][40:55] = [255] * 15                             # and a logo in the other bar
     assert measured(rows) is None
 
 

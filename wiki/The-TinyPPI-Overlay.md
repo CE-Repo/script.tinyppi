@@ -91,7 +91,10 @@ on and has no setting:
   overlay) is captured **twenty times a second, all through playback**, whether or
   not the overlay is open.
 - A frame only counts when the picture's edges are plainly lit and the bars
-  on both sides are the same size. **Three frames in a row** have to agree
+  on both sides are the same size. The bars of one axis are enough: a
+  scene that is dark on one side still shows its bars above and below, as
+  long as the picture is seen across three quarters of the width.
+  **Three frames in a row** have to agree
   before the reading changes, so a change of framing shows after about a
   sixth of a second.
 - **A title card, a logo or credits on black are not a picture.** Lit
