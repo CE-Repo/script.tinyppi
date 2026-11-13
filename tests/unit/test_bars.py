@@ -6,7 +6,7 @@
 import pytest
 
 from info import bars
-from info.bars import BarTracker, measure
+from info.bars import BarTracker, measure, measure_dark
 
 SIZE  = 100         # frames are 200 x 100, so rows read as percent
 WIDTH = 200
@@ -131,6 +131,48 @@ def test_a_soft_edge_counts_from_its_first_lit_row():
     rows[11][45:55] = [200] * 10                            # the scaler's blur
     rows[88][45:55] = [200] * 10
     assert measured(rows) == (0, 0, 11, 11)
+
+
+# --- A dark frame -------------------------------------------------------------
+
+def dark_film(top=12, bottom=12, left=0, right=0, bar=16, black=19):
+    """A film's black scene between flat bars, with a bright title in it."""
+    rows = picture(left, right, top, bottom, level=black, black=bar)
+    for y in range(45, 55):
+        rows[y][80:120] = [230] * 40
+    return rows
+
+
+def dark(rows):
+    return measure_dark(image(rows), WIDTH, SIZE)
+
+
+def test_a_films_black_is_told_from_the_bars():
+    assert measured(dark_film()) is None                    # too dark for the first look
+    assert dark(dark_film()) == (0, 0, 12, 12)
+    assert dark(dark_film(bar=0, black=3)) == (0, 0, 12, 12)            # full range
+    assert dark(dark_film(top=0, bottom=0, left=24, right=24)) == (24, 24, 0, 0)
+
+
+def test_grain_is_enough():
+    rows = dark_film(black=16)
+    for y in range(12, 88):
+        rows[y][::3] = [20] * len(rows[y][::3])             # a third of the pixels
+        rows[y][-1] = 20
+    assert dark(rows) == (0, 0, 12, 12)
+
+
+def test_black_as_flat_as_the_bars_proves_nothing():
+    assert dark(dark_film(black=16)) is None                # only the title is left
+    assert dark(dark_film(black=18)) is None                # within the bar's rounding
+
+
+def test_a_dark_frame_without_a_flat_border_proves_nothing():
+    assert dark(dark_film(top=0, bottom=0)) is None         # the picture fills the frame
+    rows = dark_film()
+    rows[0][30] = 40                                        # something in the bar
+    assert dark(rows) is None
+    assert dark(dark_film(bar=60, black=70)) is None        # grey is no bar
 
 
 # --- A run of frames ----------------------------------------------------------

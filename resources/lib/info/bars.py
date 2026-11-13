@@ -15,8 +15,15 @@ look like a small picture; they are told apart by bars on all four sides, a
 shape no film has, or by not lasting.  Any such frame says nothing and the
 last confirmed bars stand.
 
+A title that opens on a minute of black would show nothing for as long.
+``measure_dark`` reads such frames: a bar is one flat value, while a film's
+black is rarely as black or as even.  It is the weaker proof, so the scanner
+only asks it until a title has its first confirmed bars.
+
 Free of Kodi imports; ``info.barscan`` feeds it the frames.
 """
+
+import functools
 
 # Left, right, top, bottom, in pixels of the frame they were measured in.
 Bars = tuple[int, int, int, int]
@@ -25,6 +32,12 @@ Bars = tuple[int, int, int, int]
 # range; a channel has to be clearly above both to count as lit.
 LIT_ABOVE = 32
 _LIT = bytes(1 if value > LIT_ABOVE else 0 for value in range(256))
+
+# For ``measure_dark``: how far the channels of a frame's border lines may
+# differ and still be one flat bar, and how far above the bar a channel has
+# to be to count as picture.
+_FLAT_WITHIN = 1
+_ABOVE_BAR   = 2
 
 # Share of a line (row or column), in percent, that has to be lit for it to
 # hold picture at all, and for it to be a solid picture edge.  The first
@@ -38,6 +51,8 @@ _SOLID_LIT = 25
 # fade usually is, has to last far longer.
 CONFIRM_SECONDS     = 0.25
 ODD_CONFIRM_SECONDS = 2.0
+# For a measurement of a dark frame (``measure_dark``).
+DARK_CONFIRM_SECONDS = 1.0
 
 # The picture ratios bars can leave: Academy to Ultra Panavision, with some
 # room.  A lit band outside of it (a horizon in a dark scene, a line of
@@ -62,16 +77,23 @@ def capture_size(aspect: float) -> tuple[int, int]:
     return CAPTURE_WIDTH, min(max(height, _MIN_HEIGHT), _MAX_HEIGHT)
 
 
-def lit_map(image: bytes | bytearray, pixels: int) -> bytes:
+def lit_map(image: bytes | bytearray, pixels: int, above: int = LIT_ABOVE) -> bytes:
     """Return one byte per pixel of a BGRA *image*: 1 where it is lit.
 
-    A pixel is lit when any colour channel is above black.  The channels are
-    combined as big integers, so no Python code runs per pixel.
+    A pixel is lit when any colour channel is over *above*.  The channels
+    are combined as big integers, so no Python code runs per pixel.
     """
+    table = _LIT if above == LIT_ABOVE else _lit_table(above)
     combined = 0
     for channel in range(3):
-        combined |= int.from_bytes(image[channel::4].translate(_LIT), "big")
+        combined |= int.from_bytes(image[channel::4].translate(table), "big")
     return combined.to_bytes(pixels, "big")
+
+
+@functools.cache
+def _lit_table(above: int) -> bytes:
+    """Return the translation table that marks the values over *above*."""
+    return bytes(1 if value > above else 0 for value in range(256))
 
 
 def _first(counts: list[int], need: int) -> int | None:
@@ -113,8 +135,46 @@ def measure(image: bytes | bytearray, width: int, height: int) -> Bars | None:
 
     None when the frame does not prove them (see ``_axis_bars``).
     """
-    lit = lit_map(image, width * height)
+    return _measured(lit_map(image, width * height), width, height)
 
+
+def measure_dark(image: bytes | bytearray, width: int, height: int) -> Bars | None:
+    """Return the black bars of a frame too dark for ``measure``.
+
+    The frame's outermost lines, top and bottom or left and right, have to
+    be one flat, dark value: the bar.  Whatever is above it counts as
+    picture, so the grain or the lifted black of a film's dark scene shows
+    where the picture ends.  None when the frame has no such border, when
+    its black is as flat as the bars, or when no bars come of it.
+    """
+    row = width * 4
+    last = row - 4
+    top_and_bottom = image[:row] + image[-row:]
+    borders = (
+        # The first and last row, then the first and last column, colours only.
+        b"".join(top_and_bottom[channel::4] for channel in range(3)),
+        b"".join(image[start + channel::row] for start in (0, last) for channel in range(3)),
+    )
+    for colours in borders:
+        level = _flat_level(colours)
+        if level is None:
+            continue
+        found = _measured(lit_map(image, width * height, level + _ABOVE_BAR), width, height)
+        if found is not None and has_bars(found):
+            return found
+    return None
+
+
+def _flat_level(colours: bytes) -> int | None:
+    """Return the value of *colours* that are one flat black, or None."""
+    low, high = min(colours), max(colours)
+    if high - low > _FLAT_WITHIN or high > LIT_ABOVE:
+        return None
+    return high
+
+
+def _measured(lit: bytes, width: int, height: int) -> Bars | None:
+    """Return the bars a map of lit pixels proves, or None."""
     rows = [lit.count(1, start, start + width)
             for start in range(0, width * height, width)]
     vertical = _axis_bars(rows, width)

@@ -31,6 +31,17 @@ def title_card():
     return bytearray(black * 130 + line * 100 + black * 130)
 
 
+def black_opening(top=46, black=20):
+    """A film's black opening between flat bars, a title in the middle."""
+    bar = bytes((16, 16, 16, 255)) * WIDTH
+    dark = bytes((black, black, black, 255))
+    plain = dark * WIDTH
+    titled = dark * 190 + bytes((40, 160, 255, 255)) * 260 + dark * 190
+    rows = HEIGHT - 2 * top
+    return bytearray(bar * top + plain * (rows // 2 - 20) + titled * 40
+                     + plain * (rows - rows // 2 - 20) + bar * top)
+
+
 def odd_letterbox():
     """A picture of 2.62:1, no film ratio."""
     return frame(58, 58)
@@ -169,6 +180,27 @@ def test_a_title_card_is_not_taken_for_the_picture(canary):
     scan(scanner, *[title_card()] * 20)                     # five seconds of it
     assert bars() == "0 | 0 | 276 | 276"
     assert not scanner._tracker.pending
+
+
+def test_a_film_that_opens_on_black_is_measured_from_its_black(canary):
+    scanner = BarScanner()
+    scan(scanner, *[black_opening()] * 4)                   # under a second
+    assert bars() == ""
+    scan(scanner, black_opening())
+    assert bars() == "0 | 0 | 276 | 276"
+
+
+def test_a_dark_frame_only_counts_as_a_standard_ratio(canary):
+    scanner = BarScanner()
+    scan(scanner, *[black_opening(top=58)] * 12)            # 2.62:1
+    assert bars() == "" and not scanner._tracker.pending
+
+
+def test_a_dark_frame_does_not_change_confirmed_bars(canary):
+    scanner = BarScanner()
+    scan(scanner, FULL, FULL)
+    scan(scanner, *[black_opening()] * 12)                  # a vignette, a fade
+    assert bars() == "0 | 0 | 0 | 0" and not scanner._tracker.pending
 
 
 def test_an_odd_ratio_has_to_last(canary):

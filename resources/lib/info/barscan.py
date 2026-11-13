@@ -28,6 +28,7 @@ from core.log import channel
 from core.utils import PROP_MEASURED_BARS, coded_frame, home_window
 from info.bars import (
     CONFIRM_SECONDS,
+    DARK_CONFIRM_SECONDS,
     ODD_CONFIRM_SECONDS,
     Bars,
     BarTracker,
@@ -35,6 +36,7 @@ from info.bars import (
     format_offsets,
     has_bars,
     measure,
+    measure_dark,
     picture_ratio,
     scaled,
 )
@@ -71,6 +73,19 @@ def _hold(measured: Bars | None, size: tuple[int, int]) -> float:
     if is_standard_ar(picture_ratio(measured, size)):
         return CONFIRM_SECONDS
     return ODD_CONFIRM_SECONDS
+
+
+def _dark_bars(image: bytearray, size: tuple[int, int]) -> Bars | None:
+    """Return the bars of a dark frame at the start of a title.
+
+    A film that opens on black would show nothing until its first bright
+    scene.  The dark measurement is the weaker proof, so it only counts
+    when it makes a standard film ratio.
+    """
+    found = measure_dark(image, *size)
+    if found is None or not is_standard_ar(picture_ratio(found, size)):
+        return None
+    return found
 
 
 class BarScanner(threading.Thread):
@@ -153,10 +168,14 @@ class BarScanner(threading.Thread):
         if image is None:
             return
 
+        size = (width, height)
         measured = measure(image, width, height)
-        self._tracker.update(measured, time.monotonic(),
-                             _hold(measured, (width, height)))
-        self._publish_bars((width, height))
+        hold = _hold(measured, size)
+        if measured is None and self._tracker.bars is None:
+            measured = _dark_bars(image, size)
+            hold = DARK_CONFIRM_SECONDS
+        self._tracker.update(measured, time.monotonic(), hold)
+        self._publish_bars(size)
 
     def _wanted(self) -> bool:
         """Return whether there is a picture to measure.

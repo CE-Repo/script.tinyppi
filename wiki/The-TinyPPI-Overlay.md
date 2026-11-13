@@ -100,7 +100,13 @@ on and has no setting:
   than about 2.85:1 or narrower than 1.15:1). A ratio that is not a standard
   film ratio — 2.62:1, say — has to last **two seconds** before it is
   shown.
-- **A dark scene proves nothing**: black bars cannot be told from dark
+- **A title that opens on black** is measured from its black: a bar is one
+  flat value, while a film's black usually carries grain or sits a little
+  above it. Until a title has its first confirmed bars, a dark frame whose
+  outermost lines are flat counts too, if it makes a standard film ratio
+  and lasts a second. Where the film's black is as flat as its bars, the
+  reading still waits for the first bright scene.
+- Later on, **a dark scene proves nothing**: black bars cannot be told from dark
   picture. The last confirmed value stands until a brighter frame confirms
   or replaces it — the reading holds rather than guesses. The same goes for a
   subtitle burned into a bar.
