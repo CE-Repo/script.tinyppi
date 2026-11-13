@@ -26,6 +26,7 @@ from core.maps import (
 )
 from core.memo import KeyedMemo
 from core.utils import (
+    can_measure,
     clean,
     cond,
     declared_bars,
@@ -243,8 +244,11 @@ def get_ImaxVar(aspect: str) -> str:
     The film is recognised by release name or title list (see
     ``info.imax``); the mark shows only while it plays one of its IMAX
     scenes (see ``is_imax_scene``), not during its regular framing.
+
+    On a build that cannot measure the bars the framing is not known, so
+    the mark describes the film and stays for the whole runtime.
     """
-    if not is_imax_scene(aspect):
+    if not is_known_imax_title() or (can_measure() and not is_imax_scene(aspect)):
         return ""
     return "IMAX Enhanced" if is_enhanced_title() else "IMAX"
 
@@ -274,9 +278,12 @@ def get_AspectFormatVar(aspect: str) -> str:
     *aspect* is the ratio as shown in the row; only one that snapped to a
     standard ratio has a name.  An IMAX scene shows the IMAX mark in the
     same place instead (see ``get_ImaxVar``).
+
+    Only on a build that measures the bars: elsewhere the ratio is often
+    just Kodi's coded frame, and naming that would be a guess.
     """
     name = _AR_FORMATS.get(aspect)
-    if name is None or is_imax_scene(aspect):
+    if name is None or not can_measure() or is_imax_scene(aspect):
         return ""
     return localized(name) if isinstance(name, int) else name
 

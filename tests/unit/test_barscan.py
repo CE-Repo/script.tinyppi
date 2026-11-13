@@ -8,7 +8,7 @@ import pytest
 import xbmc
 import xbmcaddon
 import xbmcgui
-from core.utils import PROP_MEASURED_BARS, PROP_WIDEST_ASPECT
+from core.utils import PROP_MEASURED_BARS, PROP_WIDEST_ASPECT, can_measure
 from info import barscan, properties
 from info.barscan import BarScanner
 
@@ -120,6 +120,7 @@ def test_two_frames_confirm_the_bars_in_coded_pixels(canary):
     assert properties.get_AspectRatioVar("N/A") == "2.39"
     assert canary.requests == [(960, 540, False)] * 2       # the video only
     assert canary.made == 1                                 # one capture, kept
+    assert can_measure()                                    # frames arrive
 
 
 def test_a_dark_scene_keeps_the_confirmed_bars(canary):
@@ -303,7 +304,7 @@ def test_a_build_that_cannot_capture_is_found_out_once(canary, monkeypatch):
     scanner._scan()
     scanner._scan()
     assert len(info_lines()) == 1
-    assert bars() == ""
+    assert bars() == "" and not can_measure()
     xbmc.INFO.update({"Player.Process(videowidth)": "1920", "Player.Process(videoheight)": "1080",
                       "Player.Process(videodar)": "1.78"})
     assert properties.get_AspectRatioVar("N/A") == "1.78"   # as before the feature
@@ -332,7 +333,7 @@ def test_missing_frames_back_the_scanner_off(canary):
 def test_a_frame_of_the_wrong_size_counts_as_missing(canary):
     scanner = BarScanner()
     scan(scanner, bytearray(16))
-    assert scanner._failures == 1 and bars() == ""
+    assert scanner._failures == 1 and bars() == "" and not can_measure()
 
 
 # --- The thread ---------------------------------------------------------------
@@ -345,11 +346,13 @@ def test_the_thread_clears_stale_bars_and_stops(canary, monkeypatch):
     followed = []
     monkeypatch.setattr(scanner._framing, "follow", lambda: followed.append(bars()))
     xbmcgui.Window(10000).setProperty(PROP_WIDEST_ASPECT, "2.39")
-    seen = []
+    seen, capable = [], []
+    xbmcgui.Window(10000).setProperty("TinyPPI.CanMeasure", "1")            # an earlier session
     scans = scanner._scan
 
     def stop_after_three():
         seen.append(bars())
+        capable.append(can_measure())
         Capture.frames.append(SCOPE)
         scans()
         CLOCK[0] += STEP
@@ -361,7 +364,8 @@ def test_the_thread_clears_stale_bars_and_stops(canary, monkeypatch):
     assert not scanner.is_alive()
     assert seen == ["", "", "0 | 0 | 280 | 280"]
     assert followed == ["", "0 | 0 | 280 | 280", "0 | 0 | 280 | 280"]   # after each scan
-    assert bars() == ""                                     # nothing left behind
+    assert capable == [False, True, True]                   # only once a frame arrived
+    assert bars() == "" and not can_measure()               # nothing left behind
     assert xbmcgui.Window(10000).getProperty(PROP_WIDEST_ASPECT) == ""
 
 

@@ -17,7 +17,8 @@ to fall back on.
 The capture only delivers video on CoreELEC builds that serve it from the
 Amlogic video layer (the canary builds).  Elsewhere the scanner finds that
 out once and stays idle: the property is never set and the aspect ratio is
-Kodi's, as before.
+Kodi's, as before.  A second property says that frames arrive, so the
+overlay knows whether the framing it shows is a measured one.
 """
 
 import threading
@@ -25,7 +26,7 @@ import time
 
 import xbmc
 from core.log import channel
-from core.utils import PROP_MEASURED_BARS, coded_frame, home_window
+from core.utils import PROP_CAN_MEASURE, PROP_MEASURED_BARS, coded_frame, home_window
 from info.bars import (
     CONFIRM_SECONDS,
     DARK_CONFIRM_SECONDS,
@@ -110,6 +111,8 @@ class BarScanner(threading.Thread):
         # known, so the first pass clears what an earlier session left).
         self._source = ""
         self._published: str | None = None
+        # What the can-measure property holds (None: not known).
+        self._capable: bool | None = None
         self._last_error = ""
 
     def stop(self) -> None:
@@ -118,6 +121,7 @@ class BarScanner(threading.Thread):
 
     def run(self) -> None:
         self._idle()
+        self._tell_capable(False)                   # until a frame arrives
         pause = SCAN_INTERVAL
         while not self._stopping.wait(pause):
             started = time.monotonic()
@@ -129,6 +133,7 @@ class BarScanner(threading.Thread):
             # The pass's own time counts towards the interval.
             pause = max(_MIN_PAUSE, SCAN_INTERVAL - (time.monotonic() - started))
         self._idle()
+        self._tell_capable(False)
         self._framing.clear()
 
     def _follow_framing(self) -> None:
@@ -233,6 +238,7 @@ class BarScanner(threading.Thread):
             capture.capture(width, height, composite=False)
         except TypeError:
             self._supported = False
+            self._tell_capable(False)
             _log("this Kodi build cannot capture the video; the aspect ratio "
                  "is shown as Kodi reports it", xbmc.LOGINFO)
             return None
@@ -242,6 +248,7 @@ class BarScanner(threading.Thread):
             self._failed()
             return None
         self._failures = 0
+        self._tell_capable(True)
         return image
 
     def _failed(self) -> None:
@@ -263,6 +270,12 @@ class BarScanner(threading.Thread):
         if bars is None or coded is None:
             return
         self._publish(format_offsets(scaled(bars, captured, coded)))
+
+    def _tell_capable(self, capable: bool) -> None:
+        """Say whether this build delivers frames, when that changes."""
+        if capable != self._capable:
+            self._capable = capable
+            home_window().setProperty(PROP_CAN_MEASURE, "1" if capable else "")
 
     def _publish(self, value: str) -> None:
         """Write the property when it changes."""

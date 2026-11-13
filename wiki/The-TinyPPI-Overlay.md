@@ -75,7 +75,7 @@ frames of a title the layout may switch once from SDR to the right one.
 | **Video stream** | `3840x2160p 23.976FPS` | The decoded stream: width × height, scan type and frame rate. |
 | **Pixel format** | `10-bit (YUV 4:2:2)` | The output pixel format of the Amlogic video path (`amlogic.pixformat`). The detail `(DV Tunnel)` appears when the Dolby Vision driver runs tunnelled IPT (`dolby_vision_mode` = 1) over an 8-bit RGB link — the TV-LED Dolby Vision carriage. |
 | **Bit depth** | `12-bit` | The *source* bit depth: 12-bit for a Dolby Vision full enhancement layer (FEL), 10-bit for any other HDR format, 8-bit for SDR. |
-| **Aspect ratio** | `2.39:1 (IMAX)` | The aspect ratio of the **visible picture**. Kodi reports the coded frame (a letterboxed 2.39 film reads 1.78); TinyPPI computes the ratio inside the black bars and snaps it to the nearest standard ratio within 2 %. The bars come from the Dolby Vision RPU (L5), or, with **Measure the aspect ratio from the picture** on, from the picture itself for every format (see [Measured aspect ratio](#measured-aspect-ratio)). Detail: the format's common name when the ratio is a standard one — `4:3` (1.33), `Academy` (1.37), `European widescreen` (1.66), `16:9` (1.78), `Cinema widescreen` (1.85), `Univisium` (2.00), `70 mm` (2.20), `Scope` (2.35 and 2.39), `CinemaScope` (2.55), `Ultra Panavision` (2.76) — or, in its place, `IMAX` or `IMAX Enhanced` [while a recognised film plays an IMAX scene](#the-imax-mark-during-an-imax-scene) (see [IMAX Detection](IMAX-Detection)). |
+| **Aspect ratio** | `2.39:1 (IMAX)` | The aspect ratio of the **visible picture**. Kodi reports the coded frame (a letterboxed 2.39 film reads 1.78); TinyPPI computes the ratio inside the black bars and snaps it to the nearest standard ratio within 2 %. The bars come from the Dolby Vision RPU (L5), or, with **Measure the aspect ratio from the picture** on, from the picture itself for every format (see [Measured aspect ratio](#measured-aspect-ratio)). Detail, on a build that measures the bars (the CoreELEC canary builds): the format's common name when the ratio is a standard one — `4:3` (1.33), `Academy` (1.37), `European widescreen` (1.66), `16:9` (1.78), `Cinema widescreen` (1.85), `Univisium` (2.00), `70 mm` (2.20), `Scope` (2.35 and 2.39), `CinemaScope` (2.55), `Ultra Panavision` (2.76) — or, in its place, `IMAX` or `IMAX Enhanced` [while a recognised film plays an IMAX scene](#the-imax-mark-during-an-imax-scene) (see [IMAX Detection](IMAX-Detection)). On other builds there is no format name, and `IMAX` / `IMAX Enhanced` stays for the whole runtime of a recognised film. |
 | **Decoder** | `AML-H.265 (HW)` | Decoder family (`AML-` Amlogic hardware decoder, `FF-` FFmpeg) and codec, with `HW`/`SW` as detail. |
 | **Decode method** | `Hardware` | Whether the video is decoded in hardware or software. |
 
@@ -283,9 +283,10 @@ film's regular framing (2.39:1, say) the row names that format instead —
   least one second. A ratio that is not a standard film ratio has to last
   three seconds, so a stray reading during a fade or a studio logo is not
   taken for it.
-- The aspect ratio comes from the [measured bars](#measured-aspect-ratio)
-  or from L5. Without either the row shows Kodi's coded frame (1.78:1 for a
-  letterboxed film), so the mark stays for the whole runtime.
+- **Only on a build that measures the bars** (the CoreELEC canary builds;
+  see [Measured aspect ratio](#measured-aspect-ratio)). Elsewhere the
+  framing on screen is not reliably known, so the mark describes the film
+  and stays for the whole runtime, and no format name is shown.
 - The [web dashboard](Web-Dashboard) shows the mark in its **Aspect
   ratio** row the same way.
 
