@@ -52,7 +52,8 @@ Yes. Map one key to `NotifyAll(script.tinyppi,open_overlay)` and another to
 Kodi reports the coded frame (a letterboxed 2.39:1 film in a 16:9 frame reads
 1.78). For Dolby Vision, TinyPPI uses the RPU's L5 active area to compute the
 ratio of the *visible* picture. Without L5 data it shows Kodi's value. On a
-CoreELEC build that can capture the video, the bars are measured from the
+CoreELEC build that can capture the video, and with **Measure the aspect
+ratio from the picture** turned on, the bars are measured from the
 picture instead, for every format (see
 [Measured aspect ratio](The-TinyPPI-Overlay#measured-aspect-ratio)).
 
@@ -68,6 +69,12 @@ No. It needs a build whose Kodi can capture the video from the Amlogic video
 layer, currently the canary builds. On other builds nothing is
 measured: the add-on checks once per session, logs that no capture is
 available, and shows the ratio as before.
+
+### Why is measuring the aspect ratio off by default?
+
+It captures the video ten times a second, and that collides with other
+add-ons that capture it, such as Hyperion. Turn on **Measure the aspect
+ratio from the picture** in the settings if you do not use one of those.
 
 ### Why does a profile 7 FEL disc show profile 7 although CoreELEC converts it?
 

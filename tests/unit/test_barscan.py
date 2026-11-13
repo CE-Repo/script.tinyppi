@@ -75,9 +75,10 @@ class Capture:
 
 @pytest.fixture
 def canary(monkeypatch):
-    """A canary build playing a UHD film."""
+    """A canary build playing a UHD film, the setting on."""
     Capture.frames, Capture.requests, Capture.made = [], [], 0
     monkeypatch.setattr(xbmc, "RenderCapture", Capture)
+    xbmcaddon.SETTINGS["measure_aspect_ratio"] = "true"
     CLOCK[0] = 100.0
     monkeypatch.setattr(barscan.time, "monotonic", lambda: CLOCK[0])
     xbmc.CONDITIONS["Player.HasVideo"] = True
@@ -175,11 +176,24 @@ def test_the_scanner_idles_and_clears_its_bars_without_a_video(canary):
     assert scanner._capture is None
 
 
-def test_it_measures_without_any_setting(canary):
-    assert "measure_aspect_ratio" not in xbmcaddon.SETTINGS
+def test_the_setting_is_off_by_default(canary):
+    del xbmcaddon.SETTINGS["measure_aspect_ratio"]
+    scan(BarScanner(), SCOPE, SCOPE)
+    assert canary.made == 0 and bars() == ""
+
+
+def test_turning_the_setting_off_stops_the_capture(canary):
     scanner = BarScanner()
     scan(scanner, SCOPE, SCOPE)
-    assert bars() == "0 | 0 | 280 | 280"
+    assert can_measure()
+    xbmcaddon.SETTINGS["measure_aspect_ratio"] = "false"
+    scan(scanner)
+    scan(scanner)
+    assert bars() == "" and not can_measure()               # Kodi's ratio again
+    assert len(canary.requests) == 2 and scanner._capture is None
+    xbmcaddon.SETTINGS["measure_aspect_ratio"] = "true"
+    scan(scanner, SCOPE, SCOPE)
+    assert bars() == "0 | 0 | 280 | 280" and can_measure()
 
 
 def test_a_title_card_is_not_taken_for_the_picture(canary):
@@ -354,6 +368,7 @@ def test_dolby_vision_with_l5_is_measured_too(canary):
 
 def test_a_build_that_cannot_capture_is_found_out_once(canary, monkeypatch):
     monkeypatch.undo()                                      # the stub: stock Kodi
+    xbmcaddon.SETTINGS["measure_aspect_ratio"] = "true"
     xbmc.CONDITIONS["Player.HasVideo"] = True
     scanner = BarScanner()
     scanner._scan()

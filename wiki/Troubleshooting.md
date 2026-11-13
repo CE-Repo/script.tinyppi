@@ -217,8 +217,11 @@ debug logging on, the `TinyPPI [bars]` lines tell what happens:
 | `bars: 0 \| 0 \| 276 \| 276` | Newly confirmed bars (left, right, top, bottom, in coded pixels). `bars: none` when they are dropped (new title, playback end). |
 | `measuring failed: …` | An unexpected error; logged once per distinct message. |
 
-- **Nothing changes at all**: does the log name a build that cannot
-  capture? The measuring is always on and has no setting.
+- **Nothing changes at all**: is **Measure the aspect ratio from the
+  picture** on? It is off by default. If it is, does the log name a build
+  that cannot capture?
+- **Hyperion (or another add-on that captures the video) misbehaves**: turn
+  the setting off; the two captures get in each other's way.
 - **The value stays through a dark scene**: intended — a dark frame cannot
   prove where the picture ends.
 - **The value stays although the framing changed in a bright scene**: the
