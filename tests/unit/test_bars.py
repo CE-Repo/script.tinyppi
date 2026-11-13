@@ -147,6 +147,11 @@ def test_a_dark_side_of_a_full_frame_needs_light_at_the_border():
     assert measured(rows) is None                           # could be anything
 
 
+def test_an_axis_with_next_to_no_light_is_not_free_of_bars():
+    # Each column holds less than the share that counts as picture.
+    assert bars._unbarred([1, 0, 1, 0, 1], across=300, boxed=True) is None
+
+
 def test_a_subtitle_in_the_bar_is_not_taken_for_a_full_frame():
     rows = picture(top=12, bottom=12)
     rows[99][40:55] = [255] * 15                            # at the very border
