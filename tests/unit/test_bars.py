@@ -34,12 +34,12 @@ def measured(rows):
 # --- The capture size ---------------------------------------------------------
 
 @pytest.mark.parametrize(("aspect", "size"), [
-    (0.0, (480, 270)),                      # unknown: 16:9
-    (1.7778, (480, 270)),
-    (2.39, (480, 200)),                     # an encode cropped to the picture
-    (1.3333, (480, 360)),
-    (0.5, (480, 480)),                      # held to a sane height
-    (10.0, (480, 136)),
+    (0.0, (960, 540)),                      # unknown: 16:9
+    (1.7778, (960, 540)),
+    (2.39, (960, 402)),                     # an encode cropped to the picture
+    (1.3333, (960, 720)),
+    (0.5, (960, 960)),                      # held to a sane height
+    (10.0, (960, 272)),
 ])
 def test_the_capture_follows_the_videos_ratio(aspect, size):
     assert bars.capture_size(aspect) == size
@@ -377,11 +377,13 @@ def test_bars_scale_to_the_coded_frame():
 
 
 def test_bars_a_captured_line_apart_scale_to_equal_ones():
-    # 276 coded rows are 34.5 lines of a 270-line capture: 35 above, 34 below.
-    assert bars.scaled((0, 0, 35, 34), (480, 270), (3840, 2160)) == (0, 0, 276, 276)
-    assert bars.scaled((30, 31, 0, 0), (480, 270), (1920, 1080)) == (122, 122, 0, 0)
+    # 207 coded rows are 51.75 lines of a 540-line capture: 52 above, 51 below.
+    assert bars.scaled((0, 0, 52, 51), (960, 540), (3840, 2160)) == (0, 0, 206, 206)
+    assert bars.scaled((60, 61, 0, 0), (960, 540), (1920, 1080)) == (121, 121, 0, 0)
     # Further apart they are what was measured.
-    assert bars.scaled((0, 0, 36, 34), (480, 270), (3840, 2160)) == (0, 0, 288, 272)
+    assert bars.scaled((0, 0, 53, 51), (960, 540), (3840, 2160)) == (0, 0, 212, 204)
+    # The usual bars fall on whole lines of the capture.
+    assert bars.scaled((0, 0, 69, 69), (960, 540), (3840, 2160)) == (0, 0, 276, 276)
 
 
 def test_bars_are_written_like_l5_offsets():

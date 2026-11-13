@@ -87,16 +87,16 @@ reads as its 16:9 frame. TinyPPI therefore finds the bars in the picture
 itself, **for every format, Dolby Vision with L5 included**. This is always
 on and has no setting:
 
-- A small frame of the video (480 pixels wide, without OSD, subtitles or the
-  overlay) is captured **twenty times a second, all through playback**, whether or
+- A small frame of the video (960 pixels wide, without OSD, subtitles or the
+  overlay) is captured **ten times a second, all through playback**, whether or
   not the overlay is open.
 - A frame only counts when the picture's edges are plainly lit and the bars
   on both sides are the same size. The bars of one axis are enough: a
   scene that is dark on one side still shows its bars above and below, as
   long as the picture is seen across three quarters of the width.
-  **Three frames in a row** have to agree
-  before the reading changes, so a change of framing shows after about a
-  sixth of a second.
+  **Two frames in a row** have to agree
+  before the reading changes, so a change of framing shows after a tenth to
+  a fifth of a second.
 - **A framing the title has shown before returns on less proof.** A film
   with IMAX scenes keeps going back to the same bars. Once they have been
   confirmed, a later frame shows them again when they are black and the
@@ -110,8 +110,9 @@ on and has no setting:
   a completely black frame changes nothing.
 - **Bars a captured line apart are shown as equal.** The picture is centred,
   so a bar edge that falls inside a line of the small capture (276 rows of a
-  UHD film are 34.5 lines) is split evenly: `0 | 0 | 276 | 276`, not
-  `0 | 0 | 280 | 272`.
+  UHD film at 2.20:1 are 51.75 lines) is split evenly: `0 | 0 | 206 | 206`,
+  not `0 | 0 | 208 | 204`. A line of the capture is four rows of a UHD frame,
+  so the usual bars of 276 or 280 rows are measured to the pixel.
 - **A title card, a logo or credits on black are not a picture.** Lit
   content with black on all four sides is ignored (a film is letterboxed or
   pillarboxed, not both), and so is a band no film is shaped like (wider

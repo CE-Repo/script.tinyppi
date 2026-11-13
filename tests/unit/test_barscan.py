@@ -12,11 +12,16 @@ from core.utils import PROP_MEASURED_BARS, PROP_WIDEST_ASPECT
 from info import barscan, properties
 from info.barscan import BarScanner
 
-WIDTH, HEIGHT = 480, 270
+WIDTH, HEIGHT = 960, 540
 
 
 def frame(top=0, bottom=0, level=200):
-    """A 480 x 270 BGRA frame with a lit picture between two bars."""
+    """A 960 x 540 BGRA frame with a lit picture between two bars.
+
+    The bars are given in lines of a frame half that size, eight to a UHD
+    frame's row.
+    """
+    top, bottom = top * 2, bottom * 2
     black, lit = bytes((0, 0, 0, 255)) * WIDTH, bytes((level, level, level, 255)) * WIDTH
     return bytearray(black * top + lit * (HEIGHT - top - bottom) + black * bottom)
 
@@ -27,8 +32,8 @@ SCOPE, FULL, DARK = frame(35, 35), frame(), frame(level=0)
 def title_card():
     """A lit title in the middle of a black frame."""
     black = bytes((0, 0, 0, 255)) * WIDTH
-    line = bytes((0, 0, 0, 255)) * 140 + bytes((40, 160, 255, 255)) * 200 + bytes((0, 0, 0, 255)) * 140
-    return bytearray(black * 95 + line * 80 + black * 95)
+    line = bytes((0, 0, 0, 255)) * 280 + bytes((40, 160, 255, 255)) * 400 + bytes((0, 0, 0, 255)) * 280
+    return bytearray(black * 190 + line * 160 + black * 190)
 
 
 def black_opening(top=35, black=20):
@@ -36,10 +41,11 @@ def black_opening(top=35, black=20):
     bar = bytes((16, 16, 16, 255)) * WIDTH
     dark = bytes((black, black, black, 255))
     plain = dark * WIDTH
-    titled = dark * 140 + bytes((40, 160, 255, 255)) * 200 + dark * 140
+    titled = dark * 280 + bytes((40, 160, 255, 255)) * 400 + dark * 280
+    top *= 2
     rows = HEIGHT - 2 * top
-    return bytearray(bar * top + plain * (rows // 2 - 20) + titled * 40
-                     + plain * (rows - rows // 2 - 20) + bar * top)
+    return bytearray(bar * top + plain * (rows // 2 - 40) + titled * 80
+                     + plain * (rows - rows // 2 - 40) + bar * top)
 
 
 def odd_letterbox():
@@ -112,7 +118,7 @@ def test_two_frames_confirm_the_bars_in_coded_pixels(canary):
     scan(scanner, SCOPE)
     assert bars() == "0 | 0 | 280 | 280"
     assert properties.get_AspectRatioVar("N/A") == "2.39"
-    assert canary.requests == [(480, 270, False)] * 2       # the video only
+    assert canary.requests == [(960, 540, False)] * 2       # the video only
     assert canary.made == 1                                 # one capture, kept
 
 
@@ -207,6 +213,7 @@ def test_a_dark_frame_does_not_change_confirmed_bars(canary):
 def dark_topped(top=35):
     """A letterboxed picture whose upper half is dark."""
     black, lit = bytes((0, 0, 0, 255)) * WIDTH, bytes((200, 200, 200, 255)) * WIDTH
+    top *= 2
     return bytearray(black * (HEIGHT // 2) + lit * (HEIGHT // 2 - top) + black * top)
 
 
@@ -225,7 +232,7 @@ def test_a_framing_the_title_showed_before_returns_on_less_proof(canary):
 def dim_centre():
     """A letterboxed shot that is dark at both of its edges."""
     black, lit = bytes((0, 0, 0, 255)) * WIDTH, bytes((200, 200, 200, 255)) * WIDTH
-    return bytearray(black * 100 + lit * 70 + black * 100)
+    return bytearray(black * 200 + lit * 140 + black * 200)
 
 
 def test_after_an_imax_scene_black_where_the_bars_were_is_enough(canary):

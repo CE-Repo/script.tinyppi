@@ -60,8 +60,8 @@ _SOLID_LIT = 25
 # count as free of bars while the other axis has proven ones.
 _SPAN_OF_BOXED = 75
 
-# Seconds a measurement has to last before the bars change: three frames at
-# the scanner's pace, a little short of two intervals so that a frame a
+# Seconds a measurement has to last before the bars change: two frames at
+# the scanner's pace, a little short of one interval so that a frame a
 # moment early still counts.
 CONFIRM_SECONDS = 0.09
 # For a measurement of a dark frame (``measure_dark``).
@@ -73,13 +73,14 @@ DARK_CONFIRM_SECONDS = 1.0
 _NARROWEST = 1.15
 _WIDEST    = 2.85
 
-# The capture: as small as still tells 2.35:1 from 2.39:1 (three rows apart
-# at 270), so it can be read twenty times a second.  The height follows the
-# video's own ratio so the frame is not distorted.
-CAPTURE_WIDTH      = 480
-_DEFAULT_HEIGHT    = 270
-_MIN_HEIGHT        = 136
-_MAX_HEIGHT        = 480
+# The capture: a line of it is four of a UHD frame, so the usual bars (276
+# or 280 rows) are measured to the pixel, and it can still be read ten times
+# a second.  The height follows the video's own ratio so the frame is not
+# distorted.
+CAPTURE_WIDTH      = 960
+_DEFAULT_HEIGHT    = 540
+_MIN_HEIGHT        = 272
+_MAX_HEIGHT        = 960
 
 
 def capture_size(aspect: float) -> tuple[int, int]:
@@ -407,9 +408,9 @@ def _centred(before: int, after: int) -> tuple[float, float]:
     """Return the two bars of an axis as equal ones when a line apart.
 
     The picture is centred (see ``_axis_bars``), so bars that differ by one
-    captured line are an edge that falls inside a line: a UHD film's 276
-    rows are 34.5 lines of the capture and measure 35 and 34.  Half the sum
-    is the bar; scaled it would read 280 and 272.
+    captured line are an edge that falls inside a line: a UHD film's 207
+    rows (2.20:1) are 51.75 lines of the capture and can measure 52 and
+    51.  Half the sum is the bar; scaled it would read 208 and 204.
     """
     if abs(before - after) != 1:
         return before, after

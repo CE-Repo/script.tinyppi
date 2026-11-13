@@ -3,7 +3,7 @@
 
 """Measure the black bars of the playing video, all through playback.
 
-One thread in the service captures a small frame of the video twenty times a
+One thread in the service captures a small frame of the video ten times a
 second (``xbmc.RenderCapture``), has ``info.bars`` measure it and publishes
 the confirmed bars as a Home-window property, in coded pixels and in the
 RPU's ``L | R | T | B`` notation.  ``info.properties`` reads it for the
@@ -46,10 +46,10 @@ from info.bars import (
 from info.framing import FOLLOW_INTERVAL, FramingWatch
 from info.properties import is_standard_ar
 
-# Seconds from one frame to the next: twenty a second.  A change of framing
-# shows ``bars.CONFIRM_SECONDS`` after it was first seen, about a sixth of a
-# second after it happened.
-SCAN_INTERVAL = 0.05
+# Seconds from one frame to the next: ten a second.  A change of framing
+# shows with the frame after the one it was first seen in, a tenth to a
+# fifth of a second after it happened.
+SCAN_INTERVAL = 0.1
 # The shortest pause between two passes, so a slow pass leaves the
 # interpreter to Kodi's other add-ons.
 _MIN_PAUSE    = 0.005
