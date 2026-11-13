@@ -1,12 +1,16 @@
 name: Awards
 
-# Runs tools/gen_awards.py by hand (Actions > Awards > Run workflow), after an
-# awards season, and opens a pull request with the new
-# resources/data/awards.json. It needs the repository secret TVDB_API_KEY
-# and, for a key that asks for one, TVDB_PIN (Settings > Secrets and
-# variables > Actions), and "Allow GitHub Actions to create and approve pull
-# requests" (Settings > Actions > General).
+# Runs tools/gen_awards.py once a month, or by hand (Actions > Awards > Run
+# workflow), and opens a pull request with the new
+# resources/data/awards.json when TheTVDB's awards changed. It needs the
+# repository secret TVDB_API_KEY and, for a key that asks for one, TVDB_PIN
+# (Settings > Secrets and variables > Actions), and "Allow GitHub Actions to
+# create and approve pull requests" (Settings > Actions > General).
 on:
+  # The 1st of each month, 04:17 UTC: off the hour, when GitHub's scheduled
+  # runs are delayed least.
+  schedule:
+    - cron: "17 4 1 * *"
   workflow_dispatch:
 
 permissions:
