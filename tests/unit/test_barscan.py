@@ -24,6 +24,18 @@ def frame(top=0, bottom=0, level=200):
 SCOPE, FULL, DARK = frame(46, 46), frame(), frame(level=0)
 
 
+def title_card():
+    """A lit title in the middle of a black frame."""
+    black = bytes((0, 0, 0, 255)) * WIDTH
+    line = bytes((0, 0, 0, 255)) * 190 + bytes((40, 160, 255, 255)) * 260 + bytes((0, 0, 0, 255)) * 190
+    return bytearray(black * 130 + line * 100 + black * 130)
+
+
+def odd_letterbox():
+    """A picture of 2.62:1, no film ratio."""
+    return frame(58, 58)
+
+
 class Capture:
     """A Kodi that captures the video: hands out the frames queued for it."""
 
@@ -49,6 +61,8 @@ def canary(monkeypatch):
     """A canary build playing a UHD film."""
     Capture.frames, Capture.requests, Capture.made = [], [], 0
     monkeypatch.setattr(xbmc, "RenderCapture", Capture)
+    CLOCK[0] = 100.0
+    monkeypatch.setattr(barscan.time, "monotonic", lambda: CLOCK[0])
     xbmc.CONDITIONS["Player.HasVideo"] = True
     xbmc.INFO.update({"Player.FilenameAndPath": "/films/a.mkv",
                       "Player.Process(videowidth)": "3840",
@@ -57,10 +71,16 @@ def canary(monkeypatch):
     return Capture
 
 
+# The scanner's clock; ``scan`` moves it on by a confirming pause per frame.
+CLOCK = [100.0]
+STEP  = barscan.CONFIRM_SECONDS
+
+
 def scan(scanner, *frames):
     Capture.frames.extend(frames)
     for _frame in frames or (None,):
         scanner._scan()
+        CLOCK[0] += STEP
 
 
 def bars():
@@ -143,28 +163,47 @@ def test_it_measures_without_any_setting(canary):
     assert bars() == "0 | 0 | 276 | 276"
 
 
-def test_a_new_measurement_is_checked_against_the_next_frame_at_once(canary):
+def test_a_title_card_is_not_taken_for_the_picture(canary):
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE)
+    scan(scanner, *[title_card()] * 20)                     # five seconds of it
+    assert bars() == "0 | 0 | 276 | 276"
+    assert not scanner._tracker.pending
+
+
+def test_an_odd_ratio_has_to_last(canary):
+    scanner = BarScanner()
+    scan(scanner, SCOPE, SCOPE)
+    scan(scanner, *[odd_letterbox()] * 4)                   # a second of it
+    assert bars() == "0 | 0 | 276 | 276"
+    scan(scanner, *[odd_letterbox()] * 5)                   # past two seconds
+    assert bars() == "0 | 0 | 348 | 348"
+
+
+def test_a_waiting_measurement_gets_its_frame_as_soon_as_it_counts(canary):
     scanner = BarScanner()
     assert scanner._pause() == barscan.SCAN_INTERVAL
-    scan(scanner, SCOPE)                                    # unconfirmed
-    assert scanner._pause() == barscan.CONFIRM_INTERVAL
+    Capture.frames.append(SCOPE)
+    scanner._scan()                                         # unconfirmed
+    assert scanner._pause() == barscan.SCAN_INTERVAL        # the hold is longer
+    CLOCK[0] += barscan.SCAN_INTERVAL
+    assert scanner._pause() == pytest.approx(barscan.CONFIRM_SECONDS - barscan.SCAN_INTERVAL)
+    CLOCK[0] += barscan.CONFIRM_SECONDS
+    assert scanner._pause() == barscan.CONFIRM_INTERVAL     # overdue: at once
     scan(scanner, SCOPE)                                    # confirmed
+    assert bars() == "0 | 0 | 276 | 276"
     assert scanner._pause() == barscan.SCAN_INTERVAL
     scan(scanner, DARK)                                     # proves nothing
     assert scanner._pause() == barscan.SCAN_INTERVAL
-    scan(scanner, FULL)                                     # the framing opens up
-    assert scanner._pause() == barscan.CONFIRM_INTERVAL
 
 
 def test_the_framing_watch_keeps_its_own_pace(canary, monkeypatch):
     scanner = BarScanner()
     followed = []
     monkeypatch.setattr(scanner._framing, "follow", lambda: followed.append(1))
-    clock = [100.0]
-    monkeypatch.setattr(barscan.time, "monotonic", lambda: clock[0])
     for _pass in range(6):                                  # 0.2 s apart
         scanner._follow_framing()
-        clock[0] += 0.2
+        CLOCK[0] += 0.2
     assert len(followed) == 2                               # at 0 s and 0.6 s
 
 
@@ -238,6 +277,7 @@ def test_the_thread_clears_stale_bars_and_stops(canary, monkeypatch):
         seen.append(bars())
         Capture.frames.append(SCOPE)
         scans()
+        CLOCK[0] += STEP
         if len(seen) == 3:
             scanner.stop()
     monkeypatch.setattr(scanner, "_scan", stop_after_three)

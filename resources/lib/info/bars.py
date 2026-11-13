@@ -10,8 +10,10 @@ what a run of frames proves.
 
 A dark frame cannot tell a black bar from dark picture, so a frame only
 counts when both edges of an axis are plainly lit and sit at the same
-distance from the frame's border.  Any other frame says nothing and the last
-confirmed bars stand.
+distance from the frame's border.  A title card, a logo or credits on black
+look like a small picture; they are told apart by bars on all four sides, a
+shape no film has, or by not lasting.  Any such frame says nothing and the
+last confirmed bars stand.
 
 Free of Kodi imports; ``info.barscan`` feeds it the frames.
 """
@@ -31,8 +33,17 @@ _LIT = bytes(1 if value > LIT_ABOVE else 0 for value in range(256))
 _SOME_LIT  = 1
 _SOLID_LIT = 25
 
-# Matching frames needed before the bars change.
-CONFIRM_FRAMES = 2
+# Seconds a measurement has to last before the bars change.  One that makes
+# a standard film ratio counts quickly; an odd one, which a title card or a
+# fade usually is, has to last far longer.
+CONFIRM_SECONDS     = 0.25
+ODD_CONFIRM_SECONDS = 2.0
+
+# The picture ratios bars can leave: Academy to Ultra Panavision, with some
+# room.  A lit band outside of it (a horizon in a dark scene, a line of
+# text) is no picture.
+_NARROWEST = 1.15
+_WIDEST    = 2.85
 
 # The capture: wide enough to tell 2.35:1 from 2.39:1 (four rows apart at
 # 360), small enough to read in a few milliseconds.  The height follows the
@@ -114,7 +125,46 @@ def measure(image: bytes | bytearray, width: int, height: int) -> Bars | None:
     horizontal = _axis_bars(columns, height)
     if horizontal is None:
         return None
-    return (*horizontal, *vertical)
+
+    found = (*horizontal, *vertical)
+    return found if _is_picture(found, width, height) else None
+
+
+def _is_picture(bars: Bars, width: int, height: int) -> bool:
+    """Return whether what *bars* leave of the frame can be a film's picture.
+
+    A film is letterboxed or pillarboxed, not both: lit content with black
+    on all four sides is a title card, a logo or credits.  With bars on one
+    axis the picture has to keep a ratio films are made in.
+    """
+    letterboxed = max(bars[2:]) > _edge_slack(height)
+    pillarboxed = max(bars[:2]) > _edge_slack(width)
+    if letterboxed and pillarboxed:
+        return False
+    if not letterboxed and not pillarboxed:
+        return True
+    return _NARROWEST <= picture_ratio(bars, (width, height)) <= _WIDEST
+
+
+def _edge_slack(lines: int) -> int:
+    """Return the bar size, in lines, that still counts as no bar."""
+    return max(2, lines // 100)
+
+
+def picture_ratio(bars: Bars, size: tuple[int, int]) -> float:
+    """Return the ratio of the picture *bars* leave in a frame of *size*.
+
+    The capture is not distorted (see ``capture_size``), so its pixels are
+    square.
+    """
+    left, right, top, bottom = bars
+    width, height = size
+    return (width - left - right) / max(1, height - top - bottom)
+
+
+def has_bars(bars: Bars) -> bool:
+    """Return whether *bars* crop the frame at all."""
+    return max(bars) > 1
 
 
 def _same(first: Bars, second: Bars) -> bool:
@@ -125,45 +175,53 @@ def _same(first: Bars, second: Bars) -> bool:
 class BarTracker:
     """The bars a run of frames has confirmed.
 
-    A measurement replaces the confirmed bars only after ``CONFIRM_FRAMES``
-    frames agree on it; frames that prove nothing in between do not count
-    against it.  A measurement within a pixel of the confirmed bars keeps
-    them, so the reading does not flicker.
+    A measurement replaces the confirmed bars only after frames have agreed
+    on it for its hold time; frames that prove nothing in between do not
+    count against it, a frame that measures something else starts over.  A
+    measurement within a pixel of the confirmed bars keeps them, so the
+    reading does not flicker.
     """
 
     def __init__(self) -> None:
         self.bars: Bars | None = None
         self._candidate: Bars | None = None
-        self._seen = 0
+        self._since = 0.0
+        self._hold = 0.0
 
     @property
     def pending(self) -> bool:
         """Return whether a measurement waits for a frame to confirm it."""
         return self._candidate is not None
 
+    def confirms_in(self, now: float) -> float:
+        """Return the seconds until the waiting measurement can be confirmed."""
+        return max(0.0, self._since + self._hold - now)
+
     def reset(self) -> None:
         """Forget everything (a new title)."""
         self.bars = None
         self._candidate = None
-        self._seen = 0
 
-    def update(self, measured: Bars | None) -> None:
-        """Take in one frame's measurement (None: the frame proved nothing)."""
+    def update(self, measured: Bars | None, now: float,
+               hold: float = CONFIRM_SECONDS) -> None:
+        """Take in the measurement of the frame at *now* (seconds).
+
+        None: the frame proved nothing.  *hold* is how long this measurement
+        has to last before it counts.
+        """
         if measured is None:
             return
         if self.bars is not None and _same(measured, self.bars):
             self._candidate = None
-            self._seen = 0
             return
-        if self._candidate is not None and _same(measured, self._candidate):
-            self._seen += 1
-        else:
+        if self._candidate is None or not _same(measured, self._candidate):
             self._candidate = measured
-            self._seen = 1
-        if self._seen >= CONFIRM_FRAMES:
+            self._since = now
+            self._hold = hold
+            return
+        if now - self._since >= self._hold:
             self.bars = self._candidate
             self._candidate = None
-            self._seen = 0
 
 
 def scaled(bars: Bars, measured_in: tuple[int, int], target: tuple[int, int]) -> Bars:

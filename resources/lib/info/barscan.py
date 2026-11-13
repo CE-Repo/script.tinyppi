@@ -26,12 +26,24 @@ import time
 import xbmc
 from core.log import channel
 from core.utils import PROP_MEASURED_BARS, coded_frame, home_window
-from info.bars import BarTracker, capture_size, format_offsets, measure, scaled
+from info.bars import (
+    CONFIRM_SECONDS,
+    ODD_CONFIRM_SECONDS,
+    Bars,
+    BarTracker,
+    capture_size,
+    format_offsets,
+    has_bars,
+    measure,
+    picture_ratio,
+    scaled,
+)
 from info.framing import FOLLOW_INTERVAL, FramingWatch
+from info.properties import is_standard_ar
 
-# Seconds between two frames, and before the frame that confirms or rejects
-# a new measurement (``bars.CONFIRM_FRAMES`` frames have to agree).  A
-# change of framing shows within a quarter of a second.
+# Seconds between two frames, and the shortest pause before the frame that
+# confirms a new measurement.  A change of framing to a standard ratio shows
+# within half a second (``bars.CONFIRM_SECONDS`` after it was first seen).
 SCAN_INTERVAL    = 0.2
 CONFIRM_INTERVAL = 0.05
 
@@ -46,6 +58,19 @@ _RETRY_AFTER   = 60.0
 
 
 _log = channel("bars")
+
+
+def _hold(measured: Bars | None, size: tuple[int, int]) -> float:
+    """Return how long *measured* has to last before it counts.
+
+    The full frame and a standard film ratio count quickly.  Any other
+    ratio is more often a title card or a fade than a film's framing.
+    """
+    if measured is None or not has_bars(measured):
+        return CONFIRM_SECONDS
+    if is_standard_ar(picture_ratio(measured, size)):
+        return CONFIRM_SECONDS
+    return ODD_CONFIRM_SECONDS
 
 
 class BarScanner(threading.Thread):
@@ -89,10 +114,13 @@ class BarScanner(threading.Thread):
     def _pause(self) -> float:
         """Return the seconds until the next frame.
 
-        A measurement that differs from the confirmed bars is checked
-        against the next frame at once.
+        A measurement that waits to be confirmed gets its frame as soon as
+        it can count.
         """
-        return CONFIRM_INTERVAL if self._tracker.pending else SCAN_INTERVAL
+        if not self._tracker.pending:
+            return SCAN_INTERVAL
+        wait = self._tracker.confirms_in(time.monotonic())
+        return min(max(wait, CONFIRM_INTERVAL), SCAN_INTERVAL)
 
     def _follow_framing(self) -> None:
         """Run the framing watch when its next pass is due."""
@@ -125,7 +153,9 @@ class BarScanner(threading.Thread):
         if image is None:
             return
 
-        self._tracker.update(measure(image, width, height))
+        measured = measure(image, width, height)
+        self._tracker.update(measured, time.monotonic(),
+                             _hold(measured, (width, height)))
         self._publish_bars((width, height))
 
     def _wanted(self) -> bool:

@@ -143,6 +143,12 @@ STANDARD_ARS = (
 _AR_SNAP_TOLERANCE = 0.02           # relative to the standard ratio
 
 
+def is_standard_ar(ratio: float) -> bool:
+    """Return whether *ratio* is a standard one, within the tolerance."""
+    closest = min(STANDARD_ARS, key=lambda standard: abs(standard - ratio))
+    return abs(closest - ratio) <= closest * _AR_SNAP_TOLERANCE
+
+
 def _snapped_ar(ratio: float) -> str:
     """Format an aspect ratio to two decimals, snapping to a standard one."""
     closest = min(STANDARD_ARS, key=lambda standard: abs(standard - ratio))

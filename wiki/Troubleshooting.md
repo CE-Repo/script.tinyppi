@@ -224,6 +224,9 @@ debug logging on, the `TinyPPI [bars]` lines tell what happens:
 - **The value stays although the framing changed in a bright scene**: the
   bars above and below (or left and right) have to be the same size, so a
   picture that is not centred in its frame is never confirmed.
+- **The value takes two seconds to change**: the new ratio is not a
+  standard film ratio, so it has to last before it is believed — a title
+  card or a fade usually measures like that.
 - **Dolby Vision**: the measured bars come ahead of L5 in the **Aspect
   ratio** row; the **L5 Active Area** row keeps showing the RPU's values, so
   the two can differ for a moment.

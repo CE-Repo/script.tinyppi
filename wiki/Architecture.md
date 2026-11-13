@@ -218,7 +218,7 @@ Threads inside the service:
 | Dashboard producer | 200 ms watched / 1 s idle | snapshots, session history |
 | HTTP request threads | per connection | routes, SSE streams |
 | VS10 mode switcher | per request | applies dashboard switches one at a time |
-| Bar scanner | 200 ms (50 ms to confirm a new measurement) | captures a video frame and measures the black bars while a video plays; every 500 ms it follows the title's widest aspect ratio for the IMAX mark |
+| Bar scanner | 200 ms (sooner when a new measurement can be confirmed) | captures a video frame and measures the black bars while a video plays; every 500 ms it follows the title's widest aspect ratio for the IMAX mark |
 
 ---
 

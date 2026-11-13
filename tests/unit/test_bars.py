@@ -8,7 +8,8 @@ import pytest
 from info import bars
 from info.bars import BarTracker, measure
 
-SIZE = 100          # frames are 100 x 100, so pixels read as percent
+SIZE  = 100         # frames are 200 x 100, so rows read as percent
+WIDTH = 200
 
 
 def picture(left=0, right=0, top=0, bottom=0, level=200, black=0):
@@ -16,8 +17,8 @@ def picture(left=0, right=0, top=0, bottom=0, level=200, black=0):
     rows = []
     for y in range(SIZE):
         inside_y = top <= y < SIZE - bottom
-        rows.append([level if inside_y and left <= x < SIZE - right else black
-                     for x in range(SIZE)])
+        rows.append([level if inside_y and left <= x < WIDTH - right else black
+                     for x in range(WIDTH)])
     return rows
 
 
@@ -27,7 +28,7 @@ def image(rows):
 
 
 def measured(rows):
-    return measure(image(rows), SIZE, SIZE)
+    return measure(image(rows), WIDTH, SIZE)
 
 
 # --- The capture size ---------------------------------------------------------
@@ -56,7 +57,6 @@ def test_any_colour_channel_lights_a_pixel_and_alpha_none():
     ({}, (0, 0, 0, 0)),                                     # the picture fills the frame
     ({"top": 12, "bottom": 12}, (0, 0, 12, 12)),            # letterbox
     ({"left": 12, "right": 12}, (12, 12, 0, 0)),            # pillarbox
-    ({"left": 5, "right": 5, "top": 20, "bottom": 20}, (5, 5, 20, 20)),
     ({"top": 12, "bottom": 13}, (0, 0, 12, 13)),            # a row off centre is centred
 ])
 def test_the_bars_of_a_bright_frame(box, found):
@@ -82,7 +82,7 @@ def test_a_dark_scene_with_a_bright_object_proves_nothing():
 def test_a_dim_picture_edge_proves_nothing():
     rows = picture(top=12, bottom=12)
     for y in range(12, 30):
-        rows[y] = [0] * SIZE                                # the top of the picture is dark
+        rows[y] = [0] * WIDTH                               # the top of the picture is dark
         rows[y][50:60] = [200] * 10
     assert measured(rows) is None
 
@@ -96,6 +96,26 @@ def test_a_subtitle_in_the_bar_proves_nothing():
 def test_bars_of_different_size_prove_nothing():
     assert measured(picture(top=12, bottom=20)) is None
     assert measured(picture(left=5, right=20)) is None
+
+
+def test_lit_content_with_black_on_all_sides_is_no_picture():
+    # A title card, a logo, credits: no film is boxed on both axes.
+    assert measured(picture(left=50, right=50, top=30, bottom=30)) is None
+    assert measured(picture(left=10, right=10, top=12, bottom=12)) is None
+    # A bar of a line or two on the other axis is the scaler's, not a box.
+    assert measured(picture(left=2, right=2, top=12, bottom=12)) == (2, 2, 12, 12)
+
+
+def test_a_band_no_film_is_shaped_like_is_no_picture():
+    assert measured(picture(top=20, bottom=20)) is None     # 3.33:1, a line of text
+    assert measured(picture(left=60, right=60)) is None     # 0.8:1
+    assert measured(picture(top=14, bottom=14)) == (0, 0, 14, 14)   # 2.78:1, still a film
+
+
+def test_the_ratio_of_the_picture_inside_the_bars():
+    assert bars.picture_ratio((0, 0, 46, 46), (640, 360)) == pytest.approx(2.39, abs=0.005)
+    assert bars.picture_ratio((80, 80, 0, 0), (640, 360)) == pytest.approx(1.33, abs=0.005)
+    assert not bars.has_bars((0, 0, 1, 0)) and bars.has_bars((0, 0, 46, 46))
 
 
 def test_a_dark_side_of_the_picture_proves_nothing():
@@ -117,68 +137,85 @@ def test_a_soft_edge_counts_from_its_first_lit_row():
 
 SCOPE = (0, 0, 46, 46)
 FULL  = (0, 0, 0, 0)
+HOLD  = bars.CONFIRM_SECONDS
 
 
-def test_bars_stand_once_two_frames_agree():
+def confirmed(tracker, measured, at=0.0):
+    """Have *measured* last its hold time from *at* on."""
+    tracker.update(measured, at)
+    tracker.update(measured, at + HOLD)
+
+
+def test_bars_stand_once_they_lasted():
     tracker = BarTracker()
-    tracker.update(SCOPE)
+    tracker.update(SCOPE, 10.0)
+    assert tracker.bars is None and tracker.pending
+    assert tracker.confirms_in(10.1) == pytest.approx(HOLD - 0.1)
+    tracker.update(SCOPE, 10.0 + HOLD / 2)                  # too soon, however many frames
+    tracker.update(SCOPE, 10.0 + HOLD / 2)
     assert tracker.bars is None
-    tracker.update(SCOPE)
-    assert tracker.bars == SCOPE
+    tracker.update(SCOPE, 10.0 + HOLD)
+    assert tracker.bars == SCOPE and not tracker.pending
+
+
+def test_an_odd_measurement_has_to_last_longer():
+    tracker = BarTracker()
+    title_card = (0, 0, 60, 60)
+    tracker.update(title_card, 0.0, hold=bars.ODD_CONFIRM_SECONDS)
+    tracker.update(title_card, 1.0, hold=bars.ODD_CONFIRM_SECONDS)
+    assert tracker.bars is None
+    assert tracker.confirms_in(1.0) == pytest.approx(bars.ODD_CONFIRM_SECONDS - 1.0)
+    tracker.update(title_card, bars.ODD_CONFIRM_SECONDS, hold=bars.ODD_CONFIRM_SECONDS)
+    assert tracker.bars == title_card
 
 
 def test_frames_that_prove_nothing_change_nothing():
     tracker = BarTracker()
-    tracker.update(None)
+    tracker.update(None, 0.0)
     assert tracker.bars is None
-    tracker.update(SCOPE)
-    tracker.update(None)                                    # does not count against it
-    tracker.update((0, 0, 47, 45))                          # the same to within a pixel
+    tracker.update(SCOPE, 1.0)
+    tracker.update(None, 1.1)                               # does not count against it
+    tracker.update((0, 0, 47, 45), 1.0 + HOLD)              # the same to within a pixel
     assert tracker.bars == SCOPE
-    tracker.update(None)
+    tracker.update(None, 2.0)
     assert tracker.bars == SCOPE
 
 
 def test_a_pixel_of_jitter_keeps_the_confirmed_bars():
     tracker = BarTracker()
-    tracker.update(SCOPE)
-    tracker.update(SCOPE)
-    tracker.update((0, 0, 47, 46))
-    tracker.update((0, 0, 47, 46))
+    confirmed(tracker, SCOPE)
+    confirmed(tracker, (0, 0, 47, 46), at=1.0)
     assert tracker.bars == SCOPE
 
 
-def test_a_change_of_framing_needs_two_frames_too():
+def test_a_change_of_framing_has_to_last_too():
     tracker = BarTracker()
-    tracker.update(SCOPE)
-    tracker.update(SCOPE)
-    tracker.update(FULL)                                    # the picture opens up
+    confirmed(tracker, SCOPE)
+    tracker.update(FULL, 1.0)                               # the picture opens up
     assert tracker.bars == SCOPE
-    tracker.update(FULL)
+    tracker.update(FULL, 1.0 + HOLD)
     assert tracker.bars == FULL
 
 
-def test_a_single_stray_measurement_is_dropped():
+def test_a_stray_measurement_is_dropped():
     tracker = BarTracker()
-    tracker.update(SCOPE)
-    tracker.update(SCOPE)
-    tracker.update(FULL)
-    tracker.update(SCOPE)                                   # back: the candidate is gone
-    tracker.update(FULL)
+    confirmed(tracker, SCOPE)
+    tracker.update(FULL, 1.0)
+    tracker.update(SCOPE, 1.1)                              # back: the candidate is gone
+    tracker.update(FULL, 1.0 + HOLD)                        # starts over
     assert tracker.bars == SCOPE
-    tracker.update((0, 0, 20, 20))                          # another candidate takes over
-    tracker.update((0, 0, 20, 20))
+    tracker.update((0, 0, 20, 20), 2.0)                     # another candidate takes over
+    tracker.update((0, 0, 20, 20), 2.0 + HOLD)
     assert tracker.bars == (0, 0, 20, 20)
 
 
 def test_a_reset_forgets_bars_and_candidate():
     tracker = BarTracker()
-    tracker.update(SCOPE)
-    tracker.update(SCOPE)
-    tracker.update(FULL)
+    confirmed(tracker, SCOPE)
+    tracker.update(FULL, 1.0)
     tracker.reset()
-    assert tracker.bars is None
-    tracker.update(FULL)
+    assert tracker.bars is None and not tracker.pending
+    tracker.update(FULL, 1.0 + HOLD)
     assert tracker.bars is None
 
 

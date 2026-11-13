@@ -91,15 +91,20 @@ on and has no setting:
   overlay) is captured **five times a second, all through playback**, whether or
   not the overlay is open.
 - A frame only counts when the picture's edges are plainly lit and the bars
-  on both sides are the same size. **Two** such frames have to agree before
-  the reading changes. A frame that measures something new is checked
-  against the next one right away, so a change of framing shows within a
-  quarter of a second.
+  on both sides are the same size. The measurement then has to **last a
+  quarter of a second** before the reading changes, so a change of framing
+  shows within half a second.
+- **A title card, a logo or credits on black are not a picture.** Lit
+  content with black on all four sides is ignored (a film is letterboxed or
+  pillarboxed, not both), and so is a band no film is shaped like (wider
+  than about 2.85:1 or narrower than 1.15:1). A ratio that is not a standard
+  film ratio — 2.62:1, say — has to last **two seconds** before it is
+  shown.
 - **A dark scene proves nothing**: black bars cannot be told from dark
   picture. The last confirmed value stands until a brighter frame confirms
   or replaces it — the reading holds rather than guesses. The same goes for a
   subtitle burned into a bar.
-- The measured bars come first, ahead of L5. Until two bright frames have
+- The measured bars come first, ahead of L5. Until bright frames have
   confirmed them — at the start of a title — the row shows the ratio from
   L5 where there is one, and Kodi's otherwise.
 - In Dolby Vision this means that a change of framing during a dark scene
@@ -314,7 +319,7 @@ Every color is listed in [Colors and Themes](Colors-and-Themes).
 | Scene readings (L1, L5, bitrates, FPS, queues, changed-value highlight, layout) | every 100 ms |
 | Per-title facts and CPU statistics | every 1 s |
 | Side data parsing | only when the payload changes, shared by all readers |
-| Black bars measured from the picture | every 200 ms while a video plays (50 ms to confirm a change), overlay open or not |
+| Black bars measured from the picture | every 200 ms while a video plays, overlay open or not |
 
 All readings of one refresh are taken in a single pass, and a window property
 is only written when its value actually changed, so an idle refresh costs
