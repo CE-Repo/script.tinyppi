@@ -102,13 +102,15 @@ script.tinyppi/
 | `publish.py` | Publishes the readings as window properties: `publish_scene_properties` (every tick), `update_static_properties` (slow tick), `publish_properties` (before showing). |
 | `mediasource.py` | The *Media source* row: release type, container and size, or the stream transport. |
 | `imax.py` | IMAX / IMAX Enhanced detection by release name and title lists. |
+| `bars.py` | Black bars measured from one captured frame, and `BarTracker`, which decides what a run of frames proves. Free of Kodi imports. |
+| `barscan.py` | The service thread that captures the video (`xbmc.RenderCapture`), feeds `bars.py` and publishes the confirmed bars as the Home property `TinyPPI.MeasuredBars`; idle on builds that cannot capture. |
 
 ### `resources/lib/service/`
 
 | Module | Purpose |
 |---|---|
 | `start.py` | The service's entry point named in `addon.xml`: puts `resources/lib` on the path and runs `monitor.py`. Kept this small for Kodi's add-on checker. |
-| `monitor.py` | The service itself: keeps a Kodi monitor alive for the session to react to notifications, opens views handed over by `main.py`, runs the splash and owns the web dashboard. |
+| `monitor.py` | The service itself: keeps a Kodi monitor alive for the session to react to notifications, opens views handed over by `main.py`, runs the splash and owns the web dashboard and the bar scanner. |
 
 ### `resources/lib/ui/`
 
@@ -197,7 +199,7 @@ Kodi runs each add-on invocation in its own Python interpreter.
 
 | Interpreter | Lifetime | Runs |
 |---|---|---|
-| **Service** (`start.py` → `monitor.py`) | whole Kodi session | `KodiMonitor`, views handed over by launches, the codec-logo controller, the web dashboard |
+| **Service** (`start.py` → `monitor.py`) | whole Kodi session | `KodiMonitor`, views handed over by launches, the codec-logo controller, the web dashboard, the bar scanner |
 | **Script** (`main.py`) | one launch | argument dispatch; normally just the handover |
 
 Threads inside the service:
@@ -215,6 +217,7 @@ Threads inside the service:
 | Dashboard producer | 200 ms watched / 1 s idle | snapshots, session history |
 | HTTP request threads | per connection | routes, SSE streams |
 | VS10 mode switcher | per request | applies dashboard switches one at a time |
+| Bar scanner | 500 ms | captures a video frame and measures the black bars while a video plays and the setting is on; otherwise only checks whether to |
 
 ---
 
@@ -365,4 +368,5 @@ therefore:
 1. clears `TinyPPI.Service` (no more handovers),
 2. stops the dashboard with a single 3 s deadline for all threads, hanging up
    idle keep-alive connections and sending open streams a `bye` frame,
-3. exits — nothing may outlive the script.
+3. stops the bar scanner and waits up to 2 s for its current frame,
+4. exits — nothing may outlive the script.

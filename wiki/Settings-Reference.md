@@ -37,6 +37,7 @@ Launch behaviour, overlay content and position.
 | **Auto-hide** | `auto_hide` | 0 | 0 – 30 | Automatically hides the TinyPPI overlay after the selected time (in seconds). 0 = off. Does not apply to the VS10 dialog. |
 | **Show file name** | `filename` | Off | On / Off | Show the currently playing file name in TinyPPI. |
 | **Show L5 offsets icon** | `show_l5_icon` | On | On / Off | Show the L5 offsets icon (lrtb) next to the L5 values. |
+| **Measure the aspect ratio from the picture** | `measure_aspect_ratio` | Off | On / Off | Finds the black bars in the picture itself and shows the aspect ratio inside them, live, for everything without Dolby Vision L5 metadata. Needs a CoreELEC build that can capture the video (canary builds); on other builds nothing changes. A dark scene keeps the last confirmed value. |
 | **Brightness unit** | `unit_type` | cd/m² | `0` cd/m²<br>`1` nits<br>`2` Hidden | Choose the unit shown for the L6 brightness values. |
 | **Horizontal offset (SDR only)** | `offset_x` | 0 % | 0 – 100 % | Shifts the overlay to the right from its default position. 100% is the maximum shift that keeps the content on screen. |
 | **Vertical offset** | `offset_y` | 0 % | 0 – 100 % | Shifts the overlay upwards from its default position. 100% is the maximum shift that keeps the content on screen. |
@@ -51,6 +52,10 @@ Notes:
 - **Brightness unit** affects every luminance row (HDR10, RPU / L6, L1);
   *Hidden* removes the units — including the `12-bit` after PQ codes — so all
   rows show a unit or none do.
+- **Measure the aspect ratio from the picture** is described under
+  [Measured aspect ratio](The-TinyPPI-Overlay#measured-aspect-ratio). It
+  captures a small frame twice a second during playback, also while the
+  overlay is closed.
 - The **offsets** are explained on
   [The TinyPPI Overlay](The-TinyPPI-Overlay#position).
 

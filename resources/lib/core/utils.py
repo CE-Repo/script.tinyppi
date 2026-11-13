@@ -41,6 +41,10 @@ PROP_HDR10PLUS_PRESENT = "TinyPPI.Hdr10PlusPresent"
 # S5 / S928X, the enhancement layer dropped); drives the Converting icon.
 PROP_DV_CONVERTED = "TinyPPI.DvConverted"
 
+# The black bars measured from the picture, as ``L | R | T | B`` in coded
+# pixels; empty while nothing is confirmed (see info.barscan).
+PROP_MEASURED_BARS = "TinyPPI.MeasuredBars"
+
 
 # Per-pass read caches, one per thread (the overlay and the metadata view
 # refresh from different threads).  ``None`` outside a pass, where every read
@@ -347,6 +351,21 @@ def parse_offsets(value: str) -> tuple[int, int, int, int] | None:
     except ValueError:
         return None
     return left, right, top, bottom
+
+
+def declared_bars(offsets: str) -> tuple[int, int, int, int] | None:
+    """Return the L5 offsets when they declare black bars, else None.
+
+    All zeros declare none: that is dvinfo's placeholder for a missing L5,
+    or a picture that fills the frame.
+    """
+    bars = parse_offsets(offsets)
+    return bars if bars is not None and any(bars) else None
+
+
+def measured_offsets() -> str:
+    """Return the bars measured from the picture, or '' (see info.barscan)."""
+    return home_window().getProperty(PROP_MEASURED_BARS)
 
 
 def coded_frame() -> tuple[int, int] | None:

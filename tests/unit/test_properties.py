@@ -162,6 +162,28 @@ def test_all_zero_bars_are_a_real_no_crop_in_dolby_vision():
     assert properties.get_AspectRatioVar("0 | 0 | 0 | 0") == "1.78"
 
 
+def measured(offsets):
+    xbmcgui.Window(10000).setProperty("TinyPPI.MeasuredBars", offsets)
+
+
+@pytest.mark.parametrize("l5, is_dv, shown", [
+    ("N/A", False, "2.39"),                         # no L5: the measured bars
+    ("0 | 0 | 0 | 0", False, "2.39"),               # dvinfo's placeholder
+    ("0 | 0 | 0 | 0", True, "2.39"),                # Dolby Vision without bars in L5
+    ("0 | 0 | 20 | 20", True, "1.85"),              # declared bars win
+])
+def test_measured_bars_stand_in_where_l5_declares_none(l5, is_dv, shown):
+    frame()
+    measured("0 | 0 | 138 | 138")
+    assert properties.get_AspectRatioVar(l5, is_dv=is_dv) == shown
+
+
+def test_measured_bars_that_leave_no_picture_fall_back_to_kodi():
+    frame()
+    measured("0 | 0 | 540 | 540")
+    assert properties.get_AspectRatioVar("N/A") == "1.78"
+
+
 @pytest.mark.parametrize("known, enhanced, shown", [
     (False, True, ""), (True, False, "IMAX"), (True, True, "IMAX Enhanced"),
 ])

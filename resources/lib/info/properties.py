@@ -27,10 +27,12 @@ from core.memo import KeyedMemo
 from core.utils import (
     clean,
     cond,
+    declared_bars,
     first_float,
     home_window,
     info,
     is_effective_dv,
+    measured_offsets,
     parse_offsets,
     picture_aspect_ratio,
 )
@@ -152,26 +154,37 @@ def get_AspectRatioVar(l5_offsets: str, is_dv: bool | None = None) -> str:
     """Return the display aspect ratio of the picture inside the black bars.
 
     Kodi's ``videodar`` describes the coded frame, so a letterboxed 2.39 film
-    reads 1.78; scaling by the RPU's active-area offsets gives the visible
-    ratio.  Falls back to Kodi's value when the bars are unknown, or when
-    they are all zero outside Dolby Vision (there they are only dvinfo's
-    placeholder).  In Dolby Vision all-zero is a real "no crop".  *is_dv* may
-    pass in an already-read state.
+    reads 1.78; scaling by the black bars gives the visible ratio.  The bars
+    come from, in this order:
+
+    - the RPU's active-area offsets, when they declare bars;
+    - the bars measured from the picture (``info.barscan``), when there are
+      any: every format without L5, and Dolby Vision whose L5 is all zero;
+    - all-zero offsets in Dolby Vision, a real "no crop".  Outside Dolby
+      Vision they are only dvinfo's placeholder.
+
+    Without any of these the ratio is Kodi's.  *is_dv* may pass in an
+    already-read state.
     """
     raw = clean(info("Player.Process(videodar)"))
 
-    bars = parse_offsets(l5_offsets)
-    if bars is None:
-        return raw
-
-    if not any(bars):
-        if is_dv is None:
-            is_dv = is_effective_dv()
-        if not is_dv:
+    offsets = l5_offsets
+    if declared_bars(l5_offsets) is None:
+        measured = measured_offsets()
+        if measured:
+            offsets = measured
+        elif not _is_real_no_crop(l5_offsets, is_dv):
             return raw
 
-    ratio = picture_aspect_ratio(l5_offsets)
+    ratio = picture_aspect_ratio(offsets)
     return _snapped_ar(ratio) if ratio is not None else raw
+
+
+def _is_real_no_crop(l5_offsets: str, is_dv: bool | None) -> bool:
+    """Return whether all-zero offsets mean a picture that fills the frame."""
+    if parse_offsets(l5_offsets) is None:
+        return False
+    return is_effective_dv() if is_dv is None else is_dv
 
 
 def get_ImaxVar() -> str:

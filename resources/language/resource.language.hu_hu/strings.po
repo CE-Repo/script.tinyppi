@@ -1922,3 +1922,11 @@ msgstr "Évadok/epizódok"
 msgctxt "#32488"
 msgid "Not in your library – opens TMDb"
 msgstr "Nincs a könyvtáradban – a TMDb-n nyílik meg"
+
+msgctxt "#32489"
+msgid "Measure the aspect ratio from the picture"
+msgstr "Képarány mérése a képből"
+
+msgctxt "#32490"
+msgid "Finds the black bars in the picture itself and shows the aspect ratio inside them, live, for everything without Dolby Vision L5 metadata. Needs a CoreELEC build that can capture the video (canary builds); on other builds nothing changes. A dark scene keeps the last confirmed value."
+msgstr "Magában a képben keresi meg a fekete sávokat, és élőben mutatja a köztük lévő képarányt mindennél, aminek nincs Dolby Vision L5 metaadata. Olyan CoreELEC buildet igényel, amely képes rögzíteni a videót (canary buildek); más buildeken semmi sem változik. Sötét jelenetben az utolsó megerősített érték marad."

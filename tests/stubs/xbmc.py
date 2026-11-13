@@ -86,6 +86,19 @@ class Player:
         raise RuntimeError("nothing is playing")
 
 
+class RenderCapture:
+    """A Kodi that cannot capture the video: no ``composite``, no frames."""
+
+    def getAspectRatio(self):
+        return 0.0
+
+    def capture(self, width, height):
+        pass
+
+    def getImage(self, msecs=0):
+        return bytearray()
+
+
 class Keyboard:
     def __init__(self, default="", heading="", hidden=False):
         self._text = default

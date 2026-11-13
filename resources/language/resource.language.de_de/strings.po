@@ -1922,3 +1922,11 @@ msgstr "Staffeln/Folgen"
 msgctxt "#32488"
 msgid "Not in your library – opens TMDb"
 msgstr "Nicht in deiner Bibliothek – öffnet TMDb"
+
+msgctxt "#32489"
+msgid "Measure the aspect ratio from the picture"
+msgstr "Seitenverhältnis aus dem Bild messen"
+
+msgctxt "#32490"
+msgid "Finds the black bars in the picture itself and shows the aspect ratio inside them, live, for everything without Dolby Vision L5 metadata. Needs a CoreELEC build that can capture the video (canary builds); on other builds nothing changes. A dark scene keeps the last confirmed value."
+msgstr "Sucht die schwarzen Balken im Bild selbst und zeigt das Seitenverhältnis dazwischen live an, für alles ohne Dolby-Vision-L5-Metadaten. Benötigt einen CoreELEC-Build, der das Video erfassen kann (Canary-Builds); auf anderen Builds ändert sich nichts. In dunklen Szenen bleibt der zuletzt bestätigte Wert stehen."

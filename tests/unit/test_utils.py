@@ -272,6 +272,21 @@ def test_no_picture_ratio_without_a_coded_frame():
     assert utils.picture_aspect_ratio("0 | 0 | 140 | 140") is None
 
 
+@pytest.mark.parametrize(("offsets", "bars"), [
+    ("0 | 0 | 276 | 276", (0, 0, 276, 276)),
+    ("0 | 0 | 0 | 0", None),                    # a placeholder, or no crop
+    ("N/A", None),
+])
+def test_only_non_zero_offsets_declare_bars(offsets, bars):
+    assert utils.declared_bars(offsets) == bars
+
+
+def test_the_measured_bars_come_from_the_home_window():
+    assert utils.measured_offsets() == ""
+    xbmcgui.Window(10000).setProperty(utils.PROP_MEASURED_BARS, "0 | 0 | 276 | 276")
+    assert utils.measured_offsets() == "0 | 0 | 276 | 276"
+
+
 # --- Window properties --------------------------------------------------------
 
 def test_a_batch_of_properties_is_published():
