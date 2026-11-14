@@ -428,6 +428,18 @@
                         <font>font23_narrow</font>
                         <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
                         <aligny>top</aligny>
+                        <visible>String.IsEmpty(Window.Property(ImaxSwitchColor))</visible>
+                    </control>
+                    <!-- The same row in the changed-values color, while an IMAX scene has just begun or ended -->
+                    <control type="label">
+                        <left>240</left>
+                        <top>150</top>
+                        <width>380</width>
+                        <label>[COLOR $INFO[Window.Property(ImaxSwitchColor)]]$INFO[Window.Property(AspectRatioVar),,:1]$INFO[Window.Property(AspectFormatVar), (,)]$INFO[Window.Property(ImaxVar), (,)][/COLOR]</label>
+                        <font>font23_narrow</font>
+                        <textcolor>$INFO[Window(10000).Property(TinyPPI.OutputColor)]</textcolor>
+                        <aligny>top</aligny>
+                        <visible>!String.IsEmpty(Window.Property(ImaxSwitchColor))</visible>
                     </control>
 
                     <!-- Decoder -->

@@ -107,6 +107,12 @@ _DV_VALUE_PROPERTIES = (
     "Hdr10MaxCllFallVar",
 )
 
+# The IMAX mark behind the aspect ratio, and the property that carries the
+# highlight color while the row is lit after an IMAX scene began or ended
+# (empty otherwise; the skin draws the row in it).
+_IMAX_MARK         = "ImaxVar"
+_IMAX_SWITCH_COLOR = "ImaxSwitchColor"
+
 _DV_CHANGED_COLOR    = "TinyPPI.OutputChangedColor"
 _DV_CHANGED_FALLBACK = "FF82B1FF"  # Blue, the setting's default
 
@@ -272,6 +278,11 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
         # _highlight_dv_changes).
         self._highlighter: ChangeHighlighter | None = None
         self._shown: dict[str, str] = {}
+        # Whether the IMAX mark was up at the last tick (None before onInit),
+        # and until when the aspect-ratio row stays lit after it switched.
+        self._imax_scene: bool | None = None
+        self._imax_lit_until = 0.0
+        self._hold = 0.0
         # Public: _show_overlay() fills it before doModal().
         self.published: dict[str, str] = {}
         self._color_missing     = False
@@ -304,8 +315,10 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
 
     def _remember_dv_values(self) -> None:
         """Record the opening DV readings as history, without highlighting."""
-        self._highlighter = ChangeHighlighter(highlight_hold(_DV_CHANGED_HOLD))
+        self._hold = highlight_hold(_DV_CHANGED_HOLD)
+        self._highlighter = ChangeHighlighter(self._hold)
         self._changed_color = self._dv_changed_color()
+        self._imax_scene = bool(self.getProperty(_IMAX_MARK))
         self._shown = {
             name: self.getProperty(name) for name in _DV_VALUE_PROPERTIES
         }
@@ -350,6 +363,25 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
             if self._shown.get(name) != highlighted:
                 self.setProperty(name, highlighted)
                 self._shown[name] = highlighted
+
+    def _highlight_imax_switch(self) -> None:
+        """Light the aspect-ratio row when an IMAX scene begins or ends.
+
+        The row is lit for the highlight duration whenever the IMAX mark
+        comes or goes, whatever the HDR type.  A ratio that changes without
+        the mark changing (one format to another) is not highlighted.
+        """
+        if self._imax_scene is None:  # before onInit
+            return
+        imax = bool(self.published.get(_IMAX_MARK, ""))
+        now  = time.monotonic()
+        if imax != self._imax_scene:
+            self._imax_scene = imax
+            self._imax_lit_until = now + self._hold
+        color = self._changed_color if now < self._imax_lit_until else ""
+        if self._shown.get(_IMAX_SWITCH_COLOR, "") != color:
+            self.setProperty(_IMAX_SWITCH_COLOR, color)
+            self._shown[_IMAX_SWITCH_COLOR] = color
 
     def _base_offset(self, wide: bool, up_limit: int) -> tuple[int, int]:
         """Return the configured (x, y) offset.
@@ -505,6 +537,7 @@ class TinyPPIDialog(xbmcgui.WindowXMLDialog):
                     with read_pass():
                         publish.publish_scene_properties(self, self.published)
                         self._highlight_dv_changes()
+                        self._highlight_imax_switch()
                         self._apply_position_offset()
 
                         now = time.time()

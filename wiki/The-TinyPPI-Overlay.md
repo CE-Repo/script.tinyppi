@@ -267,6 +267,11 @@ and Metadata panels — CM version, structure, version, profile, L1, L5, RPU MDL
 L6 and the HDR10 rows inside the DV panel — where it separates the live,
 per-frame readings from the static ones.
 
+The **aspect ratio** row lights up the same way, in the same color and for
+the same duration, whenever an IMAX scene begins or ends — on every source,
+not just Dolby Vision. See
+[The IMAX mark during an IMAX scene](#the-imax-mark-during-an-imax-scene).
+
 The readings themselves are polled every 100 ms whatever the highlight duration
 is, so no change is missed; a short duration only makes it harder to see.
 
@@ -278,7 +283,9 @@ metadata view has its own pair under **Settings → DV metadata**.
 The `(IMAX)` / `(IMAX Enhanced)` mark behind the aspect ratio shows **only
 while a recognised IMAX film plays one of its IMAX scenes**. During the
 film's regular framing (2.39:1, say) the row names that format instead —
-`2.39:1 (Scope)`.
+`2.39:1 (Scope)`. At each switch between the two the whole row is briefly
+drawn in the **Changed values** color (see
+[Highlighted values](#highlighted-values)).
 
 - An IMAX scene is a picture in one of IMAX's own ratios: **1.90:1 or
   taller** (1.90, 1.78, 1.43). A film that is 1.90:1 all through shows the
