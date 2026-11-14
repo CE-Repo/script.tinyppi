@@ -423,6 +423,37 @@ def test_without_a_themed_color_the_default_blue_is_used_and_logged_once(clock):
                         "changed overlay values in FF82B1FF instead"]
 
 
+def test_the_aspect_ratio_row_lights_up_when_an_imax_scene_begins_or_ends(clock):
+    dialog = remembered(ImaxVar="")
+    dialog.published = {"TinyPPI.HdrType": "HDR10", "ImaxVar": "IMAX"}
+    dialog._highlight_imax_switch()
+    assert dialog.getProperty("ImaxSwitchColor") == "FFFF0000"
+    clock.now += 1.9
+    dialog._highlight_imax_switch()
+    assert dialog.getProperty("ImaxSwitchColor") == "FFFF0000"
+    clock.now += 0.2
+    dialog._highlight_imax_switch()
+    assert dialog.getProperty("ImaxSwitchColor") == ""
+    dialog.published["ImaxVar"] = ""                        # back to the regular framing
+    dialog._highlight_imax_switch()
+    assert dialog.getProperty("ImaxSwitchColor") == "FFFF0000"
+
+
+@pytest.mark.parametrize("mark", ["", "IMAX"])
+def test_the_aspect_ratio_row_is_not_lit_while_the_imax_mark_stays(clock, mark):
+    dialog = remembered(ImaxVar=mark)
+    dialog.published = {"ImaxVar": mark, "AspectRatioVar": "2.20"}
+    dialog._highlight_imax_switch()
+    assert dialog.getProperty("ImaxSwitchColor") == ""
+
+
+def test_the_aspect_ratio_row_is_not_lit_before_the_overlay_is_initialised(clock):
+    dialog = make_dialog()
+    dialog.published = {"ImaxVar": "IMAX"}
+    dialog._highlight_imax_switch()
+    assert dialog.getProperty("ImaxSwitchColor") == ""
+
+
 # --- The update loop -----------------------------------------------------------
 
 @pytest.fixture

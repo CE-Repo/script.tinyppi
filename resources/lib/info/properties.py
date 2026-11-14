@@ -140,7 +140,8 @@ def get_VideoResolutionVar() -> str:
 # still land slightly off (a 2.39 film would read 2.40); ratios beyond the
 # tolerance are shown as computed.
 STANDARD_ARS = (
-    1.33, 1.37, 1.43, 1.66, 1.78, 1.85, 1.90, 2.00, 2.20, 2.35, 2.39, 2.55, 2.76,
+    1.19, 1.33, 1.37, 1.43, 1.50, 1.60, 1.66, 1.78, 1.85, 1.90, 2.00, 2.20, 2.35,
+    2.39, 2.55, 2.59, 2.66, 2.76,
 )
 _AR_SNAP_TOLERANCE = 0.02           # relative to the standard ratio
 
@@ -252,8 +253,11 @@ def get_ImaxVar(aspect: str, framing_known: bool) -> str:
 # ratios, the IMAX mark says so for a recognised film, and calling any other
 # film "IMAX" would light the IMAX badge of the dashboard and the app.
 _AR_FORMATS: dict[str, str | int] = {
+    "1.19": "Movietone",
     "1.33": "4:3",
     "1.37": "Academy",
+    "1.50": "VistaVision",
+    "1.60": "16:10",
     "1.66": 32492,                  # European widescreen
     "1.78": "16:9",
     "1.85": 32493,                  # Cinema widescreen
@@ -262,6 +266,8 @@ _AR_FORMATS: dict[str, str | int] = {
     "2.35": "Scope",
     "2.39": "Scope",
     "2.55": "CinemaScope",
+    "2.59": "Cinerama",
+    "2.66": "CinemaScope",          # the early, wider one
     "2.76": "Ultra Panavision",
 }
 

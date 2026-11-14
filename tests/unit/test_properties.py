@@ -268,6 +268,8 @@ def test_the_regular_framing_of_an_imax_film_is_named_after_its_format(monkeypat
     ("1.33", "4:3"), ("1.37", "Academy"), ("1.66", "#32492"), ("1.78", "16:9"),
     ("1.85", "#32493"), ("2.00", "Univisium"), ("2.20", "70 mm"), ("2.35", "Scope"),
     ("2.39", "Scope"), ("2.55", "CinemaScope"), ("2.76", "Ultra Panavision"),
+    ("1.19", "Movietone"), ("1.50", "VistaVision"), ("1.60", "16:10"),
+    ("2.59", "Cinerama"), ("2.66", "CinemaScope"),
     ("1.43", ""), ("1.90", ""),                     # IMAX's own: the IMAX mark's
     ("2.10", ""), ("", ""),                         # no standard ratio, no name
 ])
