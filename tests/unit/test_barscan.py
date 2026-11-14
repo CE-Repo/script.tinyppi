@@ -49,8 +49,8 @@ def black_opening(top=35, black=20):
 
 
 def odd_letterbox():
-    """A picture of 2.62:1, no film ratio."""
-    return frame(44, 44)
+    """A picture of 2.26:1, no film ratio."""
+    return frame(29, 29)
 
 
 class Capture:
@@ -214,7 +214,7 @@ def test_a_film_that_opens_on_black_is_measured_from_its_black(canary):
 
 def test_a_dark_frame_only_counts_as_a_standard_ratio(canary):
     scanner = BarScanner()
-    scan(scanner, *[black_opening(top=44)] * 3 * SECOND)    # 2.64:1
+    scan(scanner, *[black_opening(top=29)] * 3 * SECOND)    # 2.26:1
     assert bars() == "" and not scanner._tracker.pending
 
 
@@ -340,7 +340,7 @@ def test_another_titles_framings_are_not_remembered(canary):
 def test_a_ratio_no_film_is_made_in_is_ignored(canary):
     scanner = BarScanner()
     scan(scanner, SCOPE, SCOPE)
-    scan(scanner, *[odd_letterbox()] * 5 * SECOND)          # 2.64:1, however long
+    scan(scanner, *[odd_letterbox()] * 5 * SECOND)          # 2.26:1, however long
     assert bars() == "0 | 0 | 280 | 280"
     assert not scanner._tracker.pending
     scan(scanner, FULL, FULL)                               # the frame itself always counts
