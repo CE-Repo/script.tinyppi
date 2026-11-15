@@ -1966,3 +1966,11 @@ msgstr ""
 msgctxt "#32500"
 msgid "%s in total"
 msgstr ""
+
+msgctxt "#32501"
+msgid "%s votes"
+msgstr ""
+
+msgctxt "#32502"
+msgid "1 vote"
+msgstr ""

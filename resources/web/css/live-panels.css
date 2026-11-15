@@ -734,6 +734,11 @@
   overflow-wrap: anywhere;
   pointer-events: none;
 }
+/* A line each: whose it is, standing out, then what belongs to it, and
+   quieter what is counted. */
+.rating-tip .tipline { display: block; }
+.rating-tip .tipline:first-child { font-weight: 600; }
+.rating-tip .tipline.quiet { color: var(--dim); }
 .rating .look {
   display: inline-flex;
   align-items: stretch;

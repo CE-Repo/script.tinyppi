@@ -1966,3 +1966,11 @@ msgstr "提名 1 项"
 msgctxt "#32500"
 msgid "%s in total"
 msgstr "共 %s"
+
+msgctxt "#32501"
+msgid "%s votes"
+msgstr "%s 票"
+
+msgctxt "#32502"
+msgid "1 vote"
+msgstr "1 票"

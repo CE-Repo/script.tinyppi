@@ -1966,3 +1966,11 @@ msgstr "1 Nominierung"
 msgctxt "#32500"
 msgid "%s in total"
 msgstr "%s insgesamt"
+
+msgctxt "#32501"
+msgid "%s votes"
+msgstr "%s Stimmen"
+
+msgctxt "#32502"
+msgid "1 vote"
+msgstr "1 Stimme"

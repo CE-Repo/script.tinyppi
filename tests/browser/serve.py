@@ -29,7 +29,7 @@ xbmcaddon.SETTINGS.update({"web_auth_read": "true", "web_allow_control": "true",
 
 FILMS = [
     {"movieid": i, "title": f"Film {i:02d}", "year": 2000 + i, "art": {},
-     "playcount": i % 2, "ratings": {"imdb": {"rating": 5 + i / 10}},
+     "playcount": i % 2, "ratings": {"imdb": {"rating": 5 + i / 10, "votes": 1200 + i}},
      "runtime": 5400 + 60 * i, "resume": {"position": 1800 if i == 3 else 0, "total": 7200},
      "dateadded": f"2026-09-{i:02d} 10:00:00",
      "genre": ["Drama", "Sci-Fi", "Comedy"][i % 3:i % 3 + 1],

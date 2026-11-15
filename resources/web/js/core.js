@@ -41,6 +41,7 @@ window.TinyPPI = (function () {
     chapter: "Chapter %s", chapter_of: "Chapter %s of %s",
     progress_bar: "Progress bar", chapter_marks: "Show chapter markers",
     description: "Description", ratings: "Ratings", awards: "Awards", award_hint: "Dimmed icons indicate nominations.",
+    rating_votes: "%s votes", rating_vote: "1 vote",
     awards_wins: "%s wins", awards_win: "1 win", awards_nominations: "%s nominations",
     awards_nomination: "1 nomination", awards_total: "%s in total",
     volume_down: "Volume down", volume_up: "Volume up",

@@ -1966,3 +1966,11 @@ msgstr "1 jelölés"
 msgctxt "#32500"
 msgid "%s in total"
 msgstr "összesen %s"
+
+msgctxt "#32501"
+msgid "%s votes"
+msgstr "%s szavazat"
+
+msgctxt "#32502"
+msgid "1 vote"
+msgstr "1 szavazat"

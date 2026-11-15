@@ -145,6 +145,9 @@ _UI_STRINGS = {
     # What an award's shield says it won or was nominated for, in figures.
     "award_won":        32389,
     "award_nominated":  32390,
+    # How many voted, under a rating's name in its tooltip.
+    "rating_votes":     32501,
+    "rating_vote":      32502,
     # And the line under the shields: every award it won and was nominated
     # for, counted ("4 wins & 7 nominations in total").
     "awards_wins":      32496,

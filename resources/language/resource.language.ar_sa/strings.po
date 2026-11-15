@@ -1966,3 +1966,11 @@ msgstr "ترشيح واحد"
 msgctxt "#32500"
 msgid "%s in total"
 msgstr "%s إجمالًا"
+
+msgctxt "#32501"
+msgid "%s votes"
+msgstr "%s صوتًا"
+
+msgctxt "#32502"
+msgid "1 vote"
+msgstr "صوت واحد"
