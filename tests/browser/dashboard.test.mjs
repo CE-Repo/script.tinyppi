@@ -142,6 +142,11 @@ test("the overview is a key under the playing card that opens the title's detail
   assert.equal(await groups.first().locator(".side[class*='award_']").count(), 0);
   assert.equal(await groups.last().locator(".rating").count(), 2);
   assert.equal(await groups.last().locator(".ratingnote").innerText(), "#32436");
+  // Every award counted, between the shields and the hint.
+  assert.equal(await groups.last().locator(".ratingtotal").innerText(), "#32500");
+  assert.deepEqual(await groups.last().locator(":scope > *").evaluateAll(
+    (nodes) => nodes.map((node) => node.className || node.tagName)),
+  ["H4", "ratings", "ratingtotal", "ratingnote"]);
   const ratingBox = await groups.first().boundingBox();
   const awardBox = await groups.last().boundingBox();
   assert.ok(awardBox.y >= ratingBox.y + ratingBox.height, "awards are below ratings");
@@ -358,7 +363,15 @@ test("details keep scrolling inside the dialog and rating hints work by click an
     await badge.click();
     const tip = page.locator("#detailsRatings .rating-tip:popover-open");
     await tip.waitFor();
-    assert.equal(await tip.innerText(), "IMDb");
+    // Its name, and how many voted on a line of its own, quieter.
+    assert.equal(await tip.innerText(), "IMDb\n#32501");
+    const [name, votes] = await tip.locator(".tipline").evaluateAll((lines) => lines.map((line) => {
+      const style = getComputedStyle(line);
+      return { top: line.getBoundingClientRect().top, weight: style.fontWeight, color: style.color };
+    }));
+    assert.ok(votes.top > name.top, "the votes stand under the name");
+    assert.equal(name.weight, "600");
+    assert.notEqual(votes.color, name.color);
     const rect = await tip.boundingBox();
     assert.ok(rect.x >= 0 && rect.x + rect.width <= width);
     await page.keyboard.press("Escape");

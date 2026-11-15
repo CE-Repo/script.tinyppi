@@ -159,6 +159,10 @@ film title) has nowhere to run.
   to whatson-api.onrender.com, once per film, with the WhatsOn API key if you
   gave one and nothing else (see
   [Rotten Tomatoes from WhatsOn](Web-Dashboard#rotten-tomatoes-from-whatson)).
+- **The OMDb API key stays on the box.** With one set, opening a title's
+  details sends the title's IMDb id (an episode's show's) to www.omdbapi.com,
+  with the key and nothing else; no list and no playing title is ever asked
+  for (see [Every award, counted](Web-Dashboard#every-award-counted)).
 - **The TMDb API key stays on the box.** With one set, opening a title's
   details sends the title's TMDb or IMDb id to api.themoviedb.org, with the
   key, to read its credits; a page only ever gets opaque portrait tags,

@@ -7,7 +7,9 @@ Read when a title is opened, one query each and not cached: the lists carry
 what a tile needs, this what only one opened title needs.  The ratings are
 the ones the now-playing card shows for the same title: the library's,
 MDBList's over them, WhatsOn's Rotten Tomatoes certificates and what both
-lack, the IMDb Top 250 place and the big awards (see ``web.ratings``).  A
+lack, the IMDb Top 250 place and the big awards (see ``web.ratings``) --
+and, here alone, how many awards it won and was nominated for in all, as
+OMDb counts them (see ``web.omdb``).  A
 film MDBList or WhatsOn is being asked for is waited on for a moment; one
 that takes longer has the library's ratings this time and theirs the next,
 from what they keep.
@@ -19,7 +21,7 @@ from collections import OrderedDict
 from threading import Lock
 
 from core import settings
-from web import mdblist, tmdb, whatson
+from web import mdblist, omdb, tmdb, whatson
 from web.library import common, films, series
 from web.library.entries import Airing, Details, Film, Person, Related, Show
 from web.payloads import Ratings
@@ -126,7 +128,11 @@ def details(kind: str, item_id: Unchecked) -> Details | None:
         return None
     found: Details = {"kind": kind, "id": wanted, "title": common.clean_title(row),
                       "ratings": []}
-    _rated(found, _shown(title_ratings(kind, row)))
+    ratings = title_ratings(kind, row)
+    _rated(found, _shown(ratings))
+    total = omdb.awards_total(omdb.api_key(), ratings["imdb"])
+    if total:
+        found["awards_total"] = total
     _texts(found, row)
     _numbers(found, row)
     _watching(found, row, kind)

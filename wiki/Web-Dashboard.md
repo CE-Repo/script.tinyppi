@@ -173,7 +173,8 @@ The shields on the details page:
   Rotten Tomatoes and its Popcornmeter, Roger Ebert (*RE*), MyAnimeList,
   MDBList, or the first letter of any other — then your own rating behind a
   heart, the place in the IMDb Top 250 (*250* | *#17*) and the big awards (see
-  [Awards](#awards)). How many voted is not shown. Every score is out of ten,
+  [Awards](#awards)). A tap or a pointer on a shield names its service and,
+  on a line of its own under it, how many voted, where the service says. Every score is out of ten,
   whatever scale its service uses: Roger Ebert's 3.5 of 4 stars show as 8.8,
   Letterboxd's 4.5 of 5 as 9.0.
 
@@ -221,7 +222,9 @@ stand last among the ratings, each as a drawing of what it hands out (a
 statuette, a ringed globe, a theatre mask, a winged figure holding an atom)
 with a figure beside it: how many it **won**, on a gold shield — or, where it won none, how
 many it was **nominated** for, on a quieter grey one. A tap shows what it won
-it for (*Oscar: Best Visual Effects (2015) · 4 nominated*).
+it for, a line each: the award's name, every category it won and how many
+more it was nominated for (*Oscar* / *Best Visual Effects (2015)* / *4
+nominated*).
 
 They come with the add-on, from **[Wikidata](https://www.wikidata.org)**
 (`resources/data/awards.json`, written by `tools/gen_awards.py`): **no key, no
@@ -229,6 +232,25 @@ request** on the box. A film is looked up by the TheTVDB, IMDb or TMDb id the
 library holds, an episode by its show's. The list holds what was nominated
 for one of these four, up to the season it was last written for; a title it
 does not hold shows none.
+
+### Every award, counted
+
+IMDb counts every award there is, the small ones with the big — which is why
+a film without one of the four shields can still read *4 wins & 7 nominations
+total* there. With a free key from [OMDb](https://www.omdbapi.com), a title's
+**details** show that count as a line under the shields (*4 wins & 7
+nominations in total*), or alone under **Awards** where there is no shield.
+
+1. Take the free key at omdbapi.com (**API Key**) and follow the link in its
+   e-mail to switch it on.
+2. Enter it under **Settings → Dashboard → Ratings → OMDb API key**.
+
+OMDb is asked **only when a title's details are opened** — never for a list,
+a wall or the overview card — once per title, by the IMDb id the library
+holds (an episode by its show's), and the answer is kept for a day. A free
+key answers 1,000 times a day; one OMDb refuses, or whose day is spent, rests
+for an hour. A title without an IMDb id in the library, or one OMDb has no
+count for, shows no line.
 
 ---
 

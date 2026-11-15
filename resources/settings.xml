@@ -2122,6 +2122,15 @@
                         <hidden>true</hidden>
                     </control>
                 </setting>
+                <setting id="web_omdb_key" type="string" label="32494" help="32495">
+                    <level>0</level>
+                    <default></default>
+                    <constraints><allowempty>true</allowempty></constraints>
+                    <control type="edit" format="string">
+                        <heading>32494</heading>
+                        <hidden>true</hidden>
+                    </control>
+                </setting>
             </group>
         </category>
     </section>

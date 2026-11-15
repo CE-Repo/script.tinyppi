@@ -151,6 +151,7 @@ the CI actions up to date.
 | `unit/test_awards.py` | The big awards a title won or was nominated for: found by its TheTVDB, IMDb or TMDb id, their order, a title the list does not hold, junk and a list that cannot be read |
 | `unit/test_gen_awards.py` | `tools/gen_awards.py` against a pretend TheTVDB: the nominees of the four awards by title, the IMDb and TMDb indexes, TheMovieDb Helper's list and a pretend Wikidata's awards read into the same shape |
 | `unit/test_mdblist.py` | MDBList's ratings (key refused, daily limit, failures, the cache) and the IMDb Top 250 chart, each asked for off the snapshot's thread, laid over the library's |
+| `unit/test_omdb.py` | OMDb's count of every award: the totals read from its sentence, a title it does not know, failures, a refused key resting, the cache |
 | `unit/test_whatson.py` | WhatsOn's Rotten Tomatoes ratings and certificates (limit spent, failures, the cache), filled in where missing and worn by the ratings shown |
 | `unit/test_strings.py` | The dashboard's UI strings |
 | `unit/test_values.py` | Text and id helpers shared by the dashboard |

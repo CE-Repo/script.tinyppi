@@ -143,6 +143,7 @@ script.tinyppi/
 | `awards.py` | The big awards (Oscars, Golden Globes, BAFTAs, Emmys) a film or an episode's show won or was nominated for, from `resources/data/awards.json` (Wikidata's, see `tools/gen_awards.py`) by its TheTVDB, IMDb or TMDb id. |
 | `mdblist.py` | MDBList's ratings for a film (with an API key) and the IMDb Top 250 chart, each fetched off the snapshot's thread and cached. |
 | `whatson.py` | Rotten Tomatoes' Certified Fresh and Verified Hot for a film from WhatsOn (a key optional), and its ratings where MDBList and the library lack them, off the snapshot's thread and cached. |
+| `omdb.py` | How many awards a title won and was nominated for in all, from OMDb (with an API key), for the details view only: asked by IMDb id when a title is opened, cached for a day. |
 | `tmdb.py` | Optional credits and facts from TMDb for the details view only: portraits and person ids for unambiguous members of the identified title's credits (Kodi's names, roles and portraits take precedence), a film's budget, takings, cinema release and series, a show's state, and recommendations. Cached, within a time budget per view; the API credential stays on Kodi and clients receive opaque artwork tags. |
 | `rows.py` | The dashboard's cards and rows, as the overlay shows them. |
 | `session.py` | The playing title's history: chart samples, events, counters. |

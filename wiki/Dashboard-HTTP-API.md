@@ -211,7 +211,9 @@ library's, MDBList's over them and WhatsOn's Rotten Tomatoes ratings and
 certificates (a film's answer is waited on for up to four seconds; one that
 takes longer is there on the next read) — and where there are any `mpaa` with
 its `age` mark and `age_level` (an episode's are its show's), `userrating`,
-`top250` and `awards`; and where the library has them `plot`, `tagline`,
+`top250`, `awards` and, with an OMDb API key, `awards_total` (`won` and
+`nominated`: every award counted, here alone; see
+[Every award, counted](Web-Dashboard#every-award-counted)); and where the library has them `plot`, `tagline`,
 `premiered`, `year`, `duration`, `genres`, `directors`, `writers`, `studios`,
 `countries`, the `cast` (each entry has `name`, `role` and an optional
 `thumbnail`; the whole cast in billing order, `cast_more` always `false`) and the file's `video`,

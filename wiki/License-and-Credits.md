@@ -95,7 +95,9 @@ The **awards list** (`resources/data/awards.json`) is from
 --wikidata` and cut to the four awards shown. The script can also write it
 from [TheTVDB](https://thetvdb.com)'s API, with a key, or from the awards
 list of TheMovieDb Helper (plugin.video.themoviedb.helper by jurialmunkey,
-GPL-3.0-or-later), which is built from TheTVDB's.
+GPL-3.0-or-later), which is built from TheTVDB's. How many awards a title won
+and was nominated for in all is asked of the [OMDb API](https://www.omdbapi.com)
+(its data CC BY-NC 4.0), with the reader's own key.
 
 All of them are used only to name the source of a rating or an age rating
 (nominative use); no affiliation with or endorsement by their owners is

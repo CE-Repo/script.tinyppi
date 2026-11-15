@@ -381,8 +381,10 @@ window.TinyPPIDetails = (function () {
      the order the badges stand: the age rating first -- who the film is for
      is asked before how good it is -- then a score for each source, the
      reader's own, the place in the IMDb Top 250 and the big awards.
-     Each badge says in words what its mark shows, for a screen reader and
-     under a pointer. */
+     Each badge says in words what its mark shows, for a screen reader, and
+     under a pointer or after a tap whose it is, a line each: its name
+     (named), what belongs to the name (more) and, quieter, what is counted
+     (quiet) -- how many voted, how many more nominations. */
   /* The board an age rating's mark is from, by its name ("fsk12" is the
      FSK's). */
   function boardOf(age) {
@@ -390,6 +392,13 @@ window.TinyPPIDetails = (function () {
     if (age.startsWith("mpa_")) return "MPA";
     if (age.startsWith("tv_")) return "TV Parental Guidelines";
     return "BBFC";
+  }
+
+  /* How many voted, in the reader's figures ("612,345 votes"), as the one
+     quiet line of a score's tooltip; none where the source gave no count. */
+  function votesSaid(votes, T) {
+    if (!(votes > 0)) return [];
+    return [votes === 1 ? T.rating_vote : T.rating_votes.replace("%s", votes.toLocaleString())];
   }
 
   function ratingBadges(media, T) {
@@ -416,7 +425,8 @@ window.TinyPPIDetails = (function () {
         mark: RATING_SOURCES[source] ? source : "",
         letter: name.charAt(0),
         certified: Boolean(certificate),
-        value, said: (named + " " + value).trim(), named
+        value, said: (named + " " + value).trim(), named: name,
+        more: certificate ? [certificate] : [], quiet: votesSaid(entry.votes, T)
       });
     }
     if (media.userrating) {
@@ -434,16 +444,16 @@ window.TinyPPIDetails = (function () {
   /* An award wears a drawing of what it hands out on its own ground, and
      beside it how many it won -- or, where it won none, how many it was
      nominated for, on a quieter shield (see .rating.nominee).  Under a
-     pointer, what it won it for. */
+     pointer, what it won it for, a line each, and how many more it was
+     nominated for. */
   function awardBadge(award, T) {
     const name = AWARDS[award.award] || award.award;
     const won = award.won.length;
     const more = award.nominated ? T.award_nominated.replace("%s", award.nominated) : "";
     const value = String(won || award.nominated);
     const said = name + " " + (won ? T.award_won.replace("%s", won) : more);
-    const named = won ? [name + ": " + award.won.join(", "), more].filter(Boolean).join(" · ")
-      : name + " · " + more;
-    return { kind: won ? "award" : "nominee", mark: "award_" + award.award, value, said, named };
+    return { kind: won ? "award" : "nominee", mark: "award_" + award.award, value, said,
+             named: name, more: award.won, quiet: more ? [more] : [] };
   }
 
   /* The left of a shield: the drawing for its source on a ground of the
@@ -484,15 +494,27 @@ window.TinyPPIDetails = (function () {
      hear "8.5 612,345" with nothing to say what either is. */
   let ratingTipId = 0;
 
+  /* The lines of a badge's tooltip, each with whether it is a quiet one:
+     its name, what belongs to it, what is counted. */
+  function tipLines(badge) {
+    return [[badge.named, false], ...(badge.more || []).map((text) => [text, false]),
+            ...(badge.quiet || []).map((text) => [text, true])];
+  }
+
   /* A popover stays visible above the dialog and its scrolling content.
      The native title still supplies the pointer's usual hover hint. */
-  function ratingTip(node, text) {
+  function ratingTip(node, lines) {
     const tip = document.createElement("span");
     tip.className = "rating-tip";
     tip.id = "rating-tip-" + (++ratingTipId);
     tip.setAttribute("popover", "auto");
     tip.setAttribute("role", "tooltip");
-    tip.textContent = text;
+    for (const [text, quiet] of lines) {
+      const line = document.createElement("span");
+      line.className = quiet ? "tipline quiet" : "tipline";
+      line.textContent = text;
+      tip.append(line);
+    }
     node.tabIndex = 0;
     node.setAttribute("aria-describedby", tip.id);
     const show = () => {
@@ -520,7 +542,8 @@ window.TinyPPIDetails = (function () {
       node.setAttribute("role", "listitem");
       /* Under a pointer, as after a tap, whose it is: what it gave stands
          on the shield already. */
-      node.title = badge.named;
+      const lines = tipLines(badge);
+      node.title = lines.map(([text]) => text).join("\n");
       const said = document.createElement("span");
       said.className = "said";
       said.textContent = badge.said;
@@ -538,7 +561,7 @@ window.TinyPPIDetails = (function () {
         figures.append(value);
         look.append(figures);
       }
-      node.append(said, look, ratingTip(node, badge.named));
+      node.append(said, look, ratingTip(node, lines));
       nodes.push(node);
     }
     return nodes;
@@ -549,25 +572,50 @@ window.TinyPPIDetails = (function () {
     return shieldNodes(ratingBadges(media, TinyPPI.T));
   }
 
-  /* Each group owns its heading and accessible list. Empty groups disappear. */
+  /* Every award the title won and was nominated for, counted, as OMDb has
+     IMDb's count (see web/omdb.py): "4 wins & 7 nominations in total", or
+     "" where the details carry none. */
+  function awardsTotal(media, T) {
+    const total = media.awards_total || {};
+    const said = (count, one, many) =>
+      count > 0 ? (count === 1 ? one : many.replace("%s", count)) : "";
+    const parts = [said(total.won, T.awards_win, T.awards_wins),
+                   said(total.nominated, T.awards_nomination, T.awards_nominations)];
+    const counted = parts.filter(Boolean).join(" & ");
+    return counted && T.awards_total.replace("%s", counted);
+  }
+
+  /* Each group owns its heading and accessible list. Empty groups disappear;
+     the awards stand for their count alone where none of the big ones is
+     among them. */
   function ratingGroups(media) {
     const T = TinyPPI.T;
     const badges = ratingBadges(media, T);
     const awards = badges.filter((badge) => badge.kind === "award" || badge.kind === "nominee");
     const ratings = badges.filter((badge) => badge.kind !== "award" && badge.kind !== "nominee");
+    const total = awardsTotal(media, T);
     const groups = [];
-    for (const [title, entries] of [[T.ratings, ratings], [T.awards, awards]]) {
-      if (!entries.length) continue;
+    for (const [title, entries, counted] of [[T.ratings, ratings, ""], [T.awards, awards, total]]) {
+      if (!entries.length && !counted) continue;
       const group = document.createElement("section");
       group.className = "ratinggroup";
       const heading = document.createElement("h4");
       heading.textContent = title;
-      const row = document.createElement("div");
-      row.className = "ratings";
-      row.setAttribute("role", "list");
-      row.setAttribute("aria-label", title);
-      row.append(...shieldNodes(entries));
-      group.append(heading, row);
+      group.append(heading);
+      if (entries.length) {
+        const row = document.createElement("div");
+        row.className = "ratings";
+        row.setAttribute("role", "list");
+        row.setAttribute("aria-label", title);
+        row.append(...shieldNodes(entries));
+        group.append(row);
+      }
+      if (counted) {
+        const line = document.createElement("p");
+        line.className = "ratingtotal";
+        line.textContent = counted;
+        group.append(line);
+      }
       if (entries.some((badge) => badge.kind === "nominee")) {
         const hint = document.createElement("p");
         hint.className = "ratingnote";

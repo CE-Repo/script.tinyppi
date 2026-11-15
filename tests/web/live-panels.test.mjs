@@ -322,6 +322,37 @@ test("rating groups separate awards, omit empty sections and explain nominations
   assert.equal(mixed[1].querySelectorAll(".rating").length, 2);
   assert.equal(mixed[0].querySelector(".ratingnote"), null);
   assert.equal(mixed[1].querySelector(".ratingnote").textContent, "Nominierungen sind abgedunkelt.");
+  assert.equal(mixed[1].querySelector(".ratingtotal"), null);
+});
+
+test("every award counted stands under the shields, or alone where there are none", (t) => {
+  const { P, window } = panels(t);
+  Object.assign(window.TinyPPI.T, {
+    ratings: "Bewertungen", awards: "Auszeichnungen", award_hint: "Nominierungen sind abgedunkelt.",
+    awards_wins: "%s Gewinne", awards_win: "1 Gewinn", awards_nominations: "%s Nominierungen",
+    awards_nomination: "1 Nominierung", awards_total: "%s insgesamt"
+  });
+  const globe = { award: "globe", won: [], nominated: 2 };
+  const [group] = P.ratingGroups({ awards: [globe], awards_total: { won: 45, nominated: 80 } });
+  assert.deepEqual([...group.children].map((node) => node.className || node.tagName),
+                   ["H4", "ratings", "ratingtotal", "ratingnote"]);
+  assert.equal(group.querySelector(".ratingtotal").textContent,
+               "45 Gewinne & 80 Nominierungen insgesamt");
+  /* No big award among them: the count alone, under the heading. */
+  const alone = P.ratingGroups({ awards_total: { won: 4, nominated: 7 } });
+  assert.equal(alone.length, 1);
+  assert.equal(alone[0].querySelector("h4").textContent, "Auszeichnungen");
+  assert.equal(alone[0].querySelector(".ratings"), null);
+  assert.equal(alone[0].querySelector(".ratingnote"), null);
+  assert.equal(alone[0].querySelector(".ratingtotal").textContent,
+               "4 Gewinne & 7 Nominierungen insgesamt");
+  const said = (total) => P.ratingGroups({ awards_total: total })[0]
+    ?.querySelector(".ratingtotal").textContent;
+  assert.equal(said({ won: 1, nominated: 1 }), "1 Gewinn & 1 Nominierung insgesamt");
+  assert.equal(said({ won: 3, nominated: 0 }), "3 Gewinne insgesamt");
+  assert.equal(said({ won: 0, nominated: 2 }), "2 Nominierungen insgesamt");
+  assert.equal(said({ won: 0, nominated: 0 }), undefined);
+  assert.equal(said({}), undefined);
 });
 
 test("a title's ratings are shields with their marks, said in words", (t) => {
@@ -371,10 +402,24 @@ test("a title's ratings are shields with their marks, said in words", (t) => {
     assert.equal(node.getAttribute("role"), "listitem");
     assert.equal(node.querySelector(".look").getAttribute("aria-hidden"), "true");
   }
-  // Under a pointer, whose each is, and not what it gave.
+  // Under a pointer, whose each is, and not what it gave: a line each for
+  // its name, its certificate and how many voted, where the source says.
   assert.deepEqual([...row.children].map((node) => node.title),
-                   ["FSK", "IMDb", "TMDb", "Trakt", "Rotten Tomatoes · Certified Fresh",
-                    "Rotten Tomatoes Popcornmeter", "Filmaffinity", "My rating", "IMDb Top 250"]);
+                   ["FSK", "IMDb\n612,345 votes", "TMDb", "Trakt\n31,902 votes",
+                    "Rotten Tomatoes\nCertified Fresh",
+                    "Rotten Tomatoes Popcornmeter", "Filmaffinity\n3 votes", "My rating", "IMDb Top 250"]);
+  // The same lines after a tap, the counted ones quieter.
+  const tipped = (node) => [...node.querySelector(".rating-tip").children]
+    .map((line) => [line.className, line.textContent]);
+  assert.deepEqual(tipped(row.children[1]), [["tipline", "IMDb"], ["tipline quiet", "612,345 votes"]]);
+  assert.deepEqual(tipped(row.children[4]),
+                   [["tipline", "Rotten Tomatoes"], ["tipline", "Certified Fresh"]]);
+  assert.deepEqual(tipped(row.children[0]), [["tipline", "FSK"]]);
+  // One vote is one, and the words are the reader's language's.
+  Object.assign(window.TinyPPI.T, { rating_votes: "%s Stimmen", rating_vote: "1 Stimme" });
+  const voted = (votes) => P.shields({ ratings: [{ source: "imdb", rating: 8, votes }] })[0].title;
+  assert.deepEqual([voted(1), voted(2), voted(0), voted(undefined)],
+                   ["IMDb\n1 Stimme", "IMDb\n2 Stimmen", "IMDb", "IMDb"]);
   assert.equal(row.querySelector("img").alt, "");
   const seals = [...row.querySelectorAll(".seal")];
   assert.deepEqual(seals.map((seal) => [seal.parentElement.className, seal.getAttribute("src"), seal.alt]),
@@ -461,18 +506,22 @@ test("the big awards stand last, as drawings: what was won, or else what was nom
   assert.deepEqual(plain(badges()), [
     ["rating rank", "Top 250 · #27", "side top250 /ratings/top250.svg", "#27", "IMDb Top 250"],
     ["rating award", "Oscar 1 won", "side award_oscar /ratings/award_oscar.svg", "1",
-     "Oscar: Visual Effects (2015) · 4 nominated"],
+     "Oscar\nVisual Effects (2015)\n4 nominated"],
     ["rating nominee", "Golden Globe 1 nominated", "side award_globe /ratings/award_globe.svg", "1",
-     "Golden Globe · 1 nominated"],
+     "Golden Globe\n1 nominated"],
     ["rating award", "BAFTA 2 won", "side award_bafta /ratings/award_bafta.svg", "2",
-     "BAFTA: Film (2015), Score (2015)"],
+     "BAFTA\nFilm (2015)\nScore (2015)"],
     ["rating nominee", "cesar 2 nominated", "side award_cesar /ratings/award_cesar.svg", "2",
-     "cesar · 2 nominated"]]);
+     "cesar\n2 nominated"]]);
   // The words arrive later, and the awards say them.
   Object.assign(window.TinyPPI.T, { award_won: "%s gewonnen", award_nominated: "%s nominiert" });
   rate(shown);
   assert.equal(row.children[1].querySelector(".said").textContent, "Oscar 1 gewonnen");
-  assert.equal(row.children[1].title, "Oscar: Visual Effects (2015) · 4 nominiert");
+  assert.equal(row.children[1].title, "Oscar\nVisual Effects (2015)\n4 nominiert");
+  // After a tap: its name, what it won, a line each, and quieter how many more.
+  assert.deepEqual([...row.children[1].querySelector(".rating-tip").children]
+    .map((line) => [line.className, line.textContent]),
+  [["tipline", "Oscar"], ["tipline", "Visual Effects (2015)"], ["tipline quiet", "4 nominiert"]]);
 });
 
 test("the finish clock shows as it arrived and takes its label from the strings", (t) => {
