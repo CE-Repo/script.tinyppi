@@ -1938,3 +1938,31 @@ msgstr "Europäisches Breitbild"
 msgctxt "#32493"
 msgid "Cinema widescreen"
 msgstr "Kino-Breitbild"
+
+msgctxt "#32494"
+msgid "OMDb API key"
+msgstr "OMDb-API-Schlüssel"
+
+msgctxt "#32495"
+msgid "With a free key from omdbapi.com, a title's details show under the Oscars, Golden Globes, BAFTAs and Emmys how many awards it won and was nominated for in all, as IMDb counts them. OMDb is asked only when a title's details are opened, never for a list: a free key answers 1,000 times a day. To ask, the title's IMDb id is sent to OMDb. Left empty, only the big awards are shown."
+msgstr "Mit einem kostenlosen Schlüssel von omdbapi.com zeigen die Details eines Titels unter den Oscars, Golden Globes, BAFTAs und Emmys, wie viele Auszeichnungen er insgesamt gewonnen hat und für wie viele er nominiert war, so wie IMDb sie zählt. OMDb wird nur beim Öffnen der Details eines Titels gefragt, nie für eine Liste: Ein kostenloser Schlüssel antwortet 1.000-mal am Tag. Dafür wird die IMDb-ID des Titels an OMDb geschickt. Leer gelassen werden nur die großen Auszeichnungen gezeigt."
+
+msgctxt "#32496"
+msgid "%s wins"
+msgstr "%s Gewinne"
+
+msgctxt "#32497"
+msgid "1 win"
+msgstr "1 Gewinn"
+
+msgctxt "#32498"
+msgid "%s nominations"
+msgstr "%s Nominierungen"
+
+msgctxt "#32499"
+msgid "1 nomination"
+msgstr "1 Nominierung"
+
+msgctxt "#32500"
+msgid "%s in total"
+msgstr "%s insgesamt"

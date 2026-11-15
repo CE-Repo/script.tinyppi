@@ -93,7 +93,7 @@ _EPISODE = ("ratings", "userrating", "tvshowid")
 def no_ratings() -> Ratings:
     """Return the ratings of a title the library knows nothing about."""
     return {"ratings": [], "mpaa": "", "age": "", "age_level": "", "userrating": 0,
-            "top250": 0, "awards": [], "ids": {}, "item": {}}
+            "top250": 0, "awards": [], "ids": {}, "imdb": "", "item": {}}
 
 
 def home_country() -> str:
@@ -217,6 +217,7 @@ def _collect(details: Json, aged: Json, kind: str, ids: dict[str, str] | None = 
     known by elsewhere."""
     mpaa = clean_value(str(aged.get("mpaa") or ""))
     mark, level = age_rating(mpaa, home_country())
+    known = title_ids(aged)
     return {
         "ratings":    rating_list(details.get("ratings")),
         "mpaa":       mpaa,
@@ -224,8 +225,9 @@ def _collect(details: Json, aged: Json, kind: str, ids: dict[str, str] | None = 
         "age_level":  level,
         "userrating": _count(details.get("userrating"), 10),
         "top250":     _count(details.get("top250"), 250),
-        "awards":     awards_of(kind, title_ids(aged)),
+        "awards":     awards_of(kind, known),
         "ids":        ids or {},
+        "imdb":       known.get("imdb", ""),
         "item":       {},
     }
 

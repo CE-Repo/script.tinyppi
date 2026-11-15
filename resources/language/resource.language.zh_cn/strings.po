@@ -1938,3 +1938,31 @@ msgstr "欧洲宽银幕"
 msgctxt "#32493"
 msgid "Cinema widescreen"
 msgstr "影院宽银幕"
+
+msgctxt "#32494"
+msgid "OMDb API key"
+msgstr "OMDb API 密钥"
+
+msgctxt "#32495"
+msgid "With a free key from omdbapi.com, a title's details show under the Oscars, Golden Globes, BAFTAs and Emmys how many awards it won and was nominated for in all, as IMDb counts them. OMDb is asked only when a title's details are opened, never for a list: a free key answers 1,000 times a day. To ask, the title's IMDb id is sent to OMDb. Left empty, only the big awards are shown."
+msgstr "填入 omdbapi.com 的免费密钥后，影片详情会在奥斯卡、金球奖、英国电影学院奖和艾美奖下方显示其获奖和提名的总数（按 IMDb 的统计）。仅在打开某个影片的详情时才会查询 OMDb，不会为列表查询：免费密钥每天可查询 1,000 次。为此会把影片的 IMDb 编号发送给 OMDb。留空时只显示主要奖项。"
+
+msgctxt "#32496"
+msgid "%s wins"
+msgstr "获奖 %s 项"
+
+msgctxt "#32497"
+msgid "1 win"
+msgstr "获奖 1 项"
+
+msgctxt "#32498"
+msgid "%s nominations"
+msgstr "提名 %s 项"
+
+msgctxt "#32499"
+msgid "1 nomination"
+msgstr "提名 1 项"
+
+msgctxt "#32500"
+msgid "%s in total"
+msgstr "共 %s"

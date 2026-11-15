@@ -322,6 +322,37 @@ test("rating groups separate awards, omit empty sections and explain nominations
   assert.equal(mixed[1].querySelectorAll(".rating").length, 2);
   assert.equal(mixed[0].querySelector(".ratingnote"), null);
   assert.equal(mixed[1].querySelector(".ratingnote").textContent, "Nominierungen sind abgedunkelt.");
+  assert.equal(mixed[1].querySelector(".ratingtotal"), null);
+});
+
+test("every award counted stands under the shields, or alone where there are none", (t) => {
+  const { P, window } = panels(t);
+  Object.assign(window.TinyPPI.T, {
+    ratings: "Bewertungen", awards: "Auszeichnungen", award_hint: "Nominierungen sind abgedunkelt.",
+    awards_wins: "%s Gewinne", awards_win: "1 Gewinn", awards_nominations: "%s Nominierungen",
+    awards_nomination: "1 Nominierung", awards_total: "%s insgesamt"
+  });
+  const globe = { award: "globe", won: [], nominated: 2 };
+  const [group] = P.ratingGroups({ awards: [globe], awards_total: { won: 45, nominated: 80 } });
+  assert.deepEqual([...group.children].map((node) => node.className || node.tagName),
+                   ["H4", "ratings", "ratingtotal", "ratingnote"]);
+  assert.equal(group.querySelector(".ratingtotal").textContent,
+               "45 Gewinne & 80 Nominierungen insgesamt");
+  /* No big award among them: the count alone, under the heading. */
+  const alone = P.ratingGroups({ awards_total: { won: 4, nominated: 7 } });
+  assert.equal(alone.length, 1);
+  assert.equal(alone[0].querySelector("h4").textContent, "Auszeichnungen");
+  assert.equal(alone[0].querySelector(".ratings"), null);
+  assert.equal(alone[0].querySelector(".ratingnote"), null);
+  assert.equal(alone[0].querySelector(".ratingtotal").textContent,
+               "4 Gewinne & 7 Nominierungen insgesamt");
+  const said = (total) => P.ratingGroups({ awards_total: total })[0]
+    ?.querySelector(".ratingtotal").textContent;
+  assert.equal(said({ won: 1, nominated: 1 }), "1 Gewinn & 1 Nominierung insgesamt");
+  assert.equal(said({ won: 3, nominated: 0 }), "3 Gewinne insgesamt");
+  assert.equal(said({ won: 0, nominated: 2 }), "2 Nominierungen insgesamt");
+  assert.equal(said({ won: 0, nominated: 0 }), undefined);
+  assert.equal(said({}), undefined);
 });
 
 test("a title's ratings are shields with their marks, said in words", (t) => {

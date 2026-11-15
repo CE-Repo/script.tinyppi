@@ -549,25 +549,50 @@ window.TinyPPIDetails = (function () {
     return shieldNodes(ratingBadges(media, TinyPPI.T));
   }
 
-  /* Each group owns its heading and accessible list. Empty groups disappear. */
+  /* Every award the title won and was nominated for, counted, as OMDb has
+     IMDb's count (see web/omdb.py): "4 wins & 7 nominations in total", or
+     "" where the details carry none. */
+  function awardsTotal(media, T) {
+    const total = media.awards_total || {};
+    const said = (count, one, many) =>
+      count > 0 ? (count === 1 ? one : many.replace("%s", count)) : "";
+    const parts = [said(total.won, T.awards_win, T.awards_wins),
+                   said(total.nominated, T.awards_nomination, T.awards_nominations)];
+    const counted = parts.filter(Boolean).join(" & ");
+    return counted && T.awards_total.replace("%s", counted);
+  }
+
+  /* Each group owns its heading and accessible list. Empty groups disappear;
+     the awards stand for their count alone where none of the big ones is
+     among them. */
   function ratingGroups(media) {
     const T = TinyPPI.T;
     const badges = ratingBadges(media, T);
     const awards = badges.filter((badge) => badge.kind === "award" || badge.kind === "nominee");
     const ratings = badges.filter((badge) => badge.kind !== "award" && badge.kind !== "nominee");
+    const total = awardsTotal(media, T);
     const groups = [];
-    for (const [title, entries] of [[T.ratings, ratings], [T.awards, awards]]) {
-      if (!entries.length) continue;
+    for (const [title, entries, counted] of [[T.ratings, ratings, ""], [T.awards, awards, total]]) {
+      if (!entries.length && !counted) continue;
       const group = document.createElement("section");
       group.className = "ratinggroup";
       const heading = document.createElement("h4");
       heading.textContent = title;
-      const row = document.createElement("div");
-      row.className = "ratings";
-      row.setAttribute("role", "list");
-      row.setAttribute("aria-label", title);
-      row.append(...shieldNodes(entries));
-      group.append(heading, row);
+      group.append(heading);
+      if (entries.length) {
+        const row = document.createElement("div");
+        row.className = "ratings";
+        row.setAttribute("role", "list");
+        row.setAttribute("aria-label", title);
+        row.append(...shieldNodes(entries));
+        group.append(row);
+      }
+      if (counted) {
+        const line = document.createElement("p");
+        line.className = "ratingtotal";
+        line.textContent = counted;
+        group.append(line);
+      }
       if (entries.some((badge) => badge.kind === "nominee")) {
         const hint = document.createElement("p");
         hint.className = "ratingnote";

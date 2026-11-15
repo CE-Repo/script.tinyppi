@@ -193,6 +193,8 @@ def test_a_film_brings_every_kind_of_rating():
         "awards": [{"award": "oscar", "won": ["Best Sound (2025)", "Best Visual Effects (2025)"],
                     "nominated": 3}],
         "ids": {"imdb": "tt15239678", "tmdb": "693134"},
+        # And for OMDb to be asked by.
+        "imdb": "tt15239678",
         # Which library title it is, for its details page.
         "item": {"kind": "movie", "id": 12},
     }
@@ -224,14 +226,16 @@ def test_an_episode_rates_itself_and_takes_its_age_rating_from_its_show():
     fake = Kodi(item={"id": 7, "type": "episode"},
                 details={"ratings": {"tvdb": {"rating": 8.8, "votes": 40}}, "userrating": 7,
                          "tvshowid": 3, "mpaa": "ignored", "uniqueid": {"tmdb": "1399"}},
-                show={"mpaa": "FSK 16", "uniqueid": {"tmdb": "1398", "tvdb": "x"}})
+                show={"mpaa": "FSK 16", "uniqueid": {"tmdb": "1398", "tvdb": "x",
+                                                     "imdb": "tt0141842"}})
     found = answer(fake)
     # The show's awards, by the show's ids: The Sopranos', not by the
     # episode's.  A TheTVDB id that is none is left out.  MDBList is not asked for an episode.
     assert [award["award"] for award in found.pop("awards")] == ["globe", "emmy"]
     assert found == {"ratings": [{"source": "tvdb", "rating": 8.8, "votes": 40}],
                      "mpaa": "FSK 16", "age": "fsk16", "age_level": "16", "userrating": 7,
-                     "top250": 0, "ids": {}, "item": {"kind": "episode", "id": 7}}
+                     "top250": 0, "ids": {}, "imdb": "tt0141842",
+                     "item": {"kind": "episode", "id": 7}}
     assert ("VideoLibrary.GetTVShowDetails",
             {"tvshowid": 3, "properties": ["mpaa", "uniqueid"]}) in fake.calls
 

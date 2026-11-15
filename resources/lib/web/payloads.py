@@ -149,6 +149,14 @@ class Award(TypedDict):
     nominated: int
 
 
+class AwardsTotal(TypedDict):
+    """How many awards a title won and was nominated for in all, the small
+    ones with the big, as OMDb has IMDb's count (see web.omdb)."""
+
+    won: int
+    nominated: int
+
+
 class Credits(TypedDict):
     """Who made the playing title, as Kodi orders them (see
     web.values.name_list): every genre, director and writer, the first
@@ -192,6 +200,9 @@ class Ratings(TypedDict):
     # A film's IMDb and TMDb ids ("imdb", "tmdb"), for MDBList to be asked
     # by (see web.mdblist); {} for an episode.  Not sent to the page.
     ids: dict[str, str]
+    # The IMDb id of the film or the show, an episode's show's, for OMDb to
+    # be asked by (see web.omdb); "" for none.  Not sent to the page.
+    imdb: str
     # Which library title it is, where it is one (see LibraryItem).
     item: LibraryItem
 

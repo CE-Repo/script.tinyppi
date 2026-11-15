@@ -1938,3 +1938,31 @@ msgstr "Európai szélesvásznú"
 msgctxt "#32493"
 msgid "Cinema widescreen"
 msgstr "Mozi szélesvásznú"
+
+msgctxt "#32494"
+msgid "OMDb API key"
+msgstr "OMDb API-kulcs"
+
+msgctxt "#32495"
+msgid "With a free key from omdbapi.com, a title's details show under the Oscars, Golden Globes, BAFTAs and Emmys how many awards it won and was nominated for in all, as IMDb counts them. OMDb is asked only when a title's details are opened, never for a list: a free key answers 1,000 times a day. To ask, the title's IMDb id is sent to OMDb. Left empty, only the big awards are shown."
+msgstr "Az omdbapi.com ingyenes kulcsával egy cím részletei az Oscar-, Golden Globe-, BAFTA- és Emmy-díjak alatt megmutatják, összesen hány díjat nyert és hány jelölést kapott, ahogy az IMDb számolja. Az OMDb-t csak egy cím részleteinek megnyitásakor kérdezi meg, listához soha: az ingyenes kulcs naponta 1000 kérésre válaszol. Ehhez a cím IMDb-azonosítója az OMDb-hez kerül. Üresen hagyva csak a nagy díjak láthatók."
+
+msgctxt "#32496"
+msgid "%s wins"
+msgstr "%s díj"
+
+msgctxt "#32497"
+msgid "1 win"
+msgstr "1 díj"
+
+msgctxt "#32498"
+msgid "%s nominations"
+msgstr "%s jelölés"
+
+msgctxt "#32499"
+msgid "1 nomination"
+msgstr "1 jelölés"
+
+msgctxt "#32500"
+msgid "%s in total"
+msgstr "összesen %s"

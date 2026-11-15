@@ -25,6 +25,7 @@ def answers(monkeypatch):
     monkeypatch.setattr(ratings, "rpc", rpc)
     monkeypatch.setattr(details_module.mdblist, "api_key", lambda: "")
     monkeypatch.setattr(details_module.whatson, "api_key", lambda: "")
+    monkeypatch.setattr(details_module.omdb, "api_key", lambda: "")
     return held
 
 
@@ -108,6 +109,26 @@ def test_an_episode_wears_its_shows_age_rating_and_awards(answers, monkeypatch):
     assert held == [("tv", {"tvdb": "81189"})]
     assert answers["calls"][1] == ("VideoLibrary.GetTVShowDetails",
                                    {"tvshowid": 7, "properties": ["mpaa", "uniqueid"]})
+
+
+def test_every_award_is_counted_by_omdb_for_a_title_with_a_key(answers, monkeypatch):
+    answers["answers"]["VideoLibrary.GetMovieDetails"] = {"result": {"moviedetails": {
+        "title": "The Family Man", "uniqueid": {"imdb": "tt0218967", "tmdb": "5994"}}}}
+    answers["answers"]["VideoLibrary.GetEpisodeDetails"] = {"result": {"episodedetails": {
+        "title": "Pilot", "tvshowid": 7}}}
+    answers["answers"]["VideoLibrary.GetTVShowDetails"] = {"result": {"tvshowdetails": {
+        "title": "Show", "uniqueid": {"imdb": "tt0141842"}}}}
+    asked = []
+    totals = {"tt0218967": {"won": 4, "nominated": 7}}
+    monkeypatch.setattr(details_module.omdb, "api_key", lambda: "o-key")
+    monkeypatch.setattr(details_module.omdb, "awards_total",
+                        lambda key, imdb: asked.append((key, imdb)) or totals.get(imdb))
+    assert library.title_details("movie", 4)["awards_total"] == {"won": 4, "nominated": 7}
+    # An episode is asked for by its show's id, a show by its own; one OMDb
+    # has no count for carries none.
+    assert "awards_total" not in library.title_details("episode", 70)
+    assert "awards_total" not in library.title_details("tvshow", 7)
+    assert asked == [("o-key", "tt0218967"), ("o-key", "tt0141842"), ("o-key", "tt0141842")]
 
 
 class Rated:

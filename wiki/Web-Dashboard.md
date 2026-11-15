@@ -230,6 +230,25 @@ library holds, an episode by its show's. The list holds what was nominated
 for one of these four, up to the season it was last written for; a title it
 does not hold shows none.
 
+### Every award, counted
+
+IMDb counts every award there is, the small ones with the big — which is why
+a film without one of the four shields can still read *4 wins & 7 nominations
+total* there. With a free key from [OMDb](https://www.omdbapi.com), a title's
+**details** show that count as a line under the shields (*4 wins & 7
+nominations in total*), or alone under **Awards** where there is no shield.
+
+1. Take the free key at omdbapi.com (**API Key**) and follow the link in its
+   e-mail to switch it on.
+2. Enter it under **Settings → Dashboard → Ratings → OMDb API key**.
+
+OMDb is asked **only when a title's details are opened** — never for a list,
+a wall or the overview card — once per title, by the IMDb id the library
+holds (an episode by its show's), and the answer is kept for a day. A free
+key answers 1,000 times a day; one OMDb refuses, or whose day is spent, rests
+for an hour. A title without an IMDb id in the library, or one OMDb has no
+count for, shows no line.
+
 ---
 
 ## Ratings from MDBList

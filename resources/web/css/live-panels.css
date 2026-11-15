@@ -683,6 +683,9 @@
 .ratinggroups { display: grid; gap: 32px; min-width: 0; }
 .ratinggroup { display: grid; gap: 10px; min-width: 0; }
 .ratinggroup h4 { margin: 0; color: var(--text); font-size: 20px; font-weight: 700; line-height: 26px; }
+/* Every award counted, under the shields of the big ones: what the title
+   has, not a footnote like the hint under it. */
+.ratingtotal { margin: 2px 0 0; color: var(--text); font-size: 14px; line-height: 1.6; }
 .ratingnote { margin: 2px 0 0; color: var(--dim); font-size: 12px; line-height: 1.6; }
 /* A shield: the house on the left, on a plate of its own colour, and what
    it gave on the right -- the whole shield washed in that colour and edged

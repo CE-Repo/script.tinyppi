@@ -18,7 +18,7 @@ sys.path[:0] = [os.path.join(ROOT, "tests", "stubs"), os.path.join(ROOT, "resour
 
 import xbmc  # noqa: E402
 import xbmcaddon  # noqa: E402
-from web import library, player, ratings  # noqa: E402
+from web import library, omdb, player, ratings  # noqa: E402
 from web import server as web_server  # noqa: E402
 
 TOKEN = "BROWSER1"
@@ -172,6 +172,8 @@ def fake_awards(_kind: str, _ids: dict) -> list:
 
 
 ratings.awards_of = fake_awards
+# OMDb's count of every award, for any title: no key and no request here.
+omdb.awards_total = lambda _key, _imdb: {"won": 45, "nominated": 80}
 library.common.rpc = fake_rpc
 server = web_server._Server(("127.0.0.1", 0), Producer(), threading.Event(), TOKEN)
 server.refresh_settings()

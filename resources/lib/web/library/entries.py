@@ -10,7 +10,7 @@ js/series.js and js/continue.js read them.
 
 from typing import NotRequired, TypedDict
 
-from web.payloads import Award, Rating
+from web.payloads import Award, AwardsTotal, Rating
 
 # Artwork paths by library id and kind; kept beside a list, never sent.
 ArtPaths = dict[int, dict[str, str]]
@@ -210,6 +210,8 @@ class Details(TypedDict):
     userrating: NotRequired[int]
     top250: NotRequired[int]
     awards: NotRequired[list[Award]]
+    # Every award it won and was nominated for, counted (see web.omdb).
+    awards_total: NotRequired[AwardsTotal]
     genres: NotRequired[list[str]]
     directors: NotRequired[list[str]]
     writers: NotRequired[list[str]]

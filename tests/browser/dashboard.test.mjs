@@ -142,6 +142,11 @@ test("the overview is a key under the playing card that opens the title's detail
   assert.equal(await groups.first().locator(".side[class*='award_']").count(), 0);
   assert.equal(await groups.last().locator(".rating").count(), 2);
   assert.equal(await groups.last().locator(".ratingnote").innerText(), "#32436");
+  // Every award counted, between the shields and the hint.
+  assert.equal(await groups.last().locator(".ratingtotal").innerText(), "#32500");
+  assert.deepEqual(await groups.last().locator(":scope > *").evaluateAll(
+    (nodes) => nodes.map((node) => node.className || node.tagName)),
+  ["H4", "ratings", "ratingtotal", "ratingnote"]);
   const ratingBox = await groups.first().boundingBox();
   const awardBox = await groups.last().boundingBox();
   assert.ok(awardBox.y >= ratingBox.y + ratingBox.height, "awards are below ratings");
