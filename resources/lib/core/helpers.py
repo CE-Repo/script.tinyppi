@@ -80,14 +80,23 @@ def _read_fps_sysfs() -> tuple[int, int] | None:
     return int(in_m.group(1), 16), int(out_m.group(1), 16)
 
 
+# A drop of up to this many frames per second is jitter, not a real drop:
+# 24 -> 23 still shows 24, 24 -> 22 shows a drop of 2.
+FPS_DROP_TOLERANCE = 1
+
+
 def get_fps_drop() -> int:
-    """Return dropped frames per second from sysfs, or 0 when unreadable."""
+    """Return dropped frames per second from sysfs, or 0 when unreadable.
+
+    A drop within FPS_DROP_TOLERANCE counts as 0.
+    """
     result = _read_fps_sysfs()
     if not result:
         return 0
 
     in_fps, out_fps = result
-    return max(0, in_fps - out_fps)
+    drop = in_fps - out_fps
+    return drop if drop > FPS_DROP_TOLERANCE else 0
 
 
 def fps_display_texts(video_fps: str | float) -> tuple[str, str]:
