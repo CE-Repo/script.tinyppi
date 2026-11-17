@@ -70,11 +70,11 @@ layer, currently the canary builds. On other builds nothing is
 measured: the add-on checks once per session, logs that no capture is
 available, and shows the ratio as before.
 
-### Why is measuring the aspect ratio off by default?
+### Does measuring the aspect ratio still get in the way of Hyperion?
 
-It captures the video ten times a second, and that collides with other
-add-ons that capture it, such as Hyperion. Turn on **Measure the aspect
-ratio from the picture** in the settings if you do not use one of those.
+No. Earlier versions left **Measure the aspect ratio from the picture** off
+by default because its capture collided with other add-ons that capture the
+video, such as Hyperion. That is fixed, so the setting is now on by default.
 
 ### Why does a profile 7 FEL disc show profile 7 although CoreELEC converts it?
 

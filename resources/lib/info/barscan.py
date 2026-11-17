@@ -10,11 +10,9 @@ RPU's ``L | R | T | B`` notation.  ``info.properties`` reads it for the
 aspect ratio, ahead of the bars Dolby Vision declares in L5, in whichever
 interpreter the overlay runs.  The L5 readings themselves are not touched.
 
-It is a setting, off by default: the capture gets in the way of other
-add-ons that capture the video, such as Hyperion.  With it on, it runs
-whenever a video plays, whether or not a view is open, so the reading is
-right the moment the overlay opens and a dark scene has a confirmed value to
-fall back on.
+It is a setting, on by default.  With it on, it runs whenever a video
+plays, whether or not a view is open, so the reading is right the moment the
+overlay opens and a dark scene has a confirmed value to fall back on.
 
 The capture only delivers video on CoreELEC builds that serve it from the
 Amlogic video layer (the canary builds).  Elsewhere the scanner finds that
@@ -70,7 +68,7 @@ _FRAME_TIMEOUT_MS = 300
 _FAILURE_LIMIT = 10
 _RETRY_AFTER   = 60.0
 
-# The setting that turns the measuring on; off by default.
+# The setting that turns the measuring on; on by default.
 _SETTING = "measure_aspect_ratio"
 
 

@@ -3,6 +3,9 @@
 
 """The thread that measures the black bars during playback (info/barscan.py)."""
 
+import pathlib
+from xml.etree import ElementTree
+
 import pytest
 
 import xbmc
@@ -176,10 +179,11 @@ def test_the_scanner_idles_and_clears_its_bars_without_a_video(canary):
     assert scanner._capture is None
 
 
-def test_the_setting_is_off_by_default(canary):
-    del xbmcaddon.SETTINGS["measure_aspect_ratio"]
-    scan(BarScanner(), SCOPE, SCOPE)
-    assert canary.made == 0 and bars() == ""
+def test_the_setting_is_on_by_default():
+    root = pathlib.Path(__file__).resolve().parents[2]
+    settings = ElementTree.parse(root / "resources" / "settings.xml")
+    setting = settings.find(".//setting[@id='measure_aspect_ratio']")
+    assert setting.findtext("default") == "true"
 
 
 def test_turning_the_setting_off_stops_the_capture(canary):
