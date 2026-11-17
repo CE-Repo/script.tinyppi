@@ -196,7 +196,7 @@ carries, and so does the L5 letterbox on the web dashboard.
 
 | Row | Example | Meaning |
 |---|---|---|
-| **In / drop / out** | `024 - 000 = 24 FPS` | Input frame rate, frames dropped by the video driver, and the resulting output rate. |
+| **In / drop / out** | `024 - 000 = 24 FPS` | Input frame rate, frames dropped by the video driver, and the resulting output rate. A drop of 1 FPS is ignored as jitter; drops start counting at 2 FPS. |
 | **Processor** | `34% \| 12 \| 08 \| 15 \| 10` | Average CPU load, then the load of each core. |
 | **Temperature** | `61 °C` + bar | CPU temperature with a bar scaled to 0–110 °C (32–230 °F). |
 | **Memory usage** | `42%` + bar | System memory in use. |

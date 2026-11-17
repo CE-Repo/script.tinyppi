@@ -39,6 +39,15 @@ def test_fps_drop_from_sysfs(monkeypatch):
     assert helpers.get_fps_drop() == 0
 
 
+def test_a_drop_of_one_frame_is_ignored(monkeypatch):
+    monkeypatch.setattr(helpers, "_read_fps_sysfs", lambda: (24, 23))
+    assert helpers.get_fps_drop() == 0
+    assert helpers.fps_display_texts("24") == ("024 - 000", "24")
+    monkeypatch.setattr(helpers, "_read_fps_sysfs", lambda: (24, 21))
+    assert helpers.get_fps_drop() == 3
+    assert helpers.fps_display_texts("24") == ("024 - 003", "21")
+
+
 def test_fps_without_sysfs_or_a_rate(monkeypatch):
     monkeypatch.setattr(helpers, "_read_fps_sysfs", lambda: None)
     assert helpers.get_fps_drop() == 0
