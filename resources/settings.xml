@@ -40,7 +40,7 @@
                 </setting>
                 <setting id="measure_aspect_ratio" type="boolean" label="32489" help="32490">
                     <level>0</level>
-                    <default>false</default>
+                    <default>true</default>
                     <control type="toggle" />
                 </setting>
                 <setting id="unit_type" type="integer" label="32014" help="32015">

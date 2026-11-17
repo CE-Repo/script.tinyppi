@@ -86,8 +86,7 @@ HDR10, HDR10+, HLG, SDR — carries no such information, so a letterboxed film
 reads as its 16:9 frame. With **Measure the aspect ratio from the picture**
 on (see [Settings Reference](Settings-Reference)), TinyPPI finds the bars in
 the picture itself, **for every format, Dolby Vision with L5 included**. The
-setting is **off by default**: capturing the video gets in the way of other
-add-ons that capture it too, such as Hyperion. With it off, the row shows
+setting is **on by default**. With it off, the row shows
 the ratio from L5 where present, Kodi's otherwise. With it on:
 
 - A small frame of the video (960 pixels wide, without OSD, subtitles or the
