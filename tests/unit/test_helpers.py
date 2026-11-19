@@ -4,6 +4,8 @@
 """Frame-rate formatting (core/helpers.py) and the VS10 dialog's geometry
 (ui/dialog_layout.py)."""
 
+import math
+
 import pytest
 
 import xbmcaddon
@@ -33,41 +35,95 @@ def test_format_fps_trims_and_snaps(raw, expected):
     assert helpers.format_fps(raw) == expected
 
 
-def counted(*readings):
-    """A DropCounter fed the (in, out) readings, one a second."""
-    counter = helpers.DropCounter()
+def layer(fps, seconds, dropped=(), repeated=(), drift=0.0, noise=0.0, fields=1):
+    """The readings of a video layer showing *fps*, one a second.
+
+    Each is taken as the next picture appears; *dropped* and *repeated* name
+    the seconds in which a frame went missing or was shown twice, *drift*
+    how much slower the player's clock runs than the system's, *noise* how
+    late a reading may come, in seconds.
+    """
+    shown, readings = 1000, []
+    for second in range(seconds):
+        shown += (second in dropped) * -1 + (second in repeated)
+        frame = math.ceil(second * fps * fields - 1e-9)
+        late = noise * ((second * 7919) % 7 - 3) / 3
+        at = frame / (fps * fields) * (1 + drift) + late
+        readings.append((at, shown + frame, fps))
+    return readings
+
+
+def tallied(readings):
+    tally = helpers.FrameTally()
     for reading in readings:
-        counter.update(*reading)
-    return counter
+        tally.update(*reading)
+    return tally
 
 
-def test_readings_out_of_step_are_no_drop():
-    # The two counters' windows drift: 23 one second, 25 the next.
-    counter = counted((24, 23), (24, 25), (24, 24), (24, 23), (24, 25), (24, 23))
-    assert (counter.rate, counter.total) == (0, 0)
-    # A lone frame the readings never make up for is forgotten after a window.
-    counter = counted((24, 23), *[(24, 24)] * 5, (24, 23))
-    assert (counter.rate, counter.total) == (0, 0)
-    # More out than in (a repeated frame) owes nothing to later drops.
-    counter = counted((10, 20), (24, 22))
-    assert (counter.rate, counter.total) == (0, 2)
+@pytest.mark.parametrize("fps", [23.976, 24.0, 25.0, 29.97, 50.0, 59.94, 60.0])
+def test_a_steady_layer_drops_nothing(fps):
+    tally = tallied(layer(fps, 600, noise=0.004))
+    assert (tally.rate, tally.total) == (0, 0)
 
 
-def test_a_steady_drop_of_one_frame_a_second_counts():
-    counter = counted(*[(24, 23)] * 6)
-    assert (counter.rate, counter.total) == (1, 6)
+def test_a_dropped_frame_counts_once_a_second_reading_shows_it():
+    readings = layer(23.976, 200, dropped={100})
+    tally = tallied(readings[:101])
+    assert tally.total == 0                                 # one reading shows it
+    tally.update(*readings[101])
+    assert (tally.rate, tally.total) == (1, 1)
+    for reading in readings[102:]:
+        tally.update(*reading)
+    assert (tally.rate, tally.total) == (0, 1)
 
 
-def test_a_burst_shows_for_a_window_and_stays_in_the_total():
-    counter = counted((24, 24), (24, 21))
-    assert (counter.rate, counter.total) == (2, 3)          # 3 lost over 2 s
-    for _ in range(4):
-        counter.update(24, 24)
-    assert (counter.rate, counter.total) == (1, 3)          # 3 lost over 5 s
-    counter.update(24, 24)                                   # out of the window
-    assert (counter.rate, counter.total) == (0, 3)
-    counter.reset()
-    assert (counter.rate, counter.total) == (0, 0)
+def test_a_steady_drop_shows_as_a_rate():
+    tally = tallied(layer(24.0, 21, dropped=set(range(10, 20))))
+    assert (tally.rate, tally.total) == (1, 10)
+
+
+def test_a_reading_taken_late_is_outvoted():
+    readings = layer(24.0, 20)
+    at, shown, fps = readings[10]
+    readings[10] = (at + 0.03, shown, fps)                  # most of a frame late
+    assert tallied(readings).total == 0
+
+
+def test_the_first_readings_of_a_stretch_count_nothing():
+    # A drop in the first seconds sets where the difference sits.
+    assert tallied(layer(24.0, 20, dropped={2})).total == 0
+
+
+def test_the_clocks_drifting_apart_is_no_drop():
+    # 50 ppm over two hours: seven frames' worth, followed as it comes.
+    assert tallied(layer(23.976, 7200, drift=50e-6, noise=0.004)).total == 0
+    assert tallied(layer(23.976, 7200, drift=-50e-6, noise=0.004)).total == 0
+    assert tallied(layer(24.0, 7200, dropped={3000, 5000}, drift=50e-6)).total == 2
+
+
+def test_interlaced_video_shows_two_fields_a_frame():
+    assert tallied(layer(25.0, 60, fields=2)).total == 0
+    assert tallied(layer(25.0, 60, dropped={30}, fields=2)).total == 1
+
+
+def test_a_frame_shown_twice_makes_up_for_a_dropped_one():
+    assert tallied(layer(24.0, 60, dropped={10}, repeated={20})).total == 1
+    assert tallied(layer(24.0, 60, repeated={10}, dropped={20})).total == 0
+
+
+def test_a_stretch_starts_over_and_keeps_the_total():
+    tally = tallied(layer(24.0, 20, dropped={10}))
+    tally.restart()
+    assert (tally.rate, tally.total) == (0, 1)
+    for reading in layer(24.0, 20, dropped={8}):            # a count from 1000 again
+        tally.update(*reading)
+    assert tally.total == 2
+    tally.update(1e6, 10**6, 25.0)                           # another rate: a new stretch
+    tally.update(1e6, 10**6 + 25, 25.0)                      # no time passed: ignored
+    tally.update(1e6 + 1, 10**6 + 25, 25.0)
+    assert tally.total == 2
+    tally.reset()
+    assert (tally.rate, tally.total) == (0, 0)
 
 
 def test_the_fps_row_reads_the_published_drops(monkeypatch):
@@ -94,24 +150,22 @@ def test_the_fps_row_without_a_rate(monkeypatch):
         assert helpers.fps_display_texts(raw) == ("000 - 000", "0", "")
 
 
-def test_fps_sysfs_parsing(monkeypatch, tmp_path):
-    node = tmp_path / "fps_info"
-    node.write_text("input_fps:0x18 output_fps:0x17 drop_fps:0x1\n")
+def test_the_toggle_count_is_read_from_the_drivers_settings(monkeypatch, tmp_path):
+    node = tmp_path / "video"
+    node.write_text(" media.video.new_frame_count=12\n media.video.toggle_count=4321\n")
     real_open = open
     monkeypatch.setattr(helpers, "open", lambda path, *args, **kwargs: real_open(
-        node if path == "/sys/class/video/fps_info" else path, *args, **kwargs), raising=False)
-    assert helpers.read_fps_sysfs() == (24, 23)
-    node.write_text("garbage")
-    assert helpers.read_fps_sysfs() is None
-    node.write_text("input_fps:0x18\n")                  # no output rate
-    assert helpers.read_fps_sysfs() is None
+        node if path == helpers.TOGGLE_COUNT_PATH else path, *args, **kwargs), raising=False)
+    assert helpers.read_toggle_count() == 4321
+    node.write_text(" media.video.new_frame_count=12\n")      # a driver without it
+    assert helpers.read_toggle_count() is None
 
 
-def test_an_unreadable_fps_node(monkeypatch):
+def test_an_unreadable_toggle_count(monkeypatch):
     def missing(path, *_args, **_kwargs):
         raise FileNotFoundError(path)
     monkeypatch.setattr(helpers, "open", missing, raising=False)
-    assert helpers.read_fps_sysfs() is None
+    assert helpers.read_toggle_count() is None
 
 
 # --- The VS10 dialog's layouts ----------------------------------------------

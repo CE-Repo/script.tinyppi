@@ -78,7 +78,7 @@ script.tinyppi/
 | `settings.py` | One cached `xbmcaddon.Addon` handle per interpreter, renewed only when the stored settings file changes (one `stat` per call instead of a ~100 KB XML parse). |
 | `log.py` | Tagged logging: `TinyPPI: …` and `TinyPPI [area]: …`. `FORCE_DEBUG` raises debug lines to INFO for local testing; `redacted()` takes share credentials out of paths before they are logged. |
 | `utils.py` | Home-window helpers, InfoLabel reads (`info`, `cond`) inside a `read_pass`, change-only property writes, the `ChangeHighlighter`, offset parsing, the effective HDR type. |
-| `helpers.py` | Frame-rate formatting, the driver's frame counters (`/sys/class/video/fps_info`) and `DropCounter`, which smooths their per-second readings into a drop rate and a total. |
+| `helpers.py` | Frame-rate formatting, the video layer's count of the frames it has shown (`toggle_count` in `/sys/class/media-configs/video`) and `FrameTally`, which compares the frames due with those shown into a drop rate and a total. |
 | `maps.py` | Lookup tables: video/audio/subtitle codec names, codec logos, HDR logos, IMAX logos, channel layouts and speaker labels. Language names come from `resources/data/languages.json`. |
 | `memo.py` | `KeyedMemo`, a one-entry cache keyed by its input. |
 | `protocols.py` | Structural types shared by Kodi windows and their stand-ins (`PropertyTarget`). |
@@ -105,7 +105,7 @@ script.tinyppi/
 | `bars.py` | Black bars measured from one captured frame, and `BarTracker`, which decides what a run of frames proves. Free of Kodi imports. |
 | `framing.py` | The widest aspect ratio the playing title has shown, followed on the bar scanner's thread and published as `TinyPPI.WidestAspect`; `properties.py` lights the IMAX mark while the picture is taller. |
 | `barscan.py` | The service thread that captures the video (`xbmc.RenderCapture`), feeds `bars.py` and publishes the confirmed bars as the Home property `TinyPPI.MeasuredBars`; idle with the `measure_aspect_ratio` setting off (it is on by default) and on builds that cannot capture. |
-| `fpsdrop.py` | The service thread that reads the driver's frame counters once a second while a video plays, feeds `DropCounter` and publishes the drop rate and the frames lost since the title started as the Home property `TinyPPI.FpsDrop` (`rate\|total`); empty off Amlogic hardware. |
+| `fpsdrop.py` | The service thread that, once a second while a video plays, waits for the next picture and notes when it appeared and the layer's frame count, feeds `FrameTally` and publishes the drop rate and the frames lost since the title started as the Home property `TinyPPI.FpsDrop` (`rate\|total`); empty off Amlogic hardware. |
 
 ### `resources/lib/service/`
 
@@ -221,7 +221,7 @@ Threads inside the service:
 | HTTP request threads | per connection | routes, SSE streams |
 | VS10 mode switcher | per request | applies dashboard switches one at a time |
 | Bar scanner | 50 ms | with `measure_aspect_ratio` on, captures a video frame and measures the black bars while a video plays; every 500 ms it follows the title's widest aspect ratio for the IMAX mark |
-| Drop counter | 1 s | while a video plays (not paused, buffering or spooling, and not in the 3 s after a title starts, a seek or a resume, which `Player.OnAVStart` / `Player.OnSeek` / `Player.OnResume` report or a jump of the play time shows), reads the driver's frame counters, counts each reading one pass later unless a seek has shown by then, and publishes the drop rate and the title's total; readings with a difference are logged at debug level |
+| Drop counter | 1 s | while a video plays (not paused, buffering or spooling, and not in the 3 s after a title starts, a seek or a resume, which `Player.OnAVStart` / `Player.OnSeek` / `Player.OnResume` report or a jump of the play time shows), takes a reading as the next picture appears (up to 250 ms, polling every 1 ms), counts each reading one pass later unless a seek has shown by then, and publishes the drop rate and the title's total; dropped frames are logged at debug level |
 
 ---
 
@@ -247,7 +247,7 @@ A keymap can send step 2's `NotifyAll` directly and skip the script entirely.
 ## Data flow of a reading
 
 ```
-Kodi InfoLabels / Player.Process(...)      Amlogic sysfs (dv mode, fps drop)
+Kodi InfoLabels / Player.Process(...)      Amlogic sysfs (dv mode, frame count)
 Player.Process(video.sidedata) ──► script.module.sidedata ──► info/dvinfo.py
                     │
                     ▼

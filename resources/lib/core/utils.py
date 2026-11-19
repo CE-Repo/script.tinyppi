@@ -55,7 +55,7 @@ PROP_WIDEST_ASPECT = "TinyPPI.WidestAspect"
 
 # The frames the video driver drops, as ``rate|total`` (frames per second
 # now, frames since the title started); empty while no video plays or the
-# driver's counters cannot be read (see info.fpsdrop).
+# video layer's frame count cannot be read (see info.fpsdrop).
 PROP_FPS_DROP = "TinyPPI.FpsDrop"
 
 

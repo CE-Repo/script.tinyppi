@@ -67,82 +67,118 @@ def format_fps(fps_value: str | float) -> str:
     return f"{fps:.3f}".rstrip("0").rstrip(".")
 
 
-def read_fps_sysfs() -> tuple[int, int] | None:
-    """Read /sys/class/video/fps_info as (input_fps, output_fps), or None."""
+# The video layer's count of the frames it has shown, one line among the
+# driver's settings: `` media.video.toggle_count=1234``.  It rises by one for
+# each new picture on screen and leaves out the frames the layer skipped.
+TOGGLE_COUNT_PATH = "/sys/class/media-configs/video"
+_TOGGLE_COUNT_RE = re.compile(r"media\.video\.toggle_count=(\d+)")
+
+
+def read_toggle_count() -> int | None:
+    """Return the frames the video layer has shown so far, or None."""
     try:
-        with open("/sys/class/video/fps_info", encoding="utf-8", errors="ignore") as f:
-            raw = f.read().strip()
+        with open(TOGGLE_COUNT_PATH, encoding="utf-8", errors="ignore") as f:
+            match = _TOGGLE_COUNT_RE.search(f.read())
     except OSError:
         return None
-
-    in_m  = re.search(r"input_fps:0x([0-9a-fA-F]+)", raw)
-    out_m = re.search(r"output_fps:0x([0-9a-fA-F]+)", raw)
-    if not in_m or not out_m:
-        return None
-
-    return int(in_m.group(1), 16), int(out_m.group(1), 16)
+    return int(match.group(1)) if match else None
 
 
-# The driver counts the frames in and out once a second, in two windows that
-# are slightly out of step: a steady 24 FPS can read 24 / 23 one second and
-# 24 / 25 the next.  Those readings cancel out over a few seconds; frames
-# that are really lost do not.  So the drop rate is the net loss over the
-# last DROP_WINDOW readings, and a loss counts once it reaches
-# DROP_THRESHOLD frames.
+# Passes the drop rate is judged over.
 DROP_WINDOW = 5
-DROP_THRESHOLD = 2
+# How quickly the tally follows the clocks drifting apart, as a share of the
+# difference per reading: slow enough that a dropped frame, a step of a
+# whole frame, is never taken for drift.
+DRIFT_FOLLOW = 0.05
 
 
-class DropCounter:
-    """Turn the driver's per-second readings into a drop rate and a total.
+class FrameTally:
+    """Count the frames that should have been shown but were not.
 
-    ``rate`` is the frames lost per second over the last ``DROP_WINDOW``
-    readings, ``total`` the frames lost since the last ``reset``.  A lone
-    frame that the next readings do not make up for is not counted on its
-    own: it is held for ``DROP_WINDOW`` readings and counted only with a
-    second one.
+    As Kodi does: the time says how many frames were due, the video layer's
+    count how many it showed; the difference was dropped.  Each reading is
+    taken the moment a new picture appears (see info.fpsdrop), so the
+    difference does not wander by a frame with the moment it is read: it
+    stays put until a frame goes missing, then steps up by one.  The
+    difference is taken as the median of the last three readings, so a step
+    counts once two of them show it: a dropped frame stays missing, a
+    reading taken a little late or early is outvoted.  The first three
+    readings of a stretch count nothing: they set where the difference sits.
+
+    Both are measured from the start of a stretch of steady playback (see
+    ``restart``), so a reading's error never adds up over a film.  What the
+    system clock and the player's clock drift apart is followed as
+    ``_drift``, a fraction of a frame that moves slowly, and left out.  A
+    frame shown twice makes up for a dropped one rather than counting
+    against later drops.
     """
 
     def __init__(self) -> None:
-        self._window: deque[int] = deque(maxlen=DROP_WINDOW)
-        self._pending = 0     # frames lost but not yet counted
-        self._quiet = 0       # readings since the last loss
-        self.total = 0
+        self._totals: deque[int] = deque(maxlen=DROP_WINDOW + 1)
+        self._closed = 0          # frames dropped in earlier stretches
+        self._counted = 0         # frames dropped in this stretch
+        self._base: tuple[float, int] | None = None   # time, frames shown
+        self._fps = 0.0
+        self._rate = 0.0          # frames due per second; 0 until known
+        self._drift = 0.0
+        self._recent: deque[float] = deque(maxlen=3)   # the last differences
 
-    def reset(self) -> None:
-        """Start over, as for a new title."""
-        self.settle()
-        self.total = 0
-
-    def settle(self) -> None:
-        """Forget the readings since the last count, keeping the total.
-
-        For a seek: what the window holds is from before it, and a lone
-        frame waiting for a second one is not carried past it.
-        """
-        self._window.clear()
-        self._pending = 0
-        self._quiet = 0
-
-    def update(self, in_fps: int, out_fps: int) -> None:
-        """Add one second's reading of the frames in and out."""
-        lost = in_fps - out_fps
-        self._window.append(lost)
-        self._pending = max(0, self._pending + lost)
-        self._quiet = 0 if lost > 0 else self._quiet + 1
-        if self._pending >= DROP_THRESHOLD:
-            self.total += self._pending
-            self._pending = 0
-        elif self._quiet >= DROP_WINDOW:
-            self._pending = 0          # jitter the readings never made up for
+    @property
+    def total(self) -> int:
+        """Return the frames dropped since the last ``reset``."""
+        return self._closed + self._counted
 
     @property
     def rate(self) -> int:
-        """Return the frames lost per second over the window, rounded up."""
-        lost = sum(self._window)
-        if lost < DROP_THRESHOLD:
+        """Return the frames dropped per reading over the window, rounded up."""
+        if len(self._totals) < 2:
             return 0
-        return math.ceil(lost / len(self._window))
+        lost = self._totals[-1] - self._totals[0]
+        return math.ceil(lost / (len(self._totals) - 1))
+
+    def reset(self) -> None:
+        """Start over, as for a new title."""
+        self.restart()
+        self._closed = 0
+
+    def restart(self) -> None:
+        """Start a new stretch, keeping the total: after a seek or a pause."""
+        self._closed += self._counted
+        self._counted = 0
+        self._base = None
+        self._rate = 0.0
+        self._drift = 0.0
+        self._recent.clear()
+        self._totals.clear()
+
+    def update(self, at: float, shown: int, fps: float) -> None:
+        """Add a reading: when a new picture appeared, the frames shown so
+        far and the video's frame rate."""
+        base = self._base
+        if base is None or fps != self._fps or shown < base[1]:
+            # The first reading, another rate, or a count that started over.
+            self.restart()
+            self._base, self._fps = (at, shown), fps
+            self._totals.append(self.total)
+            return
+        elapsed, frames = at - base[0], shown - base[1]
+        if elapsed <= 0:
+            return
+        if not self._rate:
+            # The first second tells whether the layer shows frames or the
+            # fields of interlaced video, two to a frame.
+            self._rate = fps * (2 if frames > 1.5 * fps * elapsed else 1)
+        self._recent.append(self._rate * elapsed - frames)
+        lost = sorted(self._recent)[len(self._recent) // 2]
+        if len(self._recent) < (self._recent.maxlen or 0):
+            # The first readings of a stretch set where the difference sits.
+            self._drift = lost
+            self._totals.append(self.total)
+            return
+        steps = round(lost - self._drift)
+        self._counted = max(self._counted, steps)
+        self._drift += DRIFT_FOLLOW * (lost - steps - self._drift)
+        self._totals.append(self.total)
 
 
 def fps_display_texts(video_fps: str | float) -> tuple[str, str, str]:
@@ -152,7 +188,7 @@ def fps_display_texts(video_fps: str | float) -> tuple[str, str, str]:
     video's FPS rounded to a whole frame, the drop is the rate the service's
     drop watch publishes (see info.fpsdrop), and the output rate is the
     difference.  *total_text* is the frames lost since the title started, or
-    '' when the driver's counters cannot be read.
+    '' when the video layer's frame count cannot be read.
     """
     try:
         in_fps = round(float(video_fps))
