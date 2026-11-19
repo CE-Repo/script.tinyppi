@@ -27,7 +27,7 @@ class Layer:
     @classmethod
     def read(cls):
         if not cls.present:
-            return None
+            return "the time stamp on screen"
         cls.readings += 1
         shown = round((CLOCK[0] - 100.0) * 24)
         return (shown + cls.skipped) * 3750, 1000 + shown
@@ -197,7 +197,9 @@ def test_without_readings_the_row_empties(driver, monkeypatch, missing):
     tick(watch, fpsdrop.MISSES_ALLOWED + 2)
     assert published() == "" and fps_drop_reading() is None
     notes = [line for _level, line in xbmc.LOG if "no reading" in line]
-    assert len(notes) == 1                                   # once, not every pass
+    what = {"play time": "the play time", "frame rate": "the frame rate",
+            "layer": "the time stamp on screen"}[missing]
+    assert notes == [f"TinyPPI [fps]: no reading in 3 passes in a row: {what} is missing"]
 
 
 def test_without_a_video_nothing_is_published(driver):
@@ -236,34 +238,47 @@ def layer_files(monkeypatch):
     """The layer's picture count and time stamp as successive reads find them."""
     counts: list[int | None] = []
     stamps: list[int | None] = []
+    pauses: list[float] = []
     monkeypatch.setattr(fpsdrop, "read_toggle_count", lambda: counts.pop(0))
     monkeypatch.setattr(fpsdrop, "read_video_pts", lambda: stamps.pop(0))
-    return counts, stamps
+    monkeypatch.setattr(fpsdrop.time, "sleep", pauses.append)
+    return counts, stamps, pauses
 
 
 def test_the_count_and_the_time_stamp_belong_to_one_picture(layer_files):
-    counts, stamps = layer_files
+    counts, stamps, pauses = layer_files
     counts.extend([500, 500])
     stamps.append(90_000)
     assert fpsdrop._read_layer() == (90_000, 500)
+    assert pauses == []
     # A picture changed between the reads: read again.
     counts.extend([500, 501, 501, 501])
     stamps.extend([90_000, 93_750])
     assert fpsdrop._read_layer() == (93_750, 501)
-    assert counts == [] and stamps == []
+    assert counts == [] and stamps == [] and pauses == [fpsdrop.LAYER_RETRY]
 
 
-def test_no_layer_reading_when_a_part_is_missing_or_keeps_changing(layer_files):
-    counts, stamps = layer_files
-    counts.extend([500, 501, 501, 502, 502, 503])            # a change every try
-    stamps.extend([1, 2, 3])
-    assert fpsdrop._read_layer() is None
-    counts[:], stamps[:] = [None, None], [1]
-    assert fpsdrop._read_layer() is None
-    counts[:], stamps[:] = [500, 500], [None]                # no frame queued
-    assert fpsdrop._read_layer() is None
+def test_the_time_stamp_is_looked_for_until_a_frame_waits(layer_files):
+    counts, stamps, pauses = layer_files
+    counts.extend([500, 500, 501, 501])
+    stamps.extend([None, None, 97_500])                       # an empty queue, twice
+    assert fpsdrop._read_layer() == (97_500, 501)
+    assert len(pauses) == 2
+
+
+def test_what_is_missing_when_there_is_no_layer_reading(layer_files):
+    counts, stamps, pauses = layer_files
+    counts.extend([500] * fpsdrop.LAYER_TRIES)
+    stamps.extend([None] * fpsdrop.LAYER_TRIES)              # never a frame queued
+    assert fpsdrop._read_layer() == "the time stamp on screen"
+    assert len(pauses) == fpsdrop.LAYER_TRIES
+    counts[:] = list(range(500, 500 + 2 * fpsdrop.LAYER_TRIES))
+    stamps[:] = [1] * fpsdrop.LAYER_TRIES                    # a change every try
+    assert fpsdrop._read_layer() == "a steady picture count"
+    counts[:], stamps[:] = [None], []
+    assert fpsdrop._read_layer() == "the picture count"
     counts[:], stamps[:] = [500, None], [1]
-    assert fpsdrop._read_layer() is None
+    assert fpsdrop._read_layer() == "the picture count"
 
 
 def test_the_thread_clears_a_stale_count_and_stops(driver, monkeypatch):

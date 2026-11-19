@@ -14,9 +14,11 @@ title started as a Home-window property.
 
 The count is read before and after the time stamp, and the reading taken
 again if a picture changed in between, so both belong to the same picture.
-The driver lists the time stamp only while a frame waits in its queue: a
-pass that finds none is skipped, and only ``MISSES_ALLOWED`` such passes in
-a row empty the row.  The FPS row
+The driver lists the time stamp only while a frame waits in its queue, so
+a pass looks again every ``LAYER_RETRY`` seconds, ``LAYER_TRIES`` times at
+most (longer than a frame takes).  A pass that still finds none is
+skipped, and only ``MISSES_ALLOWED`` such passes in a row empty the row,
+with a note in the log that says what was missing.  The FPS row
 of the overlay and the dashboard reads it in whichever interpreter they run,
 so the total covers the whole title, not only the time a view was open.
 
@@ -70,8 +72,11 @@ _HOLDING = "Player.Paused | Player.Caching | Player.Forwarding | Player.Rewindin
 _log = channel("fps")
 
 
-# Tries at reading the time stamp without a picture changing meanwhile.
-READ_TRIES = 3
+# Tries at reading the time stamp, and the pause between two: the driver
+# lists it only while a frame waits in its queue, and the picture count
+# must not change meanwhile.
+LAYER_TRIES = 20
+LAYER_RETRY = 0.005
 
 # Passes in a row without a reading before the row is emptied.
 MISSES_ALLOWED = 3
@@ -89,20 +94,23 @@ def _play_time() -> float | None:
         return None
 
 
-def _read_layer() -> tuple[int, int] | None:
-    """Return the time stamp on screen and the pictures shown, or None.
+def _read_layer() -> tuple[int, int] | str:
+    """Return the time stamp on screen and the pictures shown.
 
-    None when either cannot be read, or a picture changed during every try.
+    When there is no such reading, return what was missing instead.
     """
-    for _try in range(READ_TRIES):
+    missing = "the time stamp on screen"
+    for _try in range(LAYER_TRIES):
         before = read_toggle_count()
-        pts = read_video_pts()
-        after = read_toggle_count()
-        if before is None or pts is None or after is None:
-            return None
-        if before == after:
+        pts = read_video_pts() if before is not None else None
+        after = read_toggle_count() if pts is not None else before
+        if before is None or after is None:
+            return "the picture count"
+        if pts is not None and before == after:
             return pts, after
-    return None
+        missing = "the time stamp on screen" if pts is None else "a steady picture count"
+        time.sleep(LAYER_RETRY)
+    return missing
 
 
 def _video_fps() -> float | None:
@@ -182,8 +190,8 @@ class FpsDropWatch(threading.Thread):
         if self._held(played):
             return
         reading = self._read(played)
-        if reading is None:
-            self._missed()
+        if isinstance(reading, str):
+            self._missed(reading)
             return
         self._misses = 0
         counted, self._held_back = self._held_back, reading
@@ -196,20 +204,22 @@ class FpsDropWatch(threading.Thread):
         self._publish(f"{self._tally.rate}|{self._tally.total}")
 
     @staticmethod
-    def _read(played: float | None) -> Reading | None:
-        """Return this pass's reading, or None when there is none to take."""
+    def _read(played: float | None) -> Reading | str:
+        """Return this pass's reading, or what was missing for one."""
+        if played is None:
+            return "the play time"
         fps = _video_fps()
-        if played is None or fps is None:
-            return None
+        if fps is None:
+            return "the frame rate"
         layer = _read_layer()
-        return None if layer is None else (*layer, fps)
+        return layer if isinstance(layer, str) else (*layer, fps)
 
-    def _missed(self) -> None:
+    def _missed(self, missing: str) -> None:
         """Note a pass without a reading; empty the row after a few."""
         self._misses += 1
         if self._misses == MISSES_ALLOWED:
-            _log("no reading: the play time, the frame rate or the video "
-                 "layer's time stamp or picture count is missing", xbmc.LOGINFO)
+            _log(f"no reading in {MISSES_ALLOWED} passes in a row: {missing} "
+                 f"is missing", xbmc.LOGINFO)
         if self._misses >= MISSES_ALLOWED:
             self._held_back = None
             self._publish("")
