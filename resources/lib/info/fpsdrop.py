@@ -10,6 +10,12 @@ frames lost since the title started as a Home-window property.  The FPS row
 of the overlay and the dashboard reads it in whichever interpreter they run,
 so the total covers the whole title, not only the time a view was open.
 
+After a seek the picture takes a moment to settle and the driver's counters
+read losses that are none, so for ``SETTLE_SECONDS`` nothing is counted: the
+rate reads 0 and the total stays as it was.  The service's monitor reports
+the seek (``Player.OnSeek``) the moment Kodi announces it; a seek still
+under way when a pass runs (``Player.Seeking``) starts the pause as well.
+
 Off Amlogic hardware the counters do not exist: the property stays empty and
 the row shows no drop and no total.
 """
@@ -24,6 +30,9 @@ from core.utils import PROP_FPS_DROP, home_window
 
 # The driver updates its counters once a second.
 SAMPLE_INTERVAL = 1.0
+
+# Seconds after a seek in which nothing is counted, while the picture settles.
+SETTLE_SECONDS = 3.0
 
 _log = channel("fps")
 
@@ -40,10 +49,19 @@ class FpsDropWatch(threading.Thread):
         self._source = ""
         self._published: str | None = None
         self._last_error = ""
+        # Nothing is counted before this time (monotonic): a seek's pause.
+        self._settle_until = 0.0
 
     def stop(self) -> None:
         """End the thread after its current pass."""
         self._stopping.set()
+
+    def seeked(self) -> None:
+        """Count nothing for ``SETTLE_SECONDS``: the player has just seeked.
+
+        Called from Kodi's notification thread; the next pass applies it.
+        """
+        self._settle_until = time.monotonic() + SETTLE_SECONDS
 
     def run(self) -> None:
         self._publish("")
@@ -74,8 +92,15 @@ class FpsDropWatch(threading.Thread):
         if not source:
             self._publish("")
             return
-        # A paused or seeking player moves no frames; what was counted stays.
-        if xbmc.getCondVisibility("Player.Paused | Player.Seeking"):
+        if xbmc.getCondVisibility("Player.Seeking"):
+            self.seeked()
+        if time.monotonic() < self._settle_until:
+            # Settling after a seek: no rate, and nothing added to the total.
+            self._counter.settle()
+            self._publish(f"0|{self._counter.total}")
+            return
+        # A paused player moves no frames; what was counted stays.
+        if xbmc.getCondVisibility("Player.Paused"):
             return
         reading = read_fps_sysfs()
         if reading is None:

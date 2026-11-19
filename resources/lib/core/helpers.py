@@ -111,10 +111,18 @@ class DropCounter:
 
     def reset(self) -> None:
         """Start over, as for a new title."""
+        self.settle()
+        self.total = 0
+
+    def settle(self) -> None:
+        """Forget the readings since the last count, keeping the total.
+
+        For a seek: what the window holds is from before it, and a lone
+        frame waiting for a second one is not carried past it.
+        """
         self._window.clear()
         self._pending = 0
         self._quiet = 0
-        self.total = 0
 
     def update(self, in_fps: int, out_fps: int) -> None:
         """Add one second's reading of the frames in and out."""

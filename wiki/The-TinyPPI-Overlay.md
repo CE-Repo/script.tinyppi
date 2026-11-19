@@ -196,7 +196,7 @@ carries, and so does the L5 letterbox on the web dashboard.
 
 | Row | Example | Meaning |
 |---|---|---|
-| **In / drop / out** | `024 - 001 = 23 FPS (Σ 37)` | Input frame rate, frames dropped by the video driver per second, and the resulting output rate; in parentheses, in the **Detail** color, the frames dropped since the title started. The driver's counters are read once a second by the service, for the whole title whether or not TinyPPI is open, and judged over the last 5 s: readings that are merely out of step cancel out, and a loss counts once 2 frames are missing. Paused and seeking time is not counted; a new title starts at 0. Without the driver's counters (non-Amlogic hardware) the drop reads `000` and the total is not shown. |
+| **In / drop / out** | `024 - 001 = 23 FPS (Σ 37)` | Input frame rate, frames dropped by the video driver per second, and the resulting output rate; in parentheses, in the **Detail** color, the frames dropped since the title started. The driver's counters are read once a second by the service, for the whole title whether or not TinyPPI is open, and judged over the last 5 s: readings that are merely out of step cancel out, and a loss counts once 2 frames are missing. Paused time is not counted, and after a seek or a chapter skip nothing is counted for 3 s while the picture settles (the drop reads `000`, the total stays); a new title starts at 0. Without the driver's counters (non-Amlogic hardware) the drop reads `000` and the total is not shown. |
 | **Processor** | `34% \| 12 \| 08 \| 15 \| 10` | Average CPU load, then the load of each core. |
 | **Temperature** | `61 °C` + bar | CPU temperature with a bar scaled to 0–110 °C (32–230 °F). |
 | **Memory usage** | `42%` + bar | System memory in use. |

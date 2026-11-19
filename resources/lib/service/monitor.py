@@ -71,6 +71,9 @@ _LIBRARY_DONE_NOTIFICATIONS = (
 # the library is told to expect a change (see ``library.settle``).
 _PLAYBACK_ENDED = "Player.OnStop"
 
+# A seek (or a chapter skip): the drop counter waits for the picture to settle.
+_SEEKED = "Player.OnSeek"
+
 
 _log = channel("service")
 
@@ -81,9 +84,11 @@ class KodiMonitor(xbmc.Monitor):
     The monitor is the only object that lives for the whole Kodi session.
     """
 
-    def __init__(self, dashboard: WebDashboard | None = None) -> None:
+    def __init__(self, dashboard: WebDashboard | None = None,
+                 fps_watch: FpsDropWatch | None = None) -> None:
         super().__init__()
         self._dashboard = dashboard
+        self._fps_watch = fps_watch
         # Held while a splash controller runs.
         self._splash_lock = threading.Lock()
 
@@ -97,6 +102,9 @@ class KodiMonitor(xbmc.Monitor):
 
         if method == "Player.OnAVStart":
             self._maybe_show_splash()
+
+        if method == _SEEKED and self._fps_watch is not None:
+            self._fps_watch.seeked()
 
         if method in _LIBRARY_DONE_NOTIFICATIONS:
             library.invalidate()
@@ -265,7 +273,10 @@ def run() -> None:
     addon     = settings.addon()
     win       = home_window()
     dashboard = WebDashboard()
-    monitor   = KodiMonitor(dashboard)
+    # Counts the frames the video driver drops while a video plays; started
+    # below, told about seeks by the monitor.
+    fps_watch = FpsDropWatch()
+    monitor   = KodiMonitor(dashboard, fps_watch)
 
     # Colors from before the color picker are stored as a palette index (or
     # 999 for HEX) and would show as bare numbers.  Rewritten once.
@@ -296,8 +307,6 @@ def run() -> None:
     scanner = BarScanner()
     scanner.start()
 
-    # Counts the frames the video driver drops while a video plays.
-    fps_watch = FpsDropWatch()
     fps_watch.start()
 
     _log("KodiMonitor started", xbmc.LOGINFO)

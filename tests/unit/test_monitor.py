@@ -64,6 +64,16 @@ def test_library_notifications(threads, calls, method, expected):
     assert calls == expected
 
 
+def test_a_seek_tells_the_drop_counter(threads, calls):
+    seeks = []
+    watch = types.SimpleNamespace(seeked=lambda: seeks.append(1))
+    kodi = service.KodiMonitor(fps_watch=watch)
+    kodi.onNotification("xbmc", "Player.OnSeek", "{}")
+    kodi.onNotification("xbmc", "Player.OnPause", "{}")
+    assert seeks == [1]
+    service.KodiMonitor().onNotification("xbmc", "Player.OnSeek", "{}")   # none to tell
+
+
 def test_every_notification_is_logged_cut_short(threads, calls):
     service.KodiMonitor().onNotification("xbmc", "Player.OnPause", "x" * 500)
     [(_level, line)] = [entry for entry in xbmc.LOG if "method=Player.OnPause" in entry[1]]

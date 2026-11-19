@@ -11,7 +11,8 @@ from core.utils import PROP_FPS_DROP, fps_drop_reading
 from info import fpsdrop
 from info.fpsdrop import FpsDropWatch
 
-PAUSED = "Player.Paused | Player.Seeking"
+# The watch's clock.
+CLOCK = [100.0]
 
 
 @pytest.fixture
@@ -19,6 +20,8 @@ def driver(monkeypatch):
     """An Amlogic box playing a film: hands out the readings queued for it."""
     readings: list[tuple[int, int] | None] = []
     monkeypatch.setattr(fpsdrop, "read_fps_sysfs", lambda: readings.pop(0))
+    CLOCK[0] = 100.0
+    monkeypatch.setattr(fpsdrop.time, "monotonic", lambda: CLOCK[0])
     xbmc.CONDITIONS["Player.HasVideo"] = True
     xbmc.INFO["Player.FilenameAndPath"] = "/films/a.mkv"
     return readings
@@ -51,15 +54,45 @@ def test_another_title_starts_over(driver):
     assert published() == "0|0"
 
 
-def test_a_paused_or_seeking_player_keeps_the_count(driver):
+def test_a_paused_player_keeps_the_count(driver):
     watch = FpsDropWatch()
     sample(watch, driver, (24, 20))
-    xbmc.CONDITIONS[PAUSED] = True
+    xbmc.CONDITIONS["Player.Paused"] = True
     watch._sample()                                          # the driver is not read
     assert published() == "4|4" and driver == []
-    xbmc.CONDITIONS[PAUSED] = False
+    xbmc.CONDITIONS["Player.Paused"] = False
     sample(watch, driver, (24, 24))
     assert published() == "2|4"
+
+
+def test_nothing_is_counted_while_the_picture_settles_after_a_seek(driver):
+    watch = FpsDropWatch()
+    sample(watch, driver, (24, 20))
+    assert published() == "4|4"
+    watch.seeked()                                           # Player.OnSeek
+    for _second in range(3):
+        watch._sample()                                      # the driver is not read
+        assert published() == "0|4"
+        CLOCK[0] += fpsdrop.SAMPLE_INTERVAL
+    assert driver == []
+    sample(watch, driver, (24, 24))                          # settled: counted again
+    assert published() == "0|4"                              # the window was cleared
+    sample(watch, driver, (24, 21))
+    assert published() == "2|7"
+
+
+def test_a_seek_under_way_starts_the_pause_too(driver):
+    watch = FpsDropWatch()
+    sample(watch, driver, (24, 24))
+    xbmc.CONDITIONS["Player.Seeking"] = True
+    watch._sample()
+    xbmc.CONDITIONS["Player.Seeking"] = False
+    CLOCK[0] += fpsdrop.SETTLE_SECONDS - 0.1
+    watch._sample()                                          # still settling
+    assert published() == "0|0" and driver == []
+    CLOCK[0] += 0.1
+    sample(watch, driver, (24, 20))
+    assert published() == "4|4"
 
 
 def test_without_a_video_or_the_counters_nothing_is_published(driver):
