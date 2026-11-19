@@ -71,9 +71,9 @@ _LIBRARY_DONE_NOTIFICATIONS = (
 # the library is told to expect a change (see ``library.settle``).
 _PLAYBACK_ENDED = "Player.OnStop"
 
-# A seek (or a chapter skip) and the end of a pause: the drop counter waits
-# for the picture to settle.
-_SETTLING = ("Player.OnSeek", "Player.OnResume")
+# A title's start, a seek (or a chapter skip) and the end of a pause: the
+# drop counter waits for the picture to settle.
+_SETTLING = ("Player.OnAVStart", "Player.OnSeek", "Player.OnResume")
 
 
 _log = channel("service")
@@ -275,7 +275,7 @@ def run() -> None:
     win       = home_window()
     dashboard = WebDashboard()
     # Counts the frames the video driver drops while a video plays; started
-    # below, told about seeks and resumes by the monitor.
+    # below, told about starts, seeks and resumes by the monitor.
     fps_watch = FpsDropWatch()
     monitor   = KodiMonitor(dashboard, fps_watch)
 

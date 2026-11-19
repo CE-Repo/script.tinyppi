@@ -64,14 +64,15 @@ def test_library_notifications(threads, calls, method, expected):
     assert calls == expected
 
 
-def test_a_seek_or_a_resume_tells_the_drop_counter(threads, calls):
+def test_a_start_a_seek_or_a_resume_tells_the_drop_counter(threads, calls):
     settled = []
     watch = types.SimpleNamespace(settle=lambda: settled.append(1))
     kodi = service.KodiMonitor(fps_watch=watch)
     kodi.onNotification("xbmc", "Player.OnSeek", "{}")
     kodi.onNotification("xbmc", "Player.OnPause", "{}")
     kodi.onNotification("xbmc", "Player.OnResume", "{}")
-    assert settled == [1, 1]
+    kodi.onNotification("xbmc", "Player.OnAVStart", "{}")
+    assert settled == [1, 1, 1]
     service.KodiMonitor().onNotification("xbmc", "Player.OnSeek", "{}")   # none to tell
 
 

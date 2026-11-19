@@ -27,6 +27,14 @@ def driver(monkeypatch):
     return readings
 
 
+def watching():
+    """A watch past the wait at the title's start."""
+    watch = FpsDropWatch()
+    watch._sample()
+    CLOCK[0] += fpsdrop.SETTLE_SECONDS
+    return watch
+
+
 def sample(watch, readings, *queued):
     readings.extend(queued)
     for _reading in queued:
@@ -38,24 +46,38 @@ def published():
 
 
 def test_drops_are_published_as_rate_and_total(driver):
-    watch = FpsDropWatch()
+    watch = watching()
     sample(watch, driver, (24, 24), (24, 23), (24, 25))
     assert published() == "0|0"                              # out of step, no drop
     sample(watch, driver, (24, 21))
     assert published() == "1|3" and fps_drop_reading() == (1, 3)
 
 
-def test_another_title_starts_over(driver):
+def test_nothing_is_counted_while_a_title_starts(driver):
     watch = FpsDropWatch()
+    for _second in range(3):
+        watch._sample()                                      # the driver is not read
+        assert published() == "0|0"
+        CLOCK[0] += fpsdrop.SAMPLE_INTERVAL
+    assert driver == []
+    sample(watch, driver, (24, 20))
+    assert published() == "4|4"
+
+
+def test_another_title_starts_over(driver):
+    watch = watching()
     sample(watch, driver, (24, 20))
     assert published() == "4|4"
     xbmc.INFO["Player.FilenameAndPath"] = "/films/b.mkv"
+    watch._sample()                                          # its own start wait
+    assert published() == "0|0"
+    CLOCK[0] += fpsdrop.SETTLE_SECONDS
     sample(watch, driver, (24, 24))
     assert published() == "0|0"
 
 
 def test_a_paused_player_keeps_the_count(driver):
-    watch = FpsDropWatch()
+    watch = watching()
     sample(watch, driver, (24, 20))
     xbmc.CONDITIONS["Player.Paused"] = True
     watch._sample()                                          # the driver is not read
@@ -66,7 +88,7 @@ def test_a_paused_player_keeps_the_count(driver):
 
 
 def test_nothing_is_counted_while_the_picture_settles_after_a_seek(driver):
-    watch = FpsDropWatch()
+    watch = watching()
     sample(watch, driver, (24, 20))
     assert published() == "4|4"
     watch.settle()                                           # Player.OnSeek
@@ -82,7 +104,7 @@ def test_nothing_is_counted_while_the_picture_settles_after_a_seek(driver):
 
 
 def test_a_resume_after_a_pause_settles_too(driver):
-    watch = FpsDropWatch()
+    watch = watching()
     sample(watch, driver, (24, 20))
     xbmc.CONDITIONS["Player.Paused"] = True
     watch._sample()
@@ -97,19 +119,8 @@ def test_a_resume_after_a_pause_settles_too(driver):
     assert published() == "0|4"
 
 
-def test_a_pause_does_not_outlast_the_title(driver):
-    watch = FpsDropWatch()
-    xbmc.CONDITIONS["Player.Paused"] = True
-    watch._sample()
-    xbmc.CONDITIONS["Player.HasVideo"] = False               # stopped while paused
-    watch._sample()
-    xbmc.CONDITIONS.update({"Player.HasVideo": True, "Player.Paused": False})
-    sample(watch, driver, (24, 20))                          # the next title counts at once
-    assert published() == "4|4"
-
-
 def test_a_seek_under_way_starts_the_pause_too(driver):
-    watch = FpsDropWatch()
+    watch = watching()
     sample(watch, driver, (24, 24))
     xbmc.CONDITIONS["Player.Seeking"] = True
     watch._sample()
@@ -123,12 +134,14 @@ def test_a_seek_under_way_starts_the_pause_too(driver):
 
 
 def test_without_a_video_or_the_counters_nothing_is_published(driver):
-    watch = FpsDropWatch()
+    watch = watching()
     sample(watch, driver, (24, 20))
     xbmc.CONDITIONS["Player.HasVideo"] = False
     watch._sample()
     assert published() == "" and fps_drop_reading() is None
     xbmc.CONDITIONS["Player.HasVideo"] = True
+    watch._sample()                                          # the start wait
+    CLOCK[0] += fpsdrop.SETTLE_SECONDS
     sample(watch, driver, None)                              # not an Amlogic box
     assert published() == ""
     sample(watch, driver, (24, 24))
@@ -136,11 +149,11 @@ def test_without_a_video_or_the_counters_nothing_is_published(driver):
 
 
 def test_the_property_is_written_only_when_it_changes(driver, monkeypatch):
-    watch = FpsDropWatch()
     writes = []
     real = xbmcgui.Window.setProperty
     monkeypatch.setattr(xbmcgui.Window, "setProperty",
                         lambda self, key, value: (writes.append(value), real(self, key, value)))
+    watch = watching()
     sample(watch, driver, (24, 24), (24, 24), (24, 24))
     assert writes == ["0|0"]
 
@@ -152,17 +165,18 @@ def test_the_thread_clears_a_stale_count_and_stops(driver, monkeypatch):
     seen = []
     samples = watch._sample
 
-    def stop_after_two():
+    def stop_after_three():
         seen.append(published())
-        driver.append((24, 22))
+        driver[:] = [(24, 22)]
         samples()
-        if len(seen) == 2:
+        CLOCK[0] += fpsdrop.SETTLE_SECONDS
+        if len(seen) == 3:
             watch.stop()
-    monkeypatch.setattr(watch, "_sample", stop_after_two)
+    monkeypatch.setattr(watch, "_sample", stop_after_three)
     watch.start()
     watch.join(5)
     assert not watch.is_alive()
-    assert seen == ["", "2|2"]
+    assert seen == ["", "0|0", "2|2"]               # the start wait, then counted
     assert published() == ""                                 # cleared on the way out
 
 

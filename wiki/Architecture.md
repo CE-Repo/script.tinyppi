@@ -221,7 +221,7 @@ Threads inside the service:
 | HTTP request threads | per connection | routes, SSE streams |
 | VS10 mode switcher | per request | applies dashboard switches one at a time |
 | Bar scanner | 50 ms | with `measure_aspect_ratio` on, captures a video frame and measures the black bars while a video plays; every 500 ms it follows the title's widest aspect ratio for the IMAX mark |
-| Drop counter | 1 s | while a video plays (not paused, and not in the 3 s after a seek or a resume, which `Player.OnSeek` / `Player.OnResume` report), reads the driver's frame counters and publishes the drop rate and the title's total |
+| Drop counter | 1 s | while a video plays (not paused, and not in the 3 s after a title starts, a seek or a resume, which `Player.OnAVStart` / `Player.OnSeek` / `Player.OnResume` report), reads the driver's frame counters and publishes the drop rate and the title's total |
 
 ---
 
@@ -312,7 +312,7 @@ add-ons may read them.
 |---|---|
 | `Other.open_overlay` / `Other.open_dialog` (sender `script.tinyppi`) | Open the view in the service. |
 | `GUI.OnSkinLoaded` | Re-register the fonts (on a thread, after 1 s). |
-| `Player.OnAVStart` | Start the codec-logo controller if any situation is enabled. |
+| `Player.OnAVStart` | Start the codec-logo controller if any situation is enabled; tell the drop counter to count nothing for 3 s while the picture settles. |
 | `VideoLibrary.OnUpdate` / `OnRemove` | Mark the dashboard lists changed; drops are coalesced (2 s quiet, at most 10 s). |
 | `Player.OnSeek` / `Player.OnResume` | Tell the drop counter to count nothing for 3 s while the picture settles. |
 | `VideoLibrary.OnScanFinished` / `OnCleanFinished` | Drop the dashboard lists at once. |
