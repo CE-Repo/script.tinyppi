@@ -71,8 +71,9 @@ _LIBRARY_DONE_NOTIFICATIONS = (
 # the library is told to expect a change (see ``library.settle``).
 _PLAYBACK_ENDED = "Player.OnStop"
 
-# A seek (or a chapter skip): the drop counter waits for the picture to settle.
-_SEEKED = "Player.OnSeek"
+# A seek (or a chapter skip) and the end of a pause: the drop counter waits
+# for the picture to settle.
+_SETTLING = ("Player.OnSeek", "Player.OnResume")
 
 
 _log = channel("service")
@@ -103,8 +104,8 @@ class KodiMonitor(xbmc.Monitor):
         if method == "Player.OnAVStart":
             self._maybe_show_splash()
 
-        if method == _SEEKED and self._fps_watch is not None:
-            self._fps_watch.seeked()
+        if method in _SETTLING and self._fps_watch is not None:
+            self._fps_watch.settle()
 
         if method in _LIBRARY_DONE_NOTIFICATIONS:
             library.invalidate()
@@ -274,7 +275,7 @@ def run() -> None:
     win       = home_window()
     dashboard = WebDashboard()
     # Counts the frames the video driver drops while a video plays; started
-    # below, told about seeks by the monitor.
+    # below, told about seeks and resumes by the monitor.
     fps_watch = FpsDropWatch()
     monitor   = KodiMonitor(dashboard, fps_watch)
 

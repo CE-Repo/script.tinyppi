@@ -61,15 +61,15 @@ def test_a_paused_player_keeps_the_count(driver):
     watch._sample()                                          # the driver is not read
     assert published() == "4|4" and driver == []
     xbmc.CONDITIONS["Player.Paused"] = False
-    sample(watch, driver, (24, 24))
-    assert published() == "2|4"
+    watch._sample()                                          # settling after the pause
+    assert published() == "0|4"
 
 
 def test_nothing_is_counted_while_the_picture_settles_after_a_seek(driver):
     watch = FpsDropWatch()
     sample(watch, driver, (24, 20))
     assert published() == "4|4"
-    watch.seeked()                                           # Player.OnSeek
+    watch.settle()                                           # Player.OnSeek
     for _second in range(3):
         watch._sample()                                      # the driver is not read
         assert published() == "0|4"
@@ -79,6 +79,33 @@ def test_nothing_is_counted_while_the_picture_settles_after_a_seek(driver):
     assert published() == "0|4"                              # the window was cleared
     sample(watch, driver, (24, 21))
     assert published() == "2|7"
+
+
+def test_a_resume_after_a_pause_settles_too(driver):
+    watch = FpsDropWatch()
+    sample(watch, driver, (24, 20))
+    xbmc.CONDITIONS["Player.Paused"] = True
+    watch._sample()
+    CLOCK[0] += 30                                           # a long pause
+    xbmc.CONDITIONS["Player.Paused"] = False                 # no Player.OnResume seen
+    for _second in range(3):
+        watch._sample()                                      # the driver is not read
+        assert published() == "0|4"
+        CLOCK[0] += fpsdrop.SAMPLE_INTERVAL
+    assert driver == []
+    sample(watch, driver, (24, 24))
+    assert published() == "0|4"
+
+
+def test_a_pause_does_not_outlast_the_title(driver):
+    watch = FpsDropWatch()
+    xbmc.CONDITIONS["Player.Paused"] = True
+    watch._sample()
+    xbmc.CONDITIONS["Player.HasVideo"] = False               # stopped while paused
+    watch._sample()
+    xbmc.CONDITIONS.update({"Player.HasVideo": True, "Player.Paused": False})
+    sample(watch, driver, (24, 20))                          # the next title counts at once
+    assert published() == "4|4"
 
 
 def test_a_seek_under_way_starts_the_pause_too(driver):
