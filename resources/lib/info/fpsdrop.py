@@ -4,16 +4,19 @@
 """Count the frames the video driver drops, all through playback.
 
 One thread in the service reads, once a second while a video plays, the
-video layer's count of the frames it has shown (``toggle_count`` in
-``/sys/class/media-configs/video``) and the video's frame rate.  It waits
-for the count to move on, a few hundredths of a second at most, and notes
-the time the new picture appeared.  ``core.helpers.FrameTally`` compares the
-frames due in that time with those shown, as Kodi does for its own drop
-count, and the thread publishes the drop rate and the frames lost since the
+time stamp of the picture on screen (``cur vpts`` in
+``/sys/class/video/vframe_states``) and the video layer's count of the
+pictures it has shown (``toggle_count`` in
+``/sys/class/media-configs/video``).  ``core.helpers.FrameTally`` compares
+the frames the time stamp went past with the pictures shown: the rest were
+skipped.  The thread publishes the drop rate and the frames lost since the
 title started as a Home-window property.
 
-The time is the system clock's: Kodi refreshes its play time only every
-200 ms, five frames' worth, and the play time is used to tell a seek only.  The FPS row
+The count is read before and after the time stamp, and the reading taken
+again if a picture changed in between, so both belong to the same picture.
+The driver lists the time stamp only while a frame waits in its queue: a
+pass that finds none is skipped, and only ``MISSES_ALLOWED`` such passes in
+a row empty the row.  The FPS row
 of the overlay and the dashboard reads it in whichever interpreter they run,
 so the total covers the whole title, not only the time a view was open.
 
@@ -37,7 +40,7 @@ already shows the seek's disruption.  So each reading is held back for one pass 
 counted only if no sign of a seek has come by then: the row lags the driver
 by a second, and a seek's first second is never counted.
 
-Without the frame count (off Amlogic hardware, or a driver without it) the
+Without these readings (off Amlogic hardware, or a driver without them) the
 property stays empty and the row shows no drop and no total.
 """
 
@@ -45,7 +48,7 @@ import threading
 import time
 
 import xbmc
-from core.helpers import FrameTally, read_toggle_count
+from core.helpers import FrameTally, read_toggle_count, read_video_pts
 from core.log import channel
 from core.utils import PROP_FPS_DROP, first_float, home_window
 
@@ -67,13 +70,15 @@ _HOLDING = "Player.Paused | Player.Caching | Player.Forwarding | Player.Rewindin
 _log = channel("fps")
 
 
-# How long a pass waits for the next picture, and how often it looks.
-FRAME_WAIT = 0.25
-FRAME_POLL = 0.001
+# Tries at reading the time stamp without a picture changing meanwhile.
+READ_TRIES = 3
 
-# One reading: when a picture appeared, the frames shown so far with it and
-# the video's rate.
-Reading = tuple[float, int, float]
+# Passes in a row without a reading before the row is emptied.
+MISSES_ALLOWED = 3
+
+# One reading: the time stamp on screen, the pictures shown so far and the
+# video's frame rate.
+Reading = tuple[int, int, float]
 
 
 def _play_time() -> float | None:
@@ -84,21 +89,19 @@ def _play_time() -> float | None:
         return None
 
 
-def _catch_frame() -> tuple[float, int] | None:
-    """Wait for the next picture; return when it appeared and the count.
+def _read_layer() -> tuple[int, int] | None:
+    """Return the time stamp on screen and the pictures shown, or None.
 
-    None when the count cannot be read, or no picture came within
-    ``FRAME_WAIT``.
+    None when either cannot be read, or a picture changed during every try.
     """
-    first = read_toggle_count()
-    if first is None:
-        return None
-    deadline = time.monotonic() + FRAME_WAIT
-    while time.monotonic() < deadline:
-        time.sleep(FRAME_POLL)
-        shown = read_toggle_count()
-        if shown != first:
-            return (time.monotonic(), shown) if shown is not None else None
+    for _try in range(READ_TRIES):
+        before = read_toggle_count()
+        pts = read_video_pts()
+        after = read_toggle_count()
+        if before is None or pts is None or after is None:
+            return None
+        if before == after:
+            return pts, after
     return None
 
 
@@ -120,8 +123,8 @@ class FpsDropWatch(threading.Thread):
         self._source = ""
         self._published: str | None = None
         self._last_error = ""
-        # Whether the last pass found no reading to take, logged once.
-        self._unreadable = False
+        # Passes in a row that found no reading to take.
+        self._misses = 0
         # Nothing is counted before this time (monotonic): the wait after a
         # start, a seek or a resume.
         self._settle_until = 0.0
@@ -180,15 +183,9 @@ class FpsDropWatch(threading.Thread):
             return
         reading = self._read(played)
         if reading is None:
-            if not self._unreadable:
-                _log("no reading: the play time, the frame rate or the video "
-                     "layer's frame count is missing, or no new picture came",
-                     xbmc.LOGINFO)
-            self._unreadable = True
-            self._held_back = None
-            self._publish("")
+            self._missed()
             return
-        self._unreadable = False
+        self._misses = 0
         counted, self._held_back = self._held_back, reading
         if counted is not None:
             before = self._tally.total
@@ -204,8 +201,18 @@ class FpsDropWatch(threading.Thread):
         fps = _video_fps()
         if played is None or fps is None:
             return None
-        caught = _catch_frame()
-        return None if caught is None else (*caught, fps)
+        layer = _read_layer()
+        return None if layer is None else (*layer, fps)
+
+    def _missed(self) -> None:
+        """Note a pass without a reading; empty the row after a few."""
+        self._misses += 1
+        if self._misses == MISSES_ALLOWED:
+            _log("no reading: the play time, the frame rate or the video "
+                 "layer's time stamp or picture count is missing", xbmc.LOGINFO)
+        if self._misses >= MISSES_ALLOWED:
+            self._held_back = None
+            self._publish("")
 
     def _held(self, played: float | None) -> bool:
         """Return whether this pass counts nothing: holding, or settling."""

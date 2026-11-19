@@ -70,59 +70,72 @@ def format_fps(fps_value: str | float) -> str:
 # The video layer's count of the frames it has shown, one line among the
 # driver's settings: `` video.toggle_count=1234`` (the node's name without
 # its path; a full ``media.video.`` path is read as well).  It rises by one
-# for each new picture on screen and leaves out the frames the layer skipped.
+# for each new picture on screen.
 TOGGLE_COUNT_PATH = "/sys/class/media-configs/video"
 _TOGGLE_COUNT_RE = re.compile(r"\bvideo\.toggle_count=(\d+)")
 
+# The video layer's state, with the time stamp of the picture on screen:
+# ``cur vpts=118791180``, in 90 kHz ticks.  The driver lists it only while a
+# frame waits in its queue.
+VIDEO_STATES_PATH = "/sys/class/video/vframe_states"
+_VIDEO_PTS_RE = re.compile(r"cur vpts=(-?\d+)")
 
-def read_toggle_count() -> int | None:
-    """Return the frames the video layer has shown so far, or None."""
+# Time stamps count 90 000 ticks a second in 32 bits, and wrap.
+PTS_CLOCK = 90_000
+PTS_WRAP = 1 << 32
+
+
+def _read_number(path: str, pattern: re.Pattern[str]) -> int | None:
+    """Return the number *pattern* finds in the file at *path*, or None."""
     try:
-        with open(TOGGLE_COUNT_PATH, encoding="utf-8", errors="ignore") as f:
-            match = _TOGGLE_COUNT_RE.search(f.read())
+        with open(path, encoding="utf-8", errors="ignore") as f:
+            match = pattern.search(f.read())
     except OSError:
         return None
     return int(match.group(1)) if match else None
 
 
-# Passes the drop rate is judged over.
+def read_toggle_count() -> int | None:
+    """Return the frames the video layer has shown so far, or None."""
+    return _read_number(TOGGLE_COUNT_PATH, _TOGGLE_COUNT_RE)
+
+
+def read_video_pts() -> int | None:
+    """Return the time stamp of the picture on screen (90 kHz), or None."""
+    return _read_number(VIDEO_STATES_PATH, _VIDEO_PTS_RE)
+
+
+# Readings the drop rate is judged over.
 DROP_WINDOW = 5
-# How quickly the tally follows the clocks drifting apart, as a share of the
-# difference per reading: slow enough that a dropped frame, a step of a
-# whole frame, is never taken for drift.
-DRIFT_FOLLOW = 0.05
+# A reading whose time stamp moves on by more than this many seconds' worth
+# of frames is a jump in the stream, not dropped frames.
+MAX_JUMP_SECONDS = 2.0
 
 
 class FrameTally:
-    """Count the frames that should have been shown but were not.
+    """Count the frames the video layer skipped.
 
-    As Kodi does: the time says how many frames were due, the video layer's
-    count how many it showed; the difference was dropped.  Each reading is
-    taken the moment a new picture appears (see info.fpsdrop), so the
-    difference does not wander by a frame with the moment it is read: it
-    stays put until a frame goes missing, then steps up by one.  The
-    difference is taken as the median of the last three readings, so a step
-    counts once two of them show it: a dropped frame stays missing, a
-    reading taken a little late or early is outvoted.  The first three
-    readings of a stretch count nothing: they set where the difference sits.
+    Each reading holds the time stamp of the picture on screen and the
+    count of pictures shown.  Between two readings the time stamp says how
+    many frames of the film went by, the count how many of them were shown;
+    the rest were skipped.  A picture that stays on screen longer moves
+    neither, so a stall is no drop.  Both are exact counts, so no clock and
+    no smoothing is needed.
 
-    Both are measured from the start of a stretch of steady playback (see
-    ``restart``), so a reading's error never adds up over a film.  What the
-    system clock and the player's clock drift apart is followed as
-    ``_drift``, a fraction of a frame that moves slowly, and left out.  A
-    frame shown twice makes up for a dropped one rather than counting
-    against later drops.
+    Interlaced video may be shown as two pictures a frame, its fields; the
+    first readings tell, and skipped fields count as the frames they belong
+    to (a lone field as one).  A time stamp that goes back or leaps ahead is a jump in
+    the stream: the tally takes it as a new starting point.
     """
 
     def __init__(self) -> None:
         self._totals: deque[int] = deque(maxlen=DROP_WINDOW + 1)
         self._closed = 0          # frames dropped in earlier stretches
         self._counted = 0         # frames dropped in this stretch
-        self._base: tuple[float, int] | None = None   # time, frames shown
+        self._last: tuple[int, int] | None = None   # time stamp, pictures shown
         self._fps = 0.0
-        self._rate = 0.0          # frames due per second; 0 until known
-        self._drift = 0.0
-        self._recent: deque[float] = deque(maxlen=3)   # the last differences
+        self._step = 0.0          # ticks from one picture to the next; 0 until known
+        self._fields = 1          # pictures a frame: 2 for interlaced fields
 
     @property
     def total(self) -> int:
@@ -146,39 +159,35 @@ class FrameTally:
         """Start a new stretch, keeping the total: after a seek or a pause."""
         self._closed += self._counted
         self._counted = 0
-        self._base = None
-        self._rate = 0.0
-        self._drift = 0.0
-        self._recent.clear()
+        self._last = None
+        self._step = 0.0
         self._totals.clear()
 
-    def update(self, at: float, shown: int, fps: float) -> None:
-        """Add a reading: when a new picture appeared, the frames shown so
-        far and the video's frame rate."""
-        base = self._base
-        if base is None or fps != self._fps or shown < base[1]:
+    def update(self, pts: int, shown: int, fps: float) -> None:
+        """Add a reading: the time stamp on screen, the pictures shown so far
+        and the video's frame rate."""
+        last = self._last
+        if last is None or fps != self._fps or shown < last[1]:
             # The first reading, another rate, or a count that started over.
             self.restart()
-            self._base, self._fps = (at, shown), fps
+            self._last, self._fps = (pts, shown), fps
             self._totals.append(self.total)
             return
-        elapsed, frames = at - base[0], shown - base[1]
-        if elapsed <= 0:
+        ticks, pictures = (pts - last[0]) % PTS_WRAP, shown - last[1]
+        self._last = (pts, shown)
+        if ticks > MAX_JUMP_SECONDS * PTS_CLOCK + PTS_CLOCK * pictures / fps:
+            # Back in time (a huge forward step after the wrap) or far ahead.
+            self._step = 0.0
             return
-        if not self._rate:
-            # The first second tells whether the layer shows frames or the
-            # fields of interlaced video, two to a frame.
-            self._rate = fps * (2 if frames > 1.5 * fps * elapsed else 1)
-        self._recent.append(self._rate * elapsed - frames)
-        lost = sorted(self._recent)[len(self._recent) // 2]
-        if len(self._recent) < (self._recent.maxlen or 0):
-            # The first readings of a stretch set where the difference sits.
-            self._drift = lost
-            self._totals.append(self.total)
-            return
-        steps = round(lost - self._drift)
-        self._counted = max(self._counted, steps)
-        self._drift += DRIFT_FOLLOW * (lost - steps - self._drift)
+        if not self._step:
+            if not pictures:
+                return
+            # Interlaced video shown as fields has twice the pictures.
+            step = PTS_CLOCK / fps
+            self._fields = 2 if pictures > 1.5 * ticks / step else 1
+            self._step = step / self._fields
+        skipped = round(ticks / self._step) - pictures
+        self._counted += max(0, math.ceil(skipped / self._fields))
         self._totals.append(self.total)
 
 
@@ -189,7 +198,7 @@ def fps_display_texts(video_fps: str | float) -> tuple[str, str, str]:
     video's FPS rounded to a whole frame, the drop is the rate the service's
     drop watch publishes (see info.fpsdrop), and the output rate is the
     difference.  *total_text* is the frames lost since the title started, or
-    '' when the video layer's frame count cannot be read.
+    '' when the video layer cannot be read.
     """
     try:
         in_fps = round(float(video_fps))

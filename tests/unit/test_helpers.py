@@ -35,21 +35,23 @@ def test_format_fps_trims_and_snaps(raw, expected):
     assert helpers.format_fps(raw) == expected
 
 
-def layer(fps, seconds, dropped=(), repeated=(), drift=0.0, noise=0.0, fields=1):
-    """The readings of a video layer showing *fps*, one a second.
+def layer(fps, seconds, dropped=(), stalled=(), fields=1, start=0):
+    """The readings of a video layer playing *fps*, one a second.
 
-    Each is taken as the next picture appears; *dropped* and *repeated* name
-    the seconds in which a frame went missing or was shown twice, *drift*
-    how much slower the player's clock runs than the system's, *noise* how
-    late a reading may come, in seconds.
+    In a second named in *dropped* a frame of the film is skipped; in one
+    named in *stalled* a picture stays on screen a turn longer.
     """
-    shown, readings = 1000, []
+    film, shown, readings = 0, 1000, []
     for second in range(seconds):
-        shown += (second in dropped) * -1 + (second in repeated)
-        frame = math.ceil(second * fps * fields - 1e-9)
-        late = noise * ((second * 7919) % 7 - 3) / 3
-        at = frame / (fps * fields) * (1 + drift) + late
-        readings.append((at, shown + frame, fps))
+        due = math.floor((second + 1) * fps) - math.floor(second * fps)
+        if second in dropped:
+            film, shown = film + due + 1, shown + due * fields
+        elif second in stalled:
+            film, shown = film + due - 1, shown + (due - 1) * fields
+        else:
+            film, shown = film + due, shown + due * fields
+        pts = (start + round(film * 90_000 / fps)) % (1 << 32)
+        readings.append((pts, shown, fps))
     return readings
 
 
@@ -62,66 +64,65 @@ def tallied(readings):
 
 @pytest.mark.parametrize("fps", [23.976, 24.0, 25.0, 29.97, 50.0, 59.94, 60.0])
 def test_a_steady_layer_drops_nothing(fps):
-    tally = tallied(layer(fps, 600, noise=0.004))
+    tally = tallied(layer(fps, 7200))
     assert (tally.rate, tally.total) == (0, 0)
 
 
-def test_a_dropped_frame_counts_once_a_second_reading_shows_it():
+def test_a_skipped_frame_counts_at_once():
     readings = layer(23.976, 200, dropped={100})
-    tally = tallied(readings[:101])
-    assert tally.total == 0                                 # one reading shows it
-    tally.update(*readings[101])
+    tally = tallied(readings[:100])
+    assert tally.total == 0
+    tally.update(*readings[100])
     assert (tally.rate, tally.total) == (1, 1)
-    for reading in readings[102:]:
+    for reading in readings[101:]:
         tally.update(*reading)
     assert (tally.rate, tally.total) == (0, 1)
 
 
+def test_a_picture_left_on_screen_longer_is_no_drop():
+    assert tallied(layer(23.976, 600, stalled={10, 200, 400})).total == 0
+    assert tallied(layer(23.976, 600, stalled={10}, dropped={11})).total == 1
+
+
 def test_a_steady_drop_shows_as_a_rate():
-    tally = tallied(layer(24.0, 21, dropped=set(range(10, 20))))
+    tally = tallied(layer(24.0, 20, dropped=set(range(10, 20))))
     assert (tally.rate, tally.total) == (1, 10)
 
 
-def test_a_reading_taken_late_is_outvoted():
-    readings = layer(24.0, 20)
-    at, shown, fps = readings[10]
-    readings[10] = (at + 0.03, shown, fps)                  # most of a frame late
-    assert tallied(readings).total == 0
-
-
-def test_the_first_readings_of_a_stretch_count_nothing():
-    # A drop in the first seconds sets where the difference sits.
-    assert tallied(layer(24.0, 20, dropped={2})).total == 0
-
-
-def test_the_clocks_drifting_apart_is_no_drop():
-    # 50 ppm over two hours: seven frames' worth, followed as it comes.
-    assert tallied(layer(23.976, 7200, drift=50e-6, noise=0.004)).total == 0
-    assert tallied(layer(23.976, 7200, drift=-50e-6, noise=0.004)).total == 0
-    assert tallied(layer(24.0, 7200, dropped={3000, 5000}, drift=50e-6)).total == 2
-
-
-def test_interlaced_video_shows_two_fields_a_frame():
+def test_interlaced_video_shows_two_pictures_a_frame():
     assert tallied(layer(25.0, 60, fields=2)).total == 0
     assert tallied(layer(25.0, 60, dropped={30}, fields=2)).total == 1
+    tally = tallied(layer(25.0, 10, fields=2))
+    pts, shown, fps = layer(25.0, 10, fields=2)[-1]
+    tally.update(pts + 3600, shown + 1, fps)                # a frame on, one field of it
+    assert tally.total == 1
 
 
-def test_a_frame_shown_twice_makes_up_for_a_dropped_one():
-    assert tallied(layer(24.0, 60, dropped={10}, repeated={20})).total == 1
-    assert tallied(layer(24.0, 60, repeated={10}, dropped={20})).total == 0
+def test_the_time_stamp_wraps():
+    assert tallied(layer(23.976, 60, start=(1 << 32) - 500_000)).total == 0
+
+
+def test_a_jump_in_the_stream_is_a_new_starting_point():
+    readings = layer(24.0, 40, dropped={30})
+    pts, shown, fps = readings[10]
+    readings[10] = ((pts + 90_000 * 600) % (1 << 32), shown, fps)       # ten minutes on
+    readings[11:] = [((p + 90_000 * 600) % (1 << 32), n, f) for p, n, f in readings[11:]]
+    readings[20] = (readings[20][0] - 90_000 * 60, *readings[20][1:])    # a minute back
+    readings[21:] = [(p - 90_000 * 60, n, f) for p, n, f in readings[21:]]
+    assert tallied(readings).total == 1
 
 
 def test_a_stretch_starts_over_and_keeps_the_total():
     tally = tallied(layer(24.0, 20, dropped={10}))
     tally.restart()
     assert (tally.rate, tally.total) == (0, 1)
-    for reading in layer(24.0, 20, dropped={8}):            # a count from 1000 again
+    for reading in layer(24.0, 20, dropped={5}):            # a count from 1000 again
         tally.update(*reading)
     assert tally.total == 2
-    tally.update(1e6, 10**6, 25.0)                           # another rate: a new stretch
-    tally.update(1e6, 10**6 + 25, 25.0)                      # no time passed: ignored
-    tally.update(1e6 + 1, 10**6 + 25, 25.0)
-    assert tally.total == 2
+    tally.update(0, 10**6, 25.0)                             # another rate: a new stretch
+    tally.update(0, 10**6, 25.0)                             # nothing shown: no step known
+    tally.update(3600 * 25, 10**6 + 24, 25.0)
+    assert tally.total == 3
     tally.reset()
     assert (tally.rate, tally.total) == (0, 0)
 
@@ -165,11 +166,26 @@ def test_the_toggle_count_is_read_from_the_drivers_settings(monkeypatch, tmp_pat
     assert helpers.read_toggle_count() is None
 
 
-def test_an_unreadable_toggle_count(monkeypatch):
+def test_the_time_stamp_on_screen_is_read_from_the_layers_state(monkeypatch, tmp_path):
+    node = tmp_path / "vframe_states"
+    node.write_text("amvideo vframe states\nvframe_pool_size=16\nvf index=3\n"
+                    "vf->pts=118794960\ncur vpts=118791180\nvf type=8\n")
+    real_open = open
+    monkeypatch.setattr(helpers, "open", lambda path, *args, **kwargs: real_open(
+        node if path == helpers.VIDEO_STATES_PATH else path, *args, **kwargs), raising=False)
+    assert helpers.read_video_pts() == 118791180
+    node.write_text("cur vpts=-2000\n")                       # past 2^31, printed signed
+    assert helpers.read_video_pts() == -2000
+    node.write_text("amvideo vframe states\nvframe_pool_size=16\n")   # no frame queued
+    assert helpers.read_video_pts() is None
+
+
+def test_unreadable_layer_files(monkeypatch):
     def missing(path, *_args, **_kwargs):
         raise FileNotFoundError(path)
     monkeypatch.setattr(helpers, "open", missing, raising=False)
     assert helpers.read_toggle_count() is None
+    assert helpers.read_video_pts() is None
 
 
 # --- The VS10 dialog's layouts ----------------------------------------------

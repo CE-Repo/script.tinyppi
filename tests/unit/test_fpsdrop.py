@@ -17,25 +17,27 @@ SEEKED = [0.0]
 
 
 class Layer:
-    """The video layer: shows 24 frames a second, less the ones dropped."""
+    """The video layer playing a 24 fps film: one picture a frame, less the
+    frames it skipped, a time stamp 3750 ticks a frame."""
 
-    dropped = 0
+    skipped = 0
     readings = 0
     present = True
 
     @classmethod
-    def catch(cls):
+    def read(cls):
         if not cls.present:
             return None
         cls.readings += 1
-        return CLOCK[0], 1000 + round((CLOCK[0] - 100.0) * 24) - cls.dropped
+        shown = round((CLOCK[0] - 100.0) * 24)
+        return (shown + cls.skipped) * 3750, 1000 + shown
 
 
 @pytest.fixture
 def driver(monkeypatch):
     """An Amlogic box playing a 24 fps film."""
-    Layer.dropped, Layer.readings, Layer.present = 0, 0, True
-    monkeypatch.setattr(fpsdrop, "_catch_frame", Layer.catch)
+    Layer.skipped, Layer.readings, Layer.present = 0, 0, True
+    monkeypatch.setattr(fpsdrop, "_read_layer", Layer.read)
     CLOCK[0], SEEKED[0] = 100.0, 0.0
     monkeypatch.setattr(fpsdrop.time, "monotonic", lambda: CLOCK[0])
     # The play time moves with the clock, unless a seek moves it.
@@ -63,9 +65,9 @@ def watching():
 
 def counting():
     """A watch whose readings count: past the wait, the reading held back
-    and the readings that set where the difference sits."""
+    and the first reading of the stretch."""
     watch = watching()
-    tick(watch, 5)
+    tick(watch, 2)
     return watch
 
 
@@ -73,16 +75,16 @@ def published():
     return xbmcgui.Window(10000).getProperty(PROP_FPS_DROP)
 
 
-def test_dropped_frames_are_published_as_rate_and_total(driver):
+def test_skipped_frames_are_published_as_rate_and_total(driver):
     watch = counting()
     tick(watch, 10)
     assert published() == "0|0"
-    driver.dropped = 3
-    tick(watch, 2)                                           # held back, then one reading
+    driver.skipped = 3
+    tick(watch)                                              # read and held back
     assert published() == "0|0"
-    tick(watch)                                              # a second reading shows it
+    tick(watch)
     assert published() == "1|3" and fps_drop_reading() == (1, 3)
-    assert "TinyPPI [fps]: 3 frame(s) dropped near 30 s" in [line for _level, line in xbmc.LOG]
+    assert "TinyPPI [fps]: 3 frame(s) dropped near 26 s" in [line for _level, line in xbmc.LOG]
     tick(watch, 10)
     assert published() == "0|3"
 
@@ -99,8 +101,8 @@ def test_nothing_is_counted_while_a_title_starts(driver):
 
 def test_another_title_starts_over(driver):
     watch = counting()
-    driver.dropped = 2
-    tick(watch, 3)
+    driver.skipped = 2
+    tick(watch, 2)
     assert published() == "1|2"
     xbmc.INFO["Player.FilenameAndPath"] = "/films/b.mkv"
     tick(watch)                                              # its own start wait
@@ -109,8 +111,8 @@ def test_another_title_starts_over(driver):
 
 def test_a_paused_player_keeps_the_count_and_settles_after(driver):
     watch = counting()
-    driver.dropped = 2
-    tick(watch, 3)
+    driver.skipped = 2
+    tick(watch, 2)
     read = driver.readings
     xbmc.CONDITIONS[fpsdrop._HOLDING] = True                 # paused, buffering, spooling
     tick(watch, 30)
@@ -120,26 +122,26 @@ def test_a_paused_player_keeps_the_count_and_settles_after(driver):
         tick(watch)
         assert published() == "0|2"
     assert driver.readings == read
-    driver.dropped = 30                                      # lost while settling
+    driver.skipped = 30                                      # skipped while settling
     tick(watch, 20)
     assert published() == "0|2"                              # never counted
 
 
 def test_a_late_seek_announcement_drops_the_reading_held_back(driver):
     watch = counting()
-    driver.dropped = 10                                      # the seek's first second
+    driver.skipped = 10                                      # the seek's first second
     tick(watch)                                              # read and held back
     watch.settle()                                           # Player.OnSeek, late
     tick(watch, 20)
     assert published() == "0|0"                              # never counted
-    driver.dropped = 11
-    tick(watch, 3)
+    driver.skipped = 11
+    tick(watch, 2)
     assert published() == "1|1"                              # counting again
 
 
 def test_a_jump_of_the_play_time_is_a_seek(driver):
     watch = counting()
-    driver.dropped = 10
+    driver.skipped = 10
     tick(watch)                                              # read and held back
     SEEKED[0] += 120                                         # before Kodi announces it
     read = driver.readings
@@ -150,8 +152,8 @@ def test_a_jump_of_the_play_time_is_a_seek(driver):
     tick(watch, 20)
     assert published() == "0|0"                              # the 10 never counted
     SEEKED[0] += fpsdrop.JUMP_TOLERANCE                      # within the tolerance
-    driver.dropped = 11
-    tick(watch, 3)
+    driver.skipped = 11
+    tick(watch, 2)
     assert published() == "1|1"
 
 
@@ -167,8 +169,23 @@ def test_a_seek_under_way_starts_the_wait_too(driver):
     assert driver.readings == read + 1
 
 
-@pytest.mark.parametrize("missing", ["play time", "frame rate", "frame count"])
-def test_without_a_reading_nothing_is_published(driver, monkeypatch, missing):
+def test_a_missing_reading_is_skipped_until_it_keeps_missing(driver):
+    watch = counting()
+    driver.skipped = 1
+    tick(watch, 2)
+    assert published() == "1|1"
+    driver.present = False                                   # no frame queued
+    tick(watch, fpsdrop.MISSES_ALLOWED - 1)
+    assert published() == "1|1"                              # the row stays
+    driver.present = True
+    driver.skipped = 2
+    tick(watch, 2)
+    assert fps_drop_reading()[1] == 2                        # counted across the gap
+    assert not [line for _level, line in xbmc.LOG if "no reading" in line]
+
+
+@pytest.mark.parametrize("missing", ["play time", "frame rate", "layer"])
+def test_without_readings_the_row_empties(driver, monkeypatch, missing):
     watch = counting()
     assert published() == "0|0"
     if missing == "play time":
@@ -177,21 +194,10 @@ def test_without_a_reading_nothing_is_published(driver, monkeypatch, missing):
         xbmc.INFO["Player.Process(videofps)"] = ""
     else:
         driver.present = False                               # not an Amlogic box
-    tick(watch, 3)
+    tick(watch, fpsdrop.MISSES_ALLOWED + 2)
     assert published() == "" and fps_drop_reading() is None
     notes = [line for _level, line in xbmc.LOG if "no reading" in line]
     assert len(notes) == 1                                   # once, not every pass
-
-
-def test_a_reading_after_none_is_noted_again_when_it_goes(driver):
-    watch = counting()
-    driver.present = False
-    tick(watch)
-    driver.present = True
-    tick(watch)
-    driver.present = False
-    tick(watch)
-    assert len([line for _level, line in xbmc.LOG if "no reading" in line]) == 2
 
 
 def test_without_a_video_nothing_is_published(driver):
@@ -226,33 +232,38 @@ def test_the_play_time_and_the_frame_rate_come_from_kodi(monkeypatch):
 
 
 @pytest.fixture
-def layer_file(monkeypatch):
-    """The layer's count as successive reads find it, on a clock that only
-    the waits move."""
+def layer_files(monkeypatch):
+    """The layer's picture count and time stamp as successive reads find them."""
     counts: list[int | None] = []
-    clock = [50.0]
+    stamps: list[int | None] = []
     monkeypatch.setattr(fpsdrop, "read_toggle_count", lambda: counts.pop(0))
-    monkeypatch.setattr(fpsdrop.time, "monotonic", lambda: clock[0])
-    monkeypatch.setattr(fpsdrop.time, "sleep", lambda seconds: clock.__setitem__(0, clock[0] + seconds))
-    return counts, clock
+    monkeypatch.setattr(fpsdrop, "read_video_pts", lambda: stamps.pop(0))
+    return counts, stamps
 
 
-def test_a_reading_is_taken_as_the_next_picture_appears(layer_file):
-    counts, clock = layer_file
-    counts.extend([500, 500, 500, 501])
-    assert fpsdrop._catch_frame() == (pytest.approx(50.003), 501)
-    assert counts == []
+def test_the_count_and_the_time_stamp_belong_to_one_picture(layer_files):
+    counts, stamps = layer_files
+    counts.extend([500, 500])
+    stamps.append(90_000)
+    assert fpsdrop._read_layer() == (90_000, 500)
+    # A picture changed between the reads: read again.
+    counts.extend([500, 501, 501, 501])
+    stamps.extend([90_000, 93_750])
+    assert fpsdrop._read_layer() == (93_750, 501)
+    assert counts == [] and stamps == []
 
 
-def test_no_reading_without_a_new_picture_or_a_count(layer_file):
-    counts, clock = layer_file
-    counts.extend([500] * 300)
-    assert fpsdrop._catch_frame() is None                    # the picture stands still
-    assert clock[0] == pytest.approx(50.0 + fpsdrop.FRAME_WAIT, abs=fpsdrop.FRAME_POLL)
-    counts[:] = [None]
-    assert fpsdrop._catch_frame() is None                    # no count at all
-    counts[:] = [500, None]
-    assert fpsdrop._catch_frame() is None                    # gone while waiting
+def test_no_layer_reading_when_a_part_is_missing_or_keeps_changing(layer_files):
+    counts, stamps = layer_files
+    counts.extend([500, 501, 501, 502, 502, 503])            # a change every try
+    stamps.extend([1, 2, 3])
+    assert fpsdrop._read_layer() is None
+    counts[:], stamps[:] = [None, None], [1]
+    assert fpsdrop._read_layer() is None
+    counts[:], stamps[:] = [500, 500], [None]                # no frame queued
+    assert fpsdrop._read_layer() is None
+    counts[:], stamps[:] = [500, None], [1]
+    assert fpsdrop._read_layer() is None
 
 
 def test_the_thread_clears_a_stale_count_and_stops(driver, monkeypatch):
