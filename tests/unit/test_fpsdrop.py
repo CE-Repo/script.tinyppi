@@ -103,6 +103,22 @@ def test_a_paused_player_keeps_the_count_and_settles_after(driver):
     assert published() == "0|4"
 
 
+def test_a_pause_and_its_resume_are_never_counted(driver):
+    watch = watching()
+    sample(watch, driver, (24, 24), (24, 10))                # the second the pause began
+    xbmc.CONDITIONS[fpsdrop._HOLDING] = True
+    tick(watch, 10)
+    assert published() == "0|0"                              # (24, 10) dropped
+    xbmc.CONDITIONS[fpsdrop._HOLDING] = False
+    watch.settle()                                           # Player.OnResume
+    for _second in range(3):
+        tick(watch)                                          # the driver is not read
+        assert published() == "0|0"
+    assert driver == []
+    sample(watch, driver, (24, 24), (24, 24))
+    assert published() == "0|0"
+
+
 def test_a_late_seek_announcement_drops_the_reading_held_back(driver):
     watch = watching()
     sample(watch, driver, (24, 24), (24, 10))                # the seek's first second
