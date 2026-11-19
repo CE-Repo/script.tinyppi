@@ -221,7 +221,7 @@ Threads inside the service:
 | HTTP request threads | per connection | routes, SSE streams |
 | VS10 mode switcher | per request | applies dashboard switches one at a time |
 | Bar scanner | 50 ms | with `measure_aspect_ratio` on, captures a video frame and measures the black bars while a video plays; every 500 ms it follows the title's widest aspect ratio for the IMAX mark |
-| Drop counter | 1 s | while a video plays (not paused, and not in the 3 s after a title starts, a seek or a resume, which `Player.OnAVStart` / `Player.OnSeek` / `Player.OnResume` report), reads the driver's frame counters and publishes the drop rate and the title's total |
+| Drop counter | 1 s | while a video plays (not paused, buffering or spooling, and not in the 3 s after a title starts, a seek or a resume, which `Player.OnAVStart` / `Player.OnSeek` / `Player.OnResume` report or a jump of the play time shows), reads the driver's frame counters, counts each reading one pass later unless a seek has shown by then, and publishes the drop rate and the title's total; readings with a difference are logged at debug level |
 
 ---
 

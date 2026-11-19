@@ -85,6 +85,9 @@ class Player:
     def getPlayingItem(self):
         raise RuntimeError("nothing is playing")
 
+    def getTime(self):
+        raise RuntimeError("nothing is playing")
+
 
 class RenderCapture:
     """A Kodi that cannot capture the video: no ``composite``, no frames."""
