@@ -177,8 +177,21 @@ def test_without_a_reading_nothing_is_published(driver, monkeypatch, missing):
         xbmc.INFO["Player.Process(videofps)"] = ""
     else:
         driver.present = False                               # not an Amlogic box
-    tick(watch)
+    tick(watch, 3)
     assert published() == "" and fps_drop_reading() is None
+    notes = [line for _level, line in xbmc.LOG if "no reading" in line]
+    assert len(notes) == 1                                   # once, not every pass
+
+
+def test_a_reading_after_none_is_noted_again_when_it_goes(driver):
+    watch = counting()
+    driver.present = False
+    tick(watch)
+    driver.present = True
+    tick(watch)
+    driver.present = False
+    tick(watch)
+    assert len([line for _level, line in xbmc.LOG if "no reading" in line]) == 2
 
 
 def test_without_a_video_nothing_is_published(driver):

@@ -152,12 +152,16 @@ def test_the_fps_row_without_a_rate(monkeypatch):
 
 def test_the_toggle_count_is_read_from_the_drivers_settings(monkeypatch, tmp_path):
     node = tmp_path / "video"
-    node.write_text(" media.video.new_frame_count=12\n media.video.toggle_count=4321\n")
+    # As the driver lists its settings: the node's name, no path before it.
+    node.write_text("[NODE]video:[rw/1/52/1]\n video.new_frame_count=12\n"
+                    " video.toggle_count=4321\n video.show_first_frame_nosync=1\n")
     real_open = open
     monkeypatch.setattr(helpers, "open", lambda path, *args, **kwargs: real_open(
         node if path == helpers.TOGGLE_COUNT_PATH else path, *args, **kwargs), raising=False)
     assert helpers.read_toggle_count() == 4321
-    node.write_text(" media.video.new_frame_count=12\n")      # a driver without it
+    node.write_text(" media.video.toggle_count=99\n")         # with its full path
+    assert helpers.read_toggle_count() == 99
+    node.write_text(" video.new_frame_count=12\n")            # a driver without it
     assert helpers.read_toggle_count() is None
 
 

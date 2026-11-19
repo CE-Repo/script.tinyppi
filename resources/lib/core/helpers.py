@@ -68,10 +68,11 @@ def format_fps(fps_value: str | float) -> str:
 
 
 # The video layer's count of the frames it has shown, one line among the
-# driver's settings: `` media.video.toggle_count=1234``.  It rises by one for
-# each new picture on screen and leaves out the frames the layer skipped.
+# driver's settings: `` video.toggle_count=1234`` (the node's name without
+# its path; a full ``media.video.`` path is read as well).  It rises by one
+# for each new picture on screen and leaves out the frames the layer skipped.
 TOGGLE_COUNT_PATH = "/sys/class/media-configs/video"
-_TOGGLE_COUNT_RE = re.compile(r"media\.video\.toggle_count=(\d+)")
+_TOGGLE_COUNT_RE = re.compile(r"\bvideo\.toggle_count=(\d+)")
 
 
 def read_toggle_count() -> int | None:

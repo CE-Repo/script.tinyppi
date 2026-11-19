@@ -120,6 +120,8 @@ class FpsDropWatch(threading.Thread):
         self._source = ""
         self._published: str | None = None
         self._last_error = ""
+        # Whether the last pass found no reading to take, logged once.
+        self._unreadable = False
         # Nothing is counted before this time (monotonic): the wait after a
         # start, a seek or a resume.
         self._settle_until = 0.0
@@ -178,9 +180,15 @@ class FpsDropWatch(threading.Thread):
             return
         reading = self._read(played)
         if reading is None:
+            if not self._unreadable:
+                _log("no reading: the play time, the frame rate or the video "
+                     "layer's frame count is missing, or no new picture came",
+                     xbmc.LOGINFO)
+            self._unreadable = True
             self._held_back = None
             self._publish("")
             return
+        self._unreadable = False
         counted, self._held_back = self._held_back, reading
         if counted is not None:
             before = self._tally.total
