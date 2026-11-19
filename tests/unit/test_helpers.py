@@ -4,10 +4,14 @@
 """Frame-rate formatting (core/helpers.py) and the VS10 dialog's geometry
 (ui/dialog_layout.py)."""
 
+import math
+
 import pytest
 
 import xbmcaddon
+import xbmcgui
 from core import helpers
+from core.utils import PROP_FPS_DROP
 from ui import dialog_layout as layout
 
 
@@ -31,53 +35,157 @@ def test_format_fps_trims_and_snaps(raw, expected):
     assert helpers.format_fps(raw) == expected
 
 
-def test_fps_drop_from_sysfs(monkeypatch):
-    monkeypatch.setattr(helpers, "_read_fps_sysfs", lambda: (0x18, 0x16))
-    assert helpers.get_fps_drop() == 2
-    assert helpers.fps_display_texts("23.976") == ("024 - 002", "22")
-    monkeypatch.setattr(helpers, "_read_fps_sysfs", lambda: (10, 20))
-    assert helpers.get_fps_drop() == 0
+def layer(fps, seconds, dropped=(), stalled=(), fields=1, start=0):
+    """The readings of a video layer playing *fps*, one a second.
+
+    In a second named in *dropped* a frame of the film is skipped; in one
+    named in *stalled* a picture stays on screen a turn longer.
+    """
+    film, shown, readings = 0, 1000, []
+    for second in range(seconds):
+        due = math.floor((second + 1) * fps) - math.floor(second * fps)
+        if second in dropped:
+            film, shown = film + due + 1, shown + due * fields
+        elif second in stalled:
+            film, shown = film + due - 1, shown + (due - 1) * fields
+        else:
+            film, shown = film + due, shown + due * fields
+        pts = (start + round(film * 90_000 / fps)) % (1 << 32)
+        readings.append((pts, shown, fps))
+    return readings
 
 
-def test_a_drop_of_one_frame_is_ignored(monkeypatch):
-    monkeypatch.setattr(helpers, "_read_fps_sysfs", lambda: (24, 23))
-    assert helpers.get_fps_drop() == 0
-    assert helpers.fps_display_texts("24") == ("024 - 000", "24")
-    monkeypatch.setattr(helpers, "_read_fps_sysfs", lambda: (24, 21))
-    assert helpers.get_fps_drop() == 3
-    assert helpers.fps_display_texts("24") == ("024 - 003", "21")
+def tallied(readings):
+    tally = helpers.FrameTally()
+    for reading in readings:
+        tally.update(*reading)
+    return tally
 
 
-def test_fps_without_sysfs_or_a_rate(monkeypatch):
-    monkeypatch.setattr(helpers, "_read_fps_sysfs", lambda: None)
-    assert helpers.get_fps_drop() == 0
-    assert helpers.fps_display_texts("50") == ("050 - 000", "50")
-    monkeypatch.setattr(helpers, "_read_fps_sysfs", pytest.fail)  # never read without a rate
-    assert helpers.fps_display_texts("") == ("000 - 000", "0")
+@pytest.mark.parametrize("fps", [23.976, 24.0, 25.0, 29.97, 50.0, 59.94, 60.0])
+def test_a_steady_layer_drops_nothing(fps):
+    tally = tallied(layer(fps, 7200))
+    assert (tally.rate, tally.total) == (0, 0)
+
+
+def test_a_skipped_frame_counts_at_once():
+    readings = layer(23.976, 200, dropped={100})
+    tally = tallied(readings[:100])
+    assert tally.total == 0
+    tally.update(*readings[100])
+    assert (tally.rate, tally.total) == (1, 1)
+    for reading in readings[101:]:
+        tally.update(*reading)
+    assert (tally.rate, tally.total) == (0, 1)
+
+
+def test_a_picture_left_on_screen_longer_is_no_drop():
+    assert tallied(layer(23.976, 600, stalled={10, 200, 400})).total == 0
+    assert tallied(layer(23.976, 600, stalled={10}, dropped={11})).total == 1
+
+
+def test_a_steady_drop_shows_as_a_rate():
+    tally = tallied(layer(24.0, 20, dropped=set(range(10, 20))))
+    assert (tally.rate, tally.total) == (1, 10)
+
+
+def test_interlaced_video_shows_two_pictures_a_frame():
+    assert tallied(layer(25.0, 60, fields=2)).total == 0
+    assert tallied(layer(25.0, 60, dropped={30}, fields=2)).total == 1
+    tally = tallied(layer(25.0, 10, fields=2))
+    pts, shown, fps = layer(25.0, 10, fields=2)[-1]
+    tally.update(pts + 3600, shown + 1, fps)                # a frame on, one field of it
+    assert tally.total == 1
+
+
+def test_the_time_stamp_wraps():
+    assert tallied(layer(23.976, 60, start=(1 << 32) - 500_000)).total == 0
+
+
+def test_a_jump_in_the_stream_is_a_new_starting_point():
+    readings = layer(24.0, 40, dropped={30})
+    pts, shown, fps = readings[10]
+    readings[10] = ((pts + 90_000 * 600) % (1 << 32), shown, fps)       # ten minutes on
+    readings[11:] = [((p + 90_000 * 600) % (1 << 32), n, f) for p, n, f in readings[11:]]
+    readings[20] = (readings[20][0] - 90_000 * 60, *readings[20][1:])    # a minute back
+    readings[21:] = [(p - 90_000 * 60, n, f) for p, n, f in readings[21:]]
+    assert tallied(readings).total == 1
+
+
+def test_a_stretch_starts_over_and_keeps_the_total():
+    tally = tallied(layer(24.0, 20, dropped={10}))
+    tally.restart()
+    assert (tally.rate, tally.total) == (0, 1)
+    for reading in layer(24.0, 20, dropped={5}):            # a count from 1000 again
+        tally.update(*reading)
+    assert tally.total == 2
+    tally.update(0, 10**6, 25.0)                             # another rate: a new stretch
+    tally.update(0, 10**6, 25.0)                             # nothing shown: no step known
+    tally.update(3600 * 25, 10**6 + 24, 25.0)
+    assert tally.total == 3
+    tally.reset()
+    assert (tally.rate, tally.total) == (0, 0)
+
+
+def test_the_fps_row_reads_the_published_drops(monkeypatch):
+    home = xbmcgui.Window(10000)
+    home.setProperty(PROP_FPS_DROP, "2|37")
+    assert helpers.fps_display_texts("23.976") == ("024 - 002", "22", "37")
+    home.setProperty(PROP_FPS_DROP, "0|0")
+    assert helpers.fps_display_texts("24") == ("024 - 000", "24", "0")
+    home.setProperty(PROP_FPS_DROP, "30|1")                 # never below 0
+    assert helpers.fps_display_texts("24") == ("024 - 030", "0", "1")
+
+
+@pytest.mark.parametrize("published", ["", "2", "x|1", "1|x", "-1|3"])
+def test_the_fps_row_without_counted_drops(published):
+    xbmcgui.Window(10000).setProperty(PROP_FPS_DROP, published)
+    assert helpers.fps_display_texts("50") == ("050 - 000", "50", "")
+
+
+def test_the_fps_row_without_a_rate(monkeypatch):
+    xbmcgui.Window(10000).setProperty(PROP_FPS_DROP, "2|5")
+    monkeypatch.setattr(helpers, "fps_drop_reading", pytest.fail)  # never read without a rate
+    assert helpers.fps_display_texts("") == ("000 - 000", "0", "")
     for raw in ("nan", "inf", "-inf", "1e400"):                 # no finite rate
-        assert helpers.fps_display_texts(raw) == ("000 - 000", "0")
+        assert helpers.fps_display_texts(raw) == ("000 - 000", "0", "")
 
 
-def test_fps_sysfs_parsing(monkeypatch, tmp_path):
-    node = tmp_path / "fps_info"
-    node.write_text("input_fps:0x18 output_fps:0x17 drop_fps:0x1\n")
+def test_the_toggle_count_is_read_from_the_drivers_settings(monkeypatch, tmp_path):
+    node = tmp_path / "video"
+    # As the driver lists its settings: the node's name, no path before it.
+    node.write_text("[NODE]video:[rw/1/52/1]\n video.new_frame_count=12\n"
+                    " video.toggle_count=4321\n video.show_first_frame_nosync=1\n")
     real_open = open
     monkeypatch.setattr(helpers, "open", lambda path, *args, **kwargs: real_open(
-        node if path == "/sys/class/video/fps_info" else path, *args, **kwargs), raising=False)
-    assert helpers._read_fps_sysfs() == (24, 23)
-    node.write_text("garbage")
-    assert helpers._read_fps_sysfs() is None
-    node.write_text("input_fps:0x18\n")                  # no output rate
-    assert helpers._read_fps_sysfs() is None
+        node if path == helpers.TOGGLE_COUNT_PATH else path, *args, **kwargs), raising=False)
+    assert helpers.read_toggle_count() == 4321
+    node.write_text(" media.video.toggle_count=99\n")         # with its full path
+    assert helpers.read_toggle_count() == 99
+    node.write_text(" video.new_frame_count=12\n")            # a driver without it
+    assert helpers.read_toggle_count() is None
 
 
-def test_an_unreadable_fps_node_counts_as_no_drop(monkeypatch):
+def test_the_time_stamp_on_screen_is_read_from_the_layers_state(monkeypatch, tmp_path):
+    node = tmp_path / "vframe_states"
+    node.write_text("amvideo vframe states\nvframe_pool_size=16\nvf index=3\n"
+                    "vf->pts=118794960\ncur vpts=118791180\nvf type=8\n")
+    real_open = open
+    monkeypatch.setattr(helpers, "open", lambda path, *args, **kwargs: real_open(
+        node if path == helpers.VIDEO_STATES_PATH else path, *args, **kwargs), raising=False)
+    assert helpers.read_video_pts() == 118791180
+    node.write_text("cur vpts=-2000\n")                       # past 2^31, printed signed
+    assert helpers.read_video_pts() == -2000
+    node.write_text("amvideo vframe states\nvframe_pool_size=16\n")   # no frame queued
+    assert helpers.read_video_pts() is None
+
+
+def test_unreadable_layer_files(monkeypatch):
     def missing(path, *_args, **_kwargs):
         raise FileNotFoundError(path)
     monkeypatch.setattr(helpers, "open", missing, raising=False)
-    assert helpers._read_fps_sysfs() is None
-    assert helpers.get_fps_drop() == 0
-    assert helpers.fps_display_texts("25") == ("025 - 000", "25")
+    assert helpers.read_toggle_count() is None
+    assert helpers.read_video_pts() is None
 
 
 # --- The VS10 dialog's layouts ----------------------------------------------

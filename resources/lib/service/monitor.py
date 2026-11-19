@@ -23,6 +23,7 @@ from core.constants import (
 from core.log import channel
 from core.utils import home_window
 from info.barscan import BarScanner
+from info.fpsdrop import FpsDropWatch
 from ui import fonts
 from ui.theme import apply_theme, migrate_legacy_colors
 from web import library
@@ -44,6 +45,9 @@ _SKIN_SETTLE = 1.0
 
 # How long the shutdown waits for the bar scanner's current frame.
 _SCANNER_STOP = 2.0
+
+# How long the shutdown waits for the drop counter's current pass.
+_FPS_WATCH_STOP = 1.0
 
 # Delay before the startup warm-up (font entries, view imports), so it does
 # not compete with Kodi's own startup.
@@ -67,6 +71,10 @@ _LIBRARY_DONE_NOTIFICATIONS = (
 # the library is told to expect a change (see ``library.settle``).
 _PLAYBACK_ENDED = "Player.OnStop"
 
+# A title's start, a seek (or a chapter skip) and the end of a pause: the
+# drop counter waits for the picture to settle.
+_SETTLING = ("Player.OnAVStart", "Player.OnSeek", "Player.OnResume")
+
 
 _log = channel("service")
 
@@ -77,9 +85,11 @@ class KodiMonitor(xbmc.Monitor):
     The monitor is the only object that lives for the whole Kodi session.
     """
 
-    def __init__(self, dashboard: WebDashboard | None = None) -> None:
+    def __init__(self, dashboard: WebDashboard | None = None,
+                 fps_watch: FpsDropWatch | None = None) -> None:
         super().__init__()
         self._dashboard = dashboard
+        self._fps_watch = fps_watch
         # Held while a splash controller runs.
         self._splash_lock = threading.Lock()
 
@@ -93,6 +103,9 @@ class KodiMonitor(xbmc.Monitor):
 
         if method == "Player.OnAVStart":
             self._maybe_show_splash()
+
+        if method in _SETTLING and self._fps_watch is not None:
+            self._fps_watch.settle()
 
         if method in _LIBRARY_DONE_NOTIFICATIONS:
             library.invalidate()
@@ -261,7 +274,10 @@ def run() -> None:
     addon     = settings.addon()
     win       = home_window()
     dashboard = WebDashboard()
-    monitor   = KodiMonitor(dashboard)
+    # Counts the frames the video driver drops while a video plays; started
+    # below, told about starts, seeks and resumes by the monitor.
+    fps_watch = FpsDropWatch()
+    monitor   = KodiMonitor(dashboard, fps_watch)
 
     # Colors from before the color picker are stored as a palette index (or
     # 999 for HEX) and would show as bare numbers.  Rewritten once.
@@ -292,6 +308,8 @@ def run() -> None:
     scanner = BarScanner()
     scanner.start()
 
+    fps_watch.start()
+
     _log("KodiMonitor started", xbmc.LOGINFO)
 
     # Block until Kodi shuts down; notifications arrive on their own thread.
@@ -313,5 +331,10 @@ def run() -> None:
         scanner.join(_SCANNER_STOP)
     except Exception as exc:  # never block the shutdown
         _log(f"stopping the bar scanner failed: {exc}", xbmc.LOGERROR)
+    try:
+        fps_watch.stop()
+        fps_watch.join(_FPS_WATCH_STOP)
+    except Exception as exc:  # never block the shutdown
+        _log(f"stopping the drop counter failed: {exc}", xbmc.LOGERROR)
 
     del monitor
