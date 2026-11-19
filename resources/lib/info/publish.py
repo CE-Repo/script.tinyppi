@@ -361,7 +361,7 @@ def _publish_static_properties(window: PropertyTarget, published: dict[str, str]
     # Uses the type just published; gates the channel graphics below.
     publish_channel_visibility(published=published)
 
-    fps_info_text, fps_out_text = fps_display_texts(
+    fps_info_text, fps_out_text, fps_total_text = fps_display_texts(
         clean(info("Player.Process(videofps)"))
     )
 
@@ -395,6 +395,7 @@ def _publish_static_properties(window: PropertyTarget, published: dict[str, str]
             ("GamutVar", get_GamutVar()),
             ("FpsInfoVar", fps_info_text),
             ("FpsDropVar", fps_out_text),
+            ("FpsDropTotalVar", fps_total_text),
             ("AudioBitrateKBVar", get_AudioBitrateKBVar()),
             ("AudioLiveBitrateVar", get_AudioLiveBitrateVar()),
             ("AudioCodecVar", get_AudioCodecVar()),

@@ -53,6 +53,11 @@ PROP_CAN_MEASURE = "TinyPPI.CanMeasure"
 # empty until one has lasted (see info.framing).
 PROP_WIDEST_ASPECT = "TinyPPI.WidestAspect"
 
+# The frames the video driver drops, as ``rate|total`` (frames per second
+# now, frames since the title started); empty while no video plays or the
+# driver's counters cannot be read (see info.fpsdrop).
+PROP_FPS_DROP = "TinyPPI.FpsDrop"
+
 
 # Per-pass read caches, one per thread (the overlay and the metadata view
 # refresh from different threads).  ``None`` outside a pass, where every read
@@ -384,6 +389,14 @@ def can_measure() -> bool:
 def widest_aspect() -> float | None:
     """Return the widest aspect ratio of the title so far (see info.framing)."""
     return first_float(home_window().getProperty(PROP_WIDEST_ASPECT))
+
+
+def fps_drop_reading() -> tuple[int, int] | None:
+    """Return the dropped frames as ``(rate, total)``, or None (see info.fpsdrop)."""
+    rate, sep, total = home_window().getProperty(PROP_FPS_DROP).partition("|")
+    if not sep or not rate.isdigit() or not total.isdigit():
+        return None
+    return int(rate), int(total)
 
 
 def coded_frame() -> tuple[int, int] | None:

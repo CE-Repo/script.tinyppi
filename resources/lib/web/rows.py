@@ -65,7 +65,9 @@ _AUDIO = (
 )
 
 _SYSTEM = (
-    (32248, (S("FpsInfoVar"), S("FpsDropVar", " = ", " FPS")), ()),
+    # The frames lost since the title started, while the driver counts them.
+    (32248, (S("FpsInfoVar"), S("FpsDropVar", " = ", " FPS")),
+            (S("FpsDropTotalVar", "(Σ ", ")"),)),
     (32249, (S("CpuUsageVar"),), ()),
     (32250, (S("CpuTemperature"),), ()),
     (32251, (S("CpuTopUsageVar"), S("MemoryUsed", " | ", "")), ()),

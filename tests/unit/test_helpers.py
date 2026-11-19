@@ -7,7 +7,9 @@
 import pytest
 
 import xbmcaddon
+import xbmcgui
 from core import helpers
+from core.utils import PROP_FPS_DROP
 from ui import dialog_layout as layout
 
 
@@ -31,31 +33,65 @@ def test_format_fps_trims_and_snaps(raw, expected):
     assert helpers.format_fps(raw) == expected
 
 
-def test_fps_drop_from_sysfs(monkeypatch):
-    monkeypatch.setattr(helpers, "_read_fps_sysfs", lambda: (0x18, 0x16))
-    assert helpers.get_fps_drop() == 2
-    assert helpers.fps_display_texts("23.976") == ("024 - 002", "22")
-    monkeypatch.setattr(helpers, "_read_fps_sysfs", lambda: (10, 20))
-    assert helpers.get_fps_drop() == 0
+def counted(*readings):
+    """A DropCounter fed the (in, out) readings, one a second."""
+    counter = helpers.DropCounter()
+    for reading in readings:
+        counter.update(*reading)
+    return counter
 
 
-def test_a_drop_of_one_frame_is_ignored(monkeypatch):
-    monkeypatch.setattr(helpers, "_read_fps_sysfs", lambda: (24, 23))
-    assert helpers.get_fps_drop() == 0
-    assert helpers.fps_display_texts("24") == ("024 - 000", "24")
-    monkeypatch.setattr(helpers, "_read_fps_sysfs", lambda: (24, 21))
-    assert helpers.get_fps_drop() == 3
-    assert helpers.fps_display_texts("24") == ("024 - 003", "21")
+def test_readings_out_of_step_are_no_drop():
+    # The two counters' windows drift: 23 one second, 25 the next.
+    counter = counted((24, 23), (24, 25), (24, 24), (24, 23), (24, 25), (24, 23))
+    assert (counter.rate, counter.total) == (0, 0)
+    # A lone frame the readings never make up for is forgotten after a window.
+    counter = counted((24, 23), *[(24, 24)] * 5, (24, 23))
+    assert (counter.rate, counter.total) == (0, 0)
+    # More out than in (a repeated frame) owes nothing to later drops.
+    counter = counted((10, 20), (24, 22))
+    assert (counter.rate, counter.total) == (0, 2)
 
 
-def test_fps_without_sysfs_or_a_rate(monkeypatch):
-    monkeypatch.setattr(helpers, "_read_fps_sysfs", lambda: None)
-    assert helpers.get_fps_drop() == 0
-    assert helpers.fps_display_texts("50") == ("050 - 000", "50")
-    monkeypatch.setattr(helpers, "_read_fps_sysfs", pytest.fail)  # never read without a rate
-    assert helpers.fps_display_texts("") == ("000 - 000", "0")
+def test_a_steady_drop_of_one_frame_a_second_counts():
+    counter = counted(*[(24, 23)] * 6)
+    assert (counter.rate, counter.total) == (1, 6)
+
+
+def test_a_burst_shows_for_a_window_and_stays_in_the_total():
+    counter = counted((24, 24), (24, 21))
+    assert (counter.rate, counter.total) == (2, 3)          # 3 lost over 2 s
+    for _ in range(4):
+        counter.update(24, 24)
+    assert (counter.rate, counter.total) == (1, 3)          # 3 lost over 5 s
+    counter.update(24, 24)                                   # out of the window
+    assert (counter.rate, counter.total) == (0, 3)
+    counter.reset()
+    assert (counter.rate, counter.total) == (0, 0)
+
+
+def test_the_fps_row_reads_the_published_drops(monkeypatch):
+    home = xbmcgui.Window(10000)
+    home.setProperty(PROP_FPS_DROP, "2|37")
+    assert helpers.fps_display_texts("23.976") == ("024 - 002", "22", "37")
+    home.setProperty(PROP_FPS_DROP, "0|0")
+    assert helpers.fps_display_texts("24") == ("024 - 000", "24", "0")
+    home.setProperty(PROP_FPS_DROP, "30|1")                 # never below 0
+    assert helpers.fps_display_texts("24") == ("024 - 030", "0", "1")
+
+
+@pytest.mark.parametrize("published", ["", "2", "x|1", "1|x", "-1|3"])
+def test_the_fps_row_without_counted_drops(published):
+    xbmcgui.Window(10000).setProperty(PROP_FPS_DROP, published)
+    assert helpers.fps_display_texts("50") == ("050 - 000", "50", "")
+
+
+def test_the_fps_row_without_a_rate(monkeypatch):
+    xbmcgui.Window(10000).setProperty(PROP_FPS_DROP, "2|5")
+    monkeypatch.setattr(helpers, "fps_drop_reading", pytest.fail)  # never read without a rate
+    assert helpers.fps_display_texts("") == ("000 - 000", "0", "")
     for raw in ("nan", "inf", "-inf", "1e400"):                 # no finite rate
-        assert helpers.fps_display_texts(raw) == ("000 - 000", "0")
+        assert helpers.fps_display_texts(raw) == ("000 - 000", "0", "")
 
 
 def test_fps_sysfs_parsing(monkeypatch, tmp_path):
@@ -64,20 +100,18 @@ def test_fps_sysfs_parsing(monkeypatch, tmp_path):
     real_open = open
     monkeypatch.setattr(helpers, "open", lambda path, *args, **kwargs: real_open(
         node if path == "/sys/class/video/fps_info" else path, *args, **kwargs), raising=False)
-    assert helpers._read_fps_sysfs() == (24, 23)
+    assert helpers.read_fps_sysfs() == (24, 23)
     node.write_text("garbage")
-    assert helpers._read_fps_sysfs() is None
+    assert helpers.read_fps_sysfs() is None
     node.write_text("input_fps:0x18\n")                  # no output rate
-    assert helpers._read_fps_sysfs() is None
+    assert helpers.read_fps_sysfs() is None
 
 
-def test_an_unreadable_fps_node_counts_as_no_drop(monkeypatch):
+def test_an_unreadable_fps_node(monkeypatch):
     def missing(path, *_args, **_kwargs):
         raise FileNotFoundError(path)
     monkeypatch.setattr(helpers, "open", missing, raising=False)
-    assert helpers._read_fps_sysfs() is None
-    assert helpers.get_fps_drop() == 0
-    assert helpers.fps_display_texts("25") == ("025 - 000", "25")
+    assert helpers.read_fps_sysfs() is None
 
 
 # --- The VS10 dialog's layouts ----------------------------------------------

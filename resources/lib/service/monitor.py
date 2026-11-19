@@ -23,6 +23,7 @@ from core.constants import (
 from core.log import channel
 from core.utils import home_window
 from info.barscan import BarScanner
+from info.fpsdrop import FpsDropWatch
 from ui import fonts
 from ui.theme import apply_theme, migrate_legacy_colors
 from web import library
@@ -44,6 +45,9 @@ _SKIN_SETTLE = 1.0
 
 # How long the shutdown waits for the bar scanner's current frame.
 _SCANNER_STOP = 2.0
+
+# How long the shutdown waits for the drop counter's current pass.
+_FPS_WATCH_STOP = 1.0
 
 # Delay before the startup warm-up (font entries, view imports), so it does
 # not compete with Kodi's own startup.
@@ -292,6 +296,10 @@ def run() -> None:
     scanner = BarScanner()
     scanner.start()
 
+    # Counts the frames the video driver drops while a video plays.
+    fps_watch = FpsDropWatch()
+    fps_watch.start()
+
     _log("KodiMonitor started", xbmc.LOGINFO)
 
     # Block until Kodi shuts down; notifications arrive on their own thread.
@@ -313,5 +321,10 @@ def run() -> None:
         scanner.join(_SCANNER_STOP)
     except Exception as exc:  # never block the shutdown
         _log(f"stopping the bar scanner failed: {exc}", xbmc.LOGERROR)
+    try:
+        fps_watch.stop()
+        fps_watch.join(_FPS_WATCH_STOP)
+    except Exception as exc:  # never block the shutdown
+        _log(f"stopping the drop counter failed: {exc}", xbmc.LOGERROR)
 
     del monitor

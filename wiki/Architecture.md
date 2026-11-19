@@ -78,7 +78,7 @@ script.tinyppi/
 | `settings.py` | One cached `xbmcaddon.Addon` handle per interpreter, renewed only when the stored settings file changes (one `stat` per call instead of a ~100 KB XML parse). |
 | `log.py` | Tagged logging: `TinyPPI: …` and `TinyPPI [area]: …`. `FORCE_DEBUG` raises debug lines to INFO for local testing; `redacted()` takes share credentials out of paths before they are logged. |
 | `utils.py` | Home-window helpers, InfoLabel reads (`info`, `cond`) inside a `read_pass`, change-only property writes, the `ChangeHighlighter`, offset parsing, the effective HDR type. |
-| `helpers.py` | Frame-rate formatting and the FPS drop counter. |
+| `helpers.py` | Frame-rate formatting, the driver's frame counters (`/sys/class/video/fps_info`) and `DropCounter`, which smooths their per-second readings into a drop rate and a total. |
 | `maps.py` | Lookup tables: video/audio/subtitle codec names, codec logos, HDR logos, IMAX logos, channel layouts and speaker labels. Language names come from `resources/data/languages.json`. |
 | `memo.py` | `KeyedMemo`, a one-entry cache keyed by its input. |
 | `protocols.py` | Structural types shared by Kodi windows and their stand-ins (`PropertyTarget`). |
@@ -105,13 +105,14 @@ script.tinyppi/
 | `bars.py` | Black bars measured from one captured frame, and `BarTracker`, which decides what a run of frames proves. Free of Kodi imports. |
 | `framing.py` | The widest aspect ratio the playing title has shown, followed on the bar scanner's thread and published as `TinyPPI.WidestAspect`; `properties.py` lights the IMAX mark while the picture is taller. |
 | `barscan.py` | The service thread that captures the video (`xbmc.RenderCapture`), feeds `bars.py` and publishes the confirmed bars as the Home property `TinyPPI.MeasuredBars`; idle with the `measure_aspect_ratio` setting off (it is on by default) and on builds that cannot capture. |
+| `fpsdrop.py` | The service thread that reads the driver's frame counters once a second while a video plays, feeds `DropCounter` and publishes the drop rate and the frames lost since the title started as the Home property `TinyPPI.FpsDrop` (`rate\|total`); empty off Amlogic hardware. |
 
 ### `resources/lib/service/`
 
 | Module | Purpose |
 |---|---|
 | `start.py` | The service's entry point named in `addon.xml`: puts `resources/lib` on the path and runs `monitor.py`. Kept this small for Kodi's add-on checker. |
-| `monitor.py` | The service itself: keeps a Kodi monitor alive for the session to react to notifications, opens views handed over by `main.py`, runs the splash and owns the web dashboard and the bar scanner. |
+| `monitor.py` | The service itself: keeps a Kodi monitor alive for the session to react to notifications, opens views handed over by `main.py`, runs the splash and owns the web dashboard, the bar scanner and the drop counter. |
 
 ### `resources/lib/ui/`
 
@@ -201,7 +202,7 @@ Kodi runs each add-on invocation in its own Python interpreter.
 
 | Interpreter | Lifetime | Runs |
 |---|---|---|
-| **Service** (`start.py` → `monitor.py`) | whole Kodi session | `KodiMonitor`, views handed over by launches, the codec-logo controller, the web dashboard, the bar scanner |
+| **Service** (`start.py` → `monitor.py`) | whole Kodi session | `KodiMonitor`, views handed over by launches, the codec-logo controller, the web dashboard, the bar scanner, the drop counter |
 | **Script** (`main.py`) | one launch | argument dispatch; normally just the handover |
 
 Threads inside the service:
@@ -220,6 +221,7 @@ Threads inside the service:
 | HTTP request threads | per connection | routes, SSE streams |
 | VS10 mode switcher | per request | applies dashboard switches one at a time |
 | Bar scanner | 50 ms | with `measure_aspect_ratio` on, captures a video frame and measures the black bars while a video plays; every 500 ms it follows the title's widest aspect ratio for the IMAX mark |
+| Drop counter | 1 s | while a video plays (not paused or seeking), reads the driver's frame counters and publishes the drop rate and the title's total |
 
 ---
 
@@ -371,4 +373,5 @@ therefore:
 2. stops the dashboard with a single 3 s deadline for all threads, hanging up
    idle keep-alive connections and sending open streams a `bye` frame,
 3. stops the bar scanner and waits up to 2 s for its current frame,
-4. exits — nothing may outlive the script.
+4. stops the drop counter and waits up to 1 s for its current pass,
+5. exits — nothing may outlive the script.
