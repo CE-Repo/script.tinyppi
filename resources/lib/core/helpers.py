@@ -105,11 +105,25 @@ def read_video_pts() -> int | None:
     return _read_number(VIDEO_STATES_PATH, _VIDEO_PTS_RE)
 
 
+# The hardware decoder's statistics, with the frames it has put out so far:
+# ``  frame count : 688`` (the first channel's, the video's).
+DECODER_STATUS_PATH = "/sys/class/vdec/vdec_status"
+_DECODED_COUNT_RE = re.compile(r"frame count\s*:\s*(\d+)")
+
+
+def read_decoded_count() -> int | None:
+    """Return the frames the hardware decoder has put out so far, or None."""
+    return _read_number(DECODER_STATUS_PATH, _DECODED_COUNT_RE)
+
+
 # Readings the drop rate is judged over.
 DROP_WINDOW = 5
 # A reading whose time stamp moves on by more than this many seconds' worth
 # of frames is a jump in the stream, not dropped frames.
 MAX_JUMP_SECONDS = 2.0
+# Between two readings the decoder must have put out at least this share of
+# the frames the time stamp went past, or the stream left pictures out.
+DECODED_SHARE = 0.85
 
 
 class FrameTally:
@@ -122,20 +136,33 @@ class FrameTally:
     neither, so a stall is no drop.  Both are exact counts, so no clock and
     no smoothing is needed.
 
-    Interlaced video may be shown as two pictures a frame, its fields; the
-    first readings tell, and skipped fields count as the frames they belong
-    to (a lone field as one).  A time stamp that goes back or leaps ahead is a jump in
-    the stream: the tally takes it as a new starting point.
+    An encoder may leave out pictures that repeat the one before (VC-1
+    does, in black or still scenes): the time stamp goes past them, but
+    there was never a frame to show.  The decoder's count of the frames it
+    put out tells: where it falls short of the frames the time stamp went
+    past (by more than the queue's ups and downs), the stream left pictures
+    out and the stretch between the two readings is not judged.  The
+    decoder's count alone cannot tell a drop, as the queue between decoder
+    and layer fills by a dozen frames when frames are small and empties
+    after.
+
+    Interlaced video may be shown as two pictures a frame, its fields, or be
+    decoded as two fields a frame; the first readings tell, and skipped
+    fields count as the frames they belong to (a lone field as one).  A time
+    stamp that goes back or leaps ahead is a jump in the stream: the tally
+    takes it as a new starting point.
     """
 
     def __init__(self) -> None:
         self._totals: deque[int] = deque(maxlen=DROP_WINDOW + 1)
         self._closed = 0          # frames dropped in earlier stretches
         self._counted = 0         # frames dropped in this stretch
-        self._last: tuple[int, int] | None = None   # time stamp, pictures shown
+        # The last reading: time stamp, pictures shown, frames decoded.
+        self._last: tuple[int, int, int] | None = None
         self._fps = 0.0
         self._step = 0.0          # ticks from one picture to the next; 0 until known
         self._fields = 1          # pictures a frame: 2 for interlaced fields
+        self._decoded_fields = 1  # decoded counts a frame: 2 for fields
 
     @property
     def total(self) -> int:
@@ -163,32 +190,47 @@ class FrameTally:
         self._step = 0.0
         self._totals.clear()
 
-    def update(self, pts: int, shown: int, fps: float) -> None:
-        """Add a reading: the time stamp on screen, the pictures shown so far
-        and the video's frame rate."""
+    def update(self, pts: int, shown: int, decoded: int, fps: float) -> None:
+        """Add a reading: the time stamp on screen, the pictures shown so far,
+        the frames the decoder has put out and the video's frame rate."""
         last = self._last
-        if last is None or fps != self._fps or shown < last[1]:
+        if (last is None or fps != self._fps or shown < last[1]
+                or decoded < last[2]):
             # The first reading, another rate, or a count that started over.
             self.restart()
-            self._last, self._fps = (pts, shown), fps
+            self._last, self._fps = (pts, shown, decoded), fps
             self._totals.append(self.total)
             return
         ticks, pictures = (pts - last[0]) % PTS_WRAP, shown - last[1]
-        self._last = (pts, shown)
+        made = decoded - last[2]
+        self._last = (pts, shown, decoded)
         if ticks > MAX_JUMP_SECONDS * PTS_CLOCK + PTS_CLOCK * pictures / fps:
             # Back in time (a huge forward step after the wrap) or far ahead.
             self._step = 0.0
             return
-        if not self._step:
-            if not pictures:
-                return
-            # Interlaced video shown as fields has twice the pictures.
-            step = PTS_CLOCK / fps
-            self._fields = 2 if pictures > 1.5 * ticks / step else 1
-            self._step = step / self._fields
+        if self._step or self._learn(ticks, pictures, made):
+            self._judge(ticks, pictures, made)
+            self._totals.append(self.total)
+
+    def _learn(self, ticks: int, pictures: int, made: int) -> bool:
+        """Learn the pictures a frame from the first step; False without one."""
+        if not pictures:
+            return False
+        frames = ticks * self._fps / PTS_CLOCK
+        # Interlaced video shown or decoded as fields counts twice.
+        self._fields = 2 if pictures > 1.5 * frames else 1
+        self._decoded_fields = 2 if made > 1.5 * frames else 1
+        self._step = PTS_CLOCK / self._fps / self._fields
+        return True
+
+    def _judge(self, ticks: int, pictures: int, made: int) -> None:
+        """Count the frames skipped in a step, unless the stream left some out."""
+        frames = ticks * self._fps / PTS_CLOCK
+        if made / self._decoded_fields < DECODED_SHARE * frames:
+            # Pictures the stream left out: nothing to judge.
+            return
         skipped = round(ticks / self._step) - pictures
         self._counted += max(0, math.ceil(skipped / self._fields))
-        self._totals.append(self.total)
 
 
 def fps_display_texts(video_fps: str | float) -> tuple[str, str, str]:

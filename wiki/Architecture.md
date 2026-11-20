@@ -78,7 +78,7 @@ script.tinyppi/
 | `settings.py` | One cached `xbmcaddon.Addon` handle per interpreter, renewed only when the stored settings file changes (one `stat` per call instead of a ~100 KB XML parse). |
 | `log.py` | Tagged logging: `TinyPPI: …` and `TinyPPI [area]: …`. `FORCE_DEBUG` raises debug lines to INFO for local testing; `redacted()` takes share credentials out of paths before they are logged. |
 | `utils.py` | Home-window helpers, InfoLabel reads (`info`, `cond`) inside a `read_pass`, change-only property writes, the `ChangeHighlighter`, offset parsing, the effective HDR type. |
-| `helpers.py` | Frame-rate formatting, the video layer's readings (the time stamp on screen, `cur vpts` in `/sys/class/video/vframe_states`, and the pictures shown, `toggle_count` in `/sys/class/media-configs/video`) and `FrameTally`, which counts the frames the time stamp went past without a picture as a drop rate and a total. |
+| `helpers.py` | Frame-rate formatting, the video layer's readings (the time stamp on screen, `cur vpts` in `/sys/class/video/vframe_states`, the pictures shown, `toggle_count` in `/sys/class/media-configs/video`, and the frames the hardware decoder put out, `frame count` in `/sys/class/vdec/vdec_status`) and `FrameTally`, which counts the frames the time stamp went past without a picture as a drop rate and a total; a second in which the decoder put out clearly fewer frames than the time stamp went past is not judged, as the stream itself left pictures out (VC-1 in black or still scenes). |
 | `maps.py` | Lookup tables: video/audio/subtitle codec names, codec logos, HDR logos, IMAX logos, channel layouts and speaker labels. Language names come from `resources/data/languages.json`. |
 | `memo.py` | `KeyedMemo`, a one-entry cache keyed by its input. |
 | `protocols.py` | Structural types shared by Kodi windows and their stand-ins (`PropertyTarget`). |
@@ -105,7 +105,7 @@ script.tinyppi/
 | `bars.py` | Black bars measured from one captured frame, and `BarTracker`, which decides what a run of frames proves. Free of Kodi imports. |
 | `framing.py` | The widest aspect ratio the playing title has shown, followed on the bar scanner's thread and published as `TinyPPI.WidestAspect`; `properties.py` lights the IMAX mark while the picture is taller. |
 | `barscan.py` | The service thread that captures the video (`xbmc.RenderCapture`), feeds `bars.py` and publishes the confirmed bars as the Home property `TinyPPI.MeasuredBars`; idle with the `measure_aspect_ratio` setting off (it is on by default) and on builds that cannot capture. |
-| `fpsdrop.py` | The service thread that, once a second while a video plays, reads the time stamp on screen and the pictures shown (the count before and after, so both belong to one picture), feeds `FrameTally` and publishes the drop rate and the frames lost since the title started as the Home property `TinyPPI.FpsDrop` (`rate\|total`); empty off Amlogic hardware. |
+| `fpsdrop.py` | The service thread that, once a second while a video plays, reads the time stamp on screen and the pictures shown (the count before and after, so both belong to one picture) and the frames decoded, feeds `FrameTally` and publishes the drop rate and the frames lost since the title started as the Home property `TinyPPI.FpsDrop` (`rate\|total`); empty off Amlogic hardware. |
 
 ### `resources/lib/service/`
 
@@ -247,7 +247,7 @@ A keymap can send step 2's `NotifyAll` directly and skip the script entirely.
 ## Data flow of a reading
 
 ```
-Kodi InfoLabels / Player.Process(...)      Amlogic sysfs (dv mode, time stamp, picture count)
+Kodi InfoLabels / Player.Process(...)      Amlogic sysfs (dv mode, time stamp, picture count, frames decoded)
 Player.Process(video.sidedata) ──► script.module.sidedata ──► info/dvinfo.py
                     │
                     ▼

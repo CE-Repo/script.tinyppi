@@ -9,8 +9,11 @@ time stamp of the picture on screen (``cur vpts`` in
 pictures it has shown (``toggle_count`` in
 ``/sys/class/media-configs/video``).  ``core.helpers.FrameTally`` compares
 the frames the time stamp went past with the pictures shown: the rest were
-skipped.  The thread publishes the drop rate and the frames lost since the
-title started as a Home-window property.
+skipped.  The hardware decoder's count of the frames it put out (``frame
+count`` in ``/sys/class/vdec/vdec_status``) tells the pictures the stream
+itself left out, in black or still scenes, which are no drop.  The thread
+publishes the drop rate and the frames lost since the title started as a
+Home-window property.
 
 The count is read before and after the time stamp, and the reading taken
 again if a picture changed in between, so both belong to the same picture.
@@ -50,7 +53,7 @@ import threading
 import time
 
 import xbmc
-from core.helpers import FrameTally, read_toggle_count, read_video_pts
+from core.helpers import FrameTally, read_decoded_count, read_toggle_count, read_video_pts
 from core.log import channel
 from core.utils import PROP_FPS_DROP, first_float, home_window
 
@@ -81,9 +84,9 @@ LAYER_RETRY = 0.005
 # Passes in a row without a reading before the row is emptied.
 MISSES_ALLOWED = 3
 
-# One reading: the time stamp on screen, the pictures shown so far and the
-# video's frame rate.
-Reading = tuple[int, int, float]
+# One reading: the time stamp on screen, the pictures shown so far, the
+# frames decoded so far and the video's frame rate.
+Reading = tuple[int, int, int, float]
 
 
 def _play_time() -> float | None:
@@ -94,8 +97,9 @@ def _play_time() -> float | None:
         return None
 
 
-def _read_layer() -> tuple[int, int] | str:
-    """Return the time stamp on screen and the pictures shown.
+def _read_layer() -> tuple[int, int, int] | str:
+    """Return the time stamp on screen, the pictures shown and the frames
+    decoded.
 
     When there is no such reading, return what was missing instead.
     """
@@ -107,7 +111,10 @@ def _read_layer() -> tuple[int, int] | str:
         if before is None or after is None:
             return "the picture count"
         if pts is not None and before == after:
-            return pts, after
+            decoded = read_decoded_count()
+            if decoded is None:
+                return "the decoder's frame count"
+            return pts, after, decoded
         missing = "the time stamp on screen" if pts is None else "a steady picture count"
         time.sleep(LAYER_RETRY)
     return missing

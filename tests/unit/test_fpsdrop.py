@@ -18,7 +18,8 @@ SEEKED = [0.0]
 
 class Layer:
     """The video layer playing a 24 fps film: one picture a frame, less the
-    frames it skipped, a time stamp 3750 ticks a frame."""
+    frames it skipped, a time stamp 3750 ticks a frame, the decoder putting
+    out every frame."""
 
     skipped = 0
     readings = 0
@@ -30,7 +31,7 @@ class Layer:
             return "the time stamp on screen"
         cls.readings += 1
         shown = round((CLOCK[0] - 100.0) * 24)
-        return (shown + cls.skipped) * 3750, 1000 + shown
+        return (shown + cls.skipped) * 3750, 1000 + shown, 5000 + shown + cls.skipped
 
 
 @pytest.fixture
@@ -235,12 +236,14 @@ def test_the_play_time_and_the_frame_rate_come_from_kodi(monkeypatch):
 
 @pytest.fixture
 def layer_files(monkeypatch):
-    """The layer's picture count and time stamp as successive reads find them."""
+    """The layer's picture count and time stamp as successive reads find them,
+    the decoder at 7000 frames."""
     counts: list[int | None] = []
     stamps: list[int | None] = []
     pauses: list[float] = []
     monkeypatch.setattr(fpsdrop, "read_toggle_count", lambda: counts.pop(0))
     monkeypatch.setattr(fpsdrop, "read_video_pts", lambda: stamps.pop(0))
+    monkeypatch.setattr(fpsdrop, "read_decoded_count", lambda: 7000)
     monkeypatch.setattr(fpsdrop.time, "sleep", pauses.append)
     return counts, stamps, pauses
 
@@ -249,12 +252,12 @@ def test_the_count_and_the_time_stamp_belong_to_one_picture(layer_files):
     counts, stamps, pauses = layer_files
     counts.extend([500, 500])
     stamps.append(90_000)
-    assert fpsdrop._read_layer() == (90_000, 500)
+    assert fpsdrop._read_layer() == (90_000, 500, 7000)
     assert pauses == []
     # A picture changed between the reads: read again.
     counts.extend([500, 501, 501, 501])
     stamps.extend([90_000, 93_750])
-    assert fpsdrop._read_layer() == (93_750, 501)
+    assert fpsdrop._read_layer() == (93_750, 501, 7000)
     assert counts == [] and stamps == [] and pauses == [fpsdrop.LAYER_RETRY]
 
 
@@ -262,11 +265,11 @@ def test_the_time_stamp_is_looked_for_until_a_frame_waits(layer_files):
     counts, stamps, pauses = layer_files
     counts.extend([500, 500, 501, 501])
     stamps.extend([None, None, 97_500])                       # an empty queue, twice
-    assert fpsdrop._read_layer() == (97_500, 501)
+    assert fpsdrop._read_layer() == (97_500, 501, 7000)
     assert len(pauses) == 2
 
 
-def test_what_is_missing_when_there_is_no_layer_reading(layer_files):
+def test_what_is_missing_when_there_is_no_layer_reading(layer_files, monkeypatch):
     counts, stamps, pauses = layer_files
     counts.extend([500] * fpsdrop.LAYER_TRIES)
     stamps.extend([None] * fpsdrop.LAYER_TRIES)              # never a frame queued
@@ -279,6 +282,9 @@ def test_what_is_missing_when_there_is_no_layer_reading(layer_files):
     assert fpsdrop._read_layer() == "the picture count"
     counts[:], stamps[:] = [500, None], [1]
     assert fpsdrop._read_layer() == "the picture count"
+    monkeypatch.setattr(fpsdrop, "read_decoded_count", lambda: None)   # no vdec_status
+    counts[:], stamps[:] = [500, 500], [1]
+    assert fpsdrop._read_layer() == "the decoder's frame count"
 
 
 def test_the_thread_clears_a_stale_count_and_stops(driver, monkeypatch):
