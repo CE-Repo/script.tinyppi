@@ -35,22 +35,31 @@ def test_format_fps_trims_and_snaps(raw, expected):
     assert helpers.format_fps(raw) == expected
 
 
-def layer(fps, seconds, dropped=(), skipped=(), fields=1, decoded_fields=1, jitter=0):
-    """Readings a second apart of a decoder and a layer playing *fps*.
+def layer(fps, seconds, dropped=(), stalled=(), left_out=(), queued=None, fields=1,
+          decoded_fields=1, start=0):
+    """The readings of a decoder and a video layer playing *fps*, one a second.
 
-    In a second named in *dropped* the layer drops a frame the decoder put
-    out; in one named in *skipped* the stream leaves out half its pictures
-    (a still scene), which the decoder never puts out.  *jitter* frames
-    more are decoded every other second: the queue filling and emptying.
+    In a second named in *dropped* a frame of the film is skipped; in one
+    named in *stalled* a picture stays on screen a turn longer.  In one
+    named in *left_out* the stream holds every other picture only (a black
+    scene), and *queued* maps a second to the frames the decoder has put out
+    ahead by then (the queue filling).
     """
-    decoded, shown, readings = 5000, 1000, []
+    film, shown, decoded, readings = 0, 1000, 5000, []
     for second in range(seconds):
         due = math.floor((second + 1) * fps) - math.floor(second * fps)
-        if second in skipped:
-            due //= 2
-        decoded += due * decoded_fields
-        shown += (due - (second in dropped)) * fields
-        readings.append((decoded + (jitter if second % 2 else 0), shown, fps))
+        if second in dropped:
+            film, shown, made = film + due + 1, shown + due * fields, due + 1
+        elif second in stalled:
+            film, shown, made = film + due - 1, shown + (due - 1) * fields, due - 1
+        elif second in left_out:
+            film, shown, made = film + due, shown + due // 2 * fields, due // 2
+        else:
+            film, shown, made = film + due, shown + due * fields, due
+        decoded += made * decoded_fields
+        pts = (start + round(film * 90_000 / fps)) % (1 << 32)
+        ahead = (queued or {}).get(second, 0)
+        readings.append((pts, shown, decoded + ahead * decoded_fields, fps))
     return readings
 
 
@@ -63,65 +72,65 @@ def tallied(readings):
 
 @pytest.mark.parametrize("fps", [23.976, 24.0, 25.0, 29.97, 50.0, 59.94, 60.0])
 def test_a_steady_layer_drops_nothing(fps):
-    tally = tallied(layer(fps, 7200, jitter=1))
+    tally = tallied(layer(fps, 7200))
     assert (tally.rate, tally.total) == (0, 0)
 
 
-def test_pictures_the_stream_leaves_out_are_no_drop():
-    # VC-1 in a black scene: half the pictures are repeats never decoded.
-    assert tallied(layer(23.976, 600, skipped=set(range(100, 400)))).total == 0
-    assert tallied(layer(23.976, 600, skipped=set(range(100, 400)), dropped={200})).total == 1
-
-
-def test_a_dropped_frame_counts_once_it_holds():
-    readings = layer(23.976, 200, dropped={100}, jitter=1)
-    tally = tallied(readings[:101])
-    assert tally.total == 0                                  # one reading may be the queue
-    for reading in readings[101:105]:
-        tally.update(*reading)
-    assert tally.total == 0                                  # the queue's jitter on top
-    tally.update(*readings[105])
+def test_a_skipped_frame_counts_at_once():
+    readings = layer(23.976, 200, dropped={100})
+    tally = tallied(readings[:100])
+    assert tally.total == 0
+    tally.update(*readings[100])
     assert (tally.rate, tally.total) == (1, 1)
-    for reading in readings[106:]:
+    for reading in readings[101:]:
         tally.update(*reading)
     assert (tally.rate, tally.total) == (0, 1)
 
 
+def test_pictures_the_stream_leaves_out_are_no_drop():
+    # VC-1 in a black scene: every other picture repeats the one before and
+    # is never decoded.  The decoder runs ahead and fills the queue by a
+    # dozen frames the second before it starts; the queue empties in its
+    # last second (as measured on an Amlogic box).
+    black = set(range(100, 400))
+    queued = dict.fromkeys(range(99, 399), 12)
+    assert tallied(layer(23.976, 600, left_out=black, queued=queued)).total == 0
+    assert tallied(layer(23.976, 600, left_out=black, queued=queued,
+                         dropped={50, 500})).total == 2
+
+
+def test_a_picture_left_on_screen_longer_is_no_drop():
+    assert tallied(layer(23.976, 600, stalled={10, 200, 400})).total == 0
+    assert tallied(layer(23.976, 600, stalled={10}, dropped={11})).total == 1
+
+
 def test_a_steady_drop_shows_as_a_rate():
-    tally = tallied(layer(24.0, 30, dropped=set(range(10, 30))))
-    assert (tally.rate, tally.total) == (1, 18)              # the last two still unsure
+    tally = tallied(layer(24.0, 20, dropped=set(range(10, 20))))
+    assert (tally.rate, tally.total) == (1, 10)
 
 
-def test_a_fuller_queue_at_the_start_is_no_drop():
-    readings = layer(24.0, 60)
-    readings[3] = (readings[3][0] + 1, *readings[3][1:])     # the queue's fullest
-    assert tallied(readings).total == 0
-
-
-def test_shown_more_than_decoded_sets_a_new_level():
-    # A decoder that counts its frames late, as at the end of a still scene.
-    readings = layer(24.0, 60, dropped={40})
-    readings[20:] = [(d - 14, n, f) for d, n, f in readings[20:]]
-    assert tallied(readings).total == 1
-
-
-def test_the_pictures_a_frame_are_judged_over_enough_frames():
-    tally = helpers.FrameTally()
-    tally.update(100, 100, 25.0)
-    tally.update(110, 108, 25.0)                             # too few frames to judge
-    tally.update(125, 124, 25.0)                             # 25 frames: one picture each
-    for second in range(1, 12):
-        tally.update(125 + 25 * second, 124 + 25 * second - (second >= 8), 25.0)
+@pytest.mark.parametrize("decoded_fields", [1, 2])
+def test_interlaced_video_shows_two_pictures_a_frame(decoded_fields):
+    assert tallied(layer(25.0, 60, fields=2, decoded_fields=decoded_fields)).total == 0
+    assert tallied(layer(25.0, 60, dropped={30}, fields=2,
+                         decoded_fields=decoded_fields)).total == 1
+    tally = tallied(layer(25.0, 10, fields=2))
+    pts, shown, decoded, fps = layer(25.0, 10, fields=2)[-1]
+    tally.update(pts + 3600, shown + 1, decoded + 1, fps)   # a frame on, one field of it
     assert tally.total == 1
 
 
-@pytest.mark.parametrize(("fields", "decoded_fields"), [(2, 1), (1, 2)])
-def test_interlaced_video_counts_frames_not_fields(fields, decoded_fields):
-    assert tallied(layer(25.0, 60, fields=fields, decoded_fields=decoded_fields)).total == 0
-    assert tallied(layer(25.0, 60, dropped={30}, fields=fields,
-                         decoded_fields=decoded_fields)).total == 1
-    readings = layer(25.0, 60, fields=2)
-    readings[30:] = [(d, n - 1, f) for d, n, f in readings[30:]]   # a lone field
+def test_the_time_stamp_wraps():
+    assert tallied(layer(23.976, 60, start=(1 << 32) - 500_000)).total == 0
+
+
+def test_a_jump_in_the_stream_is_a_new_starting_point():
+    readings = layer(24.0, 40, dropped={30})
+    pts, shown, decoded, fps = readings[10]
+    readings[10] = ((pts + 90_000 * 600) % (1 << 32), shown, decoded, fps)   # ten minutes on
+    readings[11:] = [((p + 90_000 * 600) % (1 << 32), *rest) for p, *rest in readings[11:]]
+    readings[20] = (readings[20][0] - 90_000 * 60, *readings[20][1:])    # a minute back
+    readings[21:] = [(p - 90_000 * 60, *rest) for p, *rest in readings[21:]]
     assert tallied(readings).total == 1
 
 
@@ -129,13 +138,16 @@ def test_a_stretch_starts_over_and_keeps_the_total():
     tally = tallied(layer(24.0, 20, dropped={10}))
     tally.restart()
     assert (tally.rate, tally.total) == (0, 1)
-    for reading in layer(24.0, 20, dropped={8}):            # counts from the start again
+    for reading in layer(24.0, 20, dropped={5}):            # a count from 1000 again
         tally.update(*reading)
     assert tally.total == 2
-    tally.update(0, 10**6, 25.0)                             # another rate: a new stretch
-    for second in range(1, 12):
-        tally.update(25 * second, 10**6 + 25 * second - (second >= 8), 25.0)
+    tally.update(0, 10**6, 0, 25.0)                          # another rate: a new stretch
+    tally.update(0, 10**6, 0, 25.0)                          # nothing shown: no step known
+    tally.update(3600 * 25, 10**6 + 24, 25, 25.0)
     assert tally.total == 3
+    tally.update(3600 * 50, 10**6 + 48, 10, 25.0)            # the decoder started over
+    tally.update(3600 * 75, 10**6 + 72, 35, 25.0)
+    assert tally.total == 4
     tally.reset()
     assert (tally.rate, tally.total) == (0, 0)
 
@@ -179,6 +191,20 @@ def test_the_toggle_count_is_read_from_the_drivers_settings(monkeypatch, tmp_pat
     assert helpers.read_toggle_count() is None
 
 
+def test_the_time_stamp_on_screen_is_read_from_the_layers_state(monkeypatch, tmp_path):
+    node = tmp_path / "vframe_states"
+    node.write_text("amvideo vframe states\nvframe_pool_size=16\nvf index=3\n"
+                    "vf->pts=118794960\ncur vpts=118791180\nvf type=8\n")
+    real_open = open
+    monkeypatch.setattr(helpers, "open", lambda path, *args, **kwargs: real_open(
+        node if path == helpers.VIDEO_STATES_PATH else path, *args, **kwargs), raising=False)
+    assert helpers.read_video_pts() == 118791180
+    node.write_text("cur vpts=-2000\n")                       # past 2^31, printed signed
+    assert helpers.read_video_pts() == -2000
+    node.write_text("amvideo vframe states\nvframe_pool_size=16\n")   # no frame queued
+    assert helpers.read_video_pts() is None
+
+
 def test_the_decoded_count_is_read_from_the_decoders_status(monkeypatch, tmp_path):
     node = tmp_path / "vdec_status"
     node.write_text("vdec channel 0 statistics:\n  device name : amvdec_vc1\n"
@@ -196,6 +222,7 @@ def test_unreadable_layer_files(monkeypatch):
         raise FileNotFoundError(path)
     monkeypatch.setattr(helpers, "open", missing, raising=False)
     assert helpers.read_toggle_count() is None
+    assert helpers.read_video_pts() is None
     assert helpers.read_decoded_count() is None
 
 
