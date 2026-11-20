@@ -4,23 +4,26 @@
 """Count the frames the video driver drops, all through playback.
 
 One thread in the service reads, once a second while a video plays, the
-time stamp of the picture on screen (``cur vpts`` in
-``/sys/class/video/vframe_states``) and the video layer's count of the
+frames the hardware decoder has put out (``frame count`` in
+``/sys/class/vdec/vdec_status``) and the video layer's count of the
 pictures it has shown (``toggle_count`` in
 ``/sys/class/media-configs/video``).  ``core.helpers.FrameTally`` compares
-the frames the time stamp went past with the pictures shown: the rest were
-skipped.  The thread publishes the drop rate and the frames lost since the
-title started as a Home-window property.
+the two: a frame decoded and never shown was dropped.  The thread publishes
+the drop rate and the frames lost since the title started as a Home-window
+property.
 
-The count is read before and after the time stamp, and the reading taken
-again if a picture changed in between, so both belong to the same picture.
-The driver lists the time stamp only while a frame waits in its queue, so
-a pass looks again every ``LAYER_RETRY`` seconds, ``LAYER_TRIES`` times at
-most (longer than a frame takes).  A pass that still finds none is
-skipped, and only ``MISSES_ALLOWED`` such passes in a row empty the row,
-with a note in the log that says what was missing.  The FPS row
-of the overlay and the dashboard reads it in whichever interpreter they run,
-so the total covers the whole title, not only the time a view was open.
+The stream's time stamps are not compared with the pictures shown: in
+still or black scenes an encoder may leave out pictures that repeat the one
+before (VC-1 does), which the time stamps step over though nothing was
+dropped.
+
+The picture count is read before and after the decoder's, and the reading
+taken again if a picture changed in between, ``LAYER_TRIES`` times at most.
+A pass without a reading is skipped, and only ``MISSES_ALLOWED`` such
+passes in a row empty the row, with a note in the log that says what was
+missing.  The FPS row of the overlay and the dashboard reads it in
+whichever interpreter they run, so the total covers the whole title, not
+only the time a view was open.
 
 When a title starts, after a seek and when playback resumes, the picture
 takes a moment to settle and frames go missing that are no fault of the
@@ -39,8 +42,9 @@ first:
 Kodi announces a seek only once its player carries it out, and the
 announcement reaches the service later still, while the frame count
 already shows the seek's disruption.  So each reading is held back for one pass and
-counted only if no sign of a seek has come by then: the row lags the driver
-by a second, and a seek's first second is never counted.
+counted only if no sign of a seek has come by then, and the tally judges a
+drop over a few readings: the row lags the driver by a few seconds, and a
+seek's first second is never counted.
 
 Without these readings (off Amlogic hardware, or a driver without them) the
 property stays empty and the row shows no drop and no total.
@@ -50,7 +54,7 @@ import threading
 import time
 
 import xbmc
-from core.helpers import FrameTally, read_toggle_count, read_video_pts
+from core.helpers import FrameTally, read_decoded_count, read_toggle_count
 from core.log import channel
 from core.utils import PROP_FPS_DROP, first_float, home_window
 
@@ -72,16 +76,15 @@ _HOLDING = "Player.Paused | Player.Caching | Player.Forwarding | Player.Rewindin
 _log = channel("fps")
 
 
-# Tries at reading the time stamp, and the pause between two: the driver
-# lists it only while a frame waits in its queue, and the picture count
-# must not change meanwhile.
-LAYER_TRIES = 20
+# Tries at reading the two counts, and the pause between two: the picture
+# count must not change meanwhile.
+LAYER_TRIES = 5
 LAYER_RETRY = 0.005
 
 # Passes in a row without a reading before the row is emptied.
 MISSES_ALLOWED = 3
 
-# One reading: the time stamp on screen, the pictures shown so far and the
+# One reading: the frames decoded, the pictures shown so far and the
 # video's frame rate.
 Reading = tuple[int, int, float]
 
@@ -95,22 +98,21 @@ def _play_time() -> float | None:
 
 
 def _read_layer() -> tuple[int, int] | str:
-    """Return the time stamp on screen and the pictures shown.
+    """Return the frames decoded and the pictures shown.
 
     When there is no such reading, return what was missing instead.
     """
-    missing = "the time stamp on screen"
     for _try in range(LAYER_TRIES):
         before = read_toggle_count()
-        pts = read_video_pts() if before is not None else None
-        after = read_toggle_count() if pts is not None else before
-        if before is None or after is None:
+        if before is None:
             return "the picture count"
-        if pts is not None and before == after:
-            return pts, after
-        missing = "the time stamp on screen" if pts is None else "a steady picture count"
+        decoded = read_decoded_count()
+        if decoded is None:
+            return "the decoder's frame count"
+        if read_toggle_count() == before:
+            return decoded, before
         time.sleep(LAYER_RETRY)
-    return missing
+    return "a steady picture count"
 
 
 def _video_fps() -> float | None:
@@ -199,7 +201,7 @@ class FpsDropWatch(threading.Thread):
             before = self._tally.total
             self._tally.update(*counted)
             if self._tally.total > before:
-                _log(f"{self._tally.total - before} frame(s) dropped near "
+                _log(f"{self._tally.total - before} frame(s) dropped, counted at "
                      f"{played:.0f} s")
         self._publish(f"{self._tally.rate}|{self._tally.total}")
 
